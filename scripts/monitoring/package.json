@@ -5,7 +5,7 @@
   "main": "setup-uptime-kuma.js",
   "scripts": {
     "setup": "node setup-uptime-kuma.js",
-    "setup:docker": "docker run --rm --network crm-network -v $(pwd):/app -w /app node:18-alpine sh -c 'npm install && npm run setup'"
+    "setup:docker": "docker run --rm --network crm-network -v $(pwd):/app -w /app node:20-alpine sh -c 'npm install && npm run setup'"
   },
   "dependencies": {
     "socket.io-client": "^4.7.0"

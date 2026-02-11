@@ -65,7 +65,7 @@ The CRM solution now has a **comprehensive testing framework** with unit tests, 
 
 ### CI/CD Pipeline
 - ✅ **GitHub Actions** - `.github/workflows/ci-cd.yml` (220+ lines)
-  - **Job 1**: Frontend tests (Node 18.x & 20.x)
+  - **Job 1**: Frontend tests (Node 20.x)
   - **Job 2**: Backend tests (.NET 8.0)
   - **Job 3**: Docker build & push
   - **Job 4**: Code quality checks (ESLint, StyleCop)
@@ -212,7 +212,7 @@ scripts/
 - ✅ Pull requests
 
 ### Execution Order
-1. **Frontend Tests** (Node 18.x & 20.x) - ~5 minutes
+1. **Frontend Tests** (Node 20.x) - ~5 minutes
    - npm install
    - TypeScript compilation
    - ESLint checks
@@ -419,8 +419,8 @@ mockService.Verify(x => x.Method(), Times.Once());
 
 **Problem**: Node.js not found
 ```bash
-# Solution: Install Node.js 18+ from nodejs.org
-node --version  # Should be v18.0.0 or higher
+# Solution: Install Node.js 20+ from nodejs.org
+node --version  # Should be v20.0.0 or higher
 ```
 
 **Problem**: .NET SDK not found

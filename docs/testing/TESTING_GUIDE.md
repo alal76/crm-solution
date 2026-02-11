@@ -263,7 +263,7 @@ Automatic testing on:
 
 **Pipeline Stages:**
 1. **Frontend Tests & Build**
-   - Node.js 18.x and 20.x
+   - Node.js 20.x
    - TypeScript check, linting, unit tests
    - Production bundle build
    - Coverage report upload

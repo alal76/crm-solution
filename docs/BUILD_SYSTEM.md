@@ -198,7 +198,7 @@ FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine
 
 ```dockerfile
 # Stage 1: npm dependencies (cached)
-FROM node:18-alpine AS deps
+FROM node:20-alpine AS deps
 COPY package*.json
 RUN --mount=type=cache npm ci
 
