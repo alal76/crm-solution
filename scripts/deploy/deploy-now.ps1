@@ -1,8 +1,12 @@
 #!/usr/bin/env pwsh
+# ⚠️  DEPRECATED — Use scripts/deploy.sh instead
 # Direct deployment script for remote Docker server
+# This script is DEPRECATED and will be removed in a future release.
+# Use: ./scripts/deploy.sh --env dev
+Write-Warning "This script is deprecated. Use scripts/deploy.sh --env dev instead."
 
 $RemoteHost = "192.168.0.9"
-$RemoteUser = "root"
+$RemoteUser = if ($env:BUILD_USER) { $env:BUILD_USER } else { "deploy" }
 $RemotePort = "22"
 $DeployPath = "/opt/crm"
 $Registry = "ghcr.io/alal76"

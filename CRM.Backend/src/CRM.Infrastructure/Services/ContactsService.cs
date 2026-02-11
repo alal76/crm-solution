@@ -36,14 +36,14 @@ namespace CRM.Infrastructure.Services;
 /// </summary>
 public class ContactsService : IContactsService, IContactInputPort
 {
-    private readonly CrmDbContext _context;
+    private readonly ICrmDbContext _context;
     private readonly IContactInfoService _contactInfoService;
     private readonly IEntityEventDispatcher _eventDispatcher;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ContactsService"/> class.
     /// </summary>
-    public ContactsService(CrmDbContext context, IContactInfoService contactInfoService, IEntityEventDispatcher eventDispatcher)
+    public ContactsService(ICrmDbContext context, IContactInfoService contactInfoService, IEntityEventDispatcher eventDispatcher)
     {
         _context = context;
         _contactInfoService = contactInfoService;

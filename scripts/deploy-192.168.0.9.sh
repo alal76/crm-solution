@@ -1,11 +1,15 @@
 #!/bin/bash
 # =============================================================================
+# ⚠️  DEPRECATED — Use scripts/deploy.sh instead
+# =============================================================================
 # CRM Solution Deployment Script for 192.168.0.9
 # Deploys: Frontend + API on Kubernetes, Databases on Docker
+#
+# This script is DEPRECATED and will be removed in a future release.
+# Use the unified parameterized script instead:
+#   ./scripts/deploy.sh --env dev
 # =============================================================================
-# NOTE: For new deployments, prefer scripts/deploy.sh (the unified parameterized
-# script). This script is maintained for 192.168.0.9-specific workflows.
-# =============================================================================
+echo "⚠️  WARNING: This script is deprecated. Use scripts/deploy.sh --env dev instead." >&2
 
 set -e
 

@@ -1,5 +1,8 @@
+# ⚠️  DEPRECATED — Use scripts/deploy.sh instead
 # CRM Application Kubernetes Deployment Script (PowerShell)
-# This script deploys the entire CRM application to a Kubernetes cluster
+# This script is DEPRECATED and will be removed in a future release.
+# Use the unified parameterized script: ./scripts/deploy.sh --env dev
+Write-Warning "This script is deprecated. Use scripts/deploy.sh --env dev instead."
 
 param(
     [Parameter(Position=0)]

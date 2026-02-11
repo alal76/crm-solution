@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using CRM.Core.Interfaces.ITSM;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -44,6 +45,7 @@ public class SelfServiceChatbotController : ControllerBase
     /// </summary>
     [HttpPost("session")]
     [AllowAnonymous]
+    [ProducesResponseType(typeof(ChatSessionDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<ChatSessionDto>> StartSession()
     {
         int? userId = null;
@@ -66,6 +68,7 @@ public class SelfServiceChatbotController : ControllerBase
     /// </summary>
     [HttpPost("message")]
     [AllowAnonymous]
+    [ProducesResponseType(typeof(ChatbotResponseDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<ChatbotResponseDto>> SendMessage([FromBody] ChatbotMessageDto message)
     {
         int? userId = null;
@@ -87,6 +90,7 @@ public class SelfServiceChatbotController : ControllerBase
     /// </summary>
     [HttpGet("session/{sessionId}/history")]
     [AllowAnonymous]
+    [ProducesResponseType(typeof(List<ChatMessageDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<List<ChatMessageDto>>> GetSessionHistory(string sessionId)
     {
         var history = await _chatbotService.GetSessionHistoryAsync(sessionId);
@@ -98,6 +102,7 @@ public class SelfServiceChatbotController : ControllerBase
     /// </summary>
     [HttpPost("session/{sessionId}/end")]
     [AllowAnonymous]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult> EndSession(string sessionId)
     {
         await _chatbotService.EndSessionAsync(sessionId);
@@ -109,6 +114,7 @@ public class SelfServiceChatbotController : ControllerBase
     /// </summary>
     [HttpGet("quick-actions")]
     [AllowAnonymous]
+    [ProducesResponseType(typeof(List<QuickActionDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<List<QuickActionDto>>> GetQuickActions()
     {
         var actions = await _chatbotService.GetQuickActionsAsync();
@@ -120,6 +126,7 @@ public class SelfServiceChatbotController : ControllerBase
     /// </summary>
     [HttpPost("quick-actions/{actionId}")]
     [AllowAnonymous]
+    [ProducesResponseType(typeof(ChatbotResponseDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<ChatbotResponseDto>> ExecuteQuickAction(string actionId)
     {
         int? userId = null;
@@ -141,6 +148,7 @@ public class SelfServiceChatbotController : ControllerBase
     /// </summary>
     [HttpGet("search")]
     [AllowAnonymous]
+    [ProducesResponseType(typeof(List<KnowledgeSearchResultDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<List<KnowledgeSearchResultDto>>> SearchKnowledge([FromQuery] string query)
     {
         var results = await _chatbotService.SearchKnowledgeAsync(query);
@@ -152,6 +160,7 @@ public class SelfServiceChatbotController : ControllerBase
     /// </summary>
     [HttpPost("session/{sessionId}/create-incident")]
     [Authorize]
+    [ProducesResponseType(typeof(IncidentCreationResultDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<IncidentCreationResultDto>> CreateIncidentFromChat(string sessionId)
     {
         int? userId = null;
@@ -170,6 +179,8 @@ public class SelfServiceChatbotController : ControllerBase
     /// </summary>
     [HttpGet("incidents/{incidentNumber}/status")]
     [AllowAnonymous]
+    [ProducesResponseType(typeof(IncidentStatusResponseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<IncidentStatusResponseDto>> CheckIncidentStatus(string incidentNumber)
     {
         int? userId = null;
@@ -194,6 +205,7 @@ public class SelfServiceChatbotController : ControllerBase
     /// </summary>
     [HttpPost("sessions")]
     [AllowAnonymous]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult> CreateSession()
     {
         try
@@ -216,6 +228,7 @@ public class SelfServiceChatbotController : ControllerBase
     /// </summary>
     [HttpPost("sessions/{sessionId}/messages")]
     [AllowAnonymous]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult> SendSessionMessage(string sessionId, [FromBody] ChatbotSessionMessageRequest request)
     {
         try
@@ -239,6 +252,7 @@ public class SelfServiceChatbotController : ControllerBase
     /// </summary>
     [HttpGet("sessions/{sessionId}")]
     [AllowAnonymous]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult> GetSession(string sessionId)
     {
         try
@@ -258,6 +272,7 @@ public class SelfServiceChatbotController : ControllerBase
     /// </summary>
     [HttpPost("search")]
     [AllowAnonymous]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult> SearchKnowledgeBase([FromBody] ChatbotSearchRequest searchRequest)
     {
         try

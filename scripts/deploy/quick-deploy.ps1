@@ -1,5 +1,8 @@
+# ⚠️  DEPRECATED — Use scripts/deploy.sh instead
 # Quick Deploy Script - Builds, Pushes, and Deploys to Remote Docker Server
-# This script automates the entire deployment pipeline
+# This script is DEPRECATED and will be removed in a future release.
+# Use: ./scripts/deploy.sh --env dev
+Write-Warning "This script is deprecated. Use scripts/deploy.sh --env dev instead."
 
 param(
     [Parameter(Position=0)]

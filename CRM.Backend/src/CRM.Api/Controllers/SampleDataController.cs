@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using CRM.Infrastructure.Services;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -45,6 +46,7 @@ public class SampleDataController : ControllerBase
     /// Get sample data status and statistics
     /// </summary>
     [HttpGet("status")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetStatus()
     {
         try
@@ -83,6 +85,7 @@ public class SampleDataController : ControllerBase
     /// Seed all sample data to the production database
     /// </summary>
     [HttpPost("seed")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> SeedSampleData()
     {
         try
@@ -120,6 +123,7 @@ public class SampleDataController : ControllerBase
     /// Seed only sample users
     /// </summary>
     [HttpPost("seed/users")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> SeedSampleUsers()
     {
         try
@@ -139,6 +143,7 @@ public class SampleDataController : ControllerBase
     /// Seed only products and services
     /// </summary>
     [HttpPost("seed/products")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> SeedProducts()
     {
         try
@@ -158,6 +163,7 @@ public class SampleDataController : ControllerBase
     /// Seed only service request categories and types
     /// </summary>
     [HttpPost("seed/servicerequests")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> SeedServiceRequestCategories()
     {
         try
@@ -177,6 +183,7 @@ public class SampleDataController : ControllerBase
     /// Seed only customers
     /// </summary>
     [HttpPost("seed/customers")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> SeedCustomers()
     {
         try
@@ -196,6 +203,7 @@ public class SampleDataController : ControllerBase
     /// Seed only contacts
     /// </summary>
     [HttpPost("seed/contacts")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> SeedContacts()
     {
         try
@@ -215,6 +223,7 @@ public class SampleDataController : ControllerBase
     /// Seed only leads
     /// </summary>
     [HttpPost("seed/leads")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> SeedLeads()
     {
         try
@@ -234,6 +243,7 @@ public class SampleDataController : ControllerBase
     /// Seed only opportunities
     /// </summary>
     [HttpPost("seed/opportunities")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> SeedOpportunities()
     {
         try
@@ -253,6 +263,7 @@ public class SampleDataController : ControllerBase
     /// Clear all sample data while preserving master data (ZipCodes, ColorPalettes)
     /// </summary>
     [HttpDelete("clear")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> ClearSampleData()
     {
         try

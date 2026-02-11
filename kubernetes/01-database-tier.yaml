@@ -1,20 +1,25 @@
-apiVersion: v1
-kind: PersistentVolume
+# =============================================================================
+# StorageClass for database persistent storage
+# Uses dynamic provisioning — compatible with multi-node clusters.
+#
+# For cloud providers, replace the provisioner:
+#   AWS EBS:        kubernetes.io/aws-ebs       (or ebs.csi.aws.com)
+#   Azure Disk:     kubernetes.io/azure-disk     (or disk.csi.azure.com)
+#   GCP PD:         kubernetes.io/gce-pd         (or pd.csi.storage.gke.io)
+#   NFS:            nfs-subdir-external-provisioner
+#   Ceph/Rook:      rook-ceph.rbd.csi.ceph.com
+#
+# For single-node development, the default provisioner (or rancher.io/local-path)
+# works out of the box.
+# =============================================================================
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
 metadata:
-  name: crm-db-pv
-  namespace: crm-app
-spec:
-  capacity:
-    storage: 10Gi
-  accessModes:
-    - ReadWriteOnce
-  persistentVolumeReclaimPolicy: Retain
-  storageClassName: standard
-  # WARNING: hostPath is for single-node/development only.
-  # For production, use a PersistentVolumeClaim with a proper StorageClass
-  # (e.g., cloud block storage, NFS, or Ceph) for multi-node reliability.
-  hostPath:
-    path: /data/crm
+  name: crm-database-storage
+provisioner: rancher.io/local-path   # Replace with cloud CSI driver for production
+reclaimPolicy: Retain
+volumeBindingMode: WaitForFirstConsumer
+allowVolumeExpansion: true
 ---
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -24,7 +29,7 @@ metadata:
 spec:
   accessModes:
     - ReadWriteOnce
-  storageClassName: standard
+  storageClassName: crm-database-storage
   resources:
     requests:
       storage: 10Gi

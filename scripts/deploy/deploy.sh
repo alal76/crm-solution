@@ -1,10 +1,15 @@
 #!/bin/bash
-
+# =============================================================================
+# ⚠️  DEPRECATED — Use scripts/deploy.sh instead
+# =============================================================================
 # CRM Application Kubernetes Deployment Script
 # This script deploys the entire CRM application to a Kubernetes cluster
 #
-# NOTE: For new deployments, prefer scripts/deploy.sh (the unified parameterized
-# script). This K8s-specific script is maintained for direct kubectl workflows.
+# This script is DEPRECATED and will be removed in a future release.
+# Use the unified parameterized script instead:
+#   ./scripts/deploy.sh --env dev
+# =============================================================================
+echo "⚠️  WARNING: This script is deprecated. Use scripts/deploy.sh --env dev instead." >&2
 
 set -e
 

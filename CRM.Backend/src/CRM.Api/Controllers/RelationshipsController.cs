@@ -16,6 +16,7 @@
 
 using CRM.Core.Dtos;
 using CRM.Infrastructure.Services;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -53,6 +54,7 @@ public class RelationshipsController : ControllerBase
     /// Get all relationship types
     /// </summary>
     [HttpGet("types")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetRelationshipTypes([FromQuery] bool includeInactive = false)
     {
         try
@@ -71,6 +73,8 @@ public class RelationshipsController : ControllerBase
     /// Get a relationship type by ID
     /// </summary>
     [HttpGet("types/{id}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetRelationshipType(int id)
     {
         try
@@ -92,6 +96,8 @@ public class RelationshipsController : ControllerBase
     /// Create a new relationship type
     /// </summary>
     [HttpPost("types")]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CreateRelationshipType([FromBody] RelationshipTypeCreateDto dto)
     {
         try
@@ -111,6 +117,9 @@ public class RelationshipsController : ControllerBase
     /// Update a relationship type
     /// </summary>
     [HttpPut("types/{id}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> UpdateRelationshipType(int id, [FromBody] RelationshipTypeCreateDto dto)
     {
         try
@@ -136,6 +145,8 @@ public class RelationshipsController : ControllerBase
     /// Delete a relationship type
     /// </summary>
     [HttpDelete("types/{id}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteRelationshipType(int id)
     {
         try
@@ -165,6 +176,7 @@ public class RelationshipsController : ControllerBase
     /// Get all relationships with filtering
     /// </summary>
     [HttpGet]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetRelationships(
         [FromQuery] string? search = null,
         [FromQuery] string? status = null,
@@ -198,6 +210,7 @@ public class RelationshipsController : ControllerBase
     /// Get relationships for a specific customer
     /// </summary>
     [HttpGet("customer/{customerId}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetCustomerRelationships(
         int customerId,
         [FromQuery] string? status = null,
@@ -220,6 +233,8 @@ public class RelationshipsController : ControllerBase
     /// Get a relationship by ID
     /// </summary>
     [HttpGet("{id}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetRelationship(int id)
     {
         try
@@ -241,6 +256,8 @@ public class RelationshipsController : ControllerBase
     /// Create a new relationship
     /// </summary>
     [HttpPost]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CreateRelationship([FromBody] AccountRelationshipCreateDto dto)
     {
         try
@@ -264,6 +281,9 @@ public class RelationshipsController : ControllerBase
     /// Update a relationship
     /// </summary>
     [HttpPut("{id}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> UpdateRelationship(int id, [FromBody] AccountRelationshipCreateDto dto)
     {
         try
@@ -286,6 +306,8 @@ public class RelationshipsController : ControllerBase
     /// Delete a relationship
     /// </summary>
     [HttpDelete("{id}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteRelationship(int id)
     {
         try
@@ -311,6 +333,7 @@ public class RelationshipsController : ControllerBase
     /// Get interactions for a relationship
     /// </summary>
     [HttpGet("{relationshipId}/interactions")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetRelationshipInteractions(int relationshipId)
     {
         try
@@ -329,6 +352,7 @@ public class RelationshipsController : ControllerBase
     /// Create an interaction for a relationship
     /// </summary>
     [HttpPost("interactions")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> CreateInteraction([FromBody] RelationshipInteractionCreateDto dto)
     {
         try
@@ -352,6 +376,7 @@ public class RelationshipsController : ControllerBase
     /// Get relationship map visualization data for a customer
     /// </summary>
     [HttpGet("map/{customerId}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetRelationshipMap(
         int customerId,
         [FromQuery] int depth = 2,
@@ -388,6 +413,7 @@ public class RelationshipsController : ControllerBase
     /// Get health snapshots for a customer
     /// </summary>
     [HttpGet("health/{customerId}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetHealthSnapshots(
         int customerId,
         [FromQuery] DateTime? startDate = null,
@@ -409,6 +435,7 @@ public class RelationshipsController : ControllerBase
     /// Create a health snapshot for a customer
     /// </summary>
     [HttpPost("health")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> CreateHealthSnapshot([FromBody] AccountHealthSnapshotCreateDto dto)
     {
         try

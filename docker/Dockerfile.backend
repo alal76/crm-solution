@@ -65,8 +65,9 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
 
 EXPOSE 5000 5001
 
-# Build-arg for SSL certificate password (override at build time: --build-arg SSL_CERT_PASSWORD=...)
-ARG SSL_CERT_PASSWORD=CrmSslCert2024
+# SECURITY: SSL_CERT_PASSWORD must be provided at runtime via environment variable.
+# Do NOT bake passwords into the image. Mount the certificate via K8s secret or Docker volume.
+ARG SSL_CERT_PASSWORD=""
 
 # Environment configuration
 ENV ASPNETCORE_URLS=http://+:5000 \
@@ -74,7 +75,7 @@ ENV ASPNETCORE_URLS=http://+:5000 \
     DOTNET_RUNNING_IN_CONTAINER=true \
     DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false \
     SSL_CERT_PATH=/app/ssl/server.pfx \
-    SSL_CERT_PASSWORD=$SSL_CERT_PASSWORD \
+    SSL_CERT_PASSWORD=${SSL_CERT_PASSWORD} \
     HTTPS_PORT=5001 \
     HTTP_PORT=5000
 

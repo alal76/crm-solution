@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
@@ -44,6 +45,7 @@ public class TerritoriesController : ControllerBase
     /// Get all territories with optional filtering.
     /// </summary>
     [HttpGet]
+    [ProducesResponseType(typeof(IEnumerable<AccountTerritory>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<AccountTerritory>>> GetAllTerritories(
         [FromQuery] bool? isActive = null,
         [FromQuery] int? teamId = null,
@@ -58,6 +60,8 @@ public class TerritoriesController : ControllerBase
     /// Get a territory by ID.
     /// </summary>
     [HttpGet("{id:int}")]
+    [ProducesResponseType(typeof(AccountTerritory), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<AccountTerritory>> GetTerritoryById(int id, CancellationToken cancellationToken)
     {
         var territory = await _territoryService.GetTerritoryByIdAsync(id, cancellationToken);
@@ -72,6 +76,8 @@ public class TerritoriesController : ControllerBase
     /// Get a territory by code.
     /// </summary>
     [HttpGet("by-code/{code}")]
+    [ProducesResponseType(typeof(AccountTerritory), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<AccountTerritory>> GetTerritoryByCode(string code, CancellationToken cancellationToken)
     {
         var territory = await _territoryService.GetTerritoryByCodeAsync(code, cancellationToken);
@@ -86,6 +92,8 @@ public class TerritoriesController : ControllerBase
     /// Create a new territory.
     /// </summary>
     [HttpPost]
+    [ProducesResponseType(typeof(AccountTerritory), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<AccountTerritory>> CreateTerritory(
         [FromBody] AccountTerritory territory,
         CancellationToken cancellationToken)
@@ -98,6 +106,9 @@ public class TerritoriesController : ControllerBase
     /// Update an existing territory.
     /// </summary>
     [HttpPut("{id:int}")]
+    [ProducesResponseType(typeof(AccountTerritory), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<AccountTerritory>> UpdateTerritory(
         int id,
         [FromBody] AccountTerritory territory,
@@ -116,6 +127,8 @@ public class TerritoriesController : ControllerBase
     /// Delete a territory (soft delete).
     /// </summary>
     [HttpDelete("{id:int}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> DeleteTerritory(int id, CancellationToken cancellationToken)
     {
         var result = await _territoryService.DeleteTerritoryAsync(id, cancellationToken);
@@ -130,6 +143,7 @@ public class TerritoriesController : ControllerBase
     /// Activate a territory.
     /// </summary>
     [HttpPost("{id:int}/activate")]
+    [ProducesResponseType(typeof(AccountTerritory), StatusCodes.Status200OK)]
     public async Task<ActionResult<AccountTerritory>> ActivateTerritory(int id, CancellationToken cancellationToken)
     {
         var territory = await _territoryService.ActivateTerritoryAsync(id, cancellationToken);
@@ -140,6 +154,7 @@ public class TerritoriesController : ControllerBase
     /// Deactivate a territory.
     /// </summary>
     [HttpPost("{id:int}/deactivate")]
+    [ProducesResponseType(typeof(AccountTerritory), StatusCodes.Status200OK)]
     public async Task<ActionResult<AccountTerritory>> DeactivateTerritory(int id, CancellationToken cancellationToken)
     {
         var territory = await _territoryService.DeactivateTerritoryAsync(id, cancellationToken);
@@ -154,6 +169,7 @@ public class TerritoriesController : ControllerBase
     /// Assign an account to a territory.
     /// </summary>
     [HttpPost("{territoryId:int}/accounts/{accountId:int}")]
+    [ProducesResponseType(typeof(AccountTerritoryAssignment), StatusCodes.Status200OK)]
     public async Task<ActionResult<AccountTerritoryAssignment>> AssignAccount(
         int territoryId,
         int accountId,
@@ -171,6 +187,8 @@ public class TerritoriesController : ControllerBase
     /// Remove an account from a territory.
     /// </summary>
     [HttpDelete("{territoryId:int}/accounts/{accountId:int}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> UnassignAccount(int territoryId, int accountId, CancellationToken cancellationToken)
     {
         var result = await _territoryService.UnassignAccountAsync(accountId, territoryId, cancellationToken);
@@ -185,6 +203,7 @@ public class TerritoriesController : ControllerBase
     /// Get all territory assignments for an account.
     /// </summary>
     [HttpGet("accounts/{accountId:int}/assignments")]
+    [ProducesResponseType(typeof(IEnumerable<AccountTerritoryAssignment>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<AccountTerritoryAssignment>>> GetAccountAssignments(
         int accountId,
         CancellationToken cancellationToken)
@@ -197,6 +216,7 @@ public class TerritoriesController : ControllerBase
     /// Get all accounts in a territory.
     /// </summary>
     [HttpGet("{territoryId:int}/accounts")]
+    [ProducesResponseType(typeof(IEnumerable<Account>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<Account>>> GetTerritoryAccounts(int territoryId, CancellationToken cancellationToken)
     {
         var accounts = await _territoryService.GetTerritoryAccountsAsync(territoryId, cancellationToken);
@@ -207,6 +227,7 @@ public class TerritoriesController : ControllerBase
     /// Set the primary territory for an account.
     /// </summary>
     [HttpPut("accounts/{accountId:int}/primary")]
+    [ProducesResponseType(typeof(AccountTerritoryAssignment), StatusCodes.Status200OK)]
     public async Task<ActionResult<AccountTerritoryAssignment>> SetPrimaryTerritory(
         int accountId,
         [FromBody] SetPrimaryTerritoryRequest request,
@@ -220,6 +241,7 @@ public class TerritoriesController : ControllerBase
     /// Bulk assign accounts to a territory.
     /// </summary>
     [HttpPost("{territoryId:int}/accounts/bulk")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<int>> BulkAssignAccounts(
         int territoryId,
         [FromBody] BulkAssignAccountsRequest request,
@@ -234,6 +256,7 @@ public class TerritoriesController : ControllerBase
     /// Transfer accounts from one territory to another.
     /// </summary>
     [HttpPost("transfer")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<int>> TransferAccounts(
         [FromBody] TransferAccountsRequest request,
         CancellationToken cancellationToken)
@@ -256,6 +279,7 @@ public class TerritoriesController : ControllerBase
     /// Set the primary owner of a territory.
     /// </summary>
     [HttpPut("{territoryId:int}/owner")]
+    [ProducesResponseType(typeof(AccountTerritory), StatusCodes.Status200OK)]
     public async Task<ActionResult<AccountTerritory>> SetTerritoryOwner(
         int territoryId,
         [FromBody] SetTerritoryOwnerRequest request,
@@ -269,6 +293,7 @@ public class TerritoriesController : ControllerBase
     /// Add team members to a territory.
     /// </summary>
     [HttpPost("{territoryId:int}/members")]
+    [ProducesResponseType(typeof(AccountTerritory), StatusCodes.Status200OK)]
     public async Task<ActionResult<AccountTerritory>> AddTeamMembers(
         int territoryId,
         [FromBody] TeamMembersRequest request,
@@ -282,6 +307,7 @@ public class TerritoriesController : ControllerBase
     /// Remove team members from a territory.
     /// </summary>
     [HttpDelete("{territoryId:int}/members")]
+    [ProducesResponseType(typeof(AccountTerritory), StatusCodes.Status200OK)]
     public async Task<ActionResult<AccountTerritory>> RemoveTeamMembers(
         int territoryId,
         [FromBody] TeamMembersRequest request,
@@ -295,6 +321,7 @@ public class TerritoriesController : ControllerBase
     /// Get all territories for a user.
     /// </summary>
     [HttpGet("users/{userId:int}")]
+    [ProducesResponseType(typeof(IEnumerable<AccountTerritory>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<AccountTerritory>>> GetUserTerritories(int userId, CancellationToken cancellationToken)
     {
         var territories = await _territoryService.GetUserTerritoriesAsync(userId, cancellationToken);
@@ -305,6 +332,7 @@ public class TerritoriesController : ControllerBase
     /// Link a territory to a team.
     /// </summary>
     [HttpPut("{territoryId:int}/team")]
+    [ProducesResponseType(typeof(AccountTerritory), StatusCodes.Status200OK)]
     public async Task<ActionResult<AccountTerritory>> LinkToTeam(
         int territoryId,
         [FromBody] LinkToTeamRequest request,
@@ -322,6 +350,7 @@ public class TerritoriesController : ControllerBase
     /// Find matching territories for an account.
     /// </summary>
     [HttpGet("accounts/{accountId:int}/matching")]
+    [ProducesResponseType(typeof(IEnumerable<AccountTerritory>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<AccountTerritory>>> FindMatchingTerritories(
         int accountId,
         CancellationToken cancellationToken)
@@ -334,6 +363,7 @@ public class TerritoriesController : ControllerBase
     /// Find matching territories by criteria.
     /// </summary>
     [HttpPost("matching")]
+    [ProducesResponseType(typeof(IEnumerable<AccountTerritory>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<AccountTerritory>>> FindMatchingTerritoriesByCriteria(
         [FromBody] TerritoryMatchCriteria criteria,
         CancellationToken cancellationToken)
@@ -346,6 +376,8 @@ public class TerritoriesController : ControllerBase
     /// Auto-assign an account to the best matching territory.
     /// </summary>
     [HttpPost("accounts/{accountId:int}/auto-assign")]
+    [ProducesResponseType(typeof(AccountTerritoryAssignment), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<AccountTerritoryAssignment>> AutoAssignAccount(
         int accountId,
         CancellationToken cancellationToken)
@@ -362,6 +394,7 @@ public class TerritoriesController : ControllerBase
     /// Check if an account matches a territory's rules.
     /// </summary>
     [HttpGet("{territoryId:int}/accounts/{accountId:int}/matches")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<bool>> IsAccountInTerritory(
         int territoryId,
         int accountId,
@@ -379,6 +412,7 @@ public class TerritoriesController : ControllerBase
     /// Set the quota for a territory.
     /// </summary>
     [HttpPut("{territoryId:int}/quota")]
+    [ProducesResponseType(typeof(AccountTerritory), StatusCodes.Status200OK)]
     public async Task<ActionResult<AccountTerritory>> SetQuota(
         int territoryId,
         [FromBody] SetQuotaRequest request,
@@ -392,6 +426,7 @@ public class TerritoriesController : ControllerBase
     /// Get quota attainment for a territory.
     /// </summary>
     [HttpGet("{territoryId:int}/quota/status")]
+    [ProducesResponseType(typeof(TerritoryQuotaStatus), StatusCodes.Status200OK)]
     public async Task<ActionResult<TerritoryQuotaStatus>> GetQuotaStatus(
         int territoryId,
         [FromQuery] DateTime? asOfDate = null,
@@ -405,6 +440,7 @@ public class TerritoriesController : ControllerBase
     /// Get quota summary for all territories.
     /// </summary>
     [HttpGet("quota/status")]
+    [ProducesResponseType(typeof(IEnumerable<TerritoryQuotaStatus>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<TerritoryQuotaStatus>>> GetAllQuotaStatuses(
         [FromQuery] DateTime? asOfDate = null,
         CancellationToken cancellationToken = default)
@@ -421,6 +457,7 @@ public class TerritoriesController : ControllerBase
     /// Get statistics for a territory.
     /// </summary>
     [HttpGet("{territoryId:int}/statistics")]
+    [ProducesResponseType(typeof(TerritoryStatistics), StatusCodes.Status200OK)]
     public async Task<ActionResult<TerritoryStatistics>> GetTerritoryStatistics(
         int territoryId,
         [FromQuery] DateTime? fromDate = null,
@@ -435,6 +472,7 @@ public class TerritoriesController : ControllerBase
     /// Get performance rankings across all territories.
     /// </summary>
     [HttpGet("rankings")]
+    [ProducesResponseType(typeof(IEnumerable<TerritoryRanking>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<TerritoryRanking>>> GetTerritoryRankings(
         [FromQuery] int topN = 10,
         [FromQuery] TerritoryRankingMetric metric = TerritoryRankingMetric.Revenue,
@@ -450,6 +488,7 @@ public class TerritoriesController : ControllerBase
     /// Get account distribution across territories.
     /// </summary>
     [HttpGet("distribution")]
+    [ProducesResponseType(typeof(TerritoryDistribution), StatusCodes.Status200OK)]
     public async Task<ActionResult<TerritoryDistribution>> GetAccountDistribution(CancellationToken cancellationToken)
     {
         var distribution = await _territoryService.GetAccountDistributionAsync(cancellationToken);
@@ -460,6 +499,7 @@ public class TerritoriesController : ControllerBase
     /// Get territories with unassigned accounts.
     /// </summary>
     [HttpGet("unassigned-accounts")]
+    [ProducesResponseType(typeof(IEnumerable<UnassignedAccountsSummary>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<UnassignedAccountsSummary>>> GetUnassignedAccountsSummary(CancellationToken cancellationToken)
     {
         var summary = await _territoryService.GetUnassignedAccountsSummaryAsync(cancellationToken);
@@ -474,6 +514,7 @@ public class TerritoriesController : ControllerBase
     /// Search territories by name, code, or description.
     /// </summary>
     [HttpGet("search")]
+    [ProducesResponseType(typeof(IEnumerable<AccountTerritory>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<AccountTerritory>>> SearchTerritories(
         [FromQuery] string query,
         CancellationToken cancellationToken)
@@ -486,6 +527,7 @@ public class TerritoriesController : ControllerBase
     /// Get territories by geographic criteria.
     /// </summary>
     [HttpGet("by-location")]
+    [ProducesResponseType(typeof(IEnumerable<AccountTerritory>), StatusCodes.Status200OK)]
     public async Task<ActionResult<IEnumerable<AccountTerritory>>> GetTerritoriesByLocation(
         [FromQuery] string? country = null,
         [FromQuery] string? region = null,

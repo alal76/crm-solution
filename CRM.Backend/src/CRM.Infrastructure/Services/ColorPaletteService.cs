@@ -31,13 +31,13 @@ public class ColorPaletteService : IColorPaletteService
     private const string GITHUB_PALETTES_URL =
         "https://raw.githubusercontent.com/NSTechBytes/yourpalettes-website/main/api/colorpalettes.json";
 
-    private readonly CrmDbContext _context;
+    private readonly ICrmDbContext _context;
     private readonly HttpClient _httpClient;
     private readonly ILogger<ColorPaletteService> _logger;
     private readonly IResilienceService? _resilienceService;
 
     public ColorPaletteService(
-        CrmDbContext context,
+        ICrmDbContext context,
         HttpClient httpClient,
         ILogger<ColorPaletteService> logger,
         IResilienceService? resilienceService = null)

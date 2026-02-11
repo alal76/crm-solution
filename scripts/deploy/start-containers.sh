@@ -1,8 +1,13 @@
 #!/usr/bin/env bash
-# NOTE: For new deployments, prefer scripts/deploy.sh (the unified parameterized script).
+# =============================================================================
+# ⚠️  DEPRECATED — Use scripts/deploy.sh instead
+# This script is DEPRECATED and will be removed in a future release.
+# Use: ./scripts/deploy.sh --env dev
+# =============================================================================
+echo "⚠️  WARNING: This script is deprecated. Use scripts/deploy.sh --env dev instead." >&2
 
 SSH_KEY="$HOME/.ssh/crm-deploy-key"
-SSH_HOST="root@192.168.0.9"
+SSH_HOST="${BUILD_USER:-deploy}@192.168.0.9"
 
 echo "🚀 Starting CRM containers..."
 echo ""
