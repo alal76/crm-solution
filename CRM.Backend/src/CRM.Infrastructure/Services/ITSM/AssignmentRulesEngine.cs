@@ -240,7 +240,7 @@ public class AvailableAgent
 /// </summary>
 public class AssignmentRulesEngine : IAssignmentRulesEngine
 {
-    private readonly IDbContextResolver _dbContextResolver;
+    private readonly ICrmDbContext _context;
     private readonly ILogger<AssignmentRulesEngine> _logger;
 
     // In-memory storage for rules (would be database in production)
@@ -356,20 +356,19 @@ public class AssignmentRulesEngine : IAssignmentRulesEngine
     }
 
     public AssignmentRulesEngine(
-        IDbContextResolver dbContextResolver,
+        ICrmDbContext context,
         ILogger<AssignmentRulesEngine> logger)
     {
-        _dbContextResolver = dbContextResolver;
+        _context = context;
         _logger = logger;
     }
 
     public async Task<AssignmentResult> EvaluateAsync(int incidentId)
     {
-        var context = _dbContextResolver.ResolveContext();
-
-        var incident = await context.Incidents
-            .Include(i => i.AffectedCI)
-            .Include(i => i.AffectedUser)
+        var incident = await _context.Incidents
+            .Include(i => i.Category)
+            .Include(i => i.Subcategory)
+            .Include(i => i.AssignmentGroup)
             .FirstOrDefaultAsync(i => i.IncidentId == incidentId);
 
         if (incident == null)
@@ -412,7 +411,7 @@ public class AssignmentRulesEngine : IAssignmentRulesEngine
                     if (agent != null)
                     {
                         result.AssignedUserId = agent.UserId;
-                        result.AssignedUserName = agent.FirstName + " " + LastName ?? Username;
+                        result.AssignedUserName = agent.DisplayName;
                     }
                 }
                 else if (rule.Action.TargetUserId.HasValue)
@@ -439,16 +438,15 @@ public class AssignmentRulesEngine : IAssignmentRulesEngine
 
         if (result.WasAssigned)
         {
-            var context = _dbContextResolver.ResolveContext();
-            var incident = await context.Incidents.FindAsync(incidentId);
+            var incident = await _context.Incidents.FindAsync(incidentId);
 
             if (incident != null)
             {
                 incident.AssignedToId = result.AssignedUserId;
-                incident.AssignmentGroup = result.AssignedGroupName;
+                incident.AssignmentGroupId = result.AssignedGroupId;
                 incident.ModifiedAt = DateTime.UtcNow;
 
-                await context.SaveChangesAsync();
+                await _context.SaveChangesAsync();
 
                 _logger.LogInformation(
                     "Auto-assigned incident {IncidentNumber} to {Group}/{User}",
@@ -515,10 +513,10 @@ public class AssignmentRulesEngine : IAssignmentRulesEngine
             throw new ArgumentException($"Rule {ruleId} not found");
         }
 
-        var context = _dbContextResolver.ResolveContext();
-        var incident = await context.Incidents
-            .Include(i => i.AffectedCI)
-            .Include(i => i.AffectedUser)
+        var incident = await _context.Incidents
+            .Include(i => i.Category)
+            .Include(i => i.Subcategory)
+            .Include(i => i.AssignmentGroup)
             .FirstOrDefaultAsync(i => i.IncidentId == incidentId);
 
         if (incident == null)
@@ -568,23 +566,21 @@ public class AssignmentRulesEngine : IAssignmentRulesEngine
 
     public async Task<List<GroupWorkload>> GetGroupWorkloadsAsync()
     {
-        var context = _dbContextResolver.ResolveContext();
         var workloads = new List<GroupWorkload>();
 
         // Get unique assignment groups from incidents
-        var groups = await context.Incidents
-            .Where(i => !string.IsNullOrEmpty(i.AssignmentGroup))
-            .Where(i => i.Status != IncidentState.Resolved && i.Status != IncidentState.Closed)
-            .GroupBy(i => i.AssignmentGroup)
+        var groups = await _context.Incidents
+            .Where(i => i.AssignmentGroupId != null)
+            .Where(i => i.State != IncidentState.Resolved && i.State != IncidentState.Closed)
+            .GroupBy(i => i.AssignmentGroupId!.Value)
             .Select(g => new
             {
-                GroupName = g.Key,
+                GroupId = g.Key,
                 TotalActive = g.Count(),
                 Unassigned = g.Count(i => i.AssignedToId == null)
             })
             .ToListAsync();
 
-        int groupId = 1;
         foreach (var group in groups)
         {
             var memberCount = 5; // Would come from user-group relationships
@@ -592,8 +588,8 @@ public class AssignmentRulesEngine : IAssignmentRulesEngine
 
             workloads.Add(new GroupWorkload
             {
-                GroupId = groupId++,
-                GroupName = group.GroupName!,
+                GroupId = group.GroupId,
+                GroupName = $"Group {group.GroupId}",
                 TotalActiveIncidents = group.TotalActive,
                 UnassignedIncidents = group.Unassigned,
                 TotalMembers = memberCount,
@@ -614,10 +610,8 @@ public class AssignmentRulesEngine : IAssignmentRulesEngine
 
     public async Task<List<AvailableAgent>> GetAvailableAgentsAsync(int groupId)
     {
-        var context = _dbContextResolver.ResolveContext();
-
         // Get users (in production, would filter by group membership)
-        var users = await context.Users
+        var users = await _context.Users
             .Take(10)
             .ToListAsync();
 
@@ -626,10 +620,10 @@ public class AssignmentRulesEngine : IAssignmentRulesEngine
         foreach (var user in users)
         {
             // Get current incident count
-            var incidentCount = await context.Incidents
+            var incidentCount = await _context.Incidents
                 .CountAsync(i => i.AssignedToId == user.Id &&
-                                i.Status != IncidentState.Resolved &&
-                                i.Status != IncidentState.Closed);
+                                i.State != IncidentState.Resolved &&
+                                i.State != IncidentState.Closed);
 
             agents.Add(new AvailableAgent
             {
@@ -694,17 +688,17 @@ public class AssignmentRulesEngine : IAssignmentRulesEngine
     {
         return field.ToLower() switch
         {
-            "category" => incident.Category,
-            "subcategory" => incident.SubCategory,
+            "category" => incident.Category?.Name,
+            "subcategory" => incident.Subcategory?.Name,
             "priority" => incident.Priority.ToString(),
-            "impact" => incident.Impact,
-            "urgency" => incident.Urgency,
-            "status" => incident.Status.ToString(),
+            "impact" => incident.Impact.ToString(),
+            "urgency" => incident.Urgency.ToString(),
+            "status" => incident.State.ToString(),
             "title" => incident.ShortDescription,
             "description" => incident.Description,
-            "assignmentgroup" => incident.AssignmentGroup,
-            "affectedci.type" or "ci.type" => incident.AffectedCI?.CIType,
-            "affectedci.criticality" or "ci.criticality" => incident.AffectedCI?.Criticality,
+            "assignmentgroup" => incident.AssignmentGroup?.Name,
+            "affectedci.type" or "ci.type" => null, // CI nav prop not loaded
+            "affectedci.criticality" or "ci.criticality" => null,
             "affecteduser.isvip" => "false", // Would check user VIP status
             _ => null
         };

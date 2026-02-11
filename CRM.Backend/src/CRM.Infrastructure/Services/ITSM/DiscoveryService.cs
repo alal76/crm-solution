@@ -390,13 +390,13 @@ public class DiscoveryService : IDiscoveryService
                 {
                     // Update existing CI
                     var existingCI = await context.ConfigurationItems
-                        .FirstOrDefaultAsync(ci => ci.ConfigurationItemId == asset.MatchedCIId.Value);
+                        .FirstOrDefaultAsync(ci => ci.CIId == asset.MatchedCIId.Value);
 
                     if (existingCI != null)
                     {
                         UpdateCIFromAsset(existingCI, asset);
                         existingCI.ModifiedAt = DateTime.UtcNow;
-                        existingCI.LastDiscoveredAt = asset.DiscoveredAt;
+                        existingCI.LastDiscovered = asset.DiscoveredAt;
                         result.Updated++;
                     }
                 }
@@ -405,15 +405,15 @@ public class DiscoveryService : IDiscoveryService
                     // Create new CI
                     var newCI = new ConfigurationItem
                     {
-                        Name = asset.Name,
+                        CIName = asset.Name,
                         CIType = MapAssetTypeToCIType(asset.AssetType),
-                        Status = "Active",
-                        Criticality = "Medium",
+                        OperationalStatus = CRM.Core.Entities.ITSM.OperationalStatus.Operational,
+                        Criticality = CRM.Core.Entities.ITSM.CICriticality.Medium,
                         Manufacturer = asset.Manufacturer,
-                        Model = asset.Model,
+                        ModelNumber = asset.Model,
                         SerialNumber = asset.SerialNumber,
                         IPAddress = asset.IPAddress,
-                        LastDiscoveredAt = asset.DiscoveredAt,
+                        LastDiscovered = asset.DiscoveredAt,
                         CreatedAt = DateTime.UtcNow,
                         ModifiedAt = DateTime.UtcNow
                     };
@@ -422,7 +422,7 @@ public class DiscoveryService : IDiscoveryService
                     await context.SaveChangesAsync();
 
                     result.Created++;
-                    result.CreatedCIIds.Add(newCI.ConfigurationItemId);
+                    result.CreatedCIIds.Add(newCI.CIId);
                 }
 
                 // Remove from pending list
@@ -667,7 +667,7 @@ public class DiscoveryService : IDiscoveryService
                 if (match != null)
                 {
                     asset.MatchStatus = AssetMatchStatus.Matched;
-                    asset.MatchedCIId = match.ConfigurationItemId;
+                    asset.MatchedCIId = match.CIId;
                     asset.MatchConfidence = 1.0;
                     continue;
                 }
@@ -682,7 +682,7 @@ public class DiscoveryService : IDiscoveryService
                 if (match != null)
                 {
                     asset.MatchStatus = AssetMatchStatus.PotentialMatch;
-                    asset.MatchedCIId = match.ConfigurationItemId;
+                    asset.MatchedCIId = match.CIId;
                     asset.MatchConfidence = 0.8;
                     continue;
                 }
@@ -690,12 +690,12 @@ public class DiscoveryService : IDiscoveryService
 
             // Try to match by name
             var nameMatch = existingCIs.FirstOrDefault(ci =>
-                ci.Name.Equals(asset.Name, StringComparison.OrdinalIgnoreCase));
+                ci.CIName.Equals(asset.Name, StringComparison.OrdinalIgnoreCase));
 
             if (nameMatch != null)
             {
                 asset.MatchStatus = AssetMatchStatus.PotentialMatch;
-                asset.MatchedCIId = nameMatch.ConfigurationItemId;
+                asset.MatchedCIId = nameMatch.CIId;
                 asset.MatchConfidence = 0.7;
             }
             else
@@ -715,20 +715,20 @@ public class DiscoveryService : IDiscoveryService
         if (!string.IsNullOrEmpty(asset.Manufacturer))
             ci.Manufacturer = asset.Manufacturer;
         if (!string.IsNullOrEmpty(asset.Model))
-            ci.Model = asset.Model;
+            ci.ModelNumber = asset.Model;
     }
 
-    private static string MapAssetTypeToCIType(string assetType)
+    private static CIType MapAssetTypeToCIType(string assetType)
     {
         return assetType.ToLower() switch
         {
-            "server" => "Server",
-            "workstation" => "Desktop",
-            "laptop" => "Laptop",
-            "virtual machine" => "Virtual Server",
-            "network device" => "Network",
-            "storage" => "Storage",
-            _ => "Hardware"
+            "server" => CIType.Server,
+            "workstation" => CIType.WorkStation,
+            "laptop" => CIType.WorkStation,
+            "virtual machine" => CIType.VirtualMachine,
+            "network device" => CIType.NetworkDevice,
+            "storage" => CIType.Storage,
+            _ => CIType.Server
         };
     }
 }

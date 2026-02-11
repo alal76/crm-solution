@@ -237,11 +237,11 @@ public class ChangeCalendarService : IChangeCalendarService
         var context = _dbContextResolver.ResolveContext();
 
         var changes = await context.Changes
-            .Where(c => c.ScheduledStart.HasValue &&
-                       c.ScheduledStart >= startDate &&
-                       c.ScheduledStart <= endDate)
-            .Where(c => c.Status != ChangeState.Cancelled &&
-                       c.Status != ChangeState.Failed)
+            .Where(c => c.PlannedStartDate.HasValue &&
+                       c.PlannedStartDate >= startDate &&
+                       c.PlannedStartDate <= endDate)
+            .Where(c => c.State != ChangeState.Cancelled &&
+                       c.State != ChangeState.Failed)
             .Include(c => c.AssignedTo)
             .Include(c => c.ImpactedCIs)
                 .ThenInclude(ci => ci.ConfigurationItem)
@@ -249,15 +249,15 @@ public class ChangeCalendarService : IChangeCalendarService
 
         return changes.Select(c => new ScheduledChange
         {
-            ChangeRequestId = c.ChangeRequestId,
+            ChangeRequestId = c.ChangeId,
             ChangeNumber = c.Number,
-            Title = c.Title,
-            ChangeType = c.ChangeType,
-            Status = c.Status,
-            ScheduledStart = c.ScheduledStart ?? DateTime.MinValue,
-            ScheduledEnd = c.ScheduledEnd ?? c.ScheduledStart?.AddHours(2) ?? DateTime.MinValue,
-            RiskLevel = c.RiskLevel,
-            AffectedServices = c.ImpactedCIs?.Select(ci => ci.ConfigurationItem?.Name ?? "").ToList() ?? new(),
+            Title = c.ShortDescription,
+            ChangeType = c.Type,
+            Status = c.State,
+            ScheduledStart = c.PlannedStartDate ?? DateTime.MinValue,
+            ScheduledEnd = c.PlannedEndDate ?? c.PlannedStartDate?.AddHours(2) ?? DateTime.MinValue,
+            RiskLevel = c.Risk.ToString(),
+            AffectedServices = c.ImpactedCIs?.Select(ci => ci.ConfigurationItem?.CIName ?? "").ToList() ?? new(),
             AssignedTo = c.AssignedTo != null ? $"{c.AssignedTo.FirstName} {c.AssignedTo.LastName}".Trim() : string.Empty
         }).ToList();
     }
@@ -274,7 +274,7 @@ public class ChangeCalendarService : IChangeCalendarService
         var change = await context.Changes
             .Include(c => c.ImpactedCIs)
                 .ThenInclude(ci => ci.ConfigurationItem)
-            .FirstOrDefaultAsync(c => c.ChangeRequestId == changeRequestId);
+            .FirstOrDefaultAsync(c => c.ChangeId == changeRequestId);
 
         if (change == null)
         {
@@ -285,7 +285,7 @@ public class ChangeCalendarService : IChangeCalendarService
         var blackout = await GetConflictingBlackoutAsync(proposedStart, proposedEnd);
         if (blackout != null)
         {
-            var canOverride = change.ChangeType == ChangeType.Emergency && blackout.AllowEmergencyChanges;
+            var canOverride = change.Type == ChangeType.Emergency && blackout.AllowEmergencyChanges;
             conflicts.Add(new ChangeConflict
             {
                 Type = ConflictType.BlackoutPeriod,
@@ -301,13 +301,13 @@ public class ChangeCalendarService : IChangeCalendarService
 
         // 2. Check for overlapping changes
         var overlappingChanges = await context.Changes
-            .Where(c => c.ChangeRequestId != changeRequestId)
-            .Where(c => c.ScheduledStart.HasValue && c.ScheduledEnd.HasValue)
-            .Where(c => c.Status != ChangeState.Cancelled &&
-                       c.Status != ChangeState.Closed &&
-                       c.Status != ChangeState.Failed)
+            .Where(c => c.ChangeId != changeRequestId)
+            .Where(c => c.PlannedStartDate.HasValue && c.PlannedEndDate.HasValue)
+            .Where(c => c.State != ChangeState.Cancelled &&
+                       c.State != ChangeState.Closed &&
+                       c.State != ChangeState.Failed)
             .Where(c =>
-                (c.ScheduledStart <= proposedEnd && c.ScheduledEnd >= proposedStart))
+                (c.PlannedStartDate <= proposedEnd && c.PlannedEndDate >= proposedStart))
             .Include(c => c.ImpactedCIs)
                 .ThenInclude(ci => ci.ConfigurationItem)
             .ToListAsync();
@@ -315,15 +315,15 @@ public class ChangeCalendarService : IChangeCalendarService
         foreach (var overlapping in overlappingChanges)
         {
             // Check for CI conflicts (same systems affected)
-            var myCI = change.ImpactedCIs?.Select(ci => ci.ConfigurationItemId).ToList() ?? new();
-            var theirCIs = overlapping.ImpactedCIs?.Select(ci => ci.ConfigurationItemId).ToList() ?? new();
+            var myCI = change.ImpactedCIs?.Select(ci => ci.CIId).ToList() ?? new();
+            var theirCIs = overlapping.ImpactedCIs?.Select(ci => ci.CIId).ToList() ?? new();
             var sharedCIs = myCI.Intersect(theirCIs).ToList();
 
             if (sharedCIs.Any())
             {
                 var affectedNames = overlapping.ImpactedCIs?
-                    .Where(ci => sharedCIs.Contains(ci.ConfigurationItemId))
-                    .Select(ci => ci.ConfigurationItem?.Name ?? "Unknown")
+                    .Where(ci => sharedCIs.Contains(ci.CIId))
+                    .Select(ci => ci.ConfigurationItem?.CIName ?? "Unknown")
                     .ToList() ?? new();
 
                 conflicts.Add(new ChangeConflict
@@ -331,11 +331,11 @@ public class ChangeCalendarService : IChangeCalendarService
                     Type = ConflictType.CIConflict,
                     Severity = ConflictSeverity.Error,
                     Description = $"Shared CI(s) affected by change {overlapping.Number}",
-                    ConflictingChangeId = overlapping.ChangeRequestId,
+                    ConflictingChangeId = overlapping.ChangeId,
                     ConflictingChangeNumber = overlapping.Number,
                     AffectedCIs = affectedNames,
-                    ConflictStart = overlapping.ScheduledStart,
-                    ConflictEnd = overlapping.ScheduledEnd,
+                    ConflictStart = overlapping.PlannedStartDate,
+                    ConflictEnd = overlapping.PlannedEndDate,
                     Recommendation = "Coordinate with the other change team or reschedule"
                 });
             }
@@ -346,18 +346,18 @@ public class ChangeCalendarService : IChangeCalendarService
                 {
                     Type = ConflictType.TimeOverlap,
                     Severity = ConflictSeverity.Warning,
-                    Description = $"Time overlap with change {overlapping.Number} ({overlapping.Title})",
-                    ConflictingChangeId = overlapping.ChangeRequestId,
+                    Description = $"Time overlap with change {overlapping.Number} ({overlapping.ShortDescription})",
+                    ConflictingChangeId = overlapping.ChangeId,
                     ConflictingChangeNumber = overlapping.Number,
-                    ConflictStart = overlapping.ScheduledStart,
-                    ConflictEnd = overlapping.ScheduledEnd,
+                    ConflictStart = overlapping.PlannedStartDate,
+                    ConflictEnd = overlapping.PlannedEndDate,
                     Recommendation = "Consider spreading changes across different windows to reduce risk"
                 });
             }
         }
 
         // 3. Check if NOT in maintenance window (for normal changes)
-        if (change.ChangeType == ChangeType.Normal)
+        if (change.Type == ChangeType.Normal)
         {
             var isInMaintenanceWindow = await IsInMaintenanceWindowAsync(proposedStart, proposedEnd);
             if (!isInMaintenanceWindow)

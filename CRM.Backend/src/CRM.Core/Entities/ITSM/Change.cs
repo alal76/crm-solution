@@ -35,7 +35,12 @@ public enum ChangeState
     Implement = 5,
     Review = 6,
     Closed = 7,
-    Cancelled = 8
+    Cancelled = 8,
+    Failed = 9,
+    AwaitingApproval = 10,
+    Approved = 11,
+    Rejected = 12,
+    Implemented = 13
 }
 
 public enum ChangeRisk

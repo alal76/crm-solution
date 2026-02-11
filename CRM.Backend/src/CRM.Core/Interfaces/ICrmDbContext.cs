@@ -160,9 +160,13 @@ public interface ICrmDbContext
     // ITSM Module
     DbSet<CRM.Core.Entities.ITSM.Incident> Incidents { get; }
     DbSet<CRM.Core.Entities.ITSM.IncidentComment> IncidentComments { get; }
+    DbSet<CRM.Core.Entities.ITSM.IncidentAttachment> IncidentAttachments { get; }
     DbSet<CRM.Core.Entities.ITSM.IncidentHistory> IncidentHistory { get; }
     DbSet<CRM.Core.Entities.ITSM.Problem> Problems { get; }
     DbSet<CRM.Core.Entities.ITSM.ProblemIncident> ProblemIncidents { get; }
+    DbSet<CRM.Core.Entities.ITSM.ProblemTask> ProblemTasks { get; }
+    DbSet<CRM.Core.Entities.ITSM.ProblemComment> ProblemComments { get; }
+    DbSet<CRM.Core.Entities.ITSM.ProblemAttachment> ProblemAttachments { get; }
     DbSet<CRM.Core.Entities.ITSM.SLAPolicy> ITSMSLAPolicies { get; }
     DbSet<CRM.Core.Entities.ITSM.SLAInstance> ITSMSLAInstances { get; }
     DbSet<CRM.Core.Entities.ITSM.BusinessHoursSchedule> BusinessHoursSchedules { get; }
@@ -174,11 +178,20 @@ public interface ICrmDbContext
     DbSet<CRM.Core.Entities.ITSM.ChangeApproval> ChangeApprovals { get; }
     DbSet<CRM.Core.Entities.ITSM.ChangeBlackout> ChangeBlackouts { get; }
     DbSet<CRM.Core.Entities.ITSM.ChangeImpactedCI> ChangeImpactedCIs { get; }
+    DbSet<CRM.Core.Entities.ITSM.ChangeTask> ChangeTasks { get; }
+    DbSet<CRM.Core.Entities.ITSM.ChangeComment> ChangeComments { get; }
+    DbSet<CRM.Core.Entities.ITSM.ChangeAttachment> ChangeAttachments { get; }
     DbSet<CRM.Core.Entities.ITSM.KnowledgeArticle> ITSMKnowledgeArticles { get; }
+    DbSet<CRM.Core.Entities.ITSM.ArticleRelationship> ArticleRelationships { get; }
+    DbSet<CRM.Core.Entities.ITSM.ArticleIncident> ArticleIncidents { get; }
     DbSet<CRM.Core.Entities.ITSM.ArticleFeedback> ITSMArticleFeedback { get; }
+    DbSet<CRM.Core.Entities.ITSM.ArticleAttachment> ArticleAttachments { get; }
     DbSet<CRM.Core.Entities.ITSM.CatalogCategory> CatalogCategories { get; }
     DbSet<CRM.Core.Entities.ITSM.CatalogItem> CatalogItems { get; }
+    DbSet<CRM.Core.Entities.ITSM.CatalogVariable> CatalogVariables { get; }
     DbSet<CRM.Core.Entities.ITSM.CatalogRequest> CatalogRequests { get; }
+    DbSet<CRM.Core.Entities.ITSM.CatalogRequestApproval> CatalogRequestApprovals { get; }
+    DbSet<CRM.Core.Entities.ITSM.CatalogRequestComment> CatalogRequestComments { get; }
 
     // Workflow Engine
     DbSet<WorkflowDefinition> WorkflowDefinitions { get; }

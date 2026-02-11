@@ -19,6 +19,7 @@
 // Copyright (c) 2025 CRM Solution Contributors
 // Licensed under the AGPL-3.0 license.
 
+using CRM.Core.Entities;
 using CRM.Core.Entities.ITSM;
 using CRM.Core.Interfaces;
 using CRM.Infrastructure.Data;
@@ -101,9 +102,9 @@ public class EscalationHostedService : BackgroundService
 
         // Find incidents that need escalation based on SLA breach or time thresholds
         var activeIncidents = await context.Incidents
-            .Where(i => i.Status != IncidentState.Closed &&
-                       i.Status != IncidentState.Resolved &&
-                       i.Status != IncidentState.Cancelled)
+            .Where(i => i.State != IncidentState.Closed &&
+                       i.State != IncidentState.Resolved &&
+                       i.State != IncidentState.Cancelled)
             .Include(i => i.AssignedTo)
             .ToListAsync();
 
@@ -121,7 +122,7 @@ public class EscalationHostedService : BackgroundService
             if (slaInstance != null)
             {
                 // Response SLA at risk (80% of time elapsed)
-                if (slaInstance.ResponseDueAt.HasValue && !slaInstance.ResponseMetAt.HasValue)
+                if (slaInstance.ResponseDueAt.HasValue && !slaInstance.ResponseActualAt.HasValue)
                 {
                     var responsePercentage = CalculateTimePercentage(incident.CreatedAt, slaInstance.ResponseDueAt.Value, now);
                     if (responsePercentage >= 80 && incident.EscalationLevel == 0)
@@ -198,24 +199,16 @@ public class EscalationHostedService : BackgroundService
         var count = 0;
 
         var overdueRequests = await context.ServiceRequests
-            .Where(r => r.Status == "Open" || r.Status == "InProgress")
-            .Where(r => r.DueDate.HasValue && r.DueDate < now)
+            .Where(r => r.Status == ServiceRequestStatus.Open || r.Status == ServiceRequestStatus.InProgress)
+            .Where(r => r.ResolutionDueDate.HasValue && r.ResolutionDueDate < now)
             .ToListAsync();
 
         foreach (var request in overdueRequests)
         {
-            // Add work note about being overdue
-            var note = new Core.Entities.ActivityNote
-            {
-                Content = $"[Auto-Escalation] Service request is overdue. Due date was {request.DueDate:g}.",
-                CreatedAt = now,
-                CreatedBy = "System",
-                NoteType = Core.Entities.NoteType.Activity,
-                IsInternal = true
-            };
-
-            // Note: Would need to add note to the request
-            _logger.LogInformation("Service request {Id} is overdue", request.Id);
+            // Log overdue service request for escalation tracking
+            _logger.LogInformation(
+                "Service request {Id} is overdue. Due date was {DueDate:g}.",
+                request.Id, request.ResolutionDueDate);
             count++;
         }
 
@@ -226,13 +219,13 @@ public class EscalationHostedService : BackgroundService
     {
         var oldLevel = incident.EscalationLevel;
         incident.EscalationLevel++;
-        incident.UpdatedAt = DateTime.UtcNow;
+        incident.ModifiedAt = DateTime.UtcNow;
 
         // Add activity comment
         var comment = new IncidentComment
         {
             IncidentId = incident.IncidentId,
-            CommentText = $"[Auto-Escalation] Level {oldLevel} → {incident.EscalationLevel}. Reason: {reason}",
+            Comment = $"[Auto-Escalation] Level {oldLevel} → {incident.EscalationLevel}. Reason: {reason}",
             IsInternal = true,
             CreatedAt = DateTime.UtcNow,
             CreatedById = 1 // System user
@@ -280,30 +273,16 @@ public class EscalationHostedService : BackgroundService
             // Send email notification to each escalation contact
             foreach (var contact in escalationContacts)
             {
-                var emailRequest = new CRM.Core.Ports.Output.Providers.NotificationRequest
+                var emailRequest = new CRM.Core.Ports.Output.Providers.EmailNotificationRequest
                 {
-                    Channel = CRM.Core.Ports.Output.Providers.NotificationChannel.Email,
+                    To = contact.Email,
+                    ToName = contact.Name,
                     Subject = $"[ESCALATION L{incident.EscalationLevel}] Incident {incident.Number}: {incident.ShortDescription}",
                     Body = BuildEscalationEmailBody(incident, previousLevel, reason),
-                    Recipients = new List<CRM.Core.Ports.Output.Providers.NotificationRecipient>
-                    {
-                        new()
-                        {
-                            Email = contact.Email,
-                            Name = contact.Name,
-                        }
-                    },
-                    Priority = incident.Impact <= 2 ? CRM.Core.Ports.Output.Providers.NotificationPriority.High : CRM.Core.Ports.Output.Providers.NotificationPriority.Normal,
-                    Metadata = new Dictionary<string, string>
-                    {
-                        ["incident_id"] = incident.IncidentId.ToString(),
-                        ["incident_number"] = incident.Number,
-                        ["escalation_level"] = incident.EscalationLevel.ToString(),
-                        ["priority"] = GetPriorityLabel(incident.Impact, incident.Urgency),
-                    },
+                    IsHtml = true,
                 };
 
-                var result = await notificationPort.SendAsync(emailRequest);
+                var result = await notificationPort.SendEmailAsync(emailRequest);
 
                 if (result.Success)
                 {
@@ -315,7 +294,7 @@ public class EscalationHostedService : BackgroundService
                 {
                     _logger.LogWarning(
                         "Failed to send escalation notification to {Email} for incident {IncidentNumber}: {Error}",
-                        contact.Email, incident.Number, result.ErrorMessage);
+                        contact.Email, incident.Number, result.Error);
                 }
             }
         }
@@ -409,8 +388,8 @@ public class EscalationHostedService : BackgroundService
     /// </summary>
     private static string BuildEscalationEmailBody(Incident incident, int previousLevel, string reason)
     {
-        var priority = GetPriorityLabel(incident.Impact, incident.Urgency);
-        var urgencyColor = incident.Impact <= 2 ? "#dc3545" : (incident.Impact == 3 ? "#ffc107" : "#28a745");
+        var priority = GetPriorityLabel((int)incident.Impact, (int)incident.Urgency);
+        var urgencyColor = (int)incident.Impact <= 2 ? "#dc3545" : ((int)incident.Impact == 3 ? "#ffc107" : "#28a745");
 
         return $@"
 <!DOCTYPE html>
@@ -436,9 +415,9 @@ public class EscalationHostedService : BackgroundService
 
         <div class='details'>
             <p><span class='label'>Priority:</span> {priority}</p>
-            <p><span class='label'>Impact:</span> P{incident.Impact}</p>
-            <p><span class='label'>Urgency:</span> P{incident.Urgency}</p>
-            <p><span class='label'>State:</span> {(IncidentState)incident.State}</p>
+            <p><span class='label'>Impact:</span> P{(int)incident.Impact}</p>
+            <p><span class='label'>Urgency:</span> P{(int)incident.Urgency}</p>
+            <p><span class='label'>State:</span> {incident.State}</p>
             <p><span class='label'>Opened:</span> {incident.OpenedAt:yyyy-MM-dd HH:mm} UTC</p>
         </div>
 

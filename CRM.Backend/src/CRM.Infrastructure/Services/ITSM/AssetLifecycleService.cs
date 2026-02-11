@@ -300,14 +300,14 @@ public class AssetLifecycleService : IAssetLifecycleService
         var context = _dbContextResolver.ResolveContext();
 
         var ci = await context.ConfigurationItems
-            .FirstOrDefaultAsync(c => c.ConfigurationItemId == configurationItemId);
+            .FirstOrDefaultAsync(c => c.CIId == configurationItemId);
 
         if (ci == null)
         {
             throw new ArgumentException($"Configuration item {configurationItemId} not found");
         }
 
-        var currentStage = MapStatusToLifecycleStage(ci.Status);
+        var currentStage = MapStatusToLifecycleStage(ci.OperationalStatus);
         var lastTransition = _transitions
             .Where(t => t.ConfigurationItemId == configurationItemId)
             .OrderByDescending(t => t.TransitionedAt)
@@ -318,14 +318,14 @@ public class AssetLifecycleService : IAssetLifecycleService
         return new AssetLifecycleState
         {
             ConfigurationItemId = configurationItemId,
-            AssetName = ci.Name,
+            AssetName = ci.CIName,
             CurrentStage = currentStage,
             StageEnteredAt = stageEnteredAt,
             DaysInCurrentStage = (int)(DateTime.UtcNow - stageEnteredAt).TotalDays,
             AllowedTransitions = AllowedTransitions.TryGetValue(currentStage, out var transitions)
                 ? transitions.ToList()
                 : new List<LifecycleStage>(),
-            WarrantyExpirationDate = ci.WarrantyExpirationDate,
+            WarrantyExpirationDate = ci.WarrantyExpiration,
             EndOfSupportDate = ci.EndOfSupportDate,
             EndOfLifeDate = ci.EndOfLifeDate,
             ScheduledRetirementDate = _retirements
@@ -345,14 +345,14 @@ public class AssetLifecycleService : IAssetLifecycleService
         var context = _dbContextResolver.ResolveContext();
 
         var ci = await context.ConfigurationItems
-            .FirstOrDefaultAsync(c => c.ConfigurationItemId == configurationItemId);
+            .FirstOrDefaultAsync(c => c.CIId == configurationItemId);
 
         if (ci == null)
         {
             throw new ArgumentException($"Configuration item {configurationItemId} not found");
         }
 
-        var currentStage = MapStatusToLifecycleStage(ci.Status);
+        var currentStage = MapStatusToLifecycleStage(ci.OperationalStatus);
 
         // Validate transition
         if (!AllowedTransitions.TryGetValue(currentStage, out var allowed) ||
@@ -377,13 +377,13 @@ public class AssetLifecycleService : IAssetLifecycleService
         _transitions.Add(transition);
 
         // Update CI status
-        ci.Status = MapLifecycleStageToStatus(targetStage);
+        ci.OperationalStatus = MapLifecycleStageToOperationalStatus(targetStage);
         ci.ModifiedAt = DateTime.UtcNow;
         await context.SaveChangesAsync();
 
         _logger.LogInformation(
             "Asset {AssetName} transitioned from {From} to {To}",
-            ci.Name, currentStage, targetStage);
+            ci.CIName, currentStage, targetStage);
 
         return transition;
     }
@@ -405,18 +405,18 @@ public class AssetLifecycleService : IAssetLifecycleService
         var cutoffDate = DateTime.UtcNow.AddDays(daysAhead);
 
         var cis = await context.ConfigurationItems
-            .Where(ci => ci.Status != "Retired" && ci.Status != "Disposed")
+            .Where(ci => ci.OperationalStatus != OperationalStatus.Retired)
             .Where(ci =>
-                (ci.WarrantyExpirationDate.HasValue && ci.WarrantyExpirationDate <= cutoffDate) ||
+                (ci.WarrantyExpiration.HasValue && ci.WarrantyExpiration <= cutoffDate) ||
                 (ci.EndOfSupportDate.HasValue && ci.EndOfSupportDate <= cutoffDate) ||
                 (ci.EndOfLifeDate.HasValue && ci.EndOfLifeDate <= cutoffDate))
             .ToListAsync();
 
         foreach (var ci in cis)
         {
-            if (ci.WarrantyExpirationDate.HasValue && ci.WarrantyExpirationDate <= cutoffDate)
+            if (ci.WarrantyExpiration.HasValue && ci.WarrantyExpiration <= cutoffDate)
             {
-                alerts.Add(CreateAlert(ci, AlertType.WarrantyExpiring, ci.WarrantyExpirationDate.Value));
+                alerts.Add(CreateAlert(ci, AlertType.WarrantyExpiring, ci.WarrantyExpiration.Value));
             }
 
             if (ci.EndOfSupportDate.HasValue && ci.EndOfSupportDate <= cutoffDate)
@@ -449,7 +449,7 @@ public class AssetLifecycleService : IAssetLifecycleService
         var candidates = new List<AssetRefreshCandidate>();
 
         var cis = await context.ConfigurationItems
-            .Where(ci => ci.Status == "Active" || ci.Status == "Deployed")
+            .Where(ci => ci.OperationalStatus == OperationalStatus.Operational)
             .ToListAsync();
 
         foreach (var ci in cis)
@@ -460,7 +460,7 @@ public class AssetLifecycleService : IAssetLifecycleService
 
             // Get incident count
             var incidentCount = await context.Incidents
-                .CountAsync(i => i.AffectedCIId == ci.ConfigurationItemId);
+                .CountAsync(i => i.ConfigurationItemId == ci.CIId);
 
             // Calculate refresh score
             var score = CalculateRefreshScore(ci, ageMonths, incidentCount);
@@ -471,9 +471,9 @@ public class AssetLifecycleService : IAssetLifecycleService
 
                 candidates.Add(new AssetRefreshCandidate
                 {
-                    ConfigurationItemId = ci.ConfigurationItemId,
-                    AssetName = ci.Name,
-                    CIType = ci.CIType,
+                    ConfigurationItemId = ci.CIId,
+                    AssetName = ci.CIName,
+                    CIType = ci.CIType.ToString(),
                     PrimaryReason = reason,
                     RefreshScore = score,
                     AgeInMonths = ageMonths,
@@ -497,7 +497,7 @@ public class AssetLifecycleService : IAssetLifecycleService
         var context = _dbContextResolver.ResolveContext();
 
         var ci = await context.ConfigurationItems
-            .FirstOrDefaultAsync(c => c.ConfigurationItemId == configurationItemId);
+            .FirstOrDefaultAsync(c => c.CIId == configurationItemId);
 
         if (ci == null)
         {
@@ -508,7 +508,7 @@ public class AssetLifecycleService : IAssetLifecycleService
         {
             ScheduleId = _nextScheduleId++,
             ConfigurationItemId = configurationItemId,
-            AssetName = ci.Name,
+            AssetName = ci.CIName,
             ScheduledDate = retirementDate,
             ScheduledById = scheduledById,
             Reason = reason,
@@ -520,7 +520,7 @@ public class AssetLifecycleService : IAssetLifecycleService
 
         _logger.LogInformation(
             "Scheduled retirement for asset {AssetName} on {Date}",
-            ci.Name, retirementDate);
+            ci.CIName, retirementDate);
 
         return schedule;
     }
@@ -530,7 +530,7 @@ public class AssetLifecycleService : IAssetLifecycleService
         var context = _dbContextResolver.ResolveContext();
 
         var ci = await context.ConfigurationItems
-            .FirstOrDefaultAsync(c => c.ConfigurationItemId == configurationItemId);
+            .FirstOrDefaultAsync(c => c.CIId == configurationItemId);
 
         if (ci == null)
         {
@@ -539,7 +539,7 @@ public class AssetLifecycleService : IAssetLifecycleService
 
         // Get incident statistics
         var incidents = await context.Incidents
-            .Where(i => i.AffectedCIId == configurationItemId)
+            .Where(i => i.ConfigurationItemId == configurationItemId)
             .Where(i => i.CreatedAt > DateTime.UtcNow.AddMonths(-12))
             .ToListAsync();
 
@@ -569,7 +569,7 @@ public class AssetLifecycleService : IAssetLifecycleService
         return new AssetUtilizationMetrics
         {
             ConfigurationItemId = configurationItemId,
-            AssetName = ci.Name,
+            AssetName = ci.CIName,
             MeasuredAt = DateTime.UtcNow,
             UptimePercentage = 99.5 - (incidents.Count * 0.1),
             AverageCPUUtilization = 20 + random.NextDouble() * 60,
@@ -587,7 +587,7 @@ public class AssetLifecycleService : IAssetLifecycleService
         var context = _dbContextResolver.ResolveContext();
 
         var ci = await context.ConfigurationItems
-            .FirstOrDefaultAsync(c => c.ConfigurationItemId == configurationItemId);
+            .FirstOrDefaultAsync(c => c.CIId == configurationItemId);
 
         if (ci == null)
         {
@@ -596,21 +596,21 @@ public class AssetLifecycleService : IAssetLifecycleService
 
         // Get incident count for cost estimation
         var incidentCount = await context.Incidents
-            .CountAsync(i => i.AffectedCIId == configurationItemId);
+            .CountAsync(i => i.ConfigurationItemId == configurationItemId);
 
         var ageMonths = ci.PurchaseDate.HasValue
             ? (int)((DateTime.UtcNow - ci.PurchaseDate.Value).TotalDays / 30)
             : 12; // Default 12 months if unknown
 
         // Estimate costs (would come from actual cost tracking in production)
-        var acquisitionCost = ci.PurchasePrice ?? EstimateAcquisitionCost(ci);
+        var acquisitionCost = ci.PurchaseCost ?? EstimateAcquisitionCost(ci);
         var monthlyOperating = EstimateMonthlyOperatingCost(ci);
         var incidentCostPerUnit = 500m; // Estimated cost per incident
 
         return new LifecycleCostAnalysis
         {
             ConfigurationItemId = configurationItemId,
-            AssetName = ci.Name,
+            AssetName = ci.CIName,
             AcquisitionCost = acquisitionCost,
             DeploymentCost = acquisitionCost * 0.1m, // Estimate 10% of acquisition
             TotalMaintenanceCost = monthlyOperating * 0.3m * ageMonths,
@@ -625,43 +625,39 @@ public class AssetLifecycleService : IAssetLifecycleService
         };
     }
 
-    private static LifecycleStage MapStatusToLifecycleStage(string? status)
+    private static LifecycleStage MapStatusToLifecycleStage(OperationalStatus status)
     {
-        return status?.ToLower() switch
+        return status switch
         {
-            "planned" => LifecycleStage.Planned,
-            "ordered" => LifecycleStage.Ordered,
-            "received" => LifecycleStage.Received,
-            "in stock" or "instock" => LifecycleStage.InStock,
-            "active" or "deployed" => LifecycleStage.Deployed,
-            "in maintenance" or "inmaintenance" => LifecycleStage.InMaintenance,
-            "end of life" or "eol" => LifecycleStage.EndOfLife,
-            "retired" => LifecycleStage.Retired,
-            "disposed" => LifecycleStage.Disposed,
+            OperationalStatus.InStock => LifecycleStage.InStock,
+            OperationalStatus.Operational => LifecycleStage.Deployed,
+            OperationalStatus.NonOperational => LifecycleStage.InMaintenance,
+            OperationalStatus.UnderRepair => LifecycleStage.InMaintenance,
+            OperationalStatus.Retired => LifecycleStage.Retired,
             _ => LifecycleStage.Deployed
         };
     }
 
-    private static string MapLifecycleStageToStatus(LifecycleStage stage)
+    private static OperationalStatus MapLifecycleStageToOperationalStatus(LifecycleStage stage)
     {
         return stage switch
         {
-            LifecycleStage.Planned => "Planned",
-            LifecycleStage.Ordered => "Ordered",
-            LifecycleStage.Received => "Received",
-            LifecycleStage.InStock => "In Stock",
-            LifecycleStage.Deployed => "Active",
-            LifecycleStage.InMaintenance => "In Maintenance",
-            LifecycleStage.EndOfLife => "End of Life",
-            LifecycleStage.Retired => "Retired",
-            LifecycleStage.Disposed => "Disposed",
-            _ => "Active"
+            LifecycleStage.Planned => OperationalStatus.InStock,
+            LifecycleStage.Ordered => OperationalStatus.InStock,
+            LifecycleStage.Received => OperationalStatus.InStock,
+            LifecycleStage.InStock => OperationalStatus.InStock,
+            LifecycleStage.Deployed => OperationalStatus.Operational,
+            LifecycleStage.InMaintenance => OperationalStatus.UnderRepair,
+            LifecycleStage.EndOfLife => OperationalStatus.Retired,
+            LifecycleStage.Retired => OperationalStatus.Retired,
+            LifecycleStage.Disposed => OperationalStatus.Retired,
+            _ => OperationalStatus.Operational
         };
     }
 
     private static string DetermineHealthStatus(ConfigurationItem ci)
     {
-        if (ci.Status?.ToLower() is "retired" or "disposed")
+        if (ci.OperationalStatus == OperationalStatus.Retired)
             return "Inactive";
 
         if (ci.EndOfLifeDate.HasValue && ci.EndOfLifeDate <= DateTime.UtcNow)
@@ -670,7 +666,7 @@ public class AssetLifecycleService : IAssetLifecycleService
         if (ci.EndOfSupportDate.HasValue && ci.EndOfSupportDate <= DateTime.UtcNow)
             return "Warning";
 
-        if (ci.WarrantyExpirationDate.HasValue && ci.WarrantyExpirationDate <= DateTime.UtcNow)
+        if (ci.WarrantyExpiration.HasValue && ci.WarrantyExpiration <= DateTime.UtcNow)
             return "At Risk";
 
         return "Healthy";
@@ -682,13 +678,13 @@ public class AssetLifecycleService : IAssetLifecycleService
 
         return new AssetEndOfLifeAlert
         {
-            ConfigurationItemId = ci.ConfigurationItemId,
-            AssetName = ci.Name,
-            CIType = ci.CIType,
+            ConfigurationItemId = ci.CIId,
+            AssetName = ci.CIName,
+            CIType = ci.CIType.ToString(),
             Type = type,
             AlertDate = alertDate,
             DaysUntil = daysUntil,
-            Criticality = ci.Criticality ?? "Medium",
+            Criticality = ci.Criticality?.ToString() ?? "Medium",
             RecommendedAction = GetRecommendedAction(type, daysUntil),
             EstimatedReplacementCost = EstimateReplacementCost(ci)
         };
@@ -741,20 +737,20 @@ public class AssetLifecycleService : IAssetLifecycleService
             score += 30;
         else if (ci.EndOfSupportDate.HasValue && ci.EndOfSupportDate <= DateTime.UtcNow.AddMonths(6))
             score += 20;
-        else if (ci.WarrantyExpirationDate.HasValue && ci.WarrantyExpirationDate <= DateTime.UtcNow)
+        else if (ci.WarrantyExpiration.HasValue && ci.WarrantyExpiration <= DateTime.UtcNow)
             score += 10;
 
         return Math.Min(100, score);
     }
 
-    private static int GetExpectedLifeMonths(string ciType)
+    private static int GetExpectedLifeMonths(CIType ciType)
     {
-        return ciType.ToLower() switch
+        return ciType switch
         {
-            "server" => 60,       // 5 years
-            "desktop" or "laptop" => 48, // 4 years
-            "network" => 84,      // 7 years
-            "storage" => 60,      // 5 years
+            CIType.Server => 60,          // 5 years
+            CIType.WorkStation => 48,     // 4 years
+            CIType.NetworkDevice => 84,   // 7 years
+            CIType.Storage => 60,         // 5 years
             _ => 60
         };
     }
@@ -776,28 +772,27 @@ public class AssetLifecycleService : IAssetLifecycleService
 
     private static decimal EstimateReplacementCost(ConfigurationItem ci)
     {
-        return ci.CIType?.ToLower() switch
+        return ci.CIType switch
         {
-            "server" => 15000m,
-            "desktop" => 1500m,
-            "laptop" => 2000m,
-            "network" => 5000m,
-            "storage" => 10000m,
+            CIType.Server => 15000m,
+            CIType.WorkStation => 1500m,
+            CIType.NetworkDevice => 5000m,
+            CIType.Storage => 10000m,
             _ => 2500m
         };
     }
 
     private static List<string> GetReplacementOptions(ConfigurationItem ci)
     {
-        return ci.CIType?.ToLower() switch
+        return ci.CIType switch
         {
-            "server" => new List<string>
+            CIType.Server => new List<string>
             {
                 "Physical server replacement",
                 "Migrate to virtual infrastructure",
                 "Cloud migration (IaaS)"
             },
-            "desktop" or "laptop" => new List<string>
+            CIType.WorkStation => new List<string>
             {
                 "Standard replacement",
                 "Virtual desktop (VDI)"
@@ -819,7 +814,7 @@ public class AssetLifecycleService : IAssetLifecycleService
             new() { TaskName = "Asset disposal documentation" }
         };
 
-        if (ci.CIType?.ToLower() is "server" or "storage")
+        if (ci.CIType is CIType.Server or CIType.Storage)
         {
             tasks.Insert(0, new RetirementTask { TaskName = "Service dependency verification" });
             tasks.Insert(1, new RetirementTask { TaskName = "Replacement system validation" });
@@ -844,26 +839,24 @@ public class AssetLifecycleService : IAssetLifecycleService
 
     private static decimal EstimateAcquisitionCost(ConfigurationItem ci)
     {
-        return ci.CIType?.ToLower() switch
+        return ci.CIType switch
         {
-            "server" => 12000m,
-            "desktop" => 1200m,
-            "laptop" => 1800m,
-            "network" => 4000m,
-            "storage" => 8000m,
+            CIType.Server => 12000m,
+            CIType.WorkStation => 1200m,
+            CIType.NetworkDevice => 4000m,
+            CIType.Storage => 8000m,
             _ => 2000m
         };
     }
 
     private static decimal EstimateMonthlyOperatingCost(ConfigurationItem ci)
     {
-        return ci.CIType?.ToLower() switch
+        return ci.CIType switch
         {
-            "server" => 500m,
-            "desktop" => 50m,
-            "laptop" => 60m,
-            "network" => 100m,
-            "storage" => 200m,
+            CIType.Server => 500m,
+            CIType.WorkStation => 50m,
+            CIType.NetworkDevice => 100m,
+            CIType.Storage => 200m,
             _ => 100m
         };
     }

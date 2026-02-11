@@ -24,6 +24,7 @@ using CRM.Core.Interfaces;
 using CRM.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using EntityCICriticality = CRM.Core.Entities.ITSM.CICriticality;
 
 namespace CRM.Infrastructure.Services.ITSM;
 
@@ -215,9 +216,9 @@ public class ChangeImpactService : IChangeImpactService
         var context = _dbContextResolver.ResolveContext();
 
         var change = await context.Changes
-            .Include(c => c.ImpactedCIs)
+            .Include(c => c.ImpactedCIs!)
                 .ThenInclude(ic => ic.ConfigurationItem)
-            .FirstOrDefaultAsync(c => c.ChangeRequestId == changeRequestId);
+            .FirstOrDefaultAsync(c => c.ChangeId == changeRequestId);
 
         if (change == null)
         {
@@ -232,7 +233,7 @@ public class ChangeImpactService : IChangeImpactService
         };
 
         // Get primary CI IDs
-        var primaryCIIds = change.ImpactedCIs?.Select(ic => ic.ConfigurationItemId).ToList() ?? new List<int>();
+        var primaryCIIds = change.ImpactedCIs?.Select(ic => ic.CIId).ToList() ?? new List<int>();
 
         if (!primaryCIIds.Any())
         {
@@ -297,23 +298,23 @@ public class ChangeImpactService : IChangeImpactService
         var processedIds = new HashSet<int>();
 
         // Get primary CIs (direct impact)
-        var primaryCIs = await context.ITSMConfigurationItems
-            .Where(ci => primaryCIIds.Contains(ci.ConfigurationItemId))
+        var primaryCIs = await context.ConfigurationItems
+            .Where(ci => primaryCIIds.Contains(ci.CIId))
             .ToListAsync();
 
         foreach (var ci in primaryCIs)
         {
-            processedIds.Add(ci.ConfigurationItemId);
+            processedIds.Add(ci.CIId);
             impactedCIs.Add(new ImpactedCI
             {
-                ConfigurationItemId = ci.ConfigurationItemId,
-                Name = ci.Name,
-                CIType = ci.CIType,
+                ConfigurationItemId = ci.CIId,
+                Name = ci.CIName,
+                CIType = ci.CIType.ToString(),
                 ImpactLevel = ImpactLevel.Direct,
                 DepthFromSource = 0,
-                RelationshipPath = ci.Name,
+                RelationshipPath = ci.CIName,
                 Criticality = ParseCriticality(ci.Criticality),
-                IsBusinessCritical = ci.Criticality == "Critical"
+                IsBusinessCritical = ci.Criticality == EntityCICriticality.BusinessCritical
             });
         }
 
@@ -322,10 +323,10 @@ public class ChangeImpactService : IChangeImpactService
 
         for (int depth = 1; depth <= maxDepth; depth++)
         {
-            var relationships = await context.ITSMCIRelationships
-                .Include(r => r.SourceCI)
-                .Include(r => r.TargetCI)
-                .Where(r => currentDepthIds.Contains(r.SourceCIId) || currentDepthIds.Contains(r.TargetCIId))
+            var relationships = await context.CIRelationships
+                .Include(r => r.ParentCI)
+                .Include(r => r.ChildCI)
+                .Where(r => currentDepthIds.Contains(r.ParentCIId) || currentDepthIds.Contains(r.ChildCIId))
                 .ToListAsync();
 
             var nextDepthIds = new List<int>();
@@ -334,20 +335,20 @@ public class ChangeImpactService : IChangeImpactService
             {
                 // Get the related CI (the one not in currentDepthIds)
                 int relatedCIId;
-                ITSMConfigurationItem? relatedCI;
+                ConfigurationItem? relatedCI;
                 string relationshipPath;
 
-                if (currentDepthIds.Contains(rel.SourceCIId))
+                if (currentDepthIds.Contains(rel.ParentCIId))
                 {
-                    relatedCIId = rel.TargetCIId;
-                    relatedCI = rel.TargetCI;
-                    relationshipPath = $"via {rel.RelationshipType} to {relatedCI?.Name}";
+                    relatedCIId = rel.ChildCIId;
+                    relatedCI = rel.ChildCI;
+                    relationshipPath = $"via {rel.RelationshipType} to {relatedCI?.CIName}";
                 }
                 else
                 {
-                    relatedCIId = rel.SourceCIId;
-                    relatedCI = rel.SourceCI;
-                    relationshipPath = $"via {rel.RelationshipType} from {relatedCI?.Name}";
+                    relatedCIId = rel.ParentCIId;
+                    relatedCI = rel.ParentCI;
+                    relationshipPath = $"via {rel.RelationshipType} from {relatedCI?.CIName}";
                 }
 
                 if (!processedIds.Contains(relatedCIId) && relatedCI != null)
@@ -358,8 +359,8 @@ public class ChangeImpactService : IChangeImpactService
                     impactedCIs.Add(new ImpactedCI
                     {
                         ConfigurationItemId = relatedCIId,
-                        Name = relatedCI.Name,
-                        CIType = relatedCI.CIType,
+                        Name = relatedCI.CIName,
+                        CIType = relatedCI.CIType.ToString(),
                         ImpactLevel = depth switch
                         {
                             1 => ImpactLevel.FirstDegree,
@@ -369,7 +370,7 @@ public class ChangeImpactService : IChangeImpactService
                         DepthFromSource = depth,
                         RelationshipPath = relationshipPath,
                         Criticality = ParseCriticality(relatedCI.Criticality),
-                        IsBusinessCritical = relatedCI.Criticality == "Critical"
+                        IsBusinessCritical = relatedCI.Criticality == EntityCICriticality.BusinessCritical
                     });
                 }
             }
@@ -390,27 +391,27 @@ public class ChangeImpactService : IChangeImpactService
         // Get the change and its CIs
         var change = await context.Changes
             .Include(c => c.ImpactedCIs)
-            .FirstOrDefaultAsync(c => c.ChangeRequestId == changeRequestId);
+            .FirstOrDefaultAsync(c => c.ChangeId == changeRequestId);
 
         if (change?.ImpactedCIs == null || !change.ImpactedCIs.Any())
         {
             return new List<ImpactedService>();
         }
 
-        var ciIds = change.ImpactedCIs.Select(ic => ic.ConfigurationItemId).ToList();
+        var ciIds = change.ImpactedCIs.Select(ic => ic.CIId).ToList();
 
         // Get services from catalog that are related to these CIs
         // In a full implementation, there would be a ServiceCI relationship table
-        var services = await context.ITSMServiceCatalogItems
+        var services = await context.Services
             .Where(s => s.IsActive)
             .ToListAsync();
 
         // For demo, return services as potentially impacted
         return services.Select(s => new ImpactedService
         {
-            ServiceId = s.ServiceCatalogItemId,
-            ServiceName = s.Name,
-            ServiceCategory = s.Category ?? "General",
+            ServiceId = s.ServiceId,
+            ServiceName = s.ServiceName,
+            ServiceCategory = "General",
             Criticality = ServiceCriticality.Medium,
             EstimatedUserCount = 50, // Would be calculated from service subscriptions
             AffectedBusinessProcesses = new List<string> { "Business Operations" }
@@ -422,9 +423,9 @@ public class ChangeImpactService : IChangeImpactService
         var context = _dbContextResolver.ResolveContext();
 
         var change = await context.Changes
-            .Include(c => c.ImpactedCIs)
+            .Include(c => c.ImpactedCIs!)
                 .ThenInclude(ic => ic.ConfigurationItem)
-            .FirstOrDefaultAsync(c => c.ChangeRequestId == changeRequestId);
+            .FirstOrDefaultAsync(c => c.ChangeId == changeRequestId);
 
         if (change == null)
         {
@@ -443,7 +444,7 @@ public class ChangeImpactService : IChangeImpactService
         int totalScore = 0;
 
         // Factor 1: Change Type (0-25 points)
-        var changeTypeScore = change.ChangeType switch
+        var changeTypeScore = change.Type switch
         {
             ChangeType.Standard => 5,
             ChangeType.Normal => 15,
@@ -468,23 +469,19 @@ public class ChangeImpactService : IChangeImpactService
         totalScore += ciScore;
 
         // Factor 3: Critical CIs (0-25 points)
-        var hasCriticalCIs = change.ImpactedCIs?.Any(ic => ic.ConfigurationItem?.Criticality == "Critical") ?? false;
+        var hasCriticalCIs = change.ImpactedCIs?.Any(ic => ic.ConfigurationItem?.Criticality == EntityCICriticality.BusinessCritical) ?? false;
         var criticalScore = hasCriticalCIs ? 25 : 0;
         result.RiskFactors["Critical CIs"] = criticalScore;
         totalScore += criticalScore;
 
         // Factor 4: Implementation complexity (0-25 points)
-        var complexityScore = 10; // Default medium complexity
-        if (!string.IsNullOrEmpty(change.RiskLevel))
+        var complexityScore = change.Risk switch
         {
-            complexityScore = change.RiskLevel.ToLower() switch
-            {
-                "low" => 5,
-                "medium" => 15,
-                "high" => 25,
-                _ => 10
-            };
-        }
+            ChangeRisk.Low => 5,
+            ChangeRisk.Medium => 15,
+            ChangeRisk.High => 25,
+            _ => 10
+        };
         result.RiskFactors["Complexity"] = complexityScore;
         totalScore += complexityScore;
 
@@ -531,23 +528,23 @@ public class ChangeImpactService : IChangeImpactService
         var notifications = new List<ImpactNotification>();
 
         var change = await context.Changes
-            .Include(c => c.ImpactedCIs)
+            .Include(c => c.ImpactedCIs!)
                 .ThenInclude(ic => ic.ConfigurationItem)
-            .Include(c => c.RequestedBy)
+            .Include(c => c.Requestor)
             .Include(c => c.AssignedTo)
-            .FirstOrDefaultAsync(c => c.ChangeRequestId == changeRequestId);
+            .FirstOrDefaultAsync(c => c.ChangeId == changeRequestId);
 
         if (change == null) return notifications;
 
         // Notify change requestor
-        if (change.RequestedBy != null)
+        if (change.Requestor != null)
         {
             notifications.Add(new ImpactNotification
             {
                 RecipientType = "Requestor",
-                RecipientId = change.RequestedBy.Id.ToString(),
-                RecipientName = $"{change.RequestedBy.FirstName} {change.RequestedBy.LastName}".Trim(),
-                Email = change.RequestedBy.Email,
+                RecipientId = change.Requestor.Id.ToString(),
+                RecipientName = $"{change.Requestor.FirstName} {change.Requestor.LastName}".Trim(),
+                Email = change.Requestor.Email,
                 Priority = NotificationPriority.Normal,
                 Reason = "You are the requestor of this change",
                 RequiresAcknowledgement = false
@@ -563,7 +560,7 @@ public class ChangeImpactService : IChangeImpactService
 
         foreach (var ownerGroup in ciOwners)
         {
-            var ciNames = string.Join(", ", ownerGroup.Select(ci => ci.Name));
+            var ciNames = string.Join(", ", ownerGroup.Select(ci => ci.CIName));
             notifications.Add(new ImpactNotification
             {
                 RecipientType = "CIOwner",
@@ -594,14 +591,14 @@ public class ChangeImpactService : IChangeImpactService
         return notifications;
     }
 
-    private static CICriticality ParseCriticality(string? criticality)
+    private static CICriticality ParseCriticality(EntityCICriticality? criticality)
     {
-        return criticality?.ToLower() switch
+        return criticality switch
         {
-            "critical" => CICriticality.Critical,
-            "high" => CICriticality.High,
-            "medium" => CICriticality.Medium,
-            "low" => CICriticality.Low,
+            EntityCICriticality.BusinessCritical => CICriticality.Critical,
+            EntityCICriticality.High => CICriticality.High,
+            EntityCICriticality.Medium => CICriticality.Medium,
+            EntityCICriticality.Low => CICriticality.Low,
             _ => CICriticality.Medium
         };
     }

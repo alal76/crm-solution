@@ -304,10 +304,10 @@ public class CatalogApprovalService : ICatalogApprovalService
     {
         var context = _dbContextResolver.ResolveContext();
 
-        var serviceRequest = await context.ITSMServiceRequests
+        var serviceRequest = await context.CatalogRequests
             .Include(sr => sr.CatalogItem)
             .Include(sr => sr.RequestedBy)
-            .FirstOrDefaultAsync(sr => sr.ServiceRequestId == serviceRequestId);
+            .FirstOrDefaultAsync(sr => sr.RequestId == serviceRequestId);
 
         if (serviceRequest == null)
         {
@@ -334,7 +334,7 @@ public class CatalogApprovalService : ICatalogApprovalService
         // Check auto-approve threshold
         if (rule.AutoApproveIfUnderCost &&
             rule.AutoApproveCostThreshold.HasValue &&
-            serviceRequest.CatalogItem?.EstimatedCost < rule.AutoApproveCostThreshold)
+            serviceRequest.CatalogItem?.Price < rule.AutoApproveCostThreshold)
         {
             return new ApprovalWorkflow
             {
@@ -352,7 +352,7 @@ public class CatalogApprovalService : ICatalogApprovalService
         {
             WorkflowId = _nextWorkflowId++,
             ServiceRequestId = serviceRequestId,
-            ServiceRequestNumber = serviceRequest.RequestNumber,
+            ServiceRequestNumber = $"CR-{serviceRequest.RequestId}",
             CatalogItemId = serviceRequest.CatalogItemId,
             CatalogItemName = serviceRequest.CatalogItem?.Name ?? "Unknown",
             State = WorkflowState.InProgress,
@@ -360,7 +360,7 @@ public class CatalogApprovalService : ICatalogApprovalService
             TotalStages = rule.StageDefinitions.Count,
             SubmittedAt = DateTime.UtcNow,
             SubmittedById = submittedById,
-            SubmittedByName = serviceRequest.RequestedBy?.FirstName + " " + LastName ?? Username,
+            SubmittedByName = serviceRequest.RequestedBy != null ? $"{serviceRequest.RequestedBy.FirstName} {serviceRequest.RequestedBy.LastName}" : "Unknown",
             Stages = new List<ApprovalStage>()
         };
 
@@ -404,13 +404,13 @@ public class CatalogApprovalService : ICatalogApprovalService
         _workflows.Add(workflow);
 
         // Update service request status
-        serviceRequest.Status = ServiceRequestStatus.Pending;
+        serviceRequest.State = CatalogRequestState.PendingApproval;
         serviceRequest.ModifiedAt = DateTime.UtcNow;
         await context.SaveChangesAsync();
 
         _logger.LogInformation(
-            "Created approval workflow {WorkflowId} for service request {RequestNumber}",
-            workflow.WorkflowId, serviceRequest.RequestNumber);
+            "Created approval workflow {WorkflowId} for service request {RequestId}",
+            workflow.WorkflowId, serviceRequest.RequestId);
 
         return workflow;
     }
@@ -444,7 +444,7 @@ public class CatalogApprovalService : ICatalogApprovalService
             StageId = currentStage.StageId,
             Decision = decision,
             ApproverId = approverId,
-            ApproverName = approver?.FirstName + " " + LastName ?? Username,
+            ApproverName = approver != null ? $"{approver.FirstName} {approver.LastName}" : "Unknown",
             ActionAt = DateTime.UtcNow,
             Comments = comments
         };
@@ -468,7 +468,7 @@ public class CatalogApprovalService : ICatalogApprovalService
                 workflow.State = WorkflowState.Rejected;
                 workflow.FinalOutcome = ApprovalOutcome.Rejected;
                 workflow.CompletedAt = DateTime.UtcNow;
-                await UpdateServiceRequestStatusAsync(workflow.ServiceRequestId, ServiceRequestStatus.Cancelled, context);
+                await UpdateServiceRequestStatusAsync(workflow.ServiceRequestId, CatalogRequestState.Cancelled, context);
                 break;
 
             case ApprovalDecision.RequestInfo:
@@ -491,7 +491,7 @@ public class CatalogApprovalService : ICatalogApprovalService
 
         _logger.LogInformation(
             "Processed approval for workflow {WorkflowId}: {Decision} by {Approver}",
-            workflowId, decision, approver?.FirstName + " " + LastName ?? Username);
+            workflowId, decision, approver != null ? $"{approver.FirstName} {approver.LastName}" : "Unknown");
 
         return action;
     }
@@ -534,10 +534,10 @@ public class CatalogApprovalService : ICatalogApprovalService
 
             if (shouldHandle)
             {
-                var sr = await context.ITSMServiceRequests
+                var sr = await context.CatalogRequests
                     .Include(r => r.RequestedBy)
                     .Include(r => r.CatalogItem)
-                    .FirstOrDefaultAsync(r => r.ServiceRequestId == workflow.ServiceRequestId);
+                    .FirstOrDefaultAsync(r => r.RequestId == workflow.ServiceRequestId);
 
                 if (sr != null)
                 {
@@ -545,7 +545,7 @@ public class CatalogApprovalService : ICatalogApprovalService
                         ? (int)Math.Max(0, (DateTime.UtcNow - activeStage.DueAt.Value).TotalDays)
                         : 0;
 
-                    pending.Add(new PendingApproval
+                    pending.Add(new PendingServiceRequestApproval
                     {
                         WorkflowId = workflow.WorkflowId,
                         StageId = activeStage.StageId,
@@ -556,9 +556,9 @@ public class CatalogApprovalService : ICatalogApprovalService
                         SubmittedAt = workflow.SubmittedAt,
                         DueAt = activeStage.DueAt,
                         DaysOverdue = daysOverdue,
-                        IsUrgent = sr.Priority == 1 || daysOverdue > 0,
-                        EstimatedCost = sr.CatalogItem?.EstimatedCost,
-                        Justification = sr.Justification
+                        IsUrgent = (sr.CatalogItem?.Priority ?? 2) == 1 || daysOverdue > 0,
+                        EstimatedCost = sr.CatalogItem?.Price,
+                        Justification = sr.VariableValues
                     });
                 }
             }
@@ -617,7 +617,7 @@ public class CatalogApprovalService : ICatalogApprovalService
         });
 
         var context = _dbContextResolver.ResolveContext();
-        await UpdateServiceRequestStatusAsync(serviceRequestId, ServiceRequestStatus.Cancelled, context);
+        await UpdateServiceRequestStatusAsync(serviceRequestId, CatalogRequestState.Cancelled, context);
         await context.SaveChangesAsync();
 
         _logger.LogInformation(
@@ -693,20 +693,20 @@ public class CatalogApprovalService : ICatalogApprovalService
 
             await UpdateServiceRequestStatusAsync(
                 workflow.ServiceRequestId,
-                ServiceRequestStatus.InProgress,
+                CatalogRequestState.InProgress,
                 context);
         }
     }
 
     private async Task UpdateServiceRequestStatusAsync(
         int serviceRequestId,
-        ServiceRequestStatus status,
+        CatalogRequestState status,
         ICrmDbContext context)
     {
-        var sr = await context.ITSMServiceRequests.FindAsync(serviceRequestId);
+        var sr = await context.CatalogRequests.FindAsync(serviceRequestId);
         if (sr != null)
         {
-            sr.Status = status;
+            sr.State = status;
             sr.ModifiedAt = DateTime.UtcNow;
         }
     }

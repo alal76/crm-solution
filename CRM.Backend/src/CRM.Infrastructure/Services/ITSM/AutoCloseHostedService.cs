@@ -19,6 +19,7 @@
 // Copyright (c) 2025 CRM Solution Contributors
 // Licensed under the AGPL-3.0 license.
 
+using CRM.Core.Entities;
 using CRM.Core.Entities.ITSM;
 using CRM.Core.Interfaces;
 using CRM.Infrastructure.Data;
@@ -111,21 +112,21 @@ public class AutoCloseHostedService : BackgroundService
 
         // Find resolved incidents older than the auto-close threshold
         var resolvedIncidents = await context.Incidents
-            .Where(i => i.Status == IncidentState.Resolved)
+            .Where(i => i.State == IncidentState.Resolved)
             .Where(i => i.ResolvedAt.HasValue && i.ResolvedAt < cutoffDate)
             .ToListAsync();
 
         foreach (var incident in resolvedIncidents)
         {
-            incident.Status = IncidentState.Closed;
+            incident.State = IncidentState.Closed;
             incident.ClosedAt = now;
-            incident.UpdatedAt = now;
+            incident.ModifiedAt = now;
 
             // Add auto-close comment
             var comment = new IncidentComment
             {
                 IncidentId = incident.IncidentId,
-                CommentText = $"[Auto-Closed] Incident automatically closed after {DefaultAutoCloseDaysIncident} days in Resolved status without user reopening.",
+                Comment = $"[Auto-Closed] Incident automatically closed after {DefaultAutoCloseDaysIncident} days in Resolved status without user reopening.",
                 IsInternal = true,
                 CreatedAt = now,
                 CreatedById = 1 // System user
@@ -147,13 +148,13 @@ public class AutoCloseHostedService : BackgroundService
 
         // Find fulfilled/completed service requests
         var completedRequests = await context.ServiceRequests
-            .Where(r => r.Status == "Completed" || r.Status == "Fulfilled")
+            .Where(r => r.Status == ServiceRequestStatus.Resolved)
             .Where(r => r.UpdatedAt.HasValue && r.UpdatedAt < cutoffDate)
             .ToListAsync();
 
         foreach (var request in completedRequests)
         {
-            request.Status = "Closed";
+            request.Status = ServiceRequestStatus.Closed;
             request.UpdatedAt = now;
 
             _logger.LogDebug("Auto-closed service request {Id}", request.Id);
@@ -170,27 +171,26 @@ public class AutoCloseHostedService : BackgroundService
 
         // Find implemented changes that need to be closed
         var implementedChanges = await context.Changes
-            .Where(c => c.Status == ChangeState.Implemented)
-            .Where(c => c.ActualEnd.HasValue && c.ActualEnd < cutoffDate)
+            .Where(c => c.State == ChangeState.Implemented)
+            .Where(c => c.ActualEndDate.HasValue && c.ActualEndDate < cutoffDate)
             .ToListAsync();
 
         foreach (var change in implementedChanges)
         {
-            change.Status = ChangeState.Closed;
-            change.ClosedAt = now;
-            change.UpdatedAt = now;
+            change.State = ChangeState.Closed;
+            change.ModifiedAt = now;
 
             // Add work note about auto-closure
-            var note = new ChangeNote
+            var comment = new ChangeComment
             {
-                ChangeRequestId = change.ChangeRequestId,
-                NoteText = $"[Auto-Closed] Change request automatically closed after {DefaultAutoCloseDaysChange} days in Implemented status.",
+                ChangeId = change.ChangeId,
+                Comment = $"[Auto-Closed] Change request automatically closed after {DefaultAutoCloseDaysChange} days in Implemented status.",
                 IsInternal = true,
                 CreatedAt = now,
                 CreatedById = 1 // System user
             };
 
-            context.ITSMChangeNotes.Add(note);
+            context.ChangeComments.Add(comment);
 
             _logger.LogDebug("Auto-closed change {ChangeNumber}", change.Number);
             count++;
@@ -205,8 +205,8 @@ public class AutoCloseHostedService : BackgroundService
         var count = 0;
 
         // Find resolved problems with no open linked incidents
-        var resolvedProblems = await context.ITSMProblems
-            .Where(p => p.Status == ProblemStatus.Resolved || p.Status == ProblemStatus.KnownError)
+        var resolvedProblems = await context.Problems
+            .Where(p => p.State == ProblemState.Resolved || p.State == ProblemState.KnownError)
             .Where(p => p.ResolvedAt.HasValue && p.ResolvedAt < cutoffDate)
             .ToListAsync();
 
@@ -215,8 +215,8 @@ public class AutoCloseHostedService : BackgroundService
             // Check if there are any open incidents still linked
             var hasOpenIncidents = await context.Incidents
                 .AnyAsync(i => i.ProblemId == problem.ProblemId &&
-                              i.Status != IncidentState.Closed &&
-                              i.Status != IncidentState.Resolved);
+                              i.State != IncidentState.Closed &&
+                              i.State != IncidentState.Resolved);
 
             if (hasOpenIncidents)
             {
@@ -225,21 +225,21 @@ public class AutoCloseHostedService : BackgroundService
                 continue;
             }
 
-            problem.Status = ProblemStatus.Closed;
+            problem.State = ProblemState.Closed;
             problem.ClosedAt = now;
-            problem.UpdatedAt = now;
+            problem.ModifiedAt = now;
 
             // Add closure note
-            var note = new ProblemNote
+            var comment = new ProblemComment
             {
                 ProblemId = problem.ProblemId,
-                NoteText = $"[Auto-Closed] Problem automatically closed after {DefaultAutoCloseDaysChange} days in Resolved/Known Error status with no open linked incidents.",
+                Comment = $"[Auto-Closed] Problem automatically closed after {DefaultAutoCloseDaysChange} days in Resolved/Known Error status with no open linked incidents.",
                 IsInternal = true,
                 CreatedAt = now,
                 CreatedById = 1 // System user
             };
 
-            context.ITSMProblemNotes.Add(note);
+            context.ProblemComments.Add(comment);
 
             _logger.LogDebug("Auto-closed problem {ProblemNumber}", problem.Number);
             count++;

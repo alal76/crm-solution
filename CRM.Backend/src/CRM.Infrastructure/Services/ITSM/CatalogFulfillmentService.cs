@@ -471,9 +471,9 @@ public class CatalogFulfillmentService : ICatalogFulfillmentService
     {
         var context = _dbContextResolver.ResolveContext();
 
-        var serviceRequest = await context.ITSMServiceRequests
+        var serviceRequest = await context.CatalogRequests
             .Include(sr => sr.CatalogItem)
-            .FirstOrDefaultAsync(sr => sr.ServiceRequestId == serviceRequestId);
+            .FirstOrDefaultAsync(sr => sr.RequestId == serviceRequestId);
 
         if (serviceRequest == null)
         {
@@ -495,7 +495,7 @@ public class CatalogFulfillmentService : ICatalogFulfillmentService
         {
             WorkflowId = _nextWorkflowId++,
             ServiceRequestId = serviceRequestId,
-            ServiceRequestNumber = serviceRequest.RequestNumber,
+            ServiceRequestNumber = serviceRequest.RequestId.ToString(),
             CatalogItemId = serviceRequest.CatalogItemId,
             CatalogItemName = serviceRequest.CatalogItem?.Name ?? "Unknown",
             State = FulfillmentState.InProgress,
@@ -538,13 +538,13 @@ public class CatalogFulfillmentService : ICatalogFulfillmentService
         _workflows.Add(workflow);
 
         // Update service request status
-        serviceRequest.Status = ServiceRequestStatus.InProgress;
+        serviceRequest.State = CatalogRequestState.InProgress;
         serviceRequest.ModifiedAt = DateTime.UtcNow;
         await context.SaveChangesAsync();
 
         _logger.LogInformation(
-            "Started fulfillment workflow {WorkflowId} for service request {RequestNumber}",
-            workflow.WorkflowId, serviceRequest.RequestNumber);
+            "Started fulfillment workflow {WorkflowId} for service request {RequestId}",
+            workflow.WorkflowId, serviceRequest.RequestId);
 
         // Auto-execute first automated tasks
         foreach (var task in workflow.Tasks.Where(t => t.State == TaskState.InProgress && t.Type == TaskType.Automated))
@@ -587,7 +587,7 @@ public class CatalogFulfillmentService : ICatalogFulfillmentService
         task.CompletedAt = DateTime.UtcNow;
         task.Notes = notes;
         task.AssignedToId = completedById;
-        task.AssignedToName = user?.FirstName + " " + LastName ?? Username;
+        task.AssignedToName = user != null ? (user.FirstName + " " + user.LastName) : "Unknown";
 
         _logger.LogInformation(
             "Task {TaskName} completed for workflow {WorkflowId}",
@@ -871,10 +871,10 @@ public class CatalogFulfillmentService : ICatalogFulfillmentService
         }
 
         var context = _dbContextResolver.ResolveContext();
-        var sr = await context.ITSMServiceRequests.FindAsync(serviceRequestId);
+        var sr = await context.CatalogRequests.FindAsync(serviceRequestId);
         if (sr != null)
         {
-            sr.Status = ServiceRequestStatus.Cancelled;
+            sr.State = CatalogRequestState.Cancelled;
             sr.ModifiedAt = DateTime.UtcNow;
             await context.SaveChangesAsync();
         }
@@ -940,11 +940,11 @@ public class CatalogFulfillmentService : ICatalogFulfillmentService
         workflow.ProgressPercent = 100;
 
         var context = _dbContextResolver.ResolveContext();
-        var sr = await context.ITSMServiceRequests.FindAsync(workflow.ServiceRequestId);
+        var sr = await context.CatalogRequests.FindAsync(workflow.ServiceRequestId);
         if (sr != null)
         {
-            sr.Status = ServiceRequestStatus.Completed;
-            sr.FulfilledAt = DateTime.UtcNow;
+            sr.State = CatalogRequestState.Completed;
+            sr.CompletedAt = DateTime.UtcNow;
             sr.ModifiedAt = DateTime.UtcNow;
             await context.SaveChangesAsync();
         }
