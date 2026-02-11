@@ -37,8 +37,6 @@ The following items remain from the remediation effort:
 | ID | Priority | Description | Notes |
 |----|----------|-------------|-------|
 | P-24 | 🟢 Low | Stripe webhook handlers | Payment processing integration |
-| P-25 | 🟢 Low | SendGrid event tracking | Email delivery events |
-| P-26 | 🟢 Low | Chatwoot timeline integration | Chat message timeline sync |
 
 ---
 
@@ -48,8 +46,8 @@ The following items remain from the remediation effort:
 |----------|-------|
 | 🔴 Critical | 0 |
 | 🟡 Medium | 4 |
-| 🟢 Low | 3 |
-| **Total** | **7** |
+| 🟢 Low | 1 |
+| **Total** | **5** |
 
 ---
 
