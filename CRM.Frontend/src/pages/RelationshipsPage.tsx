@@ -5,7 +5,7 @@
  * Relationships Page - B2B/B2C Relationship Management
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   Box, Card, CardContent, Typography, Button, Table, TableBody, TableCell, TableHead,
   TableRow, Dialog, DialogTitle, DialogContent, DialogActions, Alert, CircularProgress,
@@ -49,6 +49,176 @@ interface Customer {
   firstName?: string;
   lastName?: string;
   company?: string;
+}
+
+function RelationshipGraph({ nodes, edges }: {
+  nodes: RelationshipMapVisualization['nodes'];
+  edges: RelationshipMapVisualization['edges'];
+}) {
+  const [hoveredId, setHoveredId] = useState<number | null>(null);
+  const SVG_W = 700;
+  const SVG_H = 460;
+  const CX = SVG_W / 2;
+  const CY = SVG_H / 2;
+  const NODE_R = 30;
+
+  // Position nodes: center node at middle, depth-1 in inner ring, depth-2+ in outer ring
+  const positioned = useMemo(() => {
+    const center = nodes.find(n => n.isCenter);
+    const inner = nodes.filter(n => !n.isCenter && n.depth <= 1);
+    const outer = nodes.filter(n => !n.isCenter && n.depth > 1);
+
+    const result: Record<number, { x: number; y: number }> = {};
+    if (center) {
+      result[center.accountId] = { x: CX, y: CY };
+    }
+
+    const placeRing = (items: typeof nodes, radius: number) => {
+      const count = items.length;
+      if (count === 0) return;
+      const step = (2 * Math.PI) / count;
+      const startAngle = -Math.PI / 2;
+      items.forEach((n, i) => {
+        const angle = startAngle + i * step;
+        result[n.accountId] = {
+          x: CX + radius * Math.cos(angle),
+          y: CY + radius * Math.sin(angle),
+        };
+      });
+    };
+
+    placeRing(inner, 140);
+    placeRing(outer, 200);
+
+    return result;
+  }, [nodes, CX, CY]);
+
+  const healthColor = (score: number | null | undefined) => {
+    if (!score) return '#9e9e9e';
+    if (score >= 75) return '#4caf50';
+    if (score >= 50) return '#ff9800';
+    return '#f44336';
+  };
+
+  const strengthColor = (score: number) => {
+    if (score >= 75) return '#4caf50';
+    if (score >= 50) return '#2196f3';
+    if (score >= 25) return '#ff9800';
+    return '#f44336';
+  };
+
+  const truncate = (s: string, max: number) => s.length > max ? s.slice(0, max - 1) + '…' : s;
+
+  return (
+    <svg width="100%" height={SVG_H} viewBox={`0 0 ${SVG_W} ${SVG_H}`} style={{ userSelect: 'none' }}>
+      <defs>
+        <filter id="rel-shadow" x="-20%" y="-20%" width="140%" height="140%">
+          <feDropShadow dx="0" dy="1" stdDeviation="2" floodOpacity="0.12" />
+        </filter>
+      </defs>
+
+      {/* Edges */}
+      {edges.map((edge) => {
+        const from = positioned[edge.sourceId];
+        const to = positioned[edge.targetId];
+        if (!from || !to) return null;
+        const dx = to.x - from.x;
+        const dy = to.y - from.y;
+        const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+        const ux = dx / dist;
+        const uy = dy / dist;
+        const x1 = from.x + ux * (NODE_R + 2);
+        const y1 = from.y + uy * (NODE_R + 2);
+        const x2 = to.x - ux * (NODE_R + 2);
+        const y2 = to.y - uy * (NODE_R + 2);
+        const midX = (x1 + x2) / 2;
+        const midY = (y1 + y2) / 2;
+        const highlighted = hoveredId === edge.sourceId || hoveredId === edge.targetId;
+
+        return (
+          <g key={`edge-${edge.id}`}>
+            <line
+              x1={x1} y1={y1} x2={x2} y2={y2}
+              stroke={highlighted ? strengthColor(edge.strengthScore) : '#bdbdbd'}
+              strokeWidth={highlighted ? 2.5 : 1.5}
+              strokeDasharray={edge.strengthScore < 25 ? '4 3' : undefined}
+              style={{ transition: 'stroke 0.2s, stroke-width 0.2s' }}
+            />
+            {/* Edge label */}
+            <rect
+              x={midX - 36} y={midY - 8} width={72} height={16} rx={4}
+              fill="white" stroke="#e0e0e0" strokeWidth={0.5}
+              opacity={highlighted ? 1 : 0.85}
+            />
+            <text
+              x={midX} y={midY + 3} textAnchor="middle"
+              fontSize={8} fill="#616161" fontWeight={highlighted ? 600 : 400}
+            >
+              {truncate(edge.relationshipTypeName, 14)}
+            </text>
+          </g>
+        );
+      })}
+
+      {/* Nodes */}
+      {nodes.map((node) => {
+        const pos = positioned[node.accountId];
+        if (!pos) return null;
+        const isHovered = hoveredId === node.accountId;
+        const r = node.isCenter ? NODE_R + 6 : NODE_R;
+        const fill = node.isCenter ? '#1565c0' : '#42a5f5';
+
+        return (
+          <g
+            key={`node-${node.accountId}`}
+            transform={`translate(${pos.x}, ${pos.y})`}
+            onMouseEnter={() => setHoveredId(node.accountId)}
+            onMouseLeave={() => setHoveredId(null)}
+            style={{ cursor: 'pointer' }}
+          >
+            {/* Health ring */}
+            <circle
+              r={r + 3} fill="none"
+              stroke={healthColor(node.healthScore)}
+              strokeWidth={2.5}
+              opacity={isHovered ? 1 : 0.6}
+              style={{ transition: 'opacity 0.2s' }}
+            />
+            {/* Main circle */}
+            <circle
+              r={r} fill={fill}
+              opacity={isHovered ? 1 : 0.85}
+              filter="url(#rel-shadow)"
+              style={{ transition: 'opacity 0.2s' }}
+            />
+            {/* Name */}
+            <text textAnchor="middle" dy={node.company ? '-0.3em' : '0.35em'}
+              fill="white" fontSize={node.isCenter ? 11 : 10} fontWeight={node.isCenter ? 700 : 600}>
+              {truncate(node.name, 12)}
+            </text>
+            {node.company && (
+              <text textAnchor="middle" dy="1.0em" fill="rgba(255,255,255,0.8)" fontSize={8}>
+                {truncate(node.company, 14)}
+              </text>
+            )}
+            {/* Tooltip */}
+            {isHovered && (
+              <g>
+                <rect x={-72} y={r + 8} width={144} height={40} rx={6}
+                  fill="white" stroke="#e0e0e0" strokeWidth={1} filter="url(#rel-shadow)" />
+                <text x={0} y={r + 22} textAnchor="middle" fontSize={10} fill="#212121" fontWeight={600}>
+                  {truncate(node.name, 24)}
+                </text>
+                <text x={0} y={r + 36} textAnchor="middle" fontSize={9} fill="#757575">
+                  Health: {node.healthScore ?? 'N/A'} • Depth: {node.depth}
+                </text>
+              </g>
+            )}
+          </g>
+        );
+      })}
+    </svg>
+  );
 }
 
 function RelationshipsPage() {
@@ -956,9 +1126,10 @@ function RelationshipsPage() {
                   </Paper>
                 </Grid>
               </Grid>
-              <Alert severity="info" sx={{ mt: 2 }}>
-                Interactive graph visualization coming soon. This view shows the relationship network data.
-              </Alert>
+              {/* Interactive relationship graph */}
+              <Box sx={{ mt: 2, border: 1, borderColor: 'divider', borderRadius: 2, p: 1, bgcolor: 'background.default' }}>
+                <RelationshipGraph nodes={mapData.nodes} edges={mapData.edges} />
+              </Box>
             </Box>
           ) : (
             <Box display="flex" justifyContent="center" p={4}>

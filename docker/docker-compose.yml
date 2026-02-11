@@ -87,7 +87,7 @@ services:
       - DB_PORT=${DB_INTERNAL_PORT:-3306}
       - DB_NAME=${DB_NAME:-crm_db}
       - DB_USER=${DB_USER:-crm_user}
-      - DB_PASSWORD=${DB_PASSWORD}
+      - DB_PASSWORD=${DB_PASSWORD:-CrmPass@Dev2024}
       # Default connection string for production database
       - ConnectionStrings__DefaultConnection=Server=${DB_HOST:-mariadb};Port=${DB_PORT:-3306};Database=${DB_NAME:-crm_db};User=${DB_USER:-crm_user};Password=${DB_PASSWORD:-CrmPass@Dev2024};
       # Demo database (crm_demodb) is auto-created on same server

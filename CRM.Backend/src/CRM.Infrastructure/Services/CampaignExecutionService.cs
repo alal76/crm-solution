@@ -669,7 +669,7 @@ public class CampaignExecutionService
                 if (split != null && split.TryGetValue("A", out var aPercent))
                     splitA = aPercent;
             }
-            catch { }
+            catch (Exception ex) { _logger.LogDebug(ex, "Failed to deserialize AB test traffic split, using default 50/50"); }
         }
 
         var random = new Random();

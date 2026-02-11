@@ -1377,7 +1377,11 @@ public class MonitoringService : IMonitoringService
                 return gcInfo.TotalAvailableMemoryBytes;
             }
         }
-        catch { }
+        catch (Exception ex)
+        {
+            // Static method - no ILogger available; use diagnostics trace
+            System.Diagnostics.Debug.WriteLine($"Failed to get physical memory info: {ex.Message}");
+        }
 
         return 8L * 1024 * 1024 * 1024; // Default 8GB
     }

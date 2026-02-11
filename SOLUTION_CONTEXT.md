@@ -54,7 +54,7 @@ crm-solution/
 │       ├── components/    # React components
 │       ├── pages/         # Page components
 │       ├── services/      # API service layer
-│       └── store/         # Redux state management
+│       └── contexts/      # React Context state management (Auth, Theme, SignalR, etc.)
 ├── e2e-tests/             # Playwright E2E tests
 ├── database/              # SQL schema and seed scripts
 ├── docker/                # Docker configurations
@@ -569,7 +569,7 @@ docker restart crm-api
 | `CRM.Frontend/src/pages/AccountsPage.tsx` | Accounts list page |
 | `CRM.Frontend/src/pages/AccountDetailsPage.tsx` | Account detail view |
 | `CRM.Frontend/src/services/api.ts` | Axios API configuration |
-| `CRM.Frontend/src/store/` | Redux store slices |
+| `CRM.Frontend/src/contexts/` | React Context providers (Auth, Theme, SignalR, Branding, Layout, etc.) |
 
 ### Test Files
 
@@ -617,6 +617,47 @@ DELETE /api/accounts/{id}     # Delete account
 /api/notes                    # Notes CRUD
 /api/settings                 # System settings
 /api/lookups                  # Lookup data (industries, etc.)
+```
+
+### ITSM Module Endpoints
+```
+/api/itsm/incidents           # Incident CRUD
+/api/itsm/problems            # Problem CRUD
+/api/itsm/changes             # Change management CRUD
+/api/itsm/cmdb/cis            # CMDB Configuration Items CRUD
+/api/itsm/knowledge/articles  # Knowledge base articles
+/api/itsm/catalog             # Service catalog
+/api/itsm/sla                 # SLA management
+/api/itsm/dashboard           # ITSM dashboard metrics
+```
+
+### Sales & Forecasting Endpoints
+```
+/api/sales-forecasts          # Sales forecast CRUD
+/api/sales-quotas             # Sales quota management
+/api/orders                   # Order CRUD
+/api/invoices                 # Invoice CRUD
+/api/payments                 # Payment CRUD
+/api/contracts                # Contract CRUD
+/api/subscriptions            # Subscription management
+```
+
+### Additional Endpoints (Added in Sessions 3-16)
+```
+/api/event-attendees          # Event attendee management
+/api/normalization            # Data normalization
+/api/conversations            # Conversation threads
+/api/ai-analytics             # AI analytics (lead scoring, KB search, opportunity insights)
+/api/territories              # Territory management
+/api/lead-routing             # Lead routing rules
+/api/approvals                # Approval workflows
+/api/forms                    # Form builder
+/api/teams                    # Team management
+/api/commissions              # Commission tracking
+/api/import-export            # Data import/export
+/api/communications           # Multi-channel communications
+/api/admin/features           # Feature flag management
+/api/health/providers         # Provider health status
 ```
 
 ---

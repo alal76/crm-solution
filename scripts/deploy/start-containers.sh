@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# NOTE: For new deployments, prefer scripts/deploy.sh (the unified parameterized script).
 
 SSH_KEY="$HOME/.ssh/crm-deploy-key"
 SSH_HOST="root@192.168.0.9"
@@ -6,6 +7,7 @@ SSH_HOST="root@192.168.0.9"
 echo "🚀 Starting CRM containers..."
 echo ""
 
+# WARNING: Disables SSH host key verification. Use known_hosts in production.
 ssh -i "$SSH_KEY" -p 22 -o ConnectTimeout=10 -o StrictHostKeyChecking=no "$SSH_HOST" << 'EOF'
 cd /opt/crm
 echo "Current directory: $(pwd)"

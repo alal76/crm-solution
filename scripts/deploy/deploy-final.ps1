@@ -1,5 +1,6 @@
 #!/usr/bin/env pwsh
 # Simplified CRM Deployment Script with SSH Password Caching
+# NOTE: For new deployments, prefer scripts/deploy.sh (the unified parameterized script).
 
 param(
     [string]$GHCRToken = ""
@@ -24,6 +25,7 @@ function Invoke-RemoteCommand {
         [switch]$Quiet = $false
     )
     
+    # WARNING: Disables SSH host key verification. Use known_hosts in production.
     $output = ssh -i "$SSHKey" -p $RemotePort -o ConnectTimeout=10 -o StrictHostKeyChecking=no "${RemoteUser}@${RemoteHost}" $Command 2>&1
     if (-not $Quiet) {
         $output
@@ -38,6 +40,7 @@ function Copy-ToRemote {
         [string]$RemotePath
     )
     
+    # WARNING: Disables SSH host key verification. Use known_hosts in production.
     scp -i "$SSHKey" -P $RemotePort -o ConnectTimeout=10 -o StrictHostKeyChecking=no $LocalPath "${RemoteUser}@${RemoteHost}:${RemotePath}" 2>&1
     return $LASTEXITCODE
 }

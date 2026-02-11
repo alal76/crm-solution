@@ -40,7 +40,8 @@ FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine AS runtime
 WORKDIR /app
 
 # Install minimal dependencies including ICU for globalization
-RUN apk add --no-cache curl mariadb-client icu-libs icu-data-full
+# Note: mariadb-client removed to reduce runtime attack surface (~30MB savings)
+RUN apk add --no-cache curl icu-libs icu-data-full
 
 # Create directories with proper permissions
 RUN mkdir -p /app/data /app/ssl /app/wwwroot/uploads/logos /app/wwwroot/uploads/users /app/wwwroot/uploads/customers /app/wwwroot/uploads/contacts && \
@@ -64,13 +65,16 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
 
 EXPOSE 5000 5001
 
+# Build-arg for SSL certificate password (override at build time: --build-arg SSL_CERT_PASSWORD=...)
+ARG SSL_CERT_PASSWORD=CrmSslCert2024
+
 # Environment configuration
 ENV ASPNETCORE_URLS=http://+:5000 \
     DOTNET_CLI_TELEMETRY_OPTOUT=1 \
     DOTNET_RUNNING_IN_CONTAINER=true \
     DOTNET_SYSTEM_GLOBALIZATION_INVARIANT=false \
     SSL_CERT_PATH=/app/ssl/server.pfx \
-    SSL_CERT_PASSWORD=CrmSslCert2024 \
+    SSL_CERT_PASSWORD=$SSL_CERT_PASSWORD \
     HTTPS_PORT=5001 \
     HTTP_PORT=5000
 

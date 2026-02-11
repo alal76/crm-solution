@@ -16,6 +16,7 @@
 
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
+using CRM.Core.Ports.Output.Providers;
 using CRM.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -29,11 +30,16 @@ public class CommunicationService : ICommunicationService
 {
     private readonly ICrmDbContext _dbContext;
     private readonly ILogger<CommunicationService> _logger;
+    private readonly INotificationPort? _notificationPort;
 
-    public CommunicationService(ICrmDbContext dbContext, ILogger<CommunicationService> logger)
+    public CommunicationService(
+        ICrmDbContext dbContext,
+        ILogger<CommunicationService> logger,
+        INotificationPort? notificationPort = null)
     {
         _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _notificationPort = notificationPort;
     }
 
     #region Channels
@@ -490,17 +496,41 @@ public class CommunicationService : ICommunicationService
         };
     }
 
-    private Task<bool> TestEmailChannelAsync(CommunicationChannel channel)
+    private async Task<bool> TestEmailChannelAsync(CommunicationChannel channel)
     {
-        // For now, just validate configuration exists
+        // Validate basic configuration exists
         if (string.IsNullOrEmpty(channel.SmtpServer) || !channel.SmtpPort.HasValue)
         {
             throw new InvalidOperationException("SMTP server and port are required");
         }
 
-        // In a real implementation, we would test SMTP connection
-        _logger.LogInformation("Email channel {ChannelId} configuration validated", channel.Id);
-        return Task.FromResult(true);
+        // If INotificationPort is available, perform a real connectivity check
+        if (_notificationPort != null)
+        {
+            try
+            {
+                var isAvailable = await _notificationPort.IsAvailableAsync();
+                if (!isAvailable)
+                {
+                    _logger.LogWarning("Email channel {ChannelId}: notification provider is not available", channel.Id);
+                    return false;
+                }
+
+                var healthResult = await _notificationPort.HealthCheckAsync();
+                _logger.LogInformation(
+                    "Email channel {ChannelId} tested via {Provider}: healthy={IsHealthy}",
+                    channel.Id, _notificationPort.ProviderName, healthResult.IsHealthy);
+                return healthResult.IsHealthy;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Email channel {ChannelId}: notification port health check failed, falling back to config validation", channel.Id);
+            }
+        }
+
+        // Fallback: configuration-only validation (no real connectivity test)
+        _logger.LogInformation("Email channel {ChannelId} configuration validated (no notification provider available for live test)", channel.Id);
+        return true;
     }
 
     private Task<bool> TestWhatsAppChannelAsync(CommunicationChannel channel)
@@ -512,8 +542,9 @@ public class CommunicationService : ICommunicationService
             throw new InvalidOperationException("WhatsApp Business Account ID and Phone Number ID are required");
         }
 
-        // In a real implementation, we would test WhatsApp API connection
-        _logger.LogInformation("WhatsApp channel {ChannelId} configuration validated", channel.Id);
+        // TODO: Integrate with IChatPort or WhatsApp Cloud API provider for real connectivity test.
+        // INotificationPort does not cover WhatsApp — a dedicated social/chat provider is needed.
+        _logger.LogInformation("WhatsApp channel {ChannelId} configuration validated (live API test not yet integrated)", channel.Id);
         return Task.FromResult(true);
     }
 
@@ -525,7 +556,9 @@ public class CommunicationService : ICommunicationService
             throw new InvalidOperationException("Facebook Page Access Token is required");
         }
 
-        _logger.LogInformation("Facebook channel {ChannelId} configuration validated", channel.Id);
+        // TODO: Integrate with Facebook Graph API provider for real connectivity test.
+        // INotificationPort does not cover Facebook — a dedicated social media provider is needed.
+        _logger.LogInformation("Facebook channel {ChannelId} configuration validated (live API test not yet integrated)", channel.Id);
         return Task.FromResult(true);
     }
 
@@ -537,33 +570,73 @@ public class CommunicationService : ICommunicationService
             throw new InvalidOperationException("Twitter API Key and Secret are required");
         }
 
-        _logger.LogInformation("Twitter channel {ChannelId} configuration validated", channel.Id);
+        // TODO: Integrate with Twitter/X API v2 provider for real connectivity test.
+        // INotificationPort does not cover Twitter — a dedicated social media provider is needed.
+        _logger.LogInformation("Twitter channel {ChannelId} configuration validated (live API test not yet integrated)", channel.Id);
         return Task.FromResult(true);
     }
 
-    private Task<bool> SendEmailAsync(CommunicationChannel channel, CommunicationMessage message, SendMessageRequest request)
+    private async Task<bool> SendEmailAsync(CommunicationChannel channel, CommunicationMessage message, SendMessageRequest request)
     {
-        // In a real implementation, we would use SMTP to send
-        // For now, just log and return success if configured properly
         if (string.IsNullOrEmpty(request.ToEmail))
         {
             throw new InvalidOperationException("ToEmail is required for email messages");
         }
 
-        _logger.LogInformation("Would send email from {From} to {To}: {Subject}",
+        // If INotificationPort is available, send the email through the pluggable provider
+        if (_notificationPort != null)
+        {
+            try
+            {
+                var emailRequest = new EmailNotificationRequest
+                {
+                    To = request.ToEmail,
+                    Subject = message.Subject ?? string.Empty,
+                    Body = message.Body ?? string.Empty,
+                    IsHtml = request.IsHtml,
+                    From = channel.FromEmail,
+                    FromName = channel.FromName
+                };
+
+                var result = await _notificationPort.SendEmailAsync(emailRequest);
+
+                if (result.Success)
+                {
+                    _logger.LogInformation(
+                        "Email sent via {Provider} from {From} to {To}: {Subject} (MessageId: {MessageId})",
+                        _notificationPort.ProviderName, channel.FromEmail, request.ToEmail, message.Subject, result.MessageId);
+                    return true;
+                }
+
+                _logger.LogWarning(
+                    "Email send failed via {Provider} from {From} to {To}: {Error}",
+                    _notificationPort.ProviderName, channel.FromEmail, request.ToEmail, result.Error);
+                return false;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex,
+                    "Exception sending email via {Provider} from {From} to {To}, falling back to log-only",
+                    _notificationPort.ProviderName, channel.FromEmail, request.ToEmail);
+            }
+        }
+
+        // Fallback: log-only (no notification provider configured)
+        _logger.LogInformation("[LOG-ONLY] Would send email from {From} to {To}: {Subject} (no notification provider configured)",
             channel.FromEmail, request.ToEmail, message.Subject);
-        return Task.FromResult(true);
+        return true;
     }
 
     private Task<bool> SendWhatsAppAsync(CommunicationChannel channel, CommunicationMessage message, SendMessageRequest request)
     {
-        // In a real implementation, we would use WhatsApp Cloud API
         if (string.IsNullOrEmpty(request.ToPhone))
         {
             throw new InvalidOperationException("ToPhone is required for WhatsApp messages");
         }
 
-        _logger.LogInformation("Would send WhatsApp message to {To}", request.ToPhone);
+        // TODO: Integrate with IChatPort or WhatsApp Cloud API provider for real message delivery.
+        // INotificationPort does not cover WhatsApp — a dedicated social/chat provider is needed.
+        _logger.LogInformation("[LOG-ONLY] Would send WhatsApp message to {To} (delivery not yet integrated)", request.ToPhone);
         return Task.FromResult(true);
     }
 

@@ -5,6 +5,9 @@
 # This script deploys the CRM solution to a target environment and runs
 # all tests automatically, generating a comprehensive test report.
 #
+# NOTE: For new deployments, prefer scripts/deploy.sh (the unified parameterized
+# script). This script is maintained for deploy+test combo workflows.
+#
 # Usage:
 #   ./scripts/deploy-and-test.sh                    # Deploy and test (default)
 #   ./scripts/deploy-and-test.sh --deploy-only      # Deploy only, no tests

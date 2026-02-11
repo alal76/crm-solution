@@ -6,12 +6,16 @@
 #   - VM: MariaDB Database
 #   - Docker Registry: 192.168.0.9:5000
 #===============================================================================
+# NOTE: For new deployments, prefer scripts/deploy.sh (the unified parameterized
+# script). This script is maintained for production-specific workflows.
+#===============================================================================
 
 set -e
 
 # Configuration
 REMOTE_HOST="192.168.0.9"
-REMOTE_USER="${REMOTE_USER:-root}"
+# Default to 'deploy' user — avoid running as root in production
+REMOTE_USER="${REMOTE_USER:-deploy}"
 SSH_KEY="${SSH_KEY:-$HOME/.ssh/id_ed25519}"
 REGISTRY="${REMOTE_HOST}:5000"
 PROJECT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -33,10 +37,12 @@ log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 # SSH Helper
 #-------------------------------------------------------------------------------
 ssh_cmd() {
+    # WARNING: Disables SSH host key verification. Use known_hosts in production.
     ssh -i "$SSH_KEY" -o StrictHostKeyChecking=no -o ConnectTimeout=10 "${REMOTE_USER}@${REMOTE_HOST}" "$@"
 }
 
 scp_cmd() {
+    # WARNING: Disables SSH host key verification. Use known_hosts in production.
     scp -i "$SSH_KEY" -o StrictHostKeyChecking=no "$@"
 }
 

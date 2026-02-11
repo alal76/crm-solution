@@ -150,6 +150,17 @@ public class PaymentService : IPaymentService
         PaymentDetails details,
         CancellationToken cancellationToken = default)
     {
+        // Validate payment amount
+        if (amount <= 0)
+        {
+            return new PaymentResult
+            {
+                Success = false,
+                ErrorCode = "INVALID_AMOUNT",
+                ErrorMessage = "Payment amount must be greater than zero"
+            };
+        }
+
         var invoice = await _context.Invoices.FindAsync(new object[] { invoiceId }, cancellationToken);
         if (invoice == null || invoice.IsDeleted)
         {
@@ -158,6 +169,17 @@ public class PaymentService : IPaymentService
                 Success = false,
                 ErrorCode = "INVOICE_NOT_FOUND",
                 ErrorMessage = $"Invoice {invoiceId} not found"
+            };
+        }
+
+        // Prevent overpayment beyond the outstanding balance
+        if (invoice.BalanceDue > 0 && amount > invoice.BalanceDue)
+        {
+            return new PaymentResult
+            {
+                Success = false,
+                ErrorCode = "AMOUNT_EXCEEDS_BALANCE",
+                ErrorMessage = $"Payment amount {amount:F2} exceeds outstanding balance {invoice.BalanceDue:F2}"
             };
         }
 
@@ -175,8 +197,8 @@ public class PaymentService : IPaymentService
             UpdatedAt = DateTime.UtcNow
         };
 
-        // Store masked card info if credit card payment
-        if (method == PaymentMethod.CreditCard && !string.IsNullOrEmpty(details.CardNumber))
+        // Store masked card info if credit card payment (null-safe on details)
+        if (method == PaymentMethod.CreditCard && details != null && !string.IsNullOrEmpty(details.CardNumber))
         {
             payment.CardLast4 = details.CardNumber.Length >= 4
                 ? details.CardNumber[^4..]
@@ -186,15 +208,15 @@ public class PaymentService : IPaymentService
 
         try
         {
-            // Simulate payment gateway processing
-            // In production, this would call actual payment gateway
+            // BuiltIn payment processing: records the payment and updates invoice balances.
+            // For external gateway integration, swap to an IPaymentGateway provider.
             payment.Status = PaymentStatus.Completed;
             payment.ProcessedDate = DateTime.UtcNow;
             payment.AuthorizationCode = GenerateAuthCode();
 
             _context.Payments.Add(payment);
 
-            // Update invoice
+            // Update invoice paid amount and status
             invoice.AmountPaid += amount;
             if (invoice.BalanceDue <= 0)
             {
@@ -209,7 +231,8 @@ public class PaymentService : IPaymentService
 
             await _context.SaveChangesAsync(cancellationToken);
 
-            _logger.LogInformation("Processed payment {PaymentNumber} for {Amount}", payment.PaymentNumber, amount);
+            _logger.LogInformation("Processed payment {PaymentNumber} of {Amount:F2} for invoice {InvoiceId} via {Method}",
+                payment.PaymentNumber, amount, invoiceId, method);
 
             return new PaymentResult
             {
@@ -221,7 +244,7 @@ public class PaymentService : IPaymentService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Payment processing failed for invoice {InvoiceId}", invoiceId);
+            _logger.LogError(ex, "Payment processing failed for invoice {InvoiceId}, amount {Amount:F2}", invoiceId, amount);
             return new PaymentResult
             {
                 Success = false,

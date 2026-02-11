@@ -546,6 +546,7 @@ builder.Services.AddScoped<IAILeadScoringService, AILeadScoringService>();
 builder.Services.AddScoped<IAIOpportunityScoringService, AIOpportunityScoringService>();
 builder.Services.AddScoped<IDashboardBuilderService, DashboardBuilderService>();
 builder.Services.AddScoped<IReportBuilderService, ReportBuilderService>();
+builder.Services.AddScoped<IAIPredictiveAnalyticsService, AIPredictiveAnalyticsService>();
 
 // Allen AI Services (OLMo/Tulu models for lead scoring, insights, churn prediction)
 builder.Services.Configure<AllenAIConfiguration>(builder.Configuration.GetSection("AllenAI"));

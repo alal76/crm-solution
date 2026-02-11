@@ -10,6 +10,9 @@ spec:
     - ReadWriteOnce
   persistentVolumeReclaimPolicy: Retain
   storageClassName: standard
+  # WARNING: hostPath is for single-node/development only.
+  # For production, use a PersistentVolumeClaim with a proper StorageClass
+  # (e.g., cloud block storage, NFS, or Ceph) for multi-node reliability.
   hostPath:
     path: /data/crm
 ---

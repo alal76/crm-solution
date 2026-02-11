@@ -7,6 +7,8 @@ echo.
 set SSH_KEY=%USERPROFILE%\.ssh\crm-deploy-key
 set SSH_HOST=root@192.168.0.9
 
+REM WARNING: StrictHostKeyChecking=no disables SSH host key verification.
+REM Use known_hosts in production environments.
 echo Checking Docker images:
 ssh -i "%SSH_KEY%" -p 22 -o ConnectTimeout=30 -o StrictHostKeyChecking=no %SSH_HOST% "docker images"
 

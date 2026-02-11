@@ -2,6 +2,9 @@
 
 # CRM Application Kubernetes Deployment Script
 # This script deploys the entire CRM application to a Kubernetes cluster
+#
+# NOTE: For new deployments, prefer scripts/deploy.sh (the unified parameterized
+# script). This K8s-specific script is maintained for direct kubectl workflows.
 
 set -e
 
