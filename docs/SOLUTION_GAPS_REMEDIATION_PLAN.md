@@ -40,12 +40,6 @@ The following items remain from the remediation effort:
 | P-25 | 🟢 Low | SendGrid event tracking | Email delivery events |
 | P-26 | 🟢 Low | Chatwoot timeline integration | Chat message timeline sync |
 
-### Known TODO Comments in Codebase
-
-| File | Description |
-|------|-------------|
-| ServiceCatalog.cs:120, 263 | Workflow engine implementation |
-
 ---
 
 ## Summary by Priority
@@ -54,8 +48,8 @@ The following items remain from the remediation effort:
 |----------|-------|
 | 🔴 Critical | 0 |
 | 🟡 Medium | 4 |
-| 🟢 Low | 5 |
-| **Total** | **9** |
+| 🟢 Low | 3 |
+| **Total** | **7** |
 
 ---
 

@@ -16,6 +16,7 @@
 
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using CRM.Core.Entities.Workflow;
 
 namespace CRM.Core.Entities.ITSM;
 
@@ -117,9 +118,9 @@ public class CatalogItem
     // Workflow
     public int? WorkflowDefinitionId { get; set; }
 
-    // TODO: Implement workflow engine - WorkflowDefinition entity
-    // [ForeignKey(nameof(WorkflowDefinitionId))]
-    // public WorkflowDefinition? WorkflowDefinition { get; set; }
+    [ForeignKey(nameof(WorkflowDefinitionId))]
+    public WorkflowDefinition? WorkflowDefinition { get; set; }
+
     public int? ApprovalWorkflowId { get; set; }
 
     public int? FulfillmentTaskTemplateId { get; set; }
@@ -260,9 +261,8 @@ public class CatalogRequest
 
     public int? WorkflowInstanceId { get; set; }
 
-    // TODO: Implement workflow engine - WorkflowInstance entity
-    // [ForeignKey(nameof(WorkflowInstanceId))]
-    // public WorkflowInstance? WorkflowInstance { get; set; }
+    [ForeignKey(nameof(WorkflowInstanceId))]
+    public WorkflowInstance? WorkflowInstance { get; set; }
 
     // Fulfillment
     public int? AssignedToId { get; set; }
