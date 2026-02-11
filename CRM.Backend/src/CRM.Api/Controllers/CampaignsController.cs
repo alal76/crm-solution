@@ -35,7 +35,7 @@ public class CampaignsController : ControllerBase
     private readonly ILogger<CampaignsController> _logger;
 
     /// <summary>
-    /// Initializes the campaigns controller with required services.
+    /// Initializes a new instance of the <see cref="CampaignsController"/> class.
     /// </summary>
     public CampaignsController(IMarketingCampaignService campaignService, ILogger<CampaignsController> logger)
     {
@@ -107,7 +107,10 @@ public class CampaignsController : ControllerBase
         {
             var campaign = await _campaignService.GetCampaignByIdAsync(id);
             if (campaign == null)
+            {
                 return NotFound(new { message = $"Campaign with ID {id} not found" });
+            }
+
             return Ok(campaign);
         }
         catch (Exception ex)
@@ -271,7 +274,9 @@ public class CampaignsController : ControllerBase
         try
         {
             if (!ModelState.IsValid)
+            {
                 return BadRequest(ModelState);
+            }
 
             metric.CampaignId = id;
             await _campaignService.AddCampaignMetricAsync(metric);

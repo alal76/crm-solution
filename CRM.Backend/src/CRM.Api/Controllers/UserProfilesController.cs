@@ -290,7 +290,9 @@ public class UserProfilesController : ControllerBase
         {
             accessiblePages = JsonSerializer.Deserialize<List<string>>(profile.AccessiblePages) ?? new();
         }
-        catch { }
+        catch
+        {
+        }
 
         return new UserProfileDto
         {

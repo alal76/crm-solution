@@ -1,6 +1,18 @@
 // CRM Solution - Customer Relationship Management System
 // Copyright (C) 2024-2026 Abhishek Lal
-// Licensed under AGPL-3.0
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
@@ -156,7 +168,6 @@ public class OracleProviderStrategy : DatabaseProviderStrategyBase
         // Oracle supports bitmap indexes, function-based indexes, partitioned indexes
         // RAC: Consider global vs local indexes for partitioned tables
         // Autonomous: Auto-indexing handles most cases
-
         if (_deploymentMode == DatabaseDeploymentMode.Hyperscale)
         {
             // Autonomous Database has auto-indexing
@@ -191,7 +202,10 @@ public class OracleProviderStrategy : DatabaseProviderStrategyBase
 /// </summary>
 public class OracleRacStrategy : OracleProviderStrategy
 {
-    public OracleRacStrategy() : base(DatabaseDeploymentMode.Clustered) { }
+    public OracleRacStrategy()
+        : base(DatabaseDeploymentMode.Clustered)
+    {
+    }
 
     public new string ProviderName => "oracle-rac";
 
@@ -211,7 +225,10 @@ public class OracleRacStrategy : OracleProviderStrategy
 /// </summary>
 public class OracleAutonomousStrategy : OracleProviderStrategy
 {
-    public OracleAutonomousStrategy() : base(DatabaseDeploymentMode.Hyperscale) { }
+    public OracleAutonomousStrategy()
+        : base(DatabaseDeploymentMode.Hyperscale)
+    {
+    }
 
     public new string ProviderName => "oracle-autonomous";
 
@@ -241,7 +258,10 @@ public class OracleAutonomousStrategy : OracleProviderStrategy
 /// </summary>
 public class OracleExadataStrategy : OracleProviderStrategy
 {
-    public OracleExadataStrategy() : base(DatabaseDeploymentMode.Hyperscale) { }
+    public OracleExadataStrategy()
+        : base(DatabaseDeploymentMode.Hyperscale)
+    {
+    }
 
     public new string ProviderName => "oracle-exadata";
 

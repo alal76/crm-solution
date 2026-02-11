@@ -21,6 +21,9 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace CRM.Infrastructure.Migrations.Auto
 {
+  /// <summary>
+  /// Database migration to add tags and custom fields.
+  /// </summary>
   public partial class AddTagsAndCustomFields : Migration
   {
     protected override void Up(MigrationBuilder migrationBuilder)

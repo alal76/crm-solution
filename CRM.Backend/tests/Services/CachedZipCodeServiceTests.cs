@@ -1,5 +1,18 @@
-// CRM Solution - Comprehensive Test Suite
-// CachedZipCodeServiceTests - Unit tests for cached ZIP code service
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using CRM.Core.Interfaces;
 using CRM.Infrastructure.Services;
@@ -130,7 +143,7 @@ public class CachedZipCodeServiceTests
         // Arrange
         var usStates = new List<StateInfo> { new() { Code = "CA", Name = "California" } };
         var caProvinces = new List<StateInfo> { new() { Code = "ON", Name = "Ontario" } };
-        
+
         _mockInnerService.Setup(s => s.GetStatesAsync("US")).ReturnsAsync(usStates);
         _mockInnerService.Setup(s => s.GetStatesAsync("CA")).ReturnsAsync(caProvinces);
 
@@ -203,7 +216,7 @@ public class CachedZipCodeServiceTests
         // Arrange
         var caCities = new List<string> { "Los Angeles" };
         var nyCities = new List<string> { "New York City" };
-        
+
         _mockInnerService.Setup(s => s.GetCitiesAsync("US", "CA")).ReturnsAsync(caCities);
         _mockInnerService.Setup(s => s.GetCitiesAsync("US", "NY")).ReturnsAsync(nyCities);
 

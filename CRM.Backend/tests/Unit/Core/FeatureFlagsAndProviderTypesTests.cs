@@ -1,11 +1,18 @@
-// CRM Solution - Feature Flags and Provider Types Tests
-// Tests for FeatureFlags.cs and ProviderTypes.cs in CRM.Core.Features
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
 //
-// These tests validate:
-// 1. Feature flag constants are defined correctly
-// 2. Provider type constants are organized by category
-// 3. No duplicate values within categories
-// 4. Constants follow naming conventions
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using CRM.Core.Features;
 using FluentAssertions;
@@ -189,7 +196,7 @@ public class FeatureFlagsTests
         var type = typeof(FeatureFlags);
         var field = type.GetField(expectedValue, BindingFlags.Public | BindingFlags.Static);
         field.Should().NotBeNull();
-        
+
         var value = field!.GetValue(null) as string;
         value.Should().StartWith("UseExternal");
     }
@@ -205,7 +212,7 @@ public class FeatureFlagsTests
         var type = typeof(FeatureFlags);
         var field = type.GetField(expectedValue, BindingFlags.Public | BindingFlags.Static);
         field.Should().NotBeNull();
-        
+
         var value = field!.GetValue(null) as string;
         value.Should().StartWith("Enable");
     }
@@ -604,7 +611,7 @@ public class ProviderTypesTests
     {
         var builtInField = providerClass.GetField("BuiltIn", BindingFlags.Public | BindingFlags.Static);
         builtInField.Should().NotBeNull(because: $"{providerClass.Name} should have a BuiltIn option");
-        
+
         var value = builtInField!.GetValue(null) as string;
         value.Should().Be("BuiltIn");
     }
@@ -657,7 +664,7 @@ public class ProviderTypesTests
             .Where(f => f.IsLiteral && !f.IsInitOnly && f.FieldType == typeof(string));
 
         var values = fields.Select(f => f.GetValue(null) as string).ToList();
-        
+
         // AI should have Ollama as the local option instead of BuiltIn
         values.Should().Contain("Ollama");
     }
@@ -666,7 +673,7 @@ public class ProviderTypesTests
     public void ProviderTypes_ShouldHaveExpectedNumberOfCategories()
     {
         var nestedTypes = typeof(ProviderTypes).GetNestedTypes(BindingFlags.Public | BindingFlags.Static);
-        
+
         // Expected: Chat, Search, Notifications, Analytics, Signatures, AI, Integrations, DataSync, Compliance
         nestedTypes.Should().HaveCount(9, because: "there should be 9 provider categories");
     }

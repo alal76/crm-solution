@@ -1,4 +1,19 @@
-// Temporarily disabled - requires entity alignment refactoring
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 #if ITSM_ADVANCED
 // This file is part of the CRM Solution.
 // Copyright (c) 2025 CRM Solution Contributors
@@ -21,27 +36,27 @@ public interface IImpactAnalysisService
     /// Analyze the impact of an incident based on affected CIs.
     /// </summary>
     Task<IncidentImpactAnalysis> AnalyzeIncidentImpactAsync(int incidentId);
-    
+
     /// <summary>
     /// Get all services affected by a CI outage.
     /// </summary>
     Task<List<AffectedService>> GetAffectedServicesAsync(int configurationItemId);
-    
+
     /// <summary>
     /// Get all users/groups affected by CI outage.
     /// </summary>
     Task<AffectedUserGroup> GetAffectedUsersAsync(int configurationItemId);
-    
+
     /// <summary>
     /// Calculate the business impact score for an incident.
     /// </summary>
     Task<BusinessImpactScore> CalculateBusinessImpactAsync(int incidentId);
-    
+
     /// <summary>
     /// Get dependency chain for a CI (what it depends on, what depends on it).
     /// </summary>
     Task<DependencyChain> GetDependencyChainAsync(int configurationItemId);
-    
+
     /// <summary>
     /// Predict potential incidents based on a CI going down.
     /// </summary>
@@ -56,27 +71,27 @@ public class IncidentImpactAnalysis
     public int IncidentId { get; set; }
     public string IncidentNumber { get; set; } = string.Empty;
     public DateTime AnalysisDate { get; set; }
-    
+
     // Impact classification
     public ImpactClassification ImpactClassification { get; set; }
     public UrgencyClassification UrgencyClassification { get; set; }
     public PriorityClassification CalculatedPriority { get; set; }
-    
+
     // Affected CIs
     public List<AffectedCI> AffectedCIs { get; set; } = new();
-    
+
     // Affected services
     public List<AffectedService> AffectedServices { get; set; } = new();
-    
+
     // User impact
     public AffectedUserGroup UserImpact { get; set; } = new();
-    
+
     // Business impact
     public BusinessImpactScore BusinessImpact { get; set; } = new();
-    
+
     // Root cause potential
     public List<PotentialRootCause> PotentialRootCauses { get; set; } = new();
-    
+
     // Summary
     public string ImpactStatement { get; set; } = string.Empty;
     public List<string> Recommendations { get; set; } = new();
@@ -176,14 +191,14 @@ public class BusinessImpactScore
 {
     public int OverallScore { get; set; } // 1-100
     public string ImpactLevel { get; set; } = string.Empty; // Low, Medium, High, Critical
-    
+
     public Dictionary<string, int> ScoreBreakdown { get; set; } = new();
-    
+
     public decimal EstimatedHourlyCost { get; set; }
     public decimal EstimatedReputationalImpact { get; set; }
     public bool ComplianceRisk { get; set; }
     public string? ComplianceNotes { get; set; }
-    
+
     public List<string> BusinessJustification { get; set; } = new();
 }
 
@@ -194,13 +209,13 @@ public class DependencyChain
 {
     public int ConfigurationItemId { get; set; }
     public string CIName { get; set; } = string.Empty;
-    
+
     // What this CI depends on (upstream)
     public List<DependencyNode> DependsOn { get; set; } = new();
-    
+
     // What depends on this CI (downstream)
     public List<DependencyNode> DependedOnBy { get; set; } = new();
-    
+
     // Summary
     public int TotalUpstreamDependencies { get; set; }
     public int TotalDownstreamDependencies { get; set; }
@@ -254,7 +269,7 @@ public class ImpactAnalysisService : IImpactAnalysisService
     private readonly ILogger<ImpactAnalysisService> _logger;
 
     // Priority matrix (Impact x Urgency)
-    private static readonly PriorityClassification[,] PriorityMatrix = 
+    private static readonly PriorityClassification[,] PriorityMatrix =
     {
         //                 Low Urg    Med Urg    High Urg   Crit Urg
         /* Low Impact   */ { PriorityClassification.P4_Low, PriorityClassification.P4_Low, PriorityClassification.P3_Medium, PriorityClassification.P3_Medium },
@@ -274,7 +289,7 @@ public class ImpactAnalysisService : IImpactAnalysisService
     public async Task<IncidentImpactAnalysis> AnalyzeIncidentImpactAsync(int incidentId)
     {
         var context = _dbContextResolver.ResolveContext();
-        
+
         var incident = await context.Incidents
             .Include(i => i.AffectedCI)
             .Include(i => i.AffectedUser)
@@ -296,7 +311,7 @@ public class ImpactAnalysisService : IImpactAnalysisService
         if (incident.AffectedCIId.HasValue)
         {
             var dependencyChain = await GetDependencyChainAsync(incident.AffectedCIId.Value);
-            
+
             // Add primary CI
             if (incident.AffectedCI != null)
             {
@@ -354,7 +369,7 @@ public class ImpactAnalysisService : IImpactAnalysisService
 
         _logger.LogInformation(
             "Impact analysis for incident {IncidentNumber}: Impact={Impact}, Urgency={Urgency}, Priority={Priority}",
-            incident.Number, analysis.ImpactClassification, 
+            incident.Number, analysis.ImpactClassification,
             analysis.UrgencyClassification, analysis.CalculatedPriority);
 
         return analysis;
@@ -404,7 +419,7 @@ public class ImpactAnalysisService : IImpactAnalysisService
         // In a real implementation, this would query user-CI relationships
         // For now, return estimated values based on CI type
         var context = _dbContextResolver.ResolveContext();
-        
+
         var ci = await context.ITSMConfigurationItems
             .FirstOrDefaultAsync(c => c.ConfigurationItemId == configurationItemId);
 
@@ -452,7 +467,7 @@ public class ImpactAnalysisService : IImpactAnalysisService
     public async Task<BusinessImpactScore> CalculateBusinessImpactAsync(int incidentId)
     {
         var context = _dbContextResolver.ResolveContext();
-        
+
         var incident = await context.Incidents
             .Include(i => i.AffectedCI)
             .FirstOrDefaultAsync(i => i.IncidentId == incidentId);
@@ -548,7 +563,7 @@ public class ImpactAnalysisService : IImpactAnalysisService
     public async Task<DependencyChain> GetDependencyChainAsync(int configurationItemId)
     {
         var context = _dbContextResolver.ResolveContext();
-        
+
         var ci = await context.ITSMConfigurationItems
             .FirstOrDefaultAsync(c => c.ConfigurationItemId == configurationItemId);
 
@@ -560,7 +575,7 @@ public class ImpactAnalysisService : IImpactAnalysisService
 
         // Get upstream dependencies (what this CI depends on)
         chain.DependsOn = await GetUpstreamDependenciesAsync(configurationItemId, context, 1, 3);
-        
+
         // Get downstream dependencies (what depends on this CI)
         chain.DependedOnBy = await GetDownstreamDependenciesAsync(configurationItemId, context, 1, 3);
 
@@ -737,7 +752,7 @@ public class ImpactAnalysisService : IImpactAnalysisService
                     CIName = upstreamCI.Name,
                     CIType = upstreamCI.CIType,
                     Probability = recentChanges.Any() ? 0.7 : 0.4,
-                    Reasoning = recentChanges.Any() 
+                    Reasoning = recentChanges.Any()
                         ? "Recent change implemented on this dependent CI"
                         : "Recent incident reported on this dependent CI",
                     RecentChanges = recentChanges,
@@ -761,35 +776,35 @@ public class ImpactAnalysisService : IImpactAnalysisService
             return ImpactClassification.High;
         if (userCount >= 20 || deptCount >= 2)
             return ImpactClassification.Medium;
-        
+
         return ImpactClassification.Low;
     }
 
     private static UrgencyClassification ClassifyUrgency(Incident incident, IncidentImpactAnalysis analysis)
     {
         var hasVIP = analysis.UserImpact.VIPUsersAffected > 0;
-        
+
         if (hasVIP || incident.Urgency?.ToLower() == "critical")
             return UrgencyClassification.Critical;
         if (incident.Urgency?.ToLower() == "high")
             return UrgencyClassification.High;
         if (incident.Urgency?.ToLower() == "medium")
             return UrgencyClassification.Medium;
-        
+
         return UrgencyClassification.Low;
     }
 
     private static PriorityClassification CalculatePriority(
-        ImpactClassification impact, 
+        ImpactClassification impact,
         UrgencyClassification urgency)
     {
         int impactIndex = (int)impact - 1;
         int urgencyIndex = (int)urgency - 1;
-        
+
         // Clamp to valid indices
         impactIndex = Math.Max(0, Math.Min(3, impactIndex));
         urgencyIndex = Math.Max(0, Math.Min(3, urgencyIndex));
-        
+
         return PriorityMatrix[impactIndex, urgencyIndex];
     }
 
@@ -798,17 +813,17 @@ public class ImpactAnalysisService : IImpactAnalysisService
         var parts = new List<string>();
 
         parts.Add($"This incident has {analysis.ImpactClassification.ToString().ToLower()} impact");
-        
+
         if (analysis.AffectedServices.Any())
         {
             parts.Add($"affecting {analysis.AffectedServices.Count} service(s)");
         }
-        
+
         if (analysis.UserImpact.TotalUsersAffected > 0)
         {
             parts.Add($"impacting approximately {analysis.UserImpact.TotalUsersAffected} users");
         }
-        
+
         parts.Add($"Calculated priority: {analysis.CalculatedPriority}");
 
         return string.Join(", ", parts) + ".";

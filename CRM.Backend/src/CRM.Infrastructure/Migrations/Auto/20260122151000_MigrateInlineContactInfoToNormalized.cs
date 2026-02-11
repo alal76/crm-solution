@@ -21,6 +21,9 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace CRM.Infrastructure.Migrations.Auto
 {
+    /// <summary>
+    /// Migrates inline contact information fields to the normalized ContactDetail, Address, and ContactInfoLink tables.
+    /// </summary>
     public partial class MigrateInlineContactInfoToNormalized : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)

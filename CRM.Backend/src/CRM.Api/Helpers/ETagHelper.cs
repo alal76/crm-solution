@@ -20,6 +20,8 @@ using CRM.Core.Entities;
 
 namespace CRM.Api.Helpers;
 
+#pragma warning disable SA1011 // Closing square bracket should be followed by a space
+
 /// <summary>
 /// Helper class for ETag (Entity Tag) operations for optimistic concurrency control
 /// </summary>

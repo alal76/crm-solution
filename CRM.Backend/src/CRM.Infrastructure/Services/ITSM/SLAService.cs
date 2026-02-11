@@ -1,6 +1,18 @@
-// This file is part of the CRM Solution.
-// Copyright (c) 2025 CRM Solution Contributors
-// Licensed under the AGPL-3.0 license.
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using CRM.Core.DTOs.ITSM;
 using CRM.Core.Entities.ITSM;
@@ -31,7 +43,7 @@ public class SLAService : ISLAService
     public async Task<SLAPolicyDto> CreateSLAPolicyAsync(SLAPolicyDto dto, int createdById)
     {
         var context = _dbContextResolver.ResolveContext();
-        
+
         var policy = new SLAPolicy
         {
             Name = dto.Name,
@@ -59,7 +71,7 @@ public class SLAService : ISLAService
     private async Task<SLAInstanceDto?> StartSLAInternalAsync(int targetId, SLATargetType targetType, int priority)
     {
         var context = _dbContextResolver.ResolveContext();
-        
+
         // Find matching policy based on priority (P1-P4)
         var policy = await context.ITSMSLAPolicies
             .FirstOrDefaultAsync(p => p.TargetType == targetType && p.IsActive);
@@ -104,7 +116,7 @@ public class SLAService : ISLAService
         context.ITSMSLAInstances.Add(instance);
         await context.SaveChangesAsync();
 
-        _logger.LogInformation("Started SLA instance {SLAInstanceId} for {TargetType} {TargetId}", 
+        _logger.LogInformation("Started SLA instance {SLAInstanceId} for {TargetType} {TargetId}",
             instance.SLAInstanceId, targetType, targetId);
 
         return MapInstanceToDto(instance, policy);
@@ -118,7 +130,7 @@ public class SLAService : ISLAService
     private async Task<SLAInstanceDto?> PauseSLAInternalAsync(int targetId, SLATargetType targetType, string reason)
     {
         var context = _dbContextResolver.ResolveContext();
-        
+
         var instance = await context.ITSMSLAInstances
             .Include(s => s.SLAPolicy)
             .FirstOrDefaultAsync(s => s.TargetId == targetId && s.TargetType == targetType && s.State == SLAState.Active);
@@ -146,7 +158,7 @@ public class SLAService : ISLAService
     private async Task<SLAInstanceDto?> ResumeSLAInternalAsync(int targetId, SLATargetType targetType)
     {
         var context = _dbContextResolver.ResolveContext();
-        
+
         var instance = await context.ITSMSLAInstances
             .Include(s => s.SLAPolicy)
             .FirstOrDefaultAsync(s => s.TargetId == targetId && s.TargetType == targetType && s.State == SLAState.Paused);
@@ -155,11 +167,11 @@ public class SLAService : ISLAService
             return null;
 
         var pausedDuration = DateTime.UtcNow - instance.PausedAt.Value;
-        
+
         // Extend due dates by paused duration
         instance.ResponseDueAt = instance.ResponseDueAt?.Add(pausedDuration);
         instance.ResolutionDueAt = instance.ResolutionDueAt?.Add(pausedDuration);
-        
+
         instance.State = SLAState.Active;
         instance.PausedAt = null;
         instance.ModifiedAt = DateTime.UtcNow;
@@ -177,10 +189,10 @@ public class SLAService : ISLAService
     private async Task<SLAInstanceDto?> CompleteSLAInternalAsync(int targetId, SLATargetType targetType, bool responseComplete, bool resolutionComplete)
     {
         var context = _dbContextResolver.ResolveContext();
-        
+
         var instance = await context.ITSMSLAInstances
             .Include(s => s.SLAPolicy)
-            .FirstOrDefaultAsync(s => s.TargetId == targetId && s.TargetType == targetType && 
+            .FirstOrDefaultAsync(s => s.TargetId == targetId && s.TargetType == targetType &&
                                     (s.State == SLAState.Active || s.State == SLAState.Paused));
 
         if (instance == null)
@@ -211,7 +223,7 @@ public class SLAService : ISLAService
     public async Task<IEnumerable<SLAPolicyDto>> GetSLAPoliciesAsync(SLATargetType? targetType)
     {
         var context = _dbContextResolver.ResolveContext();
-        
+
         var query = context.ITSMSLAPolicies.Where(p => !p.IsDeleted && p.IsActive);
 
         if (targetType.HasValue)
@@ -224,10 +236,10 @@ public class SLAService : ISLAService
     public async Task<SLAInstanceDto?> GetSLAInstanceAsync(int targetId, SLATargetType targetType)
     {
         var context = _dbContextResolver.ResolveContext();
-        
+
         var instance = await context.ITSMSLAInstances
             .Include(s => s.SLAPolicy)
-            .FirstOrDefaultAsync(s => s.TargetId == targetId && s.TargetType == targetType && 
+            .FirstOrDefaultAsync(s => s.TargetId == targetId && s.TargetType == targetType &&
                                      (s.State == SLAState.Active || s.State == SLAState.Paused));
 
         return instance == null ? null : MapInstanceToDto(instance, instance.SLAPolicy!);
@@ -236,7 +248,7 @@ public class SLAService : ISLAService
     public async Task<IEnumerable<SLAInstanceDto>> GetBreachedSLAsAsync()
     {
         var context = _dbContextResolver.ResolveContext();
-        
+
         var now = DateTime.UtcNow;
         var instances = await context.ITSMSLAInstances
             .Include(s => s.SLAPolicy)
@@ -363,7 +375,7 @@ public class SLAService : ISLAService
     private SLAInstanceDto MapInstanceToDto(SLAInstance instance, SLAPolicy policy)
     {
         var now = DateTime.UtcNow;
-        
+
         return new SLAInstanceDto
         {
             SLAInstanceId = instance.SLAInstanceId,
@@ -374,7 +386,7 @@ public class SLAService : ISLAService
             ResponseBreached = instance.ResponseBreached,
             ResolutionBreached = instance.ResolutionBreached,
             State = instance.State,
-            MinutesUntilResponseBreach = instance.ResponseDueAt.HasValue && !instance.ResponseBreached 
+            MinutesUntilResponseBreach = instance.ResponseDueAt.HasValue && !instance.ResponseBreached
                 ? (int?)Math.Max(0, (instance.ResponseDueAt.Value - now).TotalMinutes)
                 : null,
             MinutesUntilResolutionBreach = instance.ResolutionDueAt.HasValue && !instance.ResolutionBreached
@@ -463,11 +475,11 @@ public class SLAService : ISLAService
         var resolutionBreaches = instances.Count(s => s.ResolutionBreached);
 
         var completedInstances = instances.Where(s => s.State == SLAState.Completed).ToList();
-        var responseComplianceRate = completedInstances.Count > 0 
-            ? (double)(completedInstances.Count - responseBreaches) / completedInstances.Count * 100 
+        var responseComplianceRate = completedInstances.Count > 0
+            ? (double)(completedInstances.Count - responseBreaches) / completedInstances.Count * 100
             : 100.0;
-        var resolutionComplianceRate = completedInstances.Count > 0 
-            ? (double)(completedInstances.Count - resolutionBreaches) / completedInstances.Count * 100 
+        var resolutionComplianceRate = completedInstances.Count > 0
+            ? (double)(completedInstances.Count - resolutionBreaches) / completedInstances.Count * 100
             : 100.0;
 
         // Calculate average times (simplified - would need actual response/resolution timestamps in production)

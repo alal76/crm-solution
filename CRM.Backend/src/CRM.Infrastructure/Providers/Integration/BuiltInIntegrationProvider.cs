@@ -1,6 +1,18 @@
-// CRM Solution - Pluggable Architecture
-// BuiltIn Integration Provider - Webhook-based event distribution
-// Phase 6 Weeks 24-25: Event Bus & Integration Platform
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System.Collections.Concurrent;
 using System.Net.Http.Json;
@@ -23,7 +35,7 @@ public class BuiltInIntegrationProvider : IIntegrationPort
     private readonly HttpClient _httpClient;
     private readonly BuiltInIntegrationConfiguration _config;
     private readonly ILogger<BuiltInIntegrationProvider> _logger;
-    
+
     // In-memory stores (production would use database)
     private readonly ConcurrentDictionary<string, WebhookInfo> _webhooks = new();
     private readonly ConcurrentDictionary<string, List<WorkflowExecution>> _executionHistory = new();
@@ -116,7 +128,7 @@ public class BuiltInIntegrationProvider : IIntegrationPort
         {
             var publishResult = await PublishEventAsync(evt, cancellationToken);
             result.Results.Add(publishResult);
-            
+
             if (publishResult.Success)
                 result.SuccessCount++;
             else
@@ -207,7 +219,7 @@ public class BuiltInIntegrationProvider : IIntegrationPort
     public Task<WebhookInfo> RegisterWebhookAsync(WebhookRegistration registration, CancellationToken cancellationToken = default)
     {
         var id = $"webhook_{Interlocked.Increment(ref _webhookCounter)}";
-        
+
         var webhook = new WebhookInfo
         {
             Id = id,
@@ -221,16 +233,16 @@ public class BuiltInIntegrationProvider : IIntegrationPort
         };
 
         _webhooks[id] = webhook;
-        
+
         _logger.LogInformation("Registered webhook {WebhookId} for events: {Events}", id, string.Join(", ", registration.EventTypes));
-        
+
         return Task.FromResult(webhook);
     }
 
     public Task<IEnumerable<WebhookInfo>> GetWebhooksAsync(string? eventType = null, CancellationToken cancellationToken = default)
     {
         var webhooks = _webhooks.Values.AsEnumerable();
-        
+
         if (!string.IsNullOrEmpty(eventType))
         {
             webhooks = webhooks.Where(w => w.EventTypes.Contains(eventType));
@@ -247,7 +259,7 @@ public class BuiltInIntegrationProvider : IIntegrationPort
             existing.TargetUrl = update.TargetUrl;
             existing.EventTypes = update.EventTypes;
             existing.IsActive = update.IsActive;
-            
+
             _logger.LogInformation("Updated webhook {WebhookId}", webhookId);
         }
         else
@@ -323,7 +335,7 @@ public class BuiltInIntegrationProvider : IIntegrationPort
         // BuiltIn provider doesn't support external workflows
         // Return a simulated execution for testing
         var executionId = $"exec_{Interlocked.Increment(ref _executionCounter)}";
-        
+
         var execution = new WorkflowExecution
         {
             ExecutionId = executionId,
@@ -437,7 +449,7 @@ public class BuiltInIntegrationProvider : IIntegrationPort
             {
                 Success = true,
                 EventType = eventType,
-                Action = eventType.Contains(".created") ? "create" 
+                Action = eventType.Contains(".created") ? "create"
                     : eventType.Contains(".updated") ? "update"
                     : eventType.Contains(".deleted") ? "delete"
                     : "unknown",

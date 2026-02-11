@@ -1,6 +1,18 @@
 // CRM Solution - Customer Relationship Management System
 // Copyright (C) 2024-2026 Abhishek Lal
-// Duplicates Controller - API endpoints for duplicate detection and merge operations
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using CRM.Core.Interfaces;
 using CRM.Core.Models;
@@ -37,6 +49,7 @@ public class DuplicatesController : ControllerBase
     /// Check for potential duplicates when creating/updating a record
     /// </summary>
     /// <param name="request">The duplicate check request containing entity type and field values</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Duplicate check result with potential matches</returns>
     [HttpPost("check")]
     [ProducesResponseType(typeof(DuplicateCheckResult), StatusCodes.Status200OK)]

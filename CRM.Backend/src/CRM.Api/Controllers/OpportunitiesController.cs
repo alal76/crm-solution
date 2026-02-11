@@ -37,7 +37,7 @@ public class OpportunitiesController : ControllerBase
     private readonly ICrmNotificationService _notificationService;
 
     /// <summary>
-    /// Initializes the opportunities controller with required services.
+    /// Initializes a new instance of the <see cref="OpportunitiesController"/> class.
     /// </summary>
     public OpportunitiesController(
         IOpportunityService opportunityService,

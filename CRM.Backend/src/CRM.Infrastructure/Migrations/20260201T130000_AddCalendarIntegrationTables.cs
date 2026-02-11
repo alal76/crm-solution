@@ -23,7 +23,7 @@ namespace CRM.Infrastructure.Migrations;
 
 /// <summary>
 /// Migration to add Calendar Integration tables (CalendarIntegrations, CalendarSyncLogs, CalendarEventMappings).
-/// Part of Marketing & Sales gap analysis implementation (G4).
+/// Part of Marketing &amp; Sales gap analysis implementation (G4).
 /// </summary>
 public partial class AddCalendarIntegrationTables : Migration
 {

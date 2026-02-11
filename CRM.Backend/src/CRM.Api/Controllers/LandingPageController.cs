@@ -438,7 +438,6 @@ public class LandingPageController : ControllerBase
     // =============================
     // HELPER METHODS
     // =============================
-
     private int? GetCurrentUserId()
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -606,7 +605,6 @@ public class LandingPageController : ControllerBase
 // =============================
 // DTOs
 // =============================
-
 public class LandingPageListDto
 {
     public int Id { get; set; }

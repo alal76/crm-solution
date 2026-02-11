@@ -1,6 +1,18 @@
 // CRM Solution - Customer Relationship Management System
 // Copyright (C) 2024-2026 Abhishek Lal
-// Licensed under AGPL-3.0. See LICENSE for details.
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System.ComponentModel.DataAnnotations;
 using CRM.Core.Entities;
@@ -777,7 +789,7 @@ public class CommissionsController : ControllerBase
             Name = request.Name,
             TierOrder = request.TierOrder ?? 1,
             MinValue = request.MinValue ?? 0,
-            
+
             MinAttainmentPercent = request.MinAttainmentPercent ?? 0,
             MaxAttainmentPercent = request.MaxAttainmentPercent,
             CommissionRate = request.CommissionRate ?? 0m,
@@ -829,7 +841,7 @@ public class CommissionsController : ControllerBase
         existing.Name = request.Name ?? existing.Name;
         existing.TierOrder = request.TierOrder ?? existing.TierOrder;
         existing.MinValue = request.MinValue ?? existing.MinValue;
-        
+
         existing.MinAttainmentPercent = request.MinAttainmentPercent ?? existing.MinAttainmentPercent;
         existing.MaxAttainmentPercent = request.MaxAttainmentPercent ?? existing.MaxAttainmentPercent;
         existing.CommissionRate = request.CommissionRate ?? existing.CommissionRate;

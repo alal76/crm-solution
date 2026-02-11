@@ -201,7 +201,8 @@ public class ModuleFieldConfigurationsController : ControllerBase
             var results = await _service.InitializeAllModulesAsync();
             var totalInitialized = results.Sum(r => r.Value);
             _logger.LogInformation("Initialized field configurations for all modules. Total fields: {Count}", totalInitialized);
-            return Ok(new {
+            return Ok(new
+            {
                 message = "Field configurations initialized for all modules",
                 modules = results
             });

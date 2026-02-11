@@ -1,4 +1,4 @@
-// CRM Solution - Account Relationship Management System
+// CRM Solution - Customer Relationship Management System
 // Copyright (C) 2024-2026 Abhishek Lal
 //
 // This program is free software: you can redistribute it and/or modify

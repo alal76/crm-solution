@@ -1,6 +1,18 @@
-// CRM Solution - Azure OpenAI Provider
-// Phase 7 Week 30: Cloud AI provider implementing IAIPort
-// Provides enterprise-grade AI capabilities via Azure OpenAI Service
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System.Net.Http.Json;
 using System.Text;
@@ -466,7 +478,7 @@ public class AzureOpenAIProvider : IAIPort
 
         var deployment = request.Model ?? _config.DeploymentName;
         var endpoint = $"{_config.Endpoint}/openai/deployments/{deployment}/chat/completions?api-version={_config.ApiVersion}";
-        
+
         var response = await SendRequestAsync<AzureOpenAIChatResponse>(endpoint, azureRequest, cancellationToken);
 
         var choice = response.Choices?.FirstOrDefault();
@@ -474,7 +486,7 @@ public class AzureOpenAIProvider : IAIPort
         {
             Id = tc.Id,
             Name = tc.Function?.Name ?? string.Empty,
-            Arguments = tc.Function?.Arguments != null 
+            Arguments = tc.Function?.Arguments != null
                 ? JsonSerializer.Deserialize<Dictionary<string, object>>(tc.Function.Arguments)
                 : null
         }).ToList();
@@ -558,7 +570,7 @@ public class AzureOpenAIProvider : IAIPort
             {
                 var chunk = JsonSerializer.Deserialize<AzureOpenAIChatResponse>(data, JsonOptions);
                 var choice = chunk?.Choices?.FirstOrDefault();
-                
+
                 if (choice?.Delta?.Content != null)
                 {
                     onToken(choice.Delta.Content);
@@ -641,7 +653,7 @@ public class AzureOpenAIProvider : IAIPort
     /// <inheritdoc />
     public async Task<AIEmailDraft> GenerateEmailDraftAsync(EmailDraftRequest request, CancellationToken cancellationToken = default)
     {
-        var systemPrompt = @"You are a professional email writer for an enterprise CRM system. 
+        var systemPrompt = @"You are a professional email writer for an enterprise CRM system.
 Write clear, concise, and professional emails appropriate for business communication.
 Always start with a subject line in the format: Subject: <subject>
 Then write the email body.
@@ -650,7 +662,7 @@ Maintain a professional yet approachable tone.";
         var userPrompt = new StringBuilder();
         userPrompt.AppendLine($"Write a {request.Tone} business email for the following:");
         userPrompt.AppendLine($"Purpose: {request.Purpose}");
-        
+
         if (!string.IsNullOrEmpty(request.RecipientName))
             userPrompt.AppendLine($"Recipient: {request.RecipientName}");
         if (!string.IsNullOrEmpty(request.CompanyName))
@@ -692,7 +704,7 @@ Then write the reply body.";
         userPrompt.AppendLine("---");
         userPrompt.AppendLine(originalEmail);
         userPrompt.AppendLine("---");
-        
+
         if (!string.IsNullOrEmpty(context))
             userPrompt.AppendLine($"\nContext about the relationship/situation: {context}");
         if (!string.IsNullOrEmpty(tone))
@@ -716,8 +728,8 @@ Then write the reply body.";
     /// <inheritdoc />
     public async Task<string> SummarizeAsync(string content, int? maxLength = null, CancellationToken cancellationToken = default)
     {
-        var lengthInstruction = maxLength.HasValue 
-            ? $"Keep the summary under {maxLength} words." 
+        var lengthInstruction = maxLength.HasValue
+            ? $"Keep the summary under {maxLength} words."
             : "Keep the summary concise.";
 
         var chatRequest = new AIChatRequest
@@ -757,7 +769,7 @@ Only return the JSON array, no other text.";
         };
 
         var response = await ChatAsync(chatRequest, cancellationToken);
-        
+
         var entities = new List<ExtractedEntity>();
         try
         {
@@ -811,12 +823,12 @@ Only return the JSON object.";
         };
 
         var response = await ChatAsync(chatRequest, cancellationToken);
-        
+
         try
         {
             var result = JsonSerializer.Deserialize<JsonElement>(response.Message.Content);
             var emotions = new Dictionary<string, double>();
-            
+
             if (result.TryGetProperty("emotions", out var emotionsProp))
             {
                 foreach (var prop in emotionsProp.EnumerateObject())
@@ -881,7 +893,7 @@ Only return the JSON array.";
         };
 
         var response = await ChatAsync(chatRequest, cancellationToken);
-        
+
         var actions = new List<AIRecommendedAction>();
         try
         {
@@ -1013,7 +1025,7 @@ Only return the JSON array.";
             "application/json");
 
         var response = await _httpClient.SendAsync(httpRequest, cancellationToken);
-        
+
         if (!response.IsSuccessStatusCode)
         {
             var errorContent = await response.Content.ReadAsStringAsync(cancellationToken);

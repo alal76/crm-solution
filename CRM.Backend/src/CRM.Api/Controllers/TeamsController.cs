@@ -1,3 +1,19 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -17,6 +33,11 @@ public class TeamsController : ControllerBase
     private readonly ITeamService _teamService;
     private readonly ILogger<TeamsController> _logger;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TeamsController"/> class.
+    /// </summary>
+    /// <param name="teamService">The team service.</param>
+    /// <param name="logger">The logger instance.</param>
     public TeamsController(ITeamService teamService, ILogger<TeamsController> logger)
     {
         _teamService = teamService;
@@ -44,7 +65,10 @@ public class TeamsController : ControllerBase
     {
         var team = await _teamService.GetByIdAsync(id, cancellationToken);
         if (team == null)
+        {
             return NotFound($"Team with ID {id} not found.");
+        }
+
         return Ok(team);
     }
 
@@ -57,7 +81,10 @@ public class TeamsController : ControllerBase
     {
         var team = await _teamService.GetByNameAsync(name, cancellationToken);
         if (team == null)
+        {
             return NotFound($"Team with name '{name}' not found.");
+        }
+
         return Ok(team);
     }
 

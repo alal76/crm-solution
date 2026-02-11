@@ -1,9 +1,18 @@
-// CRM Solution - Pluggable Architecture
-// Meilisearch Provider Integration Tests
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
 //
-// These tests require a running Meilisearch instance.
-// They can be run against the Docker container defined in docker-compose.yml
-// Use: MEILISEARCH_URL=http://localhost:7700 dotnet test --filter "MeilisearchProvider"
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using CRM.Core.Entities;
 using CRM.Core.Ports.Output.Providers;
@@ -43,7 +52,7 @@ public class MeilisearchProviderIntegrationTests : IAsyncLifetime
             AutoSyncEnabled = false,
             BatchSize = 50
         };
-        
+
         var options = Options.Create(_config);
         _provider = new MeilisearchProvider(options, _loggerMock.Object);
     }
@@ -273,7 +282,7 @@ public class MeilisearchProviderIntegrationTests : IAsyncLifetime
             Company = $"Pagination Test Company {i}",
             Industry = "Testing"
         }).ToList();
-        
+
         await _provider.IndexBatchAsync(accounts, a => a.Id.ToString());
         await Task.Delay(1000);
 

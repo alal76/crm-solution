@@ -1,11 +1,23 @@
-// This file is part of the CRM Solution.
-// Copyright (c) 2025 CRM Solution Contributors
-// Licensed under the AGPL-3.0 license.
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System.ComponentModel.DataAnnotations;
 using CRM.Core.Entities.ITSM;
-using SLAMetricType = CRM.Core.Entities.KnowledgeBase.SLAMetricType;
 using EscalationType = CRM.Core.Entities.KnowledgeBase.EscalationType;
+using SLAMetricType = CRM.Core.Entities.KnowledgeBase.SLAMetricType;
 using SLAPriority = CRM.Core.Entities.KnowledgeBase.SLAPriority;
 
 namespace CRM.Core.DTOs.ITSM;
@@ -13,7 +25,6 @@ namespace CRM.Core.DTOs.ITSM;
 // ============================================================================
 // Incident DTOs
 // ============================================================================
-
 public class IncidentDto
 {
     public int IncidentId { get; set; }
@@ -53,21 +64,21 @@ public class CreateIncidentDto
     [Required]
     [StringLength(160)]
     public string ShortDescription { get; set; } = string.Empty;
-    
+
     public string? Description { get; set; }
-    
+
     [Required]
     public int CallerId { get; set; }
-    
+
     public ContactType ContactType { get; set; } = ContactType.Portal;
-    
+
     public int? CategoryId { get; set; }
     public int? SubcategoryId { get; set; }
     public int? ConfigurationItemId { get; set; }
-    
+
     [Required]
     public IncidentImpact Impact { get; set; }
-    
+
     [Required]
     public IncidentUrgency Urgency { get; set; }
 }
@@ -89,7 +100,7 @@ public class ResolveIncidentDto
 {
     [Required]
     public ResolutionCode ResolutionCode { get; set; }
-    
+
     [Required]
     public string ResolutionNotes { get; set; } = string.Empty;
 }
@@ -97,7 +108,6 @@ public class ResolveIncidentDto
 // ============================================================================
 // Problem DTOs
 // ============================================================================
-
 public class ProblemDto
 {
     public int ProblemId { get; set; }
@@ -121,12 +131,12 @@ public class CreateProblemDto
     [Required]
     [StringLength(160)]
     public string ShortDescription { get; set; } = string.Empty;
-    
+
     public string? Description { get; set; }
-    
+
     [Required]
     public ProblemPriority Priority { get; set; }
-    
+
     public int? CategoryId { get; set; }
     public List<int>? IncidentIds { get; set; }
 }
@@ -146,7 +156,6 @@ public class UpdateProblemDto
 // ============================================================================
 // CMDB DTOs
 // ============================================================================
-
 public class ConfigurationItemDto
 {
     public int CIId { get; set; }
@@ -167,10 +176,10 @@ public class CreateCIDto
     [Required]
     [StringLength(200)]
     public string CIName { get; set; } = string.Empty;
-    
+
     [Required]
     public CIType CIType { get; set; }
-    
+
     public string? CISubtype { get; set; }
     public string? Description { get; set; }
     public string? SerialNumber { get; set; }
@@ -182,7 +191,6 @@ public class CreateCIDto
 // ============================================================================
 // Change DTOs
 // ============================================================================
-
 public class ChangeDto
 {
     public int ChangeId { get; set; }
@@ -205,18 +213,18 @@ public class CreateChangeDto
     [Required]
     [StringLength(160)]
     public string ShortDescription { get; set; } = string.Empty;
-    
+
     public string? Description { get; set; }
-    
+
     [Required]
     public ChangeType Type { get; set; }
-    
+
     [Required]
     public ChangeRisk Risk { get; set; }
-    
+
     [Required]
     public ChangeImpact Impact { get; set; }
-    
+
     public DateTime? PlannedStartDate { get; set; }
     public DateTime? PlannedEndDate { get; set; }
     public string? ImplementationPlan { get; set; }
@@ -226,7 +234,6 @@ public class CreateChangeDto
 // ============================================================================
 // Knowledge Article DTOs
 // ============================================================================
-
 public class KnowledgeArticleDto
 {
     public int ArticleId { get; set; }
@@ -249,13 +256,13 @@ public class CreateKnowledgeArticleDto
     [Required]
     [StringLength(200)]
     public string Title { get; set; } = string.Empty;
-    
+
     [Required]
     public string ArticleBody { get; set; } = string.Empty;
-    
+
     [Required]
     public ArticleType ArticleType { get; set; }
-    
+
     public string? ShortDescription { get; set; }
     public int? CategoryId { get; set; }
     public bool IsInternal { get; set; } = true;
@@ -264,7 +271,6 @@ public class CreateKnowledgeArticleDto
 // ============================================================================
 // Service Catalog DTOs
 // ============================================================================
-
 public class CatalogItemDto
 {
     public int CatalogItemId { get; set; }
@@ -282,17 +288,16 @@ public class CreateCatalogRequestDto
 {
     [Required]
     public int CatalogItemId { get; set; }
-    
+
     [Required]
     public int RequestedForId { get; set; }
-    
+
     public Dictionary<string, string>? VariableValues { get; set; }
 }
 
 // ============================================================================
 // SLA DTOs
 // ============================================================================
-
 public class SLAPolicyDto
 {
     public int SLAPolicyId { get; set; }
@@ -321,7 +326,6 @@ public class SLAInstanceDto
 // ============================================================================
 // Filter DTOs
 // ============================================================================
-
 public class IncidentFilterDto
 {
     public string? SearchTerm { get; set; }

@@ -1,9 +1,18 @@
-// CRM Solution - Pluggable Architecture
-// Search Index Definitions
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
 //
-// HEXAGONAL ARCHITECTURE NOTE:
-// This file defines the entity-to-index mappings for search providers.
-// It specifies which fields are searchable and how entities are indexed.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 namespace CRM.Infrastructure.Providers.BuiltIn;
 
@@ -248,12 +257,16 @@ public class SearchIndexConfig
     /// <summary>
     /// Custom ranking rules for this index.
     /// </summary>
+#pragma warning disable SA1011 // Closing square bracket should be followed by a space
     public string[]? RankingRules { get; set; }
+#pragma warning restore SA1011
 
     /// <summary>
     /// Fields to use for synonym matching.
     /// </summary>
+#pragma warning disable SA1011 // Closing square bracket should be followed by a space
     public string[]? SynonymFields { get; set; }
+#pragma warning restore SA1011
 }
 
 /// <summary>

@@ -1,6 +1,18 @@
-// CRM Solution - Novu Webhook Controller
-// Phase 2 Week 9: Handles webhook callbacks from Novu
-// Part of the Pluggable Architecture implementation
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -91,8 +103,8 @@ public class NovuWebhookController : ControllerBase
     [HttpGet("delivery")]
     public IActionResult VerifyWebhook()
     {
-        return Ok(new 
-        { 
+        return Ok(new
+        {
             status = "active",
             provider = "novu",
             timestamp = DateTime.UtcNow
@@ -157,7 +169,7 @@ public class NovuWebhookController : ControllerBase
 
     private static string? GetJsonString(JsonElement element, string propertyName)
     {
-        if (element.TryGetProperty(propertyName, out var value) && 
+        if (element.TryGetProperty(propertyName, out var value) &&
             value.ValueKind == JsonValueKind.String)
         {
             return value.GetString();

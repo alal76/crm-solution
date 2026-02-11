@@ -147,7 +147,9 @@ public class FieldMasterDataController : ControllerBase
         {
             if (key != "search" && key != "limit" && !string.IsNullOrEmpty(Request.Query[key]))
             {
+#pragma warning disable SA1011 // Closing square bracket should be followed by a space
                 dependentValues[key] = Request.Query[key]!;
+#pragma warning restore SA1011
             }
         }
 

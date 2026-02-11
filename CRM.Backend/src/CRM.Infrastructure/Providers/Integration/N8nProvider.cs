@@ -1,6 +1,18 @@
-// CRM Solution - Pluggable Architecture
-// n8n Integration Provider - Workflow Automation Platform
-// Phase 6 Weeks 26-27: n8n Integration
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System.Net.Http.Json;
 using System.Text;
@@ -77,7 +89,7 @@ public class N8nProvider : IIntegrationPort
             // n8n receives events via webhook trigger nodes
             // We need to find workflows with CRM webhook triggers for this event type
             var webhookUrl = GetWebhookUrlForEvent(crmEvent.EventType);
-            
+
             if (string.IsNullOrEmpty(webhookUrl))
             {
                 result.Success = true;
@@ -118,7 +130,7 @@ public class N8nProvider : IIntegrationPort
                 result.Error = $"n8n returned {response.StatusCode}: {errorBody}";
             }
 
-            _logger.LogInformation("Published event {EventType} to n8n: {Success}", 
+            _logger.LogInformation("Published event {EventType} to n8n: {Success}",
                 crmEvent.EventType, result.Success);
         }
         catch (Exception ex)
@@ -143,7 +155,7 @@ public class N8nProvider : IIntegrationPort
         {
             var publishResult = await PublishEventAsync(evt, cancellationToken);
             result.Results.Add(publishResult);
-            
+
             if (publishResult.Success)
                 result.SuccessCount++;
             else
@@ -203,7 +215,7 @@ public class N8nProvider : IIntegrationPort
     {
         // n8n API doesn't directly expose webhooks, but we can list workflows that have webhook triggers
         var workflows = await GetWorkflowsAsync(cancellationToken);
-        
+
         var webhooks = workflows
             .Where(w => w.TriggerType == "webhook")
             .Select(w => new WebhookInfo
@@ -353,7 +365,7 @@ public class N8nProvider : IIntegrationPort
         try
         {
             var response = await _httpClient.GetAsync("/api/v1/workflows", cancellationToken);
-            
+
             if (!response.IsSuccessStatusCode)
             {
                 _logger.LogWarning("Failed to get n8n workflows: {StatusCode}", response.StatusCode);
@@ -361,7 +373,7 @@ public class N8nProvider : IIntegrationPort
             }
 
             var result = await response.Content.ReadFromJsonAsync<N8nWorkflowsResponse>(cancellationToken);
-            
+
             return result?.Data?.Select(w => new WorkflowInfo
             {
                 Id = w.Id,
@@ -419,7 +431,7 @@ public class N8nProvider : IIntegrationPort
     {
         if (nodes == null || !nodes.Any()) return "manual";
 
-        var triggerNode = nodes.FirstOrDefault(n => 
+        var triggerNode = nodes.FirstOrDefault(n =>
             n.Type?.Contains("trigger", StringComparison.OrdinalIgnoreCase) == true ||
             n.Type?.Contains("webhook", StringComparison.OrdinalIgnoreCase) == true ||
             n.Type?.Contains("schedule", StringComparison.OrdinalIgnoreCase) == true);

@@ -27,8 +27,10 @@ public enum CalendarProvider
 {
     /// <summary>Google Calendar</summary>
     Google = 0,
+
     /// <summary>Microsoft Outlook/Office 365 Calendar</summary>
     Outlook = 1,
+
     /// <summary>Apple iCal (future)</summary>
     Apple = 2
 }
@@ -40,8 +42,10 @@ public enum CalendarSyncDirection
 {
     /// <summary>Only pull events from external calendar</summary>
     Import = 0,
+
     /// <summary>Only push CRM events to external calendar</summary>
     Export = 1,
+
     /// <summary>Bi-directional sync</summary>
     Bidirectional = 2
 }
@@ -53,10 +57,13 @@ public enum CalendarSyncStatus
 {
     /// <summary>Sync completed successfully</summary>
     Success = 0,
+
     /// <summary>Sync in progress</summary>
     InProgress = 1,
+
     /// <summary>Sync failed</summary>
     Failed = 2,
+
     /// <summary>Sync pending (scheduled)</summary>
     Pending = 3
 }
@@ -66,7 +73,7 @@ public enum CalendarSyncStatus
 /// <summary>
 /// Calendar integration configuration for a user.
 /// Stores OAuth2 tokens and sync settings for Google/Outlook calendars.
-/// Part of Marketing & Sales gap analysis implementation (G4).
+/// Part of Marketing &amp; Sales gap analysis implementation (G4).
 /// </summary>
 public class CalendarIntegration : BaseEntity
 {

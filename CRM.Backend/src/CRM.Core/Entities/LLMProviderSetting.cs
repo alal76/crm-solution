@@ -14,14 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-/**
- * CRM Solution - Customer Relationship Management System
- * Copyright (C) 2024-2026 Abhishek Lal
- *
- * LLM Provider Setting Entity - Stores configurable LLM settings in database
- * Note: API keys are NOT stored here - they remain in environment variables for security
- */
-
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace CRM.Core.Entities;

@@ -16,12 +16,10 @@
 
 // This file extends the existing Dashboard entities with report-specific functionality
 // The main Dashboard and DashboardWidget entities are in CRM.Core.Entities namespace
-
 namespace CRM.Core.Entities.Reports;
 
 // Note: Dashboard and DashboardWidget already exist in CRM.Core.Entities
 // This file contains additional report-specific enums and helper entities
-
 #region Report Dashboard Enumerations
 
 /// <summary>

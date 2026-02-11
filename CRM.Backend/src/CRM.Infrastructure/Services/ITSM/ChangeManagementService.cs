@@ -1,6 +1,18 @@
-// This file is part of the CRM Solution.
-// Copyright (c) 2025 CRM Solution Contributors
-// Licensed under the AGPL-3.0 license.
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using CRM.Core.DTOs.ITSM;
 using CRM.Core.Entities.ITSM;
@@ -31,7 +43,7 @@ public class ChangeManagementService : IChangeManagementService
     public async Task<ChangeDto> CreateChangeAsync(CreateChangeDto dto, int createdById)
     {
         var context = _dbContextResolver.ResolveContext();
-        
+
         var change = new Change
         {
             Number = await GenerateChangeNumberAsync(context),
@@ -118,7 +130,7 @@ public class ChangeManagementService : IChangeManagementService
     {
         var context = _dbContextResolver.ResolveContext();
         var change = await context.Changes.FindAsync(changeId);
-        
+
         if (change == null || change.IsDeleted)
             throw new KeyNotFoundException($"Change {changeId} not found");
 
@@ -137,7 +149,7 @@ public class ChangeManagementService : IChangeManagementService
     public async Task<bool> ApproveChangeAsync(int changeId, int approverId, string comments)
     {
         var context = _dbContextResolver.ResolveContext();
-        
+
         var approval = new ChangeApproval
         {
             ChangeId = changeId,
@@ -167,7 +179,7 @@ public class ChangeManagementService : IChangeManagementService
     {
         var context = _dbContextResolver.ResolveContext();
         var change = await context.Changes.FindAsync(changeId);
-        
+
         if (change == null || change.IsDeleted)
             throw new KeyNotFoundException($"Change {changeId} not found");
 
@@ -193,7 +205,7 @@ public class ChangeManagementService : IChangeManagementService
     {
         var context = _dbContextResolver.ResolveContext();
         var change = await context.Changes.FindAsync(changeId);
-        
+
         if (change == null || !change.PlannedStartDate.HasValue || !change.PlannedEndDate.HasValue)
             return false;
 
@@ -221,7 +233,7 @@ public class ChangeManagementService : IChangeManagementService
     public async Task<bool> AddImpactedCIAsync(int changeId, int ciId, int createdById)
     {
         var context = _dbContextResolver.ResolveContext();
-        
+
         var existing = await context.ChangeImpactedCIs
             .AnyAsync(ci => ci.ChangeId == changeId && ci.CIId == ciId);
 
@@ -315,7 +327,7 @@ public class ChangeManagementService : IChangeManagementService
     {
         var context = _dbContextResolver.ResolveContext();
         var change = await context.Changes.FindAsync(changeId);
-        
+
         if (change == null || change.IsDeleted)
             throw new KeyNotFoundException($"Change {changeId} not found");
 
@@ -338,7 +350,7 @@ public class ChangeManagementService : IChangeManagementService
     {
         var context = _dbContextResolver.ResolveContext();
         var change = await context.Changes.FindAsync(changeId);
-        
+
         if (change == null || change.IsDeleted)
             return false;
 
@@ -383,7 +395,7 @@ public class ChangeManagementService : IChangeManagementService
     public async Task<BlackoutPeriodInfo> CreateBlackoutPeriodAsync(CreateBlackoutPeriodInfo dto, int createdById)
     {
         var context = _dbContextResolver.ResolveContext();
-        
+
         var blackout = new ChangeBlackout
         {
             Name = dto.Name,
@@ -397,7 +409,7 @@ public class ChangeManagementService : IChangeManagementService
         context.ChangeBlackouts.Add(blackout);
         await context.SaveChangesAsync();
 
-        _logger.LogInformation("Created blackout period {Name} from {StartDate} to {EndDate}", 
+        _logger.LogInformation("Created blackout period {Name} from {StartDate} to {EndDate}",
             dto.Name, dto.StartDate, dto.EndDate);
 
         return new BlackoutPeriodInfo

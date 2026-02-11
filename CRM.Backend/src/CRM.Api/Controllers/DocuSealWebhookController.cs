@@ -1,6 +1,18 @@
-// CRM Solution - DocuSeal Webhook Controller
-// Phase 4 Week 17: Handles DocuSeal webhook events for signature status updates
-// Part of the Pluggable Architecture implementation
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System.Security.Cryptography;
 using System.Text;
@@ -15,7 +27,7 @@ namespace CRM.Api.Controllers;
 
 /// <summary>
 /// Webhook controller for receiving DocuSeal signature events.
-/// 
+///
 /// Webhook events:
 /// - submission.created: New submission created
 /// - submission.started: First signer has started signing
@@ -23,7 +35,7 @@ namespace CRM.Api.Controllers;
 /// - submission.expired: Submission has expired
 /// - submitter.completed: Individual signer completed
 /// - submitter.opened: Individual signer opened the document
-/// 
+///
 /// Configure webhook URL in DocuSeal: https://your-crm-api/api/webhooks/docuseal
 /// </summary>
 [ApiController]
@@ -132,7 +144,7 @@ public class DocuSealWebhookController : ControllerBase
                 await UpdateEntityStatusAsync(result.EntityType, result.EntityId.Value, result.NewStatus.Value, cancellationToken);
             }
 
-            _logger.LogInformation("Successfully processed DocuSeal webhook: {EventType} for request {RequestId}", 
+            _logger.LogInformation("Successfully processed DocuSeal webhook: {EventType} for request {RequestId}",
                 eventType, result.RequestId);
 
             return Ok(new { success = true, requestId = result.RequestId, status = result.NewStatus?.ToString() });

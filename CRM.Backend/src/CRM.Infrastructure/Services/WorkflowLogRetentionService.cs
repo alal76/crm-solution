@@ -1,6 +1,18 @@
-// <copyright file="WorkflowLogRetentionService.cs" company="CRM Solution">
-// Copyright (c) CRM Solution. All rights reserved.
-// </copyright>
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using CRM.Core.Entities.Workflow;
 using CRM.Infrastructure.Data;
@@ -21,14 +33,14 @@ public class WorkflowLogRetentionService : BackgroundService
     private readonly ILogger<WorkflowLogRetentionService> _logger;
 
     /// <summary>
-    /// How often the retention check runs (default: once per day).
-    /// </summary>
-    private readonly TimeSpan _checkInterval = TimeSpan.FromHours(24);
-
-    /// <summary>
     /// Maximum number of rows to delete per batch to avoid long-running transactions.
     /// </summary>
     private const int BatchSize = 1000;
+
+    /// <summary>
+    /// How often the retention check runs (default: once per day).
+    /// </summary>
+    private readonly TimeSpan _checkInterval = TimeSpan.FromHours(24);
 
     /// <summary>
     /// Retention periods per log level (in days). Logs older than these thresholds are purged.

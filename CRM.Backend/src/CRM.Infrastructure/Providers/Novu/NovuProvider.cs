@@ -1,15 +1,18 @@
-// CRM Solution - Novu Notification Provider
-// Phase 2 Week 9: Implements INotificationPort using Novu platform
-// Part of the Pluggable Architecture implementation
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
 //
-// HEXAGONAL ARCHITECTURE NOTE:
-// This is an external adapter for the INotificationPort output port.
-// It integrates with Novu for multi-channel notification delivery.
-// Novu supports email, SMS, push, in-app, and chat channels.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// IMPLEMENTATION NOTE:
-// Uses HTTP client directly for Novu API calls for maximum compatibility.
-// This ensures we work with both Novu Cloud and self-hosted instances.
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -50,7 +53,7 @@ public class NovuProvider : INotificationPort
         };
 
         _isConfigured = _config.IsValid();
-        
+
         if (_isConfigured)
         {
             _logger.LogInformation("Novu provider initialized with URL: {Url}", _config.Url);
@@ -478,7 +481,7 @@ public class NovuProvider : INotificationPort
                 {
                     result.Success = true;
                     result.TransactionId = triggerResult.Data.TransactionId;
-                    
+
                     foreach (var channel in request.Channels)
                     {
                         result.ChannelResults[channel] = CreateSuccessResult(triggerResult.Data.TransactionId, channel);
@@ -588,7 +591,7 @@ public class NovuProvider : INotificationPort
         {
             var sendResult = await SendEmailAsync(request, cancellationToken);
             result.Results.Add(sendResult);
-            
+
             if (sendResult.Success)
                 result.SuccessCount++;
             else
@@ -615,7 +618,7 @@ public class NovuProvider : INotificationPort
         {
             var sendResult = await SendSmsAsync(request, cancellationToken);
             result.Results.Add(sendResult);
-            
+
             if (sendResult.Success)
                 result.SuccessCount++;
             else
@@ -869,7 +872,7 @@ public class NovuProvider : INotificationPort
                     deliveryEvent.SubscriberId = subId.GetString() ?? string.Empty;
                 if (webhookData.TryGetValue("channel", out var channel))
                     deliveryEvent.Channel = channel.GetString() ?? string.Empty;
-                
+
                 deliveryEvent.Data = webhookData.ToDictionary(
                     kvp => kvp.Key,
                     kvp => (object)kvp.Value.ToString());
@@ -917,10 +920,10 @@ public class NovuProvider : INotificationPort
         {
             var isAvailable = await IsAvailableAsync(cancellationToken);
             result.IsHealthy = isAvailable;
-            result.Message = isAvailable 
-                ? "Novu API is accessible" 
+            result.Message = isAvailable
+                ? "Novu API is accessible"
                 : "Novu API is not accessible";
-            
+
             result.Details = new Dictionary<string, object>
             {
                 ["url"] = _config.Url,

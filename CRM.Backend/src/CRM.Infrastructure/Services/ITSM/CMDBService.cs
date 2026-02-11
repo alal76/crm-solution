@@ -1,6 +1,18 @@
-// This file is part of the CRM Solution.
-// Copyright (c) 2025 CRM Solution Contributors
-// Licensed under the AGPL-3.0 license.
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using CRM.Core.DTOs.ITSM;
 using CRM.Core.Entities.ITSM;
@@ -26,7 +38,7 @@ public class CMDBService : ICMDBService
     public async Task<ConfigurationItemDto> CreateCIAsync(CreateCIDto dto, int createdById)
     {
         var context = _dbContextResolver.ResolveContext();
-        
+
         var ci = new ConfigurationItem
         {
             CINumber = await GenerateCINumberAsync(context),
@@ -89,7 +101,7 @@ public class CMDBService : ICMDBService
     {
         var context = _dbContextResolver.ResolveContext();
         var ci = await context.ConfigurationItems.FindAsync(ciId);
-        
+
         if (ci == null || ci.IsDeleted)
             throw new KeyNotFoundException($"CI {ciId} not found");
 
@@ -111,7 +123,7 @@ public class CMDBService : ICMDBService
     public async Task<bool> CreateRelationshipAsync(int parentCIId, int childCIId, CRM.Core.Entities.ITSM.RelationshipType type, int createdById)
     {
         var context = _dbContextResolver.ResolveContext();
-        
+
         var existing = await context.CIRelationships
             .AnyAsync(r => r.ParentCIId == parentCIId && r.ChildCIId == childCIId && !r.IsDeleted);
 
@@ -135,7 +147,7 @@ public class CMDBService : ICMDBService
     public async Task<IEnumerable<ConfigurationItemDto>> GetRelatedCIsAsync(int ciId)
     {
         var context = _dbContextResolver.ResolveContext();
-        
+
         var childIds = await context.CIRelationships
             .Where(r => r.ParentCIId == ciId && !r.IsDeleted)
             .Select(r => r.ChildCIId)
@@ -190,7 +202,7 @@ public class CMDBService : ICMDBService
     private async Task<List<int>> GetDependentCIsRecursiveAsync(ICrmDbContext context, int ciId, HashSet<int>? visited = null)
     {
         visited ??= new HashSet<int>();
-        
+
         if (visited.Contains(ciId))
             return new List<int>();
 

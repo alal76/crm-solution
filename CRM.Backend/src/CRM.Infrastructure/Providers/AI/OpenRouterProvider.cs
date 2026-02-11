@@ -1,6 +1,20 @@
-// CRM Solution - OpenRouter AI Provider
-// Phase 7: Multi-model AI gateway implementing IAIPort
-// Provides access to 100+ models via unified OpenRouter API
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+#pragma warning disable SA1011 // Closing square bracket should be followed by a space
 
 using System.Net.Http.Json;
 using System.Text;
@@ -641,7 +655,7 @@ public class OpenRouterProvider : IAIPort
     /// <inheritdoc />
     public async Task<AIEmailDraft> GenerateEmailDraftAsync(EmailDraftRequest request, CancellationToken cancellationToken = default)
     {
-        var systemPrompt = @"You are a professional email writer for a CRM system. 
+        var systemPrompt = @"You are a professional email writer for a CRM system.
 Write clear, concise, and professional emails.
 Always include a subject line at the start (format: Subject: <subject>)
 Then write the email body.";

@@ -22,7 +22,7 @@ namespace CRM.Infrastructure.Services;
 
 /// <summary>
 /// Background service to periodically sync all due calendar integrations.
-/// Part of Marketing & Sales gap analysis implementation (G4).
+/// Part of Marketing &amp; Sales gap analysis implementation (G4).
 /// </summary>
 public class CalendarSyncHostedService : BackgroundService
 {

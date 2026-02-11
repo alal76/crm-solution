@@ -28,8 +28,8 @@ namespace CRM.Infrastructure.Services;
 /// Background service that applies score decay to inactive leads.
 /// Runs periodically to check for leads that haven't had activity beyond the decay threshold
 /// and reduces their scores according to configured decay rules.
-/// 
-/// Part of Marketing & Sales implementation (G7 - Score Decay Background Job)
+///
+/// Part of Marketing &amp; Sales implementation (G7 - Score Decay Background Job)
 /// </summary>
 public class LeadScoreDecayHostedService : BackgroundService
 {

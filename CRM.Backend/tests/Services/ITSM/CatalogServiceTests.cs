@@ -1,6 +1,18 @@
 // CRM Solution - Customer Relationship Management System
-// Copyright (C) 2024-2026 CRM Solution Contributors
-// ITSM Service Catalog Unit Tests
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using Xunit;
 using FluentAssertions;
@@ -51,7 +63,7 @@ public class CatalogServiceTests
             {
                 new() { Name = "software_name", Label = "Software Name", FieldType = "text", IsRequired = true },
                 new() { Name = "business_justification", Label = "Business Justification", FieldType = "textarea", IsRequired = true },
-                new() { Name = "urgency", Label = "Urgency", FieldType = "select", IsRequired = true, 
+                new() { Name = "urgency", Label = "Urgency", FieldType = "select", IsRequired = true,
                         Options = new[] { "Low", "Medium", "High" } }
             }
         };
@@ -126,7 +138,7 @@ public class CatalogServiceTests
     {
         // Arrange
         var categories = CreateCategoryHierarchy();
-        
+
         // Act
         var topLevel = categories.Where(c => c.ParentCategoryId == null).ToList();
         var hardwareChildren = categories.Where(c => c.ParentCategoryId == 1).ToList();
@@ -384,12 +396,12 @@ public class CatalogServiceTests
             new() { CategoryId = 1, Name = "Hardware Requests", ParentCategoryId = null },
             new() { CategoryId = 2, Name = "Software Requests", ParentCategoryId = null },
             new() { CategoryId = 3, Name = "Access & Accounts", ParentCategoryId = null },
-            
+
             // Hardware children
             new() { CategoryId = 4, Name = "Laptop", ParentCategoryId = 1 },
             new() { CategoryId = 5, Name = "Desktop", ParentCategoryId = 1 },
             new() { CategoryId = 6, Name = "Mobile Device", ParentCategoryId = 1 },
-            
+
             // Software children
             new() { CategoryId = 7, Name = "Office Applications", ParentCategoryId = 2 },
             new() { CategoryId = 8, Name = "Development Tools", ParentCategoryId = 2 }

@@ -1,6 +1,18 @@
-// CRM Solution - AI Provider Factory
-// Phase 0 Week 3 Task 3.7: Factory for resolving AI/LLM providers
-// Part of the Pluggable Architecture implementation
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -40,7 +52,7 @@ public class AIProviderFactory : IProviderFactory<IAIPort>
     {
         var useExternal = _featureManager.IsEnabledAsync(FeatureFlags.UseExternalAI)
             .GetAwaiter().GetResult();
-        
+
         // Default to Ollama (local) if external is disabled
         if (!useExternal)
         {
@@ -50,7 +62,7 @@ public class AIProviderFactory : IProviderFactory<IAIPort>
 
         var providerType = _configuration["Providers:AI:Type"] ?? ProviderTypes.AI.Ollama;
         _logger.LogDebug("Resolving AI provider: {ProviderType}", providerType);
-        
+
         try
         {
             return GetProvider(providerType);
@@ -109,12 +121,12 @@ public class AIProviderFactory : IProviderFactory<IAIPort>
     {
         var useExternal = _featureManager.IsEnabledAsync(FeatureFlags.UseExternalAI)
             .GetAwaiter().GetResult();
-        
+
         if (!useExternal)
         {
             return ProviderTypes.AI.Ollama;
         }
-        
+
         return _configuration["Providers:AI:Type"] ?? ProviderTypes.AI.Ollama;
     }
 
@@ -136,7 +148,7 @@ public class AIProviderFactory : IProviderFactory<IAIPort>
     private TPort GetProviderOrFallback<TPort>(string providerTypeName) where TPort : class
     {
         var providers = _serviceProvider.GetServices<TPort>();
-        
+
         foreach (var provider in providers)
         {
             if (provider.GetType().Name.Equals(providerTypeName, StringComparison.OrdinalIgnoreCase))

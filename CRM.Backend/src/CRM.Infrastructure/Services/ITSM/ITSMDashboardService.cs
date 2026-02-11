@@ -5,6 +5,14 @@
 // it under the terms of the GNU Affero General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using CRM.Core.Interfaces.ITSM;
 using Microsoft.Extensions.Logging;
@@ -19,6 +27,9 @@ public class ITSMDashboardService : IITSMDashboardService
 {
     private readonly ILogger<ITSMDashboardService> _logger;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ITSMDashboardService"/> class.
+    /// </summary>
     public ITSMDashboardService(ILogger<ITSMDashboardService> logger)
     {
         _logger = logger;
@@ -40,7 +51,7 @@ public class ITSMDashboardService : IITSMDashboardService
             var created = rand.Next(5, 25);
             var resolved = rand.Next(3, 22);
             backlog += created - resolved;
-            
+
             dailyTrends.Add(new DailyTrendItem
             {
                 Date = startDate.AddDays(i),
@@ -154,9 +165,9 @@ public class ITSMDashboardService : IITSMDashboardService
 
         for (int i = 0; i <= days; i += 7)
         {
-            var complianceRate = 85 + rand.NextDouble() * 12;
+            var complianceRate = 85 + (rand.NextDouble() * 12);
             var met = rand.Next(80, 120);
-            var breached = (int)(met * (100 - complianceRate) / complianceRate);
+            var breached = (int)(met * ((100 - complianceRate) / complianceRate));
 
             trends.Add(new SLATrendItem
             {

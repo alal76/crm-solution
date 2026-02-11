@@ -1,6 +1,18 @@
 // CRM Solution - Customer Relationship Management System
 // Copyright (C) 2024-2026 Abhishek Lal
-// Functional Tests - ITSM Phase 4 Features
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using Xunit;
 using FluentAssertions;
@@ -33,7 +45,7 @@ public class ITSMPhase4FunctionalTests : FunctionalTestBase
     {
         // Arrange
         await AuthenticateAsync();
-        
+
         var createRequest = new
         {
             Name = "Functional Test Webhook",
@@ -66,7 +78,7 @@ public class ITSMPhase4FunctionalTests : FunctionalTestBase
     {
         // Arrange
         await AuthenticateAsync();
-        
+
         var invalidRequest = new
         {
             Name = "", // Invalid - empty name
@@ -79,7 +91,7 @@ public class ITSMPhase4FunctionalTests : FunctionalTestBase
 
         // Assert - Should reject invalid input
         response.StatusCode.Should().BeOneOf(
-            HttpStatusCode.BadRequest, 
+            HttpStatusCode.BadRequest,
             HttpStatusCode.UnprocessableEntity,
             HttpStatusCode.NotFound,
             HttpStatusCode.NotImplemented);
@@ -99,7 +111,7 @@ public class ITSMPhase4FunctionalTests : FunctionalTestBase
 
         // Assert
         response.StatusCode.Should().BeOneOf(
-            HttpStatusCode.OK, 
+            HttpStatusCode.OK,
             HttpStatusCode.NotFound,
             HttpStatusCode.NotImplemented);
     }
@@ -133,7 +145,7 @@ public class ITSMPhase4FunctionalTests : FunctionalTestBase
     {
         // Arrange
         await AuthenticateAsync();
-        
+
         var email = new
         {
             From = "customer@example.com",
@@ -168,7 +180,7 @@ public class ITSMPhase4FunctionalTests : FunctionalTestBase
     {
         // Arrange
         await AuthenticateAsync();
-        
+
         var email = new
         {
             From = "user@example.com",
@@ -207,7 +219,7 @@ public class ITSMPhase4FunctionalTests : FunctionalTestBase
     {
         // Arrange
         await AuthenticateAsync();
-        
+
         var replyEmail = new
         {
             From = "customer@example.com",
@@ -373,7 +385,7 @@ public class ITSMPhase4FunctionalTests : FunctionalTestBase
     {
         // Arrange
         await AuthenticateAsync();
-        
+
         // Prometheus Alertmanager webhook format
         var alertPayload = new
         {
@@ -423,7 +435,7 @@ public class ITSMPhase4FunctionalTests : FunctionalTestBase
     {
         // Arrange
         await AuthenticateAsync();
-        
+
         // Datadog webhook format
         var alertPayload = new
         {
@@ -457,7 +469,7 @@ public class ITSMPhase4FunctionalTests : FunctionalTestBase
     {
         // Arrange
         await AuthenticateAsync();
-        
+
         var mapping = new
         {
             AlertName = "DiskSpaceLow",
@@ -488,7 +500,7 @@ public class ITSMPhase4FunctionalTests : FunctionalTestBase
     {
         // Arrange
         await AuthenticateAsync();
-        
+
         var alertPayload = new
         {
             receiver = "itsm-webhook",
@@ -531,7 +543,7 @@ public class ITSMPhase4FunctionalTests : FunctionalTestBase
     {
         // Arrange
         await AuthenticateAsync();
-        
+
         var deploymentRequest = new
         {
             PipelineId = $"func-test-{Guid.NewGuid():N}",
@@ -572,7 +584,7 @@ public class ITSMPhase4FunctionalTests : FunctionalTestBase
     {
         // Arrange
         await AuthenticateAsync();
-        
+
         var emergencyRequest = new
         {
             PipelineId = $"emergency-{Guid.NewGuid():N}",
@@ -607,7 +619,7 @@ public class ITSMPhase4FunctionalTests : FunctionalTestBase
     {
         // Arrange
         await AuthenticateAsync();
-        
+
         var rollbackRequest = new
         {
             PipelineId = $"rollback-{Guid.NewGuid():N}",
@@ -661,7 +673,7 @@ public class ITSMPhase4FunctionalTests : FunctionalTestBase
     {
         // Arrange
         await AuthenticateAsync();
-        
+
         var pipeline = new
         {
             PipelineId = $"new-pipeline-{Guid.NewGuid():N}",
@@ -715,10 +727,10 @@ public class ITSMPhase4FunctionalTests : FunctionalTestBase
     {
         // Arrange
         await AuthenticateAsync();
-        
+
         // First create a session
         var sessionResponse = await Client.PostAsJsonAsync("/api/itsm/chatbot/sessions", new { });
-        
+
         if (sessionResponse.IsSuccessStatusCode)
         {
             var sessionData = await sessionResponse.Content.ReadFromJsonAsync<dynamic>();
@@ -780,7 +792,7 @@ public class ITSMPhase4FunctionalTests : FunctionalTestBase
     {
         // Arrange
         await AuthenticateAsync();
-        
+
         var searchRequest = new
         {
             Query = "How to configure VPN access",
@@ -805,7 +817,7 @@ public class ITSMPhase4FunctionalTests : FunctionalTestBase
     {
         // Arrange
         await AuthenticateAsync();
-        
+
         var actionRequest = new
         {
             SessionId = "test-session-001",
@@ -837,7 +849,7 @@ public class ITSMPhase4FunctionalTests : FunctionalTestBase
     {
         // Arrange
         await AuthenticateAsync();
-        
+
         var escalationRequest = new
         {
             SessionId = "test-session-002",
@@ -883,10 +895,10 @@ public class ITSMPhase4FunctionalTests : FunctionalTestBase
     {
         // Arrange
         await AuthenticateAsync();
-        
+
         // Create a session first
         var sessionResponse = await Client.PostAsJsonAsync("/api/itsm/chatbot/sessions", new { });
-        
+
         if (sessionResponse.IsSuccessStatusCode)
         {
             var sessionData = await sessionResponse.Content.ReadFromJsonAsync<dynamic>();

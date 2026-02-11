@@ -31,6 +31,11 @@ public interface IGoogleCloudStorageProvider : IStorageProvider
     #region Bucket Management
 
     /// <summary>
+    /// Gets the current bucket name.
+    /// </summary>
+    string CurrentBucket { get; }
+
+    /// <summary>
     /// Creates a bucket.
     /// </summary>
     Task CreateBucketAsync(string bucketName, GcsBucketOptions? options = null, CancellationToken cancellationToken = default);
@@ -59,11 +64,6 @@ public interface IGoogleCloudStorageProvider : IStorageProvider
     /// Updates bucket metadata.
     /// </summary>
     Task UpdateBucketMetadataAsync(string bucketName, GcsBucketMetadata metadata, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Gets the current bucket name.
-    /// </summary>
-    string CurrentBucket { get; }
 
     /// <summary>
     /// Switches to a different bucket.

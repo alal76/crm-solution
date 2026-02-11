@@ -1,6 +1,18 @@
-// CRM Solution - Pluggable Architecture
-// Superset Analytics Provider Implementation
-// Apache Superset is an open-source BI tool for data exploration and visualization
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 namespace CRM.Infrastructure.Providers.Superset;
 
@@ -22,11 +34,11 @@ public class SupersetProvider : IAnalyticsPort
     private readonly HttpClient _httpClient;
     private readonly SupersetConfiguration _config;
     private readonly ILogger<SupersetProvider> _logger;
-    
+
     private string? _accessToken;
     private string? _csrfToken;
     private DateTime _tokenExpiresAt = DateTime.MinValue;
-    
+
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.SnakeCaseLower,
@@ -42,7 +54,7 @@ public class SupersetProvider : IAnalyticsPort
         _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
         _config = config?.Value ?? throw new ArgumentNullException(nameof(config));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        
+
         _httpClient.BaseAddress = new Uri(_config.BaseUrl.TrimEnd('/') + "/");
         _httpClient.Timeout = TimeSpan.FromSeconds(_config.TimeoutSeconds);
     }
@@ -104,14 +116,14 @@ public class SupersetProvider : IAnalyticsPort
             JsonSerializer.Serialize(loginRequest, JsonOptions),
             Encoding.UTF8,
             "application/json");
-        
+
         if (!string.IsNullOrEmpty(_csrfToken))
         {
             request.Headers.Add("X-CSRFToken", _csrfToken);
         }
 
         var response = await _httpClient.SendAsync(request, cancellationToken);
-        
+
         if (!response.IsSuccessStatusCode)
         {
             var error = await response.Content.ReadAsStringAsync(cancellationToken);
@@ -119,7 +131,7 @@ public class SupersetProvider : IAnalyticsPort
         }
 
         var loginResult = await response.Content.ReadFromJsonAsync<SupersetLoginResponse>(JsonOptions, cancellationToken);
-        
+
         if (string.IsNullOrEmpty(loginResult?.AccessToken))
         {
             throw new InvalidOperationException("Superset authentication failed: No access token returned");
@@ -127,10 +139,10 @@ public class SupersetProvider : IAnalyticsPort
 
         _accessToken = loginResult.AccessToken;
         _tokenExpiresAt = DateTime.UtcNow.AddMinutes(_config.TokenRefreshIntervalMinutes);
-        
+
         // Set default auth header for subsequent requests
         _httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _accessToken);
-        
+
         _logger.LogDebug("Successfully authenticated with Superset");
     }
 
@@ -147,7 +159,7 @@ public class SupersetProvider : IAnalyticsPort
         response.EnsureSuccessStatusCode();
 
         var result = await response.Content.ReadFromJsonAsync<SupersetListResponse<SupersetDashboard>>(JsonOptions, cancellationToken);
-        
+
         return result?.Result?.Select(MapToDashboardInfo) ?? Enumerable.Empty<DashboardInfo>();
     }
 
@@ -165,7 +177,7 @@ public class SupersetProvider : IAnalyticsPort
         try
         {
             var response = await _httpClient.GetAsync($"api/v1/dashboard/{id}", cancellationToken);
-            
+
             if (!response.IsSuccessStatusCode)
             {
                 return null;
@@ -183,24 +195,24 @@ public class SupersetProvider : IAnalyticsPort
 
     /// <inheritdoc />
     public async Task<IEnumerable<DashboardInfo>> GetDashboardsForUserAsync(
-        int userId, 
-        IEnumerable<string>? roles = null, 
+        int userId,
+        IEnumerable<string>? roles = null,
         CancellationToken cancellationToken = default)
     {
         // Superset has its own permission model - we return all accessible dashboards
         // The guest token will enforce RLS based on the user context
         var dashboards = await GetDashboardsAsync(cancellationToken);
-        
+
         // Filter based on dashboard tags matching roles (convention-based)
         if (roles?.Any() == true)
         {
             var roleSet = new HashSet<string>(roles, StringComparer.OrdinalIgnoreCase);
-            dashboards = dashboards.Where(d => 
-                d.Tags == null || 
-                !d.Tags.Any() || 
+            dashboards = dashboards.Where(d =>
+                d.Tags == null ||
+                !d.Tags.Any() ||
                 d.Tags.Any(t => roleSet.Contains(t)));
         }
-        
+
         return dashboards;
     }
 
@@ -246,7 +258,7 @@ public class SupersetProvider : IAnalyticsPort
                 var clause = defaultFilter.Value
                     .Replace("{userId}", request.UserId?.ToString() ?? "0")
                     .Replace("{userEmail}", request.UserEmail ?? "");
-                
+
                 rlsFilters.Add(new { clause });
             }
 
@@ -272,12 +284,12 @@ public class SupersetProvider : IAnalyticsPort
                 "application/json");
 
             var response = await _httpClient.PostAsync("api/v1/security/guest_token/", requestContent, cancellationToken);
-            
+
             if (!response.IsSuccessStatusCode)
             {
                 var error = await response.Content.ReadAsStringAsync(cancellationToken);
                 _logger.LogError("Failed to get guest token: {Error}", error);
-                
+
                 return new EmbedResult
                 {
                     EmbedType = "error",
@@ -290,12 +302,12 @@ public class SupersetProvider : IAnalyticsPort
             }
 
             var result = await response.Content.ReadFromJsonAsync<SupersetGuestTokenResponse>(JsonOptions, cancellationToken);
-            
+
             // Build embed URL
             var embedUrl = $"{_config.BaseUrl}/superset/dashboard/{dashboardId}/" +
                            $"?standalone=true" +
                            $"&guest_token={result?.Token}";
-            
+
             if (request.HideHeader)
             {
                 embedUrl += "&show_filters=0";
@@ -320,7 +332,7 @@ public class SupersetProvider : IAnalyticsPort
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error generating embed for dashboard {DashboardId}", dashboardId);
-            
+
             return new EmbedResult
             {
                 EmbedType = "error",
@@ -334,8 +346,8 @@ public class SupersetProvider : IAnalyticsPort
 
     /// <inheritdoc />
     public async Task<string> GetGuestTokenAsync(
-        string dashboardId, 
-        Dictionary<string, string>? filters = null, 
+        string dashboardId,
+        Dictionary<string, string>? filters = null,
         CancellationToken cancellationToken = default)
     {
         var embedResult = await GetEmbedAsync(new EmbedRequest
@@ -373,14 +385,14 @@ public class SupersetProvider : IAnalyticsPort
         response.EnsureSuccessStatusCode();
 
         var result = await response.Content.ReadFromJsonAsync<SupersetListResponse<SupersetChart>>(JsonOptions, cancellationToken);
-        
+
         return result?.Result?.Select(MapToChartInfo) ?? Enumerable.Empty<ChartInfo>();
     }
 
     /// <inheritdoc />
     public async Task<EmbedResult> GetChartEmbedAsync(
-        string chartId, 
-        Dictionary<string, string>? filters = null, 
+        string chartId,
+        Dictionary<string, string>? filters = null,
         CancellationToken cancellationToken = default)
     {
         await EnsureAuthenticatedAsync(cancellationToken);
@@ -401,7 +413,7 @@ public class SupersetProvider : IAnalyticsPort
         {
             // Build standalone chart URL
             var chartUrl = $"{_config.BaseUrl}/superset/explore/?form_data_key=&slice_id={id}&standalone=true";
-            
+
             if (filters?.Any() == true)
             {
                 var filterParam = Uri.EscapeDataString(JsonSerializer.Serialize(filters, JsonOptions));
@@ -424,7 +436,7 @@ public class SupersetProvider : IAnalyticsPort
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error generating chart embed for {ChartId}", chartId);
-            
+
             return new EmbedResult
             {
                 EmbedType = "error",
@@ -442,8 +454,8 @@ public class SupersetProvider : IAnalyticsPort
 
     /// <inheritdoc />
     public async Task<ReportResult> ExecuteReportAsync(
-        string reportId, 
-        Dictionary<string, object>? parameters = null, 
+        string reportId,
+        Dictionary<string, object>? parameters = null,
         CancellationToken cancellationToken = default)
     {
         // Superset charts can be executed as "reports" via the chart data API
@@ -463,10 +475,10 @@ public class SupersetProvider : IAnalyticsPort
         try
         {
             var startTime = DateTime.UtcNow;
-            
+
             // Get chart data
             var response = await _httpClient.GetAsync($"api/v1/chart/{chartId}/data/", cancellationToken);
-            
+
             if (!response.IsSuccessStatusCode)
             {
                 var error = await response.Content.ReadAsStringAsync(cancellationToken);
@@ -527,7 +539,7 @@ public class SupersetProvider : IAnalyticsPort
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error executing report {ReportId}", reportId);
-            
+
             return new ReportResult
             {
                 ReportId = reportId,
@@ -543,7 +555,7 @@ public class SupersetProvider : IAnalyticsPort
     {
         // In Superset, "reports" are typically saved charts
         var charts = await GetChartsAsync(null, cancellationToken);
-        
+
         var reports = charts.Select(c => new ReportInfo
         {
             Id = c.Id,
@@ -575,7 +587,7 @@ public class SupersetProvider : IAnalyticsPort
         response.EnsureSuccessStatusCode();
 
         var result = await response.Content.ReadFromJsonAsync<SupersetListResponse<SupersetDatabase>>(JsonOptions, cancellationToken);
-        
+
         return result?.Result?.Select(db => new DataSourceInfo
         {
             Id = db.Id.ToString(),
@@ -607,8 +619,8 @@ public class SupersetProvider : IAnalyticsPort
             // Superset doesn't have a direct "refresh" endpoint for databases
             // Instead, we can refresh the schema metadata
             var response = await _httpClient.PostAsync(
-                $"api/v1/database/{id}/schemas/?force=true", 
-                null, 
+                $"api/v1/database/{id}/schemas/?force=true",
+                null,
                 cancellationToken);
 
             if (response.IsSuccessStatusCode)
@@ -636,7 +648,7 @@ public class SupersetProvider : IAnalyticsPort
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error refreshing data source {DataSourceId}", dataSourceId);
-            
+
             return new RefreshJobStatus
             {
                 JobId = Guid.NewGuid().ToString(),
@@ -657,7 +669,7 @@ public class SupersetProvider : IAnalyticsPort
         try
         {
             var isAvailable = await IsAvailableAsync(cancellationToken);
-            
+
             if (!isAvailable)
             {
                 return new ProviderHealthResult
@@ -696,7 +708,7 @@ public class SupersetProvider : IAnalyticsPort
         catch (Exception ex)
         {
             _logger.LogError(ex, "Superset health check failed");
-            
+
             return new ProviderHealthResult
             {
                 IsHealthy = false,

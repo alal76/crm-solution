@@ -32,6 +32,11 @@ public class FieldMasterDataService : IFieldMasterDataService
     private readonly ICrmDbContext _context;
     private readonly ILogger<FieldMasterDataService> _logger;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="FieldMasterDataService"/> class.
+    /// </summary>
+    /// <param name="context">The CRM database context.</param>
+    /// <param name="logger">The logger instance.</param>
     public FieldMasterDataService(ICrmDbContext context, ILogger<FieldMasterDataService> logger)
     {
         _context = context;

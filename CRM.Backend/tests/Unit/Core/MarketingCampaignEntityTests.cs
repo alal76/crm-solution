@@ -1,6 +1,18 @@
-// CRM Solution - CRM.Core Unit Tests
-// Marketing Campaign Entity Tests
-// Tests for MarketingCampaign, CampaignRecipient, CampaignABTest, and Campaign enums
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
 using System.Collections.Generic;
@@ -31,7 +43,7 @@ public class MarketingCampaignEntityTests
         campaign.Description.Should().Be(string.Empty);
         campaign.Type.Should().Be(string.Empty);
         campaign.CampaignCode.Should().BeNull();
-        
+
         // Assert - Status fields
         campaign.Status.Should().Be(CampaignStatus.Draft);
         campaign.Priority.Should().Be(CampaignPriority.Medium);
@@ -39,15 +51,15 @@ public class MarketingCampaignEntityTests
         campaign.CampaignType.Should().Be(CampaignType.Email);
         campaign.PrimarySuccessMetric.Should().Be(SuccessMetric.LeadsGenerated);
         campaign.AudienceType.Should().Be(AudienceType.Prospects);
-        
+
         // Assert - Budget fields default to 0
         campaign.Budget.Should().Be(0);
         campaign.ActualCost.Should().Be(0);
         campaign.CurrencyCode.Should().Be("USD");
-        
+
         // Assert - Target audience
         campaign.TargetAudience.Should().Be(0);
-        
+
         // Assert - Boolean flags
         campaign.IsEvergreen.Should().BeFalse();
         campaign.IsABTest.Should().BeFalse();
@@ -981,7 +993,7 @@ public class MarketingCampaignEntityTests
     {
         // Assert
         Enum.GetValues<CampaignStatus>().Should().HaveCount(10);
-        
+
         ((int)CampaignStatus.Draft).Should().Be(0);
         ((int)CampaignStatus.Scheduled).Should().Be(1);
         ((int)CampaignStatus.Active).Should().Be(2);
@@ -1014,7 +1026,7 @@ public class MarketingCampaignEntityTests
     {
         // Assert
         Enum.GetValues<CampaignType>().Should().HaveCount(26);
-        
+
         ((int)CampaignType.Email).Should().Be(0);
         ((int)CampaignType.SocialMedia).Should().Be(1);
         ((int)CampaignType.PaidSearch).Should().Be(2);
@@ -1039,7 +1051,7 @@ public class MarketingCampaignEntityTests
     {
         // Assert
         Enum.GetValues<CampaignPriority>().Should().HaveCount(5);
-        
+
         ((int)CampaignPriority.Low).Should().Be(0);
         ((int)CampaignPriority.Medium).Should().Be(1);
         ((int)CampaignPriority.High).Should().Be(2);
@@ -1056,7 +1068,7 @@ public class MarketingCampaignEntityTests
     {
         // Assert
         Enum.GetValues<CampaignObjective>().Should().HaveCount(16);
-        
+
         ((int)CampaignObjective.NotSpecified).Should().Be(0);
         ((int)CampaignObjective.LeadGeneration).Should().Be(1);
         ((int)CampaignObjective.BrandAwareness).Should().Be(2);
@@ -1077,7 +1089,7 @@ public class MarketingCampaignEntityTests
     {
         // Assert
         Enum.GetValues<AudienceType>().Should().HaveCount(8);
-        
+
         ((int)AudienceType.Prospects).Should().Be(0);
         ((int)AudienceType.Leads).Should().Be(1);
         ((int)AudienceType.Customers).Should().Be(2);
@@ -1097,7 +1109,7 @@ public class MarketingCampaignEntityTests
     {
         // Assert
         Enum.GetValues<SuccessMetric>().Should().HaveCount(15);
-        
+
         ((int)SuccessMetric.LeadsGenerated).Should().Be(0);
         ((int)SuccessMetric.MQLs).Should().Be(1);
         ((int)SuccessMetric.SQLs).Should().Be(2);
@@ -1253,7 +1265,7 @@ public class MarketingCampaignEntityTests
     {
         // Assert
         Enum.GetValues<CampaignRecipientStatus>().Should().HaveCount(9);
-        
+
         ((int)CampaignRecipientStatus.Pending).Should().Be(0);
         ((int)CampaignRecipientStatus.Sent).Should().Be(1);
         ((int)CampaignRecipientStatus.Delivered).Should().Be(2);
@@ -1274,7 +1286,7 @@ public class MarketingCampaignEntityTests
     {
         // Assert
         Enum.GetValues<BounceType>().Should().HaveCount(4);
-        
+
         ((int)BounceType.None).Should().Be(0);
         ((int)BounceType.Hard).Should().Be(1);
         ((int)BounceType.Soft).Should().Be(2);
@@ -1400,7 +1412,7 @@ public class MarketingCampaignEntityTests
     {
         // Assert
         Enum.GetValues<ABTestType>().Should().HaveCount(5);
-        
+
         ((int)ABTestType.SubjectLine).Should().Be(0);
         ((int)ABTestType.FromName).Should().Be(1);
         ((int)ABTestType.Content).Should().Be(2);
@@ -1417,7 +1429,7 @@ public class MarketingCampaignEntityTests
     {
         // Assert
         Enum.GetValues<ABTestMetric>().Should().HaveCount(4);
-        
+
         ((int)ABTestMetric.OpenRate).Should().Be(0);
         ((int)ABTestMetric.ClickRate).Should().Be(1);
         ((int)ABTestMetric.ConversionRate).Should().Be(2);
@@ -1433,7 +1445,7 @@ public class MarketingCampaignEntityTests
     {
         // Assert
         Enum.GetValues<ABTestStatus>().Should().HaveCount(4);
-        
+
         ((int)ABTestStatus.Draft).Should().Be(0);
         ((int)ABTestStatus.Running).Should().Be(1);
         ((int)ABTestStatus.Completed).Should().Be(2);
@@ -1459,16 +1471,16 @@ public class MarketingCampaignEntityTests
             Priority = CampaignPriority.High,
             ObjectiveType = CampaignObjective.ProductLaunch,
             PrimarySuccessMetric = SuccessMetric.LeadsGenerated,
-            
+
             StartDate = new DateTime(2026, 1, 15),
             EndDate = new DateTime(2026, 2, 15),
-            
+
             Budget = 50000m,
             ActualCost = 35000m,
-            
+
             TargetAudience = 100000,
             AudienceType = AudienceType.Prospects,
-            
+
             EmailsSent = 95000,
             EmailsDelivered = 92000,
             DeliveryRate = 96.84,
@@ -1476,11 +1488,11 @@ public class MarketingCampaignEntityTests
             OpenRate = 30.0,
             EmailClicks = 5520,
             EmailClickRate = 6.0,
-            
+
             LeadsGenerated = 750,
             MqlsGenerated = 375,
             LeadToMqlRate = 50.0,
-            
+
             ROI = 250.0
         };
 
@@ -1505,24 +1517,24 @@ public class MarketingCampaignEntityTests
             CampaignType = CampaignType.Webinar,
             Status = CampaignStatus.Completed,
             ObjectiveType = CampaignObjective.LeadGeneration,
-            
+
             EventDateTime = new DateTime(2026, 2, 20, 14, 0, 0),
             EventLocation = "Zoom Webinar",
             WebinarPlatform = "Zoom",
             EventCapacity = 500,
-            
+
             Registrations = 450,
             Attendance = 315,
             AttendanceRate = 70.0,
             NoShows = 135,
-            
+
             PollResponses = 200,
             QuestionsAsked = 45,
             EventSatisfactionScore = 4.7,
-            
+
             LeadsGenerated = 315,
             MqlsGenerated = 150,
-            
+
             WebinarRecordingUrl = "https://example.com/webinar-recording",
             OnDemandViews = 500
         };

@@ -1,4 +1,19 @@
-// Temporarily disabled - requires entity alignment refactoring
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 #if ITSM_ADVANCED
 // This file is part of the CRM Solution.
 // Copyright (c) 2025 CRM Solution Contributors
@@ -86,7 +101,7 @@ public class EscalationHostedService : BackgroundService
 
         // Find incidents that need escalation based on SLA breach or time thresholds
         var activeIncidents = await context.Incidents
-            .Where(i => i.Status != IncidentState.Closed && 
+            .Where(i => i.Status != IncidentState.Closed &&
                        i.Status != IncidentState.Resolved &&
                        i.Status != IncidentState.Cancelled)
             .Include(i => i.AssignedTo)
@@ -99,7 +114,7 @@ public class EscalationHostedService : BackgroundService
 
             // Check SLA-based escalation
             var slaInstance = await context.ITSMSLAInstances
-                .FirstOrDefaultAsync(s => s.TargetId == incident.IncidentId && 
+                .FirstOrDefaultAsync(s => s.TargetId == incident.IncidentId &&
                                           s.TargetType == SLATargetType.Incident &&
                                           s.State == SLAState.Active);
 
@@ -120,7 +135,7 @@ public class EscalationHostedService : BackgroundService
                 if (slaInstance.ResolutionDueAt.HasValue)
                 {
                     var resolutionPercentage = CalculateTimePercentage(incident.CreatedAt, slaInstance.ResolutionDueAt.Value, now);
-                    
+
                     // Escalate at different levels based on percentage
                     if (resolutionPercentage >= 100 && incident.EscalationLevel < 3)
                     {

@@ -40,6 +40,9 @@ public class ContactsService : IContactsService, IContactInputPort
     private readonly IContactInfoService _contactInfoService;
     private readonly IEntityEventDispatcher _eventDispatcher;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ContactsService"/> class.
+    /// </summary>
     public ContactsService(CrmDbContext context, IContactInfoService contactInfoService, IEntityEventDispatcher eventDispatcher)
     {
         _context = context;
@@ -531,7 +534,6 @@ public class ContactsService : IContactsService, IContactInputPort
     }
 
     // === Customer Assignment Methods ===
-
     public async Task<List<ContactDto>> GetByAccountIdAsync(int customerId)
     {
         var contacts = await _context.Contacts

@@ -1,4 +1,19 @@
-// Temporarily disabled - requires entity alignment refactoring
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 #if ITSM_ADVANCED
 // This file is part of the CRM Solution.
 // Copyright (c) 2025 CRM Solution Contributors
@@ -21,32 +36,32 @@ public interface IChangeCalendarService
     /// Get scheduled changes within a date range.
     /// </summary>
     Task<List<ScheduledChange>> GetScheduledChangesAsync(DateTime startDate, DateTime endDate);
-    
+
     /// <summary>
     /// Check for scheduling conflicts with a proposed change window.
     /// </summary>
     Task<List<ChangeConflict>> CheckConflictsAsync(int changeRequestId, DateTime proposedStart, DateTime proposedEnd);
-    
+
     /// <summary>
     /// Get blackout periods that would prevent scheduling.
     /// </summary>
     Task<List<BlackoutPeriod>> GetBlackoutPeriodsAsync(DateTime startDate, DateTime endDate);
-    
+
     /// <summary>
     /// Check if a proposed window falls within a blackout period.
     /// </summary>
     Task<BlackoutPeriod?> GetConflictingBlackoutAsync(DateTime proposedStart, DateTime proposedEnd);
-    
+
     /// <summary>
     /// Create a blackout period (e.g., holiday freeze, maintenance window).
     /// </summary>
     Task<BlackoutPeriod> CreateBlackoutPeriodAsync(BlackoutPeriod blackout, int createdById);
-    
+
     /// <summary>
     /// Find available slots for scheduling a change.
     /// </summary>
     Task<List<AvailableSlot>> FindAvailableSlotsAsync(int changeRequestId, int durationMinutes, int daysAhead = 14);
-    
+
     /// <summary>
     /// Get maintenance windows that would be suitable for a change.
     /// </summary>
@@ -220,7 +235,7 @@ public class ChangeCalendarService : IChangeCalendarService
     public async Task<List<ScheduledChange>> GetScheduledChangesAsync(DateTime startDate, DateTime endDate)
     {
         var context = _dbContextResolver.ResolveContext();
-        
+
         var changes = await context.Changes
             .Where(c => c.ScheduledStart.HasValue &&
                        c.ScheduledStart >= startDate &&
@@ -248,8 +263,8 @@ public class ChangeCalendarService : IChangeCalendarService
     }
 
     public async Task<List<ChangeConflict>> CheckConflictsAsync(
-        int changeRequestId, 
-        DateTime proposedStart, 
+        int changeRequestId,
+        DateTime proposedStart,
         DateTime proposedEnd)
     {
         var conflicts = new List<ChangeConflict>();
@@ -278,7 +293,7 @@ public class ChangeCalendarService : IChangeCalendarService
                 Description = $"Proposed window overlaps with blackout period: {blackout.Name}",
                 ConflictStart = blackout.StartDate,
                 ConflictEnd = blackout.EndDate,
-                Recommendation = canOverride 
+                Recommendation = canOverride
                     ? "Emergency change can proceed with additional approval"
                     : $"Reschedule to after {blackout.EndDate:g}"
             });
@@ -288,10 +303,10 @@ public class ChangeCalendarService : IChangeCalendarService
         var overlappingChanges = await context.Changes
             .Where(c => c.ChangeRequestId != changeRequestId)
             .Where(c => c.ScheduledStart.HasValue && c.ScheduledEnd.HasValue)
-            .Where(c => c.Status != ChangeState.Cancelled && 
+            .Where(c => c.Status != ChangeState.Cancelled &&
                        c.Status != ChangeState.Closed &&
                        c.Status != ChangeState.Failed)
-            .Where(c => 
+            .Where(c =>
                 (c.ScheduledStart <= proposedEnd && c.ScheduledEnd >= proposedStart))
             .Include(c => c.ImpactedCIs)
                 .ThenInclude(ci => ci.ConfigurationItem)
@@ -395,7 +410,7 @@ public class ChangeCalendarService : IChangeCalendarService
         };
 
         return await Task.FromResult(
-            blackouts.Where(b => 
+            blackouts.Where(b =>
                 b.IsActive &&
                 ((b.StartDate <= endDate && b.EndDate >= startDate) ||
                  (b.IsRecurringYearly && IsRecurringInRange(b, startDate, endDate)))
@@ -406,7 +421,7 @@ public class ChangeCalendarService : IChangeCalendarService
     public async Task<BlackoutPeriod?> GetConflictingBlackoutAsync(DateTime proposedStart, DateTime proposedEnd)
     {
         var blackouts = await GetBlackoutPeriodsAsync(proposedStart, proposedEnd);
-        
+
         return blackouts.FirstOrDefault(b =>
             b.StartDate <= proposedEnd && b.EndDate >= proposedStart);
     }
@@ -426,8 +441,8 @@ public class ChangeCalendarService : IChangeCalendarService
     }
 
     public async Task<List<AvailableSlot>> FindAvailableSlotsAsync(
-        int changeRequestId, 
-        int durationMinutes, 
+        int changeRequestId,
+        int durationMinutes,
         int daysAhead = 14)
     {
         var slots = new List<AvailableSlot>();
@@ -436,7 +451,7 @@ public class ChangeCalendarService : IChangeCalendarService
 
         // Get existing scheduled changes
         var scheduledChanges = await GetScheduledChangesAsync(startDate, endDate);
-        
+
         // Get blackout periods
         var blackouts = await GetBlackoutPeriodsAsync(startDate, endDate);
 
@@ -452,7 +467,7 @@ public class ChangeCalendarService : IChangeCalendarService
                 {
                     var windowStart = day.Date + window.StartTime;
                     var windowEnd = day.Date + window.EndTime;
-                    
+
                     // Handle windows that cross midnight
                     if (window.EndTime < window.StartTime)
                     {
@@ -460,9 +475,9 @@ public class ChangeCalendarService : IChangeCalendarService
                     }
 
                     // Check if this window is available
-                    var isBlocked = blackouts.Any(b => 
+                    var isBlocked = blackouts.Any(b =>
                         b.StartDate <= windowEnd && b.EndDate >= windowStart);
-                    
+
                     var hasConflict = scheduledChanges.Any(c =>
                         c.ScheduledStart <= windowEnd && c.ScheduledEnd >= windowStart);
 
@@ -497,9 +512,9 @@ public class ChangeCalendarService : IChangeCalendarService
             var eveningStart = day.Date.AddHours(20);
             var eveningEnd = day.Date.AddHours(24);
 
-            var isBlocked = blackouts.Any(b => 
+            var isBlocked = blackouts.Any(b =>
                 b.StartDate <= eveningEnd && b.EndDate >= eveningStart);
-            
+
             var hasConflict = scheduledChanges.Any(c =>
                 c.ScheduledStart <= eveningEnd && c.ScheduledEnd >= eveningStart);
 
@@ -528,14 +543,14 @@ public class ChangeCalendarService : IChangeCalendarService
     private async Task<bool> IsInMaintenanceWindowAsync(DateTime start, DateTime end)
     {
         var windows = await GetMaintenanceWindowsAsync();
-        
+
         foreach (var window in windows.Where(w => w.IsActive))
         {
             if (window.DayOfWeek == start.DayOfWeek)
             {
                 var windowStart = start.Date + window.StartTime;
                 var windowEnd = start.Date + window.EndTime;
-                
+
                 if (window.EndTime < window.StartTime)
                     windowEnd = windowEnd.AddDays(1);
 
@@ -556,7 +571,7 @@ public class ChangeCalendarService : IChangeCalendarService
         {
             var recurStart = new DateTime(year, blackout.StartDate.Month, blackout.StartDate.Day);
             var recurEnd = new DateTime(year, blackout.EndDate.Month, blackout.EndDate.Day);
-            
+
             if (recurStart <= endDate && recurEnd >= startDate)
                 return true;
         }

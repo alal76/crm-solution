@@ -14,16 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-/**
- * CRM Solution - Customer Relationship Management System
- * Copyright (C) 2024-2026 Abhishek Lal
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- */
-
 using CRM.Core.Interfaces;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
@@ -40,13 +30,6 @@ public class CachedZipCodeService : IZipCodeService
     private readonly IMemoryCache _cache;
     private readonly ILogger<CachedZipCodeService> _logger;
 
-    // Cache configuration
-    private static readonly TimeSpan CountriesCacheExpiration = TimeSpan.FromHours(24);
-    private static readonly TimeSpan StatesCacheExpiration = TimeSpan.FromHours(12);
-    private static readonly TimeSpan CitiesCacheExpiration = TimeSpan.FromHours(6);
-    private static readonly TimeSpan PostalCodesCacheExpiration = TimeSpan.FromHours(6);
-    private static readonly TimeSpan LookupCacheExpiration = TimeSpan.FromMinutes(30);
-
     // Cache keys
     private const string CountriesCacheKey = "ZipCode:Countries";
     private const string StatesPrefix = "ZipCode:States:";
@@ -54,6 +37,13 @@ public class CachedZipCodeService : IZipCodeService
     private const string PostalCodesPrefix = "ZipCode:PostalCodes:";
     private const string LookupPrefix = "ZipCode:Lookup:";
     private const string ValidationPrefix = "ZipCode:Validation:";
+
+    // Cache configuration
+    private static readonly TimeSpan CountriesCacheExpiration = TimeSpan.FromHours(24);
+    private static readonly TimeSpan StatesCacheExpiration = TimeSpan.FromHours(12);
+    private static readonly TimeSpan CitiesCacheExpiration = TimeSpan.FromHours(6);
+    private static readonly TimeSpan PostalCodesCacheExpiration = TimeSpan.FromHours(6);
+    private static readonly TimeSpan LookupCacheExpiration = TimeSpan.FromMinutes(30);
 
     public CachedZipCodeService(
         IZipCodeService innerService,

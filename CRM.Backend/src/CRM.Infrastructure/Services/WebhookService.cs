@@ -36,7 +36,7 @@ public class WebhookService : IWebhookService
     private readonly IConfiguration _configuration;
 
     public WebhookService(
-        ICrmDbContext dbContext, 
+        ICrmDbContext dbContext,
         ILogger<WebhookService> logger,
         IConfiguration configuration)
     {
@@ -60,7 +60,7 @@ public class WebhookService : IWebhookService
             {
                 var existingAccount = await _dbContext.Accounts
                     .FirstOrDefaultAsync(a => a.Email == dto.Email && !a.IsDeleted);
-                
+
                 if (existingAccount != null)
                 {
                     customerId = existingAccount.Id;
@@ -68,7 +68,7 @@ public class WebhookService : IWebhookService
 
                 var existingContact = await _dbContext.Contacts
                     .FirstOrDefaultAsync(c => c.EmailPrimary == dto.Email && c.Status == CRM.Core.Models.ContactStatus.Active);
-                
+
                 if (existingContact != null)
                 {
                     contactId = existingContact.Id;
@@ -157,7 +157,7 @@ public class WebhookService : IWebhookService
             {
                 var existingAccount = await _dbContext.Accounts
                     .FirstOrDefaultAsync(a => a.Email == dto.From && !a.IsDeleted);
-                
+
                 if (existingAccount != null)
                 {
                     customerId = existingAccount.Id;
@@ -165,7 +165,7 @@ public class WebhookService : IWebhookService
 
                 var existingContact = await _dbContext.Contacts
                     .FirstOrDefaultAsync(c => c.EmailPrimary == dto.From && c.Status == CRM.Core.Models.ContactStatus.Active);
-                
+
                 if (existingContact != null)
                 {
                     contactId = existingContact.Id;
@@ -253,7 +253,7 @@ public class WebhookService : IWebhookService
         try
         {
             var data = JsonSerializer.Deserialize<JsonElement>(payload);
-            
+
             // Parse WhatsApp Cloud API webhook format
             // Entry -> Changes -> Value -> Messages
             if (!data.TryGetProperty("entry", out var entries))
@@ -287,7 +287,7 @@ public class WebhookService : IWebhookService
                         {
                             var account = await _dbContext.Accounts
                                 .FirstOrDefaultAsync(a => a.Phone != null && a.Phone.Contains(from) && !a.IsDeleted);
-                            
+
                             if (account != null)
                             {
                                 customerId = account.Id;
@@ -343,7 +343,7 @@ public class WebhookService : IWebhookService
         try
         {
             var data = JsonSerializer.Deserialize<JsonElement>(payload);
-            
+
             // Parse Facebook Messenger webhook format
             if (!data.TryGetProperty("entry", out var entries))
             {
@@ -356,7 +356,7 @@ public class WebhookService : IWebhookService
 
                 foreach (var messagingEvent in messagingEvents.EnumerateArray())
                 {
-                    var senderId = messagingEvent.TryGetProperty("sender", out var sender) 
+                    var senderId = messagingEvent.TryGetProperty("sender", out var sender)
                         ? (sender.TryGetProperty("id", out var idProp) ? idProp.GetString() : null)
                         : null;
 
@@ -402,7 +402,7 @@ public class WebhookService : IWebhookService
         try
         {
             var data = JsonSerializer.Deserialize<JsonElement>(payload);
-            
+
             // Parse Twitter webhook format (Account Activity API)
             if (data.TryGetProperty("direct_message_events", out var dmEvents))
             {
@@ -478,7 +478,7 @@ public class WebhookService : IWebhookService
             var expectedSignature = "sha256=" + BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
 
             var isValid = string.Equals(signature, expectedSignature, StringComparison.OrdinalIgnoreCase);
-            
+
             if (!isValid)
             {
                 _logger.LogWarning("Webhook signature verification failed for {ChannelType}", channelType);

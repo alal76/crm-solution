@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System.Security.Cryptography;
+using System.Text;
 using CRM.Core.Entities;
 using CRM.Core.Models;
 using CRM.Infrastructure.Data;
@@ -22,14 +24,12 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using System.Security.Cryptography;
-using System.Text;
 
 namespace CRM.DatabaseSeeder;
 
-class Program
+internal class Program
 {
-    static async Task<int> Main(string[] args)
+    private static async Task<int> Main(string[] args)
     {
         Console.WriteLine("╔═══════════════════════════════════════════════════════════╗");
         Console.WriteLine("║           CRM Database Seeder & Initializer               ║");
@@ -98,7 +98,7 @@ class Program
         }
     }
 
-    static void ShowHelp()
+    private static void ShowHelp()
     {
         Console.WriteLine("Usage: CRM.DatabaseSeeder [command] [options]");
         Console.WriteLine();
@@ -119,7 +119,7 @@ class Program
         Console.WriteLine("  dotnet run admin --ConnectionStrings:DefaultConnection=\"Server=localhost;Database=crm;...\"");
     }
 
-    static async Task CreateDatabaseAsync(IConfiguration configuration, ILogger logger)
+    private static async Task CreateDatabaseAsync(IConfiguration configuration, ILogger logger)
     {
         logger.LogInformation("Creating database schema...");
 
@@ -142,7 +142,7 @@ class Program
         Console.WriteLine($"   Connection: {GetMaskedConnectionString(configuration)}");
     }
 
-    static async Task SeedDatabaseAsync(IConfiguration configuration, ILogger logger)
+    private static async Task SeedDatabaseAsync(IConfiguration configuration, ILogger logger)
     {
         // First create the database
         await CreateDatabaseAsync(configuration, logger);
@@ -160,7 +160,7 @@ class Program
         Console.WriteLine("\n✅ Database seeding completed successfully!");
     }
 
-    static async Task ResetDatabaseAsync(IConfiguration configuration, ILogger logger)
+    private static async Task ResetDatabaseAsync(IConfiguration configuration, ILogger logger)
     {
         Console.WriteLine("⚠️  This will DELETE all existing data. Are you sure? (yes/no): ");
         var confirmation = Console.ReadLine();
@@ -180,7 +180,7 @@ class Program
         await SeedDatabaseAsync(configuration, logger);
     }
 
-    static async Task CreateAdminUserAsync(IConfiguration configuration, ILogger logger)
+    private static async Task CreateAdminUserAsync(IConfiguration configuration, ILogger logger)
     {
         await CreateDatabaseAsync(configuration, logger);
 
@@ -188,7 +188,7 @@ class Program
         await SeedAdminUser(dbContext, configuration, logger);
     }
 
-    static async Task SeedAdminUser(CrmDbContext context, IConfiguration configuration, ILogger logger)
+    private static async Task SeedAdminUser(CrmDbContext context, IConfiguration configuration, ILogger logger)
     {
         Console.WriteLine("👤 Creating admin user...");
 
@@ -232,7 +232,7 @@ class Program
         Console.WriteLine($"      Role: Admin");
     }
 
-    static async Task SeedSampleData(CrmDbContext context, IConfiguration configuration, ILogger logger)
+    private static async Task SeedSampleData(CrmDbContext context, IConfiguration configuration, ILogger logger)
     {
         var seedingConfig = configuration.GetSection("Seeding:SampleData");
 
@@ -303,7 +303,7 @@ class Program
         await SeedActivities(context, users, customers, opportunities, 50);
     }
 
-    static async Task<List<Department>> SeedDepartments(CrmDbContext context)
+    private static async Task<List<Department>> SeedDepartments(CrmDbContext context)
     {
         if (await context.Departments.AnyAsync())
         {
@@ -325,7 +325,7 @@ class Program
         return departments;
     }
 
-    static async Task<List<User>> SeedUsers(CrmDbContext context, List<Department> departments)
+    private static async Task<List<User>> SeedUsers(CrmDbContext context, List<Department> departments)
     {
         var existingUsers = await context.Users.ToListAsync();
         if (existingUsers.Count > 1)
@@ -348,7 +348,7 @@ class Program
         return await context.Users.ToListAsync();
     }
 
-    static async Task<List<Account>> SeedCustomers(CrmDbContext context, List<User> users, int count)
+    private static async Task<List<Account>> SeedCustomers(CrmDbContext context, List<User> users, int count)
     {
         if (await context.Customers.AnyAsync())
         {
@@ -402,7 +402,7 @@ class Program
         return customers;
     }
 
-    static async Task<List<Product>> SeedProducts(CrmDbContext context, int count)
+    private static async Task<List<Product>> SeedProducts(CrmDbContext context, int count)
     {
         if (await context.Products.AnyAsync())
         {
@@ -603,7 +603,7 @@ class Program
         return products;
     }
 
-    static async Task<List<Subscription>> SeedSubscriptions(CrmDbContext context, List<Account> customers, List<Product> products)
+    private static async Task<List<Subscription>> SeedSubscriptions(CrmDbContext context, List<Account> customers, List<Product> products)
     {
         if (await context.Subscriptions.AnyAsync())
         {
@@ -683,7 +683,7 @@ class Program
         return subscriptions;
     }
 
-    static async Task<List<Contact>> SeedContacts(CrmDbContext context, List<Account> customers, int count)
+    private static async Task<List<Contact>> SeedContacts(CrmDbContext context, List<Account> customers, int count)
     {
         if (await context.Contacts.AnyAsync())
         {
@@ -727,7 +727,7 @@ class Program
         return contacts;
     }
 
-    static async Task<List<MarketingCampaign>> SeedCampaigns(CrmDbContext context, List<User> users, int count)
+    private static async Task<List<MarketingCampaign>> SeedCampaigns(CrmDbContext context, List<User> users, int count)
     {
         if (await context.MarketingCampaigns.AnyAsync())
         {
@@ -895,7 +895,7 @@ class Program
         return campaigns;
     }
 
-    static async Task<List<Lead>> SeedLeads(CrmDbContext context, List<MarketingCampaign> campaigns, List<User> users, List<Product> products, int count)
+    private static async Task<List<Lead>> SeedLeads(CrmDbContext context, List<MarketingCampaign> campaigns, List<User> users, List<Product> products, int count)
     {
         if (await context.Leads.AnyAsync())
         {
@@ -960,7 +960,7 @@ class Program
         return leads;
     }
 
-    static async Task<List<Opportunity>> SeedOpportunities(CrmDbContext context, List<Subscription> subscriptions, List<Product> products, List<User> users, List<MarketingCampaign> campaigns, int count)
+    private static async Task<List<Opportunity>> SeedOpportunities(CrmDbContext context, List<Subscription> subscriptions, List<Product> products, List<User> users, List<MarketingCampaign> campaigns, int count)
     {
         if (await context.Opportunities.AnyAsync())
         {
@@ -1028,7 +1028,7 @@ class Program
         return opportunities;
     }
 
-    static async Task SeedTasks(CrmDbContext context, List<Account> customers, List<Opportunity> opportunities, List<User> users, int count)
+    private static async Task SeedTasks(CrmDbContext context, List<Account> customers, List<Opportunity> opportunities, List<User> users, int count)
     {
         if (await context.CrmTasks.AnyAsync())
         {
@@ -1067,7 +1067,7 @@ class Program
         Console.WriteLine($"   Created {count} tasks");
     }
 
-    static async Task SeedNotes(CrmDbContext context, List<Account> customers, List<Opportunity> opportunities, List<User> users, int count)
+    private static async Task SeedNotes(CrmDbContext context, List<Account> customers, List<Opportunity> opportunities, List<User> users, int count)
     {
         if (await context.Notes.AnyAsync())
         {
@@ -1102,7 +1102,7 @@ class Program
         Console.WriteLine($"   Created {count} notes");
     }
 
-    static async Task SeedQuotes(CrmDbContext context, List<Account> customers, List<Opportunity> opportunities, List<User> users, int count)
+    private static async Task SeedQuotes(CrmDbContext context, List<Account> customers, List<Opportunity> opportunities, List<User> users, int count)
     {
         if (await context.Quotes.AnyAsync())
         {
@@ -1158,7 +1158,7 @@ class Program
         Console.WriteLine($"   Created {count} quotes");
     }
 
-    static async Task SeedInteractions(CrmDbContext context, List<Account> customers, List<Contact> contacts, List<User> users, int count)
+    private static async Task SeedInteractions(CrmDbContext context, List<Account> customers, List<Contact> contacts, List<User> users, int count)
     {
         if (await context.Interactions.AnyAsync())
         {
@@ -1199,7 +1199,7 @@ class Program
         Console.WriteLine($"   Created {count} interactions");
     }
 
-    static async Task SeedActivities(CrmDbContext context, List<User> users, List<Account> customers, List<Opportunity> opportunities, int count)
+    private static async Task SeedActivities(CrmDbContext context, List<User> users, List<Account> customers, List<Opportunity> opportunities, int count)
     {
         if (await context.Activities.AnyAsync())
         {
@@ -1239,7 +1239,7 @@ class Program
         Console.WriteLine($"   Created {count} activities");
     }
 
-    static string GetActivityTitle(ActivityType type, Bogus.Faker faker)
+    private static string GetActivityTitle(ActivityType type, Bogus.Faker faker)
     {
         return type switch
         {
@@ -1264,7 +1264,7 @@ class Program
         };
     }
 
-    static CrmDbContext CreateDbContext(IConfiguration configuration)
+    private static CrmDbContext CreateDbContext(IConfiguration configuration)
     {
         var optionsBuilder = new DbContextOptionsBuilder<CrmDbContext>();
         var provider = configuration["DatabaseProvider"]?.ToLowerInvariant() ?? "mariadb";
@@ -1303,14 +1303,14 @@ class Program
         return new CrmDbContext(optionsBuilder.Options, configuration);
     }
 
-    static string HashPassword(string password)
+    private static string HashPassword(string password)
     {
         using var sha256 = SHA256.Create();
         var hashedBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
         return Convert.ToBase64String(hashedBytes);
     }
 
-    static string GetMaskedConnectionString(IConfiguration configuration)
+    private static string GetMaskedConnectionString(IConfiguration configuration)
     {
         var connStr = configuration.GetConnectionString("DefaultConnection") ?? "";
         if (connStr.Contains("Password=", StringComparison.OrdinalIgnoreCase))

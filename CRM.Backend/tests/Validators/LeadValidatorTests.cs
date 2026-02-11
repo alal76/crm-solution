@@ -1,5 +1,18 @@
 // CRM Solution - Customer Relationship Management System
-// Lead Validator Unit Tests
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using Xunit;
 using Moq;
@@ -658,7 +671,7 @@ public class LeadValidator
 
     private static readonly HashSet<string> ValidSources = new(StringComparer.OrdinalIgnoreCase)
     {
-        "Web", "Referral", "Trade Show", "Cold Call", "Advertisement", 
+        "Web", "Referral", "Trade Show", "Cold Call", "Advertisement",
         "Partner", "Social Media", "Email Campaign", "Other"
     };
 
@@ -786,7 +799,7 @@ public class LeadValidator
             result.AddError("ConvertedDate", "Conversion date is required for converted leads");
         }
 
-        if (dto.Status?.Equals("Disqualified", StringComparison.OrdinalIgnoreCase) == true && 
+        if (dto.Status?.Equals("Disqualified", StringComparison.OrdinalIgnoreCase) == true &&
             string.IsNullOrWhiteSpace(dto.DisqualificationReason))
         {
             result.AddError("DisqualificationReason", "Disqualification reason is required");

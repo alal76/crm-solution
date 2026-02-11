@@ -14,16 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-/**
- * CRM Solution - Customer Relationship Management System
- * Copyright (C) 2024-2026 Abhishek Lal
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- */
-
 using System.Text.Json;
 using CRM.Core.Interfaces;
 using CRM.Core.Entities;
@@ -38,13 +28,13 @@ namespace CRM.Infrastructure.Services;
 /// </summary>
 public class ColorPaletteService : IColorPaletteService
 {
+    private const string GITHUB_PALETTES_URL =
+        "https://raw.githubusercontent.com/NSTechBytes/yourpalettes-website/main/api/colorpalettes.json";
+
     private readonly CrmDbContext _context;
     private readonly HttpClient _httpClient;
     private readonly ILogger<ColorPaletteService> _logger;
     private readonly IResilienceService? _resilienceService;
-
-    private const string GITHUB_PALETTES_URL =
-        "https://raw.githubusercontent.com/NSTechBytes/yourpalettes-website/main/api/colorpalettes.json";
 
     public ColorPaletteService(
         CrmDbContext context,

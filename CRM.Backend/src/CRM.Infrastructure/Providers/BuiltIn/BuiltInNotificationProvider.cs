@@ -1,11 +1,18 @@
-// CRM Solution - BuiltIn Notification Provider
-// Phase 2 Week 8: Implements INotificationPort using SMTP for email
-// Part of the Pluggable Architecture implementation
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
 //
-// HEXAGONAL ARCHITECTURE NOTE:
-// This is the BuiltIn adapter for the INotificationPort output port.
-// It provides basic email functionality via SMTP, with stubs for other channels.
-// For advanced multi-channel notifications, use Novu, Twilio, or SendGrid providers.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System.Net;
 using System.Net.Mail;
@@ -32,7 +39,7 @@ public class BuiltInNotificationProvider : INotificationPort
     {
         _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        
+
         // Load SMTP settings from configuration
         _smtpSettings = new SmtpSettings();
         _configuration.GetSection("Smtp").Bind(_smtpSettings);
@@ -131,7 +138,7 @@ public class BuiltInNotificationProvider : INotificationPort
         // BuiltIn provider doesn't support templates directly
         // Would need to integrate with Razor or similar template engine
         _logger.LogWarning("Template email not supported by BuiltIn provider. TemplateId: {TemplateId}", templateId);
-        
+
         return await Task.FromResult(new NotificationResult
         {
             Success = false,
@@ -151,7 +158,7 @@ public class BuiltInNotificationProvider : INotificationPort
         CancellationToken cancellationToken = default)
     {
         _logger.LogWarning("SMS not supported by BuiltIn provider. Use Twilio or Novu for SMS support.");
-        
+
         return Task.FromResult(new NotificationResult
         {
             Success = false,
@@ -171,7 +178,7 @@ public class BuiltInNotificationProvider : INotificationPort
         CancellationToken cancellationToken = default)
     {
         _logger.LogWarning("Push notifications not supported by BuiltIn provider. Use OneSignal or Novu.");
-        
+
         return Task.FromResult(new NotificationResult
         {
             Success = false,
@@ -193,7 +200,7 @@ public class BuiltInNotificationProvider : INotificationPort
         // In-app notifications would typically go through SignalR or a database
         // For BuiltIn, we just log the notification - actual delivery handled by CRM core
         _logger.LogInformation("In-app notification for user {UserId}: {Title}", request.UserId, request.Title);
-        
+
         return Task.FromResult(new NotificationResult
         {
             Success = true,
@@ -257,7 +264,7 @@ public class BuiltInNotificationProvider : INotificationPort
         CancellationToken cancellationToken = default)
     {
         _logger.LogWarning("Workflow triggers not supported by BuiltIn provider. Use Novu for workflow support.");
-        
+
         return Task.FromResult(new NotificationResult
         {
             Success = false,
@@ -306,7 +313,7 @@ public class BuiltInNotificationProvider : INotificationPort
         CancellationToken cancellationToken = default)
     {
         var requestList = requests?.ToList() ?? new List<SmsNotificationRequest>();
-        
+
         return Task.FromResult(new BulkNotificationResult
         {
             TotalCount = requestList.Count,
@@ -386,7 +393,7 @@ public class BuiltInNotificationProvider : INotificationPort
         // BuiltIn provider doesn't track delivery status
         // SMTP doesn't provide reliable delivery tracking
         _logger.LogDebug("Delivery status requested for {NotificationId} - not available for BuiltIn", notificationId);
-        
+
         return Task.FromResult<DeliveryStatus?>(null);
     }
 
@@ -398,7 +405,7 @@ public class BuiltInNotificationProvider : INotificationPort
     {
         // BuiltIn provider doesn't support webhooks
         _logger.LogWarning("Delivery webhooks not supported by BuiltIn provider");
-        
+
         return Task.FromResult(new DeliveryEvent
         {
             EventType = eventType,
@@ -413,13 +420,13 @@ public class BuiltInNotificationProvider : INotificationPort
     public Task<ProviderHealthResult> HealthCheckAsync(CancellationToken cancellationToken = default)
     {
         var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-        
+
         try
         {
             var isConfigured = !string.IsNullOrEmpty(_smtpSettings.Host) && _smtpSettings.Port > 0;
-            
+
             stopwatch.Stop();
-            
+
             if (!isConfigured)
             {
                 return Task.FromResult(new ProviderHealthResult
@@ -513,13 +520,13 @@ public class BuiltInNotificationProvider : INotificationPort
                 {
                     var stream = new MemoryStream(attachment.Content);
                     var mailAttachment = new Attachment(stream, attachment.FileName, attachment.ContentType);
-                    
+
                     if (attachment.IsInline && !string.IsNullOrEmpty(attachment.ContentId))
                     {
                         mailAttachment.ContentId = attachment.ContentId;
                         mailAttachment.ContentDisposition!.Inline = true;
                     }
-                    
+
                     mailMessage.Attachments.Add(mailAttachment);
                 }
             }

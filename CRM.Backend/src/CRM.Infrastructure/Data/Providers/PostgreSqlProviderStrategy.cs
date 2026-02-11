@@ -1,6 +1,18 @@
 // CRM Solution - Customer Relationship Management System
 // Copyright (C) 2024-2026 Abhishek Lal
-// Licensed under AGPL-3.0
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
@@ -129,7 +141,6 @@ public class PostgreSqlProviderStrategy : DatabaseProviderStrategyBase
         // GIN indexes for JSONB, arrays, full-text search
         // GiST indexes for geometric/range types
         // BRIN indexes for large tables with natural ordering
-
         if (_deploymentMode == DatabaseDeploymentMode.Hyperscale)
         {
             // Citus distributes tables - indexes need to include distribution column
@@ -160,7 +171,10 @@ public class PostgreSqlProviderStrategy : DatabaseProviderStrategyBase
 /// </summary>
 public class PostgreSqlCitusStrategy : PostgreSqlProviderStrategy
 {
-    public PostgreSqlCitusStrategy() : base(DatabaseDeploymentMode.Hyperscale) { }
+    public PostgreSqlCitusStrategy()
+        : base(DatabaseDeploymentMode.Hyperscale)
+    {
+    }
 
     public new string ProviderName => "postgresql-citus";
 
@@ -184,7 +198,10 @@ public class PostgreSqlCitusStrategy : PostgreSqlProviderStrategy
 /// </summary>
 public class AuroraPostgreSqlStrategy : PostgreSqlProviderStrategy
 {
-    public AuroraPostgreSqlStrategy() : base(DatabaseDeploymentMode.Hyperscale) { }
+    public AuroraPostgreSqlStrategy()
+        : base(DatabaseDeploymentMode.Hyperscale)
+    {
+    }
 
     public new string ProviderName => "aurora-postgresql";
 

@@ -400,7 +400,6 @@ public class QuoteService : IQuoteService
         // Note: Line items are copied through navigation property if available
         // The calling code should handle copying line items if needed using
         // the QuoteLineItems navigation property on the Quote entity
-
         _logger.LogInformation("Created revision for quote: {OriginalQuoteId} -> {NewQuoteId}", id, newQuote.Id);
         return newQuote;
     }

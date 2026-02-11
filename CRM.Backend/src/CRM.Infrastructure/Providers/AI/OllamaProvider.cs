@@ -1,6 +1,18 @@
-// CRM Solution - Ollama AI Provider
-// Phase 7 Week 29: Local LLM provider implementing IAIPort
-// Provides local AI capabilities via Ollama for privacy-conscious deployments
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System.Net.Http.Json;
 using System.Text;
@@ -222,7 +234,9 @@ internal class OllamaEmbeddingRequest
 internal class OllamaEmbeddingResponse
 {
     [JsonPropertyName("embedding")]
+#pragma warning disable SA1011 // Closing square bracket should be spaced correctly
     public float[]? Embedding { get; set; }
+#pragma warning restore SA1011 // Closing square bracket should be spaced correctly
 }
 
 internal class OllamaModelsResponse
@@ -312,7 +326,7 @@ public class OllamaProvider : IAIPort
             response.EnsureSuccessStatusCode();
 
             var result = await response.Content.ReadFromJsonAsync<OllamaModelsResponse>(JsonOptions, cancellationToken);
-            
+
             return result?.Models?.Select(m => new AIModelInfo
             {
                 Id = m.Name,
@@ -334,7 +348,7 @@ public class OllamaProvider : IAIPort
     public async Task<AICompletionResponse> CompleteAsync(AICompletionRequest request, CancellationToken cancellationToken = default)
     {
         var model = request.Model ?? _config.DefaultModel;
-        
+
         var ollamaRequest = new OllamaGenerateRequest
         {
             Model = model,
@@ -370,14 +384,14 @@ public class OllamaProvider : IAIPort
     public async Task<AIChatResponse> ChatAsync(AIChatRequest request, CancellationToken cancellationToken = default)
     {
         var model = request.Model ?? _config.DefaultModel;
-        
+
         var messages = new List<OllamaMessage>();
-        
+
         if (!string.IsNullOrEmpty(request.SystemPrompt))
         {
             messages.Add(new OllamaMessage { Role = "system", Content = request.SystemPrompt });
         }
-        
+
         messages.AddRange(request.Messages.Select(m => new OllamaMessage
         {
             Role = m.Role,
@@ -423,14 +437,14 @@ public class OllamaProvider : IAIPort
     public async Task<AIChatResponse> StreamChatAsync(AIChatRequest request, Action<string> onToken, CancellationToken cancellationToken = default)
     {
         var model = request.Model ?? _config.DefaultModel;
-        
+
         var messages = new List<OllamaMessage>();
-        
+
         if (!string.IsNullOrEmpty(request.SystemPrompt))
         {
             messages.Add(new OllamaMessage { Role = "system", Content = request.SystemPrompt });
         }
-        
+
         messages.AddRange(request.Messages.Select(m => new OllamaMessage
         {
             Role = m.Role,
@@ -524,7 +538,7 @@ public class OllamaProvider : IAIPort
     public async Task<AIEmbeddingResponse> GetEmbeddingAsync(string text, string? model = null, CancellationToken cancellationToken = default)
     {
         var embeddingModel = model ?? _config.EmbeddingModel;
-        
+
         var request = new OllamaEmbeddingRequest
         {
             Model = embeddingModel,
@@ -566,7 +580,7 @@ public class OllamaProvider : IAIPort
     /// <inheritdoc />
     public async Task<AIEmailDraft> GenerateEmailDraftAsync(EmailDraftRequest request, CancellationToken cancellationToken = default)
     {
-        var systemPrompt = @"You are a professional email writer for a CRM system. 
+        var systemPrompt = @"You are a professional email writer for a CRM system.
 Write clear, concise, and professional emails.
 Always include a subject line at the start (format: Subject: <subject>)
 Then write the email body.";
@@ -574,7 +588,7 @@ Then write the email body.";
         var userPrompt = new StringBuilder();
         userPrompt.AppendLine($"Write a {request.Tone} email for the following purpose:");
         userPrompt.AppendLine($"Purpose: {request.Purpose}");
-        
+
         if (!string.IsNullOrEmpty(request.RecipientName))
             userPrompt.AppendLine($"Recipient: {request.RecipientName}");
         if (!string.IsNullOrEmpty(request.CompanyName))
@@ -597,7 +611,7 @@ Then write the email body.";
         };
 
         var response = await ChatAsync(chatRequest, cancellationToken);
-        
+
         return ParseEmailDraft(response.Message.Content, response.Usage);
     }
 
@@ -612,7 +626,7 @@ Then write the reply body.";
         var userPrompt = new StringBuilder();
         userPrompt.AppendLine("Generate a reply to this email:");
         userPrompt.AppendLine(originalEmail);
-        
+
         if (!string.IsNullOrEmpty(context))
             userPrompt.AppendLine($"\nContext: {context}");
         if (!string.IsNullOrEmpty(tone))
@@ -629,7 +643,7 @@ Then write the reply body.";
         };
 
         var response = await ChatAsync(chatRequest, cancellationToken);
-        
+
         return ParseEmailDraft(response.Message.Content, response.Usage);
     }
 
@@ -672,7 +686,7 @@ Format: [{""type"": ""category"", ""value"": ""extracted text"", ""confidence"":
         };
 
         var response = await ChatAsync(chatRequest, cancellationToken);
-        
+
         var entities = new List<ExtractedEntity>();
         try
         {
@@ -721,12 +735,12 @@ Analyze the sentiment and return JSON format:
         };
 
         var response = await ChatAsync(chatRequest, cancellationToken);
-        
+
         try
         {
             var result = JsonSerializer.Deserialize<JsonElement>(response.Message.Content);
             var emotions = new Dictionary<string, double>();
-            
+
             if (result.TryGetProperty("emotions", out var emotionsProp))
             {
                 foreach (var prop in emotionsProp.EnumerateObject())
@@ -787,7 +801,7 @@ Return JSON format:
         };
 
         var response = await ChatAsync(chatRequest, cancellationToken);
-        
+
         var actions = new List<AIRecommendedAction>();
         try
         {
@@ -911,23 +925,23 @@ Return JSON format:
     private List<string> GetModelCapabilities(string modelName)
     {
         var capabilities = new List<string> { "chat", "completion" };
-        
+
         var lowerName = modelName.ToLowerInvariant();
-        
+
         if (lowerName.Contains("embed") || lowerName.Contains("nomic"))
             capabilities.Add("embedding");
         if (lowerName.Contains("vision") || lowerName.Contains("llava"))
             capabilities.Add("vision");
         if (lowerName.Contains("code") || lowerName.Contains("deepseek-coder") || lowerName.Contains("codellama"))
             capabilities.Add("code");
-            
+
         return capabilities;
     }
 
     private int? GetModelMaxTokens(string modelName)
     {
         var lowerName = modelName.ToLowerInvariant();
-        
+
         // Rough estimates based on common models
         if (lowerName.Contains("llama3")) return 8192;
         if (lowerName.Contains("llama2")) return 4096;
@@ -936,7 +950,7 @@ Return JSON format:
         if (lowerName.Contains("qwen")) return 32768;
         if (lowerName.Contains("phi")) return 2048;
         if (lowerName.Contains("gemma")) return 8192;
-        
+
         return 4096; // Default
     }
 

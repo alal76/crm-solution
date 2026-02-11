@@ -1,4 +1,19 @@
-// Temporarily disabled - requires entity alignment refactoring
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 #if ITSM_ADVANCED
 // This file is part of the CRM Solution.
 // Copyright (c) 2025 CRM Solution Contributors
@@ -21,22 +36,22 @@ public interface IChangeImpactService
     /// Analyze the full impact of a change based on CMDB relationships.
     /// </summary>
     Task<ChangeImpactAnalysis> AnalyzeChangeImpactAsync(int changeRequestId);
-    
+
     /// <summary>
     /// Get all CIs that would be directly or indirectly affected by changing a set of CIs.
     /// </summary>
     Task<List<ImpactedCI>> GetImpactedCIsAsync(List<int> primaryCIIds, int maxDepth = 3);
-    
+
     /// <summary>
     /// Get all services that would be affected by a change.
     /// </summary>
     Task<List<ImpactedService>> GetImpactedServicesAsync(int changeRequestId);
-    
+
     /// <summary>
     /// Calculate the overall risk score based on impact analysis.
     /// </summary>
     Task<RiskAssessmentResult> CalculateRiskScoreAsync(int changeRequestId);
-    
+
     /// <summary>
     /// Generate impact notification list (who should be informed).
     /// </summary>
@@ -51,23 +66,23 @@ public class ChangeImpactAnalysis
     public int ChangeRequestId { get; set; }
     public string ChangeNumber { get; set; } = string.Empty;
     public DateTime AnalysisDate { get; set; }
-    
+
     // Direct impacts
     public List<ImpactedCI> DirectlyImpactedCIs { get; set; } = new();
-    
+
     // Indirect impacts through relationships
     public List<ImpactedCI> IndirectlyImpactedCIs { get; set; } = new();
-    
+
     // Services affected
     public List<ImpactedService> AffectedServices { get; set; } = new();
-    
+
     // Users/departments affected
     public int EstimatedUsersAffected { get; set; }
     public List<string> AffectedDepartments { get; set; } = new();
-    
+
     // Risk assessment
     public RiskAssessmentResult RiskAssessment { get; set; } = new();
-    
+
     // Summary
     public string ImpactSummary { get; set; } = string.Empty;
     public List<string> Warnings { get; set; } = new();
@@ -198,7 +213,7 @@ public class ChangeImpactService : IChangeImpactService
     public async Task<ChangeImpactAnalysis> AnalyzeChangeImpactAsync(int changeRequestId)
     {
         var context = _dbContextResolver.ResolveContext();
-        
+
         var change = await context.Changes
             .Include(c => c.ImpactedCIs)
                 .ThenInclude(ic => ic.ConfigurationItem)
@@ -228,7 +243,7 @@ public class ChangeImpactService : IChangeImpactService
 
         // Get all impacted CIs
         var allImpactedCIs = await GetImpactedCIsAsync(primaryCIIds, 3);
-        
+
         analysis.DirectlyImpactedCIs = allImpactedCIs.Where(ci => ci.ImpactLevel == ImpactLevel.Direct).ToList();
         analysis.IndirectlyImpactedCIs = allImpactedCIs.Where(ci => ci.ImpactLevel != ImpactLevel.Direct).ToList();
 
@@ -247,13 +262,13 @@ public class ChangeImpactService : IChangeImpactService
 
         // Generate summary
         analysis.ImpactSummary = GenerateImpactSummary(analysis);
-        
+
         // Add warnings
         if (analysis.DirectlyImpactedCIs.Any(ci => ci.IsBusinessCritical))
         {
             analysis.Warnings.Add("This change affects business-critical configuration items");
         }
-        
+
         if (analysis.IndirectlyImpactedCIs.Count > 10)
         {
             analysis.Warnings.Add($"Wide-reaching impact: {analysis.IndirectlyImpactedCIs.Count} CIs indirectly affected");
@@ -269,7 +284,7 @@ public class ChangeImpactService : IChangeImpactService
 
         _logger.LogInformation(
             "Impact analysis for change {ChangeNumber}: {DirectCount} direct, {IndirectCount} indirect CIs, Risk: {RiskLevel}",
-            change.Number, analysis.DirectlyImpactedCIs.Count, 
+            change.Number, analysis.DirectlyImpactedCIs.Count,
             analysis.IndirectlyImpactedCIs.Count, analysis.RiskAssessment.RiskLevel);
 
         return analysis;
@@ -304,7 +319,7 @@ public class ChangeImpactService : IChangeImpactService
 
         // Traverse relationships for indirect impact
         var currentDepthIds = primaryCIIds;
-        
+
         for (int depth = 1; depth <= maxDepth; depth++)
         {
             var relationships = await context.ITSMCIRelationships
@@ -360,7 +375,7 @@ public class ChangeImpactService : IChangeImpactService
             }
 
             currentDepthIds = nextDepthIds;
-            
+
             if (!nextDepthIds.Any())
                 break;
         }
@@ -371,7 +386,7 @@ public class ChangeImpactService : IChangeImpactService
     public async Task<List<ImpactedService>> GetImpactedServicesAsync(int changeRequestId)
     {
         var context = _dbContextResolver.ResolveContext();
-        
+
         // Get the change and its CIs
         var change = await context.Changes
             .Include(c => c.ImpactedCIs)
@@ -405,7 +420,7 @@ public class ChangeImpactService : IChangeImpactService
     public async Task<RiskAssessmentResult> CalculateRiskScoreAsync(int changeRequestId)
     {
         var context = _dbContextResolver.ResolveContext();
-        
+
         var change = await context.Changes
             .Include(c => c.ImpactedCIs)
                 .ThenInclude(ic => ic.ConfigurationItem)
@@ -568,8 +583,8 @@ public class ChangeImpactService : IChangeImpactService
             {
                 RecipientType = "ServiceOwner",
                 RecipientName = service.ServiceOwner!,
-                Priority = service.Criticality >= ServiceCriticality.High 
-                    ? NotificationPriority.Urgent 
+                Priority = service.Criticality >= ServiceCriticality.High
+                    ? NotificationPriority.Urgent
                     : NotificationPriority.Normal,
                 Reason = $"You own the service: {service.ServiceName}",
                 RequiresAcknowledgement = service.Criticality >= ServiceCriticality.High

@@ -1,4 +1,19 @@
-// Temporarily disabled - requires entity alignment refactoring
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 #if ITSM_ADVANCED
 // This file is part of the CRM Solution.
 // Copyright (c) 2025 CRM Solution Contributors
@@ -21,47 +36,47 @@ public interface IKCSWorkflowService
     /// Start the KCS workflow for an incident (capture in context).
     /// </summary>
     Task<KCSSession> StartCaptureSessionAsync(int incidentId, int agentId);
-    
+
     /// <summary>
     /// Create a draft article from incident resolution.
     /// </summary>
     Task<KCSDraftArticle> CreateDraftFromIncidentAsync(int incidentId, int authorId);
-    
+
     /// <summary>
     /// Submit article for review (evolve loop).
     /// </summary>
     Task<KCSReviewRequest> SubmitForReviewAsync(int articleId, int submittedById);
-    
+
     /// <summary>
     /// Review and approve/reject an article.
     /// </summary>
     Task<KCSReviewResult> ReviewArticleAsync(int reviewRequestId, int reviewerId, KCSReviewDecision decision, string? feedback = null);
-    
+
     /// <summary>
     /// Publish an approved article.
     /// </summary>
     Task<KCSPublishResult> PublishArticleAsync(int articleId, int publishedById, PublishAudience audience);
-    
+
     /// <summary>
     /// Get KCS metrics for an agent.
     /// </summary>
     Task<KCSAgentMetrics> GetAgentMetricsAsync(int agentId, DateTime fromDate, DateTime toDate);
-    
+
     /// <summary>
     /// Get KCS article lifecycle status.
     /// </summary>
     Task<KCSArticleLifecycle> GetArticleLifecycleAsync(int articleId);
-    
+
     /// <summary>
     /// Flag an article for review or retirement.
     /// </summary>
     Task<bool> FlagArticleAsync(int articleId, KCSFlag flag, int flaggedById, string reason);
-    
+
     /// <summary>
     /// Get the KCS coaching queue for reviewers.
     /// </summary>
     Task<List<KCSCoachingItem>> GetCoachingQueueAsync(int reviewerId);
-    
+
     /// <summary>
     /// Record reuse of an article to solve an incident.
     /// </summary>
@@ -223,22 +238,22 @@ public class KCSAgentMetrics
     public string AgentName { get; set; } = string.Empty;
     public DateTime FromDate { get; set; }
     public DateTime ToDate { get; set; }
-    
+
     // Article creation
     public int ArticlesCreated { get; set; }
     public int ArticlesPublished { get; set; }
     public int ArticlesRejected { get; set; }
     public double ArticleApprovalRate { get; set; }
-    
+
     // Article reuse
     public int ArticlesReused { get; set; }
     public int IncidentsSolvedWithArticle { get; set; }
     public double ReuseSuccessRate { get; set; }
-    
+
     // Quality metrics
     public double AverageArticleQualityScore { get; set; }
     public int CoachingSessionsReceived { get; set; }
-    
+
     // KCS maturity
     public KCSMaturityLevel MaturityLevel { get; set; }
     public List<KCSBadge> EarnedBadges { get; set; } = new();
@@ -375,7 +390,7 @@ public class KCSWorkflowService : IKCSWorkflowService
     public async Task<KCSSession> StartCaptureSessionAsync(int incidentId, int agentId)
     {
         var context = _dbContextResolver.ResolveContext();
-        
+
         var incident = await context.Incidents
             .FirstOrDefaultAsync(i => i.IncidentId == incidentId);
 
@@ -385,7 +400,7 @@ public class KCSWorkflowService : IKCSWorkflowService
         }
 
         // Check for existing active session
-        var existingSession = _sessions.FirstOrDefault(s => 
+        var existingSession = _sessions.FirstOrDefault(s =>
             s.IncidentId == incidentId && s.State == KCSSessionState.Active);
 
         if (existingSession != null)
@@ -415,7 +430,7 @@ public class KCSWorkflowService : IKCSWorkflowService
     public async Task<KCSDraftArticle> CreateDraftFromIncidentAsync(int incidentId, int authorId)
     {
         var context = _dbContextResolver.ResolveContext();
-        
+
         var incident = await context.Incidents
             .Include(i => i.AffectedCI)
             .Include(i => i.AffectedUser)
@@ -452,9 +467,9 @@ public class KCSWorkflowService : IKCSWorkflowService
         _drafts.Add(draft);
 
         // Update session if exists
-        var session = _sessions.FirstOrDefault(s => 
+        var session = _sessions.FirstOrDefault(s =>
             s.IncidentId == incidentId && s.State == KCSSessionState.Active);
-        
+
         if (session != null)
         {
             session.State = KCSSessionState.ArticleCreated;
@@ -473,7 +488,7 @@ public class KCSWorkflowService : IKCSWorkflowService
     public async Task<KCSReviewRequest> SubmitForReviewAsync(int articleId, int submittedById)
     {
         var context = _dbContextResolver.ResolveContext();
-        
+
         var article = await context.ITSMKnowledgeArticles
             .FirstOrDefaultAsync(a => a.ArticleId == articleId);
 
@@ -513,9 +528,9 @@ public class KCSWorkflowService : IKCSWorkflowService
     }
 
     public async Task<KCSReviewResult> ReviewArticleAsync(
-        int reviewRequestId, 
-        int reviewerId, 
-        KCSReviewDecision decision, 
+        int reviewRequestId,
+        int reviewerId,
+        KCSReviewDecision decision,
         string? feedback = null)
     {
         var request = _reviewRequests.FirstOrDefault(r => r.ReviewRequestId == reviewRequestId);
@@ -574,12 +589,12 @@ public class KCSWorkflowService : IKCSWorkflowService
     }
 
     public async Task<KCSPublishResult> PublishArticleAsync(
-        int articleId, 
-        int publishedById, 
+        int articleId,
+        int publishedById,
         PublishAudience audience)
     {
         var context = _dbContextResolver.ResolveContext();
-        
+
         var article = await context.ITSMKnowledgeArticles
             .FirstOrDefaultAsync(a => a.ArticleId == articleId);
 
@@ -628,8 +643,8 @@ public class KCSWorkflowService : IKCSWorkflowService
     }
 
     public async Task<KCSAgentMetrics> GetAgentMetricsAsync(
-        int agentId, 
-        DateTime fromDate, 
+        int agentId,
+        DateTime fromDate,
         DateTime toDate)
     {
         var context = _dbContextResolver.ResolveContext();
@@ -683,7 +698,7 @@ public class KCSWorkflowService : IKCSWorkflowService
                 EarnedAt = DateTime.UtcNow
             });
         }
-        
+
         if (reuses.Count(r => r.Outcome == ReuseOutcome.SolvedIncident) >= 20)
         {
             metrics.EarnedBadges.Add(new KCSBadge
@@ -700,7 +715,7 @@ public class KCSWorkflowService : IKCSWorkflowService
     public async Task<KCSArticleLifecycle> GetArticleLifecycleAsync(int articleId)
     {
         var context = _dbContextResolver.ResolveContext();
-        
+
         var article = await context.ITSMKnowledgeArticles
             .FirstOrDefaultAsync(a => a.ArticleId == articleId);
 
@@ -764,13 +779,13 @@ public class KCSWorkflowService : IKCSWorkflowService
     }
 
     public async Task<bool> FlagArticleAsync(
-        int articleId, 
-        KCSFlag flag, 
-        int flaggedById, 
+        int articleId,
+        KCSFlag flag,
+        int flaggedById,
         string reason)
     {
         var context = _dbContextResolver.ResolveContext();
-        
+
         var article = await context.ITSMKnowledgeArticles.FindAsync(articleId);
         if (article == null) return false;
 
@@ -867,12 +882,12 @@ public class KCSWorkflowService : IKCSWorkflowService
     }
 
     public async Task RecordArticleReuseAsync(
-        int articleId, 
-        int incidentId, 
+        int articleId,
+        int incidentId,
         ReuseOutcome outcome)
     {
         var context = _dbContextResolver.ResolveContext();
-        
+
         var incident = await context.Incidents.FindAsync(incidentId);
         var agentId = incident?.AssignedToId ?? 0;
 
@@ -898,16 +913,16 @@ public class KCSWorkflowService : IKCSWorkflowService
         }
 
         // Update session if exists
-        var session = _sessions.FirstOrDefault(s => 
+        var session = _sessions.FirstOrDefault(s =>
             s.IncidentId == incidentId && s.State == KCSSessionState.Active);
-        
+
         if (session != null)
         {
-            session.State = outcome == ReuseOutcome.SolvedIncident 
-                ? KCSSessionState.ArticleReused 
+            session.State = outcome == ReuseOutcome.SolvedIncident
+                ? KCSSessionState.ArticleReused
                 : KCSSessionState.Active;
             session.UsedArticleId = articleId;
-            
+
             if (outcome == ReuseOutcome.SolvedIncident)
             {
                 session.EndedAt = DateTime.UtcNow;
@@ -923,8 +938,8 @@ public class KCSWorkflowService : IKCSWorkflowService
     {
         // Generate a searchable title from incident
         var category = incident.Category ?? "General";
-        var keyword = !string.IsNullOrEmpty(incident.SubCategory) 
-            ? incident.SubCategory 
+        var keyword = !string.IsNullOrEmpty(incident.SubCategory)
+            ? incident.SubCategory
             : "Issue";
 
         return $"{category} - {keyword}: How to Resolve";
@@ -953,7 +968,7 @@ public class KCSWorkflowService : IKCSWorkflowService
 
         if (!string.IsNullOrEmpty(incident.Category))
             keywords.Add(incident.Category);
-        
+
         if (!string.IsNullOrEmpty(incident.SubCategory))
             keywords.Add(incident.SubCategory);
 
@@ -985,19 +1000,19 @@ public class KCSWorkflowService : IKCSWorkflowService
         };
 
         int score = 0;
-        
+
         if (quality.HasClearTitle) score += 20;
         else quality.ImprovementSuggestions.Add("Add a clear, searchable title");
-        
+
         if (quality.HasSymptom) score += 25;
         else quality.ImprovementSuggestions.Add("Describe the symptom in detail");
-        
+
         if (quality.HasEnvironment) score += 15;
         else quality.ImprovementSuggestions.Add("Specify the environment where this applies");
-        
+
         if (quality.HasResolution) score += 30;
         else quality.ImprovementSuggestions.Add("Document the resolution steps");
-        
+
         if (quality.HasKeywords) score += 10;
         else quality.ImprovementSuggestions.Add("Add relevant keywords for searchability");
 
@@ -1023,7 +1038,7 @@ public class KCSWorkflowService : IKCSWorkflowService
     private static KCSMaturityLevel DetermineMaturityLevel(int articlesCreated, int articlesReused)
     {
         var total = articlesCreated + articlesReused;
-        
+
         return total switch
         {
             >= 100 => KCSMaturityLevel.Expert,

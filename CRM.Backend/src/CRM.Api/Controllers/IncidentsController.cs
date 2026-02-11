@@ -1,6 +1,18 @@
-// This file is part of the CRM Solution.
-// Copyright (c) 2025 CRM Solution Contributors
-// Licensed under the AGPL-3.0 license.
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using CRM.Core.DTOs.ITSM;
 using CRM.Core.Interfaces.ITSM;
@@ -15,7 +27,7 @@ namespace CRM.Api.Controllers;
 /// Incident Management API endpoints for handling service interruptions and issues.
 /// </summary>
 /// <remarks>
-/// Incident Management is the process of managing the lifecycle of all incidents. 
+/// Incident Management is the process of managing the lifecycle of all incidents.
 /// The primary objective is to return the IT service to users as quickly as possible.
 /// Key features include: incident creation, assignment, escalation, resolution, and SLA tracking.
 /// </remarks>

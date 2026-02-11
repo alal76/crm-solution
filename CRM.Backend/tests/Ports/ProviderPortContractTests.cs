@@ -1,8 +1,18 @@
-// CRM Solution - Provider Port Contract Tests
-// Phase 0 Week 2 Task 2.10: Contract tests to ensure all provider implementations comply with port interfaces
-// 
-// These tests validate that mocked implementations correctly implement the port contracts.
-// When actual providers are implemented, they should pass these same contract tests.
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using Moq;
 using Xunit;
@@ -50,7 +60,7 @@ public class SearchPortContractTests
         };
         _mockSearchPort.Setup(x => x.HealthCheckAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(healthResult);
-        
+
         var result = await _mockSearchPort.Object.HealthCheckAsync();
         Assert.NotNull(result);
         Assert.True(result.IsHealthy);
@@ -124,7 +134,7 @@ public class ChatPortContractTests
         var healthResult = new ProviderHealthResult { IsHealthy = true, ProviderName = "TestChat" };
         _mockChatPort.Setup(x => x.HealthCheckAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(healthResult);
-        
+
         var result = await _mockChatPort.Object.HealthCheckAsync();
         Assert.NotNull(result);
         Assert.True(result.IsHealthy);
@@ -216,7 +226,7 @@ public class NotificationPortContractTests
         var healthResult = new ProviderHealthResult { IsHealthy = true, ProviderName = "TestNotification" };
         _mockNotificationPort.Setup(x => x.HealthCheckAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(healthResult);
-        
+
         var result = await _mockNotificationPort.Object.HealthCheckAsync();
         Assert.NotNull(result);
         Assert.True(result.IsHealthy);
@@ -304,7 +314,7 @@ public class AnalyticsPortContractTests
         var healthResult = new ProviderHealthResult { IsHealthy = true, ProviderName = "TestAnalytics" };
         _mockAnalyticsPort.Setup(x => x.HealthCheckAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(healthResult);
-        
+
         var result = await _mockAnalyticsPort.Object.HealthCheckAsync();
         Assert.NotNull(result);
         Assert.True(result.IsHealthy);
@@ -374,7 +384,7 @@ public class SignaturePortContractTests
         var healthResult = new ProviderHealthResult { IsHealthy = true, ProviderName = "TestSignature" };
         _mockSignaturePort.Setup(x => x.HealthCheckAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(healthResult);
-        
+
         var result = await _mockSignaturePort.Object.HealthCheckAsync();
         Assert.NotNull(result);
         Assert.True(result.IsHealthy);
@@ -399,8 +409,8 @@ public class SignaturePortContractTests
         _mockSignaturePort.Setup(x => x.CreateSignatureRequestAsync(It.IsAny<CreateSignatureRequest>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(sigRequest);
 
-        var request = new CreateSignatureRequest 
-        { 
+        var request = new CreateSignatureRequest
+        {
             Subject = "Test Contract",
             Signers = new List<Signer> { new Signer { Name = "John Doe", Email = "john@example.com" } }
         };
@@ -471,7 +481,7 @@ public class AIPortContractTests
         var healthResult = new ProviderHealthResult { IsHealthy = true, ProviderName = "TestAI" };
         _mockAIPort.Setup(x => x.HealthCheckAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(healthResult);
-        
+
         var result = await _mockAIPort.Object.HealthCheckAsync();
         Assert.NotNull(result);
         Assert.True(result.IsHealthy);
@@ -492,16 +502,16 @@ public class AIPortContractTests
     [Fact]
     public async Task ChatAsync_ShouldReturnResponse()
     {
-        var chatResponse = new AIChatResponse 
-        { 
+        var chatResponse = new AIChatResponse
+        {
             Message = new AIChatMessage { Role = "assistant", Content = "Hello! How can I help?" },
             Model = "gpt-4"
         };
         _mockAIPort.Setup(x => x.ChatAsync(It.IsAny<AIChatRequest>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(chatResponse);
 
-        var request = new AIChatRequest 
-        { 
+        var request = new AIChatRequest
+        {
             Messages = new List<AIChatMessage> { new AIChatMessage { Role = "user", Content = "Hi" } }
         };
         var result = await _mockAIPort.Object.ChatAsync(request);
@@ -581,7 +591,7 @@ public class IntegrationPortContractTests
         var healthResult = new ProviderHealthResult { IsHealthy = true, ProviderName = "TestIntegration" };
         _mockIntegrationPort.Setup(x => x.HealthCheckAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(healthResult);
-        
+
         var result = await _mockIntegrationPort.Object.HealthCheckAsync();
         Assert.NotNull(result);
         Assert.True(result.IsHealthy);
@@ -606,9 +616,9 @@ public class IntegrationPortContractTests
         _mockIntegrationPort.Setup(x => x.RegisterWebhookAsync(It.IsAny<WebhookRegistration>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(webhookInfo);
 
-        var registration = new WebhookRegistration 
-        { 
-            Name = "Test Webhook", 
+        var registration = new WebhookRegistration
+        {
+            Name = "Test Webhook",
             TargetUrl = "https://example.com/webhook",
             EventTypes = new List<string> { "account.created" }
         };

@@ -53,4 +53,3 @@ public interface IAccountService
     Task<IEnumerable<AccountDto>> GetAccountsByLifecycleStageAsync(AccountLifecycleStage stage);
     Task<IEnumerable<AccountDto>> GetAccountsByPriorityAsync(AccountPriority priority);
 }
-

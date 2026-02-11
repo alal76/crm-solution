@@ -1,4 +1,19 @@
-// Temporarily disabled - requires entity alignment refactoring
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 #if ITSM_ADVANCED
 // This file is part of the CRM Solution.
 // Copyright (c) 2025 CRM Solution Contributors
@@ -22,32 +37,32 @@ public interface ICABWorkflowService
     /// Initialize CAB workflow for a change request based on its type and risk level.
     /// </summary>
     Task<CABWorkflow> InitializeWorkflowAsync(int changeRequestId, int initiatedById);
-    
+
     /// <summary>
     /// Submit a vote/decision for a CAB approval stage.
     /// </summary>
     Task<bool> SubmitApprovalAsync(int changeRequestId, int approverId, bool isApproved, string? comments = null);
-    
+
     /// <summary>
     /// Get the current CAB workflow status for a change request.
     /// </summary>
     Task<CABWorkflowStatus?> GetWorkflowStatusAsync(int changeRequestId);
-    
+
     /// <summary>
     /// Get pending approvals for a specific approver.
     /// </summary>
     Task<List<PendingChangeApproval>> GetPendingApprovalsAsync(int approverId);
-    
+
     /// <summary>
     /// Check if a change request requires CAB review.
     /// </summary>
     Task<bool> RequiresCABReviewAsync(int changeRequestId);
-    
+
     /// <summary>
     /// Schedule a CAB meeting for reviewing changes.
     /// </summary>
     Task<int> ScheduleCABMeetingAsync(DateTime meetingDate, List<int> changeRequestIds, int scheduledById);
-    
+
     /// <summary>
     /// Get the approval chain for a change type and risk level.
     /// </summary>
@@ -150,10 +165,10 @@ public class CABWorkflowService : ICABWorkflowService
     public async Task<CABWorkflow> InitializeWorkflowAsync(int changeRequestId, int initiatedById)
     {
         var context = _dbContextResolver.ResolveContext();
-        
+
         var change = await context.Changes
             .FirstOrDefaultAsync(c => c.ChangeRequestId == changeRequestId);
-        
+
         if (change == null)
         {
             throw new ArgumentException($"Change request {changeRequestId} not found");
@@ -161,7 +176,7 @@ public class CABWorkflowService : ICABWorkflowService
 
         // Get approval chain based on change type and risk
         var approvalChain = await GetApprovalChainAsync(change.ChangeType, change.RiskLevel ?? "Medium");
-        
+
         var workflow = new CABWorkflow
         {
             ChangeRequestId = changeRequestId,
@@ -182,7 +197,7 @@ public class CABWorkflowService : ICABWorkflowService
         // Update change status
         change.Status = ChangeState.AwaitingApproval;
         change.UpdatedAt = DateTime.UtcNow;
-        
+
         await context.SaveChangesAsync();
 
         // Store workflow in database - using ChangeApprovals table
@@ -212,10 +227,10 @@ public class CABWorkflowService : ICABWorkflowService
     public async Task<bool> SubmitApprovalAsync(int changeRequestId, int approverId, bool isApproved, string? comments = null)
     {
         var context = _dbContextResolver.ResolveContext();
-        
+
         // Get current pending approval for this approver
         var approval = await context.ChangeApprovals
-            .Where(a => a.ChangeRequestId == changeRequestId && 
+            .Where(a => a.ChangeRequestId == changeRequestId &&
                        a.ApproverId == approverId &&
                        a.Status == "Pending")
             .FirstOrDefaultAsync();
@@ -265,7 +280,7 @@ public class CABWorkflowService : ICABWorkflowService
                 .ToListAsync();
 
             var pendingApprovals = allApprovals.Where(a => a.Status == "Pending").ToList();
-            
+
             if (pendingApprovals.Count == 0)
             {
                 // All approvals complete - change is approved
@@ -304,7 +319,7 @@ public class CABWorkflowService : ICABWorkflowService
     public async Task<CABWorkflowStatus?> GetWorkflowStatusAsync(int changeRequestId)
     {
         var context = _dbContextResolver.ResolveContext();
-        
+
         var change = await context.Changes
             .FirstOrDefaultAsync(c => c.ChangeRequestId == changeRequestId);
 
@@ -335,15 +350,15 @@ public class CABWorkflowService : ICABWorkflowService
 
         // Calculate current stage
         var pendingStages = status.Stages.Where(s => s.Status == "Pending").ToList();
-        status.CurrentStage = pendingStages.Any() 
-            ? pendingStages.Min(s => s.StageNumber) 
+        status.CurrentStage = pendingStages.Any()
+            ? pendingStages.Min(s => s.StageNumber)
             : status.TotalStages;
 
         // Determine overall status
         status.IsRejected = status.Stages.Any(s => s.Status == "Rejected");
         status.IsFullyApproved = !status.IsRejected && status.Stages.All(s => s.Status == "Approved");
-        status.OverallStatus = status.IsRejected ? "Rejected" 
-            : status.IsFullyApproved ? "Approved" 
+        status.OverallStatus = status.IsRejected ? "Rejected"
+            : status.IsFullyApproved ? "Approved"
             : "In Progress";
 
         if (status.IsFullyApproved || status.IsRejected)
@@ -359,7 +374,7 @@ public class CABWorkflowService : ICABWorkflowService
     public async Task<List<PendingChangeApproval>> GetPendingApprovalsAsync(int approverId)
     {
         var context = _dbContextResolver.ResolveContext();
-        
+
         var pendingApprovals = await context.ChangeApprovals
             .Where(a => a.ApproverId == approverId && a.Status == "Pending")
             .Join(context.Changes,
@@ -384,7 +399,7 @@ public class CABWorkflowService : ICABWorkflowService
     public async Task<bool> RequiresCABReviewAsync(int changeRequestId)
     {
         var context = _dbContextResolver.ResolveContext();
-        
+
         var change = await context.Changes
             .FirstOrDefaultAsync(c => c.ChangeRequestId == changeRequestId);
 
@@ -401,7 +416,7 @@ public class CABWorkflowService : ICABWorkflowService
     public async Task<int> ScheduleCABMeetingAsync(DateTime meetingDate, List<int> changeRequestIds, int scheduledById)
     {
         var context = _dbContextResolver.ResolveContext();
-        
+
         // This would create a CAB meeting record
         // For now, just add notes to each change
         foreach (var changeId in changeRequestIds)

@@ -1,6 +1,18 @@
 // CRM Solution - Customer Relationship Management System
 // Copyright (C) 2024-2026 Abhishek Lal
-// Licensed under AGPL-3.0
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -27,10 +39,51 @@ public class DatabaseProviderStrategyFactory
 {
     private readonly IConfiguration? _configuration;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="DatabaseProviderStrategyFactory"/> class.
+    /// </summary>
     public DatabaseProviderStrategyFactory(IConfiguration? configuration = null)
     {
         _configuration = configuration;
     }
+
+    #region Static Convenience Properties
+
+    /// <summary>
+    /// Gets a list of all supported database providers.
+    /// </summary>
+    public static IReadOnlyList<string> SupportedProviders => new[]
+    {
+        "sqlserver",
+        "mysql",
+        "mariadb",
+        "postgresql",
+        "oracle"
+    };
+
+    /// <summary>
+    /// Gets a list of all supported deployment modes.
+    /// </summary>
+    public static IReadOnlyList<string> SupportedDeploymentModes => new[]
+    {
+        "standalone",
+        "clustered",
+        "hyperscale"
+    };
+
+    /// <summary>
+    /// Gets a dictionary of providers to their supported cluster types.
+    /// </summary>
+    public static IReadOnlyDictionary<string, string[]> SupportedClusterTypes => new Dictionary<string, string[]>
+    {
+        ["sqlserver"] = new[] { "alwayson", "hyperscale" },
+        ["mysql"] = new[] { "groupreplication", "innodb-cluster", "heatwave" },
+        ["mariadb"] = new[] { "galera", "columnstore" },
+        ["postgresql"] = new[] { "patroni", "citus", "aurora" },
+        ["oracle"] = new[] { "rac", "autonomous", "exadata" }
+    };
+
+    #endregion
 
     /// <summary>
     /// Creates a provider strategy based on the configured database provider.
@@ -248,44 +301,6 @@ public class DatabaseProviderStrategyFactory
             _ => DatabaseDeploymentMode.Standalone
         };
     }
-
-    #endregion
-
-    #region Static Convenience Methods
-
-    /// <summary>
-    /// Gets a list of all supported database providers.
-    /// </summary>
-    public static IReadOnlyList<string> SupportedProviders => new[]
-    {
-        "sqlserver",
-        "mysql",
-        "mariadb",
-        "postgresql",
-        "oracle"
-    };
-
-    /// <summary>
-    /// Gets a list of all supported deployment modes.
-    /// </summary>
-    public static IReadOnlyList<string> SupportedDeploymentModes => new[]
-    {
-        "standalone",
-        "clustered",
-        "hyperscale"
-    };
-
-    /// <summary>
-    /// Gets a dictionary of providers to their supported cluster types.
-    /// </summary>
-    public static IReadOnlyDictionary<string, string[]> SupportedClusterTypes => new Dictionary<string, string[]>
-    {
-        ["sqlserver"] = new[] { "alwayson", "hyperscale" },
-        ["mysql"] = new[] { "groupreplication", "innodb-cluster", "heatwave" },
-        ["mariadb"] = new[] { "galera", "columnstore" },
-        ["postgresql"] = new[] { "patroni", "citus", "aurora" },
-        ["oracle"] = new[] { "rac", "autonomous", "exadata" }
-    };
 
     #endregion
 }

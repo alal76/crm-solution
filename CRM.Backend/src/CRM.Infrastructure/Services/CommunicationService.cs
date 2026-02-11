@@ -133,7 +133,7 @@ public class CommunicationService : ICommunicationService
             _dbContext.CommunicationChannels.Add(channel);
             await _dbContext.SaveChangesAsync();
 
-            _logger.LogInformation("Created communication channel {ChannelId}: {ChannelName}", 
+            _logger.LogInformation("Created communication channel {ChannelId}: {ChannelName}",
                 channel.Id, channel.Name);
 
             return MapToDetail(channel);
@@ -363,7 +363,7 @@ public class CommunicationService : ICommunicationService
     /// <inheritdoc />
     public async Task<CommunicationMessage> SendMessageAsync(SendMessageRequest request)
     {
-        _logger.LogDebug("Sending message via channel {ChannelId} to customer {CustomerId}", 
+        _logger.LogDebug("Sending message via channel {ChannelId} to customer {CustomerId}",
             request.ChannelId, request.CustomerId);
 
         try
@@ -416,7 +416,7 @@ public class CommunicationService : ICommunicationService
             _dbContext.CommunicationMessages.Add(message);
             await _dbContext.SaveChangesAsync();
 
-            _logger.LogInformation("Message {MessageId} created with status {Status}", 
+            _logger.LogInformation("Message {MessageId} created with status {Status}",
                 message.Id, message.Status);
 
             return message;
@@ -497,7 +497,7 @@ public class CommunicationService : ICommunicationService
         {
             throw new InvalidOperationException("SMTP server and port are required");
         }
-        
+
         // In a real implementation, we would test SMTP connection
         _logger.LogInformation("Email channel {ChannelId} configuration validated", channel.Id);
         return Task.FromResult(true);
@@ -506,12 +506,12 @@ public class CommunicationService : ICommunicationService
     private Task<bool> TestWhatsAppChannelAsync(CommunicationChannel channel)
     {
         // Validate WhatsApp configuration
-        if (string.IsNullOrEmpty(channel.WhatsAppBusinessAccountId) || 
+        if (string.IsNullOrEmpty(channel.WhatsAppBusinessAccountId) ||
             string.IsNullOrEmpty(channel.WhatsAppPhoneNumberId))
         {
             throw new InvalidOperationException("WhatsApp Business Account ID and Phone Number ID are required");
         }
-        
+
         // In a real implementation, we would test WhatsApp API connection
         _logger.LogInformation("WhatsApp channel {ChannelId} configuration validated", channel.Id);
         return Task.FromResult(true);
@@ -524,7 +524,7 @@ public class CommunicationService : ICommunicationService
         {
             throw new InvalidOperationException("Facebook Page Access Token is required");
         }
-        
+
         _logger.LogInformation("Facebook channel {ChannelId} configuration validated", channel.Id);
         return Task.FromResult(true);
     }
@@ -536,7 +536,7 @@ public class CommunicationService : ICommunicationService
         {
             throw new InvalidOperationException("Twitter API Key and Secret are required");
         }
-        
+
         _logger.LogInformation("Twitter channel {ChannelId} configuration validated", channel.Id);
         return Task.FromResult(true);
     }
@@ -549,8 +549,8 @@ public class CommunicationService : ICommunicationService
         {
             throw new InvalidOperationException("ToEmail is required for email messages");
         }
-        
-        _logger.LogInformation("Would send email from {From} to {To}: {Subject}", 
+
+        _logger.LogInformation("Would send email from {From} to {To}: {Subject}",
             channel.FromEmail, request.ToEmail, message.Subject);
         return Task.FromResult(true);
     }
@@ -562,7 +562,7 @@ public class CommunicationService : ICommunicationService
         {
             throw new InvalidOperationException("ToPhone is required for WhatsApp messages");
         }
-        
+
         _logger.LogInformation("Would send WhatsApp message to {To}", request.ToPhone);
         return Task.FromResult(true);
     }

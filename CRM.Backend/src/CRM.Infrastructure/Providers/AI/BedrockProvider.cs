@@ -1,6 +1,18 @@
-// CRM Solution - AWS Bedrock Provider
-// Phase 7 Week 31: AWS AI provider implementing IAIPort
-// Provides access to foundation models via Amazon Bedrock
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System.Text;
 using System.Text.Json;
@@ -370,7 +382,7 @@ public class BedrockProvider : IAIPort
     public async Task<AIChatResponse> ChatAsync(AIChatRequest request, CancellationToken cancellationToken = default)
     {
         var modelId = request.Model ?? _config.DefaultModelId;
-        
+
         // Route to appropriate handler based on model
         if (modelId.StartsWith("anthropic.claude"))
         {
@@ -404,10 +416,10 @@ public class BedrockProvider : IAIPort
 
         var endpoint = $"https://bedrock-runtime.{_config.Region}.amazonaws.com/model/{modelId}/invoke";
         var body = JsonSerializer.Serialize(claudeRequest, JsonOptions);
-        
+
         var httpRequest = await CreateSignedRequestAsync(HttpMethod.Post, endpoint, body, cancellationToken);
         var response = await _httpClient.SendAsync(httpRequest, cancellationToken);
-        
+
         if (!response.IsSuccessStatusCode)
         {
             var error = await response.Content.ReadAsStringAsync(cancellationToken);
@@ -443,7 +455,7 @@ public class BedrockProvider : IAIPort
     {
         // Llama models use a different request format
         var prompt = BuildLlamaPrompt(request);
-        
+
         var llamaRequest = new
         {
             prompt = prompt,
@@ -454,14 +466,14 @@ public class BedrockProvider : IAIPort
 
         var endpoint = $"https://bedrock-runtime.{_config.Region}.amazonaws.com/model/{modelId}/invoke";
         var body = JsonSerializer.Serialize(llamaRequest);
-        
+
         var httpRequest = await CreateSignedRequestAsync(HttpMethod.Post, endpoint, body, cancellationToken);
         var response = await _httpClient.SendAsync(httpRequest, cancellationToken);
         response.EnsureSuccessStatusCode();
 
         var responseContent = await response.Content.ReadAsStringAsync(cancellationToken);
         var llamaResponse = JsonSerializer.Deserialize<JsonElement>(responseContent);
-        
+
         var generation = llamaResponse.GetProperty("generation").GetString() ?? string.Empty;
         var promptTokenCount = llamaResponse.TryGetProperty("prompt_token_count", out var ptc) ? ptc.GetInt32() : EstimateTokens(prompt);
         var generationTokenCount = llamaResponse.TryGetProperty("generation_token_count", out var gtc) ? gtc.GetInt32() : EstimateTokens(generation);
@@ -488,7 +500,7 @@ public class BedrockProvider : IAIPort
     public async Task<AIChatResponse> StreamChatAsync(AIChatRequest request, Action<string> onToken, CancellationToken cancellationToken = default)
     {
         var modelId = request.Model ?? _config.DefaultModelId;
-        
+
         if (!modelId.StartsWith("anthropic.claude"))
         {
             // Fallback to non-streaming for non-Claude models
@@ -512,7 +524,7 @@ public class BedrockProvider : IAIPort
 
         var endpoint = $"https://bedrock-runtime.{_config.Region}.amazonaws.com/model/{modelId}/invoke-with-response-stream";
         var body = JsonSerializer.Serialize(claudeRequest, JsonOptions);
-        
+
         var httpRequest = await CreateSignedRequestAsync(HttpMethod.Post, endpoint, body, cancellationToken);
         var httpResponse = await _httpClient.SendAsync(httpRequest, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
         httpResponse.EnsureSuccessStatusCode();
@@ -534,13 +546,13 @@ public class BedrockProvider : IAIPort
             {
                 // Bedrock streaming uses event-stream format
                 if (line.StartsWith(":") || !line.Contains("{")) continue;
-                
+
                 var eventStart = line.IndexOf('{');
                 if (eventStart < 0) continue;
-                
+
                 var jsonData = line.Substring(eventStart);
                 var streamEvent = JsonSerializer.Deserialize<BedrockStreamEvent>(jsonData, JsonOptions);
-                
+
                 if (streamEvent?.Delta?.Text != null)
                 {
                     onToken(streamEvent.Delta.Text);
@@ -591,7 +603,7 @@ public class BedrockProvider : IAIPort
 
         var request = new BedrockTitanEmbeddingRequest { InputText = text };
         var body = JsonSerializer.Serialize(request, JsonOptions);
-        
+
         var httpRequest = await CreateSignedRequestAsync(HttpMethod.Post, endpoint, body, cancellationToken);
         var response = await _httpClient.SendAsync(httpRequest, cancellationToken);
         response.EnsureSuccessStatusCode();
@@ -634,7 +646,7 @@ public class BedrockProvider : IAIPort
     /// <inheritdoc />
     public async Task<AIEmailDraft> GenerateEmailDraftAsync(EmailDraftRequest request, CancellationToken cancellationToken = default)
     {
-        var systemPrompt = @"You are a professional email writer for an enterprise CRM system. 
+        var systemPrompt = @"You are a professional email writer for an enterprise CRM system.
 Write clear, concise, and professional emails appropriate for business communication.
 Always start with a subject line in the format: Subject: <subject>
 Then write the email body.
@@ -643,7 +655,7 @@ Maintain a professional yet approachable tone.";
         var userPrompt = new StringBuilder();
         userPrompt.AppendLine($"Write a {request.Tone} business email for the following:");
         userPrompt.AppendLine($"Purpose: {request.Purpose}");
-        
+
         if (!string.IsNullOrEmpty(request.RecipientName))
             userPrompt.AppendLine($"Recipient: {request.RecipientName}");
         if (!string.IsNullOrEmpty(request.CompanyName))
@@ -685,7 +697,7 @@ Then write the reply body.";
         userPrompt.AppendLine("---");
         userPrompt.AppendLine(originalEmail);
         userPrompt.AppendLine("---");
-        
+
         if (!string.IsNullOrEmpty(context))
             userPrompt.AppendLine($"\nContext about the relationship/situation: {context}");
         if (!string.IsNullOrEmpty(tone))
@@ -709,8 +721,8 @@ Then write the reply body.";
     /// <inheritdoc />
     public async Task<string> SummarizeAsync(string content, int? maxLength = null, CancellationToken cancellationToken = default)
     {
-        var lengthInstruction = maxLength.HasValue 
-            ? $"Keep the summary under {maxLength} words." 
+        var lengthInstruction = maxLength.HasValue
+            ? $"Keep the summary under {maxLength} words."
             : "Keep the summary concise.";
 
         var chatRequest = new AIChatRequest
@@ -749,7 +761,7 @@ Only return the JSON array, no other text.";
         };
 
         var response = await ChatAsync(chatRequest, cancellationToken);
-        
+
         var entities = new List<ExtractedEntity>();
         try
         {
@@ -804,13 +816,13 @@ Return only the JSON object, nothing else.";
         };
 
         var response = await ChatAsync(chatRequest, cancellationToken);
-        
+
         try
         {
             var jsonContent = ExtractJsonObject(response.Message.Content);
             var result = JsonSerializer.Deserialize<JsonElement>(jsonContent);
             var emotions = new Dictionary<string, double>();
-            
+
             if (result.TryGetProperty("emotions", out var emotionsProp))
             {
                 foreach (var prop in emotionsProp.EnumerateObject())
@@ -874,7 +886,7 @@ Return only the JSON array.";
         };
 
         var response = await ChatAsync(chatRequest, cancellationToken);
-        
+
         var actions = new List<AIRecommendedAction>();
         try
         {
@@ -994,7 +1006,7 @@ Return only the JSON array.";
         // Note: In production, use AWS SDK or implement AWS Signature Version 4
         // This is a simplified implementation
         var request = new HttpRequestMessage(method, url);
-        
+
         if (!string.IsNullOrEmpty(body))
         {
             request.Content = new StringContent(body, Encoding.UTF8, "application/json");
@@ -1015,7 +1027,7 @@ Return only the JSON array.";
     private string BuildLlamaPrompt(AIChatRequest request)
     {
         var prompt = new StringBuilder();
-        
+
         if (!string.IsNullOrEmpty(request.SystemPrompt))
         {
             prompt.AppendLine($"<|begin_of_text|><|start_header_id|>system<|end_header_id|>");

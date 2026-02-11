@@ -1,4 +1,18 @@
-// CRM Solution - Twilio Webhook Controller
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
@@ -8,6 +22,9 @@ using Microsoft.Extensions.Logging;
 
 namespace CRM.Api.Controllers.Webhooks;
 
+/// <summary>
+/// Handles incoming Twilio webhook callbacks for SMS status and inbound messages.
+/// </summary>
 [ApiController]
 [Route("api/webhooks/twilio")]
 public class TwilioWebhookController : ControllerBase
@@ -16,6 +33,9 @@ public class TwilioWebhookController : ControllerBase
     private readonly IActivityService _activityService;
     private readonly ILogger<TwilioWebhookController> _logger;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="TwilioWebhookController"/> class.
+    /// </summary>
     public TwilioWebhookController(
         INotificationPort notificationProvider,
         IActivityService activityService,
@@ -60,7 +80,10 @@ public class TwilioWebhookController : ControllerBase
                 };
                 await _activityService.CreateAsync(activity);
             }
-            catch (Exception ex) { _logger.LogWarning(ex, "Failed to create Activity for Twilio status"); }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to create Activity for Twilio status");
+            }
 
             return Ok();
         }
@@ -101,7 +124,10 @@ public class TwilioWebhookController : ControllerBase
                 };
                 await _activityService.CreateAsync(activity);
             }
-            catch (Exception ex) { _logger.LogWarning(ex, "Failed to create Activity for inbound SMS"); }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to create Activity for inbound SMS");
+            }
 
             return Content("<?xml version=\"1.0\" encoding=\"UTF-8\"?><Response></Response>", "application/xml");
         }

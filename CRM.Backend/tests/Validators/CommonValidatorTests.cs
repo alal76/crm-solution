@@ -1,5 +1,18 @@
 // CRM Solution - Customer Relationship Management System
-// Common Validator Unit Tests
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using Xunit;
 using Moq;
@@ -752,15 +765,15 @@ public class CommonValidator
 
     public bool IsAlphanumericWithAllowedChars(string value, string allowedChars)
     {
-        return !string.IsNullOrEmpty(value) && 
+        return !string.IsNullOrEmpty(value) &&
                value.All(c => char.IsLetterOrDigit(c) || allowedChars.Contains(c));
     }
 
     public CollectionValidationResult ValidateCollection<T>(IList<T>? items, int minCount = 0, int maxCount = int.MaxValue)
     {
         if (items == null)
-            return minCount == 0 
-                ? CollectionValidationResult.Valid() 
+            return minCount == 0
+                ? CollectionValidationResult.Valid()
                 : CollectionValidationResult.Invalid("Collection cannot be null");
 
         if (items.Count < minCount)

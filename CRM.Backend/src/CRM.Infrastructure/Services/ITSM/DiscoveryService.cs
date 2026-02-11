@@ -1,4 +1,19 @@
-// Temporarily disabled - requires entity alignment refactoring
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 #if ITSM_ADVANCED
 // This file is part of the CRM Solution.
 // Copyright (c) 2025 CRM Solution Contributors
@@ -21,32 +36,32 @@ public interface IDiscoveryService
     /// Run a discovery scan for a specific network range or domain.
     /// </summary>
     Task<DiscoveryScanResult> RunDiscoveryScanAsync(DiscoveryScanRequest request);
-    
+
     /// <summary>
     /// Get the status of a running or completed discovery scan.
     /// </summary>
     Task<DiscoveryScanStatus> GetScanStatusAsync(int scanId);
-    
+
     /// <summary>
     /// Get discovered assets pending approval for CMDB import.
     /// </summary>
     Task<List<DiscoveredAsset>> GetPendingAssetsAsync();
-    
+
     /// <summary>
     /// Approve and import discovered assets into CMDB.
     /// </summary>
     Task<CmdbImportResult> ImportAssetsAsync(List<int> assetIds, int approvedById);
-    
+
     /// <summary>
     /// Reconcile discovered assets with existing CMDB entries.
     /// </summary>
     Task<ReconciliationResult> ReconcileAssetsAsync(int scanId);
-    
+
     /// <summary>
     /// Get discovery schedules.
     /// </summary>
     Task<List<DiscoverySchedule>> GetSchedulesAsync();
-    
+
     /// <summary>
     /// Create or update a discovery schedule.
     /// </summary>
@@ -267,7 +282,7 @@ public class DiscoveryService : IDiscoveryService
     public async Task<DiscoveryScanResult> RunDiscoveryScanAsync(DiscoveryScanRequest request)
     {
         var scanId = _nextScanId++;
-        
+
         var result = new DiscoveryScanResult
         {
             ScanId = scanId,
@@ -299,19 +314,19 @@ public class DiscoveryService : IDiscoveryService
                 // Phase 2: Asset discovery (simulated)
                 result.Status.ProgressPercent = 30;
                 result.Status.CurrentTarget = request.Target;
-                
+
                 // Generate simulated discovered assets based on type
                 var assets = GenerateSimulatedAssets(request, scanId);
                 result.DiscoveredAssets = assets;
                 result.Status.AssetsDiscovered = assets.Count;
-                
+
                 await Task.Delay(100);
 
                 // Phase 3: Reconciliation
                 result.Status.ProgressPercent = 70;
                 result.Status.CurrentTarget = "Reconciling with CMDB...";
                 await ReconcileDiscoveredAssetsAsync(result.DiscoveredAssets);
-                
+
                 result.Status.NewAssets = assets.Count(a => a.MatchStatus == AssetMatchStatus.New);
                 result.Status.UpdatedAssets = assets.Count(a => a.MatchStatus == AssetMatchStatus.Updated);
 
@@ -323,7 +338,7 @@ public class DiscoveryService : IDiscoveryService
 
                 // Add new assets to pending list
                 _pendingAssets.AddRange(
-                    assets.Where(a => a.MatchStatus == AssetMatchStatus.New || 
+                    assets.Where(a => a.MatchStatus == AssetMatchStatus.New ||
                                       a.MatchStatus == AssetMatchStatus.PotentialMatch));
 
                 _logger.LogInformation(
@@ -405,7 +420,7 @@ public class DiscoveryService : IDiscoveryService
 
                     context.ConfigurationItems.Add(newCI);
                     await context.SaveChangesAsync();
-                    
+
                     result.Created++;
                     result.CreatedCIIds.Add(newCI.ConfigurationItemId);
                 }
@@ -646,9 +661,9 @@ public class DiscoveryService : IDiscoveryService
             // Try to match by serial number first
             if (!string.IsNullOrEmpty(asset.SerialNumber))
             {
-                var match = existingCIs.FirstOrDefault(ci => 
+                var match = existingCIs.FirstOrDefault(ci =>
                     ci.SerialNumber == asset.SerialNumber);
-                
+
                 if (match != null)
                 {
                     asset.MatchStatus = AssetMatchStatus.Matched;
@@ -661,9 +676,9 @@ public class DiscoveryService : IDiscoveryService
             // Try to match by IP address
             if (!string.IsNullOrEmpty(asset.IPAddress))
             {
-                var match = existingCIs.FirstOrDefault(ci => 
+                var match = existingCIs.FirstOrDefault(ci =>
                     ci.IPAddress == asset.IPAddress);
-                
+
                 if (match != null)
                 {
                     asset.MatchStatus = AssetMatchStatus.PotentialMatch;
@@ -674,9 +689,9 @@ public class DiscoveryService : IDiscoveryService
             }
 
             // Try to match by name
-            var nameMatch = existingCIs.FirstOrDefault(ci => 
+            var nameMatch = existingCIs.FirstOrDefault(ci =>
                 ci.Name.Equals(asset.Name, StringComparison.OrdinalIgnoreCase));
-            
+
             if (nameMatch != null)
             {
                 asset.MatchStatus = AssetMatchStatus.PotentialMatch;

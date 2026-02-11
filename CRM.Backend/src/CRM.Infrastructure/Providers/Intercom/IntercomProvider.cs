@@ -1,8 +1,18 @@
-// CRM Solution - Pluggable Architecture
-// Intercom Provider Implementation
-// Week 15: Intercom Chat Provider - Full IChatPort Implementation
-// 
-// Intercom API Reference: https://developers.intercom.com/docs/references/rest-api/api.intercom.io/
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System.Net.Http.Json;
 using System.Security.Cryptography;
@@ -26,8 +36,6 @@ public class IntercomProvider : IChatPort
     private readonly IntercomConfiguration _config;
     private readonly ILogger<IntercomProvider> _logger;
     private readonly JsonSerializerOptions _jsonOptions;
-
-    public string ProviderName => "Intercom";
 
     public IntercomProvider(
         HttpClient httpClient,
@@ -53,6 +61,8 @@ public class IntercomProvider : IChatPort
         _httpClient.DefaultRequestHeaders.Add("Intercom-Version", _config.ApiVersion);
         _httpClient.Timeout = TimeSpan.FromSeconds(_config.TimeoutSeconds);
     }
+
+    public string ProviderName => "Intercom";
 
     #region Availability Check
 
@@ -115,7 +125,7 @@ public class IntercomProvider : IChatPort
         try
         {
             var response = await _httpClient.GetAsync($"/contacts/{externalId}", cancellationToken);
-            
+
             if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
             {
                 return null;
@@ -163,7 +173,7 @@ public class IntercomProvider : IChatPort
         }
 
         var searchResult = await response.Content.ReadFromJsonAsync<IntercomSearchResult>(_jsonOptions, cancellationToken);
-        
+
         if (searchResult?.Data == null || !searchResult.Data.Any())
         {
             return null;
@@ -202,7 +212,7 @@ public class IntercomProvider : IChatPort
         }
 
         var searchResult = await response.Content.ReadFromJsonAsync<IntercomSearchResult>(_jsonOptions, cancellationToken);
-        
+
         if (searchResult?.Data == null || !searchResult.Data.Any())
         {
             return null;
@@ -223,16 +233,16 @@ public class IntercomProvider : IChatPort
         _logger.LogInformation("Updating Intercom contact: {ExternalId}", externalId);
 
         var updateRequest = new Dictionary<string, object?>();
-        
+
         if (!string.IsNullOrEmpty(request.Email))
             updateRequest["email"] = request.Email;
-        
+
         if (!string.IsNullOrEmpty(request.Phone))
             updateRequest["phone"] = request.Phone;
-        
+
         if (!string.IsNullOrEmpty(request.Name))
             updateRequest["name"] = request.Name;
-        
+
         if (request.CustomAttributes != null && request.CustomAttributes.Count > 0)
             updateRequest["custom_attributes"] = request.CustomAttributes;
 
@@ -288,7 +298,7 @@ public class IntercomProvider : IChatPort
         try
         {
             var response = await _httpClient.GetAsync($"/conversations/{conversationId}", cancellationToken);
-            
+
             if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
             {
                 return null;
@@ -339,7 +349,7 @@ public class IntercomProvider : IChatPort
         }
 
         var searchResult = await response.Content.ReadFromJsonAsync<IntercomConversationSearchResult>(_jsonOptions, cancellationToken);
-        
+
         if (searchResult?.Conversations == null)
         {
             return Enumerable.Empty<ChatConversation>();
@@ -397,19 +407,19 @@ public class IntercomProvider : IChatPort
         ArgumentException.ThrowIfNullOrWhiteSpace(conversationId);
 
         var conversation = await GetConversationAsync(conversationId, cancellationToken);
-        
+
         if (conversation?.RecentMessages == null)
         {
             // Fetch full conversation with parts
             var response = await _httpClient.GetAsync($"/conversations/{conversationId}", cancellationToken);
-            
+
             if (!response.IsSuccessStatusCode)
             {
                 return Enumerable.Empty<ChatMessage>();
             }
 
             var intercomConversation = await response.Content.ReadFromJsonAsync<IntercomConversation>(_jsonOptions, cancellationToken);
-            
+
             if (intercomConversation?.ConversationParts?.Parts == null)
             {
                 return Enumerable.Empty<ChatMessage>();
@@ -496,7 +506,7 @@ public class IntercomProvider : IChatPort
         ArgumentException.ThrowIfNullOrWhiteSpace(conversationId);
         ArgumentException.ThrowIfNullOrWhiteSpace(agentExternalId);
 
-        _logger.LogInformation("Assigning agent {AgentId} to Intercom conversation: {ConversationId}", 
+        _logger.LogInformation("Assigning agent {AgentId} to Intercom conversation: {ConversationId}",
             agentExternalId, conversationId);
 
         var assignRequest = new
@@ -523,7 +533,7 @@ public class IntercomProvider : IChatPort
         _logger.LogDebug("Getting Intercom admins");
 
         var response = await _httpClient.GetAsync("/admins", cancellationToken);
-        
+
         if (!response.IsSuccessStatusCode)
         {
             _logger.LogWarning("Failed to get Intercom admins");
@@ -531,7 +541,7 @@ public class IntercomProvider : IChatPort
         }
 
         var adminList = await response.Content.ReadFromJsonAsync<IntercomAdminList>(_jsonOptions, cancellationToken);
-        
+
         if (adminList?.Admins == null)
         {
             return Enumerable.Empty<ChatAgent>();
@@ -548,7 +558,7 @@ public class IntercomProvider : IChatPort
         try
         {
             var response = await _httpClient.GetAsync($"/admins/{agentExternalId}", cancellationToken);
-            
+
             if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
             {
                 return null;
@@ -599,7 +609,7 @@ public class IntercomProvider : IChatPort
         try
         {
             var webhookEvent = JsonSerializer.Deserialize<IntercomWebhookEvent>(payload, _jsonOptions);
-            
+
             if (webhookEvent == null)
             {
                 return new ChatWebhookResult
@@ -629,7 +639,7 @@ public class IntercomProvider : IChatPort
         IntercomWebhookEvent webhookEvent,
         CancellationToken cancellationToken)
     {
-        // Intercom event types: conversation.user.created, conversation.user.replied, 
+        // Intercom event types: conversation.user.created, conversation.user.replied,
         // conversation.admin.replied, conversation.admin.closed, etc.
         return eventType switch
         {
@@ -696,7 +706,7 @@ public class IntercomProvider : IChatPort
         {
             result.Message = MapToMessage(lastPart, webhookEvent.Data?.Item?.Id ?? "");
             result.ContactExternalId = lastPart.Author?.Id;
-            
+
             result.ActivityMapping = new ChatActivityMapping
             {
                 ActivityType = "ChatMessage",
@@ -706,8 +716,8 @@ public class IntercomProvider : IChatPort
                 Direction = "inbound",
                 ExternalId = $"intercom:{lastPart.Id}",
                 ExternalSource = "Intercom",
-                ActivityDate = lastPart.CreatedAt > 0 
-                    ? DateTimeOffset.FromUnixTimeSeconds(lastPart.CreatedAt).UtcDateTime 
+                ActivityDate = lastPart.CreatedAt > 0
+                    ? DateTimeOffset.FromUnixTimeSeconds(lastPart.CreatedAt).UtcDateTime
                     : DateTime.UtcNow
             };
         }
@@ -731,7 +741,7 @@ public class IntercomProvider : IChatPort
         if (lastPart != null)
         {
             result.Message = MapToMessage(lastPart, webhookEvent.Data?.Item?.Id ?? "");
-            
+
             result.ActivityMapping = new ChatActivityMapping
             {
                 ActivityType = "ChatMessage",
@@ -741,8 +751,8 @@ public class IntercomProvider : IChatPort
                 Direction = "outbound",
                 ExternalId = $"intercom:{lastPart.Id}",
                 ExternalSource = "Intercom",
-                ActivityDate = lastPart.CreatedAt > 0 
-                    ? DateTimeOffset.FromUnixTimeSeconds(lastPart.CreatedAt).UtcDateTime 
+                ActivityDate = lastPart.CreatedAt > 0
+                    ? DateTimeOffset.FromUnixTimeSeconds(lastPart.CreatedAt).UtcDateTime
                     : DateTime.UtcNow
             };
         }
@@ -800,7 +810,7 @@ public class IntercomProvider : IChatPort
         using var hmac = new HMACSHA256(Encoding.UTF8.GetBytes(_config.WebhookSecret));
         var hash = hmac.ComputeHash(Encoding.UTF8.GetBytes(payload));
         var computedSignature = Convert.ToHexString(hash).ToLowerInvariant();
-        
+
         return string.Equals(computedSignature, signature.Replace("sha256=", ""), StringComparison.OrdinalIgnoreCase);
     }
 
@@ -812,7 +822,7 @@ public class IntercomProvider : IChatPort
     public async Task<ProviderHealthResult> HealthCheckAsync(CancellationToken cancellationToken = default)
     {
         var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-        
+
         try
         {
             var response = await _httpClient.GetAsync("/me", cancellationToken);
@@ -892,13 +902,13 @@ public class IntercomProvider : IChatPort
             Name = intercomContact.Name,
             AvatarUrl = intercomContact.Avatar?.ImageUrl,
             CustomAttributes = intercomContact.CustomAttributes?.ToDictionary(
-                kvp => kvp.Key, 
+                kvp => kvp.Key,
                 kvp => (object)kvp.Value.ToString()),
-            CreatedAt = intercomContact.CreatedAt > 0 
-                ? DateTimeOffset.FromUnixTimeSeconds(intercomContact.CreatedAt).UtcDateTime 
+            CreatedAt = intercomContact.CreatedAt > 0
+                ? DateTimeOffset.FromUnixTimeSeconds(intercomContact.CreatedAt).UtcDateTime
                 : DateTime.UtcNow,
-            LastActivityAt = intercomContact.LastSeenAt > 0 
-                ? DateTimeOffset.FromUnixTimeSeconds(intercomContact.LastSeenAt).UtcDateTime 
+            LastActivityAt = intercomContact.LastSeenAt > 0
+                ? DateTimeOffset.FromUnixTimeSeconds(intercomContact.LastSeenAt).UtcDateTime
                 : null
         };
     }
@@ -914,11 +924,11 @@ public class IntercomProvider : IChatPort
             AssignedAgentId = intercomConversation.Assignee?.Id,
             AssignedAgentName = intercomConversation.Assignee?.Name,
             Subject = intercomConversation.Source?.Subject,
-            CreatedAt = intercomConversation.CreatedAt > 0 
-                ? DateTimeOffset.FromUnixTimeSeconds(intercomConversation.CreatedAt).UtcDateTime 
+            CreatedAt = intercomConversation.CreatedAt > 0
+                ? DateTimeOffset.FromUnixTimeSeconds(intercomConversation.CreatedAt).UtcDateTime
                 : DateTime.UtcNow,
-            LastMessageAt = intercomConversation.UpdatedAt > 0 
-                ? DateTimeOffset.FromUnixTimeSeconds(intercomConversation.UpdatedAt).UtcDateTime 
+            LastMessageAt = intercomConversation.UpdatedAt > 0
+                ? DateTimeOffset.FromUnixTimeSeconds(intercomConversation.UpdatedAt).UtcDateTime
                 : null,
             MessageCount = intercomConversation.Statistics?.CountConversationParts ?? 0,
             UnreadCount = 0, // Intercom doesn't expose this directly
@@ -937,7 +947,7 @@ public class IntercomProvider : IChatPort
             ConversationId = conversationId,
             Content = part.Body ?? "",
             ContentType = part.PartType ?? "text",
-            SenderType = part.Author?.Type == "admin" ? "agent" : 
+            SenderType = part.Author?.Type == "admin" ? "agent" :
                         part.Author?.Type == "bot" ? "bot" : "contact",
             SenderId = part.Author?.Id,
             SenderName = part.Author?.Name,
@@ -949,8 +959,8 @@ public class IntercomProvider : IChatPort
                 ContentType = a.ContentType,
                 FileSize = a.FileSize
             }).ToList(),
-            CreatedAt = part.CreatedAt > 0 
-                ? DateTimeOffset.FromUnixTimeSeconds(part.CreatedAt).UtcDateTime 
+            CreatedAt = part.CreatedAt > 0
+                ? DateTimeOffset.FromUnixTimeSeconds(part.CreatedAt).UtcDateTime
                 : DateTime.UtcNow
         };
     }
@@ -972,9 +982,9 @@ public class IntercomProvider : IChatPort
         if (!response.IsSuccessStatusCode)
         {
             var errorContent = await response.Content.ReadAsStringAsync(cancellationToken);
-            _logger.LogError("Intercom {Operation} failed: {StatusCode} - {Error}", 
+            _logger.LogError("Intercom {Operation} failed: {StatusCode} - {Error}",
                 operation, response.StatusCode, errorContent);
-            
+
             throw new HttpRequestException(
                 $"Intercom {operation} failed with status {response.StatusCode}: {errorContent}");
         }

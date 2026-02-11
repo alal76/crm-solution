@@ -31,6 +31,11 @@ public interface IAzureBlobProvider : IStorageProvider
     #region Container Management
 
     /// <summary>
+    /// Gets the current container name.
+    /// </summary>
+    string CurrentContainer { get; }
+
+    /// <summary>
     /// Creates a container.
     /// </summary>
     Task CreateContainerAsync(string containerName, AzureContainerOptions? options = null, CancellationToken cancellationToken = default);
@@ -49,11 +54,6 @@ public interface IAzureBlobProvider : IStorageProvider
     /// Gets all containers.
     /// </summary>
     Task<IEnumerable<AzureContainerInfo>> ListContainersAsync(string? prefix = null, CancellationToken cancellationToken = default);
-
-    /// <summary>
-    /// Gets the current container name.
-    /// </summary>
-    string CurrentContainer { get; }
 
     /// <summary>
     /// Switches to a different container.
@@ -370,7 +370,9 @@ public record AzureBlobProperties
     public string? ContentLanguage { get; init; }
     public string? CacheControl { get; init; }
     public string? ContentDisposition { get; init; }
+#pragma warning disable SA1011 // Closing square bracket should be spaced correctly
     public byte[]? ContentHash { get; init; }
+#pragma warning restore SA1011 // Closing square bracket should be spaced correctly
     public long? ContentLength { get; init; }
     public AzureBlobType? BlobType { get; init; }
     public AzureAccessTier? AccessTier { get; init; }

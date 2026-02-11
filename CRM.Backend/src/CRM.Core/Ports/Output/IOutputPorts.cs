@@ -1,12 +1,18 @@
-// CRM Solution - Hexagonal Architecture
-// Output Ports (Driven Ports)
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
 //
-// HEXAGONAL ARCHITECTURE NOTE:
-// Output ports define how the application interacts with external systems.
-// These are implemented by secondary adapters (repositories, external services).
-// The application/domain layer uses these ports; Infrastructure implements them.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
 //
-// Pattern: [Service] → [Output Port] → [Repository/External Service Adapter]
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
@@ -20,7 +26,9 @@ namespace CRM.Core.Ports.Output;
 /// Extends the existing IRepository interface for hexagonal naming.
 /// </summary>
 /// <typeparam name="T">Entity type derived from BaseEntity</typeparam>
-public interface IRepositoryPort<T> : IRepository<T> where T : BaseEntity { }
+public interface IRepositoryPort<T> : IRepository<T> where T : BaseEntity
+{
+}
 
 /// <summary>
 /// Account-specific repository port with additional query methods.

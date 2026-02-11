@@ -14,16 +14,6 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-/**
- * CRM Solution - Customer Relationship Management System
- * Copyright (C) 2024-2026 Abhishek Lal
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- */
-
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -85,6 +75,12 @@ public class ZipCodeImportHostedService : BackgroundService
     private DateTime? _lastImportTime;
     private bool _initialImportDone = false;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ZipCodeImportHostedService"/> class.
+    /// </summary>
+    /// <param name="serviceProvider">The service provider.</param>
+    /// <param name="logger">The logger instance.</param>
+    /// <param name="options">The ZIP code import options.</param>
     public ZipCodeImportHostedService(
         IServiceProvider serviceProvider,
         ILogger<ZipCodeImportHostedService> logger,
@@ -274,6 +270,11 @@ public class ZipCodeImportJob
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<ZipCodeImportJob> _logger;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ZipCodeImportJob"/> class.
+    /// </summary>
+    /// <param name="serviceProvider">The service provider.</param>
+    /// <param name="logger">The logger instance.</param>
     public ZipCodeImportJob(
         IServiceProvider serviceProvider,
         ILogger<ZipCodeImportJob> logger)

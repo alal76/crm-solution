@@ -5,6 +5,14 @@
 // it under the terms of the GNU Affero General Public License as published by
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System;
 using System.Collections.Generic;
@@ -35,9 +43,9 @@ public class DashboardServiceTests
     {
         _mockDbContext = new Mock<ICrmDbContext>();
         _mockLogger = new Mock<ILogger<DashboardService>>();
-        
+
         SetupMockDbSets();
-        
+
         _service = new DashboardService(_mockDbContext.Object, _mockLogger.Object);
     }
 
@@ -58,23 +66,23 @@ public class DashboardServiceTests
     {
         var queryable = data.AsQueryable();
         var mockSet = new Mock<DbSet<T>>();
-        
+
         mockSet.As<IAsyncEnumerable<T>>()
             .Setup(m => m.GetAsyncEnumerator(default))
             .Returns(new TestAsyncEnumerator<T>(queryable.GetEnumerator()));
-            
+
         mockSet.As<IQueryable<T>>()
             .Setup(m => m.Provider)
             .Returns(new TestAsyncQueryProvider<T>(queryable.Provider));
-            
+
         mockSet.As<IQueryable<T>>()
             .Setup(m => m.Expression)
             .Returns(queryable.Expression);
-            
+
         mockSet.As<IQueryable<T>>()
             .Setup(m => m.ElementType)
             .Returns(queryable.ElementType);
-            
+
         mockSet.As<IQueryable<T>>()
             .Setup(m => m.GetEnumerator())
             .Returns(() => queryable.GetEnumerator());
@@ -88,7 +96,7 @@ public class DashboardServiceTests
     public void Constructor_WithNullDbContext_ThrowsArgumentNullException()
     {
         // Arrange & Act & Assert
-        Assert.Throws<ArgumentNullException>(() => 
+        Assert.Throws<ArgumentNullException>(() =>
             new DashboardService(null!, _mockLogger.Object));
     }
 
@@ -96,7 +104,7 @@ public class DashboardServiceTests
     public void Constructor_WithNullLogger_ThrowsArgumentNullException()
     {
         // Arrange & Act & Assert
-        Assert.Throws<ArgumentNullException>(() => 
+        Assert.Throws<ArgumentNullException>(() =>
             new DashboardService(_mockDbContext.Object, null!));
     }
 

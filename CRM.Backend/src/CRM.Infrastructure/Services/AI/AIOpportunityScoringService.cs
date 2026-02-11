@@ -1,5 +1,18 @@
-// CRM Solution - AI-Powered Opportunity Scoring Service
-// Phase 7, Task 7.3 - Win probability prediction based on historical patterns and deal attributes
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using CRM.Core.Entities;
 using CRM.Infrastructure.Data;
@@ -101,9 +114,6 @@ public class OpportunityScoreBreakdown
 /// </summary>
 public class AIOpportunityScoringService : IAIOpportunityScoringService
 {
-    private readonly ICrmDbContext _context;
-    private readonly ILogger<AIOpportunityScoringService> _logger;
-
     // Scoring weights — must sum to 1.0
     private static readonly Dictionary<string, double> Weights = new()
     {
@@ -125,8 +135,11 @@ public class AIOpportunityScoringService : IAIOpportunityScoringService
         [OpportunityStage.ClosedLost] = 0
     };
 
+    private readonly ICrmDbContext _context;
+    private readonly ILogger<AIOpportunityScoringService> _logger;
+
     /// <summary>
-    /// Initializes a new instance of AIOpportunityScoringService.
+    /// Initializes a new instance of the <see cref="AIOpportunityScoringService"/> class.
     /// </summary>
     public AIOpportunityScoringService(
         ICrmDbContext context,
@@ -240,11 +253,11 @@ public class AIOpportunityScoringService : IAIOpportunityScoringService
 
         // Calculate weighted total
         var weighted =
-            result.Breakdown.StageScore * Weights["Stage"] +
-            result.Breakdown.DealSizeScore * Weights["DealSize"] +
-            result.Breakdown.VelocityScore * Weights["Velocity"] +
-            result.Breakdown.ActivityScore * Weights["Activity"] +
-            result.Breakdown.CompletenessScore * Weights["Completeness"];
+            (result.Breakdown.StageScore * Weights["Stage"]) +
+            (result.Breakdown.DealSizeScore * Weights["DealSize"]) +
+            (result.Breakdown.VelocityScore * Weights["Velocity"]) +
+            (result.Breakdown.ActivityScore * Weights["Activity"]) +
+            (result.Breakdown.CompletenessScore * Weights["Completeness"]);
 
         result.WinProbability = (int)Math.Clamp(Math.Round(weighted), 0, 100);
         result.RiskLevel = GetRiskLevel(result.WinProbability, result.RiskFactors.Count);
@@ -379,8 +392,8 @@ public class AIOpportunityScoringService : IAIOpportunityScoringService
     private static string GetRiskLevel(int probability, int riskFactorCount) =>
         (probability, riskFactorCount) switch
         {
-            ( >= 70, <= 1) => "Low",
-            ( >= 50, <= 2) => "Medium",
+            (>= 70, <= 1) => "Low",
+            (>= 50, <= 2) => "Medium",
             _ => "High"
         };
 

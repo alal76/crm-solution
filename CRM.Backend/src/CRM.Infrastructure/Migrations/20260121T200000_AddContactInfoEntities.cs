@@ -21,6 +21,9 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace CRM.Infrastructure.Migrations
 {
+    /// <summary>
+    /// Database migration to add contact info entities.
+    /// </summary>
     public partial class AddContactInfoEntities : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)

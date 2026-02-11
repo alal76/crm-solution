@@ -1,4 +1,19 @@
-// Temporarily disabled - requires entity alignment refactoring
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
 #if ITSM_ADVANCED
 // This file is part of the CRM Solution.
 // Copyright (c) 2025 CRM Solution Contributors
@@ -23,7 +38,7 @@ public class AutoCloseHostedService : BackgroundService
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<AutoCloseHostedService> _logger;
     private readonly TimeSpan _checkInterval = TimeSpan.FromHours(1);
-    
+
     // Configurable: days to wait before auto-closing resolved items
     private const int DefaultAutoCloseDaysIncident = 3;
     private const int DefaultAutoCloseDaysServiceRequest = 5;
@@ -199,13 +214,13 @@ public class AutoCloseHostedService : BackgroundService
         {
             // Check if there are any open incidents still linked
             var hasOpenIncidents = await context.Incidents
-                .AnyAsync(i => i.ProblemId == problem.ProblemId && 
+                .AnyAsync(i => i.ProblemId == problem.ProblemId &&
                               i.Status != IncidentState.Closed &&
                               i.Status != IncidentState.Resolved);
 
             if (hasOpenIncidents)
             {
-                _logger.LogDebug("Problem {ProblemNumber} has open incidents, skipping auto-close", 
+                _logger.LogDebug("Problem {ProblemNumber} has open incidents, skipping auto-close",
                     problem.Number);
                 continue;
             }
@@ -241,32 +256,32 @@ public class AutoCloseHostedService : BackgroundService
 public class AutoCloseOptions
 {
     public const string SectionName = "ITSM:AutoClose";
-    
+
     /// <summary>
     /// Whether auto-close is enabled.
     /// </summary>
     public bool Enabled { get; set; } = true;
-    
+
     /// <summary>
     /// Days to wait before auto-closing resolved incidents.
     /// </summary>
     public int IncidentDays { get; set; } = 3;
-    
+
     /// <summary>
     /// Days to wait before auto-closing completed service requests.
     /// </summary>
     public int ServiceRequestDays { get; set; } = 5;
-    
+
     /// <summary>
     /// Days to wait before auto-closing implemented changes.
     /// </summary>
     public int ChangeDays { get; set; } = 7;
-    
+
     /// <summary>
     /// Days to wait before auto-closing resolved problems.
     /// </summary>
     public int ProblemDays { get; set; } = 7;
-    
+
     /// <summary>
     /// How often to check for items to auto-close (in minutes).
     /// </summary>

@@ -1,11 +1,9 @@
-// This file is part of the CRM Solution.
-// Copyright (c) 2025 CRM Solution Contributors
-// Licensed under the AGPL-3.0 license.
-// See LICENSE file in the project root for full license information.
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
 //
 // This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Affero General Public License as published
-// by the Free Software Foundation, either version 3 of the License, or
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
 // This program is distributed in the hope that it will be useful,
@@ -69,6 +67,9 @@ public enum ResolutionCode
     HardwareReplacement = 9
 }
 
+/// <summary>
+/// Represents an ITSM incident record.
+/// </summary>
 public class Incident
 {
     [Key]
@@ -114,11 +115,9 @@ public class Incident
     public int? ConfigurationItemId { get; set; }
 
     // ConfigurationItem FK will be added in Phase 2
-
     public int? ServiceId { get; set; }
 
     // Service FK will be added in Phase 2
-
     // Prioritization
     [Required]
     public IncidentImpact Impact { get; set; }
@@ -127,7 +126,7 @@ public class Incident
     public IncidentUrgency Urgency { get; set; }
 
     // Priority is calculated: Impact + Urgency (2-6 scale, lower is higher priority)
-    public int Priority => (int)Impact + (int)Urgency;
+    public int Priority => ((int)Impact) + ((int)Urgency);
 
     // Assignment
     [Required]
@@ -186,11 +185,9 @@ public class Incident
     public int? ProblemId { get; set; }
 
     // Problem FK will be added in Phase 1.2
-
     public int? ChangeRequestId { get; set; }
 
     // Change FK will be added in Phase 2
-
     // Audit
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
@@ -206,6 +203,9 @@ public class Incident
     public ICollection<IncidentHistory>? History { get; set; }
 }
 
+/// <summary>
+/// Represents a comment on an incident.
+/// </summary>
 public class IncidentComment
 {
     [Key]
@@ -233,6 +233,9 @@ public class IncidentComment
     public bool IsDeleted { get; set; } = false;
 }
 
+/// <summary>
+/// Represents a file attachment on an incident.
+/// </summary>
 public class IncidentAttachment
 {
     [Key]
@@ -268,6 +271,9 @@ public class IncidentAttachment
     public bool IsDeleted { get; set; } = false;
 }
 
+/// <summary>
+/// Represents a historical change record for an incident.
+/// </summary>
 public class IncidentHistory
 {
     [Key]

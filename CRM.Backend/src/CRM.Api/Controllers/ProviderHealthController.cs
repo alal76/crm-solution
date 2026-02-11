@@ -1,5 +1,18 @@
-// Part of the Pluggable Architecture implementation
-// Phase 0 Week 4: Provider Health Check API
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -77,7 +90,7 @@ public class ProviderHealthController : ControllerBase
 
         // Add registry metrics
         report.RegistryStats = _registry.GetHealthSummary();
-        
+
         // Determine overall health
         report.OverallHealthy = report.Providers.Values.All(p => p.IsHealthy);
 
@@ -95,7 +108,7 @@ public class ProviderHealthController : ControllerBase
     public async Task<ActionResult<ProviderStatus>> GetProviderHealthByCategory(string category)
     {
         var report = new ProviderHealthReport { Providers = new Dictionary<string, ProviderStatus>() };
-        
+
         var success = category.ToLowerInvariant() switch
         {
             "search" => await CheckProviderAsync(report, "Search", _searchFactory),
@@ -113,10 +126,10 @@ public class ProviderHealthController : ControllerBase
             return NotFound(new { message = $"Unknown provider category: {category}" });
         }
 
-        return Ok(report.Providers[category.ToLowerInvariant() switch 
-        { 
+        return Ok(report.Providers[category.ToLowerInvariant() switch
+        {
             "search" => "Search",
-            "chat" => "Chat", 
+            "chat" => "Chat",
             "notifications" => "Notifications",
             "analytics" => "Analytics",
             "signatures" => "Signatures",
@@ -173,7 +186,7 @@ public class ProviderHealthController : ControllerBase
         {
             var activeProvider = factory.GetActiveProviderName();
             var isAvailable = await factory.IsProviderAvailableAsync(activeProvider);
-            
+
             report.Providers[category] = new ProviderStatus
             {
                 ActiveProvider = activeProvider,
@@ -181,7 +194,7 @@ public class ProviderHealthController : ControllerBase
                 AvailableProviders = factory.GetAvailableProviders().ToList(),
                 LastChecked = DateTime.UtcNow
             };
-            
+
             return true;
         }
         catch (Exception ex)

@@ -1,5 +1,18 @@
-// CRM Solution - DocuSign Provider
-// Phase 4 Week 18: DocuSign e-signature provider implementation
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System.Text;
 using System.Text.Json;
@@ -12,9 +25,9 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 // Type aliases to resolve ambiguity with CRM.Core.Entities
-using PortSignerStatus = CRM.Core.Ports.Output.Providers.SignerStatus;
-using PortSignerRole = CRM.Core.Ports.Output.Providers.SignerRole;
 using DocuSignSigner = DocuSign.eSign.Model.Signer;
+using PortSignerRole = CRM.Core.Ports.Output.Providers.SignerRole;
+using PortSignerStatus = CRM.Core.Ports.Output.Providers.SignerStatus;
 
 namespace CRM.Infrastructure.Providers.DocuSign;
 
@@ -27,14 +40,14 @@ public class DocuSignProvider : ISignaturePort
     private readonly DocuSignConfiguration _config;
     private readonly ILogger<DocuSignProvider> _logger;
     private readonly JsonSerializerOptions _jsonOptions;
-    
-    private DocuSignClient? _apiClient;
-    private DateTime _tokenExpiry = DateTime.MinValue;
     private readonly SemaphoreSlim _tokenLock = new(1, 1);
 
-    /// <inheritdoc />
-    public string ProviderName => "DocuSign";
+    private DocuSignClient? _apiClient;
+    private DateTime _tokenExpiry = DateTime.MinValue;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="DocuSignProvider"/> class.
+    /// </summary>
     public DocuSignProvider(
         IOptions<DocuSignConfiguration> config,
         ILogger<DocuSignProvider> logger)
@@ -68,6 +81,9 @@ public class DocuSignProvider : ISignaturePort
             _logger.LogInformation("DocuSignProvider initialized without configuration - will be unavailable until configured");
         }
     }
+
+    /// <inheritdoc />
+    public string ProviderName => "DocuSign";
 
     #region Authentication
 
@@ -157,10 +173,10 @@ public class DocuSignProvider : ISignaturePort
                 count = "100"
             };
 
-            var templates = await Task.Run(() => 
+            var templates = await Task.Run(() =>
                 templatesApi.ListTemplates(_config.AccountId, options), cancellationToken);
 
-            return templates.EnvelopeTemplates?.Select(MapToSignatureTemplate) 
+            return templates.EnvelopeTemplates?.Select(MapToSignatureTemplate)
                 ?? Enumerable.Empty<SignatureTemplate>();
         }
         catch (Exception ex)
@@ -198,7 +214,7 @@ public class DocuSignProvider : ISignaturePort
 
     /// <inheritdoc />
     public async Task<SignatureTemplate> CreateTemplateAsync(
-        CreateTemplateRequest request, 
+        CreateTemplateRequest request,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(request);
@@ -243,7 +259,7 @@ public class DocuSignProvider : ISignaturePort
                 };
             }
 
-            var result = await Task.Run(() => 
+            var result = await Task.Run(() =>
                 templatesApi.CreateTemplate(_config.AccountId, envelopeTemplate), cancellationToken);
 
             return new SignatureTemplate
@@ -266,7 +282,7 @@ public class DocuSignProvider : ISignaturePort
 
     /// <inheritdoc />
     public async Task<SignatureRequest> CreateSignatureRequestAsync(
-        CreateSignatureRequest request, 
+        CreateSignatureRequest request,
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(request);
@@ -287,7 +303,7 @@ public class DocuSignProvider : ISignaturePort
             if (!string.IsNullOrWhiteSpace(request.TemplateId))
             {
                 envelopeDefinition.TemplateId = request.TemplateId;
-                
+
                 // Map template roles to signers
                 if (request.Signers?.Any() == true)
                 {
@@ -310,8 +326,8 @@ public class DocuSignProvider : ISignaturePort
                         DocumentId = (i + 1).ToString(),
                         Name = doc.Name,
                         FileExtension = Path.GetExtension(doc.Name)?.TrimStart('.') ?? "pdf",
-                        DocumentBase64 = doc.Content != null 
-                            ? Convert.ToBase64String(doc.Content) 
+                        DocumentBase64 = doc.Content != null
+                            ? Convert.ToBase64String(doc.Content)
                             : null
                     }).ToList();
                 }
@@ -320,7 +336,7 @@ public class DocuSignProvider : ISignaturePort
                 if (request.Signers?.Any() == true)
                 {
                     var signers = new List<DocuSignSigner>();
-                    
+
                     for (int i = 0; i < request.Signers.Count; i++)
                     {
                         var s = request.Signers[i];
@@ -370,15 +386,15 @@ public class DocuSignProvider : ISignaturePort
 
                 if (envelopeDefinition.Recipients == null)
                     envelopeDefinition.Recipients = new Recipients();
-                
+
                 envelopeDefinition.Recipients.CarbonCopies = ccList;
             }
 
             // Set expiration
-            var expiryDays = request.ExpiresAt.HasValue 
-                ? (int)(request.ExpiresAt.Value - DateTime.UtcNow).TotalDays 
+            var expiryDays = request.ExpiresAt.HasValue
+                ? (int)(request.ExpiresAt.Value - DateTime.UtcNow).TotalDays
                 : _config.DefaultExpirationDays;
-                
+
             if (expiryDays > 0)
             {
                 envelopeDefinition.Notification = new Notification
@@ -405,7 +421,7 @@ public class DocuSignProvider : ISignaturePort
                 };
             }
 
-            var result = await Task.Run(() => 
+            var result = await Task.Run(() =>
                 envelopesApi.CreateEnvelope(_config.AccountId, envelopeDefinition), cancellationToken);
 
             return new SignatureRequest
@@ -437,7 +453,7 @@ public class DocuSignProvider : ISignaturePort
 
     /// <inheritdoc />
     public async Task<SignatureRequest?> GetSignatureRequestAsync(
-        string requestId, 
+        string requestId,
         CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(requestId);
@@ -447,13 +463,13 @@ public class DocuSignProvider : ISignaturePort
             var client = await GetAuthenticatedClientAsync(cancellationToken);
             var envelopesApi = new EnvelopesApi(client);
 
-            var envelope = await Task.Run(() => 
+            var envelope = await Task.Run(() =>
                 envelopesApi.GetEnvelope(_config.AccountId, requestId), cancellationToken);
 
             if (envelope == null) return null;
 
             // Get recipients for signer status
-            var recipients = await Task.Run(() => 
+            var recipients = await Task.Run(() =>
                 envelopesApi.ListRecipients(_config.AccountId, requestId), cancellationToken);
 
             return MapToSignatureRequest(envelope, recipients);
@@ -471,7 +487,7 @@ public class DocuSignProvider : ISignaturePort
 
     /// <inheritdoc />
     public async Task<SignatureStatus> GetStatusAsync(
-        string requestId, 
+        string requestId,
         CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(requestId);
@@ -481,7 +497,7 @@ public class DocuSignProvider : ISignaturePort
             var client = await GetAuthenticatedClientAsync(cancellationToken);
             var envelopesApi = new EnvelopesApi(client);
 
-            var envelope = await Task.Run(() => 
+            var envelope = await Task.Run(() =>
                 envelopesApi.GetEnvelope(_config.AccountId, requestId), cancellationToken);
 
             return MapEnvelopeStatus(envelope?.Status);
@@ -495,8 +511,8 @@ public class DocuSignProvider : ISignaturePort
 
     /// <inheritdoc />
     public async Task<IEnumerable<SignatureRequest>> GetByEntityAsync(
-        string entityType, 
-        int entityId, 
+        string entityType,
+        int entityId,
         CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(entityType);
@@ -513,15 +529,15 @@ public class DocuSignProvider : ISignaturePort
                 fromDate = DateTime.UtcNow.AddYears(-1).ToString("o")
             };
 
-            var envelopes = await Task.Run(() => 
+            var envelopes = await Task.Run(() =>
                 envelopesApi.ListStatusChanges(_config.AccountId, options), cancellationToken);
 
             var requests = new List<SignatureRequest>();
             foreach (var envelope in envelopes.Envelopes ?? Enumerable.Empty<Envelope>())
             {
-                var recipients = await Task.Run(() => 
+                var recipients = await Task.Run(() =>
                     envelopesApi.ListRecipients(_config.AccountId, envelope.EnvelopeId), cancellationToken);
-                
+
                 var request = MapToSignatureRequest(envelope, recipients);
                 request.EntityType = entityType;
                 request.EntityId = entityId;
@@ -539,8 +555,8 @@ public class DocuSignProvider : ISignaturePort
 
     /// <inheritdoc />
     public async Task CancelSignatureRequestAsync(
-        string requestId, 
-        string? reason = null, 
+        string requestId,
+        string? reason = null,
         CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(requestId);
@@ -556,7 +572,7 @@ public class DocuSignProvider : ISignaturePort
                 VoidedReason = reason ?? "Cancelled by CRM"
             };
 
-            await Task.Run(() => 
+            await Task.Run(() =>
                 envelopesApi.Update(_config.AccountId, requestId, envelope), cancellationToken);
 
             _logger.LogInformation("Cancelled DocuSign envelope {RequestId}", requestId);
@@ -570,7 +586,7 @@ public class DocuSignProvider : ISignaturePort
 
     /// <inheritdoc />
     public async Task SendReminderAsync(
-        string requestId, 
+        string requestId,
         CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(requestId);
@@ -581,7 +597,7 @@ public class DocuSignProvider : ISignaturePort
             var envelopesApi = new EnvelopesApi(client);
 
             // Get envelope to check status
-            var envelope = await Task.Run(() => 
+            var envelope = await Task.Run(() =>
                 envelopesApi.GetEnvelope(_config.AccountId, requestId), cancellationToken);
 
             if (envelope.Status != "sent" && envelope.Status != "delivered")
@@ -590,7 +606,7 @@ public class DocuSignProvider : ISignaturePort
             }
 
             // Use notification API to send reminder
-            await Task.Run(() => 
+            await Task.Run(() =>
                 envelopesApi.UpdateNotificationSettings(_config.AccountId, requestId), cancellationToken);
 
             _logger.LogInformation("Sent reminder for DocuSign envelope {RequestId}", requestId);
@@ -604,8 +620,8 @@ public class DocuSignProvider : ISignaturePort
 
     /// <inheritdoc />
     public async Task<SigningLink> GetSigningLinkAsync(
-        string requestId, 
-        string signerEmail, 
+        string requestId,
+        string signerEmail,
         CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(requestId);
@@ -617,10 +633,10 @@ public class DocuSignProvider : ISignaturePort
             var envelopesApi = new EnvelopesApi(client);
 
             // Get recipients to find the signer's recipient ID
-            var recipients = await Task.Run(() => 
+            var recipients = await Task.Run(() =>
                 envelopesApi.ListRecipients(_config.AccountId, requestId), cancellationToken);
 
-            var signer = recipients.Signers?.FirstOrDefault(s => 
+            var signer = recipients.Signers?.FirstOrDefault(s =>
                 s.Email.Equals(signerEmail, StringComparison.OrdinalIgnoreCase));
 
             if (signer == null)
@@ -641,7 +657,7 @@ public class DocuSignProvider : ISignaturePort
                     RecipientId = signer.RecipientId
                 };
 
-                var viewUrl = await Task.Run(() => 
+                var viewUrl = await Task.Run(() =>
                     envelopesApi.CreateRecipientView(_config.AccountId, requestId, viewRequest), cancellationToken);
 
                 return new SigningLink
@@ -670,7 +686,7 @@ public class DocuSignProvider : ISignaturePort
 
     /// <inheritdoc />
     public async Task<SigningLink> GetEmbeddedSigningAsync(
-        string requestId, 
+        string requestId,
         string signerEmail,
         string returnUrl,
         CancellationToken cancellationToken = default)
@@ -685,10 +701,10 @@ public class DocuSignProvider : ISignaturePort
             var envelopesApi = new EnvelopesApi(client);
 
             // Get recipient info
-            var recipients = await Task.Run(() => 
+            var recipients = await Task.Run(() =>
                 envelopesApi.ListRecipients(_config.AccountId, requestId), cancellationToken);
 
-            var signer = recipients.Signers?.FirstOrDefault(s => 
+            var signer = recipients.Signers?.FirstOrDefault(s =>
                 s.Email.Equals(signerEmail, StringComparison.OrdinalIgnoreCase));
 
             if (signer == null)
@@ -706,7 +722,7 @@ public class DocuSignProvider : ISignaturePort
                 RecipientId = signer.RecipientId
             };
 
-            var viewUrl = await Task.Run(() => 
+            var viewUrl = await Task.Run(() =>
                 envelopesApi.CreateRecipientView(_config.AccountId, requestId, viewRequest), cancellationToken);
 
             return new SigningLink
@@ -725,8 +741,8 @@ public class DocuSignProvider : ISignaturePort
 
     /// <inheritdoc />
     public async Task<SignedDocument> GetSignedDocumentAsync(
-        string requestId, 
-        string? documentId = null, 
+        string requestId,
+        string? documentId = null,
         CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(requestId);
@@ -737,22 +753,22 @@ public class DocuSignProvider : ISignaturePort
             var envelopesApi = new EnvelopesApi(client);
 
             // Get envelope info for metadata
-            var envelope = await Task.Run(() => 
+            var envelope = await Task.Run(() =>
                 envelopesApi.GetEnvelope(_config.AccountId, requestId), cancellationToken);
 
             // Get combined document or specific document
             Stream docStream;
             string fileName;
-            
+
             if (string.IsNullOrWhiteSpace(documentId))
             {
-                docStream = await Task.Run(() => 
+                docStream = await Task.Run(() =>
                     envelopesApi.GetDocument(_config.AccountId, requestId, "combined"), cancellationToken);
                 fileName = $"{envelope.EmailSubject ?? "signed_document"}_combined.pdf";
             }
             else
             {
-                docStream = await Task.Run(() => 
+                docStream = await Task.Run(() =>
                     envelopesApi.GetDocument(_config.AccountId, requestId, documentId), cancellationToken);
                 fileName = $"document_{documentId}.pdf";
             }
@@ -767,8 +783,8 @@ public class DocuSignProvider : ISignaturePort
                 FileName = fileName,
                 ContentType = "application/pdf",
                 Content = ms.ToArray(),
-                SignedAt = DateTime.TryParse(envelope.CompletedDateTime, out var completed) 
-                    ? completed 
+                SignedAt = DateTime.TryParse(envelope.CompletedDateTime, out var completed)
+                    ? completed
                     : DateTime.UtcNow
             };
         }
@@ -781,7 +797,7 @@ public class DocuSignProvider : ISignaturePort
 
     /// <inheritdoc />
     public async Task<byte[]> GetAuditTrailAsync(
-        string requestId, 
+        string requestId,
         CancellationToken cancellationToken = default)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(requestId);
@@ -792,7 +808,7 @@ public class DocuSignProvider : ISignaturePort
             var envelopesApi = new EnvelopesApi(client);
 
             // Get the certificate of completion (audit trail document)
-            var docStream = await Task.Run(() => 
+            var docStream = await Task.Run(() =>
                 envelopesApi.GetDocument(_config.AccountId, requestId, "certificate"), cancellationToken);
 
             using var ms = new MemoryStream();
@@ -809,10 +825,11 @@ public class DocuSignProvider : ISignaturePort
     /// <inheritdoc />
     public async Task<SignatureWebhookResult> ProcessWebhookAsync(
         string eventType,
-        string payload, 
-        string? signature = null, 
+        string payload,
+        string? signature = null,
         CancellationToken cancellationToken = default)
     {
+        await Task.CompletedTask;
         ArgumentException.ThrowIfNullOrWhiteSpace(payload);
 
         try
@@ -921,8 +938,8 @@ public class DocuSignProvider : ISignaturePort
 
             var client = await GetAuthenticatedClientAsync(cancellationToken);
             var accountsApi = new AccountsApi(client);
-            
-            var accountInfo = await Task.Run(() => 
+
+            var accountInfo = await Task.Run(() =>
                 accountsApi.GetAccountInformation(_config.AccountId), cancellationToken);
 
             stopwatch.Stop();
@@ -1005,8 +1022,8 @@ public class DocuSignProvider : ISignaturePort
                 SentAt = DateTime.TryParse(s.SentDateTime, out var signerSent) ? signerSent : null,
                 ViewedAt = DateTime.TryParse(s.DeliveredDateTime, out var viewed) ? viewed : null,
                 SignedAt = DateTime.TryParse(s.SignedDateTime, out var signed) ? signed : null,
-                DeclinedAt = s.Status?.ToLowerInvariant() == "declined" 
-                    ? DateTime.TryParse(s.DeclinedDateTime, out var declined) ? declined : DateTime.UtcNow 
+                DeclinedAt = s.Status?.ToLowerInvariant() == "declined"
+                    ? DateTime.TryParse(s.DeclinedDateTime, out var declined) ? declined : DateTime.UtcNow
                     : null,
                 DeclineReason = s.DeclinedReason,
                 Order = int.TryParse(s.RoutingOrder, out var order) ? order : 1

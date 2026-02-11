@@ -1,7 +1,18 @@
-// CRM Solution - Pluggable Architecture
-// Meilisearch Health Check
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
 //
-// ASP.NET Core Health Check for Meilisearch provider.
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
@@ -47,7 +58,7 @@ public class MeilisearchHealthCheck : IHealthCheck
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Meilisearch health check failed");
-            
+
             return HealthCheckResult.Unhealthy(
                 $"Meilisearch health check failed: {ex.Message}",
                 exception: ex);

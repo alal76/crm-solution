@@ -1,8 +1,18 @@
-// CRM Solution - Pluggable Architecture
-// Chatwoot Provider Implementation
-// Week 12: Chatwoot Chat Provider - Core Implementation
-// 
-// Chatwoot API Reference: https://www.chatwoot.com/developers/api/
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -100,7 +110,7 @@ public class ChatwootProvider : IChatPort
         await EnsureSuccessAsync(response, "CreateContact", cancellationToken);
 
         var result = await response.Content.ReadFromJsonAsync<ChatwootContactResponse>(_jsonOptions, cancellationToken);
-        
+
         return MapToContact(result!.Payload!.Contact!);
     }
 
@@ -159,8 +169,8 @@ public class ChatwootProvider : IChatPort
             }
 
             var result = await response.Content.ReadFromJsonAsync<ChatwootContactSearchResponse>(_jsonOptions, cancellationToken);
-            
-            var contact = result?.Payload?.FirstOrDefault(c => 
+
+            var contact = result?.Payload?.FirstOrDefault(c =>
                 string.Equals(c.Email, email, StringComparison.OrdinalIgnoreCase));
 
             return contact != null ? MapToContact(contact) : null;
@@ -195,8 +205,8 @@ public class ChatwootProvider : IChatPort
             }
 
             var result = await response.Content.ReadFromJsonAsync<ChatwootContactSearchResponse>(_jsonOptions, cancellationToken);
-            
-            var contact = result?.Payload?.FirstOrDefault(c => 
+
+            var contact = result?.Payload?.FirstOrDefault(c =>
                 NormalizePhoneNumber(c.PhoneNumber) == normalizedPhone);
 
             return contact != null ? MapToContact(contact) : null;
@@ -341,7 +351,7 @@ public class ChatwootProvider : IChatPort
         try
         {
             var url = $"/api/v1/accounts/{_config.AccountId}/contacts/{contactExternalId}/conversations";
-            
+
             var response = await _httpClient.GetAsync(url, cancellationToken);
 
             if (!response.IsSuccessStatusCode)
@@ -350,12 +360,12 @@ public class ChatwootProvider : IChatPort
             }
 
             var result = await response.Content.ReadFromJsonAsync<ChatwootConversationListResponse>(_jsonOptions, cancellationToken);
-            
+
             var conversations = result?.Payload ?? Enumerable.Empty<ChatwootConversationPayload>();
-            
+
             if (!string.IsNullOrWhiteSpace(status))
             {
-                conversations = conversations.Where(c => 
+                conversations = conversations.Where(c =>
                     string.Equals(c.Status, status, StringComparison.OrdinalIgnoreCase));
             }
 
@@ -429,16 +439,16 @@ public class ChatwootProvider : IChatPort
             }
 
             var result = await response.Content.ReadFromJsonAsync<ChatwootMessageListResponse>(_jsonOptions, cancellationToken);
-            
+
             IEnumerable<ChatwootMessagePayload> messages = result?.Payload ?? Enumerable.Empty<ChatwootMessagePayload>();
-            
+
             // Filter by afterMessageId if specified
             if (!string.IsNullOrWhiteSpace(afterMessageId))
             {
                 var afterId = long.TryParse(afterMessageId, out var id) ? id : 0;
                 messages = messages.Where(m => m.Id > afterId);
             }
-            
+
             return messages
                 .Take(limit)
                 .Select(m => MapToMessage(m, conversationId));
@@ -529,7 +539,7 @@ public class ChatwootProvider : IChatPort
             }
 
             var result = await response.Content.ReadFromJsonAsync<List<ChatwootAgentPayload>>(_jsonOptions, cancellationToken);
-            
+
             return (result ?? new List<ChatwootAgentPayload>()).Select(MapToAgent);
         }
         catch (Exception ex)
@@ -596,7 +606,7 @@ public class ChatwootProvider : IChatPort
         try
         {
             var webhookData = JsonSerializer.Deserialize<ChatwootWebhookPayload>(payload, _jsonOptions);
-            
+
             return Task.FromResult(new ChatWebhookResult
             {
                 Success = true,
@@ -685,8 +695,8 @@ public class ChatwootProvider : IChatPort
     #region Helper Methods
 
     private Dictionary<string, object> BuildCustomAttributes(
-        int? crmContactId, 
-        int? crmAccountId, 
+        int? crmContactId,
+        int? crmAccountId,
         Dictionary<string, object>? additionalAttributes)
     {
         var attributes = new Dictionary<string, object>();
@@ -727,7 +737,7 @@ public class ChatwootProvider : IChatPort
         if (!response.IsSuccessStatusCode)
         {
             var content = await response.Content.ReadAsStringAsync(cancellationToken);
-            _logger.LogError("Chatwoot {Operation} failed: {StatusCode} - {Content}", 
+            _logger.LogError("Chatwoot {Operation} failed: {StatusCode} - {Content}",
                 operation, response.StatusCode, content);
             throw new HttpRequestException($"Chatwoot {operation} failed: {response.StatusCode}");
         }

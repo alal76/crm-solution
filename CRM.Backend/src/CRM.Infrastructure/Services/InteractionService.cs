@@ -114,7 +114,7 @@ public class InteractionService : IInteractionService
             _dbContext.Interactions.Add(interaction);
             await _dbContext.SaveChangesAsync();
 
-            _logger.LogInformation("Created interaction {InteractionId} for account {AccountId}", 
+            _logger.LogInformation("Created interaction {InteractionId} for account {AccountId}",
                 interaction.Id, interaction.AccountId);
 
             return interaction;
@@ -231,8 +231,8 @@ public class InteractionService : IInteractionService
                 }
                 if (!string.IsNullOrEmpty(request.Notes))
                 {
-                    existing.MeetingNotes = string.IsNullOrEmpty(existing.MeetingNotes) 
-                        ? request.Notes 
+                    existing.MeetingNotes = string.IsNullOrEmpty(existing.MeetingNotes)
+                        ? request.Notes
                         : $"{existing.MeetingNotes}\n\n{request.Notes}";
                 }
             }
@@ -277,7 +277,7 @@ public class InteractionService : IInteractionService
             _dbContext.Interactions.Add(interaction);
             await _dbContext.SaveChangesAsync();
 
-            _logger.LogInformation("Logged interaction {InteractionId} for account {AccountId}", 
+            _logger.LogInformation("Logged interaction {InteractionId} for account {AccountId}",
                 interaction.Id, request.CustomerId);
 
             return interaction;
@@ -291,8 +291,8 @@ public class InteractionService : IInteractionService
 
     /// <inheritdoc />
     public async Task<InteractionStatistics> GetStatisticsAsync(
-        int? customerId = null, 
-        DateTime? fromDate = null, 
+        int? customerId = null,
+        DateTime? fromDate = null,
         DateTime? toDate = null)
     {
         _logger.LogDebug("Getting interaction statistics");

@@ -4,53 +4,66 @@ This directory contains the active CI/CD workflows for the CRM Solution project.
 
 ## Active Workflows
 
-### 1. **ci-cd.yml** - Main CI/CD Pipeline
-- **Status**: ✅ Active
+### 1. **ci-cd.yml** — Main CI/CD Pipeline
 - **Triggers**: Push and PR to `main` and `develop` branches
 - **Purpose**: Complete CI/CD pipeline with comprehensive testing and Docker builds
 - **Jobs**:
-  - Frontend Tests & Build (Node 18.x, 20.x)
-  - Backend Tests & Build (.NET 8.0)
-  - Docker Build (API and Frontend images)
-  - Code Quality Checks (ESLint, StyleCop)
-  - Security Scan (npm audit, Dependency Check)
-  - Integration Tests (with MariaDB)
-  - Test Report Generation
+  - **Frontend Tests & Build** — Node 18.x + 20.x matrix, TypeScript check, unit tests, bundle build
+  - **Backend Tests & Build** — .NET 8.0, all 3 test projects (Core must pass, others continue-on-error)
+  - **BVT (Build Verification Tests)** — Playwright API tests against live API + MariaDB (118 tests, must pass)
+  - **Docker Build & Push** — API and Frontend images to GHCR (only after all tests pass)
+  - **Code Quality** — ESLint, StyleCop analysis with threshold
+  - **Security Scan** — npm audit, .NET vulnerability report
+  - **Test Report** — TRX → GitHub check summary
 
-### 2. **docker-build-deploy.yml** - Build and Deploy
-- **Status**: ✅ Active
+### 2. **docker-build-deploy.yml** — Build and Deploy
 - **Triggers**: Push and PR to `main` and `develop` branches
-- **Purpose**: Simplified Docker build and deployment workflow
+- **Purpose**: Docker build + Kubernetes deployment with full test gates
 - **Jobs**:
-  - Build and push Docker images
-  - Backend tests
-  - Frontend tests
-  - Deploy to Kubernetes (main branch only, with secrets)
+  - **Build** — Docker images (API + Frontend) to GHCR
+  - **Backend Tests** — All 3 test projects (Core must pass)
+  - **BVT Tests** — Playwright API tests against live API + MariaDB
+  - **Frontend Tests** — Unit tests + production build
+  - **Deploy** — Kubernetes (main branch only, requires `KUBE_CONFIG` secret)
 
-### 3. **copilot-swe-agent/copilot** - GitHub Copilot Agent
-- **Status**: ✅ Active (Dynamic)
-- **Purpose**: GitHub Copilot coding agent workflow
+### 3. **copilot-swe-agent/copilot** — GitHub Copilot Agent
 - **Managed by**: GitHub Copilot automation
+
+## Test Projects
+
+All 3 backend test projects are included in `CRM.sln` and run on every build:
+
+| Project | Assembly | Path | Tests | Description |
+|---------|----------|------|-------|-------------|
+| CRM.Tests.Unit.Core | CRM.Tests.Unit.Core.dll | `tests/Unit/Core/` | ~2,854 | Entity & DTO unit tests (**all pass**) |
+| CRM.Tests.Services | CRM.Tests.Services.dll | `tests/CRM.Tests/` | ~483 | Service & integration tests (23 pre-existing failures) |
+| CRM.Tests | CRM.Tests.dll | `tests/` | ~1,766 | Functional & provider tests (68 pre-existing failures) |
+
+**BVT Tests** (Playwright, in `e2e-tests/`):
+- 118 API-level tests — no browser required
+- Run against live API + MariaDB in CI
+- Config: `playwright.bvt.config.ts`
 
 ## Workflow Comparison
 
 | Feature | ci-cd.yml | docker-build-deploy.yml |
 |---------|-----------|------------------------|
 | Frontend Tests | ✅ Matrix (18.x, 20.x) | ✅ Node 20.x |
-| Backend Tests | ✅ .NET 8.0 | ✅ .NET 8.0 |
-| Docker Build | ✅ After tests pass | ✅ Always |
+| Backend Tests | ✅ All 3 test projects | ✅ All 3 test projects |
+| BVT Tests | ✅ Playwright + MariaDB | ✅ Playwright + MariaDB |
+| Docker Build | ✅ After all tests pass | ✅ Parallel with tests |
 | Code Quality | ✅ ESLint, StyleCop | ❌ |
-| Security Scan | ✅ npm audit, OWASP | ❌ |
-| Integration Tests | ✅ With MariaDB | ❌ |
+| Security Scan | ✅ npm audit, .NET vuln | ❌ |
 | Kubernetes Deploy | ❌ | ✅ If secrets configured |
-| Test Reports | ✅ Comprehensive | ❌ |
+| Test Reports | ✅ TRX + BVT artifacts | ❌ |
+| Build Caching | ✅ GHA cache | ❌ |
 
 ## Recommended Usage
 
-- **For Pull Requests**: Both workflows run automatically
+- **For Pull Requests**: Both workflows run automatically to validate changes
 - **For Main Branch**: 
-  - `ci-cd.yml` provides comprehensive testing and quality gates
-  - `docker-build-deploy.yml` handles deployment if K8s secrets are configured
+  - `ci-cd.yml` provides comprehensive testing, quality gates, and Docker image publishing
+  - `docker-build-deploy.yml` handles Kubernetes deployment if `KUBE_CONFIG` secret is configured
 
 ## Legacy CI/CD Files
 
@@ -61,23 +74,28 @@ The following Azure DevOps pipeline files are preserved for reference but are **
 
 These files are maintained for historical reference and can be reactivated if Azure DevOps integration is needed in the future.
 
-## Secrets Required for Deployment
+## Secrets Required
 
-The `docker-build-deploy.yml` workflow requires the following secrets for deployment:
-- `GITHUB_TOKEN` - Automatically provided by GitHub Actions
-- `KUBE_CONFIG` - Kubernetes configuration (base64 encoded) - Optional, deployment skipped if not set
+| Secret | Workflow | Purpose | Required |
+|--------|----------|---------|----------|
+| `GITHUB_TOKEN` | Both | Container registry auth | Auto-provided |
+| `KUBE_CONFIG` | docker-build-deploy | K8s deployment (base64) | Optional — deploy skipped if absent |
+
+## Container Registry
+
+- **Registry**: `ghcr.io` (GitHub Container Registry)
+- **API Image**: `ghcr.io/<owner>/crm-solution/crm-api`
+- **Frontend Image**: `ghcr.io/<owner>/crm-solution/crm-frontend`
+- **Tags**: branch name, commit SHA, semver (if tagged)
 
 ## Maintenance Notes
 
 - Both active workflows use the same base images and build configurations
-- Docker image tags use Git commit SHA and branch names
-- Container registry: `ghcr.io` (GitHub Container Registry)
-- All workflows use GitHub Actions cache to speed up builds
-
-## Future Improvements
-
-Consider consolidating the two workflows or making `docker-build-deploy.yml` call `ci-cd.yml` as a prerequisite to avoid duplication and ensure consistent testing before deployment.
+- Frontend uses `npm ci --legacy-peer-deps` for reproducible installs
+- StyleCop analysis runs in **Debug** mode (Release suppresses StyleCop analyzers)
+- BVT tests start a live API + MariaDB service container and run 118 Playwright API tests
+- Pre-existing test failures in Services/Main use `continue-on-error`; Core and BVT must pass
 
 ---
 
-Last Updated: 2026-02-06
+Last Updated: 2026-02-21
