@@ -32,12 +32,6 @@ The following items remain from the remediation effort:
 | P-08 | 🟢 Low | Create Playwright ITSM E2E tests | ~55 tests estimated |
 | P-09 | 🟢 Low | Unskip ~47 E2E tests | 6.5% of tests skipped |
 
-### Backend Services
-
-| ID | Priority | Description | Notes |
-|----|----------|-------------|-------|
-| P-15 | 🟢 Low | 28 ITSM_ADVANCED services | 460+ build errors — entity model alignment needed |
-
 ### Webhooks (Deferred)
 
 | ID | Priority | Description | Notes |
@@ -64,8 +58,8 @@ The following items remain from the remediation effort:
 |----------|-------|
 | 🔴 Critical | 0 |
 | 🟡 Medium | 4 |
-| 🟢 Low | 6 |
-| **Total** | **10** |
+| 🟢 Low | 5 |
+| **Total** | **9** |
 
 ---
 
