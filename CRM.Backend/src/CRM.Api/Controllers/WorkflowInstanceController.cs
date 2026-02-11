@@ -18,6 +18,7 @@ using CRM.Core.Entities.Workflow;
 using CRM.Core.DTOs.Workflow;
 using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 
@@ -62,6 +63,7 @@ public class WorkflowInstanceController : ControllerBase
     /// Get all workflow instances with filtering
     /// </summary>
     [HttpGet]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetInstances(
         [FromQuery] int? definitionId = null,
         [FromQuery] string? status = null,
@@ -112,6 +114,8 @@ public class WorkflowInstanceController : ControllerBase
     /// Get a specific workflow instance with full details
     /// </summary>
     [HttpGet("{id}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetInstance(int id)
     {
         try
@@ -253,6 +257,7 @@ public class WorkflowInstanceController : ControllerBase
     /// Get instances for a specific entity
     /// </summary>
     [HttpGet("entity/{entityType}/{entityId}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetInstancesForEntity(string entityType, int entityId)
     {
         try
@@ -297,6 +302,8 @@ public class WorkflowInstanceController : ControllerBase
     /// Start a new workflow instance
     /// </summary>
     [HttpPost]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> StartWorkflow([FromBody] StartWorkflowDto dto)
     {
         try
@@ -327,6 +334,8 @@ public class WorkflowInstanceController : ControllerBase
     /// Cancel a workflow instance
     /// </summary>
     [HttpPost("{id}/cancel")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CancelInstance(int id, [FromBody] CancelInstanceDto dto)
     {
         try
@@ -346,6 +355,8 @@ public class WorkflowInstanceController : ControllerBase
     /// Pause a workflow instance
     /// </summary>
     [HttpPost("{id}/pause")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> PauseInstance(int id)
     {
         try
@@ -365,6 +376,8 @@ public class WorkflowInstanceController : ControllerBase
     /// Resume a paused workflow instance
     /// </summary>
     [HttpPost("{id}/resume")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> ResumeInstance(int id)
     {
         try
@@ -384,6 +397,8 @@ public class WorkflowInstanceController : ControllerBase
     /// Retry a failed workflow instance
     /// </summary>
     [HttpPost("{id}/retry")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> RetryInstance(int id)
     {
         try
@@ -404,6 +419,8 @@ public class WorkflowInstanceController : ControllerBase
     /// </summary>
     [HttpPost("{id}/skip-node/{nodeId}")]
     [Authorize(Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> SkipNode(int id, int nodeId, [FromBody] SkipNodeDto dto)
     {
         try
@@ -427,6 +444,7 @@ public class WorkflowInstanceController : ControllerBase
     /// Get human tasks for the current user
     /// </summary>
     [HttpGet("my-tasks")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetMyTasks()
     {
         try
@@ -466,6 +484,8 @@ public class WorkflowInstanceController : ControllerBase
     /// Claim a human task
     /// </summary>
     [HttpPost("tasks/{taskId}/claim")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> ClaimTask(int taskId)
     {
         try
@@ -486,6 +506,8 @@ public class WorkflowInstanceController : ControllerBase
     /// Complete a human task
     /// </summary>
     [HttpPost("tasks/{taskId}/complete")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CompleteTask(int taskId, [FromBody] CompleteTaskDto dto)
     {
         try
@@ -507,6 +529,8 @@ public class WorkflowInstanceController : ControllerBase
     /// </summary>
     [HttpPost("tasks/{taskId}/reassign")]
     [Authorize(Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> ReassignTask(int taskId, [FromQuery] int assignToUserId)
     {
         try
@@ -530,6 +554,7 @@ public class WorkflowInstanceController : ControllerBase
     /// Get logs for a specific workflow instance
     /// </summary>
     [HttpGet("{id}/logs")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetLogs(
         int id,
         [FromQuery] string? level = null,
@@ -580,6 +605,7 @@ public class WorkflowInstanceController : ControllerBase
     /// Get audit log for a workflow definition
     /// </summary>
     [HttpGet("definitions/{definitionId}/audit-log")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetAuditLog(
         int definitionId,
         [FromQuery] string? eventType = null,
@@ -624,6 +650,7 @@ public class WorkflowInstanceController : ControllerBase
     /// Export audit log as CSV
     /// </summary>
     [HttpGet("definitions/{definitionId}/audit-log/export")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> ExportAuditLog(
         int definitionId,
         [FromQuery] DateTime? fromDate = null,
@@ -646,6 +673,8 @@ public class WorkflowInstanceController : ControllerBase
     /// Get execution timeline for a workflow instance
     /// </summary>
     [HttpGet("{id}/timeline")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetExecutionTimeline(int id)
     {
         try
@@ -714,6 +743,7 @@ public class WorkflowInstanceController : ControllerBase
     /// <param name="toDate">End of date range (default: now)</param>
     /// <param name="topN">Number of items for top-N lists (default: 10)</param>
     [HttpGet("dashboard")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetDashboard(
         [FromQuery] DateTime? fromDate = null,
         [FromQuery] DateTime? toDate = null,
@@ -735,6 +765,7 @@ public class WorkflowInstanceController : ControllerBase
     /// Get workflow instance statistics
     /// </summary>
     [HttpGet("statistics")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetStatistics(
         [FromQuery] int? definitionId = null,
         [FromQuery] DateTime? fromDate = null,
@@ -761,6 +792,9 @@ public class WorkflowInstanceController : ControllerBase
     /// Evaluates outgoing transitions and handles parallel gateways, join gateways, and subprocesses.
     /// </summary>
     [HttpPost("{id}/advance/{nodeInstanceId}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> AdvanceWorkflow(int id, int nodeInstanceId)
     {
         try
@@ -798,6 +832,8 @@ public class WorkflowInstanceController : ControllerBase
     /// Optionally scoped to branches from a specific gateway node.
     /// </summary>
     [HttpGet("{id}/parallel-branches")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetParallelBranchStatus(
         int id,
         [FromQuery] int? gatewayNodeId = null)
@@ -822,6 +858,7 @@ public class WorkflowInstanceController : ControllerBase
     /// Get child workflow instances spawned by a parent instance (via Subprocess nodes).
     /// </summary>
     [HttpGet("{id}/child-instances")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetChildInstances(int id)
     {
         try
@@ -858,6 +895,8 @@ public class WorkflowInstanceController : ControllerBase
     /// Useful for validating webhook/API configurations before saving them on a node.
     /// </summary>
     [HttpPost("callout/test")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> TestHttpCallout([FromBody] HttpCalloutConfig config)
     {
         try
@@ -883,6 +922,8 @@ public class WorkflowInstanceController : ControllerBase
     /// Validate an HTTP callout configuration without executing it.
     /// </summary>
     [HttpPost("callout/validate")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public IActionResult ValidateHttpCallout([FromBody] HttpCalloutConfig config)
     {
         try
@@ -909,6 +950,8 @@ public class WorkflowInstanceController : ControllerBase
     /// Individual failures do not abort the batch.
     /// </summary>
     [HttpPost("bulk-start")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> BulkStartWorkflow([FromBody] BulkStartWorkflowRequest request)
     {
         try
@@ -952,6 +995,7 @@ public class WorkflowInstanceController : ControllerBase
     /// Optionally filter by workflow instance ID.
     /// </summary>
     [HttpGet("waiting-nodes")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetWaitingNodes([FromQuery] int? instanceId = null)
     {
         try
@@ -981,6 +1025,9 @@ public class WorkflowInstanceController : ControllerBase
     /// Manually resume a waiting node, skipping the remaining wait time.
     /// </summary>
     [HttpPost("waiting-nodes/{nodeInstanceId}/resume")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> ResumeWaitingNode(int nodeInstanceId)
     {
         try

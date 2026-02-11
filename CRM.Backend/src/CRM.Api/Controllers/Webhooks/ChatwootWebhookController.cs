@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -79,6 +80,7 @@ public class ChatwootWebhookController : ControllerBase
     /// - contact_updated: Contact details updated
     /// </remarks>
     [HttpPost]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> HandleWebhook(
         [FromHeader(Name = "X-Chatwoot-Signature")] string? signature)
     {
@@ -139,6 +141,7 @@ public class ChatwootWebhookController : ControllerBase
     /// Verify webhook connectivity.
     /// </summary>
     [HttpGet]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public IActionResult VerifyWebhook()
     {
         return Ok(new

@@ -22,6 +22,7 @@ using CRM.Core.Interfaces;
 using CRM.Core.Ports.Output.Providers;
 using CRM.Infrastructure.Providers.DocuSign;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 
@@ -59,6 +60,7 @@ public class DocuSignWebhookController : ControllerBase
     /// </summary>
     [HttpPost]
     [Consumes("application/json", "application/xml", "text/xml")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> HandleWebhook(CancellationToken cancellationToken)
     {
         try

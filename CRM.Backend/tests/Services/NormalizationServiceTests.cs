@@ -14,438 +14,559 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using Xunit;
-using Moq;
-using FluentAssertions;
-using Microsoft.Extensions.Logging;
-using CRM.Core.Dtos;
+using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using CRM.Infrastructure.Services;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using System;
-using System.Linq;
+using CRM.Tests.Helpers;
+using FluentAssertions;
+using Microsoft.EntityFrameworkCore;
+using Moq;
+using Xunit;
 
 namespace CRM.Tests.Services;
 
 /// <summary>
-/// Unit tests for NormalizationService
-/// Covers: Data normalization, formatting, standardization
+/// Unit tests for NormalizationService.
+/// Covers: GetTagsAsync, GetCustomFieldsAsync, GetPrimaryEmailAsync,
+/// GetPrimaryPhoneAsync, GetPrimaryFaxAsync, GetPrimaryAddressAsync,
+/// GetPrimarySocialAccountAsync.
 /// </summary>
 public class NormalizationServiceTests
 {
-    private readonly Mock<ILogger<NormalizationService>> _mockLogger;
+    private readonly Mock<ICrmDbContext> _mockContext;
     private readonly NormalizationService _service;
 
     public NormalizationServiceTests()
     {
-        _mockLogger = new Mock<ILogger<NormalizationService>>();
-        _service = new NormalizationService(_mockLogger.Object);
+        _mockContext = new Mock<ICrmDbContext>();
+        _service = new NormalizationService(_mockContext.Object);
     }
 
-    #region Phone Number Tests
-
-    [Theory]
-    [InlineData("1234567890", "+1 (123) 456-7890")]
-    [InlineData("123-456-7890", "+1 (123) 456-7890")]
-    [InlineData("(123) 456-7890", "+1 (123) 456-7890")]
-    [InlineData("+1 123 456 7890", "+1 (123) 456-7890")]
-    public void NormalizePhoneNumber_USFormats_ReturnsStandardFormat(string input, string expected)
+    private void SetupDbSets(
+        List<EntityTag>? entityTags = null,
+        List<CustomField>? customFields = null,
+        List<ContactInfoLink>? contactInfoLinks = null)
     {
-        // Act
-        var result = _service.NormalizePhoneNumber(input, "US");
+        entityTags ??= new List<EntityTag>();
+        customFields ??= new List<CustomField>();
+        contactInfoLinks ??= new List<ContactInfoLink>();
 
-        // Assert
-        result.Should().Be(expected);
+        var mockEntityTags = MockDbSetFactory.CreateMockDbSet(entityTags);
+        _mockContext.Setup(c => c.EntityTags).Returns(mockEntityTags.Object);
+
+        var mockCustomFields = MockDbSetFactory.CreateMockDbSet(customFields);
+        _mockContext.Setup(c => c.CustomFields).Returns(mockCustomFields.Object);
+
+        var mockContactInfoLinks = MockDbSetFactory.CreateMockDbSet(contactInfoLinks);
+        _mockContext.Setup(c => c.ContactInfoLinks).Returns(mockContactInfoLinks.Object);
     }
+
+    // ========================================================================
+    // GetTagsAsync
+    // ========================================================================
 
     [Fact]
-    public void NormalizePhoneNumber_InvalidNumber_ReturnsOriginal()
+    public async Task GetTagsAsync_ShouldReturnCommaSeparatedTags_WhenTagNamesExist()
     {
         // Arrange
-        var input = "invalid";
-
-        // Act
-        var result = _service.NormalizePhoneNumber(input, "US");
-
-        // Assert
-        result.Should().Be(input);
-    }
-
-    [Fact]
-    public void NormalizePhoneNumber_EmptyInput_ReturnsEmpty()
-    {
-        // Act
-        var result = _service.NormalizePhoneNumber("", "US");
-
-        // Assert
-        result.Should().BeEmpty();
-    }
-
-    [Theory]
-    [InlineData("+44 20 7946 0958", "UK")]
-    [InlineData("+49 30 12345678", "DE")]
-    public void NormalizePhoneNumber_InternationalFormats_ReturnsNormalized(string input, string country)
-    {
-        // Act
-        var result = _service.NormalizePhoneNumber(input, country);
-
-        // Assert
-        result.Should().NotBeNullOrEmpty();
-    }
-
-    #endregion
-
-    #region Email Tests
-
-    [Theory]
-    [InlineData("Test@Example.COM", "test@example.com")]
-    [InlineData("  user@domain.com  ", "user@domain.com")]
-    [InlineData("USER@DOMAIN.ORG", "user@domain.org")]
-    public void NormalizeEmail_ValidEmails_ReturnsLowercase(string input, string expected)
-    {
-        // Act
-        var result = _service.NormalizeEmail(input);
-
-        // Assert
-        result.Should().Be(expected);
-    }
-
-    [Fact]
-    public void NormalizeEmail_WithSpaces_TrimsSpaces()
-    {
-        // Arrange
-        var input = "  test@example.com  ";
-
-        // Act
-        var result = _service.NormalizeEmail(input);
-
-        // Assert
-        result.Should().Be("test@example.com");
-    }
-
-    [Fact]
-    public void NormalizeEmail_EmptyInput_ReturnsEmpty()
-    {
-        // Act
-        var result = _service.NormalizeEmail("");
-
-        // Assert
-        result.Should().BeEmpty();
-    }
-
-    #endregion
-
-    #region Name Tests
-
-    [Theory]
-    [InlineData("john doe", "John Doe")]
-    [InlineData("JOHN DOE", "John Doe")]
-    [InlineData("jOHN dOE", "John Doe")]
-    public void NormalizeName_VariousFormats_ReturnsTitleCase(string input, string expected)
-    {
-        // Act
-        var result = _service.NormalizeName(input);
-
-        // Assert
-        result.Should().Be(expected);
-    }
-
-    [Theory]
-    [InlineData("mcdonald", "McDonald")]
-    [InlineData("o'brien", "O'Brien")]
-    [InlineData("van der berg", "Van Der Berg")]
-    public void NormalizeName_SpecialCases_HandlesCorrectly(string input, string expected)
-    {
-        // Act
-        var result = _service.NormalizeName(input);
-
-        // Assert
-        result.Should().Be(expected);
-    }
-
-    [Fact]
-    public void NormalizeName_WithExtraSpaces_TrimsSpaces()
-    {
-        // Arrange
-        var input = "  John   Doe  ";
-
-        // Act
-        var result = _service.NormalizeName(input);
-
-        // Assert
-        result.Should().Be("John Doe");
-    }
-
-    #endregion
-
-    #region Address Tests
-
-    [Fact]
-    public void NormalizeAddress_ValidAddress_NormalizesComponents()
-    {
-        // Arrange
-        var address = new AddressInput
+        var tags = new List<EntityTag>
         {
-            Street = "123 main street",
-            City = "new york",
-            State = "ny",
-            ZipCode = "10001",
-            Country = "usa"
+            new EntityTag { Id = 1, EntityType = "Account", EntityId = 10, TagName = "VIP", IsDeleted = false },
+            new EntityTag { Id = 2, EntityType = "Account", EntityId = 10, TagName = "Enterprise", IsDeleted = false }
         };
+        SetupDbSets(entityTags: tags);
 
         // Act
-        var result = _service.NormalizeAddress(address);
-
-        // Assert
-        result.Street.Should().Be("123 Main Street");
-        result.City.Should().Be("New York");
-        result.State.Should().Be("NY");
-        result.Country.Should().Be("USA");
-    }
-
-    [Fact]
-    public void NormalizeAddress_WithAbbreviations_ExpandsAbbreviations()
-    {
-        // Arrange
-        var address = new AddressInput
-        {
-            Street = "123 main st",
-            City = "los angeles"
-        };
-
-        // Act
-        var result = _service.NormalizeAddress(address);
-
-        // Assert
-        result.Street.Should().Contain("Street");
-    }
-
-    [Fact]
-    public void NormalizeAddress_EmptyComponents_HandlesGracefully()
-    {
-        // Arrange
-        var address = new AddressInput
-        {
-            Street = "",
-            City = "",
-            State = "",
-            ZipCode = ""
-        };
-
-        // Act
-        var result = _service.NormalizeAddress(address);
+        var result = await _service.GetTagsAsync("Account", 10);
 
         // Assert
         result.Should().NotBeNull();
-    }
-
-    #endregion
-
-    #region Company Name Tests
-
-    [Theory]
-    [InlineData("acme corp", "Acme Corp")]
-    [InlineData("ACME CORPORATION", "Acme Corporation")]
-    [InlineData("ibm", "IBM")]
-    public void NormalizeCompanyName_VariousFormats_ReturnsNormalized(string input, string expected)
-    {
-        // Act
-        var result = _service.NormalizeCompanyName(input);
-
-        // Assert
-        result.Should().Be(expected);
-    }
-
-    [Theory]
-    [InlineData("acme, inc.", "Acme, Inc.")]
-    [InlineData("acme llc", "Acme LLC")]
-    [InlineData("acme ltd", "Acme Ltd")]
-    public void NormalizeCompanyName_WithSuffix_PreservesSuffix(string input, string expected)
-    {
-        // Act
-        var result = _service.NormalizeCompanyName(input);
-
-        // Assert
-        result.Should().Be(expected);
-    }
-
-    #endregion
-
-    #region URL Tests
-
-    [Theory]
-    [InlineData("example.com", "https://example.com")]
-    [InlineData("http://example.com", "https://example.com")]
-    [InlineData("HTTPS://EXAMPLE.COM", "https://example.com")]
-    public void NormalizeUrl_VariousFormats_ReturnsHttps(string input, string expected)
-    {
-        // Act
-        var result = _service.NormalizeUrl(input);
-
-        // Assert
-        result.Should().Be(expected);
+        result.Should().Contain("VIP");
+        result.Should().Contain("Enterprise");
     }
 
     [Fact]
-    public void NormalizeUrl_WithTrailingSlash_RemovesSlash()
+    public async Task GetTagsAsync_ShouldFallBackToTagNavName_WhenTagNameIsNull()
     {
         // Arrange
-        var input = "https://example.com/";
+        var tags = new List<EntityTag>
+        {
+            new EntityTag
+            {
+                Id = 1, EntityType = "Account", EntityId = 10, TagName = null,
+                Tag = new Tag { Id = 100, Name = "Premium" },
+                IsDeleted = false
+            }
+        };
+        SetupDbSets(entityTags: tags);
 
         // Act
-        var result = _service.NormalizeUrl(input);
+        var result = await _service.GetTagsAsync("Account", 10);
 
         // Assert
-        result.Should().Be("https://example.com");
+        result.Should().NotBeNull();
+        result.Should().Contain("Premium");
     }
 
     [Fact]
-    public void NormalizeUrl_EmptyInput_ReturnsEmpty()
+    public async Task GetTagsAsync_ShouldReturnNull_WhenNoTagsFound()
     {
+        // Arrange
+        SetupDbSets(entityTags: new List<EntityTag>());
+
         // Act
-        var result = _service.NormalizeUrl("");
-
-        // Assert
-        result.Should().BeEmpty();
-    }
-
-    #endregion
-
-    #region Currency Tests
-
-    [Theory]
-    [InlineData("$1,234.56", 1234.56)]
-    [InlineData("1234.56", 1234.56)]
-    [InlineData("€1.234,56", 1234.56)]
-    public void NormalizeCurrency_VariousFormats_ReturnsDecimal(string input, decimal expected)
-    {
-        // Act
-        var result = _service.NormalizeCurrency(input);
-
-        // Assert
-        result.Should().Be(expected);
-    }
-
-    [Fact]
-    public void NormalizeCurrency_InvalidInput_ReturnsZero()
-    {
-        // Act
-        var result = _service.NormalizeCurrency("invalid");
-
-        // Assert
-        result.Should().Be(0);
-    }
-
-    #endregion
-
-    #region Date Tests
-
-    [Theory]
-    [InlineData("01/15/2024", "2024-01-15")]
-    [InlineData("15-01-2024", "2024-01-15")]
-    [InlineData("2024/01/15", "2024-01-15")]
-    public void NormalizeDate_VariousFormats_ReturnsISOFormat(string input, string expected)
-    {
-        // Act
-        var result = _service.NormalizeDate(input);
-
-        // Assert
-        result.Should().Be(expected);
-    }
-
-    [Fact]
-    public void NormalizeDate_InvalidDate_ReturnsNull()
-    {
-        // Act
-        var result = _service.NormalizeDate("invalid");
+        var result = await _service.GetTagsAsync("Account", 99);
 
         // Assert
         result.Should().BeNull();
     }
 
-    #endregion
-
-    #region Batch Normalization Tests
-
     [Fact]
-    public async Task NormalizeBatchAsync_ValidRecords_NormalizesAll()
+    public async Task GetTagsAsync_ShouldExcludeDeletedTags()
     {
         // Arrange
-        var records = new List<NormalizationRecord>
+        var tags = new List<EntityTag>
         {
-            new NormalizationRecord { Type = "phone", Value = "1234567890" },
-            new NormalizationRecord { Type = "email", Value = "TEST@EXAMPLE.COM" }
+            new EntityTag { Id = 1, EntityType = "Account", EntityId = 10, TagName = "Active", IsDeleted = false },
+            new EntityTag { Id = 2, EntityType = "Account", EntityId = 10, TagName = "Deleted", IsDeleted = true }
         };
+        SetupDbSets(entityTags: tags);
 
         // Act
-        var result = await _service.NormalizeBatchAsync(records);
+        var result = await _service.GetTagsAsync("Account", 10);
 
         // Assert
-        result.ProcessedCount.Should().Be(2);
+        result.Should().NotBeNull();
+        result.Should().Contain("Active");
+        result.Should().NotContain("Deleted");
     }
 
-    #endregion
-
-    #region Text Cleanup Tests
-
     [Fact]
-    public void CleanText_WithSpecialCharacters_RemovesSpecialChars()
+    public async Task GetTagsAsync_ShouldFilterByEntityTypeAndId()
     {
         // Arrange
-        var input = "Hello<script>alert('test')</script>World";
+        var tags = new List<EntityTag>
+        {
+            new EntityTag { Id = 1, EntityType = "Account", EntityId = 10, TagName = "Match", IsDeleted = false },
+            new EntityTag { Id = 2, EntityType = "Contact", EntityId = 10, TagName = "WrongType", IsDeleted = false },
+            new EntityTag { Id = 3, EntityType = "Account", EntityId = 20, TagName = "WrongId", IsDeleted = false }
+        };
+        SetupDbSets(entityTags: tags);
 
         // Act
-        var result = _service.CleanText(input);
+        var result = await _service.GetTagsAsync("Account", 10);
 
         // Assert
-        result.Should().NotContain("<script>");
+        result.Should().NotBeNull();
+        result.Should().Contain("Match");
+        result.Should().NotContain("WrongType");
+        result.Should().NotContain("WrongId");
     }
 
+    // ========================================================================
+    // GetCustomFieldsAsync
+    // ========================================================================
+
     [Fact]
-    public void CleanText_WithMultipleSpaces_NormalizesSpaces()
+    public async Task GetCustomFieldsAsync_ShouldReturnSemicolonSeparatedKeyValues()
     {
         // Arrange
-        var input = "Hello    World";
+        var fields = new List<CustomField>
+        {
+            new CustomField { Id = 1, EntityType = "Account", EntityId = 10, Key = "Region", Value = "EMEA" },
+            new CustomField { Id = 2, EntityType = "Account", EntityId = 10, Key = "Segment", Value = "Enterprise" }
+        };
+        SetupDbSets(customFields: fields);
 
         // Act
-        var result = _service.CleanText(input);
+        var result = await _service.GetCustomFieldsAsync("Account", 10);
 
         // Assert
-        result.Should().Be("Hello World");
+        result.Should().NotBeNull();
+        result.Should().Contain("Region=EMEA");
+        result.Should().Contain("Segment=Enterprise");
+        result.Should().Contain(";");
     }
-
-    #endregion
-
-    #region Statistics Tests
 
     [Fact]
-    public void GetNormalizationRules_ReturnsRules()
+    public async Task GetCustomFieldsAsync_ShouldReturnNull_WhenNoFieldsFound()
     {
+        // Arrange
+        SetupDbSets(customFields: new List<CustomField>());
+
         // Act
-        var result = _service.GetNormalizationRules();
+        var result = await _service.GetCustomFieldsAsync("Account", 99);
 
         // Assert
-        result.Should().NotBeEmpty();
-        result.Should().ContainKey("phone");
-        result.Should().ContainKey("email");
+        result.Should().BeNull();
     }
 
-    #endregion
-}
+    [Fact]
+    public async Task GetCustomFieldsAsync_ShouldFilterByEntityTypeAndId()
+    {
+        // Arrange
+        var fields = new List<CustomField>
+        {
+            new CustomField { Id = 1, EntityType = "Account", EntityId = 10, Key = "Match", Value = "Yes" },
+            new CustomField { Id = 2, EntityType = "Lead", EntityId = 10, Key = "WrongType", Value = "No" }
+        };
+        SetupDbSets(customFields: fields);
 
-// Supporting classes for tests
-public class AddressInput
-{
-    public string Street { get; set; } = string.Empty;
-    public string City { get; set; } = string.Empty;
-    public string State { get; set; } = string.Empty;
-    public string ZipCode { get; set; } = string.Empty;
-    public string Country { get; set; } = string.Empty;
-}
+        // Act
+        var result = await _service.GetCustomFieldsAsync("Account", 10);
 
-public class NormalizationRecord
-{
-    public string Type { get; set; } = string.Empty;
-    public string Value { get; set; } = string.Empty;
+        // Assert
+        result.Should().NotBeNull();
+        result.Should().Contain("Match=Yes");
+        result.Should().NotContain("WrongType");
+    }
+
+    // ========================================================================
+    // GetPrimaryEmailAsync
+    // ========================================================================
+
+    [Fact]
+    public async Task GetPrimaryEmailAsync_ShouldReturnPrimaryEmailValue()
+    {
+        // Arrange
+        var links = new List<ContactInfoLink>
+        {
+            new ContactInfoLink
+            {
+                Id = 1,
+                OwnerType = ContactInfoOwnerType.Account,
+                OwnerId = 10,
+                InfoKind = ContactInfoKind.ContactDetail,
+                IsPrimaryForOwner = true,
+                IsDeleted = false,
+                ContactDetail = new ContactDetail
+                {
+                    Id = 100,
+                    DetailType = ContactDetailType.Email,
+                    Value = "primary@example.com"
+                }
+            }
+        };
+        SetupDbSets(contactInfoLinks: links);
+
+        // Act
+        var result = await _service.GetPrimaryEmailAsync(ContactInfoOwnerType.Account, 10);
+
+        // Assert
+        result.Should().Be("primary@example.com");
+    }
+
+    [Fact]
+    public async Task GetPrimaryEmailAsync_ShouldReturnNull_WhenNoEmailLinks()
+    {
+        // Arrange
+        SetupDbSets(contactInfoLinks: new List<ContactInfoLink>());
+
+        // Act
+        var result = await _service.GetPrimaryEmailAsync(ContactInfoOwnerType.Account, 10);
+
+        // Assert
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task GetPrimaryEmailAsync_ShouldReturnNull_WhenDetailTypeIsPhone()
+    {
+        // Arrange
+        var links = new List<ContactInfoLink>
+        {
+            new ContactInfoLink
+            {
+                Id = 1,
+                OwnerType = ContactInfoOwnerType.Account,
+                OwnerId = 10,
+                InfoKind = ContactInfoKind.ContactDetail,
+                IsPrimaryForOwner = true,
+                IsDeleted = false,
+                ContactDetail = new ContactDetail
+                {
+                    Id = 100,
+                    DetailType = ContactDetailType.Phone,
+                    Value = "+1234567890"
+                }
+            }
+        };
+        SetupDbSets(contactInfoLinks: links);
+
+        // Act
+        var result = await _service.GetPrimaryEmailAsync(ContactInfoOwnerType.Account, 10);
+
+        // Assert
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task GetPrimaryEmailAsync_ShouldPreferPrimaryLink()
+    {
+        // Arrange
+        var links = new List<ContactInfoLink>
+        {
+            new ContactInfoLink
+            {
+                Id = 1,
+                OwnerType = ContactInfoOwnerType.Account,
+                OwnerId = 10,
+                InfoKind = ContactInfoKind.ContactDetail,
+                IsPrimaryForOwner = false,
+                IsDeleted = false,
+                ContactDetail = new ContactDetail { Id = 100, DetailType = ContactDetailType.Email, Value = "secondary@example.com" }
+            },
+            new ContactInfoLink
+            {
+                Id = 2,
+                OwnerType = ContactInfoOwnerType.Account,
+                OwnerId = 10,
+                InfoKind = ContactInfoKind.ContactDetail,
+                IsPrimaryForOwner = true,
+                IsDeleted = false,
+                ContactDetail = new ContactDetail { Id = 101, DetailType = ContactDetailType.Email, Value = "primary@example.com" }
+            }
+        };
+        SetupDbSets(contactInfoLinks: links);
+
+        // Act
+        var result = await _service.GetPrimaryEmailAsync(ContactInfoOwnerType.Account, 10);
+
+        // Assert
+        result.Should().Be("primary@example.com");
+    }
+
+    // ========================================================================
+    // GetPrimaryPhoneAsync
+    // ========================================================================
+
+    [Fact]
+    public async Task GetPrimaryPhoneAsync_ShouldReturnPrimaryPhoneValue()
+    {
+        // Arrange
+        var links = new List<ContactInfoLink>
+        {
+            new ContactInfoLink
+            {
+                Id = 1,
+                OwnerType = ContactInfoOwnerType.Contact,
+                OwnerId = 5,
+                InfoKind = ContactInfoKind.ContactDetail,
+                IsPrimaryForOwner = true,
+                IsDeleted = false,
+                ContactDetail = new ContactDetail { Id = 100, DetailType = ContactDetailType.Phone, Value = "+1-555-0100" }
+            }
+        };
+        SetupDbSets(contactInfoLinks: links);
+
+        // Act
+        var result = await _service.GetPrimaryPhoneAsync(ContactInfoOwnerType.Contact, 5);
+
+        // Assert
+        result.Should().Be("+1-555-0100");
+    }
+
+    [Fact]
+    public async Task GetPrimaryPhoneAsync_ShouldReturnNull_WhenNoPhoneLinks()
+    {
+        // Arrange
+        SetupDbSets(contactInfoLinks: new List<ContactInfoLink>());
+
+        // Act
+        var result = await _service.GetPrimaryPhoneAsync(ContactInfoOwnerType.Contact, 5);
+
+        // Assert
+        result.Should().BeNull();
+    }
+
+    // ========================================================================
+    // GetPrimaryFaxAsync
+    // ========================================================================
+
+    [Fact]
+    public async Task GetPrimaryFaxAsync_ShouldReturnPrimaryFaxValue()
+    {
+        // Arrange
+        var links = new List<ContactInfoLink>
+        {
+            new ContactInfoLink
+            {
+                Id = 1,
+                OwnerType = ContactInfoOwnerType.Lead,
+                OwnerId = 3,
+                InfoKind = ContactInfoKind.ContactDetail,
+                IsPrimaryForOwner = true,
+                IsDeleted = false,
+                ContactDetail = new ContactDetail { Id = 100, DetailType = ContactDetailType.Fax, Value = "+1-555-FAX1" }
+            }
+        };
+        SetupDbSets(contactInfoLinks: links);
+
+        // Act
+        var result = await _service.GetPrimaryFaxAsync(ContactInfoOwnerType.Lead, 3);
+
+        // Assert
+        result.Should().Be("+1-555-FAX1");
+    }
+
+    // ========================================================================
+    // GetPrimaryAddressAsync
+    // ========================================================================
+
+    [Fact]
+    public async Task GetPrimaryAddressAsync_ShouldReturnPrimaryAddress()
+    {
+        // Arrange
+        var address = new Address
+        {
+            Id = 50,
+            Label = "HQ",
+            Line1 = "123 Main St",
+            City = "Springfield",
+            State = "IL",
+            PostalCode = "62701",
+            Country = "United States"
+        };
+        var links = new List<ContactInfoLink>
+        {
+            new ContactInfoLink
+            {
+                Id = 1,
+                OwnerType = ContactInfoOwnerType.Account,
+                OwnerId = 10,
+                InfoKind = ContactInfoKind.Address,
+                IsPrimaryForOwner = true,
+                IsDeleted = false,
+                Address = address
+            }
+        };
+        SetupDbSets(contactInfoLinks: links);
+
+        // Act
+        var result = await _service.GetPrimaryAddressAsync(ContactInfoOwnerType.Account, 10);
+
+        // Assert
+        result.Should().NotBeNull();
+        result!.Line1.Should().Be("123 Main St");
+        result.City.Should().Be("Springfield");
+        result.State.Should().Be("IL");
+    }
+
+    [Fact]
+    public async Task GetPrimaryAddressAsync_ShouldReturnNull_WhenNoAddressLinks()
+    {
+        // Arrange
+        SetupDbSets(contactInfoLinks: new List<ContactInfoLink>());
+
+        // Act
+        var result = await _service.GetPrimaryAddressAsync(ContactInfoOwnerType.Account, 10);
+
+        // Assert
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task GetPrimaryAddressAsync_ShouldExcludeDeletedLinks()
+    {
+        // Arrange
+        var links = new List<ContactInfoLink>
+        {
+            new ContactInfoLink
+            {
+                Id = 1,
+                OwnerType = ContactInfoOwnerType.Account,
+                OwnerId = 10,
+                InfoKind = ContactInfoKind.Address,
+                IsPrimaryForOwner = true,
+                IsDeleted = true,
+                Address = new Address { Id = 50, Label = "Old", Line1 = "456 Elm", City = "Old Town" }
+            }
+        };
+        SetupDbSets(contactInfoLinks: links);
+
+        // Act
+        var result = await _service.GetPrimaryAddressAsync(ContactInfoOwnerType.Account, 10);
+
+        // Assert
+        result.Should().BeNull();
+    }
+
+    // ========================================================================
+    // GetPrimarySocialAccountAsync
+    // ========================================================================
+
+    [Fact]
+    public async Task GetPrimarySocialAccountAsync_ShouldReturnHandleOrUrl()
+    {
+        // Arrange
+        var links = new List<ContactInfoLink>
+        {
+            new ContactInfoLink
+            {
+                Id = 1,
+                OwnerType = ContactInfoOwnerType.Contact,
+                OwnerId = 5,
+                InfoKind = ContactInfoKind.SocialAccount,
+                IsPrimaryForOwner = true,
+                IsDeleted = false,
+                SocialAccount = new SocialAccount
+                {
+                    Id = 200,
+                    Network = SocialNetwork.LinkedIn,
+                    HandleOrUrl = "https://linkedin.com/in/johndoe"
+                }
+            }
+        };
+        SetupDbSets(contactInfoLinks: links);
+
+        // Act
+        var result = await _service.GetPrimarySocialAccountAsync(ContactInfoOwnerType.Contact, 5, SocialNetwork.LinkedIn);
+
+        // Assert
+        result.Should().Be("https://linkedin.com/in/johndoe");
+    }
+
+    [Fact]
+    public async Task GetPrimarySocialAccountAsync_ShouldReturnNull_WhenNetworkDoesNotMatch()
+    {
+        // Arrange
+        var links = new List<ContactInfoLink>
+        {
+            new ContactInfoLink
+            {
+                Id = 1,
+                OwnerType = ContactInfoOwnerType.Contact,
+                OwnerId = 5,
+                InfoKind = ContactInfoKind.SocialAccount,
+                IsPrimaryForOwner = true,
+                IsDeleted = false,
+                SocialAccount = new SocialAccount
+                {
+                    Id = 200,
+                    Network = SocialNetwork.Twitter,
+                    HandleOrUrl = "@johndoe"
+                }
+            }
+        };
+        SetupDbSets(contactInfoLinks: links);
+
+        // Act
+        var result = await _service.GetPrimarySocialAccountAsync(ContactInfoOwnerType.Contact, 5, SocialNetwork.LinkedIn);
+
+        // Assert
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task GetPrimarySocialAccountAsync_ShouldReturnNull_WhenNoSocialLinks()
+    {
+        // Arrange
+        SetupDbSets(contactInfoLinks: new List<ContactInfoLink>());
+
+        // Act
+        var result = await _service.GetPrimarySocialAccountAsync(ContactInfoOwnerType.Contact, 5, SocialNetwork.LinkedIn);
+
+        // Assert
+        result.Should().BeNull();
+    }
 }

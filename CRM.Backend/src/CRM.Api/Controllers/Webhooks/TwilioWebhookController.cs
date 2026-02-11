@@ -17,6 +17,7 @@
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using CRM.Core.Ports.Output.Providers;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 
@@ -48,6 +49,7 @@ public class TwilioWebhookController : ControllerBase
 
     [HttpPost("status")]
     [Consumes("application/x-www-form-urlencoded")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> HandleStatusCallback()
     {
         try
@@ -96,6 +98,7 @@ public class TwilioWebhookController : ControllerBase
 
     [HttpPost("inbound")]
     [Consumes("application/x-www-form-urlencoded")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> HandleInboundMessage()
     {
         try
@@ -140,6 +143,7 @@ public class TwilioWebhookController : ControllerBase
 
     [HttpPost("whatsapp/status")]
     [Consumes("application/x-www-form-urlencoded")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public Task<IActionResult> HandleWhatsAppStatus() => HandleStatusCallback();
 
     private static string TruncateForLog(string? text, int maxLength = 50) =>

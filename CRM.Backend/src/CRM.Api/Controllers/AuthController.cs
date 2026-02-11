@@ -156,6 +156,49 @@ public class AuthController : ControllerBase
     }
 
     /// <summary>
+    /// Refresh an expired access token using a valid refresh token.
+    /// Implements token rotation: the old refresh token is revoked and a new one is issued.
+    /// If a revoked token is reused, all refresh tokens for the user are invalidated (theft detection).
+    /// </summary>
+    /// <param name="request">The refresh token request</param>
+    /// <returns>New authentication tokens (access + refresh)</returns>
+    /// <response code="200">Returns new authentication tokens</response>
+    /// <response code="400">If the refresh token is missing</response>
+    /// <response code="401">If the refresh token is invalid, expired, or revoked</response>
+    /// <response code="500">If there was an internal server error</response>
+    [HttpPost("refresh")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> RefreshToken([FromBody] RefreshTokenRequest request)
+    {
+        try
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var response = await _authenticationService.RefreshTokenAsync(request.RefreshToken);
+            return Ok(response);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            _logger.LogWarning("Token refresh failed: {Message}", ex.Message);
+            return Unauthorized(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Token refresh error");
+            return StatusCode(500, new { message = "An error occurred during token refresh" });
+        }
+    }
+
+    /// <summary>
     /// Login using OAuth provider (Google, Microsoft, etc.).
     /// </summary>
     /// <param name="request">The OAuth login request with provider and access token</param>

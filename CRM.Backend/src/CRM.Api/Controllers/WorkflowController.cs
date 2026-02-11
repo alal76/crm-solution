@@ -21,6 +21,7 @@ using CRM.Core.Interfaces;
 using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Services;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
@@ -68,6 +69,7 @@ public class WorkflowController : ControllerBase
     /// Get all workflow definitions with filtering
     /// </summary>
     [HttpGet]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetWorkflows(
         [FromQuery] string? entityType = null,
         [FromQuery] string? status = null,
@@ -121,6 +123,8 @@ public class WorkflowController : ControllerBase
     /// Get a specific workflow definition
     /// </summary>
     [HttpGet("{id}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetWorkflow(int id)
     {
         try
@@ -175,6 +179,8 @@ public class WorkflowController : ControllerBase
     /// </summary>
     [HttpPost]
     [Authorize(Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CreateWorkflow([FromBody] CreateWorkflowDto dto)
     {
         try
@@ -216,6 +222,9 @@ public class WorkflowController : ControllerBase
     /// </summary>
     [HttpPut("{id}")]
     [Authorize(Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> UpdateWorkflow(int id, [FromBody] UpdateWorkflowDto dto)
     {
         try
@@ -251,6 +260,8 @@ public class WorkflowController : ControllerBase
     /// </summary>
     [HttpDelete("{id}")]
     [Authorize(Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteWorkflow(int id)
     {
         try
@@ -271,6 +282,8 @@ public class WorkflowController : ControllerBase
     /// </summary>
     [HttpPost("{id}/activate/{versionId}")]
     [Authorize(Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> ActivateWorkflow(int id, int versionId)
     {
         try
@@ -291,6 +304,8 @@ public class WorkflowController : ControllerBase
     /// </summary>
     [HttpPost("{id}/pause")]
     [Authorize(Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> PauseWorkflow(int id)
     {
         try
@@ -314,6 +329,8 @@ public class WorkflowController : ControllerBase
     /// Get a specific workflow version with full graph
     /// </summary>
     [HttpGet("versions/{versionId}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetVersion(int versionId)
     {
         try
@@ -391,6 +408,8 @@ public class WorkflowController : ControllerBase
     /// </summary>
     [HttpPost("{workflowId}/versions")]
     [Authorize(Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CreateVersion(int workflowId, [FromBody] CreateVersionDto? dto = null)
     {
         try
@@ -414,6 +433,9 @@ public class WorkflowController : ControllerBase
     /// </summary>
     [HttpPut("versions/{versionId}/layout")]
     [Authorize(Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> SaveCanvasLayout(int versionId, [FromBody] SaveLayoutDto dto)
     {
         try
@@ -433,6 +455,7 @@ public class WorkflowController : ControllerBase
     /// List all versions for a workflow
     /// </summary>
     [HttpGet("{workflowId}/versions")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetVersions(int workflowId)
     {
         try
@@ -461,6 +484,9 @@ public class WorkflowController : ControllerBase
     /// </summary>
     [HttpPut("versions/{versionId}")]
     [Authorize(Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> UpdateVersionMetadata(int versionId, [FromBody] UpdateVersionMetadataDto dto)
     {
         try
@@ -482,6 +508,8 @@ public class WorkflowController : ControllerBase
     /// </summary>
     [HttpPost("versions/{versionId}/publish")]
     [Authorize(Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> PublishVersion(int versionId)
     {
         try
@@ -504,6 +532,8 @@ public class WorkflowController : ControllerBase
     /// </summary>
     [HttpDelete("versions/{versionId}")]
     [Authorize(Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteVersion(int versionId)
     {
         try
@@ -525,6 +555,8 @@ public class WorkflowController : ControllerBase
     /// </summary>
     [HttpPost("{workflowId}/rollback/{versionId}")]
     [Authorize(Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> RollbackToVersion(int workflowId, int versionId)
     {
         try
@@ -553,6 +585,8 @@ public class WorkflowController : ControllerBase
     /// Compare two workflow versions and return the differences
     /// </summary>
     [HttpGet("versions/compare")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CompareVersions(
         [FromQuery] int versionId1, [FromQuery] int versionId2)
     {
@@ -581,6 +615,8 @@ public class WorkflowController : ControllerBase
     /// </summary>
     [HttpPost("versions/{versionId}/nodes")]
     [Authorize(Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> AddNode(int versionId, [FromBody] CreateNodeDto dto)
     {
         try
@@ -631,6 +667,9 @@ public class WorkflowController : ControllerBase
     /// </summary>
     [HttpPut("nodes/{nodeId}")]
     [Authorize(Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> UpdateNode(int nodeId, [FromBody] UpdateNodeDto dto)
     {
         try
@@ -678,6 +717,8 @@ public class WorkflowController : ControllerBase
     /// </summary>
     [HttpDelete("nodes/{nodeId}")]
     [Authorize(Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteNode(int nodeId)
     {
         try
@@ -702,6 +743,9 @@ public class WorkflowController : ControllerBase
     /// </summary>
     [HttpPut("versions/{versionId}/nodes/positions")]
     [Authorize(Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> UpdateNodePositions(int versionId, [FromBody] List<NodePositionDto> positions)
     {
         try
@@ -726,6 +770,8 @@ public class WorkflowController : ControllerBase
     /// </summary>
     [HttpPost("versions/{versionId}/transitions")]
     [Authorize(Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> AddTransition(int versionId, [FromBody] CreateTransitionDto dto)
     {
         try
@@ -772,6 +818,9 @@ public class WorkflowController : ControllerBase
     /// </summary>
     [HttpPut("transitions/{transitionId}")]
     [Authorize(Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> UpdateTransition(int transitionId, [FromBody] UpdateTransitionDto dto)
     {
         try
@@ -813,6 +862,8 @@ public class WorkflowController : ControllerBase
     /// </summary>
     [HttpDelete("transitions/{transitionId}")]
     [Authorize(Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteTransition(int transitionId)
     {
         try
@@ -840,6 +891,7 @@ public class WorkflowController : ControllerBase
     /// Get workflow statistics
     /// </summary>
     [HttpGet("statistics")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetStatistics()
     {
         try
@@ -858,6 +910,7 @@ public class WorkflowController : ControllerBase
     /// Get comprehensive workflow configuration for frontend
     /// </summary>
     [HttpGet("config")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetWorkflowConfig()
     {
         var categories = await _context.WorkflowDefinitions
@@ -901,6 +954,7 @@ public class WorkflowController : ControllerBase
     /// Get LLM provider settings (database settings merged with config defaults)
     /// </summary>
     [HttpGet("llm-settings")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetLLMSettings()
     {
         try
@@ -920,6 +974,9 @@ public class WorkflowController : ControllerBase
     /// </summary>
     [HttpPut("llm-settings")]
     [Authorize(Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> UpdateLLMSettings([FromBody] UpdateLLMSettingsRequest request)
     {
         try
@@ -939,6 +996,8 @@ public class WorkflowController : ControllerBase
     /// </summary>
     [HttpPost("llm-settings/reset")]
     [Authorize(Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> ResetLLMSettings()
     {
         try
@@ -959,6 +1018,8 @@ public class WorkflowController : ControllerBase
     /// </summary>
     [HttpPost("llm-settings/initialize")]
     [Authorize(Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> InitializeLLMSettings()
     {
         try
@@ -1317,6 +1378,7 @@ public class WorkflowController : ControllerBase
     /// Get available entity types
     /// </summary>
     [HttpGet("entity-types")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public IActionResult GetEntityTypes()
     {
         var types = new[]
@@ -1337,6 +1399,7 @@ public class WorkflowController : ControllerBase
     /// Get available node types
     /// </summary>
     [HttpGet("node-types")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public IActionResult GetNodeTypes()
     {
         var types = Enum.GetValues<WorkflowNodeType>()
@@ -1355,6 +1418,7 @@ public class WorkflowController : ControllerBase
     /// Get workflow categories
     /// </summary>
     [HttpGet("categories")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetCategories()
     {
         var categories = await _context.WorkflowDefinitions

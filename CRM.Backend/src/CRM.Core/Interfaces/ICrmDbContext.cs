@@ -46,6 +46,7 @@ public interface ICrmDbContext
     DbSet<CampaignMetric> CampaignMetrics { get; }
     DbSet<User> Users { get; }
     DbSet<OAuthToken> OAuthTokens { get; }
+    DbSet<RefreshToken> RefreshTokens { get; }
     DbSet<Department> Departments { get; }
     DbSet<UserProfile> UserProfiles { get; }
     DbSet<UserGroup> UserGroups { get; }
