@@ -81,6 +81,12 @@ public interface ICrmDbContext
     DbSet<CRM.Core.Entities.CustomField> CustomFields { get; }
     DbSet<ModuleUIConfig> ModuleUIConfigs { get; }
 
+    // Contact-level social media links
+    DbSet<SocialMediaLink> SocialMediaLinks { get; }
+
+    // Color palettes
+    DbSet<ColorPalette> ColorPalettes { get; }
+
     // Communication
     DbSet<CommunicationMessage> CommunicationMessages { get; }
     DbSet<CommunicationChannel> CommunicationChannels { get; }

@@ -187,7 +187,7 @@ Use the unified deployment script:
 
 ```bash
 BUILD_SERVER=192.168.0.9
-BUILD_USER=root
+BUILD_USER=deploy
 DATABASE_PROVIDER=mariadb
 ```
 

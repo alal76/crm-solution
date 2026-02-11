@@ -1,13 +1,18 @@
 #!/bin/bash
 #===============================================================================
+# ⚠️  DEPRECATED — Use scripts/deploy.sh instead
+#===============================================================================
 # CRM Production Deployment Script
 # Deploys to 192.168.0.9 with:
 #   - Kubernetes: API + Frontend
 #   - VM: MariaDB Database
 #   - Docker Registry: 192.168.0.9:5000
+#
+# This script is DEPRECATED and will be removed in a future release.
+# Use the unified parameterized script instead:
+#   ./scripts/deploy.sh --env prod
 #===============================================================================
-# NOTE: For new deployments, prefer scripts/deploy.sh (the unified parameterized
-# script). This script is maintained for production-specific workflows.
+echo "⚠️  WARNING: This script is deprecated. Use scripts/deploy.sh --env prod instead." >&2
 #===============================================================================
 
 set -e

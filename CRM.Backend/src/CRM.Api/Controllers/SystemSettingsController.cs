@@ -18,6 +18,7 @@ using CRM.Core.Dtos;
 using CRM.Core.Interfaces;
 using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Services;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -63,6 +64,7 @@ public class SystemSettingsController : ControllerBase
     /// </summary>
     [HttpGet]
     [Authorize(Roles = "Admin")]
+    [ProducesResponseType(typeof(SystemSettingsDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<SystemSettingsDto>> GetSettings()
     {
         try
@@ -81,6 +83,7 @@ public class SystemSettingsController : ControllerBase
     /// Get module status for permission checking (all authenticated users)
     /// </summary>
     [HttpGet("modules")]
+    [ProducesResponseType(typeof(ModuleStatusDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<ModuleStatusDto>> GetModuleStatus()
     {
         try
@@ -100,6 +103,8 @@ public class SystemSettingsController : ControllerBase
     /// </summary>
     [HttpPut]
     [Authorize(Roles = "Admin")]
+    [ProducesResponseType(typeof(SystemSettingsDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<SystemSettingsDto>> UpdateSettings([FromBody] UpdateSystemSettingsRequest request)
     {
         try
@@ -122,6 +127,8 @@ public class SystemSettingsController : ControllerBase
     /// </summary>
     [HttpPost("modules/{moduleName}/toggle")]
     [Authorize(Roles = "Admin")]
+    [ProducesResponseType(typeof(SystemSettingsDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<SystemSettingsDto>> ToggleModule(string moduleName, [FromQuery] bool enabled)
     {
         try
@@ -166,6 +173,7 @@ public class SystemSettingsController : ControllerBase
     /// </summary>
     [HttpDelete("logo")]
     [Authorize(Roles = "Admin")]
+    [ProducesResponseType(typeof(SystemSettingsDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<SystemSettingsDto>> RemoveLogo()
     {
         try
@@ -189,6 +197,7 @@ public class SystemSettingsController : ControllerBase
     /// </summary>
     [HttpDelete("login-logo")]
     [Authorize(Roles = "Admin")]
+    [ProducesResponseType(typeof(SystemSettingsDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<SystemSettingsDto>> RemoveLoginLogo()
     {
         try
@@ -212,6 +221,7 @@ public class SystemSettingsController : ControllerBase
     /// </summary>
     [HttpPost("reset-branding")]
     [Authorize(Roles = "Admin")]
+    [ProducesResponseType(typeof(SystemSettingsDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<SystemSettingsDto>> ResetBranding()
     {
         try
@@ -243,6 +253,7 @@ public class SystemSettingsController : ControllerBase
     /// </summary>
     [HttpPost("ssl/generate")]
     [Authorize(Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult> GenerateSelfSignedCertificate([FromBody] GenerateCertificateRequest? request)
     {
         try
@@ -345,6 +356,8 @@ public class SystemSettingsController : ControllerBase
     /// </summary>
     [HttpPost("ssl/upload")]
     [Authorize(Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<SystemSettingsDto>> UploadSslCertificate(
         [FromForm] IFormFile certificate,
         [FromForm] IFormFile? privateKey,
@@ -474,6 +487,7 @@ public class SystemSettingsController : ControllerBase
     /// </summary>
     [HttpPost("ssl/toggle")]
     [Authorize(Roles = "Admin")]
+    [ProducesResponseType(typeof(SystemSettingsDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<SystemSettingsDto>> ToggleHttps([FromBody] ToggleHttpsRequest request)
     {
         try
@@ -505,6 +519,7 @@ public class SystemSettingsController : ControllerBase
     /// </summary>
     [HttpGet("ssl/status")]
     [Authorize(Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult> GetSslStatus()
     {
         try
@@ -537,6 +552,7 @@ public class SystemSettingsController : ControllerBase
     /// </summary>
     [HttpDelete("ssl")]
     [Authorize(Roles = "Admin")]
+    [ProducesResponseType(typeof(SystemSettingsDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<SystemSettingsDto>> RemoveSslCertificate()
     {
         try
@@ -584,6 +600,7 @@ public class SystemSettingsController : ControllerBase
     /// </summary>
     [HttpPut("navigation/order")]
     [Authorize(Roles = "Admin")]
+    [ProducesResponseType(typeof(SystemSettingsDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<SystemSettingsDto>> UpdateNavigationOrder([FromBody] UpdateNavOrderRequest request)
     {
         try
@@ -614,6 +631,7 @@ public class SystemSettingsController : ControllerBase
     /// </summary>
     [HttpGet("sampledata/status")]
     [Authorize(Roles = "Admin")]
+    [ProducesResponseType(typeof(SampleDataStatusResponse), StatusCodes.Status200OK)]
     public async Task<ActionResult<SampleDataStatusResponse>> GetSampleDataStatus()
     {
         try
@@ -639,6 +657,7 @@ public class SystemSettingsController : ControllerBase
     /// </summary>
     [HttpGet("login-settings")]
     [AllowAnonymous]
+    [ProducesResponseType(typeof(LoginSettingsResponse), StatusCodes.Status200OK)]
     public async Task<ActionResult<LoginSettingsResponse>> GetLoginSettings()
     {
         try
@@ -675,6 +694,7 @@ public class SystemSettingsController : ControllerBase
     /// </summary>
     [HttpPost("database/sync")]
     [Authorize(Roles = "Admin")]
+    [ProducesResponseType(typeof(DatabaseSyncResult), StatusCodes.Status200OK)]
     public async Task<ActionResult<DatabaseSyncResult>> RunDatabaseSync()
     {
         try
@@ -702,6 +722,7 @@ public class SystemSettingsController : ControllerBase
     /// </summary>
     [HttpGet("database/status")]
     [Authorize(Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult> GetDatabaseStatus()
     {
         try
@@ -737,6 +758,7 @@ public class SystemSettingsController : ControllerBase
     /// </summary>
     [HttpGet("features")]
     [Authorize(Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult> GetFeatureConfiguration()
     {
         try
@@ -808,6 +830,7 @@ public class SystemSettingsController : ControllerBase
     /// </summary>
     [HttpPut("features")]
     [Authorize(Roles = "Admin")]
+    [ProducesResponseType(typeof(SystemSettingsDto), StatusCodes.Status200OK)]
     public async Task<ActionResult<SystemSettingsDto>> UpdateFeatures([FromBody] UpdateFeaturesRequest request)
     {
         try

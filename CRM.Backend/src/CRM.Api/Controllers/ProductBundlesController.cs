@@ -17,6 +17,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using CRM.Core.Entities;
@@ -38,6 +39,7 @@ namespace CRM.Api.Controllers
         }
 
         [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> GetAll(CancellationToken cancellationToken)
         {
             var items = await _bundleService.GetAllBundlesAsync(cancellationToken);
@@ -45,6 +47,8 @@ namespace CRM.Api.Controllers
         }
 
         [HttpGet("{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetById(int id, CancellationToken cancellationToken)
         {
             var item = await _bundleService.GetBundleByIdAsync(id, cancellationToken);
@@ -53,6 +57,8 @@ namespace CRM.Api.Controllers
         }
 
         [HttpPost]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Create([FromBody] ProductBundle model, CancellationToken cancellationToken)
         {
             var created = await _bundleService.CreateBundleAsync(model, cancellationToken);
@@ -60,6 +66,8 @@ namespace CRM.Api.Controllers
         }
 
         [HttpPut("{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Update(int id, [FromBody] ProductBundle model, CancellationToken cancellationToken)
         {
             if (id != model.Id) return BadRequest();
@@ -68,6 +76,8 @@ namespace CRM.Api.Controllers
         }
 
         [HttpDelete("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken)
         {
             var ok = await _bundleService.DeleteBundleAsync(id, cancellationToken);
@@ -76,6 +86,7 @@ namespace CRM.Api.Controllers
         }
 
         [HttpGet("{id}/price")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> GetPrice(int id, CancellationToken cancellationToken)
         {
             var price = await _bundleService.CalculateBundlePriceAsync(id, cancellationToken);

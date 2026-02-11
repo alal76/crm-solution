@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using CRM.Core.Interfaces.ITSM;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -44,6 +45,7 @@ public class MonitoringIntegrationController : ControllerBase
     /// </summary>
     [HttpPost("alerts")]
     [AllowAnonymous] // Uses API key authentication
+    [ProducesResponseType(typeof(AlertProcessingResult), StatusCodes.Status200OK)]
     public async Task<ActionResult<AlertProcessingResult>> ProcessAlert(
         [FromBody] MonitoringAlertDto alert,
         [FromHeader(Name = "X-API-Key")] string? apiKey)
@@ -59,6 +61,7 @@ public class MonitoringIntegrationController : ControllerBase
     /// </summary>
     [HttpPost("prometheus")]
     [AllowAnonymous]
+    [ProducesResponseType(typeof(List<AlertProcessingResult>), StatusCodes.Status200OK)]
     public async Task<ActionResult<List<AlertProcessingResult>>> ProcessPrometheusAlerts(
         [FromBody] PrometheusAlertPayload payload,
         [FromHeader(Name = "X-API-Key")] string? apiKey)
@@ -96,6 +99,7 @@ public class MonitoringIntegrationController : ControllerBase
     /// </summary>
     [HttpGet("integrations")]
     [Authorize]
+    [ProducesResponseType(typeof(List<MonitoringIntegrationDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<List<MonitoringIntegrationDto>>> GetIntegrations()
     {
         var integrations = await _monitoringService.GetIntegrationsAsync();
@@ -107,6 +111,8 @@ public class MonitoringIntegrationController : ControllerBase
     /// </summary>
     [HttpGet("integrations/{id}")]
     [Authorize]
+    [ProducesResponseType(typeof(MonitoringIntegrationDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<MonitoringIntegrationDto>> GetIntegration(int id)
     {
         var integration = await _monitoringService.GetIntegrationAsync(id);
@@ -121,6 +127,8 @@ public class MonitoringIntegrationController : ControllerBase
     /// </summary>
     [HttpPost("integrations")]
     [Authorize]
+    [ProducesResponseType(typeof(MonitoringIntegrationDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<MonitoringIntegrationDto>> CreateIntegration(
         [FromBody] CreateMonitoringIntegrationDto dto)
     {
@@ -133,6 +141,9 @@ public class MonitoringIntegrationController : ControllerBase
     /// </summary>
     [HttpPut("integrations/{id}")]
     [Authorize]
+    [ProducesResponseType(typeof(MonitoringIntegrationDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<MonitoringIntegrationDto>> UpdateIntegration(
         int id,
         [FromBody] UpdateMonitoringIntegrationDto dto)
@@ -149,6 +160,8 @@ public class MonitoringIntegrationController : ControllerBase
     /// </summary>
     [HttpDelete("integrations/{id}")]
     [Authorize]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> DeleteIntegration(int id)
     {
         var deleted = await _monitoringService.DeleteIntegrationAsync(id);
@@ -163,6 +176,7 @@ public class MonitoringIntegrationController : ControllerBase
     /// </summary>
     [HttpPost("integrations/{id}/test")]
     [Authorize]
+    [ProducesResponseType(typeof(IntegrationTestResult), StatusCodes.Status200OK)]
     public async Task<ActionResult<IntegrationTestResult>> TestIntegration(int id)
     {
         var result = await _monitoringService.TestIntegrationAsync(id);
@@ -174,6 +188,7 @@ public class MonitoringIntegrationController : ControllerBase
     /// </summary>
     [HttpGet("history")]
     [Authorize]
+    [ProducesResponseType(typeof(List<AlertHistoryDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<List<AlertHistoryDto>>> GetAlertHistory(
         [FromQuery] int? integrationId,
         [FromQuery] DateTime? startDate,
@@ -188,6 +203,7 @@ public class MonitoringIntegrationController : ControllerBase
     /// </summary>
     [HttpGet("sources")]
     [Authorize]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult> GetMonitoringSources()
     {
         try
@@ -207,6 +223,7 @@ public class MonitoringIntegrationController : ControllerBase
     /// </summary>
     [HttpGet("alert-mappings")]
     [Authorize]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult> GetAlertMappings()
     {
         // TODO: Implement alert mapping CRUD in IMonitoringIntegrationService

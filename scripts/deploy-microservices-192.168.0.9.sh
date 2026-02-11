@@ -1,13 +1,16 @@
 #!/bin/bash
 # =============================================================================
-# CRM Microservices Deployment to 192.168.0.9
+# ⚠️  DEPRECATED — Use scripts/deploy.sh instead
 # =============================================================================
+# CRM Microservices Deployment to 192.168.0.9
 # This script deploys the CRM solution as microservices to 192.168.0.9
 # Uses Docker Compose for containerized deployment
 #
-# NOTE: For new deployments, prefer scripts/deploy.sh (the unified parameterized
-# script). This script is maintained for microservices-specific workflows.
+# This script is DEPRECATED and will be removed in a future release.
+# Use the unified parameterized script instead:
+#   ./scripts/deploy.sh --env dev --mode microservices
 # =============================================================================
+echo "⚠️  WARNING: This script is deprecated. Use scripts/deploy.sh --env dev --mode microservices instead." >&2
 
 set -e
 

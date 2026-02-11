@@ -129,7 +129,7 @@ parse_args() {
             ;;
         dev)
             BUILD_SERVER="${BUILD_SERVER_DEV:-192.168.0.9}"
-            BUILD_USER="${BUILD_USER:-root}"
+            BUILD_USER="${BUILD_USER:-deploy}"
             ;;
         staging)
             BUILD_SERVER="${BUILD_SERVER_STAGING:-staging.crm.local}"

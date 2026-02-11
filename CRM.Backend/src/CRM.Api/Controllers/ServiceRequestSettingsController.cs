@@ -16,6 +16,7 @@
 
 using CRM.Core.Dtos;
 using CRM.Core.Interfaces;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -55,6 +56,7 @@ public class ServiceRequestSettingsController : ControllerBase
     /// Get all categories
     /// </summary>
     [HttpGet("categories")]
+    [ProducesResponseType(typeof(List<ServiceRequestCategoryDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<List<ServiceRequestCategoryDto>>> GetCategories([FromQuery] bool includeInactive = false)
     {
         try
@@ -73,6 +75,8 @@ public class ServiceRequestSettingsController : ControllerBase
     /// Get a category by ID
     /// </summary>
     [HttpGet("categories/{id}")]
+    [ProducesResponseType(typeof(ServiceRequestCategoryDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ServiceRequestCategoryDto>> GetCategory(int id)
     {
         try
@@ -93,6 +97,8 @@ public class ServiceRequestSettingsController : ControllerBase
     /// Create a new category
     /// </summary>
     [HttpPost("categories")]
+    [ProducesResponseType(typeof(ServiceRequestCategoryDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<ServiceRequestCategoryDto>> CreateCategory([FromBody] CreateServiceRequestCategoryDto dto)
     {
         try
@@ -111,6 +117,9 @@ public class ServiceRequestSettingsController : ControllerBase
     /// Update a category
     /// </summary>
     [HttpPut("categories/{id}")]
+    [ProducesResponseType(typeof(ServiceRequestCategoryDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<ServiceRequestCategoryDto>> UpdateCategory(int id, [FromBody] UpdateServiceRequestCategoryDto dto)
     {
         try
@@ -133,6 +142,8 @@ public class ServiceRequestSettingsController : ControllerBase
     /// Delete a category
     /// </summary>
     [HttpDelete("categories/{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteCategory(int id)
     {
         try
@@ -153,6 +164,7 @@ public class ServiceRequestSettingsController : ControllerBase
     /// Reorder categories
     /// </summary>
     [HttpPost("categories/reorder")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> ReorderCategories([FromBody] List<int> categoryIds)
     {
         try
@@ -175,6 +187,7 @@ public class ServiceRequestSettingsController : ControllerBase
     /// Get all subcategories
     /// </summary>
     [HttpGet("subcategories")]
+    [ProducesResponseType(typeof(List<ServiceRequestSubcategoryDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<List<ServiceRequestSubcategoryDto>>> GetSubcategories([FromQuery] bool includeInactive = false)
     {
         try
@@ -193,6 +206,7 @@ public class ServiceRequestSettingsController : ControllerBase
     /// Get subcategories by category
     /// </summary>
     [HttpGet("categories/{categoryId}/subcategories")]
+    [ProducesResponseType(typeof(List<ServiceRequestSubcategoryDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<List<ServiceRequestSubcategoryDto>>> GetSubcategoriesByCategory(
         int categoryId, [FromQuery] bool includeInactive = false)
     {
@@ -212,6 +226,8 @@ public class ServiceRequestSettingsController : ControllerBase
     /// Get a subcategory by ID
     /// </summary>
     [HttpGet("subcategories/{id}")]
+    [ProducesResponseType(typeof(ServiceRequestSubcategoryDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ServiceRequestSubcategoryDto>> GetSubcategory(int id)
     {
         try
@@ -232,6 +248,8 @@ public class ServiceRequestSettingsController : ControllerBase
     /// Create a new subcategory
     /// </summary>
     [HttpPost("subcategories")]
+    [ProducesResponseType(typeof(ServiceRequestSubcategoryDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<ServiceRequestSubcategoryDto>> CreateSubcategory([FromBody] CreateServiceRequestSubcategoryDto dto)
     {
         try
@@ -250,6 +268,9 @@ public class ServiceRequestSettingsController : ControllerBase
     /// Update a subcategory
     /// </summary>
     [HttpPut("subcategories/{id}")]
+    [ProducesResponseType(typeof(ServiceRequestSubcategoryDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<ServiceRequestSubcategoryDto>> UpdateSubcategory(int id, [FromBody] UpdateServiceRequestSubcategoryDto dto)
     {
         try
@@ -272,6 +293,8 @@ public class ServiceRequestSettingsController : ControllerBase
     /// Delete a subcategory
     /// </summary>
     [HttpDelete("subcategories/{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteSubcategory(int id)
     {
         try
@@ -292,6 +315,7 @@ public class ServiceRequestSettingsController : ControllerBase
     /// Reorder subcategories within a category
     /// </summary>
     [HttpPost("categories/{categoryId}/subcategories/reorder")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> ReorderSubcategories(int categoryId, [FromBody] List<int> subcategoryIds)
     {
         try
@@ -314,6 +338,7 @@ public class ServiceRequestSettingsController : ControllerBase
     /// Get all custom field definitions
     /// </summary>
     [HttpGet("custom-fields")]
+    [ProducesResponseType(typeof(List<ServiceRequestCustomFieldDefinitionDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<List<ServiceRequestCustomFieldDefinitionDto>>> GetCustomFields([FromQuery] bool includeInactive = false)
     {
         try
@@ -332,6 +357,7 @@ public class ServiceRequestSettingsController : ControllerBase
     /// Get custom fields applicable to a category/subcategory
     /// </summary>
     [HttpGet("custom-fields/applicable")]
+    [ProducesResponseType(typeof(List<ServiceRequestCustomFieldDefinitionDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<List<ServiceRequestCustomFieldDefinitionDto>>> GetApplicableCustomFields(
         [FromQuery] int? categoryId, [FromQuery] int? subcategoryId)
     {
@@ -351,6 +377,8 @@ public class ServiceRequestSettingsController : ControllerBase
     /// Get a custom field by ID
     /// </summary>
     [HttpGet("custom-fields/{id}")]
+    [ProducesResponseType(typeof(ServiceRequestCustomFieldDefinitionDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ServiceRequestCustomFieldDefinitionDto>> GetCustomField(int id)
     {
         try
@@ -371,6 +399,8 @@ public class ServiceRequestSettingsController : ControllerBase
     /// Create a new custom field
     /// </summary>
     [HttpPost("custom-fields")]
+    [ProducesResponseType(typeof(ServiceRequestCustomFieldDefinitionDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<ServiceRequestCustomFieldDefinitionDto>> CreateCustomField(
         [FromBody] CreateServiceRequestCustomFieldDefinitionDto dto)
     {
@@ -394,6 +424,9 @@ public class ServiceRequestSettingsController : ControllerBase
     /// Update a custom field
     /// </summary>
     [HttpPut("custom-fields/{id}")]
+    [ProducesResponseType(typeof(ServiceRequestCustomFieldDefinitionDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<ServiceRequestCustomFieldDefinitionDto>> UpdateCustomField(
         int id, [FromBody] UpdateServiceRequestCustomFieldDefinitionDto dto)
     {
@@ -417,6 +450,8 @@ public class ServiceRequestSettingsController : ControllerBase
     /// Delete a custom field
     /// </summary>
     [HttpDelete("custom-fields/{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteCustomField(int id)
     {
         try
@@ -437,6 +472,7 @@ public class ServiceRequestSettingsController : ControllerBase
     /// Reorder custom fields
     /// </summary>
     [HttpPost("custom-fields/reorder")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> ReorderCustomFields([FromBody] List<int> fieldIds)
     {
         try
@@ -455,6 +491,7 @@ public class ServiceRequestSettingsController : ControllerBase
     /// Get active custom field count
     /// </summary>
     [HttpGet("custom-fields/count")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<ActionResult<object>> GetCustomFieldCount()
     {
         try
@@ -477,6 +514,7 @@ public class ServiceRequestSettingsController : ControllerBase
     /// Get all service request types
     /// </summary>
     [HttpGet("types")]
+    [ProducesResponseType(typeof(List<ServiceRequestTypeDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<List<ServiceRequestTypeDto>>> GetAllTypes([FromQuery] bool includeInactive = false)
     {
         try
@@ -495,6 +533,7 @@ public class ServiceRequestSettingsController : ControllerBase
     /// Get all service request types grouped by category and subcategory
     /// </summary>
     [HttpGet("types/grouped")]
+    [ProducesResponseType(typeof(List<ServiceRequestTypeGroupedDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<List<ServiceRequestTypeGroupedDto>>> GetTypesGrouped([FromQuery] bool includeInactive = false)
     {
         try
@@ -513,6 +552,7 @@ public class ServiceRequestSettingsController : ControllerBase
     /// Get service request types by category
     /// </summary>
     [HttpGet("types/by-category/{categoryId}")]
+    [ProducesResponseType(typeof(List<ServiceRequestTypeDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<List<ServiceRequestTypeDto>>> GetTypesByCategory(int categoryId, [FromQuery] bool includeInactive = false)
     {
         try
@@ -531,6 +571,7 @@ public class ServiceRequestSettingsController : ControllerBase
     /// Get service request types by subcategory
     /// </summary>
     [HttpGet("types/by-subcategory/{subcategoryId}")]
+    [ProducesResponseType(typeof(List<ServiceRequestTypeDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<List<ServiceRequestTypeDto>>> GetTypesBySubcategory(int subcategoryId, [FromQuery] bool includeInactive = false)
     {
         try
@@ -549,6 +590,8 @@ public class ServiceRequestSettingsController : ControllerBase
     /// Get a single service request type by ID
     /// </summary>
     [HttpGet("types/{id}")]
+    [ProducesResponseType(typeof(ServiceRequestTypeDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ServiceRequestTypeDto>> GetTypeById(int id)
     {
         try
@@ -569,6 +612,8 @@ public class ServiceRequestSettingsController : ControllerBase
     /// Create a new service request type
     /// </summary>
     [HttpPost("types")]
+    [ProducesResponseType(typeof(ServiceRequestTypeDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<ServiceRequestTypeDto>> CreateType([FromBody] CreateServiceRequestTypeDto dto)
     {
         try
@@ -587,6 +632,9 @@ public class ServiceRequestSettingsController : ControllerBase
     /// Update an existing service request type
     /// </summary>
     [HttpPut("types/{id}")]
+    [ProducesResponseType(typeof(ServiceRequestTypeDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<ServiceRequestTypeDto>> UpdateType(int id, [FromBody] UpdateServiceRequestTypeDto dto)
     {
         try
@@ -609,6 +657,8 @@ public class ServiceRequestSettingsController : ControllerBase
     /// Delete a service request type
     /// </summary>
     [HttpDelete("types/{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeleteType(int id)
     {
         try
@@ -629,6 +679,7 @@ public class ServiceRequestSettingsController : ControllerBase
     /// Reorder service request types within a subcategory
     /// </summary>
     [HttpPost("types/reorder/{subcategoryId}")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> ReorderTypes(int subcategoryId, [FromBody] List<int> typeIds)
     {
         try

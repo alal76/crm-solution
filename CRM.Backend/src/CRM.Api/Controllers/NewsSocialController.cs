@@ -16,6 +16,7 @@
 
 using CRM.Core.Dtos;
 using CRM.Core.Interfaces;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -63,6 +64,7 @@ public class NewsSocialController : ControllerBase
     /// Get API configuration status
     /// </summary>
     [HttpGet("status")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     public ActionResult<object> GetStatus()
     {
         return Ok(new
@@ -79,6 +81,7 @@ public class NewsSocialController : ControllerBase
     /// Get news and social feeds for a customer
     /// </summary>
     [HttpGet("{customerId:int}")]
+    [ProducesResponseType(typeof(NewsSocialFeedResponse), StatusCodes.Status200OK)]
     public async Task<ActionResult<NewsSocialFeedResponse>> GetFeedsForCustomer(
         int customerId,
         [FromQuery] int maxNewsItems = 10,
@@ -112,6 +115,7 @@ public class NewsSocialController : ControllerBase
     /// Force refresh feeds for a customer (bypass cache)
     /// </summary>
     [HttpPost("refresh/{customerId:int}")]
+    [ProducesResponseType(typeof(NewsSocialFeedResponse), StatusCodes.Status200OK)]
     public async Task<ActionResult<NewsSocialFeedResponse>> RefreshFeeds(
         int customerId,
         [FromQuery] int maxNewsItems = 10,
@@ -145,6 +149,8 @@ public class NewsSocialController : ControllerBase
     /// Get news for a specific company name
     /// </summary>
     [HttpGet("news")]
+    [ProducesResponseType(typeof(List<NewsItemDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<List<NewsItemDto>>> GetNews(
         [FromQuery] string companyName,
         [FromQuery] int maxItems = 10,
@@ -171,6 +177,7 @@ public class NewsSocialController : ControllerBase
     /// Get social feeds for given handles/URLs
     /// </summary>
     [HttpGet("social")]
+    [ProducesResponseType(typeof(List<SocialFeedDto>), StatusCodes.Status200OK)]
     public async Task<ActionResult<List<SocialFeedDto>>> GetSocialFeeds(
         [FromQuery] string? linkedInUrl,
         [FromQuery] string? twitterHandle,
@@ -195,6 +202,8 @@ public class NewsSocialController : ControllerBase
     /// Analyze sentiment of text
     /// </summary>
     [HttpPost("sentiment")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<object>> AnalyzeSentiment(
         [FromBody] SentimentRequest request,
         CancellationToken cancellationToken = default)

@@ -479,7 +479,7 @@ class OnPremServer:
     """On-premises server specification."""
     hostname: str = ""
     ip_address: str = ""
-    ssh_user: str = "root"
+    ssh_user: str = "deploy"
     ssh_key_path: str = ""
     ssh_port: int = 22
     role: str = "worker"  # master, worker, database, all-in-one

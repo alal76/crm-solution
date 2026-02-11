@@ -1,19 +1,22 @@
 #!/bin/bash
 # =============================================================================
-# CRM Solution - Deploy and Test Script
+# ⚠️  DEPRECATED — Use scripts/deploy.sh instead
 # =============================================================================
+# CRM Solution - Deploy and Test Script
 # This script deploys the CRM solution to a target environment and runs
 # all tests automatically, generating a comprehensive test report.
 #
-# NOTE: For new deployments, prefer scripts/deploy.sh (the unified parameterized
-# script). This script is maintained for deploy+test combo workflows.
+# This script is DEPRECATED and will be removed in a future release.
+# Use the unified parameterized script instead:
+#   ./scripts/deploy.sh --env dev --test
 #
-# Usage:
+# Usage (legacy):
 #   ./scripts/deploy-and-test.sh                    # Deploy and test (default)
 #   ./scripts/deploy-and-test.sh --deploy-only      # Deploy only, no tests
 #   ./scripts/deploy-and-test.sh --test-only        # Test only, no deploy
 #   ./scripts/deploy-and-test.sh --target 192.168.0.9  # Specify target server
 # =============================================================================
+echo "⚠️  WARNING: This script is deprecated. Use scripts/deploy.sh --env dev --test instead." >&2
 
 set -e
 
@@ -31,7 +34,7 @@ PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 
 # Configuration
 TARGET_SERVER="${TARGET_SERVER:-192.168.0.9}"
-SSH_USER="${SSH_USER:-root}"
+SSH_USER="${SSH_USER:-deploy}"
 DEPLOY_PATH="/opt/crm"
 DOCKER_NETWORK="docker_crm-network"
 

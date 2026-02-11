@@ -99,7 +99,7 @@ spec:
       port: 53
     - protocol: UDP
       port: 53
-  # Allow HTTPS egress to external services (APIs, OAuth providers, container registries)
+  # Allow HTTP/HTTPS egress to external services (APIs, OAuth providers, container registries, Let's Encrypt)
   - to:
     - ipBlock:
         cidr: 0.0.0.0/0
@@ -109,4 +109,19 @@ spec:
         - 192.168.0.0/16
     ports:
     - protocol: TCP
+      port: 80
+    - protocol: TCP
       port: 443
+  # Allow SMTP egress for email notifications (submission ports)
+  - to:
+    - ipBlock:
+        cidr: 0.0.0.0/0
+        except:
+        - 10.0.0.0/8
+        - 172.16.0.0/12
+        - 192.168.0.0/16
+    ports:
+    - protocol: TCP
+      port: 587
+    - protocol: TCP
+      port: 465

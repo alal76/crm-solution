@@ -1,5 +1,8 @@
+# ⚠️  DEPRECATED — Use scripts/deploy.sh instead
 # Remote Docker Server Configuration and Deployment Script
-# This script helps configure and deploy to a remote Docker/Kubernetes server
+# This script is DEPRECATED and will be removed in a future release.
+# Use: ./scripts/deploy.sh --env dev
+Write-Warning "This script is deprecated. Use scripts/deploy.sh --env dev instead."
 
 param(
     [Parameter(Position=0)]

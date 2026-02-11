@@ -1,13 +1,16 @@
 #!/usr/bin/env pwsh
+# ⚠️  DEPRECATED — Use scripts/deploy.sh instead
 # Simplified CRM Deployment Script with SSH Password Caching
-# NOTE: For new deployments, prefer scripts/deploy.sh (the unified parameterized script).
+# This script is DEPRECATED and will be removed in a future release.
+# Use: ./scripts/deploy.sh --env dev
+Write-Warning "This script is deprecated. Use scripts/deploy.sh --env dev instead."
 
 param(
     [string]$GHCRToken = ""
 )
 
 $RemoteHost = "192.168.0.9"
-$RemoteUser = "root"
+$RemoteUser = if ($env:BUILD_USER) { $env:BUILD_USER } else { "deploy" }
 $RemotePort = "22"
 $DeployPath = "/opt/crm"
 $Registry = "ghcr.io/alal76"

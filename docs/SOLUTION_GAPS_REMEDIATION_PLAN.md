@@ -1,8 +1,8 @@
 # CRM Solution Gaps Remediation Plan
 
 > **Created:** February 8, 2026  
-> **Last Updated:** February 16, 2026  
-> **Status:** 98% Complete — All phases done except minor pending items below
+> **Last Updated:** February 17, 2026  
+> **Status:** 98% Complete — All phases done except minor pending items below. Infrastructure & Security section fully resolved.
 
 ---
 
@@ -60,14 +60,14 @@ The following items remain from the remediation effort:
 
 | ID | Priority | Description | Notes |
 |----|----------|-------------|-------|
-| P-16 | 🔴 Critical | Remove SSL certificate from repo | ssl/server.pfx with hardcoded password |
-| P-17 | 🔴 Critical | Clean Git history of plaintext passwords | Needs git filter-branch or BFG cleanup |
-| P-18 | 🟡 Medium | Implement secret rotation mechanism | No Vault/External Secrets integration |
-| P-19 | 🟡 Medium | Add container vulnerability scanning | No Trivy/Snyk in pipeline |
-| P-20 | 🟢 Low | Fix NetworkPolicy egress restrictions | API cannot reach external services |
-| P-21 | 🟢 Low | Replace hostPath PersistentVolumes | Will not work in multi-node clusters |
-| P-22 | 🟢 Low | Change default deploy user from root | REMOTE_USER defaults to root |
-| P-23 | 🟢 Low | Consolidate 6+ overlapping deploy scripts | Into single parameterized script |
+| ~~P-16~~ | ~~🔴 Critical~~ | ✅ **DONE** — Removed ssl/server.pfx, server.key, server.crt from repo via `git rm --cached`. Fixed Dockerfile.backend hardcoded password → empty ARG. Program.cs: graceful HTTP-only fallback when no cert found. | 3 files removed, 2 files fixed |
+| ~~P-17~~ | ~~🔴 Critical~~ | ✅ **DONE** — Created `scripts/clean-git-history.sh` (~290 lines) supporting both git-filter-repo and BFG methods. Removes passwords, SSL certs, .env files from history. Includes --dry-run mode. | Run manually on a fresh clone |
+| ~~P-18~~ | ~~🟡 Medium~~ | ✅ **DONE** — Created `kubernetes/05-external-secrets.yaml` with External Secrets Operator manifests: SecretStore (HashiCorp Vault primary, AWS/Azure alternatives commented), 6 ExternalSecret resources (db, jwt, ssl, provider, redis, admin). | ~230 lines |
+| ~~P-19~~ | ~~🟡 Medium~~ | ✅ **DONE** — Created `scripts/scan-containers.sh` (~285 lines) with Trivy integration. Scans all CRM container images, Dockerfiles, and K8s manifests. Supports --ci mode for pipeline integration with configurable severity thresholds. | Trivy-based |
+| ~~P-20~~ | ~~🟢 Low~~ | ✅ **DONE** — Updated `kubernetes/04-ingress-network.yaml` NetworkPolicy egress: added ports 80 (HTTP APIs), 443 (HTTPS/cloud), 587 (SMTP), 465 (SMTPS) to allow API to reach external services. | 4 ports added |
+| ~~P-21~~ | ~~🟢 Low~~ | ✅ **DONE** — Replaced hostPath PV in `kubernetes/01-database-tier.yaml` with StorageClass `crm-database-storage` (rancher.io/local-path, reclaimPolicy: Retain) + dynamic PVC. Works in multi-node clusters. | StorageClass + dynamic PVC |
+| ~~P-22~~ | ~~🟢 Low~~ | ✅ **DONE** — Changed default deploy user from root→deploy in 7 files (build-and-deploy.sh, deploy-and-test.sh, deploy.sh, setup-monitoring.sh, infrastructure.env, platform_models.py, INFRASTRUCTURE_GUIDE.md). Also fixed hardcoded CrmAdmin2024! passwords in setup-monitoring.sh → required env vars. | 7 files + bonus password fix |
+| ~~P-23~~ | ~~🟢 Low~~ | ✅ **DONE** — Added formal ⚠️ DEPRECATED banners + runtime warnings to all 14 legacy deploy scripts (5 bash in scripts/, 7 PowerShell + 2 bash in scripts/deploy/). Canonical unified script: `scripts/deploy.sh` (639 lines). Also fixed remaining root→deploy in 4 additional scripts. | 14 scripts deprecated |
 
 ### Webhooks (Deferred)
 
@@ -99,10 +99,10 @@ The following items remain from the remediation effort:
 
 | Priority | Count |
 |----------|-------|
-| 🔴 Critical | 2 |
-| 🟡 Medium | 4 |
-| 🟢 Low | 16 |
-| **Total** | **22** |
+| 🔴 Critical | 0 |
+| 🟡 Medium | 2 |
+| 🟢 Low | 12 |
+| **Total** | **14** |
 
 ---
 

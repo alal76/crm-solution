@@ -1,9 +1,12 @@
 #!/usr/bin/env pwsh
+# ⚠️  DEPRECATED — Use scripts/deploy.sh instead
 # Automated CRM Deployment - No Interactive Prompts
-# NOTE: For new deployments, prefer scripts/deploy.sh (the unified parameterized script).
+# This script is DEPRECATED and will be removed in a future release.
+# Use: ./scripts/deploy.sh --env dev
+Write-Warning "This script is deprecated. Use scripts/deploy.sh --env dev instead."
 
 $RemoteHost = "192.168.0.9"
-$RemoteUser = "root"
+$RemoteUser = if ($env:BUILD_USER) { $env:BUILD_USER } else { "deploy" }
 $RemotePort = "22"
 $DeployPath = "/opt/crm"
 

@@ -1,18 +1,22 @@
 #!/bin/bash
 # =============================================================================
+# ⚠️  DEPRECATED — Use scripts/deploy.sh instead
+# =============================================================================
 # CRM Solution - Build & Deploy Script v2.0
 # Target: 192.168.0.9 (Docker Compose deployment)
 # Updated: January 2025
 #
-# NOTE: For new deployments, prefer scripts/deploy.sh (the unified parameterized
-# script). This script is maintained for Docker Compose-specific workflows.
+# This script is DEPRECATED and will be removed in a future release.
+# Use the unified parameterized script instead:
+#   ./scripts/deploy.sh --env dev --mode compose
 # =============================================================================
+echo "⚠️  WARNING: This script is deprecated. Use scripts/deploy.sh --env dev --mode compose instead." >&2
 
 set -e
 
 # Configuration
 BUILD_HOST="${BUILD_HOST:-192.168.0.9}"
-BUILD_USER="${BUILD_USER:-root}"
+BUILD_USER="${BUILD_USER:-deploy}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 VERSION_FILE="${PROJECT_DIR}/version.json"

@@ -1867,10 +1867,11 @@ Configured via `RateLimiting` section in appsettings.json:
 ### HTTPS Configuration
 
 - SSL certificate path: `ssl/server.pfx`
-- Certificate password: `CrmSslCert2024` (configurable)
+- Certificate password: Set via `SSL_CERT_PASSWORD` environment variable (never hardcode)
 - HTTPS port: 5001 (configurable)
 - HTTP port: 5000 (always available)
 - Health endpoints skip HTTPS redirect for Kubernetes probes
+- If no certificate is found, server runs HTTP-only (graceful fallback)
 
 ---
 
