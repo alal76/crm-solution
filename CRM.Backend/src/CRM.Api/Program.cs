@@ -515,6 +515,8 @@ builder.Services.AddScoped<ICreditMemoService, CreditMemoService>();
 builder.Services.AddScoped<IFieldMasterDataService, FieldMasterDataService>();
 // Master data seeder - seeds ZipCodes and ColorPalettes on startup if empty
 builder.Services.AddScoped<IMasterDataSeederService, MasterDataSeederService>();
+// Core data seeder - seeds departments, accounts, products, contacts, lookups, system settings (ADR-002)
+builder.Services.AddScoped<ICoreDataSeederService, CoreDataSeederService>();
 // Cloud Deployment management service
 builder.Services.AddScoped<ICloudDeploymentService, CloudDeploymentService>();
 builder.Services.AddHttpClient();
