@@ -5,7 +5,7 @@
 ![Version](https://img.shields.io/badge/version-2.0.0-blue)
 ![.NET](https://img.shields.io/badge/.NET-8.0-purple)
 ![React](https://img.shields.io/badge/React-18-61DAFB)
-![License](https://img.shields.io/badge/license-MIT-green)
+![License](https://img.shields.io/badge/license-AGPL--3.0-blue)
 ![Build](https://img.shields.io/badge/build-passing-brightgreen)
 
 **Enterprise-Grade Customer Relationship Management System**
@@ -432,8 +432,7 @@ GET /api/health/providers
 | [Operator Deployment Guide](docs/OPERATOR_DEPLOYMENT_GUIDE.md) | Complete deployment instructions |
 | [Provider Configuration Reference](docs/PROVIDER_CONFIGURATION_REFERENCE.md) | All provider settings |
 | [Troubleshooting Runbook](docs/TROUBLESHOOTING_RUNBOOK.md) | Provider issue resolution |
-| [ADR-001: Architecture Strategy](docs/architecture/ADR-001-Pluggable-Architecture-Strategy.md) | Architecture decision record |
-
+| [ADR-001: Architecture Strategy](docs/architecture/ADR-001-Pluggable-Architecture-Strategy.md) | Architecture decision record || [Third-Party Licenses](docs/THIRD_PARTY_LICENSES.md) | Complete dependency licensing inventory |
 ---
 
 ## �📁 Project Structure
@@ -781,7 +780,75 @@ dotnet test --collect:"XPlat Code Coverage"
 
 ## 📄 License
 
-MIT License - see [LICENSE](LICENSE) for details.
+This project is licensed under the **GNU Affero General Public License v3.0 or later (AGPL-3.0-or-later)** — see [LICENSE](LICENSE) for the full text.
+
+**Copyright © 2024–2026 Abhishek Lal. All rights reserved.**
+
+### Third-Party Dependency Licensing Matrix
+
+All third-party components used in this solution are compatible with the AGPL-3.0 license. For the complete dependency inventory with version numbers and license details, see [docs/THIRD_PARTY_LICENSES.md](docs/THIRD_PARTY_LICENSES.md).
+
+#### Backend (.NET 8.0) — Key Packages
+
+| Package | License | Notes |
+|---------|---------|-------|
+| ASP.NET Core / EF Core | MIT | Microsoft .NET ecosystem |
+| Pomelo.EntityFrameworkCore.MySql | MIT | MariaDB/MySQL provider |
+| Npgsql.EntityFrameworkCore.PostgreSQL | PostgreSQL License | Permissive |
+| Oracle.EntityFrameworkCore | Oracle Free Use (non-OSI) | ⚠️ Optional — operator responsibility |
+| BCrypt.Net-Next | MIT | Password hashing |
+| Serilog | Apache-2.0 | Structured logging |
+| FluentValidation | Apache-2.0 | Input validation |
+| Meilisearch SDK | MIT | Search provider |
+| Algolia.Search | MIT | Search provider |
+| Twilio / SendGrid | MIT | Notification providers |
+| DocuSign.eSign | MIT | E-signature provider |
+
+#### Frontend (React 18) — Key Packages
+
+| Package | License | Notes |
+|---------|---------|-------|
+| React / ReactDOM | MIT | UI framework |
+| Material-UI (MUI) v5 | MIT | Component library |
+| TypeScript | Apache-2.0 | Type system |
+| Axios | MIT | HTTP client |
+| React Router v6 | MIT | Client routing |
+| Formik + Yup | Apache-2.0 / MIT | Form handling |
+| Recharts | MIT | Charts & visualization |
+| SignalR Client | MIT | Real-time updates |
+
+#### Infrastructure & Docker Images
+
+| Component | License | Role |
+|-----------|---------|------|
+| MariaDB 11.2 | GPL-2.0 | Primary database |
+| Redis 7 | BSD-3-Clause | Cache |
+| Meilisearch v1.6 | MIT | Search engine |
+| Ollama | MIT | Local LLM runtime |
+| Novu (self-hosted) | MIT (app) / SSPL-1.0 (MongoDB dep) | ⚠️ Notifications — see notes |
+| Chatwoot | MIT | Chat provider |
+| DocuSeal | AGPL-3.0 | E-signatures |
+| Apache Superset | Apache-2.0 | Analytics |
+
+#### External Service Integrations (API-only)
+
+| Service | Integration Method | License Impact |
+|---------|-------------------|----------------|
+| n8n | REST API (HttpClient) | ✅ None — no code bundled |
+| Zapier / Make | Webhook URLs | ✅ None — SaaS only |
+| OpenAI / Azure OpenAI / Anthropic | REST API | ✅ None — SaaS only |
+| AWS Bedrock / OpenRouter | REST API | ✅ None — SaaS only |
+| DocuSign / Adobe Sign | REST API + SDK | ✅ SDK is MIT licensed |
+| Algolia / Elasticsearch | REST API + SDK | ✅ SDK is MIT licensed |
+| Intercom / Zendesk | REST API | ✅ None — SaaS only |
+| Power BI / Looker | REST API | ✅ None — SaaS only |
+| Twilio / SendGrid | REST API + SDK | ✅ SDK is MIT licensed |
+
+> **⚠️ Special Notes:**
+> - **n8n** uses a [Sustainable Use License](https://github.com/n8n-io/n8n/blob/master/LICENSE.md) — this CRM integrates via REST API only (no code bundling), so no license restrictions apply.
+> - **Oracle.EntityFrameworkCore** uses a non-OSI license — only relevant if operators choose Oracle as their database provider.
+> - **MongoDB SSPL-1.0** is a transitive dependency of self-hosted Novu — relevant only when self-hosting Novu with MongoDB.
+> - All **SaaS integrations** (OpenAI, Zapier, etc.) are API-only and carry no license obligations on the CRM codebase.
 
 ---
 
