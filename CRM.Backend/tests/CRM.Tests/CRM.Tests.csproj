@@ -31,4 +31,6 @@
     <ProjectReference Include="..\..\src\CRM.Api\CRM.Api.csproj" />
   </ItemGroup>
 
+  <!-- SK test files re-enabled after source fixes -->
+
 </Project>
