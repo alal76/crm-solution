@@ -209,6 +209,10 @@ public class LeadValidatorTests
         var dto = CreateValidLeadDto();
         dto.Status = status;
 
+        // Provide required fields for terminal statuses
+        if (status == "Converted") dto.ConvertedDate = DateTime.UtcNow;
+        if (status == "Disqualified") dto.DisqualificationReason = "Not a good fit";
+
         // Act
         var result = await _validator.ValidateAsync(dto);
 

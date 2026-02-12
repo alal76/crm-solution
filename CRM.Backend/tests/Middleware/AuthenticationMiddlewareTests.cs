@@ -436,7 +436,19 @@ public class AuthenticationMiddlewareTests
     private DefaultHttpContext CreateHttpContext(string path = "/api/test", string? bearerToken = null)
     {
         var context = new DefaultHttpContext();
-        context.Request.Path = path;
+
+        // Parse query string from path if present
+        var queryIndex = path.IndexOf('?');
+        if (queryIndex >= 0)
+        {
+            context.Request.QueryString = new QueryString(path.Substring(queryIndex));
+            context.Request.Path = path.Substring(0, queryIndex);
+        }
+        else
+        {
+            context.Request.Path = path;
+        }
+
         context.Response.Body = new MemoryStream();
 
         if (!string.IsNullOrEmpty(bearerToken))

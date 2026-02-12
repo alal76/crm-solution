@@ -551,7 +551,6 @@ public class MockEmailService : EmailService
     }
 
     protected EmailSettings Settings => _settings.Value;
-    private readonly IOptions<EmailSettings> _settings;
 }
 
 // Supporting classes

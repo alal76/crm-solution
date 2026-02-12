@@ -173,6 +173,13 @@ public class CrmDbContext : DbContext, ICrmDbContext
     public DbSet<WorkflowTask> WorkflowTasks { get; set; }
     public DbSet<WorkflowLog> WorkflowLogs { get; set; }
     public DbSet<WorkflowTrigger> WorkflowTriggers { get; set; }
+    public DbSet<WorkflowSchedule> WorkflowSchedules { get; set; }
+    public DbSet<WorkflowContextVariable> WorkflowContextVariables { get; set; }
+    public DbSet<WorkflowJob> WorkflowJobs { get; set; }
+    public DbSet<WorkflowAuditLog> WorkflowAuditLogs { get; set; }
+    public DbSet<WorkflowMetric> WorkflowMetrics { get; set; }
+    public DbSet<WorkflowLlmUsage> WorkflowLlmUsages { get; set; }
+    public DbSet<WorkflowCircuitBreakerState> WorkflowCircuitBreakerStates { get; set; }
 
     // Relationship Management entities
     public DbSet<CRM.Core.Entities.RelationshipType> RelationshipTypes { get; set; }
@@ -2006,6 +2013,129 @@ public class CrmDbContext : DbContext, ICrmDbContext
                 .WithMany()
                 .HasForeignKey(e => e.UserId)
                 .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        // WorkflowSchedule configuration
+        modelBuilder.Entity<WorkflowSchedule>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.Description).HasMaxLength(500);
+            entity.Property(e => e.CronExpression).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.TimeZone).HasMaxLength(100);
+            entity.Property(e => e.ContextData).HasColumnType("TEXT");
+            entity.HasOne(e => e.WorkflowDefinition)
+                .WithMany()
+                .HasForeignKey(e => e.WorkflowDefinitionId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasIndex(e => e.WorkflowDefinitionId);
+            entity.HasIndex(e => e.IsEnabled);
+            entity.HasIndex(e => e.NextTriggerAt);
+        });
+
+        // WorkflowJob configuration
+        modelBuilder.Entity<WorkflowJob>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.JobType).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.Status).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.StepKey).HasMaxLength(200);
+            entity.Property(e => e.Payload).HasColumnType("TEXT");
+            entity.Property(e => e.ProcessingWorkerId).HasMaxLength(200);
+            entity.Property(e => e.ErrorMessage).HasColumnType("TEXT");
+            entity.Property(e => e.ResultData).HasColumnType("TEXT");
+            entity.Property(e => e.CorrelationId).HasMaxLength(200);
+            entity.HasOne(e => e.WorkflowInstance)
+                .WithMany()
+                .HasForeignKey(e => e.WorkflowInstanceId)
+                .OnDelete(DeleteBehavior.SetNull);
+            entity.HasOne(e => e.WorkflowTask)
+                .WithMany()
+                .HasForeignKey(e => e.WorkflowTaskId)
+                .OnDelete(DeleteBehavior.SetNull);
+            entity.HasIndex(e => e.Status);
+            entity.HasIndex(e => e.ScheduledAt);
+            entity.HasIndex(e => e.CorrelationId);
+        });
+
+        // WorkflowContextVariable configuration
+        modelBuilder.Entity<WorkflowContextVariable>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Key).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.Value).HasColumnType("TEXT");
+            entity.Property(e => e.ValueType).HasMaxLength(50);
+            entity.Property(e => e.SetByStepKey).HasMaxLength(200);
+            entity.HasOne(e => e.WorkflowInstance)
+                .WithMany()
+                .HasForeignKey(e => e.WorkflowInstanceId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasIndex(e => new { e.WorkflowInstanceId, e.Key }).IsUnique();
+        });
+
+        // WorkflowAuditLog configuration
+        modelBuilder.Entity<WorkflowAuditLog>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Action).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.ActorId).HasMaxLength(200);
+            entity.Property(e => e.ActorName).HasMaxLength(200);
+            entity.Property(e => e.Details).HasColumnType("TEXT");
+            entity.Property(e => e.IpAddress).HasMaxLength(45);
+            entity.Property(e => e.UserAgent).HasMaxLength(500);
+            entity.HasOne(e => e.WorkflowInstance)
+                .WithMany()
+                .HasForeignKey(e => e.WorkflowInstanceId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasIndex(e => e.WorkflowInstanceId);
+            entity.HasIndex(e => e.Action);
+            entity.HasIndex(e => e.Timestamp);
+        });
+
+        // WorkflowMetric configuration
+        modelBuilder.Entity<WorkflowMetric>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.MetricType).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.MetricName).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.MetricValue).HasColumnType("decimal(18,4)");
+            entity.Property(e => e.Dimensions).HasColumnType("TEXT");
+            entity.HasOne(e => e.WorkflowDefinition)
+                .WithMany()
+                .HasForeignKey(e => e.WorkflowDefinitionId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasIndex(e => e.WorkflowDefinitionId);
+            entity.HasIndex(e => e.MetricType);
+            entity.HasIndex(e => e.RecordedAt);
+        });
+
+        // WorkflowLlmUsage configuration
+        modelBuilder.Entity<WorkflowLlmUsage>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Provider).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.Model).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.CostEstimate).HasColumnType("decimal(10,6)");
+            entity.Property(e => e.ErrorMessage).HasColumnType("TEXT");
+            entity.HasOne(e => e.WorkflowInstance)
+                .WithMany()
+                .HasForeignKey(e => e.WorkflowInstanceId)
+                .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(e => e.NodeInstance)
+                .WithMany()
+                .HasForeignKey(e => e.NodeInstanceId)
+                .OnDelete(DeleteBehavior.SetNull);
+            entity.HasIndex(e => e.WorkflowInstanceId);
+            entity.HasIndex(e => e.Provider);
+        });
+
+        // WorkflowCircuitBreakerState configuration
+        modelBuilder.Entity<WorkflowCircuitBreakerState>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.ServiceName).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.State).IsRequired().HasMaxLength(50);
+            entity.HasIndex(e => e.ServiceName).IsUnique();
         });
 
         // ===================================================================

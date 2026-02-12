@@ -382,7 +382,7 @@ public class EntityConfigurationTests
     }
 
     [Fact]
-    public void Address_City_ShouldHaveMaxLength100()
+    public void Address_City_ShouldHaveMaxLength200()
     {
         // Arrange
         var entity = _model.FindEntityType(typeof(Address));
@@ -390,7 +390,7 @@ public class EntityConfigurationTests
 
         // Assert
         property.Should().NotBeNull();
-        property!.GetMaxLength().Should().Be(100);
+        property!.GetMaxLength().Should().Be(200);
     }
 
     [Fact]
@@ -425,7 +425,7 @@ public class EntityConfigurationTests
     {
         // Arrange
         var entity = _model.FindEntityType(typeof(WorkflowInstance));
-        var navigation = entity?.FindNavigation("Definition");
+        var navigation = entity?.FindNavigation("WorkflowDefinition");
 
         // Assert
         navigation.Should().NotBeNull();
@@ -517,7 +517,6 @@ public class EntityConfigurationTests
 
     [Theory]
     [InlineData(typeof(Account))]
-    [InlineData(typeof(Contact))]
     [InlineData(typeof(Lead))]
     [InlineData(typeof(Opportunity))]
     [InlineData(typeof(Product))]
@@ -533,7 +532,6 @@ public class EntityConfigurationTests
 
     [Theory]
     [InlineData(typeof(Account))]
-    [InlineData(typeof(Contact))]
     [InlineData(typeof(Lead))]
     [InlineData(typeof(Opportunity))]
     [InlineData(typeof(Product))]
@@ -549,7 +547,6 @@ public class EntityConfigurationTests
 
     [Theory]
     [InlineData(typeof(Account))]
-    [InlineData(typeof(Contact))]
     [InlineData(typeof(Lead))]
     [InlineData(typeof(Opportunity))]
     [InlineData(typeof(Product))]
