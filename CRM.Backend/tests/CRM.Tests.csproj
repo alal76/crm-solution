@@ -25,51 +25,9 @@
     <None Remove="Unit\**" />
   </ItemGroup>
 
-  <!-- Exclude test files that reference types/services not yet implemented -->
-  <ItemGroup>
-    <!-- DatabaseExtensionsTests: TestDbContext missing 131 ICrmDbContext members + CRM.ServiceDefaults ref -->
-    <Compile Remove="Extensions\DatabaseExtensionsTests.cs" />
-    <!-- Re-enabled: ServiceExtensionsTests.cs (added CRM.ServiceDefaults project reference) -->
-    <!-- DELETED: 15 entity-specific repository test files (fictional — only generic Repository<T> exists) -->
-    <!-- RE-ENABLED: GenericRepositoryTests.cs rewritten from scratch — 7 real IRepository<T> methods -->
-    <!-- RE-ENABLED: 6 validator test files (self-contained stub tests) -->
-    <!-- DELETED: SettingsControllerTests.cs, KnowledgeBaseControllerTests.cs, WorkflowsControllerTests.cs (fictional) -->
-    <!-- RE-ENABLED: ReportsControllerTests.cs (6 fixes applied — using Reports namespace + 5 OkResult→OkObjectResult) -->
-    <!-- DELETED (fictional): FileUploadControllerTests, DuplicatesControllerTests, ImportExportControllerTests, WebhooksControllerTests, StagesControllerTests, LookupsControllerTests, CampaignsControllerTests, UserProfilesControllerTests -->
-    <!-- DELETED (fictional — wrong IRepository<T> constructors, 2026-02-20): -->
-    <!-- Controllers: ActivitiesControllerTests, DashboardControllerTests, EmailTemplatesControllerTests, InteractionsControllerTests, NotesControllerTests, PipelinesControllerTests, QuotesControllerTests, TasksControllerTests, UsersControllerTests -->
-    <!-- Services: WorkflowServiceTests, WorkflowInstanceServiceTests, WorkflowWorkerServiceTests, MonitoringServiceTests, MergeServiceTests, CalendarSyncServiceTests, EmailSyncServiceTests, ContactsServiceTests, MarketingCampaignServiceTests, ZipCodeServiceTests, ZipCodeImportServiceTests, ServiceRequestServiceTests, DuplicateDetectionServiceTests, CloudDeploymentServiceTests, ColorPaletteServiceTests, ContactInfoServiceTests, DatabaseBackupServiceTests, DatabaseSyncServiceTests, LLMSettingsServiceTests, LandingPageServiceTests, ModuleFieldConfigurationServiceTests, RedisCacheServiceTests -->
-    <!-- ITSM Services: CICDIntegrationServiceTests -->
-    <!-- LLMServiceTests (phantom — file never existed) -->
-    <!-- RE-ENABLED: 4 middleware test files (self-contained stub tests) -->
-    <!-- DELETED: 3 provider test files (no matching source classes — fictional CacheProvider, EmailProvider, StorageProvider) -->
-    <!-- Providers/JwtTokenServiceTests.cs - DELETED (duplicate of Services/JwtTokenServiceTests, fictional JwtSettings class) -->
-    <!-- Re-enabled: ApiTestFactory + 4 BVT tests (depend on WebApplicationFactory + in-memory DB) -->
-    <!-- RE-ENABLED: TokenRevocationServiceTests.cs (rewritten 2026-02-17) -->
-    <!-- RE-ENABLED: FieldMasterDataServiceTests, ITSM/ArticleRecommendation, ITSM/BusinessHoursCalculator -->
-    <!-- HostedService tests - all re-enabled (rewritten from scratch): -->
-    <!-- BackupSchedulerHostedServiceTests, DatabaseSyncHostedServiceTests, LeadScoreDecayHostedServiceTests, WorkflowWorkerServiceTests, ZipCodeImportHostedServiceTests -->
-    <!-- FIXED: Re-enabled JwtTokenServiceTests.cs (removed ILogger, deleted GetPrincipalFromToken, fixed return types) -->
-    <!-- ModuleUIConfigServiceTests.cs - RE-ENABLED (rewritten 2026-02-19) -->
-    <!-- ResilienceServiceTests.cs - RE-ENABLED (rewritten 2026-02-17) -->
-    <!-- TotpServiceTests.cs - RE-ENABLED (rewritten 2026-02-17) -->
-    <!-- UserApprovalServiceTests.cs - RE-ENABLED (rewritten 2026-02-19) -->
-    <!-- UserGroupServiceTests.cs - RE-ENABLED (rewritten 2026-02-15) -->
-
-    <!-- ===== FIXABLE test files — need constructor/method fixes before re-enabling ===== -->
-    <!-- Controllers with correct constructor signatures (mock IService + ILogger): -->
-    <Compile Remove="Controllers\ContactsControllerTests.cs" />
-    <Compile Remove="Controllers\InvoicesControllerTests.cs" />
-    <Compile Remove="Controllers\LeadsControllerTests.cs" />
-    <Compile Remove="Controllers\OrdersControllerTests.cs" />
-    <Compile Remove="Controllers\ServiceRequestsControllerTests.cs" />
-    <Compile Remove="Controllers\UserGroupsControllerTests.cs" />
-    <!-- ITSM service tests with simple constructors (ILogger only): -->
-    <Compile Remove="Services\ITSM\EmailToTicketServiceTests.cs" />
-    <Compile Remove="Services\ITSM\MonitoringIntegrationServiceTests.cs" />
-    <Compile Remove="Services\ITSM\SelfServiceChatbotServiceTests.cs" />
-    <Compile Remove="Services\ITSM\WebhookNotificationServiceTests.cs" />
-  </ItemGroup>
+  <!-- Historical note: 97 test files were excluded due to entity drift. -->
+  <!-- Files with fixable issues were rewritten and re-enabled. -->
+  <!-- Remaining 11 unfixable files (phantom mocks, missing 131 DbContext members) were deleted 2026-02-21. -->
 
   <ItemGroup>
     <PackageReference Include="Microsoft.FeatureManagement.AspNetCore" Version="3.5.0" />

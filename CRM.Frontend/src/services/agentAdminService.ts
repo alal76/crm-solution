@@ -1,5 +1,5 @@
 import apiClient from './apiClient';
-import { Agent, UpdateAgentRequest } from '../types/agents';
+import { Agent, UpdateAgentRequest, CreateAgentRequest } from '../types/agents';
 
 const agentAdminService = {
   getConfigs: () => apiClient.get<Agent[]>('/agents/admin'),
@@ -7,6 +7,8 @@ const agentAdminService = {
     apiClient.put(`/agents/admin/${agentId}`, request),
   toggleAgent: (agentId: number) =>
     apiClient.post(`/agents/admin/${agentId}/toggle`),
+  createAgent: (request: CreateAgentRequest) =>
+    apiClient.post<Agent>('/agents', request),
 };
 
 export default agentAdminService;

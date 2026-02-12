@@ -27,6 +27,10 @@ import {
   ListItemAvatar,
   ListItemText,
   Alert,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
 } from '@mui/material';
 import {
   Close as CloseIcon,
@@ -40,11 +44,14 @@ import {
   Chat as ChatIcon,
   AccountCircle as AccountIcon,
   AutoAwesome as AIIcon,
+  Psychology as AgentIcon,
 } from '@mui/icons-material';
 import { useAccountContext } from '../contexts/AccountContextProvider';
 import { useAuth } from '../contexts/AuthContext';
 import { Account } from '../services/accountService';
 import apiClient from '../services/apiClient';
+import agentService from '../services/agentService';
+import { Agent, ChatRequest } from '../types/agents';
 
 interface ChatMessage {
   id: string;
@@ -92,6 +99,11 @@ const ContextFlyout: React.FC<ContextFlyoutProps> = ({ onAccountsChange }) => {
   const [isSending, setIsSending] = useState(false);
   const [docsLoaded, setDocsLoaded] = useState(false);
   const [docsLoading, setDocsLoading] = useState(false);
+
+  // Agent selector state
+  const [agents, setAgents] = useState<Agent[]>([]);
+  const [selectedAgentId, setSelectedAgentId] = useState<number | ''>('');
+  const [agentConversationId, setAgentConversationId] = useState<number | null>(null);
   
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const chatInputRef = useRef<HTMLInputElement>(null);
@@ -136,6 +148,21 @@ const ContextFlyout: React.FC<ContextFlyoutProps> = ({ onAccountsChange }) => {
   }, [isFlyoutOpen, docsLoaded, docsLoading, isAuthenticated]);
 
   // Scroll to bottom when new messages arrive
+
+  // Load available AI agents
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    const loadAgents = async () => {
+      try {
+        const response = await agentService.getAll();
+        const activeAgents = (response.data || []).filter((a: Agent) => a.isActive);
+        setAgents(activeAgents);
+      } catch (error) {
+        console.error('Failed to load agents:', error);
+      }
+    };
+    loadAgents();
+  }, [isAuthenticated]);
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
@@ -191,31 +218,49 @@ const ContextFlyout: React.FC<ContextFlyoutProps> = ({ onAccountsChange }) => {
     };
 
     setMessages(prev => [...prev, userMessage, loadingMessage]);
+    const sentMessage = inputMessage.trim();
     setInputMessage('');
     setIsSending(true);
 
     try {
-      // Build context from selected accounts
-      const accountContext = selectedAccounts.length > 0
-        ? `Current context: Working with ${selectedAccounts.length} account(s): ${selectedAccounts.map(a => a.company || `${a.firstName} ${a.lastName}`).join(', ')}`
-        : '';
+      let responseText = '';
 
-      // Build conversation history from previous messages (exclude loading messages and welcome message)
-      const conversationHistory = messages
-        .filter(m => !m.isLoading && m.id !== 'welcome' && (m.role === 'user' || m.role === 'assistant'))
-        .map(m => ({ role: m.role, content: m.content }));
+      if (selectedAgentId) {
+        // Route through Semantic Kernel agent
+        const chatRequest: ChatRequest = {
+          message: sentMessage,
+          conversationId: agentConversationId ?? undefined,
+          entityType: selectedAccounts.length > 0 ? 'account' : undefined,
+          entityId: selectedAccounts.length > 0 ? selectedAccounts[0].id : undefined,
+        };
+        const agentResponse = await agentService.chat(selectedAgentId as number, chatRequest);
+        responseText = agentResponse.data?.response || "I couldn't process that request.";
+        if (agentResponse.data?.conversationId) {
+          setAgentConversationId(agentResponse.data.conversationId);
+        }
+      } else {
+        // Default CRM Assistant via /ai/chatbot/message
+        const accountContext = selectedAccounts.length > 0
+          ? `Current context: Working with ${selectedAccounts.length} account(s): ${selectedAccounts.map(a => a.company || `${a.firstName} ${a.lastName}`).join(', ')}`
+          : '';
 
-      const response = await apiClient.post<{ response: string }>('/ai/chatbot/message', {
-        message: inputMessage.trim(),
-        accountContext,
-        accountIds: selectedAccounts.map(a => a.id),
-        conversationHistory,
-      });
+        const conversationHistory = messages
+          .filter(m => !m.isLoading && m.id !== 'welcome' && (m.role === 'user' || m.role === 'assistant'))
+          .map(m => ({ role: m.role, content: m.content }));
+
+        const response = await apiClient.post<{ response: string }>('/ai/chatbot/message', {
+          message: sentMessage,
+          accountContext,
+          accountIds: selectedAccounts.map(a => a.id),
+          conversationHistory,
+        });
+        responseText = response.data?.response || "I couldn't process that request.";
+      }
 
       const assistantMessage: ChatMessage = {
         id: `assistant-${Date.now()}`,
         role: 'assistant',
-        content: response.data?.response || "I'm sorry, I couldn't process that request. Please try again.",
+        content: responseText,
         timestamp: new Date(),
       };
 
@@ -241,6 +286,21 @@ const ContextFlyout: React.FC<ContextFlyoutProps> = ({ onAccountsChange }) => {
       e.preventDefault();
       handleSendMessage();
     }
+  };
+
+  const handleAgentChange = (agentId: number | '') => {
+    setSelectedAgentId(agentId);
+    setAgentConversationId(null);
+    const agent = agents.find(a => a.id === agentId);
+    const welcomeContent = agent
+      ? `Hi! I'm **${agent.displayName}**. ${agent.description || 'How can I help you?'}`
+      : "Hello! I'm your CRM Assistant. I've been trained on the CRM documentation and can help you with:\n\n• Understanding features and workflows\n• Finding information about accounts and contacts\n• Navigating the system\n• Best practices for CRM usage\n\nHow can I help you today?";
+    setMessages([{
+      id: 'welcome',
+      role: 'assistant',
+      content: welcomeContent,
+      timestamp: new Date(),
+    }]);
   };
 
   const getAccountDisplayName = (account: Account): string => {
@@ -395,13 +455,58 @@ const ContextFlyout: React.FC<ContextFlyoutProps> = ({ onAccountsChange }) => {
             )}
           </Box>
 
+          {/* Agent Selector */}
+          {agents.length > 0 && (
+            <Box sx={{ px: 2, py: 1, borderBottom: 1, borderColor: 'divider' }}>
+              <FormControl fullWidth size="small">
+                <InputLabel id="agent-selector-label">
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                    <AgentIcon sx={{ fontSize: 16 }} />
+                    AI Agent
+                  </Box>
+                </InputLabel>
+                <Select
+                  labelId="agent-selector-label"
+                  value={selectedAgentId}
+                  onChange={(e) => handleAgentChange(e.target.value as number | '')}
+                  label="AI Agent"
+                >
+                  <MenuItem value="">
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <AIIcon sx={{ fontSize: 18, color: 'secondary.main' }} />
+                      <Typography variant="body2">CRM Assistant (Default)</Typography>
+                    </Box>
+                  </MenuItem>
+                  <Divider />
+                  {agents.map((agent) => (
+                    <MenuItem key={agent.id} value={agent.id}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <AgentIcon sx={{ fontSize: 18, color: 'primary.main' }} />
+                        <Box>
+                          <Typography variant="body2">{agent.displayName || agent.name}</Typography>
+                          {agent.description && (
+                            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', maxWidth: 280, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {agent.description}
+                            </Typography>
+                          )}
+                        </Box>
+                      </Box>
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+            </Box>
+          )}
+
           {/* Chatbot Section */}
           <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
             {/* Chat Header */}
             <Box sx={{ p: 1.5, borderBottom: 1, borderColor: 'divider', display: 'flex', alignItems: 'center', gap: 1 }}>
-              <AIIcon color="secondary" />
+              {selectedAgentId ? <AgentIcon color="primary" /> : <AIIcon color="secondary" />}
               <Typography variant="subtitle1" fontWeight="bold">
-                CRM Assistant
+                {selectedAgentId
+                  ? (agents.find(a => a.id === selectedAgentId)?.displayName || 'AI Agent')
+                  : 'CRM Assistant'}
               </Typography>
               {docsLoading && (
                 <Chip

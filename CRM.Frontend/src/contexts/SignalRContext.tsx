@@ -1,13 +1,16 @@
 import React, { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react';
 import { HubConnectionState } from '@microsoft/signalr';
-import signalRService from '../services/signalRService';
+import signalRService, { ApprovalRequestNotification, ApprovalResultNotification } from '../services/signalRService';
 import { useAuth } from './AuthContext';
 
 interface SignalRContextValue {
   isConnected: boolean;
+  isApprovalConnected: boolean;
   connectionState: HubConnectionState;
   connect: () => Promise<boolean>;
   disconnect: () => Promise<void>;
+  onApprovalRequest: (callback: (data: ApprovalRequestNotification) => void) => () => void;
+  onApprovalResult: (callback: (data: ApprovalResultNotification) => void) => () => void;
 }
 
 const SignalRContext = createContext<SignalRContextValue | undefined>(undefined);
@@ -81,11 +84,22 @@ export function SignalRProvider({ children }: SignalRProviderProps) {
     setConnectionState(signalRService.getConnectionState() ?? HubConnectionState.Disconnected);
   }, []);
 
+  const onApprovalRequest = useCallback((callback: (data: ApprovalRequestNotification) => void) => {
+    return signalRService.onApprovalRequest(callback);
+  }, []);
+
+  const onApprovalResult = useCallback((callback: (data: ApprovalResultNotification) => void) => {
+    return signalRService.onApprovalResult(callback);
+  }, []);
+
   const value: SignalRContextValue = {
     isConnected: connectionState === HubConnectionState.Connected,
+    isApprovalConnected: signalRService.isApprovalConnected(),
     connectionState,
     connect,
     disconnect,
+    onApprovalRequest,
+    onApprovalResult,
   };
 
   return (

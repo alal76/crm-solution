@@ -215,6 +215,8 @@ const AgentChatPage = lazy(() => import('./pages/AgentChatPage'));
 const AgentManagementPage = lazy(() => import('./pages/AgentManagementPage'));
 const AgentApprovalsPage = lazy(() => import('./pages/AgentApprovalsPage'));
 const AgentAnalyticsPage = lazy(() => import('./pages/AgentAnalyticsPage'));
+const ConversationHistoryPage = lazy(() => import('./pages/ConversationHistoryPage'));
+const AgentCreatorPage = lazy(() => import('./pages/AgentCreatorPage'));
 
 // Inner component that can access the theme context
 function ThemedApp() {
@@ -1310,10 +1312,28 @@ function ThemedApp() {
                 }
               />
               <Route
+                path="/agents/conversations"
+                element={
+                  <ProtectedRoute>
+                    <ConversationHistoryPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
                 path="/agents/:agentId/chat"
                 element={
                   <ProtectedRoute>
                     <AgentChatPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/agents/new"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute requiredPage="Settings">
+                      <AgentCreatorPage />
+                    </RoleBasedRoute>
                   </ProtectedRoute>
                 }
               />

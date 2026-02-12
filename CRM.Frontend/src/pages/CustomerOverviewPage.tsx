@@ -24,9 +24,12 @@ import {
   AttachMoney as MoneyIcon, CalendarToday as CalendarIcon,
   Article as NewsIcon, Public as SocialIcon, Refresh as RefreshIcon,
   AccountCircle as AccountManagerIcon, OpenInNew as OpenInNewIcon,
-  Facebook as FacebookIcon
+  Facebook as FacebookIcon,
+  SmartToy as SmartToyIcon, AutoAwesome as AutoAwesomeIcon,
+  Email as DraftEmailIcon, TipsAndUpdates as InsightsIcon
 } from '@mui/icons-material';
 import apiClient from '../services/apiClient';
+import agentService from '../services/agentService';
 import { getNewsSocialFeeds, refreshNewsSocialFeeds, getNewsSocialStatus, NewsItem, SocialFeed, NewsSocialStatus } from '../services/newsSocialService';
 import logo from '../assets/logo.png';
 
@@ -104,6 +107,46 @@ function CustomerOverviewPage() {
   const [apiStatus, setApiStatus] = useState<NewsSocialStatus | null>(null);
   const [activities, setActivities] = useState<ChatMessageActivity[]>([]);
   const [loadingActivities, setLoadingActivities] = useState(false);
+
+  // AI Contextual Actions state
+  const [aiLoading, setAiLoading] = useState<string | null>(null);
+  const [aiResult, setAiResult] = useState<{ type: string; data: any } | null>(null);
+
+  const handleAiInsights = async (customerId: number) => {
+    setAiLoading('insights');
+    setAiResult(null);
+    try {
+      const res = await agentService.getNextBestActions('account', customerId);
+      setAiResult({ type: 'insights', data: res.data });
+    } catch {
+      setAiResult({ type: 'error', data: 'Failed to load AI insights.' });
+    } finally {
+      setAiLoading(null);
+    }
+  };
+
+  const handleDraftEmail = async (customer: Customer) => {
+    setAiLoading('email');
+    setAiResult(null);
+    try {
+      const res = await agentService.draftEmail({
+        recipientEmail: customer.email,
+        recipientName: customer.company || `${customer.firstName} ${customer.lastName}`,
+        context: `Customer account follow-up for ${customer.company || customer.firstName}`,
+        tone: 'professional',
+      });
+      setAiResult({ type: 'email', data: res.data });
+    } catch {
+      setAiResult({ type: 'error', data: 'Failed to draft email.' });
+    } finally {
+      setAiLoading(null);
+    }
+  };
+
+  const handleAiChat = (customerId: number) => {
+    // Navigate to orchestrator with account context pre-filled
+    window.location.href = `/agents/1/chat?context=account&entityId=${customerId}`;
+  };
 
   useEffect(() => {
     fetchCustomers();
@@ -483,6 +526,73 @@ function CustomerOverviewPage() {
                       )}
                     </Box>
                   </Box>
+
+                  {/* AI Contextual Actions */}
+                  <Box sx={{ display: 'flex', gap: 1, mb: 2, flexWrap: 'wrap', alignItems: 'center' }}>
+                    <Chip
+                      icon={<SmartToyIcon />}
+                      label="AI"
+                      size="small"
+                      sx={{ bgcolor: '#6750A414', color: '#6750A4', fontWeight: 600 }}
+                    />
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      startIcon={aiLoading === 'insights' ? <CircularProgress size={16} /> : <InsightsIcon />}
+                      disabled={aiLoading !== null}
+                      onClick={() => handleAiInsights(selectedCustomer.id)}
+                      sx={{ borderRadius: 2, textTransform: 'none', borderColor: '#6750A4', color: '#6750A4' }}
+                    >
+                      AI Insights
+                    </Button>
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      startIcon={aiLoading === 'email' ? <CircularProgress size={16} /> : <DraftEmailIcon />}
+                      disabled={aiLoading !== null}
+                      onClick={() => handleDraftEmail(selectedCustomer)}
+                      sx={{ borderRadius: 2, textTransform: 'none', borderColor: '#6750A4', color: '#6750A4' }}
+                    >
+                      Draft Email
+                    </Button>
+                    <Button
+                      size="small"
+                      variant="outlined"
+                      startIcon={<AutoAwesomeIcon />}
+                      onClick={() => handleAiChat(selectedCustomer.id)}
+                      sx={{ borderRadius: 2, textTransform: 'none', borderColor: '#6750A4', color: '#6750A4' }}
+                    >
+                      Ask AI
+                    </Button>
+                  </Box>
+
+                  {/* AI Result Panel */}
+                  {aiResult && (
+                    <Alert
+                      severity={aiResult.type === 'error' ? 'error' : 'info'}
+                      onClose={() => setAiResult(null)}
+                      sx={{ mb: 2, borderRadius: 2 }}
+                      icon={aiResult.type !== 'error' ? <SmartToyIcon /> : undefined}
+                    >
+                      {aiResult.type === 'error' && aiResult.data}
+                      {aiResult.type === 'insights' && (
+                        <Box>
+                          <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>Next Best Actions</Typography>
+                          <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
+                            {typeof aiResult.data === 'string' ? aiResult.data : JSON.stringify(aiResult.data, null, 2)}
+                          </Typography>
+                        </Box>
+                      )}
+                      {aiResult.type === 'email' && (
+                        <Box>
+                          <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>AI-Drafted Email</Typography>
+                          <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
+                            {typeof aiResult.data === 'string' ? aiResult.data : (aiResult.data?.body || aiResult.data?.content || JSON.stringify(aiResult.data, null, 2))}
+                          </Typography>
+                        </Box>
+                      )}
+                    </Alert>
+                  )}
 
                   {/* Tabs */}
                   <Tabs value={tabValue} onChange={(_, v) => setTabValue(v)} sx={{ mb: 2 }}>
