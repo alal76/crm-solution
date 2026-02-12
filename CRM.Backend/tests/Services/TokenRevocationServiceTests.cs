@@ -19,323 +19,386 @@ using Moq;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Caching.Distributed;
-using CRM.Core.Dtos;
-using CRM.Core.Entities;
-using CRM.Core.Interfaces;
+using Microsoft.Extensions.Configuration;
 using CRM.Infrastructure.Services;
-using System.Collections.Generic;
+using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using System;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Text;
 
 namespace CRM.Tests.Services;
 
 /// <summary>
-/// Unit tests for TokenRevocationService
-/// Covers: Token blacklisting, revocation, cleanup
+/// Unit tests for TokenRevocationService.
+/// Real constructor: (IDistributedCache cache, IConfiguration configuration, ILogger logger)
+/// Real interface methods:
+///   - RevokeTokenAsync(string token, int? expirationMinutes = null) → Task
+///   - RevokeAllUserTokensAsync(int userId) → Task
+///   - IsTokenRevokedAsync(string token) → Task&lt;bool&gt;
+///   - IsUserTokenRevokedAsync(int userId, DateTime tokenIssuedAt) → Task&lt;bool&gt;
 /// </summary>
 public class TokenRevocationServiceTests
 {
-    private readonly Mock<IRepository<RevokedToken>> _mockRevokedTokenRepository;
     private readonly Mock<IDistributedCache> _mockCache;
+    private readonly Mock<IConfiguration> _mockConfiguration;
     private readonly Mock<ILogger<TokenRevocationService>> _mockLogger;
     private readonly TokenRevocationService _service;
 
     public TokenRevocationServiceTests()
     {
-        _mockRevokedTokenRepository = new Mock<IRepository<RevokedToken>>();
         _mockCache = new Mock<IDistributedCache>();
+        _mockConfiguration = new Mock<IConfiguration>();
         _mockLogger = new Mock<ILogger<TokenRevocationService>>();
 
+        // Default config: Jwt:ExpirationMinutes = 60
+        _mockConfiguration.Setup(c => c["Jwt:ExpirationMinutes"]).Returns("60");
+
         _service = new TokenRevocationService(
-            _mockRevokedTokenRepository.Object,
             _mockCache.Object,
+            _mockConfiguration.Object,
             _mockLogger.Object);
     }
 
-    #region Revoke Token Tests
+    #region RevokeTokenAsync Tests
 
     [Fact]
-    public async Task RevokeTokenAsync_ValidToken_RevokesToken()
+    public async Task RevokeTokenAsync_ValidToken_SetsInCache()
     {
         // Arrange
-        var tokenId = "jti_12345";
-        var expiry = DateTime.UtcNow.AddHours(1);
-
-        _mockRevokedTokenRepository.Setup(r => r.AddAsync(It.IsAny<RevokedToken>()))
-            .ReturnsAsync((RevokedToken t) => { t.Id = 1; return t; });
+        var token = "eyJhbGciOiJIUzI1NiJ9.test.signature";
 
         _mockCache.Setup(c => c.SetAsync(
             It.IsAny<string>(),
             It.IsAny<byte[]>(),
             It.IsAny<DistributedCacheEntryOptions>(),
-            default))
+            It.IsAny<CancellationToken>()))
             .Returns(Task.CompletedTask);
 
         // Act
-        var result = await _service.RevokeTokenAsync(tokenId, expiry);
+        await _service.RevokeTokenAsync(token);
 
-        // Assert
-        result.Should().BeTrue();
+        // Assert — cache.SetStringAsync is an extension that calls SetAsync
+        _mockCache.Verify(c => c.SetAsync(
+            It.Is<string>(k => k.StartsWith("revoked_token:")),
+            It.IsAny<byte[]>(),
+            It.IsAny<DistributedCacheEntryOptions>(),
+            It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
-    public async Task RevokeTokenAsync_WithReason_StoresReason()
+    public async Task RevokeTokenAsync_WithCustomExpiration_UsesProvidedMinutes()
     {
         // Arrange
-        var tokenId = "jti_67890";
-        var expiry = DateTime.UtcNow.AddHours(1);
-        var reason = "User logged out";
+        var token = "test-token-custom-expiry";
 
-        _mockRevokedTokenRepository.Setup(r => r.AddAsync(It.IsAny<RevokedToken>()))
-            .ReturnsAsync((RevokedToken t) => { t.Id = 1; return t; });
+        _mockCache.Setup(c => c.SetAsync(
+            It.IsAny<string>(),
+            It.IsAny<byte[]>(),
+            It.IsAny<DistributedCacheEntryOptions>(),
+            It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
 
         // Act
-        var result = await _service.RevokeTokenAsync(tokenId, expiry, reason);
+        await _service.RevokeTokenAsync(token, expirationMinutes: 120);
 
         // Assert
-        result.Should().BeTrue();
-        _mockRevokedTokenRepository.Verify(r => r.AddAsync(It.Is<RevokedToken>(t => t.Reason == reason)), Times.Once);
+        _mockCache.Verify(c => c.SetAsync(
+            It.IsAny<string>(),
+            It.IsAny<byte[]>(),
+            It.Is<DistributedCacheEntryOptions>(o =>
+                o.AbsoluteExpirationRelativeToNow == TimeSpan.FromMinutes(120)),
+            It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
-    public async Task RevokeTokenAsync_AlreadyRevoked_ReturnsFalse()
+    public async Task RevokeTokenAsync_NullOrWhitespaceToken_DoesNotCallCache()
+    {
+        // Act
+        await _service.RevokeTokenAsync(null!);
+        await _service.RevokeTokenAsync("");
+        await _service.RevokeTokenAsync("   ");
+
+        // Assert — cache should never be called
+        _mockCache.Verify(c => c.SetAsync(
+            It.IsAny<string>(),
+            It.IsAny<byte[]>(),
+            It.IsAny<DistributedCacheEntryOptions>(),
+            It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task RevokeTokenAsync_DefaultExpiration_Uses60Minutes()
     {
         // Arrange
-        var tokenId = "jti_already_revoked";
-        var existingToken = new RevokedToken { Id = 1, TokenId = tokenId };
+        var token = "test-token-default-expiry";
 
-        _mockRevokedTokenRepository.Setup(r => r.FindAsync(It.IsAny<Expression<Func<RevokedToken, bool>>>()))
-            .ReturnsAsync(new List<RevokedToken> { existingToken });
+        _mockCache.Setup(c => c.SetAsync(
+            It.IsAny<string>(),
+            It.IsAny<byte[]>(),
+            It.IsAny<DistributedCacheEntryOptions>(),
+            It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
 
         // Act
-        var result = await _service.RevokeTokenAsync(tokenId, DateTime.UtcNow.AddHours(1));
+        await _service.RevokeTokenAsync(token);
 
         // Assert
-        result.Should().BeFalse();
+        _mockCache.Verify(c => c.SetAsync(
+            It.IsAny<string>(),
+            It.IsAny<byte[]>(),
+            It.Is<DistributedCacheEntryOptions>(o =>
+                o.AbsoluteExpirationRelativeToNow == TimeSpan.FromMinutes(60)),
+            It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task RevokeTokenAsync_CacheThrows_PropagatesException()
+    {
+        // Arrange
+        var token = "test-token-error";
+
+        _mockCache.Setup(c => c.SetAsync(
+            It.IsAny<string>(),
+            It.IsAny<byte[]>(),
+            It.IsAny<DistributedCacheEntryOptions>(),
+            It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("Cache unavailable"));
+
+        // Act & Assert
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => _service.RevokeTokenAsync(token));
     }
 
     #endregion
 
-    #region Check Revocation Tests
+    #region RevokeAllUserTokensAsync Tests
 
     [Fact]
-    public async Task IsTokenRevokedAsync_RevokedToken_ReturnsTrue()
+    public async Task RevokeAllUserTokensAsync_ValidUser_SetsRevocationTimestamp()
     {
         // Arrange
-        var tokenId = "jti_revoked";
+        var userId = 42;
 
-        _mockCache.Setup(c => c.GetAsync(It.IsAny<string>(), default))
+        _mockCache.Setup(c => c.SetAsync(
+            It.IsAny<string>(),
+            It.IsAny<byte[]>(),
+            It.IsAny<DistributedCacheEntryOptions>(),
+            It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+
+        // Act
+        await _service.RevokeAllUserTokensAsync(userId);
+
+        // Assert — key should contain user_revoked_at:{userId}
+        _mockCache.Verify(c => c.SetAsync(
+            It.Is<string>(k => k == "user_revoked_at:42"),
+            It.IsAny<byte[]>(),
+            It.Is<DistributedCacheEntryOptions>(o =>
+                o.AbsoluteExpirationRelativeToNow == TimeSpan.FromHours(24)),
+            It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task RevokeAllUserTokensAsync_CacheThrows_PropagatesException()
+    {
+        // Arrange
+        _mockCache.Setup(c => c.SetAsync(
+            It.IsAny<string>(),
+            It.IsAny<byte[]>(),
+            It.IsAny<DistributedCacheEntryOptions>(),
+            It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("Cache unavailable"));
+
+        // Act & Assert
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => _service.RevokeAllUserTokensAsync(1));
+    }
+
+    #endregion
+
+    #region IsTokenRevokedAsync Tests
+
+    [Fact]
+    public async Task IsTokenRevokedAsync_TokenInCache_ReturnsTrue()
+    {
+        // Arrange
+        var token = "revoked-jwt-token";
+
+        // GetStringAsync is an extension that calls GetAsync
+        _mockCache.Setup(c => c.GetAsync(
+            It.Is<string>(k => k.StartsWith("revoked_token:")),
+            It.IsAny<CancellationToken>()))
             .ReturnsAsync(Encoding.UTF8.GetBytes("revoked"));
 
         // Act
-        var result = await _service.IsTokenRevokedAsync(tokenId);
+        var result = await _service.IsTokenRevokedAsync(token);
 
         // Assert
         result.Should().BeTrue();
     }
 
     [Fact]
-    public async Task IsTokenRevokedAsync_NotRevoked_ReturnsFalse()
+    public async Task IsTokenRevokedAsync_TokenNotInCache_ReturnsFalse()
     {
         // Arrange
-        var tokenId = "jti_valid";
+        var token = "valid-jwt-token";
 
-        _mockCache.Setup(c => c.GetAsync(It.IsAny<string>(), default))
+        _mockCache.Setup(c => c.GetAsync(
+            It.IsAny<string>(),
+            It.IsAny<CancellationToken>()))
             .ReturnsAsync((byte[]?)null);
 
-        _mockRevokedTokenRepository.Setup(r => r.FindAsync(It.IsAny<Expression<Func<RevokedToken, bool>>>()))
-            .ReturnsAsync(new List<RevokedToken>());
-
         // Act
-        var result = await _service.IsTokenRevokedAsync(tokenId);
+        var result = await _service.IsTokenRevokedAsync(token);
 
         // Assert
         result.Should().BeFalse();
     }
 
     [Fact]
-    public async Task IsTokenRevokedAsync_CacheMissDbHit_ReturnsTrue()
+    public async Task IsTokenRevokedAsync_NullOrWhitespace_ReturnsTrue()
+    {
+        // The source code returns true for null/whitespace tokens
+        // Act & Assert
+        (await _service.IsTokenRevokedAsync(null!)).Should().BeTrue();
+        (await _service.IsTokenRevokedAsync("")).Should().BeTrue();
+        (await _service.IsTokenRevokedAsync("  ")).Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task IsTokenRevokedAsync_CacheThrows_ReturnsFalse()
+    {
+        // Source: on error, assume token is valid to prevent lockouts
+        var token = "test-token-cache-error";
+
+        _mockCache.Setup(c => c.GetAsync(
+            It.IsAny<string>(),
+            It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("Cache unavailable"));
+
+        // Act
+        var result = await _service.IsTokenRevokedAsync(token);
+
+        // Assert — returns false on error (fail-open to prevent lockouts)
+        result.Should().BeFalse();
+    }
+
+    #endregion
+
+    #region IsUserTokenRevokedAsync Tests
+
+    [Fact]
+    public async Task IsUserTokenRevokedAsync_TokenIssuedBeforeRevocation_ReturnsTrue()
     {
         // Arrange
-        var tokenId = "jti_in_db";
-        var revokedToken = new RevokedToken { TokenId = tokenId };
+        var userId = 1;
+        // Use explicit timestamps to avoid DateTime.Kind / timezone parse issues
+        var revocationTime = new DateTime(2026, 1, 1, 11, 0, 0, DateTimeKind.Utc);
+        var tokenIssuedAt = new DateTime(2026, 1, 1, 10, 0, 0, DateTimeKind.Utc); // Issued 1 hour BEFORE revocation
 
-        _mockCache.Setup(c => c.GetAsync(It.IsAny<string>(), default))
+        _mockCache.Setup(c => c.GetAsync(
+            It.Is<string>(k => k == "user_revoked_at:1"),
+            It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Encoding.UTF8.GetBytes(revocationTime.ToString("O")));
+
+        // Act
+        var result = await _service.IsUserTokenRevokedAsync(userId, tokenIssuedAt);
+
+        // Assert
+        result.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task IsUserTokenRevokedAsync_TokenIssuedAfterRevocation_ReturnsFalse()
+    {
+        // Arrange
+        var userId = 1;
+        // Use explicit timestamps to avoid DateTime.Kind / timezone parse issues
+        var revocationTime = new DateTime(2026, 1, 1, 10, 0, 0, DateTimeKind.Utc);
+        var tokenIssuedAt = new DateTime(2026, 1, 1, 11, 0, 0, DateTimeKind.Utc); // Issued 1 hour AFTER revocation
+
+        _mockCache.Setup(c => c.GetAsync(
+            It.Is<string>(k => k == "user_revoked_at:1"),
+            It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Encoding.UTF8.GetBytes(revocationTime.ToString("O")));
+
+        // Act
+        var result = await _service.IsUserTokenRevokedAsync(userId, tokenIssuedAt);
+
+        // Assert
+        result.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task IsUserTokenRevokedAsync_NoRevocationRecord_ReturnsFalse()
+    {
+        // Arrange
+        var userId = 99;
+
+        _mockCache.Setup(c => c.GetAsync(
+            It.Is<string>(k => k == "user_revoked_at:99"),
+            It.IsAny<CancellationToken>()))
             .ReturnsAsync((byte[]?)null);
 
-        _mockRevokedTokenRepository.Setup(r => r.FindAsync(It.IsAny<Expression<Func<RevokedToken, bool>>>()))
-            .ReturnsAsync(new List<RevokedToken> { revokedToken });
-
         // Act
-        var result = await _service.IsTokenRevokedAsync(tokenId);
+        var result = await _service.IsUserTokenRevokedAsync(userId, DateTime.UtcNow);
 
         // Assert
-        result.Should().BeTrue();
+        result.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task IsUserTokenRevokedAsync_CacheThrows_ReturnsFalse()
+    {
+        // Source: on error, assume token is valid to prevent lockouts
+        _mockCache.Setup(c => c.GetAsync(
+            It.IsAny<string>(),
+            It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new InvalidOperationException("Cache unavailable"));
+
+        // Act
+        var result = await _service.IsUserTokenRevokedAsync(1, DateTime.UtcNow);
+
+        // Assert — fail-open to prevent lockouts
+        result.Should().BeFalse();
     }
 
     #endregion
 
-    #region Revoke User Tokens Tests
+    #region Token Hashing Consistency Tests
 
     [Fact]
-    public async Task RevokeAllUserTokensAsync_ValidUser_RevokesAllTokens()
+    public async Task RevokeAndCheck_SameToken_IsConsistent()
     {
-        // Arrange
-        var userId = 1;
-        var tokens = new List<RevokedToken>
-        {
-            new RevokedToken { TokenId = "token1", UserId = userId },
-            new RevokedToken { TokenId = "token2", UserId = userId }
-        };
+        // Arrange — store what SetAsync receives and return it from GetAsync
+        byte[]? storedValue = null;
+        string? storedKey = null;
 
-        _mockRevokedTokenRepository.Setup(r => r.AddAsync(It.IsAny<RevokedToken>()))
-            .ReturnsAsync((RevokedToken t) => { t.Id = 1; return t; });
+        _mockCache.Setup(c => c.SetAsync(
+            It.IsAny<string>(),
+            It.IsAny<byte[]>(),
+            It.IsAny<DistributedCacheEntryOptions>(),
+            It.IsAny<CancellationToken>()))
+            .Callback<string, byte[], DistributedCacheEntryOptions, CancellationToken>(
+                (key, value, opts, ct) => { storedKey = key; storedValue = value; })
+            .Returns(Task.CompletedTask);
 
-        // Act
-        var result = await _service.RevokeAllUserTokensAsync(userId);
+        _mockCache.Setup(c => c.GetAsync(
+            It.IsAny<string>(),
+            It.IsAny<CancellationToken>()))
+            .ReturnsAsync(() => storedValue);
+
+        var token = "my-jwt-token-to-revoke";
+
+        // Act — revoke then check
+        await _service.RevokeTokenAsync(token);
+        var isRevoked = await _service.IsTokenRevokedAsync(token);
 
         // Assert
-        result.Should().BeTrue();
-    }
-
-    [Fact]
-    public async Task RevokeAllUserTokensAsync_WithReason_StoresReason()
-    {
-        // Arrange
-        var userId = 1;
-        var reason = "Password changed";
-
-        _mockRevokedTokenRepository.Setup(r => r.AddAsync(It.IsAny<RevokedToken>()))
-            .ReturnsAsync((RevokedToken t) => { t.Id = 1; return t; });
-
-        // Act
-        var result = await _service.RevokeAllUserTokensAsync(userId, reason);
-
-        // Assert
-        result.Should().BeTrue();
+        storedKey.Should().NotBeNull();
+        storedKey.Should().StartWith("revoked_token:");
+        isRevoked.Should().BeTrue();
     }
 
     #endregion
-
-    #region Cleanup Tests
-
-    [Fact]
-    public async Task CleanupExpiredTokensAsync_RemovesExpiredTokens()
-    {
-        // Arrange
-        var expiredTokens = new List<RevokedToken>
-        {
-            new RevokedToken { Id = 1, TokenId = "expired1", ExpiresAt = DateTime.UtcNow.AddHours(-1) },
-            new RevokedToken { Id = 2, TokenId = "expired2", ExpiresAt = DateTime.UtcNow.AddHours(-2) }
-        };
-
-        _mockRevokedTokenRepository.Setup(r => r.FindAsync(It.IsAny<Expression<Func<RevokedToken, bool>>>()))
-            .ReturnsAsync(expiredTokens);
-
-        _mockRevokedTokenRepository.Setup(r => r.DeleteAsync(It.IsAny<int>()))
-            .ReturnsAsync(true);
-
-        // Act
-        var result = await _service.CleanupExpiredTokensAsync();
-
-        // Assert
-        result.Should().Be(2);
-    }
-
-    [Fact]
-    public async Task CleanupExpiredTokensAsync_NoExpiredTokens_ReturnsZero()
-    {
-        // Arrange
-        _mockRevokedTokenRepository.Setup(r => r.FindAsync(It.IsAny<Expression<Func<RevokedToken, bool>>>()))
-            .ReturnsAsync(new List<RevokedToken>());
-
-        // Act
-        var result = await _service.CleanupExpiredTokensAsync();
-
-        // Assert
-        result.Should().Be(0);
-    }
-
-    #endregion
-
-    #region Batch Revocation Tests
-
-    [Fact]
-    public async Task RevokeTokensAsync_BatchTokens_RevokesAll()
-    {
-        // Arrange
-        var tokenIds = new List<string> { "token1", "token2", "token3" };
-        var expiry = DateTime.UtcNow.AddHours(1);
-
-        _mockRevokedTokenRepository.Setup(r => r.AddAsync(It.IsAny<RevokedToken>()))
-            .ReturnsAsync((RevokedToken t) => { t.Id = 1; return t; });
-
-        // Act
-        var result = await _service.RevokeTokensAsync(tokenIds, expiry);
-
-        // Assert
-        result.RevokedCount.Should().Be(3);
-    }
-
-    #endregion
-
-    #region Statistics Tests
-
-    [Fact]
-    public async Task GetStatisticsAsync_ReturnsStats()
-    {
-        // Arrange
-        var tokens = new List<RevokedToken>
-        {
-            new RevokedToken { Reason = "Logout" },
-            new RevokedToken { Reason = "Logout" },
-            new RevokedToken { Reason = "Password Change" }
-        };
-
-        _mockRevokedTokenRepository.Setup(r => r.GetAllAsync())
-            .ReturnsAsync(tokens);
-
-        // Act
-        var result = await _service.GetStatisticsAsync();
-
-        // Assert
-        result.TotalRevoked.Should().Be(3);
-    }
-
-    [Fact]
-    public async Task GetUserRevocationHistoryAsync_ReturnsHistory()
-    {
-        // Arrange
-        var userId = 1;
-        var tokens = new List<RevokedToken>
-        {
-            new RevokedToken { UserId = userId, RevokedAt = DateTime.UtcNow.AddDays(-1) },
-            new RevokedToken { UserId = userId, RevokedAt = DateTime.UtcNow }
-        };
-
-        _mockRevokedTokenRepository.Setup(r => r.FindAsync(It.IsAny<Expression<Func<RevokedToken, bool>>>()))
-            .ReturnsAsync(tokens);
-
-        // Act
-        var result = await _service.GetUserRevocationHistoryAsync(userId);
-
-        // Assert
-        result.Should().HaveCount(2);
-    }
-
-    #endregion
-}
-
-// Supporting classes for tests
-public class RevokedToken
-{
-    public int Id { get; set; }
-    public string TokenId { get; set; } = string.Empty;
-    public int? UserId { get; set; }
-    public string? Reason { get; set; }
-    public DateTime ExpiresAt { get; set; }
-    public DateTime RevokedAt { get; set; } = DateTime.UtcNow;
 }

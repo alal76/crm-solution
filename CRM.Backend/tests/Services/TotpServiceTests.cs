@@ -15,600 +15,295 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using Xunit;
-using Moq;
 using FluentAssertions;
-using Microsoft.Extensions.Logging;
-using CRM.Core.Entities;
-using CRM.Core.Interfaces;
 using CRM.Infrastructure.Services;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace CRM.Tests.Services;
 
 /// <summary>
-/// Unit tests for TotpService
-/// Covers: TOTP generation, validation, setup, backup codes
+/// Unit tests for TotpService.
+/// TotpService is a stateless, parameterless utility class implementing ITotpService.
+/// Real API: GenerateSecret(), VerifyCode(secret, code), GetQrCodeUrl(secret, email, issuer),
+///           GenerateBackupCodes(count = 10).
 /// </summary>
 public class TotpServiceTests
 {
-    private readonly Mock<IRepository<User>> _mockUserRepository;
-    private readonly Mock<ILogger<TotpService>> _mockLogger;
     private readonly TotpService _service;
 
     public TotpServiceTests()
     {
-        _mockUserRepository = new Mock<IRepository<User>>();
-        _mockLogger = new Mock<ILogger<TotpService>>();
-
-        _service = new TotpService(
-            _mockUserRepository.Object,
-            _mockLogger.Object);
+        // TotpService is parameterless — no mocks needed
+        _service = new TotpService();
     }
 
-    #region Secret Generation Tests
+    #region GenerateSecret Tests
 
     [Fact]
-    public void GenerateSecret_ReturnsNonEmptySecret()
+    public void GenerateSecret_ReturnsNonEmptyString()
     {
-        // Act
         var secret = _service.GenerateSecret();
-
-        // Assert
         secret.Should().NotBeNullOrEmpty();
     }
 
     [Fact]
-    public void GenerateSecret_ReturnsBase32EncodedSecret()
+    public void GenerateSecret_ReturnsValidBase64()
     {
-        // Act
         var secret = _service.GenerateSecret();
 
-        // Assert
-        secret.Should().MatchRegex("^[A-Z2-7]+$");
+        // Should not throw — valid Base64
+        var bytes = Convert.FromBase64String(secret);
+        bytes.Should().NotBeNull();
     }
 
     [Fact]
-    public void GenerateSecret_ReturnsUniqueSecrets()
+    public void GenerateSecret_Produces32RandomBytes()
     {
-        // Act
+        var secret = _service.GenerateSecret();
+        var bytes = Convert.FromBase64String(secret);
+
+        // 32 bytes source → 44 Base64 characters (with padding)
+        bytes.Should().HaveCount(32);
+    }
+
+    [Fact]
+    public void GenerateSecret_ReturnsUniqueValues()
+    {
         var secret1 = _service.GenerateSecret();
         var secret2 = _service.GenerateSecret();
         var secret3 = _service.GenerateSecret();
 
-        // Assert
         secret1.Should().NotBe(secret2);
         secret2.Should().NotBe(secret3);
         secret1.Should().NotBe(secret3);
     }
 
-    [Fact]
-    public void GenerateSecret_ReturnsSufficientLength()
-    {
-        // Act
-        var secret = _service.GenerateSecret();
-
-        // Assert
-        secret.Length.Should().BeGreaterThanOrEqualTo(16);
-    }
-
     #endregion
 
-    #region QR Code Generation Tests
+    #region VerifyCode Tests
 
     [Fact]
-    public void GenerateQrCodeUri_ValidInput_ReturnsUri()
+    public void VerifyCode_NullSecret_ReturnsFalse()
     {
-        // Arrange
-        var email = "user@example.com";
-        var secret = _service.GenerateSecret();
-
-        // Act
-        var uri = _service.GenerateQrCodeUri(email, secret);
-
-        // Assert
-        uri.Should().StartWith("otpauth://totp/");
-        uri.Should().Contain(email);
+        var result = _service.VerifyCode(null!, "123456");
+        result.Should().BeFalse();
     }
 
     [Fact]
-    public void GenerateQrCodeUri_IncludesIssuer()
+    public void VerifyCode_EmptySecret_ReturnsFalse()
     {
-        // Arrange
-        var email = "user@example.com";
-        var secret = _service.GenerateSecret();
-
-        // Act
-        var uri = _service.GenerateQrCodeUri(email, secret, "CRM App");
-
-        // Assert
-        uri.Should().Contain("issuer=CRM%20App");
+        var result = _service.VerifyCode("", "123456");
+        result.Should().BeFalse();
     }
 
     [Fact]
-    public void GenerateQrCodeUri_NullEmail_ThrowsArgumentNullException()
+    public void VerifyCode_NullCode_ReturnsFalse()
     {
-        // Arrange
         var secret = _service.GenerateSecret();
-
-        // Act & Assert
-        Assert.Throws<ArgumentNullException>(() => _service.GenerateQrCodeUri(null!, secret));
+        var result = _service.VerifyCode(secret, null!);
+        result.Should().BeFalse();
     }
 
     [Fact]
-    public void GenerateQrCodeUri_NullSecret_ThrowsArgumentNullException()
+    public void VerifyCode_EmptyCode_ReturnsFalse()
     {
-        // Act & Assert
-        Assert.Throws<ArgumentNullException>(() => _service.GenerateQrCodeUri("user@example.com", null!));
-    }
-
-    #endregion
-
-    #region TOTP Validation Tests
-
-    [Fact]
-    public void ValidateTotp_ValidCode_ReturnsTrue()
-    {
-        // Arrange
         var secret = _service.GenerateSecret();
-        var code = _service.GenerateCode(secret);
-
-        // Act
-        var isValid = _service.ValidateCode(secret, code);
-
-        // Assert
-        isValid.Should().BeTrue();
-    }
-
-    [Fact]
-    public void ValidateTotp_InvalidCode_ReturnsFalse()
-    {
-        // Arrange
-        var secret = _service.GenerateSecret();
-
-        // Act
-        var isValid = _service.ValidateCode(secret, "000000");
-
-        // Assert
-        isValid.Should().BeFalse();
-    }
-
-    [Fact]
-    public void ValidateTotp_EmptyCode_ReturnsFalse()
-    {
-        // Arrange
-        var secret = _service.GenerateSecret();
-
-        // Act
-        var isValid = _service.ValidateCode(secret, "");
-
-        // Assert
-        isValid.Should().BeFalse();
-    }
-
-    [Fact]
-    public void ValidateTotp_NullCode_ReturnsFalse()
-    {
-        // Arrange
-        var secret = _service.GenerateSecret();
-
-        // Act
-        var isValid = _service.ValidateCode(secret, null!);
-
-        // Assert
-        isValid.Should().BeFalse();
-    }
-
-    [Fact]
-    public void ValidateTotp_WithWindowTolerance_AcceptsNearCodes()
-    {
-        // Arrange
-        var secret = _service.GenerateSecret();
-        var code = _service.GenerateCode(secret);
-
-        // Act - Use window tolerance
-        var isValid = _service.ValidateCode(secret, code, windowSize: 2);
-
-        // Assert
-        isValid.Should().BeTrue();
+        var result = _service.VerifyCode(secret, "");
+        result.Should().BeFalse();
     }
 
     [Theory]
-    [InlineData("12345")]      // Too short
-    [InlineData("1234567")]    // Too long
-    [InlineData("abcdef")]     // Not numeric
-    [InlineData("12345a")]     // Mixed
-    public void ValidateTotp_InvalidFormat_ReturnsFalse(string code)
+    [InlineData("12345")]      // Too short (5 digits)
+    [InlineData("1234567")]    // Too long (7 digits)
+    [InlineData("abcdef")]     // Non-numeric
+    [InlineData("12345a")]     // Mixed alpha-numeric
+    public void VerifyCode_InvalidFormat_ReturnsFalse(string code)
     {
-        // Arrange
+        var secret = _service.GenerateSecret();
+        var result = _service.VerifyCode(secret, code);
+        result.Should().BeFalse();
+    }
+
+    [Fact]
+    public void VerifyCode_CorrectCurrentCode_ReturnsTrue()
+    {
+        // Generate a secret and compute the current TOTP manually
+        var secret = _service.GenerateSecret();
+        var currentCode = ComputeTotp(secret, DateTimeOffset.UtcNow);
+
+        var result = _service.VerifyCode(secret, currentCode);
+        result.Should().BeTrue();
+    }
+
+    [Fact]
+    public void VerifyCode_RandomWrongCode_ReturnsFalse()
+    {
         var secret = _service.GenerateSecret();
 
-        // Act
-        var isValid = _service.ValidateCode(secret, code);
+        // Try several random 6-digit codes; at least one should fail.
+        // The current window covers 3 possible codes max, so "999999" is overwhelmingly likely to be invalid.
+        var result = _service.VerifyCode(secret, "999999");
+        // Note: There is a ~0.0003% chance this is actually the current code.
+        // If flaky, use a deterministic approach. For practical purposes this is fine.
+        result.Should().BeFalse();
+    }
 
-        // Assert
-        isValid.Should().BeFalse();
+    [Fact]
+    public void VerifyCode_SameSecretAndCode_IsConsistentWithinWindow()
+    {
+        var secret = _service.GenerateSecret();
+        var code = ComputeTotp(secret, DateTimeOffset.UtcNow);
+
+        // Calling verify twice in the same time window should return the same result
+        var result1 = _service.VerifyCode(secret, code);
+        var result2 = _service.VerifyCode(secret, code);
+
+        result1.Should().BeTrue();
+        result2.Should().BeTrue();
     }
 
     #endregion
 
-    #region Code Generation Tests
+    #region GetQrCodeUrl Tests
 
     [Fact]
-    public void GenerateCode_ValidSecret_ReturnsSixDigitCode()
+    public void GetQrCodeUrl_ReturnsOtpauthScheme()
     {
-        // Arrange
         var secret = _service.GenerateSecret();
+        var url = _service.GetQrCodeUrl(secret, "user@example.com", "CRM");
 
-        // Act
-        var code = _service.GenerateCode(secret);
-
-        // Assert
-        code.Should().HaveLength(6);
-        code.Should().MatchRegex("^[0-9]{6}$");
+        url.Should().StartWith("otpauth://totp/");
     }
 
     [Fact]
-    public void GenerateCode_SameSecret_ReturnsSameCode()
+    public void GetQrCodeUrl_ContainsSecret()
     {
-        // Arrange
         var secret = _service.GenerateSecret();
+        var url = _service.GetQrCodeUrl(secret, "user@example.com", "CRM");
 
-        // Act
-        var code1 = _service.GenerateCode(secret);
-        var code2 = _service.GenerateCode(secret);
-
-        // Assert - Should be same within same time window
-        code1.Should().Be(code2);
+        // The secret should appear URI-escaped in the URL
+        var encodedSecret = Uri.EscapeDataString(secret);
+        url.Should().Contain($"secret={encodedSecret}");
     }
 
     [Fact]
-    public void GenerateCode_NullSecret_ThrowsArgumentNullException()
+    public void GetQrCodeUrl_ContainsEmail()
     {
-        // Act & Assert
-        Assert.Throws<ArgumentNullException>(() => _service.GenerateCode(null!));
+        var secret = _service.GenerateSecret();
+        var email = "user@example.com";
+        var url = _service.GetQrCodeUrl(secret, email, "CRM");
+
+        var encodedEmail = Uri.EscapeDataString(email);
+        url.Should().Contain(encodedEmail);
+    }
+
+    [Fact]
+    public void GetQrCodeUrl_ContainsIssuer()
+    {
+        var secret = _service.GenerateSecret();
+        var url = _service.GetQrCodeUrl(secret, "user@example.com", "CRM App");
+
+        var encodedIssuer = Uri.EscapeDataString("CRM App");
+        url.Should().Contain($"issuer={encodedIssuer}");
+    }
+
+    [Fact]
+    public void GetQrCodeUrl_MatchesExpectedFormat()
+    {
+        var secret = _service.GenerateSecret();
+        var email = "test@crm.local";
+        var issuer = "MyCRM";
+
+        var url = _service.GetQrCodeUrl(secret, email, issuer);
+
+        var expected = $"otpauth://totp/{Uri.EscapeDataString(email)}?secret={Uri.EscapeDataString(secret)}&issuer={Uri.EscapeDataString(issuer)}";
+        url.Should().Be(expected);
     }
 
     #endregion
 
-    #region Backup Codes Tests
-
-    [Fact]
-    public void GenerateBackupCodes_ReturnsExpectedCount()
-    {
-        // Act
-        var codes = _service.GenerateBackupCodes(10);
-
-        // Assert
-        codes.Should().HaveCount(10);
-    }
-
-    [Fact]
-    public void GenerateBackupCodes_ReturnsUniqueCodes()
-    {
-        // Act
-        var codes = _service.GenerateBackupCodes(10);
-
-        // Assert
-        codes.Distinct().Should().HaveCount(10);
-    }
-
-    [Fact]
-    public void GenerateBackupCodes_ReturnsCorrectFormat()
-    {
-        // Act
-        var codes = _service.GenerateBackupCodes(10);
-
-        // Assert
-        foreach (var code in codes)
-        {
-            code.Should().MatchRegex("^[A-Z0-9]{8}$|^[a-z0-9]{8}$|^[a-z0-9]{4}-[a-z0-9]{4}$");
-        }
-    }
+    #region GenerateBackupCodes Tests
 
     [Fact]
     public void GenerateBackupCodes_DefaultCount_Returns10Codes()
     {
-        // Act
         var codes = _service.GenerateBackupCodes();
-
-        // Assert
         codes.Should().HaveCount(10);
+    }
+
+    [Fact]
+    public void GenerateBackupCodes_CustomCount_ReturnsRequestedNumber()
+    {
+        var codes = _service.GenerateBackupCodes(5);
+        codes.Should().HaveCount(5);
     }
 
     [Fact]
     public void GenerateBackupCodes_ZeroCount_ReturnsEmptyList()
     {
-        // Act
         var codes = _service.GenerateBackupCodes(0);
-
-        // Assert
         codes.Should().BeEmpty();
     }
 
-    #endregion
-
-    #region User TOTP Setup Tests
-
     [Fact]
-    public async Task EnableTwoFactorAsync_ValidUser_ReturnsSetupInfo()
+    public void GenerateBackupCodes_AllCodesAre16CharUppercaseHex()
     {
-        // Arrange
-        var user = new User
-        {
-            Id = 1,
-            Email = "user@example.com",
-            TwoFactorEnabled = false
-        };
-
-        _mockUserRepository.Setup(r => r.GetByIdAsync(1))
-            .ReturnsAsync(user);
-
-        _mockUserRepository.Setup(r => r.UpdateAsync(It.IsAny<User>()))
-            .ReturnsAsync((User u) => u);
-
-        // Act
-        var result = await _service.EnableTwoFactorAsync(1);
-
-        // Assert
-        result.Should().NotBeNull();
-        result.Secret.Should().NotBeNullOrEmpty();
-        result.QrCodeUri.Should().NotBeNullOrEmpty();
-    }
-
-    [Fact]
-    public async Task EnableTwoFactorAsync_NonExistingUser_ReturnsNull()
-    {
-        // Arrange
-        _mockUserRepository.Setup(r => r.GetByIdAsync(999))
-            .ReturnsAsync((User?)null);
-
-        // Act
-        var result = await _service.EnableTwoFactorAsync(999);
-
-        // Assert
-        result.Should().BeNull();
-    }
-
-    [Fact]
-    public async Task ConfirmTwoFactorAsync_ValidCode_ReturnsTrue()
-    {
-        // Arrange
-        var secret = _service.GenerateSecret();
-        var user = new User
-        {
-            Id = 1,
-            Email = "user@example.com",
-            TwoFactorEnabled = false,
-            TwoFactorSecret = secret
-        };
-
-        var code = _service.GenerateCode(secret);
-
-        _mockUserRepository.Setup(r => r.GetByIdAsync(1))
-            .ReturnsAsync(user);
-
-        _mockUserRepository.Setup(r => r.UpdateAsync(It.IsAny<User>()))
-            .ReturnsAsync((User u) => { u.TwoFactorEnabled = true; return u; });
-
-        // Act
-        var result = await _service.ConfirmTwoFactorAsync(1, code);
-
-        // Assert
-        result.Should().BeTrue();
-    }
-
-    [Fact]
-    public async Task ConfirmTwoFactorAsync_InvalidCode_ReturnsFalse()
-    {
-        // Arrange
-        var user = new User
-        {
-            Id = 1,
-            TwoFactorSecret = _service.GenerateSecret()
-        };
-
-        _mockUserRepository.Setup(r => r.GetByIdAsync(1))
-            .ReturnsAsync(user);
-
-        // Act
-        var result = await _service.ConfirmTwoFactorAsync(1, "000000");
-
-        // Assert
-        result.Should().BeFalse();
-    }
-
-    [Fact]
-    public async Task DisableTwoFactorAsync_EnabledUser_DisablesTwoFactor()
-    {
-        // Arrange
-        var user = new User
-        {
-            Id = 1,
-            TwoFactorEnabled = true,
-            TwoFactorSecret = "SECRET"
-        };
-
-        _mockUserRepository.Setup(r => r.GetByIdAsync(1))
-            .ReturnsAsync(user);
-
-        _mockUserRepository.Setup(r => r.UpdateAsync(It.IsAny<User>()))
-            .ReturnsAsync((User u) => u);
-
-        // Act
-        var result = await _service.DisableTwoFactorAsync(1);
-
-        // Assert
-        result.Should().BeTrue();
-    }
-
-    [Fact]
-    public async Task DisableTwoFactorAsync_NotEnabled_ReturnsFalse()
-    {
-        // Arrange
-        var user = new User { Id = 1, TwoFactorEnabled = false };
-
-        _mockUserRepository.Setup(r => r.GetByIdAsync(1))
-            .ReturnsAsync(user);
-
-        // Act
-        var result = await _service.DisableTwoFactorAsync(1);
-
-        // Assert
-        result.Should().BeFalse();
-    }
-
-    #endregion
-
-    #region Backup Code Validation Tests
-
-    [Fact]
-    public async Task ValidateBackupCodeAsync_ValidCode_ReturnsTrue()
-    {
-        // Arrange
         var codes = _service.GenerateBackupCodes(10);
-        var user = new User
+
+        foreach (var code in codes)
         {
-            Id = 1,
-            TwoFactorEnabled = true,
-            BackupCodes = string.Join(",", codes)
-        };
-
-        _mockUserRepository.Setup(r => r.GetByIdAsync(1))
-            .ReturnsAsync(user);
-
-        _mockUserRepository.Setup(r => r.UpdateAsync(It.IsAny<User>()))
-            .ReturnsAsync((User u) => u);
-
-        // Act
-        var result = await _service.ValidateBackupCodeAsync(1, codes[0]);
-
-        // Assert
-        result.Should().BeTrue();
+            code.Should().HaveLength(16);
+            // BitConverter.ToString produces uppercase hex
+            code.Should().MatchRegex("^[0-9A-F]{16}$");
+        }
     }
 
     [Fact]
-    public async Task ValidateBackupCodeAsync_InvalidCode_ReturnsFalse()
+    public void GenerateBackupCodes_AllCodesAreUnique()
     {
-        // Arrange
-        var user = new User
-        {
-            Id = 1,
-            TwoFactorEnabled = true,
-            BackupCodes = "CODE1,CODE2,CODE3"
-        };
-
-        _mockUserRepository.Setup(r => r.GetByIdAsync(1))
-            .ReturnsAsync(user);
-
-        // Act
-        var result = await _service.ValidateBackupCodeAsync(1, "INVALID");
-
-        // Assert
-        result.Should().BeFalse();
+        var codes = _service.GenerateBackupCodes(20);
+        codes.Distinct().Should().HaveCount(codes.Count);
     }
 
     [Fact]
-    public async Task ValidateBackupCodeAsync_UsedCode_RemovesFromList()
+    public void GenerateBackupCodes_ReturnsList()
     {
-        // Arrange
-        var codes = new[] { "CODE1", "CODE2", "CODE3" };
-        var user = new User
-        {
-            Id = 1,
-            TwoFactorEnabled = true,
-            BackupCodes = string.Join(",", codes)
-        };
-
-        _mockUserRepository.Setup(r => r.GetByIdAsync(1))
-            .ReturnsAsync(user);
-
-        _mockUserRepository.Setup(r => r.UpdateAsync(It.IsAny<User>()))
-            .ReturnsAsync((User u) => u);
-
-        // Act
-        await _service.ValidateBackupCodeAsync(1, "CODE1");
-
-        // Assert
-        _mockUserRepository.Verify(r => r.UpdateAsync(It.Is<User>(u =>
-            !u.BackupCodes!.Contains("CODE1"))), Times.Once);
-    }
-
-    [Fact]
-    public async Task RegenerateBackupCodesAsync_ValidUser_ReturnsNewCodes()
-    {
-        // Arrange
-        var user = new User { Id = 1, TwoFactorEnabled = true, BackupCodes = "OLD,CODES" };
-
-        _mockUserRepository.Setup(r => r.GetByIdAsync(1))
-            .ReturnsAsync(user);
-
-        _mockUserRepository.Setup(r => r.UpdateAsync(It.IsAny<User>()))
-            .ReturnsAsync((User u) => u);
-
-        // Act
-        var result = await _service.RegenerateBackupCodesAsync(1);
-
-        // Assert
-        result.Should().NotBeNull();
-        result.Should().HaveCount(10);
+        var codes = _service.GenerateBackupCodes(3);
+        codes.Should().BeOfType<List<string>>();
     }
 
     #endregion
 
-    #region Check Status Tests
+    #region Helper Methods
 
-    [Fact]
-    public async Task IsTwoFactorEnabledAsync_EnabledUser_ReturnsTrue()
+    /// <summary>
+    /// Computes the TOTP code for a given secret and time, matching TotpService's algorithm.
+    /// Uses HMACSHA1, 30-second time step, 6-digit codes.
+    /// </summary>
+    private static string ComputeTotp(string base64Secret, DateTimeOffset time)
     {
-        // Arrange
-        var user = new User { Id = 1, TwoFactorEnabled = true };
+        var secretBytes = Convert.FromBase64String(base64Secret);
+        var unixTime = time.ToUnixTimeSeconds();
+        var timeWindow = unixTime / 30; // 30-second time step
 
-        _mockUserRepository.Setup(r => r.GetByIdAsync(1))
-            .ReturnsAsync(user);
+        using var hmac = new HMACSHA1(secretBytes);
+        var timeBytes = BitConverter.GetBytes(timeWindow);
+        if (BitConverter.IsLittleEndian)
+            Array.Reverse(timeBytes);
 
-        // Act
-        var result = await _service.IsTwoFactorEnabledAsync(1);
+        var hash = hmac.ComputeHash(timeBytes);
+        var offset = hash[hash.Length - 1] & 0x0f;
+        var truncated = (hash[offset] & 0x7f) << 24
+            | (hash[offset + 1] & 0xff) << 16
+            | (hash[offset + 2] & 0xff) << 8
+            | (hash[offset + 3] & 0xff);
+        var totp = truncated % 1_000_000; // 10^6 for 6 digits
 
-        // Assert
-        result.Should().BeTrue();
-    }
-
-    [Fact]
-    public async Task IsTwoFactorEnabledAsync_DisabledUser_ReturnsFalse()
-    {
-        // Arrange
-        var user = new User { Id = 1, TwoFactorEnabled = false };
-
-        _mockUserRepository.Setup(r => r.GetByIdAsync(1))
-            .ReturnsAsync(user);
-
-        // Act
-        var result = await _service.IsTwoFactorEnabledAsync(1);
-
-        // Assert
-        result.Should().BeFalse();
-    }
-
-    [Fact]
-    public async Task GetBackupCodesCountAsync_ReturnsCount()
-    {
-        // Arrange
-        var user = new User
-        {
-            Id = 1,
-            BackupCodes = "CODE1,CODE2,CODE3"
-        };
-
-        _mockUserRepository.Setup(r => r.GetByIdAsync(1))
-            .ReturnsAsync(user);
-
-        // Act
-        var result = await _service.GetBackupCodesCountAsync(1);
-
-        // Assert
-        result.Should().Be(3);
+        return totp.ToString("D6"); // Zero-padded to 6 digits
     }
 
     #endregion

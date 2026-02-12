@@ -67,7 +67,7 @@
     <Compile Remove="Services\ZipCodeServiceTests.cs" />
     <Compile Remove="Services\ZipCodeImportServiceTests.cs" />
     <Compile Remove="Services\ServiceRequestServiceTests.cs" />
-    <Compile Remove="Services\TokenRevocationServiceTests.cs" />
+    <!-- TokenRevocationServiceTests.cs - RE-ENABLED (rewritten 2026-02-17) -->
     <Compile Remove="Services\ITSM\CICDIntegrationServiceTests.cs" />
     <Compile Remove="Services\ITSM\EmailToTicketServiceTests.cs" />
       <!-- RE-ENABLED: FieldMasterDataServiceTests, ITSM/ArticleRecommendation, ITSM/BusinessHoursCalculator -->
@@ -76,10 +76,8 @@
     <!-- <Compile Remove="Middleware\AuthenticationMiddlewareTests.cs" /> -->
     <!-- <Compile Remove="Middleware\RateLimitingMiddlewareTests.cs" /> -->
     <!-- <Compile Remove="Middleware\RequestLoggingMiddlewareTests.cs" /> -->
-    <!-- RE-ENABLED: 3 provider test files + 1 configuration test (self-contained) -->
-    <!-- <Compile Remove="Providers\EmailProviderTests.cs" /> -->
-    <!-- <Compile Remove="Providers\CacheProviderTests.cs" /> -->
-    <!-- <Compile Remove="Providers\StorageProviderTests.cs" /> -->
+    <!-- DELETED: 3 provider test files (no matching source classes — fictional CacheProvider, EmailProvider, StorageProvider) -->
+    <!-- Providers/CacheProviderTests.cs, EmailProviderTests.cs, StorageProviderTests.cs -->
     <!-- <Compile Remove="Configurations\EntityConfigurationTests.cs" /> -->
     <Compile Remove="Integration\ApiTestFactory.cs" />
     <Compile Remove="Services\GenericRepositoryTests.cs" />
@@ -87,7 +85,7 @@
     <!-- Additional exclusions: nonexistent interfaces/namespaces -->
     <Compile Remove="Controllers\CampaignsControllerTests.cs" />
     <Compile Remove="Controllers\UserProfilesControllerTests.cs" />
-    <Compile Remove="Providers\JwtTokenServiceTests.cs" />
+    <!-- Providers/JwtTokenServiceTests.cs - DELETED (duplicate of Services/JwtTokenServiceTests, fictional JwtSettings class) -->
     <!-- Re-enabled: ApiTestFactory + 4 BVT tests (depend on WebApplicationFactory + in-memory DB) -->
     <!-- <Compile Remove="Helpers\ApiTestFactory.cs" /> -->
     <!-- <Compile Remove="BVT\CoreApiBVTTests.cs" /> -->
@@ -135,7 +133,7 @@
     <Compile Remove="Services\ModuleUIConfigServiceTests.cs" />
     <Compile Remove="Services\RedisCacheServiceTests.cs" />
     <!-- ResilienceServiceTests.cs - RE-ENABLED (rewritten 2026-02-17) -->
-    <Compile Remove="Services\TotpServiceTests.cs" />
+    <!-- TotpServiceTests.cs - RE-ENABLED (rewritten 2026-02-17) -->
     <Compile Remove="Services\UserApprovalServiceTests.cs" />
     <!-- UserGroupServiceTests.cs - RE-ENABLED (rewritten 2026-02-15) -->
     <!-- ITSM service tests with type/property mismatches -->
