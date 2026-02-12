@@ -234,6 +234,13 @@ public interface ICrmDbContext
     DbSet<CRM.Core.Entities.Reports.ReportExecution> ReportExecutions { get; }
     DbSet<CRM.Core.Entities.Reports.ReportWidgetConfig> ReportWidgetConfigs { get; }
 
+    // AI Agent Entities (ADR-004 — Semantic Kernel Integration)
+    DbSet<CRM.Core.Entities.AI.AIAgent> AIAgents { get; }
+    DbSet<CRM.Core.Entities.AI.AgentConversation> AgentConversations { get; }
+    DbSet<CRM.Core.Entities.AI.AgentAction> AgentActions { get; }
+    DbSet<CRM.Core.Entities.AI.AgentMemory> AgentMemories { get; }
+    DbSet<CRM.Core.Entities.AI.AgentApprovalRequest> AgentApprovalRequests { get; }
+
     DatabaseFacade Database { get; }
 
     /// <summary>

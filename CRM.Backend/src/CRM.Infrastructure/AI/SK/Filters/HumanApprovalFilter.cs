@@ -17,10 +17,12 @@
 using System.Reflection;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel;
 using CRM.Core.Entities.AI;
 using CRM.Core.Interfaces;
 using CRM.Infrastructure.AI.SK.Attributes;
+using CRM.Infrastructure.AI.SK.Configuration;
 
 namespace CRM.Infrastructure.AI.SK.Filters;
 
@@ -43,6 +45,7 @@ public class HumanApprovalFilter : IFunctionInvocationFilter
     #region Fields
 
     private readonly ICrmDbContext _context;
+    private readonly AgentOptions _agentOptions;
     private readonly ILogger<HumanApprovalFilter> _logger;
 
     private static readonly JsonSerializerOptions _jsonOptions = new()
@@ -59,10 +62,15 @@ public class HumanApprovalFilter : IFunctionInvocationFilter
     /// Initializes a new instance of the <see cref="HumanApprovalFilter"/> class.
     /// </summary>
     /// <param name="context">Database context for persisting approval requests.</param>
+    /// <param name="skOptions">Semantic Kernel options containing agent configuration.</param>
     /// <param name="logger">Logger instance.</param>
-    public HumanApprovalFilter(ICrmDbContext context, ILogger<HumanApprovalFilter> logger)
+    public HumanApprovalFilter(
+        ICrmDbContext context,
+        IOptions<SemanticKernelOptions> skOptions,
+        ILogger<HumanApprovalFilter> logger)
     {
         _context = context ?? throw new ArgumentNullException(nameof(context));
+        _agentOptions = skOptions?.Value.Agents ?? new AgentOptions();
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
@@ -89,7 +97,11 @@ public class HumanApprovalFilter : IFunctionInvocationFilter
             // Serialize function arguments for the approval record
             var serializedParams = SerializeArguments(context.Arguments);
 
-            // Create approval request in database
+            // Create approval request in database.
+            // NOTE: AgentActionId, ConversationId, AgentId, and RequestedByUserId are
+            // populated by AgentExecutionService after this filter returns, because the
+            // filter does not have conversation-level context. The IDs default to 0 here
+            // and must be patched before the approval is surfaced to the UI.
             var approvalRequest = new AgentApprovalRequest
             {
                 ActionDescription = !string.IsNullOrEmpty(approvalAttr.Description)
@@ -98,10 +110,9 @@ public class HumanApprovalFilter : IFunctionInvocationFilter
                 PluginName = context.Function.PluginName ?? "Unknown",
                 FunctionName = context.Function.Name,
                 Parameters = serializedParams,
-                Status = ApprovalStatus.Pending,
+                Status = CRM.Core.Entities.AI.ApprovalStatus.Pending,
                 ApprovalTier = approvalAttr.Tier,
-                CreatedAt = DateTime.UtcNow,
-                ExpiresAt = DateTime.UtcNow.AddMinutes(approvalAttr.TimeoutMinutes > 0 ? approvalAttr.TimeoutMinutes : 60)
+                ExpiresAt = DateTime.UtcNow.AddMinutes(_agentOptions.ApprovalTimeoutMinutes)
             };
 
             _context.Set<AgentApprovalRequest>().Add(approvalRequest);

@@ -1,0 +1,21 @@
+fix: SK integration build fixes, agent feature flags, and unit test repairs
+
+Semantic Kernel Integration Fixes:
+- Fix CrmChatCompletionConnector property mappings (Model, Usage.TotalTokens)
+- Fix CrmEmbeddingConnector API calls (GetEmbeddingsAsync, Embedding.Length)
+- Fix HumanApprovalFilter: add IOptions, fully qualify enums
+- Fix AgentExecutionService: fully qualify ConversationStatus enum references
+- Add SemanticKernel NuGet packages (v1.34.0) to CRM.Infrastructure.csproj
+
+Feature Flags and Configuration:
+- Add 16 AI Agent Subsystem feature flags to FeatureFlags.cs (ADR-004)
+- Add agent feature flags and SemanticKernel config section to appsettings.json
+
+DbContext AI Entity Support:
+- Add AI entity DbSets to ICrmDbContext and CrmDbContext
+- Add AIAgentSeed.cs for agent seed data
+
+Unit Test Fixes:
+- Fix DashboardBuilderServiceTests: add mock DbSets, fix widget seeding (18/18 pass)
+- Rewrite DatabaseSyncHostedServiceTests to match actual service constructor
+- Fix LeadScoreDecayHostedServiceTests and ZipCodeImportHostedServiceTests

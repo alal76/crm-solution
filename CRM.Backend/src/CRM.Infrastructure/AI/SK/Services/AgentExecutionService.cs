@@ -196,7 +196,7 @@ public class AgentExecutionService
     {
         var conversation = await LoadConversationAsync(conversationId, cancellationToken);
 
-        conversation.Status = ConversationStatus.Completed;
+        conversation.Status = CRM.Core.Entities.AI.ConversationStatus.Completed;
         conversation.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
@@ -246,7 +246,7 @@ public class AgentExecutionService
             UserId = userId,
             EntityType = entityType,
             EntityId = entityId,
-            Status = ConversationStatus.Active,
+            Status = CRM.Core.Entities.AI.ConversationStatus.Active,
             Messages = "[]",
             CreatedAt = DateTime.UtcNow
         };

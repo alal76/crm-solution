@@ -40,6 +40,36 @@ public class DashboardBuilderServiceTests
         _mockContext = new Mock<ICrmDbContext>();
         _mockLogger = new Mock<ILogger<DashboardBuilderService>>();
 
+        // Set up in-memory backing stores for Dashboard CRUD
+        var dashboards = new List<Dashboard>();
+        var widgets = new List<CRM.Core.Entities.DashboardWidget>();
+        var mockDashboards = MockDbSetFactory.CreateMockDbSet(dashboards);
+        var mockWidgets = MockDbSetFactory.CreateMockDbSet(widgets);
+
+        _mockContext.Setup(c => c.Dashboards).Returns(mockDashboards.Object);
+        _mockContext.Setup(c => c.DashboardWidgets).Returns(mockWidgets.Object);
+
+        // Simulate EF Core auto-increment on SaveChanges
+        var nextDashboardId = 1;
+        var nextWidgetId = 1;
+        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            .Returns(() =>
+            {
+                foreach (var d in dashboards.Where(d => d.Id == 0))
+                    d.Id = nextDashboardId++;
+                foreach (var w in widgets.Where(w => w.Id == 0))
+                    w.Id = nextWidgetId++;
+                return Task.FromResult(1);
+            });
+
+        // Wire RemoveRange so UpdateDashboardAsync can replace widgets
+        mockWidgets.Setup(s => s.RemoveRange(It.IsAny<IEnumerable<CRM.Core.Entities.DashboardWidget>>()))
+            .Callback<IEnumerable<CRM.Core.Entities.DashboardWidget>>(toRemove =>
+            {
+                foreach (var item in toRemove.ToList())
+                    widgets.Remove(item);
+            });
+
         _service = new DashboardBuilderService(
             _mockContext.Object,
             _mockLogger.Object);
@@ -306,19 +336,22 @@ public class DashboardBuilderServiceTests
     [Fact]
     public async Task GetWidgetDataAsync_ShouldReturnData_ForPipelineChart()
     {
-        // Arrange - create dashboard with a pipeline-chart widget
-        var dashboard = await _service.CreateDashboardAsync(MakeDashboard(1, "Widget Test"));
-        var withWidgets = new CustomDashboard
+        // Arrange - seed a widget entity directly (service uses int.TryParse on widgetId)
+        var widgetEntity = new CRM.Core.Entities.DashboardWidget
         {
-            Id = dashboard.Id,
-            Name = "Widget Test",
-            UserId = 1,
-            Widgets = new List<SvcDashboardWidget>
-            {
-                new() { Id = "pipeline-w1", Type = "pipeline-chart", Title = "Pipeline", Column = 0, Row = 0, Width = 6, Height = 4 }
-            }
+            Id = 100,
+            DashboardId = 1,
+            Title = "Pipeline",
+            DataSource = "pipeline-chart",
+            ColumnIndex = 0,
+            RowIndex = 0,
+            ColumnSpan = 6,
+            RowSpan = 4,
+            IsDeleted = false
         };
-        await _service.UpdateDashboardAsync(withWidgets);
+        var mockWidgetsSet = MockDbSetFactory.CreateMockDbSet(
+            new List<CRM.Core.Entities.DashboardWidget> { widgetEntity });
+        _mockContext.Setup(c => c.DashboardWidgets).Returns(mockWidgetsSet.Object);
 
         var opps = new List<Opportunity>
         {
@@ -329,7 +362,7 @@ public class DashboardBuilderServiceTests
         _mockContext.Setup(c => c.Opportunities).Returns(mockSet.Object);
 
         // Act
-        var result = await _service.GetWidgetDataAsync("pipeline-w1");
+        var result = await _service.GetWidgetDataAsync("100");
 
         // Assert
         result.Should().NotBeNull();
@@ -341,19 +374,22 @@ public class DashboardBuilderServiceTests
     [Fact]
     public async Task GetWidgetDataAsync_ShouldReturnData_ForLeadSummary()
     {
-        // Arrange - create dashboard with a lead-summary widget
-        var dashboard = await _service.CreateDashboardAsync(MakeDashboard(1, "Lead Test"));
-        var withWidgets = new CustomDashboard
+        // Arrange - seed a widget entity directly (service uses int.TryParse on widgetId)
+        var widgetEntity = new CRM.Core.Entities.DashboardWidget
         {
-            Id = dashboard.Id,
-            Name = "Lead Test",
-            UserId = 1,
-            Widgets = new List<SvcDashboardWidget>
-            {
-                new() { Id = "lead-w1", Type = "lead-summary", Title = "Leads", Column = 0, Row = 0, Width = 6, Height = 4 }
-            }
+            Id = 200,
+            DashboardId = 1,
+            Title = "Leads",
+            DataSource = "lead-summary",
+            ColumnIndex = 0,
+            RowIndex = 0,
+            ColumnSpan = 6,
+            RowSpan = 4,
+            IsDeleted = false
         };
-        await _service.UpdateDashboardAsync(withWidgets);
+        var mockWidgetsSet = MockDbSetFactory.CreateMockDbSet(
+            new List<CRM.Core.Entities.DashboardWidget> { widgetEntity });
+        _mockContext.Setup(c => c.DashboardWidgets).Returns(mockWidgetsSet.Object);
 
         var leads = new List<Lead>
         {
@@ -364,7 +400,7 @@ public class DashboardBuilderServiceTests
         _mockContext.Setup(c => c.Leads).Returns(mockSet.Object);
 
         // Act
-        var result = await _service.GetWidgetDataAsync("lead-w1");
+        var result = await _service.GetWidgetDataAsync("200");
 
         // Assert
         result.Should().NotBeNull();
