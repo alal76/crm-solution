@@ -42,15 +42,10 @@
     <!-- <Compile Remove="Validators\CommonValidatorTests.cs" /> -->
     <!-- <Compile Remove="Validators\UserValidatorTests.cs" /> -->
     <!-- DELETED: SettingsControllerTests.cs, KnowledgeBaseControllerTests.cs, WorkflowsControllerTests.cs (fictional) -->
-    <Compile Remove="Controllers\ReportsControllerTests.cs" />
-    <Compile Remove="Controllers\FileUploadControllerTests.cs" />
-    <Compile Remove="Controllers\DuplicatesControllerTests.cs" />
+    <!-- RE-ENABLED: ReportsControllerTests.cs (6 fixes applied — using Reports namespace + 5 OkResult→OkObjectResult) -->
+    <!-- DELETED (fictional): FileUploadControllerTests, DuplicatesControllerTests, ImportExportControllerTests, WebhooksControllerTests, StagesControllerTests, LookupsControllerTests -->
     <Compile Remove="Controllers\EmailTemplatesControllerTests.cs" />
-    <Compile Remove="Controllers\ImportExportControllerTests.cs" />
-    <Compile Remove="Controllers\WebhooksControllerTests.cs" />
-    <Compile Remove="Controllers\StagesControllerTests.cs" />
     <Compile Remove="Controllers\PipelinesControllerTests.cs" />
-    <Compile Remove="Controllers\LookupsControllerTests.cs" />
     <!-- Service tests referencing nonexistent ITSM/workflow entities -->
     <Compile Remove="Services\WorkflowServiceTests.cs" />
     <Compile Remove="Services\WorkflowInstanceServiceTests.cs" />
@@ -79,9 +74,7 @@
     <!-- <Compile Remove="Configurations\EntityConfigurationTests.cs" /> -->
     <!-- STALE (files don't exist): Integration\ApiTestFactory.cs, Services\GenericRepositoryTests.cs -->
     <Compile Remove="Services\DuplicateDetectionServiceTests.cs" />
-    <!-- Additional exclusions: nonexistent interfaces/namespaces -->
-    <Compile Remove="Controllers\CampaignsControllerTests.cs" />
-    <Compile Remove="Controllers\UserProfilesControllerTests.cs" />
+    <!-- DELETED (fictional): CampaignsControllerTests, UserProfilesControllerTests -->
     <!-- Providers/JwtTokenServiceTests.cs - DELETED (duplicate of Services/JwtTokenServiceTests, fictional JwtSettings class) -->
     <!-- Re-enabled: ApiTestFactory + 4 BVT tests (depend on WebApplicationFactory + in-memory DB) -->
     <!-- <Compile Remove="Helpers\ApiTestFactory.cs" /> -->
@@ -96,7 +89,6 @@
          Error counts: Auth=238, Contacts=180, UserGroups=134, Invoices=230,
          Leads=298, Orders=230, ServiceRequests=244, plus 6 DbContext-pattern files,
          1 complex-constructor file, and 8 nonexistent-controller/service files. -->
-    <Compile Remove="Controllers\AuthControllerTests.cs" />
     <Compile Remove="Controllers\ActivitiesControllerTests.cs" />
     <Compile Remove="Controllers\ContactsControllerTests.cs" />
     <Compile Remove="Controllers\DashboardControllerTests.cs" />
