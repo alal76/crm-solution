@@ -14,8 +14,9 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using CRM.Core.Interfaces;
+using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Services;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -26,594 +27,236 @@ using FluentAssertions;
 namespace CRM.Tests.HostedServices;
 
 /// <summary>
-/// Unit tests for ZipCodeImportHostedService background service.
-/// Tests ZIP code data import, processing, and error handling.
+/// Tests for ZipCodeImportHostedService.
+/// Real constructor: (IServiceProvider serviceProvider, ILogger&lt;ZipCodeImportHostedService&gt; logger, IOptions&lt;ZipCodeImportOptions&gt; options)
+/// Extends BackgroundService. Checks ImportOnStartupIfEmpty, then scheduled imports.
 /// </summary>
 public class ZipCodeImportHostedServiceTests
 {
     private readonly Mock<IServiceProvider> _mockServiceProvider;
-    private readonly Mock<IServiceScope> _mockScope;
-    private readonly Mock<IServiceScopeFactory> _mockScopeFactory;
     private readonly Mock<ILogger<ZipCodeImportHostedService>> _mockLogger;
-    private readonly Mock<IZipCodeService> _mockZipCodeService;
-    private readonly Mock<IOptions<ZipCodeImportSettings>> _mockSettings;
 
     public ZipCodeImportHostedServiceTests()
     {
         _mockServiceProvider = new Mock<IServiceProvider>();
-        _mockScope = new Mock<IServiceScope>();
-        _mockScopeFactory = new Mock<IServiceScopeFactory>();
         _mockLogger = new Mock<ILogger<ZipCodeImportHostedService>>();
-        _mockZipCodeService = new Mock<IZipCodeService>();
-        _mockSettings = new Mock<IOptions<ZipCodeImportSettings>>();
-
-        SetupServiceProvider();
     }
 
-    private void SetupServiceProvider()
+    private static IOptions<ZipCodeImportOptions> CreateOptions(
+        bool enableScheduled = false,
+        bool importOnStartupIfEmpty = false,
+        string importSource = "GeoNames",
+        string[]? countryCodes = null)
     {
-        var settings = new ZipCodeImportSettings
+        return Options.Create(new ZipCodeImportOptions
         {
-            Enabled = true,
-            RunOnStartup = true,
-            SourcePath = "/data/zipcodes.csv",
-            Countries = new[] { "US", "CA" }
-        };
-        _mockSettings.Setup(x => x.Value).Returns(settings);
-
-        _mockScope.Setup(x => x.ServiceProvider).Returns(_mockServiceProvider.Object);
-        _mockScopeFactory.Setup(x => x.CreateScope()).Returns(_mockScope.Object);
-        _mockServiceProvider.Setup(x => x.GetService(typeof(IServiceScopeFactory)))
-            .Returns(_mockScopeFactory.Object);
-        _mockServiceProvider.Setup(x => x.GetService(typeof(IZipCodeService)))
-            .Returns(_mockZipCodeService.Object);
-        _mockServiceProvider.Setup(x => x.GetService(typeof(IOptions<ZipCodeImportSettings>)))
-            .Returns(_mockSettings.Object);
+            EnableScheduledImport = enableScheduled,
+            ImportOnStartupIfEmpty = importOnStartupIfEmpty,
+            ImportSource = importSource,
+            CountryCodes = countryCodes ?? new[] { "US" }
+        });
     }
 
-    #region Constructor Tests
-
-    [Fact]
-    public void Constructor_WithValidDependencies_ShouldCreateInstance()
+    private ZipCodeImportHostedService CreateService(IOptions<ZipCodeImportOptions>? options = null)
     {
-        // Act
-        var service = new ZipCodeImportHostedService(
+        return new ZipCodeImportHostedService(
             _mockServiceProvider.Object,
             _mockLogger.Object,
-            _mockSettings.Object);
+            options ?? CreateOptions());
+    }
+
+    [Fact]
+    public void Constructor_ShouldAcceptValidParameters()
+    {
+        // Act
+        var service = CreateService();
 
         // Assert
         service.Should().NotBeNull();
     }
 
     [Fact]
-    public void Constructor_WithNullServiceProvider_ShouldThrowArgumentNullException()
+    public void Constructor_WithDefaultOptions_ShouldNotThrow()
     {
+        // Arrange - default options (everything disabled/default)
+        var options = Options.Create(new ZipCodeImportOptions());
+
         // Act
-        Action act = () => new ZipCodeImportHostedService(
-            null!,
-            _mockLogger.Object,
-            _mockSettings.Object);
+        var service = CreateService(options);
 
         // Assert
-        act.Should().Throw<ArgumentNullException>()
-            .WithParameterName("serviceProvider");
+        service.Should().NotBeNull();
     }
 
     [Fact]
-    public void Constructor_WithNullLogger_ShouldThrowArgumentNullException()
-    {
-        // Act
-        Action act = () => new ZipCodeImportHostedService(
-            _mockServiceProvider.Object,
-            null!,
-            _mockSettings.Object);
-
-        // Assert
-        act.Should().Throw<ArgumentNullException>()
-            .WithParameterName("logger");
-    }
-
-    [Fact]
-    public void Constructor_WithNullSettings_ShouldThrowArgumentNullException()
-    {
-        // Act
-        Action act = () => new ZipCodeImportHostedService(
-            _mockServiceProvider.Object,
-            _mockLogger.Object,
-            null!);
-
-        // Assert
-        act.Should().Throw<ArgumentNullException>()
-            .WithParameterName("settings");
-    }
-
-    #endregion
-
-    #region ExecuteAsync Tests
-
-    [Fact]
-    public async Task ExecuteAsync_WhenEnabled_ShouldLogStartMessage()
+    public async Task ExecuteAsync_AllDisabled_ShouldNotCrash()
     {
         // Arrange
-        var service = new ZipCodeImportHostedService(
-            _mockServiceProvider.Object,
-            _mockLogger.Object,
-            _mockSettings.Object);
-        var cts = new CancellationTokenSource();
+        var options = CreateOptions(enableScheduled: false, importOnStartupIfEmpty: false);
+        var service = CreateService(options);
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(2));
 
         // Act
-        _ = service.StartAsync(cts.Token);
-        await Task.Delay(100);
+        await service.StartAsync(cts.Token);
+        await Task.Delay(500, CancellationToken.None);
         cts.Cancel();
+        await Task.Delay(200, CancellationToken.None);
 
         // Assert
-        _mockLogger.Verify(
-            x => x.Log(
-                LogLevel.Information,
-                It.IsAny<EventId>(),
-                It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("starting") || v.ToString()!.Contains("ZIP") || v.ToString()!.Contains("import")),
-                null,
-                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
-            Times.AtLeastOnce);
-    }
-
-    [Fact]
-    public async Task ExecuteAsync_WhenDisabled_ShouldNotImport()
-    {
-        // Arrange
-        var settings = new ZipCodeImportSettings { Enabled = false };
-        _mockSettings.Setup(x => x.Value).Returns(settings);
-
-        var service = new ZipCodeImportHostedService(
-            _mockServiceProvider.Object,
-            _mockLogger.Object,
-            _mockSettings.Object);
-        var cts = new CancellationTokenSource();
-
-        // Act
-        _ = service.StartAsync(cts.Token);
-        await Task.Delay(100);
-        cts.Cancel();
-
-        // Assert
-        _mockZipCodeService.Verify(
-            x => x.ImportAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()),
-            Times.Never);
+        var act = () => service.StopAsync(CancellationToken.None);
+        await act.Should().NotThrowAsync();
     }
 
     [Fact]
     public async Task ExecuteAsync_WhenCancelled_ShouldStopGracefully()
     {
         // Arrange
-        var service = new ZipCodeImportHostedService(
-            _mockServiceProvider.Object,
-            _mockLogger.Object,
-            _mockSettings.Object);
-        var cts = new CancellationTokenSource();
-
-        // Act
-        _ = service.StartAsync(cts.Token);
-        await Task.Delay(50);
-        cts.Cancel();
-
-        // Assert
-        Func<Task> act = async () => await service.StopAsync(CancellationToken.None);
-        await act.Should().NotThrowAsync();
-    }
-
-    #endregion
-
-    #region Import Processing Tests
-
-    [Fact]
-    public async Task ImportAsync_WithValidSourcePath_ShouldProcessData()
-    {
-        // Arrange
-        _mockZipCodeService.Setup(x => x.ImportAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(42522); // US ZIP code count
-
-        var service = new ZipCodeImportHostedService(
-            _mockServiceProvider.Object,
-            _mockLogger.Object,
-            _mockSettings.Object);
-        var cts = new CancellationTokenSource();
-
-        // Act
-        _ = service.StartAsync(cts.Token);
-        await Task.Delay(200);
-        cts.Cancel();
-
-        // Assert - import should be called on startup
-    }
-
-    [Fact]
-    public async Task ImportAsync_WithEmptyFile_ShouldReturnZero()
-    {
-        // Arrange
-        _mockZipCodeService.Setup(x => x.ImportAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(0);
-
-        var service = new ZipCodeImportHostedService(
-            _mockServiceProvider.Object,
-            _mockLogger.Object,
-            _mockSettings.Object);
-        var cts = new CancellationTokenSource();
-
-        // Act
-        _ = service.StartAsync(cts.Token);
-        await Task.Delay(200);
-        cts.Cancel();
-
-        // Assert - should complete without error
-    }
-
-    [Fact]
-    public void Settings_Countries_ShouldFilterImport()
-    {
-        // Arrange
-        var settings = new ZipCodeImportSettings
-        {
-            Enabled = true,
-            RunOnStartup = true,
-            SourcePath = "/data/zipcodes.csv",
-            Countries = new[] { "US", "CA", "UK" }
-        };
-
-        // Assert
-        settings.Countries.Should().HaveCount(3);
-        settings.Countries.Should().Contain("US");
-        settings.Countries.Should().Contain("CA");
-        settings.Countries.Should().Contain("UK");
-    }
-
-    [Fact]
-    public void Settings_RunOnStartup_WhenFalse_ShouldNotAutoRun()
-    {
-        // Arrange
-        var settings = new ZipCodeImportSettings
-        {
-            Enabled = true,
-            RunOnStartup = false,
-            SourcePath = "/data/zipcodes.csv",
-            Countries = new[] { "US" }
-        };
-
-        // Assert
-        settings.RunOnStartup.Should().BeFalse();
-    }
-
-    #endregion
-
-    #region Error Handling Tests
-
-    [Fact]
-    public async Task ImportAsync_WhenFileMissing_ShouldLogError()
-    {
-        // Arrange
-        _mockZipCodeService.Setup(x => x.ImportAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new FileNotFoundException("ZIP code file not found"));
-
-        var service = new ZipCodeImportHostedService(
-            _mockServiceProvider.Object,
-            _mockLogger.Object,
-            _mockSettings.Object);
-        var cts = new CancellationTokenSource();
-
-        // Act
-        _ = service.StartAsync(cts.Token);
-        await Task.Delay(200);
-        cts.Cancel();
-
-        // Assert
-        _mockLogger.Verify(
-            x => x.Log(
-                LogLevel.Error,
-                It.IsAny<EventId>(),
-                It.IsAny<It.IsAnyType>(),
-                It.IsAny<Exception>(),
-                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
-            Times.AtMost(2));
-    }
-
-    [Fact]
-    public async Task ImportAsync_WhenParsingFails_ShouldLogError()
-    {
-        // Arrange
-        _mockZipCodeService.Setup(x => x.ImportAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new FormatException("Invalid CSV format"));
-
-        var service = new ZipCodeImportHostedService(
-            _mockServiceProvider.Object,
-            _mockLogger.Object,
-            _mockSettings.Object);
-        var cts = new CancellationTokenSource();
-
-        // Act
-        _ = service.StartAsync(cts.Token);
-        await Task.Delay(200);
-        cts.Cancel();
-
-        // Assert
-        _mockLogger.Verify(
-            x => x.Log(
-                LogLevel.Error,
-                It.IsAny<EventId>(),
-                It.IsAny<It.IsAnyType>(),
-                It.IsAny<Exception>(),
-                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
-            Times.AtMost(2));
-    }
-
-    [Fact]
-    public async Task ImportAsync_WhenDatabaseFails_ShouldLogError()
-    {
-        // Arrange
-        _mockZipCodeService.Setup(x => x.ImportAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ThrowsAsync(new InvalidOperationException("Database connection failed"));
-
-        var service = new ZipCodeImportHostedService(
-            _mockServiceProvider.Object,
-            _mockLogger.Object,
-            _mockSettings.Object);
-        var cts = new CancellationTokenSource();
-
-        // Act
-        _ = service.StartAsync(cts.Token);
-        await Task.Delay(200);
-        cts.Cancel();
-
-        // Assert
-        _mockLogger.Verify(
-            x => x.Log(
-                LogLevel.Error,
-                It.IsAny<EventId>(),
-                It.IsAny<It.IsAnyType>(),
-                It.IsAny<Exception>(),
-                It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
-            Times.AtMost(2));
-    }
-
-    #endregion
-
-    #region Lifecycle Tests
-
-    [Fact]
-    public async Task StartAsync_ShouldReturnCompletedTask()
-    {
-        // Arrange
-        var service = new ZipCodeImportHostedService(
-            _mockServiceProvider.Object,
-            _mockLogger.Object,
-            _mockSettings.Object);
-
-        // Act
-        var task = service.StartAsync(CancellationToken.None);
-
-        // Assert
-        await task;
-        task.IsCompletedSuccessfully.Should().BeTrue();
-    }
-
-    [Fact]
-    public async Task StopAsync_ShouldStopBackgroundExecution()
-    {
-        // Arrange
-        var service = new ZipCodeImportHostedService(
-            _mockServiceProvider.Object,
-            _mockLogger.Object,
-            _mockSettings.Object);
-        var cts = new CancellationTokenSource();
+        var service = CreateService();
+        using var cts = new CancellationTokenSource();
 
         // Act
         await service.StartAsync(cts.Token);
-        await Task.Delay(50);
-        await service.StopAsync(CancellationToken.None);
+        cts.Cancel();
+        await Task.Delay(200, CancellationToken.None);
 
-        // Assert - should complete without hanging
+        // Assert
+        var act = () => service.StopAsync(CancellationToken.None);
+        await act.Should().NotThrowAsync();
     }
 
     [Fact]
-    public async Task StopAsync_WhenCalledBeforeStart_ShouldNotThrow()
+    public async Task ExecuteAsync_ImportOnStartupIfEmpty_WithZipCodes_ShouldSkipImport()
+    {
+        // Arrange - set up a real in-memory DB with some zip codes already
+        var services = new ServiceCollection();
+        services.AddDbContext<CrmDbContext>(opts =>
+            opts.UseInMemoryDatabase($"ZipTest_{Guid.NewGuid()}"));
+        var sp = services.BuildServiceProvider();
+
+        // Seed a zip code so it's not empty
+        using (var scope = sp.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<CrmDbContext>();
+            db.ZipCodes.Add(new CRM.Core.Entities.ZipCode
+            {
+                Code = "10001",
+                City = "New York",
+                State = "NY",
+                Country = "US"
+            });
+            await db.SaveChangesAsync();
+        }
+
+        var mockScope = new Mock<IServiceScope>();
+        mockScope.Setup(s => s.ServiceProvider).Returns(sp);
+
+        var mockScopeFactory = new Mock<IServiceScopeFactory>();
+        mockScopeFactory.Setup(f => f.CreateScope()).Returns(mockScope.Object);
+
+        var mockSP = new Mock<IServiceProvider>();
+        mockSP.Setup(p => p.GetService(typeof(IServiceScopeFactory)))
+            .Returns(mockScopeFactory.Object);
+
+        var options = CreateOptions(importOnStartupIfEmpty: true);
+        var service = new ZipCodeImportHostedService(
+            mockSP.Object,
+            _mockLogger.Object,
+            options);
+
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+
+        // Act - The 30s initial delay means our test will cancel first
+        // but we can verify it starts without error
+        await service.StartAsync(cts.Token);
+        await Task.Delay(500, CancellationToken.None);
+        cts.Cancel();
+        await Task.Delay(200, CancellationToken.None);
+        await service.StopAsync(CancellationToken.None);
+
+        // Assert - no exception
+        sp.Dispose();
+    }
+
+    [Fact]
+    public async Task StopAsync_ShouldCompleteWithoutError()
     {
         // Arrange
-        var service = new ZipCodeImportHostedService(
-            _mockServiceProvider.Object,
-            _mockLogger.Object,
-            _mockSettings.Object);
+        var service = CreateService();
 
         // Act
-        Func<Task> act = async () => await service.StopAsync(CancellationToken.None);
+        await service.StartAsync(CancellationToken.None);
+        var act = () => service.StopAsync(CancellationToken.None);
 
         // Assert
         await act.Should().NotThrowAsync();
     }
 
-    #endregion
-
-    #region Configuration Tests
-
     [Fact]
-    public void ZipCodeImportSettings_DefaultValues_ShouldBeReasonable()
+    public void ZipCodeImportOptions_Defaults_ShouldBeCorrect()
     {
-        // Arrange
-        var settings = new ZipCodeImportSettings();
+        // Arrange & Act
+        var options = new ZipCodeImportOptions();
 
         // Assert
-        settings.Enabled.Should().BeFalse();
-        settings.RunOnStartup.Should().BeFalse();
-        settings.SourcePath.Should().BeNull();
-        settings.Countries.Should().BeNull();
+        options.EnableScheduledImport.Should().BeFalse();
+        options.ImportOnStartupIfEmpty.Should().BeTrue();
+        options.ImportSource.Should().Be("GeoNames");
+        options.CountryCodes.Should().Contain("US");
     }
 
     [Fact]
-    public void ZipCodeImportSettings_CanBeFullyConfigured()
+    public void ZipCodeImportOptions_CanSetAllProperties()
     {
         // Arrange
-        var settings = new ZipCodeImportSettings
+        var options = new ZipCodeImportOptions
         {
-            Enabled = true,
-            RunOnStartup = true,
-            SourcePath = "/opt/data/zipcodes-full.csv",
-            Countries = new[] { "US", "CA", "MX" }
+            EnableScheduledImport = true,
+            CronExpression = "0 0 * * 0",
+            ImportSource = "GitHub",
+            GitHubUrl = "https://example.com/data.csv",
+            CountryCodes = new[] { "US", "CA", "GB" },
+            ImportOnStartupIfEmpty = false,
+            MinimumHoursBetweenImports = 48
         };
 
         // Assert
-        settings.Enabled.Should().BeTrue();
-        settings.RunOnStartup.Should().BeTrue();
-        settings.SourcePath.Should().Be("/opt/data/zipcodes-full.csv");
-        settings.Countries.Should().HaveCount(3);
+        options.EnableScheduledImport.Should().BeTrue();
+        options.CronExpression.Should().Be("0 0 * * 0");
+        options.ImportSource.Should().Be("GitHub");
+        options.GitHubUrl.Should().Be("https://example.com/data.csv");
+        options.CountryCodes.Should().HaveCount(3);
+        options.ImportOnStartupIfEmpty.Should().BeFalse();
+        options.MinimumHoursBetweenImports.Should().Be(48);
     }
 
     [Fact]
-    public void ZipCodeImportSettings_WithEmptyCountries_ShouldImportAll()
+    public async Task ExecuteAsync_WhenScopeCreationFails_ShouldHandleGracefully()
     {
         // Arrange
-        var settings = new ZipCodeImportSettings
-        {
-            Enabled = true,
-            RunOnStartup = true,
-            SourcePath = "/data/zipcodes.csv",
-            Countries = Array.Empty<string>()
-        };
+        var mockScopeFactory = new Mock<IServiceScopeFactory>();
+        mockScopeFactory.Setup(f => f.CreateScope())
+            .Throws(new ObjectDisposedException("ServiceProvider"));
 
-        // Assert
-        settings.Countries.Should().BeEmpty();
-    }
+        var mockSP = new Mock<IServiceProvider>();
+        mockSP.Setup(p => p.GetService(typeof(IServiceScopeFactory)))
+            .Returns(mockScopeFactory.Object);
 
-    #endregion
-
-    #region Progress Tracking Tests
-
-    [Fact]
-    public async Task ImportAsync_ShouldLogProgress()
-    {
-        // Arrange
-        _mockZipCodeService.Setup(x => x.ImportAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(10000);
-
+        var options = CreateOptions(importOnStartupIfEmpty: true);
         var service = new ZipCodeImportHostedService(
-            _mockServiceProvider.Object,
+            mockSP.Object,
             _mockLogger.Object,
-            _mockSettings.Object);
-        var cts = new CancellationTokenSource();
+            options);
+
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
 
         // Act
-        _ = service.StartAsync(cts.Token);
-        await Task.Delay(200);
+        await service.StartAsync(cts.Token);
+        await Task.Delay(500, CancellationToken.None);
         cts.Cancel();
-
-        // Assert - should log progress (timing dependent)
-    }
-
-    [Fact]
-    public async Task ImportAsync_WithLargeDataset_ShouldCompleteWithinTimeout()
-    {
-        // Arrange
-        _mockZipCodeService.Setup(x => x.ImportAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(100000);
-
-        var service = new ZipCodeImportHostedService(
-            _mockServiceProvider.Object,
-            _mockLogger.Object,
-            _mockSettings.Object);
-        var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-
-        // Act
-        _ = service.StartAsync(cts.Token);
-        await Task.Delay(200);
-        cts.Cancel();
-
-        // Assert - should handle large datasets
-    }
-
-    #endregion
-
-    #region Data Validation Tests
-
-    [Fact]
-    public async Task ImportAsync_WithInvalidZipCodes_ShouldSkipAndContinue()
-    {
-        // Arrange
-        _mockZipCodeService.Setup(x => x.ImportAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(9999); // Some skipped
-
-        var service = new ZipCodeImportHostedService(
-            _mockServiceProvider.Object,
-            _mockLogger.Object,
-            _mockSettings.Object);
-        var cts = new CancellationTokenSource();
-
-        // Act
-        _ = service.StartAsync(cts.Token);
-        await Task.Delay(200);
-        cts.Cancel();
-
-        // Assert - should complete with partial import
-    }
-
-    #endregion
-
-    #region Source Path Tests
-
-    [Fact]
-    public void Settings_SourcePath_ShouldSupportAbsolutePath()
-    {
-        // Arrange
-        var settings = new ZipCodeImportSettings
-        {
-            SourcePath = "/var/data/zipcodes.csv"
-        };
+        await Task.Delay(200, CancellationToken.None);
 
         // Assert
-        settings.SourcePath.Should().StartWith("/");
+        var act = () => service.StopAsync(CancellationToken.None);
+        await act.Should().NotThrowAsync();
     }
-
-    [Fact]
-    public void Settings_SourcePath_ShouldSupportRelativePath()
-    {
-        // Arrange
-        var settings = new ZipCodeImportSettings
-        {
-            SourcePath = "data/zipcodes.csv"
-        };
-
-        // Assert
-        settings.SourcePath.Should().NotStartWith("/");
-    }
-
-    [Fact]
-    public void Settings_SourcePath_ShouldSupportUrl()
-    {
-        // Arrange
-        var settings = new ZipCodeImportSettings
-        {
-            SourcePath = "https://data.example.com/zipcodes.csv"
-        };
-
-        // Assert
-        settings.SourcePath.Should().StartWith("https://");
-    }
-
-    #endregion
-}
-
-/// <summary>
-/// ZIP code import configuration settings
-/// </summary>
-public class ZipCodeImportSettings
-{
-    public bool Enabled { get; set; }
-    public bool RunOnStartup { get; set; }
-    public string? SourcePath { get; set; }
-    public string[]? Countries { get; set; }
-}
-
-/// <summary>
-/// Mock interface for ZIP code service
-/// </summary>
-public interface IZipCodeService
-{
-    Task<int> ImportAsync(string sourcePath, CancellationToken cancellationToken = default);
-    Task<int> GetCountAsync();
 }

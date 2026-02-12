@@ -303,6 +303,13 @@ public class CrmDbContext : DbContext, ICrmDbContext
     public DbSet<ActionRecommendation> ActionRecommendations { get; set; }
     public DbSet<EmailIntelligence> EmailIntelligences { get; set; }
 
+    // AI Agent Entities (ADR-004 — Semantic Kernel Integration)
+    public DbSet<AIAgent> AIAgents { get; set; }
+    public DbSet<AgentConversation> AgentConversations { get; set; }
+    public DbSet<AgentAction> AgentActions { get; set; }
+    public DbSet<AgentMemory> AgentMemories { get; set; }
+    public DbSet<AgentApprovalRequest> AgentApprovalRequests { get; set; }
+
     // =============================================================================
     // Report Entities (Report Builder, Schedules)
     // =============================================================================

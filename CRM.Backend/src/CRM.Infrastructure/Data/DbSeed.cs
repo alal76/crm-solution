@@ -179,5 +179,8 @@ public class DbSeed
             context.UserGroupMembers.Add(membership);
             await context.SaveChangesAsync();
         }
+
+        // Seed AI Agent definitions (ADR-004 — Semantic Kernel Integration)
+        await AIAgentSeed.SeedAIAgentsAsync(context);
     }
 }

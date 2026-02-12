@@ -105,7 +105,7 @@ public class CrmChatCompletionConnector : IChatCompletionService
             Messages = messages,
             Temperature = temperature,
             MaxTokens = maxTokens,
-            ModelOverride = modelOverride
+            Model = modelOverride
         };
 
         try
@@ -114,18 +114,18 @@ public class CrmChatCompletionConnector : IChatCompletionService
 
             _logger.LogDebug(
                 "IAIPort returned response ({TokensUsed} tokens, model: {Model})",
-                response.TokensUsed,
-                response.ModelUsed ?? "unknown");
+                response.Usage?.TotalTokens ?? 0,
+                response.Model ?? "unknown");
 
-            var result = new ChatMessageContent(AuthorRole.Assistant, response.Content);
+            var result = new ChatMessageContent(AuthorRole.Assistant, response.Message?.Content ?? string.Empty);
 
             // Store token usage in metadata if available
-            if (response.TokensUsed > 0)
+            if (response.Usage?.TotalTokens > 0)
             {
                 result.Metadata = new Dictionary<string, object?>
                 {
-                    ["TokensUsed"] = response.TokensUsed,
-                    ["ModelUsed"] = response.ModelUsed
+                    ["TokensUsed"] = response.Usage.TotalTokens,
+                    ["ModelUsed"] = response.Model
                 };
             }
 

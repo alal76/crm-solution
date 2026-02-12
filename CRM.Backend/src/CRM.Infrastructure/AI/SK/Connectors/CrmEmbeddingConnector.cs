@@ -82,8 +82,8 @@ public class CrmEmbeddingConnector : ITextEmbeddingGenerationService
             if (data.Count > 1)
             {
                 // Use batch endpoint for multiple texts — more efficient
-                var batchRequest = new AIBatchEmbeddingRequest { Texts = data.ToList() };
-                var batchResponse = await _aiPort.GetBatchEmbeddingsAsync(batchRequest, cancellationToken);
+                var batchResponse = await _aiPort.GetEmbeddingsAsync(
+                    data.ToList(), null, cancellationToken);
 
                 foreach (var embedding in batchResponse.Embeddings)
                 {
@@ -91,19 +91,20 @@ public class CrmEmbeddingConnector : ITextEmbeddingGenerationService
                 }
 
                 _logger.LogDebug(
-                    "Batch embedding completed: {Count} embeddings returned",
-                    batchResponse.Embeddings.Count);
+                    "Batch embedding completed: {Count} embeddings, {Tokens} tokens",
+                    batchResponse.Embeddings.Count,
+                    batchResponse.TotalTokens);
             }
             else
             {
                 // Single text — use the simple endpoint
-                var request = new AIEmbeddingRequest { Text = data[0] };
-                var response = await _aiPort.GetEmbeddingsAsync(request, cancellationToken);
+                var response = await _aiPort.GetEmbeddingAsync(
+                    data[0], null, cancellationToken);
                 results.Add(new ReadOnlyMemory<float>(response.Embedding));
 
                 _logger.LogDebug(
                     "Single embedding completed: {Dimensions} dimensions",
-                    response.Dimensions);
+                    response.Embedding.Length);
             }
         }
         catch (Exception ex)

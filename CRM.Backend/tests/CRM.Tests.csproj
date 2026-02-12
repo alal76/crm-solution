@@ -117,7 +117,7 @@
     <Compile Remove="Controllers\UsersControllerTests.cs" />
     <!-- HostedService tests with missing interfaces/types -->
     <!-- Re-enabled: BackupSchedulerHostedServiceTests (removed local type shadows, fixed async mock) -->
-    <Compile Remove="HostedServices\DatabaseSyncHostedServiceTests.cs" />
+    <!-- Re-enabled: DatabaseSyncHostedServiceTests (rewritten from scratch with correct 2-param constructor) -->
     <Compile Remove="HostedServices\LeadScoreDecayHostedServiceTests.cs" />
     <Compile Remove="HostedServices\WorkflowWorkerServiceTests.cs" />
     <Compile Remove="HostedServices\ZipCodeImportHostedServiceTests.cs" />
