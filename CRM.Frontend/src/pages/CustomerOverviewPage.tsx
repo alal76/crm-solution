@@ -129,10 +129,10 @@ function CustomerOverviewPage() {
     setAiLoading('email');
     setAiResult(null);
     try {
+      const recipientName = customer.company || `${customer.firstName} ${customer.lastName}`;
       const res = await agentService.draftEmail({
         recipientEmail: customer.email,
-        recipientName: customer.company || `${customer.firstName} ${customer.lastName}`,
-        context: `Customer account follow-up for ${customer.company || customer.firstName}`,
+        context: `Customer account follow-up for ${recipientName}`,
         tone: 'professional',
       });
       setAiResult({ type: 'email', data: res.data });
