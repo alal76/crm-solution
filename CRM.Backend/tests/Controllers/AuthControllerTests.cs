@@ -1,39 +1,17 @@
-// CRM Solution - Customer Relationship Management System
-// Copyright (C) 2024-2026 Abhishek Lal
-//
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Affero General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU Affero General Public License for more details.
-//
-// You should have received a copy of the GNU Affero General Public License
-// along with this program. If not, see <https://www.gnu.org/licenses/>.
-
-using Xunit;
-using Moq;
-using FluentAssertions;
+using System.Security.Claims;
 using CRM.Api.Controllers;
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
+using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Threading.Tasks;
-using System.Security.Claims;
+using Moq;
+using Xunit;
 
 namespace CRM.Tests.Controllers;
 
-/// <summary>
-/// Comprehensive unit tests for AuthController
-/// Covers: Login, Register, Logout, Password flows, 2FA, OAuth, Token refresh
-/// </summary>
 public class AuthControllerTests
 {
     private readonly Mock<IAuthenticationService> _mockAuthService;
@@ -44,979 +22,482 @@ public class AuthControllerTests
     {
         _mockAuthService = new Mock<IAuthenticationService>();
         _mockLogger = new Mock<ILogger<AuthController>>();
+        _controller = new AuthController(_mockAuthService.Object, _mockLogger.Object);
+    }
 
-        _controller = new AuthController(
-            _mockAuthService.Object,
-            _mockLogger.Object);
-
-        var httpContext = new DefaultHttpContext();
+    private void SetupAuthenticatedUser(string userId = "1", string role = "0")
+    {
+        var claims = new List<Claim>
+        {
+            new Claim("sub", userId),
+            new Claim("role", role)
+        };
+        var identity = new ClaimsIdentity(claims, "TestAuth");
+        var principal = new ClaimsPrincipal(identity);
         _controller.ControllerContext = new ControllerContext
         {
-            HttpContext = httpContext
+            HttpContext = new DefaultHttpContext { User = principal }
         };
     }
 
-    #region Login Tests
-
-    [Fact]
-    public async Task Login_ValidCredentials_ReturnsOkWithToken()
+    private void SetupUnauthenticatedUser()
     {
-        // Arrange
-        var request = new LoginRequest { Email = "test@example.com", Password = "Password123!" };
-        var response = new AuthResponse
+        _controller.ControllerContext = new ControllerContext
         {
-            Success = true,
-            Token = "jwt-token",
-            RefreshToken = "refresh-token",
-            User = new UserDto { Id = 1, Email = "test@example.com" }
+            HttpContext = new DefaultHttpContext { User = new ClaimsPrincipal(new ClaimsIdentity()) }
         };
-
-        _mockAuthService.Setup(s => s.LoginAsync(request.Email, request.Password))
-            .ReturnsAsync(response);
-
-        // Act
-        var result = await _controller.Login(request);
-
-        // Assert
-        var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-        okResult.Value.Should().BeEquivalentTo(response);
     }
 
-    [Fact]
-    public async Task Login_InvalidCredentials_ReturnsUnauthorized()
-    {
-        // Arrange
-        var request = new LoginRequest { Email = "test@example.com", Password = "wrongpassword" };
-        var response = new AuthResponse { Success = false, Message = "Invalid credentials" };
-
-        _mockAuthService.Setup(s => s.LoginAsync(request.Email, request.Password))
-            .ReturnsAsync(response);
-
-        // Act
-        var result = await _controller.Login(request);
-
-        // Assert
-        result.Should().BeOfType<UnauthorizedObjectResult>();
-    }
+    // ─── Register ───
 
     [Fact]
-    public async Task Login_LockedAccount_ReturnsUnauthorized()
+    public async Task Register_ShouldReturnOk_WhenRegistrationSucceeds()
     {
-        // Arrange
-        var request = new LoginRequest { Email = "locked@example.com", Password = "Password123!" };
-        var response = new AuthResponse { Success = false, Message = "Account is locked" };
-
-        _mockAuthService.Setup(s => s.LoginAsync(request.Email, request.Password))
-            .ReturnsAsync(response);
-
-        // Act
-        var result = await _controller.Login(request);
-
-        // Assert
-        result.Should().BeOfType<UnauthorizedObjectResult>();
-    }
-
-    [Fact]
-    public async Task Login_PasswordNeverSet_ReturnsRequiresSetup()
-    {
-        // Arrange
-        var request = new LoginRequest { Email = "new@example.com", Password = "temppass" };
-        var response = new AuthResponse
+        var request = new RegisterRequest
         {
-            Success = true,
-            RequiresPasswordSetup = true,
-            PasswordSetupToken = "setup-token"
+            Email = "test@example.com",
+            Password = "Test@123",
+            FirstName = "Test",
+            LastName = "User",
+            Username = "testuser"
         };
+        var authResponse = new AuthResponse { AccessToken = "jwt-token", RefreshToken = "refresh-token" };
+        _mockAuthService.Setup(s => s.RegisterAsync(request)).ReturnsAsync(authResponse);
 
-        _mockAuthService.Setup(s => s.LoginAsync(request.Email, request.Password))
-            .ReturnsAsync(response);
+        var result = await _controller.Register(request);
 
-        // Act
-        var result = await _controller.Login(request);
-
-        // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-        var authResponse = okResult.Value as AuthResponse;
-        authResponse!.RequiresPasswordSetup.Should().BeTrue();
+        okResult.Value.Should().Be(authResponse);
     }
 
     [Fact]
-    public async Task Login_MustResetPassword_ReturnsRequiresReset()
+    public async Task Register_ShouldReturn500_WhenExceptionThrown()
     {
-        // Arrange
-        var request = new LoginRequest { Email = "reset@example.com", Password = "oldpass" };
-        var response = new AuthResponse
-        {
-            Success = true,
-            MustResetPassword = true,
-            PasswordSetupToken = "reset-token"
-        };
+        var request = new RegisterRequest { Email = "test@example.com", Password = "Test@123" };
+        _mockAuthService.Setup(s => s.RegisterAsync(request)).ThrowsAsync(new Exception("DB error"));
 
-        _mockAuthService.Setup(s => s.LoginAsync(request.Email, request.Password))
-            .ReturnsAsync(response);
+        var result = await _controller.Register(request);
 
-        // Act
-        var result = await _controller.Login(request);
-
-        // Assert
-        var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-        var authResponse = okResult.Value as AuthResponse;
-        authResponse!.MustResetPassword.Should().BeTrue();
-    }
-
-    [Fact]
-    public async Task Login_Requires2FA_ReturnsRequires2FA()
-    {
-        // Arrange
-        var request = new LoginRequest { Email = "2fa@example.com", Password = "Password123!" };
-        var response = new AuthResponse
-        {
-            Success = true,
-            Requires2FA = true,
-            TwoFactorToken = "2fa-token"
-        };
-
-        _mockAuthService.Setup(s => s.LoginAsync(request.Email, request.Password))
-            .ReturnsAsync(response);
-
-        // Act
-        var result = await _controller.Login(request);
-
-        // Assert
-        var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-        var authResponse = okResult.Value as AuthResponse;
-        authResponse!.Requires2FA.Should().BeTrue();
-    }
-
-    [Fact]
-    public async Task Login_NullRequest_ReturnsBadRequest()
-    {
-        // Act
-        var result = await _controller.Login(null!);
-
-        // Assert
-        result.Should().BeOfType<BadRequestObjectResult>();
-    }
-
-    [Fact]
-    public async Task Login_EmptyEmail_ReturnsBadRequest()
-    {
-        // Arrange
-        var request = new LoginRequest { Email = "", Password = "Password123!" };
-
-        // Act
-        var result = await _controller.Login(request);
-
-        // Assert
-        result.Should().BeOfType<BadRequestObjectResult>();
-    }
-
-    [Fact]
-    public async Task Login_EmptyPassword_ReturnsBadRequest()
-    {
-        // Arrange
-        var request = new LoginRequest { Email = "test@example.com", Password = "" };
-
-        // Act
-        var result = await _controller.Login(request);
-
-        // Assert
-        result.Should().BeOfType<BadRequestObjectResult>();
-    }
-
-    [Fact]
-    public async Task Login_ServiceThrowsException_ReturnsInternalError()
-    {
-        // Arrange
-        var request = new LoginRequest { Email = "test@example.com", Password = "Password123!" };
-        _mockAuthService.Setup(s => s.LoginAsync(It.IsAny<string>(), It.IsAny<string>()))
-            .ThrowsAsync(new Exception("Database error"));
-
-        // Act
-        var result = await _controller.Login(request);
-
-        // Assert
         var statusResult = result.Should().BeOfType<ObjectResult>().Subject;
         statusResult.StatusCode.Should().Be(500);
     }
 
-    #endregion
-
-    #region Register Tests
+    // ─── Login ───
 
     [Fact]
-    public async Task Register_ValidRequest_ReturnsOkWithUser()
+    public async Task Login_ShouldReturnOk_WhenCredentialsValid()
     {
-        // Arrange
-        var request = new RegisterRequest
-        {
-            Email = "new@example.com",
-            Password = "Password123!",
-            FirstName = "John",
-            LastName = "Doe"
-        };
-        var response = new AuthResponse
-        {
-            Success = true,
-            User = new UserDto { Id = 1, Email = request.Email }
-        };
+        var request = new LoginRequest { Email = "admin@crm.local", Password = "Admin@123" };
+        var authResponse = new AuthResponse { AccessToken = "jwt-token", RefreshToken = "refresh-token" };
+        _mockAuthService.Setup(s => s.LoginAsync(request)).ReturnsAsync(authResponse);
 
-        _mockAuthService.Setup(s => s.RegisterAsync(It.IsAny<RegisterRequest>()))
-            .ReturnsAsync(response);
+        var result = await _controller.Login(request);
 
-        // Act
-        var result = await _controller.Register(request);
-
-        // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-        okResult.Value.Should().BeEquivalentTo(response);
+        okResult.Value.Should().Be(authResponse);
     }
 
     [Fact]
-    public async Task Register_DuplicateEmail_ReturnsBadRequest()
+    public async Task Login_ShouldReturnUnauthorized_WhenCredentialsInvalid()
     {
-        // Arrange
-        var request = new RegisterRequest
-        {
-            Email = "existing@example.com",
-            Password = "Password123!"
-        };
-        var response = new AuthResponse
-        {
-            Success = false,
-            Message = "User with this email already exists"
-        };
+        var request = new LoginRequest { Email = "admin@crm.local", Password = "wrong" };
+        _mockAuthService.Setup(s => s.LoginAsync(request))
+            .ThrowsAsync(new UnauthorizedAccessException("Invalid credentials"));
 
-        _mockAuthService.Setup(s => s.RegisterAsync(It.IsAny<RegisterRequest>()))
-            .ReturnsAsync(response);
+        var result = await _controller.Login(request);
 
-        // Act
-        var result = await _controller.Register(request);
-
-        // Assert
-        result.Should().BeOfType<BadRequestObjectResult>();
+        result.Should().BeOfType<UnauthorizedObjectResult>();
     }
 
-    [Fact]
-    public async Task Register_WeakPassword_ReturnsBadRequest()
-    {
-        // Arrange
-        var request = new RegisterRequest
-        {
-            Email = "new@example.com",
-            Password = "weak"
-        };
-        var response = new AuthResponse
-        {
-            Success = false,
-            Message = "Password does not meet complexity requirements"
-        };
-
-        _mockAuthService.Setup(s => s.RegisterAsync(It.IsAny<RegisterRequest>()))
-            .ReturnsAsync(response);
-
-        // Act
-        var result = await _controller.Register(request);
-
-        // Assert
-        result.Should().BeOfType<BadRequestObjectResult>();
-    }
+    // ─── LoginWith2FA ───
 
     [Fact]
-    public async Task Register_RequiresApproval_ReturnsOkWithPending()
+    public async Task LoginWith2FA_ShouldReturnOk_WhenCodeValid()
     {
-        // Arrange
-        var request = new RegisterRequest { Email = "new@example.com", Password = "Password123!" };
-        var response = new AuthResponse
-        {
-            Success = true,
-            Message = "Registration pending approval"
-        };
+        var request = new TwoFactorLoginRequest { TwoFactorToken = "2fa-token", Code = "123456" };
+        var authResponse = new AuthResponse { AccessToken = "jwt-token" };
+        _mockAuthService.Setup(s => s.VerifyTwoFactorLoginAsync("2fa-token", "123456"))
+            .ReturnsAsync(authResponse);
 
-        _mockAuthService.Setup(s => s.RegisterAsync(It.IsAny<RegisterRequest>()))
-            .ReturnsAsync(response);
+        var result = await _controller.LoginWith2FA(request);
 
-        // Act
-        var result = await _controller.Register(request);
-
-        // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
+        okResult.Value.Should().Be(authResponse);
     }
 
     [Fact]
-    public async Task Register_InvalidEmail_ReturnsBadRequest()
+    public async Task LoginWith2FA_ShouldReturnUnauthorized_WhenCodeInvalid()
     {
-        // Arrange
-        var request = new RegisterRequest { Email = "invalid-email", Password = "Password123!" };
+        var request = new TwoFactorLoginRequest { TwoFactorToken = "2fa-token", Code = "000000" };
+        _mockAuthService.Setup(s => s.VerifyTwoFactorLoginAsync("2fa-token", "000000"))
+            .ThrowsAsync(new UnauthorizedAccessException("Invalid 2FA code"));
 
-        // Act
-        var result = await _controller.Register(request);
+        var result = await _controller.LoginWith2FA(request);
 
-        // Assert
+        result.Should().BeOfType<UnauthorizedObjectResult>();
+    }
+
+    // ─── RefreshToken ───
+
+    [Fact]
+    public async Task RefreshToken_ShouldReturnOk_WhenTokenValid()
+    {
+        var request = new RefreshTokenRequest { RefreshToken = "valid-refresh" };
+        var authResponse = new AuthResponse { AccessToken = "new-jwt" };
+        _mockAuthService.Setup(s => s.RefreshTokenAsync("valid-refresh"))
+            .ReturnsAsync(authResponse);
+
+        var result = await _controller.RefreshToken(request);
+
+        var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
+        okResult.Value.Should().Be(authResponse);
+    }
+
+    [Fact]
+    public async Task RefreshToken_ShouldReturnBadRequest_WhenArgumentException()
+    {
+        var request = new RefreshTokenRequest { RefreshToken = "bad" };
+        _mockAuthService.Setup(s => s.RefreshTokenAsync("bad"))
+            .ThrowsAsync(new ArgumentException("Token is required"));
+
+        var result = await _controller.RefreshToken(request);
+
         result.Should().BeOfType<BadRequestObjectResult>();
     }
 
-    #endregion
+    [Fact]
+    public async Task RefreshToken_ShouldReturnUnauthorized_WhenTokenInvalid()
+    {
+        var request = new RefreshTokenRequest { RefreshToken = "expired" };
+        _mockAuthService.Setup(s => s.RefreshTokenAsync("expired"))
+            .ThrowsAsync(new UnauthorizedAccessException("Token expired"));
 
-    #region Password Setup Tests
+        var result = await _controller.RefreshToken(request);
+
+        result.Should().BeOfType<UnauthorizedObjectResult>();
+    }
+
+    // ─── OAuthLogin ───
 
     [Fact]
-    public async Task SetupPassword_ValidToken_ReturnsOk()
+    public async Task OAuthLogin_ShouldReturnOk_WhenOAuthSucceeds()
     {
-        // Arrange
-        var request = new SetupPasswordRequest
-        {
-            Token = "valid-token",
-            NewPassword = "NewPassword123!",
-            ConfirmPassword = "NewPassword123!"
-        };
-        var response = new AuthResponse { Success = true };
+        var request = new OAuthLoginRequest { Provider = "Google", Token = "google-token" };
+        var authResponse = new AuthResponse { AccessToken = "jwt-token" };
+        _mockAuthService.Setup(s => s.OAuthLoginAsync(request)).ReturnsAsync(authResponse);
 
-        _mockAuthService.Setup(s => s.SetupPasswordAsync(It.IsAny<SetupPasswordRequest>()))
-            .ReturnsAsync(response);
+        var result = await _controller.OAuthLogin(request);
 
-        // Act
-        var result = await _controller.SetupPassword(request);
+        var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
+        okResult.Value.Should().Be(authResponse);
+    }
 
-        // Assert
+    // ─── VerifyToken ───
+
+    [Fact]
+    public async Task VerifyToken_ShouldReturnOk_WithIsValidTrue()
+    {
+        _mockAuthService.Setup(s => s.VerifyTokenAsync("valid-token")).ReturnsAsync(true);
+
+        var result = await _controller.VerifyToken("valid-token");
+
+        var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
+        // Returns anonymous type { isValid = true }
+        okResult.Value.Should().NotBeNull();
+    }
+
+    // ─── GetCurrentUser ───
+
+    [Fact]
+    public async Task GetCurrentUser_ShouldReturnOk_WhenUserExists()
+    {
+        SetupAuthenticatedUser("5");
+        var user = new User { Id = 5, Username = "admin", Email = "admin@crm.local", FirstName = "Admin", LastName = "User" };
+        _mockAuthService.Setup(s => s.GetUserByIdAsync(5)).ReturnsAsync(user);
+
+        var result = await _controller.GetCurrentUser();
+
+        var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
+        okResult.Value.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task GetCurrentUser_ShouldReturnUnauthorized_WhenNoSubClaim()
+    {
+        SetupUnauthenticatedUser();
+
+        var result = await _controller.GetCurrentUser();
+
+        result.Should().BeOfType<UnauthorizedResult>();
+    }
+
+    [Fact]
+    public async Task GetCurrentUser_ShouldReturnNotFound_WhenUserDoesNotExist()
+    {
+        SetupAuthenticatedUser("999");
+        _mockAuthService.Setup(s => s.GetUserByIdAsync(999)).ReturnsAsync((User?)null);
+
+        var result = await _controller.GetCurrentUser();
+
+        result.Should().BeOfType<NotFoundResult>();
+    }
+
+    // ─── Setup2FA ───
+
+    [Fact]
+    public async Task Setup2FA_ShouldReturnOk_WhenSetupSucceeds()
+    {
+        SetupAuthenticatedUser("1");
+        var setupResponse = new TwoFactorSetupResponse { QrCodeUrl = "otpauth://...", Secret = "BASE32SECRET" };
+        _mockAuthService.Setup(s => s.SetupTwoFactorAsync(1)).ReturnsAsync(setupResponse);
+
+        var result = await _controller.Setup2FA();
+
+        var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
+        okResult.Value.Should().Be(setupResponse);
+    }
+
+    [Fact]
+    public async Task Setup2FA_ShouldReturnUnauthorized_WhenNoSubClaim()
+    {
+        SetupUnauthenticatedUser();
+
+        var result = await _controller.Setup2FA();
+
+        result.Should().BeOfType<UnauthorizedResult>();
+    }
+
+    // ─── Verify2FA ───
+
+    [Fact]
+    public async Task Verify2FA_ShouldReturnOk_WhenCodeValid()
+    {
+        SetupAuthenticatedUser("1");
+        var request = new TwoFactorVerification { Code = "123456" };
+        _mockAuthService.Setup(s => s.VerifyTwoFactorCodeAsync(1, "123456")).ReturnsAsync(true);
+
+        var result = await _controller.Verify2FA(request);
+
         result.Should().BeOfType<OkObjectResult>();
     }
 
     [Fact]
-    public async Task SetupPassword_InvalidToken_ReturnsBadRequest()
+    public async Task Verify2FA_ShouldReturnBadRequest_WhenCodeInvalid()
     {
-        // Arrange
-        var request = new SetupPasswordRequest
-        {
-            Token = "invalid-token",
-            NewPassword = "NewPassword123!",
-            ConfirmPassword = "NewPassword123!"
-        };
-        var response = new AuthResponse { Success = false, Message = "Invalid or expired token" };
+        SetupAuthenticatedUser("1");
+        var request = new TwoFactorVerification { Code = "000000" };
+        _mockAuthService.Setup(s => s.VerifyTwoFactorCodeAsync(1, "000000")).ReturnsAsync(false);
 
-        _mockAuthService.Setup(s => s.SetupPasswordAsync(It.IsAny<SetupPasswordRequest>()))
-            .ReturnsAsync(response);
+        var result = await _controller.Verify2FA(request);
 
-        // Act
-        var result = await _controller.SetupPassword(request);
-
-        // Assert
         result.Should().BeOfType<BadRequestObjectResult>();
     }
 
+    // ─── Enable2FA ───
+
     [Fact]
-    public async Task SetupPassword_PasswordMismatch_ReturnsBadRequest()
+    public async Task Enable2FA_ShouldReturnOk_WhenEnableSucceeds()
     {
-        // Arrange
-        var request = new SetupPasswordRequest
+        SetupAuthenticatedUser("1");
+        var request = new TwoFactorEnableRequest
+        {
+            Secret = "BASE32SECRET",
+            BackupCodes = new List<string> { "code1", "code2" }
+        };
+        _mockAuthService.Setup(s => s.EnableTwoFactorAsync(1, "BASE32SECRET", request.BackupCodes))
+            .Returns(Task.CompletedTask);
+
+        var result = await _controller.Enable2FA(request);
+
+        result.Should().BeOfType<OkObjectResult>();
+    }
+
+    // ─── Disable2FA ───
+
+    [Fact]
+    public async Task Disable2FA_ShouldReturnOk_WhenDisableSucceeds()
+    {
+        SetupAuthenticatedUser("1");
+        _mockAuthService.Setup(s => s.DisableTwoFactorAsync(1)).Returns(Task.CompletedTask);
+
+        var result = await _controller.Disable2FA();
+
+        result.Should().BeOfType<OkObjectResult>();
+    }
+
+    // ─── RequestPasswordReset ───
+
+    [Fact]
+    public async Task RequestPasswordReset_ShouldReturnOk_WhenRequestSucceeds()
+    {
+        var request = new PasswordResetRequest { Email = "test@example.com" };
+        _mockAuthService.Setup(s => s.RequestPasswordResetAsync("test@example.com"))
+            .ReturnsAsync("reset-token");
+
+        var result = await _controller.RequestPasswordReset(request);
+
+        result.Should().BeOfType<OkObjectResult>();
+    }
+
+    [Fact]
+    public async Task RequestPasswordReset_ShouldReturnOk_EvenWhenEmailNotFound()
+    {
+        // Security: Don't reveal if email exists
+        var request = new PasswordResetRequest { Email = "nonexistent@example.com" };
+        _mockAuthService.Setup(s => s.RequestPasswordResetAsync("nonexistent@example.com"))
+            .ThrowsAsync(new InvalidOperationException("Email not found"));
+
+        var result = await _controller.RequestPasswordReset(request);
+
+        // Still returns Ok (with generic message) — doesn't reveal email existence
+        result.Should().BeOfType<OkObjectResult>();
+    }
+
+    // ─── ConfirmPasswordReset ───
+
+    [Fact]
+    public async Task ConfirmPasswordReset_ShouldReturnOk_WhenResetSucceeds()
+    {
+        var request = new PasswordResetConfirm
         {
             Token = "valid-token",
-            NewPassword = "NewPassword123!",
-            ConfirmPassword = "DifferentPassword123!"
+            NewPassword = "NewPass@123",
+            ConfirmPassword = "NewPass@123"
         };
+        _mockAuthService.Setup(s => s.ResetPasswordAsync("valid-token", "NewPass@123"))
+            .ReturnsAsync(true);
 
-        // Act
-        var result = await _controller.SetupPassword(request);
+        var result = await _controller.ConfirmPasswordReset(request);
 
-        // Assert
-        result.Should().BeOfType<BadRequestObjectResult>();
+        result.Should().BeOfType<OkObjectResult>();
     }
 
     [Fact]
-    public async Task SetupPassword_WeakPassword_ReturnsBadRequest()
+    public async Task ConfirmPasswordReset_ShouldReturnBadRequest_WhenPasswordsMismatch()
     {
-        // Arrange
-        var request = new SetupPasswordRequest
+        var request = new PasswordResetConfirm
         {
             Token = "valid-token",
-            NewPassword = "weak",
-            ConfirmPassword = "weak"
-        };
-        var response = new AuthResponse
-        {
-            Success = false,
-            Message = "Password does not meet requirements"
+            NewPassword = "Pass@123",
+            ConfirmPassword = "DifferentPass@123"
         };
 
-        _mockAuthService.Setup(s => s.SetupPasswordAsync(It.IsAny<SetupPasswordRequest>()))
-            .ReturnsAsync(response);
+        var result = await _controller.ConfirmPasswordReset(request);
 
-        // Act
-        var result = await _controller.SetupPassword(request);
-
-        // Assert
         result.Should().BeOfType<BadRequestObjectResult>();
     }
 
     [Fact]
-    public async Task SetupPassword_ExpiredToken_ReturnsBadRequest()
+    public async Task ConfirmPasswordReset_ShouldReturnBadRequest_WhenTokenInvalid()
     {
-        // Arrange
-        var request = new SetupPasswordRequest
+        var request = new PasswordResetConfirm
         {
             Token = "expired-token",
-            NewPassword = "NewPassword123!",
-            ConfirmPassword = "NewPassword123!"
+            NewPassword = "Pass@123",
+            ConfirmPassword = "Pass@123"
         };
-        var response = new AuthResponse { Success = false, Message = "Token has expired" };
+        _mockAuthService.Setup(s => s.ResetPasswordAsync("expired-token", "Pass@123"))
+            .ThrowsAsync(new UnauthorizedAccessException("Invalid or expired token"));
 
-        _mockAuthService.Setup(s => s.SetupPasswordAsync(It.IsAny<SetupPasswordRequest>()))
-            .ReturnsAsync(response);
+        var result = await _controller.ConfirmPasswordReset(request);
 
-        // Act
+        result.Should().BeOfType<BadRequestObjectResult>();
+    }
+
+    // ─── AdminResetPassword ───
+
+    [Fact]
+    public async Task AdminResetPassword_ShouldReturnOk_WhenAdminResetsPassword()
+    {
+        SetupAuthenticatedUser("1", "0"); // Admin role = "0"
+        var request = new AdminPasswordResetRequest { NewPassword = "NewPass@123" };
+        _mockAuthService.Setup(s => s.AdminResetPasswordAsync(5, "NewPass@123"))
+            .ReturnsAsync(true);
+
+        var result = await _controller.AdminResetPassword(5, request);
+
+        result.Should().BeOfType<OkObjectResult>();
+    }
+
+    [Fact]
+    public async Task AdminResetPassword_ShouldReturnForbid_WhenNotAdmin()
+    {
+        SetupAuthenticatedUser("2", "1"); // Non-admin role = "1"
+        var request = new AdminPasswordResetRequest { NewPassword = "NewPass@123" };
+
+        var result = await _controller.AdminResetPassword(5, request);
+
+        result.Should().BeOfType<ForbidResult>();
+    }
+
+    // ─── SetupPassword ───
+
+    [Fact]
+    public async Task SetupPassword_ShouldReturnOk_WhenSetupSucceeds()
+    {
+        var request = new SetPasswordRequest { };
+        var authResponse = new AuthResponse { AccessToken = "jwt-token" };
+        _mockAuthService.Setup(s => s.SetupPasswordAsync(request)).ReturnsAsync(authResponse);
+
         var result = await _controller.SetupPassword(request);
 
-        // Assert
-        result.Should().BeOfType<BadRequestObjectResult>();
-    }
-
-    #endregion
-
-    #region Forgot Password Tests
-
-    [Fact]
-    public async Task ForgotPassword_ValidEmail_ReturnsOk()
-    {
-        // Arrange
-        var request = new ForgotPasswordRequest { Email = "user@example.com" };
-
-        _mockAuthService.Setup(s => s.ForgotPasswordAsync(request.Email))
-            .ReturnsAsync(true);
-
-        // Act
-        var result = await _controller.ForgotPassword(request);
-
-        // Assert
-        result.Should().BeOfType<OkObjectResult>();
-    }
-
-    [Fact]
-    public async Task ForgotPassword_UnknownEmail_ReturnsOk()
-    {
-        // Always return OK to prevent email enumeration
-        var request = new ForgotPasswordRequest { Email = "unknown@example.com" };
-
-        _mockAuthService.Setup(s => s.ForgotPasswordAsync(request.Email))
-            .ReturnsAsync(true);
-
-        // Act
-        var result = await _controller.ForgotPassword(request);
-
-        // Assert - should always return OK to prevent enumeration
-        result.Should().BeOfType<OkObjectResult>();
-    }
-
-    [Fact]
-    public async Task ForgotPassword_InvalidEmailFormat_ReturnsBadRequest()
-    {
-        // Arrange
-        var request = new ForgotPasswordRequest { Email = "invalid-email" };
-
-        // Act
-        var result = await _controller.ForgotPassword(request);
-
-        // Assert
-        result.Should().BeOfType<BadRequestObjectResult>();
-    }
-
-    [Fact]
-    public async Task ForgotPassword_EmptyEmail_ReturnsBadRequest()
-    {
-        // Arrange
-        var request = new ForgotPasswordRequest { Email = "" };
-
-        // Act
-        var result = await _controller.ForgotPassword(request);
-
-        // Assert
-        result.Should().BeOfType<BadRequestObjectResult>();
-    }
-
-    #endregion
-
-    #region Reset Password Tests
-
-    [Fact]
-    public async Task ResetPassword_ValidRequest_ReturnsOk()
-    {
-        // Arrange
-        var request = new ResetPasswordRequest
-        {
-            Token = "valid-reset-token",
-            NewPassword = "NewPassword123!",
-            ConfirmPassword = "NewPassword123!"
-        };
-        var response = new AuthResponse { Success = true };
-
-        _mockAuthService.Setup(s => s.ResetPasswordAsync(It.IsAny<ResetPasswordRequest>()))
-            .ReturnsAsync(response);
-
-        // Act
-        var result = await _controller.ResetPassword(request);
-
-        // Assert
-        result.Should().BeOfType<OkObjectResult>();
-    }
-
-    [Fact]
-    public async Task ResetPassword_InvalidToken_ReturnsBadRequest()
-    {
-        // Arrange
-        var request = new ResetPasswordRequest
-        {
-            Token = "invalid-token",
-            NewPassword = "NewPassword123!",
-            ConfirmPassword = "NewPassword123!"
-        };
-        var response = new AuthResponse { Success = false, Message = "Invalid token" };
-
-        _mockAuthService.Setup(s => s.ResetPasswordAsync(It.IsAny<ResetPasswordRequest>()))
-            .ReturnsAsync(response);
-
-        // Act
-        var result = await _controller.ResetPassword(request);
-
-        // Assert
-        result.Should().BeOfType<BadRequestObjectResult>();
-    }
-
-    #endregion
-
-    #region Token Refresh Tests
-
-    [Fact]
-    public async Task RefreshToken_ValidToken_ReturnsNewTokens()
-    {
-        // Arrange
-        var request = new RefreshTokenRequest { RefreshToken = "valid-refresh-token" };
-        var response = new AuthResponse
-        {
-            Success = true,
-            Token = "new-jwt-token",
-            RefreshToken = "new-refresh-token"
-        };
-
-        _mockAuthService.Setup(s => s.RefreshTokenAsync(request.RefreshToken))
-            .ReturnsAsync(response);
-
-        // Act
-        var result = await _controller.RefreshToken(request);
-
-        // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-        var authResponse = okResult.Value as AuthResponse;
-        authResponse!.Token.Should().NotBeNullOrEmpty();
+        okResult.Value.Should().Be(authResponse);
     }
 
     [Fact]
-    public async Task RefreshToken_ExpiredToken_ReturnsUnauthorized()
+    public async Task SetupPassword_ShouldReturnUnauthorized_WhenTokenExpired()
     {
-        // Arrange
-        var request = new RefreshTokenRequest { RefreshToken = "expired-token" };
-        var response = new AuthResponse { Success = false, Message = "Refresh token expired" };
+        var request = new SetPasswordRequest { };
+        _mockAuthService.Setup(s => s.SetupPasswordAsync(request))
+            .ThrowsAsync(new UnauthorizedAccessException("Token expired"));
 
-        _mockAuthService.Setup(s => s.RefreshTokenAsync(request.RefreshToken))
-            .ReturnsAsync(response);
+        var result = await _controller.SetupPassword(request);
 
-        // Act
-        var result = await _controller.RefreshToken(request);
-
-        // Assert
         result.Should().BeOfType<UnauthorizedObjectResult>();
     }
 
     [Fact]
-    public async Task RefreshToken_RevokedToken_ReturnsUnauthorized()
+    public async Task SetupPassword_ShouldReturnBadRequest_WhenPasswordInvalid()
     {
-        // Arrange
-        var request = new RefreshTokenRequest { RefreshToken = "revoked-token" };
-        var response = new AuthResponse { Success = false, Message = "Token has been revoked" };
+        var request = new SetPasswordRequest { };
+        _mockAuthService.Setup(s => s.SetupPasswordAsync(request))
+            .ThrowsAsync(new ArgumentException("Password too weak"));
 
-        _mockAuthService.Setup(s => s.RefreshTokenAsync(request.RefreshToken))
-            .ReturnsAsync(response);
+        var result = await _controller.SetupPassword(request);
 
-        // Act
-        var result = await _controller.RefreshToken(request);
-
-        // Assert
-        result.Should().BeOfType<UnauthorizedObjectResult>();
-    }
-
-    [Fact]
-    public async Task RefreshToken_InvalidToken_ReturnsUnauthorized()
-    {
-        // Arrange
-        var request = new RefreshTokenRequest { RefreshToken = "invalid-token" };
-        var response = new AuthResponse { Success = false, Message = "Invalid refresh token" };
-
-        _mockAuthService.Setup(s => s.RefreshTokenAsync(request.RefreshToken))
-            .ReturnsAsync(response);
-
-        // Act
-        var result = await _controller.RefreshToken(request);
-
-        // Assert
-        result.Should().BeOfType<UnauthorizedObjectResult>();
-    }
-
-    #endregion
-
-    #region Logout Tests
-
-    [Fact]
-    public async Task Logout_ValidUser_ReturnsOk()
-    {
-        // Arrange - setup authenticated user
-        var claims = new[] { new Claim(ClaimTypes.NameIdentifier, "1") };
-        var identity = new ClaimsIdentity(claims, "Test");
-        _controller.ControllerContext.HttpContext.User = new ClaimsPrincipal(identity);
-
-        _mockAuthService.Setup(s => s.LogoutAsync(1))
-            .ReturnsAsync(true);
-
-        // Act
-        var result = await _controller.Logout();
-
-        // Assert
-        result.Should().BeOfType<OkObjectResult>();
-    }
-
-    [Fact]
-    public async Task Logout_UnauthenticatedUser_ReturnsUnauthorized()
-    {
-        // Act
-        var result = await _controller.Logout();
-
-        // Assert
-        result.Should().BeOfType<UnauthorizedResult>();
-    }
-
-    #endregion
-
-    #region 2FA Tests
-
-    [Fact]
-    public async Task Verify2FA_ValidCode_ReturnsOkWithToken()
-    {
-        // Arrange
-        var request = new Verify2FARequest
-        {
-            TwoFactorToken = "2fa-token",
-            Code = "123456"
-        };
-        var response = new AuthResponse
-        {
-            Success = true,
-            Token = "jwt-token",
-            RefreshToken = "refresh-token"
-        };
-
-        _mockAuthService.Setup(s => s.Verify2FAAsync(request.TwoFactorToken, request.Code))
-            .ReturnsAsync(response);
-
-        // Act
-        var result = await _controller.Verify2FA(request);
-
-        // Assert
-        var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-        okResult.Value.Should().BeEquivalentTo(response);
-    }
-
-    [Fact]
-    public async Task Verify2FA_InvalidCode_ReturnsUnauthorized()
-    {
-        // Arrange
-        var request = new Verify2FARequest
-        {
-            TwoFactorToken = "2fa-token",
-            Code = "wrong-code"
-        };
-        var response = new AuthResponse { Success = false, Message = "Invalid 2FA code" };
-
-        _mockAuthService.Setup(s => s.Verify2FAAsync(request.TwoFactorToken, request.Code))
-            .ReturnsAsync(response);
-
-        // Act
-        var result = await _controller.Verify2FA(request);
-
-        // Assert
-        result.Should().BeOfType<UnauthorizedObjectResult>();
-    }
-
-    [Fact]
-    public async Task Verify2FA_ExpiredToken_ReturnsUnauthorized()
-    {
-        // Arrange
-        var request = new Verify2FARequest
-        {
-            TwoFactorToken = "expired-token",
-            Code = "123456"
-        };
-        var response = new AuthResponse { Success = false, Message = "2FA token expired" };
-
-        _mockAuthService.Setup(s => s.Verify2FAAsync(request.TwoFactorToken, request.Code))
-            .ReturnsAsync(response);
-
-        // Act
-        var result = await _controller.Verify2FA(request);
-
-        // Assert
-        result.Should().BeOfType<UnauthorizedObjectResult>();
-    }
-
-    [Fact]
-    public async Task Enable2FA_ValidUser_ReturnsSecretAndQR()
-    {
-        // Arrange
-        var claims = new[] { new Claim(ClaimTypes.NameIdentifier, "1") };
-        var identity = new ClaimsIdentity(claims, "Test");
-        _controller.ControllerContext.HttpContext.User = new ClaimsPrincipal(identity);
-
-        var response = new Enable2FAResponse
-        {
-            Secret = "JBSWY3DPEHPK3PXP",
-            QrCodeUrl = "otpauth://totp/CRM:user@example.com?secret=JBSWY3DPEHPK3PXP"
-        };
-
-        _mockAuthService.Setup(s => s.Enable2FAAsync(1))
-            .ReturnsAsync(response);
-
-        // Act
-        var result = await _controller.Enable2FA();
-
-        // Assert
-        var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-        var enable2FAResponse = okResult.Value as Enable2FAResponse;
-        enable2FAResponse!.Secret.Should().NotBeNullOrEmpty();
-    }
-
-    [Fact]
-    public async Task Confirm2FA_ValidCode_ReturnsBackupCodes()
-    {
-        // Arrange
-        var claims = new[] { new Claim(ClaimTypes.NameIdentifier, "1") };
-        var identity = new ClaimsIdentity(claims, "Test");
-        _controller.ControllerContext.HttpContext.User = new ClaimsPrincipal(identity);
-
-        var request = new Confirm2FARequest { Code = "123456" };
-        var response = new Confirm2FAResponse
-        {
-            Success = true,
-            BackupCodes = new[] { "ABC123", "DEF456", "GHI789" }
-        };
-
-        _mockAuthService.Setup(s => s.Confirm2FAAsync(1, request.Code))
-            .ReturnsAsync(response);
-
-        // Act
-        var result = await _controller.Confirm2FA(request);
-
-        // Assert
-        var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-        var confirm2FAResponse = okResult.Value as Confirm2FAResponse;
-        confirm2FAResponse!.BackupCodes.Should().HaveCount(3);
-    }
-
-    [Fact]
-    public async Task Disable2FA_ValidCode_ReturnsOk()
-    {
-        // Arrange
-        var claims = new[] { new Claim(ClaimTypes.NameIdentifier, "1") };
-        var identity = new ClaimsIdentity(claims, "Test");
-        _controller.ControllerContext.HttpContext.User = new ClaimsPrincipal(identity);
-
-        var request = new Disable2FARequest { Code = "123456" };
-
-        _mockAuthService.Setup(s => s.Disable2FAAsync(1, request.Code))
-            .ReturnsAsync(true);
-
-        // Act
-        var result = await _controller.Disable2FA(request);
-
-        // Assert
-        result.Should().BeOfType<OkObjectResult>();
-    }
-
-    #endregion
-
-    #region OAuth Tests
-
-    [Fact]
-    public async Task GoogleCallback_ValidCode_ReturnsOkWithToken()
-    {
-        // Arrange
-        var request = new OAuthCallbackRequest { Code = "google-auth-code" };
-        var response = new AuthResponse
-        {
-            Success = true,
-            Token = "jwt-token",
-            RefreshToken = "refresh-token",
-            User = new UserDto { Id = 1, Email = "user@gmail.com" }
-        };
-
-        _mockAuthService.Setup(s => s.GoogleLoginAsync(request.Code))
-            .ReturnsAsync(response);
-
-        // Act
-        var result = await _controller.GoogleCallback(request);
-
-        // Assert
-        var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-        okResult.Value.Should().BeEquivalentTo(response);
-    }
-
-    [Fact]
-    public async Task GoogleCallback_InvalidCode_ReturnsBadRequest()
-    {
-        // Arrange
-        var request = new OAuthCallbackRequest { Code = "invalid-code" };
-        var response = new AuthResponse { Success = false, Message = "Invalid OAuth code" };
-
-        _mockAuthService.Setup(s => s.GoogleLoginAsync(request.Code))
-            .ReturnsAsync(response);
-
-        // Act
-        var result = await _controller.GoogleCallback(request);
-
-        // Assert
         result.Should().BeOfType<BadRequestObjectResult>();
     }
 
+    // ─── GetPasswordRequirements ───
+
     [Fact]
-    public async Task MicrosoftCallback_ValidCode_ReturnsOkWithToken()
+    public async Task GetPasswordRequirements_ShouldReturnOk_WithRequirements()
     {
-        // Arrange
-        var request = new OAuthCallbackRequest { Code = "microsoft-auth-code" };
-        var response = new AuthResponse
+        var requirements = new PasswordComplexityRequirements
         {
-            Success = true,
-            Token = "jwt-token",
-            User = new UserDto { Id = 1, Email = "user@outlook.com" }
+            MinLength = 8,
+            RequireUppercase = true,
+            RequireLowercase = true,
+            RequireNumbers = true
         };
+        _mockAuthService.Setup(s => s.GetPasswordRequirementsAsync()).ReturnsAsync(requirements);
 
-        _mockAuthService.Setup(s => s.MicrosoftLoginAsync(request.Code))
-            .ReturnsAsync(response);
+        var result = await _controller.GetPasswordRequirements();
 
-        // Act
-        var result = await _controller.MicrosoftCallback(request);
-
-        // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-    }
-
-    #endregion
-
-    #region Change Password Tests
-
-    [Fact]
-    public async Task ChangePassword_ValidRequest_ReturnsOk()
-    {
-        // Arrange
-        var claims = new[] { new Claim(ClaimTypes.NameIdentifier, "1") };
-        var identity = new ClaimsIdentity(claims, "Test");
-        _controller.ControllerContext.HttpContext.User = new ClaimsPrincipal(identity);
-
-        var request = new ChangePasswordRequest
-        {
-            CurrentPassword = "OldPassword123!",
-            NewPassword = "NewPassword123!",
-            ConfirmPassword = "NewPassword123!"
-        };
-        var response = new AuthResponse { Success = true };
-
-        _mockAuthService.Setup(s => s.ChangePasswordAsync(1, request))
-            .ReturnsAsync(response);
-
-        // Act
-        var result = await _controller.ChangePassword(request);
-
-        // Assert
-        result.Should().BeOfType<OkObjectResult>();
+        okResult.Value.Should().Be(requirements);
     }
 
     [Fact]
-    public async Task ChangePassword_WrongCurrentPassword_ReturnsBadRequest()
+    public async Task GetPasswordRequirements_ShouldReturn500_WhenExceptionThrown()
     {
-        // Arrange
-        var claims = new[] { new Claim(ClaimTypes.NameIdentifier, "1") };
-        var identity = new ClaimsIdentity(claims, "Test");
-        _controller.ControllerContext.HttpContext.User = new ClaimsPrincipal(identity);
+        _mockAuthService.Setup(s => s.GetPasswordRequirementsAsync())
+            .ThrowsAsync(new Exception("DB error"));
 
-        var request = new ChangePasswordRequest
-        {
-            CurrentPassword = "WrongPassword",
-            NewPassword = "NewPassword123!",
-            ConfirmPassword = "NewPassword123!"
-        };
-        var response = new AuthResponse { Success = false, Message = "Current password is incorrect" };
+        var result = await _controller.GetPasswordRequirements();
 
-        _mockAuthService.Setup(s => s.ChangePasswordAsync(1, request))
-            .ReturnsAsync(response);
-
-        // Act
-        var result = await _controller.ChangePassword(request);
-
-        // Assert
-        result.Should().BeOfType<BadRequestObjectResult>();
+        var statusResult = result.Should().BeOfType<ObjectResult>().Subject;
+        statusResult.StatusCode.Should().Be(500);
     }
-
-    [Fact]
-    public async Task ChangePassword_PasswordMismatch_ReturnsBadRequest()
-    {
-        // Arrange
-        var claims = new[] { new Claim(ClaimTypes.NameIdentifier, "1") };
-        var identity = new ClaimsIdentity(claims, "Test");
-        _controller.ControllerContext.HttpContext.User = new ClaimsPrincipal(identity);
-
-        var request = new ChangePasswordRequest
-        {
-            CurrentPassword = "OldPassword123!",
-            NewPassword = "NewPassword123!",
-            ConfirmPassword = "DifferentPassword123!"
-        };
-
-        // Act
-        var result = await _controller.ChangePassword(request);
-
-        // Assert
-        result.Should().BeOfType<BadRequestObjectResult>();
-    }
-
-    #endregion
-
-    #region Get Current User Tests
-
-    [Fact]
-    public async Task GetCurrentUser_AuthenticatedUser_ReturnsUserDto()
-    {
-        // Arrange
-        var claims = new[] { new Claim(ClaimTypes.NameIdentifier, "1") };
-        var identity = new ClaimsIdentity(claims, "Test");
-        _controller.ControllerContext.HttpContext.User = new ClaimsPrincipal(identity);
-
-        var user = new User { Id = 1, Email = "user@example.com", FirstName = "John", Username = "john", LastName = "Doe", PasswordHash = "hash" };
-
-        _mockAuthService.Setup(s => s.GetUserByIdAsync(1))
-            .ReturnsAsync(user);
-
-        // Act
-        var result = await _controller.GetCurrentUser();
-
-        // Assert
-        var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-        var userDto = okResult.Value as UserDto;
-        userDto!.Id.Should().Be(1);
-    }
-
-    [Fact]
-    public async Task GetCurrentUser_UnauthenticatedUser_ReturnsUnauthorized()
-    {
-        // Act
-        var result = await _controller.GetCurrentUser();
-
-        // Assert
-        result.Should().BeOfType<UnauthorizedResult>();
-    }
-
-    #endregion
 }
