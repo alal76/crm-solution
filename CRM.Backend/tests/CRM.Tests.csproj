@@ -31,8 +31,9 @@
     <Compile Remove="Extensions\DatabaseExtensionsTests.cs" />
     <!-- Re-enabled: ServiceExtensionsTests.cs (added CRM.ServiceDefaults project reference) -->
     <!-- <Compile Remove="Extensions\ServiceExtensionsTests.cs" /> -->
-    <!-- Repository tests: codebase uses generic Repository<T>, not entity-specific repositories -->
-    <Compile Remove="Repositories\**\*.cs" />
+    <!-- DELETED: 15 entity-specific repository test files (fictional — only generic Repository<T> exists) -->
+    <!-- Remaining: GenericRepositoryTests.cs targets real Repository<T> — needs review for re-enable -->
+    <Compile Remove="Repositories\GenericRepositoryTests.cs" />
     <!-- RE-ENABLED: 6 validator test files (self-contained stub tests) -->
     <!-- <Compile Remove="Validators\AccountValidatorTests.cs" /> -->
     <!-- <Compile Remove="Validators\ContactValidatorTests.cs" /> -->
@@ -40,11 +41,8 @@
     <!-- <Compile Remove="Validators\OpportunityValidatorTests.cs" /> -->
     <!-- <Compile Remove="Validators\CommonValidatorTests.cs" /> -->
     <!-- <Compile Remove="Validators\UserValidatorTests.cs" /> -->
-    <!-- Controller tests referencing nonexistent controllers/services -->
-    <Compile Remove="Controllers\SettingsControllerTests.cs" />
+    <!-- DELETED: SettingsControllerTests.cs, KnowledgeBaseControllerTests.cs, WorkflowsControllerTests.cs (fictional) -->
     <Compile Remove="Controllers\ReportsControllerTests.cs" />
-    <Compile Remove="Controllers\WorkflowsControllerTests.cs" />
-    <Compile Remove="Controllers\KnowledgeBaseControllerTests.cs" />
     <Compile Remove="Controllers\FileUploadControllerTests.cs" />
     <Compile Remove="Controllers\DuplicatesControllerTests.cs" />
     <Compile Remove="Controllers\EmailTemplatesControllerTests.cs" />
@@ -79,8 +77,7 @@
     <!-- DELETED: 3 provider test files (no matching source classes — fictional CacheProvider, EmailProvider, StorageProvider) -->
     <!-- Providers/CacheProviderTests.cs, EmailProviderTests.cs, StorageProviderTests.cs -->
     <!-- <Compile Remove="Configurations\EntityConfigurationTests.cs" /> -->
-    <Compile Remove="Integration\ApiTestFactory.cs" />
-    <Compile Remove="Services\GenericRepositoryTests.cs" />
+    <!-- STALE (files don't exist): Integration\ApiTestFactory.cs, Services\GenericRepositoryTests.cs -->
     <Compile Remove="Services\DuplicateDetectionServiceTests.cs" />
     <!-- Additional exclusions: nonexistent interfaces/namespaces -->
     <Compile Remove="Controllers\CampaignsControllerTests.cs" />
@@ -130,11 +127,11 @@
     <Compile Remove="Services\LLMSettingsServiceTests.cs" />
     <Compile Remove="Services\LandingPageServiceTests.cs" />
     <Compile Remove="Services\ModuleFieldConfigurationServiceTests.cs" />
-    <Compile Remove="Services\ModuleUIConfigServiceTests.cs" />
+    <!-- ModuleUIConfigServiceTests.cs - RE-ENABLED (rewritten 2026-02-19) -->
     <Compile Remove="Services\RedisCacheServiceTests.cs" />
     <!-- ResilienceServiceTests.cs - RE-ENABLED (rewritten 2026-02-17) -->
     <!-- TotpServiceTests.cs - RE-ENABLED (rewritten 2026-02-17) -->
-    <Compile Remove="Services\UserApprovalServiceTests.cs" />
+    <!-- UserApprovalServiceTests.cs - RE-ENABLED (rewritten 2026-02-19) -->
     <!-- UserGroupServiceTests.cs - RE-ENABLED (rewritten 2026-02-15) -->
     <!-- ITSM service tests with type/property mismatches -->
     <Compile Remove="Services\ITSM\MonitoringIntegrationServiceTests.cs" />
