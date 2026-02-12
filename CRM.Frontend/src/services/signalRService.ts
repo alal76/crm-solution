@@ -8,6 +8,7 @@ import logger from './logger';
  */
 class SignalRService {
   private connection: signalR.HubConnection | null = null;
+  private approvalConnection: signalR.HubConnection | null = null;
   private isConnecting = false;
   private reconnectAttempts = 0;
   private maxReconnectAttempts = 5;
@@ -19,6 +20,10 @@ class SignalRService {
   private onUserEditingCallbacks: Map<string, Set<(data: UserEditingNotification) => void>> = new Map();
   private onConnectionStateCallbacks: Set<(state: signalR.HubConnectionState) => void> = new Set();
 
+  // Agent approval event handlers
+  private onApprovalRequestCallbacks: Set<(data: ApprovalRequestNotification) => void> = new Set();
+  private onApprovalResultCallbacks: Set<(data: ApprovalResultNotification) => void> = new Set();
+
   /**
    * Get the SignalR hub URL based on current API endpoint
    */
@@ -29,10 +34,20 @@ class SignalRService {
   }
 
   /**
+   * Get the Agent Approval SignalR hub URL
+   */
+  private getApprovalHubUrl(): string {
+    const apiUrl = getApiBaseUrl();
+    return `${apiUrl}/hubs/agent-approvals`;
+  }
+
+  /**
    * Initialize the SignalR connection with JWT authentication
    */
   async connect(accessToken: string): Promise<boolean> {
     if (this.connection?.state === signalR.HubConnectionState.Connected) {
+      // Also connect approval hub if not connected
+      this.connectApprovalHub(accessToken);
       return true;
     }
 
@@ -68,6 +83,9 @@ class SignalRService {
       logger.debug('SignalR connected to CRM notifications hub');
       this.reconnectAttempts = 0;
       this.notifyConnectionState(this.connection.state);
+
+      // Also connect the approval hub (non-blocking)
+      this.connectApprovalHub(accessToken);
       
       return true;
     } catch (error) {
@@ -80,9 +98,48 @@ class SignalRService {
   }
 
   /**
-   * Disconnect from the SignalR hub
+   * Connect to the Agent Approval SignalR hub
+   */
+  private async connectApprovalHub(accessToken: string): Promise<void> {
+    if (this.approvalConnection?.state === signalR.HubConnectionState.Connected) {
+      return;
+    }
+
+    try {
+      this.approvalConnection = new signalR.HubConnectionBuilder()
+        .withUrl(this.getApprovalHubUrl(), {
+          accessTokenFactory: () => accessToken,
+          transport: signalR.HttpTransportType.WebSockets | signalR.HttpTransportType.LongPolling,
+        })
+        .withAutomaticReconnect({
+          nextRetryDelayInMilliseconds: (retryContext) => {
+            if (retryContext.previousRetryCount >= this.maxReconnectAttempts) {
+              return null;
+            }
+            return Math.min(1000 * Math.pow(2, retryContext.previousRetryCount), 30000);
+          }
+        })
+        .configureLogging(signalR.LogLevel.Information)
+        .build();
+
+      this.setupApprovalEventHandlers();
+      await this.approvalConnection.start();
+      logger.debug('SignalR connected to Agent Approval hub');
+    } catch (error) {
+      console.warn('SignalR approval hub connection failed (non-critical):', error);
+      this.approvalConnection = null;
+    }
+  }
+
+  /**
+   * Disconnect from all SignalR hubs
    */
   async disconnect(): Promise<void> {
+    if (this.approvalConnection) {
+      await this.approvalConnection.stop();
+      this.approvalConnection = null;
+      logger.debug('SignalR approval hub disconnected');
+    }
     if (this.connection) {
       await this.connection.stop();
       this.connection = null;
@@ -293,6 +350,64 @@ class SignalRService {
   isConnected(): boolean {
     return this.connection?.state === signalR.HubConnectionState.Connected;
   }
+
+  /**
+   * Check if the approval hub is connected
+   */
+  isApprovalConnected(): boolean {
+    return this.approvalConnection?.state === signalR.HubConnectionState.Connected;
+  }
+
+  // ── Agent Approval Hub ────────────────────────────────────────────
+
+  /**
+   * Set up event handlers for the approval hub
+   */
+  private setupApprovalEventHandlers(): void {
+    if (!this.approvalConnection) return;
+
+    this.approvalConnection.on('ReceiveApprovalRequest', (data: ApprovalRequestNotification) => {
+      logger.debug('Approval request received:', data);
+      this.onApprovalRequestCallbacks.forEach(cb => cb(data));
+    });
+
+    this.approvalConnection.on('ReceiveApprovalResult', (data: ApprovalResultNotification) => {
+      logger.debug('Approval result received:', data);
+      this.onApprovalResultCallbacks.forEach(cb => cb(data));
+    });
+
+    this.approvalConnection.onreconnecting(() => {
+      logger.debug('SignalR approval hub reconnecting...');
+    });
+
+    this.approvalConnection.onreconnected(() => {
+      logger.debug('SignalR approval hub reconnected');
+    });
+
+    this.approvalConnection.onclose(() => {
+      logger.debug('SignalR approval hub closed');
+    });
+  }
+
+  /**
+   * Register a callback for approval request events (admin/approver only)
+   */
+  onApprovalRequest(callback: (data: ApprovalRequestNotification) => void): () => void {
+    this.onApprovalRequestCallbacks.add(callback);
+    return () => {
+      this.onApprovalRequestCallbacks.delete(callback);
+    };
+  }
+
+  /**
+   * Register a callback for approval result events
+   */
+  onApprovalResult(callback: (data: ApprovalResultNotification) => void): () => void {
+    this.onApprovalResultCallbacks.add(callback);
+    return () => {
+      this.onApprovalResultCallbacks.delete(callback);
+    };
+  }
 }
 
 // Types
@@ -312,6 +427,20 @@ export interface UserEditingNotification {
   userName: string;
   timestamp: string;
   isEditing: boolean;
+}
+
+export interface ApprovalRequestNotification {
+  approvalId: number;
+  actionDescription: string;
+  tier: number;
+  timestamp: string;
+}
+
+export interface ApprovalResultNotification {
+  approvalId: number;
+  approved: boolean;
+  reason?: string;
+  timestamp: string;
 }
 
 // Export singleton instance

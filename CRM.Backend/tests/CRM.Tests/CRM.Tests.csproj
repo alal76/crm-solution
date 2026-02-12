@@ -33,4 +33,8 @@
 
   <!-- SK test files re-enabled after source fixes -->
 
+  <ItemGroup>
+    <Content Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>

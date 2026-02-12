@@ -206,6 +206,20 @@ export interface UpdateAgentRequest {
   modelOverride?: string;
 }
 
+export interface CreateAgentRequest {
+  name: string;
+  displayName: string;
+  description?: string;
+  agentType: number;
+  systemPrompt?: string;
+  allowedPlugins?: string;
+  requiresApproval?: boolean;
+  approvalTier?: string;
+  temperature?: number;
+  maxTokens?: number;
+  modelOverride?: string;
+}
+
 // ===== ANALYTICS DTOs =====
 
 export interface AgentUsageMetric {

@@ -119,6 +119,33 @@ public class AgentController : ControllerBase
     /// <param name="Reason">The reason for rejection.</param>
     public record RejectRequest(string Reason);
 
+    /// <summary>
+    /// Request DTO for creating a new AI agent.
+    /// </summary>
+    /// <param name="Name">Unique internal name (e.g., "lead-scorer").</param>
+    /// <param name="DisplayName">Human-friendly display name.</param>
+    /// <param name="Description">Optional description of the agent's purpose.</param>
+    /// <param name="AgentType">The agent type enum value.</param>
+    /// <param name="SystemPrompt">The system prompt defining agent behavior.</param>
+    /// <param name="AllowedPlugins">Comma-separated list of allowed plugin names.</param>
+    /// <param name="RequiresApproval">Whether actions require human approval.</param>
+    /// <param name="ApprovalTier">Approval tier: "low", "medium", or "high".</param>
+    /// <param name="Temperature">LLM temperature (0.0–1.0).</param>
+    /// <param name="MaxTokens">Maximum tokens per response.</param>
+    /// <param name="ModelOverride">Optional model override (e.g., "gpt-4o").</param>
+    public record CreateAgentRequest(
+        string Name,
+        string DisplayName,
+        string? Description = null,
+        int AgentType = 13,
+        string? SystemPrompt = null,
+        string? AllowedPlugins = null,
+        bool RequiresApproval = false,
+        string? ApprovalTier = null,
+        double Temperature = 0.3,
+        int MaxTokens = 4096,
+        string? ModelOverride = null);
+
     #endregion
 
     #region Agent Listing
@@ -170,6 +197,71 @@ public class AgentController : ControllerBase
         {
             _logger.LogError(ex, "Error getting agent {AgentId}", agentId);
             return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while retrieving the agent.");
+        }
+    }
+
+    /// <summary>
+    /// Creates a new AI agent.
+    /// </summary>
+    /// <param name="request">The agent creation request.</param>
+    /// <returns>The created agent.</returns>
+    [HttpPost]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> CreateAgent([FromBody] CreateAgentRequest request)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(request.Name))
+            {
+                return BadRequest("Agent name is required.");
+            }
+
+            if (string.IsNullOrWhiteSpace(request.DisplayName))
+            {
+                return BadRequest("Agent display name is required.");
+            }
+
+            // Check for duplicate name
+            var existing = await _dbContext.AIAgents
+                .AnyAsync(a => a.Name == request.Name && !a.IsDeleted, HttpContext.RequestAborted);
+
+            if (existing)
+            {
+                return Conflict($"An agent with name '{request.Name}' already exists.");
+            }
+
+            var agent = new CRM.Core.Entities.AI.AIAgent
+            {
+                Name = request.Name,
+                DisplayName = request.DisplayName,
+                Description = request.Description,
+                AgentType = (CRM.Core.Entities.AI.AgentType)request.AgentType,
+                SystemPrompt = request.SystemPrompt ?? string.Empty,
+                AllowedPlugins = request.AllowedPlugins ?? string.Empty,
+                RequiresApproval = request.RequiresApproval,
+                ApprovalTier = request.ApprovalTier,
+                Temperature = request.Temperature,
+                MaxTokens = request.MaxTokens,
+                ModelOverride = request.ModelOverride,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+
+            _dbContext.AIAgents.Add(agent);
+            await _dbContext.SaveChangesAsync(HttpContext.RequestAborted);
+
+            _logger.LogInformation("Created new agent '{AgentName}' (ID: {AgentId}) by user {UserId}",
+                agent.Name, agent.Id, GetCurrentUserId());
+
+            return CreatedAtAction(nameof(GetAgent), new { agentId = agent.Id }, agent);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating agent");
+            return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while creating the agent.");
         }
     }
 

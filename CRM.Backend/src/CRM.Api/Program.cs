@@ -783,6 +783,7 @@ app.MapControllers();
 
 // Map SignalR hubs for real-time notifications
 app.MapHub<CRM.Api.Hubs.CrmNotificationHub>("/hubs/notifications");
+app.MapHub<CRM.Api.Hubs.AgentApprovalHub>("/hubs/agent-approvals");
 
 // SPA fallback - serve index.html for unmatched routes (only if frontend build exists)
 if (Directory.Exists(frontendBuildPath))
