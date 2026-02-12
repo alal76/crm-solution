@@ -42,6 +42,11 @@ public class OpportunityValidatorTests
         _mockOpportunityService = new Mock<IOpportunityService>();
         _mockAccountService = new Mock<IAccountService>();
         _mockUserService = new Mock<IUserService>();
+
+        // Default mock: account ID 1 exists (used by CreateValidOpportunityDto)
+        _mockAccountService.Setup(s => s.GetByIdAsync(1))
+            .ReturnsAsync(new AccountResultDto { Id = 1 });
+
         _validator = new OpportunityValidator(
             _mockOpportunityService.Object,
             _mockAccountService.Object,
@@ -241,6 +246,16 @@ public class OpportunityValidatorTests
         // Arrange
         var dto = CreateValidOpportunityDto();
         dto.Stage = stage;
+
+        // Provide required fields for closed stages
+        if (stage.StartsWith("Closed"))
+        {
+            dto.CloseDate = DateTime.UtcNow;
+        }
+        if (stage == "Closed Lost")
+        {
+            dto.LossReason = "Went with competitor";
+        }
 
         // Act
         var result = await _validator.ValidateAsync(dto);

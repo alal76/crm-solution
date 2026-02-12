@@ -33,8 +33,8 @@ public class CalendarSyncHostedService : BackgroundService
         IServiceProvider serviceProvider,
         ILogger<CalendarSyncHostedService> logger)
     {
-        _serviceProvider = serviceProvider;
-        _logger = logger;
+        _serviceProvider = serviceProvider ?? throw new ArgumentNullException(nameof(serviceProvider));
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
     /// <inheritdoc />

@@ -672,90 +672,22 @@ builder.Services.AddAuthentication(options =>
 
 var app = builder.Build();
 
-// Apply migrations and seed data automatically on startup
+// ADR-002: Unified EF Core Schema Management
+// Single path: MigrateAsync() applies all EF Core migrations, then seed essential data.
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<CrmDbContext>();
     try
     {
-        // Check if database exists and has tables
-        var canConnect = await db.Database.CanConnectAsync();
+        Log.Information("Applying EF Core migrations for {Provider}...", databaseProvider);
+        await db.Database.MigrateAsync();
+        Log.Information("EF Core migrations applied successfully");
 
-        // For non-SQLite databases, use EnsureCreated for dev environment to avoid migration issues
-        if (databaseProvider.ToLower() != "sqlite")
-        {
-            try
-            {
-                Log.Information($"Creating schema for {databaseProvider} database using EnsureCreated...");
-                await db.Database.EnsureCreatedAsync();
-            }
-            catch (Exception ex)
-            {
-                Log.Warning(ex, "Could not create database schema using EnsureCreated");
-                throw;
-            }
-        }
-        else if (canConnect)
-        {
-            // Try to apply migrations if they haven't been applied
-            try
-            {
-                var pending = await db.Database.GetPendingMigrationsAsync();
-                if (pending.Any())
-                {
-                    Log.Information($"Applying {pending.Count()} pending migrations...");
-                    await db.Database.MigrateAsync();
-                }
-            }
-            catch (Exception ex)
-            {
-                Log.Warning(ex, "Could not apply migrations, trying EnsureCreated...");
-                // If migration fails, try creating tables from model
-                await db.Database.EnsureCreatedAsync();
-            }
-        }
-        else
-        {
-            Log.Information("Creating new database...");
-            await db.Database.EnsureCreatedAsync();
-        }
-
-        // Apply any raw SQL migration files in CRM.Backend/migrations (useful for MySQL/MariaDB)
-        try
-        {
-            var migrationsFolder = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, "..", "..", "..", "migrations"));
-            if (Directory.Exists(migrationsFolder))
-            {
-                var sqlFiles = Directory.GetFiles(migrationsFolder, "*.sql").OrderBy(f => f);
-                foreach (var file in sqlFiles)
-                {
-                    try
-                    {
-                        var sql = await File.ReadAllTextAsync(file);
-                        if (!string.IsNullOrWhiteSpace(sql))
-                        {
-                            Log.Information($"Executing SQL migration file: {Path.GetFileName(file)}");
-                            await db.Database.ExecuteSqlRawAsync(sql);
-                        }
-                    }
-                    catch (Exception innerEx)
-                    {
-                        Log.Warning(innerEx, $"Failed to execute SQL file {file} - continuing");
-                    }
-                }
-            }
-        }
-        catch (Exception exSql)
-        {
-            Log.Warning(exSql, "Error while applying raw SQL migration files");
-        }
-
-        // Seed data
+        // Seed essential data (SysAdmin group + admin user only)
         await DbSeed.SeedAsync(db);
         Log.Information("Database setup completed successfully");
 
         // Seed master data (ZipCodes, ColorPalettes) if not already populated
-        // This data persists across deployments in the database
         try
         {
             var masterDataSeeder = scope.ServiceProvider.GetRequiredService<IMasterDataSeederService>();
@@ -773,23 +705,15 @@ using (var scope = app.Services.CreateScope())
         var autoSeedSampleData = builder.Configuration.GetValue<bool>("SampleData:AutoSeed", false);
         if (autoSeedSampleData)
         {
-            Log.Information("Auto-seeding sample data...");
             try
             {
                 var sampleSeeder = scope.ServiceProvider.GetRequiredService<SampleDataSeederService>();
-
-                // Check if already seeded
                 var isSeeded = await sampleSeeder.IsSampleDataSeededAsync();
-
                 if (!isSeeded)
                 {
-                    Log.Information("Seeding production database with sample data...");
+                    Log.Information("Seeding sample data...");
                     await sampleSeeder.SeedAllSampleDataAsync();
                     Log.Information("Sample data seeded successfully");
-                }
-                else
-                {
-                    Log.Information("Sample data already seeded");
                 }
             }
             catch (Exception sampleDataEx)
@@ -801,7 +725,6 @@ using (var scope = app.Services.CreateScope())
     catch (Exception ex)
     {
         Log.Error(ex, "Error during database setup - continuing anyway");
-        // Continue anyway - the app can still run with partial setup
     }
 }
 

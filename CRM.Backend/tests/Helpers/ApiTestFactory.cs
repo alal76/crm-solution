@@ -17,6 +17,7 @@
 using CRM.Core.Interfaces;
 using CRM.Infrastructure.Data;
 using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -26,6 +27,16 @@ namespace CRM.Tests.Helpers;
 
 public class ApiTestFactory : WebApplicationFactory<Program>
 {
+    public ApiTestFactory()
+    {
+        // Program.cs has production guards that throw before ConfigureWebHost runs.
+        // UseEnvironment("Testing") makes IsDevelopment()=false, so provide real values
+        // to bypass all guard checks.
+        Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Development");
+        Environment.SetEnvironmentVariable("DB_PASSWORD", "test_password");
+        Environment.SetEnvironmentVariable("Jwt__Secret", "BVT-test-jwt-secret-key-at-least-32-characters-long!");
+    }
+
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Testing");

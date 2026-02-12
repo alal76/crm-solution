@@ -22,6 +22,7 @@ using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
 using FluentAssertions;
+using CRM.Tests.Helpers;
 
 namespace CRM.Tests.HostedServices;
 
@@ -570,33 +571,8 @@ public class BackupSchedulerHostedServiceTests
 
     private static Mock<Microsoft.EntityFrameworkCore.DbSet<T>> CreateMockDbSet<T>(IQueryable<T> data) where T : class
     {
-        var mockSet = new Mock<Microsoft.EntityFrameworkCore.DbSet<T>>();
-        mockSet.As<IQueryable<T>>().Setup(m => m.Provider).Returns(data.Provider);
-        mockSet.As<IQueryable<T>>().Setup(m => m.Expression).Returns(data.Expression);
-        mockSet.As<IQueryable<T>>().Setup(m => m.ElementType).Returns(data.ElementType);
-        mockSet.As<IQueryable<T>>().Setup(m => m.GetEnumerator()).Returns(data.GetEnumerator());
-        return mockSet;
+        return MockDbSetFactory.CreateMockDbSet(data.ToList());
     }
 
     #endregion
-}
-
-/// <summary>
-/// Mock backup schedule entity
-/// </summary>
-public class BackupSchedule
-{
-    public int Id { get; set; }
-    public string Name { get; set; } = string.Empty;
-    public bool IsEnabled { get; set; }
-    public bool IsDeleted { get; set; }
-    public DateTime? NextBackupAt { get; set; }
-}
-
-/// <summary>
-/// Mock interface for database backup service
-/// </summary>
-public interface IDatabaseBackupService
-{
-    Task RunScheduledBackupAsync(int scheduleId);
 }

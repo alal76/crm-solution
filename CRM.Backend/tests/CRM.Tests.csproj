@@ -29,7 +29,8 @@
   <ItemGroup>
     <!-- DatabaseExtensionsTests: TestDbContext missing 131 ICrmDbContext members + CRM.ServiceDefaults ref -->
     <Compile Remove="Extensions\DatabaseExtensionsTests.cs" />
-    <Compile Remove="Extensions\ServiceExtensionsTests.cs" />
+    <!-- Re-enabled: ServiceExtensionsTests.cs (added CRM.ServiceDefaults project reference) -->
+    <!-- <Compile Remove="Extensions\ServiceExtensionsTests.cs" /> -->
     <!-- Repository tests: codebase uses generic Repository<T>, not entity-specific repositories -->
     <Compile Remove="Repositories\**\*.cs" />
     <!-- RE-ENABLED: 6 validator test files (self-contained stub tests) -->
@@ -87,12 +88,12 @@
     <Compile Remove="Controllers\CampaignsControllerTests.cs" />
     <Compile Remove="Controllers\UserProfilesControllerTests.cs" />
     <Compile Remove="Providers\JwtTokenServiceTests.cs" />
-    <Compile Remove="Helpers\ApiTestFactory.cs" />
-    <!-- BVT integration tests that depend on ApiTestFactory (WebApplicationFactory) -->
-    <Compile Remove="BVT\CoreApiBVTTests.cs" />
-    <Compile Remove="BVT\MarketingIrmApiBVTTests.cs" />
-    <Compile Remove="BVT\SalesApiBVTTests.cs" />
-    <Compile Remove="BVT\IntegrationApiBVTTests.cs" />
+    <!-- Re-enabled: ApiTestFactory + 4 BVT tests (depend on WebApplicationFactory + in-memory DB) -->
+    <!-- <Compile Remove="Helpers\ApiTestFactory.cs" /> -->
+    <!-- <Compile Remove="BVT\CoreApiBVTTests.cs" /> -->
+    <!-- <Compile Remove="BVT\MarketingIrmApiBVTTests.cs" /> -->
+    <!-- <Compile Remove="BVT\SalesApiBVTTests.cs" /> -->
+    <!-- <Compile Remove="BVT\IntegrationApiBVTTests.cs" /> -->
     <!-- Controller tests: ALL excluded due to deep API surface drift (1554 errors).
          Constructor fixes applied to 6 files but insufficient — service interfaces,
          DTOs, and controller action methods have all been renamed/removed since
@@ -115,7 +116,7 @@
     <Compile Remove="Controllers\UserGroupsControllerTests.cs" />
     <Compile Remove="Controllers\UsersControllerTests.cs" />
     <!-- HostedService tests with missing interfaces/types -->
-    <Compile Remove="HostedServices\BackupSchedulerHostedServiceTests.cs" />
+    <!-- Re-enabled: BackupSchedulerHostedServiceTests (removed local type shadows, fixed async mock) -->
     <Compile Remove="HostedServices\DatabaseSyncHostedServiceTests.cs" />
     <Compile Remove="HostedServices\LeadScoreDecayHostedServiceTests.cs" />
     <Compile Remove="HostedServices\WorkflowWorkerServiceTests.cs" />
@@ -165,6 +166,7 @@
     <ProjectReference Include="..\src\CRM.Api\CRM.Api.csproj" />
     <ProjectReference Include="..\src\CRM.Core\CRM.Core.csproj" />
     <ProjectReference Include="..\src\CRM.Infrastructure\CRM.Infrastructure.csproj" />
+    <ProjectReference Include="..\src\Services\CRM.ServiceDefaults\CRM.ServiceDefaults.csproj" />
   </ItemGroup>
 
   <ItemGroup>

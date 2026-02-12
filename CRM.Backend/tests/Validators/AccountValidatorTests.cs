@@ -419,6 +419,8 @@ public class AccountValidatorTests
         // Arrange
         var dto = CreateValidAccountDto();
         dto.OwnerId = 1;
+        _mockAccountService.Setup(s => s.OwnerExistsAsync(1))
+            .ReturnsAsync(true);
 
         // Act
         var result = await _validator.ValidateAsync(dto);

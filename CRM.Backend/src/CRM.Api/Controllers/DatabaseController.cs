@@ -1494,11 +1494,11 @@ Then restart the API container:
         {
             _logger.LogInformation("Database reseed initiated");
 
-            // Force reseed module field configurations
+            // Reseed database (admin user, master data, etc.)
             if (_context is CrmDbContext dbContext)
             {
-                await DbSeed.ForceReseedModuleFieldConfigurationsAsync(dbContext);
-                _logger.LogInformation("Module field configurations reseeded successfully");
+                await DbSeed.SeedAsync(dbContext);
+                _logger.LogInformation("Database reseeded successfully");
             }
             else
             {
