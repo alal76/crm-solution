@@ -35,4 +35,12 @@
     <ProjectReference Include="..\CRM.Infrastructure\CRM.Infrastructure.csproj" />
   </ItemGroup>
 
+  <!-- Temporarily exclude SK Agent controllers (depend on excluded SK Agent/Plugin code) -->
+  <!-- TODO: Re-enable when SK plugin property mismatches are fixed -->
+  <ItemGroup>
+    <Compile Remove="Controllers/AgentController.cs" />
+    <Compile Remove="Controllers/AgentAdminController.cs" />
+    <Compile Remove="Controllers/AgentAnalyticsController.cs" />
+  </ItemGroup>
+
 </Project>
