@@ -19,439 +19,371 @@ using Moq;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using CRM.Core.Dtos;
-using CRM.Core.Interfaces;
 using CRM.Infrastructure.Services;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Threading.Tasks;
 
 namespace CRM.Tests.Services;
 
 /// <summary>
-/// Unit tests for ResilienceService
-/// Covers: Retry policies, circuit breakers, fallbacks
+/// Unit tests for ResilienceService.
+/// Tests the real Polly-based circuit breaker, retry, and timeout policies.
 /// </summary>
 public class ResilienceServiceTests
 {
-    private readonly Mock<ILogger<ResilienceService>> _mockLogger;
-    private readonly Mock<IOptions<ResilienceOptions>> _mockOptions;
-    private readonly ResilienceService _service;
+    private readonly Mock<ILogger<ResilienceService>> _mockLogger = new();
 
-    public ResilienceServiceTests()
+    /// <summary>
+    /// Creates a ResilienceService with sensible test defaults (retry disabled, short timeout).
+    /// </summary>
+    private ResilienceService CreateService(ResilienceOptions? options = null)
     {
-        _mockLogger = new Mock<ILogger<ResilienceService>>();
-        _mockOptions = new Mock<IOptions<ResilienceOptions>>();
-        _mockOptions.Setup(o => o.Value).Returns(new ResilienceOptions
+        var opts = options ?? new ResilienceOptions
         {
-            RetryCount = 3,
-            RetryDelayMilliseconds = 100,
+            DefaultTimeoutSeconds = 5,
+            MaxRetryAttempts = 0,
+            EnableRetry = false,
+            EnableCircuitBreaker = false,
             CircuitBreakerThreshold = 5,
-            CircuitBreakerDurationSeconds = 30
-        });
-
-        _service = new ResilienceService(_mockOptions.Object, _mockLogger.Object);
-    }
-
-    #region Retry Policy Tests
-
-    [Fact]
-    public async Task ExecuteWithRetryAsync_SucceedsFirstTry_ReturnsResult()
-    {
-        // Arrange
-        var callCount = 0;
-        Func<Task<string>> action = () =>
-        {
-            callCount++;
-            return Task.FromResult("Success");
+            CircuitBreakerDurationSeconds = 60,
+            RetryBaseDelayMs = 10,
+            RetryMaxDelayMs = 100
         };
+        var mockOpts = new Mock<IOptions<ResilienceOptions>>();
+        mockOpts.Setup(o => o.Value).Returns(opts);
+        return new ResilienceService(_mockLogger.Object, mockOpts.Object);
+    }
 
-        // Act
-        var result = await _service.ExecuteWithRetryAsync(action);
+    /// <summary>
+    /// Creates options with circuit breaker enabled and a low threshold for testing.
+    /// </summary>
+    private static ResilienceOptions CreateCircuitBreakerOptions(int threshold = 2) => new()
+    {
+        DefaultTimeoutSeconds = 5,
+        MaxRetryAttempts = 0,
+        EnableRetry = false,
+        EnableCircuitBreaker = true,
+        CircuitBreakerThreshold = threshold,
+        CircuitBreakerDurationSeconds = 60,
+        RetryBaseDelayMs = 10,
+        RetryMaxDelayMs = 100
+    };
 
-        // Assert
-        result.Should().Be("Success");
-        callCount.Should().Be(1);
+    #region ExecuteAsync Tests
+
+    [Fact]
+    public async Task ExecuteAsync_SuccessfulAction_ReturnsResult()
+    {
+        var svc = CreateService();
+        var result = await svc.ExecuteAsync("test-svc", ct => Task.FromResult("ok"));
+        result.Should().Be("ok");
     }
 
     [Fact]
-    public async Task ExecuteWithRetryAsync_FailsThenSucceeds_RetriesAndReturns()
+    public async Task ExecuteAsync_NonTransientException_PropagatesImmediately()
     {
-        // Arrange
+        var svc = CreateService();
+        Func<Task> act = () => svc.ExecuteAsync<string>("test-svc",
+            ct => throw new InvalidOperationException("bad"));
+        await act.Should().ThrowAsync<InvalidOperationException>().WithMessage("bad");
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_TransientFailureThenSuccess_RetriesAndReturns()
+    {
+        var opts = new ResilienceOptions
+        {
+            DefaultTimeoutSeconds = 5,
+            MaxRetryAttempts = 2,
+            EnableRetry = true,
+            EnableCircuitBreaker = false,
+            RetryBaseDelayMs = 10,
+            RetryMaxDelayMs = 100
+        };
+        var svc = CreateService(opts);
+
         var callCount = 0;
-        Func<Task<string>> action = () =>
+        var result = await svc.ExecuteAsync("retry-svc", ct =>
         {
             callCount++;
             if (callCount < 3)
-                throw new HttpRequestException("Transient error");
-            return Task.FromResult("Success");
-        };
+                throw new HttpRequestException("transient");
+            return Task.FromResult("recovered");
+        });
 
-        // Act
-        var result = await _service.ExecuteWithRetryAsync(action);
-
-        // Assert
-        result.Should().Be("Success");
+        result.Should().Be("recovered");
         callCount.Should().Be(3);
     }
 
     [Fact]
-    public async Task ExecuteWithRetryAsync_AllRetriesFail_ThrowsException()
+    public async Task ExecuteAsync_CircuitOpen_ThrowsServiceUnavailableException()
     {
-        // Arrange
-        Func<Task<string>> action = () =>
+        var opts = CreateCircuitBreakerOptions(threshold: 2);
+        var svc = CreateService(opts);
+
+        // Trip the circuit breaker
+        for (var i = 0; i < 2; i++)
         {
-            throw new HttpRequestException("Persistent error");
-        };
-
-        // Act
-        Func<Task> act = async () => await _service.ExecuteWithRetryAsync(action);
-
-        // Assert
-        await act.Should().ThrowAsync<HttpRequestException>();
-    }
-
-    [Fact]
-    public async Task ExecuteWithRetryAsync_WithCustomRetryCount_UsesCustomCount()
-    {
-        // Arrange
-        var callCount = 0;
-        Func<Task<string>> action = () =>
-        {
-            callCount++;
-            throw new HttpRequestException("Error");
-        };
-
-        // Act
-        try
-        {
-            await _service.ExecuteWithRetryAsync(action, retryCount: 5);
-        }
-        catch (HttpRequestException) { }
-
-        // Assert
-        callCount.Should().Be(6); // 1 initial + 5 retries
-    }
-
-    #endregion
-
-    #region Circuit Breaker Tests
-
-    [Fact]
-    public async Task ExecuteWithCircuitBreakerAsync_CircuitClosed_ExecutesAction()
-    {
-        // Arrange
-        Func<Task<string>> action = () => Task.FromResult("Success");
-
-        // Act
-        var result = await _service.ExecuteWithCircuitBreakerAsync("test-circuit", action);
-
-        // Assert
-        result.Should().Be("Success");
-    }
-
-    [Fact]
-    public async Task ExecuteWithCircuitBreakerAsync_CircuitOpen_ReturnsFallback()
-    {
-        // Arrange
-        // First, trip the circuit
-        for (int i = 0; i < 5; i++)
-        {
-            try
-            {
-                await _service.ExecuteWithCircuitBreakerAsync("test-circuit", () =>
-                    throw new Exception("Error"));
-            }
+            try { await svc.ExecuteAsync<string>("cb-svc", ct => throw new HttpRequestException("fail")); }
             catch { }
         }
 
-        Func<Task<string>> action = () => Task.FromResult("Success");
-        Func<Task<string>> fallback = () => Task.FromResult("Fallback");
-
-        // Act
-        var result = await _service.ExecuteWithCircuitBreakerAsync("test-circuit", action, fallback);
-
-        // Assert
-        result.Should().Be("Fallback");
+        // Next call should get ServiceUnavailableException (circuit open)
+        Func<Task> act = () => svc.ExecuteAsync<string>("cb-svc", ct => Task.FromResult("ok"));
+        await act.Should().ThrowAsync<ServiceUnavailableException>();
     }
 
     [Fact]
-    public void GetCircuitBreakerState_ValidCircuit_ReturnsState()
+    public async Task ExecuteAsync_TracksSuccessState()
     {
-        // Arrange
-        _service.ExecuteWithCircuitBreakerAsync("state-test", () => Task.FromResult("test"));
+        var opts = CreateCircuitBreakerOptions();
+        var svc = CreateService(opts);
 
-        // Act
-        var state = _service.GetCircuitBreakerState("state-test");
+        await svc.ExecuteAsync("state-svc", ct => Task.FromResult("ok"));
 
-        // Assert
+        var states = svc.GetCircuitBreakerStates();
+        var state = states.FirstOrDefault(s => s.ServiceName == "state-svc");
         state.Should().NotBeNull();
-        state.CircuitName.Should().Be("state-test");
+        state!.SuccessCount.Should().BeGreaterThan(0);
     }
 
     [Fact]
-    public void ResetCircuitBreaker_OpenCircuit_ResetsCircuit()
+    public async Task ExecuteAsync_TracksFailureState()
     {
-        // Arrange
-        // Trip the circuit
-        for (int i = 0; i < 5; i++)
+        var opts = CreateCircuitBreakerOptions(threshold: 10);
+        var svc = CreateService(opts);
+
+        try { await svc.ExecuteAsync<string>("fail-svc", ct => throw new HttpRequestException("err")); }
+        catch { }
+
+        var states = svc.GetCircuitBreakerStates();
+        var state = states.FirstOrDefault(s => s.ServiceName == "fail-svc");
+        state.Should().NotBeNull();
+        state!.FailureCount.Should().BeGreaterThan(0);
+    }
+
+    [Fact]
+    public async Task ExecuteAsync_DifferentServiceNames_IsolatedPolicies()
+    {
+        var opts = CreateCircuitBreakerOptions(threshold: 2);
+        var svc = CreateService(opts);
+
+        // Trip circuit for svc-a
+        for (var i = 0; i < 2; i++)
         {
-            try
-            {
-                _service.ExecuteWithCircuitBreakerAsync("reset-test", () =>
-                    throw new Exception("Error")).Wait();
-            }
+            try { await svc.ExecuteAsync<string>("svc-a", ct => throw new HttpRequestException("fail")); }
             catch { }
         }
 
-        // Act
-        _service.ResetCircuitBreaker("reset-test");
-
-        // Assert
-        var state = _service.GetCircuitBreakerState("reset-test");
-        state.State.Should().Be(CircuitState.Closed);
+        // svc-b should still work
+        var result = await svc.ExecuteAsync("svc-b", ct => Task.FromResult("b-ok"));
+        result.Should().Be("b-ok");
     }
 
     #endregion
 
-    #region Fallback Tests
+    #region ExecuteWithFallbackAsync Tests
 
     [Fact]
     public async Task ExecuteWithFallbackAsync_PrimarySucceeds_ReturnsPrimaryResult()
     {
-        // Arrange
-        Func<Task<string>> primary = () => Task.FromResult("Primary");
-        Func<Task<string>> fallback = () => Task.FromResult("Fallback");
-
-        // Act
-        var result = await _service.ExecuteWithFallbackAsync(primary, fallback);
-
-        // Assert
-        result.Should().Be("Primary");
+        var svc = CreateService();
+        var result = await svc.ExecuteWithFallbackAsync(
+            "fb-svc",
+            ct => Task.FromResult("primary"),
+            _ => "fallback");
+        result.Should().Be("primary");
     }
 
     [Fact]
     public async Task ExecuteWithFallbackAsync_PrimaryFails_ReturnsFallback()
     {
-        // Arrange
-        Func<Task<string>> primary = () => throw new Exception("Primary failed");
-        Func<Task<string>> fallback = () => Task.FromResult("Fallback");
-
-        // Act
-        var result = await _service.ExecuteWithFallbackAsync(primary, fallback);
-
-        // Assert
-        result.Should().Be("Fallback");
+        var svc = CreateService();
+        var result = await svc.ExecuteWithFallbackAsync<string>(
+            "fb-svc",
+            ct => throw new InvalidOperationException("boom"),
+            _ => "fallback");
+        result.Should().Be("fallback");
     }
 
     [Fact]
-    public async Task ExecuteWithFallbackAsync_BothFail_ThrowsException()
+    public async Task ExecuteWithFallbackAsync_ExceptionPassedToFallback()
     {
-        // Arrange
-        Func<Task<string>> primary = () => throw new Exception("Primary failed");
-        Func<Task<string>> fallback = () => throw new Exception("Fallback failed");
+        var svc = CreateService();
+        Exception? captured = null;
 
-        // Act
-        Func<Task> act = async () => await _service.ExecuteWithFallbackAsync(primary, fallback);
-
-        // Assert
-        await act.Should().ThrowAsync<Exception>();
-    }
-
-    #endregion
-
-    #region Timeout Tests
-
-    [Fact]
-    public async Task ExecuteWithTimeoutAsync_CompletesInTime_ReturnsResult()
-    {
-        // Arrange
-        Func<Task<string>> action = async () =>
-        {
-            await Task.Delay(50);
-            return "Success";
-        };
-
-        // Act
-        var result = await _service.ExecuteWithTimeoutAsync(action, TimeSpan.FromSeconds(5));
-
-        // Assert
-        result.Should().Be("Success");
-    }
-
-    [Fact]
-    public async Task ExecuteWithTimeoutAsync_ExceedsTimeout_ThrowsException()
-    {
-        // Arrange
-        Func<Task<string>> action = async () =>
-        {
-            await Task.Delay(5000);
-            return "Success";
-        };
-
-        // Act
-        Func<Task> act = async () => await _service.ExecuteWithTimeoutAsync(action, TimeSpan.FromMilliseconds(100));
-
-        // Assert
-        await act.Should().ThrowAsync<TimeoutException>();
-    }
-
-    #endregion
-
-    #region Bulkhead Tests
-
-    [Fact]
-    public async Task ExecuteWithBulkheadAsync_WithinLimit_ExecutesAll()
-    {
-        // Arrange
-        var tasks = new List<Task<string>>();
-        for (int i = 0; i < 5; i++)
-        {
-            var index = i;
-            tasks.Add(_service.ExecuteWithBulkheadAsync("test-bulkhead", async () =>
+        await svc.ExecuteWithFallbackAsync<string>(
+            "fb-svc",
+            ct => throw new InvalidOperationException("specific-error"),
+            ex =>
             {
-                await Task.Delay(50);
-                return $"Result {index}";
-            }, maxConcurrency: 10));
+                captured = ex;
+                return "handled";
+            });
+
+        captured.Should().NotBeNull();
+        captured!.Message.Should().Contain("specific-error");
+    }
+
+    [Fact]
+    public async Task ExecuteWithFallbackAsync_CircuitOpen_InvokesFallback()
+    {
+        var opts = CreateCircuitBreakerOptions(threshold: 2);
+        var svc = CreateService(opts);
+
+        // Trip the circuit
+        for (var i = 0; i < 2; i++)
+        {
+            try { await svc.ExecuteAsync<string>("cb-fb-svc", ct => throw new HttpRequestException("fail")); }
+            catch { }
         }
 
-        // Act
-        var results = await Task.WhenAll(tasks);
-
-        // Assert
-        results.Should().HaveCount(5);
+        var result = await svc.ExecuteWithFallbackAsync(
+            "cb-fb-svc",
+            ct => Task.FromResult("primary"),
+            _ => "circuit-fallback");
+        result.Should().Be("circuit-fallback");
     }
 
     #endregion
 
-    #region Cache Tests
+    #region GetCircuitBreakerStates Tests
 
     [Fact]
-    public async Task ExecuteWithCacheAsync_FirstCall_ExecutesAction()
+    public void GetCircuitBreakerStates_NoActivity_ReturnsEmpty()
     {
-        // Arrange
-        var callCount = 0;
-        Func<Task<string>> action = () =>
+        var svc = CreateService();
+        var states = svc.GetCircuitBreakerStates();
+        states.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task GetCircuitBreakerStates_AfterActivity_ReturnsStates()
+    {
+        var opts = CreateCircuitBreakerOptions();
+        var svc = CreateService(opts);
+
+        await svc.ExecuteAsync("svc-x", ct => Task.FromResult(1));
+        await svc.ExecuteAsync("svc-y", ct => Task.FromResult(2));
+
+        var states = svc.GetCircuitBreakerStates();
+        states.Should().HaveCountGreaterOrEqualTo(2);
+        states.Select(s => s.ServiceName).Should().Contain("svc-x").And.Contain("svc-y");
+    }
+
+    #endregion
+
+    #region IsCircuitOpen Tests
+
+    [Fact]
+    public void IsCircuitOpen_UnknownService_ReturnsFalse()
+    {
+        var svc = CreateService();
+        svc.IsCircuitOpen("nonexistent").Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task IsCircuitOpen_ClosedCircuit_ReturnsFalse()
+    {
+        var opts = CreateCircuitBreakerOptions();
+        var svc = CreateService(opts);
+        await svc.ExecuteAsync("closed-svc", ct => Task.FromResult("ok"));
+        svc.IsCircuitOpen("closed-svc").Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task IsCircuitOpen_TrippedCircuit_ReturnsTrue()
+    {
+        var opts = CreateCircuitBreakerOptions(threshold: 2);
+        var svc = CreateService(opts);
+
+        for (var i = 0; i < 2; i++)
         {
-            callCount++;
-            return Task.FromResult("Cached Value");
-        };
+            try { await svc.ExecuteAsync<string>("open-svc", ct => throw new HttpRequestException("fail")); }
+            catch { }
+        }
 
-        // Act
-        var result = await _service.ExecuteWithCacheAsync("cache-key", action, TimeSpan.FromMinutes(5));
-
-        // Assert
-        result.Should().Be("Cached Value");
-        callCount.Should().Be(1);
+        svc.IsCircuitOpen("open-svc").Should().BeTrue();
     }
 
+    #endregion
+
+    #region ResetCircuitBreaker Tests
+
     [Fact]
-    public async Task ExecuteWithCacheAsync_SecondCall_ReturnsCached()
+    public async Task ResetCircuitBreaker_OpensCircuitThenResets_AllowsCalls()
     {
-        // Arrange
-        var callCount = 0;
-        Func<Task<string>> action = () =>
+        var opts = CreateCircuitBreakerOptions(threshold: 2);
+        var svc = CreateService(opts);
+
+        // Trip the circuit
+        for (var i = 0; i < 2; i++)
         {
-            callCount++;
-            return Task.FromResult($"Value {callCount}");
-        };
+            try { await svc.ExecuteAsync<string>("reset-svc", ct => throw new HttpRequestException("fail")); }
+            catch { }
+        }
+        svc.IsCircuitOpen("reset-svc").Should().BeTrue();
 
-        // Act
-        await _service.ExecuteWithCacheAsync("cache-key2", action, TimeSpan.FromMinutes(5));
-        var result = await _service.ExecuteWithCacheAsync("cache-key2", action, TimeSpan.FromMinutes(5));
+        // Reset
+        svc.ResetCircuitBreaker("reset-svc");
+        svc.IsCircuitOpen("reset-svc").Should().BeFalse();
 
-        // Assert
-        result.Should().Be("Value 1");
-        callCount.Should().Be(1);
+        // Should be callable again
+        var result = await svc.ExecuteAsync("reset-svc", ct => Task.FromResult("back"));
+        result.Should().Be("back");
     }
 
     [Fact]
-    public void InvalidateCache_ValidKey_RemovesFromCache()
+    public void ResetCircuitBreaker_UnknownService_DoesNotThrow()
     {
-        // Act
-        _service.InvalidateCache("test-key");
-
-        // Assert - no exception thrown
+        var svc = CreateService();
+        var act = () => svc.ResetCircuitBreaker("nonexistent");
+        act.Should().NotThrow();
     }
 
-    #endregion
-
-    #region Combined Policy Tests
-
     [Fact]
-    public async Task ExecuteWithPoliciesAsync_AllPoliciesApplied_ReturnsResult()
+    public async Task ResetCircuitBreaker_ResetsState()
     {
-        // Arrange
-        var options = new ExecutionOptions
+        var opts = CreateCircuitBreakerOptions(threshold: 2);
+        var svc = CreateService(opts);
+
+        for (var i = 0; i < 2; i++)
         {
-            EnableRetry = true,
-            EnableCircuitBreaker = true,
-            EnableTimeout = true,
-            TimeoutSeconds = 30
-        };
+            try { await svc.ExecuteAsync<string>("rst-svc", ct => throw new HttpRequestException("fail")); }
+            catch { }
+        }
 
-        Func<Task<string>> action = () => Task.FromResult("Success");
-
-        // Act
-        var result = await _service.ExecuteWithPoliciesAsync("combined-test", action, options);
-
-        // Assert
-        result.Should().Be("Success");
+        svc.ResetCircuitBreaker("rst-svc");
+        var states = svc.GetCircuitBreakerStates();
+        var state = states.FirstOrDefault(s => s.ServiceName == "rst-svc");
+        // After reset the state should be Closed (or removed)
+        if (state != null)
+        {
+            state.State.Should().NotBe(Polly.CircuitBreaker.CircuitState.Open);
+        }
     }
 
     #endregion
 
-    #region Statistics Tests
+    #region ServiceUnavailableException Tests
 
     [Fact]
-    public void GetStatistics_ReturnsStats()
+    public void ServiceUnavailableException_MessagePreserved()
     {
-        // Act
-        var result = _service.GetStatistics();
-
-        // Assert
-        result.Should().NotBeNull();
+        var ex = new ServiceUnavailableException("svc is down");
+        ex.Message.Should().Be("svc is down");
     }
 
     [Fact]
-    public void GetCircuitBreakerStats_ReturnsAllCircuits()
+    public void ServiceUnavailableException_InnerExceptionPreserved()
     {
-        // Arrange
-        _service.ExecuteWithCircuitBreakerAsync("circuit1", () => Task.FromResult("test"));
-        _service.ExecuteWithCircuitBreakerAsync("circuit2", () => Task.FromResult("test"));
-
-        // Act
-        var result = _service.GetCircuitBreakerStats();
-
-        // Assert
-        result.Should().NotBeEmpty();
+        var inner = new HttpRequestException("timeout");
+        var ex = new ServiceUnavailableException("svc is down", inner);
+        ex.InnerException.Should().BeSameAs(inner);
     }
 
     #endregion
-}
-
-// Supporting classes for tests
-public class ResilienceOptions
-{
-    public int RetryCount { get; set; } = 3;
-    public int RetryDelayMilliseconds { get; set; } = 100;
-    public int CircuitBreakerThreshold { get; set; } = 5;
-    public int CircuitBreakerDurationSeconds { get; set; } = 30;
-}
-
-public class ExecutionOptions
-{
-    public bool EnableRetry { get; set; }
-    public bool EnableCircuitBreaker { get; set; }
-    public bool EnableTimeout { get; set; }
-    public int TimeoutSeconds { get; set; }
-}
-
-public enum CircuitState
-{
-    Closed,
-    Open,
-    HalfOpen
 }

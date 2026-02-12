@@ -134,7 +134,7 @@
     <Compile Remove="Services\ModuleFieldConfigurationServiceTests.cs" />
     <Compile Remove="Services\ModuleUIConfigServiceTests.cs" />
     <Compile Remove="Services\RedisCacheServiceTests.cs" />
-    <Compile Remove="Services\ResilienceServiceTests.cs" />
+    <!-- ResilienceServiceTests.cs - RE-ENABLED (rewritten 2026-02-17) -->
     <Compile Remove="Services\TotpServiceTests.cs" />
     <Compile Remove="Services\UserApprovalServiceTests.cs" />
     <!-- UserGroupServiceTests.cs - RE-ENABLED (rewritten 2026-02-15) -->
