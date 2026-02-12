@@ -507,6 +507,34 @@ Location: `CRM.Core/Features/ProviderTypes.cs`
 }
 ```
 
+### 5.5 Semantic Kernel AI Integration
+
+The CRM includes a **Semantic Kernel v1.34.0** integration providing AI-powered agents:
+
+**Architecture:**
+```
+CRM.Infrastructure/AI/SK/
+├── Agents/          # 12 specialized agents + Orchestrator
+├── Attributes/      # RequiresApprovalAttribute
+├── Configuration/   # SemanticKernelOptions, MemoryCollections
+├── Connectors/      # CrmKernelFactory, Chat/Embedding connectors
+├── Filters/         # Audit, Approval, Cost tracking
+├── Plugins/         # 12 CRM plugins (Account, Lead, etc.)
+└── Services/        # AgentExecutionService
+```
+
+**Key Components:**
+| Component | Count | Purpose |
+|-----------|-------|--------|
+| Plugins | 12 | CRM data access via `[KernelFunction]` methods |
+| Agents | 12 | Specialized AI assistants (Lead Scoring, Support Triage, etc.) |
+| Filters | 3 | Audit logging, human approval gates, cost tracking |
+| API Endpoints | 20 | `/api/agents/*` for chat, admin, analytics |
+
+**Feature Flags:** 16 flags under `FeatureManagement` control each agent individually.
+
+**Plugin Convention:** Plugins named `{Name}Plugin` are resolved by `CrmKernelFactory` via DI.
+
 ---
 
 ## 6. Authentication & Security
@@ -583,6 +611,9 @@ DELETE /api/{entity}/{id}         # Soft delete
 | `GET /api/dashboard` | Dashboard data |
 | `GET /api/admin/features` | Feature flags status |
 | `GET /api/health/providers` | Provider health status |
+| `POST /api/agents/{agentId}/chat` | Chat with AI agent |
+| `GET /api/agents` | List AI agents |
+| `GET /api/agents/analytics/usage` | Agent usage stats |
 
 ### 7.3 Pagination
 

@@ -297,8 +297,8 @@
 
 | ID | Priority | Description |
 |----|----------|-------------|
-| TODO-AI-01 | P2 | ML-based lead scoring model |
-| TODO-AI-02 | P2 | Predictive opportunity win probability |
+| ~~TODO-AI-01~~ | ~~P2~~ | ✅ **DONE** — LeadScoringAgent with BANT rubric via Semantic Kernel |
+| ~~TODO-AI-02~~ | ~~P2~~ | ✅ **DONE** — DealIntelligenceAgent analyzes deal health |
 | TODO-AI-03 | P3 | Customer churn prediction |
 | TODO-AI-04 | P3 | Next best action recommendations |
 
@@ -306,8 +306,8 @@
 
 | ID | Priority | Description |
 |----|----------|-------------|
-| TODO-AI-05 | P2 | AI-powered KB semantic search with embeddings |
-| TODO-AI-06 | P3 | AI email draft assistant |
+| ~~TODO-AI-05~~ | ~~P2~~ | ✅ **DONE** — KnowledgeExpertAgent + Qdrant vector search |
+| ~~TODO-AI-06~~ | ~~P3~~ | ✅ **DONE** — EmailAssistantAgent with template-aware drafting |
 | TODO-AI-07 | P3 | Automated email sentiment analysis |
 | TODO-AI-08 | P3 | Meeting summary generation |
 
@@ -436,9 +436,9 @@
 |----------|-------|-------------|
 | **P0 — Critical** | 0 | No critical blockers |
 | **P1 — High** | 8 | Core functionality gaps: validations, lead conversion, global search, inline editing |
-| **P2 — Medium** | 84 | Service completion, testing, integrations, reporting, AI features |
+| **P2 — Medium** | 80 | Service completion, testing, integrations, reporting, AI features |
 | **P3 — Low** | 50 | Portal, mobile, advanced customization, nice-to-have UX |
-| **Total** | **142** | |
+| **Total** | **138** | |
 
 ### Recommended Implementation Order
 

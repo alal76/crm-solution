@@ -87,6 +87,7 @@ import {
   DashboardCustomize as DashboardAdminIcon,
   Podcasts as ChannelAdminIcon,
   FolderSpecial as ViewQuiltIcon,
+  SmartToy as SmartToyIcon,
 } from '@mui/icons-material';
 import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -118,6 +119,7 @@ function NavigationContent() {
     'support': true,
     'itsm': true,
     'productivity': true,
+    'agents': true,
     'info': false,
     'admin': true,
   });
@@ -205,6 +207,8 @@ function NavigationContent() {
       setExpandedCategories(prev => ({ ...prev, 'itsm': true }));
     } else if (path.includes('/queue') || path.includes('/activities') || path.includes('/notes') || path.includes('/communications') || path.includes('/interactions')) {
       setExpandedCategories(prev => ({ ...prev, 'productivity': true }));
+    } else if (path.includes('/agents')) {
+      setExpandedCategories(prev => ({ ...prev, 'agents': true }));
     } else if (path.includes('/about') || path.includes('/help') || path.includes('/licenses')) {
       setExpandedCategories(prev => ({ ...prev, 'info': true }));
     }
@@ -225,7 +229,7 @@ function NavigationContent() {
         setExpandedAdminSections(prev => ({ ...prev, 'admin-navigation': true }));
       } else if (path.includes('modules')) {
         setExpandedAdminSections(prev => ({ ...prev, 'admin-modules': true }));
-      } else if (path.includes('workflows') || path.includes('dashboards')) {
+      } else if (path.includes('workflows') || path.includes('dashboards') || path.includes('agents')) {
         setExpandedAdminSections(prev => ({ ...prev, 'admin-workflows': true }));
       }
     }
@@ -299,6 +303,8 @@ function NavigationContent() {
     // Reports & Analytics
     'reports': { label: 'Reports', icon: ReportsIcon as typeof DashboardIcon, path: '/reports', menuName: 'Reports' },
     'analytics': { label: 'Analytics', icon: AnalyticsIcon as typeof DashboardIcon, path: '/analytics', menuName: 'Analytics' },
+    // AI Agents
+    'agent-directory': { label: 'AI Agents', icon: SmartToyIcon as typeof DashboardIcon, path: '/agents', menuName: 'AgentDirectory' },
     // Help & Info items
     'about': { label: 'About', icon: InfoIcon, path: '/about', menuName: 'About' },
     'help': { label: 'Help', icon: HelpIcon, path: '/help', menuName: 'Help' },
@@ -333,6 +339,10 @@ function NavigationContent() {
     'analytics-settings': { label: 'Analytics (Superset)', icon: AnalyticsIcon, path: '/admin/analytics', menuName: 'AnalyticsSettings' },
     'test-results': { label: 'Test Results', icon: TestResultsIcon, path: '/admin/test-results', menuName: 'TestResults' },
     'llm-settings': { label: 'AI / LLM Settings', icon: LLMIcon, path: '/admin/llm', menuName: 'LLMSettings' },
+    // AI Agent Administration
+    'agent-management': { label: 'Agent Management', icon: SmartToyIcon as typeof DashboardIcon, path: '/admin/agents', menuName: 'AgentManagement' },
+    'agent-approvals': { label: 'Agent Approvals', icon: PersonAddIcon, path: '/admin/agents/approvals', menuName: 'AgentApprovals' },
+    'agent-analytics': { label: 'Agent Analytics', icon: AnalyticsIcon, path: '/admin/agents/analytics', menuName: 'AgentAnalytics' },
     // Legacy items
     'channel-settings': { label: 'Channel Settings', icon: ChannelSettingsIcon, path: '/channel-settings', menuName: 'ChannelSettings' },
   }), []);
@@ -360,8 +370,9 @@ function NavigationContent() {
     { id: 'support', label: 'Customer Support', order: 2 },
     { id: 'itsm', label: 'IT Service Management', order: 3 },
     { id: 'productivity', label: 'Productivity', order: 4 },
-    { id: 'info', label: 'Help & Info', order: 5 },
-    { id: 'admin', label: 'Administration', order: 6 },
+    { id: 'agents', label: 'AI Agents', order: 5 },
+    { id: 'info', label: 'Help & Info', order: 6 },
+    { id: 'admin', label: 'Administration', order: 7 },
   ], []);
 
   // Default admin subcategories with icons for collapsible sections
@@ -438,6 +449,8 @@ function NavigationContent() {
     { id: 'knowledge-base', order: 15.5, visible: true, category: 'support' },
     { id: 'reports', order: 16, visible: true, category: 'productivity' },
     { id: 'analytics', order: 17, visible: true, category: 'productivity' },
+    // AI Agents
+    { id: 'agent-directory', order: 40, visible: true, category: 'agents' },
     // Help & Info
     { id: 'about', order: 50, visible: true, category: 'info' },
     { id: 'help', order: 51, visible: true, category: 'info' },
@@ -473,6 +486,9 @@ function NavigationContent() {
     { id: 'test-results', order: 77, visible: true, category: 'admin', adminSubcategory: 'admin-system' },
     // AI / LLM
     { id: 'llm-settings', order: 78, visible: true, category: 'admin', adminSubcategory: 'admin-workflows' },
+    { id: 'agent-management', order: 79, visible: true, category: 'admin', adminSubcategory: 'admin-workflows' },
+    { id: 'agent-approvals', order: 80, visible: true, category: 'admin', adminSubcategory: 'admin-workflows' },
+    { id: 'agent-analytics', order: 81, visible: true, category: 'admin', adminSubcategory: 'admin-workflows' },
   ], []);
 
   // Get nav config from localStorage or use defaults
@@ -871,6 +887,7 @@ function NavigationContent() {
                   {category.id === 'sales' && <TrendingUpIcon fontSize="small" sx={{ color: 'success.main' }} />}
                   {category.id === 'support' && <SupportAgentIcon fontSize="small" sx={{ color: 'info.main' }} />}
                   {category.id === 'productivity' && <TaskIcon fontSize="small" sx={{ color: 'secondary.main' }} />}
+                  {category.id === 'agents' && <SmartToyIcon fontSize="small" sx={{ color: 'secondary.dark' }} />}
                   {category.id === 'info' && <InfoIcon fontSize="small" sx={{ color: 'text.secondary' }} />}
                 </ListItemIcon>
                 <ListItemText 
