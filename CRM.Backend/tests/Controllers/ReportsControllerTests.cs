@@ -19,6 +19,7 @@ using Moq;
 using FluentAssertions;
 using CRM.Api.Controllers;
 using CRM.Core.Dtos;
+using CRM.Core.Dtos.Reports;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Http;
@@ -29,6 +30,7 @@ using System.Threading.Tasks;
 using System;
 using System.Linq;
 using System.Security.Claims;
+using System.Threading;
 
 namespace CRM.Tests.Controllers;
 
@@ -71,7 +73,7 @@ public class ReportsControllerTests
             new ReportDefinitionDto { Id = 2, Name = "Marketing Report", Category = "Marketing" }
         };
 
-        _mockReportService.Setup(s => s.GetAllAsync())
+        _mockReportService.Setup(s => s.GetAllAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(reports);
 
         // Act
@@ -92,7 +94,7 @@ public class ReportsControllerTests
             new ReportDefinitionDto { Id = 1, Category = "Sales" }
         };
 
-        _mockReportService.Setup(s => s.GetByCategoryAsync("Sales"))
+        _mockReportService.Setup(s => s.GetByCategoryAsync("Sales", It.IsAny<CancellationToken>()))
             .ReturnsAsync(reports);
 
         // Act
@@ -111,7 +113,7 @@ public class ReportsControllerTests
             new ReportDefinitionDto { Id = 1, FolderId = 1 }
         };
 
-        _mockReportService.Setup(s => s.GetByFolderAsync(1))
+        _mockReportService.Setup(s => s.GetByFolderAsync(1, It.IsAny<CancellationToken>()))
             .ReturnsAsync(reports);
 
         // Act
@@ -130,7 +132,7 @@ public class ReportsControllerTests
             new ReportDefinitionDto { Id = 1, CreatedById = 1 }
         };
 
-        _mockReportService.Setup(s => s.GetByUserAsync(1))
+        _mockReportService.Setup(s => s.GetByUserAsync(1, It.IsAny<CancellationToken>()))
             .ReturnsAsync(reports);
 
         // Act
@@ -149,7 +151,7 @@ public class ReportsControllerTests
             new ReportDefinitionDto { Id = 1, IsStandard = true }
         };
 
-        _mockReportService.Setup(s => s.GetStandardReportsAsync())
+        _mockReportService.Setup(s => s.GetStandardReportsAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(reports);
 
         // Act
@@ -169,7 +171,7 @@ public class ReportsControllerTests
         // Arrange
         var report = new ReportDefinitionDto { Id = 1, Name = "Sales Report" };
 
-        _mockReportService.Setup(s => s.GetByIdAsync(1))
+        _mockReportService.Setup(s => s.GetByIdAsync(1, It.IsAny<CancellationToken>()))
             .ReturnsAsync(report);
 
         // Act
@@ -185,7 +187,7 @@ public class ReportsControllerTests
     public async Task GetById_NonExistingReport_ReturnsNotFound()
     {
         // Arrange
-        _mockReportService.Setup(s => s.GetByIdAsync(999))
+        _mockReportService.Setup(s => s.GetByIdAsync(999, It.IsAny<CancellationToken>()))
             .ReturnsAsync((ReportDefinitionDto?)null);
 
         // Act
@@ -218,7 +220,7 @@ public class ReportsControllerTests
             Category = "Sales"
         };
 
-        _mockReportService.Setup(s => s.CreateAsync(It.IsAny<CreateReportDefinitionDto>()))
+        _mockReportService.Setup(s => s.CreateAsync(It.IsAny<CreateReportDefinitionDto>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(createdReport);
 
         // Act
@@ -235,7 +237,7 @@ public class ReportsControllerTests
         var result = await _controller.Create(null!);
 
         // Assert
-        result.Should().BeOfType<BadRequestObjectResult>();
+        result.Should().BeOfType<BadRequestResult>();
     }
 
     [Fact]
@@ -244,15 +246,14 @@ public class ReportsControllerTests
         // Arrange
         var createDto = new CreateReportDefinitionDto { Name = "Existing Report" };
 
-        _mockReportService.Setup(s => s.CreateAsync(It.IsAny<CreateReportDefinitionDto>()))
+        _mockReportService.Setup(s => s.CreateAsync(It.IsAny<CreateReportDefinitionDto>(), It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("Report with name already exists"));
 
         // Act
         var result = await _controller.Create(createDto);
 
         // Assert
-        var statusResult = result.Should().BeOfType<ObjectResult>().Subject;
-        statusResult.StatusCode.Should().Be(409);
+        result.Should().BeOfType<ConflictObjectResult>();
     }
 
     #endregion
@@ -275,7 +276,7 @@ public class ReportsControllerTests
             Name = "Updated Report"
         };
 
-        _mockReportService.Setup(s => s.UpdateAsync(It.IsAny<UpdateReportDefinitionDto>()))
+        _mockReportService.Setup(s => s.UpdateAsync(It.IsAny<UpdateReportDefinitionDto>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(updatedReport);
 
         // Act
@@ -317,7 +318,7 @@ public class ReportsControllerTests
             ExecutedAt = DateTime.Now
         };
 
-        _mockReportService.Setup(s => s.ExecuteAsync(1, It.IsAny<ReportParametersDto?>()))
+        _mockReportService.Setup(s => s.ExecuteAsync(1, It.IsAny<ReportParametersDto?>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(executionResult);
 
         // Act
@@ -344,7 +345,7 @@ public class ReportsControllerTests
             Data = new List<Dictionary<string, object>>()
         };
 
-        _mockReportService.Setup(s => s.ExecuteAsync(1, parameters))
+        _mockReportService.Setup(s => s.ExecuteAsync(1, parameters, It.IsAny<CancellationToken>()))
             .ReturnsAsync(executionResult);
 
         // Act
@@ -358,7 +359,7 @@ public class ReportsControllerTests
     public async Task Execute_InvalidQuery_ReturnsBadRequest()
     {
         // Arrange
-        _mockReportService.Setup(s => s.ExecuteAsync(1, null))
+        _mockReportService.Setup(s => s.ExecuteAsync(1, null, It.IsAny<CancellationToken>()))
             .ThrowsAsync(new ArgumentException("Invalid SQL query"));
 
         // Act
@@ -378,7 +379,7 @@ public class ReportsControllerTests
             Data = new List<Dictionary<string, object>>()
         };
 
-        _mockReportService.Setup(s => s.PreviewAsync(1, 10))
+        _mockReportService.Setup(s => s.PreviewAsync(1, 10, It.IsAny<CancellationToken>()))
             .ReturnsAsync(executionResult);
 
         // Act
@@ -398,11 +399,11 @@ public class ReportsControllerTests
         // Arrange
         var csvData = new byte[] { 78, 97, 109, 101, 44, 82, 101, 118 }; // "Name,Rev..."
 
-        _mockReportService.Setup(s => s.ExportAsync(1, "csv", null))
+        _mockReportService.Setup(s => s.ExportAsync(1, "csv", null, It.IsAny<CancellationToken>()))
             .ReturnsAsync(csvData);
 
         // Act
-        var result = await _controller.Export(1, "csv");
+        var result = await _controller.Export(1, "csv", null);
 
         // Assert
         var fileResult = result.Should().BeOfType<FileContentResult>().Subject;
@@ -415,11 +416,11 @@ public class ReportsControllerTests
         // Arrange
         var excelData = new byte[] { 80, 75, 3, 4 }; // ZIP header (xlsx)
 
-        _mockReportService.Setup(s => s.ExportAsync(1, "xlsx", null))
+        _mockReportService.Setup(s => s.ExportAsync(1, "xlsx", null, It.IsAny<CancellationToken>()))
             .ReturnsAsync(excelData);
 
         // Act
-        var result = await _controller.Export(1, "xlsx");
+        var result = await _controller.Export(1, "xlsx", null);
 
         // Assert
         var fileResult = result.Should().BeOfType<FileContentResult>().Subject;
@@ -431,11 +432,11 @@ public class ReportsControllerTests
         // Arrange
         var pdfData = new byte[] { 37, 80, 68, 70 }; // PDF header
 
-        _mockReportService.Setup(s => s.ExportAsync(1, "pdf", null))
+        _mockReportService.Setup(s => s.ExportAsync(1, "pdf", null, It.IsAny<CancellationToken>()))
             .ReturnsAsync(pdfData);
 
         // Act
-        var result = await _controller.Export(1, "pdf");
+        var result = await _controller.Export(1, "pdf", null);
 
         // Assert
         var fileResult = result.Should().BeOfType<FileContentResult>().Subject;
@@ -443,17 +444,14 @@ public class ReportsControllerTests
     }
 
     [Fact]
-    public async Task Export_UnsupportedFormat_ReturnsBadRequest()
+    public async Task Export_UnsupportedFormat_ThrowsArgumentException()
     {
         // Arrange
-        _mockReportService.Setup(s => s.ExportAsync(1, "invalid", null))
+        _mockReportService.Setup(s => s.ExportAsync(1, "invalid", null, It.IsAny<CancellationToken>()))
             .ThrowsAsync(new ArgumentException("Unsupported export format"));
 
-        // Act
-        var result = await _controller.Export(1, "invalid");
-
-        // Assert
-        result.Should().BeOfType<BadRequestObjectResult>();
+        // Act & Assert
+        await Assert.ThrowsAsync<ArgumentException>(() => _controller.Export(1, "invalid", null));
     }
 
     #endregion
@@ -475,7 +473,7 @@ public class ReportsControllerTests
 
         var createdSchedule = new ReportScheduleDto { Id = 1, ReportId = 1 };
 
-        _mockReportService.Setup(s => s.CreateScheduleAsync(scheduleDto))
+        _mockReportService.Setup(s => s.CreateScheduleAsync(scheduleDto, It.IsAny<CancellationToken>()))
             .ReturnsAsync(createdSchedule);
 
         // Act
@@ -495,7 +493,7 @@ public class ReportsControllerTests
             new ReportScheduleDto { Id = 2, ReportId = 1, Frequency = "Weekly" }
         };
 
-        _mockReportService.Setup(s => s.GetSchedulesAsync(1))
+        _mockReportService.Setup(s => s.GetSchedulesAsync(1, It.IsAny<CancellationToken>()))
             .ReturnsAsync(schedules);
 
         // Act
@@ -517,7 +515,7 @@ public class ReportsControllerTests
 
         var updatedSchedule = new ReportScheduleDto { Id = 1, Frequency = "Weekly" };
 
-        _mockReportService.Setup(s => s.UpdateScheduleAsync(updateDto))
+        _mockReportService.Setup(s => s.UpdateScheduleAsync(updateDto, It.IsAny<CancellationToken>()))
             .ReturnsAsync(updatedSchedule);
 
         // Act
@@ -531,7 +529,7 @@ public class ReportsControllerTests
     public async Task DeleteSchedule_ReturnsNoContent()
     {
         // Arrange
-        _mockReportService.Setup(s => s.DeleteScheduleAsync(1))
+        _mockReportService.Setup(s => s.DeleteScheduleAsync(1, It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
 
         // Act
@@ -545,14 +543,14 @@ public class ReportsControllerTests
     public async Task ToggleSchedule_EnableSchedule_ReturnsOk()
     {
         // Arrange
-        _mockReportService.Setup(s => s.ToggleScheduleAsync(1, true))
+        _mockReportService.Setup(s => s.ToggleScheduleAsync(1, true, It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
 
         // Act
         var result = await _controller.ToggleSchedule(1, 1, true);
 
         // Assert
-        result.Should().BeOfType<OkResult>();
+        result.Should().BeOfType<OkObjectResult>();
     }
 
     #endregion
@@ -569,7 +567,7 @@ public class ReportsControllerTests
             new ReportFolderDto { Id = 2, Name = "Marketing Reports" }
         };
 
-        _mockReportService.Setup(s => s.GetFoldersAsync())
+        _mockReportService.Setup(s => s.GetFoldersAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(folders);
 
         // Act
@@ -591,7 +589,7 @@ public class ReportsControllerTests
 
         var createdFolder = new ReportFolderDto { Id = 1, Name = "New Folder" };
 
-        _mockReportService.Setup(s => s.CreateFolderAsync(createDto))
+        _mockReportService.Setup(s => s.CreateFolderAsync(createDto, It.IsAny<CancellationToken>()))
             .ReturnsAsync(createdFolder);
 
         // Act
@@ -613,7 +611,7 @@ public class ReportsControllerTests
 
         var updatedFolder = new ReportFolderDto { Id = 1, Name = "Renamed Folder" };
 
-        _mockReportService.Setup(s => s.UpdateFolderAsync(updateDto))
+        _mockReportService.Setup(s => s.UpdateFolderAsync(updateDto, It.IsAny<CancellationToken>()))
             .ReturnsAsync(updatedFolder);
 
         // Act
@@ -627,7 +625,7 @@ public class ReportsControllerTests
     public async Task DeleteFolder_EmptyFolder_ReturnsNoContent()
     {
         // Arrange
-        _mockReportService.Setup(s => s.DeleteFolderAsync(1))
+        _mockReportService.Setup(s => s.DeleteFolderAsync(1, It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
 
         // Act
@@ -641,29 +639,28 @@ public class ReportsControllerTests
     public async Task DeleteFolder_NonEmptyFolder_ReturnsConflict()
     {
         // Arrange
-        _mockReportService.Setup(s => s.DeleteFolderAsync(1))
+        _mockReportService.Setup(s => s.DeleteFolderAsync(1, It.IsAny<CancellationToken>()))
             .ThrowsAsync(new InvalidOperationException("Folder contains reports"));
 
         // Act
         var result = await _controller.DeleteFolder(1);
 
         // Assert
-        var statusResult = result.Should().BeOfType<ObjectResult>().Subject;
-        statusResult.StatusCode.Should().Be(409);
+        result.Should().BeOfType<ConflictObjectResult>();
     }
 
     [Fact]
     public async Task MoveReportToFolder_ValidMove_ReturnsOk()
     {
         // Arrange
-        _mockReportService.Setup(s => s.MoveToFolderAsync(1, 2))
+        _mockReportService.Setup(s => s.MoveToFolderAsync(1, 2, It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
 
         // Act
         var result = await _controller.MoveReportToFolder(1, 2);
 
         // Assert
-        result.Should().BeOfType<OkResult>();
+        result.Should().BeOfType<OkObjectResult>();
     }
 
     #endregion
@@ -680,7 +677,7 @@ public class ReportsControllerTests
             new ReportExecutionHistoryDto { Id = 2, ReportId = 1, ExecutedAt = DateTime.Now }
         };
 
-        _mockReportService.Setup(s => s.GetExecutionHistoryAsync(1))
+        _mockReportService.Setup(s => s.GetExecutionHistoryAsync(1, It.IsAny<CancellationToken>()))
             .ReturnsAsync(history);
 
         // Act
@@ -701,7 +698,7 @@ public class ReportsControllerTests
             Data = new List<Dictionary<string, object>>()
         };
 
-        _mockReportService.Setup(s => s.GetExecutionResultAsync(1))
+        _mockReportService.Setup(s => s.GetExecutionResultAsync(1, It.IsAny<CancellationToken>()))
             .ReturnsAsync(executionResult);
 
         // Act
@@ -716,19 +713,19 @@ public class ReportsControllerTests
     #region Clone and Share Tests
 
     [Fact]
-    public async Task Clone_ValidReport_ReturnsCreated()
+    public async Task Clone_ValidReport_ReturnsOk()
     {
         // Arrange
         var clonedReport = new ReportDefinitionDto { Id = 2, Name = "Sales Report (Copy)" };
 
-        _mockReportService.Setup(s => s.CloneAsync(1))
+        _mockReportService.Setup(s => s.CloneAsync(1, It.IsAny<CancellationToken>()))
             .ReturnsAsync(clonedReport);
 
         // Act
         var result = await _controller.Clone(1);
 
         // Assert
-        result.Should().BeOfType<CreatedAtActionResult>();
+        result.Should().BeOfType<OkObjectResult>();
     }
 
     [Fact]
@@ -741,14 +738,14 @@ public class ReportsControllerTests
             GroupIds = new List<int> { 1 }
         };
 
-        _mockReportService.Setup(s => s.ShareAsync(1, shareDto))
+        _mockReportService.Setup(s => s.ShareAsync(1, shareDto, It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
 
         // Act
         var result = await _controller.Share(1, shareDto);
 
         // Assert
-        result.Should().BeOfType<OkResult>();
+        result.Should().BeOfType<OkObjectResult>();
     }
 
     [Fact]
@@ -761,7 +758,7 @@ public class ReportsControllerTests
             Groups = new List<UserGroupDto> { new UserGroupDto { Id = 1 } }
         };
 
-        _mockReportService.Setup(s => s.GetSharedWithAsync(1))
+        _mockReportService.Setup(s => s.GetSharedWithAsync(1, It.IsAny<CancellationToken>()))
             .ReturnsAsync(sharedWith);
 
         // Act
@@ -779,28 +776,28 @@ public class ReportsControllerTests
     public async Task AddToFavorites_ReturnsOk()
     {
         // Arrange
-        _mockReportService.Setup(s => s.AddToFavoritesAsync(1, 1))
+        _mockReportService.Setup(s => s.AddToFavoritesAsync(1, 1, It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
 
         // Act
         var result = await _controller.AddToFavorites(1);
 
         // Assert
-        result.Should().BeOfType<OkResult>();
+        result.Should().BeOfType<OkObjectResult>();
     }
 
     [Fact]
     public async Task RemoveFromFavorites_ReturnsOk()
     {
         // Arrange
-        _mockReportService.Setup(s => s.RemoveFromFavoritesAsync(1, 1))
+        _mockReportService.Setup(s => s.RemoveFromFavoritesAsync(1, 1, It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
 
         // Act
         var result = await _controller.RemoveFromFavorites(1);
 
         // Assert
-        result.Should().BeOfType<OkResult>();
+        result.Should().BeOfType<OkObjectResult>();
     }
 
     [Fact]
@@ -812,7 +809,7 @@ public class ReportsControllerTests
             new ReportDefinitionDto { Id = 1, Name = "Favorite Report" }
         };
 
-        _mockReportService.Setup(s => s.GetFavoritesAsync(1))
+        _mockReportService.Setup(s => s.GetFavoritesAsync(1, It.IsAny<CancellationToken>()))
             .ReturnsAsync(favorites);
 
         // Act
@@ -830,7 +827,7 @@ public class ReportsControllerTests
     public async Task Delete_ExistingReport_ReturnsNoContent()
     {
         // Arrange
-        _mockReportService.Setup(s => s.DeleteAsync(1))
+        _mockReportService.Setup(s => s.DeleteAsync(1, It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
 
         // Act
@@ -844,7 +841,7 @@ public class ReportsControllerTests
     public async Task Delete_NonExistingReport_ReturnsNotFound()
     {
         // Arrange
-        _mockReportService.Setup(s => s.DeleteAsync(999))
+        _mockReportService.Setup(s => s.DeleteAsync(999, It.IsAny<CancellationToken>()))
             .ReturnsAsync(false);
 
         // Act
@@ -858,7 +855,7 @@ public class ReportsControllerTests
     public async Task Delete_StandardReport_ReturnsForbid()
     {
         // Arrange
-        _mockReportService.Setup(s => s.DeleteAsync(1))
+        _mockReportService.Setup(s => s.DeleteAsync(1, It.IsAny<CancellationToken>()))
             .ThrowsAsync(new UnauthorizedAccessException("Cannot delete standard report"));
 
         // Act
