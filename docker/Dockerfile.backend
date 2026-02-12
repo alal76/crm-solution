@@ -21,6 +21,9 @@ COPY CRM.Backend/src/CRM.Core/CRM.Core.csproj ./src/CRM.Core/
 COPY CRM.Backend/src/CRM.Infrastructure/CRM.Infrastructure.csproj ./src/CRM.Infrastructure/
 COPY CRM.Backend/src/CRM.Api/CRM.Api.csproj ./src/CRM.Api/
 COPY CRM.Backend/src/CRM.DatabaseSeeder/CRM.DatabaseSeeder.csproj ./src/CRM.DatabaseSeeder/
+COPY CRM.Backend/tests/CRM.Tests.csproj ./tests/
+COPY CRM.Backend/tests/CRM.Tests/CRM.Tests.csproj ./tests/CRM.Tests/
+COPY CRM.Backend/tests/Unit/Core/CRM.Tests.Unit.Core.csproj ./tests/Unit/Core/
 
 # Restore dependencies (this layer is cached unless project files change)
 RUN dotnet restore CRM.sln
