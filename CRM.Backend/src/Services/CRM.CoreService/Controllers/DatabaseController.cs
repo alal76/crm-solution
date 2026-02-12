@@ -17,6 +17,7 @@
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using CRM.Infrastructure.Data;
+using CRM.Infrastructure.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -38,13 +39,15 @@ public class DatabaseController : ControllerBase
     private readonly ILogger<DatabaseController> _logger;
     private readonly IWebHostEnvironment _environment;
     private readonly IConfiguration _configuration;
+    private readonly ICoreDataSeederService _coreDataSeeder;
 
-    public DatabaseController(ICrmDbContext context, ILogger<DatabaseController> logger, IWebHostEnvironment environment, IConfiguration configuration)
+    public DatabaseController(ICrmDbContext context, ILogger<DatabaseController> logger, IWebHostEnvironment environment, IConfiguration configuration, ICoreDataSeederService coreDataSeeder)
     {
         _context = context;
         _logger = logger;
         _environment = environment;
         _configuration = configuration;
+        _coreDataSeeder = coreDataSeeder;
     }
 
     /// <summary>
@@ -1437,17 +1440,9 @@ Then restart the API container:
         {
             _logger.LogInformation("Database reseed initiated");
 
-            // Force reseed module field configurations
-            if (_context is CrmDbContext dbContext)
-            {
-                await DbSeed.ForceReseedModuleFieldConfigurationsAsync(dbContext);
-                _logger.LogInformation("Module field configurations reseeded successfully");
-            }
-            else
-            {
-                _logger.LogWarning("Could not cast context to CrmDbContext for reseeding");
-                return StatusCode(500, new { message = "Database context type mismatch" });
-            }
+            // Force reseed module field configurations via CoreDataSeederService (ADR-002)
+            await _coreDataSeeder.ForceReseedModuleFieldConfigurationsAsync();
+            _logger.LogInformation("Module field configurations reseeded successfully via CoreDataSeederService");
 
             return Ok(new { message = "Database reseeded successfully" });
         }

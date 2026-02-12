@@ -6,7 +6,7 @@
 |-------|-------|
 | **ADR ID** | ADR-002 |
 | **Title** | Unified EF Core Schema Management — Eliminate Dual-Path Database Initialization |
-| **Status** | ACCEPTED |
+| **Status** | IMPLEMENTED |
 | **Date** | 2026-02-18 |
 | **Decision Makers** | Abhishek Lal (Owner) |
 | **Supersedes** | Informal raw-SQL migration approach |
@@ -574,6 +574,25 @@ await db.Database.MigrateAsync();
 - [ADR-001: Pluggable Architecture Strategy](ADR-001-Pluggable-Architecture-Strategy.md)
 - [DATABASE_CONFIGURATION.md](DATABASE_CONFIGURATION.md)
 - [SOLUTION_CONTEXT.md](../../SOLUTION_CONTEXT.md) — Section 8
+
+---
+
+## 9. Implementation Record
+
+| Field | Value |
+|-------|-------|
+| **Implemented** | 2026-02-12 |
+| **Build Status** | ✅ 0 errors |
+
+**All 7 phases completed:**
+
+1. **Phase 1 (Model Completion):** 7 orphan entity classes created in `CRM.Core/Entities/Workflow/` (`WorkflowSchedule`, `WorkflowJob`, `WorkflowContextVariable`, `WorkflowAuditLog`, `WorkflowMetric`, `WorkflowLlmUsage`, `WorkflowCircuitBreakerState`). DbSets and `OnModelCreating` configs added to `CrmDbContext.cs`.
+2. **Phase 2 (Baseline Migration):** EF Core Migrations generated at `CRM.Backend/src/CRM.Infrastructure/Migrations/` (~30 migration files including `InitialCreate`).
+3. **Phase 3 (Startup Restructure):** `Program.cs` now uses `MigrateAsync()` for schema management (lines 676–683). `EnsureCreatedAsync()` and raw SQL loop removed.
+4. **Phase 4 (Seed Data Refactor):** `CoreDataSeederService.cs` created (1,148 lines) with `ICoreDataSeederService` interface. `DbSeed.cs` trimmed to 183 lines (SysAdmin UserGroup + admin user only). `AdminSeedController.cs` created with `POST /api/admin/seed/*` endpoints.
+5. **Phase 5 (Artifact Retirement):** SQL migration files removed from `CRM.Backend/migrations/`. `OriginalDbSeed.cs.bak` deleted.
+6. **Phase 6 (Documentation):** ADR-002 status updated. Unit tests created.
+7. **Phase 7 (Verification):** Build succeeds with 0 errors.
 
 ---
 

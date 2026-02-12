@@ -48,6 +48,8 @@ builder.Services.AddScoped<ModuleUIConfigService>();
 builder.Services.AddScoped<IZipCodeService, ZipCodeService>();
 builder.Services.AddScoped<IFieldMasterDataService, FieldMasterDataService>();
 builder.Services.AddScoped<NormalizationService>();
+// Core data seeder - seeds departments, accounts, products, contacts, lookups, system settings (ADR-002)
+builder.Services.AddScoped<ICoreDataSeederService, CoreDataSeederService>();
 
 // Register input ports (Hexagonal Architecture)
 builder.Services.AddScoped<IProductInputPort, ProductService>();
