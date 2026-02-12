@@ -65,9 +65,9 @@ public class ActivityTypeEnumTests
     }
 
     [Fact]
-    public void ActivityType_ShouldHave35Values()
+    public void ActivityType_ShouldHave39Values()
     {
-        Enum.GetValues(typeof(ActivityType)).Length.Should().Be(35);
+        Enum.GetValues(typeof(ActivityType)).Length.Should().Be(39);
     }
 
     [Fact]

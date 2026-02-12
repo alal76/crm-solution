@@ -1037,7 +1037,7 @@ public class SystemCoreEntityTests
     [Fact]
     public void ActivityType_ShouldHaveExpectedCount()
     {
-        Enum.GetValues<ActivityType>().Should().HaveCount(35);
+        Enum.GetValues<ActivityType>().Should().HaveCount(39);
     }
 
     [Fact]

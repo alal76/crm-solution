@@ -57,10 +57,10 @@ public class ITSMEntityTests
     }
 
     [Fact]
-    public void ChangeState_ShouldHave8Values()
+    public void ChangeState_ShouldHave13Values()
     {
         var values = Enum.GetValues<ChangeState>();
-        values.Should().HaveCount(8);
+        values.Should().HaveCount(13);
     }
 
     [Fact]
