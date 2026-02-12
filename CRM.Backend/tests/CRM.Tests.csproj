@@ -118,9 +118,9 @@
     <!-- HostedService tests with missing interfaces/types -->
     <!-- Re-enabled: BackupSchedulerHostedServiceTests (removed local type shadows, fixed async mock) -->
     <!-- Re-enabled: DatabaseSyncHostedServiceTests (rewritten from scratch with correct 2-param constructor) -->
-    <Compile Remove="HostedServices\LeadScoreDecayHostedServiceTests.cs" />
-    <Compile Remove="HostedServices\WorkflowWorkerServiceTests.cs" />
-    <Compile Remove="HostedServices\ZipCodeImportHostedServiceTests.cs" />
+    <!-- Re-enabled: LeadScoreDecayHostedServiceTests (rewritten from scratch with correct 3-param constructor) -->
+    <!-- Re-enabled: WorkflowWorkerServiceTests (rewritten from scratch with correct 4-param constructor) -->
+    <!-- Re-enabled: ZipCodeImportHostedServiceTests (rewritten from scratch with correct 3-param constructor) -->
     <!-- Service tests with nonexistent entity properties/service methods -->
     <Compile Remove="Services\CloudDeploymentServiceTests.cs" />
     <Compile Remove="Services\ColorPaletteServiceTests.cs" />

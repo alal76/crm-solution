@@ -14,9 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Services;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -46,14 +44,14 @@ public class ZipCodeImportHostedServiceTests
         bool enableScheduled = false,
         bool importOnStartupIfEmpty = false,
         string importSource = "GeoNames",
-        string[]? countryCodes = null)
+        List<string>? countryCodes = null)
     {
         return Options.Create(new ZipCodeImportOptions
         {
             EnableScheduledImport = enableScheduled,
             ImportOnStartupIfEmpty = importOnStartupIfEmpty,
             ImportSource = importSource,
-            CountryCodes = countryCodes ?? new[] { "US" }
+            CountryCodes = countryCodes ?? new List<string> { "US" }
         });
     }
 
@@ -125,56 +123,21 @@ public class ZipCodeImportHostedServiceTests
     }
 
     [Fact]
-    public async Task ExecuteAsync_ImportOnStartupIfEmpty_WithZipCodes_ShouldSkipImport()
+    public async Task ExecuteAsync_ImportOnStartupIfEmpty_ShouldStartWithoutError()
     {
-        // Arrange - set up a real in-memory DB with some zip codes already
-        var services = new ServiceCollection();
-        services.AddDbContext<CrmDbContext>(opts =>
-            opts.UseInMemoryDatabase($"ZipTest_{Guid.NewGuid()}"));
-        var sp = services.BuildServiceProvider();
-
-        // Seed a zip code so it's not empty
-        using (var scope = sp.CreateScope())
-        {
-            var db = scope.ServiceProvider.GetRequiredService<CrmDbContext>();
-            db.ZipCodes.Add(new CRM.Core.Entities.ZipCode
-            {
-                Code = "10001",
-                City = "New York",
-                State = "NY",
-                Country = "US"
-            });
-            await db.SaveChangesAsync();
-        }
-
-        var mockScope = new Mock<IServiceScope>();
-        mockScope.Setup(s => s.ServiceProvider).Returns(sp);
-
-        var mockScopeFactory = new Mock<IServiceScopeFactory>();
-        mockScopeFactory.Setup(f => f.CreateScope()).Returns(mockScope.Object);
-
-        var mockSP = new Mock<IServiceProvider>();
-        mockSP.Setup(p => p.GetService(typeof(IServiceScopeFactory)))
-            .Returns(mockScopeFactory.Object);
-
+        // Arrange - enable ImportOnStartupIfEmpty; service will try to create scope
         var options = CreateOptions(importOnStartupIfEmpty: true);
-        var service = new ZipCodeImportHostedService(
-            mockSP.Object,
-            _mockLogger.Object,
-            options);
+        var service = CreateService(options);
 
-        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        using var cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(500));
 
-        // Act - The 30s initial delay means our test will cancel first
-        // but we can verify it starts without error
+        // Act - service starts, initial delay means it won't reach import before cancel
         await service.StartAsync(cts.Token);
-        await Task.Delay(500, CancellationToken.None);
-        cts.Cancel();
-        await Task.Delay(200, CancellationToken.None);
-        await service.StopAsync(CancellationToken.None);
+        await Task.Delay(600, CancellationToken.None);
 
-        // Assert - no exception
-        sp.Dispose();
+        // Assert - no exception during startup
+        var act = () => service.StopAsync(CancellationToken.None);
+        await act.Should().NotThrowAsync();
     }
 
     [Fact]
@@ -214,7 +177,7 @@ public class ZipCodeImportHostedServiceTests
             CronExpression = "0 0 * * 0",
             ImportSource = "GitHub",
             GitHubUrl = "https://example.com/data.csv",
-            CountryCodes = new[] { "US", "CA", "GB" },
+            CountryCodes = new List<string> { "US", "CA", "GB" },
             ImportOnStartupIfEmpty = false,
             MinimumHoursBetweenImports = 48
         };
