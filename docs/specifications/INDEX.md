@@ -83,8 +83,8 @@ This index provides a centralized catalog of all feature specifications in the C
 ### AI & Analytics Module
 | Spec ID | Feature | Status | Priority | Dependencies |
 |---------|---------|--------|----------|--------------|
-| SPEC-AI-001 | Lead Scoring | ⏳ Pending | P2 | CRM-002 |
-| SPEC-AI-002 | Opportunity Insights | ⏳ Pending | P2 | CRM-003 |
+| SPEC-AI-001 | Lead Scoring | ✅ Complete | P2 | CRM-002 |
+| SPEC-AI-002 | Opportunity Insights | ✅ Complete | P2 | CRM-003 |
 | SPEC-AI-003 | Churn Prediction | ⏳ Pending | P3 | CRM-001 |
 | SPEC-AI-004 | Email Intelligence | ⏳ Pending | P3 | MKT-001 |
 
@@ -119,9 +119,9 @@ This index provides a centralized catalog of all feature specifications in the C
 | Service Desk | 5 | 0 | 5 | 0 |
 | ITSM | 4 | 0 | 4 | 0 |
 | System | 6 | 1 | 5 | 0 |
-| AI & Analytics | 4 | 0 | 4 | 0 |
+| AI & Analytics | 4 | 2 | 2 | 0 |
 | Integration | 3 | 0 | 3 | 0 |
-| **Total** | **41** | **10** | **31** | **0** |
+| **Total** | **41** | **12** | **29** | **0** |
 
 ### TODO Items Extracted
 | Spec | TODO Count | High Priority | Medium Priority | Low Priority |

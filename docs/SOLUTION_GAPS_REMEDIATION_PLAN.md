@@ -38,6 +38,17 @@ The following items remain from the remediation effort:
 |----|----------|-------------|-------|
 | ~~P-24~~ | ~~🟢 Low~~ | ✅ **DONE** — Stripe webhook handlers | StripeWebhookController with HMAC-SHA256 signature validation, 14 event handlers |
 
+### AI/Semantic Kernel Integration (NEW — February 2026)
+
+| ID | Priority | Description | Notes |
+|----|----------|-------------|-------|
+| ~~P-AI-01~~ | ~~🟡 Medium~~ | ✅ **DONE** — Semantic Kernel v1.34.0 integration | 12 plugins, 12 agents, 20 API endpoints |
+| ~~P-AI-02~~ | ~~🟡 Medium~~ | ✅ **DONE** — Lead scoring AI agent | BANT rubric scoring via LeadScoringAgent |
+| ~~P-AI-03~~ | ~~🟡 Medium~~ | ✅ **DONE** — Support triage AI agent | Auto-classification and KB-powered resolution |
+| ~~P-AI-04~~ | ~~🟢 Low~~ | ✅ **DONE** — Email draft AI assistant | Template-aware email drafting via EmailAssistantAgent |
+| P-AI-05 | 🟢 Low | Qdrant production deployment | Init script ready, needs production hosting |
+| P-AI-06 | 🟢 Low | Agent fine-tuning with production data | Requires usage data collection period |
+
 ---
 
 ## Summary by Priority

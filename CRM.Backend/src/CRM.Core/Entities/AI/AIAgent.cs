@@ -60,7 +60,31 @@ public enum AgentType
     ConversationIntelligence = 11,
 
     /// <summary>Multi-agent orchestrator</summary>
-    Orchestrator = 12
+    Orchestrator = 12,
+
+    /// <summary>General-purpose assistant (catch-all fallback)</summary>
+    GeneralAssistant = 13,
+
+    /// <summary>Sales assistant agent</summary>
+    SalesAssistant = 14,
+
+    /// <summary>Deal intelligence agent</summary>
+    DealIntelligence = 15,
+
+    /// <summary>Forecast analyst agent</summary>
+    ForecastAnalyst = 16,
+
+    /// <summary>Data analyst agent</summary>
+    DataAnalyst = 17,
+
+    /// <summary>Onboarding guide agent</summary>
+    OnboardingGuide = 18,
+
+    /// <summary>Contract analyst agent</summary>
+    ContractAnalyst = 19,
+
+    /// <summary>Knowledge expert agent</summary>
+    KnowledgeExpert = 20
 }
 
 #endregion

@@ -209,6 +209,13 @@ const AnalyticsSettingsPage = lazy(() => import('./pages/admin/AnalyticsSettings
 // Analytics & Reports Pages (main navigation)
 const AnalyticsPage = lazy(() => import('./pages/AnalyticsPage'));
 
+// AI Agent Pages
+const AgentDirectoryPage = lazy(() => import('./pages/AgentDirectoryPage'));
+const AgentChatPage = lazy(() => import('./pages/AgentChatPage'));
+const AgentManagementPage = lazy(() => import('./pages/AgentManagementPage'));
+const AgentApprovalsPage = lazy(() => import('./pages/AgentApprovalsPage'));
+const AgentAnalyticsPage = lazy(() => import('./pages/AgentAnalyticsPage'));
+
 // Inner component that can access the theme context
 function ThemedApp() {
   const { theme } = useTheme();
@@ -1293,6 +1300,54 @@ function ThemedApp() {
                 }
               />
               
+              {/* AI Agents Routes */}
+              <Route
+                path="/agents"
+                element={
+                  <ProtectedRoute>
+                    <AgentDirectoryPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/agents/:agentId/chat"
+                element={
+                  <ProtectedRoute>
+                    <AgentChatPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/agents"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute requiredPage="Settings">
+                      <AgentManagementPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/agents/approvals"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute requiredPage="Settings">
+                      <AgentApprovalsPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/agents/analytics"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute requiredPage="Settings">
+                      <AgentAnalyticsPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+
               {/* Public Info Routes */}
               <Route path="/about" element={<AboutPage />} />
               <Route path="/help" element={<HelpPage />} />

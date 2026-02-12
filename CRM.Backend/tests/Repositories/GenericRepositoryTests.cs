@@ -1,590 +1,310 @@
-// CRM Solution - Customer Relationship Management System
-// Copyright (C) 2024-2026 Abhishek Lal
-//
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Affero General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU Affero General Public License for more details.
-//
-// You should have received a copy of the GNU Affero General Public License
-// along with this program. If not, see <https://www.gnu.org/licenses/>.
-
-using Xunit;
-using Moq;
-using FluentAssertions;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
+using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Repositories;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using System;
-using System.Linq;
-using System.Linq.Expressions;
+using CRM.Tests.Helpers;
+using Microsoft.EntityFrameworkCore;
+using Moq;
+using Xunit;
+using FluentAssertions;
 
 namespace CRM.Tests.Repositories;
 
 /// <summary>
-/// Unit tests for Generic Repository
-/// Covers: CRUD operations, queries, pagination, soft delete
+/// Unit tests for Repository&lt;T&gt; generic implementation.
+/// Tests all 7 IRepository&lt;T&gt; methods using MockDbSetFactory and Mock&lt;ICrmDbContext&gt;.
 /// </summary>
 public class GenericRepositoryTests
 {
     private readonly Mock<ICrmDbContext> _mockContext;
-    private readonly Mock<DbSet<TestEntity>> _mockDbSet;
-    private readonly Mock<ILogger<Repository<TestEntity>>> _mockLogger;
+    private readonly List<Account> _accountData;
+    private readonly Mock<DbSet<Account>> _mockDbSet;
+    private readonly Repository<Account> _repository;
 
     public GenericRepositoryTests()
     {
-        _mockContext = new Mock<ICrmDbContext>();
-        _mockDbSet = new Mock<DbSet<TestEntity>>();
-        _mockLogger = new Mock<ILogger<Repository<TestEntity>>>();
-    }
-
-    #region GetById Tests
-
-    [Fact]
-    public async Task GetByIdAsync_ExistingEntity_ReturnsEntity()
-    {
-        // Arrange
-        var entity = new TestEntity { Id = 1, Name = "Test" };
-        var data = new List<TestEntity> { entity }.AsQueryable();
-
-        SetupMockDbSet(data);
-        _mockContext.Setup(c => c.Set<TestEntity>()).Returns(_mockDbSet.Object);
-
-        var repository = new Repository<TestEntity>(_mockContext.Object);
-
-        // Act
-        var result = await repository.GetByIdAsync(1);
-
-        // Assert
-        result.Should().NotBeNull();
-        result!.Id.Should().Be(1);
-    }
-
-    [Fact]
-    public async Task GetByIdAsync_NonExistingEntity_ReturnsNull()
-    {
-        // Arrange
-        var data = new List<TestEntity>().AsQueryable();
-
-        SetupMockDbSet(data);
-        _mockContext.Setup(c => c.Set<TestEntity>()).Returns(_mockDbSet.Object);
-
-        var repository = new Repository<TestEntity>(_mockContext.Object);
-
-        // Act
-        var result = await repository.GetByIdAsync(999);
-
-        // Assert
-        result.Should().BeNull();
-    }
-
-    [Fact]
-    public async Task GetByIdAsync_DeletedEntity_ReturnsNull()
-    {
-        // Arrange
-        var entity = new TestEntity { Id = 1, Name = "Test", IsDeleted = true };
-        var data = new List<TestEntity> { entity }.AsQueryable();
-
-        SetupMockDbSet(data);
-        _mockContext.Setup(c => c.Set<TestEntity>()).Returns(_mockDbSet.Object);
-
-        var repository = new Repository<TestEntity>(_mockContext.Object);
-
-        // Act
-        var result = await repository.GetByIdAsync(1);
-
-        // Assert
-        result.Should().BeNull();
-    }
-
-    #endregion
-
-    #region GetAll Tests
-
-    [Fact]
-    public async Task GetAllAsync_HasEntities_ReturnsAll()
-    {
-        // Arrange
-        var entities = new List<TestEntity>
+        _accountData = new List<Account>
         {
-            new TestEntity { Id = 1, Name = "Test 1" },
-            new TestEntity { Id = 2, Name = "Test 2" }
-        }.AsQueryable();
-
-        SetupMockDbSet(entities);
-        _mockContext.Setup(c => c.Set<TestEntity>()).Returns(_mockDbSet.Object);
-
-        var repository = new Repository<TestEntity>(_mockContext.Object);
-
-        // Act
-        var result = await repository.GetAllAsync();
-
-        // Assert
-        result.Should().HaveCount(2);
-    }
-
-    [Fact]
-    public async Task GetAllAsync_EmptyTable_ReturnsEmpty()
-    {
-        // Arrange
-        var data = new List<TestEntity>().AsQueryable();
-
-        SetupMockDbSet(data);
-        _mockContext.Setup(c => c.Set<TestEntity>()).Returns(_mockDbSet.Object);
-
-        var repository = new Repository<TestEntity>(_mockContext.Object);
-
-        // Act
-        var result = await repository.GetAllAsync();
-
-        // Assert
-        result.Should().BeEmpty();
-    }
-
-    [Fact]
-    public async Task GetAllAsync_ExcludesDeletedEntities()
-    {
-        // Arrange
-        var entities = new List<TestEntity>
-        {
-            new TestEntity { Id = 1, Name = "Active", IsDeleted = false },
-            new TestEntity { Id = 2, Name = "Deleted", IsDeleted = true }
-        }.AsQueryable();
-
-        SetupMockDbSet(entities);
-        _mockContext.Setup(c => c.Set<TestEntity>()).Returns(_mockDbSet.Object);
-
-        var repository = new Repository<TestEntity>(_mockContext.Object);
-
-        // Act
-        var result = await repository.GetAllAsync();
-
-        // Assert
-        result.Should().HaveCount(1);
-        result.First().Name.Should().Be("Active");
-    }
-
-    #endregion
-
-    #region Find Tests
-
-    [Fact]
-    public async Task FindAsync_MatchingPredicate_ReturnsMatches()
-    {
-        // Arrange
-        var entities = new List<TestEntity>
-        {
-            new TestEntity { Id = 1, Name = "Apple" },
-            new TestEntity { Id = 2, Name = "Banana" },
-            new TestEntity { Id = 3, Name = "Apple Pie" }
-        }.AsQueryable();
-
-        SetupMockDbSet(entities);
-        _mockContext.Setup(c => c.Set<TestEntity>()).Returns(_mockDbSet.Object);
-
-        var repository = new Repository<TestEntity>(_mockContext.Object);
-
-        // Act
-        var result = await repository.FindAsync(e => e.Name.Contains("Apple"));
-
-        // Assert
-        result.Should().HaveCount(2);
-    }
-
-    [Fact]
-    public async Task FindAsync_NoMatches_ReturnsEmpty()
-    {
-        // Arrange
-        var entities = new List<TestEntity>
-        {
-            new TestEntity { Id = 1, Name = "Apple" }
-        }.AsQueryable();
-
-        SetupMockDbSet(entities);
-        _mockContext.Setup(c => c.Set<TestEntity>()).Returns(_mockDbSet.Object);
-
-        var repository = new Repository<TestEntity>(_mockContext.Object);
-
-        // Act
-        var result = await repository.FindAsync(e => e.Name == "Orange");
-
-        // Assert
-        result.Should().BeEmpty();
-    }
-
-    [Fact]
-    public async Task FirstOrDefaultAsync_MatchExists_ReturnsFirst()
-    {
-        // Arrange
-        var entities = new List<TestEntity>
-        {
-            new TestEntity { Id = 1, Name = "First" },
-            new TestEntity { Id = 2, Name = "Second" }
-        }.AsQueryable();
-
-        SetupMockDbSet(entities);
-        _mockContext.Setup(c => c.Set<TestEntity>()).Returns(_mockDbSet.Object);
-
-        var repository = new Repository<TestEntity>(_mockContext.Object);
-
-        // Act
-        var result = await repository.FirstOrDefaultAsync(e => e.Id > 0);
-
-        // Assert
-        result.Should().NotBeNull();
-    }
-
-    #endregion
-
-    #region Add Tests
-
-    [Fact]
-    public async Task AddAsync_ValidEntity_AddsEntity()
-    {
-        // Arrange
-        var entity = new TestEntity { Name = "New Entity" };
-
-        _mockDbSet.Setup(d => d.AddAsync(It.IsAny<TestEntity>(), default))
-            .ReturnsAsync((Microsoft.EntityFrameworkCore.ChangeTracking.EntityEntry<TestEntity>)null!);
-
-        _mockContext.Setup(c => c.Set<TestEntity>()).Returns(_mockDbSet.Object);
-        _mockContext.Setup(c => c.SaveChangesAsync(default)).ReturnsAsync(1);
-
-        var repository = new Repository<TestEntity>(_mockContext.Object);
-
-        // Act
-        var result = await repository.AddAsync(entity);
-
-        // Assert
-        result.Should().NotBeNull();
-        _mockContext.Verify(c => c.SaveChangesAsync(default), Times.Once);
-    }
-
-    [Fact]
-    public async Task AddAsync_SetsCreatedAt()
-    {
-        // Arrange
-        var entity = new TestEntity { Name = "New Entity" };
-        var beforeAdd = DateTime.UtcNow;
-
-        _mockDbSet.Setup(d => d.AddAsync(It.IsAny<TestEntity>(), default))
-            .ReturnsAsync((Microsoft.EntityFrameworkCore.ChangeTracking.EntityEntry<TestEntity>)null!);
-
-        _mockContext.Setup(c => c.Set<TestEntity>()).Returns(_mockDbSet.Object);
-        _mockContext.Setup(c => c.SaveChangesAsync(default)).ReturnsAsync(1);
-
-        var repository = new Repository<TestEntity>(_mockContext.Object);
-
-        // Act
-        var result = await repository.AddAsync(entity);
-
-        // Assert
-        result.CreatedAt.Should().BeOnOrAfter(beforeAdd);
-    }
-
-    [Fact]
-    public async Task AddRangeAsync_MultipleEntities_AddsAll()
-    {
-        // Arrange
-        var entities = new List<TestEntity>
-        {
-            new TestEntity { Name = "Entity 1" },
-            new TestEntity { Name = "Entity 2" }
+            new Account { Id = 1, Company = "Acme Corp", Email = "acme@test.com", IsDeleted = false, CreatedAt = DateTime.UtcNow },
+            new Account { Id = 2, Company = "Globex Inc", Email = "globex@test.com", IsDeleted = false, CreatedAt = DateTime.UtcNow },
+            new Account { Id = 3, Company = "Deleted Co", Email = "del@test.com", IsDeleted = true, CreatedAt = DateTime.UtcNow },
         };
 
-        _mockContext.Setup(c => c.Set<TestEntity>()).Returns(_mockDbSet.Object);
-        _mockContext.Setup(c => c.SaveChangesAsync(default)).ReturnsAsync(2);
+        _mockDbSet = MockDbSetFactory.CreateMockDbSet(_accountData);
+        _mockContext = new Mock<ICrmDbContext>();
+        _mockContext.Setup(c => c.Set<Account>()).Returns(_mockDbSet.Object);
+        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
-        var repository = new Repository<TestEntity>(_mockContext.Object);
-
-        // Act
-        await repository.AddRangeAsync(entities);
-
-        // Assert
-        _mockContext.Verify(c => c.SaveChangesAsync(default), Times.Once);
+        _repository = new Repository<Account>(_mockContext.Object);
     }
 
-    #endregion
-
-    #region Update Tests
+    // ========== GetByIdAsync ==========
 
     [Fact]
-    public async Task UpdateAsync_ExistingEntity_UpdatesEntity()
+    public async Task GetByIdAsync_ShouldReturnEntity_WhenEntityExists()
     {
-        // Arrange
-        var entity = new TestEntity { Id = 1, Name = "Updated" };
-
-        _mockContext.Setup(c => c.Set<TestEntity>()).Returns(_mockDbSet.Object);
-        _mockContext.Setup(c => c.SaveChangesAsync(default)).ReturnsAsync(1);
-
-        var repository = new Repository<TestEntity>(_mockContext.Object);
-
         // Act
-        var result = await repository.UpdateAsync(entity);
+        var result = await _repository.GetByIdAsync(1);
 
         // Assert
         result.Should().NotBeNull();
-        _mockContext.Verify(c => c.SaveChangesAsync(default), Times.Once);
+        result!.Company.Should().Be("Acme Corp");
     }
 
     [Fact]
-    public async Task UpdateAsync_SetsUpdatedAt()
+    public async Task GetByIdAsync_ShouldReturnNull_WhenEntityDoesNotExist()
     {
-        // Arrange
-        var entity = new TestEntity { Id = 1, Name = "Updated" };
-        var beforeUpdate = DateTime.UtcNow;
-
-        _mockContext.Setup(c => c.Set<TestEntity>()).Returns(_mockDbSet.Object);
-        _mockContext.Setup(c => c.SaveChangesAsync(default)).ReturnsAsync(1);
-
-        var repository = new Repository<TestEntity>(_mockContext.Object);
-
         // Act
-        var result = await repository.UpdateAsync(entity);
+        var result = await _repository.GetByIdAsync(999);
 
         // Assert
-        result.UpdatedAt.Should().BeOnOrAfter(beforeUpdate);
+        result.Should().BeNull();
     }
 
-    #endregion
-
-    #region Delete Tests
-
     [Fact]
-    public async Task DeleteAsync_ExistingEntity_SoftDeletes()
+    public async Task GetByIdAsync_ShouldReturnNull_WhenEntityIsDeleted()
     {
-        // Arrange
-        var entity = new TestEntity { Id = 1, Name = "To Delete", IsDeleted = false };
-        var data = new List<TestEntity> { entity }.AsQueryable();
-
-        SetupMockDbSet(data);
-        _mockContext.Setup(c => c.Set<TestEntity>()).Returns(_mockDbSet.Object);
-        _mockContext.Setup(c => c.SaveChangesAsync(default)).ReturnsAsync(1);
-
-        var repository = new Repository<TestEntity>(_mockContext.Object);
-
         // Act
-        var result = await repository.DeleteAsync(1);
+        var result = await _repository.GetByIdAsync(3);
 
         // Assert
-        result.Should().BeTrue();
+        result.Should().BeNull();
     }
 
+    // ========== GetAllAsync ==========
+
     [Fact]
-    public async Task DeleteAsync_NonExistingEntity_ReturnsFalse()
+    public async Task GetAllAsync_ShouldReturnOnlyNonDeletedEntities()
     {
-        // Arrange
-        var data = new List<TestEntity>().AsQueryable();
-
-        SetupMockDbSet(data);
-        _mockContext.Setup(c => c.Set<TestEntity>()).Returns(_mockDbSet.Object);
-
-        var repository = new Repository<TestEntity>(_mockContext.Object);
-
         // Act
-        var result = await repository.DeleteAsync(999);
+        var results = await _repository.GetAllAsync();
 
         // Assert
-        result.Should().BeFalse();
+        var list = results.ToList();
+        list.Should().HaveCount(2);
+        list.Should().NotContain(a => a.Company == "Deleted Co");
     }
 
     [Fact]
-    public async Task HardDeleteAsync_ExistingEntity_PermanentlyDeletes()
+    public async Task GetAllAsync_ShouldReturnEmpty_WhenAllDeleted()
     {
         // Arrange
-        var entity = new TestEntity { Id = 1, Name = "To Delete" };
-        var data = new List<TestEntity> { entity }.AsQueryable();
-
-        SetupMockDbSet(data);
-        _mockContext.Setup(c => c.Set<TestEntity>()).Returns(_mockDbSet.Object);
-        _mockContext.Setup(c => c.SaveChangesAsync(default)).ReturnsAsync(1);
-
-        var repository = new Repository<TestEntity>(_mockContext.Object);
-
-        // Act
-        var result = await repository.HardDeleteAsync(1);
-
-        // Assert
-        result.Should().BeTrue();
-        _mockDbSet.Verify(d => d.Remove(It.IsAny<TestEntity>()), Times.Once);
-    }
-
-    #endregion
-
-    #region Count Tests
-
-    [Fact]
-    public async Task CountAsync_HasEntities_ReturnsCount()
-    {
-        // Arrange
-        var entities = new List<TestEntity>
+        var allDeleted = new List<Account>
         {
-            new TestEntity { Id = 1 },
-            new TestEntity { Id = 2 },
-            new TestEntity { Id = 3 }
-        }.AsQueryable();
-
-        SetupMockDbSet(entities);
-        _mockContext.Setup(c => c.Set<TestEntity>()).Returns(_mockDbSet.Object);
-
-        var repository = new Repository<TestEntity>(_mockContext.Object);
+            new Account { Id = 10, Company = "Gone1", Email = "g1@test.com", IsDeleted = true },
+            new Account { Id = 11, Company = "Gone2", Email = "g2@test.com", IsDeleted = true },
+        };
+        var mockSet = MockDbSetFactory.CreateMockDbSet(allDeleted);
+        var mockCtx = new Mock<ICrmDbContext>();
+        mockCtx.Setup(c => c.Set<Account>()).Returns(mockSet.Object);
+        var repo = new Repository<Account>(mockCtx.Object);
 
         // Act
-        var result = await repository.CountAsync();
+        var results = await repo.GetAllAsync();
 
         // Assert
-        result.Should().Be(3);
+        results.Should().BeEmpty();
     }
 
     [Fact]
-    public async Task CountAsync_WithPredicate_ReturnsFilteredCount()
+    public async Task GetAllAsync_ShouldReturnEmpty_WhenNoEntities()
     {
         // Arrange
-        var entities = new List<TestEntity>
-        {
-            new TestEntity { Id = 1, Name = "Active" },
-            new TestEntity { Id = 2, Name = "Active" },
-            new TestEntity { Id = 3, Name = "Inactive" }
-        }.AsQueryable();
-
-        SetupMockDbSet(entities);
-        _mockContext.Setup(c => c.Set<TestEntity>()).Returns(_mockDbSet.Object);
-
-        var repository = new Repository<TestEntity>(_mockContext.Object);
+        var emptyList = new List<Account>();
+        var mockSet = MockDbSetFactory.CreateMockDbSet(emptyList);
+        var mockCtx = new Mock<ICrmDbContext>();
+        mockCtx.Setup(c => c.Set<Account>()).Returns(mockSet.Object);
+        var repo = new Repository<Account>(mockCtx.Object);
 
         // Act
-        var result = await repository.CountAsync(e => e.Name == "Active");
+        var results = await repo.GetAllAsync();
 
         // Assert
-        result.Should().Be(2);
+        results.Should().BeEmpty();
+    }
+
+    // ========== FindAsync ==========
+
+    [Fact]
+    public async Task FindAsync_ShouldReturnMatchingEntities()
+    {
+        // Act
+        var results = await _repository.FindAsync(a => a.Company!.Contains("Acme"));
+
+        // Assert
+        var list = results.ToList();
+        list.Should().HaveCount(1);
+        list[0].Company.Should().Be("Acme Corp");
     }
 
     [Fact]
-    public async Task AnyAsync_HasMatches_ReturnsTrue()
+    public async Task FindAsync_ShouldExcludeDeletedEntities()
     {
-        // Arrange
-        var entities = new List<TestEntity>
-        {
-            new TestEntity { Id = 1, Name = "Test" }
-        }.AsQueryable();
-
-        SetupMockDbSet(entities);
-        _mockContext.Setup(c => c.Set<TestEntity>()).Returns(_mockDbSet.Object);
-
-        var repository = new Repository<TestEntity>(_mockContext.Object);
-
-        // Act
-        var result = await repository.AnyAsync(e => e.Name == "Test");
+        // Act — predicate matches the deleted entity's company
+        var results = await _repository.FindAsync(a => a.Company!.Contains("Deleted"));
 
         // Assert
-        result.Should().BeTrue();
+        results.Should().BeEmpty();
     }
 
     [Fact]
-    public async Task AnyAsync_NoMatches_ReturnsFalse()
+    public async Task FindAsync_ShouldReturnEmpty_WhenNoMatch()
     {
-        // Arrange
-        var entities = new List<TestEntity>
-        {
-            new TestEntity { Id = 1, Name = "Test" }
-        }.AsQueryable();
-
-        SetupMockDbSet(entities);
-        _mockContext.Setup(c => c.Set<TestEntity>()).Returns(_mockDbSet.Object);
-
-        var repository = new Repository<TestEntity>(_mockContext.Object);
-
         // Act
-        var result = await repository.AnyAsync(e => e.Name == "Other");
+        var results = await _repository.FindAsync(a => a.Company == "Nonexistent");
 
         // Assert
-        result.Should().BeFalse();
+        results.Should().BeEmpty();
     }
 
-    #endregion
-
-    #region Pagination Tests
+    // ========== AddAsync ==========
 
     [Fact]
-    public async Task GetPagedAsync_FirstPage_ReturnsFirstPage()
+    public async Task AddAsync_ShouldCallAddAsyncOnDbSet()
     {
         // Arrange
-        var entities = Enumerable.Range(1, 50).Select(i => new TestEntity
-        {
-            Id = i,
-            Name = $"Entity {i}"
-        }).AsQueryable();
-
-        SetupMockDbSet(entities);
-        _mockContext.Setup(c => c.Set<TestEntity>()).Returns(_mockDbSet.Object);
-
-        var repository = new Repository<TestEntity>(_mockContext.Object);
+        var newEntity = new Account { Company = "NewCo", Email = "new@test.com" };
 
         // Act
-        var result = await repository.GetPagedAsync(1, 10);
+        await _repository.AddAsync(newEntity);
 
         // Assert
-        result.Items.Should().HaveCount(10);
-        result.TotalCount.Should().Be(50);
-        result.Page.Should().Be(1);
+        _mockDbSet.Verify(s => s.AddAsync(newEntity, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
-    public async Task GetPagedAsync_LastPage_ReturnsRemainingItems()
+    public async Task AddAsync_ShouldNotCallSaveChanges()
     {
         // Arrange
-        var entities = Enumerable.Range(1, 25).Select(i => new TestEntity
-        {
-            Id = i,
-            Name = $"Entity {i}"
-        }).AsQueryable();
-
-        SetupMockDbSet(entities);
-        _mockContext.Setup(c => c.Set<TestEntity>()).Returns(_mockDbSet.Object);
-
-        var repository = new Repository<TestEntity>(_mockContext.Object);
+        var newEntity = new Account { Company = "NewCo2", Email = "new2@test.com" };
 
         // Act
-        var result = await repository.GetPagedAsync(3, 10);
+        await _repository.AddAsync(newEntity);
+
+        // Assert — AddAsync should NOT auto-save
+        _mockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
+    }
+
+    // ========== UpdateAsync ==========
+
+    [Fact]
+    public async Task UpdateAsync_ShouldCallUpdateOnDbSet()
+    {
+        // Arrange — ICrmDbContext mock does NOT cast to DbContext,
+        // so Repository falls into the else branch: _context.Set<T>().Update(entity)
+        var entity = new Account { Id = 1, Company = "Updated Acme", Email = "acme@test.com" };
+
+        // Act
+        await _repository.UpdateAsync(entity);
 
         // Assert
-        result.Items.Should().HaveCount(5);
+        _mockDbSet.Verify(s => s.Update(entity), Times.Once);
     }
 
-    #endregion
-
-    #region Helper Methods
-
-    private void SetupMockDbSet(IQueryable<TestEntity> data)
+    [Fact]
+    public async Task UpdateAsync_ShouldNotCallSaveChanges()
     {
-        _mockDbSet.As<IQueryable<TestEntity>>().Setup(m => m.Provider).Returns(data.Provider);
-        _mockDbSet.As<IQueryable<TestEntity>>().Setup(m => m.Expression).Returns(data.Expression);
-        _mockDbSet.As<IQueryable<TestEntity>>().Setup(m => m.ElementType).Returns(data.ElementType);
-        _mockDbSet.As<IQueryable<TestEntity>>().Setup(m => m.GetEnumerator()).Returns(data.GetEnumerator());
+        // Arrange
+        var entity = new Account { Id = 1, Company = "Updated", Email = "up@test.com" };
+
+        // Act
+        await _repository.UpdateAsync(entity);
+
+        // Assert
+        _mockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Never);
     }
 
-    #endregion
-}
+    // ========== DeleteAsync ==========
 
-// Test entity for repository tests
-public class TestEntity : BaseEntity
-{
-    public string Name { get; set; } = string.Empty;
-}
+    [Fact]
+    public async Task DeleteAsync_ShouldSetIsDeletedToTrue()
+    {
+        // Arrange
+        var entity = new Account { Id = 1, Company = "Acme Corp", Email = "acme@test.com", IsDeleted = false };
 
-public class BaseEntity
-{
-    public int Id { get; set; }
-    public DateTime CreatedAt { get; set; }
-    public DateTime? UpdatedAt { get; set; }
-    public bool IsDeleted { get; set; }
+        // Act
+        await _repository.DeleteAsync(entity);
+
+        // Assert
+        entity.IsDeleted.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task DeleteAsync_ShouldCallUpdateOnDbSet()
+    {
+        // Arrange
+        var entity = new Account { Id = 2, Company = "Globex Inc", Email = "globex@test.com", IsDeleted = false };
+
+        // Act
+        await _repository.DeleteAsync(entity);
+
+        // Assert — soft delete calls Update internally
+        _mockDbSet.Verify(s => s.Update(entity), Times.Once);
+    }
+
+    [Fact]
+    public async Task DeleteAsync_ShouldNotHardDeleteEntity()
+    {
+        // Arrange
+        var entity = new Account { Id = 2, Company = "Globex Inc", Email = "globex@test.com", IsDeleted = false };
+
+        // Act
+        await _repository.DeleteAsync(entity);
+
+        // Assert — Remove should NOT be called (soft delete, not hard delete)
+        _mockDbSet.Verify(s => s.Remove(It.IsAny<Account>()), Times.Never);
+    }
+
+    // ========== SaveAsync ==========
+
+    [Fact]
+    public async Task SaveAsync_ShouldCallSaveChangesAsync()
+    {
+        // Act
+        await _repository.SaveAsync();
+
+        // Assert
+        _mockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task SaveAsync_ShouldPropagateException_WhenSaveFails()
+    {
+        // Arrange
+        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new DbUpdateException("Save failed"));
+
+        // Act & Assert
+        await Assert.ThrowsAsync<DbUpdateException>(() => _repository.SaveAsync());
+    }
+
+    // ========== Full Lifecycle ==========
+
+    [Fact]
+    public async Task FullLifecycle_AddUpdateDeleteSave()
+    {
+        // Arrange
+        var entity = new Account { Company = "Lifecycle Co", Email = "lc@test.com" };
+
+        // Act — Add
+        await _repository.AddAsync(entity);
+        _mockDbSet.Verify(s => s.AddAsync(entity, It.IsAny<CancellationToken>()), Times.Once);
+
+        // Act — Save after add
+        await _repository.SaveAsync();
+        _mockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+
+        // Act — Update
+        entity.Company = "Updated Lifecycle Co";
+        await _repository.UpdateAsync(entity);
+        _mockDbSet.Verify(s => s.Update(entity), Times.Once);
+
+        // Act — Delete
+        await _repository.DeleteAsync(entity);
+        entity.IsDeleted.Should().BeTrue();
+
+        // Act — Final save
+        await _repository.SaveAsync();
+        _mockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Exactly(2));
+    }
 }
