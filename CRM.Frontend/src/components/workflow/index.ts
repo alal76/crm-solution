@@ -46,6 +46,16 @@ export { WorkflowSimulator } from './WorkflowSimulator';
 // Workflow Viewer (read-only)
 export { default as WorkflowViewer } from './WorkflowViewer';
 
+// Workflow List
+export { default as WorkflowList } from './WorkflowList';
+
+// Designer canvas + palette + editors
+export { default as WorkflowCanvas } from './WorkflowCanvas';
+export { default as NodePalette } from './NodePalette';
+export { default as NodeEditor } from './NodeEditor';
+export { default as TransitionEditor } from './TransitionEditor';
+export { default as WorkflowToolbar } from './WorkflowToolbar';
+
 // Enhanced Properties Panel
 export { 
   EnhancedPropertiesPanel,

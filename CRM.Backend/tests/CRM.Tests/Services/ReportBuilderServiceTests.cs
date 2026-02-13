@@ -23,6 +23,7 @@ using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
+using ReportEntity = CRM.Core.Entities.Reports.ReportDefinition;
 
 namespace CRM.Tests.Services;
 
@@ -31,11 +32,24 @@ public class ReportBuilderServiceTests
     private readonly Mock<ICrmDbContext> _mockContext;
     private readonly Mock<ILogger<ReportBuilderService>> _mockLogger;
     private readonly ReportBuilderService _service;
+    private readonly List<ReportEntity> _reportEntities;
 
     public ReportBuilderServiceTests()
     {
         _mockContext = new Mock<ICrmDbContext>();
         _mockLogger = new Mock<ILogger<ReportBuilderService>>();
+        _reportEntities = new List<ReportEntity>();
+
+        var reportSet = MockDbSetFactory.CreateMockDbSet(_reportEntities);
+        _mockContext.Setup(c => c.ReportDefinitions).Returns(reportSet.Object);
+        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).Callback(() =>
+        {
+            var nextId = _reportEntities.Count == 0 ? 1 : _reportEntities.Max(r => r.Id) + 1;
+            foreach (var entity in _reportEntities.Where(r => r.Id == 0))
+            {
+                entity.Id = nextId++;
+            }
+        }).ReturnsAsync(1);
 
         _service = new ReportBuilderService(
             _mockContext.Object,
