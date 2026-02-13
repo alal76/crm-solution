@@ -74,7 +74,7 @@ function ReportsPage() {
   };
 
   const buildCreateDto = (report: ReportConfig) => ({
-    name: report.name?.trim() || 'Untitled Report',
+    name: report.name?.trim() || '',
     description: report.description || '',
     query: JSON.stringify(report),
     category: report.dataSource || 'General',
@@ -128,6 +128,11 @@ function ReportsPage() {
       r.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       r.description?.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  const existingReportNames = reports
+    .filter((r) => r.id !== editingReport?.id)
+    .map((r) => r.name)
+    .filter((name): name is string => Boolean(name));
 
   return (
     <Box sx={{ py: 2 }}>
@@ -260,6 +265,7 @@ function ReportsPage() {
             onSave={handleSave}
             onRun={handleRun}
             onCancel={() => { setDesignerOpen(false); setEditingReport(undefined); }}
+            existingReportNames={existingReportNames}
           />
         </DialogContent>
       </Dialog>

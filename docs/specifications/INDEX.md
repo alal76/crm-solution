@@ -92,7 +92,8 @@ This index provides a centralized catalog of all feature specifications in the C
 | SPEC-AI-002 | Opportunity Insights | ✅ Complete | P2 | CRM-003 |
 | SPEC-AI-003 | Churn Prediction | ⏳ Pending | P3 | CRM-001 |
 | SPEC-AI-004 | Email Intelligence | ⏳ Pending | P3 | MKT-001 |
-| [SPEC-AI-005](SPEC-AI-005-ReportingAnalytics.md) | Reporting & Analytics | ⚠️ Partial | P1 | SYS-005 |
+| [SPEC-AI-005](SPEC-AI-005-ReportingAnalytics.md) | Reporting & Analytics | ✅ Complete | P1 | SYS-005 |
+| [SPEC-AI-005-FE](SPEC-AI-005-FrontendAnalyticsUI.md) | Frontend Analytics & Reporting UI | ⚠️ Partial | P1 | AI-005 |
 
 ### Integration Module
 | Spec ID | Feature | Status | Priority | Dependencies |

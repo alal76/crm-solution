@@ -2,7 +2,7 @@
 
 > **Last Updated:** February 17, 2026
 > **Purpose:** Consolidated list of all PENDING enhancements and action items
-> **Total Pending Items:** 147
+> **Total Pending Items:** 168
 > **Completed items have been archived — see git history for prior state**
 
 ---
@@ -120,6 +120,36 @@
 | TODO-SYS009-002 | P2 | Add unit tests for navigation + system settings | 7 |
 | TODO-SYS009-003 | P2 | Complete provider-aware navigation merge | 7 |
 | TODO-SYS009-004 | P3 | Add audit logging for admin changes | 7 |
+
+### SPEC-AI-005-FE (Frontend Analytics & Reporting UI) — 6 Items
+
+| ID | Priority | Description | Spec Section |
+|----|----------|-------------|--------------|
+| TODO-AI005-FE-001 | P2 | Add end-to-end analytics tests for dashboards and reports | 7 |
+| TODO-AI005-FE-002 | P2 | Define JSON schema versioning for report query payloads | 6.1 |
+| TODO-AI005-FE-003 | P2 | Wire DashboardBuilder save flow to dashboard config APIs | 6.2 |
+| TODO-AI005-FE-004 | P2 | Connect report scheduling/export to backend endpoints | 6.2 |
+| TODO-AI005-FE-005 | P2 | Align analytics embed API routes with backend controllers | 6.2 |
+| TODO-AI005-FE-006 | P3 | Validate filter value types in ReportDesigner | 6.3 |
+
+### Missing Specifications (Index Gaps) — 14 Items
+
+| ID | Priority | Description | Spec Section |
+|----|----------|-------------|--------------|
+| TODO-SPEC-001 | P1 | Create SPEC-SYS-001 User Management specification | 1 |
+| TODO-SPEC-002 | P1 | Create SPEC-SYS-002 Authentication specification | 1 |
+| TODO-SPEC-003 | P1 | Create SPEC-SYS-003 User Groups & Permissions specification | 1 |
+| TODO-SPEC-004 | P1 | Create SPEC-SYS-005 System Settings specification | 1 |
+| TODO-SPEC-005 | P2 | Create SPEC-SYS-006 Audit Logging specification | 1 |
+| TODO-SPEC-006 | P2 | Create SPEC-ITSM-001 Incident Management specification | 1 |
+| TODO-SPEC-007 | P2 | Create SPEC-ITSM-002 Problem Management specification | 1 |
+| TODO-SPEC-008 | P2 | Create SPEC-ITSM-003 Change Management specification | 1 |
+| TODO-SPEC-009 | P2 | Create SPEC-ITSM-004 CMDB specification | 1 |
+| TODO-SPEC-010 | P3 | Create SPEC-AI-003 Churn Prediction specification | 1 |
+| TODO-SPEC-011 | P3 | Create SPEC-AI-004 Email Intelligence specification | 1 |
+| TODO-SPEC-012 | P2 | Create SPEC-INT-001 Webhook Management specification | 1 |
+| TODO-SPEC-013 | P2 | Create SPEC-INT-002 Provider Integration specification | 1 |
+| TODO-SPEC-014 | P2 | Create SPEC-INT-003 Import/Export specification | 1 |
 
 ### SYS008-ISS01 Resolution
 
@@ -465,10 +495,10 @@
 | Priority | Count | Description |
 |----------|-------|-------------|
 | **P0 — Critical** | 0 | No critical blockers |
-| **P1 — High** | 8 | Core functionality gaps: validations, lead conversion, global search, inline editing |
-| **P2 — Medium** | 79 | Service completion, testing, integrations, reporting, AI features |
-| **P3 — Low** | 61 | Portal, mobile, advanced customization, nice-to-have UX |
-| **Total** | **148** | |
+| **P1 — High** | 12 | Core functionality gaps: validations, lead conversion, global search, inline editing |
+| **P2 — Medium** | 92 | Service completion, testing, integrations, reporting, AI features |
+| **P3 — Low** | 64 | Portal, mobile, advanced customization, nice-to-have UX |
+| **Total** | **168** | |
 
 ### Recommended Implementation Order
 
