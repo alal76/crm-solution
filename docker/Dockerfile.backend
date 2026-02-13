@@ -31,9 +31,8 @@ RUN dotnet restore CRM.sln
 # Copy all source files
 COPY CRM.Backend/src/ ./src/
 
-# Build and publish (combined for reliability)
-RUN dotnet build CRM.sln -c Release && \
-    dotnet publish "src/CRM.Api/CRM.Api.csproj" -c Release -o /app/publish --no-build
+# Build and publish (only the API project, skip tests)
+RUN dotnet publish "src/CRM.Api/CRM.Api.csproj" -c Release -o /app/publish
 
 # ============================================
 # Stage 2: Runtime (minimal image)

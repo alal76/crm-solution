@@ -1,0 +1,650 @@
+# ═══════════════════════════════════════════════════════════════════════════
+# CRM Solution - Full Stack Deployment (All OSS Providers)
+# Server: 192.168.0.9
+# Usage: docker compose -f docker-compose.deploy.yml up -d
+# ═══════════════════════════════════════════════════════════════════════════
+
+volumes:
+  db-data:
+  api-data:
+  redis-data:
+  meilisearch-data:
+  ollama-data:
+  n8n-data:
+  novu-mongo-data:
+  novu-redis-data:
+  chatwoot-data:
+  chatwoot-redis-data:
+  chatwoot-postgres-data:
+  docuseal-data:
+  docuseal-postgres-data:
+  superset-data:
+  superset-postgres-data:
+  superset-redis-data:
+
+networks:
+  crm-network:
+    driver: bridge
+
+services:
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # TIER 1: DATABASES & CACHES (no dependencies)
+  # ═══════════════════════════════════════════════════════════════════════
+
+  mariadb:
+    image: mariadb:11.2
+    container_name: crm-mariadb
+    restart: unless-stopped
+    ports:
+      - "${DB_EXTERNAL_PORT:-3306}:3306"
+    environment:
+      - MARIADB_ROOT_PASSWORD=${DB_ROOT_PASSWORD:-RootPass@Dev2024}
+      - MARIADB_DATABASE=${DB_NAME:-crm_db}
+      - MARIADB_USER=${DB_USER:-crm_user}
+      - MARIADB_PASSWORD=${DB_PASSWORD:-CrmPass@Dev2024}
+    volumes:
+      - db-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mariadb-admin", "ping", "-h", "localhost", "-u", "root", "-p${DB_ROOT_PASSWORD:-RootPass@Dev2024}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - crm-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: crm-redis
+    restart: unless-stopped
+    ports:
+      - "${REDIS_EXTERNAL_PORT:-6379}:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - crm-network
+
+  meilisearch:
+    image: getmeili/meilisearch:v1.6
+    container_name: crm-meilisearch
+    restart: unless-stopped
+    ports:
+      - "${MEILISEARCH_EXTERNAL_PORT:-7700}:7700"
+    volumes:
+      - meilisearch-data:/meili_data
+    environment:
+      - MEILI_MASTER_KEY=${MEILISEARCH_API_KEY:-masterKey123}
+      - MEILI_ENV=${MEILISEARCH_ENV:-production}
+      - MEILI_NO_ANALYTICS=true
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://127.0.0.1:7700/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    networks:
+      - crm-network
+
+  novu-mongo:
+    image: mongo:6
+    container_name: crm-novu-mongo
+    restart: unless-stopped
+    volumes:
+      - novu-mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    networks:
+      - crm-network
+
+  novu-redis:
+    image: redis:7-alpine
+    container_name: crm-novu-redis
+    restart: unless-stopped
+    volumes:
+      - novu-redis-data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - crm-network
+
+  chatwoot-postgres:
+    image: postgres:15-alpine
+    container_name: crm-chatwoot-postgres
+    restart: unless-stopped
+    volumes:
+      - chatwoot-postgres-data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=chatwoot_production
+      - POSTGRES_USER=chatwoot
+      - POSTGRES_PASSWORD=${CHATWOOT_DB_PASSWORD:-chatwoot_password}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U chatwoot -d chatwoot_production"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    networks:
+      - crm-network
+
+  chatwoot-redis:
+    image: redis:7-alpine
+    container_name: crm-chatwoot-redis
+    restart: unless-stopped
+    volumes:
+      - chatwoot-redis-data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - crm-network
+
+  docuseal-postgres:
+    image: postgres:15-alpine
+    container_name: crm-docuseal-postgres
+    restart: unless-stopped
+    volumes:
+      - docuseal-postgres-data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=docuseal
+      - POSTGRES_USER=docuseal
+      - POSTGRES_PASSWORD=${DOCUSEAL_DB_PASSWORD:-docuseal_password}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U docuseal -d docuseal"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    networks:
+      - crm-network
+
+  superset-postgres:
+    image: postgres:15-alpine
+    container_name: crm-superset-postgres
+    restart: unless-stopped
+    volumes:
+      - superset-postgres-data:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=superset
+      - POSTGRES_USER=superset
+      - POSTGRES_PASSWORD=${SUPERSET_DB_PASSWORD:-superset_password}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U superset -d superset"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    networks:
+      - crm-network
+
+  superset-redis:
+    image: redis:7-alpine
+    container_name: crm-superset-redis
+    restart: unless-stopped
+    volumes:
+      - superset-redis-data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - crm-network
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # TIER 2: OSS PROVIDER SERVICES (depend on their databases)
+  # ═══════════════════════════════════════════════════════════════════════
+
+  # --- Ollama (Local AI/LLM) ---
+  ollama:
+    image: ollama/ollama:latest
+    container_name: crm-ollama
+    restart: unless-stopped
+    ports:
+      - "11434:11434"
+    environment:
+      OLLAMA_HOST: "0.0.0.0"
+      OLLAMA_MODELS: /root/.ollama/models
+    volumes:
+      - ollama-data:/root/.ollama
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:11434/api/tags || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    networks:
+      - crm-network
+
+  # --- n8n (Integration/Workflow Automation) ---
+  n8n:
+    image: docker.n8n.io/n8nio/n8n:latest
+    container_name: crm-n8n
+    restart: unless-stopped
+    ports:
+      - "${N8N_PORT:-5678}:5678"
+    environment:
+      - N8N_BASIC_AUTH_ACTIVE=true
+      - N8N_BASIC_AUTH_USER=${N8N_BASIC_AUTH_USER:-admin}
+      - N8N_BASIC_AUTH_PASSWORD=${N8N_BASIC_AUTH_PASSWORD:-N8nAdmin@2026}
+      - N8N_HOST=0.0.0.0
+      - N8N_PORT=5678
+      - N8N_PROTOCOL=http
+      - WEBHOOK_URL=http://192.168.0.9:5678/
+      - GENERIC_TIMEZONE=UTC
+    volumes:
+      - n8n-data:/home/node/.n8n
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO /dev/null http://localhost:5678/healthz || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    networks:
+      - crm-network
+
+  # --- Novu API (Notifications) ---
+  novu-api:
+    image: ghcr.io/novuhq/novu/api:0.24.0
+    container_name: crm-novu-api
+    restart: unless-stopped
+    depends_on:
+      novu-mongo:
+        condition: service_healthy
+      novu-redis:
+        condition: service_healthy
+    environment:
+      - NODE_ENV=local
+      - API_ROOT_URL=http://localhost:3000
+      - MONGO_URL=mongodb://novu-mongo:27017/novu
+      - REDIS_HOST=novu-redis
+      - REDIS_PORT=6379
+      - REDIS_DB_INDEX=2
+      - S3_LOCAL_STACK=http://localhost:9000
+      - S3_BUCKET_NAME=novu-local
+      - S3_REGION=us-east-1
+      - AWS_ACCESS_KEY_ID=novulocalaccesskey00
+      - AWS_SECRET_ACCESS_KEY=novulocalsecretkey0000000000000
+      - FRONT_BASE_URL=http://localhost:4200
+      - API_PORT=3000
+      - JWT_SECRET=${NOVU_JWT_SECRET:-novu-jwt-secret}
+      - STORE_ENCRYPTION_KEY=${NOVU_ENCRYPTION_KEY:-novuEncryptionKey00000000000032c}
+    ports:
+      - "${NOVU_API_PORT:-3000}:3000"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:3000/v1/health-check"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    networks:
+      - crm-network
+
+  novu-worker:
+    image: ghcr.io/novuhq/novu/worker:0.24.0
+    container_name: crm-novu-worker
+    restart: unless-stopped
+    depends_on:
+      novu-mongo:
+        condition: service_healthy
+      novu-redis:
+        condition: service_healthy
+      novu-api:
+        condition: service_healthy
+    environment:
+      - NODE_ENV=local
+      - MONGO_URL=mongodb://novu-mongo:27017/novu
+      - REDIS_HOST=novu-redis
+      - REDIS_PORT=6379
+      - REDIS_DB_INDEX=2
+      - S3_LOCAL_STACK=http://localhost:9000
+      - AWS_ACCESS_KEY_ID=novulocalaccesskey00
+      - AWS_SECRET_ACCESS_KEY=novulocalsecretkey0000000000000
+      - STORE_ENCRYPTION_KEY=${NOVU_ENCRYPTION_KEY:-novuEncryptionKey00000000000032c}
+    networks:
+      - crm-network
+
+  novu-web:
+    image: ghcr.io/novuhq/novu/web:0.24.0
+    container_name: crm-novu-web
+    restart: unless-stopped
+    depends_on:
+      novu-api:
+        condition: service_healthy
+    environment:
+      - REACT_APP_API_URL=http://localhost:3000
+      - REACT_APP_WS_URL=http://localhost:3002
+      - REACT_APP_WIDGET_EMBED_PATH=http://localhost:4701/embed.umd.min.js
+    ports:
+      - "${NOVU_WEB_PORT:-4200}:4200"
+    networks:
+      - crm-network
+
+  novu-ws:
+    image: ghcr.io/novuhq/novu/ws:0.24.0
+    container_name: crm-novu-ws
+    restart: unless-stopped
+    depends_on:
+      novu-mongo:
+        condition: service_healthy
+      novu-redis:
+        condition: service_healthy
+    environment:
+      - NODE_ENV=production
+      - MONGO_URL=mongodb://novu-mongo:27017/novu
+      - REDIS_HOST=novu-redis
+      - REDIS_PORT=6379
+      - REDIS_DB_INDEX=2
+      - JWT_SECRET=${NOVU_JWT_SECRET:-novu-jwt-secret}
+      - PORT=3002
+    ports:
+      - "${NOVU_WS_PORT:-3002}:3002"
+    networks:
+      - crm-network
+
+  # --- Chatwoot (Live Chat) ---
+  chatwoot-web:
+    image: chatwoot/chatwoot:v3.13.0
+    container_name: crm-chatwoot-web
+    restart: unless-stopped
+    depends_on:
+      chatwoot-postgres:
+        condition: service_healthy
+      chatwoot-redis:
+        condition: service_healthy
+    command: bundle exec rails s -p 3000 -b 0.0.0.0
+    entrypoint: docker/entrypoints/rails.sh
+    environment:
+      - RAILS_ENV=production
+      - NODE_ENV=production
+      - SECRET_KEY_BASE=${CHATWOOT_SECRET_KEY:-replace-with-secure-secret-key}
+      - POSTGRES_HOST=chatwoot-postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DATABASE=chatwoot_production
+      - POSTGRES_USERNAME=chatwoot
+      - POSTGRES_PASSWORD=${CHATWOOT_DB_PASSWORD:-chatwoot_password}
+      - REDIS_URL=redis://chatwoot-redis:6379
+      - FRONTEND_URL=http://192.168.0.9:3003
+      - DEFAULT_LOCALE=en
+      - FORCE_SSL=false
+      - ENABLE_ACCOUNT_SIGNUP=false
+      - ACTIVE_STORAGE_SERVICE=local
+    volumes:
+      - chatwoot-data:/app/storage
+    ports:
+      - "${CHATWOOT_PORT:-3003}:3000"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO /dev/null http://127.0.0.1:3000/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+    networks:
+      - crm-network
+
+  chatwoot-worker:
+    image: chatwoot/chatwoot:v3.13.0
+    container_name: crm-chatwoot-worker
+    restart: unless-stopped
+    depends_on:
+      chatwoot-postgres:
+        condition: service_healthy
+      chatwoot-redis:
+        condition: service_healthy
+    command: bundle exec sidekiq -C config/sidekiq.yml
+    environment:
+      - RAILS_ENV=production
+      - SECRET_KEY_BASE=${CHATWOOT_SECRET_KEY:-replace-with-secure-secret-key}
+      - POSTGRES_HOST=chatwoot-postgres
+      - POSTGRES_PORT=5432
+      - POSTGRES_DATABASE=chatwoot_production
+      - POSTGRES_USERNAME=chatwoot
+      - POSTGRES_PASSWORD=${CHATWOOT_DB_PASSWORD:-chatwoot_password}
+      - REDIS_URL=redis://chatwoot-redis:6379
+      - ACTIVE_STORAGE_SERVICE=local
+    volumes:
+      - chatwoot-data:/app/storage
+    networks:
+      - crm-network
+
+  # --- DocuSeal (E-Signatures) ---
+  docuseal:
+    image: docuseal/docuseal:1.5.7
+    container_name: crm-docuseal
+    restart: unless-stopped
+    depends_on:
+      docuseal-postgres:
+        condition: service_healthy
+    environment:
+      - DATABASE_URL=postgresql://docuseal:${DOCUSEAL_DB_PASSWORD:-docuseal_password}@docuseal-postgres:5432/docuseal
+      - SECRET_KEY_BASE=${DOCUSEAL_SECRET_KEY:-replace-with-secure-secret-key}
+      - HOST=${DOCUSEAL_HOST:-192.168.0.9:3001}
+      - WEBHOOK_URL=${DOCUSEAL_WEBHOOK_URL:-}
+      - WEBHOOK_SECRET=${DOCUSEAL_WEBHOOK_SECRET:-}
+      - ACTIVE_STORAGE_SERVICE=local
+    volumes:
+      - docuseal-data:/data
+    ports:
+      - "${DOCUSEAL_PORT:-3001}:3000"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO /dev/null http://127.0.0.1:3000/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    networks:
+      - crm-network
+
+  # --- Apache Superset (Analytics/BI) ---
+  superset:
+    image: apache/superset:3.1.0
+    container_name: crm-superset
+    restart: unless-stopped
+    depends_on:
+      superset-postgres:
+        condition: service_healthy
+      superset-redis:
+        condition: service_healthy
+    environment:
+      - SUPERSET_SECRET_KEY=${SUPERSET_SECRET_KEY:-replace-with-secure-secret-key}
+      - SUPERSET_LOAD_EXAMPLES=false
+      - DATABASE_HOST=superset-postgres
+      - DATABASE_PORT=5432
+      - DATABASE_DB=superset
+      - DATABASE_USER=superset
+      - DATABASE_PASSWORD=${SUPERSET_DB_PASSWORD:-superset_password}
+      - REDIS_HOST=superset-redis
+      - REDIS_PORT=6379
+      - GUEST_TOKEN_JWT_SECRET=${SUPERSET_GUEST_TOKEN_SECRET:-guest-token-secret}
+      - GUEST_TOKEN_JWT_EXP_SECONDS=3600
+      - TALISMAN_ENABLED=false
+      - WTF_CSRF_ENABLED=false
+      - ENABLE_PROXY_FIX=true
+      - 'FEATURE_FLAGS={"EMBEDDED_SUPERSET": true, "DASHBOARD_RBAC": true}'
+    volumes:
+      - superset-data:/app/superset_home
+    ports:
+      - "${SUPERSET_PORT:-8088}:8088"
+    command: >
+      bash -c "superset db upgrade &&
+               superset fab create-admin --username admin --firstname Admin --lastname User --email admin@crm.local --password ${SUPERSET_ADMIN_PASSWORD:-admin123} || true &&
+               superset init &&
+               gunicorn --bind 0.0.0.0:8088 --workers 4 --timeout 120 --limit-request-line 0 --limit-request-field_size 0 'superset.app:create_app()'"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8088/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+    networks:
+      - crm-network
+
+  superset-worker:
+    image: apache/superset:3.1.0
+    container_name: crm-superset-worker
+    restart: unless-stopped
+    depends_on:
+      superset:
+        condition: service_healthy
+    environment:
+      - SUPERSET_SECRET_KEY=${SUPERSET_SECRET_KEY:-replace-with-secure-secret-key}
+      - DATABASE_HOST=superset-postgres
+      - DATABASE_PORT=5432
+      - DATABASE_DB=superset
+      - DATABASE_USER=superset
+      - DATABASE_PASSWORD=${SUPERSET_DB_PASSWORD:-superset_password}
+      - REDIS_HOST=superset-redis
+      - REDIS_PORT=6379
+    command: celery --app=superset.tasks.celery_app:app worker --pool=prefork -O fair -c 4
+    networks:
+      - crm-network
+
+  superset-beat:
+    image: apache/superset:3.1.0
+    container_name: crm-superset-beat
+    restart: unless-stopped
+    depends_on:
+      superset:
+        condition: service_healthy
+    environment:
+      - SUPERSET_SECRET_KEY=${SUPERSET_SECRET_KEY:-replace-with-secure-secret-key}
+      - DATABASE_HOST=superset-postgres
+      - DATABASE_PORT=5432
+      - DATABASE_DB=superset
+      - DATABASE_USER=superset
+      - DATABASE_PASSWORD=${SUPERSET_DB_PASSWORD:-superset_password}
+      - REDIS_HOST=superset-redis
+      - REDIS_PORT=6379
+    command: celery --app=superset.tasks.celery_app:app beat --pidfile /tmp/celerybeat.pid --schedule /tmp/celerybeat-schedule
+    networks:
+      - crm-network
+
+  # ═══════════════════════════════════════════════════════════════════════
+  # TIER 3: CRM APPLICATION (depends on databases + providers)
+  # ═══════════════════════════════════════════════════════════════════════
+
+  api:
+    image: crm-api:latest
+    container_name: crm-api
+    restart: unless-stopped
+    ports:
+      - "${API_EXTERNAL_PORT:-5000}:5000"
+    env_file:
+      - .env
+    environment:
+      - ASPNETCORE_ENVIRONMENT=${ASPNETCORE_ENVIRONMENT:-Development}
+      - AllowedHosts=*
+      - DatabaseProvider=${DATABASE_PROVIDER:-mariadb}
+      - DB_HOST=${DB_HOST:-mariadb}
+      - DB_PORT=${DB_INTERNAL_PORT:-3306}
+      - DB_NAME=${DB_NAME:-crm_db}
+      - DB_USER=${DB_USER:-crm_user}
+      - DB_PASSWORD=${DB_PASSWORD:-CrmPass@Dev2024}
+      - ConnectionStrings__DefaultConnection=Server=${DB_HOST:-mariadb};Port=${DB_PORT:-3306};Database=${DB_NAME:-crm_db};User=${DB_USER:-crm_user};Password=${DB_PASSWORD:-CrmPass@Dev2024};
+      - DemoDatabase__AutoSeed=${DEMO_AUTO_SEED:-true}
+      - DemoDatabase__DatabaseName=${DEMO_DB_NAME:-crm_demodb}
+      - API_EXTERNAL_PORT=${API_EXTERNAL_PORT:-5000}
+      - API_INTERNAL_PORT=${API_INTERNAL_PORT:-5000}
+      - Jwt__ExpirationMinutes=${JWT_EXPIRATION_MINUTES:-60}
+      - Jwt__Secret=${JWT_SECRET}
+      - CONTRACT_STORAGE_PATH=${CONTRACT_STORAGE_PATH:-/app/data/contracts}
+      - MAX_CONTRACT_FILE_SIZE_BYTES=${MAX_CONTRACT_FILE_SIZE:-10485760}
+      - ALLOWED_CONTRACT_MIME_TYPES=${ALLOWED_MIME_TYPES:-application/pdf,image/png,image/jpeg,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document}
+      - Redis__ConnectionString=${REDIS_HOST:-redis}:${REDIS_PORT:-6379}
+      - Redis__InstanceName=${REDIS_INSTANCE:-crm_}
+      - Redis__Enabled=${REDIS_ENABLED:-true}
+      - Monitoring__DeploymentType=${DEPLOYMENT_TYPE:-docker}
+      - Monitoring__BuildServer=${BUILD_SERVER:-192.168.0.9}
+      - Monitoring__EnableDockerMonitoring=${ENABLE_DOCKER_MONITORING:-true}
+      - Monitoring__EnableK8sMonitoring=${ENABLE_K8S_MONITORING:-false}
+      - Monitoring__DatabaseProvider=${DATABASE_PROVIDER:-mariadb}
+      - Frontend__Url=${FRONTEND_URL:-http://192.168.0.9}
+      # Feature Management
+      - FeatureManagement__UseExternalChat=${USE_EXTERNAL_CHAT:-true}
+      - FeatureManagement__UseExternalSearch=${USE_EXTERNAL_SEARCH:-true}
+      - FeatureManagement__UseExternalNotifications=${USE_EXTERNAL_NOTIFICATIONS:-true}
+      - FeatureManagement__UseExternalAnalytics=${USE_EXTERNAL_ANALYTICS:-true}
+      - FeatureManagement__UseExternalSignatures=${USE_EXTERNAL_SIGNATURES:-true}
+      - FeatureManagement__UseExternalAI=${USE_EXTERNAL_AI:-true}
+      - FeatureManagement__UseExternalIntegrations=${USE_EXTERNAL_INTEGRATIONS:-true}
+      - FeatureManagement__EnableITSM=${ENABLE_ITSM:-true}
+      - FeatureManagement__EnableMarketing=${ENABLE_MARKETING:-true}
+      - FeatureManagement__EnableCustomerPortal=${ENABLE_CUSTOMER_PORTAL:-false}
+      - FeatureManagement__EnablePartnerPortal=${ENABLE_PARTNER_PORTAL:-false}
+      - FeatureManagement__EnableKnowledgeBase=${ENABLE_KNOWLEDGE_BASE:-true}
+      - FeatureManagement__NewSearchExperience=${NEW_SEARCH_EXPERIENCE:-false}
+      - FeatureManagement__AIAssistant=${AI_ASSISTANT:-true}
+      - FeatureManagement__RealTimeNotifications=${REALTIME_NOTIFICATIONS:-true}
+      - FeatureManagement__AdvancedWorkflows=${ADVANCED_WORKFLOWS:-true}
+      # Provider Types
+      - Providers__Chat__Type=${PROVIDER_CHAT_TYPE:-Chatwoot}
+      - Providers__Search__Type=${PROVIDER_SEARCH_TYPE:-Meilisearch}
+      - Providers__Notifications__Type=${PROVIDER_NOTIFICATIONS_TYPE:-Novu}
+      - Providers__Analytics__Type=${PROVIDER_ANALYTICS_TYPE:-Superset}
+      - Providers__Signatures__Type=${PROVIDER_SIGNATURES_TYPE:-DocuSeal}
+      - Providers__Integrations__Type=${PROVIDER_INTEGRATIONS_TYPE:-N8n}
+      # Provider Endpoints
+      - Providers__Chat__Chatwoot__BaseUrl=${CHATWOOT_BASE_URL:-http://chatwoot-web:3000}
+      - Providers__Chat__Chatwoot__ApiKey=${CHATWOOT_API_KEY:-}
+      - Providers__Search__Meilisearch__Url=${MEILISEARCH_URL:-http://meilisearch:7700}
+      - Providers__Search__Meilisearch__ApiKey=${MEILISEARCH_API_KEY:-masterKey123}
+      - Providers__Notifications__Novu__ApiKey=${NOVU_API_KEY:-}
+      - Providers__Analytics__Superset__Url=${SUPERSET_URL:-http://superset:8088}
+      - Providers__Signatures__DocuSeal__Url=${DOCUSEAL_URL:-http://docuseal:3001}
+      - Providers__Integrations__N8n__Url=${N8N_URL:-http://n8n:5678}
+      # AI Provider
+      - Providers__AI__Type=Ollama
+      - Providers__AI__Ollama__Url=http://ollama:11434
+      - Providers__AI__Ollama__Model=${OLLAMA_MODEL:-qwen2.5:0.5b}
+    volumes:
+      - api-data:/app/data
+    depends_on:
+      mariadb:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 15s
+    networks:
+      - crm-network
+
+  frontend:
+    image: crm-frontend:latest
+    container_name: crm-frontend
+    restart: unless-stopped
+    ports:
+      - "${FRONTEND_EXTERNAL_PORT:-80}:80"
+    environment:
+      - NODE_ENV=production
+    depends_on:
+      - api
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO /dev/null http://127.0.0.1:80/ || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    networks:
+      - crm-network
