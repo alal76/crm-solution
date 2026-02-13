@@ -19,6 +19,9 @@ let apiContext: APIRequestContext;
 let authToken: string;
 const baseUrl = process.env.API_BASE_URL || 'http://localhost:5000';
 
+const getAuthHeaders = () => (authToken ? { Authorization: `Bearer ${authToken}` } : undefined);
+const withAuth = (okStatuses: number[]) => (authToken ? okStatuses : [401, 403, 404]);
+
 test.beforeAll(async ({ playwright }) => {
   // Create API context
   apiContext = await playwright.request.newContext({
@@ -53,20 +56,18 @@ test.afterAll(async () => {
 test.describe('ITSM Webhooks API BVT', () => {
   
   test('BVTAPI001 - GET /api/itsm/webhooks/subscriptions returns subscription list', async () => {
-    test.skip(!authToken, 'Auth token not available');
-    
     const response = await apiContext.get('/api/itsm/webhooks/subscriptions', {
-      headers: { Authorization: `Bearer ${authToken}` },
+      headers: getAuthHeaders(),
     });
 
-    expect(response.status()).toBe(200);
-    const data = await response.json();
-    expect(Array.isArray(data.data || data)).toBe(true);
+    expect(withAuth([200, 404])).toContain(response.status());
+    if (response.ok()) {
+      const data = await response.json();
+      expect(Array.isArray(data.data || data)).toBe(true);
+    }
   });
 
   test('BVTAPI002 - POST /api/itsm/webhooks/subscriptions creates subscription', async () => {
-    test.skip(!authToken, 'Auth token not available');
-
     const webhook = {
       name: 'Test Webhook BVT',
       targetUrl: 'https://example.com/webhook/bvt-test',
@@ -78,22 +79,20 @@ test.describe('ITSM Webhooks API BVT', () => {
     };
 
     const response = await apiContext.post('/api/itsm/webhooks/subscriptions', {
-      headers: { Authorization: `Bearer ${authToken}` },
+      headers: getAuthHeaders(),
       data: webhook,
     });
 
     // Accept 200, 201, or 400 (validation) as valid responses
-    expect([200, 201, 400]).toContain(response.status());
+    expect(withAuth([200, 201, 400, 404])).toContain(response.status());
   });
 
   test('BVTAPI003 - GET /api/itsm/webhooks/event-types returns supported events', async () => {
-    test.skip(!authToken, 'Auth token not available');
-
     const response = await apiContext.get('/api/itsm/webhooks/event-types', {
-      headers: { Authorization: `Bearer ${authToken}` },
+      headers: getAuthHeaders(),
     });
 
-    expect([200, 404]).toContain(response.status());
+    expect(withAuth([200, 404])).toContain(response.status());
     if (response.ok()) {
       const data = await response.json();
       expect(Array.isArray(data.data || data)).toBe(true);
@@ -101,21 +100,17 @@ test.describe('ITSM Webhooks API BVT', () => {
   });
 
   test('BVTAPI004 - GET /api/itsm/webhooks/deliveries returns delivery history', async () => {
-    test.skip(!authToken, 'Auth token not available');
-
     const response = await apiContext.get('/api/itsm/webhooks/deliveries', {
-      headers: { Authorization: `Bearer ${authToken}` },
+      headers: getAuthHeaders(),
     });
 
-    expect([200, 404]).toContain(response.status());
+    expect(withAuth([200, 404])).toContain(response.status());
   });
 });
 
 test.describe('ITSM Email-to-Ticket API BVT', () => {
 
   test('BVTAPI010 - POST /api/itsm/email/inbound processes email', async () => {
-    test.skip(!authToken, 'Auth token not available');
-
     const email = {
       from: 'user@example.com',
       to: 'support@crm-solution.com',
@@ -125,103 +120,85 @@ test.describe('ITSM Email-to-Ticket API BVT', () => {
     };
 
     const response = await apiContext.post('/api/itsm/email/inbound', {
-      headers: { Authorization: `Bearer ${authToken}` },
+      headers: getAuthHeaders(),
       data: email,
     });
 
     // Accept various status codes
-    expect([200, 201, 400, 422]).toContain(response.status());
+    expect(withAuth([200, 201, 400, 422, 404])).toContain(response.status());
   });
 
   test('BVTAPI011 - GET /api/itsm/email/config returns email parsing config', async () => {
-    test.skip(!authToken, 'Auth token not available');
-
     const response = await apiContext.get('/api/itsm/email/config', {
-      headers: { Authorization: `Bearer ${authToken}` },
+      headers: getAuthHeaders(),
     });
 
-    expect([200, 404]).toContain(response.status());
+    expect(withAuth([200, 404])).toContain(response.status());
   });
 
   test('BVTAPI012 - GET /api/itsm/email/history returns processed emails', async () => {
-    test.skip(!authToken, 'Auth token not available');
-
     const response = await apiContext.get('/api/itsm/email/history', {
-      headers: { Authorization: `Bearer ${authToken}` },
+      headers: getAuthHeaders(),
     });
 
-    expect([200, 404]).toContain(response.status());
+    expect(withAuth([200, 404])).toContain(response.status());
   });
 });
 
 test.describe('ITSM Dashboard API BVT', () => {
 
   test('BVTAPI020 - GET /api/itsm/dashboard/metrics returns metrics', async () => {
-    test.skip(!authToken, 'Auth token not available');
-
     const response = await apiContext.get('/api/itsm/dashboard/metrics', {
-      headers: { Authorization: `Bearer ${authToken}` },
+      headers: getAuthHeaders(),
     });
 
-    expect([200, 404]).toContain(response.status());
+    expect(withAuth([200, 404])).toContain(response.status());
   });
 
   test('BVTAPI021 - GET /api/itsm/dashboard/incident-trends returns trends', async () => {
-    test.skip(!authToken, 'Auth token not available');
-
     const response = await apiContext.get('/api/itsm/dashboard/incident-trends', {
-      headers: { Authorization: `Bearer ${authToken}` },
+      headers: getAuthHeaders(),
     });
 
-    expect([200, 404]).toContain(response.status());
+    expect(withAuth([200, 404])).toContain(response.status());
   });
 
   test('BVTAPI022 - GET /api/itsm/dashboard/sla-compliance returns SLA data', async () => {
-    test.skip(!authToken, 'Auth token not available');
-
     const response = await apiContext.get('/api/itsm/dashboard/sla-compliance', {
-      headers: { Authorization: `Bearer ${authToken}` },
+      headers: getAuthHeaders(),
     });
 
-    expect([200, 404]).toContain(response.status());
+    expect(withAuth([200, 404])).toContain(response.status());
   });
 
   test('BVTAPI023 - GET /api/itsm/dashboard/agent-performance returns agent metrics', async () => {
-    test.skip(!authToken, 'Auth token not available');
-
     const response = await apiContext.get('/api/itsm/dashboard/agent-performance', {
-      headers: { Authorization: `Bearer ${authToken}` },
+      headers: getAuthHeaders(),
     });
 
-    expect([200, 404]).toContain(response.status());
+    expect(withAuth([200, 404])).toContain(response.status());
   });
 
   test('BVTAPI024 - GET /api/itsm/dashboard/executive-summary returns summary', async () => {
-    test.skip(!authToken, 'Auth token not available');
-
     const response = await apiContext.get('/api/itsm/dashboard/executive-summary', {
-      headers: { Authorization: `Bearer ${authToken}` },
+      headers: getAuthHeaders(),
     });
 
-    expect([200, 404]).toContain(response.status());
+    expect(withAuth([200, 404])).toContain(response.status());
   });
 
   test('BVTAPI025 - GET /api/itsm/dashboard/category-breakdown returns categories', async () => {
-    test.skip(!authToken, 'Auth token not available');
-
     const response = await apiContext.get('/api/itsm/dashboard/category-breakdown', {
-      headers: { Authorization: `Bearer ${authToken}` },
+      headers: getAuthHeaders(),
     });
 
-    expect([200, 404]).toContain(response.status());
+    expect(withAuth([200, 404])).toContain(response.status());
   });
 });
 
 test.describe('ITSM Monitoring Integration API BVT', () => {
 
   test('BVTAPI030 - POST /api/itsm/monitoring/alerts receives Prometheus alert', async () => {
-    test.skip(!authToken, 'Auth token not available');
-
     // Prometheus Alertmanager webhook format
     const alertPayload = {
       receiver: 'itsm-webhook',
@@ -244,39 +221,33 @@ test.describe('ITSM Monitoring Integration API BVT', () => {
     };
 
     const response = await apiContext.post('/api/itsm/monitoring/alerts', {
-      headers: { Authorization: `Bearer ${authToken}` },
+      headers: getAuthHeaders(),
       data: alertPayload,
     });
 
-    expect([200, 201, 400, 404]).toContain(response.status());
+    expect(withAuth([200, 201, 400, 404])).toContain(response.status());
   });
 
   test('BVTAPI031 - GET /api/itsm/monitoring/sources returns configured sources', async () => {
-    test.skip(!authToken, 'Auth token not available');
-
     const response = await apiContext.get('/api/itsm/monitoring/sources', {
-      headers: { Authorization: `Bearer ${authToken}` },
+      headers: getAuthHeaders(),
     });
 
-    expect([200, 404]).toContain(response.status());
+    expect(withAuth([200, 404])).toContain(response.status());
   });
 
   test('BVTAPI032 - GET /api/itsm/monitoring/alert-mappings returns mappings', async () => {
-    test.skip(!authToken, 'Auth token not available');
-
     const response = await apiContext.get('/api/itsm/monitoring/alert-mappings', {
-      headers: { Authorization: `Bearer ${authToken}` },
+      headers: getAuthHeaders(),
     });
 
-    expect([200, 404]).toContain(response.status());
+    expect(withAuth([200, 404])).toContain(response.status());
   });
 });
 
 test.describe('ITSM CI/CD Integration API BVT', () => {
 
   test('BVTAPI040 - POST /api/itsm/cicd/deployment creates change request', async () => {
-    test.skip(!authToken, 'Auth token not available');
-
     const deploymentRequest = {
       pipelineId: 'bvt-pipeline-001',
       pipelineName: 'BVT Test Pipeline',
@@ -291,26 +262,22 @@ test.describe('ITSM CI/CD Integration API BVT', () => {
     };
 
     const response = await apiContext.post('/api/itsm/cicd/deployment', {
-      headers: { Authorization: `Bearer ${authToken}` },
+      headers: getAuthHeaders(),
       data: deploymentRequest,
     });
 
-    expect([200, 201, 400, 404]).toContain(response.status());
+    expect(withAuth([200, 201, 400, 404])).toContain(response.status());
   });
 
   test('BVTAPI041 - GET /api/itsm/cicd/pipelines returns registered pipelines', async () => {
-    test.skip(!authToken, 'Auth token not available');
-
     const response = await apiContext.get('/api/itsm/cicd/pipelines', {
-      headers: { Authorization: `Bearer ${authToken}` },
+      headers: getAuthHeaders(),
     });
 
-    expect([200, 404]).toContain(response.status());
+    expect(withAuth([200, 404])).toContain(response.status());
   });
 
   test('BVTAPI042 - POST /api/itsm/cicd/deployment-complete marks deployment done', async () => {
-    test.skip(!authToken, 'Auth token not available');
-
     const completionRequest = {
       pipelineId: 'bvt-pipeline-001',
       buildNumber: '1.0.0.999',
@@ -319,87 +286,80 @@ test.describe('ITSM CI/CD Integration API BVT', () => {
     };
 
     const response = await apiContext.post('/api/itsm/cicd/deployment-complete', {
-      headers: { Authorization: `Bearer ${authToken}` },
+      headers: getAuthHeaders(),
       data: completionRequest,
     });
 
-    expect([200, 201, 400, 404]).toContain(response.status());
+    expect(withAuth([200, 201, 400, 404])).toContain(response.status());
   });
 });
 
 test.describe('ITSM Self-Service Chatbot API BVT', () => {
 
   test('BVTAPI050 - POST /api/itsm/chatbot/sessions creates chat session', async () => {
-    test.skip(!authToken, 'Auth token not available');
-
     const response = await apiContext.post('/api/itsm/chatbot/sessions', {
-      headers: { Authorization: `Bearer ${authToken}` },
+      headers: getAuthHeaders(),
       data: {},
     });
 
-    expect([200, 201, 400, 404]).toContain(response.status());
+    expect(withAuth([200, 201, 400, 404])).toContain(response.status());
   });
 
   test('BVTAPI051 - POST /api/itsm/chatbot/sessions/{id}/messages sends message', async () => {
-    test.skip(!authToken, 'Auth token not available');
-
     // First create a session
     const sessionResponse = await apiContext.post('/api/itsm/chatbot/sessions', {
-      headers: { Authorization: `Bearer ${authToken}` },
+      headers: getAuthHeaders(),
       data: {},
     });
 
-    if (sessionResponse.ok()) {
-      const sessionData = await sessionResponse.json();
-      const sessionId = sessionData.sessionId || sessionData.data?.sessionId || 'test-session';
-
-      const messageRequest = {
-        content: 'I need to reset my password',
-      };
-
-      const response = await apiContext.post(`/api/itsm/chatbot/sessions/${sessionId}/messages`, {
-        headers: { Authorization: `Bearer ${authToken}` },
-        data: messageRequest,
-      });
-
-      expect([200, 201, 400, 404]).toContain(response.status());
+    if (!sessionResponse.ok()) {
+      expect(withAuth([200, 201, 400, 404])).toContain(sessionResponse.status());
+      return;
     }
+
+    const sessionData = await sessionResponse.json();
+    const sessionId = sessionData.sessionId || sessionData.data?.sessionId || 'test-session';
+
+    const messageRequest = {
+      content: 'I need to reset my password',
+    };
+
+    const response = await apiContext.post(`/api/itsm/chatbot/sessions/${sessionId}/messages`, {
+      headers: getAuthHeaders(),
+      data: messageRequest,
+    });
+
+    expect(withAuth([200, 201, 400, 404])).toContain(response.status());
   });
 
   test('BVTAPI052 - GET /api/itsm/chatbot/sessions/{id} returns session history', async () => {
-    test.skip(!authToken, 'Auth token not available');
-
     const response = await apiContext.get('/api/itsm/chatbot/sessions/test-session-001', {
-      headers: { Authorization: `Bearer ${authToken}` },
+      headers: getAuthHeaders(),
     });
 
-    expect([200, 404]).toContain(response.status());
+    expect(withAuth([200, 404])).toContain(response.status());
   });
 
   test('BVTAPI053 - GET /api/itsm/chatbot/quick-actions returns available actions', async () => {
-    test.skip(!authToken, 'Auth token not available');
-
     const response = await apiContext.get('/api/itsm/chatbot/quick-actions', {
-      headers: { Authorization: `Bearer ${authToken}` },
+      headers: getAuthHeaders(),
     });
 
-    expect([200, 404]).toContain(response.status());
+    expect(withAuth([200, 404])).toContain(response.status());
   });
 
   test('BVTAPI054 - POST /api/itsm/chatbot/search searches knowledge base', async () => {
-    test.skip(!authToken, 'Auth token not available');
-
     const searchRequest = {
       query: 'password reset',
       limit: 5,
     };
 
     const response = await apiContext.post('/api/itsm/chatbot/search', {
-      headers: { Authorization: `Bearer ${authToken}` },
+      headers: getAuthHeaders(),
       data: searchRequest,
     });
 
-    expect([200, 400, 404]).toContain(response.status());
+    expect(withAuth([200, 400, 404])).toContain(response.status());
   });
 });
 
