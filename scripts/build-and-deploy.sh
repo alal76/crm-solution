@@ -1,4 +1,124 @@
 #!/bin/bash
+# Automated build and deploy script for CRM Solution (local/cloud)
+# - Reads env-config.json for environment/container info and templates
+# - Prompts user for environment/target
+# - Generates .env and docker-compose.yml
+# - For dev: generates SSL certs and security tokens if needed
+# - Builds and deploys frontend/backend
+
+set -e
+
+CONFIG_FILE="$(dirname "$0")/env-config.json"
+
+# Helper: prompt for input with default
+prompt() {
+    local prompt_text="$1"
+    local default_value="$2"
+    read -p "$prompt_text [$default_value]: " input
+    echo "${input:-$default_value}"
+}
+
+# Helper: generate random JWT secret
+random_secret() {
+    openssl rand -base64 48 | tr -d '/+=' | head -c 40
+}
+
+# Helper: generate self-signed SSL cert
+generate_ssl() {
+    local ssl_dir="$1"
+    mkdir -p "$ssl_dir"
+    openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+        -keyout "$ssl_dir/server.key" -out "$ssl_dir/server.crt" \
+        -subj "/CN=localhost"
+    echo "SSL certificate and key generated in $ssl_dir"
+}
+
+# 1. Ask for environment
+ENV=$(prompt "Select environment (development/production/staging)" "development")
+
+# 2. Parse env-config.json for selected environment
+if ! command -v jq &>/dev/null; then
+    echo "jq is required. Please install jq (brew install jq or apt-get install jq)."
+    exit 1
+fi
+
+ENV_DATA=$(jq -r ".environments.$ENV" "$CONFIG_FILE")
+if [ "$ENV_DATA" == "null" ]; then
+    echo "Environment '$ENV' not found in $CONFIG_FILE."
+    exit 1
+fi
+
+API_URL=$(echo "$ENV_DATA" | jq -r '.api_url')
+FRONTEND_CONTAINER=$(echo "$ENV_DATA" | jq -r '.frontend_container')
+BACKEND_CONTAINER=$(echo "$ENV_DATA" | jq -r '.backend_container')
+DOCKER_COMPOSE_FILE=$(echo "$ENV_DATA" | jq -r '.docker_compose_file')
+NODE_ENV=$(echo "$ENV_DATA" | jq -r '.node_env')
+CLOUD_API_URL=$(echo "$ENV_DATA" | jq -r '.cloud_api_url // empty')
+CLOUD_DOMAIN=$(echo "$ENV_DATA" | jq -r '.cloud_domain // empty')
+
+
+# 3. Select template type (cloud/local) for env and docker-compose
+if [ "$ENV" == "production" ] || [ "$ENV" == "staging" ]; then
+    TEMPLATE_TYPE="cloud"
+else
+    TEMPLATE_TYPE="local"
+fi
+
+# 3a. Generate .env file for frontend
+ENV_TEMPLATE=$(jq -r ".templates.env.$TEMPLATE_TYPE" "$CONFIG_FILE")
+if [ "$TEMPLATE_TYPE" == "cloud" ]; then
+    ENV_CONTENT=$(echo "$ENV_TEMPLATE" | sed "s|<cloud_api_url>|$CLOUD_API_URL|g" | sed "s|<node_env>|$NODE_ENV|g")
+else
+    ENV_CONTENT=$(echo "$ENV_TEMPLATE" | sed "s|<api_url>|$API_URL|g" | sed "s|<node_env>|$NODE_ENV|g")
+fi
+
+echo "$ENV_CONTENT" > ../CRM.Frontend/.env.generated
+cp ../CRM.Frontend/.env.generated ../CRM.Frontend/.env
+
+# 4. Generate docker-compose.yml
+DOCKER_TEMPLATE=$(jq -r ".templates.docker_compose.$TEMPLATE_TYPE" "$CONFIG_FILE")
+DOCKER_COMPOSE_CONTENT=$(echo "$DOCKER_TEMPLATE" \
+    | sed "s|<frontend_container>|$FRONTEND_CONTAINER|g" \
+    | sed "s|<backend_container>|$BACKEND_CONTAINER|g" \
+    | sed "s|<api_url>|$API_URL|g" \
+    | sed "s|<cloud_api_url>|$CLOUD_API_URL|g" \
+    | sed "s|<node_env>|$NODE_ENV|g")
+
+echo "$DOCKER_COMPOSE_CONTENT" > ../docker/docker-compose.generated.yml
+
+# 5. For dev: generate SSL certs and JWT secret if needed
+if [ "$ENV" == "development" ]; then
+    SSL_DIR="../ssl"
+    if [ ! -f "$SSL_DIR/server.crt" ] || [ ! -f "$SSL_DIR/server.key" ]; then
+        echo "Generating self-signed SSL certificate..."
+        generate_ssl "$SSL_DIR"
+    fi
+    JWT_SECRET=$(random_secret)
+    echo "JWT_SECRET=$JWT_SECRET" > ../CRM.Backend/.env.generated
+    cp ../CRM.Backend/.env.generated ../CRM.Backend/.env
+    echo "Generated JWT secret for dev."
+fi
+
+# 6. Build frontend
+cd ../CRM.Frontend
+export $(grep -v '^#' .env | xargs)
+echo "Building frontend..."
+npm install
+npm run build
+
+# 7. Build and start containers
+cd ../
+echo "Starting containers using $DOCKER_COMPOSE_FILE ..."
+docker-compose -f docker/docker-compose.generated.yml up -d --build
+
+# 8. Deploy frontend build to container (if local)
+if [ "$ENV" == "development" ] || [ "$ENV" == "production" ]; then
+    echo "Deploying frontend build to $FRONTEND_CONTAINER ..."
+    ./scripts/deploy-frontend.sh
+fi
+
+echo "Build and deployment complete for $ENV."
+#!/bin/bash
 # =============================================================================
 # ⚠️  DEPRECATED — Use scripts/deploy.sh instead
 # =============================================================================

@@ -3193,6 +3193,15 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.Ignore(e => e.TotalAmount);          // -> Total
         });
 
+        // AI Agent entities: Configure one-to-one relationship between AgentAction and AgentApprovalRequest
+        modelBuilder.Entity<AgentAction>(entity =>
+        {
+            entity.HasOne(e => e.ApprovalRequest)
+                .WithOne(a => a.AgentAction)
+                .HasForeignKey<AgentApprovalRequest>(a => a.AgentActionId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
         // Apply provider-specific post-configuration using the Strategy Pattern
         // For SQL Server: Sets all FKs to NoAction to avoid cascade path issues
         // For MySQL/MariaDB: Converts LONGTEXT columns to TEXT to avoid row size limits

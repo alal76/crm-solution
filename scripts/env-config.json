@@ -1,0 +1,55 @@
+{
+  "placeholders": {
+    "API_URL": "<api_url>",
+    "FRONTEND_CONTAINER": "<frontend_container>",
+    "BACKEND_CONTAINER": "<backend_container>",
+    "DOCKER_COMPOSE_FILE": "<docker_compose_file>",
+    "NODE_ENV": "<node_env>",
+    "CLOUD_DOMAIN": "<cloud_domain>",
+    "CLOUD_API_URL": "<cloud_api_url>"
+  },
+  "templates": {
+    "env": {
+      "local": "REACT_APP_API_URL=<api_url>\nNODE_ENV=<node_env>\n",
+      "cloud": "REACT_APP_API_URL=<cloud_api_url>\nNODE_ENV=production\n"
+    },
+    "docker_compose": {
+      "local": "version: '3.8'\nservices:\n  frontend:\n    container_name: <frontend_container>\n    build: ../CRM.Frontend\n    environment:\n      - REACT_APP_API_URL=<api_url>\n      - NODE_ENV=<node_env>\n    ports:\n      - '80:80'\n    depends_on:\n      - api\n  api:\n    container_name: <backend_container>\n    build: ../CRM.Backend/src/CRM.Api\n    environment:\n      - ASPNETCORE_ENVIRONMENT=Development\n    ports:\n      - '5000:5000'\n",
+      "cloud": "version: '3.8'\nservices:\n  frontend:\n    container_name: <frontend_container>\n    image: crm-frontend:latest\n    environment:\n      - REACT_APP_API_URL=<cloud_api_url>\n      - NODE_ENV=production\n    ports:\n      - '80:80'\n    depends_on:\n      - api\n  api:\n    container_name: <backend_container>\n    image: crm-api:latest\n    environment:\n      - ASPNETCORE_ENVIRONMENT=Production\n    ports:\n      - '5000:5000'\n"
+    }
+  },
+  "environments": {
+    "development": {
+      "api_url": "http://localhost:5000/api",
+      "frontend_container": "crm-frontend",
+      "backend_container": "crm-api",
+      "docker_compose_file": "docker/docker-compose.app.yml",
+      "node_env": "development"
+    },
+    "production": {
+      "api_url": "http://192.168.0.9:5000/api",
+      "frontend_container": "crm-frontend",
+      "backend_container": "crm-api",
+      "docker_compose_file": "docker/docker-compose.app.yml",
+      "node_env": "production",
+      "cloud_domain": "192.168.0.9",
+      "cloud_api_url": "http://192.168.0.9:5000/api"
+    },
+    "staging": {
+      "api_url": "http://staging.example.com:5000/api",
+      "frontend_container": "crm-frontend-staging",
+      "backend_container": "crm-api-staging",
+      "docker_compose_file": "docker/docker-compose.staging.yml",
+      "node_env": "production",
+      "cloud_domain": "staging.example.com",
+      "cloud_api_url": "http://staging.example.com:5000/api"
+    }
+  },
+  "instructions": {
+    "set_env": "Generate the .env file for the selected environment using the env template and values.",
+    "docker_compose": "Generate the docker-compose.yml for the selected environment using the docker_compose template and values.",
+    "frontend_deploy": "After build, copy the build output to the frontend_container at /usr/share/nginx/html/ and restart the container.",
+    "backend_deploy": "Ensure the backend_container is running and reachable at the api_url.",
+    "cloud_note": "For cloud, use the cloud template and set the domain/api_url accordingly."
+  }
+}

@@ -675,15 +675,52 @@ builder.Services.AddAuthentication(options =>
 var app = builder.Build();
 
 // ADR-002: Unified EF Core Schema Management
-// Single path: MigrateAsync() applies all EF Core migrations, then seed essential data.
+// Supports EnsureCreated for fresh deployments and MigrateAsync for existing ones.
+// Set SKIP_DB_MIGRATION=true to skip all migration/schema management.
+// Set USE_ENSURE_CREATED=true to use EnsureCreated instead of MigrateAsync (for fresh DBs).
+// Set RECREATE_DATABASE=true to drop and recreate the database completely (destructive!).
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<CrmDbContext>();
+    var skipMigration = Environment.GetEnvironmentVariable("SKIP_DB_MIGRATION") == "true";
+    if (skipMigration)
+    {
+        Log.Information("SKIP_DB_MIGRATION=true — skipping EF Core schema management");
+    }
     try
     {
-        Log.Information("Applying EF Core migrations for {Provider}...", databaseProvider);
-        await db.Database.MigrateAsync();
-        Log.Information("EF Core migrations applied successfully");
+        if (!skipMigration)
+        {
+            var useEnsureCreated = Environment.GetEnvironmentVariable("USE_ENSURE_CREATED") == "true";
+            var recreateDatabase = Environment.GetEnvironmentVariable("RECREATE_DATABASE") == "true";
+
+            if (useEnsureCreated)
+            {
+                if (recreateDatabase)
+                {
+                    Log.Warning("RECREATE_DATABASE=true — dropping existing database for {Provider}...", databaseProvider);
+                    await db.Database.EnsureDeletedAsync();
+                    Log.Information("Database dropped successfully. Recreating...");
+                }
+
+                Log.Information("Creating schema for {Provider} database using EnsureCreated...", databaseProvider);
+                var created = await db.Database.EnsureCreatedAsync();
+                if (created)
+                {
+                    Log.Information("Database schema created successfully via EnsureCreated ({TableCount} entities in model)", db.Model.GetEntityTypes().Count());
+                }
+                else
+                {
+                    Log.Warning("EnsureCreated returned false — database already has tables. Schema was NOT created. Set RECREATE_DATABASE=true to force recreation.");
+                }
+            }
+            else
+            {
+                Log.Information("Applying EF Core migrations for {Provider}...", databaseProvider);
+                await db.Database.MigrateAsync();
+                Log.Information("EF Core migrations applied successfully");
+            }
+        }
 
         // Seed essential data (SysAdmin group + admin user only)
         await DbSeed.SeedAsync(db);

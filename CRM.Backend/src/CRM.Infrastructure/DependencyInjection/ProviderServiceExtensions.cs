@@ -63,14 +63,14 @@ public static class ProviderServiceExtensions
         // Register the adapter registry for health monitoring (singleton)
         services.AddSingleton<AdapterRegistry>();
 
-        // Register provider factories (singleton - they resolve providers)
-        services.AddSingleton<IProviderFactory<ISearchPort>, SearchProviderFactory>();
-        services.AddSingleton<IProviderFactory<IChatPort>, ChatProviderFactory>();
-        services.AddSingleton<IProviderFactory<INotificationPort>, NotificationProviderFactory>();
-        services.AddSingleton<IProviderFactory<IAnalyticsPort>, AnalyticsProviderFactory>();
-        services.AddSingleton<IProviderFactory<ISignaturePort>, SignatureProviderFactory>();
-        services.AddSingleton<IProviderFactory<IAIPort>, AIProviderFactory>();
-        services.AddSingleton<IProviderFactory<IIntegrationPort>, IntegrationProviderFactory>();
+        // Register provider factories (scoped - they resolve scoped providers via GetServices<T>())
+        services.AddScoped<IProviderFactory<ISearchPort>, SearchProviderFactory>();
+        services.AddScoped<IProviderFactory<IChatPort>, ChatProviderFactory>();
+        services.AddScoped<IProviderFactory<INotificationPort>, NotificationProviderFactory>();
+        services.AddScoped<IProviderFactory<IAnalyticsPort>, AnalyticsProviderFactory>();
+        services.AddScoped<IProviderFactory<ISignaturePort>, SignatureProviderFactory>();
+        services.AddScoped<IProviderFactory<IAIPort>, AIProviderFactory>();
+        services.AddScoped<IProviderFactory<IIntegrationPort>, IntegrationProviderFactory>();
 
         // Register BuiltIn providers (these are the default implementations)
         services.AddBuiltInProviders(configuration);

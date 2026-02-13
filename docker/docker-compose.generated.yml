@@ -1,0 +1,19 @@
+version: '3.8'
+services:
+  frontend:
+    container_name: crm-frontend
+    build: ../CRM.Frontend
+    environment:
+      - REACT_APP_API_URL=http://localhost:5000/api
+      - NODE_ENV=development
+    ports:
+      - '80:80'
+    depends_on:
+      - api
+  api:
+    container_name: crm-api
+    build: ../CRM.Backend/src/CRM.Api
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+    ports:
+      - '5000:5000'
