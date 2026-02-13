@@ -47,7 +47,7 @@ public class MarketingIrmApiBVTTests : IClassFixture<ApiTestFactory>
     [Fact]
     public async Task EmailSequences_GetAll_ReturnsOk()
     {
-        var response = await _client.GetAsync("/api/emailsequences");
+        var response = await _client.GetAsync("/api/email-sequences");
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 
@@ -61,7 +61,7 @@ public class MarketingIrmApiBVTTests : IClassFixture<ApiTestFactory>
     [Fact]
     public async Task Knowledge_GetAll_ReturnsOk()
     {
-        var response = await _client.GetAsync("/api/knowledge");
+        var response = await _client.GetAsync("/api/itsm/knowledge/articles");
         response.StatusCode.Should().Be(HttpStatusCode.OK);
     }
 }
