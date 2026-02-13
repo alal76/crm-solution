@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Card,
@@ -21,9 +21,8 @@ import {
   Refresh as RefreshIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
-
-// Import the AnalyticsEmbed component if available
-// import AnalyticsEmbed from '../components/common/AnalyticsEmbed';
+import { AnalyticsEmbed } from '../components/common';
+import { dashboardDataService, DashboardStats, DashboardSummary } from '../services/dashboardService';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -91,46 +90,37 @@ const AnalyticsPage: React.FC = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [metrics, setMetrics] = useState<any>(null);
+  const [metrics, setMetrics] = useState<{ stats: DashboardStats; summary: DashboardSummary } | null>(null);
+
+  const loadMetrics = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [statsRes, summaryRes] = await Promise.all([
+        dashboardDataService.getStats(),
+        dashboardDataService.getSummary(),
+      ]);
+
+      setMetrics({
+        stats: statsRes.data,
+        summary: summaryRes.data,
+      });
+    } catch (error) {
+      console.error('Failed to load analytics:', error);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    // Simulate loading analytics data
-    const loadMetrics = async () => {
-      setLoading(true);
-      try {
-        // In production, this would fetch from /api/ai-analytics/dashboard
-        // const response = await fetch('/api/ai-analytics/dashboard');
-        // const data = await response.json();
-        
-        // Simulated data for now
-        setMetrics({
-          totalLeads: 1247,
-          leadChange: '+12%',
-          avgLeadScore: 72,
-          scoreChange: '+5%',
-          pipelineValue: '$2.4M',
-          pipelineChange: '+18%',
-          winRate: '34%',
-          winChange: '+3%',
-        });
-      } catch (error) {
-        console.error('Failed to load analytics:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     loadMetrics();
-  }, []);
+  }, [loadMetrics]);
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
   };
 
   const handleRefresh = () => {
-    setLoading(true);
-    // Re-fetch data
-    setTimeout(() => setLoading(false), 1000);
+    loadMetrics();
   };
 
   return (
@@ -176,17 +166,15 @@ const AnalyticsPage: React.FC = () => {
             <Grid item xs={12} sm={6} md={3}>
               <MetricCard
                 title="Total Leads"
-                value={metrics.totalLeads.toLocaleString()}
-                change={metrics.leadChange}
+                value={metrics.stats.leads.total.toLocaleString()}
                 icon={<PeopleIcon />}
                 color="#1976d2"
               />
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
               <MetricCard
-                title="Avg Lead Score"
-                value={metrics.avgLeadScore}
-                change={metrics.scoreChange}
+                title="New Leads (MTD)"
+                value={metrics.summary.newLeadsThisMonth.toLocaleString()}
                 icon={<TrendingUpIcon />}
                 color="#2e7d32"
               />
@@ -194,8 +182,7 @@ const AnalyticsPage: React.FC = () => {
             <Grid item xs={12} sm={6} md={3}>
               <MetricCard
                 title="Pipeline Value"
-                value={metrics.pipelineValue}
-                change={metrics.pipelineChange}
+                value={`$${metrics.summary.pipelineValue.toLocaleString()}`}
                 icon={<MoneyIcon />}
                 color="#ed6c02"
               />
@@ -203,8 +190,7 @@ const AnalyticsPage: React.FC = () => {
             <Grid item xs={12} sm={6} md={3}>
               <MetricCard
                 title="Win Rate"
-                value={metrics.winRate}
-                change={metrics.winChange}
+                value={`${metrics.summary.winRate}%`}
                 icon={<AnalyticsIcon />}
                 color="#9c27b0"
               />
@@ -228,6 +214,14 @@ const AnalyticsPage: React.FC = () => {
                   The Analytics Overview provides a high-level summary of CRM performance. 
                   Use the tabs above to drill into specific analytics areas.
                 </Alert>
+                <Box sx={{ mt: 2 }}>
+                  <AnalyticsEmbed
+                    height={520}
+                    showCard
+                    title="Embedded Analytics"
+                    onError={(err) => console.error('Analytics embed error:', err)}
+                  />
+                </Box>
                 <Typography variant="h6" gutterBottom>
                   Quick Stats
                 </Typography>

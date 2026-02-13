@@ -908,7 +908,6 @@ function DashboardPage() {
       {analyticsEmbedOpen && (
         <Box sx={{ mt: 3 }}>
           <AnalyticsEmbed
-            dashboardId={activeDashboard?.id?.toString()}
             height={520}
             showCard
             title="Embedded Analytics"

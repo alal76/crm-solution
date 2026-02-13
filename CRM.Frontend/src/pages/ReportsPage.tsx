@@ -34,22 +34,12 @@ import {
   PlayArrow as RunIcon,
   Search as SearchIcon,
   Assessment as ReportIcon,
-  Schedule as ScheduleIcon,
   Refresh as RefreshIcon,
 } from '@mui/icons-material';
 import { ReportDesigner, ReportConfig } from '../components/analytics';
-import apiClient from '../services/apiClient';
+import reportService, { ReportDefinitionDto } from '../services/reportService';
 
-interface ReportSummary {
-  id: number;
-  name: string;
-  description?: string;
-  dataSource?: string;
-  category?: string;
-  lastRunAt?: string;
-  createdAt: string;
-  updatedAt?: string;
-}
+type ReportSummary = ReportDefinitionDto;
 
 function ReportsPage() {
   const [reports, setReports] = useState<ReportSummary[]>([]);
@@ -62,8 +52,8 @@ function ReportsPage() {
   const fetchReports = useCallback(async () => {
     setLoading(true);
     try {
-      const response = await apiClient.get('/reports');
-      setReports(response.data?.items || response.data || []);
+      const response = await reportService.getReports();
+      setReports(response.data || []);
       setError(null);
     } catch (err: any) {
       console.error('Failed to load reports:', err);
@@ -83,9 +73,25 @@ function ReportsPage() {
     setDesignerOpen(true);
   };
 
+  const buildCreateDto = (report: ReportConfig) => ({
+    name: report.name?.trim() || 'Untitled Report',
+    description: report.description || '',
+    query: JSON.stringify(report),
+    category: report.dataSource || 'General',
+  });
+
+  const buildUpdateDto = (id: number, report: ReportConfig) => ({
+    id,
+    ...buildCreateDto(report),
+  });
+
   const handleSave = async (report: ReportConfig) => {
     try {
-      await apiClient.post('/reports', report);
+      if (report.id) {
+        await reportService.updateReport(report.id, buildUpdateDto(report.id, report));
+      } else {
+        await reportService.createReport(buildCreateDto(report));
+      }
       setDesignerOpen(false);
       setEditingReport(undefined);
       await fetchReports();
@@ -96,7 +102,13 @@ function ReportsPage() {
 
   const handleRun = async (report: ReportConfig) => {
     try {
-      await apiClient.post('/reports/execute', report);
+      if (report.id) {
+        await reportService.executeReport(report.id);
+        return;
+      }
+
+      const created = await reportService.createReport(buildCreateDto(report));
+      await reportService.executeReport(created.data.id);
     } catch (err: any) {
       console.error('Failed to run report:', err);
     }
@@ -104,7 +116,7 @@ function ReportsPage() {
 
   const handleDelete = async (id: number) => {
     try {
-      await apiClient.delete(`/reports/${id}`);
+      await reportService.deleteReport(id);
       await fetchReports();
     } catch (err: any) {
       console.error('Failed to delete report:', err);
@@ -190,30 +202,19 @@ function ReportsPage() {
                     </Typography>
                   )}
                   <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                    {report.dataSource && (
-                      <Chip label={report.dataSource} size="small" variant="outlined" />
-                    )}
                     {report.category && (
                       <Chip label={report.category} size="small" color="primary" variant="outlined" />
                     )}
                   </Box>
-                  {report.lastRunAt && (
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 1.5 }}>
-                      <ScheduleIcon sx={{ fontSize: 14, color: 'text.secondary' }} />
-                      <Typography variant="caption" color="text.secondary">
-                        Last run: {new Date(report.lastRunAt).toLocaleDateString()}
-                      </Typography>
-                    </Box>
-                  )}
                 </CardContent>
                 <CardActions sx={{ justifyContent: 'flex-end', px: 2, pb: 1.5 }}>
                   <Tooltip title="Run Report">
-                    <IconButton size="small" color="primary" onClick={() => handleRun({ name: report.name } as ReportConfig)}>
+                    <IconButton size="small" color="primary" onClick={() => handleRun({ id: report.id, name: report.name, description: report.description, dataSource: (report.category || 'opportunities') as ReportConfig['dataSource'], columns: [], filters: [], sorts: [], groupings: [] })}>
                       <RunIcon />
                     </IconButton>
                   </Tooltip>
                   <Tooltip title="Edit">
-                    <IconButton size="small" onClick={() => { setEditingReport({ name: report.name } as ReportConfig); setDesignerOpen(true); }}>
+                    <IconButton size="small" onClick={() => { setEditingReport({ id: report.id, name: report.name, description: report.description, dataSource: (report.category || 'opportunities') as ReportConfig['dataSource'], columns: [], filters: [], sorts: [], groupings: [] }); setDesignerOpen(true); }}>
                       <EditIcon />
                     </IconButton>
                   </Tooltip>
