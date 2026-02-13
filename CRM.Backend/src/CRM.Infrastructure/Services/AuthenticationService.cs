@@ -303,6 +303,7 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
 
         // Generate response with tokens
         var response = GenerateAuthResponse(user);
+        _logger.LogInformation("LoginAsync tokens generated in {ElapsedMs}ms", stopwatch.ElapsedMilliseconds);
 
         // Add password expiration warning to response
         response.PasswordExpirationWarning = passwordStatus.isWarning;
@@ -310,11 +311,14 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
 
         // Store refresh token in dedicated table
         await PersistRefreshTokenAsync(user, response.RefreshToken);
+        _logger.LogInformation("LoginAsync refresh token persisted in {ElapsedMs}ms", stopwatch.ElapsedMilliseconds);
 
         // Update last login date (already set above, save via repository)
         await _userRepository.UpdateAsync(user);
         await _userRepository.SaveAsync();
+        _logger.LogInformation("LoginAsync user update saved in {ElapsedMs}ms", stopwatch.ElapsedMilliseconds);
 
+        _logger.LogInformation("LoginAsync completed in {ElapsedMs}ms", stopwatch.ElapsedMilliseconds);
         return response;
     }
 

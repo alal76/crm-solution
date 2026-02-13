@@ -147,14 +147,10 @@ public class AIProviderFactory : IProviderFactory<IAIPort>
 
     private TPort GetProviderOrFallback<TPort>(string providerTypeName) where TPort : class
     {
-        var providers = _serviceProvider.GetServices<TPort>();
-
-        foreach (var provider in providers)
+        var provider = ProviderResolution.ResolveByTypeName<TPort>(_serviceProvider, providerTypeName);
+        if (provider != null)
         {
-            if (provider.GetType().Name.Equals(providerTypeName, StringComparison.OrdinalIgnoreCase))
-            {
-                return provider;
-            }
+            return provider;
         }
 
         throw new InvalidOperationException($"Provider {providerTypeName} is not registered. Ensure it is configured in appsettings and registered in DI.");

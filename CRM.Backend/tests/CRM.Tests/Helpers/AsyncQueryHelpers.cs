@@ -168,30 +168,41 @@ internal static class MockDbSetFactory
             .Setup(m => m.GetEnumerator())
             .Returns(() => data.AsQueryable().GetEnumerator());
 
+        T? FindEntity(object? key)
+        {
+            if (key == null) return default;
+
+            var typeName = typeof(T).Name;
+            var allIdProps = typeof(T).GetProperties()
+                .Where(p => (p.PropertyType == typeof(int) || p.PropertyType == typeof(int?)) && p.Name.EndsWith("Id"))
+                .ToList();
+
+            var idProp = allIdProps.FirstOrDefault(p => p.Name == "Id")
+                ?? allIdProps.FirstOrDefault(p => p.Name == typeName + "Id")
+                ?? allIdProps.FirstOrDefault(p => typeName.EndsWith(p.Name.Replace("Id", "")))
+                ?? allIdProps.OrderBy(p => p.Name.Length).FirstOrDefault();
+
+            return data.FirstOrDefault(e =>
+            {
+                if (idProp == null) return false;
+                var val = idProp.GetValue(e);
+                return val != null && Equals(val, Convert.ToInt32(key));
+            });
+        }
+
         // FindAsync: search the backing list by primary key
         mockSet.Setup(m => m.FindAsync(It.IsAny<object[]>()))
             .Returns<object[]>(keyValues =>
             {
                 var key = keyValues.FirstOrDefault();
-                if (key == null) return ValueTask.FromResult<T?>(default);
+                return ValueTask.FromResult<T?>(FindEntity(key));
+            });
 
-                var typeName = typeof(T).Name;
-                var allIdProps = typeof(T).GetProperties()
-                    .Where(p => (p.PropertyType == typeof(int) || p.PropertyType == typeof(int?)) && p.Name.EndsWith("Id"))
-                    .ToList();
-
-                var idProp = allIdProps.FirstOrDefault(p => p.Name == "Id")
-                    ?? allIdProps.FirstOrDefault(p => p.Name == typeName + "Id")
-                    ?? allIdProps.FirstOrDefault(p => typeName.EndsWith(p.Name.Replace("Id", "")))
-                    ?? allIdProps.OrderBy(p => p.Name.Length).FirstOrDefault();
-
-                var entity = data.FirstOrDefault(e =>
-                {
-                    if (idProp == null) return false;
-                    var val = idProp.GetValue(e);
-                    return val != null && Equals(val, Convert.ToInt32(key));
-                });
-                return ValueTask.FromResult<T?>(entity);
+        mockSet.Setup(m => m.FindAsync(It.IsAny<object[]>(), It.IsAny<CancellationToken>()))
+            .Returns<object[], CancellationToken>((keyValues, _) =>
+            {
+                var key = keyValues.FirstOrDefault();
+                return ValueTask.FromResult<T?>(FindEntity(key));
             });
 
         // Add / AddAsync

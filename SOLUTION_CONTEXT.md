@@ -1750,6 +1750,10 @@ existingAdmin: {
 **Cause:** Selector matches both "Quick Admin Login" and "Sign In" buttons  
 **Solution:** Use more specific selector: `button[type="submit"]:has-text("Sign In")`
 
+### Issue: Browser API calls time out on private network
+**Cause:** Frontend resolves API base URL to `http://<host>:5000` on private networks; port 5000 may be blocked externally, while nginx proxies `/api` on port 80.  
+**Solution:** Use same-origin API base URL in production (nginx proxy), or set `REACT_APP_API_URL` to the public origin (e.g., `http://192.168.0.9`).
+
 ---
 
 ## 13. Development Workflow

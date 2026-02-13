@@ -44,12 +44,10 @@ export const getApiBaseUrl = (): string => {
   const ports = getServicePorts();
   const hostname = window.location.hostname;
   const isLocalhost = hostname === 'localhost' || hostname === '127.0.0.1';
-  const isPrivateNetwork = hostname.startsWith('192.168.') || 
-                           hostname.startsWith('10.') ||
-                           hostname.match(/^172\.(1[6-9]|2[0-9]|3[0-1])\./);
+  const isLocalDevServer = window.location.port === '3000';
   
-  if (isLocalhost || isPrivateNetwork) {
-    // Browser accessing from localhost or private network - use external port
+  if (isLocalhost || isLocalDevServer) {
+    // Local development server - use external API port
     return `http://${hostname}:${ports.apiExternal}`;
   }
   

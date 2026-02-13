@@ -10,12 +10,31 @@ set -e
 
 CONFIG_FILE="$(dirname "$0")/env-config.json"
 
-# Helper: prompt for input with default
+# Helper: robust prompt for input with default, debug, and fallback
 prompt() {
     local prompt_text="$1"
     local default_value="$2"
-    read -p "$prompt_text [$default_value]: " input
-    echo "${input:-$default_value}"
+    local input
+    echo "[DEBUG] Prompting: $prompt_text [$default_value] (tty: $(tty))"
+    if [ -t 0 ]; then
+        read -r -p "$prompt_text [$default_value]: " input
+        echo "[DEBUG] User entered: $input"
+        if [ -z "$input" ]; then
+            input="$default_value"
+        fi
+    else
+        echo "$prompt_text [$default_value]: "
+        if ! read -r input; then
+            echo "[DEBUG] Read failed or interrupted. Using default: $default_value"
+            input="$default_value"
+        fi
+        echo "[DEBUG] User entered (non-tty): $input"
+        if [ -z "$input" ]; then
+            input="$default_value"
+        fi
+    fi
+    echo "[DEBUG] Final value for prompt '$prompt_text': $input"
+    echo "$input"
 }
 
 # Helper: generate random JWT secret
@@ -33,8 +52,58 @@ generate_ssl() {
     echo "SSL certificate and key generated in $ssl_dir"
 }
 
+
 # 1. Ask for environment
+
+echo "[DEBUG] Starting build-and-deploy.sh (PID $$, shell: $SHELL)"
 ENV=$(prompt "Select environment (development/production/staging)" "development")
+echo "[DEBUG] ENV selected: $ENV"
+
+# 1b. Ask for deploy target (cloud/on-prem)
+DEPLOY_TARGET=$(prompt "Select deploy target (cloud/on-prem)" "on-prem")
+echo "[DEBUG] DEPLOY_TARGET selected: $DEPLOY_TARGET"
+
+# 1c. Gather target specifics
+if [ "$DEPLOY_TARGET" == "on-prem" ]; then
+    TARGET_IP=$(prompt "Enter target server IP address" "192.168.0.9")
+    echo "[DEBUG] TARGET_IP: $TARGET_IP"
+    TARGET_USER=$(prompt "Enter SSH username for target" "root")
+    echo "[DEBUG] TARGET_USER: $TARGET_USER"
+    SSH_KEY_PATH=$(prompt "Enter SSH private key path (or leave blank for default)" "")
+    echo "[DEBUG] SSH_KEY_PATH: $SSH_KEY_PATH"
+    if [ -z "$SSH_KEY_PATH" ]; then
+        SSH_KEY_ARG=""
+    else
+        SSH_KEY_ARG="-i $SSH_KEY_PATH"
+    fi
+    echo "On-prem deployment selected. Target: $TARGET_USER@$TARGET_IP $SSH_KEY_ARG"
+elif [ "$DEPLOY_TARGET" == "cloud" ]; then
+    CLOUD_PROVIDER=$(prompt "Select cloud provider (azure/aws/gcp)" "azure")
+    echo "[DEBUG] CLOUD_PROVIDER: $CLOUD_PROVIDER"
+    if [ "$CLOUD_PROVIDER" == "azure" ]; then
+        echo "Opening Azure login page..."
+        az login
+        echo "Azure login complete."
+        # Optionally get subscription/context
+        az account show
+    elif [ "$CLOUD_PROVIDER" == "aws" ]; then
+        echo "Opening AWS login (browser or CLI)..."
+        aws configure
+        echo "AWS credentials configured."
+    elif [ "$CLOUD_PROVIDER" == "gcp" ]; then
+        echo "Opening GCP login page..."
+        gcloud auth login
+        echo "GCP login complete."
+        gcloud config list
+    else
+        echo "Unknown cloud provider: $CLOUD_PROVIDER"
+        exit 1
+    fi
+    echo "Cloud deployment selected: $CLOUD_PROVIDER"
+else
+    echo "Unknown deploy target: $DEPLOY_TARGET"
+    exit 1
+fi
 
 # 2. Parse env-config.json for selected environment
 if ! command -v jq &>/dev/null; then
@@ -99,9 +168,12 @@ if [ "$ENV" == "development" ]; then
     echo "Generated JWT secret for dev."
 fi
 
-# 6. Build frontend
+
+# 6. Build frontend (clean cache and build first)
 cd ../CRM.Frontend
 export $(grep -v '^#' .env | xargs)
+echo "Cleaning frontend build and cache..."
+rm -rf build node_modules/.cache
 echo "Building frontend..."
 npm install
 npm run build

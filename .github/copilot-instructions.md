@@ -1,8 +1,12 @@
 # GitHub Copilot Instructions - CRM Solution
 
-> **Last Updated:** February 8, 2026  
+> **Last Updated:** February 13, 2026  
 > **Load this file at the start of every agent session**
 
+Copilot usage
+- Use subagents for research/analysis and test authoring when tasks are complex or multi-step.
+- Update documentation as you proceed (specs, remediation plan, and related docs).
+- Write and validate unit tests at the end of the task to ensure code quality and correctness.
 ---
 
 ## � Feature Specification Framework
@@ -43,7 +47,14 @@ Each feature has a specification file (`SPEC-{MODULE}-{SEQ}-{Name}.md`) with ful
 4. **Extract TODOs:** Add all TODO-{SPEC}-{SEQ} items to master list
 5. **Implement:** Follow the spec exactly
 6. **Update spec:** Mark items as ✅ Implemented when complete
-
+7. **Follow the patterns and conventions:** Refer to the documentation for naming, architecture, and coding standards
+8. **Write tests:** Add unit/integration tests as per spec, mark as implemented when done
+9. **Review and update documentation:** Ensure all relevant documentation is updated with any new features or changes
+10. **Communicate with the team:** If you encounter any ambiguities or need clarifications, reach out to the team before proceeding with implementation
+11. **Continuous Improvement:** As you implement features, if you identify any improvements or optimizations, document them and discuss with the team for potential inclusion in future iterations
+12. **Maintain traceability:** Ensure that all code changes can be traced back to the original specification for accountability and future reference
+13. **Ensure CI/CD builds pass:** After implementation, make sure all tests pass and the CI/CD pipeline is successful before merging changes
+14. **Post-implementation review:** Conduct a review to ensure all features are working as expected and gather feedback for future improvements
 ---
 
 ## �🚨 Active Remediation Plan
@@ -63,12 +74,14 @@ Each feature has a specification file (`SPEC-{MODULE}-{SEQ}-{Name}.md`) with ful
 | Phase 7 | 🟢 Low | AI/Analytics Enhancements |
 | Phase 8 | 🟢 Low | Documentation & Polish |
 
-**Current Progress:** 0% (Plan Created February 8, 2026)
+**Current Progress:** 99% (Updated February 17, 2026 — see pending test coverage items)
+Keep this plan updated and write back to this file the current status of the remediation efforts as you work through the phases. This will help maintain visibility and ensure we are on track to address all gaps in a timely manner.
 
 ---
 
 ## 1. Solution Overview
 
+Update this and subsequent sections as needed to reflect the current state of the solution, especially as new features are added or architectural changes are made. This will serve as a quick reference for anyone new joining the project or needing an overview of the system.
 ### What is this?
 
 A full-stack enterprise CRM (Customer Relationship Management) solution with:
@@ -80,7 +93,7 @@ A full-stack enterprise CRM (Customer Relationship Management) solution with:
 | **Database** | MariaDB (primary), SQL Server, PostgreSQL supported |
 | **Caching** | Redis |
 | **Real-time** | SignalR WebSocket |
-| **AI/LLM** | Multi-provider (Ollama, OpenAI, Azure, Anthropic, Bedrock) |
+| **AI/LLM** | Multi-provider (Ollama, OpenAI, Azure, Anthropic, Bedrock, OpenRouter, Gemini) |
 | **Architecture** | Hexagonal (Ports & Adapters) with Pluggable Providers |
 
 ### Repository Structure
@@ -757,7 +770,7 @@ cd CRM.Infrastructure/deployment-tool && ./start-gui.sh
 ## 10. Testing Standards
 
 ### 10.1 Test Organization
-
+update this section as needed to reflect the current testing structure and any new test categories or patterns that emerge as the solution evolves.
 ```
 CRM.Backend/tests/
 ├── Services/                     # Service unit tests
@@ -949,6 +962,8 @@ curl -X POST http://localhost:5000/api/auth/login \
   -d '{"email":"admin@crm.local","password":"Admin@123"}'
 ```
 
+### List of all endpoints and their purposes###
+Add and update this section as new endpoints are implemented, ensuring it remains a comprehensive reference for developers and testers.
 ---
 
 **END OF COPILOT INSTRUCTIONS**
