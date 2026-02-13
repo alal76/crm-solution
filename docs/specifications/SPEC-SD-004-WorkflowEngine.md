@@ -94,13 +94,13 @@ Workflow Engine provides a visual workflow designer and execution engine for aut
 
 | Component | Location | Description | Status |
 |-----------|----------|-------------|--------|
-| WorkflowList | components/workflow/ | Workflow listing | ⚠️ Partial |
-| WorkflowCanvas | components/workflow/ | Design canvas | ⚠️ Partial |
-| NodePalette | components/workflow/ | Draggable nodes | ⚠️ Partial |
-| NodeEditor | components/workflow/ | Node configuration | ⚠️ Partial |
-| TransitionEditor | components/workflow/ | Transition config | ⚠️ Partial |
+| WorkflowList | components/workflow/ | Workflow listing | ✅ Implemented |
+| WorkflowCanvas | components/workflow/ | Design canvas | ✅ Implemented |
+| NodePalette | components/workflow/ | Draggable nodes | ✅ Implemented |
+| NodeEditor | components/workflow/ | Node configuration | ✅ Implemented |
+| TransitionEditor | components/workflow/ | Transition config | ✅ Implemented |
 | ConditionBuilder | components/workflow/ | Condition editor | ✅ Implemented |
-| WorkflowToolbar | components/workflow/ | Designer toolbar | ⚠️ Partial |
+| WorkflowToolbar | components/workflow/ | Designer toolbar | ✅ Implemented |
 | WorkflowViewer | components/workflow/ | Read-only view | ✅ Implemented |
 | InstanceTimeline | components/workflow/ | Execution timeline | ✅ Implemented |
 | TaskCard | components/workflow/ | Task display | ✅ Implemented |
@@ -182,7 +182,7 @@ Workflow Engine provides a visual workflow designer and execution engine for aut
 | Interface | File | Status |
 |-----------|------|--------|
 | IWorkflowService | CRM.Core/Interfaces/IWorkflowService.cs | ✅ Implemented |
-| IWorkflowExecutionService | CRM.Core/Interfaces/IWorkflowService.cs | ⚠️ Partial |
+| IWorkflowInstanceService | CRM.Core/Interfaces/IWorkflowInstanceService.cs | ✅ Implemented |
 
 ### 3.5 Service Methods
 
@@ -209,7 +209,7 @@ Workflow Engine provides a visual workflow designer and execution engine for aut
 | GetVersionsAsync | `(int workflowId) → IEnumerable<WorkflowVersionDto>` | Get versions |
 | RollbackToVersionAsync | `(int workflowId, int versionId) → WorkflowDefinitionDto` | Rollback |
 
-#### IWorkflowExecutionService
+#### IWorkflowInstanceService
 
 | Method | Signature | Description |
 |--------|-----------|-------------|
@@ -568,6 +568,7 @@ Workflow Engine provides a visual workflow designer and execution engine for aut
 |------|---------|--------|---------|
 | 2026-02-12 | 1.0 | System | Initial specification |
 | 2026-02-13 | 1.1 | System | Implemented missing pages, components, tasks controller, and updated endpoints |
+| 2026-02-13 | 1.2 | System | Completed workflow designer components and aligned execution service naming |
 
 ---
 

@@ -17,13 +17,6 @@ import {
   CardContent,
   Button,
   IconButton,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
   Dialog,
   DialogTitle,
   DialogContent,
@@ -45,19 +38,11 @@ import {
 } from '@mui/material';
 import {
   Add as AddIcon,
-  Edit as EditIcon,
-  Delete as DeleteIcon,
-  PlayArrow as PlayIcon,
-  Pause as PauseIcon,
-  Visibility as ViewIcon,
   Search as SearchIcon,
   AccountTree as WorkflowIcon,
   FilterList as FilterIcon,
   Refresh as RefreshIcon,
-  ContentCopy as CloneIcon,
   Timeline as TimelineIcon,
-  CheckCircle as ActiveIcon,
-  Cancel as InactiveIcon,
 } from '@mui/icons-material';
 import {
   workflowService,
@@ -70,6 +55,7 @@ import {
   statusColors,
   WorkflowStatus,
 } from '../../services/workflowService';
+import { WorkflowList } from '../../components/workflow';
 
 interface TabPanelProps {
   children?: React.ReactNode;
@@ -427,152 +413,20 @@ function WorkflowListPage() {
           </CardContent>
         </Card>
 
-        {/* Workflows Table */}
-        {loading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-            <CircularProgress />
-          </Box>
-        ) : (
-          <TableContainer component={Paper}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Workflow</TableCell>
-                  <TableCell>Entity Type</TableCell>
-                  <TableCell>Category</TableCell>
-                  <TableCell>Status</TableCell>
-                  <TableCell>Version</TableCell>
-                  <TableCell>Priority</TableCell>
-                  <TableCell align="right">Actions</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {workflows.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={7} align="center">
-                      <Typography color="text.secondary" sx={{ py: 4 }}>
-                        No workflows found. Create your first workflow to get started.
-                      </Typography>
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  workflows.map((workflow) => (
-                    <TableRow key={workflow.id} hover>
-                      <TableCell>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <Box
-                            sx={{
-                              width: 36,
-                              height: 36,
-                              borderRadius: 1,
-                              backgroundColor: workflow.color || '#6750A4',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              color: 'white',
-                            }}
-                          >
-                            <WorkflowIcon fontSize="small" />
-                          </Box>
-                          <Box>
-                            <Typography variant="body2" fontWeight="medium">
-                              {workflow.name}
-                            </Typography>
-                            <Typography variant="caption" color="text.secondary">
-                              {workflow.workflowKey}
-                            </Typography>
-                          </Box>
-                        </Box>
-                      </TableCell>
-                      <TableCell>
-                        <Chip
-                          label={workflow.entityType}
-                          size="small"
-                          variant="outlined"
-                        />
-                      </TableCell>
-                      <TableCell>{workflow.category || '-'}</TableCell>
-                      <TableCell>
-                        <Chip
-                          label={workflow.status}
-                          size="small"
-                          sx={{
-                            backgroundColor: getStatusColor(workflow.status),
-                            color: 'white',
-                          }}
-                        />
-                      </TableCell>
-                      <TableCell>v{workflow.currentVersion}</TableCell>
-                      <TableCell>{workflow.priority}</TableCell>
-                      <TableCell align="right">
-                        <Tooltip title="Open Designer">
-                          <IconButton
-                            size="small"
-                            onClick={() => navigate(`/admin/workflows/${workflow.id}/designer`)}
-                          >
-                            <ViewIcon />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="View Instances">
-                          <IconButton
-                            size="small"
-                            onClick={() => navigate(`/admin/workflows/${workflow.id}/monitor`)}
-                          >
-                            <TimelineIcon />
-                          </IconButton>
-                        </Tooltip>
-                        {(workflow.status === 'Draft' || workflow.status === 'Paused') && (
-                          <Tooltip title="Activate">
-                            <IconButton
-                              size="small"
-                              color="success"
-                              onClick={() => handleActivate(workflow)}
-                            >
-                              <PlayIcon />
-                            </IconButton>
-                          </Tooltip>
-                        )}
-                        {workflow.status === 'Active' && (
-                          <Tooltip title="Pause">
-                            <IconButton
-                              size="small"
-                              color="warning"
-                              onClick={() => handlePause(workflow)}
-                            >
-                              <PauseIcon />
-                            </IconButton>
-                          </Tooltip>
-                        )}
-                        <Tooltip title="Edit">
-                          <IconButton
-                            size="small"
-                            onClick={() => handleOpenDialog(workflow)}
-                            disabled={workflow.isSystem}
-                          >
-                            <EditIcon />
-                          </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Delete">
-                          <IconButton
-                            size="small"
-                            color="error"
-                            onClick={() => {
-                              setWorkflowToDelete(workflow);
-                              setDeleteDialogOpen(true);
-                            }}
-                            disabled={workflow.isSystem}
-                          >
-                            <DeleteIcon />
-                          </IconButton>
-                        </Tooltip>
-                      </TableCell>
-                    </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
-        )}
+        <WorkflowList
+          workflows={workflows}
+          loading={loading}
+          getStatusColor={getStatusColor}
+          onOpenDesigner={(workflow) => navigate(`/admin/workflows/${workflow.id}/designer`)}
+          onViewInstances={(workflow) => navigate(`/admin/workflows/${workflow.id}/monitor`)}
+          onActivate={handleActivate}
+          onPause={handlePause}
+          onEdit={handleOpenDialog}
+          onDelete={(workflow) => {
+            setWorkflowToDelete(workflow);
+            setDeleteDialogOpen(true);
+          }}
+        />
       </TabPanel>
 
       <TabPanel value={tabValue} index={1}>

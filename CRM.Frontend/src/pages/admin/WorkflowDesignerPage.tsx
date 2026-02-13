@@ -14,37 +14,11 @@ import {
   IconButton,
   Paper,
   Drawer,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
   Divider,
-  TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Alert,
   CircularProgress,
-  Toolbar,
-  AppBar,
-  Tooltip,
   Chip,
-  Card,
-  CardContent,
-  FormControlLabel,
-  Switch,
-  Collapse,
-  Tabs,
-  Tab,
 } from '@mui/material';
 import {
-  Save as SaveIcon,
-  Undo as UndoIcon,
-  Redo as RedoIcon,
-  ZoomIn as ZoomInIcon,
-  ZoomOut as ZoomOutIcon,
-  FitScreen as FitScreenIcon,
   Delete as DeleteIcon,
   PlayCircle as TriggerIcon,
   CallSplit as ConditionIcon,
@@ -54,21 +28,15 @@ import {
   Psychology as LLMIcon,
   StopCircle as EndIcon,
   ArrowBack as BackIcon,
-  Add as AddIcon,
   Settings as SettingsIcon,
   PanTool as PanIcon,
   Publish as PublishIcon,
   ContentCopy as CloneIcon,
   Close as CloseIcon,
-  ExpandMore as ExpandMoreIcon,
-  ExpandLess as ExpandLessIcon,
   Hub as ParallelIcon,
   Merge as JoinIcon,
   AccountTree as SubprocessIcon,
-  GridOn as GridIcon,
   CheckCircle as CheckIcon,
-  Science as SimulatorIcon,
-  History as VersionIcon,
   // AI-Enhanced Workflow Node Icons
   Route as AIDecisionIcon,
   SmartToy as AIAgentIcon,
@@ -83,10 +51,11 @@ import {
   RuleBuilder,
   WorkflowSimulator,
   VersionDiffViewer,
-  EnhancedPropertiesPanel,
-  AIPropertiesPanel,
-  TriggerPropertiesPanel,
-  ActionPropertiesPanel,
+  WorkflowCanvas,
+  WorkflowToolbar,
+  NodePalette,
+  NodeEditor,
+  TransitionEditor,
 } from '../../components/workflow';
 import {
   workflowService,
@@ -97,6 +66,7 @@ import {
   CreateNodeDto,
   CreateTransitionDto,
   UpdateNodeDto,
+  UpdateTransitionDto,
   nodeTypeInfo,
   WorkflowNodeType,
 } from '../../services/workflowService';
@@ -547,6 +517,16 @@ function WorkflowDesignerPage() {
     }
   };
 
+  const handleTransitionUpdate = async (updates: UpdateTransitionDto) => {
+    if (!selectedTransition) return;
+
+    await workflowService.updateTransition(selectedTransition.id, updates);
+    setTransitions(prev =>
+      prev.map(t => t.id === selectedTransition.id ? { ...t, ...updates } : t)
+    );
+    setSelectedTransition(prev => prev ? { ...prev, ...updates } : null);
+  };
+
   // Update node properties
   const updateNodeProperty = async (property: keyof UpdateNodeDto, value: any) => {
     if (!selectedNode) return;
@@ -693,159 +673,47 @@ function WorkflowDesignerPage() {
 
         <Divider />
 
-        {/* Node Palette */}
-        <Box sx={{ p: 1 }}>
-          <ListItem
-            button
-            onClick={() => setPaletteExpanded(paletteExpanded === 'nodes' ? false : 'nodes')}
-          >
-            <ListItemIcon>
-              <AddIcon />
-            </ListItemIcon>
-            <ListItemText primary="Add Node" />
-            {paletteExpanded === 'nodes' ? <ExpandLessIcon /> : <ExpandMoreIcon />}
-          </ListItem>
-          <Collapse in={paletteExpanded === 'nodes'}>
-            <List dense>
-              {nodeTypeList.map(nt => (
-                <ListItem
-                  key={nt.type}
-                  button
-                  onClick={() => addNode(nt.type)}
-                  sx={{
-                    pl: 3,
-                    borderLeft: `3px solid ${nodeTypeInfo[nt.type]?.color || '#6750A4'}`,
-                    mb: 0.5,
-                  }}
-                >
-                  <ListItemIcon sx={{ minWidth: 36, color: nodeTypeInfo[nt.type]?.color }}>
-                    <nt.icon fontSize="small" />
-                  </ListItemIcon>
-                  <ListItemText
-                    primary={nt.label}
-                    secondary={nt.description}
-                    primaryTypographyProps={{ variant: 'body2' }}
-                    secondaryTypographyProps={{ variant: 'caption' }}
-                  />
-                </ListItem>
-              ))}
-            </List>
-          </Collapse>
-        </Box>
-
-        <Divider />
-
-        {/* Canvas Settings */}
-        <Box sx={{ p: 2 }}>
-          <FormControlLabel
-            control={
-              <Switch
-                checked={showGrid}
-                onChange={(e) => setShowGrid(e.target.checked)}
-                size="small"
-              />
-            }
-            label="Show Grid"
-          />
-        </Box>
+        <NodePalette
+          nodeTypes={nodeTypeList}
+          expanded={paletteExpanded === 'nodes'}
+          onToggle={() => setPaletteExpanded(paletteExpanded === 'nodes' ? false : 'nodes')}
+          onAddNode={addNode}
+          showGrid={showGrid}
+          onToggleGrid={setShowGrid}
+        />
       </Drawer>
 
       {/* Main Canvas Area */}
       <Box sx={{ flexGrow: 1, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-        {/* Toolbar */}
-        <Paper sx={{ p: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
-          {error && (
-            <Alert severity="error" onClose={() => setError('')} sx={{ flex: 1, py: 0 }}>
-              {error}
-            </Alert>
-          )}
-          {success && (
-            <Alert severity="success" onClose={() => setSuccess('')} sx={{ flex: 1, py: 0 }}>
-              {success}
-            </Alert>
-          )}
-          <Box sx={{ flex: 1 }} />
-          <Tooltip title="Zoom Out">
-            <IconButton size="small" onClick={handleZoomOut}>
-              <ZoomOutIcon />
-            </IconButton>
-          </Tooltip>
-          <Typography variant="body2" sx={{ minWidth: 50, textAlign: 'center' }}>
-            {Math.round(zoom * 100)}%
-          </Typography>
-          <Tooltip title="Zoom In">
-            <IconButton size="small" onClick={handleZoomIn}>
-              <ZoomInIcon />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Fit to Screen">
-            <IconButton size="small" onClick={handleFitScreen}>
-              <FitScreenIcon />
-            </IconButton>
-          </Tooltip>
-          <Divider orientation="vertical" flexItem sx={{ mx: 1 }} />
-          <Tooltip title="Toggle Grid">
-            <IconButton
-              size="small"
-              onClick={() => setShowGrid(!showGrid)}
-              color={showGrid ? 'primary' : 'default'}
-            >
-              <GridIcon />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Test Workflow">
-            <IconButton
-              size="small"
-              onClick={() => setSimulatorOpen(true)}
-              color="default"
-            >
-              <SimulatorIcon />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Version History">
-            <IconButton
-              size="small"
-              onClick={() => setVersionDiffOpen(true)}
-              color="default"
-            >
-              <VersionIcon />
-            </IconButton>
-          </Tooltip>
-          <Divider orientation="vertical" flexItem sx={{ mx: 1 }} />
-          {saving && <CircularProgress size={24} />}
-        </Paper>
+        <WorkflowToolbar
+          error={error}
+          success={success}
+          onClearError={() => setError('')}
+          onClearSuccess={() => setSuccess('')}
+          zoom={zoom}
+          onZoomOut={handleZoomOut}
+          onZoomIn={handleZoomIn}
+          onFitScreen={handleFitScreen}
+          showGrid={showGrid}
+          onToggleGrid={() => setShowGrid(!showGrid)}
+          onOpenSimulator={() => setSimulatorOpen(true)}
+          onOpenVersionHistory={() => setVersionDiffOpen(true)}
+          saving={saving}
+        />
 
         {/* Canvas */}
-        <Box
-          ref={canvasRef}
-          sx={{
-            flex: 1,
-            overflow: 'hidden',
-            position: 'relative',
-            backgroundColor: '#f5f5f5',
-            cursor: isPanning ? 'grabbing' : 'default',
-          }}
+        <WorkflowCanvas
+          canvasRef={canvasRef}
+          showGrid={showGrid}
+          zoom={zoom}
+          pan={pan}
+          isPanning={isPanning}
           onMouseDown={handleCanvasMouseDown}
           onMouseMove={handleCanvasMouseMove}
           onMouseUp={handleCanvasMouseUp}
           onMouseLeave={handleCanvasMouseUp}
+          gridSize={GRID_SIZE}
         >
-          {/* Grid Background */}
-          {showGrid && (
-            <Box
-              className="canvas-grid"
-              sx={{
-                position: 'absolute',
-                inset: 0,
-                backgroundImage: `
-                  linear-gradient(rgba(0,0,0,0.05) 1px, transparent 1px),
-                  linear-gradient(90deg, rgba(0,0,0,0.05) 1px, transparent 1px)
-                `,
-                backgroundSize: `${GRID_SIZE * zoom}px ${GRID_SIZE * zoom}px`,
-                backgroundPosition: `${pan.x}px ${pan.y}px`,
-              }}
-            />
-          )}
 
           {/* SVG Layer for Transitions */}
           <svg
@@ -1002,7 +870,7 @@ function WorkflowDesignerPage() {
               </Paper>
             ))}
           </Box>
-        </Box>
+        </WorkflowCanvas>
       </Box>
 
       {/* Right Drawer - Properties Panel */}
@@ -1028,184 +896,21 @@ function WorkflowDesignerPage() {
           </Box>
 
           {selectedNode && (
-            // Check if this is an AI node type - use specialized AI Properties Panel
-            ['AIDecision', 'AIAgent', 'AIContentGenerator', 'AIDataExtractor', 'AIClassifier', 'AISentimentAnalyzer', 'HumanReview'].includes(selectedNode.nodeType) ? (
-              <AIPropertiesPanel
-                nodeId={selectedNode.id}
-                nodeKey={selectedNode.nodeKey}
-                nodeName={selectedNode.name}
-                nodeType={selectedNode.nodeType}
-                configuration={selectedNode.configuration || '{}'}
-                onChange={(property, value) => updateNodeProperty(property as keyof UpdateNodeDto, value)}
-                onDelete={() => deleteNode(selectedNode)}
-                variables={['customer', 'ticket', 'email', 'input', 'context', 'entity', 'workflow_data']}
-                readonly={version?.status === 'Active'}
-              />
-            ) : selectedNode.nodeType === 'Trigger' ? (
-              // Trigger node - use specialized Trigger Properties Panel
-              <TriggerPropertiesPanel
-                nodeId={selectedNode.id}
-                nodeKey={selectedNode.nodeKey}
-                nodeName={selectedNode.name}
-                configuration={selectedNode.configuration || '{}'}
-                entityType={workflow?.entityType || 'Account'}
-                onChange={(property, value) => updateNodeProperty(property as keyof UpdateNodeDto, value)}
-                onDelete={() => deleteNode(selectedNode)}
-                readonly={version?.status === 'Active'}
-              />
-            ) : selectedNode.nodeType === 'Action' ? (
-              // Action node - use specialized Action Properties Panel
-              <ActionPropertiesPanel
-                nodeId={selectedNode.id}
-                nodeKey={selectedNode.nodeKey}
-                nodeName={selectedNode.name}
-                configuration={selectedNode.configuration || '{}'}
-                entityType={workflow?.entityType || 'Account'}
-                onChange={(property, value) => updateNodeProperty(property as keyof UpdateNodeDto, value)}
-                onDelete={() => deleteNode(selectedNode)}
-                readonly={version?.status === 'Active'}
-              />
-            ) : (
-              // Standard node properties panel for other node types
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                <TextField
-                  fullWidth
-                  size="small"
-                  label="Name"
-                  value={selectedNode.name}
-                  onChange={(e) => updateNodeProperty('name', e.target.value)}
-                />
-                <TextField
-                  fullWidth
-                  size="small"
-                  label="Description"
-                  value={selectedNode.description || ''}
-                  onChange={(e) => updateNodeProperty('description', e.target.value)}
-                  multiline
-                  rows={2}
-                />
-                <TextField
-                  fullWidth
-                  size="small"
-                  label="Node Type"
-                  value={nodeTypeInfo[selectedNode.nodeType]?.label || selectedNode.nodeType}
-                  disabled
-                />
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={selectedNode.isStartNode}
-                      onChange={(e) => updateNodeProperty('isStartNode', e.target.checked)}
-                      size="small"
-                    />
-                  }
-                  label="Start Node"
-                />
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={selectedNode.isEndNode}
-                      onChange={(e) => updateNodeProperty('isEndNode', e.target.checked)}
-                      size="small"
-                    />
-                  }
-                  label="End Node"
-                />
-                <TextField
-                  fullWidth
-                  size="small"
-                  type="number"
-                  label="Timeout (minutes)"
-                  value={selectedNode.timeoutMinutes}
-                  onChange={(e) => updateNodeProperty('timeoutMinutes', parseInt(e.target.value) || 0)}
-                />
-                <TextField
-                  fullWidth
-                  size="small"
-                  type="number"
-                  label="Retry Count"
-                  value={selectedNode.retryCount}
-                  onChange={(e) => updateNodeProperty('retryCount', parseInt(e.target.value) || 0)}
-                />
-
-                <Divider />
-
-                <Button
-                  variant="outlined"
-                  color="error"
-                  startIcon={<DeleteIcon />}
-                  onClick={() => deleteNode(selectedNode)}
-                >
-                  Delete Node
-                </Button>
-              </Box>
-            )
+            <NodeEditor
+              selectedNode={selectedNode}
+              entityType={workflow?.entityType || 'Account'}
+              versionStatus={version?.status}
+              onUpdateProperty={(property, value) => updateNodeProperty(property, value)}
+              onDelete={() => deleteNode(selectedNode)}
+            />
           )}
 
           {selectedTransition && (
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              <TextField
-                fullWidth
-                size="small"
-                label="Label"
-                value={selectedTransition.label || ''}
-                onChange={async (e) => {
-                  await workflowService.updateTransition(selectedTransition.id, { label: e.target.value });
-                  setTransitions(prev =>
-                    prev.map(t => t.id === selectedTransition.id ? { ...t, label: e.target.value } : t)
-                  );
-                  setSelectedTransition(prev => prev ? { ...prev, label: e.target.value } : null);
-                }}
-              />
-              <FormControl fullWidth size="small">
-                <InputLabel>Condition Type</InputLabel>
-                <Select
-                  value={selectedTransition.conditionType}
-                  label="Condition Type"
-                  onChange={async (e) => {
-                    await workflowService.updateTransition(selectedTransition.id, { conditionType: e.target.value });
-                    setTransitions(prev =>
-                      prev.map(t => t.id === selectedTransition.id ? { ...t, conditionType: e.target.value } : t)
-                    );
-                    setSelectedTransition(prev => prev ? { ...prev, conditionType: e.target.value } : null);
-                  }}
-                >
-                  <MenuItem value="Always">Always</MenuItem>
-                  <MenuItem value="Expression">Expression</MenuItem>
-                  <MenuItem value="FieldMatch">Field Match</MenuItem>
-                  <MenuItem value="UserChoice">User Choice</MenuItem>
-                </Select>
-              </FormControl>
-              <FormControl fullWidth size="small">
-                <InputLabel>Line Style</InputLabel>
-                <Select
-                  value={selectedTransition.lineStyle}
-                  label="Line Style"
-                  onChange={async (e) => {
-                    await workflowService.updateTransition(selectedTransition.id, { lineStyle: e.target.value });
-                    setTransitions(prev =>
-                      prev.map(t => t.id === selectedTransition.id ? { ...t, lineStyle: e.target.value } : t)
-                    );
-                    setSelectedTransition(prev => prev ? { ...prev, lineStyle: e.target.value } : null);
-                  }}
-                >
-                  <MenuItem value="solid">Solid</MenuItem>
-                  <MenuItem value="dashed">Dashed</MenuItem>
-                  <MenuItem value="dotted">Dotted</MenuItem>
-                </Select>
-              </FormControl>
-
-              <Divider />
-
-              <Button
-                variant="outlined"
-                color="error"
-                startIcon={<DeleteIcon />}
-                onClick={() => deleteTransition(selectedTransition)}
-              >
-                Delete Connection
-              </Button>
-            </Box>
+            <TransitionEditor
+              selectedTransition={selectedTransition}
+              onUpdate={handleTransitionUpdate}
+              onDelete={() => deleteTransition(selectedTransition)}
+            />
           )}
         </Box>
       </Drawer>
