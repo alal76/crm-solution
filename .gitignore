@@ -71,6 +71,10 @@ coverage/
 *.lcov
 .nyc_output/
 
+# E2E test artifacts and logs
+e2e-tests/test-results/
+e2e-tests/test-logs/
+
 # Local configuration files (secrets, OAuth credentials)
 # These should NEVER be committed to source control
 config/*.local.env
