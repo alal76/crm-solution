@@ -29,6 +29,7 @@ namespace CRM.Api.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/workflow-instances")]
+[Route("api/workflows/instances")]
 [Authorize]
 public class WorkflowInstanceController : ControllerBase
 {

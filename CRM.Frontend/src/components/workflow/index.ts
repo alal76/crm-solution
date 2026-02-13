@@ -19,6 +19,9 @@ export {
   type RuleBuilderProps,
 } from './RuleBuilder';
 
+// Condition Builder (wrapper)
+export { default as ConditionBuilder } from './ConditionBuilder';
+
 // Version Diff Viewer
 export { VersionDiffViewer } from './VersionDiffViewer';
 
@@ -28,6 +31,9 @@ export {
   type TimelineStep,
 } from './ExecutionTimeline';
 
+// Instance Timeline (wrapper)
+export { default as InstanceTimeline } from './InstanceTimeline';
+
 // Audit Log Viewer
 export { 
   AuditLogViewer,
@@ -36,6 +42,9 @@ export {
 
 // Workflow Simulator
 export { WorkflowSimulator } from './WorkflowSimulator';
+
+// Workflow Viewer (read-only)
+export { default as WorkflowViewer } from './WorkflowViewer';
 
 // Enhanced Properties Panel
 export { 
@@ -52,11 +61,25 @@ export {
   type TriggerConfiguration,
 } from './TriggerPropertiesPanel';
 
+// Workflow Trigger Editor (wrapper)
+export { default as WorkflowTriggerEditor } from './WorkflowTriggerEditor';
+
 // Action Properties Panel - Action node configuration with field updates
 export { 
   ActionPropertiesPanel,
   type ActionConfiguration,
 } from './ActionPropertiesPanel';
+
+// Action Config Panel (wrapper)
+export { default as ActionConfigPanel } from './ActionConfigPanel';
+
+// Workflow Version History
+export { default as WorkflowVersionHistory } from './WorkflowVersionHistory';
+
+// Task components
+export { default as TaskCard } from './TaskCard';
+export { default as TaskList } from './TaskList';
+export { default as TaskApprovalDialog } from './TaskApprovalDialog';
 
 // AI Analytics Dashboard - Cost tracking and performance monitoring
 export { AIAnalyticsDashboard } from './AIAnalyticsDashboard';

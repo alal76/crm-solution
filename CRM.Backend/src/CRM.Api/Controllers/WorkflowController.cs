@@ -34,6 +34,7 @@ namespace CRM.Api.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/workflows")]
+[Route("api/workflows/definitions")]
 [Authorize]
 public class WorkflowController : ControllerBase
 {
