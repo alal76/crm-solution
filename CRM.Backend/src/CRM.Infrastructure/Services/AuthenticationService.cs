@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -187,6 +188,7 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
 
     public async Task<AuthResponse> LoginAsync(LoginRequest request)
     {
+        var stopwatch = Stopwatch.StartNew();
         // Get user by email with navigation properties for permissions
         var normalizedEmail = request.Email?.Trim().ToLower() ?? "";
         var user = await _dbContext.Users
@@ -996,7 +998,6 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
             var result = await _notificationPort.SendEmailAsync(emailRequest);
             if (result.Success)
             {
-                _logger.LogInformation("Password reset email sent to {Email}, messageId={MessageId}", user.Email, result.MessageId);
             }
             else
             {

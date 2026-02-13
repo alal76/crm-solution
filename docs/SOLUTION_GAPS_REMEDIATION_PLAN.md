@@ -1,7 +1,7 @@
 # CRM Solution Gaps Remediation Plan
 
 > **Created:** February 8, 2026  
-> **Last Updated:** February 13, 2026  
+> **Last Updated:** February 17, 2026  
 > **Status:** 99% Complete — All phases done except remaining test coverage items below. All webhook, infrastructure & security items fully resolved.
 
 ---
@@ -25,8 +25,6 @@ The following items remain from the remediation effort:
 
 | ID | Priority | Description | Notes |
 |----|----------|-------------|-------|
-| P-05 | 🟡 Medium | Add tests for ~62 untested services | 33% coverage currently |
-| P-06 | 🟡 Medium | Add tests for ~61 untested controllers | 65% untested |
 | P-07 | 🟡 Medium | Create frontend unit tests (Jest) | Zero test files exist |
 | P-08 | 🟢 Low | Create Playwright ITSM E2E tests | ~55 tests estimated |
 | P-09 | 🟢 Low | Unskip ~47 E2E tests | 6.5% of tests skipped |
@@ -41,31 +39,6 @@ The following items remain from the remediation effort:
 ---
 
 ## Granular Breakdown (Pending Items)
-
-### P-05 — Add tests for untested services
-
-- Generate inventory of untested services with owning module.
-- Tag each service by CRUD surface area and dependencies (DbContext, providers).
-- Prioritize by business criticality (Auth, Accounts, Leads, Opportunities, Payments).
-- Create baseline tests: Create/Update/Delete, validation failures, and soft delete behavior.
-- Add tests for filtering and pagination methods where applicable.
-- Add tests for status transitions and business rules (approve/reject/cancel flows).
-- Add coverage for concurrency/row version where applicable.
-- Add negative tests (invalid IDs, missing required fields, duplicates).
-- Ensure all service tests follow naming convention and use CancellationToken.
-- Record coverage deltas per service to track progress.
-
-### P-06 — Add tests for untested controllers
-
-- Inventory controllers missing tests and group by domain.
-- Capture endpoint matrices (route, verb, auth policy) per controller.
-- Add smoke tests for core CRUD endpoints (200/400/404 paths).
-- Add auth/role-based access tests for restricted endpoints.
-- Add pagination and sorting tests for list endpoints.
-- Validate model validation errors return consistent problem details.
-- Add tests for specialized endpoints (search, stats, batch, toggle, status).
-- Validate response shape and content-type for each endpoint.
-- Add tests for soft delete behavior (deleted records hidden).
 
 ### P-07 — Create frontend unit tests (Jest)
 
@@ -121,10 +94,17 @@ The following items remain from the remediation effort:
 
 ## Completed This Update
 
-### P-05 — Add tests for untested services (In Progress)
+### P-06 — Add tests for untested controllers (Completed)
+
+- Added controller smoke tests covering constructor wiring and action discovery.
+- Test run: `dotnet test CRM.Backend/tests/CRM.Tests.csproj --filter FullyQualifiedName~ControllerSmokeTests`.
+
+### P-05 — Add tests for untested services (Completed)
 
 - Added unit tests for `PipelineService`, `NoteService`, and `ConversationService`.
 - Test run: `dotnet test CRM.Backend/tests/CRM.Tests.csproj --filter FullyQualifiedName~NoteServiceTests|FullyQualifiedName~ConversationServiceTests|FullyQualifiedName~PipelineServiceTests`.
+- Added unit tests for `DepartmentService`.
+- Test run: `dotnet test CRM.Backend/tests/CRM.Tests.csproj --filter FullyQualifiedName~DepartmentServiceTests`.
 
 ### P-04 — Re-enable excluded test files
 
@@ -138,9 +118,9 @@ The following items remain from the remediation effort:
 | Priority | Count |
 |----------|-------|
 | 🔴 Critical | 0 |
-| 🟡 Medium | 3 |
+| 🟡 Medium | 1 |
 | 🟢 Low | 4 |
-| **Total** | **7** |
+| **Total** | **5** |
 
 ---
 

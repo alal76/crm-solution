@@ -25,7 +25,9 @@
     }
   },
   "moduleNameMapper": {
-    "^@/(.*)$": "<rootDir>/src/$1"
+    "^@/(.*)$": "<rootDir>/src/$1",
+    "\\.(css|less|scss|sass)$": "<rootDir>/src/test-utils/styleMock.ts",
+    "\\.(png|jpg|jpeg|gif|svg)$": "<rootDir>/src/test-utils/fileMock.ts"
   },
   "setupFilesAfterEnv": [
     "<rootDir>/src/setupTests.ts"
