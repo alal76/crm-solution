@@ -4,7 +4,7 @@
 > **Load this file at the start of every agent session**
 
 Copilot usage
-- Use subagents for research/analysis and test authoring when tasks are complex or multi-step.
+- Use Claude Opus 4.5 subagents all tasks in particular for research/analysis and test authoring when tasks are complex or multi-step
 - Update documentation as you proceed (specs, remediation plan, and related docs).
 - Write and validate unit tests at the end of the task to ensure code quality and correctness.
 ---
@@ -33,7 +33,7 @@ Each feature has a specification file (`SPEC-{MODULE}-{SEQ}-{Name}.md`) with ful
 
 ### Before Writing Code
 
-1. **Find the spec:** `docs/specifications/SPEC-{MODULE}-{SEQ}-{FeatureName}.md`
+1. **Find the spec:** `docs/specifications/SPEC-{MODULE}-{SEQ}-{FeatureName}.md` in not found create this file with understanding of the implimented code and the instructions . Add in addition put in additional details as you see fit to ensure the spec is comprehensive and clear for implementation. Use the `SPEC-TEMPLATE.md` as a starting point to maintain consistency across specifications.
 2. **Check implementation status:** Look for ✅ Implemented, ⚠️ Partial, ❌ Not Found markers
 3. **Follow validations:** Use exact rules from spec (both frontend AND backend)
 4. **Match data types:** Follow entity property types exactly
