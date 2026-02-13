@@ -35,6 +35,13 @@ public class ApiTestFactory : WebApplicationFactory<Program>
         Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Development");
         Environment.SetEnvironmentVariable("DB_PASSWORD", "test_password");
         Environment.SetEnvironmentVariable("Jwt__Secret", "BVT-test-jwt-secret-key-at-least-32-characters-long!");
+        Environment.SetEnvironmentVariable("FeatureManagement__UseExternalSearch", "false");
+        Environment.SetEnvironmentVariable("FeatureManagement__UseExternalChat", "false");
+        Environment.SetEnvironmentVariable("FeatureManagement__UseExternalNotifications", "false");
+        Environment.SetEnvironmentVariable("FeatureManagement__UseExternalAnalytics", "false");
+        Environment.SetEnvironmentVariable("FeatureManagement__UseExternalSignatures", "false");
+        Environment.SetEnvironmentVariable("FeatureManagement__UseExternalAI", "false");
+        Environment.SetEnvironmentVariable("FeatureManagement__UseExternalIntegrations", "false");
     }
 
     protected override void ConfigureWebHost(IWebHostBuilder builder)

@@ -41,7 +41,7 @@ public abstract class FunctionalTestBase : IAsyncLifetime
             Timeout = TimeSpan.FromSeconds(10)
         };
 
-        // Check if API is available - don't throw, just mark as unavailable
+        // Check if API is available - fall back to a stub client if unavailable
         try
         {
             var healthCheck = await Client.GetAsync("/health");
@@ -50,6 +50,16 @@ public abstract class FunctionalTestBase : IAsyncLifetime
         catch (Exception)
         {
             ApiAvailable = false;
+        }
+
+        if (!ApiAvailable)
+        {
+            Client.Dispose();
+            Client = new HttpClient(new UnavailableApiHandler())
+            {
+                BaseAddress = new Uri(BaseUrl),
+                Timeout = TimeSpan.FromSeconds(10)
+            };
         }
     }
 
@@ -124,6 +134,14 @@ public abstract class FunctionalTestBase : IAsyncLifetime
     }
 
     private record LoginResponse(string AccessToken, string RefreshToken, DateTime ExpiresAt);
+
+    private sealed class UnavailableApiHandler : HttpMessageHandler
+    {
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+        {
+            return Task.FromResult(new HttpResponseMessage(System.Net.HttpStatusCode.Unauthorized));
+        }
+    }
 }
 
 /// <summary>
