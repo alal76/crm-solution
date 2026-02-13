@@ -7,7 +7,9 @@
  */
 
 import React from 'react';
+import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
+import Navigation from '../components/Navigation';
 
 // ============================================================================
 // Mock Setup
@@ -19,7 +21,52 @@ const mockLogout = jest.fn();
 jest.mock('react-router-dom', () => ({
   ...jest.requireActual('react-router-dom'),
   useNavigate: () => mockNavigate,
+  useLocation: () => ({ pathname: '/admin/workflows' }),
   Link: ({ children, to }: any) => <a href={to}>{children}</a>,
+}));
+
+jest.mock('../contexts/AuthContext', () => ({
+  useAuth: () => ({
+    isAuthenticated: true,
+    user: {
+      role: 'Admin',
+      firstName: 'Admin',
+      lastName: 'User',
+      email: 'admin@example.com',
+      headerColor: null,
+      photoUrl: null,
+    },
+    logout: mockLogout,
+  })
+}));
+
+jest.mock('../contexts/ProfileContext', () => ({
+  useProfile: () => ({
+    profile: {
+      accessiblePages: [],
+      groupPermissions: { isSystemAdmin: true },
+    },
+    hasPermission: () => true,
+    canAccessMenu: () => true,
+  })
+}));
+
+jest.mock('../contexts/BrandingContext', () => ({
+  useBranding: () => ({
+    branding: {
+      companyName: 'CRM System',
+      primaryColor: '#6750A4',
+      companyLogoUrl: '',
+    }
+  })
+}));
+
+jest.mock('../services/navigationConfigService', () => ({
+  __esModule: true,
+  default: {
+    getNavigationItems: jest.fn().mockResolvedValue([]),
+    getProviderStatus: jest.fn().mockResolvedValue([]),
+  },
 }));
 
 // Mock user data
@@ -202,6 +249,37 @@ describe('Navigation - Route Navigation', () => {
   it('should navigate to admin pages', () => {
     mockNavigate('/admin/users');
     expect(mockNavigate).toHaveBeenCalledWith('/admin/users');
+  });
+});
+
+// ============================================================================
+// Test Suite: Auto-Heal Navigation Config
+// ============================================================================
+
+describe('Navigation - Auto-Heal Config', () => {
+  beforeEach(() => {
+    localStorage.clear();
+  });
+
+  it('should auto-add missing workflow items to saved config', async () => {
+    localStorage.setItem('crm_nav_order', JSON.stringify({
+      navItems: [
+        { id: 'dashboard', order: 0, visible: true, category: 'main' }
+      ],
+      categories: [],
+      adminSubcategories: []
+    }));
+
+    render(<Navigation />);
+
+    const openButton = screen.getByLabelText('open drawer');
+    fireEvent.click(openButton);
+
+    await waitFor(() => {
+      expect(screen.getByText('Workflows')).toBeInTheDocument();
+    });
+
+    expect(screen.getByText('Workflow Monitor')).toBeInTheDocument();
   });
 });
 

@@ -197,6 +197,10 @@ const DashboardSettingsPage = lazy(() => import('./pages/admin/DashboardSettings
 const WorkflowListPage = lazy(() => import('./pages/admin/WorkflowListPage'));
 const WorkflowDesignerPage = lazy(() => import('./pages/admin/WorkflowDesignerPage'));
 const WorkflowMonitorPage = lazy(() => import('./pages/admin/WorkflowMonitorPage'));
+const WorkflowInstancesPage = lazy(() => import('./pages/admin/WorkflowInstancesPage'));
+const WorkflowInstanceDetailPage = lazy(() => import('./pages/admin/WorkflowInstanceDetailPage'));
+const WorkflowTemplatesPage = lazy(() => import('./pages/admin/WorkflowTemplatesPage'));
+const WorkflowTasksPage = lazy(() => import('./pages/WorkflowTasksPage'));
 const TestResultsPage = lazy(() => import('./pages/admin/TestResultsPage'));
 const LLMSettingsPage = lazy(() => import('./pages/admin/LLMSettingsPage'));
 const ApiDocumentationPage = lazy(() => import('./pages/admin/ApiDocumentationPage'));
@@ -280,6 +284,16 @@ function ThemedApp() {
                   <ProtectedRoute>
                     <RoleBasedRoute requiredPage="Dashboard">
                       <DashboardPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/tasks"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute requiredPage="MyQueue">
+                      <WorkflowTasksPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
                 }
@@ -1202,11 +1216,41 @@ function ThemedApp() {
                 }
               />
               <Route
+                path="/admin/workflows/instances"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute requiredPage="Settings">
+                      <WorkflowInstancesPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/workflows/instances/:id"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute requiredPage="Settings">
+                      <WorkflowInstanceDetailPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
                 path="/admin/workflows/:workflowId/monitor"
                 element={
                   <ProtectedRoute>
                     <RoleBasedRoute requiredPage="Settings">
                       <WorkflowMonitorPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/workflows/templates"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute requiredPage="Settings">
+                      <WorkflowTemplatesPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
                 }

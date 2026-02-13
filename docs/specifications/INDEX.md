@@ -42,9 +42,11 @@ This index provides a centralized catalog of all feature specifications in the C
 | SPEC-SALES-004 | Payment Management | ⏳ Pending | P1 | SALES-003 |
 | SPEC-SALES-005 | Contract Management | ⏳ Pending | P1 | CRM-001 |
 | SPEC-SALES-006 | Subscription Management | ⏳ Pending | P2 | SALES-004 |
-| SPEC-SALES-007 | Commission Management | ⏳ Pending | P2 | - |
-
-### Marketing Module
+| [SPEC-SYS-007](SPEC-SYS-007-NavigationManagement.md) | Navigation Management | ⚠️ Partial | P1 | SYS-005 |
+| [SPEC-SYS-008](SPEC-SYS-008-AdminSettingsSuite.md) | Admin Settings Suite | ⚠️ Partial | P1 | SYS-005 |
+| **Total** | **43** | **12** | **29** | **2** |
+| System | 8 | 1 | 5 | 2 |
+| **Total** | **43** | **12** | **29** | **2** |
 | Spec ID | Feature | Status | Priority | Dependencies |
 |---------|---------|--------|----------|--------------|
 | SPEC-MKT-001 | Campaign Management | ⏳ Pending | P1 | CRM-002, CRM-004 |
@@ -79,6 +81,9 @@ This index provides a centralized catalog of all feature specifications in the C
 | [SPEC-SYS-004](SPEC-SYS-004-FeatureFlagManagement.md) | Feature Flag Management | ✅ Complete | P2 | - |
 | SPEC-SYS-005 | System Settings | ⏳ Pending | P1 | - |
 | SPEC-SYS-006 | Audit Logging | ⏳ Pending | P2 | - |
+| [SPEC-SYS-007](SPEC-SYS-007-NavigationManagement.md) | Navigation Management | ⚠️ Partial | P1 | SYS-005 |
+| [SPEC-SYS-008](SPEC-SYS-008-AdminSettingsSuite.md) | Admin Settings Suite | ⚠️ Partial | P1 | SYS-005 |
+| [SPEC-SYS-009](SPEC-SYS-009-AdministrationModule.md) | Administration Module | ⚠️ Partial | P1 | SYS-007, SYS-008 |
 
 ### AI & Analytics Module
 | Spec ID | Feature | Status | Priority | Dependencies |
@@ -118,10 +123,10 @@ This index provides a centralized catalog of all feature specifications in the C
 | Marketing | 5 | 0 | 5 | 0 |
 | Service Desk | 5 | 0 | 5 | 0 |
 | ITSM | 4 | 0 | 4 | 0 |
-| System | 6 | 1 | 5 | 0 |
+| System | 9 | 1 | 5 | 3 |
 | AI & Analytics | 4 | 2 | 2 | 0 |
 | Integration | 3 | 0 | 3 | 0 |
-| **Total** | **41** | **12** | **29** | **0** |
+| **Total** | **44** | **12** | **29** | **3** |
 
 ### TODO Items Extracted
 | Spec | TODO Count | High Priority | Medium Priority | Low Priority |

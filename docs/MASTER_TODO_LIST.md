@@ -1,8 +1,8 @@
 # CRM Solution - Master TODO List (Pending Items Only)
 
-> **Last Updated:** February 11, 2026
+> **Last Updated:** February 17, 2026
 > **Purpose:** Consolidated list of all PENDING enhancements and action items
-> **Total Pending Items:** 142
+> **Total Pending Items:** 148
 > **Completed items have been archived — see git history for prior state**
 
 ---
@@ -11,7 +11,7 @@
 
 > **[specifications/IMPLEMENTATION_PLAN.md](specifications/IMPLEMENTATION_PLAN.md)** - Detailed 16-week implementation guide
 >
-> **Specification Progress:** 9/40 complete (22.5%) — see [specifications/INDEX.md](specifications/INDEX.md)
+> **Specification Progress:** 12/44 complete (27.3%) — see [specifications/INDEX.md](specifications/INDEX.md)
 
 ---
 
@@ -98,6 +98,35 @@
 | TODO-SALES007-04 | P3 | Add commission forecast based on pipeline | 3.4 |
 | TODO-SALES007-05 | P2 | Implement clawback automation for churned deals | 3.4 |
 
+### SPEC-SYS-007 (Navigation Management) — 4 Items
+
+| ID | Priority | Description | Spec Section |
+|----|----------|-------------|--------------|
+
+### SPEC-SYS-008 (Admin Settings Suite) — 4 Items
+
+| ID | Priority | Description | Spec Section |
+|----|----------|-------------|--------------|
+| TODO-SYS008-001 | P2 | Add admin settings navigation E2E tests | 6 |
+| TODO-SYS008-002 | P2 | Add unit tests for database/duplicate/lead-score controllers | 6 |
+| TODO-SYS008-003 | P2 | Validate admin pages against API contract | 6 |
+| TODO-SYS008-004 | P3 | Add missing UI empty states + loading UX | 6 |
+
+### SPEC-SYS-009 (Administration Module) — 4 Items
+
+| ID | Priority | Description | Spec Section |
+|----|----------|-------------|--------------|
+| TODO-SYS009-001 | P2 | Add admin settings end-to-end tests | 7 |
+| TODO-SYS009-002 | P2 | Add unit tests for navigation + system settings | 7 |
+| TODO-SYS009-003 | P2 | Complete provider-aware navigation merge | 7 |
+| TODO-SYS009-004 | P3 | Add audit logging for admin changes | 7 |
+
+### SYS008-ISS01 Resolution
+
+| ID | Priority | Description | Status |
+|----|----------|-------------|--------|
+| SYS008-ISS01 | P2 | Admin items not fully spec’d | ✅ Resolved |
+
 ---
 
 ## 2. Audit Remediation TODOs
@@ -108,21 +137,19 @@
 
 | ID | Priority | Description |
 |----|----------|-------------|
-| ~~TODO-AUDIT-01~~ | ~~P2~~ | ✅ **DONE** — Wired 16 ITSM components into 9 pages (IncidentDetail, ProblemDetail, CMDBDetail, SLADashboard, ChangeDetail, KnowledgeArticleDetail, ServiceCatalog, ServiceCatalogRequestCreate, IncidentForm) |
-| ~~TODO-AUDIT-02~~ | ~~P3~~ | ✅ **DONE** — ChatTimelineItem.tsx used in CustomerOverviewPage.tsx; AnalyticsEmbed.tsx used in DashboardPage.tsx. Both actively imported. |
-| ~~TODO-AUDIT-03~~ | ~~P3~~ | ✅ **DONE** — Deleted dead ModuleFieldSettingsTab.tsx (superseded by ModuleFieldSettingsTabNew.tsx) |
+| *(No pending items)* |  |  |
 
 ### 2.2 Orphaned Admin Pages (3)
 
 | ID | Priority | Description |
 |----|----------|-------------|
-| ~~TODO-AUDIT-04~~ | ~~P2~~ | ✅ **DONE** — Added lazy imports + routes for /admin/database-settings, /admin/duplicate-rules, /admin/lead-score-rules |
+| *(No pending items)* |  |  |
 
 ### 2.3 Dead Custom Hooks (3)
 
 | ID | Priority | Description |
 |----|----------|-------------|
-| ~~TODO-AUDIT-05~~ | ~~P3~~ | ✅ **DONE** — Deleted 3 hook files + removed barrel export |
+| *(No pending items)* |  |  |
 
 ### 2.4 ITSM Architecture Gap
 
@@ -136,14 +163,11 @@
 | ID | Priority | Description |
 |----|----------|-------------|
 | TODO-AUDIT-08 | P2 | Re-enable ~87 excluded test files in CRM.Tests.csproj (entity property drift, mock setup) |
-| ~~TODO-AUDIT-09~~ | ~~P3~~ | ✅ **DONE** — Created 5 interfaces + 5 service implementations + 6 DbSets + DI registration |
-| ~~TODO-AUDIT-10~~ | ~~P3~~ | ✅ **DONE** — Removed 7 legacy alias routes (/incidents, /knowledge, /catalog) from App.tsx |
 
 ### 2.6 Remaining Service Gaps
 
 | ID | Priority | Description |
 |----|----------|-------------|
-| ~~TODO-AUDIT-11~~ | ~~P2~~ | ✅ **DONE** — Implemented RestoreEntityFromSnapshot, ReverseRelatedRecordRelinking, ReverseFieldOverrides in MergeService.cs |
 | TODO-AUDIT-12 | P2 | Align ITSM_ADVANCED entity models (28 services, 460+ build errors from property mismatches) |
 
 ---
@@ -202,6 +226,12 @@
 | TODO-INFRA-08 | P2 | Implement full-text search indexing for all entities |
 | TODO-INFRA-09 | P2 | Add search result highlighting and faceted search |
 | TODO-INFRA-10 | P3 | Implement search analytics (popular queries, zero results) |
+
+### 4.4 Platform Upgrades
+
+| ID | Priority | Description |
+|----|----------|-------------|
+| TODO-INFRA-11 | P2 | Upgrade solution to .NET 10 (SDK, target frameworks, CI/CD, containers) |
 
 ---
 
@@ -436,9 +466,9 @@
 |----------|-------|-------------|
 | **P0 — Critical** | 0 | No critical blockers |
 | **P1 — High** | 8 | Core functionality gaps: validations, lead conversion, global search, inline editing |
-| **P2 — Medium** | 80 | Service completion, testing, integrations, reporting, AI features |
-| **P3 — Low** | 50 | Portal, mobile, advanced customization, nice-to-have UX |
-| **Total** | **138** | |
+| **P2 — Medium** | 79 | Service completion, testing, integrations, reporting, AI features |
+| **P3 — Low** | 61 | Portal, mobile, advanced customization, nice-to-have UX |
+| **Total** | **148** | |
 
 ### Recommended Implementation Order
 

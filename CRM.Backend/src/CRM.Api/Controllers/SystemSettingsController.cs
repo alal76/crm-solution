@@ -616,6 +616,7 @@ public class SystemSettingsController : ControllerBase
             var settings = await _settingsService.UpdateSettingsAsync(updateRequest, userId);
 
             _logger.LogInformation("Navigation order updated by user {UserId}", userId);
+            _logger.LogInformation("AUDIT: NavigationOrderUpdated {UserId} {ConfigSize}", userId, request.NavOrderConfig?.Length ?? 0);
 
             return Ok(settings);
         }

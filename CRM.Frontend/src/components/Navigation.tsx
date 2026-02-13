@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { getApiBaseUrl } from '../config/ports';
 import {
   AppBar,
@@ -53,6 +53,33 @@ import {
   Payment as PaymentIcon,
   ShoppingCart as OrderIcon,
   MergeType as MergeIcon,
+  Speed as SpeedIcon,
+  BarChart as BarChartIcon,
+  Warning as WarningIcon,
+  ChangeCircle as ChangeCircleIcon,
+  Article as ArticleIcon,
+  Category as CategoryIcon,
+  Web as WebIcon,
+  Route as RouteIcon,
+  Queue as QueueIcon,
+  Event as EventIcon,
+  CheckCircle as CheckCircleIcon,
+  Chat as ChatIcon,
+  ThumbUp as ThumbUpIcon,
+  Share as ShareIcon,
+  Insights as InsightsIcon,
+  Api as ApiIcon,
+  MonitorHeart as MonitorHeartIcon,
+  Flag as FlagIcon,
+  Science as ScienceIcon,
+  HowToReg as HowToRegIcon,
+  GroupWork as GroupWorkIcon,
+  Dataset as DatasetIcon,
+  ContentCopy as ContentCopyIcon,
+  Score as ScoreIcon,
+  Assignment as AssignmentIcon,
+  Extension as ExtensionIcon,
+  MenuBook as MenuBookIcon,
   // Reports & Analytics icons
   Assessment as ReportsIcon,
   Analytics as AnalyticsIcon,
@@ -116,6 +143,7 @@ function NavigationContent() {
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({
     'main': true,
     'sales': true,
+    'marketing': true,
     'support': true,
     'itsm': true,
     'productivity': true,
@@ -257,10 +285,11 @@ function NavigationContent() {
   }, []);
 
   // Nav item ID to path/icon mapping (defined outside useMemo for stability)
-  const navItemsConfig: Record<string, { label: string; icon: typeof DashboardIcon; path: string; menuName: string }> = useMemo(() => ({
+  const staticNavItemsConfig: Record<string, { label: string; icon: typeof DashboardIcon; path: string; menuName: string }> = useMemo(() => ({
     'dashboard': { label: 'Dashboard', icon: DashboardIcon, path: '/', menuName: 'Dashboard' },
     'accounts': { label: 'Accounts', icon: PeopleIcon, path: '/accounts', menuName: 'Accounts' },
     'accounts-360': { label: 'Accounts 360', icon: PersonSearchIcon, path: '/account-overview', menuName: 'Accounts360' },
+    'customer-overview': { label: 'Customer 360°', icon: PersonSearchIcon, path: '/account-overview', menuName: 'Accounts360' },
     'contacts': { label: 'Contacts', icon: PeopleIcon, path: '/contacts', menuName: 'Contacts' },
     'leads': { label: 'Leads', icon: PeopleIcon, path: '/leads', menuName: 'Leads' },
     'opportunities': { label: 'Opportunities', icon: TrendingUpIcon, path: '/opportunities', menuName: 'Opportunities' },
@@ -297,6 +326,7 @@ function NavigationContent() {
     'departments': { label: 'Departments', icon: BusinessIcon, path: '/departments', menuName: 'Departments' },
     'my-queue': { label: 'My Queue', icon: TaskIcon, path: '/my-queue', menuName: 'MyQueue' },
     'activities': { label: 'Activities', icon: ActivityIcon, path: '/activities', menuName: 'Activities' },
+    'tasks': { label: 'Tasks', icon: TaskIcon, path: '/tasks', menuName: 'Tasks' },
     'notes': { label: 'Notes', icon: NoteIcon, path: '/notes', menuName: 'Notes' },
     'communications': { label: 'Communications', icon: CommunicationsIcon, path: '/communications', menuName: 'Communications' },
     'interactions': { label: 'Interactions', icon: InteractionsIcon, path: '/interactions', menuName: 'Interactions' },
@@ -312,7 +342,7 @@ function NavigationContent() {
     'licenses': { label: 'Licenses', icon: LicenseIcon, path: '/licenses', menuName: 'Licenses' },
   }), []);
 
-  const adminItemsConfig: Record<string, { label: string; icon: typeof DashboardIcon; path: string; menuName: string }> = useMemo(() => ({
+  const staticAdminItemsConfig: Record<string, { label: string; icon: typeof DashboardIcon; path: string; menuName: string }> = useMemo(() => ({
     // System Administration
     'monitoring-settings': { label: 'Monitoring', icon: MonitorIcon, path: '/admin/monitoring', menuName: 'MonitoringSettings' },
     'deployment-settings': { label: 'Deployment', icon: CloudIcon, path: '/admin/deployment', menuName: 'DeploymentSettings' },
@@ -347,6 +377,151 @@ function NavigationContent() {
     'channel-settings': { label: 'Channel Settings', icon: ChannelSettingsIcon, path: '/channel-settings', menuName: 'ChannelSettings' },
   }), []);
 
+  const iconNameMap: Record<string, typeof DashboardIcon> = useMemo(() => ({
+    Dashboard: DashboardIcon,
+    Business: BusinessIcon,
+    Preview: PersonSearchIcon,
+    ContactPage: PeopleIcon,
+    PersonSearch: PersonSearchIcon,
+    TrendingUp: TrendingUpIcon,
+    RequestQuote: QuoteIcon,
+    ShoppingCart: OrderIcon,
+    Receipt: InvoiceIcon,
+    Payment: PaymentIcon,
+    Description: QuoteIcon,
+    Subscriptions: SubscriptionIcon,
+    Inventory: PackageIcon,
+    AttachMoney: CommissionIcon,
+    Groups: GroupsIcon,
+    Map: BusinessIcon,
+    SupportAgent: SupportAgentIcon,
+    MenuBook: MenuBookIcon,
+    Build: SettingsIcon,
+    Campaign: MegaphoneIcon,
+    Speed: SpeedIcon,
+    BarChart: BarChartIcon,
+    Warning: WarningIcon,
+    ChangeCircle: ChangeCircleIcon,
+    Storage: StorageIcon,
+    Article: ArticleIcon,
+    Category: CategoryIcon,
+    Web: WebIcon,
+    Route: RouteIcon,
+    Queue: QueueIcon,
+    Event: EventIcon,
+    CheckCircle: CheckCircleIcon,
+    Chat: ChatIcon,
+    Forum: CommunicationsIcon,
+    ThumbUp: ThumbUpIcon,
+    Share: ShareIcon,
+    Assessment: ReportsIcon as typeof DashboardIcon,
+    Insights: InsightsIcon,
+    Info: InfoIcon,
+    Help: HelpIcon,
+    Api: ApiIcon,
+    Gavel: LicenseIcon,
+    MonitorHeart: MonitorHeartIcon,
+    Flag: FlagIcon,
+    Science: ScienceIcon,
+    Psychology: LLMIcon,
+    HowToReg: HowToRegIcon,
+    GroupWork: GroupWorkIcon,
+    Dataset: DatasetIcon,
+    ContentCopy: ContentCopyIcon,
+    Score: ScoreIcon,
+    Assignment: AssignmentIcon,
+    Menu: MenuIcon,
+    ViewModule: ModuleIcon,
+    AccountTree: WorkflowIcon,
+    Timeline: WorkflowMonitorIcon,
+    Extension: ExtensionIcon,
+    Support: SupportAgentIcon,
+    Email: EmailIcon,
+    RocketLaunch: CampaignExecutionIcon,
+    AccountTree: WorkflowIcon,
+    DesignServices: WorkflowBuilderIcon,
+    PlayCircle: WorkflowMonitorIcon,
+    Hub: IntegrationsIcon,
+    Analytics: AnalyticsIcon,
+    Psychology: LLMIcon,
+    BugReport: TestResultsIcon,
+    Menu: MenuIcon,
+    Storage: StorageIcon,
+    Cloud: CloudIcon,
+    Monitor: MonitorIcon,
+    Security: SecurityIcon,
+    ToggleOn: FeatureToggleIcon,
+    PersonAdd: PersonAddIcon,
+    Palette: PaletteIcon,
+    ViewModule: ModuleIcon,
+    Navigation: NavAdminIcon as typeof DashboardIcon,
+    DashboardCustomize: DashboardAdminIcon as typeof DashboardIcon,
+  }), []);
+
+  const routeOverrides: Record<string, string> = useMemo(() => ({
+    'customer-overview': '/account-overview',
+  }), []);
+
+  const dynamicItemsById = useMemo(() => {
+    const map: Record<string, NavigationItemConfig> = {};
+    dynamicNavConfig.forEach(item => {
+      map[item.id] = item;
+    });
+    return map;
+  }, [dynamicNavConfig]);
+
+  const isDynamicItemEnabled = useCallback((item: NavigationItemConfig) => {
+    if (item.enabled === false || item.visible === false) return false;
+    if (item.requiredProvider) {
+      return providerStatus[item.requiredProvider] ?? false;
+    }
+    return true;
+  }, [providerStatus]);
+
+  const effectiveNavItemsConfig = useMemo(() => {
+    const merged = { ...staticNavItemsConfig };
+
+    Object.values(dynamicItemsById).forEach(item => {
+      const isAdminItem = item.category === 'admin' || !!item.adminSubcategory;
+      if (isAdminItem) return;
+
+      const base = staticNavItemsConfig[item.id];
+      const icon = base?.icon || iconNameMap[item.icon] || DashboardIcon;
+      const resolvedPath = routeOverrides[item.id] || (item.isExternal && item.externalUrl ? item.externalUrl : (item.path || base?.path || '/'));
+
+      merged[item.id] = {
+        label: item.label || base?.label || item.id,
+        icon,
+        path: resolvedPath,
+        menuName: item.menuName || base?.menuName || item.label || item.id,
+      };
+    });
+
+    return merged;
+  }, [dynamicItemsById, iconNameMap, staticNavItemsConfig]);
+
+  const effectiveAdminItemsConfig = useMemo(() => {
+    const merged = { ...staticAdminItemsConfig };
+
+    Object.values(dynamicItemsById).forEach(item => {
+      const isAdminItem = item.category === 'admin' || !!item.adminSubcategory;
+      if (!isAdminItem) return;
+
+      const base = staticAdminItemsConfig[item.id];
+      const icon = base?.icon || iconNameMap[item.icon] || DashboardIcon;
+      const resolvedPath = routeOverrides[item.id] || (item.isExternal && item.externalUrl ? item.externalUrl : (item.path || base?.path || '/'));
+
+      merged[item.id] = {
+        label: item.label || base?.label || item.id,
+        icon,
+        path: resolvedPath,
+        menuName: item.menuName || base?.menuName || item.label || item.id,
+      };
+    });
+
+    return merged;
+  }, [dynamicItemsById, iconNameMap, staticAdminItemsConfig]);
+
   // Default order for nav items
   const defaultNavOrder = useMemo(() => [
     'dashboard', 'accounts', 'accounts-360', 'contacts', 'relationships', 'leads', 'opportunities',
@@ -354,7 +529,7 @@ function NavigationContent() {
     'contracts', 'invoices', 'payments', 'orders', 'commissions', 'subscriptions', 'teams',
     'territories', 'lead-routing', 'approvals',
     'itsm-overview', 'itsm-incidents', 'itsm-problems', 'itsm-changes', 'itsm-cmdb', 'itsm-knowledge', 'itsm-catalog', 'itsm-sla', 'itsm-metrics',
-    'my-queue', 'activities', 'notes', 'communications', 'interactions'
+    'my-queue', 'activities', 'tasks', 'notes', 'communications', 'interactions'
   ], []);
   const defaultAdminOrder = useMemo(() => [
     'monitoring-settings', 'deployment-settings', 'security-settings', 'feature-management',
@@ -366,13 +541,14 @@ function NavigationContent() {
   // Default categories
   const defaultCategories = useMemo(() => [
     { id: 'main', label: 'Main', order: 0 },
-    { id: 'sales', label: 'Sales & Marketing', order: 1 },
-    { id: 'support', label: 'Customer Support', order: 2 },
-    { id: 'itsm', label: 'IT Service Management', order: 3 },
-    { id: 'productivity', label: 'Productivity', order: 4 },
-    { id: 'agents', label: 'AI Agents', order: 5 },
-    { id: 'info', label: 'Help & Info', order: 6 },
-    { id: 'admin', label: 'Administration', order: 7 },
+    { id: 'sales', label: 'Sales', order: 1 },
+    { id: 'marketing', label: 'Marketing', order: 2 },
+    { id: 'support', label: 'Customer Support', order: 3 },
+    { id: 'itsm', label: 'IT Service Management', order: 4 },
+    { id: 'productivity', label: 'Productivity', order: 5 },
+    { id: 'agents', label: 'AI Agents', order: 6 },
+    { id: 'info', label: 'Help & Info', order: 7 },
+    { id: 'admin', label: 'Administration', order: 8 },
   ], []);
 
   // Default admin subcategories with icons for collapsible sections
@@ -400,6 +576,14 @@ function NavigationContent() {
     SettingsIcon,
     StorageIcon,
     SecurityIcon,
+    Settings: SettingsIcon,
+    People: PeopleIcon,
+    Business: BusinessIcon,
+    Support: SupportAgentIcon,
+    Menu: MenuIcon,
+    ViewModule: ModuleIcon,
+    AccountTree: WorkflowIcon,
+    Forum: CommunicationsIcon,
     SubcategoryIcon: ViewQuiltIcon,
   }), []);
 
@@ -424,11 +608,11 @@ function NavigationContent() {
     { id: 'itsm-catalog', order: 36, visible: true, category: 'itsm' },
     { id: 'itsm-sla', order: 37, visible: true, category: 'itsm' },
     { id: 'itsm-metrics', order: 38, visible: true, category: 'itsm' },
-    { id: 'campaigns', order: 9, visible: true, category: 'sales' },
-    { id: 'email-templates', order: 9.1, visible: true, category: 'sales' },
-    { id: 'campaign-execution', order: 9.2, visible: true, category: 'sales' },
-    { id: 'landing-pages', order: 9.5, visible: true, category: 'sales' },
-    { id: 'forms', order: 9.6, visible: true, category: 'sales' },
+    { id: 'campaigns', order: 9, visible: true, category: 'marketing' },
+    { id: 'email-templates', order: 9.1, visible: true, category: 'marketing' },
+    { id: 'campaign-execution', order: 9.2, visible: true, category: 'marketing' },
+    { id: 'landing-pages', order: 9.5, visible: true, category: 'marketing' },
+    { id: 'forms', order: 9.6, visible: true, category: 'marketing' },
     { id: 'quotes', order: 10, visible: true, category: 'sales' },
     { id: 'territories', order: 10.1, visible: true, category: 'sales' },
     { id: 'lead-routing', order: 10.2, visible: true, category: 'sales' },
@@ -443,6 +627,7 @@ function NavigationContent() {
     { id: 'departments', order: 10.95, visible: true, category: 'main' },
     { id: 'my-queue', order: 11, visible: true, category: 'productivity' },
     { id: 'activities', order: 12, visible: true, category: 'productivity' },
+    { id: 'tasks', order: 12.5, visible: true, category: 'productivity' },
     { id: 'notes', order: 13, visible: true, category: 'productivity' },
     { id: 'communications', order: 14, visible: true, category: 'productivity' },
     { id: 'interactions', order: 15, visible: true, category: 'productivity' },
@@ -491,6 +676,41 @@ function NavigationContent() {
     { id: 'agent-analytics', order: 81, visible: true, category: 'admin', adminSubcategory: 'admin-workflows' },
   ], []);
 
+  const mergeNavItemsWithDefaults = useCallback((savedItems: any[] | undefined) => {
+    const merged = Array.isArray(savedItems) ? [...savedItems] : [];
+    const existingIds = new Set(merged.map(item => item.id));
+
+    defaultNavItemsWithCategory.forEach(defaultItem => {
+      if (!existingIds.has(defaultItem.id)) {
+        merged.push({
+          id: defaultItem.id,
+          order: defaultItem.order,
+          visible: defaultItem.visible,
+          category: defaultItem.category,
+          adminSubcategory: defaultItem.adminSubcategory,
+        });
+      }
+    });
+
+    return merged;
+  }, [defaultNavItemsWithCategory]);
+
+  const dynamicNavOrder = useMemo(() => {
+    if (!dynamicNavConfig.length) return [];
+
+    const items = dynamicNavConfig
+      .filter(isDynamicItemEnabled)
+      .map(item => ({
+        id: item.id,
+        order: item.order ?? 0,
+        visible: true,
+        category: item.category || 'main',
+        adminSubcategory: item.adminSubcategory,
+      }));
+
+    return mergeNavItemsWithDefaults(items);
+  }, [dynamicNavConfig, isDynamicItemEnabled, mergeNavItemsWithDefaults]);
+
   // Get nav config from localStorage or use defaults
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const navConfig = useMemo(() => {
@@ -500,10 +720,14 @@ function NavigationContent() {
         const parsed = JSON.parse(savedConfig);
         // Support both old format (array) and new format (object with navItems, categories, and adminSubcategories)
         if (Array.isArray(parsed)) {
-          return { navItems: parsed, categories: defaultCategories, adminSubcategories: defaultAdminSubcategories };
+          return {
+            navItems: dynamicNavOrder.length ? dynamicNavOrder : mergeNavItemsWithDefaults(parsed),
+            categories: defaultCategories,
+            adminSubcategories: defaultAdminSubcategories
+          };
         }
         return {
-          navItems: parsed.navItems || [],
+          navItems: dynamicNavOrder.length ? dynamicNavOrder : mergeNavItemsWithDefaults(parsed.navItems || []),
           categories: parsed.categories || defaultCategories,
           adminSubcategories: parsed.adminSubcategories || defaultAdminSubcategories
         };
@@ -511,8 +735,15 @@ function NavigationContent() {
     } catch {
       // Use defaults
     }
+    if (dynamicNavOrder.length) {
+      return {
+        navItems: dynamicNavOrder,
+        categories: defaultCategories,
+        adminSubcategories: defaultAdminSubcategories
+      };
+    }
     return null;
-  }, [defaultCategories, defaultAdminSubcategories, navRefreshKey]); // Include navRefreshKey to force recalculation on nav update
+  }, [defaultCategories, defaultAdminSubcategories, dynamicNavOrder, mergeNavItemsWithDefaults, navRefreshKey]); // Include navRefreshKey to force recalculation on nav update
 
   // Get admin subcategories from config
   const adminSubcategories = useMemo(() => {
@@ -524,15 +755,15 @@ function NavigationContent() {
   const navItemsWithCategory = useMemo(() => {
     const order = navConfig?.navItems || defaultNavItemsWithCategory;
     return order
-      .filter((item: { id: string; visible: boolean }) => item.visible && (navItemsConfig[item.id] || adminItemsConfig[item.id]))
+      .filter((item: { id: string; visible: boolean }) => item.visible && (effectiveNavItemsConfig[item.id] || effectiveAdminItemsConfig[item.id]))
       .sort((a: { order: number }, b: { order: number }) => a.order - b.order)
       .map((item: { id: string; customLabel?: string; category?: string }) => ({
-        ...navItemsConfig[item.id] || adminItemsConfig[item.id],
+        ...effectiveNavItemsConfig[item.id] || effectiveAdminItemsConfig[item.id],
         customLabel: item.customLabel,
         category: item.category || 'main',
         id: item.id
       }));
-  }, [navConfig, defaultNavItemsWithCategory, navItemsConfig, adminItemsConfig]);
+  }, [navConfig, defaultNavItemsWithCategory, effectiveNavItemsConfig, effectiveAdminItemsConfig]);
 
   // Get categories from config
   const categories = useMemo(() => {
@@ -543,25 +774,25 @@ function NavigationContent() {
   const navItems = useMemo(() => {
     const order = navConfig?.navItems || defaultNavItemsWithCategory;
     return order
-      .filter((item: { id: string; visible: boolean }) => item.visible && navItemsConfig[item.id])
+      .filter((item: { id: string; visible: boolean }) => item.visible && effectiveNavItemsConfig[item.id])
       .sort((a: { order: number }, b: { order: number }) => a.order - b.order)
       .map((item: { id: string; customLabel?: string }) => ({
-        ...navItemsConfig[item.id],
+        ...effectiveNavItemsConfig[item.id],
         customLabel: item.customLabel
       }));
-  }, [navConfig, defaultNavItemsWithCategory, navItemsConfig]);
+  }, [navConfig, defaultNavItemsWithCategory, effectiveNavItemsConfig]);
 
   const adminItems = useMemo(() => {
-    const order = navConfig?.navItems?.filter((item: { id: string }) => adminItemsConfig[item.id]) || 
-      defaultNavItemsWithCategory.filter(item => adminItemsConfig[item.id]);
+    const order = navConfig?.navItems?.filter((item: { id: string }) => effectiveAdminItemsConfig[item.id]) || 
+      defaultNavItemsWithCategory.filter(item => effectiveAdminItemsConfig[item.id]);
     return order
-      .filter((item: { id: string; visible: boolean }) => item.visible && adminItemsConfig[item.id])
+      .filter((item: { id: string; visible: boolean }) => item.visible && effectiveAdminItemsConfig[item.id])
       .sort((a: { order: number }, b: { order: number }) => a.order - b.order)
       .map((item: { id: string; customLabel?: string }) => ({
-        ...adminItemsConfig[item.id],
+        ...effectiveAdminItemsConfig[item.id],
         customLabel: item.customLabel
       }));
-  }, [navConfig, defaultNavItemsWithCategory, adminItemsConfig]);
+  }, [navConfig, defaultNavItemsWithCategory, effectiveAdminItemsConfig]);
 
   // Get header color: user's custom color, or red for admin, or primary color
   const getHeaderColor = () => {
@@ -783,10 +1014,10 @@ function NavigationContent() {
                         item.visible && 
                         item.category === 'admin' && 
                         item.adminSubcategory === subcat.id && 
-                        adminItemsConfig[item.id]
+                        effectiveAdminItemsConfig[item.id]
                       )
                       .map((item: { id: string; customLabel?: string }) => ({
-                        ...adminItemsConfig[item.id],
+                        ...effectiveAdminItemsConfig[item.id],
                         id: item.id,
                         customLabel: item.customLabel,
                       }))
