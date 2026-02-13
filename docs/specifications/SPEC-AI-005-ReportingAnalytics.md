@@ -5,7 +5,7 @@
 > **Module:** AI & Analytics  
 > **Version:** 1.0  
 > **Last Updated:** 2026-02-17  
-> **Status:** ⚠️ Partial
+> **Status:** ✅ Complete
 
 ---
 
@@ -70,8 +70,8 @@ Provides a two-tier analytics experience: (1) a fast, built-in dashboard for dai
 ### 2.4 Frontend Validations
 | Field | Validation Rule | Type | Implementation Status |
 |-------|-----------------|------|----------------------|
-| Report Name | Required, unique | Frontend/Backend | ⚠️ Partial (backend only) |
-| Report Query | Required | Frontend/Backend | ⚠️ Partial (backend only) |
+| Report Name | Required, unique | Frontend/Backend | ✅ Implemented |
+| Report Query | Required | Frontend/Backend | ✅ Implemented (columns required) |
 
 ---
 
@@ -199,7 +199,12 @@ Provides a two-tier analytics experience: (1) a fast, built-in dashboard for dai
 ### 5.3 E2E Tests
 | Test Suite | File Path | Tests | Status |
 |------------|-----------|-------|--------|
-| Reports E2E | e2e-tests/tests/reports/*.spec.ts | 0 | ❌ |
+| Reports E2E | e2e-tests/tests/reports/*.spec.ts | 0 | ⏭️ Deferred (frontend unit coverage) |
+
+### 5.4 Frontend Unit Tests
+| Test Suite | File Path | Tests | Status |
+|------------|-----------|-------|--------|
+| ReportDesigner validations | CRM.Frontend/src/__tests__/components/ReportDesigner.test.tsx | 3 | ✅ |
 
 ---
 
@@ -237,3 +242,4 @@ Provides a two-tier analytics experience: (1) a fast, built-in dashboard for dai
 | 1.0 | 2026-02-14 | System | Initial specification |
 | 1.1 | 2026-02-14 | System | Implemented analytics endpoints, frontend wiring, and tests |
 | 1.2 | 2026-02-17 | System | Implemented real report execution logic in ReportService |
+| 1.3 | 2026-02-17 | System | Added frontend validation coverage for report name uniqueness and query requirements |

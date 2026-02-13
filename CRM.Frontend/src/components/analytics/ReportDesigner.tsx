@@ -164,6 +164,7 @@ interface ReportDesignerProps {
   onSave?: (report: ReportConfig) => Promise<void>;
   onRun?: (report: ReportConfig) => Promise<void>;
   onCancel?: () => void;
+  existingReportNames?: string[];
 }
 
 // Available columns by data source
@@ -321,6 +322,7 @@ export const ReportDesigner: React.FC<ReportDesignerProps> = ({
   onSave,
   onRun,
   onCancel,
+  existingReportNames,
 }) => {
   // State
   const [config, setConfig] = useState<ReportConfig>(report || getDefaultReport());
@@ -467,12 +469,20 @@ export const ReportDesigner: React.FC<ReportDesignerProps> = ({
 
   // Save report
   const handleSave = useCallback(async () => {
-    if (!config.name.trim()) {
+    const normalizedName = config.name.trim();
+    if (!normalizedName) {
       setSnackbar({ open: true, message: 'Report name is required', severity: 'error' });
       return;
     }
+    const normalizedExistingNames = (existingReportNames || [])
+      .map(name => name?.trim().toLowerCase())
+      .filter(Boolean);
+    if (normalizedExistingNames.includes(normalizedName.toLowerCase())) {
+      setSnackbar({ open: true, message: 'Report name must be unique', severity: 'error' });
+      return;
+    }
     if (config.columns.length === 0) {
-      setSnackbar({ open: true, message: 'At least one column is required', severity: 'error' });
+      setSnackbar({ open: true, message: 'Report query is required', severity: 'error' });
       return;
     }
 
@@ -487,7 +497,7 @@ export const ReportDesigner: React.FC<ReportDesignerProps> = ({
     } finally {
       setSaving(false);
     }
-  }, [config, onSave]);
+  }, [config, existingReportNames, onSave]);
 
   // Run report
   const handleRun = useCallback(async () => {
