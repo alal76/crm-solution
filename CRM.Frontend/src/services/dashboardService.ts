@@ -203,6 +203,17 @@ export interface DashboardStats {
   products: { total: number };
   tasks: { total: number; pending: number };
   users: { active: number };
+  leads: { total: number };
+  timestamp: string;
+}
+
+export interface DashboardSummary {
+  mtdRevenue: number;
+  qtdRevenue: number;
+  pipelineValue: number;
+  newLeadsThisMonth: number;
+  dealsClosedThisMonth: number;
+  winRate: number;
   timestamp: string;
 }
 
@@ -261,6 +272,7 @@ export const dashboardConfigService = {
 // Dashboard Data Service (for fetching actual widget data)
 export const dashboardDataService = {
   getStats: () => apiClient.get<DashboardStats>('/dashboard/stats'),
+  getSummary: () => apiClient.get<DashboardSummary>('/dashboard/summary'),
   getPipeline: () => apiClient.get<PipelineSummary>('/dashboard/pipeline'),
   getActivities: (count?: number) => apiClient.get<RecentActivity[]>(`/dashboard/activities${count ? `?count=${count}` : ''}`),
 };

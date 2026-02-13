@@ -5,18 +5,6 @@
  * Workflow Trigger Editor - wrapper for trigger configuration panel
  */
 
-import React from 'react';
-import { TriggerPropertiesPanel, type TriggerConfiguration } from './TriggerPropertiesPanel';
+import { TriggerPropertiesPanel } from './TriggerPropertiesPanel';
 
-interface WorkflowTriggerEditorProps {
-  value: TriggerConfiguration;
-  onChange: (value: TriggerConfiguration) => void;
-  entityType?: string;
-  readonly?: boolean;
-}
-
-const WorkflowTriggerEditor: React.FC<WorkflowTriggerEditorProps> = (props) => {
-  return <TriggerPropertiesPanel {...props} />;
-};
-
-export default WorkflowTriggerEditor;
+export default TriggerPropertiesPanel;

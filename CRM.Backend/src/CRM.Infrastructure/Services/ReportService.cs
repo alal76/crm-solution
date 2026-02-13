@@ -17,6 +17,8 @@
 using System.Collections.Concurrent;
 using System.Text;
 using System.Text.Json;
+using CRM.Core.Entities;
+using CRM.Core.Models;
 using System.Security.Claims;
 using CRM.Core.Dtos.Reports;
 using CRM.Core.Entities.Reports;
@@ -30,6 +32,7 @@ using ReportDefinitionEntity = CRM.Core.Entities.Reports.ReportDefinition;
 using ReportFolderEntity = CRM.Core.Entities.Reports.ReportFolder;
 using ReportScheduleEntity = CRM.Core.Entities.Reports.ReportSchedule;
 using ReportExecutionEntity = CRM.Core.Entities.Reports.ReportExecution;
+using ReportEntityDataSource = CRM.Core.Entities.Reports.ReportDataSource;
 
 namespace CRM.Infrastructure.Services;
 
@@ -43,6 +46,11 @@ public class ReportService : IReportService
     private readonly ICrmDbContext _context;
     private readonly ILogger<ReportService> _logger;
     private readonly IHttpContextAccessor _httpContextAccessor;
+
+    private static readonly JsonSerializerOptions ReportJsonOptions = new()
+    {
+        PropertyNameCaseInsensitive = true
+    };
 
     // In-memory storage for favorites - TODO: Move to database entity or user preferences
     private static readonly ConcurrentDictionary<(int UserId, int ReportId), bool> _userFavorites = new();
@@ -294,29 +302,27 @@ public class ReportService : IReportService
         _context.ReportExecutions.Add(execution);
         await _context.SaveChangesAsync(cancellationToken);
 
-        // TODO: Implement actual report execution logic based on report.CustomQuery or report.DataSource
-        // For now, return sample data
-        var sampleData = GenerateSampleReportData(report);
+        var reportData = await BuildReportDataAsync(report, parameters, cancellationToken);
 
         // Update execution record
         var endTime = DateTime.UtcNow;
         execution.Status = ReportExecutionStatus.Completed;
         execution.CompletedAt = endTime;
         execution.ExecutionTimeSeconds = (decimal)(endTime - startTime).TotalSeconds;
-        execution.RowCount = sampleData.Count;
+        execution.RowCount = reportData.Count;
 
         await _context.SaveChangesAsync(cancellationToken);
 
-        _logger.LogInformation("Report execution completed: {ReportId}, Rows: {RowCount}", reportId, sampleData.Count);
+        _logger.LogInformation("Report execution completed: {ReportId}, Rows: {RowCount}", reportId, reportData.Count);
 
         return new ReportExecutionResultDto
         {
             ReportId = reportId,
             ExecutionId = execution.Id,
-            Columns = sampleData.Count > 0 ? sampleData[0].Keys.ToList() : new List<string>(),
-            Data = sampleData,
+            Columns = reportData.Count > 0 ? reportData[0].Keys.ToList() : new List<string>(),
+            Data = reportData,
             ExecutedAt = startTime,
-            RowCount = sampleData.Count,
+            RowCount = reportData.Count,
             ExecutionTimeMs = (long)(endTime - startTime).TotalMilliseconds
         };
     }
@@ -990,6 +996,628 @@ public class ReportService : IReportService
         }
 
         return nextRun;
+    }
+
+    private sealed class ReportDesignerConfig
+    {
+        public string? DataSource { get; set; }
+        public List<ReportDesignerColumn>? Columns { get; set; }
+        public List<ReportDesignerFilter>? Filters { get; set; }
+        public List<ReportDesignerSort>? Sorts { get; set; }
+        public int? LimitRows { get; set; }
+    }
+
+    private sealed class ReportDesignerColumn
+    {
+        public string? Field { get; set; }
+        public string? Label { get; set; }
+    }
+
+    private sealed class ReportDesignerFilter
+    {
+        public string? Field { get; set; }
+        public string? Operator { get; set; }
+        public JsonElement Value { get; set; }
+        public bool IsActive { get; set; } = true;
+    }
+
+    private sealed class ReportDesignerSort
+    {
+        public string? Field { get; set; }
+        public string? Direction { get; set; }
+    }
+
+    private static ReportDesignerConfig? TryParseReportDesignerConfig(string? customQuery)
+    {
+        if (string.IsNullOrWhiteSpace(customQuery))
+        {
+            return null;
+        }
+
+        try
+        {
+            return JsonSerializer.Deserialize<ReportDesignerConfig>(customQuery, ReportJsonOptions);
+        }
+        catch (JsonException)
+        {
+            return null;
+        }
+    }
+
+    private static string NormalizeDataSource(ReportDefinitionEntity report, ReportDesignerConfig? config)
+    {
+        if (!string.IsNullOrWhiteSpace(config?.DataSource))
+        {
+            return config.DataSource!.Trim().ToLowerInvariant();
+        }
+
+        return report.DataSource switch
+        {
+            ReportEntityDataSource.Customers => "accounts",
+            ReportEntityDataSource.Contacts => "contacts",
+            ReportEntityDataSource.Leads => "leads",
+            ReportEntityDataSource.Opportunities => "opportunities",
+            ReportEntityDataSource.Activities => "activities",
+            ReportEntityDataSource.Quotes => "quotes",
+            ReportEntityDataSource.Orders => "orders",
+            ReportEntityDataSource.Invoices => "invoices",
+            _ => report.DataSource.ToString().ToLowerInvariant()
+        };
+    }
+
+    private static List<string> ResolveColumns(ReportDefinitionEntity report, ReportDesignerConfig? config, IReadOnlyCollection<string> defaultColumns)
+    {
+        if (config?.Columns != null && config.Columns.Count > 0)
+        {
+            return config.Columns
+                .Select(c => c.Field)
+                .Where(f => !string.IsNullOrWhiteSpace(f))
+                .Select(f => f!.Trim())
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+        }
+
+        if (!string.IsNullOrWhiteSpace(report.ColumnsJson))
+        {
+            try
+            {
+                var parsed = JsonSerializer.Deserialize<List<string>>(report.ColumnsJson, ReportJsonOptions);
+                if (parsed != null && parsed.Count > 0)
+                {
+                    return parsed.Where(c => !string.IsNullOrWhiteSpace(c)).Select(c => c.Trim()).ToList();
+                }
+            }
+            catch (JsonException)
+            {
+                // Ignore invalid JSON and fall back to defaults.
+            }
+        }
+
+        return defaultColumns.ToList();
+    }
+
+    private async Task<List<Dictionary<string, object>>> BuildReportDataAsync(
+        ReportDefinitionEntity report,
+        ReportParametersDto? parameters,
+        CancellationToken cancellationToken)
+    {
+        var config = TryParseReportDesignerConfig(report.CustomQuery);
+        var dataSource = NormalizeDataSource(report, config);
+        var limit = config?.LimitRows ?? report.RowLimit ?? 1000;
+
+        List<Dictionary<string, object>> rows = dataSource switch
+        {
+            "accounts" => await FetchAccountsAsync(report, config, cancellationToken),
+            "contacts" => await FetchContactsAsync(report, config, cancellationToken),
+            "leads" => await FetchLeadsAsync(report, config, cancellationToken),
+            "opportunities" => await FetchOpportunitiesAsync(report, config, cancellationToken),
+            "activities" => await FetchActivitiesAsync(report, config, cancellationToken),
+            "tasks" => await FetchTasksAsync(report, config, cancellationToken),
+            "quotes" => await FetchQuotesAsync(report, config, cancellationToken),
+            "orders" => await FetchOrdersAsync(report, config, cancellationToken),
+            "invoices" => await FetchInvoicesAsync(report, config, cancellationToken),
+            "subscriptions" => await FetchSubscriptionsAsync(report, config, cancellationToken),
+            _ => new List<Dictionary<string, object>>()
+        };
+
+        var filters = new List<ReportDesignerFilter>();
+        if (config?.Filters != null)
+        {
+            filters.AddRange(config.Filters.Where(f => f.IsActive));
+        }
+
+        if (parameters?.Filters != null)
+        {
+            foreach (var filter in parameters.Filters)
+            {
+                filters.Add(new ReportDesignerFilter
+                {
+                    Field = filter.Key,
+                    Operator = "equals",
+                    Value = JsonSerializer.SerializeToElement(filter.Value ?? string.Empty, ReportJsonOptions)
+                });
+            }
+        }
+
+        if (parameters?.StartDate != null || parameters?.EndDate != null)
+        {
+            rows = rows.Where(row => MatchesDateRange(row, parameters)).ToList();
+        }
+
+        rows = ApplyFilters(rows, filters);
+        rows = ApplySorts(rows, config?.Sorts);
+
+        if (limit > 0)
+        {
+            rows = rows.Take(limit).ToList();
+        }
+
+        return rows;
+    }
+
+    private static bool MatchesDateRange(Dictionary<string, object> row, ReportParametersDto parameters)
+    {
+        var dateKeys = new[] { "createdAt", "date", "closeDate", "orderDate", "invoiceDate", "dueDate" };
+        foreach (var key in dateKeys)
+        {
+            if (!row.TryGetValue(key, out var value) || value is not DateTime dateValue)
+            {
+                continue;
+            }
+
+            if (parameters.StartDate.HasValue && dateValue < parameters.StartDate.Value)
+            {
+                return false;
+            }
+
+            if (parameters.EndDate.HasValue && dateValue > parameters.EndDate.Value)
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        return true;
+    }
+
+    private static List<Dictionary<string, object>> ApplyFilters(
+        List<Dictionary<string, object>> rows,
+        IEnumerable<ReportDesignerFilter> filters)
+    {
+        if (filters == null)
+        {
+            return rows;
+        }
+
+        foreach (var filter in filters)
+        {
+            if (string.IsNullOrWhiteSpace(filter.Field) || string.IsNullOrWhiteSpace(filter.Operator))
+            {
+                continue;
+            }
+
+            rows = rows.Where(row => MatchesFilter(row, filter)).ToList();
+        }
+
+        return rows;
+    }
+
+    private static bool MatchesFilter(Dictionary<string, object> row, ReportDesignerFilter filter)
+    {
+        if (!row.TryGetValue(filter.Field!, out var value))
+        {
+            return true;
+        }
+
+        var op = filter.Operator!.ToLowerInvariant();
+        if (op is "is_null")
+        {
+            return value == null || string.IsNullOrWhiteSpace(value.ToString());
+        }
+
+        if (op is "is_not_null")
+        {
+            return value != null && !string.IsNullOrWhiteSpace(value.ToString());
+        }
+
+        var valueString = value?.ToString() ?? string.Empty;
+        var filterString = GetFilterString(filter.Value) ?? string.Empty;
+
+        return op switch
+        {
+            "equals" => string.Equals(valueString, filterString, StringComparison.OrdinalIgnoreCase),
+            "not_equals" => !string.Equals(valueString, filterString, StringComparison.OrdinalIgnoreCase),
+            "contains" => valueString.Contains(filterString, StringComparison.OrdinalIgnoreCase),
+            "starts_with" => valueString.StartsWith(filterString, StringComparison.OrdinalIgnoreCase),
+            "ends_with" => valueString.EndsWith(filterString, StringComparison.OrdinalIgnoreCase),
+            "greater_than" => CompareNumericOrDate(value, filter.Value, (a, b) => a > b),
+            "less_than" => CompareNumericOrDate(value, filter.Value, (a, b) => a < b),
+            "between" => CompareBetween(value, filter.Value),
+            "in" => MatchesIn(valueString, filter.Value),
+            _ => true
+        };
+    }
+
+    private static bool CompareNumericOrDate(object? value, JsonElement filterValue, Func<decimal, decimal, bool> comparison)
+    {
+        if (value is DateTime dateValue && TryGetDateTime(filterValue, out var filterDate))
+        {
+            return comparison((decimal)dateValue.Ticks, (decimal)filterDate.Ticks);
+        }
+
+        if (TryGetDecimal(value, out var numericValue) && TryGetDecimal(filterValue, out var filterNumeric))
+        {
+            return comparison(numericValue, filterNumeric);
+        }
+
+        return true;
+    }
+
+    private static bool CompareBetween(object? value, JsonElement filterValue)
+    {
+        if (filterValue.ValueKind != JsonValueKind.Array || filterValue.GetArrayLength() < 2)
+        {
+            return true;
+        }
+
+        var start = filterValue[0];
+        var end = filterValue[1];
+
+        if (value is DateTime dateValue && TryGetDateTime(start, out var startDate) && TryGetDateTime(end, out var endDate))
+        {
+            return dateValue >= startDate && dateValue <= endDate;
+        }
+
+        if (TryGetDecimal(value, out var numericValue) && TryGetDecimal(start, out var startNumeric) && TryGetDecimal(end, out var endNumeric))
+        {
+            return numericValue >= startNumeric && numericValue <= endNumeric;
+        }
+
+        return true;
+    }
+
+    private static bool MatchesIn(string valueString, JsonElement filterValue)
+    {
+        if (filterValue.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var element in filterValue.EnumerateArray())
+            {
+                if (string.Equals(valueString, GetFilterString(element), StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        return valueString.Contains(GetFilterString(filterValue) ?? string.Empty, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static bool TryGetDecimal(object? value, out decimal result)
+    {
+        switch (value)
+        {
+            case null:
+                result = 0;
+                return false;
+            case decimal d:
+                result = d;
+                return true;
+            case int i:
+                result = i;
+                return true;
+            case long l:
+                result = l;
+                return true;
+            case double dbl:
+                result = (decimal)dbl;
+                return true;
+            case float f:
+                result = (decimal)f;
+                return true;
+            default:
+                return decimal.TryParse(value.ToString(), out result);
+        }
+    }
+
+    private static bool TryGetDecimal(JsonElement element, out decimal result)
+    {
+        if (element.ValueKind == JsonValueKind.Number && element.TryGetDecimal(out result))
+        {
+            return true;
+        }
+
+        if (element.ValueKind == JsonValueKind.String && decimal.TryParse(element.GetString(), out result))
+        {
+            return true;
+        }
+
+        result = 0;
+        return false;
+    }
+
+    private static bool TryGetDateTime(JsonElement element, out DateTime result)
+    {
+        if (element.ValueKind == JsonValueKind.String && DateTime.TryParse(element.GetString(), out result))
+        {
+            return true;
+        }
+
+        result = default;
+        return false;
+    }
+
+    private static string? GetFilterString(JsonElement element)
+    {
+        return element.ValueKind switch
+        {
+            JsonValueKind.String => element.GetString(),
+            JsonValueKind.Number => element.ToString(),
+            JsonValueKind.True => "true",
+            JsonValueKind.False => "false",
+            _ => element.ToString()
+        };
+    }
+
+    private static List<Dictionary<string, object>> ApplySorts(
+        List<Dictionary<string, object>> rows,
+        IEnumerable<ReportDesignerSort>? sorts)
+    {
+        if (sorts == null)
+        {
+            return rows;
+        }
+
+        IOrderedEnumerable<Dictionary<string, object>>? ordered = null;
+        foreach (var sort in sorts)
+        {
+            if (string.IsNullOrWhiteSpace(sort.Field))
+            {
+                continue;
+            }
+
+            Func<Dictionary<string, object>, object?> keySelector = row => row.TryGetValue(sort.Field, out var value) ? value : null;
+            var descending = string.Equals(sort.Direction, "desc", StringComparison.OrdinalIgnoreCase);
+
+            ordered = ordered == null
+                ? (descending ? rows.OrderByDescending(keySelector) : rows.OrderBy(keySelector))
+                : (descending ? ordered.ThenByDescending(keySelector) : ordered.ThenBy(keySelector));
+        }
+
+        return ordered?.ToList() ?? rows;
+    }
+
+    private static Dictionary<string, object> BuildRow<T>(
+        T entity,
+        IReadOnlyCollection<string> columns,
+        IReadOnlyDictionary<string, Func<T, object?>> fieldMap)
+    {
+        var row = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+        foreach (var column in columns)
+        {
+            if (fieldMap.TryGetValue(column, out var getter))
+            {
+                row[column] = getter(entity) ?? string.Empty;
+            }
+        }
+
+        return row;
+    }
+
+    private async Task<List<Dictionary<string, object>>> FetchAccountsAsync(
+        ReportDefinitionEntity report,
+        ReportDesignerConfig? config,
+        CancellationToken cancellationToken)
+    {
+        var fieldMap = new Dictionary<string, Func<Account, object?>>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["name"] = a => string.IsNullOrWhiteSpace(a.Company)
+                ? string.Join(' ', new[] { a.FirstName, a.LastName }.Where(s => !string.IsNullOrWhiteSpace(s)))
+                : a.Company,
+            ["industry"] = a => a.Industry,
+            ["type"] = a => a.AccountType.ToString(),
+            ["status"] = a => a.LifecycleStage.ToString(),
+            ["revenue"] = a => a.AnnualRevenue,
+            ["employees"] = a => a.NumberOfEmployees,
+            ["createdAt"] = a => a.CreatedAt,
+            ["ownerName"] = _ => null
+        };
+
+        var columns = ResolveColumns(report, config, fieldMap.Keys);
+        var accounts = await _context.Customers.AsNoTracking().Where(a => !a.IsDeleted).ToListAsync(cancellationToken);
+        return accounts.Select(a => BuildRow(a, columns, fieldMap)).ToList();
+    }
+
+    private async Task<List<Dictionary<string, object>>> FetchContactsAsync(
+        ReportDefinitionEntity report,
+        ReportDesignerConfig? config,
+        CancellationToken cancellationToken)
+    {
+        var fieldMap = new Dictionary<string, Func<Contact, object?>>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["firstName"] = c => c.FirstName,
+            ["lastName"] = c => c.LastName,
+            ["email"] = c => c.EmailPrimary,
+            ["phone"] = c => c.PhonePrimary,
+            ["title"] = c => c.JobTitle,
+            ["accountName"] = _ => null,
+            ["createdAt"] = _ => null,
+            ["ownerName"] = _ => null
+        };
+
+        var columns = ResolveColumns(report, config, fieldMap.Keys);
+        var contacts = await _context.Contacts.AsNoTracking().ToListAsync(cancellationToken);
+        return contacts.Select(c => BuildRow(c, columns, fieldMap)).ToList();
+    }
+
+    private async Task<List<Dictionary<string, object>>> FetchLeadsAsync(
+        ReportDefinitionEntity report,
+        ReportDesignerConfig? config,
+        CancellationToken cancellationToken)
+    {
+        var fieldMap = new Dictionary<string, Func<Lead, object?>>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["name"] = l => string.Join(' ', new[] { l.FirstName, l.LastName }.Where(s => !string.IsNullOrWhiteSpace(s))),
+            ["company"] = l => l.CompanyName,
+            ["email"] = l => l.Email,
+            ["status"] = l => l.Status.ToString(),
+            ["source"] = l => l.Source.ToString(),
+            ["score"] = l => l.Score,
+            ["createdAt"] = l => l.CreatedAt,
+            ["ownerName"] = l => l.Owner != null ? string.Join(' ', new[] { l.Owner.FirstName, l.Owner.LastName }.Where(s => !string.IsNullOrWhiteSpace(s))) : null
+        };
+
+        var columns = ResolveColumns(report, config, fieldMap.Keys);
+        var leads = await _context.Leads.AsNoTracking().Include(l => l.Owner).Where(l => !l.IsDeleted).ToListAsync(cancellationToken);
+        return leads.Select(l => BuildRow(l, columns, fieldMap)).ToList();
+    }
+
+    private async Task<List<Dictionary<string, object>>> FetchOpportunitiesAsync(
+        ReportDefinitionEntity report,
+        ReportDesignerConfig? config,
+        CancellationToken cancellationToken)
+    {
+        var fieldMap = new Dictionary<string, Func<Opportunity, object?>>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["name"] = o => o.Name,
+            ["accountName"] = o => o.Account != null ? o.Account.Company : null,
+            ["stage"] = o => o.Stage.ToString(),
+            ["amount"] = o => o.Amount,
+            ["probability"] = o => o.Probability,
+            ["closeDate"] = o => o.ExpectedCloseDate,
+            ["createdAt"] = o => o.CreatedAt,
+            ["ownerName"] = o => o.SalesOwner != null ? string.Join(' ', new[] { o.SalesOwner.FirstName, o.SalesOwner.LastName }.Where(s => !string.IsNullOrWhiteSpace(s))) : null
+        };
+
+        var columns = ResolveColumns(report, config, fieldMap.Keys);
+        var opportunities = await _context.Opportunities.AsNoTracking()
+            .Include(o => o.Account)
+            .Include(o => o.SalesOwner)
+            .Where(o => !o.IsDeleted)
+            .ToListAsync(cancellationToken);
+
+        return opportunities.Select(o => BuildRow(o, columns, fieldMap)).ToList();
+    }
+
+    private async Task<List<Dictionary<string, object>>> FetchActivitiesAsync(
+        ReportDefinitionEntity report,
+        ReportDesignerConfig? config,
+        CancellationToken cancellationToken)
+    {
+        var fieldMap = new Dictionary<string, Func<Activity, object?>>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["type"] = a => a.ActivityType.ToString(),
+            ["subject"] = a => a.Title,
+            ["relatedTo"] = a => a.EntityName,
+            ["dueDate"] = a => a.ActivityDate,
+            ["status"] = a => a.Category,
+            ["assignedTo"] = a => a.UserName
+        };
+
+        var columns = ResolveColumns(report, config, fieldMap.Keys);
+        var activities = await _context.Activities.AsNoTracking().ToListAsync(cancellationToken);
+        return activities.Select(a => BuildRow(a, columns, fieldMap)).ToList();
+    }
+
+    private async Task<List<Dictionary<string, object>>> FetchTasksAsync(
+        ReportDefinitionEntity report,
+        ReportDesignerConfig? config,
+        CancellationToken cancellationToken)
+    {
+        var fieldMap = new Dictionary<string, Func<CrmTask, object?>>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["subject"] = t => t.Subject,
+            ["status"] = t => t.Status.ToString(),
+            ["priority"] = t => t.Priority.ToString(),
+            ["dueDate"] = t => t.DueDate,
+            ["assignedTo"] = t => t.AssignedToUser != null ? string.Join(' ', new[] { t.AssignedToUser.FirstName, t.AssignedToUser.LastName }.Where(s => !string.IsNullOrWhiteSpace(s))) : null
+        };
+
+        var columns = ResolveColumns(report, config, fieldMap.Keys);
+        var tasks = await _context.CrmTasks.AsNoTracking().Include(t => t.AssignedToUser).Where(t => !t.IsDeleted).ToListAsync(cancellationToken);
+        return tasks.Select(t => BuildRow(t, columns, fieldMap)).ToList();
+    }
+
+    private async Task<List<Dictionary<string, object>>> FetchQuotesAsync(
+        ReportDefinitionEntity report,
+        ReportDesignerConfig? config,
+        CancellationToken cancellationToken)
+    {
+        var fieldMap = new Dictionary<string, Func<Quote, object?>>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["quoteNumber"] = q => q.QuoteNumber,
+            ["accountName"] = q => q.Account != null ? q.Account.Company : null,
+            ["status"] = q => q.Status.ToString(),
+            ["totalAmount"] = q => q.Total,
+            ["validUntil"] = q => q.ExpirationDate,
+            ["createdAt"] = q => q.CreatedAt
+        };
+
+        var columns = ResolveColumns(report, config, fieldMap.Keys);
+        var quotes = await _context.Quotes.AsNoTracking().Include(q => q.Account).Where(q => !q.IsDeleted).ToListAsync(cancellationToken);
+        return quotes.Select(q => BuildRow(q, columns, fieldMap)).ToList();
+    }
+
+    private async Task<List<Dictionary<string, object>>> FetchOrdersAsync(
+        ReportDefinitionEntity report,
+        ReportDesignerConfig? config,
+        CancellationToken cancellationToken)
+    {
+        var fieldMap = new Dictionary<string, Func<Order, object?>>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["orderNumber"] = o => o.OrderNumber,
+            ["accountName"] = o => o.Account != null ? o.Account.Company : null,
+            ["status"] = o => o.Status.ToString(),
+            ["totalAmount"] = o => o.TotalAmount,
+            ["orderDate"] = o => o.OrderDate
+        };
+
+        var columns = ResolveColumns(report, config, fieldMap.Keys);
+        var orders = await _context.Orders.AsNoTracking().Include(o => o.Account).Where(o => !o.IsDeleted).ToListAsync(cancellationToken);
+        return orders.Select(o => BuildRow(o, columns, fieldMap)).ToList();
+    }
+
+    private async Task<List<Dictionary<string, object>>> FetchInvoicesAsync(
+        ReportDefinitionEntity report,
+        ReportDesignerConfig? config,
+        CancellationToken cancellationToken)
+    {
+        var fieldMap = new Dictionary<string, Func<Invoice, object?>>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["invoiceNumber"] = i => i.InvoiceNumber,
+            ["accountName"] = i => i.Account != null ? i.Account.Company : null,
+            ["status"] = i => i.Status.ToString(),
+            ["amount"] = i => i.TotalAmount,
+            ["dueDate"] = i => i.DueDate,
+            ["paidDate"] = i => i.PaidDate,
+            ["invoiceDate"] = i => i.InvoiceDate
+        };
+
+        var columns = ResolveColumns(report, config, fieldMap.Keys);
+        var invoices = await _context.Invoices.AsNoTracking().Include(i => i.Account).Where(i => !i.IsDeleted).ToListAsync(cancellationToken);
+        return invoices.Select(i => BuildRow(i, columns, fieldMap)).ToList();
+    }
+
+    private async Task<List<Dictionary<string, object>>> FetchSubscriptionsAsync(
+        ReportDefinitionEntity report,
+        ReportDesignerConfig? config,
+        CancellationToken cancellationToken)
+    {
+        var fieldMap = new Dictionary<string, Func<Subscription, object?>>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["name"] = s => s.SubscriptionNumber,
+            ["accountName"] = s => s.Account != null ? s.Account.Company : null,
+            ["status"] = s => s.SubscriptionStatus.ToString(),
+            ["mrr"] = s => s.MRR,
+            ["startDate"] = s => s.BillingStartDate,
+            ["endDate"] = s => s.BillingEndDate
+        };
+
+        var columns = ResolveColumns(report, config, fieldMap.Keys);
+        var subscriptions = await _context.Subscriptions.AsNoTracking().Include(s => s.Account).Where(s => !s.IsDeleted).ToListAsync(cancellationToken);
+        return subscriptions.Select(s => BuildRow(s, columns, fieldMap)).ToList();
     }
 
     /// <summary>
