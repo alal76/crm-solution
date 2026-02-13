@@ -90,3 +90,4 @@ ssl/
 docker/.env
 docker/.env.*
 !docker/.env.example
+e2e-tests/job-logs.txt
