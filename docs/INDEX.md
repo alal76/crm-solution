@@ -53,7 +53,7 @@ This file provides:
 | Layer | Technology | Version |
 |-------|------------|---------|
 | **Frontend** | React + TypeScript + Material-UI | React 18, MUI 5 |
-| **Backend** | ASP.NET Core Web API | .NET 8.0 |
+| **Backend** | ASP.NET Core Web API | .NET 10.0 |
 | **Database** | MariaDB (primary), SQL Server, PostgreSQL | MariaDB 10.11+ |
 | **ORM** | Entity Framework Core | EF Core 8 |
 | **Real-time** | SignalR | ASP.NET SignalR |

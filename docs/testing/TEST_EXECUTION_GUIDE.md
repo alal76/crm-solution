@@ -66,7 +66,7 @@ The CRM solution now has a **fully-implemented comprehensive testing framework**
 - **File**: `.github/workflows/ci-cd.yml` (220+ lines)
 - **Jobs**:
   1. **Frontend Tests** - Runs on Node 20.x
-  2. **Backend Tests** - Runs on .NET 8.0
+  2. **Backend Tests** - Runs on .NET 10.0
   3. **Docker Build** - Builds & pushes images
   4. **Code Quality** - ESLint & StyleCop checks
   5. **Security Scan** - npm audit & Dependency-Check
@@ -232,7 +232,7 @@ crm-solution/
 ### CI/CD Integration
 - ✅ Triggers on push to main/develop
 - ✅ Runs on pull requests
-- ✅ Node 20.x and .NET 8.0 testing
+- ✅ Node 20.x and .NET 10.0 testing
 - ✅ Parallel job execution
 - ✅ Artifact upload & test report aggregation
 

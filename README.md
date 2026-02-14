@@ -187,11 +187,11 @@ The ITSM (IT Service Management) module provides ITIL-aligned processes for mana
 
 ## �🛠 Tech Stack
 
-### Backend (.NET 8.0)
+### Backend (.NET 10.0)
 
 | Component | Technology |
 |-----------|------------|
-| **Framework** | ASP.NET Core 8.0 |
+| **Framework** | ASP.NET Core 10.0 |
 | **ORM** | Entity Framework Core 8.0 |
 | **Real-time** | SignalR |
 | **Logging** | Serilog (structured logging) |
@@ -788,7 +788,7 @@ This project is licensed under the **GNU Affero General Public License v3.0 or l
 
 All third-party components used in this solution are compatible with the AGPL-3.0 license. For the complete dependency inventory with version numbers and license details, see [docs/THIRD_PARTY_LICENSES.md](docs/THIRD_PARTY_LICENSES.md).
 
-#### Backend (.NET 8.0) — Key Packages
+#### Backend (.NET 10.0) — Key Packages
 
 | Package | License | Notes |
 |---------|---------|-------|

@@ -114,7 +114,7 @@ docs/
 | Layer | Technology |
 |-------|------------|
 | **Frontend** | React 18, TypeScript, Material-UI |
-| **Backend** | .NET 8.0, ASP.NET Core, Entity Framework Core |
+| **Backend** | .NET 10.0, ASP.NET Core, Entity Framework Core |
 | **Database** | MariaDB (default), PostgreSQL, SQL Server |
 | **Real-time** | SignalR WebSockets |
 | **Containerization** | Docker, Docker Compose |
@@ -146,7 +146,7 @@ The CRM database contains **89 tables** organized into domains:
 ## 🔧 Development
 
 ### Prerequisites
-- .NET 8.0 SDK
+- .NET 10.0 SDK
 - Node.js 20+
 - Docker & Docker Compose
 - MariaDB or compatible database

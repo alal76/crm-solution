@@ -88,7 +88,7 @@ A full-stack enterprise CRM (Customer Relationship Management) solution with:
 
 | Layer | Technology |
 |-------|------------|
-| **Backend** | ASP.NET Core 8.0 + Entity Framework Core 8.0 |
+| **Backend** | ASP.NET Core 10.0 + Entity Framework Core 10.0 |
 | **Frontend** | React 18 + TypeScript + Material-UI 5 |
 | **Database** | MariaDB (primary), SQL Server, PostgreSQL supported |
 | **Caching** | Redis |

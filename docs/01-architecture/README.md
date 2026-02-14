@@ -151,7 +151,7 @@ CRM Solution is an enterprise-grade Customer Relationship Management system supp
 
 ### 3.2 Application Layer (API)
 
-**Technology:** ASP.NET Core 8.0
+**Technology:** ASP.NET Core 10.0
 
 | Component | Location | Responsibility |
 |-----------|----------|----------------|

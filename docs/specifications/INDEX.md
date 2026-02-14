@@ -1,7 +1,7 @@
 # CRM Solution - Feature Specification Index
 
-> **Last Updated:** February 12, 2026  
-> **Total Specifications:** 8 (Active), 32 (Planned) = 40 Total  
+> **Last Updated:** February 14, 2026  
+> **Total Specifications:** 13 (Active), 32 (Planned) = 45 Total  
 > **Template Version:** 1.0
 
 ---
@@ -10,7 +10,7 @@
 
 > **[IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md)** - Detailed 16-week step-by-step implementation guide
 > 
-> This plan covers all 40 specifications with day-by-day tasks, regression testing strategy, and completion gates.
+> This plan covers all 45 specifications with day-by-day tasks, regression testing strategy, and completion gates.
 
 ---
 
@@ -75,15 +75,22 @@ This index provides a centralized catalog of all feature specifications in the C
 ### System Module
 | Spec ID | Feature | Status | Priority | Dependencies |
 |---------|---------|--------|----------|--------------|
-| SPEC-SYS-001 | User Management | ⏳ Pending | P0 | - |
+| [SPEC-SYS-001](SPEC-SYS-001-UserManagement.md) | User Management | ⚠️ Partial | P0 | - |
 | SPEC-SYS-002 | Authentication | ⏳ Pending | P0 | SYS-001 |
-| SPEC-SYS-003 | User Groups & Permissions | ⏳ Pending | P0 | SYS-001 |
+| [SPEC-SYS-003](SPEC-SYS-003-GroupManagement.md) | Group Management | ⚠️ Partial | P0 | SYS-001 |
 | [SPEC-SYS-004](SPEC-SYS-004-FeatureFlagManagement.md) | Feature Flag Management | ✅ Complete | P2 | - |
 | SPEC-SYS-005 | System Settings | ⏳ Pending | P1 | - |
 | SPEC-SYS-006 | Audit Logging | ⏳ Pending | P2 | - |
 | [SPEC-SYS-007](SPEC-SYS-007-NavigationManagement.md) | Navigation Management | ⚠️ Partial | P1 | SYS-005 |
 | [SPEC-SYS-008](SPEC-SYS-008-AdminSettingsSuite.md) | Admin Settings Suite | ⚠️ Partial | P1 | SYS-005 |
 | [SPEC-SYS-009](SPEC-SYS-009-AdministrationModule.md) | Administration Module | ⚠️ Partial | P1 | SYS-007, SYS-008 |
+| [SPEC-SYS-010](SPEC-SYS-010-UserInterfaceManagement.md) | User Interface Management | ⚠️ Partial | P1 | SYS-005 |
+| [SPEC-SYS-012](SPEC-SYS-012-RBAC.md) | RBAC | ⚠️ Partial | P0 | SYS-001, SYS-003 |
+
+### UX/UI Module
+| Spec ID | Feature | Status | Priority | Dependencies |
+|---------|---------|--------|----------|--------------|
+| [SPEC-UX-001](SPEC-UX-001-UserInterface.md) | User Interface (Overall UI) | ⚠️ Partial | P1 | SYS-010 |
 
 ### AI & Analytics Module
 | Spec ID | Feature | Status | Priority | Dependencies |

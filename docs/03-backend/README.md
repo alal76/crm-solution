@@ -18,7 +18,7 @@
 
 ## 1. Overview
 
-The backend is built with ASP.NET Core 8.0 following clean architecture principles:
+The backend is built with ASP.NET Core 10.0 following clean architecture principles:
 
 - **CRM.Api** - Web API layer (Controllers, Middleware, Hubs)
 - **CRM.Core** - Domain layer (Entities, DTOs, Interfaces)

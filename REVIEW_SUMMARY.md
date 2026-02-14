@@ -165,7 +165,7 @@ Quarter 1: Medium-Priority Enhancements
    MariaDB, MySQL, PostgreSQL, SQL Server support
 
 ✅ Modern Tech Stack
-   .NET 8.0, React 18, TypeScript, Material-UI, SignalR
+   .NET 10.0, React 18, TypeScript, Material-UI, SignalR
 
 ✅ DevOps Ready
    Docker, Kubernetes, Azure Pipelines, GitHub Actions

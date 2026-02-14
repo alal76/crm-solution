@@ -1,8 +1,8 @@
 # CRM Solution - Master TODO List (Pending Items Only)
 
-> **Last Updated:** February 17, 2026
+> **Last Updated:** February 14, 2026
 > **Purpose:** Consolidated list of all PENDING enhancements and action items
-> **Total Pending Items:** 168
+> **Total Pending Items:** 180
 > **Completed items have been archived — see git history for prior state**
 
 ---
@@ -11,7 +11,7 @@
 
 > **[specifications/IMPLEMENTATION_PLAN.md](specifications/IMPLEMENTATION_PLAN.md)** - Detailed 16-week implementation guide
 >
-> **Specification Progress:** 12/44 complete (27.3%) — see [specifications/INDEX.md](specifications/INDEX.md)
+> **Specification Progress:** 12/47 complete (25.5%) — see [specifications/INDEX.md](specifications/INDEX.md)
 
 ---
 
@@ -121,6 +121,47 @@
 | TODO-SYS009-003 | P2 | Complete provider-aware navigation merge | 7 |
 | TODO-SYS009-004 | P3 | Add audit logging for admin changes | 7 |
 
+### SPEC-SYS-010 (User Interface Management) — 3 Items
+
+| ID | Priority | Description | Spec Section |
+|----|----------|-------------|--------------|
+| TODO-SYS010-001 | P2 | Add centralized validation for module/navigation keys | 6.3 |
+| TODO-SYS010-002 | P3 | Enforce consistent navigation order validation in frontend | 6.1 |
+| TODO-SYS010-003 | P2 | Add audit logging for UI configuration changes | 6.2 |
+
+### SPEC-UX-001 (User Interface) — 4 Items
+
+| ID | Priority | Description | Spec Section |
+|----|----------|-------------|--------------|
+| TODO-UX001-001 | P2 | Define accessibility baseline for core UI components | 6.2 |
+| TODO-UX001-002 | P2 | Add shared empty/loading state components and usage guidelines | 6.2 |
+| TODO-UX001-003 | P3 | Enforce theme palette FK constraints in schema + API | 6.1 |
+| TODO-UX001-004 | P3 | Add centralized theme color validation utilities | 6.3 |
+
+### SPEC-SYS-001 (User Management) — 3 Items
+
+| ID | Priority | Description | Spec Section |
+|----|----------|-------------|--------------|
+| TODO-SYS001-001 | P1 | Align frontend password validation with backend policy | 6.3 |
+| TODO-SYS001-002 | P2 | Add audit logging for user create/update/delete | 6.2 |
+| TODO-SYS001-003 | P2 | Centralize role-to-permission mapping for UI guards | 6.1 |
+
+### SPEC-SYS-003 (Group Management) — 3 Items
+
+| ID | Priority | Description | Spec Section |
+|----|----------|-------------|--------------|
+| TODO-SYS003-001 | P2 | Enforce single default group rule | 6.3 |
+| TODO-SYS003-002 | P2 | Normalize AccessibleMenuItems with navigation config | 6.1 |
+| TODO-SYS003-003 | P3 | Add membership audit logs | 6.2 |
+
+### SPEC-SYS-012 (RBAC) — 3 Items
+
+| ID | Priority | Description | Spec Section |
+|----|----------|-------------|--------------|
+| TODO-SYS012-001 | P1 | Create centralized role/permission mapping for UI guards | 6.3 |
+| TODO-SYS012-002 | P2 | Normalize group permission flags with navigation filtering | 6.1 |
+| TODO-SYS012-003 | P2 | Add audit logging for RBAC permission changes | 6.2 |
+
 ### SPEC-AI-005-FE (Frontend Analytics & Reporting UI) — 6 Items
 
 | ID | Priority | Description | Spec Section |
@@ -132,13 +173,11 @@
 | TODO-AI005-FE-005 | P2 | Align analytics embed API routes with backend controllers | 6.2 |
 | TODO-AI005-FE-006 | P3 | Validate filter value types in ReportDesigner | 6.3 |
 
-### Missing Specifications (Index Gaps) — 14 Items
+### Missing Specifications (Index Gaps) — 12 Items
 
 | ID | Priority | Description | Spec Section |
 |----|----------|-------------|--------------|
-| TODO-SPEC-001 | P1 | Create SPEC-SYS-001 User Management specification | 1 |
 | TODO-SPEC-002 | P1 | Create SPEC-SYS-002 Authentication specification | 1 |
-| TODO-SPEC-003 | P1 | Create SPEC-SYS-003 User Groups & Permissions specification | 1 |
 | TODO-SPEC-004 | P1 | Create SPEC-SYS-005 System Settings specification | 1 |
 | TODO-SPEC-005 | P2 | Create SPEC-SYS-006 Audit Logging specification | 1 |
 | TODO-SPEC-006 | P2 | Create SPEC-ITSM-001 Incident Management specification | 1 |
@@ -410,8 +449,8 @@
 | ID | Priority | Description |
 |----|----------|-------------|
 | TODO-INT-01 | P2 | Add Stripe webhook handlers for payment processing |
-| TODO-INT-02 | P2 | Add SendGrid event tracking integration |
-| TODO-INT-03 | P2 | Complete Chatwoot timeline integration |
+| ~~TODO-INT-02~~ | ~~P2~~ | ✅ **DONE** — SendGrid event tracking integration (webhook + Activity logging) |
+| ~~TODO-INT-03~~ | ~~P2~~ | ✅ **DONE** — Chatwoot timeline integration (webhook → Activity timeline) |
 
 ### 10.2 Native Integrations
 
@@ -496,9 +535,9 @@
 |----------|-------|-------------|
 | **P0 — Critical** | 0 | No critical blockers |
 | **P1 — High** | 12 | Core functionality gaps: validations, lead conversion, global search, inline editing |
-| **P2 — Medium** | 92 | Service completion, testing, integrations, reporting, AI features |
+| **P2 — Medium** | 90 | Service completion, testing, integrations, reporting, AI features |
 | **P3 — Low** | 64 | Portal, mobile, advanced customization, nice-to-have UX |
-| **Total** | **168** | |
+| **Total** | **166** | |
 
 ### Recommended Implementation Order
 

@@ -5,6 +5,7 @@
 > **Current Platform:** .NET 8.0 (EOL Nov 10, 2026)  
 > **Target Platform:** .NET 10.0 LTS (GA Nov 11, 2025 · EOL Nov 14, 2028)  
 > **Estimated Duration:** 5 working days (parallelized from ~10 sequential days)
+> **Status:** In Progress — execution started 2026-02-14
 
 ---
 

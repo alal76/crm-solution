@@ -10,7 +10,7 @@
 
 1. [Overview](#overview)
 2. [General Principles](#general-principles)
-3. [Backend Standards (.NET 8.0)](#backend-standards-net-80)
+3. [Backend Standards (.NET 10.0)](#backend-standards-net-100)
 4. [Frontend Standards (React/TypeScript)](#frontend-standards-reacttypescript)
 5. [API Design Standards](#api-design-standards)
 6. [Database Standards](#database-standards)
@@ -60,7 +60,7 @@ This document defines the coding standards for the CRM Solution project. All con
 
 ---
 
-## Backend Standards (.NET 8.0)
+## Backend Standards (.NET 10.0)
 
 ### Naming Conventions
 

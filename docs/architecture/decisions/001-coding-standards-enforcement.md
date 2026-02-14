@@ -18,7 +18,7 @@ The CRM Solution codebase had inconsistent code formatting and style across diff
 4. **Technical debt**: Inconsistent patterns made code harder to maintain
 
 The team needed automated tooling to enforce consistent coding standards across:
-- Backend (.NET 8.0 / C#)
+- Backend (.NET 10.0 / C#)
 - Frontend (React / TypeScript)
 - Configuration files (JSON, YAML)
 

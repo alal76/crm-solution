@@ -3,7 +3,7 @@
 **Generated:** January 24, 2026  
 **Test Framework:** xUnit 2.6.2 with FluentAssertions 6.12.0  
 **Coverage Tool:** coverlet.collector 6.0.0  
-**Platform:** .NET 8.0
+**Platform:** .NET 10.0
 
 ---
 

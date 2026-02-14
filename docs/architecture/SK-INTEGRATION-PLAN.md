@@ -1199,7 +1199,7 @@ EnableAgentSubsystem                    ← Master kill-switch
 
 ## 15. .NET 10 Upgrade Sequencing
 
-> **Context:** There is an active plan to upgrade the CRM Solution from .NET 8.0 (current) to .NET 10 (GA: November 2025).
+> **Context:** The CRM Solution is upgrading from .NET 8.0 to .NET 10.0 LTS (GA: November 2025).
 > This section analyzes how the Semantic Kernel integration should be sequenced relative to that upgrade.
 
 ### 15.1 Recommendation: SK First, Then .NET 10

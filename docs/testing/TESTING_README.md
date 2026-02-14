@@ -28,7 +28,7 @@
 ### CI/CD Pipeline
 ✅ **GitHub Actions Configuration**
 - 7 jobs for comprehensive testing
-- Node 20.x and .NET 8.0 testing
+- Node 20.x and .NET 10.0 testing
 - Security scanning & code quality checks
 - Integration tests with MariaDB
 - Test report aggregation
@@ -186,7 +186,7 @@ When you push to GitHub:
 
 1. **Code Push** → Triggers GitHub Actions
 2. **Frontend Tests** (Node 20.x) → ~5 minutes
-3. **Backend Tests** (.NET 8.0) → ~5 minutes
+3. **Backend Tests** (.NET 10.0) → ~5 minutes
 4. **Docker Build** → ~10 minutes
 5. **Code Quality** → ~2 minutes
 6. **Security Scan** → ~3 minutes

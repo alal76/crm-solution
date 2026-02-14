@@ -33,7 +33,7 @@
 
 ### What is this?
 A full-stack CRM (Customer Relationship Management) application with:
-- **Backend:** ASP.NET Core 8.0 Web API with Entity Framework Core
+- **Backend:** ASP.NET Core 10.0 Web API with Entity Framework Core
 - **Frontend:** React 18 with TypeScript and Material-UI (MUI)
 - **Database:** MariaDB (primary), SQL Server (supported), PostgreSQL (supported)
 - **Caching:** Redis

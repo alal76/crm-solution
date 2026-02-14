@@ -107,7 +107,7 @@ Both architectures share the same codebase and database schema, allowing organiz
 
 ### Application Layer (API)
 
-**Technology**: ASP.NET Core 8.0
+**Technology**: ASP.NET Core 10.0
 
 | Component | Responsibility |
 |-----------|----------------|
@@ -139,7 +139,7 @@ Both architectures share the same codebase and database schema, allowing organiz
 
 ### Data Layer
 
-**Technology**: Entity Framework Core 8.0
+**Technology**: Entity Framework Core 10.0
 
 | Component | Responsibility |
 |-----------|----------------|
@@ -258,7 +258,7 @@ The default deployment mode where all components run in a single process.
                   ▼
 ┌──────────────────────────────────────────┐
 │               crm-api                     │
-│         (ASP.NET Core 8.0)                │
+│         (ASP.NET Core 10.0)               │
 │              Port: 5000                   │
 │  ┌──────────────────────────────────────┐│
 │  │  All Controllers & Services in one   ││

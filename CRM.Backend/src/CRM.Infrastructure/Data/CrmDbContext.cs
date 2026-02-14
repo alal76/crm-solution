@@ -24,6 +24,7 @@ using CRM.Core.Models;
 using CRM.Infrastructure.Data.Providers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using System.Linq.Expressions;
 using ITSM = CRM.Core.Entities.ITSM; // Alias for ITSM entities to avoid conflicts
 
 namespace CRM.Infrastructure.Data;
@@ -445,6 +446,23 @@ public class CrmDbContext : DbContext, ICrmDbContext
             {
                 providerStrategy.ConfigureRowVersion(modelBuilder, entityType);
             }
+        }
+
+        // Apply named soft-delete query filter to all BaseEntity-derived entities
+        const string softDeleteFilterName = "SoftDelete";
+        foreach (var entityType in modelBuilder.Model.GetEntityTypes())
+        {
+            if (!typeof(BaseEntity).IsAssignableFrom(entityType.ClrType))
+            {
+                continue;
+            }
+
+            var parameter = Expression.Parameter(entityType.ClrType, "e");
+            var isDeletedProperty = Expression.Property(parameter, nameof(BaseEntity.IsDeleted));
+            var isNotDeleted = Expression.Equal(isDeletedProperty, Expression.Constant(false));
+            var filter = Expression.Lambda(isNotDeleted, parameter);
+
+            modelBuilder.Entity(entityType.ClrType).HasQueryFilter(softDeleteFilterName, filter);
         }
 
         // Ignore the deprecated Customer class to prevent TPH discrimination
