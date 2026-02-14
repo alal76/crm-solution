@@ -66,7 +66,7 @@ The CRM solution now has a **comprehensive testing framework** with unit tests, 
 ### CI/CD Pipeline
 - ✅ **GitHub Actions** - `.github/workflows/ci-cd.yml` (220+ lines)
   - **Job 1**: Frontend tests (Node 20.x)
-  - **Job 2**: Backend tests (.NET 8.0)
+  - **Job 2**: Backend tests (.NET 10.0)
   - **Job 3**: Docker build & push
   - **Job 4**: Code quality checks (ESLint, StyleCop)
   - **Job 5**: Security scanning (npm audit, Dependency-Check)
@@ -220,7 +220,7 @@ scripts/
    - Coverage upload
    - Production build
    
-2. **Backend Tests** (.NET 8.0) - ~5 minutes
+2. **Backend Tests** (.NET 10.0) - ~5 minutes
    - dotnet restore
    - dotnet build Release
    - xUnit tests

@@ -131,12 +131,12 @@ The CRM solution now includes a production-ready testing infrastructure with:
 - Mocking: Moq 4.20.70
 - Assertions: FluentAssertions 6.12.0
 - Database: InMemoryDatabase (.NET Core)
-- Language: C# .NET 8.0
+- Language: C# .NET 10.0
 
 **CI/CD**:
 - Platform: GitHub Actions
 - Runners: Linux (ubuntu-latest)
-- Languages: Node.js 20.x, .NET 8.0
+- Languages: Node.js 20.x, .NET 10.0
 - Services: MariaDB (for integration tests)
 
 ### Test Organization
@@ -213,7 +213,7 @@ Checks:
 1. **frontend-tests** (Node 20.x)
    - npm install → TypeScript check → Linting → Unit tests → Coverage upload → Build
 
-2. **backend-tests** (.NET 8.0)
+2. **backend-tests** (.NET 10.0)
    - dotnet restore → Build Release → xUnit tests → Coverage upload
 
 3. **docker-build** (depends on 1 & 2)
@@ -428,7 +428,7 @@ Push code to repository to trigger automatic CI/CD pipeline
 
 3. **Configured complete CI/CD pipeline**:
    - GitHub Actions with 7 parallel jobs
-   - Node 20.x and .NET 8.0 testing
+   - Node 20.x and .NET 10.0 testing
    - Security scanning and code quality checks
    - Integration tests with MariaDB service
    - Test report aggregation

@@ -96,7 +96,7 @@
 ### 1.1 Solution Summary
 
 **CRM Solution** is a full-stack Customer Relationship Management system:
-- **Backend:** ASP.NET Core 8.0 + Entity Framework Core
+- **Backend:** ASP.NET Core 10.0 + Entity Framework Core
 - **Frontend:** React 18 + TypeScript + Material-UI 5
 - **Database:** MariaDB (primary), SQL Server, PostgreSQL supported
 - **Real-time:** SignalR WebSocket communication
@@ -124,7 +124,7 @@
   "version": "1.7.28",
   "environment": "development",
   "database": "MariaDB 10.11",
-  "backend": ".NET 8.0",
+  "backend": ".NET 10.0",
   "frontend": "React 18 + MUI 5"
 }
 ```

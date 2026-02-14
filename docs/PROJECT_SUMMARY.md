@@ -28,7 +28,7 @@ A comprehensive, production-ready CRM (Customer Relationship Management) solutio
 
 | Layer | Technology |
 |-------|------------|
-| **Backend** | .NET 8.0, ASP.NET Core, Entity Framework Core 8 |
+| **Backend** | .NET 10.0, ASP.NET Core, Entity Framework Core 10 |
 | **Frontend** | React 18, TypeScript, Material-UI (MUI) |
 | **Database** | MariaDB (default), PostgreSQL, SQL Server |
 | **Real-time** | SignalR WebSockets |

@@ -1,9 +1,9 @@
 {
-  "major": 1,
-  "minor": 9,
+  "major": 2,
+  "minor": 0,
   "patch": 0,
-  "lastUpdate": "2026-02-02",
-  "description": "CRM Solution v1.9.0 - Deduplication Feature with fuzzy matching, merge/unmerge, and audit trail",
+  "lastUpdate": "2026-02-14",
+  "description": "CRM Solution v2.0.0 - .NET 10 LTS upgrade with native OpenAPI and built-in rate limiting",
   "git": {
     "branch": "dev",
     "commit": "dedup-feature"
@@ -11,5 +11,5 @@
   "environment": "production",
   "architecture": "monolith",
   "buildServer": "azure-devops",
-  "buildTime": "2026-02-02T14:45:00"
+  "buildTime": "2026-02-14T12:00:00"
 }

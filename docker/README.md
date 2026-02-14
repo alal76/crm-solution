@@ -6,7 +6,7 @@ This directory contains all Docker-related files for building and running the CR
 
 | File | Description |
 |------|-------------|
-| `Dockerfile.backend` | Multi-stage build for .NET 8 API |
+| `Dockerfile.backend` | Multi-stage build for .NET 10 API |
 | `Dockerfile.frontend` | Multi-stage build for React frontend |
 | `docker-compose.yml` | Local development orchestration |
 | `.dockerignore` | Files to exclude from Docker context |
@@ -48,7 +48,7 @@ docker build -t crm-frontend:v1.4.0 -f docker/Dockerfile.frontend .
 │                    docker-compose                           │
 ├─────────────────┬─────────────────┬───────────────────────┤
 │   crm-frontend  │    crm-api      │      crm-db           │
-│   (React)       │    (.NET 8)     │    (MariaDB)          │
+│   (React)       │    (.NET 10)    │    (MariaDB)          │
 │   Port: 3000    │    Port: 5000   │    Port: 3306         │
 └─────────────────┴─────────────────┴───────────────────────┘
 ```

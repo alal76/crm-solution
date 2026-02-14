@@ -318,7 +318,7 @@ These tests require a live API endpoint and are skipped during unit test runs:
 
 ### Software
 - **OS**: macOS Sonoma 14.x
-- **Runtime**: .NET 8.0.1
+- **Runtime**: .NET 10.0.0
 - **Test Runner**: VSTest 17.11.1
 - **Container**: Docker Desktop 4.x
 - **Database**: MariaDB 10.11 (in-memory for unit tests)

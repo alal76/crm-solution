@@ -79,7 +79,7 @@ We've packed enterprise-grade capabilities without the enterprise-grade complexi
 ### **Modern Tech Stack**
 
 **Backend Excellence**
-- ⚡ **ASP.NET Core 8.0** - Latest high-performance framework
+- ⚡ **ASP.NET Core 10.0** - Latest high-performance framework
 - 🗄️ **Entity Framework Core 8.0** - Advanced ORM with migrations
 - 🔄 **SignalR** - Real-time bidirectional communication
 - 📊 **Serilog** - Structured logging for observability

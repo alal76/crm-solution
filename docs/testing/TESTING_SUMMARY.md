@@ -39,7 +39,7 @@ The CRM solution now includes a **comprehensive, production-ready testing framew
 ### 4. CI/CD Pipeline ✅
 - `.github/workflows/ci-cd.yml` - 7 jobs, GitHub Actions
   - Frontend tests (Node 20.x)
-  - Backend tests (.NET 8.0)
+   - Backend tests (.NET 10.0)
   - Docker build & push
   - Code quality checks
   - Security scanning
@@ -136,7 +136,7 @@ cd crm-solution
 ### Framework Versions
 - **Frontend**: Jest 5.0.1 + React Testing Library 14.1.2
 - **Backend**: xUnit 2.6.2 + Moq 4.20.70 + FluentAssertions 6.12.0
-- **CI/CD**: GitHub Actions (Node 20.x, .NET 8.0)
+- **CI/CD**: GitHub Actions (Node 20.x, .NET 10.0)
 
 ---
 
@@ -189,7 +189,7 @@ When you push code to GitHub:
    ↓
 3. 7 Jobs run in parallel/sequence:
    ├── Frontend tests (Node 20.x)
-   ├── Backend tests (.NET 8.0)
+   ├── Backend tests (.NET 10.0)
    ├── Docker build & push
    ├── Code quality checks
    ├── Security scanning

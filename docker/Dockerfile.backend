@@ -11,7 +11,7 @@
 # ============================================
 # Stage 1: Build (restore + compile)
 # ============================================
-FROM mcr.microsoft.com/dotnet/sdk:8.0 AS builder
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS builder
 
 WORKDIR /src
 
@@ -37,7 +37,7 @@ RUN dotnet publish "src/CRM.Api/CRM.Api.csproj" -c Release -o /app/publish
 # ============================================
 # Stage 2: Runtime (minimal image)
 # ============================================
-FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine AS runtime
+FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine AS runtime
 
 WORKDIR /app
 

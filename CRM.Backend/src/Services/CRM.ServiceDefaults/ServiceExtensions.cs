@@ -111,9 +111,8 @@ public static class ServiceExtensions
         // Add controllers
         builder.Services.AddControllers();
 
-        // Add Swagger
-        builder.Services.AddEndpointsApiExplorer();
-        builder.Services.AddSwaggerGen();
+        // Add OpenAPI (native .NET 10)
+        builder.Services.AddOpenApi("v1");
 
         return builder;
     }
@@ -157,8 +156,12 @@ public static class ServiceExtensions
 
         if (app.Environment.IsDevelopment())
         {
-            app.UseSwagger();
-            app.UseSwaggerUI();
+            app.MapOpenApi();
+            app.UseSwaggerUI(options =>
+            {
+                options.SwaggerEndpoint("/openapi/v1.json", $"{app.Environment.ApplicationName} API");
+                options.DocumentTitle = $"{app.Environment.ApplicationName} API Documentation";
+            });
         }
 
         app.UseCors("AllowAll");

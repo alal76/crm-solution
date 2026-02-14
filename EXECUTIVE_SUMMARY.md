@@ -17,7 +17,7 @@ A comprehensive architecture and code quality review was conducted on the CRM So
 
 ### 1. Coding Standards ✅
 - **Created comprehensive coding standards document** (21KB)
-  - Backend (.NET 8.0) guidelines
+  - Backend (.NET 10.0) guidelines
   - Frontend (React/TypeScript) guidelines
   - API design standards
   - Testing standards

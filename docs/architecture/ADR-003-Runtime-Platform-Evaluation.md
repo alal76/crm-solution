@@ -12,7 +12,7 @@
 
 ### 1.1 Trigger
 
-The CRM backend runs on **.NET 8.0 (LTS)**, which reaches **end-of-support on November 10, 2026** — approximately 9 months from now. A platform decision is required before that date. Three options are evaluated:
+The CRM backend runs on **.NET 10.0 (LTS)**, which reaches **end-of-support on November 14, 2028**. This ADR documents the evaluation that led to the .NET 10 LTS upgrade.
 
 | Option | Version | Type | Support Ends |
 |--------|---------|------|--------------|

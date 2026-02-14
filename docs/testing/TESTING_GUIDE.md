@@ -269,7 +269,7 @@ Automatic testing on:
    - Coverage report upload
 
 2. **Backend Tests & Build**
-   - .NET 8.0
+  - .NET 10.0
    - Solution restore and build
    - Unit tests with coverage
    - Test results upload

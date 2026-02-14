@@ -31,12 +31,12 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.FeatureManagement;
 using Microsoft.OpenApi.Models;
 using CRM.Infrastructure.DependencyInjection;
-using AspNetCoreRateLimit;
 using Serilog;
 using System.Text;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
+using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -143,123 +143,117 @@ Log.Information("Monitoring configured - DeploymentType: {Type}, BuildServer: {S
 // Add rate limiting - configurable via appsettings.json
 var isDevelopment = builder.Environment.IsDevelopment();
 var rateLimitingConfig = builder.Configuration.GetSection("RateLimiting");
+var rateLimitingEnabled = rateLimitingConfig.GetValue("EnableEndpointRateLimiting", !isDevelopment);
+var rejectionStatusCode = rateLimitingConfig.GetValue("HttpStatusCode", 429);
+var quotaMessage = rateLimitingConfig.GetValue("QuotaExceededMessage", "API calls quota exceeded!");
 
-builder.Services.Configure<IpRateLimitOptions>(options =>
+TimeSpan ParseRateLimitPeriod(string period)
 {
-    // Read base settings from config with defaults
-    options.EnableEndpointRateLimiting = rateLimitingConfig.GetValue("EnableEndpointRateLimiting", !isDevelopment);
-    options.StackBlockedRequests = rateLimitingConfig.GetValue("StackBlockedRequests", false);
-    options.RealIpHeader = rateLimitingConfig.GetValue("RealIpHeader", "X-Real-IP");
-    options.ClientIdHeader = rateLimitingConfig.GetValue("ClientIdHeader", "X-ClientId");
-    options.HttpStatusCode = rateLimitingConfig.GetValue("HttpStatusCode", 429);
-    options.QuotaExceededResponse = new QuotaExceededResponse
+    if (string.IsNullOrWhiteSpace(period))
     {
-        Content = rateLimitingConfig.GetValue("QuotaExceededMessage", "API calls quota exceeded!"),
-        ContentType = "text/plain"
+        return TimeSpan.FromMinutes(1);
+    }
+
+    var normalized = period.Trim().ToLowerInvariant();
+    if (normalized.EndsWith("ms") && int.TryParse(normalized[..^2], out var ms))
+    {
+        return TimeSpan.FromMilliseconds(ms);
+    }
+    if (normalized.EndsWith("s") && int.TryParse(normalized[..^1], out var seconds))
+    {
+        return TimeSpan.FromSeconds(seconds);
+    }
+    if (normalized.EndsWith("m") && int.TryParse(normalized[..^1], out var minutes))
+    {
+        return TimeSpan.FromMinutes(minutes);
+    }
+    if (normalized.EndsWith("h") && int.TryParse(normalized[..^1], out var hours))
+    {
+        return TimeSpan.FromHours(hours);
+    }
+
+    return TimeSpan.FromMinutes(1);
+}
+
+var generalRuleSection = rateLimitingConfig.GetSection("GeneralRules").GetChildren().FirstOrDefault();
+var generalPermitLimit = generalRuleSection?.GetValue("Limit", 1000) ?? 1000;
+var generalWindow = ParseRateLimitPeriod(generalRuleSection?.GetValue("Period", "1m") ?? "1m");
+
+var endpointRules = rateLimitingConfig.GetSection("EndpointRules")
+    .GetChildren()
+    .Select(section => new
+    {
+        Endpoint = section.Key,
+        PermitLimit = section.GetValue("Limit", 100),
+        Window = ParseRateLimitPeriod(section.GetValue("Period", "1m"))
+    })
+    .ToList();
+
+builder.Services.AddRateLimiter(options =>
+{
+    options.RejectionStatusCode = rejectionStatusCode;
+    options.OnRejected = async (context, token) =>
+    {
+        context.HttpContext.Response.ContentType = "text/plain";
+        await context.HttpContext.Response.WriteAsync(quotaMessage, token);
     };
 
-    // Build rules list from configuration
-    var rules = new List<RateLimitRule>();
-
-    // Add general rules from config
-    var generalRulesSection = rateLimitingConfig.GetSection("GeneralRules");
-    if (generalRulesSection.Exists())
+    if (!rateLimitingEnabled)
     {
-        foreach (var ruleSection in generalRulesSection.GetChildren())
-        {
-            rules.Add(new RateLimitRule
+        options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(_ =>
+            RateLimitPartition.GetNoLimiter("rate-limiting-disabled"));
+        return;
+    }
+
+    options.GlobalLimiter = PartitionedRateLimiter.Create<HttpContext, string>(context =>
+    {
+        var requestPath = context.Request.Path.Value ?? string.Empty;
+        var endpointRule = endpointRules.FirstOrDefault(rule =>
+            requestPath.Contains(rule.Endpoint, StringComparison.OrdinalIgnoreCase));
+
+        var permitLimit = endpointRule?.PermitLimit ?? generalPermitLimit;
+        var window = endpointRule?.Window ?? generalWindow;
+
+        var partitionKey = context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        return RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey,
+            _ => new FixedWindowRateLimiterOptions
             {
-                Endpoint = ruleSection.GetValue("Endpoint", "*"),
-                Period = ruleSection.GetValue("Period", "1m"),
-                Limit = ruleSection.GetValue("Limit", 1000)
+                PermitLimit = permitLimit,
+                Window = window,
+                QueueLimit = 0,
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst
             });
-        }
-    }
-    else
-    {
-        // Default general rule if not configured
-        rules.Add(new RateLimitRule { Endpoint = "*", Period = "1m", Limit = 1000 });
-    }
-
-    // Add endpoint-specific rules from config
-    var endpointRulesSection = rateLimitingConfig.GetSection("EndpointRules");
-    if (endpointRulesSection.Exists())
-    {
-        foreach (var endpointSection in endpointRulesSection.GetChildren())
-        {
-            var endpoint = endpointSection.Key;
-            rules.Add(new RateLimitRule
-            {
-                Endpoint = $"*:{endpoint}*",
-                Period = endpointSection.GetValue("Period", "1m"),
-                Limit = endpointSection.GetValue("Limit", 100)
-            });
-        }
-    }
-
-    options.GeneralRules = rules;
+    });
 });
-builder.Services.AddSingleton<IIpPolicyStore, MemoryCacheIpPolicyStore>();
-builder.Services.AddSingleton<IRateLimitCounterStore, MemoryCacheRateLimitCounterStore>();
-builder.Services.AddSingleton<IRateLimitConfiguration, RateLimitConfiguration>();
-builder.Services.AddSingleton<IProcessingStrategy, AsyncKeyLockProcessingStrategy>();
-builder.Services.AddInMemoryRateLimiting();
 
 // Add services
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen(options =>
+builder.Services.AddOpenApi("v1", options =>
 {
-    options.SwaggerDoc("v1", new OpenApiInfo
+    options.AddDocumentTransformer((document, context, ct) =>
     {
-        Title = "CRM Solution API",
-        Version = "v2.0.0",
-        Description = "Enterprise CRM Solution with Pluggable Architecture. Supports Accounts, Contacts, Leads, Opportunities, Products, Campaigns, Service Desk, ITSM, and AI/Analytics modules.",
-        Contact = new OpenApiContact
+        document.Info = new OpenApiInfo
         {
-            Name = "CRM Solution Team",
-            Email = "support@crm.local"
-        },
-        License = new OpenApiLicense
-        {
-            Name = "AGPL-3.0",
-            Url = new Uri("https://www.gnu.org/licenses/agpl-3.0.html")
-        }
-    });
-
-    // JWT Bearer authentication
-    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
-    {
-        Name = "Authorization",
-        Type = SecuritySchemeType.Http,
-        Scheme = "bearer",
-        BearerFormat = "JWT",
-        In = ParameterLocation.Header,
-        Description = "Enter JWT token"
-    });
-
-    options.AddSecurityRequirement(new OpenApiSecurityRequirement
-    {
-        {
-            new OpenApiSecurityScheme
+            Title = "CRM Solution API",
+            Version = "v2.0.0",
+            Description = "Enterprise CRM Solution with Pluggable Architecture. Supports Accounts, Contacts, Leads, Opportunities, Products, Campaigns, Service Desk, ITSM, and AI/Analytics modules.",
+            Contact = new OpenApiContact
             {
-                Reference = new OpenApiReference
-                {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
+                Name = "CRM Solution Team",
+                Email = "support@crm.local"
             },
-            Array.Empty<string>()
-        }
-    });
+            License = new OpenApiLicense
+            {
+                Name = "AGPL-3.0",
+                Url = new Uri("https://www.gnu.org/licenses/agpl-3.0.html")
+            }
+        };
 
-    // Include XML comments for API documentation
-    var xmlFilename = $"{System.Reflection.Assembly.GetExecutingAssembly().GetName().Name}.xml";
-    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFilename);
-    if (File.Exists(xmlPath))
-    {
-        options.IncludeXmlComments(xmlPath);
-    }
+        return Task.CompletedTask;
+    });
+    options.AddDocumentTransformer<CRM.Api.OpenApi.BearerSecuritySchemeTransformer>();
 });
 
 // Add SignalR for real-time notifications
@@ -770,10 +764,10 @@ using (var scope = app.Services.CreateScope())
 // Configure Middleware
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
+    app.MapOpenApi();
     app.UseSwaggerUI(c =>
     {
-        c.SwaggerEndpoint("/swagger/v1/swagger.json", "CRM Solution API v2.0.0");
+        c.SwaggerEndpoint("/openapi/v1.json", "CRM Solution API v2.0.0");
         c.DocumentTitle = "CRM Solution API Documentation";
     });
 }
@@ -812,7 +806,7 @@ app.UseRouting();
 // Use the default CORS policy globally
 app.UseCors();
 // Apply rate limiting before authentication
-app.UseIpRateLimiting();
+app.UseRateLimiter();
 app.UseAuthentication();
 app.UseAuthorization();
 
