@@ -190,7 +190,7 @@ function DashboardSettingsPage() {
         name: dashboard.name,
         description: dashboard.description || '',
         isDefault: dashboard.isDefault,
-        isActive: dashboard.isActive,
+        isActive: dashboard?.isActive !== false,
         iconName: dashboard.iconName,
         displayOrder: dashboard.displayOrder,
         columnCount: dashboard.columnCount,
@@ -517,8 +517,8 @@ function DashboardSettingsPage() {
                     </TableCell>
                     <TableCell align="center">
                       <Chip
-                        label={dashboard.isActive ? 'Active' : 'Inactive'}
-                        color={dashboard.isActive ? 'success' : 'default'}
+                        label={dashboard?.isActive !== false ? 'Active' : 'Inactive'}
+                        color={dashboard?.isActive !== false ? 'success' : 'default'}
                         size="small"
                       />
                     </TableCell>
@@ -775,7 +775,7 @@ function DashboardSettingsPage() {
               <FormControlLabel
                 control={
                   <Switch
-                    checked={dashboardForm.isActive}
+                    checked={dashboardForm?.isActive !== false}
                     onChange={(e) => setDashboardForm({ ...dashboardForm, isActive: e.target.checked })}
                   />
                 }

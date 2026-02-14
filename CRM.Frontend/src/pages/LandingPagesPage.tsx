@@ -338,7 +338,7 @@ export default function LandingPagesPage() {
       redirectUrl: page.redirectUrl || '',
       scheduledPublishAt: page.scheduledPublishAt?.split('T')[0] || '',
       scheduledUnpublishAt: page.scheduledUnpublishAt?.split('T')[0] || '',
-      isActive: page.isActive,
+      isActive: page?.isActive !== false,
     });
     setFormError(null);
     setFormTabIndex(0);
@@ -771,7 +771,7 @@ export default function LandingPagesPage() {
                 <FormControlLabel
                   control={
                     <Checkbox
-                      checked={form.isActive}
+                      checked={form?.isActive !== false}
                       onChange={e => handleFormChange('isActive', e.target.checked)}
                     />
                   }

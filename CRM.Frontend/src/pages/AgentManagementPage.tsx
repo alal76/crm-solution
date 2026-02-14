@@ -148,7 +148,7 @@ const AgentManagementPage: React.FC = () => {
       setError(null);
       await agentAdminService.toggleAgent(agent.id);
       setSuccess(
-        `${agent.displayName} has been ${agent.isActive ? 'deactivated' : 'activated'}.`,
+        `${agent.displayName} has been ${agent?.isActive !== false ? 'deactivated' : 'activated'}.`,
       );
       await loadAgents();
     } catch (err: any) {
@@ -210,7 +210,7 @@ const AgentManagementPage: React.FC = () => {
 
   // ── computed stats ──────────────────────────────────────────────────────
   const totalAgents = agents.length;
-  const activeAgents = agents.filter((a) => a.isActive).length;
+  const activeAgents = agents.filter((a) => a?.isActive !== false).length;
   const totalConversations = agents.reduce(
     (sum, a) => sum + (a.totalConversations ?? 0),
     0,
@@ -344,7 +344,7 @@ const AgentManagementPage: React.FC = () => {
                         key={agent.id}
                         hover
                         sx={{
-                          opacity: agent.isActive ? 1 : 0.6,
+                          opacity: agent?.isActive !== false ? 1 : 0.6,
                           '&:last-child td': { borderBottom: 0 },
                         }}
                       >
@@ -408,11 +408,11 @@ const AgentManagementPage: React.FC = () => {
                         <TableCell align="center">
                           <Tooltip
                             title={
-                              agent.isActive ? 'Deactivate' : 'Activate'
+                              agent?.isActive !== false ? 'Deactivate' : 'Activate'
                             }
                           >
                             <Switch
-                              checked={agent.isActive}
+                              checked={agent?.isActive !== false}
                               onChange={() => handleToggle(agent)}
                               color="primary"
                               size="small"

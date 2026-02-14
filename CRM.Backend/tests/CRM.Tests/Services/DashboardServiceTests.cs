@@ -17,6 +17,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
@@ -24,6 +25,8 @@ using CRM.Core.Models;
 using CRM.Infrastructure.Services;
 using CRM.Tests.Helpers;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Hybrid;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
@@ -37,16 +40,36 @@ public class DashboardServiceTests
 {
     private readonly Mock<ICrmDbContext> _mockDbContext;
     private readonly Mock<ILogger<DashboardService>> _mockLogger;
+    private readonly HybridCache _cache;
     private readonly DashboardService _service;
 
     public DashboardServiceTests()
     {
         _mockDbContext = new Mock<ICrmDbContext>();
         _mockLogger = new Mock<ILogger<DashboardService>>();
+        _cache = CreateHybridCache();
 
         SetupMockDbSets();
 
-        _service = new DashboardService(_mockDbContext.Object, _mockLogger.Object);
+        _service = new DashboardService(_mockDbContext.Object, _mockLogger.Object, _cache);
+    }
+
+    private static HybridCache CreateHybridCache()
+    {
+        var services = new ServiceCollection();
+        services.AddMemoryCache();
+        services.AddDistributedMemoryCache();
+        services.AddHybridCache(options =>
+        {
+            options.DefaultEntryOptions = new HybridCacheEntryOptions
+            {
+                Expiration = TimeSpan.FromSeconds(5),
+                LocalCacheExpiration = TimeSpan.FromSeconds(1)
+            };
+        });
+
+        var provider = services.BuildServiceProvider();
+        return provider.GetRequiredService<HybridCache>();
     }
 
     private void SetupMockDbSets()
@@ -97,7 +120,7 @@ public class DashboardServiceTests
     {
         // Arrange & Act & Assert
         Assert.Throws<ArgumentNullException>(() =>
-            new DashboardService(null!, _mockLogger.Object));
+            new DashboardService(null!, _mockLogger.Object, _cache));
     }
 
     [Fact]
@@ -105,14 +128,14 @@ public class DashboardServiceTests
     {
         // Arrange & Act & Assert
         Assert.Throws<ArgumentNullException>(() =>
-            new DashboardService(_mockDbContext.Object, null!));
+            new DashboardService(_mockDbContext.Object, null!, _cache));
     }
 
     [Fact]
     public void Constructor_WithValidParameters_DoesNotThrow()
     {
         // Arrange & Act
-        var service = new DashboardService(_mockDbContext.Object, _mockLogger.Object);
+        var service = new DashboardService(_mockDbContext.Object, _mockLogger.Object, _cache);
 
         // Assert
         Assert.NotNull(service);

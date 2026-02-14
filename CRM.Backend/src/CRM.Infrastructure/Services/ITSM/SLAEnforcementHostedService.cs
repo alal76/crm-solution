@@ -73,4 +73,11 @@ public class SLAEnforcementHostedService : BackgroundService
 
         _logger.LogInformation("SLA Enforcement Background Service stopped");
     }
+
+    public override async Task StopAsync(CancellationToken cancellationToken)
+    {
+        _logger.LogInformation("SLA Enforcement Background Service stopping");
+        await base.StopAsync(cancellationToken);
+        _logger.LogInformation("SLA Enforcement Background Service stopped");
+    }
 }

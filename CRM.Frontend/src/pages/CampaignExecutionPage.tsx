@@ -407,8 +407,8 @@ function CampaignExecutionPage() {
                     <TableCell>{wf.priority}</TableCell>
                     <TableCell>
                       <Chip 
-                        label={wf.isActive ? 'Active' : 'Inactive'} 
-                        color={wf.isActive ? 'success' : 'default'} 
+                        label={wf?.isActive !== false ? 'Active' : 'Inactive'} 
+                        color={wf?.isActive !== false ? 'success' : 'default'} 
                         size="small" 
                       />
                     </TableCell>
@@ -418,9 +418,9 @@ function CampaignExecutionPage() {
                           <PlayIcon />
                         </IconButton>
                       </Tooltip>
-                      <Tooltip title={wf.isActive ? 'Deactivate' : 'Activate'}>
-                        <IconButton size="small" onClick={() => handleToggleWorkflow(wf.id, !wf.isActive)}>
-                          {wf.isActive ? <PauseIcon /> : <PlayIcon />}
+                      <Tooltip title={wf?.isActive !== false ? 'Deactivate' : 'Activate'}>
+                        <IconButton size="small" onClick={() => handleToggleWorkflow(wf.id, !(wf?.isActive !== false))}>
+                          {wf?.isActive !== false ? <PauseIcon /> : <PlayIcon />}
                         </IconButton>
                       </Tooltip>
                     </TableCell>

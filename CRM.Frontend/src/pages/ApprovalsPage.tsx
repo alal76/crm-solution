@@ -662,8 +662,8 @@ const ApprovalsPage = () => {
                             />
                           </Box>
                           <Chip
-                            label={matrix.isActive ? 'Active' : 'Inactive'}
-                            color={matrix.isActive ? 'success' : 'default'}
+                            label={matrix?.isActive !== false ? 'Active' : 'Inactive'}
+                            color={matrix?.isActive !== false ? 'success' : 'default'}
                             size="small"
                           />
                         </Stack>

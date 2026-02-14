@@ -70,7 +70,7 @@ const SLAPolicyListPage: React.FC = () => {
                   <TableCell>Type {policy.targetType}</TableCell>
                   <TableCell>{policy.p1ResponseMinutes ?? '—'} min</TableCell>
                   <TableCell>{policy.p1ResolutionMinutes ?? '—'} min</TableCell>
-                  <TableCell>{policy.isActive ? 'Yes' : 'No'}</TableCell>
+                  <TableCell>{policy?.isActive !== false ? 'Yes' : 'No'}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

@@ -101,7 +101,7 @@ const AgentDirectoryPage = () => {
         setLoading(true);
         setError(null);
         const response = await agentService.getAll();
-        const activeAgents = (response.data || []).filter((a: Agent) => a.isActive);
+        const activeAgents = (response.data || []).filter((a: Agent) => a?.isActive !== false);
         setAgents(activeAgents);
       } catch (err: any) {
         console.error('Failed to load agents:', err);

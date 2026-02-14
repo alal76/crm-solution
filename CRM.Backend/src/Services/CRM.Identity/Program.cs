@@ -39,7 +39,7 @@ builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 
 // Register identity-related services
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
-builder.Services.AddScoped<ITotpService, TotpService>();
+builder.Services.AddScoped<CRM.Core.Interfaces.ITotpService, CRM.Infrastructure.Services.Authentication.TotpService>();
 builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IUserGroupService, UserGroupService>();

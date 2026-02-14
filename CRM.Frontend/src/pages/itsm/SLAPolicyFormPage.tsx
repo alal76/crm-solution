@@ -85,7 +85,7 @@ const SLAPolicyFormPage: React.FC = () => {
           label="Use business hours"
         />
         <FormControlLabel
-          control={<Checkbox checked={formData.isActive} onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })} />}
+          control={<Checkbox checked={formData?.isActive !== false} onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })} />}
           label="Active"
         />
         <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>

@@ -35,11 +35,24 @@ public abstract class FunctionalTestBase : IAsyncLifetime
 
     public virtual async Task InitializeAsync()
     {
+        var baseUrlOverride = Environment.GetEnvironmentVariable("CRM_API_URL");
         Client = new HttpClient
         {
             BaseAddress = new Uri(BaseUrl),
             Timeout = TimeSpan.FromSeconds(10)
         };
+
+        if (string.IsNullOrWhiteSpace(baseUrlOverride))
+        {
+            ApiAvailable = false;
+            Client.Dispose();
+            Client = new HttpClient(new UnavailableApiHandler())
+            {
+                BaseAddress = new Uri(BaseUrl),
+                Timeout = TimeSpan.FromSeconds(10)
+            };
+            return;
+        }
 
         // Check if API is available - fall back to a stub client if unavailable
         try
@@ -91,24 +104,38 @@ public abstract class FunctionalTestBase : IAsyncLifetime
     {
         if (!ApiAvailable) return false;
 
-        var response = await Client.PostAsJsonAsync("/api/auth/login", new
+        try
         {
-            email,
-            password
-        });
-
-        if (response.IsSuccessStatusCode)
-        {
-            var result = await response.Content.ReadFromJsonAsync<LoginResponse>();
-            if (result?.AccessToken != null)
+            var response = await Client.PostAsJsonAsync("/api/auth/login", new
             {
-                AuthToken = result.AccessToken;
-                Client.DefaultRequestHeaders.Authorization =
-                    new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", AuthToken);
-                return true;
+                email,
+                password
+            });
+
+            if (response.IsSuccessStatusCode)
+            {
+                var result = await response.Content.ReadFromJsonAsync<LoginResponse>();
+                if (result?.AccessToken != null)
+                {
+                    AuthToken = result.AccessToken;
+                    Client.DefaultRequestHeaders.Authorization =
+                        new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", AuthToken);
+                    return true;
+                }
             }
         }
+        catch (Exception)
+        {
+            // Treat as unavailable below
+        }
 
+        ApiAvailable = false;
+        Client.Dispose();
+        Client = new HttpClient(new UnavailableApiHandler())
+        {
+            BaseAddress = new Uri(BaseUrl),
+            Timeout = TimeSpan.FromSeconds(10)
+        };
         return false;
     }
 

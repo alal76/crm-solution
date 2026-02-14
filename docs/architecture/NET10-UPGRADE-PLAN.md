@@ -5,7 +5,52 @@
 > **Current Platform:** .NET 8.0 (EOL Nov 10, 2026)  
 > **Target Platform:** .NET 10.0 LTS (GA Nov 11, 2025 · EOL Nov 14, 2028)  
 > **Estimated Duration:** 5 working days (parallelized from ~10 sequential days)
-> **Status:** In Progress — execution started 2026-02-14
+> **Status:** In Progress — execution started 2026-02-14  
+> **Last Updated:** 2026-02-14
+
+---
+
+## Progress Tracker
+
+### ✅ Completed
+
+| Date | Phase | Task | Status |
+|------|-------|------|--------|
+| 2026-02-14 | Gate 0 | Pre-upgrade verification | ✅ COMPLETE |
+| 2026-02-14 | Gate 0 | .NET 10 SDK installed locally | ✅ COMPLETE |
+| 2026-02-14 | Gate 0 | Created upgrade branch `dotnet10-upgrade` | ✅ COMPLETE |
+| 2026-02-14 | Step 1 | Updated `Directory.Build.props` TFM to net10.0 | ✅ COMPLETE |
+| 2026-02-14 | Step 1 | Updated all 15 .csproj files to net10.0 + packages to 10.0.0 | ✅ COMPLETE |
+| 2026-02-14 | WS-A | Removed Swashbuckle, added Microsoft.AspNetCore.OpenApi | ✅ COMPLETE |
+| 2026-02-14 | WS-A | Migrated CRM.Api/Program.cs to MapOpenApi() | ✅ COMPLETE |
+| 2026-02-14 | WS-A | Created BearerSecuritySchemeTransformer.cs | ✅ COMPLETE |
+| 2026-02-14 | WS-A | Migrated ServiceDefaults to MapOpenApi() | ✅ COMPLETE |
+| 2026-02-14 | WS-B | Removed AspNetCoreRateLimit from CRM.Api + Gateway | ✅ COMPLETE |
+| 2026-02-14 | WS-B | Implemented built-in rate limiting with AddRateLimiter() | ✅ COMPLETE |
+| 2026-02-14 | WS-C | Added named query filters to CrmDbContext | ✅ COMPLETE |
+| 2026-02-14 | WS-D | Updated 8 Dockerfiles to .NET 10 base images | ✅ COMPLETE |
+| 2026-02-14 | WS-D | Updated CI/CD workflows to .NET 10 SDK | ✅ COMPLETE |
+| 2026-02-14 | Docs | Updated 37+ documentation files with .NET 10 references | ✅ COMPLETE |
+| 2026-02-14 | Docs | Bumped version.json to 2.0.0 | ✅ COMPLETE |
+| 2026-02-14 | Git | All 70 files committed to dotnet10-upgrade branch | ✅ COMPLETE |
+| 2026-02-14 | Gate 1 | Build verification (CRM.sln + CRM.Microservices.sln) | ✅ COMPLETE |
+| 2026-02-14 | WS-E | Test suite validation (6,685 passing, 8 skipped) | ✅ COMPLETE |
+| 2026-02-14 | WS-F | Docker image builds (linux/amd64) | ✅ COMPLETE |
+| 2026-02-14 | WS-G | .NET 10 feature adoption (SSE + HybridCache) | ✅ COMPLETE |
+
+### ⏳ In Progress
+
+| Phase | Task | Assignee | ETA |
+|-------|------|----------|-----|
+| (none) | — | — | — |
+
+### ⬜ Pending
+
+| Phase | Task | Depends On | Priority |
+|-------|------|------------|----------|
+| WS-F | Deploy to test server (192.168.0.9) | WS-F | HIGH |
+| WS-F | BVT suite execution | WS-F | HIGH |
+| Gate 2 | Final validation + merge | WS-E + WS-F | HIGH |
 
 ---
 

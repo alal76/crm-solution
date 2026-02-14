@@ -163,7 +163,7 @@ const DuplicateRulesPage: React.FC = () => {
     setFormData({
       name: rule.name,
       entityType: rule.entityType as EntityType,
-      isActive: rule.isActive,
+      isActive: rule?.isActive !== false,
       matchThreshold: rule.matchThreshold,
       description: rule.description || '',
       matchFields: rule.matchFields.map(f => ({
@@ -364,8 +364,8 @@ const DuplicateRulesPage: React.FC = () => {
                       <TableCell align="center">
                         <Chip
                           size="small"
-                          label={rule.isActive ? 'Active' : 'Inactive'}
-                          color={rule.isActive ? 'success' : 'default'}
+                          label={rule?.isActive !== false ? 'Active' : 'Inactive'}
+                          color={rule?.isActive !== false ? 'success' : 'default'}
                         />
                       </TableCell>
                       <TableCell align="right">
@@ -453,7 +453,7 @@ const DuplicateRulesPage: React.FC = () => {
               <FormControlLabel
                 control={
                   <Switch
-                    checked={formData.isActive}
+                    checked={formData?.isActive !== false}
                     onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
                   />
                 }

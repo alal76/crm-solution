@@ -107,7 +107,7 @@ function ProfileManagementPage() {
         name: profile.name,
         description: profile.description,
         departmentId: profile.departmentId,
-        isActive: profile.isActive,
+        isActive: profile?.isActive !== false,
         canCreateCustomers: profile.canCreateCustomers,
         canEditCustomers: profile.canEditCustomers,
         canDeleteCustomers: profile.canDeleteCustomers,
@@ -250,7 +250,7 @@ function ProfileManagementPage() {
                     <TableCell>{profile.name}</TableCell>
                     <TableCell>{profile.departmentName || '-'}</TableCell>
                     <TableCell>{profile.description}</TableCell>
-                    <TableCell>{profile.isActive ? 'Active' : 'Inactive'}</TableCell>
+                    <TableCell>{profile?.isActive !== false ? 'Active' : 'Inactive'}</TableCell>
                     <TableCell align="center">
                       <Button
                         size="small"
@@ -418,7 +418,7 @@ function ProfileManagementPage() {
             </Grid>
             <Grid item xs={12}>
               <FormControlLabel
-                control={<Checkbox name="isActive" checked={formData.isActive} onChange={handleInputChange} />}
+                control={<Checkbox name="isActive" checked={formData?.isActive !== false} onChange={handleInputChange} />}
                 label="Active"
               />
             </Grid>

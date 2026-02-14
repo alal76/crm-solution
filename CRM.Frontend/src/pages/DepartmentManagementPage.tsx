@@ -62,7 +62,7 @@ function DepartmentManagementPage() {
         name: department.name,
         description: department.description,
         departmentCode: department.departmentCode,
-        isActive: department.isActive,
+        isActive: department?.isActive !== false,
         parentDepartmentId: department.parentDepartmentId,
       });
     } else {
@@ -207,9 +207,9 @@ function DepartmentManagementPage() {
                       <TableCell>{dept.userCount}</TableCell>
                       <TableCell>
                         <Chip
-                          label={dept.isActive ? 'Active' : 'Inactive'}
+                          label={dept?.isActive !== false ? 'Active' : 'Inactive'}
                           size="small"
-                          color={dept.isActive ? 'success' : 'default'}
+                          color={dept?.isActive !== false ? 'success' : 'default'}
                         />
                       </TableCell>
                       <TableCell align="center">
@@ -301,7 +301,7 @@ function DepartmentManagementPage() {
             control={
               <Checkbox
                 name="isActive"
-                checked={formData.isActive}
+                checked={formData?.isActive !== false}
                 onChange={handleInputChange}
               />
             }

@@ -389,7 +389,7 @@ function ChannelSettingsPage() {
         subject: template.subject,
         body: template.body,
         templateType: template.templateType,
-        isActive: template.isActive,
+        isActive: template?.isActive !== false,
         channelId: template.channelId || 0,
       });
     } else {
@@ -1126,8 +1126,8 @@ function ChannelSettingsPage() {
                     <TableCell>
                       <Chip
                         size="small"
-                        label={template.isActive ? 'Active' : 'Inactive'}
-                        color={template.isActive ? 'success' : 'default'}
+                        label={template?.isActive !== false ? 'Active' : 'Inactive'}
+                        color={template?.isActive !== false ? 'success' : 'default'}
                       />
                     </TableCell>
                     <TableCell>
@@ -1311,7 +1311,7 @@ function ChannelSettingsPage() {
             <FormControlLabel
               control={
                 <Switch
-                  checked={templateForm.isActive}
+                  checked={templateForm?.isActive !== false}
                   onChange={(e) => setTemplateForm({ ...templateForm, isActive: e.target.checked })}
                 />
               }

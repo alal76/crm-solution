@@ -156,7 +156,7 @@ function EmailTemplatesPage() {
         subject: template.subject,
         plainTextBody: template.plainTextBody || '',
         htmlBody: template.htmlBody || '',
-        isActive: template.isActive,
+        isActive: template?.isActive !== false,
         fromEmail: template.fromEmail || '',
         fromName: template.fromName || '',
         replyToEmail: template.replyToEmail || '',
@@ -359,12 +359,12 @@ function EmailTemplatesPage() {
                       </TableCell>
                       <TableCell>
                         <Chip
-                          icon={template.isActive ? <ActiveIcon /> : <InactiveIcon />}
-                          label={template.isActive ? 'Active' : 'Inactive'}
-                          size="small"
+                          icon={template?.isActive !== false ? <ActiveIcon /> : <InactiveIcon />}
+                          label={template?.isActive !== false ? 'Active' : 'Inactive'}
+                          variant="filled"
                           sx={{
-                            backgroundColor: template.isActive ? '#E8F5E9' : '#FFEBEE',
-                            color: template.isActive ? '#2E7D32' : '#C62828',
+                            backgroundColor: template?.isActive !== false ? '#E8F5E9' : '#FFEBEE',
+                            color: template?.isActive !== false ? '#2E7D32' : '#C62828',
                           }}
                         />
                         {template.isSystem && (
@@ -525,7 +525,7 @@ function EmailTemplatesPage() {
               <FormControlLabel
                 control={
                   <Switch
-                    checked={formData.isActive}
+                    checked={formData?.isActive !== false}
                     onChange={(e) => setFormData(prev => ({ ...prev, isActive: e.target.checked }))}
                   />
                 }

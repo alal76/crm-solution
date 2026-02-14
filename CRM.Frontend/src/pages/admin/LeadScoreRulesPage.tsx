@@ -244,7 +244,7 @@ const LeadScoreRulesPage: React.FC = () => {
         decayDaysThreshold: rule.decayDaysThreshold || 30,
         decayPointsPerPeriod: rule.decayPointsPerPeriod || 5,
         decayPeriodDays: rule.decayPeriodDays || 7,
-        isActive: rule.isActive,
+        isActive: rule?.isActive !== false,
         priority: rule.priority,
         category: rule.category || '',
         actionType: rule.actionType || '',
@@ -293,7 +293,7 @@ const LeadScoreRulesPage: React.FC = () => {
         decayDaysThreshold: formData.ruleType === LeadScoreRuleType.Decay ? formData.decayDaysThreshold : null,
         decayPointsPerPeriod: formData.ruleType === LeadScoreRuleType.Decay ? formData.decayPointsPerPeriod : null,
         decayPeriodDays: formData.ruleType === LeadScoreRuleType.Decay ? formData.decayPeriodDays : null,
-        isActive: formData.isActive,
+        isActive: formData?.isActive !== false,
         priority: formData.priority,
         category: formData.category || null,
         actionType: formData.ruleType === LeadScoreRuleType.Behavior ? formData.actionType : null,
@@ -320,7 +320,7 @@ const LeadScoreRulesPage: React.FC = () => {
   const handleToggleRule = async (rule: LeadScoreRule) => {
     try {
       await api.patch(`/api/admin/leadscoreRules/${rule.id}/toggle`);
-      setSuccessMessage(`Rule ${rule.isActive ? 'deactivated' : 'activated'}`);
+      setSuccessMessage(`Rule ${rule?.isActive !== false ? 'deactivated' : 'activated'}`);
       fetchRules();
       fetchStats();
     } catch (err) {
@@ -670,7 +670,7 @@ const LeadScoreRulesPage: React.FC = () => {
               <FormControlLabel
                 control={
                   <Switch
-                    checked={formData.isActive}
+                    checked={formData?.isActive !== false}
                     onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
                   />
                 }
@@ -761,7 +761,7 @@ const RulesTable: React.FC<RulesTableProps> = ({ rules, loading, onEdit, onToggl
           {rules.map((rule) => {
             const typeInfo = ruleTypeLabels[rule.ruleType];
             return (
-              <TableRow key={rule.id} sx={{ opacity: rule.isActive ? 1 : 0.6 }}>
+              <TableRow key={rule.id} sx={{ opacity: rule?.isActive !== false ? 1 : 0.6 }}>
                 <TableCell>
                   <DragIcon color="disabled" />
                 </TableCell>
@@ -807,7 +807,7 @@ const RulesTable: React.FC<RulesTableProps> = ({ rules, loading, onEdit, onToggl
                 <TableCell align="center">{rule.priority}</TableCell>
                 <TableCell align="center">
                   <Switch
-                    checked={rule.isActive}
+                    checked={rule?.isActive !== false}
                     onChange={() => onToggle(rule)}
                     size="small"
                   />

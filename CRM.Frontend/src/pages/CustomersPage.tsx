@@ -73,7 +73,7 @@ const ACCOUNT_TYPES = ACCOUNT_TYPE_OPTIONS;
 const PRIORITIES = PRIORITY_OPTIONS;
 const CONTACT_ROLES = CONTACT_ROLE_OPTIONS;
 
-interface CustomerContact extends BaseEntity {
+interface AccountContact extends BaseEntity {
   accountId: number;
   contactId: number;
   contactName: string;
@@ -94,7 +94,7 @@ interface Contact extends BaseEntity {
   accountId?: number;
 }
 
-interface Customer extends BaseEntity {
+interface Account extends BaseEntity {
   category: number | string;
   isOrganization?: boolean;
   firstName: string;
@@ -115,7 +115,7 @@ interface Customer extends BaseEntity {
   [key: string]: any; // Allow dynamic fields
 }
 
-interface CustomerForm {
+interface AccountForm {
   category: number;
   firstName: string;
   lastName: string;
@@ -164,7 +164,7 @@ interface CustomerForm {
   [key: string]: any; // Allow dynamic fields
 }
 
-const INITIAL_FORM_DATA: CustomerForm = {
+const INITIAL_FORM_DATA: AccountForm = {
   category: 1,
   firstName: '',
   lastName: '',
@@ -212,9 +212,9 @@ const INITIAL_FORM_DATA: CustomerForm = {
   description: '',
 };
 
-function CustomersPage() {
+function AccountsPage() {
   // Data state
-  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [accounts, setAccounts] = useState<Account[]>([]);
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -224,11 +224,11 @@ function CustomersPage() {
   const [openDialog, setOpenDialog] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [dialogTab, setDialogTab] = useState(0);
-  const [formData, setFormData] = useState<CustomerForm>(INITIAL_FORM_DATA);
+  const [formData, setFormData] = useState<AccountForm>(INITIAL_FORM_DATA);
   const [dialogError, setDialogError] = useState<string | null>(null);
 
   // Contact linking state
-  const [customerContacts, setCustomerContacts] = useState<CustomerContact[]>([]);
+  const [accountContacts, setAccountContacts] = useState<AccountContact[]>([]);
   const [addContactDialogOpen, setAddContactDialogOpen] = useState(false);
   const [selectedContactId, setSelectedContactId] = useState<number | null>(null);
   const [contactRole, setContactRole] = useState<number>(0);
@@ -275,11 +275,11 @@ function CustomersPage() {
   const { hasPermission } = useProfile();
 
   // Fetch functions (defined early for SignalR callbacks)
-  const fetchCustomers = useCallback(async () => {
+  const fetchAccounts = useCallback(async () => {
     try {
       setLoading(true);
       const response = await apiClient.get('/accounts');
-      setCustomers(response.data);
+      setAccounts(response.data);
       setError(null);
     } catch (err: any) {
       setError(getApiErrorMessage(err, 'Failed to fetch accounts'));
@@ -300,56 +300,56 @@ function CustomersPage() {
   // SignalR subscription for real-time updates
   useEntityTypeSubscription('Account', {
     onCreated: useCallback(() => {
-      logger.debug('[SignalR] Customer created - refreshing list');
-      fetchCustomers();
-    }, [fetchCustomers]),
+      logger.debug('[SignalR] Account created - refreshing list');
+      fetchAccounts();
+    }, [fetchAccounts]),
     onUpdated: useCallback(() => {
-      logger.debug('[SignalR] Customer updated - refreshing list');
-      fetchCustomers();
-    }, [fetchCustomers]),
+      logger.debug('[SignalR] Account updated - refreshing list');
+      fetchAccounts();
+    }, [fetchAccounts]),
     onDeleted: useCallback(() => {
-      logger.debug('[SignalR] Customer deleted - refreshing list');
-      fetchCustomers();
-    }, [fetchCustomers]),
+      logger.debug('[SignalR] Account deleted - refreshing list');
+      fetchAccounts();
+    }, [fetchAccounts]),
   });
 
-  // Filter customers based on search AND account context
-  const filteredCustomers = useMemo(() => {
-    let result = customers;
+  // Filter accounts based on search AND account context
+  const filteredAccounts = useMemo(() => {
+    let result = accounts;
     
     // Apply account context filter first
     if (isContextActive) {
       const accountIds = getAccountIds();
-      result = result.filter(customer => accountIds.includes(customer.id!));
+      result = result.filter(account => accountIds.includes(account.id!));
     }
     
     // Then apply search filters
     return filterData(result, searchFilters, searchText, SEARCHABLE_FIELDS);
-  }, [customers, searchFilters, searchText, isContextActive, getAccountIds]);
+  }, [accounts, searchFilters, searchText, isContextActive, getAccountIds]);
 
   // Pagination - applies to filtered results
   const {
     page,
     pageSize,
-    paginatedData: paginatedCustomers,
+    paginatedData: paginatedAccounts,
     handlePageChange,
     handlePageSizeChange,
     pageSizeOptions,
-  } = usePagination(filteredCustomers, { defaultPageSize: 25 });
+  } = usePagination(filteredAccounts, { defaultPageSize: 25 });
 
   // Fetch data on mount
   useEffect(() => {
-    fetchCustomers();
+    fetchAccounts();
     fetchContacts();
-  }, [fetchCustomers, fetchContacts]);
+  }, [fetchAccounts, fetchContacts]);
 
-  const fetchCustomerContacts = async (accountId: number) => {
+  const fetchAccountContacts = async (accountId: number) => {
     try {
       const response = await apiClient.get(`/accounts/${accountId}/contacts`);
-      setCustomerContacts(response.data);
+      setAccountContacts(response.data);
     } catch (err) {
-      console.error('Error fetching customer contacts:', err);
-      setCustomerContacts([]);
+      console.error('Error fetching account contacts:', err);
+      setAccountContacts([]);
     }
   };
 
@@ -369,27 +369,27 @@ function CustomersPage() {
   }, []);
 
   // Dialog handlers
-  const handleOpenDialog = useCallback((customer?: Customer) => {
+  const handleOpenDialog = useCallback((account?: Account) => {
     setDialogTab(0);
-    if (customer) {
-      setEditingId(customer.id);
-      // Map customer data to form
-      const formValues: CustomerForm = { ...INITIAL_FORM_DATA };
-      Object.keys(customer).forEach(key => {
+    if (account) {
+      setEditingId(account.id);
+      // Map account data to form
+      const formValues: AccountForm = { ...INITIAL_FORM_DATA };
+      Object.keys(account).forEach(key => {
         if (key in formValues) {
-          (formValues as any)[key] = customer[key] ?? (INITIAL_FORM_DATA as any)[key];
+          (formValues as any)[key] = account[key] ?? (INITIAL_FORM_DATA as any)[key];
         }
       });
       // Normalize category to number for form if it's a string
-      if (typeof customer.category === 'string') {
-        formValues.category = customer.category === 'Organization' ? 1 : 0;
+      if (typeof account.category === 'string') {
+        formValues.category = account.category === 'Organization' ? 1 : 0;
       }
       setFormData(formValues);
       // Fetch linked contacts for all accounts
-      fetchCustomerContacts(customer.id);
+      fetchAccountContacts(account.id);
     } else {
       setEditingId(null);
-      setCustomerContacts([]);
+      setAccountContacts([]);
       setFormData(INITIAL_FORM_DATA);
     }
     setOpenDialog(true);
@@ -426,7 +426,7 @@ function CustomersPage() {
     return true;
   }, [fieldConfigs, fieldConfigsLoading, formData, isFieldVisible]);
 
-  const handleSaveCustomer = async () => {
+  const handleSaveAccount = async () => {
     setDialogError(null);
 
     if (!validateRequiredFields()) return;
@@ -449,14 +449,14 @@ function CustomersPage() {
         setSuccessMessage('Account created successfully');
       }
       handleCloseDialog();
-      fetchCustomers();
+      fetchAccounts();
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err: any) {
       setDialogError(getApiErrorMessage(err, 'Failed to save account'));
     }
   };
 
-  const handleDeleteCustomer = async (id: number) => {
+  const handleDeleteAccount = async (id: number) => {
     if (window.confirm('Are you sure you want to delete this account?')) {
       const result = await dialogApi.execute(async () => {
         await apiClient.delete(`/accounts/${id}`);
@@ -465,7 +465,7 @@ function CustomersPage() {
       
       if (result) {
         setSelectedIds(prev => prev.filter(sid => sid !== id));
-        fetchCustomers();
+        fetchAccounts();
         setSuccessMessage('Account deleted successfully');
         setTimeout(() => setSuccessMessage(null), 3000);
       } else {
@@ -531,7 +531,7 @@ function CustomersPage() {
     }, `Successfully updated ${selectedIds.length} account(s)`);
 
     if (result) {
-      fetchCustomers();
+      fetchAccounts();
       setBulkDialogOpen(false);
       setSelectedIds([]);
       setSuccessMessage(`Successfully updated ${result} account(s)`);
@@ -553,7 +553,7 @@ function CustomersPage() {
     }, `Successfully deleted ${selectedIds.length} account(s)`);
 
     if (result) {
-      fetchCustomers();
+      fetchAccounts();
       setSelectedIds([]);
       setSuccessMessage(`Successfully deleted ${result} account(s)`);
       setTimeout(() => setSuccessMessage(null), 3000);
@@ -702,7 +702,7 @@ function CustomersPage() {
             <ImportExportButtons
               entityType="accounts"
               entityLabel="Accounts"
-              onImportComplete={fetchCustomers}
+              onImportComplete={fetchAccounts}
             />
             <Button
               variant="outlined"
@@ -810,7 +810,7 @@ function CustomersPage() {
           </Paper>
         </Collapse>
 
-        {/* Customer List */}
+        {/* Account List */}
         <Card>
           <CardContent sx={{ p: 0 }}>
             <TableContainer sx={{ overflowX: 'auto' }}>
@@ -819,8 +819,8 @@ function CustomersPage() {
                   <TableRow sx={{ backgroundColor: '#F5EFF7' }}>
                     <TableCell padding="checkbox">
                       <Checkbox
-                        indeterminate={selectedIds.length > 0 && selectedIds.length < filteredCustomers.length}
-                        checked={filteredCustomers.length > 0 && selectedIds.length === filteredCustomers.length}
+                        indeterminate={selectedIds.length > 0 && selectedIds.length < filteredAccounts.length}
+                        checked={filteredAccounts.length > 0 && selectedIds.length === filteredAccounts.length}
                         onChange={handleSelectAll}
                       />
                     </TableCell>
@@ -835,16 +835,16 @@ function CustomersPage() {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {paginatedCustomers.map((customer) => {
-                    const stage = getLifecycleStage(customer.lifecycleStage);
-                    const priority = getPriority(customer.priority);
-                    const type = getCustomerType(customer.customerType);
+                  {paginatedAccounts.map((account) => {
+                    const stage = getLifecycleStage(account.lifecycleStage);
+                    const priority = getPriority(account.priority);
+                    const type = getCustomerType(account.customerType);
                     return (
-                      <TableRow key={customer.id} hover selected={selectedIds.includes(customer.id)}>
+                      <TableRow key={account.id} hover selected={selectedIds.includes(account.id)}>
                         <TableCell padding="checkbox">
                           <Checkbox
-                            checked={selectedIds.includes(customer.id)}
-                            onChange={() => handleSelectOne(customer.id)}
+                            checked={selectedIds.includes(account.id)}
+                            onChange={() => handleSelectOne(account.id)}
                           />
                         </TableCell>
                         <TableCell>
@@ -852,10 +852,10 @@ function CustomersPage() {
                             <BusinessIcon fontSize="small" sx={{ color: '#6750A4' }} />
                             <Box>
                               <Typography fontWeight={500}>
-                                {customer.displayName || customer.company || `${customer.firstName} ${customer.lastName}`}
+                                {account.displayName || account.company || `${account.firstName} ${account.lastName}`}
                               </Typography>
-                              {customer.legalName && (
-                                <Typography variant="caption" color="textSecondary">{customer.legalName}</Typography>
+                              {account.legalName && (
+                                <Typography variant="caption" color="textSecondary">{account.legalName}</Typography>
                               )}
                             </Box>
                           </Box>
@@ -864,12 +864,12 @@ function CustomersPage() {
                           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                               <EmailIcon fontSize="small" sx={{ color: '#666', fontSize: 14 }} />
-                              <Typography variant="body2">{customer.email}</Typography>
+                              <Typography variant="body2">{account.email}</Typography>
                             </Box>
-                            {customer.phone && (
+                            {account.phone && (
                               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                                 <PhoneIcon fontSize="small" sx={{ color: '#666', fontSize: 14 }} />
-                                <Typography variant="body2">{customer.phone}</Typography>
+                                <Typography variant="body2">{account.phone}</Typography>
                               </Box>
                             )}
                           </Box>
@@ -892,22 +892,22 @@ function CustomersPage() {
                           />
                         </TableCell>
                         <TableCell>
-                          ${customer.annualRevenue?.toLocaleString() || 0}
+                          ${account.annualRevenue?.toLocaleString() || 0}
                         </TableCell>
                         <TableCell>
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                             <GroupIcon fontSize="small" sx={{ color: '#666' }} />
-                            <Typography variant="body2">{customer.contactCount || 0}</Typography>
+                            <Typography variant="body2">{account.contactCount || 0}</Typography>
                           </Box>
                         </TableCell>
                         <TableCell align="center">
                           <Tooltip title="Edit">
-                            <IconButton size="small" onClick={() => handleOpenDialog(customer)} sx={{ color: '#6750A4' }}>
+                            <IconButton size="small" onClick={() => handleOpenDialog(account)} sx={{ color: '#6750A4' }}>
                               <EditIcon fontSize="small" />
                             </IconButton>
                           </Tooltip>
                           <Tooltip title="Delete">
-                            <IconButton size="small" onClick={() => handleDeleteCustomer(customer.id)} sx={{ color: '#f44336' }}>
+                            <IconButton size="small" onClick={() => handleDeleteAccount(account.id)} sx={{ color: '#f44336' }}>
                               <DeleteIcon fontSize="small" />
                             </IconButton>
                           </Tooltip>
@@ -920,7 +920,7 @@ function CustomersPage() {
             </TableContainer>
             <TablePagination
               component="div"
-              count={filteredCustomers.length}
+              count={filteredAccounts.length}
               page={page}
               onPageChange={handlePageChange}
               rowsPerPage={pageSize}
@@ -929,7 +929,7 @@ function CustomersPage() {
               showFirstButton
               showLastButton
             />
-            {customers.length === 0 && (
+            {accounts.length === 0 && (
               <EnhancedEmptyState
                 illustration="accounts"
                 title={searchFilters.length > 0 || searchText ? "No accounts match your search" : "No accounts yet"}
@@ -1321,7 +1321,7 @@ function CustomersPage() {
           setMergeDialogOpen(false);
           setSelectedIds([]);
           setSuccessMessage(`Records merged successfully into master record #${result.masterRecordId}`);
-          fetchCustomers();
+          fetchAccounts();
         }}
       />
     </Box>

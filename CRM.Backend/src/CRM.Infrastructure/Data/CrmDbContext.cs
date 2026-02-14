@@ -52,6 +52,7 @@ public class CrmDbContext : DbContext, ICrmDbContext
     public DbSet<User> Users { get; set; }
     public DbSet<OAuthToken> OAuthTokens { get; set; }
     public DbSet<RefreshToken> RefreshTokens { get; set; }
+    public DbSet<WebAuthnCredential> WebAuthnCredentials { get; set; }
     public DbSet<Department> Departments { get; set; }
     public DbSet<UserProfile> UserProfiles { get; set; }
     public DbSet<UserGroup> UserGroups { get; set; }
@@ -414,6 +415,9 @@ public class CrmDbContext : DbContext, ICrmDbContext
                     case "mariadb":
                         optionsBuilder.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
                         break;
+                    case "inmemory":
+                        optionsBuilder.UseInMemoryDatabase("crm_test");
+                        break;
                     case "sqlite":
                         optionsBuilder.UseSqlite(connectionString ?? "Data Source=crm.db");
                         break;
@@ -448,8 +452,7 @@ public class CrmDbContext : DbContext, ICrmDbContext
             }
         }
 
-        // Apply named soft-delete query filter to all BaseEntity-derived entities
-        const string softDeleteFilterName = "SoftDelete";
+        // Apply soft-delete query filter to all BaseEntity-derived entities
         foreach (var entityType in modelBuilder.Model.GetEntityTypes())
         {
             if (!typeof(BaseEntity).IsAssignableFrom(entityType.ClrType))
@@ -462,7 +465,7 @@ public class CrmDbContext : DbContext, ICrmDbContext
             var isNotDeleted = Expression.Equal(isDeletedProperty, Expression.Constant(false));
             var filter = Expression.Lambda(isNotDeleted, parameter);
 
-            modelBuilder.Entity(entityType.ClrType).HasQueryFilter(softDeleteFilterName, filter);
+            modelBuilder.Entity(entityType.ClrType).HasQueryFilter(filter);
         }
 
         // Ignore the deprecated Customer class to prevent TPH discrimination

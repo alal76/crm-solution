@@ -191,7 +191,7 @@ function TeamsPage() {
       setFormData({
         name: team.name,
         description: team.description || '',
-        isActive: team.isActive,
+        isActive: team?.isActive !== false,
         managerId: team.managerId || null,
         parentTeamId: team.parentTeamId || null,
       });
@@ -382,9 +382,9 @@ function TeamsPage() {
                       </TableCell>
                       <TableCell>
                         <Chip
-                          label={team.isActive ? 'Active' : 'Inactive'}
+                          label={team?.isActive !== false ? 'Active' : 'Inactive'}
                           size="small"
-                          color={team.isActive ? 'success' : 'default'}
+                          color={team?.isActive !== false ? 'success' : 'default'}
                         />
                       </TableCell>
                       <TableCell align="right">
@@ -449,7 +449,7 @@ function TeamsPage() {
                     <input
                       type="checkbox"
                       name="isActive"
-                      checked={formData.isActive}
+                      checked={formData?.isActive !== false}
                       onChange={handleInputChange}
                     />
                     {' '}Active

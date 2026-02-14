@@ -852,7 +852,7 @@ function RelationshipsPage() {
                   label="Relationship Type"
                   onChange={(e) => setRelationshipForm({ ...relationshipForm, relationshipTypeId: Number(e.target.value) })}
                 >
-                  {relationshipTypes.filter(t => t.isActive).map((type) => (
+                  {relationshipTypes.filter(t => t?.isActive !== false).map((type) => (
                     <MenuItem key={type.id} value={type.id}>{type.typeName}</MenuItem>
                   ))}
                 </Select>

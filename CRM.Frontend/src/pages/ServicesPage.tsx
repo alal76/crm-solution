@@ -170,7 +170,7 @@ function ServicesPage() {
         price: service.price || 0,
         cost: service.cost || 0,
         status: service.status,
-        isActive: service.isActive,
+        isActive: service?.isActive !== false,
         tags: service.tags || '',
       });
     } else {

@@ -47,6 +47,7 @@ public interface ICrmDbContext
     DbSet<User> Users { get; }
     DbSet<OAuthToken> OAuthTokens { get; }
     DbSet<RefreshToken> RefreshTokens { get; }
+    DbSet<WebAuthnCredential> WebAuthnCredentials { get; }
     DbSet<Department> Departments { get; }
     DbSet<UserProfile> UserProfiles { get; }
     DbSet<UserGroup> UserGroups { get; }
