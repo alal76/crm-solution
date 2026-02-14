@@ -51,7 +51,7 @@ const ServiceCatalogAdminPage: React.FC = () => {
   const summary = useMemo(() => {
     const total = items.length;
     const featured = items.filter((item) => item.isFeatured).length;
-    const active = items.filter((item) => item.isActive).length;
+    const active = items.filter((item) => item?.isActive !== false).length;
     const totalRequests = items.reduce((sum, item) => sum + (item.requestCount ?? 0), 0);
     return { total, featured, active, totalRequests };
   }, [items]);
@@ -119,7 +119,7 @@ const ServiceCatalogAdminPage: React.FC = () => {
                         </TableCell>
                         <TableCell>{item.categoryName ?? 'Uncategorized'}</TableCell>
                         <TableCell>
-                          {item.isActive ? 'Active' : 'Inactive'}
+                          {item?.isActive !== false ? 'Active' : 'Inactive'}
                           {item.isFeatured ? ' • Featured' : ''}
                         </TableCell>
                         <TableCell>{item.requestCount}</TableCell>

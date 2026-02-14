@@ -48,7 +48,7 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
     private readonly IRepository<OAuthToken> _oauthTokenRepository;
     private readonly CrmDbContext _dbContext; // Always use production context for auth
     private readonly IJwtTokenService _jwtTokenService;
-    private readonly ITotpService _totpService;
+    private readonly CRM.Core.Interfaces.ITotpService _totpService;
     private readonly IMemoryCache _cache;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly INotificationPort _notificationPort;
@@ -60,7 +60,7 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
         IRepository<OAuthToken> oauthTokenRepository,
         CrmDbContext dbContext, // Use concrete production context for auth
         IJwtTokenService jwtTokenService,
-        ITotpService totpService,
+        CRM.Core.Interfaces.ITotpService totpService,
         IMemoryCache cache,
         IHttpClientFactory httpClientFactory,
         INotificationPort notificationPort,
@@ -842,16 +842,15 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
         if (user == null)
             throw new InvalidOperationException("User not found");
 
-        var secret = _totpService.GenerateSecret();
-        var backupCodes = _totpService.GenerateBackupCodes();
-        var qrCodeUrl = _totpService.GetQrCodeUrl(secret, user.Email, "CRM Solution");
+        var setup = await _totpService.InitializeSetupAsync(userId, user.Email);
+        var backupCodes = await _totpService.CompleteSetupAsync(userId, setup.Secret);
 
         // Don't save yet - user needs to verify the code first
         return new TwoFactorSetupResponse
         {
-            QrCodeUrl = qrCodeUrl,
-            Secret = secret,
-            BackupCodes = backupCodes
+            QrCodeUrl = setup.QrCodeUrl,
+            Secret = setup.Secret,
+            BackupCodes = backupCodes.Codes.ToList()
         };
     }
 
@@ -861,7 +860,7 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
         if (user == null || string.IsNullOrEmpty(user.TwoFactorSecret))
             throw new InvalidOperationException("User or 2FA not configured");
 
-        return _totpService.VerifyCode(user.TwoFactorSecret, code);
+        return await _totpService.VerifySetupAsync(userId, code, user.TwoFactorSecret);
     }
 
     public async Task<AuthResponse> VerifyTwoFactorLoginAsync(string tempToken, string code)
@@ -882,7 +881,7 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
             throw new InvalidOperationException("2FA not configured for this user");
 
         // Verify the TOTP code
-        var isValid = _totpService.VerifyCode(user.TwoFactorSecret, code);
+        var isValid = await _totpService.VerifySetupAsync(userId, code, user.TwoFactorSecret);
 
         // Check backup codes if TOTP fails
         if (!isValid && !string.IsNullOrEmpty(user.BackupCodes))

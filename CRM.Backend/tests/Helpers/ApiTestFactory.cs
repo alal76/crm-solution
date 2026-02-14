@@ -20,6 +20,7 @@ using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
@@ -33,6 +34,7 @@ public class ApiTestFactory : WebApplicationFactory<Program>
         // UseEnvironment("Testing") makes IsDevelopment()=false, so provide real values
         // to bypass all guard checks.
         Environment.SetEnvironmentVariable("ASPNETCORE_ENVIRONMENT", "Development");
+        Environment.SetEnvironmentVariable("DatabaseProvider", "inmemory");
         Environment.SetEnvironmentVariable("DB_PASSWORD", "test_password");
         Environment.SetEnvironmentVariable("Jwt__Secret", "BVT-test-jwt-secret-key-at-least-32-characters-long!");
         Environment.SetEnvironmentVariable("FeatureManagement__UseExternalSearch", "false");
@@ -47,6 +49,14 @@ public class ApiTestFactory : WebApplicationFactory<Program>
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {
         builder.UseEnvironment("Testing");
+
+        builder.ConfigureAppConfiguration((context, config) =>
+        {
+            config.AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["DatabaseProvider"] = "inmemory"
+            });
+        });
 
         builder.ConfigureServices(services =>
         {

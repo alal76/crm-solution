@@ -203,7 +203,7 @@ function ServiceRequestSettingsPage() {
       description: category.description,
       icon: category.icon,
       color: category.color,
-      isActive: category.isActive,
+      isActive: category?.isActive !== false,
       defaultPriority: category.defaultPriority,
       slaResponseHours: category.slaResponseHours,
       slaResolutionHours: category.slaResolutionHours,
@@ -282,7 +282,7 @@ function ServiceRequestSettingsPage() {
       categoryId: subcategory.categoryId,
       name: subcategory.name,
       description: subcategory.description,
-      isActive: subcategory.isActive,
+      isActive: subcategory?.isActive !== false,
       defaultWorkflowId: subcategory.defaultWorkflowId,
       defaultAssigneeGroupId: subcategory.defaultAssigneeGroupId,
       slaResponseHours: subcategory.slaResponseHours,
@@ -353,7 +353,7 @@ function ServiceRequestSettingsPage() {
       description: field.description,
       fieldType: field.fieldType,
       isRequired: field.isRequired,
-      isActive: field.isActive,
+      isActive: field?.isActive !== false,
       defaultValue: field.defaultValue,
       options: field.options,
       validationPattern: field.validationPattern,
@@ -373,7 +373,7 @@ function ServiceRequestSettingsPage() {
         const field = customFields.find((f) => f.id === id);
         await serviceRequestCustomFieldService.delete(id);
         setCustomFields(customFields.filter((f) => f.id !== id));
-        if (field?.isActive) {
+        if (field?.isActive !== false) {
           setActiveFieldCount((prev) => prev - 1);
         }
         setSuccessMessage('Custom field deleted successfully');
@@ -391,7 +391,7 @@ function ServiceRequestSettingsPage() {
       }
 
       // Check active count when activating a field
-      if (fieldForm.isActive && !selectedField?.isActive && activeFieldCount >= 15) {
+      if ((fieldForm?.isActive !== false) && !(selectedField?.isActive !== false) && activeFieldCount >= 15) {
         setError('Maximum of 15 active custom fields allowed');
         return;
       }
@@ -401,15 +401,15 @@ function ServiceRequestSettingsPage() {
         setCustomFields(customFields.map((f) => (f.id === selectedField.id ? response.data : f)));
         
         // Update active count if status changed
-        if (selectedField.isActive !== fieldForm.isActive) {
-          setActiveFieldCount((prev) => fieldForm.isActive ? prev + 1 : prev - 1);
+        if ((selectedField?.isActive !== false) !== (fieldForm?.isActive !== false)) {
+          setActiveFieldCount((prev) => (fieldForm?.isActive !== false) ? prev + 1 : prev - 1);
         }
         
         setSuccessMessage('Custom field updated successfully');
       } else {
         const response = await serviceRequestCustomFieldService.create(fieldForm);
         setCustomFields([...customFields, response.data]);
-        if (fieldForm.isActive) {
+        if (fieldForm?.isActive !== false) {
           setActiveFieldCount((prev) => prev + 1);
         }
         setSuccessMessage('Custom field created successfully');
@@ -536,8 +536,8 @@ function ServiceRequestSettingsPage() {
                     <TableCell>{category.slaResolutionHours ? `${category.slaResolutionHours}h` : '-'}</TableCell>
                     <TableCell>
                       <Chip
-                        label={category.isActive ? 'Active' : 'Inactive'}
-                        color={category.isActive ? 'success' : 'default'}
+                        label={category?.isActive !== false ? 'Active' : 'Inactive'}
+                        color={category?.isActive !== false ? 'success' : 'default'}
                         size="small"
                       />
                     </TableCell>
@@ -616,8 +616,8 @@ function ServiceRequestSettingsPage() {
                       </TableCell>
                       <TableCell>
                         <Chip
-                          label={sub.isActive ? 'Active' : 'Inactive'}
-                          color={sub.isActive ? 'success' : 'default'}
+                          label={sub?.isActive !== false ? 'Active' : 'Inactive'}
+                          color={sub?.isActive !== false ? 'success' : 'default'}
                           size="small"
                         />
                       </TableCell>
@@ -718,8 +718,8 @@ function ServiceRequestSettingsPage() {
                     </TableCell>
                     <TableCell>
                       <Chip
-                        label={field.isActive ? 'Active' : 'Inactive'}
-                        color={field.isActive ? 'success' : 'default'}
+                        label={field?.isActive !== false ? 'Active' : 'Inactive'}
+                        color={field?.isActive !== false ? 'success' : 'default'}
                         size="small"
                       />
                     </TableCell>
@@ -831,7 +831,7 @@ function ServiceRequestSettingsPage() {
               <FormControlLabel
                 control={
                   <Switch
-                    checked={categoryForm.isActive}
+                    checked={categoryForm?.isActive !== false}
                     onChange={(e) => setCategoryForm({ ...categoryForm, isActive: e.target.checked })}
                   />
                 }
@@ -970,7 +970,7 @@ function ServiceRequestSettingsPage() {
               <FormControlLabel
                 control={
                   <Switch
-                    checked={subcategoryForm.isActive}
+                    checked={subcategoryForm?.isActive !== false}
                     onChange={(e) => setSubcategoryForm({ ...subcategoryForm, isActive: e.target.checked })}
                   />
                 }
@@ -1176,7 +1176,7 @@ function ServiceRequestSettingsPage() {
               <FormControlLabel
                 control={
                   <Switch
-                    checked={fieldForm.isActive}
+                    checked={fieldForm?.isActive !== false}
                     onChange={(e) => setFieldForm({ ...fieldForm, isActive: e.target.checked })}
                   />
                 }

@@ -182,13 +182,13 @@ const LeadRoutingPage = () => {
 
   const handleToggleRule = async (rule: LeadRoutingRule) => {
     try {
-      if (rule.isActive) {
+      if (rule?.isActive !== false) {
         await leadRoutingService.disableRule(rule.id!);
       } else {
         await leadRoutingService.enableRule(rule.id!);
       }
       loadRules();
-      setSuccessMessage(`Rule ${rule.isActive ? 'disabled' : 'enabled'} successfully`);
+      setSuccessMessage(`Rule ${rule?.isActive !== false ? 'disabled' : 'enabled'} successfully`);
     } catch (err: any) {
       setError(err.message || 'Failed to update rule');
     }
@@ -423,8 +423,8 @@ const LeadRoutingPage = () => {
                       <TableCell align="center">{rule.triggerCount || 0}</TableCell>
                       <TableCell align="center">
                         <Chip
-                          label={rule.isActive ? 'Active' : 'Inactive'}
-                          color={rule.isActive ? 'success' : 'default'}
+                          label={rule?.isActive !== false ? 'Active' : 'Inactive'}
+                          color={rule?.isActive !== false ? 'success' : 'default'}
                           size="small"
                           onClick={() => handleToggleRule(rule)}
                           sx={{ cursor: 'pointer' }}
@@ -705,7 +705,7 @@ const LeadRoutingPage = () => {
               <FormControlLabel
                 control={
                   <Switch
-                    checked={formData.isActive ?? true}
+                    checked={formData?.isActive !== false}
                     onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
                   />
                 }

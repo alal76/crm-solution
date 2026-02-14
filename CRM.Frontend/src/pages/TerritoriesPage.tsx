@@ -183,7 +183,7 @@ const TerritoriesPage = () => {
       <Accordion defaultExpanded={depth < 2}>
         <AccordionSummary expandIcon={node.children?.length ? <ExpandMore /> : null}>
           <Stack direction="row" spacing={2} alignItems="center" sx={{ width: '100%' }}>
-            <LocationIcon color={node.territory.isActive ? 'primary' : 'disabled'} />
+            <LocationIcon color={node.territory?.isActive !== false ? 'primary' : 'disabled'} />
             <Typography fontWeight={depth === 0 ? 600 : 400}>{node.territory.name}</Typography>
             <Chip label={`${node.totalAccounts} accounts`} size="small" />
             <Chip label={node.territory.region || 'No region'} size="small" variant="outlined" />
@@ -271,7 +271,7 @@ const TerritoriesPage = () => {
           <Grid item xs={12} sm={6} md={3}>
             <StatsCard
               title="Active Territories"
-              value={territories.filter(t => t.isActive).length}
+              value={territories.filter(t => t?.isActive !== false).length}
               icon={<BusinessIcon sx={{ fontSize: 40 }} />}
               color="#2e7d32"
             />
@@ -337,8 +337,8 @@ const TerritoriesPage = () => {
                       <TableCell align="center">{territory.opportunityCount || 0}</TableCell>
                       <TableCell align="center">
                         <Chip
-                          label={territory.isActive ? 'Active' : 'Inactive'}
-                          color={territory.isActive ? 'success' : 'default'}
+                          label={territory?.isActive !== false ? 'Active' : 'Inactive'}
+                          color={territory?.isActive !== false ? 'primary' : 'default'}
                           size="small"
                         />
                       </TableCell>
@@ -396,8 +396,8 @@ const TerritoriesPage = () => {
                         secondary={`Priority: ${rule.priority} | Type: ${rule.ruleType}`}
                       />
                       <Chip
-                        label={rule.isActive ? 'Active' : 'Inactive'}
-                        color={rule.isActive ? 'success' : 'default'}
+                        label={rule?.isActive !== false ? 'Active' : 'Inactive'}
+                        color={rule?.isActive !== false ? 'success' : 'default'}
                         size="small"
                       />
                     </ListItem>
@@ -503,7 +503,7 @@ const TerritoriesPage = () => {
             <FormControlLabel
               control={
                 <Switch
-                  checked={formData.isActive ?? true}
+                  checked={formData?.isActive !== false}
                   onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
                 />
               }

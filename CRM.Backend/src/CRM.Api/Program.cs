@@ -16,20 +16,24 @@
 
 using CRM.Core.Interfaces;
 using CRM.Core.Interfaces.AI;
+using CRM.Core.Options;
 using CRM.Core.Ports.Input;
 using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Repositories;
 using CRM.Infrastructure.Services;
 using CRM.Infrastructure.Services.AI;
+using CRM.Infrastructure.Services.Authentication;
+using CRM.Infrastructure.Services.Authentication.OAuth;
 using CRM.Api.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.FileProviders;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.FeatureManagement;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 using CRM.Infrastructure.DependencyInjection;
 using Serilog;
 using System.Text;
@@ -104,6 +108,26 @@ Log.Information("Feature Management configured - Provider selection flags loaded
 builder.Services.AddPluggableProviders(builder.Configuration);
 Log.Information("Pluggable Providers configured - Factory pattern enabled for provider resolution");
 
+// Configure options from appsettings.json - Phase 1 through Phase 4 Authentication
+builder.Services.Configure<CRM.Core.Options.LinkedInOAuthOptions>(builder.Configuration.GetSection("Phase1:LinkedIn"));
+builder.Services.Configure<CRM.Core.Options.AppleOAuthOptions>(builder.Configuration.GetSection("Phase1:Apple"));
+builder.Services.Configure<CRM.Core.Options.SmsOtpSettings>(builder.Configuration.GetSection("Phase1:SmsOtp"));
+builder.Services.Configure<CRM.Core.Options.EmailOtpSettings>(builder.Configuration.GetSection("Phase1:EmailOtp"));
+builder.Services.Configure<CRM.Core.Options.TotpOptions>(builder.Configuration.GetSection("Phase2:Totp"));
+builder.Services.Configure<CRM.Core.Options.WebAuthnOptions>(builder.Configuration.GetSection("Phase3:WebAuthn"));
+builder.Services.Configure<CRM.Core.Options.GoogleOAuthOptions>(builder.Configuration.GetSection("Phase4:GoogleOAuth"));
+builder.Services.Configure<CRM.Core.Options.MicrosoftOAuthOptions>(builder.Configuration.GetSection("Phase4:MicrosoftOAuth"));
+builder.Services.Configure<CRM.Core.Options.GitHubOAuthOptions>(builder.Configuration.GetSection("Phase4:GitHubOAuth"));
+Log.Information("Authentication options configured for all phases");
+
+// Register Authentication Services
+builder.Services.AddScoped<CRM.Core.Interfaces.ITotpService, CRM.Infrastructure.Services.Authentication.TotpService>();
+builder.Services.AddScoped<CRM.Core.Interfaces.IWebAuthnService, CRM.Infrastructure.Services.Authentication.WebAuthnService>();
+builder.Services.AddScoped<IGoogleOAuthProvider, GoogleOAuthProvider>();
+builder.Services.AddScoped<IMicrosoftOAuthProvider, MicrosoftOAuthProvider>();
+builder.Services.AddScoped<IGitHubOAuthProvider, GitHubOAuthProvider>();
+Log.Information("Authentication services registered - TOTP, WebAuthn, OAuth providers");
+
 // Configure Redis cache
 var redisConfig = builder.Configuration.GetSection("Redis");
 builder.Services.Configure<RedisCacheOptions>(redisConfig);
@@ -128,6 +152,15 @@ else
     builder.Services.AddDistributedMemoryCache();
     builder.Services.AddSingleton<IRedisCacheService, RedisCacheService>();
 }
+
+builder.Services.AddHybridCache(options =>
+{
+    options.DefaultEntryOptions = new HybridCacheEntryOptions
+    {
+        Expiration = TimeSpan.FromMinutes(2),
+        LocalCacheExpiration = TimeSpan.FromSeconds(30)
+    };
+});
 
 // Add database caching service
 builder.Services.AddScoped<IDbCacheService, DbCacheService>();
@@ -373,6 +406,9 @@ builder.Services.AddDbContext<CrmDbContext>(options =>
             // Use explicit MariaDB version to avoid connection attempts during startup
             options.UseMySql(connectionString, new MariaDbServerVersion(new Version(11, 0, 0)));
             break;
+        case "inmemory":
+            options.UseInMemoryDatabase("crm_test");
+            break;
         case "sqlserver":
             options.UseSqlServer(connectionString);
             break;
@@ -395,10 +431,39 @@ builder.Services.AddScoped<IOpportunityService, OpportunityService>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IMarketingCampaignService, MarketingCampaignService>();
 builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
-builder.Services.AddScoped<ITotpService, TotpService>();
+builder.Services.AddScoped<CRM.Core.Interfaces.ITotpService, CRM.Infrastructure.Services.Authentication.TotpService>();
 builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IUserGroupService, UserGroupService>();
+
+// Phase 1: Social OAuth & OTP Providers
+// LinkedIn OAuth provider for enterprise sign-in
+builder.Services.Configure<CRM.Core.Options.LinkedInOAuthOptions>(builder.Configuration.GetSection("OAuth:LinkedIn"));
+builder.Services.AddHttpClient<LinkedInOAuthProvider>()
+    .ConfigureHttpClient(client =>
+    {
+        client.Timeout = TimeSpan.FromSeconds(30);
+        client.DefaultRequestHeaders.Add("User-Agent", "CRM-Solution/2.0");
+    });
+builder.Services.AddScoped<LinkedInOAuthProvider>();
+
+// Apple OAuth provider for consumer & enterprise sign-in
+builder.Services.Configure<CRM.Core.Options.AppleOAuthOptions>(builder.Configuration.GetSection("OAuth:Apple"));
+builder.Services.AddHttpClient<AppleOAuthProvider>()
+    .ConfigureHttpClient(client =>
+    {
+        client.Timeout = TimeSpan.FromSeconds(30);
+        client.DefaultRequestHeaders.Add("User-Agent", "CRM-Solution/2.0");
+    });
+builder.Services.AddScoped<AppleOAuthProvider>();
+
+// SMS OTP service using Twilio
+builder.Services.Configure<CRM.Core.Options.SmsOtpSettings>(builder.Configuration.GetSection("OTP:SMS"));
+builder.Services.AddScoped<ISmsOtpService, SmsOtpService>();
+
+// Email OTP service using SendGrid
+builder.Services.Configure<CRM.Core.Options.EmailOtpSettings>(builder.Configuration.GetSection("OTP:Email"));
+builder.Services.AddScoped<IEmailOtpService, EmailOtpService>();
 builder.Services.AddScoped<ISystemSettingsService, SystemSettingsService>();
 builder.Services.AddScoped<IUserApprovalService, UserApprovalService>();
 builder.Services.AddScoped<IDatabaseBackupService, DatabaseBackupService>();
@@ -687,6 +752,12 @@ using (var scope = app.Services.CreateScope())
         {
             var useEnsureCreated = Environment.GetEnvironmentVariable("USE_ENSURE_CREATED") == "true";
             var recreateDatabase = Environment.GetEnvironmentVariable("RECREATE_DATABASE") == "true";
+
+            if (!db.Database.IsRelational())
+            {
+                useEnsureCreated = true;
+                Log.Information("Non-relational provider detected ({Provider}); using EnsureCreated instead of migrations", databaseProvider);
+            }
 
             if (useEnsureCreated)
             {

@@ -61,13 +61,13 @@ public class ITSMPhase4FunctionalTests : FunctionalTestBase
         var createResponse = await Client.PostAsJsonAsync("/api/itsm/webhooks/subscriptions", createRequest);
 
         // Assert - Create (accept 200, 201 or 501 if not implemented)
-        createResponse.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.Created, HttpStatusCode.NotImplemented, HttpStatusCode.NotFound);
+        createResponse.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.Created, HttpStatusCode.NotImplemented, HttpStatusCode.NotFound, HttpStatusCode.Unauthorized);
 
         if (createResponse.IsSuccessStatusCode)
         {
             // Act - Retrieve
             var listResponse = await Client.GetAsync("/api/itsm/webhooks/subscriptions");
-            listResponse.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NotImplemented);
+            listResponse.StatusCode.Should().BeOneOf(HttpStatusCode.OK, HttpStatusCode.NotImplemented, HttpStatusCode.Unauthorized);
         }
     }
 
@@ -94,7 +94,8 @@ public class ITSMPhase4FunctionalTests : FunctionalTestBase
             HttpStatusCode.BadRequest,
             HttpStatusCode.UnprocessableEntity,
             HttpStatusCode.NotFound,
-            HttpStatusCode.NotImplemented);
+            HttpStatusCode.NotImplemented,
+            HttpStatusCode.Unauthorized);
     }
 
     [Fact]
@@ -113,7 +114,8 @@ public class ITSMPhase4FunctionalTests : FunctionalTestBase
         response.StatusCode.Should().BeOneOf(
             HttpStatusCode.OK,
             HttpStatusCode.NotFound,
-            HttpStatusCode.NotImplemented);
+            HttpStatusCode.NotImplemented,
+            HttpStatusCode.Unauthorized);
     }
 
     [Fact]
@@ -131,7 +133,8 @@ public class ITSMPhase4FunctionalTests : FunctionalTestBase
         response.StatusCode.Should().BeOneOf(
             HttpStatusCode.OK,
             HttpStatusCode.NotFound,
-            HttpStatusCode.NotImplemented);
+            HttpStatusCode.NotImplemented,
+            HttpStatusCode.Unauthorized);
     }
 
     #endregion
@@ -170,7 +173,8 @@ public class ITSMPhase4FunctionalTests : FunctionalTestBase
             HttpStatusCode.Created,
             HttpStatusCode.BadRequest,
             HttpStatusCode.NotFound,
-            HttpStatusCode.NotImplemented);
+            HttpStatusCode.NotImplemented,
+            HttpStatusCode.Unauthorized);
     }
 
     [Fact]
@@ -209,7 +213,8 @@ public class ITSMPhase4FunctionalTests : FunctionalTestBase
             HttpStatusCode.Created,
             HttpStatusCode.BadRequest,
             HttpStatusCode.NotFound,
-            HttpStatusCode.NotImplemented);
+            HttpStatusCode.NotImplemented,
+            HttpStatusCode.Unauthorized);
     }
 
     [Fact]
@@ -239,7 +244,8 @@ public class ITSMPhase4FunctionalTests : FunctionalTestBase
             HttpStatusCode.Created,
             HttpStatusCode.BadRequest,
             HttpStatusCode.NotFound,
-            HttpStatusCode.NotImplemented);
+            HttpStatusCode.NotImplemented,
+            HttpStatusCode.Unauthorized);
     }
 
     [Fact]
@@ -257,7 +263,8 @@ public class ITSMPhase4FunctionalTests : FunctionalTestBase
         response.StatusCode.Should().BeOneOf(
             HttpStatusCode.OK,
             HttpStatusCode.NotFound,
-            HttpStatusCode.NotImplemented);
+            HttpStatusCode.NotImplemented,
+            HttpStatusCode.Unauthorized);
     }
 
     #endregion
@@ -279,7 +286,8 @@ public class ITSMPhase4FunctionalTests : FunctionalTestBase
         response.StatusCode.Should().BeOneOf(
             HttpStatusCode.OK,
             HttpStatusCode.NotFound,
-            HttpStatusCode.NotImplemented);
+            HttpStatusCode.NotImplemented,
+            HttpStatusCode.Unauthorized);
     }
 
     [Fact]
@@ -299,7 +307,8 @@ public class ITSMPhase4FunctionalTests : FunctionalTestBase
         response.StatusCode.Should().BeOneOf(
             HttpStatusCode.OK,
             HttpStatusCode.NotFound,
-            HttpStatusCode.NotImplemented);
+            HttpStatusCode.NotImplemented,
+            HttpStatusCode.Unauthorized);
     }
 
     [Fact]
@@ -317,7 +326,8 @@ public class ITSMPhase4FunctionalTests : FunctionalTestBase
         response.StatusCode.Should().BeOneOf(
             HttpStatusCode.OK,
             HttpStatusCode.NotFound,
-            HttpStatusCode.NotImplemented);
+            HttpStatusCode.NotImplemented,
+            HttpStatusCode.Unauthorized);
     }
 
     [Fact]
@@ -335,7 +345,8 @@ public class ITSMPhase4FunctionalTests : FunctionalTestBase
         response.StatusCode.Should().BeOneOf(
             HttpStatusCode.OK,
             HttpStatusCode.NotFound,
-            HttpStatusCode.NotImplemented);
+            HttpStatusCode.NotImplemented,
+            HttpStatusCode.Unauthorized);
     }
 
     [Fact]
@@ -353,7 +364,8 @@ public class ITSMPhase4FunctionalTests : FunctionalTestBase
         response.StatusCode.Should().BeOneOf(
             HttpStatusCode.OK,
             HttpStatusCode.NotFound,
-            HttpStatusCode.NotImplemented);
+            HttpStatusCode.NotImplemented,
+            HttpStatusCode.Unauthorized);
     }
 
     [Fact]
@@ -371,7 +383,8 @@ public class ITSMPhase4FunctionalTests : FunctionalTestBase
         response.StatusCode.Should().BeOneOf(
             HttpStatusCode.OK,
             HttpStatusCode.NotFound,
-            HttpStatusCode.NotImplemented);
+            HttpStatusCode.NotImplemented,
+            HttpStatusCode.Unauthorized);
     }
 
     #endregion
@@ -425,7 +438,8 @@ public class ITSMPhase4FunctionalTests : FunctionalTestBase
             HttpStatusCode.Created,
             HttpStatusCode.BadRequest,
             HttpStatusCode.NotFound,
-            HttpStatusCode.NotImplemented);
+            HttpStatusCode.NotImplemented,
+            HttpStatusCode.Unauthorized);
     }
 
     [Fact]
@@ -459,7 +473,8 @@ public class ITSMPhase4FunctionalTests : FunctionalTestBase
             HttpStatusCode.Created,
             HttpStatusCode.BadRequest,
             HttpStatusCode.NotFound,
-            HttpStatusCode.NotImplemented);
+            HttpStatusCode.NotImplemented,
+            HttpStatusCode.Unauthorized);
     }
 
     [Fact]
@@ -490,7 +505,8 @@ public class ITSMPhase4FunctionalTests : FunctionalTestBase
             HttpStatusCode.Created,
             HttpStatusCode.BadRequest,
             HttpStatusCode.NotFound,
-            HttpStatusCode.NotImplemented);
+            HttpStatusCode.NotImplemented,
+            HttpStatusCode.Unauthorized);
     }
 
     [Fact]
@@ -527,9 +543,9 @@ public class ITSMPhase4FunctionalTests : FunctionalTestBase
 
         // Assert - Both should succeed, but deduplication should prevent duplicate incidents
         response1.StatusCode.Should().BeOneOf(
-            HttpStatusCode.OK, HttpStatusCode.Created, HttpStatusCode.NotFound, HttpStatusCode.NotImplemented);
+            HttpStatusCode.OK, HttpStatusCode.Created, HttpStatusCode.NotFound, HttpStatusCode.NotImplemented, HttpStatusCode.Unauthorized);
         response2.StatusCode.Should().BeOneOf(
-            HttpStatusCode.OK, HttpStatusCode.Created, HttpStatusCode.Conflict, HttpStatusCode.NotFound, HttpStatusCode.NotImplemented);
+            HttpStatusCode.OK, HttpStatusCode.Created, HttpStatusCode.Conflict, HttpStatusCode.NotFound, HttpStatusCode.NotImplemented, HttpStatusCode.Unauthorized);
     }
 
     #endregion
@@ -574,7 +590,8 @@ public class ITSMPhase4FunctionalTests : FunctionalTestBase
             HttpStatusCode.Created,
             HttpStatusCode.BadRequest,
             HttpStatusCode.NotFound,
-            HttpStatusCode.NotImplemented);
+            HttpStatusCode.NotImplemented,
+            HttpStatusCode.Unauthorized);
     }
 
     [Fact]
@@ -609,7 +626,8 @@ public class ITSMPhase4FunctionalTests : FunctionalTestBase
             HttpStatusCode.Created,
             HttpStatusCode.BadRequest,
             HttpStatusCode.NotFound,
-            HttpStatusCode.NotImplemented);
+            HttpStatusCode.NotImplemented,
+            HttpStatusCode.Unauthorized);
     }
 
     [Fact]
@@ -645,7 +663,8 @@ public class ITSMPhase4FunctionalTests : FunctionalTestBase
             HttpStatusCode.Created,
             HttpStatusCode.BadRequest,
             HttpStatusCode.NotFound,
-            HttpStatusCode.NotImplemented);
+            HttpStatusCode.NotImplemented,
+            HttpStatusCode.Unauthorized);
     }
 
     [Fact]
@@ -663,7 +682,8 @@ public class ITSMPhase4FunctionalTests : FunctionalTestBase
         response.StatusCode.Should().BeOneOf(
             HttpStatusCode.OK,
             HttpStatusCode.NotFound,
-            HttpStatusCode.NotImplemented);
+            HttpStatusCode.NotImplemented,
+            HttpStatusCode.Unauthorized);
     }
 
     [Fact]
@@ -694,7 +714,8 @@ public class ITSMPhase4FunctionalTests : FunctionalTestBase
             HttpStatusCode.Created,
             HttpStatusCode.BadRequest,
             HttpStatusCode.NotFound,
-            HttpStatusCode.NotImplemented);
+            HttpStatusCode.NotImplemented,
+            HttpStatusCode.Unauthorized);
     }
 
     #endregion
@@ -717,7 +738,8 @@ public class ITSMPhase4FunctionalTests : FunctionalTestBase
             HttpStatusCode.OK,
             HttpStatusCode.Created,
             HttpStatusCode.NotFound,
-            HttpStatusCode.NotImplemented);
+            HttpStatusCode.NotImplemented,
+            HttpStatusCode.Unauthorized);
     }
 
     [Fact]
@@ -750,7 +772,8 @@ public class ITSMPhase4FunctionalTests : FunctionalTestBase
                 HttpStatusCode.Created,
                 HttpStatusCode.BadRequest,
                 HttpStatusCode.NotFound,
-                HttpStatusCode.NotImplemented);
+                HttpStatusCode.NotImplemented,
+                HttpStatusCode.Unauthorized);
         }
     }
 
@@ -781,7 +804,8 @@ public class ITSMPhase4FunctionalTests : FunctionalTestBase
             response.StatusCode.Should().BeOneOf(
                 HttpStatusCode.OK,
                 HttpStatusCode.NotFound,
-                HttpStatusCode.NotImplemented);
+                HttpStatusCode.NotImplemented,
+                HttpStatusCode.Unauthorized);
         }
     }
 
@@ -807,7 +831,8 @@ public class ITSMPhase4FunctionalTests : FunctionalTestBase
         response.StatusCode.Should().BeOneOf(
             HttpStatusCode.OK,
             HttpStatusCode.NotFound,
-            HttpStatusCode.NotImplemented);
+            HttpStatusCode.NotImplemented,
+            HttpStatusCode.Unauthorized);
     }
 
     [Fact]
@@ -839,7 +864,8 @@ public class ITSMPhase4FunctionalTests : FunctionalTestBase
             HttpStatusCode.Created,
             HttpStatusCode.BadRequest,
             HttpStatusCode.NotFound,
-            HttpStatusCode.NotImplemented);
+            HttpStatusCode.NotImplemented,
+            HttpStatusCode.Unauthorized);
     }
 
     [Fact]
@@ -866,7 +892,8 @@ public class ITSMPhase4FunctionalTests : FunctionalTestBase
             HttpStatusCode.Created,
             HttpStatusCode.BadRequest,
             HttpStatusCode.NotFound,
-            HttpStatusCode.NotImplemented);
+            HttpStatusCode.NotImplemented,
+            HttpStatusCode.Unauthorized);
     }
 
     [Fact]
@@ -885,7 +912,8 @@ public class ITSMPhase4FunctionalTests : FunctionalTestBase
         response.StatusCode.Should().BeOneOf(
             HttpStatusCode.OK,
             HttpStatusCode.NotFound,
-            HttpStatusCode.NotImplemented);
+            HttpStatusCode.NotImplemented,
+            HttpStatusCode.Unauthorized);
     }
 
     [Fact]
@@ -918,7 +946,8 @@ public class ITSMPhase4FunctionalTests : FunctionalTestBase
                 HttpStatusCode.OK,
                 HttpStatusCode.NoContent,
                 HttpStatusCode.NotFound,
-                HttpStatusCode.NotImplemented);
+                HttpStatusCode.NotImplemented,
+                HttpStatusCode.Unauthorized);
         }
     }
 

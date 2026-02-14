@@ -55,7 +55,7 @@ public class AuthenticationServiceTests : IDisposable
     private readonly Mock<IRepository<OAuthToken>> _mockOAuthTokenRepo;
     private readonly CrmDbContext _dbContext;
     private readonly Mock<IJwtTokenService> _mockJwtTokenService;
-    private readonly Mock<ITotpService> _mockTotpService;
+    private readonly Mock<CRM.Core.Interfaces.ITotpService> _mockTotpService;
     private readonly IMemoryCache _memoryCache;
     private readonly Mock<ILogger<AuthenticationService>> _mockLogger;
     private readonly Mock<IHttpClientFactory> _mockHttpClientFactory;
@@ -75,7 +75,7 @@ public class AuthenticationServiceTests : IDisposable
         _mockUserRepo = new Mock<IRepository<User>>();
         _mockOAuthTokenRepo = new Mock<IRepository<OAuthToken>>();
         _mockJwtTokenService = new Mock<IJwtTokenService>();
-        _mockTotpService = new Mock<ITotpService>();
+        _mockTotpService = new Mock<CRM.Core.Interfaces.ITotpService>();
         _memoryCache = new MemoryCache(new MemoryCacheOptions());
         _mockLogger = new Mock<ILogger<AuthenticationService>>();
         _mockHttpClientFactory = new Mock<IHttpClientFactory>();

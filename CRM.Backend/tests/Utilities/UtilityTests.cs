@@ -21,6 +21,7 @@ using CRM.Core.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Globalization;
 
 namespace CRM.Tests.Utilities;
 
@@ -84,7 +85,7 @@ public class UtilityTests
     [InlineData(1234567.89, "1,234,567.89")]
     public void Currency_Formatting(decimal amount, string expected)
     {
-        var formatted = amount.ToString("N2");
+        var formatted = amount.ToString("N2", CultureInfo.InvariantCulture);
         formatted.Should().Be(expected);
     }
 

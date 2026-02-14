@@ -15,11 +15,13 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using CRM.Core.Entities;
+using CRM.Core.Interfaces;
 using CRM.Core.Models;
 using CRM.Infrastructure.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
 
 namespace CRM.Api.Controllers;
 
@@ -35,11 +37,13 @@ public class DashboardController : ControllerBase
 {
     private readonly CrmDbContext _context;
     private readonly ILogger<DashboardController> _logger;
+    private readonly IDashboardService _dashboardService;
 
-    public DashboardController(CrmDbContext context, ILogger<DashboardController> logger)
+    public DashboardController(CrmDbContext context, ILogger<DashboardController> logger, IDashboardService dashboardService)
     {
         _context = context;
         _logger = logger;
+        _dashboardService = dashboardService;
     }
 
     #region Core Statistics
@@ -94,6 +98,28 @@ public class DashboardController : ControllerBase
         {
             _logger.LogError(ex, "Error retrieving dashboard stats");
             return StatusCode(500, new { message = "An error occurred while retrieving dashboard statistics" });
+        }
+    }
+
+    /// <summary>
+    /// Stream dashboard statistics using Server-Sent Events (SSE).
+    /// </summary>
+    [HttpGet("stream")]
+    [Produces("text/event-stream")]
+    public async Task StreamStats(CancellationToken cancellationToken = default)
+    {
+        Response.Headers.ContentType = "text/event-stream";
+        Response.Headers.CacheControl = "no-cache";
+        Response.Headers.Connection = "keep-alive";
+        Response.Headers.Append("X-Accel-Buffering", "no");
+
+        while (!cancellationToken.IsCancellationRequested)
+        {
+            var stats = await _dashboardService.GetStatsAsync();
+            var payload = JsonSerializer.Serialize(stats);
+            await Response.WriteAsync($"data: {payload}\n\n", cancellationToken);
+            await Response.Body.FlushAsync(cancellationToken);
+            await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken);
         }
     }
 

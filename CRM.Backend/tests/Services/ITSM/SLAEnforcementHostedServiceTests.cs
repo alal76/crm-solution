@@ -273,6 +273,8 @@ public class SLAEnforcementHostedServiceTests
         // Wait for the service to process the cancellation
         await Task.Delay(200);
 
+        await service.StopAsync(CancellationToken.None);
+
         // Assert - the service should have stopped
         _mockLogger.Verify(
             x => x.Log(

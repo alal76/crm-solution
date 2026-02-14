@@ -15,7 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using Microsoft.AspNetCore.OpenApi;
-using Microsoft.OpenApi.Models;
+using Microsoft.OpenApi;
 
 namespace CRM.Api.OpenApi;
 
@@ -28,7 +28,7 @@ public sealed class BearerSecuritySchemeTransformer : IOpenApiDocumentTransforme
     public Task TransformAsync(OpenApiDocument document, OpenApiDocumentTransformerContext context, CancellationToken cancellationToken)
     {
         document.Components ??= new OpenApiComponents();
-        document.Components.SecuritySchemes ??= new Dictionary<string, OpenApiSecurityScheme>();
+        document.Components.SecuritySchemes ??= new Dictionary<string, IOpenApiSecurityScheme>();
 
         document.Components.SecuritySchemes["Bearer"] = new OpenApiSecurityScheme
         {
@@ -40,19 +40,12 @@ public sealed class BearerSecuritySchemeTransformer : IOpenApiDocumentTransforme
             Description = "Enter JWT token"
         };
 
-        document.SecurityRequirements ??= new List<OpenApiSecurityRequirement>();
-        document.SecurityRequirements.Add(new OpenApiSecurityRequirement
+        document.Security ??= new List<OpenApiSecurityRequirement>();
+        document.Security.Add(new OpenApiSecurityRequirement
         {
             {
-                new OpenApiSecurityScheme
-                {
-                    Reference = new OpenApiReference
-                    {
-                        Type = ReferenceType.SecurityScheme,
-                        Id = "Bearer"
-                    }
-                },
-                Array.Empty<string>()
+                new OpenApiSecuritySchemeReference("Bearer", document),
+                new List<string>()
             }
         });
 

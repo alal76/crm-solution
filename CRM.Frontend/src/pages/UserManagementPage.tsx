@@ -247,8 +247,8 @@ function UserManagementPage() {
 
   const handleToggleActive = async (user: User) => {
     try {
-      await apiClient.put(`/users/${user.id}`, { ...user, isActive: !user.isActive });
-      setSuccessMessage(`User ${!user.isActive ? 'activated' : 'deactivated'} successfully`);
+      await apiClient.put(`/users/${user.id}`, { ...user, isActive: !(user?.isActive !== false) });
+      setSuccessMessage(`User ${!(user?.isActive !== false) ? 'activated' : 'deactivated'} successfully`);
       fetchAllData();
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to update user status');
@@ -397,8 +397,8 @@ function UserManagementPage() {
                     </TableCell>
                     <TableCell>
                       <Chip
-                        label={user.isActive ? 'Active' : 'Inactive'}
-                        color={user.isActive ? 'success' : 'error'}
+                        label={user?.isActive !== false ? 'Active' : 'Inactive'}
+                        color={user?.isActive !== false ? 'success' : 'error'}
                         variant="outlined"
                         size="small"
                       />
@@ -424,11 +424,11 @@ function UserManagementPage() {
                       </Button>
                       <Button
                         size="small"
-                        color={user.isActive ? 'warning' : 'success'}
+                        color={user?.isActive !== false ? 'warning' : 'success'}
                         onClick={() => handleToggleActive(user)}
                         sx={{ mr: 1 }}
                       >
-                        {user.isActive ? 'Deactivate' : 'Activate'}
+                        {user?.isActive !== false ? 'Deactivate' : 'Activate'}
                       </Button>
                       <Button
                         size="small"

@@ -18,6 +18,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -91,6 +92,17 @@ public static class ServiceExtensions
 
         // Add memory cache - required by AuthenticationService and response caching
         builder.Services.AddMemoryCache();
+
+        // Add distributed cache + HybridCache (L1/L2 caching)
+        builder.Services.AddDistributedMemoryCache();
+        builder.Services.AddHybridCache(options =>
+        {
+            options.DefaultEntryOptions = new HybridCacheEntryOptions
+            {
+                Expiration = TimeSpan.FromMinutes(2),
+                LocalCacheExpiration = TimeSpan.FromSeconds(30)
+            };
+        });
 
         // Add response caching
         builder.Services.AddResponseCaching();

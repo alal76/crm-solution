@@ -19,15 +19,17 @@
     <PackageReference Include="Cronos" Version="0.8.4" />
     <PackageReference Include="DocuSign.eSign.dll" Version="8.6.0" />
     <PackageReference Include="Meilisearch" Version="0.15.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.1" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.1" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="9.0.1" />
     <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks" Version="10.0.0" />
-    <PackageReference Include="Microsoft.FeatureManagement.AspNetCore" Version="5.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="9.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Caching.Hybrid" Version="10.0.0" />
+    <PackageReference Include="Microsoft.FeatureManagement.AspNetCore" Version="4.4.0" />
     <PackageReference Include="Novu" Version="3.13.0" />
-    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.0" />
-    <PackageReference Include="Oracle.EntityFrameworkCore" Version="10.0.0" />
-    <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="10.0.0" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
+    <PackageReference Include="Oracle.EntityFrameworkCore" Version="9.23.26100" />
+    <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="9.0.0" />
     <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
     <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.0" />
     <PackageReference Include="Microsoft.Extensions.Http" Version="10.0.0" />
@@ -36,8 +38,8 @@
     <PackageReference Include="StackExchange.Redis" Version="2.7.33" />
     <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="10.0.0" />
     <PackageReference Include="Twilio" Version="7.14.2" />
-    <PackageReference Include="Microsoft.SemanticKernel" Version="1.34.0" />
-    <PackageReference Include="Microsoft.SemanticKernel.Connectors.OpenAI" Version="1.34.0" />
+    <PackageReference Include="Microsoft.SemanticKernel" Version="1.35.0" />
+    <PackageReference Include="Microsoft.SemanticKernel.Connectors.OpenAI" Version="1.35.0" />
   </ItemGroup>
 
   <ItemGroup>

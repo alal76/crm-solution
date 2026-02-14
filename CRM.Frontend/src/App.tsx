@@ -138,7 +138,7 @@ const SLAInstanceListPage = lazy(() => import('./pages/itsm/SLAInstanceListPage'
 // ----------------------------------------------------------------------------
 // Account Module - Lazy Loaded
 // ----------------------------------------------------------------------------
-const AccountsPage = lazy(() => import('./pages/CustomersPage'));
+const AccountsPage = lazy(() => import('./pages/AccountsPage'));
 const ContactsPage = lazy(() => import('./pages/ContactsPage'));
 const AccountOverviewPage = lazy(() => import('./pages/CustomerOverviewPage'));
 const RelationshipsPage = lazy(() => import('./pages/RelationshipsPage'));
