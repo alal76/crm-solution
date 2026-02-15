@@ -12,7 +12,6 @@
 // export type { AccountHierarchyTreeProps } from './AccountHierarchyTree';
 
 export { TerritoryAssignmentPanel } from './TerritoryAssignmentPanel';
-export type { TerritoryAssignmentPanelProps } from './TerritoryAssignmentPanel';
 
 // AccountTimeline temporarily disabled - pending activityService implementation
 // export { AccountTimeline } from './AccountTimeline';
