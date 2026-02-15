@@ -97,7 +97,7 @@ export const AccountMergeDialog: React.FC<AccountMergeDialogProps> = ({
     try {
       setLoading(true);
       const response = await accountService.getAll();
-      setAccounts(response);
+      setAccounts(response.data || (response as unknown as any[]));
       setError(null);
     } catch (err) {
       setError('Failed to load accounts');
