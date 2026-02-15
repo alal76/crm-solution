@@ -7,6 +7,9 @@ Copilot usage
 - Use Claude Opus 4.5 subagents all tasks in particular for research/analysis and test authoring when tasks are complex or multi-step
 - Update documentation as you proceed (specs, remediation plan, and related docs).
 - Write and validate unit tests at the end of the task to ensure code quality and correctness.
+- Clean up terminals when done to maintain an organized workspace..
+- Where possible, use the provided documentation and specifications to guide your implementation and ensure consistency with the project's standards and requirements.
+- where possible reuse terminals for related tasks to maintain context and reduce setup time, but feel free to open new terminals for unrelated tasks or when it helps keep things organized.
 ---
 
 ## � Feature Specification Framework

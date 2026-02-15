@@ -6,8 +6,9 @@
 export { AccountMergeDialog } from './AccountMergeDialog';
 export type { AccountMergeDialogProps } from './AccountMergeDialog';
 
-export { AccountHierarchyTree } from './AccountHierarchyTree';
-export type { AccountHierarchyTreeProps } from './AccountHierarchyTree';
+// AccountHierarchyTree temporarily disabled - pending @mui/x-tree-view API compatibility fixes
+// export { AccountHierarchyTree } from './AccountHierarchyTree';
+// export type { AccountHierarchyTreeProps } from './AccountHierarchyTree';
 
 export { TerritoryAssignmentPanel } from './TerritoryAssignmentPanel';
 export type { TerritoryAssignmentPanelProps } from './TerritoryAssignmentPanel';
