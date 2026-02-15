@@ -26,6 +26,31 @@ public class CampaignMetric : BaseEntity
     public double MetricValue { get; set; } = 0;
     public DateTime RecordedDate { get; set; } = DateTime.UtcNow;
 
+    /// <summary>Total number of emails sent</summary>
+    public int TotalSent { get; set; } = 0;
+
+    /// <summary>Total number of emails delivered</summary>
+    public int TotalDelivered { get; set; } = 0;
+
+    /// <summary>Total number of emails opened</summary>
+    public int TotalOpened { get; set; } = 0;
+
+    /// <summary>Total number of links clicked</summary>
+    public int TotalClicked { get; set; } = 0;
+
+    /// <summary>Total conversions</summary>
+    public int TotalConverted { get; set; } = 0;
+
+    /// <summary>Open rate percentage (calculated)</summary>
+    public decimal? OpenRate 
+    { 
+        get
+        {
+            if (TotalDelivered == 0) return 0;
+            return (decimal)TotalOpened / TotalDelivered;
+        }
+    }
+
     // Navigation properties
     public MarketingCampaign? Campaign { get; set; }
 }

@@ -94,6 +94,12 @@ public class CampaignRecipient : BaseEntity
     public string? Company { get; set; }
 
     /// <summary>
+    /// Recipient segment classification
+    /// </summary>
+    [MaxLength(100)]
+    public string? Segment { get; set; }
+
+    /// <summary>
     /// Current status
     /// </summary>
     [MaxLength(50)]

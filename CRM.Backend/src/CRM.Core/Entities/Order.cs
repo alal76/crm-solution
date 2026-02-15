@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using CRM.Core.Models;
 
 namespace CRM.Core.Entities;
@@ -402,6 +404,14 @@ public class Order : BaseEntity
 
     /// <summary>Sales rep who owns the order</summary>
     public int? OwnerId { get; set; }
+
+    /// <summary>Alias for OwnerId - User ID who owns this order</summary>
+    [NotMapped]
+    public int? UserId 
+    { 
+        get => OwnerId;
+        set => OwnerId = value;
+    }
 
     /// <summary>Navigation to sales rep</summary>
     public User? Owner { get; set; }

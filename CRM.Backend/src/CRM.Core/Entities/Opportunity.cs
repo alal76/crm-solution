@@ -175,6 +175,14 @@ public class Opportunity : BaseEntity
     /// <summary>Assigned sales owner (AE)</summary>
     public int? SalesOwnerId { get; set; }
 
+    /// <summary>Alias for SalesOwnerId - User ID owning this opportunity</summary>
+    [NotMapped]
+    public int? UserId 
+    { 
+        get => SalesOwnerId;
+        set => SalesOwnerId = value;
+    }
+
     /// <summary>Original lead that was converted</summary>
     public int? LeadId { get; set; }
 

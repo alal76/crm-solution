@@ -58,6 +58,9 @@ public interface IWebhookService
 public class WebhookIngestResult
 {
     public bool Success { get; set; }
+    /// <summary>Alias for Success for compatibility</summary>
+    public bool IsSuccess { get => Success; set => Success = value; }
+    public DateTime? ProcessedAt { get; set; }
     public int? InteractionId { get; set; }
     public int? MessageId { get; set; }
     public int? AccountId { get; set; }
@@ -70,6 +73,9 @@ public class WebhookIngestResult
 /// </summary>
 public class WebFormSubmission
 {
+    public int? FormId { get; set; }
+    public string? FirstName { get; set; }
+    public string? LastName { get; set; }
     public string? Name { get; set; }
     public string? Email { get; set; }
     public string? Phone { get; set; }
@@ -90,6 +96,9 @@ public class InboundEmail
     public string? Subject { get; set; }
     public string? TextBody { get; set; }
     public string? HtmlBody { get; set; }
+    /// <summary>Alias for HtmlBody or combined content</summary>
+    public string? Body { get => HtmlBody ?? TextBody; set => HtmlBody = value; }
+    public DateTime? Timestamp { get; set; }
     public string? ConversationId { get; set; }
     public string? InReplyTo { get; set; }
 }

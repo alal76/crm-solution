@@ -211,6 +211,11 @@ public class User : BaseEntity
     /// </summary>
     public int? PrimaryGroupId { get; set; }
 
+    /// <summary>
+    /// Commission plan assigned to this user (if applicable for sales users)
+    /// </summary>
+    public int? CommissionPlanId { get; set; }
+
     // === Customization ===
 
     /// <summary>

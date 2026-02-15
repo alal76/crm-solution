@@ -211,7 +211,7 @@ public class CommissionService : ICommissionService
             TotalEarned = commissions.Sum(c => c.Amount),
             TotalPaid = commissions.Where(c => c.Status == CommissionStatus.Paid).Sum(c => c.Amount),
             TotalPending = commissions.Where(c => c.Status == CommissionStatus.Pending).Sum(c => c.Amount),
-            TotalClawedBack = commissions.Where(c => c.Status == CommissionStatus.ClawedBack).Sum(c => c.Amount),
+            TotalClawedBack = commissions.Where(c => c.Status == CommissionStatus.Clawback).Sum(c => c.Amount),
             DealCount = commissions.Count,
             AverageCommission = commissions.Count > 0 ? commissions.Average(c => c.Amount) : 0,
             Commissions = commissions.ToList()
@@ -428,7 +428,7 @@ public class CommissionService : ICommissionService
             throw new InvalidOperationException($"Commission {commissionId} not found");
         }
 
-        commission.Status = CommissionStatus.ClawedBack;
+        commission.Status = CommissionStatus.Clawback;
         commission.Notes = string.IsNullOrEmpty(commission.Notes)
             ? $"Clawback: {reason}"
             : $"{commission.Notes}; Clawback: {reason}";
