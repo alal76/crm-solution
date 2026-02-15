@@ -1,18 +1,13 @@
 CRM Solution - Customer Relationship Management System
 Copyright (C) 2024-2026 Abhishek Lal
 
-This program is free software: you can redistribute it and/or modify
-it under the terms of the GNU Affero General Public License as
-published by the Free Software Foundation, either version 3 of the
-License, or (at your option) any later version.
+================================================================================
+                          PROPRIETARY LICENSE
+================================================================================
 
-This program is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU Affero General Public License for more details.
-
-You should have received a copy of the GNU Affero General Public License
-along with this program. If not, see <https://www.gnu.org/licenses/>.
+This software is provided under a proprietary license that permits certain uses
+while restricting commercial redistribution and SaaS offerings without explicit
+author agreement. Read the full terms below.
 
 ================================================================================
                         ADDITIONAL TERMS AND DISCLAIMER
@@ -27,33 +22,75 @@ of liability, whether in contract, strict liability, or tort (including
 negligence or otherwise) arising in any way out of the use of this software,
 even if advised of the possibility of such damage.
 
-FREE USE CLAUSE:
-This software is provided free of charge for any use, including commercial use,
-subject to the terms of the GNU Affero General Public License version 3.
-You are free to use, modify, and distribute this software as long as you
-comply with the copyleft requirements of the AGPL-3.0 license, which requires
-that any modified versions of this software that are made available over a
-network must also be made available under the same license.
+PERMITTED USES:
+You are permitted to:
+1. Use this software for internal, personal, or educational purposes
+2. Modify the software for your own internal use
+3. Run the software on your own infrastructure for your own business use
+4. Review and study the source code for learning purposes
 
-COPYLEFT NOTICE:
-This software is copyleft. Any derivative works must be distributed under
-the same license terms. If you modify this software and make it available
-to users over a network, you must provide them with access to the source
-code of your modified version under the terms of the AGPL-3.0.
+RESTRICTED USES - REQUIRE EXPLICIT WRITTEN AGREEMENT WITH AUTHOR:
+You may NOT do the following without obtaining prior written agreement from
+Abhishek Lal (and potentially paying licensing fees):
+
+1. COMMERCIAL REDISTRIBUTION: Distribute, resell, or offer the software or
+   derivatives as a standalone product to third parties for commercial purposes.
+
+2. SOFTWARE-AS-A-SERVICE (SaaS): Offer the software or any derivative work as
+   a hosted service, web application, cloud service, or any other form of
+   service-based delivery to end users or customers (with or without payment).
+
+3. COMMERCIAL CONSULTING: Offer consulting, implementation, or support services
+   based on this software to external customers for payment without authorization.
+
+4. REBRANDING & RESALE: Rebrand or relabel the software and offer it under a
+   different name as a commercial product.
+
+5. BUNDLING FOR SALE: Bundle this software with other products for commercial
+   sale without explicit authorization.
+
+LICENSE FOR AUTHORIZED USE:
+For organizations or individuals wishing to use this software for the purposes
+listed under "Restricted Uses," a commercial license agreement must be negotiated
+with Abhishek Lal. Please contact the author to discuss licensing options.
+
+DERIVATIVE WORKS:
+You may create and use derivative works internally. However, any distribution of
+derivative works (even modified versions) that engage in any of the restricted
+uses above requires explicit written authorization.
 
 ================================================================================
-                    GNU AFFERO GENERAL PUBLIC LICENSE
-                       Version 3, 19 November 2007
+                    DISCLAIMER AND LIMITATION OF LIABILITY
+================================================================================
 
- Copyright (C) 2007 Free Software Foundation, Inc. <https://fsf.org/>
- Everyone is permitted to copy and distribute verbatim copies
- of this license document, but changing it is not allowed.
+THIS SOFTWARE IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
+INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
+PARTICULAR PURPOSE, AND NONINFRINGEMENT.
 
-                            Preamble
+IN NO EVENT SHALL ABHISHEK LAL OR ANY CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+BUT NOT LIMITED TO PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
+OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
+OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
+OF THE POSSIBILITY OF SUCH DAMAGE.
 
-  The GNU Affero General Public License is a free, copyleft license for
-software and other kinds of works, specifically designed to ensure
-cooperation with the community in the case of network server software.
+================================================================================
+                            CONTACT & LICENSING
+================================================================================
+
+For commercial licensing inquiries, SaaS deployment permissions, or to negotiate
+alternative license terms, please contact:
+
+  Abhishek Lal
+  Email: [contact information]
+  
+Any use of this software beyond the permitted uses listed above without explicit
+written authorization from the copyright holder constitutes a breach of this license.
+
+================================================================================
+                              END OF LICENSE
+================================================================================
 
   The licenses for most software and other practical works are designed
 to take away your freedom to share and change the works.  By contrast,
