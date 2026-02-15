@@ -223,19 +223,19 @@ public class ServiceRequestsController : ControllerBase
     #region Query Operations
 
     /// <summary>
-    /// Get service requests by customer
+    /// Get service requests by account
     /// </summary>
-    [HttpGet("customer/{customerId}")]
-    public async Task<ActionResult<List<ServiceRequestListDto>>> GetByCustomer(int customerId)
+    [HttpGet("account/{accountId}")]
+    public async Task<ActionResult<List<ServiceRequestListDto>>> GetByAccount(int accountId)
     {
         try
         {
-            var requests = await _serviceRequestService.GetServiceRequestsByCustomerAsync(customerId);
+            var requests = await _serviceRequestService.GetServiceRequestsByAccountAsync(accountId);
             return Ok(requests);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error getting service requests for customer {CustomerId}", customerId);
+            _logger.LogError(ex, "Error getting service requests for account {AccountId}", accountId);
             return StatusCode(500, "An error occurred");
         }
     }
@@ -537,7 +537,7 @@ public class ServiceRequestsController : ControllerBase
     #region Feedback
 
     /// <summary>
-    /// Submit customer feedback
+    /// Submit account feedback
     /// </summary>
     [HttpPost("{id}/feedback")]
     public async Task<ActionResult<ServiceRequestDto>> SubmitFeedback(int id, [FromBody] SubmitFeedbackDto dto)

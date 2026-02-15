@@ -47,14 +47,14 @@ public class PaymentsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<IEnumerable<Payment>>> GetAll(
-        [FromQuery] int? customerId = null,
+        [FromQuery] int? accountId = null,
         [FromQuery] int? invoiceId = null,
         [FromQuery] PaymentStatus? status = null,
         CancellationToken cancellationToken = default)
     {
         try
         {
-            var payments = await _paymentService.GetAllAsync(customerId, invoiceId, status, cancellationToken);
+            var payments = await _paymentService.GetAllAsync(accountId, invoiceId, status, cancellationToken);
             return Ok(payments);
         }
         catch (Exception ex)
@@ -391,19 +391,19 @@ public class PaymentsController : ControllerBase
     }
 
     /// <summary>Gets payment history for a customer.</summary>
-    [HttpGet("customer/{customerId}/history")]
+    [HttpGet("account/{accountId}/history")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<IEnumerable<Payment>>> GetCustomerPaymentHistory(int customerId, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<IEnumerable<Payment>>> GetAccountPaymentHistory(int accountId, CancellationToken cancellationToken = default)
     {
         try
         {
-            var payments = await _paymentService.GetCustomerPaymentHistoryAsync(customerId, cancellationToken);
+            var payments = await _paymentService.GetAccountPaymentHistoryAsync(accountId, cancellationToken);
             return Ok(payments);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error retrieving payment history for customer {CustomerId}", customerId);
+            _logger.LogError(ex, "Error retrieving payment history for account {AccountId}", accountId);
             return HandleServiceException(ex);
         }
     }

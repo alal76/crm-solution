@@ -52,8 +52,8 @@ public class WebhookService : IWebhookService
 
         try
         {
-            // Try to find existing customer/contact by email
-            int? customerId = null;
+            // Try to find existing account/contact by email
+            int? accountId = null;
             int? contactId = null;
 
             if (!string.IsNullOrEmpty(dto.Email))
@@ -63,7 +63,7 @@ public class WebhookService : IWebhookService
 
                 if (existingAccount != null)
                 {
-                    customerId = existingAccount.Id;
+                    accountId = existingAccount.Id;
                 }
 
                 var existingContact = await _dbContext.Contacts
@@ -75,8 +75,8 @@ public class WebhookService : IWebhookService
                 }
             }
 
-            // Create lead if no existing customer found
-            if (!customerId.HasValue && !string.IsNullOrEmpty(dto.Email))
+            // Create lead if no existing account found
+            if (!accountId.HasValue && !string.IsNullOrEmpty(dto.Email))
             {
                 var lead = new Lead
                 {
@@ -100,7 +100,7 @@ public class WebhookService : IWebhookService
             // Create interaction record
             var interaction = new Interaction
             {
-                AccountId = customerId ?? 0,
+                AccountId = accountId ?? 0,
                 ContactId = contactId,
                 InteractionType = InteractionType.WebForm,
                 Direction = InteractionDirection.Inbound,
@@ -115,8 +115,8 @@ public class WebhookService : IWebhookService
                 UpdatedAt = DateTime.UtcNow
             };
 
-            // Only add if we have a valid customer ID
-            if (customerId.HasValue)
+            // Only add if we have a valid account ID
+            if (accountId.HasValue)
             {
                 _dbContext.Interactions.Add(interaction);
                 await _dbContext.SaveChangesAsync();
@@ -125,8 +125,8 @@ public class WebhookService : IWebhookService
             return new WebhookIngestResult
             {
                 Success = true,
-                InteractionId = customerId.HasValue ? interaction.Id : null,
-                CustomerId = customerId,
+                InteractionId = accountId.HasValue ? interaction.Id : null,
+                AccountId = accountId,
                 ContactId = contactId,
                 Message = "Web form processed successfully"
             };
@@ -149,8 +149,8 @@ public class WebhookService : IWebhookService
 
         try
         {
-            // Find customer/contact by email
-            int? customerId = null;
+            // Find account/contact by email
+            int? accountId = null;
             int? contactId = null;
 
             if (!string.IsNullOrEmpty(dto.From))
@@ -160,7 +160,7 @@ public class WebhookService : IWebhookService
 
                 if (existingAccount != null)
                 {
-                    customerId = existingAccount.Id;
+                    accountId = existingAccount.Id;
                 }
 
                 var existingContact = await _dbContext.Contacts
@@ -175,7 +175,7 @@ public class WebhookService : IWebhookService
             // Create message record - use correct CommunicationMessage properties
             var message = new CommunicationMessage
             {
-                AccountId = customerId,
+                AccountId = accountId,
                 ContactId = contactId,
                 ChannelType = ChannelType.Email,
                 Direction = MessageDirection.Inbound,
@@ -193,8 +193,8 @@ public class WebhookService : IWebhookService
                 UpdatedAt = DateTime.UtcNow
             };
 
-            // Only add if we have a valid customer ID
-            if (customerId.HasValue)
+            // Only add if we have a valid account ID
+            if (accountId.HasValue)
             {
                 _dbContext.CommunicationMessages.Add(message);
                 await _dbContext.SaveChangesAsync();
@@ -202,11 +202,11 @@ public class WebhookService : IWebhookService
 
             // Create interaction record
             Interaction? interaction = null;
-            if (customerId.HasValue)
+            if (accountId.HasValue)
             {
                 interaction = new Interaction
                 {
-                    AccountId = customerId.Value,
+                    AccountId = accountId.Value,
                     ContactId = contactId,
                     InteractionType = InteractionType.Email,
                     Direction = InteractionDirection.Inbound,
@@ -228,8 +228,8 @@ public class WebhookService : IWebhookService
             {
                 Success = true,
                 InteractionId = interaction?.Id,
-                MessageId = customerId.HasValue ? message.Id : null,
-                CustomerId = customerId,
+                MessageId = accountId.HasValue ? message.Id : null,
+                AccountId = accountId,
                 ContactId = contactId,
                 Message = "Inbound email processed successfully"
             };
@@ -281,8 +281,8 @@ public class WebhookService : IWebhookService
                             body = textProp.TryGetProperty("body", out var bodyProp) ? bodyProp.GetString() : "";
                         }
 
-                        // Find customer by phone
-                        int? customerId = null;
+                        // Find account by phone
+                        int? accountId = null;
                         if (!string.IsNullOrEmpty(from))
                         {
                             var account = await _dbContext.Accounts
@@ -290,16 +290,16 @@ public class WebhookService : IWebhookService
 
                             if (account != null)
                             {
-                                customerId = account.Id;
+                                accountId = account.Id;
                             }
                         }
 
                         // Create message record
-                        if (customerId.HasValue)
+                        if (accountId.HasValue)
                         {
                             var message = new CommunicationMessage
                             {
-                                AccountId = customerId.Value,
+                                AccountId = accountId.Value,
                                 ChannelType = ChannelType.WhatsApp,
                                 Direction = MessageDirection.Inbound,
                                 Body = body ?? string.Empty,

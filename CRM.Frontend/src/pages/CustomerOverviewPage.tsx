@@ -31,6 +31,7 @@ import {
 import apiClient from '../services/apiClient';
 import agentService from '../services/agentService';
 import { getNewsSocialFeeds, refreshNewsSocialFeeds, getNewsSocialStatus, NewsItem, SocialFeed, NewsSocialStatus } from '../services/newsSocialService';
+import { contactInfoService, LinkedAddressDto } from '../services/contactInfoService';
 import logo from '../assets/logo.png';
 
 interface Customer {
@@ -42,11 +43,6 @@ interface Customer {
   phone: string;
   industry?: string;
   website?: string;
-  address?: string;
-  city?: string;
-  state?: string;
-  country?: string;
-  postalCode?: string;
   customerCategory?: number;
   customerType?: number;
   lifecycleStage?: number;
@@ -97,6 +93,9 @@ function CustomerOverviewPage() {
   const [selectedAccountManager, setSelectedAccountManager] = useState<User | null>(null);
   const [loading, setLoading] = useState(false);
   const [loadingDetails, setLoadingDetails] = useState(false);
+  const [primaryAddress, setPrimaryAddress] = useState<LinkedAddressDto | null>(null);
+  const [primaryEmail, setPrimaryEmail] = useState<string | null>(null);
+  const [primaryPhone, setPrimaryPhone] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [tabValue, setTabValue] = useState(0);
 
@@ -239,6 +238,36 @@ function CustomerOverviewPage() {
       // Fetch contacts for this customer
       const contactsResponse = await apiClient.get(`/accounts/${accountId}/contacts`);
       setContacts(contactsResponse.data || []);
+
+      try {
+        const addressResponse = await contactInfoService.getAddresses('Account', accountId);
+        const addresses = addressResponse.data || [];
+        const primary = addresses.find(a => a.isPrimary) || addresses[0] || null;
+        setPrimaryAddress(primary || null);
+      } catch (addrErr) {
+        console.error('Error fetching account addresses:', addrErr);
+        setPrimaryAddress(null);
+      }
+
+      try {
+        const emailResponse = await contactInfoService.getEmailAddresses('Account', accountId);
+        const emails = emailResponse.data || [];
+        const primaryEmailRecord = emails.find(e => e.isPrimary) || emails[0] || null;
+        setPrimaryEmail(primaryEmailRecord?.email || null);
+      } catch (emailErr) {
+        console.error('Error fetching account emails:', emailErr);
+        setPrimaryEmail(null);
+      }
+
+      try {
+        const phoneResponse = await contactInfoService.getPhoneNumbers('Account', accountId);
+        const phones = phoneResponse.data || [];
+        const primaryPhoneRecord = phones.find(p => p.isPrimary) || phones[0] || null;
+        setPrimaryPhone(primaryPhoneRecord?.fullNumber || primaryPhoneRecord?.formattedNumber || null);
+      } catch (phoneErr) {
+        console.error('Error fetching account phones:', phoneErr);
+        setPrimaryPhone(null);
+      }
 
       // Fetch news and social feeds from real API
       try {
@@ -621,17 +650,25 @@ function CustomerOverviewPage() {
                               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                   <EmailIcon fontSize="small" color="action" />
-                                  <Typography variant="body2">{selectedCustomer.email || 'N/A'}</Typography>
+                                  <Typography variant="body2">{primaryEmail || selectedCustomer.email || 'N/A'}</Typography>
                                 </Box>
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                   <PhoneIcon fontSize="small" color="action" />
-                                  <Typography variant="body2">{selectedCustomer.phone || 'N/A'}</Typography>
+                                  <Typography variant="body2">{primaryPhone || selectedCustomer.phone || 'N/A'}</Typography>
                                 </Box>
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                   <LocationIcon fontSize="small" color="action" />
                                   <Typography variant="body2">
-                                    {[selectedCustomer.address, selectedCustomer.city, selectedCustomer.state, selectedCustomer.country]
-                                      .filter(Boolean).join(', ') || 'N/A'}
+                                    {primaryAddress
+                                      ? [
+                                          primaryAddress.line1,
+                                          primaryAddress.line2,
+                                          primaryAddress.city,
+                                          primaryAddress.state,
+                                          primaryAddress.postalCode,
+                                          primaryAddress.country,
+                                        ].filter(Boolean).join(', ')
+                                      : 'N/A'}
                                   </Typography>
                                 </Box>
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>

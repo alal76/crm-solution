@@ -38,21 +38,21 @@ public class NoteService : INoteService
 
     /// <inheritdoc />
     public async Task<IEnumerable<Note>> GetNotesAsync(
-        int? customerId = null,
+        int? accountId = null,
         int? opportunityId = null,
         int? productId = null,
         NoteType? noteType = null,
         bool? pinned = null)
     {
         _logger.LogDebug(
-            "Getting notes with filters: CustomerId={CustomerId}, OpportunityId={OpportunityId}, ProductId={ProductId}, NoteType={NoteType}, Pinned={Pinned}",
-            customerId, opportunityId, productId, noteType, pinned);
+            "Getting notes with filters: AccountId={AccountId}, OpportunityId={OpportunityId}, ProductId={ProductId}, NoteType={NoteType}, Pinned={Pinned}",
+            accountId, opportunityId, productId, noteType, pinned);
 
         var query = _context.Notes.AsNoTracking().Where(n => !n.IsDeleted);
 
-        if (customerId.HasValue)
+        if (accountId.HasValue)
         {
-            query = query.Where(n => n.AccountId == customerId);
+            query = query.Where(n => n.AccountId == accountId);
         }
 
         if (opportunityId.HasValue)

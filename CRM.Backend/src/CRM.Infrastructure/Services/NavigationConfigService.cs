@@ -234,8 +234,8 @@ namespace CRM.Infrastructure.Services
 
             // Main category
             items.Add(NavItem("dashboard", "Dashboard", "/dashboard", "Dashboard", "Dashboard", "main", 1));
-            items.Add(NavItem("accounts", "Accounts", "/accounts", "Business", "Customers", "main", 2));
-            items.Add(NavItem("customer-overview", "Customer 360°", "/customer-overview", "Preview", "Customers", "main", 3));
+            items.Add(NavItem("accounts", "Accounts", "/accounts", "Business", "Accounts", "main", 2));
+            items.Add(NavItem("account-overview", "Account 360°", "/account-overview", "Preview", "Accounts", "main", 3));
             items.Add(NavItem("contacts", "Contacts", "/contacts", "ContactPage", "Contacts", "main", 4));
 
             // Sales category
@@ -291,7 +291,7 @@ namespace CRM.Infrastructure.Services
             items.Add(NavItem("communications", "Communications", "/communications", "Chat", "Activities", "productivity", 5));
             items.Add(NavItem("interactions", "Interactions", "/interactions", "Forum", "Activities", "productivity", 6));
             items.Add(NavItem("approvals", "Approvals", "/approvals", "ThumbUp", "Workflows", "productivity", 7));
-            items.Add(NavItem("relationships", "Relationships", "/relationships", "Share", "Customers", "productivity", 8));
+            items.Add(NavItem("relationships", "Relationships", "/relationships", "Share", "Accounts", "productivity", 8));
 
             // Info category
             items.Add(NavItem("reports", "Reports", "/reports", "Assessment", "Reports", "info", 1));
@@ -595,7 +595,7 @@ namespace CRM.Infrastructure.Services
 
             // Core modules (always available)
             modules["Dashboard"] = new ModuleConfig { Name = "Dashboard", DisplayName = "Dashboard", Enabled = true, Visible = true };
-            modules["Customers"] = new ModuleConfig { Name = "Customers", DisplayName = "Accounts", Enabled = true, Visible = true };
+            modules["Accounts"] = new ModuleConfig { Name = "Accounts", DisplayName = "Accounts", Enabled = true, Visible = true };
             modules["Contacts"] = new ModuleConfig { Name = "Contacts", DisplayName = "Contacts", Enabled = true, Visible = true };
             modules["Leads"] = new ModuleConfig { Name = "Leads", DisplayName = "Leads", Enabled = true, Visible = true };
             modules["Opportunities"] = new ModuleConfig { Name = "Opportunities", DisplayName = "Opportunities", Enabled = true, Visible = true };
@@ -702,7 +702,7 @@ namespace CRM.Infrastructure.Services
             return permission switch
             {
                 "Dashboard" => menuAccess.Dashboard,
-                "Customers" => menuAccess.Customers,
+                "Accounts" => menuAccess.Accounts,
                 "Contacts" => menuAccess.Contacts,
                 "Leads" => menuAccess.Leads,
                 "Opportunities" => menuAccess.Opportunities,
@@ -746,7 +746,7 @@ namespace CRM.Infrastructure.Services
             return new MenuAccessPermissions
             {
                 Dashboard = groups.Any(g => g.CanAccessDashboard),
-                Customers = groups.Any(g => g.CanAccessCustomers),
+                Accounts = groups.Any(g => g.CanAccessAccounts),
                 Contacts = groups.Any(g => g.CanAccessContacts),
                 Leads = groups.Any(g => g.CanAccessLeads),
                 Opportunities = groups.Any(g => g.CanAccessOpportunities),
@@ -771,13 +771,13 @@ namespace CRM.Infrastructure.Services
             // Aggregate CRUD permissions for each entity type
             var entities = new Dictionary<string, EntityCrudPermissions>
             {
-                ["Customers"] = new EntityCrudPermissions
+                ["Accounts"] = new EntityCrudPermissions
                 {
-                    CanCreate = groups.Any(g => g.CanCreateCustomers),
-                    CanRead = groups.Any(g => g.CanAccessCustomers),
-                    CanUpdate = groups.Any(g => g.CanEditCustomers),
-                    CanDelete = groups.Any(g => g.CanDeleteCustomers),
-                    CanViewAll = groups.Any(g => g.CanViewAllCustomers)
+                    CanCreate = groups.Any(g => g.CanCreateAccounts),
+                    CanRead = groups.Any(g => g.CanAccessAccounts),
+                    CanUpdate = groups.Any(g => g.CanEditAccounts),
+                    CanDelete = groups.Any(g => g.CanDeleteAccounts),
+                    CanViewAll = groups.Any(g => g.CanViewAllAccounts)
                 },
                 ["Contacts"] = new EntityCrudPermissions
                 {

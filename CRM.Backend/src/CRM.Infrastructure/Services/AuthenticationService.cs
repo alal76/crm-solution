@@ -591,9 +591,9 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
         {
             permissions = new CRM.Core.Dtos.UserPermissions
             {
-                CanCreateCustomers = user.UserProfile.CanCreateCustomers,
-                CanEditCustomers = user.UserProfile.CanEditCustomers,
-                CanDeleteCustomers = user.UserProfile.CanDeleteCustomers,
+                CanCreateAccounts = user.UserProfile.CanCreateAccounts,
+                CanEditAccounts = user.UserProfile.CanEditAccounts,
+                CanDeleteAccounts = user.UserProfile.CanDeleteAccounts,
                 CanCreateOpportunities = user.UserProfile.CanCreateOpportunities,
                 CanEditOpportunities = user.UserProfile.CanEditOpportunities,
                 CanDeleteOpportunities = user.UserProfile.CanDeleteOpportunities,
@@ -616,7 +616,7 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
             {
                 IsSystemAdmin = true,
                 CanAccessDashboard = true,
-                CanAccessCustomers = true,
+                CanAccessAccounts = true,
                 CanAccessContacts = true,
                 CanAccessLeads = true,
                 CanAccessOpportunities = true,
@@ -634,7 +634,7 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
                 CanAccessSettings = true,
                 CanAccessUserManagement = true,
                 // All CRUD permissions
-                CanCreateCustomers = true, CanEditCustomers = true, CanDeleteCustomers = true, CanViewAllCustomers = true,
+                CanCreateAccounts = true, CanEditAccounts = true, CanDeleteAccounts = true, CanViewAllAccounts = true,
                 CanCreateContacts = true, CanEditContacts = true, CanDeleteContacts = true,
                 CanCreateLeads = true, CanEditLeads = true, CanDeleteLeads = true, CanConvertLeads = true,
                 CanCreateOpportunities = true, CanEditOpportunities = true, CanDeleteOpportunities = true, CanCloseOpportunities = true,
@@ -655,7 +655,7 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
             {
                 IsSystemAdmin = group.IsSystemAdmin,
                 CanAccessDashboard = group.CanAccessDashboard,
-                CanAccessCustomers = group.CanAccessCustomers,
+                CanAccessAccounts = group.CanAccessAccounts,
                 CanAccessContacts = group.CanAccessContacts,
                 CanAccessLeads = group.CanAccessLeads,
                 CanAccessOpportunities = group.CanAccessOpportunities,
@@ -672,10 +672,10 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
                 CanAccessReports = group.CanAccessReports,
                 CanAccessSettings = group.CanAccessSettings,
                 CanAccessUserManagement = group.CanAccessUserManagement,
-                CanCreateCustomers = group.CanCreateCustomers,
-                CanEditCustomers = group.CanEditCustomers,
-                CanDeleteCustomers = group.CanDeleteCustomers,
-                CanViewAllCustomers = group.CanViewAllCustomers,
+                CanCreateAccounts = group.CanCreateAccounts,
+                CanEditAccounts = group.CanEditAccounts,
+                CanDeleteAccounts = group.CanDeleteAccounts,
+                CanViewAllAccounts = group.CanViewAllAccounts,
                 CanCreateContacts = group.CanCreateContacts,
                 CanEditContacts = group.CanEditContacts,
                 CanDeleteContacts = group.CanDeleteContacts,

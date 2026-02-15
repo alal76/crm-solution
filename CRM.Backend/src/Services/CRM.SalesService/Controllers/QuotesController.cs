@@ -47,7 +47,7 @@ public class QuotesController : ControllerBase
     /// </summary>
     [HttpGet]
     public async Task<ActionResult<IEnumerable<Quote>>> GetQuotes(
-        [FromQuery] int? customerId = null,
+        [FromQuery] int? accountId = null,
         [FromQuery] int? opportunityId = null,
         [FromQuery] QuoteStatus? status = null,
         [FromQuery] bool? expired = null)
@@ -58,8 +58,8 @@ public class QuotesController : ControllerBase
             .Include(q => q.AssignedToUser)
             .AsQueryable();
 
-        if (customerId.HasValue)
-            query = query.Where(q => q.AccountId == customerId);
+        if (accountId.HasValue)
+            query = query.Where(q => q.AccountId == accountId);
 
         if (opportunityId.HasValue)
             query = query.Where(q => q.OpportunityId == opportunityId);
@@ -159,7 +159,7 @@ public class QuotesController : ControllerBase
         _context.Quotes.Add(quote);
         await _context.SaveChangesAsync();
 
-        _logger.LogInformation("Quote {QuoteNumber} created for customer {CustomerId}", quote.QuoteNumber, quote.AccountId);
+        _logger.LogInformation("Quote {QuoteNumber} created for account {AccountId}", quote.QuoteNumber, quote.AccountId);
         return CreatedAtAction(nameof(GetQuote), new { id = quote.Id }, quote);
     }
 
@@ -215,7 +215,7 @@ public class QuotesController : ControllerBase
     }
 
     /// <summary>
-    /// Send a quote to customer
+    /// Send a quote to account
     /// </summary>
     [HttpPost("{id}/send")]
     public async Task<IActionResult> SendQuote(int id)

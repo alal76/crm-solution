@@ -38,20 +38,20 @@ public class QuoteService : IQuoteService
 
     /// <inheritdoc />
     public async Task<IEnumerable<Quote>> GetQuotesAsync(
-        int? customerId = null,
+        int? accountId = null,
         int? opportunityId = null,
         QuoteStatus? status = null,
         bool? expired = null)
     {
         _logger.LogDebug(
-            "Getting quotes with filters: CustomerId={CustomerId}, OpportunityId={OpportunityId}, Status={Status}, Expired={Expired}",
-            customerId, opportunityId, status, expired);
+            "Getting quotes with filters: AccountId={AccountId}, OpportunityId={OpportunityId}, Status={Status}, Expired={Expired}",
+            accountId, opportunityId, status, expired);
 
         var query = _context.Quotes.AsNoTracking().Where(q => !q.IsDeleted);
 
-        if (customerId.HasValue)
+        if (accountId.HasValue)
         {
-            query = query.Where(q => q.AccountId == customerId);
+            query = query.Where(q => q.AccountId == accountId);
         }
 
         if (opportunityId.HasValue)

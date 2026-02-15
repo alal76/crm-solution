@@ -71,7 +71,7 @@ namespace CRM.Core.Dtos
     public class MenuAccessPermissions
     {
         public bool Dashboard { get; set; }
-        public bool Customers { get; set; }
+        public bool Accounts { get; set; }
         public bool Contacts { get; set; }
         public bool Leads { get; set; }
         public bool Opportunities { get; set; }

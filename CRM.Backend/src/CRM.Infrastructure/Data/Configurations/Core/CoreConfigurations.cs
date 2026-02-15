@@ -110,10 +110,10 @@ public class ContactConfiguration : IEntityTypeConfiguration<Contact>
             .HasForeignKey(c => c.PreferredContactMethodLookupId)
             .OnDelete(DeleteBehavior.SetNull);
 
-        // Contact belongs to Customer (one-to-many)
-        builder.HasOne(c => c.Customer)
-            .WithMany(cust => cust.Contacts)
-            .HasForeignKey(c => c.CustomerId)
+        // Contact belongs to Account (one-to-many)
+        builder.HasOne(c => c.Account)
+            .WithMany(a => a.Contacts)
+            .HasForeignKey(c => c.AccountId)
             .OnDelete(DeleteBehavior.SetNull);
     }
 }

@@ -97,7 +97,7 @@ public class OpportunityPlugin : CrmPluginBase
 
             if (accountId.HasValue && accountId.Value > 0)
             {
-                opportunities = await _opportunityService.GetOpportunitiesByCustomerAsync(accountId.Value);
+                opportunities = await _opportunityService.GetOpportunitiesByAccountAsync(accountId.Value);
             }
             else
             {

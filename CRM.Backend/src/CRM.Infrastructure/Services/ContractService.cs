@@ -39,7 +39,7 @@ public class ContractService : IContractService
     #region CRUD Operations
 
     public async Task<IEnumerable<Contract>> GetAllAsync(
-        int? customerId = null,
+        int? accountId = null,
         ContractStatus? status = null,
         CancellationToken cancellationToken = default)
     {
@@ -48,9 +48,9 @@ public class ContractService : IContractService
             .Include(c => c.Contact)
             .Where(c => !c.IsDeleted);
 
-        if (customerId.HasValue)
+        if (accountId.HasValue)
         {
-            query = query.Where(c => c.AccountId == customerId.Value);
+            query = query.Where(c => c.AccountId == accountId.Value);
         }
 
         if (status.HasValue)
@@ -533,11 +533,11 @@ public class ContractService : IContractService
 
     #region Queries
 
-    public async Task<IEnumerable<Contract>> GetActiveContractsAsync(int customerId, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<Contract>> GetActiveContractsAsync(int accountId, CancellationToken cancellationToken = default)
     {
         return await _context.Contracts
             .Include(c => c.Account)
-            .Where(c => c.AccountId == customerId && c.Status == ContractStatus.Active && !c.IsDeleted)
+            .Where(c => c.AccountId == accountId && c.Status == ContractStatus.Active && !c.IsDeleted)
             .OrderByDescending(c => c.CreatedAt)
             .ToListAsync(cancellationToken);
     }
@@ -610,10 +610,10 @@ public class ContractService : IContractService
             .ToListAsync(cancellationToken);
     }
 
-    public async Task<decimal> GetTotalContractValueAsync(int customerId, CancellationToken cancellationToken = default)
+    public async Task<decimal> GetTotalContractValueAsync(int accountId, CancellationToken cancellationToken = default)
     {
         return await _context.Contracts
-            .Where(c => c.AccountId == customerId && c.Status == ContractStatus.Active && !c.IsDeleted)
+            .Where(c => c.AccountId == accountId && c.Status == ContractStatus.Active && !c.IsDeleted)
             .SumAsync(c => c.TotalValue, cancellationToken);
     }
 

@@ -268,25 +268,25 @@ public class ServiceRequestsController : ControllerBase
     #region Query Operations
 
     /// <summary>
-    /// Get service requests by customer.
+    /// Get service requests by account.
     /// </summary>
-    /// <param name="customerId">The customer ID</param>
-    /// <returns>List of service requests for the customer</returns>
+    /// <param name="accountId">The account ID</param>
+    /// <returns>List of service requests for the account</returns>
     /// <response code="200">Returns the list of service requests</response>
     /// <response code="500">If there was an internal server error</response>
-    [HttpGet("customer/{customerId}")]
+    [HttpGet("account/{accountId}")]
     [ProducesResponseType(typeof(List<ServiceRequestListDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<List<ServiceRequestListDto>>> GetByCustomer(int customerId)
+    public async Task<ActionResult<List<ServiceRequestListDto>>> GetByAccount(int accountId)
     {
         try
         {
-            var requests = await _serviceRequestService.GetServiceRequestsByCustomerAsync(customerId);
+            var requests = await _serviceRequestService.GetServiceRequestsByAccountAsync(accountId);
             return Ok(requests);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error getting service requests for customer {CustomerId}", customerId);
+            _logger.LogError(ex, "Error getting service requests for account {AccountId}", accountId);
             return StatusCode(500, "An error occurred");
         }
     }

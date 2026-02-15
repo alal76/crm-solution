@@ -31,9 +31,9 @@ public class UserProfile : BaseEntity
     public string AccessiblePages { get; set; } = "[]"; // JSON array
 
     // Feature permissions
-    public bool CanCreateCustomers { get; set; } = false;
-    public bool CanEditCustomers { get; set; } = false;
-    public bool CanDeleteCustomers { get; set; } = false;
+    public bool CanCreateAccounts { get; set; } = false;
+    public bool CanEditAccounts { get; set; } = false;
+    public bool CanDeleteAccounts { get; set; } = false;
 
     public bool CanCreateOpportunities { get; set; } = false;
     public bool CanEditOpportunities { get; set; } = false;

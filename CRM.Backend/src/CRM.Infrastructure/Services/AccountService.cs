@@ -61,6 +61,7 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
     private readonly IRepository<CRM.Core.Entities.CustomField> _customFieldRepository;
     private readonly NormalizationService _normalizationService;
     private readonly IEntityEventDispatcher _eventDispatcher;
+    private readonly IPreferencesService _preferencesService;
 
     /// <summary>
     /// Initializes a new instance of AccountService with required dependencies.
@@ -80,7 +81,8 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
         IRepository<CRM.Core.Entities.EntityTag> entityTagRepository,
         IRepository<CRM.Core.Entities.CustomField> customFieldRepository,
         NormalizationService normalizationService,
-        IEntityEventDispatcher eventDispatcher)
+        IEntityEventDispatcher eventDispatcher,
+        IPreferencesService preferencesService)
     {
         _accountRepository = accountRepository;
         _accountContactRepository = accountContactRepository;
@@ -94,6 +96,7 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
         _customFieldRepository = customFieldRepository;
         _normalizationService = normalizationService;
         _eventDispatcher = eventDispatcher;
+        _preferencesService = preferencesService;
     }
 
     /// <summary>
@@ -164,11 +167,37 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
     ///
     /// FUNCTIONAL: Supports both Individual (name-based) and Organization (company-based) accounts.
     /// TECHNICAL: Maps DTO to entity, persists to database, returns created record.
+    /// VALIDATION: TODO-CRM001-08 - Duplicate email check and phone format validation
     /// </summary>
     /// <param name="dto">Account creation data</param>
     /// <returns>Created AccountDto with assigned ID</returns>
     public async Task<AccountDto> CreateAccountAsync(CreateAccountDto dto)
     {
+        // TODO-CRM001-08: Validate duplicate email
+        if (!string.IsNullOrEmpty(dto.Email))
+        {
+            var existingAccounts = await _accountRepository.FindAsync(
+                a => a.Email == dto.Email && !a.IsDeleted);
+            if (existingAccounts.Any())
+            {
+                throw new InvalidOperationException($"An account with email '{dto.Email}' already exists.");
+            }
+        }
+
+        // TODO-CRM001-08: Validate phone format
+        if (!string.IsNullOrEmpty(dto.Phone) && !IsValidPhoneFormat(dto.Phone))
+        {
+            throw new InvalidOperationException($"Invalid phone format: '{dto.Phone}'. Phone must contain only digits, spaces, hyphens, parentheses, and optional leading plus sign.");
+        }
+        if (!string.IsNullOrEmpty(dto.MobilePhone) && !IsValidPhoneFormat(dto.MobilePhone))
+        {
+            throw new InvalidOperationException($"Invalid mobile phone format: '{dto.MobilePhone}'. Phone must contain only digits, spaces, hyphens, parentheses, and optional leading plus sign.");
+        }
+        if (!string.IsNullOrEmpty(dto.FaxNumber) && !IsValidPhoneFormat(dto.FaxNumber))
+        {
+            throw new InvalidOperationException($"Invalid fax format: '{dto.FaxNumber}'. Phone must contain only digits, spaces, hyphens, parentheses, and optional leading plus sign.");
+        }
+
         var account = new Account
         {
             Category = dto.Category,
@@ -192,19 +221,6 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
             FaxNumber = dto.FaxNumber,
             JobTitle = dto.JobTitle,
             Website = dto.Website,
-            Address = dto.Address ?? string.Empty,
-            Address2 = dto.Address2,
-            City = dto.City ?? string.Empty,
-            State = dto.State ?? string.Empty,
-            ZipCode = dto.ZipCode ?? string.Empty,
-            Country = dto.Country ?? string.Empty,
-            ShippingAddress = dto.ShippingAddress,
-            ShippingAddress2 = dto.ShippingAddress2,
-            ShippingCity = dto.ShippingCity,
-            ShippingState = dto.ShippingState,
-            ShippingZipCode = dto.ShippingZipCode,
-            ShippingCountry = dto.ShippingCountry,
-            ShippingSameAsBilling = dto.ShippingSameAsBilling,
             Industry = dto.Industry,
             SubIndustry = dto.SubIndustry,
             NumberOfEmployees = dto.NumberOfEmployees,
@@ -230,12 +246,6 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
             Notes = dto.Notes ?? string.Empty,
             InternalNotes = dto.InternalNotes,
             Description = dto.Description,
-            OptInEmail = dto.OptInEmail,
-            OptInSms = dto.OptInSms,
-            OptInPhone = dto.OptInPhone,
-            PreferredContactMethod = dto.PreferredContactMethod,
-            Timezone = dto.Timezone,
-            PreferredLanguage = dto.PreferredLanguage,
             Currency = dto.Currency,
             CreatedAt = DateTime.UtcNow
         };
@@ -243,37 +253,19 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
         await _accountRepository.AddAsync(account);
         await _accountRepository.SaveAsync();
 
-        // Materialize normalized contact info for new account
-        if (!string.IsNullOrWhiteSpace(dto.Address) || !string.IsNullOrWhiteSpace(dto.City) || !string.IsNullOrWhiteSpace(dto.Country))
+        var preferences = new PreferencesDto
         {
-            var addr = new Address
-            {
-                Label = "Primary",
-                Line1 = dto.Address ?? string.Empty,
-                Line2 = dto.Address2,
-                City = dto.City ?? string.Empty,
-                State = dto.State,
-                PostalCode = dto.ZipCode,
-                Country = dto.Country ?? string.Empty,
-                IsPrimary = true,
-                Notes = "created_from_api"
-            };
-            await _addressRepository.AddAsync(addr);
-            await _addressRepository.SaveAsync();
+            OptInEmail = dto.OptInEmail,
+            OptInSms = dto.OptInSms,
+            OptInPhone = dto.OptInPhone,
+            OptInPostal = false,
+            PreferredContactMethod = dto.PreferredContactMethod,
+            PreferredLanguage = dto.PreferredLanguage,
+            Timezone = dto.Timezone
+        };
+        await _preferencesService.UpdateAccountPreferencesAsync(account.Id, preferences);
 
-            var link = new ContactInfoLink
-            {
-                OwnerType = ContactInfoOwnerType.Account,
-                OwnerId = account.Id,
-                InfoKind = ContactInfoKind.Address,
-                InfoId = addr.Id,
-                AddressId = addr.Id,
-                IsPrimaryForOwner = true,
-                Notes = "created_from_api"
-            };
-            await _contactInfoLinkRepository.AddAsync(link);
-            await _contactInfoLinkRepository.SaveAsync();
-        }
+        await UpsertAccountAddressesFromCreateDtoAsync(account.Id, dto);
 
         if (!string.IsNullOrWhiteSpace(dto.Email))
         {
@@ -343,6 +335,31 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
         if (account == null || account.IsDeleted)
             return null;
 
+        // TODO-CRM001-08: Validate duplicate email (if email is being updated)
+        if (dto.Email != null && dto.Email != account.Email)
+        {
+            var existingAccounts = await _accountRepository.FindAsync(
+                a => a.Email == dto.Email && a.Id != id && !a.IsDeleted);
+            if (existingAccounts.Any())
+            {
+                throw new InvalidOperationException($"An account with email '{dto.Email}' already exists.");
+            }
+        }
+
+        // TODO-CRM001-08: Validate phone format (if phone fields are being updated)
+        if (dto.Phone != null && !IsValidPhoneFormat(dto.Phone))
+        {
+            throw new InvalidOperationException($"Invalid phone format: '{dto.Phone}'. Phone must contain only digits, spaces, hyphens, parentheses, and optional leading plus sign.");
+        }
+        if (dto.MobilePhone != null && !IsValidPhoneFormat(dto.MobilePhone))
+        {
+            throw new InvalidOperationException($"Invalid mobile phone format: '{dto.MobilePhone}'. Phone must contain only digits, spaces, hyphens, parentheses, and optional leading plus sign.");
+        }
+        if (dto.FaxNumber != null && !IsValidPhoneFormat(dto.FaxNumber))
+        {
+            throw new InvalidOperationException($"Invalid fax format: '{dto.FaxNumber}'. Phone must contain only digits, spaces, hyphens, parentheses, and optional leading plus sign.");
+        }
+
         // Update fields if provided
         if (dto.Category.HasValue) account.Category = dto.Category.Value;
         if (dto.FirstName != null) account.FirstName = dto.FirstName;
@@ -366,19 +383,6 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
         if (dto.FaxNumber != null) account.FaxNumber = dto.FaxNumber;
         if (dto.JobTitle != null) account.JobTitle = dto.JobTitle;
         if (dto.Website != null) account.Website = dto.Website;
-        if (dto.Address != null) account.Address = dto.Address;
-        if (dto.Address2 != null) account.Address2 = dto.Address2;
-        if (dto.City != null) account.City = dto.City;
-        if (dto.State != null) account.State = dto.State;
-        if (dto.ZipCode != null) account.ZipCode = dto.ZipCode;
-        if (dto.Country != null) account.Country = dto.Country;
-        if (dto.ShippingAddress != null) account.ShippingAddress = dto.ShippingAddress;
-        if (dto.ShippingAddress2 != null) account.ShippingAddress2 = dto.ShippingAddress2;
-        if (dto.ShippingCity != null) account.ShippingCity = dto.ShippingCity;
-        if (dto.ShippingState != null) account.ShippingState = dto.ShippingState;
-        if (dto.ShippingZipCode != null) account.ShippingZipCode = dto.ShippingZipCode;
-        if (dto.ShippingCountry != null) account.ShippingCountry = dto.ShippingCountry;
-        if (dto.ShippingSameAsBilling.HasValue) account.ShippingSameAsBilling = dto.ShippingSameAsBilling.Value;
         if (dto.Industry != null) account.Industry = dto.Industry;
         if (dto.SubIndustry != null) account.SubIndustry = dto.SubIndustry;
         if (dto.NumberOfEmployees.HasValue) account.NumberOfEmployees = dto.NumberOfEmployees;
@@ -414,13 +418,8 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
         if (dto.InternalNotes != null) account.InternalNotes = dto.InternalNotes;
         if (dto.Description != null) account.Description = dto.Description;
         if (dto.CustomFields != null) account.CustomFields = dto.CustomFields;
-        if (dto.OptInEmail.HasValue) account.OptInEmail = dto.OptInEmail.Value;
-        if (dto.OptInSms.HasValue) account.OptInSms = dto.OptInSms.Value;
-        if (dto.OptInPhone.HasValue) account.OptInPhone = dto.OptInPhone.Value;
-        if (dto.PreferredContactMethod != null) account.PreferredContactMethod = dto.PreferredContactMethod;
+
         if (dto.PreferredContactTime != null) account.PreferredContactTime = dto.PreferredContactTime;
-        if (dto.Timezone != null) account.Timezone = dto.Timezone;
-        if (dto.PreferredLanguage != null) account.PreferredLanguage = dto.PreferredLanguage;
         if (dto.LinkedInUrl != null) account.LinkedInUrl = dto.LinkedInUrl;
         if (dto.TwitterHandle != null) account.TwitterHandle = dto.TwitterHandle;
         if (dto.FacebookUrl != null) account.FacebookUrl = dto.FacebookUrl;
@@ -431,45 +430,10 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
         await _accountRepository.UpdateAsync(account);
         await _accountRepository.SaveAsync();
 
+        await UpdateAccountPreferencesFromUpdateDtoAsync(account.Id, dto);
+        await UpsertAccountAddressesFromUpdateDtoAsync(account.Id, dto);
+
         // If inline contact fields were updated, materialize them into normalized tables
-        if (dto.Address != null || dto.City != null || dto.Country != null)
-        {
-            // unset existing primary address links for this account
-            var existingAddrLinks = await _contactInfoLinkRepository.FindAsync(l => l.OwnerType == ContactInfoOwnerType.Account && l.OwnerId == account.Id && l.InfoKind == ContactInfoKind.Address && l.IsPrimaryForOwner && !l.IsDeleted);
-            foreach (var l in existingAddrLinks)
-            {
-                l.IsPrimaryForOwner = false;
-                await _contactInfoLinkRepository.UpdateAsync(l);
-            }
-
-            var addr = new Address
-            {
-                Label = "Primary",
-                Line1 = dto.Address ?? string.Empty,
-                Line2 = dto.Address2,
-                City = dto.City ?? string.Empty,
-                State = dto.State,
-                PostalCode = dto.ZipCode,
-                Country = dto.Country ?? string.Empty,
-                IsPrimary = true,
-                Notes = "updated_from_api"
-            };
-            await _addressRepository.AddAsync(addr);
-            await _addressRepository.SaveAsync();
-
-            var link = new ContactInfoLink
-            {
-                OwnerType = ContactInfoOwnerType.Account,
-                OwnerId = account.Id,
-                InfoKind = ContactInfoKind.Address,
-                InfoId = addr.Id,
-                AddressId = addr.Id,
-                IsPrimaryForOwner = true,
-                Notes = "updated_from_api"
-            };
-            await _contactInfoLinkRepository.AddAsync(link);
-            await _contactInfoLinkRepository.SaveAsync();
-        }
 
         if (dto.Email != null)
         {
@@ -861,6 +825,35 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
         return true;
     }
 
+    // === Address Management (Normalized via EntityAddressLinks) ===
+
+    public async Task<List<LinkedAddressDto>> GetAccountAddressesAsync(int accountId)
+    {
+        return await _contactInfoService.GetAddressesAsync(EntityType.Account, accountId);
+    }
+
+    public async Task<LinkedAddressDto?> GetPrimaryBillingAddressAsync(int accountId)
+    {
+        var addresses = await GetAccountAddressesAsync(accountId);
+        return FindPrimaryAddress(addresses, "Billing", "Primary");
+    }
+
+    public async Task<LinkedAddressDto?> GetPrimaryShippingAddressAsync(int accountId)
+    {
+        var addresses = await GetAccountAddressesAsync(accountId);
+        return FindPrimaryAddress(addresses, "Shipping");
+    }
+
+    public async Task SetPrimaryBillingAddressAsync(int accountId, int addressId)
+    {
+        await _contactInfoService.SetPrimaryAddressAsync(EntityType.Account, accountId, addressId, AddressType.Billing);
+    }
+
+    public async Task SetPrimaryShippingAddressAsync(int accountId, int addressId)
+    {
+        await _contactInfoService.SetPrimaryAddressAsync(EntityType.Account, accountId, addressId, AddressType.Shipping);
+    }
+
     public async Task<IEnumerable<AccountDto>> GetAccountsByAssignedUserAsync(int userId)
     {
         var accounts = await _accountRepository.FindAsync(c =>
@@ -939,14 +932,26 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
             var primaryEmail = await _normalizationService.GetPrimaryEmailAsync(ContactInfoOwnerType.Account, account.Id) ?? account.Email;
             var primaryPhone = await _normalizationService.GetPrimaryPhoneAsync(ContactInfoOwnerType.Account, account.Id) ?? account.Phone;
             var primaryFax = await _normalizationService.GetPrimaryFaxAsync(ContactInfoOwnerType.Account, account.Id) ?? account.FaxNumber;
-            var primaryAddressEntity = await _normalizationService.GetPrimaryAddressAsync(ContactInfoOwnerType.Account, account.Id);
+            var addressLinks = await _contactInfoService.GetAddressesAsync(EntityType.Account, account.Id);
+            var billingAddress = FindPrimaryAddress(addressLinks, "Billing", "Primary");
+            var shippingAddress = FindPrimaryAddress(addressLinks, "Shipping");
+            var shippingSameAsBilling = false;
+            if (shippingAddress == null && billingAddress != null)
+            {
+                shippingAddress = billingAddress;
+                shippingSameAsBilling = true;
+            }
+            else if (shippingAddress != null && billingAddress != null)
+            {
+                shippingSameAsBilling = AreSameAddress(shippingAddress, billingAddress);
+            }
 
-            var addrLine1 = primaryAddressEntity?.Line1 ?? account.Address;
-            var addrLine2 = primaryAddressEntity?.Line2 ?? account.Address2;
-            var addrCity = primaryAddressEntity?.City ?? account.City;
-            var addrState = primaryAddressEntity?.State ?? account.State;
-            var addrPostal = primaryAddressEntity?.PostalCode ?? account.ZipCode;
-            var addrCountry = primaryAddressEntity?.Country ?? account.Country;
+            var addrLine1 = billingAddress?.Line1 ?? string.Empty;
+            var addrLine2 = billingAddress?.Line2;
+            var addrCity = billingAddress?.City ?? string.Empty;
+            var addrState = billingAddress?.State;
+            var addrPostal = billingAddress?.PostalCode;
+            var addrCountry = billingAddress?.Country ?? string.Empty;
 
             var tagsValue = await _normalizationService.GetTagsAsync("Account", account.Id) ?? account.Tags;
             var customFieldsValue = await _normalizationService.GetCustomFieldsAsync("Account", account.Id) ?? account.CustomFields;
@@ -955,6 +960,8 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
             var linkedInUrl = await _normalizationService.GetPrimarySocialAccountAsync(ContactInfoOwnerType.Account, account.Id, SocialNetwork.LinkedIn) ?? account.LinkedInUrl;
             var twitterHandle = await _normalizationService.GetPrimarySocialAccountAsync(ContactInfoOwnerType.Account, account.Id, SocialNetwork.Twitter) ?? account.TwitterHandle;
             var facebookUrl = await _normalizationService.GetPrimarySocialAccountAsync(ContactInfoOwnerType.Account, account.Id, SocialNetwork.Facebook) ?? account.FacebookUrl;
+
+        var preferences = await _preferencesService.GetAccountDefaultsAsync(account.Id);
 
         return new AccountDto
         {
@@ -989,13 +996,13 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
             State = addrState,
             ZipCode = addrPostal,
             Country = addrCountry,
-            ShippingAddress = account.ShippingAddress,
-            ShippingAddress2 = account.ShippingAddress2,
-            ShippingCity = account.ShippingCity,
-            ShippingState = account.ShippingState,
-            ShippingZipCode = account.ShippingZipCode,
-            ShippingCountry = account.ShippingCountry,
-            ShippingSameAsBilling = account.ShippingSameAsBilling,
+            ShippingAddress = shippingAddress?.Line1,
+            ShippingAddress2 = shippingAddress?.Line2,
+            ShippingCity = shippingAddress?.City,
+            ShippingState = shippingAddress?.State,
+            ShippingZipCode = shippingAddress?.PostalCode,
+            ShippingCountry = shippingAddress?.Country,
+            ShippingSameAsBilling = shippingSameAsBilling,
             Industry = account.Industry,
             SubIndustry = account.SubIndustry,
             NumberOfEmployees = account.NumberOfEmployees,
@@ -1026,13 +1033,13 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
             LinkedInUrl = linkedInUrl,
             TwitterHandle = twitterHandle,
             FacebookUrl = facebookUrl,
-            OptInEmail = account.OptInEmail,
-            OptInSms = account.OptInSms,
-            OptInPhone = account.OptInPhone,
-            PreferredContactMethod = account.PreferredContactMethod,
+            OptInEmail = preferences.OptInEmail,
+            OptInSms = preferences.OptInSms,
+            OptInPhone = preferences.OptInPhone,
+            PreferredContactMethod = preferences.PreferredContactMethod,
             PreferredContactTime = account.PreferredContactTime,
-            Timezone = account.Timezone,
-            PreferredLanguage = account.PreferredLanguage,
+            Timezone = preferences.Timezone,
+            PreferredLanguage = preferences.PreferredLanguage,
             AssignedToUserId = account.AssignedToUserId,
             AssignedToUserName = account.AssignedToUser?.Username,
             AccountManagerId = account.AccountManagerId,
@@ -1060,9 +1067,194 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
             // === Normalized Contact Info Collections ===
             EmailAddresses = await _contactInfoService.GetEmailAddressesAsync(EntityType.Account, account.Id),
             PhoneNumbers = await _contactInfoService.GetPhoneNumbersAsync(EntityType.Account, account.Id),
-            Addresses = await _contactInfoService.GetAddressesAsync(EntityType.Account, account.Id),
+            Addresses = addressLinks,
             SocialMediaAccounts = await _contactInfoService.GetSocialMediaAccountsAsync(EntityType.Account, account.Id)
         };
+    }
+
+    private async Task UpdateAccountPreferencesFromUpdateDtoAsync(int accountId, UpdateAccountDto dto)
+    {
+        if (!dto.OptInEmail.HasValue
+            && !dto.OptInSms.HasValue
+            && !dto.OptInPhone.HasValue
+            && dto.PreferredContactMethod == null
+            && dto.PreferredLanguage == null
+            && dto.Timezone == null)
+        {
+            return;
+        }
+
+        var current = await _preferencesService.GetAccountDefaultsAsync(accountId);
+        var update = new PreferencesDto
+        {
+            OptInEmail = dto.OptInEmail ?? current.OptInEmail,
+            OptInSms = dto.OptInSms ?? current.OptInSms,
+            OptInPhone = dto.OptInPhone ?? current.OptInPhone,
+            OptInPostal = current.OptInPostal,
+            PreferredContactMethod = dto.PreferredContactMethod ?? current.PreferredContactMethod,
+            PreferredLanguage = dto.PreferredLanguage ?? current.PreferredLanguage,
+            Timezone = dto.Timezone ?? current.Timezone,
+            DoNotCallDate = current.DoNotCallDate,
+            DoNotEmailDate = current.DoNotEmailDate
+        };
+
+        await _preferencesService.UpdateAccountPreferencesAsync(accountId, update);
+    }
+
+    private async Task UpsertAccountAddressesFromCreateDtoAsync(int accountId, CreateAccountDto dto)
+    {
+        LinkedAddressDto? billingLink = null;
+        if (HasBillingAddress(dto))
+        {
+            billingLink = await LinkAddressAsync(accountId, AddressType.Billing, true,
+                BuildAddressDto(dto.Address, dto.Address2, dto.City, dto.State, dto.ZipCode, dto.Country));
+        }
+
+        if (dto.ShippingSameAsBilling && billingLink != null)
+        {
+            await LinkAddressAsync(accountId, AddressType.Shipping, true, null, billingLink.Id);
+            return;
+        }
+
+        if (HasShippingAddress(dto))
+        {
+            await LinkAddressAsync(accountId, AddressType.Shipping, true,
+                BuildAddressDto(dto.ShippingAddress, dto.ShippingAddress2, dto.ShippingCity, dto.ShippingState, dto.ShippingZipCode, dto.ShippingCountry));
+        }
+    }
+
+    private async Task UpsertAccountAddressesFromUpdateDtoAsync(int accountId, UpdateAccountDto dto)
+    {
+        var hasBilling = HasBillingAddress(dto);
+        var hasShipping = HasShippingAddress(dto);
+        var shippingSameAsBilling = dto.ShippingSameAsBilling.HasValue && dto.ShippingSameAsBilling.Value;
+
+        if (!hasBilling && !hasShipping && !dto.ShippingSameAsBilling.HasValue)
+        {
+            return;
+        }
+
+        var addresses = await _contactInfoService.GetAddressesAsync(EntityType.Account, accountId);
+        var billingLink = FindPrimaryAddress(addresses, "Billing", "Primary");
+
+        if (hasBilling)
+        {
+            var billingDto = BuildAddressDto(dto.Address, dto.Address2, dto.City, dto.State, dto.ZipCode, dto.Country);
+            if (billingLink != null)
+            {
+                await _contactInfoService.UpdateAddressAsync(billingLink.Id, billingDto);
+                await _contactInfoService.SetPrimaryAddressAsync(EntityType.Account, accountId, billingLink.Id, AddressType.Billing);
+            }
+            else
+            {
+                billingLink = await LinkAddressAsync(accountId, AddressType.Billing, true, billingDto);
+            }
+        }
+
+        if (shippingSameAsBilling && billingLink != null)
+        {
+            await LinkAddressAsync(accountId, AddressType.Shipping, true, null, billingLink.Id);
+            return;
+        }
+
+        if (hasShipping)
+        {
+            var shippingLink = FindPrimaryAddress(addresses, "Shipping");
+            var shippingDto = BuildAddressDto(dto.ShippingAddress, dto.ShippingAddress2, dto.ShippingCity, dto.ShippingState, dto.ShippingZipCode, dto.ShippingCountry);
+            if (shippingLink != null)
+            {
+                await _contactInfoService.UpdateAddressAsync(shippingLink.Id, shippingDto);
+                await _contactInfoService.SetPrimaryAddressAsync(EntityType.Account, accountId, shippingLink.Id, AddressType.Shipping);
+            }
+            else
+            {
+                await LinkAddressAsync(accountId, AddressType.Shipping, true, shippingDto);
+            }
+        }
+    }
+
+    private static bool HasBillingAddress(CreateAccountDto dto)
+        => !string.IsNullOrWhiteSpace(dto.Address)
+           || !string.IsNullOrWhiteSpace(dto.City)
+           || !string.IsNullOrWhiteSpace(dto.State)
+           || !string.IsNullOrWhiteSpace(dto.ZipCode)
+           || !string.IsNullOrWhiteSpace(dto.Country);
+
+    private static bool HasBillingAddress(UpdateAccountDto dto)
+        => !string.IsNullOrWhiteSpace(dto.Address)
+           || !string.IsNullOrWhiteSpace(dto.City)
+           || !string.IsNullOrWhiteSpace(dto.State)
+           || !string.IsNullOrWhiteSpace(dto.ZipCode)
+           || !string.IsNullOrWhiteSpace(dto.Country);
+
+    private static bool HasShippingAddress(CreateAccountDto dto)
+        => !string.IsNullOrWhiteSpace(dto.ShippingAddress)
+           || !string.IsNullOrWhiteSpace(dto.ShippingCity)
+           || !string.IsNullOrWhiteSpace(dto.ShippingState)
+           || !string.IsNullOrWhiteSpace(dto.ShippingZipCode)
+           || !string.IsNullOrWhiteSpace(dto.ShippingCountry);
+
+    private static bool HasShippingAddress(UpdateAccountDto dto)
+        => !string.IsNullOrWhiteSpace(dto.ShippingAddress)
+           || !string.IsNullOrWhiteSpace(dto.ShippingCity)
+           || !string.IsNullOrWhiteSpace(dto.ShippingState)
+           || !string.IsNullOrWhiteSpace(dto.ShippingZipCode)
+           || !string.IsNullOrWhiteSpace(dto.ShippingCountry);
+
+    private static CreateAddressDto BuildAddressDto(
+        string? line1,
+        string? line2,
+        string? city,
+        string? state,
+        string? postalCode,
+        string? country)
+    {
+        return new CreateAddressDto
+        {
+            Line1 = line1 ?? string.Empty,
+            Line2 = line2,
+            City = city ?? string.Empty,
+            State = state,
+            PostalCode = postalCode,
+            Country = string.IsNullOrWhiteSpace(country) ? "United States" : country
+        };
+    }
+
+    private async Task<LinkedAddressDto> LinkAddressAsync(
+        int accountId,
+        AddressType addressType,
+        bool isPrimary,
+        CreateAddressDto? newAddress,
+        int? existingAddressId = null)
+    {
+        var linkDto = new LinkAddressDto
+        {
+            AddressId = existingAddressId,
+            NewAddress = newAddress,
+            EntityType = "Account",
+            EntityId = accountId,
+            AddressType = addressType.ToString(),
+            IsPrimary = isPrimary
+        };
+
+        return await _contactInfoService.LinkAddressAsync(linkDto);
+    }
+
+    private static LinkedAddressDto? FindPrimaryAddress(IEnumerable<LinkedAddressDto> addresses, params string[] addressTypes)
+    {
+        var typeSet = new HashSet<string>(addressTypes, StringComparer.OrdinalIgnoreCase);
+        var matches = addresses.Where(a => typeSet.Contains(a.AddressType)).ToList();
+        return matches.FirstOrDefault(a => a.IsPrimary) ?? matches.FirstOrDefault();
+    }
+
+    private static bool AreSameAddress(LinkedAddressDto left, LinkedAddressDto right)
+    {
+        return string.Equals(left.Line1, right.Line1, StringComparison.OrdinalIgnoreCase)
+               && string.Equals(left.Line2 ?? string.Empty, right.Line2 ?? string.Empty, StringComparison.OrdinalIgnoreCase)
+               && string.Equals(left.City, right.City, StringComparison.OrdinalIgnoreCase)
+               && string.Equals(left.State ?? string.Empty, right.State ?? string.Empty, StringComparison.OrdinalIgnoreCase)
+               && string.Equals(left.PostalCode ?? string.Empty, right.PostalCode ?? string.Empty, StringComparison.OrdinalIgnoreCase)
+               && string.Equals(left.Country, right.Country, StringComparison.OrdinalIgnoreCase);
     }
 
     private AccountContactDto MapAccountContactToDto(AccountContact cc, ContactDto? contact)
@@ -1088,5 +1280,21 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
             Notes = cc.Notes,
             CreatedAt = cc.CreatedAt
         };
+    }
+
+    /// <summary>
+    /// TODO-CRM001-08: Validates phone number format.
+    /// Allows: digits, spaces, hyphens, parentheses, and optional leading plus sign.
+    /// Pattern: ^\+?[0-9\s\-\(\)]+$
+    /// </summary>
+    /// <param name="phoneNumber">Phone number to validate</param>
+    /// <returns>True if phone format is valid, false otherwise</returns>
+    private static bool IsValidPhoneFormat(string phoneNumber)
+    {
+        if (string.IsNullOrWhiteSpace(phoneNumber))
+            return true;
+        
+        var phoneRegex = new System.Text.RegularExpressions.Regex(@"^\+?[0-9\s\-\(\)]+$");
+        return phoneRegex.IsMatch(phoneNumber);
     }
 }

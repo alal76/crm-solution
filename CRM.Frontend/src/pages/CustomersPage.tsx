@@ -29,6 +29,9 @@ import {
   ContactPhone as ContactPhoneIcon, Refresh as RefreshIcon,
   FilterAlt as FilterIcon, Close as CloseIcon, Note as NoteIcon,
   TrendingUp as TrendingUpIcon,
+  Settings as SettingsIcon,
+  Upload as UploadIcon,
+  Download as DownloadIcon,
 } from '@mui/icons-material';
 import apiClient from '../services/apiClient';
 import { getApiErrorMessage } from '../utils/errorHandler';
@@ -40,12 +43,16 @@ import ImportExportButtons from '../components/ImportExportButtons';
 import AdvancedSearch, { SearchField, SearchFilter, filterData } from '../components/AdvancedSearch';
 import { ContactInfoPanel } from '../components/ContactInfo';
 import NotesTab from '../components/NotesTab';
+import { preferencesService, PreferencesDto } from '../services/preferencesService';
 import { useFieldConfig, ModuleFieldConfiguration, dispatchFieldConfigUpdate } from '../hooks/useFieldConfig';
 import { usePagination } from '../hooks/usePagination';
 import { useAccountContext } from '../contexts/AccountContextProvider';
 import { useProfile } from '../contexts/ProfileContext';
 import { useApiState } from '../hooks/useApiState';
 import { useEntityTypeSubscription } from '../hooks/useSignalR';
+import { createAccountValidationSchema } from '../validation/accountSchema';
+import BulkImportDialog from '../components/dialogs/BulkImportDialog';
+import BulkExportButton from '../components/buttons/BulkExportButton';
 import logo from '../assets/logo.png';
 import { BaseEntity } from '../types';
 import logger from '../services/logger';
@@ -62,10 +69,9 @@ const SEARCH_FIELDS: SearchField[] = [
   { name: 'email', label: 'Email', type: 'text' },
   { name: 'lifecycleStage', label: 'Status', type: 'select', options: [...LIFECYCLE_STAGE_OPTIONS] },
   { name: 'industry', label: 'Industry', type: 'text' },
-  { name: 'city', label: 'City', type: 'text' },
 ];
 
-const SEARCHABLE_FIELDS = ['firstName', 'lastName', 'company', 'email', 'industry', 'city', 'phone'];
+const SEARCHABLE_FIELDS = ['firstName', 'lastName', 'company', 'email', 'industry', 'phone'];
 
 // Use shared constants
 const LIFECYCLE_STAGES = LIFECYCLE_STAGE_OPTIONS;
@@ -164,6 +170,23 @@ interface AccountForm {
   [key: string]: any; // Allow dynamic fields
 }
 
+const NORMALIZED_FIELDS = new Set([
+  'address',
+  'city',
+  'state',
+  'zipCode',
+  'country',
+  'optInEmail',
+  'optInSms',
+  'optInPhone',
+  'optInPostal',
+  'preferredContactMethod',
+  'preferredLanguage',
+  'timezone',
+  'doNotCallDate',
+  'doNotEmailDate',
+]);
+
 const INITIAL_FORM_DATA: AccountForm = {
   category: 1,
   firstName: '',
@@ -212,6 +235,18 @@ const INITIAL_FORM_DATA: AccountForm = {
   description: '',
 };
 
+const INITIAL_PREFERENCES: PreferencesDto = {
+  optInEmail: true,
+  optInSms: false,
+  optInPhone: true,
+  optInPostal: false,
+  preferredContactMethod: 'Email',
+  preferredLanguage: '',
+  timezone: '',
+  doNotCallDate: null,
+  doNotEmailDate: null,
+};
+
 function AccountsPage() {
   // Data state
   const [accounts, setAccounts] = useState<Account[]>([]);
@@ -226,6 +261,9 @@ function AccountsPage() {
   const [dialogTab, setDialogTab] = useState(0);
   const [formData, setFormData] = useState<AccountForm>(INITIAL_FORM_DATA);
   const [dialogError, setDialogError] = useState<string | null>(null);
+  const [preferencesForm, setPreferencesForm] = useState<PreferencesDto>(INITIAL_PREFERENCES);
+  const [preferencesError, setPreferencesError] = useState<string | null>(null);
+  const [preferencesSaving, setPreferencesSaving] = useState(false);
 
   // Contact linking state
   const [accountContacts, setAccountContacts] = useState<AccountContact[]>([]);
@@ -255,6 +293,9 @@ function AccountsPage() {
   const [duplicateCheckResult, setDuplicateCheckResult] = useState<DuplicateCheckResult | null>(null);
   const [duplicateLoading, setDuplicateLoading] = useState(false);
   const [mergeDialogOpen, setMergeDialogOpen] = useState(false);
+
+  // Bulk import/export state
+  const [bulkImportDialogOpen, setBulkImportDialogOpen] = useState(false);
 
   // API state for dialog operations
   const dialogApi = useApiState({ successTimeout: 3000 });
@@ -387,11 +428,19 @@ function AccountsPage() {
       setFormData(formValues);
       // Fetch linked contacts for all accounts
       fetchAccountContacts(account.id);
+      preferencesService.getAccountPreferences(account.id)
+        .then(prefs => setPreferencesForm({ ...INITIAL_PREFERENCES, ...prefs }))
+        .catch(err => {
+          console.error('Error loading account preferences:', err);
+          setPreferencesForm(INITIAL_PREFERENCES);
+        });
     } else {
       setEditingId(null);
       setAccountContacts([]);
       setFormData(INITIAL_FORM_DATA);
+      setPreferencesForm(INITIAL_PREFERENCES);
     }
+    setPreferencesError(null);
     setOpenDialog(true);
   }, []);
 
@@ -399,7 +448,50 @@ function AccountsPage() {
     setOpenDialog(false);
     setEditingId(null);
     setDialogError(null);
+    setPreferencesError(null);
   }, []);
+
+  const validatePreferenceDates = (prefs: PreferencesDto) => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const isFuture = (value?: string | null) => {
+      if (!value) return true;
+      const date = new Date(value);
+      if (Number.isNaN(date.getTime())) return false;
+      return date > today;
+    };
+
+    if (!isFuture(prefs.doNotCallDate)) {
+      setPreferencesError('Do Not Call date must be in the future.');
+      return false;
+    }
+
+    if (!isFuture(prefs.doNotEmailDate)) {
+      setPreferencesError('Do Not Email date must be in the future.');
+      return false;
+    }
+
+    setPreferencesError(null);
+    return true;
+  };
+
+  const handleSavePreferences = async () => {
+    if (!editingId) return;
+    if (!validatePreferenceDates(preferencesForm)) return;
+
+    try {
+      setPreferencesSaving(true);
+      await preferencesService.updateAccountPreferences(editingId, preferencesForm);
+      setSuccessMessage('Preferences updated successfully');
+      setTimeout(() => setSuccessMessage(null), 3000);
+    } catch (err) {
+      console.error('Error saving preferences:', err);
+      setPreferencesError('Failed to save preferences');
+    } finally {
+      setPreferencesSaving(false);
+    }
+  };
 
   // Validation using field configurations
   const validateRequiredFields = useCallback(() => {
@@ -429,7 +521,19 @@ function AccountsPage() {
   const handleSaveAccount = async () => {
     setDialogError(null);
 
-    if (!validateRequiredFields()) return;
+    // Use Yup schema validation with async email uniqueness check
+    const schema = createAccountValidationSchema(editingId || undefined);
+    try {
+      await schema.validate(formData, { abortEarly: false });
+    } catch (validationError: any) {
+      const errorMessages = validationError.inner
+        ?.map((e: any) => e.message)
+        .filter((m: string, i: number, arr: string[]) => arr.indexOf(m) === i) // Remove duplicates
+        .join('\n');
+      setDialogError(errorMessages || 'Validation failed');
+      logger.warn('[CustomersPage] Validation failed:', errorMessages);
+      return; // Stop if validation fails
+    }
 
     try {
       // Transform form data before sending - convert empty strings to null for date fields
@@ -438,6 +542,12 @@ function AccountsPage() {
       dateFields.forEach(field => {
         if (submitData[field] === '' || submitData[field] === undefined) {
           submitData[field] = null;
+        }
+      });
+
+      NORMALIZED_FIELDS.forEach(field => {
+        if (field in submitData) {
+          delete submitData[field];
         }
       });
 
@@ -453,6 +563,7 @@ function AccountsPage() {
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err: any) {
       setDialogError(getApiErrorMessage(err, 'Failed to save account'));
+      logger.error('[CustomersPage] Save account error:', err);
     }
   };
 
@@ -613,7 +724,8 @@ function AccountsPage() {
 
   // Render fields for a tab based on field configurations
   const renderTabFields = (tabIndex: number) => {
-    const tabFields = getTabFields(tabIndex, formData.category, formData);
+    const tabFields = getTabFields(tabIndex, formData.category, formData)
+      .filter(cfg => !NORMALIZED_FIELDS.has(cfg.fieldName));
 
     if (!tabFields.length) {
       return (
@@ -665,6 +777,10 @@ function AccountsPage() {
       baseTabs.push({ index: 102, name: 'Notes' });
     }
 
+    if (editingId) {
+      baseTabs.push({ index: 104, name: 'Preferences' });
+    }
+
     return baseTabs;
   };
 
@@ -703,6 +819,22 @@ function AccountsPage() {
               entityType="accounts"
               entityLabel="Accounts"
               onImportComplete={fetchAccounts}
+            />
+            <Tooltip title="Bulk import accounts from CSV">
+              <Button
+                variant="outlined"
+                size="small"
+                startIcon={<UploadIcon />}
+                onClick={() => setBulkImportDialogOpen(true)}
+                sx={{ borderColor: '#6750A4', color: '#6750A4' }}
+              >
+                Import
+              </Button>
+            </Tooltip>
+            <BulkExportButton 
+              variant="outlined" 
+              size="small"
+              sx={{ borderColor: '#6750A4', color: '#6750A4' }}
             />
             <Button
               variant="outlined"
@@ -979,6 +1111,7 @@ function AccountsPage() {
                   tab.index === 101 ? <GroupIcon fontSize="small" /> : 
                   tab.index === 102 ? <NoteIcon fontSize="small" /> : 
                   tab.index === 103 ? <TrendingUpIcon fontSize="small" /> :
+                  tab.index === 104 ? <SettingsIcon fontSize="small" /> :
                   undefined
                 }
                 iconPosition="start"
@@ -1112,6 +1245,124 @@ function AccountsPage() {
                     entityId={editingId}
                     entityName={formData.company || `${formData.firstName} ${formData.lastName}`}
                   />
+                </TabPanel>
+              )}
+
+              {/* Preferences Tab */}
+              {editingId && (
+                <TabPanel value={dialogTab} index={visibleTabs.findIndex(t => t.index === 104)}>
+                  <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2 }}>
+                    Communication Preferences
+                  </Typography>
+                  {preferencesError && (
+                    <Alert severity="error" sx={{ mb: 2 }}>{preferencesError}</Alert>
+                  )}
+                  <Grid container spacing={2}>
+                    <Grid item xs={12} sm={6}>
+                      <FormControlLabel
+                        control={
+                          <Checkbox
+                            checked={!!preferencesForm.optInEmail}
+                            onChange={(e) => setPreferencesForm(prev => ({ ...prev, optInEmail: e.target.checked }))}
+                          />
+                        }
+                        label="Opt-in Email"
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <FormControlLabel
+                        control={
+                          <Checkbox
+                            checked={!!preferencesForm.optInSms}
+                            onChange={(e) => setPreferencesForm(prev => ({ ...prev, optInSms: e.target.checked }))}
+                          />
+                        }
+                        label="Opt-in SMS"
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <FormControlLabel
+                        control={
+                          <Checkbox
+                            checked={!!preferencesForm.optInPhone}
+                            onChange={(e) => setPreferencesForm(prev => ({ ...prev, optInPhone: e.target.checked }))}
+                          />
+                        }
+                        label="Opt-in Phone"
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <FormControlLabel
+                        control={
+                          <Checkbox
+                            checked={!!preferencesForm.optInPostal}
+                            onChange={(e) => setPreferencesForm(prev => ({ ...prev, optInPostal: e.target.checked }))}
+                          />
+                        }
+                        label="Opt-in Postal"
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        label="Preferred Contact Method"
+                        size="small"
+                        value={preferencesForm.preferredContactMethod || ''}
+                        onChange={(e) => setPreferencesForm(prev => ({ ...prev, preferredContactMethod: e.target.value }))}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        label="Preferred Language"
+                        size="small"
+                        value={preferencesForm.preferredLanguage || ''}
+                        onChange={(e) => setPreferencesForm(prev => ({ ...prev, preferredLanguage: e.target.value }))}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        label="Timezone"
+                        size="small"
+                        value={preferencesForm.timezone || ''}
+                        onChange={(e) => setPreferencesForm(prev => ({ ...prev, timezone: e.target.value }))}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        type="date"
+                        label="Do Not Call Until"
+                        size="small"
+                        InputLabelProps={{ shrink: true }}
+                        value={preferencesForm.doNotCallDate || ''}
+                        onChange={(e) => setPreferencesForm(prev => ({ ...prev, doNotCallDate: e.target.value || null }))}
+                      />
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <TextField
+                        fullWidth
+                        type="date"
+                        label="Do Not Email Until"
+                        size="small"
+                        InputLabelProps={{ shrink: true }}
+                        value={preferencesForm.doNotEmailDate || ''}
+                        onChange={(e) => setPreferencesForm(prev => ({ ...prev, doNotEmailDate: e.target.value || null }))}
+                      />
+                    </Grid>
+                    <Grid item xs={12}>
+                      <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                        <Button
+                          variant="contained"
+                          onClick={handleSavePreferences}
+                          disabled={preferencesSaving}
+                        >
+                          {preferencesSaving ? 'Saving...' : 'Save Preferences'}
+                        </Button>
+                      </Box>
+                    </Grid>
+                  </Grid>
                 </TabPanel>
               )}
             </>
@@ -1322,6 +1573,17 @@ function AccountsPage() {
           setSelectedIds([]);
           setSuccessMessage(`Records merged successfully into master record #${result.masterRecordId}`);
           fetchAccounts();
+        }}
+      />
+
+      {/* Bulk Import Dialog */}
+      <BulkImportDialog
+        open={bulkImportDialogOpen}
+        onClose={() => setBulkImportDialogOpen(false)}
+        onImportComplete={(count) => {
+          setSuccessMessage(`${count} account(s) imported successfully`);
+          fetchAccounts();
+          setBulkImportDialogOpen(false);
         }}
       />
     </Box>

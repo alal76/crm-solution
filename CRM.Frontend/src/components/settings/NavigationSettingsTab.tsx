@@ -577,7 +577,79 @@ function NavigationSettingsTab() {
     return navItems.filter(item => item.category === categoryId);
   };
 
+  const validateNavigationOrder = () => {
+    const duplicateIds = (values: string[]) =>
+      values
+        .filter(Boolean)
+        .reduce<Record<string, number>>((acc, value) => {
+          const key = value.toLowerCase();
+          acc[key] = (acc[key] || 0) + 1;
+          return acc;
+        }, {});
+
+    const navIdCounts = duplicateIds(navItems.map(item => item.id));
+    const categoryIdCounts = duplicateIds(categories.map(category => category.id));
+    const subcategoryIdCounts = duplicateIds(adminSubcategories.map(subcategory => subcategory.id));
+
+    const hasDuplicates = (counts: Record<string, number>) =>
+      Object.values(counts).some(count => count > 1);
+
+    if (hasDuplicates(navIdCounts)) {
+      return 'Navigation item IDs must be unique.';
+    }
+
+    if (hasDuplicates(categoryIdCounts)) {
+      return 'Category IDs must be unique.';
+    }
+
+    if (hasDuplicates(subcategoryIdCounts)) {
+      return 'Admin subcategory IDs must be unique.';
+    }
+
+    const hasInvalidOrder = (orders: Array<{ id: string; order: number }>) =>
+      orders.some(item => !Number.isInteger(item.order) || item.order < 0);
+
+    if (hasInvalidOrder(navItems.map(item => ({ id: item.id, order: item.order })))) {
+      return 'Navigation item order must be a non-negative integer.';
+    }
+
+    if (hasInvalidOrder(categories.map(category => ({ id: category.id, order: category.order })))) {
+      return 'Category order must be a non-negative integer.';
+    }
+
+    if (hasInvalidOrder(adminSubcategories.map(subcategory => ({ id: subcategory.id, order: subcategory.order })))) {
+      return 'Admin subcategory order must be a non-negative integer.';
+    }
+
+    const categoryIds = new Set(categories.map(category => category.id));
+    const subcategoryIds = new Set(adminSubcategories.map(subcategory => subcategory.id));
+
+    for (const item of navItems) {
+      if (!categoryIds.has(item.category)) {
+        return `Navigation item "${item.label}" references missing category "${item.category}".`;
+      }
+
+      if (item.category === 'admin') {
+        if (!item.adminSubcategory) {
+          return `Admin navigation item "${item.label}" requires a subcategory.`;
+        }
+
+        if (!subcategoryIds.has(item.adminSubcategory)) {
+          return `Navigation item "${item.label}" references missing subcategory "${item.adminSubcategory}".`;
+        }
+      }
+    }
+
+    return null;
+  };
+
   const handleSave = async () => {
+    const validationError = validateNavigationOrder();
+    if (validationError) {
+      setError(validationError);
+      return;
+    }
+
     setSaving(true);
     setError(null);
     setSuccess(null);

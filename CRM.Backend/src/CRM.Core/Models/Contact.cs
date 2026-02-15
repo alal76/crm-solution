@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using CRM.Core.Entities;
 
 namespace CRM.Core.Models;
@@ -153,6 +154,25 @@ public class Contact
 
     #endregion
 
+    #region Preferences
+
+    /// <summary>
+    /// Optional preference overrides for this contact.
+    /// </summary>
+    public int? PreferencesId { get; set; }
+
+    /// <summary>
+    /// Preference overrides (used when UseCustomPreferences = true).
+    /// </summary>
+    public Preferences? Preferences { get; set; }
+
+    /// <summary>
+    /// Indicates whether this contact uses custom preferences instead of account defaults.
+    /// </summary>
+    public bool UseCustomPreferences { get; set; } = false;
+
+    #endregion
+
     #region Address - Primary
 
     [MaxLength(500)]
@@ -234,7 +254,14 @@ public class Contact
     public bool? IsQualified { get; set; }
     public DateTime? QualifiedDate { get; set; }
     public DateTime? ConvertedDate { get; set; }
-    public int? ConvertedToCustomerId { get; set; }
+    public int? ConvertedToAccountId { get; set; }
+
+    [NotMapped]
+    public int? ConvertedToCustomerId
+    {
+        get => ConvertedToAccountId;
+        set => ConvertedToAccountId = value;
+    }
 
     [MaxLength(20)]
     public string? LeadRating { get; set; } // Hot, Warm, Cold
@@ -318,18 +345,33 @@ public class Contact
 
     #region Relationships
 
-    public int? AccountId { get; set; } // Related Customer/Account
+    public int? AccountId { get; set; } // Related Account
     public int? CampaignId { get; set; } // Source campaign
 
     /// <summary>
-    /// Foreign key to the Account this contact belongs to (one-to-many)
+    /// Alias for legacy CustomerId usage
     /// </summary>
-    public int? CustomerId { get; set; }
+    [NotMapped]
+    public int? CustomerId
+    {
+        get => AccountId;
+        set => AccountId = value;
+    }
 
     /// <summary>
     /// Navigation property to the parent Account
     /// </summary>
-    public Account? Customer { get; set; }
+    public Account? Account { get; set; }
+
+    /// <summary>
+    /// Alias for legacy Customer navigation usage
+    /// </summary>
+    [NotMapped]
+    public Account? Customer
+    {
+        get => Account;
+        set => Account = value;
+    }
 
     #endregion
 
@@ -405,7 +447,7 @@ public class Contact
     public ICollection<ContactInfoLink>? ContactInfoLinks { get; set; }
 
     /// <summary>
-    /// Many-to-many relationships with customers (via CustomerContact junction)
+    /// Many-to-many relationships with accounts (via AccountContact junction)
     /// </summary>
     public ICollection<AccountContact>? AccountContacts { get; set; }
 

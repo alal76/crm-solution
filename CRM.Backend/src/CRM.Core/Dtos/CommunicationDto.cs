@@ -146,7 +146,7 @@ public class CommunicationMessageListDto
 
     // Linked entities
     public int? AccountId { get; set; }
-    public string? CustomerName { get; set; }
+    public string? AccountName { get; set; }
     public int? ContactId { get; set; }
     public string? ContactName { get; set; }
 }
@@ -184,7 +184,7 @@ public class CommunicationMessageDto
 
     // Linked entities
     public int? AccountId { get; set; }
-    public string? CustomerName { get; set; }
+    public string? AccountName { get; set; }
     public int? ContactId { get; set; }
     public string? ContactName { get; set; }
     public int? LeadId { get; set; }
@@ -385,7 +385,7 @@ public class ConversationListDto
 
     // Linked entities
     public int? AccountId { get; set; }
-    public string? CustomerName { get; set; }
+    public string? AccountName { get; set; }
     public int? ContactId { get; set; }
     public string? ContactName { get; set; }
 }

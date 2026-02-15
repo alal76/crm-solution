@@ -141,8 +141,8 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
             CategoryName = entity.Category?.Name,
             SubcategoryId = entity.SubcategoryId,
             SubcategoryName = entity.Subcategory?.Name,
-            CustomerId = entity.AccountId,
-            CustomerName = entity.Account != null ? $"{entity.Account.FirstName} {entity.Account.LastName}".Trim() : null,
+            AccountId = entity.AccountId,
+            AccountName = entity.Account != null ? $"{entity.Account.FirstName} {entity.Account.LastName}".Trim() : null,
             ContactId = entity.ContactId,
             ContactName = entity.Contact != null ? $"{entity.Contact.FirstName} {entity.Contact.LastName}".Trim() : null,
             RequesterName = entity.RequesterName,
@@ -180,7 +180,7 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
             InternalNotes = entity.InternalNotes,
             EscalationLevel = entity.EscalationLevel,
             ReopenCount = entity.ReopenCount,
-            IsVipCustomer = entity.IsVipCustomer,
+            IsVipAccount = entity.IsVipCustomer,
             EstimatedEffortHours = entity.EstimatedEffortHours,
             ActualEffortHours = entity.ActualEffortHours,
             IsOpen = entity.IsOpen,
@@ -213,13 +213,13 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
         PriorityName = GetPriorityName(entity.Priority),
         CategoryName = entity.Category?.Name,
         SubcategoryName = entity.Subcategory?.Name,
-        CustomerName = entity.Account != null ? $"{entity.Account.FirstName} {entity.Account.LastName}".Trim() : entity.RequesterName,
+        AccountName = entity.Account != null ? $"{entity.Account.FirstName} {entity.Account.LastName}".Trim() : entity.RequesterName,
         AssignedToUserName = entity.AssignedToUser != null ? $"{entity.AssignedToUser.FirstName} {entity.AssignedToUser.LastName}".Trim() : null,
         ResponseDueDate = entity.ResponseDueDate,
         ResolutionDueDate = entity.ResolutionDueDate,
         ResponseSlaBreached = entity.ResponseSlaBreached,
         ResolutionSlaBreached = entity.ResolutionSlaBreached,
-        IsVipCustomer = entity.IsVipCustomer,
+        IsVipAccount = entity.IsVipCustomer,
         EscalationLevel = entity.EscalationLevel,
         CreatedAt = entity.CreatedAt,
         UpdatedAt = entity.UpdatedAt
@@ -308,8 +308,8 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
         if (filter.SubcategoryIds?.Any() == true)
             query = query.Where(sr => sr.SubcategoryId.HasValue && filter.SubcategoryIds.Contains(sr.SubcategoryId.Value));
 
-        if (filter.CustomerId.HasValue)
-            query = query.Where(sr => sr.AccountId == filter.CustomerId);
+        if (filter.AccountId.HasValue)
+            query = query.Where(sr => sr.AccountId == filter.AccountId);
 
         if (filter.ContactId.HasValue)
             query = query.Where(sr => sr.ContactId == filter.ContactId);
@@ -336,8 +336,8 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
             }
         }
 
-        if (filter.IsVipCustomer.HasValue)
-            query = query.Where(sr => sr.IsVipCustomer == filter.IsVipCustomer);
+        if (filter.IsVipAccount.HasValue)
+            query = query.Where(sr => sr.IsVipCustomer == filter.IsVipAccount);
 
         if (filter.ResponseSlaBreached.HasValue)
             query = query.Where(sr => sr.ResponseSlaBreached == filter.ResponseSlaBreached);
@@ -441,7 +441,7 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
             Priority = dto.Priority,
             CategoryId = dto.CategoryId,
             SubcategoryId = dto.SubcategoryId,
-            AccountId = dto.CustomerId,
+            AccountId = dto.AccountId,
             ContactId = dto.ContactId,
             RequesterName = dto.RequesterName,
             RequesterEmail = dto.RequesterEmail,
@@ -458,7 +458,7 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
             ParentServiceRequestId = dto.ParentServiceRequestId,
             Tags = dto.Tags,
             InternalNotes = dto.InternalNotes,
-            IsVipCustomer = dto.IsVipCustomer,
+            IsVipCustomer = dto.IsVipAccount,
             EstimatedEffortHours = dto.EstimatedEffortHours,
             CreatedAt = DateTime.UtcNow
         };
@@ -511,7 +511,7 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
         entity.Priority = dto.Priority;
         entity.CategoryId = dto.CategoryId;
         entity.SubcategoryId = dto.SubcategoryId;
-        entity.AccountId = dto.CustomerId;
+        entity.AccountId = dto.AccountId;
         entity.ContactId = dto.ContactId;
         entity.RequesterName = dto.RequesterName;
         entity.RequesterEmail = dto.RequesterEmail;
@@ -528,7 +528,7 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
         entity.ParentServiceRequestId = dto.ParentServiceRequestId;
         entity.Tags = dto.Tags;
         entity.InternalNotes = dto.InternalNotes;
-        entity.IsVipCustomer = dto.IsVipCustomer;
+        entity.IsVipCustomer = dto.IsVipAccount;
         entity.EstimatedEffortHours = dto.EstimatedEffortHours;
         entity.ActualEffortHours = dto.ActualEffortHours;
         entity.LastModifiedByUserId = modifiedByUserId;
@@ -570,13 +570,13 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
         return true;
     }
 
-    public async Task<List<ServiceRequestListDto>> GetServiceRequestsByCustomerAsync(int customerId)
+    public async Task<List<ServiceRequestListDto>> GetServiceRequestsByAccountAsync(int accountId)
     {
         var entities = await _context.ServiceRequests
             .Include(sr => sr.Category)
             .Include(sr => sr.Subcategory)
             .Include(sr => sr.AssignedToUser)
-            .Where(sr => sr.AccountId == customerId && !sr.IsDeleted)
+            .Where(sr => sr.AccountId == accountId && !sr.IsDeleted)
             .OrderByDescending(sr => sr.CreatedAt)
             .ToListAsync();
 

@@ -192,16 +192,16 @@ Respond ONLY with valid JSON in this exact format:
                 });
             }
 
-            string customerContext = "";
-            if (request.CustomerId.HasValue)
+            string accountContext = "";
+            if (request.AccountId.HasValue)
             {
-                var customer = await _context.Customers
+                var account = await _context.Accounts
                     .AsNoTracking()
-                    .FirstOrDefaultAsync(c => c.Id == request.CustomerId.Value);
+                    .FirstOrDefaultAsync(c => c.Id == request.AccountId.Value);
 
-                if (customer != null)
+                if (account != null)
                 {
-                    customerContext = $"\n\nCustomer Context:\n- Company: {customer.Company}\n- Account Type: {customer.Category}\n- Industry: {customer.Industry}";
+                    accountContext = $"\n\nAccount Context:\n- Company: {account.Company}\n- Account Type: {account.Category}\n- Industry: {account.Industry}";
                 }
             }
 
@@ -219,7 +219,7 @@ Respond ONLY with valid JSON in this exact format:
 Generate {request.NumSuggestions ?? 3} different response options for the given email.
 {toneInstruction}
 
-{customerContext}
+{accountContext}
 
 Respond with JSON in this format:
 {{
@@ -529,7 +529,7 @@ public class EmailAnalysisRequest
     public string EmailContent { get; set; } = "";
     public string? Subject { get; set; }
     public string? SenderEmail { get; set; }
-    public int? CustomerId { get; set; }
+    public int? AccountId { get; set; }
 }
 
 public class ResponseSuggestionRequest
@@ -538,7 +538,7 @@ public class ResponseSuggestionRequest
     public string? Subject { get; set; }
     public string? Tone { get; set; }
     public int? NumSuggestions { get; set; }
-    public int? CustomerId { get; set; }
+    public int? AccountId { get; set; }
 }
 
 public class SubjectOptimizationRequest

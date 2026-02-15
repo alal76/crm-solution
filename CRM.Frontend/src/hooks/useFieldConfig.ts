@@ -56,7 +56,8 @@ export function useFieldConfig(moduleName: string): UseFieldConfigResult {
       setLoading(true);
       setError(null);
       const response = await apiClient.get(`/modulefieldconfigurations/${moduleName}`);
-      setFieldConfigs(response.data || []);
+      const configs = response.data || [];
+      setFieldConfigs(configs);
     } catch (err: any) {
       console.error(`Error fetching field configurations for ${moduleName}:`, err);
       setError(err.response?.data?.message || 'Failed to load field configurations');
@@ -74,7 +75,10 @@ export function useFieldConfig(moduleName: string): UseFieldConfigResult {
   // Listen for field config update events
   useEffect(() => {
     const handleUpdate = (event: CustomEvent) => {
-      if (event.detail?.moduleName === moduleName || !event.detail?.moduleName) {
+      if (
+        event.detail?.moduleName === moduleName ||
+        !event.detail?.moduleName
+      ) {
         fetchConfigurations();
       }
     };

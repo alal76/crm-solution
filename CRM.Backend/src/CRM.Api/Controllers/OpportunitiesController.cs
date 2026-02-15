@@ -101,25 +101,25 @@ public class OpportunitiesController : ControllerBase
     }
 
     /// <summary>
-    /// Gets all opportunities for a specific customer/account.
+    /// Gets all opportunities for a specific account.
     /// </summary>
-    /// <param name="customerId">The customer/account ID</param>
-    /// <returns>List of opportunities for the customer</returns>
+    /// <param name="accountId">The account ID</param>
+    /// <returns>List of opportunities for the account</returns>
     /// <response code="200">Returns the list of opportunities</response>
     /// <response code="500">If there was an internal server error</response>
-    [HttpGet("customer/{customerId}")]
+    [HttpGet("account/{accountId}")]
     [ProducesResponseType(typeof(IEnumerable<Opportunity>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> GetByCustomerId(int customerId)
+    public async Task<IActionResult> GetByAccountId(int accountId)
     {
         try
         {
-            var opportunities = await _opportunityService.GetOpportunitiesByCustomerAsync(customerId);
+            var opportunities = await _opportunityService.GetOpportunitiesByAccountAsync(accountId);
             return Ok(opportunities);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error retrieving opportunities for customer {CustomerId}", customerId);
+            _logger.LogError(ex, "Error retrieving opportunities for account {AccountId}", accountId);
             return StatusCode(500, "Internal server error");
         }
     }

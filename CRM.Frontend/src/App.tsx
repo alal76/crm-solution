@@ -255,9 +255,12 @@ function ThemedApp() {
                   <AccountContextProvider>
                     <EntityContextProvider>
                       <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+                        <a href="#main-content" className="skip-link">
+                          Skip to main content
+                        </a>
                         <Navigation />
                         <BreadcrumbsComponent />
-                        <Box sx={{ flex: 1, py: 4, px: 2 }}>
+                        <Box id="main-content" role="main" sx={{ flex: 1, py: 4, px: 2 }}>
                           <Container maxWidth="lg">
                     <Suspense fallback={<LoadingFallback />}>
                     <Routes>

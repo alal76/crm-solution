@@ -25,7 +25,7 @@ namespace CRM.Infrastructure.Services;
 /// <summary>
 /// Service to seed comprehensive sample data for the CRM system.
 /// Seeds data directly to the production database.
-/// Includes 100+ entries for products, services, customers, contacts, leads, opportunities, etc.
+/// Includes 100+ entries for products, services, accounts, contacts, leads, opportunities, etc.
 /// Admin users can clear all sample data while preserving master data (ZipCodes, ColorPalettes).
 /// </summary>
 public class SampleDataSeederService
@@ -80,7 +80,7 @@ public class SampleDataSeederService
             await SeedSampleUsersToContextAsync(dbContext);
             await SeedProductsToContextAsync(dbContext);
             await SeedServiceRequestCategoriesToContextAsync(dbContext);
-            await SeedCustomersToContextAsync(dbContext);
+            await SeedAccountsToContextAsync(dbContext);
             await SeedContactsToContextAsync(dbContext);
             await SeedLeadsToContextAsync(dbContext);
             await SeedOpportunitiesToContextAsync(dbContext);
@@ -1345,49 +1345,44 @@ public class SampleDataSeederService
         string FinalCustomerResolutions);
 
     /// <summary>
-    /// Seed customers to production database
+    /// Seed accounts to production database
     /// </summary>
-    public async Task SeedCustomersAsync()
+    public async Task SeedAccountsAsync()
     {
         var dbContext = _context as CrmDbContext ?? throw new InvalidOperationException("Context must be CrmDbContext");
-        await SeedCustomersToContextAsync(dbContext);
+        await SeedAccountsToContextAsync(dbContext);
     }
 
     /// <summary>
-    /// Seed 100 customers (70 organizations, 30 individuals)
+    /// Seed 100 accounts (70 organizations, 30 individuals)
     /// </summary>
-    private async Task SeedCustomersToContextAsync(CrmDbContext context)
+    private async Task SeedAccountsToContextAsync(CrmDbContext context)
     {
-        _logger.LogInformation("Seeding sample customers...");
+        _logger.LogInformation("Seeding sample accounts...");
 
-        var existingCustomers = await context.Accounts.CountAsync();
-        if (existingCustomers >= 50)
+        var existingAccounts = await context.Accounts.CountAsync();
+        if (existingAccounts >= 50)
         {
-            _logger.LogInformation("Customers already exist. Skipping...");
+            _logger.LogInformation("Accounts already exist. Skipping...");
             return;
         }
 
-        var customers = new List<Account>();
+        var accounts = new List<Account>();
         var industries = new[] { "Technology", "Healthcare", "Finance", "Manufacturing", "Retail", "Education", "Legal", "Construction", "Media", "Transportation" };
 
-        // 70 Organization Customers
+        // 70 Organization Accounts
         for (int i = 1; i <= 70; i++)
         {
             var prefix = CompanyPrefixes[_random.Next(CompanyPrefixes.Length)];
             var suffix = CompanySuffixes[_random.Next(CompanySuffixes.Length)];
             var cityIndex = _random.Next(Cities.Length);
 
-            customers.Add(new Account
+            accounts.Add(new Account
             {
                 Category = AccountCategory.Organization,
                 Company = $"{prefix} {suffix}",
                 Email = $"info@{prefix.ToLower()}{suffix.ToLower()}.com",
                 Phone = $"555-{_random.Next(100, 999)}-{_random.Next(1000, 9999)}",
-                Address = $"{_random.Next(100, 9999)} {Streets[_random.Next(Streets.Length)]}",
-                City = Cities[cityIndex],
-                State = States[cityIndex],
-                ZipCode = $"{_random.Next(10000, 99999)}",
-                Country = "USA",
                 Industry = industries[_random.Next(industries.Length)],
                 AccountType = (AccountType)_random.Next(1, 5),
                 Priority = (AccountPriority)_random.Next(0, 4),
@@ -1398,25 +1393,22 @@ public class SampleDataSeederService
             });
         }
 
-        // 30 Individual Customers
+        // 30 Individual Accounts
         for (int i = 1; i <= 30; i++)
         {
             var firstName = FirstNames[_random.Next(FirstNames.Length)];
             var lastName = LastNames[_random.Next(LastNames.Length)];
             var cityIndex = _random.Next(Cities.Length);
 
-            customers.Add(new Account
+            accounts.Add(new Account
             {
                 Category = AccountCategory.Individual,
                 FirstName = firstName,
                 LastName = lastName,
                 Email = $"{firstName.ToLower()}.{lastName.ToLower()}@email.com",
                 Phone = $"555-{_random.Next(100, 999)}-{_random.Next(1000, 9999)}",
-                Address = $"{_random.Next(100, 9999)} {Streets[_random.Next(Streets.Length)]}",
-                City = Cities[cityIndex],
-                State = States[cityIndex],
-                ZipCode = $"{_random.Next(10000, 99999)}",
-                Country = "USA",
+                Territory = States[cityIndex],  // Use Territory field for state-like info
+                Region = "USA",
                 AccountType = AccountType.Individual,
                 Priority = (AccountPriority)_random.Next(0, 3),
                 LifecycleStage = AccountLifecycleStage.Active,
@@ -1424,9 +1416,9 @@ public class SampleDataSeederService
             });
         }
 
-        context.Accounts.AddRange(customers);
+        context.Accounts.AddRange(accounts);
         await context.SaveChangesAsync();
-        _logger.LogInformation("Seeded {Count} sample customers", customers.Count);
+        _logger.LogInformation("Seeded {Count} sample accounts", accounts.Count);
     }
 
     /// <summary>
@@ -1439,7 +1431,7 @@ public class SampleDataSeederService
     }
 
     /// <summary>
-    /// Seed contacts for organization customers
+    /// Seed contacts for organization accounts
     /// </summary>
     private async Task SeedContactsToContextAsync(CrmDbContext context)
     {
@@ -1452,7 +1444,7 @@ public class SampleDataSeederService
             return;
         }
 
-        var orgCustomers = await context.Accounts
+        var orgAccounts = await context.Accounts
             .Where(c => c.Category == AccountCategory.Organization)
             .Take(50)
             .ToListAsync();
@@ -1460,7 +1452,7 @@ public class SampleDataSeederService
         var titles = new[] { "CEO", "CTO", "CFO", "IT Director", "IT Manager", "Procurement Manager", "Operations Manager", "Project Manager", "Technical Lead", "System Administrator" };
         var contactTypes = new[] { CRM.Core.Models.ContactType.Employee, CRM.Core.Models.ContactType.Partner, CRM.Core.Models.ContactType.Customer };
 
-        foreach (var customer in orgCustomers)
+        foreach (var account in orgAccounts)
         {
             // 2-4 contacts per organization
             var contactCount = _random.Next(2, 5);
@@ -1474,17 +1466,12 @@ public class SampleDataSeederService
                 {
                     FirstName = firstName,
                     LastName = lastName,
-                    EmailPrimary = $"{firstName.ToLower()}.{lastName.ToLower()}@{customer.Company.Replace(" ", "").ToLower()}.com",
+                    EmailPrimary = $"{firstName.ToLower()}.{lastName.ToLower()}@{account.Company.Replace(" ", "").ToLower()}.com",
                     PhonePrimary = $"555-{_random.Next(100, 999)}-{_random.Next(1000, 9999)}",
                     ContactType = contactTypes[_random.Next(contactTypes.Length)],
                     Status = CRM.Core.Models.ContactStatus.Active,
-                    Company = customer.Company,
-                    JobTitle = titles[_random.Next(titles.Length)],
-                    Address = customer.Address,
-                    City = customer.City,
-                    State = customer.State,
-                    Country = customer.Country,
-                    ZipCode = customer.ZipCode,
+                    Company = account.Company,
+                    JobTitle = titles[_random.Next(titles.Length)]
                 };
 
                 context.Contacts.Add(contact);
@@ -1492,7 +1479,7 @@ public class SampleDataSeederService
         }
 
         await context.SaveChangesAsync();
-        _logger.LogInformation("Seeded customer contacts");
+        _logger.LogInformation("Seeded account contacts");
     }
 
     /// <summary>
@@ -1596,8 +1583,8 @@ public class SampleDataSeederService
     }
 
     /// <summary>
-    /// Seed 100 opportunities linked to customers
-    /// Uses new 3NF Opportunity entity with OpportunityStage and Customer relationships
+    /// Seed 100 opportunities linked to accounts
+    /// Uses new 3NF Opportunity entity with OpportunityStage and Account relationships
     /// </summary>
     private async Task SeedOpportunitiesToContextAsync(CrmDbContext context)
     {
@@ -1610,10 +1597,10 @@ public class SampleDataSeederService
             return;
         }
 
-        var customers = await context.Accounts.Take(100).ToListAsync();
-        if (!customers.Any())
+        var accounts = await context.Accounts.Take(100).ToListAsync();
+        if (!accounts.Any())
         {
-            _logger.LogWarning("No customers found. Skipping opportunities seeding.");
+            _logger.LogWarning("No accounts found. Skipping opportunities seeding.");
             return;
         }
 
@@ -1627,7 +1614,7 @@ public class SampleDataSeederService
 
         for (int i = 1; i <= 100; i++)
         {
-            var customer = customers[_random.Next(customers.Count)];
+            var account = accounts[_random.Next(accounts.Count)];
             var stage = stages[_random.Next(stages.Length)];
             var amount = _random.Next(1, 50) * 1000m;
             var probability = stage switch
@@ -1641,8 +1628,8 @@ public class SampleDataSeederService
 
             opportunities.Add(new Opportunity
             {
-                Name = $"{customer.DisplayName} - {opportunityNames[_random.Next(opportunityNames.Length)]}",
-                AccountId = customer.Id,
+                Name = $"{account.DisplayName} - {opportunityNames[_random.Next(opportunityNames.Length)]}",
+                AccountId = account.Id,
                 SolutionNotes = "Demo opportunity for testing the CRM system",
                 Amount = amount,
                 Stage = stage,
@@ -1691,14 +1678,14 @@ public class SampleDataSeederService
         dbContext.Leads.RemoveRange(leads);
         await dbContext.SaveChangesAsync();
 
-        // Contacts depend on Customers
+        // Contacts depend on Accounts
         var contacts = await dbContext.Contacts.ToListAsync();
         dbContext.Contacts.RemoveRange(contacts);
         await dbContext.SaveChangesAsync();
 
-        // Customers/Accounts
-        var customers = await dbContext.Accounts.ToListAsync();
-        dbContext.Accounts.RemoveRange(customers);
+        // Accounts
+        var accounts = await dbContext.Accounts.ToListAsync();
+        dbContext.Accounts.RemoveRange(accounts);
         await dbContext.SaveChangesAsync();
 
         // Service Request Types (depends on subcategories and categories)
@@ -1749,7 +1736,7 @@ public class SampleDataSeederService
         return new SampleDataStats
         {
             ProductCount = await dbContext.Products.CountAsync(),
-            CustomerCount = await dbContext.Accounts.CountAsync(),
+            AccountCount = await dbContext.Accounts.CountAsync(),
             ContactCount = await dbContext.Contacts.CountAsync(),
             LeadCount = await dbContext.Leads.CountAsync(),
             OpportunityCount = await dbContext.Opportunities.CountAsync(),
@@ -1767,7 +1754,7 @@ public class SampleDataSeederService
 public class SampleDataStats
 {
     public int ProductCount { get; set; }
-    public int CustomerCount { get; set; }
+    public int AccountCount { get; set; }
     public int ContactCount { get; set; }
     public int LeadCount { get; set; }
     public int OpportunityCount { get; set; }

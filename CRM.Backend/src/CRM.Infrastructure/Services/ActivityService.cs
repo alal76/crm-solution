@@ -41,7 +41,7 @@ public class ActivityService : IActivityService
 
     /// <inheritdoc />
     public async Task<IEnumerable<Activity>> GetActivitiesAsync(
-        int? customerId = null,
+        int? accountId = null,
         int? opportunityId = null,
         int? userId = null,
         ActivityType? activityType = null,
@@ -51,9 +51,9 @@ public class ActivityService : IActivityService
     {
         var query = _context.Activities.AsQueryable();
 
-        if (customerId.HasValue)
+        if (accountId.HasValue)
         {
-            query = query.Where(a => a.AccountId == customerId);
+            query = query.Where(a => a.AccountId == accountId);
         }
 
         if (opportunityId.HasValue)
@@ -149,17 +149,16 @@ public class ActivityService : IActivityService
     }
 
     /// <inheritdoc />
-    public async Task<IEnumerable<Activity>> GetCustomerTimelineAsync(
-        int customerId,
+    public async Task<IEnumerable<Activity>> GetAccountTimelineAsync(
+        int accountId,
         int limit = 100)
     {
-        // Get all activities related to a customer (account)
+        // Get all activities related to an account
         // This includes direct account activities, contact activities, opportunity activities, and chat messages
         return await _context.Activities
             .Where(a =>
-                a.AccountId == customerId ||
-                (a.EntityType == "Account" && a.EntityId == customerId) ||
-                (a.EntityType == "Customer" && a.EntityId == customerId))
+                a.AccountId == accountId ||
+                (a.EntityType == "Account" && a.EntityId == accountId))
             .OrderByDescending(a => a.ActivityDate)
             .Take(limit)
             .Include(a => a.User)

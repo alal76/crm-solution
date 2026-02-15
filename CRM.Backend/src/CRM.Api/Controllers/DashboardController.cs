@@ -58,7 +58,7 @@ public class DashboardController : ControllerBase
     {
         try
         {
-            var customerCount = await _context.Customers.CountAsync(c => !c.IsDeleted, cancellationToken);
+            var accountCount = await _context.Accounts.CountAsync(c => !c.IsDeleted, cancellationToken);
             var contactCount = await _context.Contacts.CountAsync(cancellationToken);
             var opportunityCount = await _context.Opportunities.CountAsync(o => !o.IsDeleted, cancellationToken);
             var openOpportunityValue = await _context.Opportunities
@@ -75,7 +75,7 @@ public class DashboardController : ControllerBase
 
             return Ok(new DashboardStatsResponse
             {
-                Customers = new CountStat { Total = customerCount },
+                Accounts = new CountStat { Total = accountCount },
                 Contacts = new CountStat { Total = contactCount },
                 Opportunities = new OpportunityStat
                 {
@@ -739,15 +739,15 @@ public class DashboardController : ControllerBase
 
     #endregion
 
-    #region Customer Insights
+    #region Account Insights
 
     /// <summary>
-    /// Get top customers by revenue.
+    /// Get top accounts by revenue.
     /// </summary>
-    [HttpGet("customers/top")]
-    [ProducesResponseType(typeof(IEnumerable<TopCustomerEntry>), StatusCodes.Status200OK)]
+    [HttpGet("accounts/top")]
+    [ProducesResponseType(typeof(IEnumerable<TopAccountEntry>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> GetTopCustomers(
+    public async Task<IActionResult> GetTopAccounts(
         [FromQuery] int topN = 10,
         [FromQuery] DateTime? fromDate = null,
         [FromQuery] DateTime? toDate = null,
@@ -758,7 +758,7 @@ public class DashboardController : ControllerBase
             var from = fromDate ?? new DateTime(DateTime.UtcNow.Year, 1, 1, 0, 0, 0, DateTimeKind.Utc);
             var to = toDate ?? DateTime.UtcNow;
 
-            var topCustomers = await _context.Opportunities
+            var topAccounts = await _context.Opportunities
                 .Where(o => !o.IsDeleted
                     && o.Stage == OpportunityStage.ClosedWon
                     && o.ExpectedCloseDate >= from
@@ -775,12 +775,12 @@ public class DashboardController : ControllerBase
                 .Take(topN)
                 .ToListAsync(cancellationToken);
 
-            var accountIds = topCustomers.Select(c => c.AccountId).ToList();
-            var accounts = await _context.Customers
+            var accountIds = topAccounts.Select(c => c.AccountId).ToList();
+            var accounts = await _context.Accounts
                 .Where(c => accountIds.Contains(c.Id))
                 .ToDictionaryAsync(c => c.Id, c => new { c.Company, c.Industry }, cancellationToken);
 
-            var result = topCustomers.Select((c, index) => new TopCustomerEntry
+            var result = topAccounts.Select((c, index) => new TopAccountEntry
             {
                 Rank = index + 1,
                 AccountId = c.AccountId,
@@ -798,18 +798,18 @@ public class DashboardController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error retrieving top customers");
-            return StatusCode(500, new { message = "An error occurred while retrieving top customers" });
+            _logger.LogError(ex, "Error retrieving top accounts");
+            return StatusCode(500, new { message = "An error occurred while retrieving top accounts" });
         }
     }
 
     /// <summary>
-    /// Get customer acquisition metrics.
+    /// Get account acquisition metrics.
     /// </summary>
-    [HttpGet("customers/acquisition")]
-    [ProducesResponseType(typeof(CustomerAcquisitionResponse), StatusCodes.Status200OK)]
+    [HttpGet("accounts/acquisition")]
+    [ProducesResponseType(typeof(AccountAcquisitionResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> GetCustomerAcquisition(
+    public async Task<IActionResult> GetAccountAcquisition(
         [FromQuery] int months = 6,
         CancellationToken cancellationToken = default)
     {
@@ -823,7 +823,7 @@ public class DashboardController : ControllerBase
                 var periodStart = new DateTime(now.Year, now.Month, 1, 0, 0, 0, DateTimeKind.Utc).AddMonths(-i);
                 var periodEnd = periodStart.AddMonths(1);
 
-                var newCustomers = await _context.Customers
+                var newAccounts = await _context.Accounts
                     .CountAsync(c => !c.IsDeleted && c.CreatedAt >= periodStart && c.CreatedAt < periodEnd, cancellationToken);
 
                 var newLeads = await _context.Leads
@@ -833,23 +833,23 @@ public class DashboardController : ControllerBase
                 {
                     Period = periodStart.ToString("yyyy-MM"),
                     Month = periodStart.ToString("MMM yyyy"),
-                    NewCustomers = newCustomers,
+                    NewAccounts = newAccounts,
                     NewLeads = newLeads
                 });
             }
 
-            return Ok(new CustomerAcquisitionResponse
+            return Ok(new AccountAcquisitionResponse
             {
                 Trends = trends,
-                TotalNewCustomers = trends.Sum(t => t.NewCustomers),
+                TotalNewAccounts = trends.Sum(t => t.NewAccounts),
                 TotalNewLeads = trends.Sum(t => t.NewLeads),
-                AverageMonthlyCustomers = trends.Count > 0 ? Math.Round(trends.Average(t => (double)t.NewCustomers), 1) : 0
+                AverageMonthlyAccounts = trends.Count > 0 ? Math.Round(trends.Average(t => (double)t.NewAccounts), 1) : 0
             });
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error retrieving customer acquisition data");
-            return StatusCode(500, new { message = "An error occurred while retrieving customer acquisition data" });
+            _logger.LogError(ex, "Error retrieving account acquisition data");
+            return StatusCode(500, new { message = "An error occurred while retrieving account acquisition data" });
         }
     }
 
@@ -879,8 +879,8 @@ public class DashboardController : ControllerBase
             new() { Id = "revenue-trends", Name = "Revenue Trends", Description = "Monthly revenue over time", Category = "Trends", DefaultSize = "large" },
             new() { Id = "lead-funnel", Name = "Lead Funnel", Description = "Lead conversion funnel analysis", Category = "Analytics", DefaultSize = "medium" },
             new() { Id = "win-loss", Name = "Win/Loss Analysis", Description = "Deal win/loss breakdown", Category = "Analytics", DefaultSize = "medium" },
-            new() { Id = "top-customers", Name = "Top Customers", Description = "Highest revenue customers", Category = "Customers", DefaultSize = "medium" },
-            new() { Id = "customer-acquisition", Name = "Customer Acquisition", Description = "New customer and lead trends", Category = "Customers", DefaultSize = "medium" }
+            new() { Id = "top-accounts", Name = "Top Accounts", Description = "Highest revenue accounts", Category = "Accounts", DefaultSize = "medium" },
+            new() { Id = "account-acquisition", Name = "Account Acquisition", Description = "New account and lead trends", Category = "Accounts", DefaultSize = "medium" }
         };
 
         return Ok(widgets);
@@ -893,7 +893,7 @@ public class DashboardController : ControllerBase
     /// <summary>Dashboard statistics response.</summary>
     public class DashboardStatsResponse
     {
-        public CountStat Customers { get; set; } = new();
+        public CountStat Accounts { get; set; } = new();
         public CountStat Contacts { get; set; } = new();
         public OpportunityStat Opportunities { get; set; } = new();
         public CountStat Products { get; set; } = new();
@@ -1094,7 +1094,7 @@ public class DashboardController : ControllerBase
         public DateTime ToDate { get; set; }
     }
 
-    public class TopCustomerEntry
+    public class TopAccountEntry
     {
         public int Rank { get; set; }
         public int AccountId { get; set; }
@@ -1104,19 +1104,19 @@ public class DashboardController : ControllerBase
         public int DealCount { get; set; }
     }
 
-    public class CustomerAcquisitionResponse
+    public class AccountAcquisitionResponse
     {
         public List<AcquisitionTrendPoint> Trends { get; set; } = new();
-        public int TotalNewCustomers { get; set; }
+        public int TotalNewAccounts { get; set; }
         public int TotalNewLeads { get; set; }
-        public double AverageMonthlyCustomers { get; set; }
+        public double AverageMonthlyAccounts { get; set; }
     }
 
     public class AcquisitionTrendPoint
     {
         public string Period { get; set; } = string.Empty;
         public string Month { get; set; } = string.Empty;
-        public int NewCustomers { get; set; }
+        public int NewAccounts { get; set; }
         public int NewLeads { get; set; }
     }
 

@@ -47,7 +47,7 @@ public class NotesController : ControllerBase
     /// </summary>
     [HttpGet]
     public async Task<ActionResult<IEnumerable<Note>>> GetNotes(
-        [FromQuery] int? customerId = null,
+        [FromQuery] int? accountId = null,
         [FromQuery] int? opportunityId = null,
         [FromQuery] int? productId = null,
         [FromQuery] NoteType? noteType = null,
@@ -59,8 +59,8 @@ public class NotesController : ControllerBase
             .Include(n => n.CreatedByUser)
             .AsQueryable();
 
-        if (customerId.HasValue)
-            query = query.Where(n => n.AccountId == customerId);
+        if (accountId.HasValue)
+            query = query.Where(n => n.AccountId == accountId);
 
         if (opportunityId.HasValue)
             query = query.Where(n => n.OpportunityId == opportunityId);
@@ -194,7 +194,7 @@ public class NotesController : ControllerBase
 
         query = entityType.ToLower() switch
         {
-            "customer" => query.Where(n => n.AccountId == entityId),
+            "account" => query.Where(n => n.AccountId == entityId),
             "opportunity" => query.Where(n => n.OpportunityId == entityId),
             "product" => query.Where(n => n.ProductId == entityId),
             "campaign" => query.Where(n => n.CampaignId == entityId),

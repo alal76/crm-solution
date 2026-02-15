@@ -533,12 +533,12 @@ public class ContactsService : IContactsService, IContactInputPort
         };
     }
 
-    // === Customer Assignment Methods ===
-    public async Task<List<ContactDto>> GetByAccountIdAsync(int customerId)
+    // === Account Assignment Methods ===
+    public async Task<List<ContactDto>> GetByAccountIdAsync(int accountId)
     {
         var contacts = await _context.Contacts
             .Include(c => c.SocialMediaLinks)
-            .Where(c => c.AccountId == customerId)
+            .Where(c => c.AccountId == accountId)
             .OrderBy(c => c.LastName)
             .ThenBy(c => c.FirstName)
             .ToListAsync();
@@ -551,13 +551,13 @@ public class ContactsService : IContactsService, IContactInputPort
         return dtos;
     }
 
-    public async Task AssignToAccountAsync(int contactId, int customerId)
+    public async Task AssignToAccountAsync(int contactId, int accountId)
     {
         var contact = await _context.Contacts.FindAsync(contactId);
         if (contact == null)
             throw new InvalidOperationException($"Contact with ID {contactId} not found");
 
-        contact.AccountId = customerId;
+        contact.AccountId = accountId;
         contact.LastModified = DateTime.UtcNow;
         await _context.SaveChangesAsync();
     }

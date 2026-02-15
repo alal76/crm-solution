@@ -268,7 +268,7 @@ public class EmailTemplateService : IEmailTemplateService
         {
             case "account":
             case "customer":
-                var account = await _context.Customers.FindAsync(new object[] { entityId }, cancellationToken);
+                var account = await _context.Accounts.FindAsync(new object[] { entityId }, cancellationToken);
                 if (account != null)
                 {
                     data["CompanyName"] = account.Company ?? string.Empty;

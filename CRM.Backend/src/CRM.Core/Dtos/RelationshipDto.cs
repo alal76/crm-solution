@@ -186,7 +186,7 @@ public class AccountHealthSnapshotDto
 {
     public int Id { get; set; }
     public int AccountId { get; set; }
-    public string? CustomerName { get; set; }
+    public string? AccountName { get; set; }
     public DateTime SnapshotDate { get; set; }
 
     public int OverallHealthScore { get; set; }
@@ -252,7 +252,7 @@ public class RelationshipMapDto
     public string MapName { get; set; } = string.Empty;
     public string? Description { get; set; }
     public int? CentralAccountId { get; set; }
-    public string? CentralCustomerName { get; set; }
+    public string? CentralAccountName { get; set; }
     public int RelationshipDepth { get; set; }
 
     public List<int>? IncludeRelationshipTypeIds { get; set; }

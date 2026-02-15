@@ -125,7 +125,7 @@ public class SystemSettingsController : ControllerBase
 
             switch (moduleName.ToLower())
             {
-                case "customers": request.CustomersEnabled = enabled; break;
+                case "accounts": request.AccountsEnabled = enabled; break;
                 case "contacts": request.ContactsEnabled = enabled; break;
                 case "leads": request.LeadsEnabled = enabled; break;
                 case "opportunities": request.OpportunitiesEnabled = enabled; break;
@@ -593,7 +593,7 @@ public class SystemSettingsController : ControllerBase
             {
                 coreModules = new
                 {
-                    customers = new { enabled = settings.CustomersEnabled, name = "Customers", description = "Manage customer records and relationships" },
+                    accounts = new { enabled = settings.AccountsEnabled, name = "Accounts", description = "Manage account records and relationships" },
                     contacts = new { enabled = settings.ContactsEnabled, name = "Contacts", description = "Manage contact information" },
                     leads = new { enabled = settings.LeadsEnabled, name = "Leads", description = "Track and manage sales leads" },
                     opportunities = new { enabled = settings.OpportunitiesEnabled, name = "Opportunities", description = "Track sales opportunities and pipeline" },
@@ -654,7 +654,7 @@ public class SystemSettingsController : ControllerBase
 
             var updateRequest = new UpdateSystemSettingsRequest
             {
-                CustomersEnabled = request.CustomersEnabled,
+                AccountsEnabled = request.AccountsEnabled,
                 ContactsEnabled = request.ContactsEnabled,
                 LeadsEnabled = request.LeadsEnabled,
                 OpportunitiesEnabled = request.OpportunitiesEnabled,
@@ -719,7 +719,7 @@ public class SampleDataStatusResponse
 public class UpdateFeaturesRequest
 {
     // Core Modules
-    public bool? CustomersEnabled { get; set; }
+    public bool? AccountsEnabled { get; set; }
     public bool? ContactsEnabled { get; set; }
     public bool? LeadsEnabled { get; set; }
     public bool? OpportunitiesEnabled { get; set; }

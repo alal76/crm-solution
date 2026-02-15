@@ -351,6 +351,11 @@ const ModuleFieldSettingsTab: React.FC = () => {
 
   // Module enable/disable toggle
   const handleToggleModule = async (moduleName: string, enabled: boolean) => {
+    if (!moduleName.trim()) {
+      setError('Module name is required.');
+      return;
+    }
+
     try {
       await apiClient.post(`/moduleuiconfig/${moduleName}/toggle?enabled=${enabled}`);
       setModules(modules.map(m => m.moduleName === moduleName ? { ...m, isEnabled: enabled } : m));
@@ -565,6 +570,11 @@ const ModuleFieldSettingsTab: React.FC = () => {
 
   // Save all changes for a module
   const handleSaveModuleConfig = async (moduleName: string) => {
+    if (!moduleName.trim()) {
+      setError('Module name is required.');
+      return;
+    }
+
     const config = moduleConfigs[moduleName];
     if (!config) return;
 
@@ -603,6 +613,11 @@ const ModuleFieldSettingsTab: React.FC = () => {
 
   // Reset module to defaults
   const handleResetToDefaults = async (moduleName: string) => {
+    if (!moduleName.trim()) {
+      setError('Module name is required.');
+      return;
+    }
+
     if (!window.confirm(`Reset all configurations for ${moduleName} to defaults? This will delete custom field settings.`)) {
       return;
     }

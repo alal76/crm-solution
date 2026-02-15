@@ -161,7 +161,7 @@ CREATE TABLE IF NOT EXISTS `UserGroups` (
   `IsSystemAdmin` tinyint(1) NOT NULL DEFAULT 0,
   `AccessibleMenuItems` text DEFAULT '[]',
   `CanAccessDashboard` tinyint(1) NOT NULL DEFAULT 1,
-  `CanAccessCustomers` tinyint(1) NOT NULL DEFAULT 1,
+  `CanAccessAccounts` tinyint(1) NOT NULL DEFAULT 1,
   `CanAccessContacts` tinyint(1) NOT NULL DEFAULT 1,
   `CanAccessLeads` tinyint(1) NOT NULL DEFAULT 1,
   `CanAccessOpportunities` tinyint(1) NOT NULL DEFAULT 1,
@@ -177,10 +177,10 @@ CREATE TABLE IF NOT EXISTS `UserGroups` (
   `CanAccessReports` tinyint(1) NOT NULL DEFAULT 1,
   `CanAccessSettings` tinyint(1) NOT NULL DEFAULT 0,
   `CanAccessUserManagement` tinyint(1) NOT NULL DEFAULT 0,
-  `CanCreateCustomers` tinyint(1) NOT NULL DEFAULT 1,
-  `CanEditCustomers` tinyint(1) NOT NULL DEFAULT 1,
-  `CanDeleteCustomers` tinyint(1) NOT NULL DEFAULT 0,
-  `CanViewAllCustomers` tinyint(1) NOT NULL DEFAULT 1,
+  `CanCreateAccounts` tinyint(1) NOT NULL DEFAULT 1,
+  `CanEditAccounts` tinyint(1) NOT NULL DEFAULT 1,
+  `CanDeleteAccounts` tinyint(1) NOT NULL DEFAULT 0,
+  `CanViewAllAccounts` tinyint(1) NOT NULL DEFAULT 1,
   `CanCreateContacts` tinyint(1) NOT NULL DEFAULT 1,
   `CanEditContacts` tinyint(1) NOT NULL DEFAULT 1,
   `CanDeleteContacts` tinyint(1) NOT NULL DEFAULT 0,
@@ -444,7 +444,7 @@ CREATE TABLE IF NOT EXISTS `SocialMediaAccounts` (
 -- SECTION 4: CORE ENTITY TABLES
 -- ============================================================================
 
--- Accounts (formerly Customers)
+-- Accounts
 CREATE TABLE IF NOT EXISTS `Accounts` (
   `Id` int(11) NOT NULL AUTO_INCREMENT,
   `Category` int(11) NOT NULL DEFAULT 0 COMMENT '0=Individual, 1=Organization',
@@ -1259,6 +1259,7 @@ CREATE TABLE IF NOT EXISTS `SystemSettings` (
   `CompanyLogoUrl` varchar(1000) DEFAULT NULL,
   `PrimaryColor` varchar(20) DEFAULT '#6750A4',
   `SecondaryColor` varchar(20) DEFAULT '#958DA5',
+  `SelectedPaletteId` int(11) DEFAULT NULL,
   `DateFormat` varchar(50) DEFAULT 'MM/DD/YYYY',
   `TimeFormat` varchar(50) DEFAULT 'h:mm A',
   `DefaultCurrency` varchar(10) DEFAULT 'USD',
@@ -1287,7 +1288,31 @@ CREATE TABLE IF NOT EXISTS `SystemSettings` (
   `IsDeleted` tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`Id`),
   UNIQUE KEY `IX_SystemSettings_SettingKey` (`SettingKey`),
-  KEY `IX_SystemSettings_Category` (`Category`)
+  KEY `IX_SystemSettings_Category` (`Category`),
+  KEY `IX_SystemSettings_SelectedPaletteId` (`SelectedPaletteId`),
+  CONSTRAINT `FK_SystemSettings_SelectedPaletteId` FOREIGN KEY (`SelectedPaletteId`) REFERENCES `ColorPalettes` (`Id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- BrandingConfigs
+CREATE TABLE IF NOT EXISTS `BrandingConfigs` (
+  `Id` int(11) NOT NULL AUTO_INCREMENT,
+  `SolutionName` varchar(100) NOT NULL DEFAULT 'CRM Solution',
+  `CustomLogoPath` varchar(500) DEFAULT NULL,
+  `CustomLogoFileName` varchar(255) DEFAULT NULL,
+  `FaviconPath` varchar(500) DEFAULT NULL,
+  `FaviconFileName` varchar(255) DEFAULT NULL,
+  `SoftwareLogoPath` varchar(500) NOT NULL DEFAULT '/assets/logo.png',
+  `IsCustomBrandingEnabled` tinyint(1) NOT NULL DEFAULT 1,
+  `FaviconDataUrl` longtext DEFAULT NULL,
+  `LastLogoUploadedAt` datetime(6) DEFAULT NULL,
+  `LastLogoUploadedById` int(11) DEFAULT NULL,
+  `LastFaviconUploadedAt` datetime(6) DEFAULT NULL,
+  `LastFaviconUploadedById` int(11) DEFAULT NULL,
+  `CreatedAt` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
+  `UpdatedAt` datetime(6) DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP(6),
+  `IsDeleted` tinyint(1) NOT NULL DEFAULT 0,
+  `RowVersion` binary(8) DEFAULT NULL,
+  PRIMARY KEY (`Id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- ModuleUIConfigs
@@ -1351,11 +1376,10 @@ CREATE TABLE IF NOT EXISTS `llm_provider_settings` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- ============================================================================
--- SECTION 11: BACKWARD COMPATIBILITY - Customers alias for Accounts
+-- SECTION 11: BACKWARD COMPATIBILITY - Customers alias removed
 -- ============================================================================
 
--- Create view for backward compatibility with existing code that uses Customers
-CREATE OR REPLACE VIEW `Customers` AS SELECT * FROM `Accounts`;
+-- Customers view removed; Accounts is the canonical table.
 
 SET FOREIGN_KEY_CHECKS = 1;
 

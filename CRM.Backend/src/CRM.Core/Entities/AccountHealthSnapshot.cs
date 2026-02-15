@@ -36,10 +36,10 @@ public enum HealthTrend
 public class AccountHealthSnapshot : BaseEntity
 {
     /// <summary>
-    /// The customer this snapshot is for
+    /// The account this snapshot is for
     /// </summary>
-    [Required]
-    [Column("CustomerId")]
+        [Required]
+        [Column("AccountId")]
     public int AccountId { get; set; }
 
     /// <summary>

@@ -20,6 +20,7 @@ using CRM.Core.Interfaces;
 using CRM.Core.Ports.Input;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using CRM.Infrastructure.Validation;
 
 namespace CRM.Infrastructure.Services;
 
@@ -79,7 +80,7 @@ public class SystemSettingsService : ISystemSettingsService, ISystemSettingsInpu
 
             return new ModuleStatusDto
             {
-                CustomersEnabled = settings?.CustomersEnabled ?? true,
+                AccountsEnabled = settings?.AccountsEnabled ?? true,
                 ContactsEnabled = settings?.ContactsEnabled ?? true,
                 LeadsEnabled = settings?.LeadsEnabled ?? true,
                 OpportunitiesEnabled = settings?.OpportunitiesEnabled ?? true,
@@ -120,7 +121,7 @@ public class SystemSettingsService : ISystemSettingsService, ISystemSettingsInpu
             }
 
             // Apply updates (only update non-null values)
-            if (request.CustomersEnabled.HasValue) settings.CustomersEnabled = request.CustomersEnabled.Value;
+            if (request.AccountsEnabled.HasValue) settings.AccountsEnabled = request.AccountsEnabled.Value;
             if (request.ContactsEnabled.HasValue) settings.ContactsEnabled = request.ContactsEnabled.Value;
             if (request.LeadsEnabled.HasValue) settings.LeadsEnabled = request.LeadsEnabled.Value;
             if (request.OpportunitiesEnabled.HasValue) settings.OpportunitiesEnabled = request.OpportunitiesEnabled.Value;
@@ -141,13 +142,44 @@ public class SystemSettingsService : ISystemSettingsService, ISystemSettingsInpu
             if (!string.IsNullOrEmpty(request.CompanyName)) settings.CompanyName = request.CompanyName;
             if (request.CompanyLogoUrl != null) settings.CompanyLogoUrl = request.CompanyLogoUrl;
             if (request.CompanyLoginLogoUrl != null) settings.CompanyLoginLogoUrl = request.CompanyLoginLogoUrl;
-            if (!string.IsNullOrEmpty(request.PrimaryColor)) settings.PrimaryColor = request.PrimaryColor;
-            if (!string.IsNullOrEmpty(request.SecondaryColor)) settings.SecondaryColor = request.SecondaryColor;
-            if (!string.IsNullOrEmpty(request.TertiaryColor)) settings.TertiaryColor = request.TertiaryColor;
-            if (!string.IsNullOrEmpty(request.SurfaceColor)) settings.SurfaceColor = request.SurfaceColor;
-            if (!string.IsNullOrEmpty(request.BackgroundColor)) settings.BackgroundColor = request.BackgroundColor;
+            if (!string.IsNullOrEmpty(request.PrimaryColor))
+            {
+                ThemeColorValidator.ValidateHexColor(request.PrimaryColor, nameof(request.PrimaryColor));
+                settings.PrimaryColor = request.PrimaryColor;
+            }
+            if (!string.IsNullOrEmpty(request.SecondaryColor))
+            {
+                ThemeColorValidator.ValidateHexColor(request.SecondaryColor, nameof(request.SecondaryColor));
+                settings.SecondaryColor = request.SecondaryColor;
+            }
+            if (!string.IsNullOrEmpty(request.TertiaryColor))
+            {
+                ThemeColorValidator.ValidateHexColor(request.TertiaryColor, nameof(request.TertiaryColor));
+                settings.TertiaryColor = request.TertiaryColor;
+            }
+            if (!string.IsNullOrEmpty(request.SurfaceColor))
+            {
+                ThemeColorValidator.ValidateHexColor(request.SurfaceColor, nameof(request.SurfaceColor));
+                settings.SurfaceColor = request.SurfaceColor;
+            }
+            if (!string.IsNullOrEmpty(request.BackgroundColor))
+            {
+                ThemeColorValidator.ValidateHexColor(request.BackgroundColor, nameof(request.BackgroundColor));
+                settings.BackgroundColor = request.BackgroundColor;
+            }
             if (request.UseGroupHeaderColor.HasValue) settings.UseGroupHeaderColor = request.UseGroupHeaderColor.Value;
-            if (request.SelectedPaletteId.HasValue) settings.SelectedPaletteId = request.SelectedPaletteId.Value;
+            if (request.SelectedPaletteId.HasValue)
+            {
+                var paletteExists = await _context.ColorPalettes
+                    .AnyAsync(p => p.Id == request.SelectedPaletteId.Value && !p.IsDeleted);
+
+                if (!paletteExists)
+                {
+                    throw new ArgumentException("Selected palette does not exist.", nameof(request.SelectedPaletteId));
+                }
+
+                settings.SelectedPaletteId = request.SelectedPaletteId.Value;
+            }
             if (request.SelectedPaletteName != null) settings.SelectedPaletteName = request.SelectedPaletteName;
 
             if (request.RequireTwoFactor.HasValue) settings.RequireTwoFactor = request.RequireTwoFactor.Value;
@@ -222,7 +254,7 @@ public class SystemSettingsService : ISystemSettingsService, ISystemSettingsInpu
         {
             Id = settings.Id,
 
-            CustomersEnabled = settings.CustomersEnabled,
+            AccountsEnabled = settings.AccountsEnabled,
             ContactsEnabled = settings.ContactsEnabled,
             LeadsEnabled = settings.LeadsEnabled,
             OpportunitiesEnabled = settings.OpportunitiesEnabled,

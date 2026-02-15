@@ -578,7 +578,7 @@ public class DatabaseController : ControllerBase
         // Return count of records that would be migrated
         var count = 0;
         count += await _context.Users.CountAsync();
-        count += await _context.Customers.CountAsync();
+        count += await _context.Accounts.CountAsync();
         count += await _context.Contacts.CountAsync();
         count += await _context.Leads.CountAsync();
         count += await _context.Products.CountAsync();
@@ -1260,7 +1260,7 @@ Then restart the API container:
             await GenerateInsertStatements(script, "UserGroups", await _context.UserGroups.ToListAsync());
             await GenerateInsertStatements(script, "UserProfiles", await _context.UserProfiles.ToListAsync());
             await GenerateInsertStatements(script, "Users", await _context.Users.Where(u => !u.IsDeleted).ToListAsync());
-            await GenerateInsertStatements(script, "Customers", await _context.Customers.Where(c => !c.IsDeleted).ToListAsync());
+            await GenerateInsertStatements(script, "Accounts", await _context.Accounts.Where(c => !c.IsDeleted).ToListAsync());
             await GenerateInsertStatements(script, "Contacts", await _context.Contacts.ToListAsync());
             await GenerateInsertStatements(script, "Products", await _context.Products.Where(p => !p.IsDeleted).ToListAsync());
             await GenerateInsertStatements(script, "Opportunities", await _context.Opportunities.Where(o => !o.IsDeleted).ToListAsync());
@@ -1371,7 +1371,7 @@ Then restart the API container:
             var tablesToClear = new[]
             {
                 "Interactions", "Notes", "CrmTasks", "Quotes", "CampaignMetrics",
-                "MarketingCampaigns", "Opportunities", "Products", "Contacts", "Customers", "Leads"
+                "MarketingCampaigns", "Opportunities", "Products", "Contacts", "Accounts", "Leads"
             };
 
             switch (provider)
@@ -1906,7 +1906,7 @@ Then restart the API container:
                     tables.Add(new TableStatDto { Name = "UserGroups", RecordCount = await _context.UserGroups.CountAsync(g => !g.IsDeleted) });
                     tables.Add(new TableStatDto { Name = "UserProfiles", RecordCount = await _context.UserProfiles.CountAsync() });
                     tables.Add(new TableStatDto { Name = "Departments", RecordCount = await _context.Departments.CountAsync(d => !d.IsDeleted) });
-                    tables.Add(new TableStatDto { Name = "Customers", RecordCount = await _context.Customers.CountAsync(c => !c.IsDeleted) });
+                    tables.Add(new TableStatDto { Name = "Accounts", RecordCount = await _context.Accounts.CountAsync(c => !c.IsDeleted) });
                     tables.Add(new TableStatDto { Name = "Contacts", RecordCount = await _context.Contacts.CountAsync() });
                     tables.Add(new TableStatDto { Name = "Leads", RecordCount = await _context.Leads.CountAsync(l => !l.IsDeleted) });
                     tables.Add(new TableStatDto { Name = "Opportunities", RecordCount = await _context.Opportunities.CountAsync(o => !o.IsDeleted) });
@@ -2276,7 +2276,7 @@ Then restart the API container:
             ["UserGroups"] = GetUserGroupsSchema(targetDb),
             ["UserProfiles"] = GetUserProfilesSchema(targetDb),
             ["Users"] = GetUsersSchema(targetDb),
-            ["Customers"] = GetCustomersSchema(targetDb),
+            ["Accounts"] = GetAccountsSchema(targetDb),
             ["Contacts"] = GetContactsSchema(targetDb),
             ["Products"] = GetProductsSchema(targetDb),
             ["ProductCategories"] = GetProductCategoriesSchema(targetDb),
@@ -2384,8 +2384,8 @@ Then restart the API container:
 
     private string GetUserProfilesSchema(string db) => "-- UserProfiles schema";
     private string GetUsersSchema(string db) => "-- Users schema with FK to Departments, UserGroups, UserProfiles";
-    private string GetCustomersSchema(string db) => "-- Customers schema";
-    private string GetContactsSchema(string db) => "-- Contacts schema with FK to Customers";
+    private string GetAccountsSchema(string db) => "-- Accounts schema";
+    private string GetContactsSchema(string db) => "-- Contacts schema with FK to Accounts";
     private string GetProductsSchema(string db) => "-- Products schema with FK to ProductCategories";
     private string GetProductCategoriesSchema(string db) => "-- ProductCategories schema (3NF normalization)";
     private string GetOpportunitiesSchema(string db) => "-- Opportunities schema";
@@ -2409,9 +2409,9 @@ Then restart the API container:
         var indexes = new[]
         {
             ("IX_Users_Email", "Users", "Email"),
-            ("IX_Customers_Email", "Customers", "Email"),
-            ("IX_Contacts_CustomerId", "Contacts", "CustomerId"),
-            ("IX_Opportunities_CustomerId", "Opportunities", "CustomerId"),
+            ("IX_Accounts_Email", "Accounts", "Email"),
+            ("IX_Contacts_AccountId", "Contacts", "AccountId"),
+            ("IX_Opportunities_AccountId", "Opportunities", "AccountId"),
             ("IX_Leads_Email", "Leads", "Email"),
             ("IX_Products_SKU", "Products", "Sku"),
             ("IX_CrmTasks_AssignedToUserId", "CrmTasks", "AssignedToUserId")

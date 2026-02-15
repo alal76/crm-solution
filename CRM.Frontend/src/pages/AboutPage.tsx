@@ -67,19 +67,20 @@ import { getApiBaseUrl } from '../config/ports';
 
 const AboutPage: React.FC = () => {
   const { branding } = useBranding();
-  const companyName = branding.companyName;
+  const companyName = branding.solutionName || branding.companyName;
   
   // Get logo URL with proper API base
   const getLogoUrl = () => {
-    if (branding.companyLogoUrl) {
+    const logoPath = branding.brandingLogoUrl || branding.companyLogoUrl;
+    if (logoPath) {
       // If it's a data URL (base64), use it directly
-      if (branding.companyLogoUrl.startsWith('data:')) {
-        return branding.companyLogoUrl;
+      if (logoPath.startsWith('data:')) {
+        return logoPath;
       }
-      if (branding.companyLogoUrl.startsWith('/uploads')) {
-        return `${getApiBaseUrl()}${branding.companyLogoUrl}`;
+      if (logoPath.startsWith('/uploads')) {
+        return `${getApiBaseUrl()}${logoPath}`;
       }
-      return branding.companyLogoUrl;
+      return logoPath;
     }
     return null;
   };

@@ -68,8 +68,8 @@ public class DashboardService : IDashboardService
                 "dashboard:stats",
                 async ct =>
                 {
-                    // Get customer/account count
-                    var customerCount = await _dbContext.Accounts.CountAsync(a => !a.IsDeleted, ct);
+                    // Get account count
+                    var accountCount = await _dbContext.Accounts.CountAsync(a => !a.IsDeleted, ct);
 
                     // Get contact count - Contact model uses Status enum, not IsDeleted
                     var contactCount = await _dbContext.Contacts.CountAsync(c => c.Status == CRM.Core.Models.ContactStatus.Active, ct);
@@ -100,7 +100,7 @@ public class DashboardService : IDashboardService
 
                     return new DashboardStats
                     {
-                        Customers = new EntityCount { Total = customerCount },
+                        Accounts = new EntityCount { Total = accountCount },
                         Contacts = new EntityCount { Total = contactCount },
                         Opportunities = new OpportunityStats
                         {

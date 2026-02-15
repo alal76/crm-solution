@@ -53,7 +53,7 @@ public class DbSeed
                 HeaderColor = "#DC2626", // Red for admin visibility
                 // Menu/Page Access
                 CanAccessDashboard = true,
-                CanAccessCustomers = true,
+                CanAccessAccounts = true,
                 CanAccessContacts = true,
                 CanAccessLeads = true,
                 CanAccessOpportunities = true,
@@ -70,10 +70,10 @@ public class DbSeed
                 CanAccessSettings = true,
                 CanAccessUserManagement = true,
                 // Customer CRUD
-                CanCreateCustomers = true,
-                CanEditCustomers = true,
-                CanDeleteCustomers = true,
-                CanViewAllCustomers = true,
+                CanCreateAccounts = true,
+                CanEditAccounts = true,
+                CanDeleteAccounts = true,
+                CanViewAllAccounts = true,
                 // Contact CRUD
                 CanCreateContacts = true,
                 CanEditContacts = true,
@@ -119,7 +119,7 @@ public class DbSeed
                 CanImportData = true,
                 CanBulkEdit = true,
                 CanBulkDelete = true,
-                AccessibleMenuItems = "[\"Dashboard\",\"Customers\",\"Contacts\",\"Leads\",\"Opportunities\",\"Products\",\"Services\",\"Campaigns\",\"Quotes\",\"Tasks\",\"Activities\",\"Notes\",\"Workflows\",\"ServiceRequests\",\"Reports\",\"Settings\",\"UserManagement\",\"Admin\"]"
+                AccessibleMenuItems = "[\"Dashboard\",\"Accounts\",\"Contacts\",\"Leads\",\"Opportunities\",\"Products\",\"Services\",\"Campaigns\",\"Quotes\",\"Tasks\",\"Activities\",\"Notes\",\"Workflows\",\"ServiceRequests\",\"Reports\",\"Settings\",\"UserManagement\",\"Admin\"]"
             };
             context.UserGroups.Add(sysAdminGroup);
             await context.SaveChangesAsync();

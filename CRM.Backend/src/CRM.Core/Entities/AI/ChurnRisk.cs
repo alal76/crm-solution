@@ -130,18 +130,18 @@ public enum RetentionActionType
 #endregion
 
 /// <summary>
-/// AI-generated churn risk prediction for customers.
+/// AI-generated churn risk prediction for accounts.
 /// Uses Allen AI models for prediction.
 /// </summary>
 public class ChurnRisk : BaseEntity
 {
-    #region Customer Reference
+    #region Account Reference
 
-    /// <summary>Customer ID</summary>
-    [Column("CustomerId")]
+    /// <summary>Account ID</summary>
+    [Column("AccountId")]
     public int AccountId { get; set; }
 
-    /// <summary>Navigation to Customer</summary>
+    /// <summary>Navigation to Account</summary>
     public Account? Account { get; set; }
 
     #endregion

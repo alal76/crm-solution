@@ -270,10 +270,10 @@ public class ActivityServiceTests
     }
 
     [Fact]
-    public async Task GetCustomerTimelineAsync_IncludesChatMessages()
+    public async Task GetAccountTimelineAsync_IncludesChatMessages()
     {
         // Arrange
-        var dbName = $"GetCustomerTimelineAsync_{Guid.NewGuid()}";
+        var dbName = $"GetAccountTimelineAsync_{Guid.NewGuid()}";
         using var context = CreateInMemoryContext(dbName);
 
         context.Activities.AddRange(
@@ -287,7 +287,7 @@ public class ActivityServiceTests
         var service = new ActivityService(context, _mockLogger.Object);
 
         // Act
-        var result = await service.GetCustomerTimelineAsync(1);
+        var result = await service.GetAccountTimelineAsync(1);
 
         // Assert
         Assert.Equal(2, result.Count());

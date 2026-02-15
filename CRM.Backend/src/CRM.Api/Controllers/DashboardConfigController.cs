@@ -748,9 +748,9 @@ public class DashboardConfigController : ControllerBase
     {
         var dataSources = new[]
         {
-            new { id = "customers.count", name = "Customer Count", category = "Customers", type = "count" },
-            new { id = "customers.new_this_month", name = "New Customers This Month", category = "Customers", type = "count" },
-            new { id = "customers.by_lifecycle", name = "Customers by Lifecycle Stage", category = "Customers", type = "distribution" },
+            new { id = "accounts.count", name = "Account Count", category = "Accounts", type = "count" },
+            new { id = "accounts.new_this_month", name = "New Accounts This Month", category = "Accounts", type = "count" },
+            new { id = "accounts.by_lifecycle", name = "Accounts by Lifecycle Stage", category = "Accounts", type = "distribution" },
 
             new { id = "contacts.count", name = "Contact Count", category = "Contacts", type = "count" },
 
@@ -828,7 +828,7 @@ public class DashboardConfigController : ControllerBase
             {
                 new DashboardWidget { DashboardId = salesDashboard.Id, Title = "Total Pipeline", DataSource = "opportunities.pipeline_value", WidgetType = WidgetType.StatCard, IconName = "TrendingUp", Color = "#6750A4", ColumnSpan = 1, DisplayOrder = 1, NavigationLink = "/opportunities", CreatedAt = DateTime.UtcNow },
                 new DashboardWidget { DashboardId = salesDashboard.Id, Title = "Won Revenue", DataSource = "opportunities.won_value", WidgetType = WidgetType.StatCard, IconName = "AttachMoney", Color = "#06A77D", ColumnSpan = 1, DisplayOrder = 2, NavigationLink = "/opportunities", CreatedAt = DateTime.UtcNow },
-                new DashboardWidget { DashboardId = salesDashboard.Id, Title = "Customers", DataSource = "customers.count", WidgetType = WidgetType.StatCard, IconName = "People", Color = "#0092BC", ColumnSpan = 1, DisplayOrder = 3, NavigationLink = "/customers", CreatedAt = DateTime.UtcNow },
+                new DashboardWidget { DashboardId = salesDashboard.Id, Title = "Accounts", DataSource = "accounts.count", WidgetType = WidgetType.StatCard, IconName = "People", Color = "#0092BC", ColumnSpan = 1, DisplayOrder = 3, NavigationLink = "/accounts", CreatedAt = DateTime.UtcNow },
                 new DashboardWidget { DashboardId = salesDashboard.Id, Title = "Pipeline Trend", DataSource = "opportunities.pipeline_trend", WidgetType = WidgetType.LineChart, ColumnSpan = 2, RowSpan = 2, DisplayOrder = 4, CreatedAt = DateTime.UtcNow },
                 new DashboardWidget { DashboardId = salesDashboard.Id, Title = "Opportunities by Stage", DataSource = "opportunities.by_stage", WidgetType = WidgetType.PieChart, ColumnSpan = 1, RowSpan = 2, DisplayOrder = 5, CreatedAt = DateTime.UtcNow },
                 new DashboardWidget { DashboardId = salesDashboard.Id, Title = "Recent Opportunities", DataSource = "opportunities.recent", WidgetType = WidgetType.DataTable, ColumnSpan = 3, DisplayOrder = 6, NavigationLink = "/opportunities", CreatedAt = DateTime.UtcNow }

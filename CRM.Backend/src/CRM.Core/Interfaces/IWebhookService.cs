@@ -60,7 +60,7 @@ public class WebhookIngestResult
     public bool Success { get; set; }
     public int? InteractionId { get; set; }
     public int? MessageId { get; set; }
-    public int? CustomerId { get; set; }
+    public int? AccountId { get; set; }
     public int? ContactId { get; set; }
     public string? Message { get; set; }
 }

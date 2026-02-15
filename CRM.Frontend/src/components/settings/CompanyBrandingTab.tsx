@@ -41,6 +41,7 @@ import {
   Preview as PreviewIcon,
 } from '@mui/icons-material';
 import logo from '../../assets/logo.png';
+import { isValidHexColor, normalizeHexColor } from '../../utils/colorValidation';
 
 interface ColorPalette {
   id: number;
@@ -117,6 +118,7 @@ function CompanyBrandingTab() {
   const [customPaletteDialogOpen, setCustomPaletteDialogOpen] = useState(false);
   const [customPaletteName, setCustomPaletteName] = useState('');
   const [customColors, setCustomColors] = useState(['#6750A4', '#625B71', '#7D5260', '#FFFBFE', '#FFFBFE']);
+  const [colorErrors, setColorErrors] = useState<Record<string, string>>({});
   
   // RGB editing state
   const [editingColorIndex, setEditingColorIndex] = useState<number | null>(null);
@@ -460,6 +462,22 @@ function CompanyBrandingTab() {
 
   const handleSave = async () => {
     try {
+      const invalidColorKeys = Object.keys(colorErrors);
+      if (invalidColorKeys.length > 0) {
+        setSnackbar({ open: true, message: 'Fix invalid color values before saving.', severity: 'error' });
+        return;
+      }
+
+      const hexKeys = ['primaryColor', 'secondaryColor', 'tertiaryColor', 'surfaceColor', 'backgroundColor'];
+      const invalidHex = hexKeys.find(key => {
+        const value = formData[key as keyof typeof formData] as string;
+        return value && !isValidHexColor(value);
+      });
+      if (invalidHex) {
+        setSnackbar({ open: true, message: 'One or more brand colors are invalid.', severity: 'error' });
+        return;
+      }
+
       const token = localStorage.getItem('accessToken');
       const apiUrl = getApiUrl();
       
@@ -492,6 +510,11 @@ function CompanyBrandingTab() {
   const handleCreateCustomPalette = async () => {
     if (!customPaletteName.trim()) {
       setSnackbar({ open: true, message: 'Please enter a palette name', severity: 'error' });
+      return;
+    }
+
+    if (customColors.some(color => !isValidHexColor(color))) {
+      setSnackbar({ open: true, message: 'Custom palette colors must be valid hex values.', severity: 'error' });
       return;
     }
     
@@ -555,7 +578,18 @@ function CompanyBrandingTab() {
 
   // Handle RGB color change
   const handleColorChange = (colorKey: string, hex: string) => {
-    setFormData(prev => ({ ...prev, [colorKey]: hex }));
+    const normalized = normalizeHexColor(hex);
+    setFormData(prev => ({ ...prev, [colorKey]: normalized }));
+
+    if (normalized && !isValidHexColor(normalized)) {
+      setColorErrors(prev => ({ ...prev, [colorKey]: 'Enter a valid hex color like #6750A4' }));
+    } else {
+      setColorErrors(prev => {
+        const updated = { ...prev };
+        delete updated[colorKey];
+        return updated;
+      });
+    }
   };
 
   // Open RGB editor for a color
@@ -1086,6 +1120,8 @@ function CompanyBrandingTab() {
                             label="Hex"
                             value={colorValue}
                             onChange={(e) => handleColorChange(colorDef.key, e.target.value)}
+                            error={Boolean(colorErrors[colorDef.key])}
+                            helperText={colorErrors[colorDef.key]}
                           />
                         </Grid>
                         <Grid item xs={12} sm={4}>

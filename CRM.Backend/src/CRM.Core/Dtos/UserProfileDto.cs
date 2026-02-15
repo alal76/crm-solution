@@ -26,9 +26,9 @@ public class CreateUserProfileDto
     public int DepartmentId { get; set; }
     public List<string> AccessiblePages { get; set; } = new();
 
-    public bool CanCreateCustomers { get; set; } = false;
-    public bool CanEditCustomers { get; set; } = false;
-    public bool CanDeleteCustomers { get; set; } = false;
+    public bool CanCreateAccounts { get; set; } = false;
+    public bool CanEditAccounts { get; set; } = false;
+    public bool CanDeleteAccounts { get; set; } = false;
 
     public bool CanCreateOpportunities { get; set; } = false;
     public bool CanEditOpportunities { get; set; } = false;
@@ -56,9 +56,9 @@ public class UserProfileDto
     public bool IsActive { get; set; }
     public List<string> AccessiblePages { get; set; } = new();
 
-    public bool CanCreateCustomers { get; set; }
-    public bool CanEditCustomers { get; set; }
-    public bool CanDeleteCustomers { get; set; }
+    public bool CanCreateAccounts { get; set; }
+    public bool CanEditAccounts { get; set; }
+    public bool CanDeleteAccounts { get; set; }
 
     public bool CanCreateOpportunities { get; set; }
     public bool CanEditOpportunities { get; set; }

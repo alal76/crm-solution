@@ -79,9 +79,9 @@ public class Conversation : BaseEntity
     public string? ParticipantName { get; set; }
 
     /// <summary>
-    /// Linked Customer ID
+    /// Linked Account ID
     /// </summary>
-    [Column("CustomerId")]
+    [Column("AccountId")]
     public int? AccountId { get; set; }
 
     /// <summary>

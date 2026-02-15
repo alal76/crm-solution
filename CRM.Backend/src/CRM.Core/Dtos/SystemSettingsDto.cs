@@ -25,7 +25,7 @@ public class SystemSettingsDto
 
     #region Module Enable/Disable
 
-    public bool CustomersEnabled { get; set; }
+    public bool AccountsEnabled { get; set; }
     public bool ContactsEnabled { get; set; }
     public bool LeadsEnabled { get; set; }
     public bool OpportunitiesEnabled { get; set; }
@@ -179,7 +179,7 @@ public class SystemSettingsDto
 public class UpdateSystemSettingsRequest
 {
     // Module Enable/Disable
-    public bool? CustomersEnabled { get; set; }
+    public bool? AccountsEnabled { get; set; }
     public bool? ContactsEnabled { get; set; }
     public bool? LeadsEnabled { get; set; }
     public bool? OpportunitiesEnabled { get; set; }
@@ -287,7 +287,7 @@ public class UpdateSystemSettingsRequest
 /// </summary>
 public class ModuleStatusDto
 {
-    public bool CustomersEnabled { get; set; }
+    public bool AccountsEnabled { get; set; }
     public bool ContactsEnabled { get; set; }
     public bool LeadsEnabled { get; set; }
     public bool OpportunitiesEnabled { get; set; }

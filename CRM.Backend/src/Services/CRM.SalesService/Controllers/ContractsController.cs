@@ -67,7 +67,7 @@ public class ContractsController : ControllerBase
         [FromQuery] int pageSize = 25,
         [FromQuery] string? status = null,
         [FromQuery] string? contractType = null,
-        [FromQuery] int? customerId = null,
+        [FromQuery] int? accountId = null,
         [FromQuery] bool? expiringSoon = null)
     {
         try
@@ -89,9 +89,9 @@ public class ContractsController : ControllerBase
                 query = query.Where(c => c.ContractType == typeEnum);
             }
 
-            if (customerId.HasValue)
+            if (accountId.HasValue)
             {
-                query = query.Where(c => c.AccountId == customerId.Value);
+                query = query.Where(c => c.AccountId == accountId.Value);
             }
 
             if (expiringSoon == true)
@@ -116,7 +116,7 @@ public class ContractsController : ControllerBase
                     ContractType = c.ContractType.ToString(),
                     ContractTypeValue = (int)c.ContractType,
                     c.AccountId,
-                    CustomerName = c.Account != null
+                    AccountName = c.Account != null
                         ? (c.Account.Category == AccountCategory.Organization
                             ? c.Account.Company
                             : $"{c.Account.FirstName} {c.Account.LastName}")
@@ -189,7 +189,7 @@ public class ContractsController : ControllerBase
                     ContractType = c.ContractType.ToString(),
                     ContractTypeValue = (int)c.ContractType,
                     c.AccountId,
-                    CustomerName = c.Account != null
+                    AccountName = c.Account != null
                         ? (c.Account.Category == AccountCategory.Organization
                             ? c.Account.Company
                             : $"{c.Account.FirstName} {c.Account.LastName}")
@@ -263,7 +263,7 @@ public class ContractsController : ControllerBase
                 Description = request.Description,
                 Status = Enum.TryParse<ContractStatus>(request.Status, true, out var status) ? status : ContractStatus.Draft,
                 ContractType = Enum.TryParse<ContractType>(request.ContractType, true, out var type) ? type : ContractType.Service,
-                AccountId = request.CustomerId,
+                AccountId = request.AccountId,
                 ContactId = request.ContactId,
                 OwnerId = request.OwnerId ?? GetCurrentUserId(),
                 ParentContractId = request.ParentContractId,
@@ -324,7 +324,7 @@ public class ContractsController : ControllerBase
             }
             if (request.ContractType != null && Enum.TryParse<ContractType>(request.ContractType, true, out var type))
                 contract.ContractType = type;
-            if (request.CustomerId.HasValue) contract.AccountId = request.CustomerId.Value;
+            if (request.AccountId.HasValue) contract.AccountId = request.AccountId.Value;
             if (request.ContactId.HasValue) contract.ContactId = request.ContactId;
             if (request.OwnerId.HasValue) contract.OwnerId = request.OwnerId;
             if (request.ParentContractId.HasValue) contract.ParentContractId = request.ParentContractId;
@@ -701,7 +701,7 @@ public class ContractsController : ControllerBase
                     c.ContractNumber,
                     c.Name,
                     c.AccountId,
-                    CustomerName = c.Account != null
+                    AccountName = c.Account != null
                         ? (c.Account.Category == AccountCategory.Organization
                             ? c.Account.Company
                             : $"{c.Account.FirstName} {c.Account.LastName}")
@@ -776,7 +776,7 @@ public class CreateContractRequest
     public string? Description { get; set; }
     public string? Status { get; set; }
     public string? ContractType { get; set; }
-    public int CustomerId { get; set; }
+    public int AccountId { get; set; }
     public int? ContactId { get; set; }
     public int? OwnerId { get; set; }
     public int? ParentContractId { get; set; }
@@ -801,7 +801,7 @@ public class UpdateContractRequest
     public string? Description { get; set; }
     public string? Status { get; set; }
     public string? ContractType { get; set; }
-    public int? CustomerId { get; set; }
+    public int? AccountId { get; set; }
     public int? ContactId { get; set; }
     public int? OwnerId { get; set; }
     public int? ParentContractId { get; set; }

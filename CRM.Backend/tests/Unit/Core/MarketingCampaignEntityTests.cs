@@ -320,7 +320,7 @@ public class MarketingCampaignEntityTests
         campaign.OpportunitiesCreated = 50;
         campaign.OpportunitiesInfluenced = 80;
         campaign.DealsWon = 25;
-        campaign.CustomersAcquired = 20;
+        campaign.AccountsAcquired = 20;
         campaign.LeadToMqlRate = 50.0;
         campaign.MqlToSqlRate = 40.0;
         campaign.SqlToOpportunityRate = 50.0;
@@ -337,7 +337,7 @@ public class MarketingCampaignEntityTests
         campaign.OpportunitiesCreated.Should().Be(50);
         campaign.OpportunitiesInfluenced.Should().Be(80);
         campaign.DealsWon.Should().Be(25);
-        campaign.CustomersAcquired.Should().Be(20);
+        campaign.AccountsAcquired.Should().Be(20);
         campaign.LeadToMqlRate.Should().BeApproximately(50.0, 0.01);
         campaign.MqlToSqlRate.Should().BeApproximately(40.0, 0.01);
         campaign.SqlToOpportunityRate.Should().BeApproximately(50.0, 0.01);

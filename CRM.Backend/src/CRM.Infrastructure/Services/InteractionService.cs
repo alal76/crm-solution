@@ -23,7 +23,7 @@ using Microsoft.Extensions.Logging;
 namespace CRM.Infrastructure.Services;
 
 /// <summary>
-/// Service for managing customer interactions
+/// Service for managing account interactions
 /// </summary>
 public class InteractionService : IInteractionService
 {
@@ -38,7 +38,7 @@ public class InteractionService : IInteractionService
 
     /// <inheritdoc />
     public async Task<IEnumerable<Interaction>> GetInteractionsAsync(
-        int? customerId = null,
+        int? accountId = null,
         int? opportunityId = null,
         int? assignedToUserId = null,
         InteractionType? interactionType = null,
@@ -52,9 +52,9 @@ public class InteractionService : IInteractionService
             .Where(i => !i.IsDeleted)
             .AsQueryable();
 
-        if (customerId.HasValue)
+        if (accountId.HasValue)
         {
-            query = query.Where(i => i.AccountId == customerId.Value);
+            query = query.Where(i => i.AccountId == accountId.Value);
         }
 
         if (opportunityId.HasValue)
@@ -252,13 +252,13 @@ public class InteractionService : IInteractionService
     /// <inheritdoc />
     public async Task<Interaction> LogAsync(InteractionLogRequest request)
     {
-        _logger.LogDebug("Logging interaction for account {AccountId}", request.CustomerId);
+        _logger.LogDebug("Logging interaction for account {AccountId}", request.AccountId);
 
         try
         {
             var interaction = new Interaction
             {
-                AccountId = request.CustomerId,
+                AccountId = request.AccountId,
                 OpportunityId = request.OpportunityId,
                 InteractionType = request.InteractionType,
                 Direction = request.Direction,
@@ -278,20 +278,20 @@ public class InteractionService : IInteractionService
             await _dbContext.SaveChangesAsync();
 
             _logger.LogInformation("Logged interaction {InteractionId} for account {AccountId}",
-                interaction.Id, request.CustomerId);
+                interaction.Id, request.AccountId);
 
             return interaction;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error logging interaction for account {AccountId}", request.CustomerId);
+            _logger.LogError(ex, "Error logging interaction for account {AccountId}", request.AccountId);
             throw;
         }
     }
 
     /// <inheritdoc />
     public async Task<InteractionStatistics> GetStatisticsAsync(
-        int? customerId = null,
+        int? accountId = null,
         DateTime? fromDate = null,
         DateTime? toDate = null)
     {
@@ -303,9 +303,9 @@ public class InteractionService : IInteractionService
                 .Where(i => !i.IsDeleted)
                 .AsQueryable();
 
-            if (customerId.HasValue)
+            if (accountId.HasValue)
             {
-                query = query.Where(i => i.AccountId == customerId.Value);
+                query = query.Where(i => i.AccountId == accountId.Value);
             }
 
             if (fromDate.HasValue)
@@ -341,12 +341,12 @@ public class InteractionService : IInteractionService
     }
 
     /// <inheritdoc />
-    public async Task<IEnumerable<Interaction>> GetCustomerHistoryAsync(int customerId, int limit = 50)
+    public async Task<IEnumerable<Interaction>> GetAccountHistoryAsync(int accountId, int limit = 50)
     {
-        _logger.LogDebug("Getting interaction history for account {AccountId}", customerId);
+        _logger.LogDebug("Getting interaction history for account {AccountId}", accountId);
 
         return await _dbContext.Interactions
-            .Where(i => i.AccountId == customerId && !i.IsDeleted)
+            .Where(i => i.AccountId == accountId && !i.IsDeleted)
             .OrderByDescending(i => i.InteractionDate)
             .Take(limit)
             .ToListAsync();

@@ -35,8 +35,8 @@ public enum ActivityType
     PushSent = 9,
 
     // CRM Actions
-    CustomerCreated = 10,
-    CustomerUpdated = 11,
+    AccountCreated = 10,
+    AccountUpdated = 11,
     OpportunityCreated = 12,
     OpportunityUpdated = 13,
     OpportunityWon = 14,
@@ -101,7 +101,7 @@ public class Activity : BaseEntity
     public string? UserEmail { get; set; }
 
     // Related Entity (polymorphic)
-    public string? EntityType { get; set; } // Customer, Opportunity, Contact, etc.
+    public string? EntityType { get; set; } // Account, Opportunity, Contact, etc.
     public int? EntityId { get; set; }
     public string? EntityName { get; set; } // Denormalized for display
 
@@ -111,7 +111,7 @@ public class Activity : BaseEntity
     public string? SecondaryEntityName { get; set; }
 
     // Specific Relationships (for querying)
-    [Column("CustomerId")]
+    [Column("AccountId")]
     public int? AccountId { get; set; }
     public int? ContactId { get; set; }
     public int? OpportunityId { get; set; }

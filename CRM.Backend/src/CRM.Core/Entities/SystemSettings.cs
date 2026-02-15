@@ -37,7 +37,7 @@ public class SystemSettings : BaseEntity
     /// FUNCTIONAL: Whether the Customers module is enabled
     /// TECHNICAL: Controls /customers route and menu visibility
     /// </summary>
-    public bool CustomersEnabled { get; set; } = true;
+        public bool AccountsEnabled { get; set; } = true;
 
     /// <summary>
     /// FUNCTIONAL: Whether the Contacts module is enabled
@@ -289,6 +289,11 @@ public class SystemSettings : BaseEntity
     /// Selected color palette ID from cached palettes
     /// </summary>
     public int? SelectedPaletteId { get; set; }
+
+    /// <summary>
+    /// Selected color palette reference
+    /// </summary>
+    public ColorPalette? SelectedPalette { get; set; }
 
     /// <summary>
     /// Selected color palette name for display

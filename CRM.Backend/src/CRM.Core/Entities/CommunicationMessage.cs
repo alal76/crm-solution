@@ -164,9 +164,9 @@ public class CommunicationMessage : BaseEntity
     #region CRM Entity Linking
 
     /// <summary>
-    /// Linked Customer ID
+    /// Linked Account ID
     /// </summary>
-    [Column("CustomerId")]
+    [Column("AccountId")]
     public int? AccountId { get; set; }
 
     /// <summary>

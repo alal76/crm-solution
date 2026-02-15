@@ -154,10 +154,10 @@ public class RelationshipService
     #region Account Relationships
 
     /// <summary>
-    /// Get relationships for a customer
+    /// Get relationships for an account
     /// </summary>
-    public async Task<List<AccountRelationshipDto>> GetCustomerRelationshipsAsync(
-        int customerId,
+    public async Task<List<AccountRelationshipDto>> GetAccountRelationshipsAsync(
+        int accountId,
         string? status = null,
         int? relationshipTypeId = null)
     {
@@ -166,7 +166,7 @@ public class RelationshipService
             .Include(r => r.TargetAccount)
             .Include(r => r.RelationshipType)
             .Include(r => r.Interactions)
-            .Where(r => !r.IsDeleted && (r.SourceAccountId == customerId || r.TargetAccountId == customerId));
+            .Where(r => !r.IsDeleted && (r.SourceAccountId == accountId || r.TargetAccountId == accountId));
 
         if (!string.IsNullOrEmpty(status))
             query = query.Where(r => r.Status == status);
@@ -175,7 +175,7 @@ public class RelationshipService
             query = query.Where(r => r.RelationshipTypeId == relationshipTypeId.Value);
 
         var relationships = await query.OrderByDescending(r => r.CreatedAt).ToListAsync();
-        return relationships.Select(r => MapToDto(r, customerId)).ToList();
+        return relationships.Select(r => MapToDto(r, accountId)).ToList();
     }
 
     /// <summary>
@@ -243,12 +243,12 @@ public class RelationshipService
     /// </summary>
     public async Task<AccountRelationshipDto> CreateRelationshipAsync(AccountRelationshipCreateDto dto, int? userId = null)
     {
-        // Validate customers exist
+        // Validate accounts exist
         var sourceExists = await _context.Accounts.AnyAsync(c => c.Id == dto.SourceAccountId && !c.IsDeleted);
         var targetExists = await _context.Accounts.AnyAsync(c => c.Id == dto.TargetAccountId && !c.IsDeleted);
 
         if (!sourceExists || !targetExists)
-            throw new InvalidOperationException("Source or target customer does not exist");
+            throw new InvalidOperationException("Source or target account does not exist");
 
         // Check for duplicate
         var exists = await _context.AccountRelationships.AnyAsync(r =>
@@ -315,7 +315,7 @@ public class RelationshipService
             }
         }
 
-        _logger.LogInformation("Created relationship between customer {Source} and {Target}",
+        _logger.LogInformation("Created relationship between account {Source} and {Target}",
             dto.SourceAccountId, dto.TargetAccountId);
 
         return await GetRelationshipAsync(relationship.Id) ?? throw new Exception("Failed to retrieve created relationship");
@@ -421,10 +421,10 @@ public class RelationshipService
     #region Relationship Map
 
     /// <summary>
-    /// Get relationship map visualization data for a customer
+    /// Get relationship map visualization data for an account
     /// </summary>
     public async Task<RelationshipMapVisualizationDto> GetRelationshipMapDataAsync(
-        int centralCustomerId,
+        int centralAccountId,
         int depth = 2,
         List<int>? includeTypeIds = null,
         int minStrength = 0)
@@ -433,12 +433,12 @@ public class RelationshipService
         var edges = new List<RelationshipEdgeDto>();
         var processedRelationships = new HashSet<int>();
 
-        // Start with central customer
-        var centralCustomer = await _context.Accounts.FindAsync(centralCustomerId);
-        if (centralCustomer == null)
+        // Start with central account
+        var centralAccount = await _context.Accounts.FindAsync(centralAccountId);
+        if (centralAccount == null)
             return new RelationshipMapVisualizationDto();
 
-        await BuildMapRecursive(centralCustomerId, depth, nodes, edges, processedRelationships,
+        await BuildMapRecursive(centralAccountId, depth, nodes, edges, processedRelationships,
             includeTypeIds, minStrength, true);
 
         return new RelationshipMapVisualizationDto
@@ -449,7 +449,7 @@ public class RelationshipService
     }
 
     private async Task BuildMapRecursive(
-        int customerId,
+        int accountId,
         int remainingDepth,
         Dictionary<int, RelationshipNodeDto> nodes,
         List<RelationshipEdgeDto> edges,
@@ -458,21 +458,21 @@ public class RelationshipService
         int minStrength,
         bool isCentral)
     {
-        if (remainingDepth < 0 || nodes.ContainsKey(customerId))
+        if (remainingDepth < 0 || nodes.ContainsKey(accountId))
             return;
 
-        var customer = await _context.Accounts.FindAsync(customerId);
-        if (customer == null || customer.IsDeleted)
+        var account = await _context.Accounts.FindAsync(accountId);
+        if (account == null || account.IsDeleted)
             return;
 
         // Add node
-        nodes[customerId] = new RelationshipNodeDto
+        nodes[accountId] = new RelationshipNodeDto
         {
-            Id = customerId,
-            Label = customer.Company ?? $"{customer.FirstName} {customer.LastName}",
-            Type = customer.Category.ToString(),
-            Industry = customer.Industry,
-            HealthScore = customer.AccountHealthScore,
+            Id = accountId,
+            Label = account.Company ?? $"{account.FirstName} {account.LastName}",
+            Type = account.Category.ToString(),
+            Industry = account.Industry,
+            HealthScore = account.AccountHealthScore,
             IsCentral = isCentral
         };
 
@@ -483,7 +483,7 @@ public class RelationshipService
         var relationships = await _context.AccountRelationships
             .Include(r => r.RelationshipType)
             .Where(r => !r.IsDeleted &&
-                (r.SourceAccountId == customerId || r.TargetAccountId == customerId) &&
+                (r.SourceAccountId == accountId || r.TargetAccountId == accountId) &&
                 r.StrengthScore >= minStrength)
             .ToListAsync();
 
@@ -508,13 +508,13 @@ public class RelationshipService
                 Status = rel.Status
             });
 
-            var nextCustomerId = rel.SourceAccountId == customerId ? rel.TargetAccountId : rel.SourceAccountId;
-            await BuildMapRecursive(nextCustomerId, remainingDepth - 1, nodes, edges,
+            var nextAccountId = rel.SourceAccountId == accountId ? rel.TargetAccountId : rel.SourceAccountId;
+            await BuildMapRecursive(nextAccountId, remainingDepth - 1, nodes, edges,
                 processedRelationships, includeTypeIds, minStrength, false);
         }
 
         // Update relationship count
-        if (nodes.TryGetValue(customerId, out var node))
+        if (nodes.TryGetValue(accountId, out var node))
         {
             node.RelationshipCount = relationships.Count;
         }
@@ -525,16 +525,16 @@ public class RelationshipService
     #region Account Health
 
     /// <summary>
-    /// Get health snapshots for a customer
+    /// Get health snapshots for an account
     /// </summary>
     public async Task<List<AccountHealthSnapshotDto>> GetHealthSnapshotsAsync(
-        int customerId,
+        int accountId,
         DateTime? startDate = null,
         DateTime? endDate = null)
     {
         var query = _context.AccountHealthSnapshots
             .Include(s => s.Account)
-            .Where(s => s.AccountId == customerId && !s.IsDeleted);
+            .Where(s => s.AccountId == accountId && !s.IsDeleted);
 
         if (startDate.HasValue)
             query = query.Where(s => s.SnapshotDate >= startDate.Value);
@@ -593,12 +593,12 @@ public class RelationshipService
 
         _context.AccountHealthSnapshots.Add(snapshot);
 
-        // Update customer's current health score
-        var customer = await _context.Accounts.FindAsync(dto.AccountId);
-        if (customer != null)
+        // Update account's current health score
+        var account = await _context.Accounts.FindAsync(dto.AccountId);
+        if (account != null)
         {
-            customer.AccountHealthScore = dto.OverallHealthScore;
-            customer.UpdatedAt = DateTime.UtcNow;
+            account.AccountHealthScore = dto.OverallHealthScore;
+            account.UpdatedAt = DateTime.UtcNow;
         }
 
         await _context.SaveChangesAsync();
@@ -625,9 +625,9 @@ public class RelationshipService
         CreatedAt = type.CreatedAt
     };
 
-    private AccountRelationshipDto MapToDto(AccountRelationship rel, int? perspectiveCustomerId = null)
+    private AccountRelationshipDto MapToDto(AccountRelationship rel, int? perspectiveAccountId = null)
     {
-        var isReverse = perspectiveCustomerId.HasValue && rel.TargetAccountId == perspectiveCustomerId;
+        var isReverse = perspectiveAccountId.HasValue && rel.TargetAccountId == perspectiveAccountId;
 
         return new AccountRelationshipDto
         {
@@ -688,7 +688,7 @@ public class RelationshipService
     {
         Id = snapshot.Id,
         AccountId = snapshot.AccountId,
-        CustomerName = snapshot.Account?.Company ?? $"{snapshot.Account?.FirstName} {snapshot.Account?.LastName}",
+        AccountName = snapshot.Account?.Company ?? $"{snapshot.Account?.FirstName} {snapshot.Account?.LastName}",
         SnapshotDate = snapshot.SnapshotDate,
         OverallHealthScore = snapshot.OverallHealthScore,
         EngagementScore = snapshot.EngagementScore,

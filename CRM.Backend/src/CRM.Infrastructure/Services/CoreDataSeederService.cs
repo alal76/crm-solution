@@ -657,8 +657,8 @@ public class CoreDataSeederService : ICoreDataSeederService
         var navConfig = @"{
             ""navItems"": [
                 { ""id"": ""dashboard"", ""group"": ""main"", ""order"": 0 },
-                { ""id"": ""customers"", ""group"": ""main"", ""order"": 1 },
-                { ""id"": ""customer-overview"", ""group"": ""main"", ""order"": 2 },
+                { ""id"": ""accounts"", ""group"": ""main"", ""order"": 1 },
+                { ""id"": ""account-overview"", ""group"": ""main"", ""order"": 2 },
                 { ""id"": ""contacts"", ""group"": ""main"", ""order"": 3 },
                 { ""id"": ""relationships"", ""group"": ""main"", ""order"": 4 },
                 { ""id"": ""leads"", ""group"": ""sales"", ""order"": 5 },
@@ -1060,7 +1060,7 @@ public class CoreDataSeederService : ICoreDataSeederService
         {
             // Tab 0: Basic Info
             new() { ModuleName = "Opportunity", FieldName = "title", FieldLabel = "Title", FieldType = "text", TabIndex = 0, TabName = "Basic Info", DisplayOrder = 0, GridSize = 12, IsRequired = true, CreatedAt = now, UpdatedAt = now },
-            new() { ModuleName = "Opportunity", FieldName = "customerId", FieldLabel = "Customer", FieldType = "lookup", TabIndex = 0, TabName = "Basic Info", DisplayOrder = 1, GridSize = 6, IsRequired = true, CreatedAt = now, UpdatedAt = now },
+            new() { ModuleName = "Opportunity", FieldName = "accountId", FieldLabel = "Account", FieldType = "lookup", TabIndex = 0, TabName = "Basic Info", DisplayOrder = 1, GridSize = 6, IsRequired = true, CreatedAt = now, UpdatedAt = now },
             new() { ModuleName = "Opportunity", FieldName = "contactId", FieldLabel = "Contact", FieldType = "lookup", TabIndex = 0, TabName = "Basic Info", DisplayOrder = 2, GridSize = 6, CreatedAt = now, UpdatedAt = now },
 
             // Tab 1: Details
@@ -1129,7 +1129,7 @@ public class CoreDataSeederService : ICoreDataSeederService
         {
             // Tab 0: Basic Info
             new() { ModuleName = "Quote", FieldName = "quoteNumber", FieldLabel = "Quote Number", FieldType = "text", TabIndex = 0, TabName = "Basic Info", DisplayOrder = 0, GridSize = 6, IsRequired = true, CreatedAt = now, UpdatedAt = now },
-            new() { ModuleName = "Quote", FieldName = "customerId", FieldLabel = "Customer", FieldType = "lookup", TabIndex = 0, TabName = "Basic Info", DisplayOrder = 1, GridSize = 6, IsRequired = true, CreatedAt = now, UpdatedAt = now },
+            new() { ModuleName = "Quote", FieldName = "accountId", FieldLabel = "Account", FieldType = "lookup", TabIndex = 0, TabName = "Basic Info", DisplayOrder = 1, GridSize = 6, IsRequired = true, CreatedAt = now, UpdatedAt = now },
             new() { ModuleName = "Quote", FieldName = "status", FieldLabel = "Status", FieldType = "select", TabIndex = 0, TabName = "Basic Info", DisplayOrder = 2, GridSize = 6, IsRequired = true, Options = "Draft,Sent,Accepted,Rejected,Expired", CreatedAt = now, UpdatedAt = now },
             new() { ModuleName = "Quote", FieldName = "validUntil", FieldLabel = "Valid Until", FieldType = "date", TabIndex = 0, TabName = "Basic Info", DisplayOrder = 3, GridSize = 6, CreatedAt = now, UpdatedAt = now },
 

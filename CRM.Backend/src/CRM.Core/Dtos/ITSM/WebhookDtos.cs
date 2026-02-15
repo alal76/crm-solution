@@ -114,8 +114,8 @@ public class IncidentWebhookData
     public string State { get; set; } = string.Empty;
     public int? AssignedToId { get; set; }
     public string? AssignedToName { get; set; }
-    public int? CustomerId { get; set; }
-    public string? CustomerName { get; set; }
+    public int? AccountId { get; set; }
+    public string? AccountName { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? ResolvedAt { get; set; }
     public string? PreviousState { get; set; }

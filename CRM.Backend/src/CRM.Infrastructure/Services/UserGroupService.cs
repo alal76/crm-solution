@@ -94,7 +94,7 @@ public class UserGroupService : IUserGroupService, IUserGroupInputPort
 
             // Menu Permissions
             CanAccessDashboard = g.CanAccessDashboard,
-            CanAccessCustomers = g.CanAccessCustomers,
+            CanAccessAccounts = g.CanAccessAccounts,
             CanAccessContacts = g.CanAccessContacts,
             CanAccessLeads = g.CanAccessLeads,
             CanAccessOpportunities = g.CanAccessOpportunities,
@@ -113,10 +113,10 @@ public class UserGroupService : IUserGroupService, IUserGroupInputPort
             CanAccessUserManagement = g.CanAccessUserManagement,
 
             // Entity CRUD
-            CanCreateCustomers = g.CanCreateCustomers,
-            CanEditCustomers = g.CanEditCustomers,
-            CanDeleteCustomers = g.CanDeleteCustomers,
-            CanViewAllCustomers = g.CanViewAllCustomers,
+            CanCreateAccounts = g.CanCreateAccounts,
+            CanEditAccounts = g.CanEditAccounts,
+            CanDeleteAccounts = g.CanDeleteAccounts,
+            CanViewAllAccounts = g.CanViewAllAccounts,
 
             CanCreateContacts = g.CanCreateContacts,
             CanEditContacts = g.CanEditContacts,
@@ -178,7 +178,7 @@ public class UserGroupService : IUserGroupService, IUserGroupInputPort
 
         // Menu Permissions
         group.CanAccessDashboard = request.CanAccessDashboard;
-        group.CanAccessCustomers = request.CanAccessCustomers;
+        group.CanAccessAccounts = request.CanAccessAccounts;
         group.CanAccessContacts = request.CanAccessContacts;
         group.CanAccessLeads = request.CanAccessLeads;
         group.CanAccessOpportunities = request.CanAccessOpportunities;
@@ -197,10 +197,10 @@ public class UserGroupService : IUserGroupService, IUserGroupInputPort
         group.CanAccessUserManagement = request.CanAccessUserManagement;
 
         // Entity CRUD
-        group.CanCreateCustomers = request.CanCreateCustomers;
-        group.CanEditCustomers = request.CanEditCustomers;
-        group.CanDeleteCustomers = request.CanDeleteCustomers;
-        group.CanViewAllCustomers = request.CanViewAllCustomers;
+        group.CanCreateAccounts = request.CanCreateAccounts;
+        group.CanEditAccounts = request.CanEditAccounts;
+        group.CanDeleteAccounts = request.CanDeleteAccounts;
+        group.CanViewAllAccounts = request.CanViewAllAccounts;
 
         group.CanCreateContacts = request.CanCreateContacts;
         group.CanEditContacts = request.CanEditContacts;

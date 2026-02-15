@@ -63,7 +63,7 @@ public interface ICommunicationService
     /// Get messages with filtering
     /// </summary>
     Task<IEnumerable<CommunicationMessage>> GetMessagesAsync(
-        int? customerId = null,
+        int? accountId = null,
         int? channelId = null,
         MessageDirection? direction = null,
         DateTime? fromDate = null,
@@ -82,7 +82,7 @@ public interface ICommunicationService
     /// <summary>
     /// Get conversation thread
     /// </summary>
-    Task<IEnumerable<CommunicationMessage>> GetConversationAsync(int customerId, int? contactId = null);
+    Task<IEnumerable<CommunicationMessage>> GetConversationAsync(int accountId, int? contactId = null);
 
     #endregion
 }
@@ -164,7 +164,7 @@ public class CommunicationChannelCreateRequest
 public class SendMessageRequest
 {
     public int ChannelId { get; set; }
-    public int CustomerId { get; set; }
+    public int AccountId { get; set; }
     public int? ContactId { get; set; }
     public string? ToEmail { get; set; }
     public string? ToPhone { get; set; }

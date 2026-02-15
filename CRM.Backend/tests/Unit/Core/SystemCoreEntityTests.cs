@@ -411,7 +411,7 @@ public class SystemCoreEntityTests
         var settings = new SystemSettings();
 
         // Module defaults
-        settings.CustomersEnabled.Should().BeTrue();
+        settings.AccountsEnabled.Should().BeTrue();
         settings.ContactsEnabled.Should().BeTrue();
         settings.LeadsEnabled.Should().BeTrue();
         settings.OpportunitiesEnabled.Should().BeTrue();
@@ -1004,8 +1004,8 @@ public class SystemCoreEntityTests
     [InlineData(ActivityType.MeetingCompleted, 5)]
     [InlineData(ActivityType.ChatMessage, 6)]
     [InlineData(ActivityType.SMSSent, 7)]
-    [InlineData(ActivityType.CustomerCreated, 10)]
-    [InlineData(ActivityType.CustomerUpdated, 11)]
+    [InlineData(ActivityType.AccountCreated, 10)]
+    [InlineData(ActivityType.AccountUpdated, 11)]
     [InlineData(ActivityType.OpportunityCreated, 12)]
     [InlineData(ActivityType.OpportunityUpdated, 13)]
     [InlineData(ActivityType.OpportunityWon, 14)]
@@ -1062,8 +1062,8 @@ public class SystemCoreEntityTests
     [Fact]
     public void ActivityType_CrmActions_ShouldBeInRange10To20()
     {
-        ((int)ActivityType.CustomerCreated).Should().BeInRange(10, 19);
-        ((int)ActivityType.CustomerUpdated).Should().BeInRange(10, 19);
+        ((int)ActivityType.AccountCreated).Should().BeInRange(10, 19);
+        ((int)ActivityType.AccountUpdated).Should().BeInRange(10, 19);
         ((int)ActivityType.OpportunityCreated).Should().BeInRange(10, 19);
         ((int)ActivityType.OpportunityWon).Should().BeInRange(10, 19);
         ((int)ActivityType.OpportunityLost).Should().BeInRange(10, 19);

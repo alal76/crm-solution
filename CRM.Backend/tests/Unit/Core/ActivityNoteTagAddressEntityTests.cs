@@ -34,8 +34,8 @@ public class ActivityTypeEnumTests
     [InlineData(ActivityType.MeetingCompleted, 5)]
     [InlineData(ActivityType.ChatMessage, 6)]
     [InlineData(ActivityType.SMSSent, 7)]
-    [InlineData(ActivityType.CustomerCreated, 10)]
-    [InlineData(ActivityType.CustomerUpdated, 11)]
+    [InlineData(ActivityType.AccountCreated, 10)]
+    [InlineData(ActivityType.AccountUpdated, 11)]
     [InlineData(ActivityType.OpportunityCreated, 12)]
     [InlineData(ActivityType.OpportunityUpdated, 13)]
     [InlineData(ActivityType.OpportunityWon, 14)]
@@ -92,8 +92,8 @@ public class ActivityTypeEnumTests
     public void ActivityType_AllCrmActionTypes_ShouldBe10To16()
     {
         var crmActionTypes = new[] {
-            ActivityType.CustomerCreated,
-            ActivityType.CustomerUpdated,
+            ActivityType.AccountCreated,
+            ActivityType.AccountUpdated,
             ActivityType.OpportunityCreated,
             ActivityType.OpportunityUpdated,
             ActivityType.OpportunityWon,

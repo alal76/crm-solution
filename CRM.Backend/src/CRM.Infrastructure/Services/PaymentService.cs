@@ -40,7 +40,7 @@ public class PaymentService : IPaymentService
 
     /// <inheritdoc />
     public async Task<IEnumerable<Payment>> GetAllAsync(
-        int? customerId = null,
+        int? accountId = null,
         int? invoiceId = null,
         PaymentStatus? status = null,
         CancellationToken cancellationToken = default)
@@ -50,9 +50,9 @@ public class PaymentService : IPaymentService
             .Include(p => p.Account)
             .Where(p => !p.IsDeleted);
 
-        if (customerId.HasValue)
+        if (accountId.HasValue)
         {
-            query = query.Where(p => p.AccountId == customerId.Value);
+            query = query.Where(p => p.AccountId == accountId.Value);
         }
 
         if (invoiceId.HasValue)
@@ -562,11 +562,11 @@ public class PaymentService : IPaymentService
     }
 
     /// <inheritdoc />
-    public async Task<IEnumerable<Payment>> GetCustomerPaymentHistoryAsync(int customerId, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<Payment>> GetAccountPaymentHistoryAsync(int accountId, CancellationToken cancellationToken = default)
     {
         return await _context.Payments
             .Include(p => p.Invoice)
-            .Where(p => p.AccountId == customerId && !p.IsDeleted)
+            .Where(p => p.AccountId == accountId && !p.IsDeleted)
             .OrderByDescending(p => p.PaymentDate)
             .ToListAsync(cancellationToken);
     }

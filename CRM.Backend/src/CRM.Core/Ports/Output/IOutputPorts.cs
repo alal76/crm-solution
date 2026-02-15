@@ -48,7 +48,7 @@ public interface IAccountRepositoryPort : IRepositoryPort<Account>
 /// </summary>
 public interface IOpportunityRepositoryPort : IRepositoryPort<Opportunity>
 {
-    Task<IEnumerable<Opportunity>> GetByCustomerAsync(int customerId);
+    Task<IEnumerable<Opportunity>> GetByAccountAsync(int accountId);
     Task<IEnumerable<Opportunity>> GetByStageAsync(string stage);
     Task<IEnumerable<Opportunity>> GetByOwnerAsync(int userId);
     Task<decimal> GetTotalPipelineValueAsync();

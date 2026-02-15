@@ -262,6 +262,12 @@ const UserSettingsDialog: React.FC<UserSettingsDialogProps> = ({ open, onClose, 
     setError(null);
     setSuccess(false);
     try {
+      if (preferences.compactMode !== undefined && typeof preferences.compactMode !== 'boolean') {
+        setError('Invalid compact mode value.');
+        setSaving(false);
+        return;
+      }
+
       await apiClient.put('/users/me/preferences', preferences);
       
       // Save to localStorage for immediate effect

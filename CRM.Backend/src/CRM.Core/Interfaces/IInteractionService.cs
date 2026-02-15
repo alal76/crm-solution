@@ -19,7 +19,7 @@ using CRM.Core.Entities;
 namespace CRM.Core.Interfaces;
 
 /// <summary>
-/// Service interface for managing customer interactions
+/// Service interface for managing account interactions
 /// </summary>
 public interface IInteractionService
 {
@@ -27,7 +27,7 @@ public interface IInteractionService
     /// Get interactions with optional filtering
     /// </summary>
     Task<IEnumerable<Interaction>> GetInteractionsAsync(
-        int? customerId = null,
+        int? accountId = null,
         int? opportunityId = null,
         int? assignedToUserId = null,
         InteractionType? interactionType = null,
@@ -68,12 +68,12 @@ public interface IInteractionService
     /// <summary>
     /// Get interaction statistics
     /// </summary>
-    Task<InteractionStatistics> GetStatisticsAsync(int? customerId = null, DateTime? fromDate = null, DateTime? toDate = null);
+    Task<InteractionStatistics> GetStatisticsAsync(int? accountId = null, DateTime? fromDate = null, DateTime? toDate = null);
 
     /// <summary>
-    /// Get customer interaction history
+    /// Get account interaction history
     /// </summary>
-    Task<IEnumerable<Interaction>> GetCustomerHistoryAsync(int customerId, int limit = 50);
+    Task<IEnumerable<Interaction>> GetAccountHistoryAsync(int accountId, int limit = 50);
 }
 
 /// <summary>
@@ -90,7 +90,7 @@ public class InteractionCompletionRequest
 /// </summary>
 public class InteractionLogRequest
 {
-    public int CustomerId { get; set; }
+    public int AccountId { get; set; }
     public int? OpportunityId { get; set; }
     public InteractionType InteractionType { get; set; }
     public InteractionDirection Direction { get; set; }

@@ -65,14 +65,14 @@ public interface IAllenAIService
     #region Churn Prediction
 
     /// <summary>
-    /// Calculate churn risk for a customer.
+    /// Calculate churn risk for an account.
     /// </summary>
-    Task<ChurnRisk> CalculateChurnRiskAsync(int customerId, CancellationToken cancellationToken = default);
+    Task<ChurnRisk> CalculateChurnRiskAsync(int accountId, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Get high churn risk customers.
+    /// Get high churn risk accounts.
     /// </summary>
-    Task<List<ChurnRisk>> GetHighChurnRiskCustomersAsync(int count = 10, CancellationToken cancellationToken = default);
+    Task<List<ChurnRisk>> GetHighChurnRiskAccountsAsync(int count = 10, CancellationToken cancellationToken = default);
 
     #endregion
 

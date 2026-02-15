@@ -47,13 +47,13 @@ public class InvoicesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<IEnumerable<Invoice>>> GetAll(
-        [FromQuery] int? customerId = null,
+        [FromQuery] int? accountId = null,
         [FromQuery] InvoiceStatus? status = null,
         CancellationToken cancellationToken = default)
     {
         try
         {
-            var invoices = await _invoiceService.GetAllAsync(customerId, status, cancellationToken);
+                var invoices = await _invoiceService.GetAllAsync(accountId, status, cancellationToken);
             return Ok(invoices);
         }
         catch (Exception ex)
@@ -439,18 +439,18 @@ public class InvoicesController : ControllerBase
         }
     }
 
-    /// <summary>Gets invoice statistics for a customer.</summary>
-    [HttpGet("statistics/{customerId}")]
-    public async Task<ActionResult<InvoiceStatistics>> GetCustomerStatistics(int customerId, CancellationToken cancellationToken = default)
+    /// <summary>Gets invoice statistics for an account.</summary>
+    [HttpGet("statistics/{accountId}")]
+    public async Task<ActionResult<InvoiceStatistics>> GetAccountStatistics(int accountId, CancellationToken cancellationToken = default)
     {
         try
         {
-            var stats = await _invoiceService.GetCustomerStatisticsAsync(customerId, cancellationToken);
+            var stats = await _invoiceService.GetAccountStatisticsAsync(accountId, cancellationToken);
             return Ok(stats);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error getting invoice statistics for customer {CustomerId}", customerId);
+            _logger.LogError(ex, "Error getting invoice statistics for account {AccountId}", accountId);
             return HandleServiceException(ex);
         }
     }

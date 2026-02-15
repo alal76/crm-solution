@@ -53,7 +53,7 @@ public class ContractsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetAll(
-        [FromQuery] int? customerId = null,
+        [FromQuery] int? accountId = null,
         [FromQuery] ContractStatus? status = null,
         [FromQuery] ContractType? contractType = null,
         [FromQuery] int page = 1,
@@ -62,7 +62,7 @@ public class ContractsController : ControllerBase
     {
         try
         {
-            var contracts = await _contractService.GetAllAsync(customerId, status, cancellationToken);
+            var contracts = await _contractService.GetAllAsync(accountId, status, cancellationToken);
 
             // Apply contract type filter if specified
             if (contractType.HasValue)
@@ -155,7 +155,7 @@ public class ContractsController : ControllerBase
                 Description = request.Description,
                 Status = request.Status ?? ContractStatus.Draft,
                 ContractType = request.ContractType ?? ContractType.Service,
-                AccountId = request.CustomerId,
+                AccountId = request.AccountId,
                 ContactId = request.ContactId,
                 OwnerId = request.OwnerId,
                 ParentContractId = request.ParentContractId,
@@ -206,7 +206,7 @@ public class ContractsController : ControllerBase
             if (request.Description != null) contract.Description = request.Description;
             if (request.Status.HasValue) contract.Status = request.Status.Value;
             if (request.ContractType.HasValue) contract.ContractType = request.ContractType.Value;
-            if (request.CustomerId.HasValue) contract.AccountId = request.CustomerId.Value;
+            if (request.AccountId.HasValue) contract.AccountId = request.AccountId.Value;
             if (request.ContactId.HasValue) contract.ContactId = request.ContactId;
             if (request.OwnerId.HasValue) contract.OwnerId = request.OwnerId;
             if (request.ParentContractId.HasValue) contract.ParentContractId = request.ParentContractId;
@@ -664,20 +664,20 @@ public class ContractsController : ControllerBase
     // Queries & Reports
     // ========================================================================
 
-    /// <summary>Gets active contracts for a customer.</summary>
-    [HttpGet("active/{customerId}")]
+    /// <summary>Gets active contracts for an account.</summary>
+    [HttpGet("active/{accountId}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> GetActiveContracts(int customerId, CancellationToken cancellationToken = default)
+    public async Task<IActionResult> GetActiveContracts(int accountId, CancellationToken cancellationToken = default)
     {
         try
         {
-            var contracts = await _contractService.GetActiveContractsAsync(customerId, cancellationToken);
+            var contracts = await _contractService.GetActiveContractsAsync(accountId, cancellationToken);
             return Ok(contracts.Select(c => MapToDto(c)));
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error retrieving active contracts for customer {CustomerId}", customerId);
+            _logger.LogError(ex, "Error retrieving active contracts for account {AccountId}", accountId);
             return StatusCode(500, new { message = "Error retrieving active contracts" });
         }
     }
@@ -747,20 +747,20 @@ public class ContractsController : ControllerBase
         }
     }
 
-    /// <summary>Gets total contract value for a customer.</summary>
-    [HttpGet("value/{customerId}")]
+    /// <summary>Gets total contract value for an account.</summary>
+    [HttpGet("value/{accountId}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> GetTotalContractValue(int customerId, CancellationToken cancellationToken = default)
+    public async Task<IActionResult> GetTotalContractValue(int accountId, CancellationToken cancellationToken = default)
     {
         try
         {
-            var value = await _contractService.GetTotalContractValueAsync(customerId, cancellationToken);
-            return Ok(new { customerId, totalValue = value });
+            var value = await _contractService.GetTotalContractValueAsync(accountId, cancellationToken);
+            return Ok(new { accountId, totalValue = value });
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error retrieving total contract value for customer {CustomerId}", customerId);
+            _logger.LogError(ex, "Error retrieving total contract value for account {AccountId}", accountId);
             return StatusCode(500, new { message = "Error retrieving contract value" });
         }
     }
@@ -825,7 +825,7 @@ public class ContractsController : ControllerBase
             ContractType = c.ContractType.ToString(),
             ContractTypeValue = (int)c.ContractType,
             // Relationships
-            CustomerId = c.AccountId,
+            AccountId = c.AccountId,
             AccountName = c.Account?.Company ?? c.Account?.FirstName,
             c.ContactId,
             ContactName = c.Contact != null ? $"{c.Contact.FirstName} {c.Contact.LastName}" : null,
@@ -885,7 +885,7 @@ public class ContractsController : ControllerBase
         public string? Description { get; set; }
         public ContractStatus? Status { get; set; }
         public ContractType? ContractType { get; set; }
-        public int CustomerId { get; set; }
+        public int AccountId { get; set; }
         public int? ContactId { get; set; }
         public int? OwnerId { get; set; }
         public int? ParentContractId { get; set; }
@@ -911,7 +911,7 @@ public class ContractsController : ControllerBase
         public string? Description { get; set; }
         public ContractStatus? Status { get; set; }
         public ContractType? ContractType { get; set; }
-        public int? CustomerId { get; set; }
+        public int? AccountId { get; set; }
         public int? ContactId { get; set; }
         public int? OwnerId { get; set; }
         public int? ParentContractId { get; set; }

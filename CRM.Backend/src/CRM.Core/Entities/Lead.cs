@@ -187,7 +187,7 @@ public class Lead : BaseEntity
     public int? CampaignId { get; set; }
 
     /// <summary>Matched existing customer/company (if applicable)</summary>
-    [Column("CustomerId")]
+    [Column("AccountId")]
     public int? AccountId { get; set; }
 
     /// <summary>Matched existing contact (if applicable)</summary>

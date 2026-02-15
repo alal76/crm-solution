@@ -223,6 +223,39 @@ public class SystemSettingsServiceTests : IDisposable
         result.PrimaryColor.Should().Be("#6750A4"); // Unchanged
     }
 
+        [Fact]
+        public async Task UpdateSettingsAsync_WhenPrimaryColorInvalid_ThrowsArgumentException()
+        {
+            // Arrange
+            var updateRequest = new UpdateSystemSettingsRequest
+            {
+                PrimaryColor = "not-a-color"
+            };
+
+            // Act
+            var act = async () => await _service.UpdateSettingsAsync(updateRequest);
+
+            // Assert
+            await act.Should().ThrowAsync<ArgumentException>()
+                .WithMessage("*PrimaryColor*");
+        }
+
+        [Fact]
+        public async Task UpdateSettingsAsync_WhenSelectedPaletteDoesNotExist_ThrowsArgumentException()
+        {
+            // Arrange
+            var updateRequest = new UpdateSystemSettingsRequest
+            {
+                SelectedPaletteId = 999
+            };
+
+            // Act
+            var act = async () => await _service.UpdateSettingsAsync(updateRequest);
+
+            // Assert
+            await act.Should().ThrowAsync<ArgumentException>()
+                .WithMessage("*SelectedPaletteId*");
+        }
     #endregion
 
     #region Security Settings Tests

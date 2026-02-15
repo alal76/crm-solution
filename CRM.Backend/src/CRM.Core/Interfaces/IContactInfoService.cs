@@ -22,7 +22,7 @@ namespace CRM.Core.Interfaces;
 /// <summary>
 /// Service interface for managing consolidated contact information
 /// (addresses, phone numbers, email addresses, social media accounts)
-/// shared between Customers, Contacts, Leads, and Accounts
+/// shared between Accounts, Contacts, and Leads
 /// </summary>
 public interface IContactInfoService
 {

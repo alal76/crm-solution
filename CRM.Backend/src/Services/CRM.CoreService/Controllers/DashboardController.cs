@@ -53,7 +53,7 @@ public class DashboardController : ControllerBase
     {
         try
         {
-            var customerCount = await _context.Customers.CountAsync(c => !c.IsDeleted);
+            var accountCount = await _context.Accounts.CountAsync(c => !c.IsDeleted);
             var contactCount = await _context.Contacts.CountAsync();
             var opportunityCount = await _context.Opportunities.CountAsync(o => !o.IsDeleted);
             var openOpportunityValue = await _context.Opportunities
@@ -69,7 +69,7 @@ public class DashboardController : ControllerBase
 
             return Ok(new
             {
-                customers = new { total = customerCount },
+                accounts = new { total = accountCount },
                 contacts = new { total = contactCount },
                 opportunities = new
                 {

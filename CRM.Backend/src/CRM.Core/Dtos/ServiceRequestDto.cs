@@ -239,9 +239,9 @@ public class ServiceRequestDto
     public int? SubcategoryId { get; set; }
     public string? SubcategoryName { get; set; }
 
-    // Customer & Contact
-    public int? CustomerId { get; set; }
-    public string? CustomerName { get; set; }
+    // Account & Contact
+    public int? AccountId { get; set; }
+    public string? AccountName { get; set; }
     public int? ContactId { get; set; }
     public string? ContactName { get; set; }
     public string? RequesterName { get; set; }
@@ -295,7 +295,7 @@ public class ServiceRequestDto
     public string? InternalNotes { get; set; }
     public int EscalationLevel { get; set; }
     public int ReopenCount { get; set; }
-    public bool IsVipCustomer { get; set; }
+    public bool IsVipAccount { get; set; }
     public decimal? EstimatedEffortHours { get; set; }
     public decimal? ActualEffortHours { get; set; }
 
@@ -329,8 +329,8 @@ public class CreateServiceRequestDto
     public int? CategoryId { get; set; }
     public int? SubcategoryId { get; set; }
 
-    // Customer & Contact
-    public int? CustomerId { get; set; }
+    // Account & Contact
+    public int? AccountId { get; set; }
     public int? ContactId { get; set; }
     public string? RequesterName { get; set; }
     public string? RequesterEmail { get; set; }
@@ -357,7 +357,7 @@ public class CreateServiceRequestDto
     // Additional
     public string? Tags { get; set; }
     public string? InternalNotes { get; set; }
-    public bool IsVipCustomer { get; set; }
+    public bool IsVipAccount { get; set; }
     public decimal? EstimatedEffortHours { get; set; }
 
     // Custom field values
@@ -376,8 +376,8 @@ public class UpdateServiceRequestDto
     public int? CategoryId { get; set; }
     public int? SubcategoryId { get; set; }
 
-    // Customer & Contact
-    public int? CustomerId { get; set; }
+    // Account & Contact
+    public int? AccountId { get; set; }
     public int? ContactId { get; set; }
     public string? RequesterName { get; set; }
     public string? RequesterEmail { get; set; }
@@ -408,7 +408,7 @@ public class UpdateServiceRequestDto
     // Additional
     public string? Tags { get; set; }
     public string? InternalNotes { get; set; }
-    public bool IsVipCustomer { get; set; }
+    public bool IsVipAccount { get; set; }
     public decimal? EstimatedEffortHours { get; set; }
     public decimal? ActualEffortHours { get; set; }
 
@@ -428,13 +428,13 @@ public class ServiceRequestFilterDto
     public List<ServiceRequestChannel>? Channels { get; set; }
     public List<int>? CategoryIds { get; set; }
     public List<int>? SubcategoryIds { get; set; }
-    public int? CustomerId { get; set; }
+    public int? AccountId { get; set; }
     public int? ContactId { get; set; }
     public int? AssignedToUserId { get; set; }
     public int? AssignedToGroupId { get; set; }
     public int? WorkflowId { get; set; }
     public bool? IsOpen { get; set; }
-    public bool? IsVipCustomer { get; set; }
+    public bool? IsVipAccount { get; set; }
     public bool? ResponseSlaBreached { get; set; }
     public bool? ResolutionSlaBreached { get; set; }
     public DateTime? CreatedFrom { get; set; }
@@ -461,13 +461,13 @@ public class ServiceRequestListDto
     public string PriorityName { get; set; } = string.Empty;
     public string? CategoryName { get; set; }
     public string? SubcategoryName { get; set; }
-    public string? CustomerName { get; set; }
+    public string? AccountName { get; set; }
     public string? AssignedToUserName { get; set; }
     public DateTime? ResponseDueDate { get; set; }
     public DateTime? ResolutionDueDate { get; set; }
     public bool ResponseSlaBreached { get; set; }
     public bool ResolutionSlaBreached { get; set; }
-    public bool IsVipCustomer { get; set; }
+    public bool IsVipAccount { get; set; }
     public int EscalationLevel { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }

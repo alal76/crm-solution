@@ -38,7 +38,7 @@ public class TaskService : ITaskService
 
     /// <inheritdoc />
     public async Task<IEnumerable<CrmTask>> GetTasksAsync(
-        int? customerId = null,
+        int? accountId = null,
         int? opportunityId = null,
         int? assignedToUserId = null,
         CrmTaskStatus? status = null,
@@ -46,14 +46,14 @@ public class TaskService : ITaskService
         bool? overdue = null)
     {
         _logger.LogDebug(
-            "Getting tasks with filters: CustomerId={CustomerId}, OpportunityId={OpportunityId}, AssignedTo={AssignedTo}, Status={Status}, Priority={Priority}, Overdue={Overdue}",
-            customerId, opportunityId, assignedToUserId, status, priority, overdue);
+            "Getting tasks with filters: AccountId={AccountId}, OpportunityId={OpportunityId}, AssignedTo={AssignedTo}, Status={Status}, Priority={Priority}, Overdue={Overdue}",
+            accountId, opportunityId, assignedToUserId, status, priority, overdue);
 
         var query = _context.CrmTasks.AsNoTracking().Where(t => !t.IsDeleted);
 
-        if (customerId.HasValue)
+        if (accountId.HasValue)
         {
-            query = query.Where(t => t.AccountId == customerId);
+            query = query.Where(t => t.AccountId == accountId);
         }
 
         if (opportunityId.HasValue)

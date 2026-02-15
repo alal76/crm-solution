@@ -50,7 +50,7 @@ public class ImportExportController : ControllerBase
         var entityTypes = new List<object>
         {
             new { name = "contacts", label = "Contacts", canImport = true, canExport = true },
-            new { name = "customers", label = "Customers", canImport = true, canExport = true },
+            new { name = "accounts", label = "Accounts", canImport = true, canExport = true },
             new { name = "opportunities", label = "Opportunities", canImport = true, canExport = true },
             new { name = "products", label = "Products", canImport = true, canExport = true },
             new { name = "quotes", label = "Quotes", canImport = false, canExport = true },
@@ -77,7 +77,7 @@ public class ImportExportController : ControllerBase
             object? data = entityType.ToLowerInvariant() switch
             {
                 "contacts" => await _context.Contacts.Include(c => c.SocialMediaLinks).ToListAsync(),
-                "customers" => await _context.Customers.ToListAsync(),
+                "accounts" => await _context.Accounts.ToListAsync(),
                 "opportunities" => await _context.Opportunities.ToListAsync(),
                 "products" => await _context.Products.ToListAsync(),
                 "quotes" => await _context.Quotes.ToListAsync(),
@@ -174,7 +174,7 @@ public class ImportExportController : ControllerBase
             return BadRequest(new { message = "No file uploaded or file is empty." });
         }
 
-        var supportedTypes = new HashSet<string> { "contacts", "customers", "opportunities", "products", "tasks", "leads" };
+        var supportedTypes = new HashSet<string> { "contacts", "accounts", "opportunities", "products", "tasks", "leads" };
         var normalizedType = entityType.ToLowerInvariant();
 
         if (!supportedTypes.Contains(normalizedType))
@@ -218,7 +218,7 @@ public class ImportExportController : ControllerBase
                     }
                     break;
                 }
-                case "customers":
+                case "accounts":
                 {
                     var items = JsonSerializer.Deserialize<List<Account>>(content, jsonOptions);
                     if (items == null || items.Count == 0)
@@ -231,7 +231,7 @@ public class ImportExportController : ControllerBase
                             item.Id = 0;
                             item.CreatedAt = DateTime.UtcNow;
                             item.UpdatedAt = DateTime.UtcNow;
-                            _context.Customers.Add(item);
+                            _context.Accounts.Add(item);
                             importedCount++;
                         }
                         catch (Exception ex)
@@ -365,7 +365,7 @@ public class ImportExportController : ControllerBase
         {
             "contacts" => new
             {
-                contactType = "Customer",
+                contactType = "Account",
                 firstName = "John",
                 lastName = "Doe",
                 email = "john.doe@example.com",
@@ -373,7 +373,7 @@ public class ImportExportController : ControllerBase
                 company = "Acme Inc",
                 jobTitle = "Manager"
             },
-            "customers" => new
+            "accounts" => new
             {
                 category = "Individual",
                 firstName = "Jane",

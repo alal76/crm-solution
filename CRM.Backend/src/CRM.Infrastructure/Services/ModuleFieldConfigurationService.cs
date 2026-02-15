@@ -154,7 +154,7 @@ public class ModuleFieldConfigurationService
 
         List<ModuleFieldConfiguration> configs = moduleName switch
         {
-            ModuleNames.Customers => GetDefaultCustomerFields(),
+            ModuleNames.Accounts => GetDefaultCustomerFields(),
             ModuleNames.Contacts => GetDefaultContactFields(),
             ModuleNames.Leads => GetDefaultLeadFields(),
             ModuleNames.Opportunities => GetDefaultOpportunityFields(),
@@ -178,7 +178,7 @@ public class ModuleFieldConfigurationService
     {
         var allModuleNames = new[]
         {
-            ModuleNames.Customers,
+            ModuleNames.Accounts,
             ModuleNames.Contacts,
             ModuleNames.Leads,
             ModuleNames.Opportunities,
@@ -200,7 +200,7 @@ public class ModuleFieldConfigurationService
 
             List<ModuleFieldConfiguration> configs = moduleName switch
             {
-                ModuleNames.Customers => GetDefaultCustomerFields(),
+                ModuleNames.Accounts => GetDefaultCustomerFields(),
                 ModuleNames.Contacts => GetDefaultContactFields(),
                 ModuleNames.Leads => GetDefaultLeadFields(),
                 ModuleNames.Opportunities => GetDefaultOpportunityFields(),
@@ -264,7 +264,8 @@ public class ModuleFieldConfigurationService
     private List<ModuleFieldConfiguration> GetDefaultCustomerFields()
     {
         var now = DateTime.UtcNow;
-        return new List<ModuleFieldConfiguration>
+        var moduleName = ModuleNames.Accounts;
+        var configs = new List<ModuleFieldConfiguration>
         {
             // Basic Info Tab (0)
             new() { ModuleName = "Customers", FieldName = "category", FieldLabel = "Customer Category", FieldType = "select", TabIndex = 0, TabName = "Basic Info", DisplayOrder = 0, IsEnabled = true, IsRequired = true, GridSize = 12, Options = "Individual,Organization", IsReorderable = false, IsRequiredConfigurable = false, IsHideable = false, CreatedAt = now },
@@ -326,6 +327,13 @@ public class ModuleFieldConfigurationService
             new() { ModuleName = "Customers", FieldName = "description", FieldLabel = "Description", FieldType = "textarea", TabIndex = 3, TabName = "Additional", DisplayOrder = 3, IsEnabled = true, IsRequired = false, GridSize = 12, CreatedAt = now },
             new() { ModuleName = "Customers", FieldName = "notes", FieldLabel = "Notes", FieldType = "textarea", TabIndex = 3, TabName = "Additional", DisplayOrder = 4, IsEnabled = true, IsRequired = false, GridSize = 12, CreatedAt = now },
         };
+
+        foreach (var config in configs)
+        {
+            config.ModuleName = moduleName;
+        }
+
+        return configs;
     }
 
     private List<ModuleFieldConfiguration> GetDefaultContactFields()
@@ -405,7 +413,7 @@ public class ModuleFieldConfigurationService
         {
             // Basic Info Tab (0)
             new() { ModuleName = "Opportunities", FieldName = "title", FieldLabel = "Opportunity Title", FieldType = "text", TabIndex = 0, TabName = "Basic Info", DisplayOrder = 0, IsEnabled = true, IsRequired = true, GridSize = 12, CreatedAt = now },
-            new() { ModuleName = "Opportunities", FieldName = "customerId", FieldLabel = "Customer", FieldType = "lookup", TabIndex = 0, TabName = "Basic Info", DisplayOrder = 1, IsEnabled = true, IsRequired = true, GridSize = 6, CreatedAt = now },
+            new() { ModuleName = "Opportunities", FieldName = "accountId", FieldLabel = "Account", FieldType = "lookup", TabIndex = 0, TabName = "Basic Info", DisplayOrder = 1, IsEnabled = true, IsRequired = true, GridSize = 6, CreatedAt = now },
             new() { ModuleName = "Opportunities", FieldName = "contactId", FieldLabel = "Primary Contact", FieldType = "lookup", TabIndex = 0, TabName = "Basic Info", DisplayOrder = 2, IsEnabled = true, IsRequired = false, GridSize = 6, CreatedAt = now },
 
             // Opportunity Details Tab (1)
@@ -445,4 +453,5 @@ public class ModuleFieldConfigurationService
             new() { ModuleName = "Products", FieldName = "features", FieldLabel = "Features", FieldType = "textarea", TabIndex = 2, TabName = "Details", DisplayOrder = 1, IsEnabled = true, IsRequired = false, GridSize = 12, CreatedAt = now },
         };
     }
+
 }

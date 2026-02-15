@@ -466,15 +466,15 @@ public class AllenAIService : IAllenAIService
     #region Churn Prediction
 
     /// <inheritdoc />
-    public async Task<ChurnRisk> CalculateChurnRiskAsync(int customerId, CancellationToken cancellationToken = default)
+    public async Task<ChurnRisk> CalculateChurnRiskAsync(int accountId, CancellationToken cancellationToken = default)
     {
         var customer = await _context.Accounts
             .Include(c => c.Opportunities)
-            .FirstOrDefaultAsync(c => c.Id == customerId, cancellationToken);
+            .FirstOrDefaultAsync(c => c.Id == accountId, cancellationToken);
 
         if (customer == null)
         {
-            throw new ArgumentException($"Customer with ID {customerId} not found", nameof(customerId));
+            throw new ArgumentException($"Account with ID {accountId} not found", nameof(accountId));
         }
 
         var churnProbability = CalculateChurnProbability(customer);
@@ -482,7 +482,7 @@ public class AllenAIService : IAllenAIService
 
         var churnRisk = new ChurnRisk
         {
-            AccountId = customerId,
+            AccountId = accountId,
             ChurnProbability = churnProbability,
             RiskLevel = GetChurnRiskLevel(churnProbability),
             Confidence = 0.75m,
@@ -497,7 +497,7 @@ public class AllenAIService : IAllenAIService
             AccountTenureMonths = (int)((DateTime.UtcNow - customer.CreatedAt).Days / 30.0),
             RecommendedAction = GetRetentionAction(churnProbability),
             ActionUrgency = churnProbability >= 0.7m ? 1 : (churnProbability >= 0.4m ? 2 : 3),
-            AIInsights = $"Customer health: {healthScore:F0}%. Churn risk: {churnProbability * 100:F0}%.",
+            AIInsights = $"Account health: {healthScore:F0}%. Churn risk: {churnProbability * 100:F0}%.",
             AssessedAt = DateTime.UtcNow,
             ExpiresAt = DateTime.UtcNow.AddDays(7),
             ModelVersion = "1.0-olmo"
@@ -510,7 +510,7 @@ public class AllenAIService : IAllenAIService
     }
 
     /// <inheritdoc />
-    public async Task<List<ChurnRisk>> GetHighChurnRiskCustomersAsync(int count = 10, CancellationToken cancellationToken = default)
+    public async Task<List<ChurnRisk>> GetHighChurnRiskAccountsAsync(int count = 10, CancellationToken cancellationToken = default)
     {
         return await _context.ChurnRisks
             .Where(c => c.RiskLevel >= ChurnRiskLevel.High && !c.IsDeleted)
@@ -669,7 +669,7 @@ public class AllenAIService : IAllenAIService
                 var customer = await _context.Accounts.FindAsync(new object[] { entityId }, cancellationToken);
                 if (customer != null)
                 {
-                    recommendations.Add(CreateCustomerRecommendation(customer));
+                    recommendations.Add(CreateAccountRecommendation(customer));
                 }
                 break;
         }
@@ -742,23 +742,23 @@ public class AllenAIService : IAllenAIService
         };
     }
 
-    private ActionRecommendation CreateCustomerRecommendation(Account customer)
+    private ActionRecommendation CreateAccountRecommendation(Account account)
     {
-        // Get customer display name based on category
-        var customerName = customer.Category == AccountCategory.Organization
-            ? customer.Company
-            : $"{customer.FirstName} {customer.LastName}".Trim();
+        // Get account display name based on category
+        var accountName = account.Category == AccountCategory.Organization
+            ? account.Company
+            : $"{account.FirstName} {account.LastName}".Trim();
 
         return new ActionRecommendation
         {
             TargetType = ActionTargetType.Customer,
-            TargetEntityId = customer.Id,
-            TargetEntityName = customerName,
+            TargetEntityId = account.Id,
+            TargetEntityName = accountName,
             ActionType = NextBestActionType.CheckIn,
             Channel = ActionChannel.Email,
-            Title = $"Customer Check-in - {customerName}",
-            Description = "Schedule a customer success check-in to maintain relationship.",
-            Rationale = "Regular customer engagement improves retention.",
+            Title = $"Account Check-in - {accountName}",
+            Description = "Schedule an account success check-in to maintain relationship.",
+            Rationale = "Regular account engagement improves retention.",
             Priority = ActionPriorityLevel.Medium,
             ImpactScore = 60,
             SuccessProbability = 0.8m,

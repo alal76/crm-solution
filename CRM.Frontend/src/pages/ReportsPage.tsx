@@ -154,6 +154,7 @@ function ReportsPage() {
           </Tooltip>
           <Button variant="contained" startIcon={<AddIcon />} onClick={handleCreateNew}>
             Create Report
+            import { EnhancedEmptyState } from '../components/common';
           </Button>
         </Box>
       </Box>
@@ -214,17 +215,31 @@ function ReportsPage() {
                 </CardContent>
                 <CardActions sx={{ justifyContent: 'flex-end', px: 2, pb: 1.5 }}>
                   <Tooltip title="Run Report">
-                    <IconButton size="small" color="primary" onClick={() => handleRun({ id: report.id, name: report.name, description: report.description, dataSource: (report.category || 'opportunities') as ReportConfig['dataSource'], columns: [], filters: [], sorts: [], groupings: [] })}>
+                    <IconButton
+                      size="small"
+                      color="primary"
+                      aria-label={`Run report ${report.name}`}
+                      onClick={() => handleRun({ id: report.id, name: report.name, description: report.description, dataSource: (report.category || 'opportunities') as ReportConfig['dataSource'], columns: [], filters: [], sorts: [], groupings: [] })}
+                    >
                       <RunIcon />
                     </IconButton>
                   </Tooltip>
                   <Tooltip title="Edit">
-                    <IconButton size="small" onClick={() => { setEditingReport({ id: report.id, name: report.name, description: report.description, dataSource: (report.category || 'opportunities') as ReportConfig['dataSource'], columns: [], filters: [], sorts: [], groupings: [] }); setDesignerOpen(true); }}>
+                    <IconButton
+                      size="small"
+                      aria-label={`Edit report ${report.name}`}
+                      onClick={() => { setEditingReport({ id: report.id, name: report.name, description: report.description, dataSource: (report.category || 'opportunities') as ReportConfig['dataSource'], columns: [], filters: [], sorts: [], groupings: [] }); setDesignerOpen(true); }}
+                    >
                       <EditIcon />
                     </IconButton>
                   </Tooltip>
                   <Tooltip title="Delete">
-                    <IconButton size="small" color="error" onClick={() => handleDelete(report.id)}>
+                    <IconButton
+                      size="small"
+                      color="error"
+                      aria-label={`Delete report ${report.name}`}
+                      onClick={() => handleDelete(report.id)}
+                    >
                       <DeleteIcon />
                     </IconButton>
                   </Tooltip>
@@ -237,18 +252,14 @@ function ReportsPage() {
 
       {/* Empty State */}
       {!loading && filteredReports.length === 0 && !error && (
-        <Box sx={{ textAlign: 'center', py: 8 }}>
-          <ReportIcon sx={{ fontSize: 64, color: 'text.disabled', mb: 2 }} />
-          <Typography variant="h6" color="text.secondary" gutterBottom>
-            No reports yet
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-            Create your first custom report to analyze your CRM data.
-          </Typography>
-          <Button variant="contained" startIcon={<AddIcon />} onClick={handleCreateNew}>
-            Create Report
-          </Button>
-        </Box>
+        <EnhancedEmptyState
+          variant="no-data"
+          illustration="generic"
+          title="No reports yet"
+          description="Create your first custom report to analyze your CRM data."
+          primaryActionLabel="Create Report"
+          onPrimaryAction={handleCreateNew}
+        />
       )}
 
       {/* Report Designer Dialog */}

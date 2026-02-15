@@ -47,7 +47,7 @@ public class TasksController : ControllerBase
     /// </summary>
     [HttpGet]
     public async Task<ActionResult<IEnumerable<CrmTask>>> GetTasks(
-        [FromQuery] int? customerId = null,
+        [FromQuery] int? accountId = null,
         [FromQuery] int? opportunityId = null,
         [FromQuery] int? assignedToUserId = null,
         [FromQuery] CrmTaskStatus? status = null,
@@ -60,8 +60,8 @@ public class TasksController : ControllerBase
             .Include(t => t.AssignedToUser)
             .AsQueryable();
 
-        if (customerId.HasValue)
-            query = query.Where(t => t.AccountId == customerId);
+        if (accountId.HasValue)
+            query = query.Where(t => t.AccountId == accountId);
 
         if (opportunityId.HasValue)
             query = query.Where(t => t.OpportunityId == opportunityId);
@@ -299,7 +299,7 @@ public class TasksController : ControllerBase
                 t.EstimatedMinutes,
                 t.ActualMinutes,
                 t.AccountId,
-                CustomerName = t.Account?.Company,
+                AccountName = t.Account?.Company,
                 t.OpportunityId,
                 OpportunityName = t.Opportunity?.Name,
                 t.AssignedToUserId,

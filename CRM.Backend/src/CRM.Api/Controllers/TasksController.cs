@@ -49,7 +49,7 @@ public class TasksController : ControllerBase
     /// <summary>
     /// Get all tasks with optional filtering.
     /// </summary>
-    /// <param name="customerId">Filter by customer/account ID.</param>
+    /// <param name="accountId">Filter by account ID.</param>
     /// <param name="opportunityId">Filter by opportunity ID.</param>
     /// <param name="assignedToUserId">Filter by assigned user ID.</param>
     /// <param name="status">Filter by task status.</param>
@@ -64,7 +64,7 @@ public class TasksController : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<IEnumerable<CrmTask>>> GetTasks(
-        [FromQuery] int? customerId = null,
+        [FromQuery] int? accountId = null,
         [FromQuery] int? opportunityId = null,
         [FromQuery] int? assignedToUserId = null,
         [FromQuery] CrmTaskStatus? status = null,
@@ -77,8 +77,8 @@ public class TasksController : ControllerBase
             .Include(t => t.AssignedToUser)
             .AsQueryable();
 
-        if (customerId.HasValue)
-            query = query.Where(t => t.AccountId == customerId);
+        if (accountId.HasValue)
+            query = query.Where(t => t.AccountId == accountId);
 
         if (opportunityId.HasValue)
             query = query.Where(t => t.OpportunityId == opportunityId);

@@ -1053,7 +1053,7 @@ public class ReportService : IReportService
 
         return report.DataSource switch
         {
-            ReportEntityDataSource.Customers => "accounts",
+            ReportEntityDataSource.Accounts => "accounts",
             ReportEntityDataSource.Contacts => "contacts",
             ReportEntityDataSource.Leads => "leads",
             ReportEntityDataSource.Opportunities => "opportunities",
@@ -1426,7 +1426,7 @@ public class ReportService : IReportService
         };
 
         var columns = ResolveColumns(report, config, fieldMap.Keys);
-        var accounts = await _context.Customers.AsNoTracking().Where(a => !a.IsDeleted).ToListAsync(cancellationToken);
+        var accounts = await _context.Accounts.AsNoTracking().Where(a => !a.IsDeleted).ToListAsync(cancellationToken);
         return accounts.Select(a => BuildRow(a, columns, fieldMap)).ToList();
     }
 

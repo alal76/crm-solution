@@ -17,6 +17,7 @@
 namespace CRM.Infrastructure.Services;
 
 using System.Text.Json;
+using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using CRM.Infrastructure.Data;
@@ -29,11 +30,13 @@ using Microsoft.Extensions.Logging;
 public class TerritoryService : ITerritoryService
 {
     private readonly ICrmDbContext _context;
+    private readonly IContactInfoService _contactInfoService;
     private readonly ILogger<TerritoryService> _logger;
 
-    public TerritoryService(ICrmDbContext context, ILogger<TerritoryService> logger)
+    public TerritoryService(ICrmDbContext context, IContactInfoService contactInfoService, ILogger<TerritoryService> logger)
     {
         _context = context ?? throw new ArgumentNullException(nameof(context));
+        _contactInfoService = contactInfoService ?? throw new ArgumentNullException(nameof(contactInfoService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
@@ -457,12 +460,14 @@ public class TerritoryService : ITerritoryService
         if (account == null)
             return Enumerable.Empty<AccountTerritory>();
 
+        var primaryAddress = await GetPrimaryAddressAsync(accountId);
+
         var criteria = new TerritoryMatchCriteria
         {
-            Country = account.Country,
+            Country = primaryAddress?.Country,
             Region = account.Region,
-            State = account.State,
-            City = account.City,
+            State = primaryAddress?.State,
+            City = primaryAddress?.City,
             Industry = account.Industry,
             CustomerType = account.AccountType.ToString(),
             AnnualRevenue = account.AnnualRevenue
@@ -505,6 +510,16 @@ public class TerritoryService : ITerritoryService
         return await AssignAccountAsync(accountId, bestMatch.Id, null, true, "Auto-assigned", cancellationToken);
     }
 
+    private async Task<LinkedAddressDto?> GetPrimaryAddressAsync(int accountId)
+    {
+        var addresses = await _contactInfoService.GetAddressesAsync(EntityType.Account, accountId);
+        var billing = addresses.FirstOrDefault(a => a.AddressType.Equals("Billing", StringComparison.OrdinalIgnoreCase) && a.IsPrimary)
+                      ?? addresses.FirstOrDefault(a => a.AddressType.Equals("Billing", StringComparison.OrdinalIgnoreCase))
+                      ?? addresses.FirstOrDefault(a => a.AddressType.Equals("Primary", StringComparison.OrdinalIgnoreCase) && a.IsPrimary)
+                      ?? addresses.FirstOrDefault(a => a.AddressType.Equals("Primary", StringComparison.OrdinalIgnoreCase));
+        return billing ?? addresses.FirstOrDefault();
+    }
+
     public async Task<bool> IsAccountInTerritoryAsync(
         int accountId,
         int territoryId,
@@ -518,12 +533,14 @@ public class TerritoryService : ITerritoryService
         if (account == null || territory == null)
             return false;
 
+        var primaryAddress = await GetPrimaryAddressAsync(accountId);
+
         var criteria = new TerritoryMatchCriteria
         {
-            Country = account.Country,
+            Country = primaryAddress?.Country,
             Region = account.Region,
-            State = account.State,
-            City = account.City,
+            State = primaryAddress?.State,
+            City = primaryAddress?.City,
             Industry = account.Industry,
             CustomerType = account.AccountType.ToString(),
             AnnualRevenue = account.AnnualRevenue
@@ -774,10 +791,10 @@ public class TerritoryService : ITerritoryService
             var matchingUnassigned = unassignedAccounts
                 .Where(a => TerritoryMatchesCriteria(territory, new TerritoryMatchCriteria
                 {
-                    Country = a.Country,
+                    Country = a.Region,  // Use Region as country proxy since direct Country property doesn't exist
                     Region = a.Region,
-                    State = a.State,
-                    City = a.City,
+                    State = a.Territory ?? string.Empty,  // Use Territory as state proxy
+                    City = string.Empty,  // City not available on Account directly
                     Industry = a.Industry,
                     CustomerType = a.AccountType.ToString(),
                     AnnualRevenue = a.AnnualRevenue

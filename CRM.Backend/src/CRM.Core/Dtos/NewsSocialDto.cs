@@ -68,7 +68,7 @@ public class NewsSocialFeedResponse
 /// </summary>
 public class NewsSocialFeedRequest
 {
-    public int CustomerId { get; set; }
+    public int AccountId { get; set; }
     public string? CompanyName { get; set; }
     public string? LinkedInUrl { get; set; }
     public string? TwitterHandle { get; set; }

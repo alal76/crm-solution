@@ -71,10 +71,10 @@ public class CampaignConversion : BaseEntity
     /// </summary>
     public int? ContactId { get; set; }
 
-    /// <summary>
-    /// The customer if applicable
-    /// </summary>
-    [Column("CustomerId")]
+        /// <summary>
+        /// The account if applicable
+        /// </summary>
+        [Column("AccountId")]
     public int? AccountId { get; set; }
 
     /// <summary>
