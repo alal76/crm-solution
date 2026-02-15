@@ -147,7 +147,67 @@ Webhook Management provides a real-time event notification system for external i
 | SignatureGenerator | `CRM.Infrastructure/Services/SignatureGenerator.cs` | GenerateHmacSignature, VerifySignature | ❌ |
 | RetryPolicyEngine | `CRM.Infrastructure/Services/RetryPolicyEngine.cs` | ShouldRetry, CalculateBackoff, IsDeadWebhook | ❌ |
 
-### 3.5 Controllers
+### 3.5 Webhook Event Types
+
+**Available Events (CRM Core):**
+- `Account.Created` — Account created
+- `Account.Updated` — Account updated
+- `Account.Deleted` — Account deleted
+- `Contact.Created` — Contact created
+- `Contact.Updated` — Contact updated
+- `Contact.Deleted` — Contact deleted
+- `Lead.Created` — Lead created
+- `Lead.Updated` — Lead updated
+- `Lead.Converted` — Lead converted to opportunity
+- `Opportunity.Created` — Opportunity created
+- `Opportunity.Updated` — Opportunity updated
+- `Opportunity.Won` — Opportunity won
+- `Opportunity.Lost` — Opportunity lost
+
+**Available Events (Sales Module):**
+- `Quote.Created` — Quote created
+- `Quote.Updated` — Quote updated
+- `Quote.Sent` — Quote sent to customer
+- `Quote.Accepted` — Quote accepted by customer
+- `Quote.Rejected` — Quote rejected by customer
+- `Order.Created` — Order created
+- `Order.Updated` — Order updated
+- `Order.Submitted` — Order submitted for approval
+- `Order.Approved` — Order approved
+- `Order.Rejected` — Order rejected
+- `Order.Fulfilled` — Order fulfilled
+- `Order.Delivered` — Order delivered
+- `Order.Cancelled` — Order cancelled
+- `Invoice.Created` — Invoice created
+- `Invoice.Sent` — Invoice sent to customer
+- `Invoice.Paid` — Invoice marked as paid
+- `Payment.Received` — Payment recorded
+- `Payment.Failed` — Payment processing failed
+- `Contract.Created` — Contract created
+- `Contract.Active` — Contract activated
+- `Contract.Expired` — Contract expired
+- `Subscription.Created` — Subscription created
+- `Subscription.Renewed` — Subscription renewed
+- `Subscription.Cancelled` — Subscription cancelled
+
+**Available Events (Service Desk Module):**
+- `ServiceRequest.Created` — Service request (ticket) created
+- `ServiceRequest.Updated` — Request updated
+- `ServiceRequest.Assigned` — Request assigned to agent
+- `ServiceRequest.Reassigned` — Request reassigned
+- `ServiceRequest.Priority Changed` — Priority level changed
+- `ServiceRequest.Status Changed` — Request status changed
+- `ServiceRequest.Escalated` — Request escalated
+- `ServiceRequest.Resolved` — Request marked resolved
+- `ServiceRequest.Closed` — Request closed
+- `ServiceRequest.Reopened` — Request reopened
+- `ServiceRequest.Replied` — Reply added by customer or agent
+- `SLA.Breached` — SLA time target missed
+- `SLA.Warning` — SLA approaching breach (80% threshold)
+- `Escalation.Triggered` — Escalation rule triggered
+- `Escalation.Completed` — Escalation completed
+
+### 3.6 Controllers
 
 | Controller | File Path | Endpoints | Status |
 |------------|-----------|-----------|--------|

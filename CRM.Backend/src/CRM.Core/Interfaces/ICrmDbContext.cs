@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using CRM.Core.Entities;
+using CRM.Core.Entities.KnowledgeBase;
 using CRM.Core.Entities.Workflow;
 using CRM.Core.Models;
 using Microsoft.EntityFrameworkCore;
@@ -54,6 +55,16 @@ public interface ICrmDbContext
     DbSet<UserGroup> UserGroups { get; }
     DbSet<UserGroupMember> UserGroupMembers { get; }
     DbSet<UserApprovalRequest> UserApprovalRequests { get; }
+    
+    // RBAC - Role-Based Access Control (SYS-012)
+    DbSet<Role> Roles { get; }
+    DbSet<Permission> Permissions { get; }
+    DbSet<RolePermission> RolePermissions { get; }
+    DbSet<UserRoleAssignment> UserRoleAssignments { get; }
+    
+    /// <summary>Alias for UserRoleAssignments</summary>
+    DbSet<UserRoleAssignment> UserRoles { get; }
+    
     DbSet<DatabaseBackup> DatabaseBackups { get; }
     DbSet<BackupSchedule> BackupSchedules { get; }
     DbSet<SystemSettings> SystemSettings { get; }
@@ -135,6 +146,10 @@ public interface ICrmDbContext
     DbSet<CommissionPlanAssignment> CommissionPlanAssignments { get; }
     DbSet<Commission> Commissions { get; }
     DbSet<CommissionStatement> CommissionStatements { get; }
+    DbSet<CommissionRule> CommissionRules { get; }
+    DbSet<CommissionHistory> CommissionHistories { get; }
+    DbSet<DiscountRule> DiscountRules { get; }
+    DbSet<DiscountHistory> DiscountHistories { get; }
 
     // Cloud Deployment entities
     DbSet<CloudProvider> CloudProviders { get; }
@@ -177,6 +192,14 @@ public interface ICrmDbContext
     DbSet<CRM.Core.Entities.ITSM.ProblemTask> ProblemTasks { get; }
     DbSet<CRM.Core.Entities.ITSM.ProblemComment> ProblemComments { get; }
     DbSet<CRM.Core.Entities.ITSM.ProblemAttachment> ProblemAttachments { get; }
+    
+    // SLA (Service Level Agreement) - Non-ITSM versions
+    DbSet<CRM.Core.Entities.SLAPolicy> SLAPolicies { get; }
+    DbSet<CRM.Core.Entities.KnowledgeBase.SLAInstance> SLAInstances { get; }
+    DbSet<CRM.Core.Entities.EscalationRule> EscalationRules { get; }
+    DbSet<CRM.Core.Entities.ITSM.ServiceQueue> ServiceQueues { get; }
+    
+    // ITSM SLA entities
     DbSet<CRM.Core.Entities.ITSM.SLAPolicy> ITSMSLAPolicies { get; }
     DbSet<CRM.Core.Entities.ITSM.SLAInstance> ITSMSLAInstances { get; }
     DbSet<CRM.Core.Entities.ITSM.BusinessHoursSchedule> BusinessHoursSchedules { get; }
@@ -229,6 +252,11 @@ public interface ICrmDbContext
     // Dashboard and Analytics
     DbSet<Dashboard> Dashboards { get; }
     DbSet<DashboardWidget> DashboardWidgets { get; }
+    DbSet<UIPreference> UIPreferences { get; }
+    DbSet<UICustomization> UICustomizations { get; }
+    DbSet<DashboardCustomization> DashboardCustomizations { get; }
+    DbSet<PerformanceMetric> PerformanceMetrics { get; }
+    DbSet<FeatureFlagAuditLog> FeatureFlagAuditLogs { get; }
 
     // Reports
     DbSet<CRM.Core.Entities.Reports.ReportDefinition> ReportDefinitions { get; }

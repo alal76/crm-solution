@@ -145,6 +145,14 @@ public interface IDatabaseProviderStrategy
     /// <param name="baseConnectionString">The base connection string.</param>
     /// <returns>Modified connection string with deployment-specific settings.</returns>
     string OptimizeConnectionString(string baseConnectionString);
+
+    /// <summary>
+    /// Gets the SQL function to retrieve current UTC timestamp.
+    /// Used for HasDefaultValueSql in entity model configurations.
+    /// SQL Server: GETUTCDATE(), PostgreSQL: CURRENT_TIMESTAMP AT TIME ZONE 'UTC', etc.
+    /// </summary>
+    /// <returns>Provider-specific UTC timestamp SQL function.</returns>
+    string GetUtcNowSql();
 }
 
 /// <summary>

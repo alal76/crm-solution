@@ -1,0 +1,241 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+using CRM.Core.Dtos;
+using Xunit;
+
+namespace CRM.SystemModule.Tests.DTOs;
+
+/// <summary>
+/// Unit tests for System Module DTOs.
+/// Tests data transfer object validation and structure.
+/// </summary>
+public class SystemModuleDtoTests
+{
+    [Fact]
+    public void UserDto_Creation_IsValid()
+    {
+        // Arrange & Act
+        var userDto = new UserDto
+        {
+            Id = 1,
+            Email = "test@example.com",
+            Username = "testuser",
+            FirstName = "Test",
+            LastName = "User",
+            Role = "Admin",
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        // Assert
+        Assert.NotNull(userDto);
+        Assert.Equal("test@example.com", userDto.Email);
+        Assert.Equal("testuser", userDto.Username);
+    }
+
+    [Fact]
+    public void UserDto_WithAllProperties_IsValid()
+    {
+        // Arrange
+        var userDto = new UserDto
+        {
+            Id = 1,
+            Email = "test@example.com",
+            Username = "testuser",
+            FirstName = "Test",
+            LastName = "User",
+            Role = "Admin",
+            IsActive = true,
+            LastLoginAt = DateTime.UtcNow,
+            DepartmentId = 1,
+            UserProfileId = 1,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        // Act & Assert
+        Assert.NotNull(userDto);
+        Assert.True(userDto.IsActive);
+        Assert.NotNull(userDto.LastLoginAt);
+    }
+
+    [Fact]
+    public void CreateUserDto_WithValidData_IsValid()
+    {
+        // Arrange & Act
+        var createUserDto = new CreateUserDto
+        {
+            Email = "newuser@example.com",
+            Username = "newuser",
+            Password = "SecurePassword123",
+            FirstName = "New",
+            LastName = "User",
+            Role = "User"
+        };
+
+        // Assert
+        Assert.NotNull(createUserDto);
+        Assert.NotEmpty(createUserDto.Email);
+        Assert.NotEmpty(createUserDto.Password);
+    }
+
+    [Fact]
+    public void UpdateUserDto_WithValidData_IsValid()
+    {
+        // Arrange & Act
+        var updateUserDto = new UpdateUserDto
+        {
+            FirstName = "Updated",
+            LastName = "Name",
+            Email = "updated@example.com",
+            IsActive = true
+        };
+
+        // Assert
+        Assert.NotNull(updateUserDto);
+        Assert.Equal("Updated", updateUserDto.FirstName);
+    }
+
+    [Fact]
+    public void UserGroupDto_Creation_IsValid()
+    {
+        // Arrange & Act
+        var groupDto = new UserGroupDto
+        {
+            Id = 1,
+            Name = "Managers",
+            Description = "Manager role",
+            IsActive = true,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        // Assert
+        Assert.NotNull(groupDto);
+        Assert.Equal("Managers", groupDto.Name);
+    }
+
+    [Fact]
+    public void PermissionDto_Creation_IsValid()
+    {
+        // Arrange & Act
+        var permissionDto = new PermissionDto
+        {
+            Id = 1,
+            Name = "View.Accounts",
+            Description = "Can view accounts",
+            CreatedAt = DateTime.UtcNow
+        };
+
+        // Assert
+        Assert.NotNull(permissionDto);
+        Assert.Equal("View.Accounts", permissionDto.Name);
+    }
+
+    [Fact]
+    public void LoginRequestDto_WithValidCredentials_IsValid()
+    {
+        // Arrange & Act
+        var loginDto = new LoginRequestDto
+        {
+            Email = "test@example.com",
+            Password = "TestPassword123"
+        };
+
+        // Assert
+        Assert.NotNull(loginDto);
+        Assert.NotEmpty(loginDto.Email);
+        Assert.NotEmpty(loginDto.Password);
+    }
+
+    [Fact]
+    public void LoginResponseDto_WithValidToken_IsValid()
+    {
+        // Arrange & Act
+        var token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...";
+        var loginResponseDto = new LoginResponseDto
+        {
+            Token = token,
+            RefreshToken = "refresh-token-value",
+            ExpiresIn = 3600,
+            User = new UserDto
+            {
+                Id = 1,
+                Email = "test@example.com",
+                Username = "testuser",
+                FirstName = "Test",
+                LastName = "User",
+                Role = "Admin"
+            }
+        };
+
+        // Assert
+        Assert.NotNull(loginResponseDto);
+        Assert.NotEmpty(loginResponseDto.Token);
+        Assert.NotNull(loginResponseDto.User);
+    }
+
+    [Fact]
+    public void RefreshTokenRequestDto_WithValidToken_IsValid()
+    {
+        // Arrange & Act
+        var refreshDto = new RefreshTokenRequestDto
+        {
+            RefreshToken = "valid-refresh-token"
+        };
+
+        // Assert
+        Assert.NotNull(refreshDto);
+        Assert.NotEmpty(refreshDto.RefreshToken);
+    }
+
+    [Fact]
+    public void SystemSettingsDto_Creation_IsValid()
+    {
+        // Arrange & Act
+        var settingsDto = new SystemSettingsDto
+        {
+            Id = 1,
+            CompanyName = "Test Company",
+            AppName = "CRM Solution",
+            Theme = "Light",
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+
+        // Assert
+        Assert.NotNull(settingsDto);
+        Assert.Equal("Test Company", settingsDto.CompanyName);
+    }
+
+    [Fact]
+    public void AdminDashboardDto_Creation_IsValid()
+    {
+        // Arrange & Act
+        var dashboardDto = new AdminDashboardDto
+        {
+            TotalUsers = 100,
+            ActiveUsers = 85,
+            SystemUptime = 99.9,
+            LastBackupTime = DateTime.UtcNow.AddDays(-1),
+            AverageResponseTime = 150.5
+        };
+
+        // Assert
+        Assert.NotNull(dashboardDto);
+        Assert.Equal(100, dashboardDto.TotalUsers);
+        Assert.Equal(99.9, dashboardDto.SystemUptime);
+    }
+}

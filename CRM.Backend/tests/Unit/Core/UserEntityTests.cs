@@ -134,7 +134,7 @@ public class UserEntityTests
             user.Role.Should().Be(0); // Admin by default
 
             // Assert - Nullable values should be null
-            user.LastLoginDate.Should().BeNull();
+            user.LastLoginAt.Should().BeNull();
             user.TwoFactorSecret.Should().BeNull();
             user.BackupCodes.Should().BeNull();
             user.PasswordLastChangedAt.Should().BeNull();
@@ -916,11 +916,11 @@ public class UserEntityTests
                 Email = "test@example.com",
                 IsActive = true,
                 EmailVerified = true,
-                LastLoginDate = loginTime.AddDays(-1) // Last login was yesterday
+                LastLoginAt = loginTime.AddDays(-1) // Last login was yesterday
             };
 
             // Act - Simulate login
-            user.LastLoginDate = loginTime;
+            user.LastLoginAt = loginTime;
             var refreshToken = new RefreshToken
             {
                 Token = "new_refresh_token_abc123",
@@ -930,7 +930,7 @@ public class UserEntityTests
             user.RefreshTokens.Add(refreshToken);
 
             // Assert
-            user.LastLoginDate.Should().Be(loginTime);
+            user.LastLoginAt.Should().Be(loginTime);
             user.RefreshTokens.Should().HaveCount(1);
             user.RefreshTokens.First().Token.Should().NotBeNullOrEmpty();
             user.RefreshTokens.First().ExpiresAt.Should().BeAfter(loginTime);

@@ -87,6 +87,8 @@ public abstract class DatabaseProviderStrategyBase : IDatabaseProviderStrategy
         return baseConnectionString;
     }
 
+    public abstract string GetUtcNowSql();
+
     /// <summary>
     /// Helper method to check if an entity type has a RowVersion property.
     /// </summary>

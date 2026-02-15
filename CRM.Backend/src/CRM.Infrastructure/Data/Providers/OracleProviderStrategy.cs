@@ -194,6 +194,8 @@ public class OracleProviderStrategy : DatabaseProviderStrategyBase
 
         return baseConnectionString.TrimEnd(';') + optimizations;
     }
+
+    public override string GetUtcNowSql() => "SYS_EXTRACT_UTC(SYSTIMESTAMP)";
 }
 
 /// <summary>

@@ -1,0 +1,53 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+using Hangfire.Dashboard;
+
+namespace CRM.Api;
+
+/// <summary>
+/// Hangfire Dashboard Authorization Filter - Restricts access to admin users only.
+/// 
+/// SECURITY: The Hangfire Dashboard displays queue status, job history, and processing logs.
+/// Only administrators should have access to this sensitive information.
+/// This filter checks for valid JWT authentication and Admin role.
+/// </summary>
+public class HangfireAuthorizationFilter : IDashboardAuthorizationFilter
+{
+    public bool Authorize(DashboardContext context)
+    {
+        var httpContext = context.GetHttpContext();
+        
+        // Check if user is authenticated (JWT Bearer token present and valid)
+        if (!httpContext.User.Identity?.IsAuthenticated ?? true)
+            return false;
+        
+        // Check if user has Admin role
+        var isAdmin = httpContext.User.IsInRole("Admin") || 
+                     httpContext.User.IsInRole("admin") ||
+                     httpContext.User.Claims.Any(c => 
+                         c.Type == "role" && 
+                         (c.Value == "Admin" || c.Value == "admin"));
+        
+        if (!isAdmin)
+        {
+            httpContext.Response.StatusCode = 403; // Forbidden
+            return false;
+        }
+        
+        return true;
+    }
+}

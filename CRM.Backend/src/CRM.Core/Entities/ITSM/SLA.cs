@@ -16,6 +16,7 @@
 
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using CRM.Core.Entities.KnowledgeBase;
 
 namespace CRM.Core.Entities.ITSM;
 
@@ -79,6 +80,21 @@ public class SLAPolicy
 
     // Conditions (JSON - can be evaluated for specific incidents/requests)
     public string? Conditions { get; set; }
+
+    /// <summary>
+    /// Business hours configuration ID for this SLA policy
+    /// </summary>
+    public int? BusinessHoursId { get; set; }
+
+    /// <summary>
+    /// Navigation to business hours configuration
+    /// </summary>
+    public virtual BusinessHours? BusinessHours { get; set; }
+
+    /// <summary>
+    /// Escalation rules associated with this SLA policy
+    /// </summary>
+    public virtual ICollection<EscalationRule> EscalationRules { get; set; } = new List<EscalationRule>();
 
     public bool IsActive { get; set; } = true;
 

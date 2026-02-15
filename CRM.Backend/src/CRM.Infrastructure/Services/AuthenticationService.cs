@@ -301,7 +301,7 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
         }
 
         // Update last login date
-        user.LastLoginDate = DateTime.UtcNow;
+        user.LastLoginAt = DateTime.UtcNow;
 
         // Generate response with tokens
         var response = GenerateAuthResponse(user);
@@ -424,7 +424,7 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
             await _oauthTokenRepository.SaveAsync();
         }
 
-        user.LastLoginDate = DateTime.UtcNow;
+        user.LastLoginAt = DateTime.UtcNow;
         await _userRepository.UpdateAsync(user);
         await _userRepository.SaveAsync();
 
@@ -899,7 +899,7 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
         if (!isValid)
             throw new UnauthorizedAccessException("Invalid verification code");
 
-        user.LastLoginDate = DateTime.UtcNow;
+        user.LastLoginAt = DateTime.UtcNow;
 
         // Generate response with tokens
         var fullUser = await _dbContext.Users
@@ -1098,7 +1098,7 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
         user.PasswordLastChangedAt = DateTime.UtcNow;
         user.PasswordNeverSet = false;
         user.MustResetPassword = false;
-        user.LastLoginDate = DateTime.UtcNow;
+        user.LastLoginAt = DateTime.UtcNow;
 
         // Generate auth response with tokens
         var response = GenerateAuthResponse(user);

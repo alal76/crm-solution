@@ -1,0 +1,200 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+using CRM.Core.Dtos.ITSM;
+using CRM.Core.Entities.ITSM;
+using CRM.Core.Interfaces;
+using CRM.Core.Interfaces.ITSM;
+using Microsoft.Extensions.Logging;
+
+namespace CRM.Infrastructure.Services.ITSM;
+
+/// <summary>
+/// Admin service for managing escalation rules
+/// </summary>
+public class EscalationRuleAdminService : IEscalationRuleAdminService
+{
+    private readonly IRepository<CRM.Core.Entities.ITSM.EscalationRule> _ruleRepository;
+    private readonly IRepository<ServiceRequest> _srRepository;
+    private readonly ICrmDbContext _dbContext;
+    private readonly ILogger<EscalationRuleAdminService> _logger;
+
+    public EscalationRuleAdminService(
+        IRepository<CRM.Core.Entities.ITSM.EscalationRule> ruleRepository,
+        IRepository<ServiceRequest> srRepository,
+        ICrmDbContext dbContext,
+        ILogger<EscalationRuleAdminService> logger)
+    {
+        _ruleRepository = ruleRepository;
+        _srRepository = srRepository;
+        _dbContext = dbContext;
+        _logger = logger;
+    }
+
+    public async Task<EscalationRuleDto> CreateAsync(CreateEscalationRuleDto dto, CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(dto.Name))
+            throw new ArgumentException("Escalation rule name is required");
+        if (string.IsNullOrWhiteSpace(dto.Priority))
+            throw new ArgumentException("Priority is required");
+        if (dto.AgeInMinutes <= 0)
+            throw new ArgumentException("Age in minutes must be greater than 0");
+
+        var rule = new CRM.Core.Entities.ITSM.EscalationRule
+        {
+            Name = dto.Name,
+            Description = dto.Description,
+            Priority = dto.Priority,
+            Category = dto.Category,
+            Queue = dto.Queue,
+            AgeInMinutes = dto.AgeInMinutes,
+            TargetType = Enum.Parse<EscalationTargetType>(dto.TargetType),
+            TargetId = dto.TargetId,
+            TargetName = dto.TargetName,
+            MaxAttempts = dto.MaxAttempts,
+            RetryIntervalMinutes = dto.RetryIntervalMinutes,
+            IsActive = dto.IsActive,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        await _ruleRepository.AddAsync(rule, ct);
+        _logger.LogInformation("Escalation rule created: {RuleName} (ID: {RuleId})", rule.Name, rule.Id);
+
+        return MapToDto(rule);
+    }
+
+    public async Task<EscalationRuleDto> UpdateAsync(int id, UpdateEscalationRuleDto dto, CancellationToken ct = default)
+    {
+        var rule = await _ruleRepository.GetByIdAsync(id, ct)
+            ?? throw new KeyNotFoundException($"Escalation rule with ID {id} not found");
+
+        if (!string.IsNullOrWhiteSpace(dto.Name))
+            rule.Name = dto.Name;
+        if (dto.Description != null)
+            rule.Description = dto.Description;
+        if (!string.IsNullOrWhiteSpace(dto.Priority))
+            rule.Priority = dto.Priority;
+        if (dto.Category != null)
+            rule.Category = dto.Category;
+        if (dto.Queue != null)
+            rule.Queue = dto.Queue;
+        if (dto.AgeInMinutes.HasValue)
+            rule.AgeInMinutes = dto.AgeInMinutes.Value;
+        if (!string.IsNullOrWhiteSpace(dto.TargetType))
+            rule.TargetType = Enum.Parse<EscalationTargetType>(dto.TargetType);
+        if (dto.TargetId.HasValue)
+            rule.TargetId = dto.TargetId;
+        if (dto.TargetName != null)
+            rule.TargetName = dto.TargetName;
+        if (dto.MaxAttempts.HasValue)
+            rule.MaxAttempts = dto.MaxAttempts.Value;
+        if (dto.RetryIntervalMinutes.HasValue)
+            rule.RetryIntervalMinutes = dto.RetryIntervalMinutes.Value;
+        if (dto.IsActive.HasValue)
+            rule.IsActive = dto.IsActive.Value;
+
+        rule.UpdatedAt = DateTime.UtcNow;
+        await _ruleRepository.UpdateAsync(rule, ct);
+        _logger.LogInformation("Escalation rule updated: {RuleName} (ID: {RuleId})", rule.Name, rule.Id);
+
+        return MapToDto(rule);
+    }
+
+    public async Task<EscalationRuleDto?> GetByIdAsync(int id, CancellationToken ct = default)
+    {
+        var rule = await _ruleRepository.GetByIdAsync(id, ct);
+        return rule == null ? null : MapToDto(rule);
+    }
+
+    public async Task<List<EscalationRuleDto>> GetAllAsync(CancellationToken ct = default)
+    {
+        var rules = await _ruleRepository.GetAllAsync(ct);
+        return rules.Select(MapToDto).ToList();
+    }
+
+    public async Task DeleteAsync(int id, CancellationToken ct = default)
+    {
+        var rule = await _ruleRepository.GetByIdAsync(id, ct)
+            ?? throw new KeyNotFoundException($"Escalation rule with ID {id} not found");
+
+        rule.IsDeleted = true;
+        await _ruleRepository.UpdateAsync(rule, ct);
+        _logger.LogInformation("Escalation rule deleted: {RuleId}", id);
+    }
+
+    public async Task<EscalationRuleTestResultDto> TestRuleAsync(
+        int ruleId,
+        int serviceRequestId,
+        CancellationToken ct = default)
+    {
+        var rule = await _ruleRepository.GetByIdAsync(ruleId, ct)
+            ?? throw new KeyNotFoundException($"Escalation rule with ID {ruleId} not found");
+
+        var sr = await _srRepository.GetByIdAsync(serviceRequestId, ct)
+            ?? throw new KeyNotFoundException($"Service request with ID {serviceRequestId} not found");
+
+        var ruleMatched = rule.IsActive
+            && rule.Priority == sr.Priority
+            && (string.IsNullOrEmpty(rule.Category) || rule.Category == sr.Category)
+            && (string.IsNullOrEmpty(rule.Queue) || rule.Queue == sr.Queue);
+
+        return new EscalationRuleTestResultDto
+        {
+            RuleId = ruleId,
+            ServiceRequestId = serviceRequestId,
+            RuleMatched = ruleMatched,
+            MatchReason = ruleMatched
+                ? "Rule matches all conditions"
+                : "Rule does not match ticket criteria",
+            Rule = MapToDto(rule),
+            TestMessage = ruleMatched
+                ? $"Rule would escalate after {rule.AgeInMinutes} minutes to {rule.TargetName}"
+                : "Rule would not apply to this ticket"
+        };
+    }
+
+    public async Task<List<EscalationRuleDto>> GetApplicableRulesAsync(
+        string priority,
+        CancellationToken ct = default)
+    {
+        var rules = await _ruleRepository.GetAllAsync(ct);
+
+        var applicable = rules
+            .Where(r => r.IsActive && r.Priority == priority)
+            .ToList();
+
+        return applicable.Select(MapToDto).ToList();
+    }
+
+    private static EscalationRuleDto MapToDto(CRM.Core.Entities.ITSM.EscalationRule rule) => new()
+    {
+        Id = rule.Id,
+        Name = rule.Name,
+        Description = rule.Description,
+        Priority = rule.Priority,
+        Category = rule.Category,
+        Queue = rule.Queue,
+        AgeInMinutes = rule.AgeInMinutes,
+        TargetType = rule.TargetType.ToString(),
+        TargetId = rule.TargetId,
+        TargetName = rule.TargetName,
+        MaxAttempts = rule.MaxAttempts,
+        RetryIntervalMinutes = rule.RetryIntervalMinutes,
+        IsActive = rule.IsActive,
+        CreatedAt = rule.CreatedAt,
+        UpdatedAt = rule.UpdatedAt
+    };
+}

@@ -77,25 +77,21 @@ public class SystemSettingsService : ISystemSettingsService, ISystemSettingsInpu
         try
         {
             var settings = await _context.SystemSettings.FirstOrDefaultAsync();
+            
+            // Determine if all critical modules are enabled and operational
+            var allEnabled = (settings?.AccountsEnabled ?? true) &&
+                            (settings?.ContactsEnabled ?? true) &&
+                            (settings?.OpportunitiesEnabled ?? true);
 
             return new ModuleStatusDto
             {
-                AccountsEnabled = settings?.AccountsEnabled ?? true,
-                ContactsEnabled = settings?.ContactsEnabled ?? true,
-                LeadsEnabled = settings?.LeadsEnabled ?? true,
-                OpportunitiesEnabled = settings?.OpportunitiesEnabled ?? true,
-                ProductsEnabled = settings?.ProductsEnabled ?? true,
-                ServicesEnabled = settings?.ServicesEnabled ?? true,
-                CampaignsEnabled = settings?.CampaignsEnabled ?? true,
-                QuotesEnabled = settings?.QuotesEnabled ?? true,
-                TasksEnabled = settings?.TasksEnabled ?? true,
-                ActivitiesEnabled = settings?.ActivitiesEnabled ?? true,
-                NotesEnabled = settings?.NotesEnabled ?? true,
-                WorkflowsEnabled = settings?.WorkflowsEnabled ?? true,
-                ReportsEnabled = settings?.ReportsEnabled ?? true,
-                DashboardEnabled = settings?.DashboardEnabled ?? true,
-                CommunicationsEnabled = settings?.CommunicationsEnabled ?? true,
-                InteractionsEnabled = settings?.InteractionsEnabled ?? true
+                ModuleName = "System",
+                DisplayName = "System Status",
+                IsOperational = allEnabled,
+                Status = allEnabled ? "Operational" : "Degraded",
+                ErrorCount = null,
+                LastErrorMessage = null,
+                LastCheckAt = DateTime.UtcNow
             };
         }
         catch (Exception ex)

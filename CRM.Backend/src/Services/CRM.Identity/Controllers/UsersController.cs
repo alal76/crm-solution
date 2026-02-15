@@ -410,7 +410,7 @@ public class UsersController : ControllerBase
             ContactName = contact != null ? $"{contact.FirstName} {contact.LastName}" : null,
             ContactEmail = contact?.EmailPrimary,
             CreatedAt = user.CreatedAt,
-            LastLoginDate = user.LastLoginDate
+            LastLoginDate = user.LastLoginAt
         };
     }
 }

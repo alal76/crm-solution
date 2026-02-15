@@ -519,8 +519,15 @@ public class ServiceRequest : BaseEntity
     /// <summary>Due date for first response</summary>
     public DateTime? ResponseDueDate { get; set; }
 
+    /// <summary>General due date for resolution (convenience property)</summary>
+    public DateTime? DueDate { get; set; }
+
     /// <summary>Due date for resolution</summary>
     public DateTime? ResolutionDueDate { get; set; }
+
+    /// <summary>Status code for integration purposes</summary>
+    [MaxLength(50)]
+    public string? StatusCode { get; set; }
 
     /// <summary>Actual first response date</summary>
     public DateTime? FirstResponseDate { get; set; }

@@ -249,6 +249,9 @@ public class Invoice : BaseEntity
     [Range(0, double.MaxValue)]
     public decimal FeesAmount { get; set; } = 0;
 
+    /// <summary>Total invoice amount (alias for TotalAmount)</summary>
+    public decimal Amount => TotalAmount;
+
     /// <summary>Total invoice amount</summary>
     [Range(0, double.MaxValue)]
     public decimal TotalAmount { get; set; } = 0;

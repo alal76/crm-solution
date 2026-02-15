@@ -38,6 +38,9 @@ public class UserApprovalRequest : BaseEntity
     public string? Phone { get; set; }
     public string? PasswordHash { get; set; } // Store password hash for use when approved
     public int Status { get; set; } = (int)ApprovalStatus.Pending;
+
+    /// <summary>Whether this request has been approved (computed from Status)</summary>
+    public bool IsApproved => Status == (int)ApprovalStatus.Approved;
     public DateTime RequestedAt { get; set; } = DateTime.UtcNow;
     public DateTime? ReviewedAt { get; set; }
     public int? ReviewedByUserId { get; set; }

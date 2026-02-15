@@ -1,9 +1,11 @@
 # CRM Solution - Master TODO List (Pending Items Only)
 
-> **Last Updated:** February 14, 2026
+> **Last Updated:** February 15, 2026
 > **Purpose:** Consolidated list of all PENDING enhancements and action items
-> **Total Pending Items:** 204 (180 + 24 from SPEC-SYS-002 Authentication)
+> **Total Pending Items:** 396 (301 + 95 from System/Integration specs)
 > **Completed items have been archived — see git history for prior state**
+> **New System Module Items:** 26 (SYS-008) + 50 (INT-001) + 19 (INT-003)
+> **New Integration Module Items:** Supporting Sales & Service Desk modules
 
 ---
 
@@ -11,29 +13,246 @@
 
 > **[specifications/IMPLEMENTATION_PLAN.md](specifications/IMPLEMENTATION_PLAN.md)** - Detailed 16-week implementation guide
 >
-> **Specification Progress:** 12/48 complete (25.0%) — see [specifications/INDEX.md](specifications/INDEX.md)
+> **Specification Progress:** 14/48 complete (29%) — see [specifications/INDEX.md](specifications/INDEX.md)  
+> **System Alignment:** SYS-007 (Navigation) & SYS-008 (Admin Settings) now include Sales & Service Desk modules
 
 ---
 
 ## Table of Contents
 
-1. [Feature Specification TODOs](#1-feature-specification-todos)
-2. [Audit Remediation TODOs](#2-audit-remediation-todos)
-3. [ITSM Remaining Work](#3-itsm-remaining-work)
-4. [Infrastructure & DevOps](#4-infrastructure--devops)
-5. [Self-Service Portal](#5-self-service-portal)
-6. [Documentation](#6-documentation)
-7. [UX/UI Improvements](#7-uxui-improvements)
-8. [AI & Machine Learning](#8-ai--machine-learning)
-9. [Analytics & Reporting](#9-analytics--reporting)
-10. [Integration Framework](#10-integration-framework)
-11. [Customization Engine](#11-customization-engine)
-12. [CRM Gaps](#12-crm-gaps)
-13. [Priority Matrix](#13-priority-matrix)
+1. [System Module TODOs](#system-module-todos)
+2. [Integration Module TODOs](#integration-module-todos)
+3. [Feature Specification TODOs](#3-feature-specification-todos)
+   - [Service Desk Module Specifications](#service-desk-module-specifications)
+4. [Audit Remediation TODOs](#4-audit-remediation-todos)
+5. [ITSM Remaining Work](#5-itsm-remaining-work)
+6. [Infrastructure & DevOps](#6-infrastructure--devops)
+7. [Self-Service Portal](#7-self-service-portal)
+8. [Documentation](#8-documentation)
+9. [UX/UI Improvements](#9-uxui-improvements)
+10. [AI & Machine Learning](#10-ai--machine-learning)
+11. [Analytics & Reporting](#11-analytics--reporting)
+12. [Integration Framework](#12-integration-framework)
+13. [Customization Engine](#13-customization-engine)
+14. [CRM Gaps](#14-crm-gaps)
+15. [Priority Matrix](#15-priority-matrix)
 
 ---
 
-## 1. Feature Specification TODOs
+## System Module TODOs
+
+### SPEC-SYS-007 (Navigation Management) — 3 Items
+
+| ID | Priority | Description | Category | Status |
+|----|----------|-------------|----------|--------|
+| TODO-SYS007-001 | P2 | Add audit logging for navigation changes | Backend | ✅ Completed |
+| TODO-SYS007-002 | P2 | Add role-based navigation filtering E2E tests | Testing | ❌ Not Started |
+| TODO-SYS007-003 | P3 | Implement dynamic navigation reordering with drag-and-drop | Frontend | ❌ Not Started |
+
+### SPEC-SYS-008 (Admin Settings Suite) — 26 Items
+
+**New Sales Admin Items (10):**
+
+| ID |Priority | Description | Category |
+|----|---------|-------------|----------|
+| TODO-SYS008-005 | P1 | Implement CommissionRule entity and service | Backend |
+| TODO-SYS008-006 | P1 | Implement DiscountRule entity and service | Backend |
+| TODO-SYS008-007 | P1 | Create SalesSettingsController with commission/discount endpoints | Backend |
+| TODO-SYS008-008 | P2 | Implement commission rule calculator service for orders | Backend |
+| TODO-SYS008-009 | P1 | Create SalesSettingsPage React component | Frontend |
+| TODO-SYS008-010 | P1 | Create CommissionRulesPanel React component | Frontend |
+| TODO-SYS008-011 | P1 | Create DiscountRulesPanel React component | Frontend |
+| TODO-SYS008-012 | P2 | Integrate SalesSettingsPage into admin navigation | Frontend |
+| TODO-SYS008-013 | P2 | Add sales settings E2E tests | Testing |
+| TODO-SYS008-014 | P2 | Add commission rule unit tests | Testing |
+
+**New Service Desk Admin Items (12):**
+
+| ID | Priority | Description | Category |
+|----|----------|-------------|----------|
+| TODO-SYS008-015 | P1 | Implement SLAPolicy entity and service | Backend |
+| TODO-SYS008-016 | P1 | Implement EscalationRule entity and service | Backend |
+| TODO-SYS008-017 | P1 | Implement ServiceQueue entity and service | Backend |
+| TODO-SYS008-018 | P1 | Create SLAPoliciesController endpoint | Backend |
+| TODO-SYS008-019 | P1 | Create EscalationRulesController endpoint | Backend |
+| TODO-SYS008-020 | P2 | Implement SLA matching service for service requests | Backend |
+| TODO-SYS008-021 | P1 | Create SLAManagementPage React component | Frontend |
+| TODO-SYS008-022 | P1 | Create EscalationRulesPanel React component | Frontend |
+| TODO-SYS008-023 | P1 | Create QueueConfigPanel React component | Frontend |
+| TODO-SYS008-024 | P2 | Integrate Service Desk admin pages into navigation | Frontend |
+| TODO-SYS008-025 | P2 | Add SLA policy E2E tests | Testing |
+| TODO-SYS008-026 | P2 | Add escalation rule unit tests | Testing |
+
+**Original Admin Items (4):**
+
+| ID | Priority | Description | Category |
+|----|----------|-------------|----------|
+| TODO-SYS008-001 | P2 | Add admin settings navigation E2E tests | Testing |
+| TODO-SYS008-002 | P2 | Add unit tests for database/duplicate/lead-score controllers | Testing |
+| TODO-SYS008-003 | P2 | Validate admin pages against API contract | Backend |
+| TODO-SYS008-004 | P3 | Add missing UI empty states + loading UX | Frontend |
+
+### SPEC-SYS-005 (System Settings) — 4 Items
+
+| ID | Priority | Description | Category |
+|----|----------|-------------|----------|
+| TODO-SYS005-001 | P2 | Implement business hours configuration and validation | Backend |
+| TODO-SYS005-002 | P2 | Implement rate limiting service with quota tracking | Backend |
+| TODO-SYS005-003 | P1 | Add localization settings validation (timezone, currency, language) | Backend |
+| TODO-SYS005-004 | P2 | Create business hours configuration UI component | Frontend |
+
+### SPEC-SYS-006 (Audit Logging) — 8 Items
+
+| ID | Priority | Description | Category |
+|----|----------|-------------|----------|
+| TODO-SYS006-001 | P1 | Implement field-level audit trail tracking | Backend |
+| TODO-SYS006-002 | P1 | Create AuditLog viewer frontend page | Frontend |
+| TODO-SYS006-003 | P1 | Implement change history timeline visualization | Frontend |
+| TODO-SYS006-004 | P2 | Implement GDPR data access logging (Article 15) | Backend |
+| TODO-SYS006-005 | P2 | Create GDPR data export workflow | Frontend |
+| TODO-SYS006-006 | P2 | Implement audit retention policy and archival | Backend |
+| TODO-SYS006-007 | P2 | Add audit log performance optimization (partitioning, cleanup jobs) | Backend |
+| TODO-SYS006-008 | P3 | Create audit log export (CSV/PDF/JSON) functionality | Frontend |
+
+### SPEC-SYS-010 (User Interface Management) — 0 Items
+
+**Status:** ✅ Complete — All UI management features implemented
+
+---
+
+## Integration Module TODOs
+
+### SPEC-INT-001 (Webhook Management) — 50 Items
+
+**Core Webhook Implementation (15):**
+
+| ID | Priority | Description | Category |
+|----|----------|-------------|----------|
+| TODO-INT001-01 | P1 | Create Webhook entity with all properties | Backend |
+| TODO-INT001-02 | P1 | Create WebhookEvent entity and seed event types | Backend |
+| TODO-INT001-03 | P1 | Create WebhookDelivery entity with tracking fields | Backend |
+| TODO-INT001-04 | P1 | Implement IWebhookService interface | Backend |
+| TODO-INT001-05 | P1 | Implement WebhookService CRUD operations | Backend |
+| TODO-INT001-06 | P1 | Implement SignatureGenerator with HMAC-SHA256 | Backend |
+| TODO-INT001-07 | P1 | Implement IWebhookDispatcher for async delivery | Backend |
+| TODO-INT001-08 | P1 | Implement WebhookDispatcher with event queue | Backend |
+| TODO-INT001-09 | P1 | Implement RetryPolicyEngine with exponential backoff | Backend |
+| TODO-INT001-10 | P2 | Implement IDeliveryTracker interface | Backend |
+| TODO-INT001-11 | P2 | Implement DeliveryTracker for logging/metrics | Backend |
+| TODO-INT001-12 | P1 | Create WebhookDto and related DTOs | Backend |
+| TODO-INT001-13 | P1 | Create WebhooksController with 12+ endpoints | Backend |
+| TODO-INT001-14 | P1 | Implement backend validations for webhook registration | Backend |
+| TODO-INT001-15 | P3 | Add feature flag for webhook system (FeatureManagement) | Configuration |
+
+**Database Schema (4):**
+
+| ID | Priority | Description | Category |
+|----|----------|-------------|----------|
+| TODO-INT001-16 | P1 | Create database schema for Webhooks table | Database |
+| TODO-INT001-17 | P1 | Create database schema for WebhookEvents table | Database |
+| TODO-INT001-18 | P1 | Create database schema for WebhookDeliveries table | Database |
+| TODO-INT001-19 | P1 | Create database indexes for Webhooks performance | Database |
+
+**Frontend UI (12):**
+
+| ID | Priority | Description | Category |
+|----|----------|-------------|----------|
+| TODO-INT001-20 | P1 | Implement WebhooksPage.tsx | Frontend |
+| TODO-INT001-21 | P1 | Implement WebhookList component with pagination | Frontend |
+| TODO-INT001-22 | P1 | Implement WebhookForm for create/edit | Frontend |
+| TODO-INT001-23 | P1 | Implement EventTypeSelector multi-select | Frontend |
+| TODO-INT001-24 | P2 | Implement EventFilterBuilder for advanced filters | Frontend |
+| TODO-INT001-25 | P1 | Implement WebhookTestSender UI with payload editor | Frontend |
+| TODO-INT001-26 | P2 | Implement DeliveryHistoryTable with sorting/filtering | Frontend |
+| TODO-INT001-27 | P2 | Implement DeliveryDetail modal for debugging | Frontend |
+| TODO-INT001-28 | P2 | Implement SignatureVerificationUI | Frontend |
+| TODO-INT001-29 | P1 | Implement webhookService.ts API client | Frontend |
+| TODO-INT001-30 | P1 | Implement frontend validations for webhook form | Frontend |
+| TODO-INT001-31 | P2 | Implement webhook health monitoring dashboard | Frontend |
+
+**Testing (13):**
+
+| ID | Priority | Description | Category |
+|----|----------|-------------|----------|
+| TODO-INT001-32 | P2 | Create unit tests for WebhookService | Testing |
+| TODO-INT001-33 | P2 | Create unit tests for SignatureGenerator | Testing |
+| TODO-INT001-34 | P2 | Create unit tests for RetryPolicyEngine | Testing |
+| TODO-INT001-35 | P2 | Create unit tests for WebhookDispatcher | Testing |
+| TODO-INT001-36 | P2 | Create unit tests for EventFilter | Testing |
+| TODO-INT001-37 | P2 | Create integration tests for webhook CRUD | Testing |
+| TODO-INT001-38 | P2 | Create integration tests for delivery retry mechanism | Testing |
+| TODO-INT001-39 | P2 | Create integration tests for signature verification | Testing |
+| TODO-INT001-40 | P3 | Create E2E tests for webhook management flow | Testing |
+| TODO-INT001-41 | P3 | Create E2E tests for webhook delivery and retry | Testing |
+| TODO-INT001-42 | P1 | Add webhook event types for Sales module | Configuration |
+| TODO-INT001-43 | P1 | Add webhook event types for Service Desk module | Configuration |
+| TODO-INT001-44 | P2 | Document webhook event payload schemas | Documentation |
+
+**Advanced Features (6):**
+
+| ID | Priority | Description | Category |
+|----|----------|-------------|----------|
+| TODO-INT001-45 | P1 | Implement infinite loop prevention mechanism | Features |
+| TODO-INT001-46 | P1 | Implement auto-disable dead webhook logic | Features |
+| TODO-INT001-47 | P2 | Implement large payload handling/chunking | Features |
+| TODO-INT001-48 | P1 | Implement event chain tracking and cycle detection | Features |
+| TODO-INT001-49 | P1 | Implement concurrent webhook dispatch (background service) | Features |
+| TODO-INT001-50 | P2 | Implement webhook analytics (success rate, latency) | Features |
+
+### SPEC-INT-002 (Provider Integration) — 5 Items
+
+| ID | Priority | Description | Category |
+|----|----------|-------------|----------|
+| TODO-INT002-001 | P2 | Create ProviderConfigService implementation | Backend |
+| TODO-INT002-002 | P2 | Create ProviderRegistryService implementation | Backend |
+| TODO-INT002-003 | P1 | Create AdminProvidersController endpoints | Backend |
+| TODO-INT002-004 | P2 | Implement provider switching UI (ProviderSelector component) | Frontend |
+| TODO-INT002-005 | P2 | Create provider configuration management page in admin | Frontend |
+
+### SPEC-INT-003 (Import/Export) — 19 Items
+
+**Backend Entities & Services (7):**
+
+| ID | Priority | Description | Category |
+|----|----------|-------------|----------|
+| TODO-INT003-001 | P1 | Create ImportJob entity and tracking | Backend |
+| TODO-INT003-002 | P1 | Create ImportMapping entity for reusable mappings | Backend |
+| TODO-INT003-003 | P1 | Create ImportError entity for error logging | Backend |
+| TODO-INT003-004 | P1 | Implement IImportService interface | Backend |
+| TODO-INT003-005 | P1 | Implement IExportService interface | Backend |
+| TODO-INT003-006 | P1 | Implement IDataValidator interface | Backend |
+| TODO-INT003-007 | P1 | Implement BatchProcessor for large files | Backend |
+
+**Controllers & Endpoints (3):**
+
+| ID | Priority | Description | Category |
+|----|----------|-------------|----------|
+| TODO-INT003-008 | P1 | Create ImportController with 12+ endpoints | Backend |
+| TODO-INT003-009 | P1 | Create ExportController with 10+ endpoints | Backend |
+| TODO-INT003-010 | P1 | Implement backend validations for import/export | Backend |
+
+**Frontend & UI (6):**
+
+| ID | Priority | Description | Category |
+|----|----------|-------------|----------|
+| TODO-INT003-011 | P1 | Create ImportWizardPage React component | Frontend |
+| TODO-INT003-012 | P1 | Create ExportWizardPage React component | Frontend |
+| TODO-INT003-013 | P2 | Implement ColumnMapper component for field mapping | Frontend |
+| TODO-INT003-014 | P2 | Implement ImportPreview component | Frontend |
+| TODO-INT003-015 | P2 | Implement DuplicateHandler component | Frontend |
+| TODO-INT003-016 | P2 | Implement ImportProgress component with real-time updates | Frontend |
+
+**Testing & Documentation (3):**
+
+| ID | Priority | Description | Category |
+|----|----------|-------------|----------|
+| TODO-INT003-017 | P2 | Create unit tests for import validation | Testing |
+| TODO-INT003-018 | P2 | Create E2E tests for import/export flow | Testing |
+| TODO-INT003-019 | P2 | Document supported file formats and size limits | Documentation |
+
+---
+
+## 3. Feature Specification TODOs
 
 *Extracted from completed feature specifications. See individual spec files for full context.*
 
@@ -88,26 +307,250 @@
 | TODO-CRM008-003 | P2 | Add account address unit tests | 5.1 | ✅ Completed (2026-02-14) |
 | TODO-CRM008-004 | P3 | Add account address E2E tests | 5.3 | ✅ Completed (2026-02-14) |
 
-### SPEC-SALES-006 (Subscription Management) — 5 Items
+---
 
-| ID | Priority | Description | Spec Section |
-|----|----------|-------------|--------------|
-| TODO-SALES006-01 | P2 | Implement MRR/ARR dashboard widgets | 2.2 |
-| TODO-SALES006-02 | P2 | Add usage-based billing metering | 3.4 |
-| TODO-SALES006-03 | P2 | Implement subscription upgrade/downgrade proration | 3.4 |
-| TODO-SALES006-04 | P3 | Add churn prediction integration with AI module | 3.4 |
-| TODO-SALES006-05 | P2 | Implement dunning management for failed payments | 3.4 |
+## SALES MODULE SPECIFICATIONS (Feb 15, 2026)
+
+### SPEC-SALES-003 (Invoice Management) — 12 Items
+
+**Status:** ✅ Complete | **Module:** Sales & Billing | **Priority:** P1  
+**Coverage:** All backend entities, services, controllers implemented; 5 frontend components pending
+
+| ID | Priority | Description | Category | Spec Section |
+|----|----------|-------------|----------|--------------|
+| TODO-SALES003-001 | P1 | Create InvoiceDetailsPage.tsx with payment recording UI | Frontend/Page | 2.1 |
+| TODO-SALES003-002 | P1 | Create InvoiceDto, CreateInvoiceDto, UpdateInvoiceDto | Backend/DTO | 3.2 |
+| TODO-SALES003-003 | P2 | Create InvoiceForm.tsx component for create/edit workflows | Frontend/Component | 2.3 |
+| TODO-SALES003-004 | P2 | Create InvoiceLineItemsTable.tsx editable grid component | Frontend/Component | 2.3 |
+| TODO-SALES003-005 | P2 | Create InvoiceStatusBadge.tsx status chip component | Frontend/Component | 2.3 |
+| TODO-SALES003-006 | P2 | Create InvoicePaymentHistory.tsx payment tracking component | Frontend/Component | 2.3 |
+| TODO-SALES003-007 | P2 | Add ISO 4217 currency code validation | Validation | 6.2 |
+| TODO-SALES003-008 | P2 | Add email format validation for billing contact | Validation | 6.2 |
+| TODO-SALES003-009 | P2 | Create InvoiceServiceTests.cs unit test suite | Testing | 5.1 |
+| TODO-SALES003-010 | P3 | Implement PDF generation and preview for invoices | Feature | 2.3 |
+| TODO-SALES003-011 | P3 | Create E2E tests for invoice workflows (Playwright) | Testing | 5.3 |
+| TODO-SALES003-012 | P3 | Implement automated dunning email sequence | Feature | 1.3 |
+
+### SPEC-SALES-004 (Payment Management) — 14 Items
+
+**Status:** ✅ Complete | **Module:** Sales | **Priority:** P1  
+**Coverage:** Entities/services fully implemented; controllers, frontend, DTOs, tests pending
+
+| ID | Priority | Description | Category | Spec Section |
+|----|----------|-------------|----------|--------------|
+| TODO-SALES004-001 | P1 | Create PaymentsController.cs with CRUD + status endpoints | Backend/Controller | 3.6 |
+| TODO-SALES004-002 | P1 | Create PaymentDto.cs data transfer object | Backend/DTO | 3.4 |
+| TODO-SALES004-003 | P1 | Create CreatePaymentDto.cs for payment creation | Backend/DTO | 3.4 |
+| TODO-SALES004-004 | P1 | Create ProcessPaymentDto.cs for payment processing | Backend/DTO | 3.4 |
+| TODO-SALES004-005 | P1 | Implement PCI-compliant tokenization instead of storing card data | Security | 6.2 |
+| TODO-SALES004-006 | P2 | Create paymentService.ts frontend API client | Frontend/Service | 2.3 |
+| TODO-SALES004-007 | P2 | Create PaymentsPage.tsx list view with filtering | Frontend/Page | 2.1 |
+| TODO-SALES004-008 | P2 | Create PaymentForm.tsx component | Frontend/Component | 2.2 |
+| TODO-SALES004-009 | P2 | Create PaymentHistory.tsx transaction history | Frontend/Component | 2.2 |
+| TODO-SALES004-010 | P2 | Create RefundDialog.tsx partial/full refund component | Frontend/Component | 2.2 |
+| TODO-SALES004-011 | P2 | Implement Stripe gateway integration | Backend/Integration | 6.2 |
+| TODO-SALES004-012 | P2 | Create gateway webhook endpoints for async notifications | Backend/API | 6.2 |
+| TODO-SALES004-013 | P2 | Create PaymentServiceTests.cs unit tests | Testing | 5.1 |
+| TODO-SALES004-014 | P2 | Create PaymentsControllerTests.cs integration tests | Testing | 5.2 |
+
+### SPEC-SALES-005 (Contract Management) — 16 Items
+
+**Status:** ✅ Complete | **Module:** Sales | **Priority:** P1  
+**Coverage:** Entities/services implemented; frontend pages, components, tests, validations pending
+
+| ID | Priority | Description | Category | Spec Section |
+|----|----------|-------------|----------|--------------|
+| TODO-SALES005-001 | P1 | Create ContractsPage.tsx frontend list page | Frontend/Page | 2.1 |
+| TODO-SALES005-002 | P1 | Create ContractDetailsPage.tsx detail view with timeline | Frontend/Page | 2.1 |
+| TODO-SALES005-003 | P1 | Create ContractForm.tsx create/edit component | Frontend/Component | 2.2 |
+| TODO-SALES005-004 | P1 | Create contractService.ts frontend API client | Frontend/Service | 2.3 |
+| TODO-SALES005-005 | P2 | Add EndDate > StartDate backend validation | Validation | 6.2 |
+| TODO-SALES005-006 | P2 | Add Value >= 0 backend validation | Validation | 6.2 |
+| TODO-SALES005-007 | P2 | Add status transition validation rules | Validation | 6.2 |
+| TODO-SALES005-008 | P2 | Create ContractServiceTests.cs unit test suite | Testing | 5.1 |
+| TODO-SALES005-009 | P2 | Create ContractsControllerTests.cs integration tests | Testing | 5.2 |
+| TODO-SALES005-010 | P2 | Create contracts.spec.ts E2E tests | Testing | 5.3 |
+| TODO-SALES005-011 | P2 | Create ContractRenewalDialog.tsx component | Frontend/Component | 2.2 |
+| TODO-SALES005-012 | P2 | Create ContractExpirationWidget for dashboard | Frontend/Component | 2.2 |
+| TODO-SALES005-013 | P3 | Add bulk status update operations | Backend/Feature | 3 |
+| TODO-SALES005-014 | P3 | Add contract export (PDF, Excel) functionality | Backend/Feature | 3 |
+| TODO-SALES005-015 | P3 | Implement automated expiration background job (Hangfire) | Backend/Feature | 3 |
+| TODO-SALES005-016 | P3 | Add contract versioning and change history tracking | Backend/Feature | 3 |
+
+### SPEC-SALES-006 (Subscription Management) — 50 Items
+
+**Status:** ✅ Complete | **Module:** Sales | **Priority:** P1  
+**Coverage:** Service implementation complete; 13 controllers/enhancements + 10 database + 8 validation + 14 feature + 5 testing pending
+
+**Key Implementation Areas:** Recurring billing, MRR/ARR calculations, usage-based metering, dunning management, proration algorithms, plan changes, renewals
+
+| ID | Priority | Description | Category | Spec Section |
+|----|----------|-------------|----------|--------------|
+| TODO-SALES006-001 | P0 | Create SubscriptionsController (25+ CRUD/lifecycle endpoints) | Backend/Controller | 3.6 |
+| TODO-SALES006-002 | P0 | Create SubscriptionBillingController (8+ invoice/payment endpoints) | Backend/Controller | 3.6 |
+| TODO-SALES006-003 | P1 | Create SubscriptionUsageController (10+ usage/limits endpoints) | Backend/Controller | 3.6 |
+| TODO-SALES006-010 | P0 | Create SubscriptionItem entity (tracking plan + add-ons) | Entity | 3.1 |
+| TODO-SALES006-011 | P0 | Create SubscriptionRenewal entity (renewal history) | Entity | 3.1 |
+| TODO-SALES006-012 | P0 | Create BillingHistory entity (audit trail) | Entity | 3.1 |
+| TODO-SALES006-013 | P1 | Create DunningRecord entity (payment recovery tracking) | Entity | 3.1 |
+| TODO-SALES006-014 | P0 | Implement RecurringBillingEngine service with scheduled Hangfire jobs | Service | 3.4 |
+| TODO-SALES006-015 | P0 | Implement DunningManager service (3-retry exhaustion + escalation) | Service | 3.4 |
+| TODO-SALES006-016 | P0 | Implement ProrateCalculator with 4 algorithms | Service | 3.4 |
+| TODO-SALES006-017 | P1 | Implement SubscriptionMetricsAggregator (MRR/ARR/churn) | Service | 3.4 |
+| TODO-SALES006-018 | P1 | Add validation for SubscriptionNumber, Amount, BillingCycle | Validation | 6.3 |
+| TODO-SALES006-019 | P2 | Add validation for trial dates, proration type, usage limits | Validation | 6.3 |
+| TODO-SALES006-020 | P2 | Add validation: auto-renewal/cancelled mutual exclusion | Validation | 6.3 |
+| TODO-SALES006-021 | P1 | Use DECIMAL(18,4) for proration; implement safe rounding | Data/Precision | 6.4 |
+| TODO-SALES006-022 | P1 | Implement optimistic locking (RowVersion) on Subscriptions | Concurrency | 6.4 |
+| TODO-SALES006-023 | P2 | Add timezone support for billing date calculations | Feature | 6.4 |
+| TODO-SALES006-024 | P2 | Implement usage record batching for performance | Performance | 6.4 |
+| TODO-SALES006-025 | P2 | Add dunning grace period + escalation emails | Feature | 6.4 |
+| TODO-SALES006-026 | P2 | Create CreditTransaction entity for refund tracking | Entity | 6.4 |
+| TODO-SALES006-027 | P1 | Implement subscription pause with scheduled resume | Feature | 1.3 |
+| TODO-SALES006-028 | P1 | Implement trial to paid conversion workflow | Feature | 1.3 |
+| TODO-SALES006-029 | P2 | Implement timezone handling in frontend | Frontend | 2.2 |
+| TODO-SALES006-030 | P0 | Create 5 frontend pages (Dashboard/Details/PlanSelector/BillingHistory/Analytics) | Frontend/Page | 2.1 |
+| TODO-SALES006-031 | P0 | Create 10 frontend components (Card/Form/Badge/Widgets) | Frontend/Component | 2.2 |
+| TODO-SALES006-032 | P1 | Implement subscriptionService.ts frontend API client | Frontend/Service | 2.3 |
+| TODO-SALES006-033 | P1 | Implement billingService.ts frontend API client | Frontend/Service | 2.3 |
+| TODO-SALES006-034 | P0 | Create Subscriptions table with all properties | Database | 4.1 |
+| TODO-SALES006-035 | P0 | Create SubscriptionItems table (FK to Subscriptions/Products) | Database | 4.1 |
+| TODO-SALES006-036 | P0 | Create SubscriptionUsages table (metering data) | Database | 4.1 |
+| TODO-SALES006-037 | P0 | Create SubscriptionRenewals table (renewal tracking) | Database | 4.1 |
+| TODO-SALES006-038 | P0 | Create BillingHistory and DunningRecords tables | Database | 4.1 |
+| TODO-SALES006-040 | P1 | Create SubscriptionAnalyticsController (6+ endpoints) | Backend/Controller | 3.6 |
+| TODO-SALES006-004 | P1 | Standardize usage quantity precision (18,4 vs 18,2) | Data/Quality | 6.1 |
+| TODO-SALES006-005 | P2 | Create EventType enum for BillingHistory | Code/Quality | 6.1 |
+| TODO-SALES006-006 | P2 | Create BillingCycle enum (replace string values) | Code/Quality | 6.1 |
+| TODO-SALES006-041 | P0 | Unit tests: Proration accuracy (20+ scenarios) | Testing | 5.1 |
+| TODO-SALES006-042 | P0 | Unit tests: Usage billing accuracy (15+ scenarios) | Testing | 5.1 |
+| TODO-SALES006-043 | P0 | Unit tests: MRR/ARR calculation precision (100+ samples) | Testing | 5.1 |
+| TODO-SALES006-044 | P1 | Unit tests: Churn rate calculation | Testing | 5.1 |
+| TODO-SALES006-045 | P1 | Integration tests: Auto-renewal workflow end-to-end | Testing | 5.2 |
+| TODO-SALES006-046 | P1 | Integration tests: Dunning retry + cancellation workflow | Testing | 5.2 |
+| TODO-SALES006-047 | P1 | Integration tests: Plan change with proration | Testing | 5.2 |
+| TODO-SALES006-048 | P1 | E2E tests: Customer subscribes → upgrades → renews | Testing | 5.3 |
+| TODO-SALES006-049 | P2 | E2E tests: Payment failure → dunning → cancellation | Testing | 5.3 |
+| TODO-SALES006-050 | P2 | E2E tests: Pause/resume subscription workflow | Testing | 5.3 |
 
 ### SPEC-SALES-007 (Commission Management) — 5 Items
 
+**Status:** ⚠️ Partial | **Module:** Sales | **Priority:** P1  
+**Coverage:** Entities/interfaces exist; service partial (flat rate only); controllers, DTOs, frontend, advanced rules, tests pending
+
+| ID | Priority | Description | Category | Spec Section |
+|----|----------|-------------|----------|--------------|
+| TODO-SALES007-001 | P2 | Implement CommissionsController/Plans/Statements with DTOs | Backend/Controller | 3.5 |
+| TODO-SALES007-002 | P1 | Persist CommissionPlanAssignment with effective dating | Backend/Service | 3.4 |
+| TODO-SALES007-003 | P1 | Implement commission calculation (caps, tiers, triggers, splits, numbering) | Backend/Service | 3.4 |
+| TODO-SALES007-004 | P2 | Build frontend pages/services for commissions, plans, statements | Frontend | 2 |
+| TODO-SALES007-005 | P2 | Add unit/integration/E2E tests for commissions module | Testing | 5 |
+
+---
+
+### SPEC-SALES-006 (Subscription Management) — High-Level Summary
+
 | ID | Priority | Description | Spec Section |
 |----|----------|-------------|--------------|
-| TODO-SALES007-01 | P2 | Implement tiered commission calculation engine | 3.4 |
-| TODO-SALES007-02 | P2 | Add commission statement PDF generation | 3.4 |
-| TODO-SALES007-03 | P2 | Implement accelerator/decelerator rules | 3.4 |
+| TODO-SALES006-01-HL | P2 | Dashboard widgets for MRR/ARR metrics | 2.2 |
+| TODO-SALES006-02-HL | P2 | Usage-based billing metering integration | 3.4 |
+| TODO-SALES006-03-HL | P2 | Subscription upgrade/downgrade proration | 3.4 |
+| TODO-SALES006-04-HL | P3 | Churn prediction via AI module | 3.4 |
+| TODO-SALES006-05-HL | P2 | Dunning management for payment recovery | 3.4 |
+
+*(See detailed items TODO-SALES006-001 througHigh-Level Summary
+
+| ID | Priority | Description | Spec Section |
+|----|----------|-------------|--------------|
+| TODO-SALES007-01-HL | P2 | Implement tiered commission calculation engine | 3.4 |
+| TODO-SALES007-02-HL | P2 | Add commission statement PDF generation | 3.4 |
+| TODO-SALES007-03-HL | P2 | Implement accelerator/decelerator rules | 3.4 |
+| TODO-SALES007-04-HL | P3 | Add commission forecast based on pipeline | 3.4 |
+| TODO-SALES007-05-HL | P2 | Implement clawback automation for churned deals | 3.4 |
+
+*(See detailed items TODO-SALES007-001 through TODO-SALES007-005 above)*
 | TODO-SALES007-04 | P3 | Add commission forecast based on pipeline | 3.4 |
 | TODO-SALES007-05 | P2 | Implement clawback automation for churned deals | 3.4 |
+ Service Desk Module Specifications
 
+### SPEC-SD-001 (Service Request Management) — 13 Items
+
+| ID | Priority | Description | Category |
+|----|----------|-------------|----------|
+| TODO-SD001-001 | P2 | Create ServiceRequestCard component | Frontend |
+| TODO-SD001-002 | P2 | Create ServiceRequestTimeline component | Frontend |
+| TODO-SD001-003 | P2 | Create CustomFieldRenderer component | Frontend |
+| TODO-SD001-004 | P2 | Create AssignmentPanel component | Frontend |
+| TODO-SD001-005 | P2 | Create SLAStatusBadge component | Frontend |
+| TODO-SD001-006 | P2 | Create StatusTransitionButtons component | Frontend |
+| TODO-SD001-007 | P2 | Create ResolutionForm component | Frontend |
+| TODO-SD001-008 | P2 | Create FeedbackForm component | Frontend |
+| TODO-SD001-009 | P2 | Create ServiceRequestStats component | Frontend |
+| TODO-SD001-010 | P2 | Create E2E tests for service requests | Testing |
+| TODO-SD001-011 | P1 | Implement email-to-ticket integration | Backend |
+| TODO-SD001-012 | P1 | Implement auto-assignment rules | Backend |
+| TODO-SD001-013 | P1 | Add SLA auto-calculation on create | Backend |
+
+### SPEC-SD-002 (Knowledge Base) — 12 Items
+
+| ID | Priority | Description | Category |
+|----|----------|-------------|----------|
+| TODO-SD002-001 | P2 | Create CategoryTree component | Frontend |
+| TODO-SD002-002 | P2 | Create ArticleFeedbackWidget component | Frontend |
+| TODO-SD002-003 | P2 | Create RelatedArticles component | Frontend |
+| TODO-SD002-004 | P2 | Create PopularArticles component | Frontend |
+| TODO-SD002-005 | P2 | Create ArticleMetrics component | Frontend |
+| TODO-SD002-006 | P3 | Create VersionHistory component | Frontend |
+| TODO-SD002-007 | P2 | Create PublishWorkflow component | Frontend |
+| TODO-SD002-008 | P2 | Implement AI embedding generation | Backend |
+| TODO-SD002-009 | P2 | Implement semantic search | Backend |
+| TODO-SD002-010 | P3 | Add version history API endpoint | Backend |
+| TODO-SD002-011 | P2 | Create E2E tests for knowledge base | Testing |
+| TODO-SD002-012 | P1 | Add full-text search index configuration | Database |
+
+### SPEC-SD-003 (SLA Management) — 12 Items
+
+| ID | Priority | Description | Category |
+|----|----------|-------------|----------|
+| TODO-SD003-001 | P1 | Create SLACountdownWidget component | Frontend |
+| TODO-SD003-002 | P2 | Create HolidayCalendar component | Frontend |
+| TODO-SD003-003 | P2 | Create SLAComplianceChart component | Frontend |
+| TODO-SD003-004 | P1 | Create SLABreachAlert component | Frontend |
+| TODO-SD003-005 | P2 | Create SLAMetricsCard component | Frontend |
+| TODO-SD003-006 | P1 | Implement timezone handling in business hours | Backend |
+| TODO-SD003-007 | P0 | Implement SLA timer background service | Backend |
+| TODO-SD003-008 | P2 | Add DST handling to time calculations | Backend |
+| TODO-SD003-009 | P1 | Create SLA compliance report endpoint | Backend |
+| TODO-SD003-010 | P2 | Create E2E tests for SLA workflows | Testing |
+| TODO-SD003-011 | P2 | Add SLA dashboard API endpoints | Backend |
+| TODO-SD003-012 | P2 | Implement real-time SLA countdown via SignalR | Frontend |
+
+### SPEC-SD-004 (Workflow Engine) — 0 Items
+
+| ID | Priority | Description | Category |
+|----|----------|-------------|----------|
+| *(All workflow engine TODOs completed as of February 13, 2026)* | | | |
+
+### SPEC-SD-005 (Escalation Management) — 14 Items
+
+| ID | Priority | Description | Category |
+|----|----------|-------------|----------|
+| TODO-SD005-001 | P0 | Create EscalationRulesController | Backend |
+| TODO-SD005-002 | P0 | Create EscalationPoliciesController | Backend |
+| TODO-SD005-003 | P0 | Create IEscalationRuleService interface and implementation | Backend |
+| TODO-SD005-004 | P0 | Create IEscalationPolicyService interface and implementation | Backend |
+| TODO-SD005-005 | P1 | Create escalationService.ts frontend service | Frontend |
+| TODO-SD005-006 | P1 | Create EscalationRulesPage and components | Frontend |
+| TODO-SD005-007 | P1 | Create EscalationPoliciesPage with level editor | Frontend |
+| TODO-SD005-008 | P2 | Create EscalationDashboardPage with metrics | Frontend |
+| TODO-SD005-009 | P2 | Implement SMS notification channel | Backend |
+| TODO-SD005-010 | P3 | Implement Slack/Teams integration | Backend |
+| TODO-SD005-011 | P2 | Create escalation analytics reports | Backend |
+| TODO-SD005-012 | P2 | Add complex condition expression support | Backend |
+| TODO-SD005-013 | P1 | Create EscalationHostedService for scheduled checks | Backend |
+| TODO-SD005-014 | P2 | Create E2E tests for escalation workflows | Testing |
+
+##
 ### SPEC-SYS-002 (Authentication & Security) — 24 Items
 
 | ID | Priority | Description | Spec Section |
@@ -232,7 +675,7 @@
 
 ---
 
-## 2. Audit Remediation TODOs
+## 4. Audit Remediation TODOs
 
 *From Phase 9 multi-agent audit (February 13, 2026). See SOLUTION_GAPS_REMEDIATION_PLAN.md Phase 9.4.*
 
@@ -275,7 +718,7 @@
 
 ---
 
-## 3. ITSM Remaining Work
+## 5. ITSM Remaining Work
 
 ### 3.1 ITSM Advanced Services (Deferred)
 
@@ -303,7 +746,7 @@
 
 ---
 
-## 4. Infrastructure & DevOps
+## 6. Infrastructure & DevOps
 
 ### 4.1 Background Processing
 
@@ -338,7 +781,7 @@
 
 ---
 
-## 5. Self-Service Portal
+## 7. Self-Service Portal
 
 ### 5.1 Community Features
 
@@ -369,7 +812,7 @@
 
 ---
 
-## 6. Documentation
+## 8. Documentation
 
 ### 6.1 ITSM Documentation
 
@@ -390,7 +833,7 @@
 
 ---
 
-## 7. UX/UI Improvements
+## 9. UX/UI Improvements
 
 ### 7.1 Accessibility (WCAG 2.1 AA)
 
@@ -424,7 +867,7 @@
 
 ---
 
-## 8. AI & Machine Learning
+## 10. AI & Machine Learning
 
 ### 8.1 Predictive Analytics
 
@@ -453,7 +896,7 @@
 
 ---
 
-## 9. Analytics & Reporting
+## 11. Analytics & Reporting
 
 ### 9.1 Report Builder
 
@@ -476,7 +919,7 @@
 
 ---
 
-## 10. Integration Framework
+## 12. Integration Framework
 
 ### 10.1 Framework Enhancements
 
@@ -488,21 +931,22 @@
 
 ### 10.2 Native Integrations
 
-| ID | Priority | Description |
-|----|----------|-------------|
-| TODO-INT-04 | P2 | Google Workspace (Calendar, Contacts, Drive) |
-| TODO-INT-05 | P2 | Microsoft 365 (Outlook, Teams, SharePoint) |
-| TODO-INT-06 | P2 | Slack integration for notifications |
+| ID | Priority | Desc5 | Service Desk critical gaps: SLA background service, Escalation rules/policies controllers and services |
+| **P1 — High** | 44 | Service Desk: SLA countdown/breach alerts, timezones, compliance reports, email-to-ticket, auto-assignment, OAuth providers, 2FA methods, auth validations, lead conversion, global search |
+| **P2 — Medium** | 163 | Service Desk components, testing, semantic search, notifications, analytics, integrations, reporting, AI features, session security |
+| **P3 — Low** | 43 | Service Desk: version history, nice-to-have features, portal, mobile, advanced customization |
+| **Total** | **255| Slack integration for notifications |
 | TODO-INT-07 | P3 | Twilio enhanced voice call logging |
 | TODO-INT-08 | P3 | QuickBooks/Xero accounting sync |
 | TODO-INT-09 | P3 | Mailchimp/HubSpot marketing sync |
 | TODO-INT-10 | P3 | LinkedIn Sales Navigator integration |
 | TODO-INT-11 | P3 | Calendly/Cal.com scheduling integration |
-| TODO-INT-12 | P3 | Jira/Azure DevOps project management sync |
-
----
-
-## 11. Customization Engine
+| TOCritical (P0)** | Service Desk escalation + SLA background | ~5 | Week 1 Q1 2026 |
+| **Next Sprint** | P1 Service Desk items + auth/lead | ~12 | Week 2-3 Q1 2026 |
+| **Sprint 2** | Service Desk P2 components + ITSM wiring | ~20 | Week 4+ Q1 2026 |
+| **Sprint 3** | Documentation + Integration framework | ~15 | Q2 2026 |
+| **Sprint 4** | AI/Analytics + Reporting | ~20 | Q2 2026 |
+| **Backlog** | Portal, Mobile, Customization, P3 items | ~183
 
 ### 11.1 Dynamic Fields
 
@@ -533,7 +977,7 @@
 
 ---
 
-## 12. CRM Gaps
+## 14. CRM Gaps
 
 ### 12.1 Sales Process
 
@@ -561,27 +1005,28 @@
 
 ---
 
-## 13. Priority Matrix
+## 15. Priority Matrix
 
 ### Summary by Priority
 
 | Priority | Count | Description |
 |----------|-------|-------------|
-| **P0 — Critical** | 0 | No critical blockers |
-| **P1 — High** | 36 | Core functionality gaps: OAuth providers, 2FA methods, auth validations, lead conversion, global search, inline editing |
-| **P2 — Medium** | 109 | Service completion, testing, integrations, reporting, AI features, session security |
-| **P3 — Low** | 59 | Portal, mobile, advanced customization, nice-to-have UX |
-| **Total** | **204** | |
+| **P0 — Critical** | 16 | Service Desk: SLA background service, Escalation controllers, Subscription tables/entities, Proration/dunning engines |
+| **P1 — High** | 84 | Sales Module frontend pages + API controllers + validations + entity implementation + lead conversion + auth providers + global search + email-to-ticket + auto-assignment |
+| **P2 — Medium** | 164 | Service completion, testing, integrations, reporting, AI features, session security, Service Desk components |
+| **P3 — Low** | 37 | Portal, mobile, advanced customization, nice-to-have UX, Service Desk analytics |
+| **Total** | **301** | (204 original + 97 from Sales Module Specs SALES-003/004/005/006/007) |
 
-### Recommended Implementation Order
+### Recommended Implementation Order (Updated)
 
 | Phase | Focus | Items | Timeline |
 |-------|-------|-------|----------|
-| **Next Sprint** | P1 items + Test coverage | ~12 | Q1 2026 |
-| **Sprint 2** | ITSM wiring + Audit cleanup | ~15 | Q1 2026 |
-| **Sprint 3** | Documentation + Integration framework | ~15 | Q1 2026 |
-| **Sprint 4** | AI/Analytics + Reporting | ~20 | Q2 2026 |
-| **Backlog** | Portal, Mobile, Customization | ~57 | 2026-2027 |
+| **Phase Q1-1** | Sales Module P0/P1 (Controllers, Entities, Core Services) | 42 | Week 1-2 Q1 2026 |
+| **Phase Q1-2** | Sales Module P2 (Frontend, Validations, Tests) | 55 | Week 3-4 Q1 2026 |
+| **Phase Q1-3** | Service Desk Core (SLA, Escalation, Workflows) | 25 | Week 5-6 Q1 2026 |
+| **Phase Q2-1** | Authentication expansion (OAuth, 2FA) + Integration Framework | 35 | Q2 2026 |
+| **Phase Q2-2** | AI/Analytics + Reporting + Documentation | 40 | Q2 2026 |
+| **Backlog** | Portal, Mobile, Customization Engine, Nice-to-Have UI | 104 | 2026-2027 |
 
 ---
 

@@ -163,6 +163,8 @@ public class PostgreSqlProviderStrategy : DatabaseProviderStrategyBase
 
         return baseConnectionString.TrimEnd(';') + optimizations;
     }
+
+    public override string GetUtcNowSql() => "CURRENT_TIMESTAMP AT TIME ZONE 'UTC'";
 }
 
 /// <summary>

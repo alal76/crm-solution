@@ -120,6 +120,8 @@ public class MySqlProviderStrategy : DatabaseProviderStrategyBase
 
         return baseConnectionString.TrimEnd(';') + optimizations;
     }
+
+    public override string GetUtcNowSql() => "UTC_TIMESTAMP()";
 }
 
 /// <summary>
@@ -255,6 +257,8 @@ public class MariaDbProviderStrategy : DatabaseProviderStrategyBase
 
         return baseConnectionString.TrimEnd(';') + optimizations;
     }
+
+    public override string GetUtcNowSql() => "UTC_TIMESTAMP()";
 }
 
 /// <summary>

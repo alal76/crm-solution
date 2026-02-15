@@ -118,7 +118,7 @@ public class User : BaseEntity
     /// <summary>
     /// Last successful login timestamp
     /// </summary>
-    public DateTime? LastLoginDate { get; set; }
+    public DateTime? LastLoginAt { get; set; }
 
     // === Two-Factor Authentication ===
 
@@ -291,4 +291,14 @@ public class User : BaseEntity
     /// Refresh tokens for session management (supports multi-device).
     /// </summary>
     public virtual ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
+
+    /// <summary>
+    /// Roles assigned to this user through the RBAC system
+    /// </summary>
+    public virtual ICollection<UserRoleAssignment> UserRoles { get; set; } = new List<UserRoleAssignment>();
+
+    /// <summary>
+    /// Alias for UserRoles (backward compatibility)
+    /// </summary>
+    public virtual ICollection<UserRoleAssignment> RoleAssignments { get; set; } = new List<UserRoleAssignment>();
 }
