@@ -197,7 +197,7 @@ const AddressFormComponent: React.FC<AddressFormComponentProps> = ({
                   onChange={handleChange}
                   onBlur={handleBlur}
                   error={touched.label && !!errors.label}
-                  helperText={touched.label && errors.label || 'e.g., Main Office, Warehouse'}
+                  helperText={(touched.label && errors.label) || 'e.g., Main Office, Warehouse'}
                   disabled={isLoading}
                   placeholder="Optional label"
                 />
@@ -205,14 +205,13 @@ const AddressFormComponent: React.FC<AddressFormComponentProps> = ({
 
               {/* Address Type */}
               <Grid item xs={12} sm={6}>
-                <FormControl fullWidth disabled={isLoading}>
+                <FormControl fullWidth disabled={isLoading} error={touched.addressType && !!errors.addressType}>
                   <InputLabel>Address Type</InputLabel>
                   <Select
                     name="addressType"
                     label="Address Type"
                     value={values.addressType}
                     onChange={handleChange}
-                    error={touched.addressType && !!errors.addressType}
                   >
                     {ADDRESS_TYPES.map((type) => (
                       <MenuItem key={type} value={type}>
@@ -229,7 +228,7 @@ const AddressFormComponent: React.FC<AddressFormComponentProps> = ({
                   control={
                     <Checkbox
                       name="isPrimary"
-                      checked={values.isPrimary as boolean}
+                      checked={values.isPrimary}
                       onChange={handleChange}
                       disabled={isLoading}
                     />

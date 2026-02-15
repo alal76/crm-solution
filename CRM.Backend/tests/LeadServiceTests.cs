@@ -146,7 +146,7 @@ public class LeadServiceTests
     {
         using var context = CreateContext();
         var account = new Account { Company = "Acme", Email = "acc@acme.com", Phone = "123", Category = AccountCategory.Organization };
-        context.Customers.Add(account);
+        context.Accounts.Add(account);
         await context.SaveChangesAsync();
 
         var lead = new Lead

@@ -48,6 +48,7 @@ public class AccountsControllerTests
     private readonly Mock<IAccountService> _mockCustomerService;
     private readonly Mock<ILogger<AccountsController>> _mockLogger;
     private readonly Mock<ICrmNotificationService> _mockNotificationService;
+    private readonly Mock<IContactInfoService> _mockContactInfoService;
     private readonly AccountsController _controller;
 
     public AccountsControllerTests()
@@ -55,6 +56,7 @@ public class AccountsControllerTests
         _mockCustomerService = new Mock<IAccountService>();
         _mockLogger = new Mock<ILogger<AccountsController>>();
         _mockNotificationService = new Mock<ICrmNotificationService>();
+        _mockContactInfoService = new Mock<IContactInfoService>();
 
         // Setup default returns for notification service to prevent null task exceptions
         _mockNotificationService.Setup(x => x.NotifyRecordCreatedAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<object>(), It.IsAny<string?>()))
@@ -64,7 +66,7 @@ public class AccountsControllerTests
         _mockNotificationService.Setup(x => x.NotifyRecordDeletedAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<string?>()))
             .Returns(Task.CompletedTask);
 
-        _controller = new AccountsController(_mockCustomerService.Object, _mockLogger.Object, _mockNotificationService.Object);
+        _controller = new AccountsController(_mockCustomerService.Object, _mockLogger.Object, _mockNotificationService.Object, _mockContactInfoService.Object);
 
         // Setup HttpContext with Response.Headers for ETag support
         var httpContext = new DefaultHttpContext();
