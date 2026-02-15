@@ -525,6 +525,3 @@ export const DashboardCustomizationComponent: React.FC<{ userId?: number }> = ()
     </Container>
   );
 };
-
-export { DashboardCustomizationComponent };
-export default DashboardCustomizationComponent;
