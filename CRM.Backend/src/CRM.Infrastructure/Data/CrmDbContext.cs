@@ -425,6 +425,12 @@ public class CrmDbContext : DbContext, ICrmDbContext
     public DbSet<ITSM.CatalogRequestApproval> CatalogRequestApprovals { get; set; }
     public DbSet<ITSM.CatalogRequestComment> CatalogRequestComments { get; set; }
 
+    // =============================================================================
+    // Integration & Webhook Entities
+    // =============================================================================
+    public DbSet<ITSM.WebhookSubscription> WebhookSubscriptions { get; set; }
+    public DbSet<ITSM.WebhookDelivery> WebhookDeliveries { get; set; }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
             if (!optionsBuilder.IsConfigured && _configuration != null)
@@ -3432,6 +3438,81 @@ public class CrmDbContext : DbContext, ICrmDbContext
                 .WithOne(a => a.AgentAction)
                 .HasForeignKey<AgentApprovalRequest>(a => a.AgentActionId)
                 .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // =============================================================================
+        // Webhook Integration Entities
+        // =============================================================================
+        modelBuilder.Entity<ITSM.WebhookSubscription>(entity =>
+        {
+            entity.ToTable("WebhookSubscriptions");
+            entity.HasKey(e => e.WebhookSubscriptionId);
+            
+            entity.Property(e => e.Name)
+                .IsRequired()
+                .HasMaxLength(255);
+            
+            entity.Property(e => e.TargetUrl)
+                .IsRequired()
+                .HasMaxLength(500);
+            
+            entity.Property(e => e.EventTypes)
+                .HasDefaultValue("[]");
+            
+            entity.Property(e => e.Headers)
+                .HasDefaultValue("{}");
+            
+            entity.Property(e => e.IsActive)
+                .HasDefaultValue(true);
+            
+            entity.Property(e => e.RetryCount)
+                .HasDefaultValue(3);
+            
+            entity.Property(e => e.TimeoutSeconds)
+                .HasDefaultValue(30);
+            
+            entity.HasIndex(e => e.IsActive)
+                .HasDatabaseName("IX_WebhookSubscriptions_IsActive");
+            
+            entity.HasIndex(e => e.LastTriggeredAt)
+                .HasDatabaseName("IX_WebhookSubscriptions_LastTriggeredAt");
+            
+            entity.HasIndex(e => e.CreatedByUserId)
+                .HasDatabaseName("IX_WebhookSubscriptions_CreatedByUserId");
+        });
+
+        modelBuilder.Entity<ITSM.WebhookDelivery>(entity =>
+        {
+            entity.ToTable("WebhookDeliveries");
+            entity.HasKey(e => e.WebhookDeliveryId);
+            
+            entity.Property(e => e.EventType)
+                .IsRequired()
+                .HasMaxLength(100);
+            
+            entity.Property(e => e.TargetUrl)
+                .IsRequired()
+                .HasMaxLength(500);
+            
+            entity.Property(e => e.Success)
+                .HasDefaultValue(false);
+            
+            entity.Property(e => e.AttemptNumber)
+                .HasDefaultValue(1);
+            
+            entity.HasOne<ITSM.WebhookSubscription>(e => e.Subscription)
+                .WithMany(s => s.Deliveries)
+                .HasForeignKey(e => e.WebhookSubscriptionId)
+                .OnDelete(DeleteBehavior.Cascade);
+            
+            entity.HasIndex(e => e.WebhookSubscriptionId)
+                .HasDatabaseName("IX_WebhookDeliveries_WebhookSubscriptionId");
+            
+            entity.HasIndex(new[] { "WebhookSubscriptionId", "Success" })
+                .HasDatabaseName("IX_WebhookDeliveries_WebhookSubscriptionId_Success");
+            
+            entity.HasIndex(new[] { "Success", "CreatedAt" })
+                .HasDatabaseName("IX_WebhookDeliveries_Success_CreatedAt");
         });
 
         // Apply provider-specific post-configuration using the Strategy Pattern
