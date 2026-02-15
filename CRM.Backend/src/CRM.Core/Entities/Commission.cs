@@ -90,13 +90,19 @@ public enum CommissionStatus
     Paid = 3,
 
     /// <summary>Commission clawed back</summary>
-    ClawedBack = 4,
+    Clawback = 4,
 
     /// <summary>Commission adjusted</summary>
     Adjusted = 5,
 
     /// <summary>Commission cancelled</summary>
-    Cancelled = 6
+    Cancelled = 6,
+
+    /// <summary>Commission rejected in approval</summary>
+    Rejected = 7,
+
+    /// <summary>Commission in draft state</summary>
+    Draft = 8
 }
 
 /// <summary>
@@ -161,6 +167,12 @@ public class CommissionPlan : BaseEntity
 
     /// <summary>Base commission rate (percentage)</summary>
     public decimal BaseRate { get; set; } = 0;
+
+    /// <summary>Primary commission rate (percentage) - alias for BaseRate</summary>
+    public decimal Rate { get; set; } = 0;
+
+    /// <summary>Whether this plan is active</summary>
+    public bool IsActive { get; set; } = true;
 
     /// <summary>When commission is triggered</summary>
     public CommissionTrigger Trigger { get; set; } = CommissionTrigger.OnClose;
@@ -316,6 +328,9 @@ public class Commission : BaseEntity
 
     /// <summary>Commission status</summary>
     public CommissionStatus Status { get; set; } = CommissionStatus.Pending;
+
+    /// <summary>Rejection reason if commission was rejected</summary>
+    public string? RejectionReason { get; set; }
 
     #endregion
 

@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System.ComponentModel.DataAnnotations.Schema;
 using CRM.Core.Models;
 
 namespace CRM.Core.Entities;
@@ -176,6 +177,9 @@ public class EmailSequence : BaseEntity
     /// <summary>Current status</summary>
     public EmailSequenceStatus Status { get; set; } = EmailSequenceStatus.Draft;
 
+    /// <summary>Whether this sequence is active and can enroll new recipients</summary>
+    public bool IsActive { get; set; } = true;
+
     #endregion
 
     #region Configuration
@@ -302,6 +306,14 @@ public class EmailSequenceStep : BaseEntity
     /// <summary>Step order in sequence</summary>
     public int StepOrder { get; set; }
 
+    /// <summary>Alias for step order - Order property</summary>
+    [NotMapped]
+    public int? Order
+    {
+        get => StepOrder;
+        set => StepOrder = value ?? 0;
+    }
+
     /// <summary>Step name</summary>
     public string Name { get; set; } = string.Empty;
 
@@ -312,6 +324,11 @@ public class EmailSequenceStep : BaseEntity
     public bool IsActive { get; set; } = true;
 
     #endregion
+
+    #region Email Template
+
+    /// <summary>Email template content/body</summary>
+    public string? Template { get; set; }
 
     #region Timing
 
@@ -426,6 +443,14 @@ public class EmailSequenceStep : BaseEntity
     /// <summary>Parent sequence ID</summary>
     public int EmailSequenceId { get; set; }
 
+    /// <summary>Alias for EmailSequenceId</summary>
+    [NotMapped]
+    public int? SequenceId
+    {
+        get => EmailSequenceId;
+        set => EmailSequenceId = value ?? 0;
+    }
+
     /// <summary>Navigation to sequence</summary>
     public EmailSequence? EmailSequence { get; set; }
 
@@ -530,6 +555,14 @@ public class EmailSequenceEnrollment : BaseEntity
     /// <summary>Sequence ID</summary>
     public int EmailSequenceId { get; set; }
 
+    /// <summary>Alias for EmailSequenceId</summary>
+    [NotMapped]
+    public int? SequenceId
+    {
+        get => EmailSequenceId;
+        set => EmailSequenceId = value ?? 0;
+    }
+
     /// <summary>Navigation to sequence</summary>
     public EmailSequence? EmailSequence { get; set; }
 
@@ -606,4 +639,6 @@ public class EmailSequenceStepExecution : BaseEntity
 
     /// <summary>Bounce type</summary>
     public string? BounceType { get; set; }
+
+    #endregion
 }

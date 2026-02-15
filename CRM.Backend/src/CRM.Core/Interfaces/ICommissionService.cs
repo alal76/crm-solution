@@ -215,9 +215,13 @@ public class CommissionSummary
 public class CommissionStatistics
 {
     public decimal TotalCommissions { get; set; }
+    /// <summary>Alias for TotalCommissions for compatibility</summary>
+    public decimal TotalAmount { get => TotalCommissions; set => TotalCommissions = value; }
     public decimal TotalPaid { get; set; }
     public decimal TotalPending { get; set; }
     public int TotalRecords { get; set; }
+    /// <summary>Alias for TotalRecords</summary>
+    public int CommissionCount { get => TotalRecords; set => TotalRecords = value; }
     public int PendingApprovals { get; set; }
     public decimal AverageCommission { get; set; }
     public int ActivePlans { get; set; }
