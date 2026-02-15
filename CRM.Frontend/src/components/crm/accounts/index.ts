@@ -14,5 +14,7 @@
 export { TerritoryAssignmentPanel } from './TerritoryAssignmentPanel';
 export type { TerritoryAssignmentPanelProps } from './TerritoryAssignmentPanel';
 
-export { AccountTimeline } from './AccountTimeline';
+// AccountTimeline temporarily disabled - pending activityService implementation
+// export { AccountTimeline } from './AccountTimeline';
+// export type { AccountTimelineProps } from './AccountTimeline';
 export type { AccountTimelineProps } from './AccountTimeline';
