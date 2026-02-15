@@ -20,6 +20,7 @@ using CRM.Core.Interfaces;
 using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.FeatureManagement;

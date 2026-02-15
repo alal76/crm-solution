@@ -101,7 +101,14 @@ public class ZipCodeImportHostedService : BackgroundService
         // Check if we should import on startup
         if (_options.ImportOnStartupIfEmpty && !_initialImportDone)
         {
-            await CheckAndImportIfEmptyAsync(stoppingToken);
+            try
+            {
+                await CheckAndImportIfEmptyAsync(stoppingToken);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error during startup ZIP code import. Service will continue to run. Scheduled imports may retry later.");
+            }
             _initialImportDone = true;
         }
 
