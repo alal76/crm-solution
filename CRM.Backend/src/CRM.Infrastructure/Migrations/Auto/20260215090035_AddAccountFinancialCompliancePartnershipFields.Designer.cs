@@ -4,6 +4,7 @@ using CRM.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CRM.Infrastructure.Migrations.Auto
 {
     [DbContext(typeof(CrmDbContext))]
-    partial class CrmDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260215090035_AddAccountFinancialCompliancePartnershipFields")]
+    partial class AddAccountFinancialCompliancePartnershipFields
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -2493,9 +2496,6 @@ namespace CRM.Infrastructure.Migrations.Auto
                     b.Property<string>("AccessHours")
                         .HasColumnType("TEXT");
 
-                    b.Property<int?>("AccountId")
-                        .HasColumnType("int");
-
                     b.Property<string>("AddressXml")
                         .HasColumnType("TEXT");
 
@@ -2611,8 +2611,6 @@ namespace CRM.Infrastructure.Migrations.Auto
                         .HasColumnType("int");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("AccountId");
 
                     b.HasIndex("City");
 
@@ -23155,10 +23153,6 @@ namespace CRM.Infrastructure.Migrations.Auto
 
             modelBuilder.Entity("CRM.Core.Entities.Address", b =>
                 {
-                    b.HasOne("CRM.Core.Entities.Account", null)
-                        .WithMany("Addresses")
-                        .HasForeignKey("AccountId");
-
                     b.HasOne("CRM.Core.Entities.Locality", "LocalityData")
                         .WithMany()
                         .HasForeignKey("LocalityId")
@@ -27008,8 +27002,6 @@ namespace CRM.Infrastructure.Migrations.Auto
             modelBuilder.Entity("CRM.Core.Entities.Account", b =>
                 {
                     b.Navigation("AccountContacts");
-
-                    b.Navigation("Addresses");
 
                     b.Navigation("ContactInfoLinks");
 

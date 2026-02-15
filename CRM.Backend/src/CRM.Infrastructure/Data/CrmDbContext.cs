@@ -513,6 +513,44 @@ public class CrmDbContext : DbContext, ICrmDbContext
                 .WithMany(p => p.Accounts)
                 .HasForeignKey(e => e.PreferencesId)
                 .OnDelete(DeleteBehavior.SetNull);
+
+            // User relationships
+            entity.HasOne(e => e.AssignedToUser)
+                .WithMany()
+                .HasForeignKey(e => e.AssignedToUserId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasOne(e => e.AccountManager)
+                .WithMany()
+                .HasForeignKey(e => e.AccountManagerId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasOne(e => e.VerifiedByUser)
+                .WithMany()
+                .HasForeignKey(e => e.VerifiedByUserId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // Partnership relationships (self-referencing)
+            entity.HasOne(e => e.ParentReseller)
+                .WithMany(e => e.ResellerChildren)
+                .HasForeignKey(e => e.ParentResellerAccountId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasOne(e => e.CompetitorAccount)
+                .WithMany()
+                .HasForeignKey(e => e.CompetitorAccountId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // Lead conversion relationships
+            entity.HasOne(e => e.ConvertedFromLead)
+                .WithMany()
+                .HasForeignKey(e => e.ConvertedFromLeadId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasOne(e => e.SourceCampaign)
+                .WithMany()
+                .HasForeignKey(e => e.SourceCampaignId)
+                .OnDelete(DeleteBehavior.SetNull);
         });
 
         modelBuilder.Entity<Preferences>(entity =>

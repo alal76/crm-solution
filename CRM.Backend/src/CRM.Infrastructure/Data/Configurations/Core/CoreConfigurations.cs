@@ -70,6 +70,44 @@ public class AccountConfiguration : IEntityTypeConfiguration<Account>
             .WithMany()
             .HasForeignKey(c => c.BillingCycleLookupId)
             .OnDelete(DeleteBehavior.SetNull);
+
+        // User relationships
+        builder.HasOne(e => e.AssignedToUser)
+            .WithMany()
+            .HasForeignKey(e => e.AssignedToUserId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        builder.HasOne(e => e.AccountManager)
+            .WithMany()
+            .HasForeignKey(e => e.AccountManagerId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        builder.HasOne(e => e.VerifiedByUser)
+            .WithMany()
+            .HasForeignKey(e => e.VerifiedByUserId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        // Partnership relationships (self-referencing)
+        builder.HasOne(e => e.ParentReseller)
+            .WithMany(e => e.ResellerChildren)
+            .HasForeignKey(e => e.ParentResellerAccountId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        builder.HasOne(e => e.CompetitorAccount)
+            .WithMany()
+            .HasForeignKey(e => e.CompetitorAccountId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        // Lead conversion relationships
+        builder.HasOne(e => e.ConvertedFromLead)
+            .WithMany()
+            .HasForeignKey(e => e.ConvertedFromLeadId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        builder.HasOne(e => e.SourceCampaign)
+            .WithMany()
+            .HasForeignKey(e => e.SourceCampaignId)
+            .OnDelete(DeleteBehavior.SetNull);
     }
 }
 

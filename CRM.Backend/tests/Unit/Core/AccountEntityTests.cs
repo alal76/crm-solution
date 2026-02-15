@@ -216,6 +216,8 @@ public class AccountEntityTests
             account.Website.Should().BeNull();
         }
 
+        // DISABLED: Address fields were removed and normalized via EntityAddressLink. See address normalization phase.
+        /*
         [Fact]
         public void Account_DefaultValues_BillingAddressShouldBeCorrect()
         {
@@ -242,6 +244,7 @@ public class AccountEntityTests
             account.ShippingCountry.Should().BeNull();
             account.ShippingSameAsBilling.Should().BeTrue();
         }
+        */
 
         [Fact]
         public void Account_DefaultValues_BusinessInfoShouldBeCorrect()
@@ -300,6 +303,8 @@ public class AccountEntityTests
             account.SatisfactionRating.Should().Be(0);
         }
 
+        // DISABLED: Preference fields were moved to Preferences entity
+        /*
         [Fact]
         public void Account_DefaultValues_SocialAndPreferencesShouldBeCorrect()
         {
@@ -316,6 +321,7 @@ public class AccountEntityTests
             account.Timezone.Should().BeNull();
             account.PreferredLanguage.Should().BeNull();
         }
+        */
 
         [Fact]
         public void Account_DefaultValues_AssignmentShouldBeCorrect()
@@ -544,18 +550,10 @@ public class AccountEntityTests
                 Phone = "+1-555-123-4567",
                 MobilePhone = "+1-555-987-6543",
                 JobTitle = "Senior Consultant",
-                Address = "123 Main St",
-                City = "San Francisco",
-                State = "CA",
-                ZipCode = "94102",
-                Country = "USA",
                 AccountType = AccountType.Individual,
                 LifecycleStage = AccountLifecycleStage.Active,
                 LeadScore = 85,
-                AccountHealthScore = 90,
-                OptInEmail = true,
-                OptInSms = false,
-                OptInPhone = true
+                AccountHealthScore = 90
             };
 
             account.Category.Should().Be(AccountCategory.Individual);
@@ -817,7 +815,8 @@ public class AccountEntityTests
     #endregion
 
     #region Account Scenario Tests - Shipping Address
-
+    // DISABLED: Shipping address fields were removed and normalized via Address entity (EntityAddressLink pattern)
+    /*
     public class AccountShippingAddressTests
     {
         [Fact]
@@ -851,7 +850,7 @@ public class AccountEntityTests
             account.ShippingCity.Should().NotBe(account.City);
         }
     }
-
+    */
     #endregion
 
     #region Account Scenario Tests - Lead Conversion
@@ -883,6 +882,8 @@ public class AccountEntityTests
     public class AccountCommunicationPreferencesTests
     {
         [Fact]
+        // DISABLED: OptIn and communication preference fields moved to Preferences entity
+        /*
         public void Account_OptInDefaults_ShouldBeReasonable()
         {
             var account = new Account();
@@ -924,6 +925,7 @@ public class AccountEntityTests
             account.Timezone.Should().Be("America/New_York");
             account.PreferredLanguage.Should().Be("en-US");
         }
+        */
     }
 
     #endregion
@@ -962,15 +964,9 @@ public class AccountEntityTests
                 FirstName = "Test",
                 LastName = "User",
                 Email = "test@example.com",
-                Phone = "555-1234",
-                Address = "123 Test St",
-                City = "Test City",
-                State = "TS",
-                ZipCode = "12345",
-                Country = "USA"
+                Phone = "555-1234"
             };
 #pragma warning restore CS0618
-
             // Customer inherits from Account, so all Account properties work
             customer.FirstName.Should().Be("Test");
             customer.Email.Should().Be("test@example.com");

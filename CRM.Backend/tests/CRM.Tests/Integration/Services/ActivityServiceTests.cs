@@ -110,7 +110,7 @@ public class ActivityServiceTests
         var service = new ActivityService(context, _mockLogger.Object);
 
         // Act
-        var result = await service.GetActivitiesAsync(customerId: 1);
+        var result = await service.GetActivitiesAsync(accountId: 1);
 
         // Assert
         Assert.Equal(2, result.Count());

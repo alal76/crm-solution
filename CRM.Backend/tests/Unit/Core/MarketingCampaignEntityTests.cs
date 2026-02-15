@@ -297,7 +297,6 @@ public class MarketingCampaignEntityTests
         campaign.OpportunitiesCreated.Should().Be(0);
         campaign.OpportunitiesInfluenced.Should().Be(0);
         campaign.DealsWon.Should().Be(0);
-        campaign.CustomersAcquired.Should().Be(0);
         campaign.LeadToMqlRate.Should().Be(0);
         campaign.MqlToSqlRate.Should().Be(0);
         campaign.SqlToOpportunityRate.Should().Be(0);

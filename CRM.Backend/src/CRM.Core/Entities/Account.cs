@@ -468,6 +468,131 @@ public class Account : BaseEntity
 
     #endregion
 
+    #region Financial Metrics
+
+    /// <summary>Lifetime value of the account - total revenue expected from this account over the relationship</summary>
+    [Range(0, double.MaxValue)]
+    public decimal? LifetimeValue { get; set; }
+
+    /// <summary>Monthly recurring revenue from this account</summary>
+    [Range(0, double.MaxValue)]
+    public decimal? MonthlyRecurringRevenue { get; set; }
+
+    /// <summary>Annual recurring revenue from this account</summary>
+    [Range(0, double.MaxValue)]
+    public decimal? AnnualRecurringRevenue { get; set; }
+
+    /// <summary>Average value per order/transaction</summary>
+    [Range(0, double.MaxValue)]
+    public decimal? AverageOrderValue { get; set; }
+
+    /// <summary>Total contract value with this account</summary>
+    [Range(0, double.MaxValue)]
+    public decimal? ContractValue { get; set; }
+
+    /// <summary>Date of the last payment received from this account</summary>
+    public DateTime? LastPaymentDate { get; set; }
+
+    /// <summary>Current payment status (e.g., Current, Overdue, Past Due)</summary>
+    [MaxLength(50)]
+    public string? PaymentStatus { get; set; }
+
+    /// <summary>Number of active subscriptions for this account</summary>
+    [Range(0, int.MaxValue)]
+    public int? ActiveSubscriptionCount { get; set; }
+
+    /// <summary>Total count of invoices issued to this account</summary>
+    [Range(0, int.MaxValue)]
+    public int? TotalInvoiceCount { get; set; }
+
+    #endregion
+
+    #region Compliance & Verification
+
+    /// <summary>Verification status of the account (e.g., Unverified, Pending, Verified, Rejected)</summary>
+    [MaxLength(50)]
+    public string? VerificationStatus { get; set; } = "Unverified";
+
+    /// <summary>Date when the account was verified</summary>
+    public DateTime? VerificationDate { get; set; }
+
+    /// <summary>Method used to verify the account (e.g., Email, Phone, Document)</summary>
+    [MaxLength(50)]
+    public string? VerificationMethod { get; set; }
+
+    /// <summary>User ID of the person who performed the verification</summary>
+    public int? VerifiedByUserId { get; set; }
+
+    /// <summary>Flag indicating if this account requires a Non-Disclosure Agreement</summary>
+    public bool RequiresNda { get; set; } = false;
+
+    /// <summary>Flag indicating if the NDA has been signed</summary>
+    public bool NdaSigned { get; set; } = false;
+
+    /// <summary>Date when the NDA was signed</summary>
+    public DateTime? NdaSignedDate { get; set; }
+
+    /// <summary>Reference ID or document identifier for the signed NDA</summary>
+    [MaxLength(255)]
+    public string? NdaReferenceId { get; set; }
+
+    /// <summary>Data classification level (e.g., Internal, Confidential, Public)</summary>
+    [MaxLength(50)]
+    public string? DataClassification { get; set; } = "Internal";
+
+    /// <summary>Dun & Bradstreet number for business identification</summary>
+    [MaxLength(20)]
+    public string? DunsNumber { get; set; }
+
+    /// <summary>Business license number or identifier</summary>
+    [MaxLength(255)]
+    public string? BusinessLicense { get; set; }
+
+    /// <summary>Date of the most recent compliance check</summary>
+    public DateTime? ComplianceCheckDate { get; set; }
+
+    /// <summary>Notes regarding compliance status and requirements</summary>
+    public string? ComplianceNotes { get; set; }
+
+    #endregion
+
+    #region Partnership & Reseller
+
+    /// <summary>Flag indicating if this account is a reseller</summary>
+    public bool? IsReseller { get; set; }
+
+    /// <summary>Flag indicating if this account is a partner</summary>
+    public bool? IsPartner { get; set; }
+
+    /// <summary>Flag indicating if this account is an integration partner</summary>
+    public bool? IsIntegrationPartner { get; set; }
+
+    /// <summary>Partner tier classification (e.g., Gold, Silver, Bronze)</summary>
+    [MaxLength(50)]
+    public string? PartnerTier { get; set; }
+
+    /// <summary>Date when this account enrolled as a partner</summary>
+    public DateTime? PartnerEnrolledDate { get; set; }
+
+    /// <summary>Current status of the partnership (e.g., Active, Inactive, Suspended)</summary>
+    [MaxLength(50)]
+    public string? PartnerStatus { get; set; }
+
+    /// <summary>ID of the parent reseller account (for reseller hierarchy)</summary>
+    public int? ParentResellerAccountId { get; set; }
+
+    /// <summary>ID of related competitor account</summary>
+    public int? CompetitorAccountId { get; set; }
+
+    /// <summary>Technology stack or platforms used by this account</summary>
+    public string? TechStack { get; set; }
+
+    /// <summary>Type of integration partnership (e.g., API, Webhook, Native)</summary>
+    [MaxLength(100)]
+    public string? IntegrationPartnerType { get; set; }
+
+    #endregion
+
     #region Navigation Properties
 
     public ICollection<Opportunity>? Opportunities { get; set; }
@@ -481,6 +606,9 @@ public class Account : BaseEntity
     /// <summary>Contact information links (addresses, phones/emails, social accounts)</summary>
     public ICollection<ContactInfoLink>? ContactInfoLinks { get; set; }
 
+    /// <summary>Collection of addresses associated with this account (linked via EntityAddressLink junction table)</summary>
+    public ICollection<Address> Addresses { get; set; } = new List<Address>();
+
     /// <summary>Currency lookup navigation</summary>
     public LookupItem? CurrencyLookup { get; set; }
 
@@ -493,6 +621,9 @@ public class Account : BaseEntity
     /// <summary>Account manager navigation</summary>
     public User? AccountManager { get; set; }
 
+    /// <summary>User who verified the account</summary>
+    public User? VerifiedByUser { get; set; }
+
     /// <summary>Referring account navigation</summary>
     public Account? ReferredByAccount { get; set; }
 
@@ -504,6 +635,15 @@ public class Account : BaseEntity
 
     /// <summary>Source campaign navigation</summary>
     public MarketingCampaign? SourceCampaign { get; set; }
+
+    /// <summary>Parent reseller account (for reseller hierarchy)</summary>
+    public Account? ParentReseller { get; set; }
+
+    /// <summary>Child reseller accounts (for reseller hierarchy)</summary>
+    public ICollection<Account>? ResellerChildren { get; set; }
+
+    /// <summary>Related competitor account</summary>
+    public Account? CompetitorAccount { get; set; }
 
     #endregion
 

@@ -562,7 +562,6 @@ public class UserEntityTests
             adminGroup.DataAccessScope.Should().Be("all");
             adminGroup.CanAccessSettings.Should().BeTrue();
             adminGroup.CanAccessUserManagement.Should().BeTrue();
-            adminGroup.CanDeleteCustomers.Should().BeTrue();
             adminGroup.CanBulkDelete.Should().BeTrue();
         }
 

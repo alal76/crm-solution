@@ -47,6 +47,7 @@ builder.Services.AddScoped<IPreferencesService, PreferencesService>();
 
 // Register customer-related services
 builder.Services.AddScoped<IAccountService, AccountService>();
+builder.Services.AddScoped<IAddressService, AddressService>();
 builder.Services.AddScoped<IContactsService, ContactsService>();
 builder.Services.AddScoped<IAccountService, AccountService>();
 

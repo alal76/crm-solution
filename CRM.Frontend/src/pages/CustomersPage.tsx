@@ -15,6 +15,9 @@ import {
   DialogHeader,
   RelatedEntitiesPanel,
   EnhancedEmptyState,
+  AddressListComponent,
+  AddressFormComponent,
+  AddressModalComponent,
 } from '../components/common';
 import {
   LIFECYCLE_STAGE_OPTIONS,
@@ -32,7 +35,10 @@ import {
   Settings as SettingsIcon,
   Upload as UploadIcon,
   Download as DownloadIcon,
+  LocationOn as LocationIcon,
 } from '@mui/icons-material';
+import { Address, CreateAddressDto, UpdateAddressDto } from '../types/address.types';
+import addressService from '../services/addressService';
 import apiClient from '../services/apiClient';
 import { getApiErrorMessage } from '../utils/errorHandler';
 import DuplicateDetectionDialog from '../components/duplicates/DuplicateDetectionDialog';
@@ -273,6 +279,14 @@ function AccountsPage() {
   const [contactIsPrimary, setContactIsPrimary] = useState(false);
   const [contactIsDecisionMaker, setContactIsDecisionMaker] = useState(false);
 
+  // Address management state
+  const [accountAddresses, setAccountAddresses] = useState<Address[]>([]);
+  const [addressesLoading, setAddressesLoading] = useState(false);
+  const [addressesError, setAddressesError] = useState<string | null>(null);
+  const [addressModalOpen, setAddressModalOpen] = useState(false);
+  const [editingAddress, setEditingAddress] = useState<Address | null>(null);
+  const [addressFormSubmitting, setAddressFormSubmitting] = useState(false);
+
   // Search state
   const [searchFilters, setSearchFilters] = useState<SearchFilter[]>([]);
   const [searchText, setSearchText] = useState('');
@@ -394,6 +408,77 @@ function AccountsPage() {
     }
   };
 
+  const fetchAccountAddresses = async (accountId: number) => {
+    try {
+      setAddressesLoading(true);
+      setAddressesError(null);
+      const addresses = await addressService.getAccountAddresses(accountId);
+      setAccountAddresses(addresses);
+    } catch (err: any) {
+      console.error('Error fetching account addresses:', err);
+      setAddressesError(
+        err?.response?.data?.message || 'Failed to load addresses'
+      );
+      setAccountAddresses([]);
+    } finally {
+      setAddressesLoading(false);
+    }
+  };
+
+  const handleAddAddressClick = () => {
+    setEditingAddress(null);
+    setAddressModalOpen(true);
+  };
+
+  const handleEditAddressClick = (address: Address) => {
+    setEditingAddress(address);
+    setAddressModalOpen(true);
+  };
+
+  const handleCloseAddressModal = () => {
+    setAddressModalOpen(false);
+    setEditingAddress(null);
+    setAddressFormSubmitting(false);
+  };
+
+  const handleSaveAddress = async (values: CreateAddressDto | UpdateAddressDto) => {
+    if (!editingId) return;
+
+    setAddressFormSubmitting(true);
+
+    try {
+      if (editingAddress) {
+        // Update existing address
+        const updated = await addressService.updateAddress(
+          editingId,
+          editingAddress.id,
+          values as UpdateAddressDto
+        );
+        setAccountAddresses((prev) =>
+          prev.map((a) => (a.id === updated.id ? updated : a))
+        );
+      } else {
+        // Create new address
+        const created = await addressService.createAddress(
+          editingId,
+          values as CreateAddressDto
+        );
+        setAccountAddresses((prev) => [...prev, created]);
+      }
+
+      setSuccessMessage(editingAddress ? 'Address updated successfully' : 'Address created successfully');
+      handleCloseAddressModal();
+      setTimeout(() => setSuccessMessage(null), 3000);
+    } catch (err: any) {
+      console.error('Error saving address:', err);
+      setAddressesError(
+        err?.response?.data?.message || 'Failed to save address'
+      );
+    } finally {
+      setAddressFormSubmitting(false);
+    }
+  };
+
   // Form handlers
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
@@ -428,6 +513,8 @@ function AccountsPage() {
       setFormData(formValues);
       // Fetch linked contacts for all accounts
       fetchAccountContacts(account.id);
+      // Fetch addresses for the account
+      fetchAccountAddresses(account.id);
       preferencesService.getAccountPreferences(account.id)
         .then(prefs => setPreferencesForm({ ...INITIAL_PREFERENCES, ...prefs }))
         .catch(err => {
@@ -437,10 +524,12 @@ function AccountsPage() {
     } else {
       setEditingId(null);
       setAccountContacts([]);
+      setAccountAddresses([]);
       setFormData(INITIAL_FORM_DATA);
       setPreferencesForm(INITIAL_PREFERENCES);
     }
     setPreferencesError(null);
+    setAddressesError(null);
     setOpenDialog(true);
   }, []);
 
@@ -765,6 +854,11 @@ function AccountsPage() {
     // Add Linked Contacts tab when editing (all accounts can have linked contacts)
     if (editingId) {
       baseTabs.push({ index: 101, name: 'Linked Contacts' });
+    }
+
+    // Add Addresses tab when editing
+    if (editingId) {
+      baseTabs.push({ index: 105, name: 'Addresses' });
     }
 
     // Add Related tab when editing (show related opportunities, service requests, etc.)
@@ -1109,6 +1203,7 @@ function AccountsPage() {
                 icon={
                   tab.index === 100 ? <ContactPhoneIcon fontSize="small" /> : 
                   tab.index === 101 ? <GroupIcon fontSize="small" /> : 
+                  tab.index === 105 ? <LocationIcon fontSize="small" /> :
                   tab.index === 102 ? <NoteIcon fontSize="small" /> : 
                   tab.index === 103 ? <TrendingUpIcon fontSize="small" /> :
                   tab.index === 104 ? <SettingsIcon fontSize="small" /> :
@@ -1218,6 +1313,27 @@ function AccountsPage() {
                       ))}
                     </List>
                   )}
+                </TabPanel>
+              )}
+
+              {/* Addresses Tab */}
+              {editingId && (
+                <TabPanel value={dialogTab} index={visibleTabs.findIndex(t => t.index === 105)}>
+                  <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2 }}>
+                    Manage Addresses
+                  </Typography>
+                  <AddressListComponent
+                    accountId={editingId}
+                    addresses={accountAddresses}
+                    isLoading={addressesLoading}
+                    error={addressesError}
+                    onAddClick={handleAddAddressClick}
+                    onEditClick={handleEditAddressClick}
+                    onDeleteSuccess={() => {
+                      setSuccessMessage('Address deleted successfully');
+                      setTimeout(() => setSuccessMessage(null), 3000);
+                    }}
+                  />
                 </TabPanel>
               )}
 
@@ -1380,6 +1496,23 @@ function AccountsPage() {
           />
         </DialogActions>
       </Dialog>
+
+      {/* Address Modal */}
+      <AddressModalComponent
+        open={addressModalOpen}
+        title={editingAddress ? 'Edit Address' : 'Add New Address'}
+        onClose={handleCloseAddressModal}
+        isLoading={addressFormSubmitting}
+        error={addressesError}
+      >
+        <AddressFormComponent
+          address={editingAddress || undefined}
+          onSubmit={handleSaveAddress}
+          onCancel={handleCloseAddressModal}
+          isLoading={addressFormSubmitting}
+          error={addressesError}
+        />
+      </AddressModalComponent>
 
       {/* Add Contact Dialog */}
       <Dialog open={addContactDialogOpen} onClose={() => setAddContactDialogOpen(false)} maxWidth="sm" fullWidth>
