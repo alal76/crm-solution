@@ -117,7 +117,13 @@ public class CommissionsControllerTests
     public async Task Create_ShouldReturnCreatedAtResult_WhenValidDataProvided()
     {
         // Arrange
-        var dto = new Commission { UserId = 1, Amount = 2500m };
+        var dto = new CommissionCreateRequest 
+        { 
+            UserId = 1, 
+            DealAmount = 5000m,
+            CommissionRate = 0.1m,
+            CommissionAmount = 500m
+        };
         var created = new Commission { Id = 1, UserId = 1, Amount = 2500m };
 
         _mockCommissionService
@@ -140,13 +146,14 @@ public class CommissionsControllerTests
     public async Task Update_ShouldReturnOkResult_WhenValidDataProvided()
     {
         // Arrange
+        var updateDto = new CommissionUpdateRequest { DealAmount = 6000m, CommissionRate = 0.12m };
         var commission = new Commission { Id = 1, Amount = 3000m };
         _mockCommissionService
             .Setup(x => x.UpdateAsync(It.IsAny<Commission>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(commission);
 
         // Act
-        var result = await _controller.Update(1, commission, CancellationToken.None);
+        var result = await _controller.Update(1, updateDto, CancellationToken.None);
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
@@ -161,13 +168,14 @@ public class CommissionsControllerTests
     public async Task Approve_ShouldReturnOkResult()
     {
         // Arrange
+        var approveRequest = new CommissionApproveRequest { ApprovedById = 10 };
         var commission = new Commission { Id = 1, Status = CommissionStatus.Approved };
         _mockCommissionService
             .Setup(x => x.ApproveAsync(1, It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(commission);
 
         // Act
-        var result = await _controller.Approve(1, 10, CancellationToken.None);
+        var result = await _controller.Approve(1, approveRequest, CancellationToken.None);
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
@@ -178,13 +186,14 @@ public class CommissionsControllerTests
     public async Task Reject_ShouldReturnOkResult()
     {
         // Arrange
+        var rejectRequest = new CommissionRejectRequest { Reason = "Does not meet criteria and quality standards" };
         var commission = new Commission { Id = 1, Status = CommissionStatus.Rejected };
         _mockCommissionService
             .Setup(x => x.RejectAsync(1, It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(commission);
 
         // Act
-        var result = await _controller.Reject(1, "Does not meet criteria", CancellationToken.None);
+        var result = await _controller.Reject(1, rejectRequest, CancellationToken.None);
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
@@ -241,7 +250,7 @@ public class CampaignsControllerTests
         };
 
         _mockCampaignService
-            .Setup(x => x.GetAllAsync(It.IsAny<CancellationToken>()))
+            .Setup(x => x.GetAllCampaignsAsync())
             .ReturnsAsync(campaigns);
 
         // Act
