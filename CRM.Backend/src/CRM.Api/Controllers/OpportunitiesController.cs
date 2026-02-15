@@ -125,6 +125,30 @@ public class OpportunitiesController : ControllerBase
     }
 
     /// <summary>
+    /// Gets all opportunities for a specific customer ID (alias for GetByAccountId for backward compatibility).
+    /// </summary>
+    /// <param name="customerId">The customer/account ID</param>
+    /// <returns>List of opportunities for the customer</returns>
+    /// <response code="200">Returns the list of opportunities</response>
+    /// <response code="500">If there was an internal server error</response>
+    [HttpGet("customer/{customerId}")]
+    [ProducesResponseType(typeof(List<Opportunity>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> GetByCustomerId(int customerId)
+    {
+        try
+        {
+            var opportunities = await _opportunityService.GetOpportunitiesByCustomerAsync(customerId);
+            return Ok(opportunities);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving opportunities for customer {CustomerId}", customerId);
+            return StatusCode(500, "Internal server error");
+        }
+    }
+
+    /// <summary>
     /// Gets the total pipeline value across all open opportunities.
     /// </summary>
     /// <returns>The total pipeline value</returns>

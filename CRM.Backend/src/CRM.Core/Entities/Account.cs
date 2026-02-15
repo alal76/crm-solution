@@ -609,6 +609,9 @@ public class Account : BaseEntity
     /// <summary>Collection of addresses associated with this account (linked via EntityAddressLink junction table)</summary>
     public ICollection<Address> Addresses { get; set; } = new List<Address>();
 
+    /// <summary>Polymorphic junction table for entity-address relationships</summary>
+    public ICollection<EntityAddressLink>? EntityAddressLinks { get; set; }
+
     /// <summary>Currency lookup navigation</summary>
     public LookupItem? CurrencyLookup { get; set; }
 
@@ -653,6 +656,44 @@ public class Account : BaseEntity
     public string DisplayName => Category == AccountCategory.Organization
         ? Company
         : $"{FirstName} {LastName}".Trim();
+
+    /// <summary>Backward compatibility - returns first address street</summary>
+    public string? Address
+    {
+        get => Addresses?.FirstOrDefault()?.Line1;
+        set { /* for backward compat */ }
+    }
+
+    /// <summary>Backward compatibility - returns first address city</summary>
+    public string? City
+    {
+        get => Addresses?.FirstOrDefault()?.City;
+        set { /* for backward compat */ }
+    }
+
+    /// <summary>Backward compatibility - returns first address state</summary>
+    public string? State
+    {
+        get => Addresses?.FirstOrDefault()?.State;
+        set { /* for backward compat */ }
+    }
+
+    /// <summary>Backward compatibility - returns first address zip code</summary>
+    public string? ZipCode
+    {
+        get => Addresses?.FirstOrDefault()?.PostalCode;
+        set { /* for backward compat */ }
+    }
+
+    /// <summary>Backward compatibility - returns first address country</summary>
+    public string? Country
+    {
+        get => Addresses?.FirstOrDefault()?.Country;
+        set { /* for backward compat */ }
+    }
+
+    /// <summary>Flag indicating if shipping address is same as billing</summary>
+    public bool ShippingSameAsBilling { get; set; } = false;
 
     #endregion
 }

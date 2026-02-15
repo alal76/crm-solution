@@ -86,7 +86,7 @@ public class ReportServiceTests
         {
             Id = 1,
             Name = "Accounts",
-            DataSource = ReportDataSource.Customers,
+            DataSource = ReportDataSource.Accounts,
             ColumnsJson = JsonSerializer.Serialize(new[] { "name", "industry", "createdAt" }),
             Status = ReportStatus.Active,
             CreatedAt = DateTime.UtcNow,
@@ -116,7 +116,7 @@ public class ReportServiceTests
         {
             Id = 2,
             Name = "Accounts",
-            DataSource = ReportDataSource.Customers,
+            DataSource = ReportDataSource.Accounts,
             ColumnsJson = JsonSerializer.Serialize(new[] { "name", "industry" }),
             Status = ReportStatus.Active,
             CreatedAt = DateTime.UtcNow,

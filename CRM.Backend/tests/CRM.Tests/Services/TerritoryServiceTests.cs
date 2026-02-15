@@ -34,6 +34,7 @@ public class TerritoryServiceTests : IDisposable
     private readonly CrmDbContext _dbContext;
     private readonly ITerritoryService _service;
     private readonly Mock<ILogger<TerritoryService>> _loggerMock;
+    private readonly Mock<IContactInfoService> _contactInfoServiceMock;
 
     public TerritoryServiceTests()
     {
@@ -43,7 +44,8 @@ public class TerritoryServiceTests : IDisposable
 
         _dbContext = new CrmDbContext(options, null);
         _loggerMock = new Mock<ILogger<TerritoryService>>();
-        _service = new TerritoryService(_dbContext, _loggerMock.Object);
+        _contactInfoServiceMock = new Mock<IContactInfoService>();
+        _service = new TerritoryService(_dbContext, _contactInfoServiceMock.Object, _loggerMock.Object);
     }
 
     public void Dispose()

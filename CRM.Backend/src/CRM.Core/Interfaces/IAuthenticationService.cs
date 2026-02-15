@@ -45,6 +45,21 @@ public interface IAuthenticationService
     Task<AuthResponse> RefreshTokenAsync(string refreshToken);
 
     /// <summary>
+    /// Refresh access token with existing refresh token
+    /// </summary>
+    Task<AuthResponse> RefreshAccessTokenAsync(string refreshToken, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Logout user and invalidate session
+    /// </summary>
+    Task<bool> LogoutAsync(int userId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Change user password
+    /// </summary>
+    Task<AuthResponse> ChangePasswordAsync(int userId, string oldPassword, string newPassword, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Verify JWT token
     /// </summary>
     Task<bool> VerifyTokenAsync(string token);

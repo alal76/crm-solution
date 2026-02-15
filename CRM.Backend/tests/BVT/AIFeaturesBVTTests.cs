@@ -457,7 +457,7 @@ public class AIFeaturesBVTTests
     public void BVT_KB_007_SLAPolicy_Creation()
     {
         // Arrange & Act
-        var policy = new SLAPolicy
+        var policy = new CRM.Core.Entities.KnowledgeBase.SLAPolicy
         {
             Name = "Standard SLA",
             Description = "Standard response times",
@@ -504,7 +504,7 @@ public class AIFeaturesBVTTests
     public void BVT_KB_010_EscalationRule_Creation()
     {
         // Arrange & Act
-        var rule = new EscalationRule
+        var rule = new CRM.Core.Entities.KnowledgeBase.EscalationRule
         {
             SLAPolicyId = 1,
             Name = "First Level Escalation",

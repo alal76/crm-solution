@@ -155,7 +155,7 @@ public class DashboardServiceTests
 
         // Assert
         Assert.NotNull(result);
-        Assert.Equal(0, result.Customers.Total);
+        Assert.Equal(0, result.Accounts.Total);
         Assert.Equal(0, result.Contacts.Total);
         Assert.Equal(0, result.Products.Total);
         Assert.Equal(0, result.Opportunities.Total);
@@ -186,7 +186,7 @@ public class DashboardServiceTests
         var result = await _service.GetStatsAsync();
 
         // Assert
-        Assert.Equal(2, result.Customers.Total); // Excludes deleted
+        Assert.Equal(2, result.Accounts.Total); // Excludes deleted
         Assert.Equal(2, result.Contacts.Total);  // Only active contacts
     }
 

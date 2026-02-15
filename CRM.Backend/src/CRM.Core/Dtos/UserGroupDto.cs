@@ -35,6 +35,7 @@ public class UserGroupDto
     // Menu Permissions
     public bool CanAccessDashboard { get; set; }
     public bool CanAccessAccounts { get; set; }
+    public bool CanAccessCustomers { get; set; }  // Alias for CanAccessAccounts for backward compatibility
     public bool CanAccessContacts { get; set; }
     public bool CanAccessLeads { get; set; }
     public bool CanAccessOpportunities { get; set; }
@@ -121,6 +122,7 @@ public class CreateUserGroupRequest
     // Menu Permissions
     public bool CanAccessDashboard { get; set; } = true;
     public bool CanAccessAccounts { get; set; } = false;
+    public bool CanAccessCustomers { get; set; } = false;  // Alias for CanAccessAccounts for backward compatibility
     public bool CanAccessContacts { get; set; } = false;
     public bool CanAccessLeads { get; set; } = false;
     public bool CanAccessOpportunities { get; set; } = false;
@@ -196,8 +198,18 @@ public class CreateUserGroupRequest
 /// </summary>
 public class UserGroupMemberDto
 {
+    public int Id { get; set; }  // Member entry ID
     public int UserId { get; set; }
     public string Email { get; set; } = string.Empty;
     public string FullName { get; set; } = string.Empty;
+    
+    /// <summary>User email alias for backward compatibility</summary>
+    public string? UserEmail
+    {
+        get => Email;
+        set => Email = value ?? string.Empty;
+    }
+    
+    public int GroupId { get; set; }
     public DateTime AddedAt { get; set; }
 }

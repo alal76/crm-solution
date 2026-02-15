@@ -116,9 +116,19 @@ public class User : BaseEntity
     public bool IsActive { get; set; } = true;
 
     /// <summary>
+    /// Account lock status (prevents login when true)
+    /// </summary>
+    public bool IsLocked { get; set; } = false;
+
+    /// <summary>
     /// Last successful login timestamp
     /// </summary>
     public DateTime? LastLoginAt { get; set; }
+
+    /// <summary>
+    /// Last successful login date (alias for backward compatibility)
+    /// </summary>
+    public DateTime? LastLoginDate => LastLoginAt;
 
     // === Two-Factor Authentication ===
 

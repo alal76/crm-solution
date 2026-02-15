@@ -1113,6 +1113,91 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
         return response;
     }
 
+    /// <summary>
+    /// Logout user and invalidate all sessions
+    /// </summary>
+    public async Task<bool> LogoutAsync(int userId, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            // Revoke all refresh tokens for this user
+            var userTokens = await _dbContext.RefreshTokens
+                .Where(rt => rt.UserId == userId && rt.RevokedAt == null)
+                .ToListAsync(cancellationToken);
+
+            foreach (var token in userTokens)
+            {
+                token.RevokedAt = DateTime.UtcNow;
+                token.RevokedReason = "User logged out";
+            }
+
+            await _dbContext.SaveChangesAsync(cancellationToken);
+            _logger.LogInformation($"User {userId} logged out successfully");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error logging out user {userId}");
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Change user password
+    /// </summary>
+    public async Task<AuthResponse> ChangePasswordAsync(int userId, string oldPassword, string newPassword, CancellationToken cancellationToken = default)
+    {
+        var user = await _dbContext.Users
+            .Include(u => u.PrimaryGroup)
+            .Include(u => u.Department)
+            .Include(u => u.UserProfile)
+            .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
+
+        if (user == null)
+            throw new ArgumentException("User not found");
+
+        // Verify old password
+        if (!BCrypt.Net.BCrypt.Verify(oldPassword, user.PasswordHash))
+            throw new ArgumentException("Current password is incorrect");
+
+        // Validate new password complexity
+        await ValidatePasswordComplexityAsync(newPassword);
+
+        // Update password
+        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
+        user.PasswordLastChangedAt = DateTime.UtcNow;
+        user.MustResetPassword = false;
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        // Generate new auth response
+        var response = GenerateAuthResponse(user);
+        
+        // Revoke all existing refresh tokens (force re-login on other devices)
+        var oldTokens = await _dbContext.RefreshTokens
+            .Where(rt => rt.UserId == userId && rt.RevokedAt == null)
+            .ToListAsync(cancellationToken);
+        
+        foreach (var token in oldTokens)
+        {
+            token.RevokedAt = DateTime.UtcNow;
+            token.RevokedReason = "Password changed";
+        }
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+        _logger.LogInformation($"User {userId} changed password successfully");
+        
+        return response;
+    }
+
+    /// <summary>
+    /// Refresh access token with existing refresh token
+    /// </summary>
+    public async Task<AuthResponse> RefreshAccessTokenAsync(string refreshToken, CancellationToken cancellationToken = default)
+    {
+        return await RefreshTokenAsync(refreshToken);
+    }
+
     public async Task<PasswordComplexityRequirements> GetPasswordRequirementsAsync()
     {
         var settings = await _dbContext.SystemSettings.FirstOrDefaultAsync();

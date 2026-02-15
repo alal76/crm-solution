@@ -66,7 +66,8 @@ public class AccountsControllerTests
         _mockNotificationService.Setup(x => x.NotifyRecordDeletedAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<string?>()))
             .Returns(Task.CompletedTask);
 
-        _controller = new AccountsController(_mockCustomerService.Object, _mockLogger.Object, _mockNotificationService.Object, _mockContactInfoService.Object);
+        // Constructor parameters: IAccountService, IContactInfoService, ILogger<AccountsController>, ICrmNotificationService
+        _controller = new AccountsController(_mockCustomerService.Object, _mockContactInfoService.Object, _mockLogger.Object, _mockNotificationService.Object);
 
         // Setup HttpContext with Response.Headers for ETag support
         var httpContext = new DefaultHttpContext();

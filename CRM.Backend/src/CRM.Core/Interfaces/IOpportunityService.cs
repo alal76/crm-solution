@@ -25,6 +25,12 @@ public interface IOpportunityService
 {
     Task<Opportunity?> GetOpportunityByIdAsync(int id);
     Task<IEnumerable<Opportunity>> GetOpportunitiesByAccountAsync(int accountId);
+
+    /// <summary>
+    /// Get opportunities by customer ID (alias for GetOpportunitiesByAccountAsync for backward compatibility)
+    /// </summary>
+    Task<List<Opportunity>> GetOpportunitiesByCustomerAsync(int customerId, CancellationToken cancellationToken = default);
+
     Task<IEnumerable<Opportunity>> GetOpenOpportunitiesAsync();
     Task<int> CreateOpportunityAsync(Opportunity opportunity);
     Task UpdateOpportunityAsync(Opportunity opportunity);
