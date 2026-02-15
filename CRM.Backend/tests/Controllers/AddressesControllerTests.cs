@@ -328,7 +328,7 @@ public class AddressesControllerTests
         var result = await _controller.CreateAddress(dto, CancellationToken.None);
 
         // Assert
-        result.Should().BeOfType<BadRequestObjectResult>().Or.BeOfType<ObjectResult>();
+        ((result is BadRequestObjectResult) || (result is ObjectResult)).Should().BeTrue();
     }
 
     #endregion
@@ -342,7 +342,7 @@ public class AddressesControllerTests
         var accountId = 1;
         var addressId = 1;
         
-        var dto = new CreateAddressDto
+        var dto = new UpdateAddressDto
         {
             Label = "Updated Office",
             Line1 = "456 New Street",
@@ -388,7 +388,7 @@ public class AddressesControllerTests
         var accountId = 1;
         var addressId = 999;
         
-        var dto = new CreateAddressDto
+        var dto = new UpdateAddressDto
         {
             Line1 = "456 New Street",
             City = "Boston",
@@ -402,7 +402,7 @@ public class AddressesControllerTests
         var result = await _controller.UpdateAddress(accountId, addressId, dto, CancellationToken.None);
 
         // Assert
-        result.Should().BeOfType<NotFoundObjectResult>().Or.BeOfType<ObjectResult>();
+        ((result is NotFoundObjectResult) || (result is ObjectResult)).Should().BeTrue();
     }
 
     #endregion
