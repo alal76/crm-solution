@@ -1054,7 +1054,6 @@ const AddressManager: React.FC<AddressManagerProps> = ({
               />
             </Grid>
           </Grid>
-        </Grid>
       </AddressModalComponent>
     </Card>
   );
