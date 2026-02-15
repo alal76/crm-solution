@@ -19,6 +19,7 @@ using CRM.Core.Dtos;
 using CRM.Core.Interfaces;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
 

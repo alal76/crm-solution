@@ -17,6 +17,7 @@
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
+using CRM.Core.Ports.Output.Providers;
 using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Services;
 using CRM.Tests.Helpers;
@@ -40,7 +41,7 @@ public class AuthenticationServiceTests
     private readonly Mock<IRepository<OAuthToken>> _mockOAuthTokenRepository;
     private readonly Mock<CrmDbContext> _mockDbContext;
     private readonly Mock<IJwtTokenService> _mockJwtTokenService;
-    private readonly Mock<ITotpService> _mockTotpService;
+    private readonly Mock<Infrastructure.Services.ITotpService> _mockTotpService;
     private readonly Mock<IMemoryCache> _mockMemoryCache;
     private readonly Mock<IHttpClientFactory> _mockHttpClientFactory;
     private readonly Mock<INotificationPort> _mockNotificationPort;
@@ -54,7 +55,7 @@ public class AuthenticationServiceTests
         _mockOAuthTokenRepository = new Mock<IRepository<OAuthToken>>();
         _mockDbContext = new Mock<CrmDbContext>();
         _mockJwtTokenService = new Mock<IJwtTokenService>();
-        _mockTotpService = new Mock<ITotpService>();
+        _mockTotpService = new Mock<Infrastructure.Services.ITotpService>();
         _mockMemoryCache = new Mock<IMemoryCache>();
         _mockHttpClientFactory = new Mock<IHttpClientFactory>();
         _mockNotificationPort = new Mock<INotificationPort>();

@@ -19,6 +19,7 @@ using CRM.Core.Entities.ITSM;
 using CRM.Core.Interfaces;
 using CRM.Core.Interfaces.ITSM;
 using CRM.Infrastructure.Services.ITSM;
+using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
 
