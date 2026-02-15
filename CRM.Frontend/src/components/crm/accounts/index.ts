@@ -3,8 +3,9 @@
  * Exports all account-related components for easy importing
  */
 
-export { AccountMergeDialog } from './AccountMergeDialog';
-export type { AccountMergeDialogProps } from './AccountMergeDialog';
+// AccountMergeDialog temporarily disabled - pending merge API implementation
+// export { AccountMergeDialog } from './AccountMergeDialog';
+// export type { AccountMergeDialogProps } from './AccountMergeDialog';
 
 // AccountHierarchyTree temporarily disabled - pending @mui/x-tree-view API compatibility fixes
 // export { AccountHierarchyTree } from './AccountHierarchyTree';

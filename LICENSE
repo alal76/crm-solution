@@ -1,63 +1,53 @@
 CRM Solution - Customer Relationship Management System
 Copyright (C) 2024-2026 Abhishek Lal
 
-================================================================================
-                           FAIR USE LICENSE
-================================================================================
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU Affero General Public License as
+published by the Free Software Foundation, either version 3 of the
+License, or (at your option) any later version.
 
-TERMS AND CONDITIONS:
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU Affero General Public License for more details.
 
-1. PERMISSIONS
-   You are free to:
-   - Use this software for any purpose (commercial, non-commercial, educational, etc.)
-   - Modify and adapt the software to suit your needs
-   - Distribute the software and your modifications
-   - Private use without any restrictions
-   - Commercial use without royalties or fees
-
-2. CONDITIONS
-   You must:
-   - Retain the original copyright notice and this license in any distributed copies
-   - Provide clear attribution to Abhishek Lal as the original author
-   - Include a copy of this license with any distribution
-   - Document any significant modifications made to the software
-
-3. DISCLAIMER OF WARRANTY
-   This software is provided "AS IS" without warranty of any kind, express or implied.
-   The author makes no warranties, representations, or guarantees regarding the software's:
-   - Merchantability
-   - Fitness for a particular purpose
-   - Non-infringement of third-party rights
-   - Performance or reliability
-   - Accuracy or completeness
-
-4. LIMITATION OF LIABILITY
-   In no event shall Abhishek Lal or any contributors be liable for any direct,
-   indirect, incidental, special, exemplary, or consequential damages arising from
-   the use or inability to use this software, even if advised of the possibility
-   of such damages. This includes but is not limited to:
-   - Loss of data or profits
-   - Business interruption
-   - Loss of use or data
-   - Any other commercial damages
-
-5. FAIR USE GRANTED
-   Fair use rights are explicitly granted under this license for:
-   - Commentary, criticism, and educational purposes
-   - Transformative uses that add significant new functionality
-   - Research and development
-   - Reverse engineering for interoperability purposes
-
-6. NO COPYLEFT REQUIREMENT
-   There is no requirement to distribute derivative works under the same license.
-   You may use this software as the basis for proprietary or closed-source projects.
-
-7. TERMINATION
-   This license is perpetual. However, if you violate its terms, your rights are
-   automatically terminated. Upon termination, you must cease all use and distribution
-   of the software.
+You should have received a copy of the GNU Affero General Public License
+along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 ================================================================================
+                        ADDITIONAL TERMS AND DISCLAIMER
+================================================================================
+
+NO LIABILITY CLAUSE:
+In no event shall Abhishek Lal or any contributors be liable for any direct,
+indirect, incidental, special, exemplary, or consequential damages (including,
+but not limited to, procurement of substitute goods or services; loss of use,
+data, or profits; or business interruption) however caused and on any theory
+of liability, whether in contract, strict liability, or tort (including
+negligence or otherwise) arising in any way out of the use of this software,
+even if advised of the possibility of such damage.
+
+FREE USE CLAUSE:
+This software is provided free of charge for any use, including commercial use,
+subject to the terms of the GNU Affero General Public License version 3.
+You are free to use, modify, and distribute this software as long as you
+comply with the copyleft requirements of the AGPL-3.0 license, which requires
+that any modified versions of this software that are made available over a
+network must also be made available under the same license.
+
+COPYLEFT NOTICE:
+This software is copyleft. Any derivative works must be distributed under
+the same license terms. If you modify this software and make it available
+to users over a network, you must provide them with access to the source
+code of your modified version under the terms of the AGPL-3.0.
+
+================================================================================
+                    GNU AFFERO GENERAL PUBLIC LICENSE
+                       Version 3, 19 November 2007
+
+ Copyright (C) 2007 Free Software Foundation, Inc. <https://fsf.org/>
+ Everyone is permitted to copy and distribute verbatim copies
+ of this license document, but changing it is not allowed.
 
                             Preamble
 
