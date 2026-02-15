@@ -41,6 +41,15 @@ public class ZipCode
     public string PostalCode { get; set; } = string.Empty;
 
     /// <summary>
+    /// Postal/ZIP code alias for backward compatibility
+    /// </summary>
+    public string Code
+    {
+        get => PostalCode;
+        set => PostalCode = value;
+    }
+
+    /// <summary>
     /// City/locality name
     /// </summary>
     public string City { get; set; } = string.Empty;

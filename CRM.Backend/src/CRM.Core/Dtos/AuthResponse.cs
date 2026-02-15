@@ -112,6 +112,16 @@ public class AuthResponse
     /// General message for the response (e.g., pending approval message)
     /// </summary>
     public string? Message { get; set; }
+
+    /// <summary>
+    /// Token expiration time in seconds
+    /// </summary>
+    public int ExpiresIn { get; set; }
+
+    /// <summary>
+    /// Authenticated user information (for client-side profile display)
+    /// </summary>
+    public UserDto? User { get; set; }
 }
 
 /// <summary>

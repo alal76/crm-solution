@@ -192,10 +192,10 @@ public class AuthControllerTests
     public async Task Logout_WithValidUserId_ReturnsOk()
     {
         // Arrange
-        _mockAuthService.Setup(s => s.LogoutAsync(1)).Returns(Task.CompletedTask);
+        _mockAuthService.Setup(s => s.LogoutAsync(It.IsAny<int>())).ReturnsAsync(true);
 
         // Act
-        var result = await _controller.Logout(1);
+        var result = await _controller.Logout();
 
         // Assert
         result.Should().BeOfType<OkObjectResult>();
@@ -218,7 +218,7 @@ public class AuthControllerTests
             ExpiresIn = 3600
         };
 
-        _mockAuthService.Setup(s => s.RefreshTokenAsync(request)).ReturnsAsync(authResponse);
+        _mockAuthService.Setup(s => s.RefreshTokenAsync(request.RefreshToken)).ReturnsAsync(authResponse);
 
         // Act
         var result = await _controller.RefreshToken(request);
@@ -235,7 +235,7 @@ public class AuthControllerTests
         // Arrange
         var request = new RefreshTokenRequest { RefreshToken = "expired_token" };
 
-        _mockAuthService.Setup(s => s.RefreshTokenAsync(request))
+        _mockAuthService.Setup(s => s.RefreshTokenAsync(request.RefreshToken))
             .ThrowsAsync(new UnauthorizedAccessException("Refresh token expired"));
 
         // Act
@@ -253,16 +253,23 @@ public class AuthControllerTests
     public async Task ChangePassword_WithValidData_ReturnsOk()
     {
         // Arrange
-        var request = new ChangePasswordRequest
+        var request = new CRM.Core.Dtos.ChangePasswordRequest
         {
-            UserId = 1,
-            CurrentPassword = "OldPassword@123",
+            OldPassword = "OldPassword@123",
             NewPassword = "NewPassword@456",
             ConfirmPassword = "NewPassword@456"
         };
 
-        _mockAuthService.Setup(s => s.ChangePasswordAsync(request.UserId, request.CurrentPassword, request.NewPassword))
-            .Returns(Task.CompletedTask);
+        var authResponse = new AuthResponse
+        {
+            AccessToken = "token",
+            RefreshToken = "refresh",
+            ExpiresIn = 3600,
+            User = new UserDto { Id = 1, Email = "test@example.com" }
+        };
+
+        _mockAuthService.Setup(s => s.ChangePasswordAsync(It.IsAny<int>(), request.OldPassword, request.NewPassword, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(authResponse);
 
         // Act
         var result = await _controller.ChangePassword(request);
@@ -272,18 +279,17 @@ public class AuthControllerTests
     }
 
     [Fact]
-    public async Task ChangePassword_WithIncorrectCurrentPassword_ReturnsUnauthorized()
+    public async Task ChangePassword_WithIncorrectCurrentPassword_ReturnsBadRequest()
     {
         // Arrange
-        var request = new ChangePasswordRequest
+        var request = new CRM.Core.Dtos.ChangePasswordRequest
         {
-            UserId = 1,
-            CurrentPassword = "WrongPassword",
+            OldPassword = "WrongPassword",
             NewPassword = "NewPassword@456",
             ConfirmPassword = "NewPassword@456"
         };
 
-        _mockAuthService.Setup(s => s.ChangePasswordAsync(request.UserId, request.CurrentPassword, request.NewPassword))
+        _mockAuthService.Setup(s => s.ChangePasswordAsync(It.IsAny<int>(), request.OldPassword, request.NewPassword, It.IsAny<CancellationToken>()))
             .ThrowsAsync(new UnauthorizedAccessException("Current password is incorrect"));
 
         // Act
@@ -297,12 +303,8 @@ public class AuthControllerTests
 }
 
 /// <summary>
-/// Test DTO for ChangePassword
-/// </summary>
-public class ChangePasswordRequest
-{
-    public int UserId { get; set; }
-    public string CurrentPassword { get; set; } = string.Empty;
-    public string NewPassword { get; set; } = string.Empty;
-    public string ConfirmPassword { get; set; } = string.Empty;
-}
+/// Test helper classes
+#region Test DTOs - REMOVED
+// NOTE: ChangePasswordRequest has been removed from this file
+// Use CRM.Core.Dtos.ChangePasswordRequest instead
+#endregion

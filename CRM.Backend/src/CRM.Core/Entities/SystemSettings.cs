@@ -37,7 +37,17 @@ public class SystemSettings : BaseEntity
     /// FUNCTIONAL: Whether the Customers module is enabled
     /// TECHNICAL: Controls /customers route and menu visibility
     /// </summary>
-        public bool AccountsEnabled { get; set; } = true;
+    public bool AccountsEnabled { get; set; } = true;
+
+    /// <summary>
+    /// FUNCTIONAL: Whether the Customers module is enabled (alias for backward compatibility)
+    /// TECHNICAL: Controls /customers route and menu visibility
+    /// </summary>
+    public bool CustomersEnabled
+    {
+        get => AccountsEnabled;
+        set => AccountsEnabled = value;
+    }
 
     /// <summary>
     /// FUNCTIONAL: Whether the Contacts module is enabled

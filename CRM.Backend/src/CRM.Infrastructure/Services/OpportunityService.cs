@@ -62,6 +62,15 @@ public class OpportunityService : IOpportunityService, IOpportunityInputPort
         return items;
     }
 
+    /// <summary>
+    /// Get opportunities by customer ID (alias for GetOpportunitiesByAccountAsync for backward compatibility)
+    /// </summary>
+    public async Task<List<Opportunity>> GetOpportunitiesByCustomerAsync(int customerId, CancellationToken cancellationToken = default)
+    {
+        var opportunities = await _repository.FindAsync(o => !o.IsDeleted && o.AccountId == customerId);
+        return opportunities?.ToList() ?? new List<Opportunity>();
+    }
+
     public async Task<IEnumerable<Opportunity>> GetOpenOpportunitiesAsync()
     {
         var items = await _repository.FindAsync(o => !o.IsDeleted && o.Stage != OpportunityStage.ClosedWon && o.Stage != OpportunityStage.ClosedLost);

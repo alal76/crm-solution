@@ -69,6 +69,16 @@ public class NewsSocialFeedResponse
 public class NewsSocialFeedRequest
 {
     public int AccountId { get; set; }
+
+    /// <summary>
+    /// Customer ID (alias for AccountId for backward compatibility)
+    /// </summary>
+    public int CustomerId
+    {
+        get => AccountId;
+        set => AccountId = value;
+    }
+
     public string? CompanyName { get; set; }
     public string? LinkedInUrl { get; set; }
     public string? TwitterHandle { get; set; }

@@ -41,7 +41,7 @@ public class AuthenticationServiceTests
     private readonly Mock<IRepository<OAuthToken>> _mockOAuthTokenRepository;
     private readonly Mock<CrmDbContext> _mockDbContext;
     private readonly Mock<IJwtTokenService> _mockJwtTokenService;
-    private readonly Mock<Infrastructure.Services.ITotpService> _mockTotpService;
+    private readonly Mock<CRM.Core.Interfaces.ITotpService> _mockTotpService;
     private readonly Mock<IMemoryCache> _mockMemoryCache;
     private readonly Mock<IHttpClientFactory> _mockHttpClientFactory;
     private readonly Mock<INotificationPort> _mockNotificationPort;
@@ -55,7 +55,7 @@ public class AuthenticationServiceTests
         _mockOAuthTokenRepository = new Mock<IRepository<OAuthToken>>();
         _mockDbContext = new Mock<CrmDbContext>();
         _mockJwtTokenService = new Mock<IJwtTokenService>();
-        _mockTotpService = new Mock<Infrastructure.Services.ITotpService>();
+        _mockTotpService = new Mock<CRM.Core.Interfaces.ITotpService>();
         _mockMemoryCache = new Mock<IMemoryCache>();
         _mockHttpClientFactory = new Mock<IHttpClientFactory>();
         _mockNotificationPort = new Mock<INotificationPort>();
@@ -344,8 +344,8 @@ public class AuthenticationServiceTests
         var result = await _service.RefreshAccessTokenAsync("valid_refresh_token");
 
         // Assert
-        result.Should().NotBeNullOrEmpty();
-        result.Should().Be("new_access_token");
+        result.Should().NotBeNull();
+        result.AccessToken.Should().Be("new_access_token");
     }
 
     [Fact]

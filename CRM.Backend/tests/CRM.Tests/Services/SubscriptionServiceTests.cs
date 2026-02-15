@@ -109,7 +109,7 @@ public class SubscriptionServiceTests
         });
 
         // Act
-        var result = await _service.GetAllAsync(customerId: 10);
+        var result = await _service.GetAllAsync(accountId: 10);
 
         // Assert
         result.Should().HaveCount(2);

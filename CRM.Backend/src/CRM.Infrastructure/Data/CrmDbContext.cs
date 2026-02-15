@@ -43,6 +43,11 @@ public class CrmDbContext : DbContext, ICrmDbContext
     }
 
     public DbSet<Account> Accounts { get; set; }
+
+    /// <summary>
+    /// Customers alias for Accounts (for backward compatibility)
+    /// </summary>
+    public IQueryable<Account> Customers => Accounts;
     public DbSet<Preferences> Preferences { get; set; }
     public DbSet<AccountContact> AccountContacts { get; set; }
     public DbSet<Opportunity> Opportunities { get; set; }

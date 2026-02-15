@@ -761,7 +761,8 @@ public class AddressServiceTests
             {
                 items.Add(entity);
             })
-            .Returns(ValueTask.CompletedTask);
+            .Returns(new ValueTask<Microsoft.EntityFrameworkCore.ChangeTracking.EntityEntry<T>>(
+                (Microsoft.EntityFrameworkCore.ChangeTracking.EntityEntry<T>?)null!));
 
         mockSet.Setup(m => m.Add(It.IsAny<T>()))
             .Callback<T>(entity => items.Add(entity));

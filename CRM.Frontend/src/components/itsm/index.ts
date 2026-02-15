@@ -1,7 +1,15 @@
 // ITSM Components Index
 // Export all ITSM-related components for easy importing
 
-// Incident Management
+// Incident Management - NEW
+export { IncidentStatusBadge } from './IncidentStatusBadge';
+export { IncidentPriorityBadge } from './IncidentPriorityBadge';
+export { IncidentSLAIndicator } from './IncidentSLAIndicator';
+export { IncidentAssignmentModal } from './IncidentAssignmentModal';
+export { IncidentActivityTimeline } from './IncidentActivityTimeline';
+export { IncidentBulkActionTools } from './IncidentBulkActionTools';
+
+// Existing Incident Management
 export { SLACountdownWidget } from './SLACountdownWidget';
 export type { SLACountdownWidgetProps, SLAInstanceData, SLAStatus } from './SLACountdownWidget';
 
@@ -14,19 +22,24 @@ export type { IncidentTimelineProps, TimelineActivity, ActivityType } from './In
 export { SLABreachAlert, SLABreachBanner } from './SLABreachAlert';
 export type { SLABreachAlertProps, SLABreachBannerProps, SLABreachInfo, BreachType, BreachSeverity } from './SLABreachAlert';
 
-// Problem Management
+// Problem Management - NEW
+export { ProblemRelatedIncidentsList } from './ProblemRelatedIncidentsList';
+
+// Existing Problem Management
 export { RootCauseAnalysisTemplate } from './RootCauseAnalysisTemplate';
 export type { RootCauseAnalysisTemplateProps, RootCauseAnalysis, WhyStep } from './RootCauseAnalysisTemplate';
 
 export { RelatedIncidentsWidget } from './RelatedIncidentsWidget';
 export type { RelatedIncidentsWidgetProps, RelatedIncident } from './RelatedIncidentsWidget';
 
-// Change Management
+// Change Management - NEW
+export { ChangeImpactAnalysisPanel } from './ChangeImpactAnalysisPanel';
+export { ChangeApprovalWorkflow } from './ChangeApprovalWorkflowPanel';
+export { RiskAssessmentForm } from './RiskAssessmentPanel';
+
+// Existing Change Management
 export { ApprovalWorkflowPanel } from './ApprovalWorkflowPanel';
 export type { ApprovalWorkflowPanelProps, ApprovalStep, ApprovalStatus, Approver } from './ApprovalWorkflowPanel';
-
-export { RiskAssessmentForm } from './RiskAssessmentForm';
-export type { RiskAssessmentFormProps, RiskFactor, RiskAnswer, RiskAssessmentResult, RiskLevel } from './RiskAssessmentForm';
 
 export { ChangeConflictDetector } from './ChangeConflictDetector';
 export type { ChangeConflictDetectorProps, ChangeConflict, ConflictingChange, ConflictType, ConflictSeverity } from './ChangeConflictDetector';

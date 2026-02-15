@@ -615,4 +615,94 @@ public class AuthController : ControllerBase
             return StatusCode(500, new { message = "An error occurred retrieving password requirements" });
         }
     }
+
+    /// <summary>
+    /// Logout the current user by revoking all refresh tokens.
+    /// </summary>
+    /// <returns>Success status</returns>
+    /// <response code="200">User successfully logged out</response>
+    /// <response code="401">If user is not authenticated</response>
+    /// <response code="500">If there was an internal server error</response>
+    [HttpPost("logout")]
+    [Authorize]
+    [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> Logout()
+    {
+        try
+        {
+            var userIdClaim = User.FindFirst("sub") ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
+            {
+                return Unauthorized(new { message = "User ID not found in token" });
+            }
+
+            var success = await _authenticationService.LogoutAsync(userId);
+            if (success)
+            {
+                return Ok(new { message = "User logged out successfully" });
+            }
+            else
+            {
+                return StatusCode(500, new { message = "Failed to logout user" });
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Logout error: {ex.Message}");
+            return StatusCode(500, new { message = "An error occurred during logout" });
+        }
+    }
+
+    /// <summary>
+    /// Change the password for the current authenticated user.
+    /// Requires verification of the old password.
+    /// Enforces password complexity requirements.
+    /// Revokes all existing refresh tokens (forces re-login).
+    /// </summary>
+    /// <param name="request">The change password request with old and new passwords</param>
+    /// <returns>New authentication tokens</returns>
+    /// <response code="200">Password successfully changed, returns new tokens</response>
+    /// <response code="400">If the request is invalid or passwords don't meet requirements</response>
+    /// <response code="401">If the old password is incorrect or user not authenticated</response>
+    /// <response code="500">If there was an internal server error</response>
+    [HttpPost("change-password")]
+    [Authorize]
+    [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
+    {
+        try
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var userIdClaim = User.FindFirst("sub") ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
+            {
+                return Unauthorized(new { message = "User ID not found in token" });
+            }
+
+            var response = await _authenticationService.ChangePasswordAsync(userId, request.OldPassword, request.NewPassword);
+            return Ok(response);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            _logger.LogWarning($"Change password failed: {ex.Message}");
+            return Unauthorized(new { message = ex.Message });
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning($"Change password validation failed: {ex.Message}");
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Change password error: {ex.Message}");
+            return StatusCode(500, new { message = "An error occurred during password change" });
+        }
+    }
 }

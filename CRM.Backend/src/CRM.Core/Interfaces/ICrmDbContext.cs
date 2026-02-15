@@ -29,6 +29,11 @@ namespace CRM.Core.Interfaces;
 public interface ICrmDbContext
 {
     DbSet<Account> Accounts { get; }
+    
+    /// <summary>
+    /// Customers alias for Accounts (for backward compatibility)
+    /// </summary>
+    IQueryable<Account> Customers { get; }
     DbSet<Preferences> Preferences { get; }
     DbSet<CRM.Core.Models.Contact> Contacts { get; }
     DbSet<Lead> Leads { get; }
