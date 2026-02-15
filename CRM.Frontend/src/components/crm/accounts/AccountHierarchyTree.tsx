@@ -241,7 +241,7 @@ export const AccountHierarchyTree: React.FC<AccountHierarchyTreeProps> = ({
                         stack.push(...current.children);
                       }
                       return collect;
-                    }).find(n => n.id === newParentId) || { id: newParentId }
+                    }).find(n => n.id === newParentId) || { id: newParentId, children: [] }
                   )
                 : 'None (Root)'}
             </Typography>
