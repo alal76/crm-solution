@@ -17,7 +17,7 @@ import {
   IconButton,
   Tooltip,
 } from '@mui/material';
-import { TreeView, TreeItem } from '@mui/x-tree-view';
+import { SimpleTreeView, TreeItem } from '@mui/x-tree-view';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import EditIcon from '@mui/icons-material/Edit';
@@ -248,18 +248,18 @@ export const AccountHierarchyTree: React.FC<AccountHierarchyTreeProps> = ({
       ) : hierarchyNodes.length === 0 ? (
         <Alert severity="info">No accounts found</Alert>
       ) : (
-        <TreeView
+        <SimpleTreeView
           defaultCollapseIcon={<ExpandMoreIcon />}
           defaultExpandIcon={<ChevronRightIcon />}
-          expanded={expanded}
-          onNodeToggle={(e, nodeIds) => setExpanded(nodeIds)}
+          expandedItems={expanded}
+          onExpandedItemsChange={(e, nodeIds) => setExpanded(nodeIds)}
           sx={{
             flexGrow: 1,
             overflowY: 'auto',
           }}
         >
           {hierarchyNodes.map(node => renderNode(node))}
-        </TreeView>
+        </SimpleTreeView>
       )}
 
       {/* Edit Parent Dialog */}
