@@ -47,7 +47,7 @@ public class ActivitiesController : ControllerBase
     /// </summary>
     [HttpGet]
     public async Task<ActionResult<IEnumerable<Activity>>> GetActivities(
-        [FromQuery] int? customerId = null,
+        [FromQuery] int? accountId = null,
         [FromQuery] int? opportunityId = null,
         [FromQuery] int? userId = null,
         [FromQuery] ActivityType? activityType = null,
@@ -61,8 +61,8 @@ public class ActivitiesController : ControllerBase
             .Include(a => a.Opportunity)
             .AsQueryable();
 
-        if (customerId.HasValue)
-            query = query.Where(a => a.AccountId == customerId);
+        if (accountId.HasValue)
+            query = query.Where(a => a.AccountId == accountId);
 
         if (opportunityId.HasValue)
             query = query.Where(a => a.OpportunityId == opportunityId);
@@ -182,14 +182,14 @@ public class ActivitiesController : ControllerBase
     }
 
     /// <summary>
-    /// Get customer timeline (all activities related to a customer)
+    /// Get account timeline (all activities related to an account)
     /// </summary>
-    [HttpGet("customer/{customerId}/timeline")]
-    public async Task<ActionResult<IEnumerable<Activity>>> GetCustomerTimeline(int customerId, [FromQuery] int limit = 100)
+    [HttpGet("account/{accountId}/timeline")]
+    public async Task<ActionResult<IEnumerable<Activity>>> GetAccountTimeline(int accountId, [FromQuery] int limit = 100)
     {
         var activities = await _context.Activities
             .Include(a => a.User)
-            .Where(a => a.AccountId == customerId)
+            .Where(a => a.AccountId == accountId)
             .OrderByDescending(a => a.ActivityDate)
             .Take(limit)
             .ToListAsync();

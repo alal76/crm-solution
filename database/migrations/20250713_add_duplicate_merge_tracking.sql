@@ -90,18 +90,18 @@ ALTER TABLE Contacts
     ADD INDEX IF NOT EXISTS IX_Contacts_IsMergedDuplicate (IsMergedDuplicate);
 
 -- =====================================================
--- ADD MERGE TRACKING COLUMNS TO ACCOUNTS (CUSTOMERS)
+-- ADD MERGE TRACKING COLUMNS TO ACCOUNTS
 -- =====================================================
 
-ALTER TABLE Customers
+ALTER TABLE Accounts
     ADD COLUMN IF NOT EXISTS MergedIntoId INT NULL COMMENT 'ID of record this was merged into',
     ADD COLUMN IF NOT EXISTS MergeGroupId INT NULL COMMENT 'ID of the merge group',
     ADD COLUMN IF NOT EXISTS IsMergedDuplicate TINYINT(1) NOT NULL DEFAULT 0 COMMENT 'Was this merged as a duplicate',
     ADD COLUMN IF NOT EXISTS MergedAt DATETIME NULL COMMENT 'When this was merged';
 
-ALTER TABLE Customers
-    ADD INDEX IF NOT EXISTS IX_Customers_MergedIntoId (MergedIntoId),
-    ADD INDEX IF NOT EXISTS IX_Customers_IsMergedDuplicate (IsMergedDuplicate);
+ALTER TABLE Accounts
+    ADD INDEX IF NOT EXISTS IX_Accounts_MergedIntoId (MergedIntoId),
+    ADD INDEX IF NOT EXISTS IX_Accounts_IsMergedDuplicate (IsMergedDuplicate);
 
 -- =====================================================
 -- SEED DEFAULT DUPLICATE DETECTION RULES (if not exists)

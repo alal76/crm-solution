@@ -124,21 +124,21 @@ public class NewsSocialService : INewsSocialService
 
         try
         {
-            // Get company info from customer if not provided
+            // Get company info from account if not provided
             string? companyName = request.CompanyName;
             string? linkedInUrl = request.LinkedInUrl;
             string? twitterHandle = request.TwitterHandle;
             string? facebookUrl = request.FacebookUrl;
 
-            if (request.CustomerId > 0 && string.IsNullOrEmpty(companyName))
+            if (request.AccountId > 0 && string.IsNullOrEmpty(companyName))
             {
-                var customer = await _accountService.GetAccountByIdAsync(request.CustomerId);
-                if (customer != null)
+                var account = await _accountService.GetAccountByIdAsync(request.AccountId);
+                if (account != null)
                 {
-                    companyName = customer.Company;
-                    linkedInUrl ??= customer.LinkedInUrl;
-                    twitterHandle ??= customer.TwitterHandle;
-                    facebookUrl ??= customer.FacebookUrl;
+                    companyName = account.Company;
+                    linkedInUrl ??= account.LinkedInUrl;
+                    twitterHandle ??= account.TwitterHandle;
+                    facebookUrl ??= account.FacebookUrl;
                 }
             }
 
@@ -147,7 +147,7 @@ public class NewsSocialService : INewsSocialService
             {
                 try
                 {
-                    var cacheKey = $"news-social:{request.CustomerId}:{companyName}";
+                    var cacheKey = $"news-social:{request.AccountId}:{companyName}";
                     var cached = await _cache.GetStringAsync(cacheKey, cancellationToken);
                     if (!string.IsNullOrEmpty(cached))
                     {
@@ -188,7 +188,7 @@ public class NewsSocialService : INewsSocialService
             {
                 try
                 {
-                    var cacheKey = $"news-social:{request.CustomerId}:{companyName}";
+                    var cacheKey = $"news-social:{request.AccountId}:{companyName}";
                     await _cache.SetStringAsync(
                         cacheKey,
                         JsonSerializer.Serialize(response, JsonOptions),
@@ -206,7 +206,7 @@ public class NewsSocialService : INewsSocialService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error fetching news/social feeds for customer {CustomerId}", request.CustomerId);
+            _logger.LogError(ex, "Error fetching news/social feeds for account {AccountId}", request.AccountId);
             response.Error = "Failed to fetch feeds. Please check API configuration.";
         }
 

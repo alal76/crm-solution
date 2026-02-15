@@ -28,7 +28,7 @@ public interface IContractService
 
     /// <summary>Gets all contracts with optional filtering.</summary>
     Task<IEnumerable<Contract>> GetAllAsync(
-        int? customerId = null,
+        int? accountId = null,
         ContractStatus? status = null,
         CancellationToken cancellationToken = default);
 
@@ -126,7 +126,7 @@ public interface IContractService
     #region Queries
 
     /// <summary>Gets active contracts for a customer.</summary>
-    Task<IEnumerable<Contract>> GetActiveContractsAsync(int customerId, CancellationToken cancellationToken = default);
+    Task<IEnumerable<Contract>> GetActiveContractsAsync(int accountId, CancellationToken cancellationToken = default);
 
     /// <summary>Gets expiring contracts within a date range.</summary>
     Task<IEnumerable<Contract>> GetExpiringContractsAsync(DateTime fromDate, DateTime toDate, CancellationToken cancellationToken = default);
@@ -138,7 +138,7 @@ public interface IContractService
     Task<IEnumerable<Contract>> SearchAsync(string searchTerm, CancellationToken cancellationToken = default);
 
     /// <summary>Gets contract value over time for a customer.</summary>
-    Task<decimal> GetTotalContractValueAsync(int customerId, CancellationToken cancellationToken = default);
+    Task<decimal> GetTotalContractValueAsync(int accountId, CancellationToken cancellationToken = default);
 
     #endregion
 

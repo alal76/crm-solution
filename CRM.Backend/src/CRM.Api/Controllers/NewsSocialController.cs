@@ -27,9 +27,9 @@ namespace CRM.Api.Controllers;
 ///
 /// FUNCTIONAL VIEW:
 /// This controller provides HTTP endpoints for:
-/// - Fetching news articles about a company/customer
+/// - Fetching news articles about a company/account
 /// - Fetching social media posts from linked accounts
-/// - Combined feeds for 360° customer view
+/// - Combined feeds for 360° account view
 ///
 /// TECHNICAL VIEW:
 /// - Uses INewsSocialService for external API integration
@@ -39,10 +39,10 @@ namespace CRM.Api.Controllers;
 /// - Caches results to reduce API calls
 ///
 /// API ROUTES:
-/// - GET    /api/news-social/{customerId}          - Get feeds for customer
+/// - GET    /api/news-social/{accountId}          - Get feeds for account
 /// - GET    /api/news-social/news?companyName=...  - Get news only
 /// - GET    /api/news-social/status                - Check API configuration status
-/// - POST   /api/news-social/refresh/{customerId}  - Force refresh feeds
+/// - POST   /api/news-social/refresh/{accountId}  - Force refresh feeds
 /// </summary>
 [ApiController]
 [Route("api/news-social")]
@@ -78,12 +78,12 @@ public class NewsSocialController : ControllerBase
     }
 
     /// <summary>
-    /// Get news and social feeds for a customer
+    /// Get news and social feeds for an account
     /// </summary>
-    [HttpGet("{customerId:int}")]
+    [HttpGet("{accountId:int}")]
     [ProducesResponseType(typeof(NewsSocialFeedResponse), StatusCodes.Status200OK)]
-    public async Task<ActionResult<NewsSocialFeedResponse>> GetFeedsForCustomer(
-        int customerId,
+    public async Task<ActionResult<NewsSocialFeedResponse>> GetFeedsForAccount(
+        int accountId,
         [FromQuery] int maxNewsItems = 10,
         [FromQuery] int maxSocialItems = 10,
         CancellationToken cancellationToken = default)
@@ -92,7 +92,7 @@ public class NewsSocialController : ControllerBase
         {
             var request = new NewsSocialFeedRequest
             {
-                CustomerId = customerId,
+                AccountId = accountId,
                 MaxNewsItems = maxNewsItems,
                 MaxSocialItems = maxSocialItems,
                 RefreshCache = false
@@ -103,7 +103,7 @@ public class NewsSocialController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error fetching feeds for customer {CustomerId}", customerId);
+            _logger.LogError(ex, "Error fetching feeds for account {AccountId}", accountId);
             return StatusCode(500, new NewsSocialFeedResponse
             {
                 Error = "Failed to fetch news and social feeds"
@@ -112,12 +112,12 @@ public class NewsSocialController : ControllerBase
     }
 
     /// <summary>
-    /// Force refresh feeds for a customer (bypass cache)
+    /// Force refresh feeds for an account (bypass cache)
     /// </summary>
-    [HttpPost("refresh/{customerId:int}")]
+    [HttpPost("refresh/{accountId:int}")]
     [ProducesResponseType(typeof(NewsSocialFeedResponse), StatusCodes.Status200OK)]
     public async Task<ActionResult<NewsSocialFeedResponse>> RefreshFeeds(
-        int customerId,
+        int accountId,
         [FromQuery] int maxNewsItems = 10,
         [FromQuery] int maxSocialItems = 10,
         CancellationToken cancellationToken = default)
@@ -126,7 +126,7 @@ public class NewsSocialController : ControllerBase
         {
             var request = new NewsSocialFeedRequest
             {
-                CustomerId = customerId,
+                AccountId = accountId,
                 MaxNewsItems = maxNewsItems,
                 MaxSocialItems = maxSocialItems,
                 RefreshCache = true
@@ -137,7 +137,7 @@ public class NewsSocialController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error refreshing feeds for customer {CustomerId}", customerId);
+            _logger.LogError(ex, "Error refreshing feeds for account {AccountId}", accountId);
             return StatusCode(500, new NewsSocialFeedResponse
             {
                 Error = "Failed to refresh news and social feeds"

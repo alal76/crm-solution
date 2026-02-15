@@ -47,7 +47,7 @@ public class QuotesController : ControllerBase
     /// <summary>
     /// Get all quotes with optional filtering
     /// </summary>
-    /// <param name="customerId">Filter by customer/account ID</param>
+    /// <param name="accountId">Filter by account ID</param>
     /// <param name="opportunityId">Filter by opportunity ID</param>
     /// <param name="status">Filter by quote status</param>
     /// <param name="expired">Filter by expired status (shared but past expiration date)</param>
@@ -58,7 +58,7 @@ public class QuotesController : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<Quote>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<IEnumerable<Quote>>> GetQuotes(
-        [FromQuery] int? customerId = null,
+        [FromQuery] int? accountId = null,
         [FromQuery] int? opportunityId = null,
         [FromQuery] QuoteStatus? status = null,
         [FromQuery] bool? expired = null)
@@ -69,8 +69,8 @@ public class QuotesController : ControllerBase
             .Include(q => q.AssignedToUser)
             .AsQueryable();
 
-        if (customerId.HasValue)
-            query = query.Where(q => q.AccountId == customerId);
+        if (accountId.HasValue)
+            query = query.Where(q => q.AccountId == accountId);
 
         if (opportunityId.HasValue)
             query = query.Where(q => q.OpportunityId == opportunityId);
@@ -194,7 +194,7 @@ public class QuotesController : ControllerBase
         _context.Quotes.Add(quote);
         await _context.SaveChangesAsync();
 
-        _logger.LogInformation("Quote {QuoteNumber} created for customer {CustomerId}", quote.QuoteNumber, quote.AccountId);
+        _logger.LogInformation("Quote {QuoteNumber} created for account {AccountId}", quote.QuoteNumber, quote.AccountId);
         return CreatedAtAction(nameof(GetQuote), new { id = quote.Id }, quote);
     }
 
@@ -271,7 +271,7 @@ public class QuotesController : ControllerBase
     }
 
     /// <summary>
-    /// Send a quote to customer (changes status to Shared)
+    /// Send a quote to account (changes status to Shared)
     /// </summary>
     /// <param name="id">The unique identifier of the quote</param>
     /// <returns>The updated quote</returns>
@@ -299,7 +299,7 @@ public class QuotesController : ControllerBase
     }
 
     /// <summary>
-    /// Mark quote as viewed by customer
+    /// Mark quote as viewed by account
     /// </summary>
     /// <param name="id">The unique identifier of the quote</param>
     /// <returns>The updated quote</returns>
@@ -328,7 +328,7 @@ public class QuotesController : ControllerBase
     }
 
     /// <summary>
-    /// Accept a quote (customer approval)
+    /// Accept a quote (account approval)
     /// </summary>
     /// <param name="id">The unique identifier of the quote</param>
     /// <param name="request">Optional signature details</param>
@@ -364,7 +364,7 @@ public class QuotesController : ControllerBase
     }
 
     /// <summary>
-    /// Reject a quote (customer rejection)
+    /// Reject a quote (account rejection)
     /// </summary>
     /// <param name="id">The unique identifier of the quote</param>
     /// <param name="request">Optional rejection reason</param>

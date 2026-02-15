@@ -132,20 +132,26 @@ public class BrandingController : ControllerBase
         try
         {
             if (request == null || string.IsNullOrWhiteSpace(request.FileContent))
+            {
                 return BadRequest(new BrandingOperationResponse
                 {
                     Success = false,
                     Message = "File content is required"
                 });
+            }
 
             var userId = GetCurrentUserId();
             if (userId == 0)
+            {
                 return Unauthorized();
+            }
 
             var response = await _brandingConfigService.UploadCustomLogoAsync(request, userId, cancellationToken);
 
             if (!response.Success)
+            {
                 return BadRequest(response);
+            }
 
             return Ok(response);
         }
@@ -178,20 +184,26 @@ public class BrandingController : ControllerBase
         try
         {
             if (request == null || string.IsNullOrWhiteSpace(request.FileContent))
+            {
                 return BadRequest(new BrandingOperationResponse
                 {
                     Success = false,
                     Message = "File content is required"
                 });
+            }
 
             var userId = GetCurrentUserId();
             if (userId == 0)
+            {
                 return Unauthorized();
+            }
 
             var response = await _brandingConfigService.UploadFaviconAsync(request, userId, cancellationToken);
 
             if (!response.Success)
+            {
                 return BadRequest(response);
+            }
 
             return Ok(response);
         }

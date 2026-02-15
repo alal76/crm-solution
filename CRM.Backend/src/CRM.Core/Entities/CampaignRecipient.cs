@@ -64,9 +64,9 @@ public class CampaignRecipient : BaseEntity
     public int? ContactId { get; set; }
 
     /// <summary>
-    /// Link to Customer if applicable
+    /// Link to Account if applicable
     /// </summary>
-    [Column("CustomerId")]
+        [Column("AccountId")]
     public int? AccountId { get; set; }
 
     /// <summary>

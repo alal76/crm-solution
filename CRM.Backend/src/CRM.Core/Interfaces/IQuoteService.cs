@@ -27,7 +27,7 @@ public interface IQuoteService
     /// Get quotes with optional filtering
     /// </summary>
     Task<IEnumerable<Quote>> GetQuotesAsync(
-        int? customerId = null,
+        int? accountId = null,
         int? opportunityId = null,
         QuoteStatus? status = null,
         bool? expired = null);
@@ -58,7 +58,7 @@ public interface IQuoteService
     Task<bool> DeleteAsync(int id);
 
     /// <summary>
-    /// Send quote to customer
+    /// Send quote to account
     /// </summary>
     Task<bool> SendAsync(int id);
 

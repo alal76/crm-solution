@@ -44,8 +44,8 @@ public interface IServiceRequestService
     /// <summary>Delete a service request (soft delete)</summary>
     Task<bool> DeleteServiceRequestAsync(int id);
 
-    /// <summary>Get service requests by customer</summary>
-    Task<List<ServiceRequestListDto>> GetServiceRequestsByCustomerAsync(int customerId);
+    /// <summary>Get service requests by account</summary>
+    Task<List<ServiceRequestListDto>> GetServiceRequestsByAccountAsync(int accountId);
 
     /// <summary>Get service requests by contact</summary>
     Task<List<ServiceRequestListDto>> GetServiceRequestsByContactAsync(int contactId);

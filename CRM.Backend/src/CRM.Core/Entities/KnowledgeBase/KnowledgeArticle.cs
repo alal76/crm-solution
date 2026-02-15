@@ -395,11 +395,11 @@ public class ArticleFeedback : BaseEntity
     /// <summary>Navigation to user</summary>
     public User? User { get; set; }
 
-    /// <summary>Customer ID (for portal)</summary>
-    [Column("CustomerId")]
+    /// <summary>Account ID (for portal)</summary>
+    [Column("AccountId")]
     public int? AccountId { get; set; }
 
-    /// <summary>Navigation to customer</summary>
+    /// <summary>Navigation to account</summary>
     public Account? Account { get; set; }
 
     /// <summary>Session ID for anonymous</summary>

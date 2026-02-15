@@ -327,7 +327,7 @@ public class TeamService : ITeamService
             throw new InvalidOperationException($"Team {teamId} not found");
         }
 
-        var account = await _context.Customers.FindAsync(new object[] { accountId }, cancellationToken);
+        var account = await _context.Accounts.FindAsync(new object[] { accountId }, cancellationToken);
         if (account == null)
         {
             throw new InvalidOperationException($"Account {accountId} not found");
@@ -354,7 +354,7 @@ public class TeamService : ITeamService
 
         account.AssignedToUserId = assigneeId;
         account.UpdatedAt = DateTime.UtcNow;
-        _context.Customers.Update(account);
+        _context.Accounts.Update(account);
         await _context.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation("Assigned account {AccountId} to team {TeamId} via assignee {AssigneeId}", accountId, teamId, assigneeId);
@@ -369,7 +369,7 @@ public class TeamService : ITeamService
             throw new InvalidOperationException($"Team {teamId} not found");
         }
 
-        var account = await _context.Customers.FindAsync(new object[] { accountId }, cancellationToken);
+        var account = await _context.Accounts.FindAsync(new object[] { accountId }, cancellationToken);
         if (account == null)
         {
             throw new InvalidOperationException($"Account {accountId} not found");
@@ -389,7 +389,7 @@ public class TeamService : ITeamService
 
         account.AssignedToUserId = null;
         account.UpdatedAt = DateTime.UtcNow;
-        _context.Customers.Update(account);
+        _context.Accounts.Update(account);
         await _context.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation("Removed account {AccountId} from team {TeamId} by clearing AssignedToUserId", accountId, teamId);
@@ -409,7 +409,7 @@ public class TeamService : ITeamService
             return Enumerable.Empty<Account>();
         }
 
-        return await _context.Customers
+        return await _context.Accounts
             .Where(a => !a.IsDeleted && a.AssignedToUserId != null && teamMemberUserIds.Contains(a.AssignedToUserId.Value))
             .OrderBy(a => a.Company)
             .ThenBy(a => a.LastName)
@@ -418,7 +418,7 @@ public class TeamService : ITeamService
 
     public async Task<Team?> GetTeamByAccountAsync(int accountId, CancellationToken cancellationToken = default)
     {
-        var account = await _context.Customers
+        var account = await _context.Accounts
             .AsNoTracking()
             .FirstOrDefaultAsync(a => a.Id == accountId && !a.IsDeleted, cancellationToken);
 

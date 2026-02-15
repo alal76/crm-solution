@@ -166,31 +166,31 @@ public interface IAIAnalyticsService
 
     #endregion
 
-    #region Customer Intelligence
+    #region Account Intelligence
 
     /// <summary>
-    /// Predicts customer churn risk.
+    /// Predicts account churn risk.
     /// </summary>
-    /// <param name="customerId">The customer ID.</param>
+    /// <param name="accountId">The account ID.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Churn risk prediction.</returns>
-    Task<ChurnPrediction> PredictCustomerChurnAsync(int customerId, CancellationToken cancellationToken = default);
+    Task<ChurnPrediction> PredictAccountChurnAsync(int accountId, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Identifies upsell/cross-sell opportunities for a customer.
+    /// Identifies upsell/cross-sell opportunities for an account.
     /// </summary>
-    /// <param name="customerId">The customer ID.</param>
+    /// <param name="accountId">The account ID.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>Product recommendations.</returns>
-    Task<ProductRecommendations> GetProductRecommendationsAsync(int customerId, CancellationToken cancellationToken = default);
+    Task<ProductRecommendations> GetProductRecommendationsAsync(int accountId, CancellationToken cancellationToken = default);
 
     /// <summary>
-    /// Calculates customer lifetime value prediction.
+    /// Calculates account lifetime value prediction.
     /// </summary>
-    /// <param name="customerId">The customer ID.</param>
+    /// <param name="accountId">The account ID.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>CLV prediction.</returns>
-    Task<CLVPrediction> PredictCustomerLifetimeValueAsync(int customerId, CancellationToken cancellationToken = default);
+    Task<CLVPrediction> PredictAccountLifetimeValueAsync(int accountId, CancellationToken cancellationToken = default);
 
     #endregion
 }
@@ -489,12 +489,12 @@ public class TrendItem
 }
 
 /// <summary>
-/// Customer churn prediction.
+/// Account churn prediction.
 /// </summary>
 public class ChurnPrediction
 {
-    public int CustomerId { get; set; }
-    public string CustomerName { get; set; } = string.Empty;
+    public int AccountId { get; set; }
+    public string AccountName { get; set; } = string.Empty;
     public double ChurnProbability { get; set; }
     public string RiskLevel { get; set; } = string.Empty;
     public List<string> RiskFactors { get; set; } = new();
@@ -507,7 +507,7 @@ public class ChurnPrediction
 /// </summary>
 public class ProductRecommendations
 {
-    public int CustomerId { get; set; }
+    public int AccountId { get; set; }
     public List<ProductRecommendation> Recommendations { get; set; } = new();
     public decimal EstimatedUpsellPotential { get; set; }
 }
@@ -526,12 +526,12 @@ public class ProductRecommendation
 }
 
 /// <summary>
-/// Customer lifetime value prediction.
+/// Account lifetime value prediction.
 /// </summary>
 public class CLVPrediction
 {
-    public int CustomerId { get; set; }
-    public string CustomerName { get; set; } = string.Empty;
+    public int AccountId { get; set; }
+    public string AccountName { get; set; } = string.Empty;
     public decimal PredictedCLV { get; set; }
     public decimal CurrentValue { get; set; }
     public decimal PotentialValue { get; set; }

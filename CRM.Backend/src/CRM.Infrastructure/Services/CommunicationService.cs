@@ -317,7 +317,7 @@ public class CommunicationService : ICommunicationService
 
     /// <inheritdoc />
     public async Task<IEnumerable<CommunicationMessage>> GetMessagesAsync(
-        int? customerId = null,
+        int? accountId = null,
         int? channelId = null,
         MessageDirection? direction = null,
         DateTime? fromDate = null,
@@ -329,9 +329,9 @@ public class CommunicationService : ICommunicationService
             .Where(m => !m.IsDeleted)
             .AsQueryable();
 
-        if (customerId.HasValue)
+        if (accountId.HasValue)
         {
-            query = query.Where(m => m.AccountId == customerId.Value);
+            query = query.Where(m => m.AccountId == accountId.Value);
         }
 
         if (channelId.HasValue)
@@ -371,8 +371,8 @@ public class CommunicationService : ICommunicationService
     /// <inheritdoc />
     public async Task<CommunicationMessage> SendMessageAsync(SendMessageRequest request)
     {
-        _logger.LogDebug("Sending message via channel {ChannelId} to customer {CustomerId}",
-            request.ChannelId, request.CustomerId);
+        _logger.LogDebug("Sending message via channel {ChannelId} to account {AccountId}",
+            request.ChannelId, request.AccountId);
 
         try
         {
@@ -387,7 +387,7 @@ public class CommunicationService : ICommunicationService
             // Create the message record
             var message = new CommunicationMessage
             {
-                AccountId = request.CustomerId,
+                AccountId = request.AccountId,
                 ContactId = request.ContactId,
                 ChannelId = request.ChannelId,
                 ChannelType = channel.ChannelType,
@@ -435,18 +435,18 @@ public class CommunicationService : ICommunicationService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error sending message to customer {CustomerId}", request.CustomerId);
+            _logger.LogError(ex, "Error sending message to account {AccountId}", request.AccountId);
             throw;
         }
     }
 
     /// <inheritdoc />
-    public async Task<IEnumerable<CommunicationMessage>> GetConversationAsync(int customerId, int? contactId = null)
+    public async Task<IEnumerable<CommunicationMessage>> GetConversationAsync(int accountId, int? contactId = null)
     {
-        _logger.LogDebug("Getting conversation for customer {CustomerId}", customerId);
+        _logger.LogDebug("Getting conversation for account {AccountId}", accountId);
 
         var query = _dbContext.CommunicationMessages
-            .Where(m => m.AccountId == customerId && !m.IsDeleted);
+            .Where(m => m.AccountId == accountId && !m.IsDeleted);
 
         if (contactId.HasValue)
         {

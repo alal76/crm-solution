@@ -27,7 +27,7 @@ public interface ITaskService
     /// Get tasks with optional filtering
     /// </summary>
     Task<IEnumerable<CrmTask>> GetTasksAsync(
-        int? customerId = null,
+        int? accountId = null,
         int? opportunityId = null,
         int? assignedToUserId = null,
         CrmTaskStatus? status = null,

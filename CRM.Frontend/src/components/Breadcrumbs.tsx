@@ -107,7 +107,99 @@ const BREADCRUMB_LABELS: { [key: string]: { label: string; icon?: React.ReactNod
   '/admin/test-results': { label: 'Test Results', icon: <SettingsIcon sx={{ mr: 0.5, fontSize: 18 }} /> },
   '/admin/llm': { label: 'AI / LLM Settings', icon: <SettingsIcon sx={{ mr: 0.5, fontSize: 18 }} /> },
   '/admin/api-docs': { label: 'API Documentation', icon: <SettingsIcon sx={{ mr: 0.5, fontSize: 18 }} /> },
+  '/email-templates': { label: 'Email Templates' },
+  '/campaign-execution': { label: 'Campaign Execution' },
+  '/landing-pages': { label: 'Landing Pages' },
+  '/orders': { label: 'Orders' },
+  '/invoices': { label: 'Invoices' },
+  '/payments': { label: 'Payments' },
+  '/contracts': { label: 'Contracts' },
+  '/subscriptions': { label: 'Subscriptions' },
+  '/commissions': { label: 'Commissions' },
+  '/teams': { label: 'Teams' },
+  '/territories': { label: 'Territories' },
+  '/approvals': { label: 'Approvals' },
+  '/relationships': { label: 'Relationships' },
+  '/accounts-360': { label: 'Accounts 360' },
+  '/interactions': { label: 'Interactions' },
+  '/communications': { label: 'Communications' },
+  '/lead-routing': { label: 'Lead Routing' },
+  '/reports': { label: 'Reports' },
+  '/dashboards': { label: 'Dashboards' },
+  '/itsm': { label: 'ITSM' },
+  '/itsm/incidents': { label: 'Incidents' },
+  '/itsm/problems': { label: 'Problems' },
+  '/itsm/changes': { label: 'Changes' },
+  '/itsm/cmdb': { label: 'CMDB' },
+  '/itsm/knowledge': { label: 'Knowledge Base' },
+  '/itsm/catalog': { label: 'Service Catalog' },
+  '/itsm/sla': { label: 'SLA' },
+  '/itsm/metrics': { label: 'ITSM Metrics' },
+  '/itsm/overview': { label: 'ITSM Overview' },
 };
+
+const SEGMENT_LABELS: Record<string, { label: string; icon?: React.ReactNode }> = {
+  dashboard: { label: 'Dashboard', icon: <DashboardIcon sx={{ mr: 0.5, fontSize: 18 }} /> },
+  accounts: { label: 'Accounts', icon: <PeopleIcon sx={{ mr: 0.5, fontSize: 18 }} /> },
+  'accounts-360': { label: 'Accounts 360', icon: <PeopleIcon sx={{ mr: 0.5, fontSize: 18 }} /> },
+  contacts: { label: 'Contacts', icon: <ContactsIcon sx={{ mr: 0.5, fontSize: 18 }} /> },
+  leads: { label: 'Leads', icon: <PeopleIcon sx={{ mr: 0.5, fontSize: 18 }} /> },
+  opportunities: { label: 'Opportunities', icon: <TrendingUpIcon sx={{ mr: 0.5, fontSize: 18 }} /> },
+  products: { label: 'Products', icon: <ProductsIcon sx={{ mr: 0.5, fontSize: 18 }} /> },
+  services: { label: 'Services', icon: <ServicesIcon sx={{ mr: 0.5, fontSize: 18 }} /> },
+  campaigns: { label: 'Campaigns', icon: <CampaignsIcon sx={{ mr: 0.5, fontSize: 18 }} /> },
+  'email-templates': { label: 'Email Templates' },
+  'campaign-execution': { label: 'Campaign Execution' },
+  'landing-pages': { label: 'Landing Pages' },
+  quotes: { label: 'Quotes', icon: <QuoteIcon sx={{ mr: 0.5, fontSize: 18 }} /> },
+  orders: { label: 'Orders' },
+  invoices: { label: 'Invoices' },
+  payments: { label: 'Payments' },
+  contracts: { label: 'Contracts' },
+  subscriptions: { label: 'Subscriptions' },
+  commissions: { label: 'Commissions' },
+  teams: { label: 'Teams' },
+  territories: { label: 'Territories' },
+  approvals: { label: 'Approvals' },
+  reports: { label: 'Reports' },
+  dashboards: { label: 'Dashboards' },
+  activities: { label: 'Activities', icon: <ActivityIcon sx={{ mr: 0.5, fontSize: 18 }} /> },
+  tasks: { label: 'Tasks', icon: <TaskIcon sx={{ mr: 0.5, fontSize: 18 }} /> },
+  notes: { label: 'Notes', icon: <NoteIcon sx={{ mr: 0.5, fontSize: 18 }} /> },
+  workflows: { label: 'Workflows', icon: <WorkflowIcon sx={{ mr: 0.5, fontSize: 18 }} /> },
+  interactions: { label: 'Interactions' },
+  communications: { label: 'Communications' },
+  relationships: { label: 'Relationships' },
+  settings: { label: 'Settings', icon: <SettingsIcon sx={{ mr: 0.5, fontSize: 18 }} /> },
+  itsm: { label: 'ITSM' },
+  incidents: { label: 'Incidents' },
+  problems: { label: 'Problems' },
+  changes: { label: 'Changes' },
+  cmdb: { label: 'CMDB' },
+  knowledge: { label: 'Knowledge Base' },
+  catalog: { label: 'Service Catalog' },
+  sla: { label: 'SLA' },
+  metrics: { label: 'ITSM Metrics' },
+  admin: { label: 'Administration', icon: <AdminIcon sx={{ mr: 0.5, fontSize: 18 }} /> },
+  branding: { label: 'Branding', icon: <PaletteIcon sx={{ mr: 0.5, fontSize: 18 }} /> },
+  navigation: { label: 'Navigation', icon: <SettingsIcon sx={{ mr: 0.5, fontSize: 18 }} /> },
+  modules: { label: 'Modules & Fields', icon: <ModuleIcon sx={{ mr: 0.5, fontSize: 18 }} /> },
+  monitoring: { label: 'Monitoring', icon: <MonitorIcon sx={{ mr: 0.5, fontSize: 18 }} /> },
+  security: { label: 'Security', icon: <SecurityIcon sx={{ mr: 0.5, fontSize: 18 }} /> },
+};
+
+const isDynamicSegment = (segment: string) => {
+  const normalized = segment.trim();
+  if (!normalized) return false;
+  if (/^\d+$/.test(normalized)) return true;
+  return /^[0-9a-fA-F-]{16,}$/.test(normalized);
+};
+
+const formatSegmentLabel = (segment: string) =>
+  segment
+    .split('-')
+    .map(part => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
 
 function BreadcrumbsComponent() {
   const location = useLocation();
@@ -165,8 +257,9 @@ function BreadcrumbsComponent() {
     // Add the final page item
     const fullPath = `/${pathnames.join('/')}`;
     const breadcrumbData = BREADCRUMB_LABELS[fullPath];
-    const label = breadcrumbData?.label || adminItem.charAt(0).toUpperCase() + adminItem.slice(1).replace(/-/g, ' ');
-    const icon = breadcrumbData?.icon;
+    const segmentData = SEGMENT_LABELS[adminItem];
+    const label = breadcrumbData?.label || segmentData?.label || formatSegmentLabel(adminItem);
+    const icon = breadcrumbData?.icon || segmentData?.icon;
     
     breadcrumbs.push(
       <Typography key={fullPath} sx={{ display: 'flex', alignItems: 'center', color: '#625B71', fontWeight: 600, fontSize: '0.875rem' }}>
@@ -181,8 +274,12 @@ function BreadcrumbsComponent() {
       currentPath += `/${pathname}`;
       const isLast = index === pathnames.length - 1;
       const breadcrumbData = BREADCRUMB_LABELS[currentPath];
-      const label = breadcrumbData?.label || pathname.charAt(0).toUpperCase() + pathname.slice(1).replace(/-/g, ' ');
-      const icon = breadcrumbData?.icon;
+      const isDynamic = isDynamicSegment(pathname);
+      const segmentData = SEGMENT_LABELS[pathname];
+      const label = isDynamic
+        ? 'Details'
+        : (breadcrumbData?.label || segmentData?.label || formatSegmentLabel(pathname));
+      const icon = breadcrumbData?.icon || segmentData?.icon;
 
       if (isLast) {
         breadcrumbs.push(

@@ -28,7 +28,7 @@ public interface IOrderService
 
     /// <summary>Gets all orders with optional filtering.</summary>
     Task<IEnumerable<Order>> GetAllAsync(
-        int? customerId = null,
+        int? accountId = null,
         OrderStatus? status = null,
         CancellationToken cancellationToken = default);
 

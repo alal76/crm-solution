@@ -207,25 +207,25 @@ public class RelationshipsController : ControllerBase
     }
 
     /// <summary>
-    /// Get relationships for a specific customer
+    /// Get relationships for a specific account
     /// </summary>
-    [HttpGet("customer/{customerId}")]
+    [HttpGet("account/{accountId}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<IActionResult> GetCustomerRelationships(
-        int customerId,
+    public async Task<IActionResult> GetAccountRelationships(
+        int accountId,
         [FromQuery] string? status = null,
         [FromQuery] int? relationshipTypeId = null)
     {
         try
         {
-            var relationships = await _relationshipService.GetCustomerRelationshipsAsync(
-                customerId, status, relationshipTypeId);
+            var relationships = await _relationshipService.GetAccountRelationshipsAsync(
+                accountId, status, relationshipTypeId);
             return Ok(relationships);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error getting relationships for customer {CustomerId}", customerId);
-            return StatusCode(500, new { message = "Error retrieving customer relationships" });
+            _logger.LogError(ex, "Error getting relationships for account {AccountId}", accountId);
+            return StatusCode(500, new { message = "Error retrieving account relationships" });
         }
     }
 
@@ -373,12 +373,12 @@ public class RelationshipsController : ControllerBase
     #region Relationship Map
 
     /// <summary>
-    /// Get relationship map visualization data for a customer
+    /// Get relationship map visualization data for an account
     /// </summary>
-    [HttpGet("map/{customerId}")]
+    [HttpGet("map/{accountId}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetRelationshipMap(
-        int customerId,
+        int accountId,
         [FromQuery] int depth = 2,
         [FromQuery] string? includeTypeIds = null,
         [FromQuery] int minStrength = 0)
@@ -395,12 +395,12 @@ public class RelationshipsController : ControllerBase
             }
 
             var mapData = await _relationshipService.GetRelationshipMapDataAsync(
-                customerId, depth, typeIds, minStrength);
+                accountId, depth, typeIds, minStrength);
             return Ok(mapData);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error getting relationship map for customer {CustomerId}", customerId);
+            _logger.LogError(ex, "Error getting relationship map for account {AccountId}", accountId);
             return StatusCode(500, new { message = "Error retrieving relationship map" });
         }
     }
@@ -410,29 +410,29 @@ public class RelationshipsController : ControllerBase
     #region Account Health
 
     /// <summary>
-    /// Get health snapshots for a customer
+    /// Get health snapshots for an account
     /// </summary>
-    [HttpGet("health/{customerId}")]
+    [HttpGet("health/{accountId}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> GetHealthSnapshots(
-        int customerId,
+        int accountId,
         [FromQuery] DateTime? startDate = null,
         [FromQuery] DateTime? endDate = null)
     {
         try
         {
-            var snapshots = await _relationshipService.GetHealthSnapshotsAsync(customerId, startDate, endDate);
+            var snapshots = await _relationshipService.GetHealthSnapshotsAsync(accountId, startDate, endDate);
             return Ok(snapshots);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error getting health snapshots for customer {CustomerId}", customerId);
+            _logger.LogError(ex, "Error getting health snapshots for account {AccountId}", accountId);
             return StatusCode(500, new { message = "Error retrieving health snapshots" });
         }
     }
 
     /// <summary>
-    /// Create a health snapshot for a customer
+    /// Create a health snapshot for an account
     /// </summary>
     [HttpPost("health")]
     [ProducesResponseType(StatusCodes.Status200OK)]

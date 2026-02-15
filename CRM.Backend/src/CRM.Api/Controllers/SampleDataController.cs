@@ -23,7 +23,7 @@ namespace CRM.Api.Controllers;
 
 /// <summary>
 /// Controller for managing sample data seeding and clearing.
-/// Sample data (Products, Customers, Contacts, Leads, etc.) can be seeded to production
+/// Sample data (Products, Accounts, Contacts, Leads, etc.) can be seeded to production
 /// and cleared while preserving master data (ZipCodes, ColorPalettes).
 /// </summary>
 [ApiController]
@@ -63,7 +63,7 @@ public class SampleDataController : ControllerBase
                     serviceRequestCategories = stats.ServiceRequestCategoryCount,
                     serviceRequestSubcategories = stats.ServiceRequestSubcategoryCount,
                     serviceRequestTypes = stats.ServiceRequestTypeCount,
-                    customers = stats.CustomerCount,
+                    accounts = stats.AccountCount,
                     contacts = stats.ContactCount,
                     leads = stats.LeadCount,
                     opportunities = stats.OpportunityCount,
@@ -104,7 +104,7 @@ public class SampleDataController : ControllerBase
                     serviceRequestCategories = stats.ServiceRequestCategoryCount,
                     serviceRequestSubcategories = stats.ServiceRequestSubcategoryCount,
                     serviceRequestTypes = stats.ServiceRequestTypeCount,
-                    customers = stats.CustomerCount,
+                    accounts = stats.AccountCount,
                     contacts = stats.ContactCount,
                     leads = stats.LeadCount,
                     opportunities = stats.OpportunityCount,
@@ -180,22 +180,22 @@ public class SampleDataController : ControllerBase
     }
 
     /// <summary>
-    /// Seed only customers
+    /// Seed only accounts
     /// </summary>
-    [HttpPost("seed/customers")]
+    [HttpPost("seed/accounts")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<IActionResult> SeedCustomers()
+    public async Task<IActionResult> SeedAccounts()
     {
         try
         {
-            _logger.LogInformation("Seeding customers...");
-            await _seederService.SeedCustomersAsync();
-            return Ok(new { message = "Customers seeded successfully", success = true });
+            _logger.LogInformation("Seeding accounts...");
+            await _seederService.SeedAccountsAsync();
+            return Ok(new { message = "Accounts seeded successfully", success = true });
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error seeding customers");
-            return StatusCode(500, new { message = "Error seeding customers: " + ex.Message, success = false });
+            _logger.LogError(ex, "Error seeding accounts");
+            return StatusCode(500, new { message = "Error seeding accounts: " + ex.Message, success = false });
         }
     }
 

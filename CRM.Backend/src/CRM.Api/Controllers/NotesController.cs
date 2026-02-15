@@ -106,7 +106,7 @@ public class QuickNoteDto
 /// API endpoints for managing notes with RBAC.
 /// </summary>
 /// <remarks>
-/// Notes can be attached to any entity type (Customer, Contact, Lead, Opportunity, Campaign, Quote, ServiceRequest, Product, etc.).
+/// Notes can be attached to any entity type (Account, Contact, Lead, Opportunity, Campaign, Quote, ServiceRequest, Product, etc.).
 /// Edit/Delete permissions: Creator or users with NotesAdmin/SystemAdmin roles.
 /// Supports both polymorphic (EntityType/EntityId) and legacy FK attachment methods.
 /// </remarks>
@@ -204,7 +204,7 @@ public class NotesController : ControllerBase
     /// <summary>
     /// Get all notes with optional filtering.
     /// </summary>
-    /// <param name="customerId">Filter by customer/account ID.</param>
+    /// <param name="accountId">Filter by account ID.</param>
     /// <param name="contactId">Filter by contact ID.</param>
     /// <param name="opportunityId">Filter by opportunity ID.</param>
     /// <param name="leadId">Filter by lead ID.</param>
@@ -225,7 +225,7 @@ public class NotesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<IEnumerable<NoteResponseDto>>> GetNotes(
-        [FromQuery] int? customerId = null,
+        [FromQuery] int? accountId = null,
         [FromQuery] int? contactId = null,
         [FromQuery] int? opportunityId = null,
         [FromQuery] int? leadId = null,
@@ -252,7 +252,7 @@ public class NotesController : ControllerBase
             query = query.Where(n =>
                 (n.EntityType == entityType && n.EntityId == entityId) ||
                 // Also check legacy FK fields
-                (entityType.ToLower() == "customer" && n.AccountId == entityId) ||
+                (entityType.ToLower() == "account" && n.AccountId == entityId) ||
                 (entityType.ToLower() == "contact" && n.ContactId == entityId) ||
                 (entityType.ToLower() == "opportunity" && n.OpportunityId == entityId) ||
                 (entityType.ToLower() == "lead" && n.LeadId == entityId) ||
@@ -264,8 +264,8 @@ public class NotesController : ControllerBase
         else
         {
             // Legacy filters
-            if (customerId.HasValue)
-                query = query.Where(n => n.AccountId == customerId || (n.EntityType == "Customer" && n.EntityId == customerId));
+            if (accountId.HasValue)
+                query = query.Where(n => n.AccountId == accountId || (n.EntityType == "Account" && n.EntityId == accountId));
             if (contactId.HasValue)
                 query = query.Where(n => n.ContactId == contactId || (n.EntityType == "Contact" && n.EntityId == contactId));
             if (opportunityId.HasValue)
@@ -392,7 +392,7 @@ public class NotesController : ControllerBase
         {
             switch (dto.EntityType.ToLower())
             {
-                case "customer": note.AccountId = dto.EntityId; break;
+                case "account": note.AccountId = dto.EntityId; break;
                 case "contact": note.ContactId = dto.EntityId; break;
                 case "opportunity": note.OpportunityId = dto.EntityId; break;
                 case "lead": note.LeadId = dto.EntityId; break;
@@ -590,9 +590,9 @@ public class NotesController : ControllerBase
     /// Get notes for a specific entity.
     /// </summary>
     /// <remarks>
-    /// Supports all entity types via polymorphic lookup (Customer, Contact, Opportunity, Lead, Campaign, Quote, ServiceRequest, Product, Task, Interaction).
+    /// Supports all entity types via polymorphic lookup (Account, Contact, Opportunity, Lead, Campaign, Quote, ServiceRequest, Product, Task, Interaction).
     /// </remarks>
-    /// <param name="entityType">The type of entity (e.g., "customer", "contact", "opportunity").</param>
+    /// <param name="entityType">The type of entity (e.g., "account", "contact", "opportunity").</param>
     /// <param name="entityId">The entity ID.</param>
     /// <returns>List of notes attached to the specified entity.</returns>
     /// <response code="200">Returns the list of notes for the entity.</response>
@@ -616,7 +616,7 @@ public class NotesController : ControllerBase
         // Query both polymorphic and legacy FK fields
         query = normalizedType switch
         {
-            "customer" => query.Where(n => n.AccountId == entityId || (n.EntityType == "Customer" && n.EntityId == entityId)),
+            "account" => query.Where(n => n.AccountId == entityId || (n.EntityType == "Account" && n.EntityId == entityId)),
             "contact" => query.Where(n => n.ContactId == entityId || (n.EntityType == "Contact" && n.EntityId == entityId)),
             "opportunity" => query.Where(n => n.OpportunityId == entityId || (n.EntityType == "Opportunity" && n.EntityId == entityId)),
             "lead" => query.Where(n => n.LeadId == entityId || (n.EntityType == "Lead" && n.EntityId == entityId)),
@@ -651,7 +651,7 @@ public class NotesController : ControllerBase
     /// <summary>
     /// Get the note count for an entity.
     /// </summary>
-    /// <param name="entityType">The type of entity (e.g., "customer", "contact", "opportunity").</param>
+    /// <param name="entityType">The type of entity (e.g., "account", "contact", "opportunity").</param>
     /// <param name="entityId">The entity ID.</param>
     /// <returns>The count of notes attached to the specified entity.</returns>
     /// <response code="200">Returns the note count.</response>
@@ -669,7 +669,7 @@ public class NotesController : ControllerBase
 
         var count = normalizedType switch
         {
-            "customer" => await query.CountAsync(n => n.AccountId == entityId || (n.EntityType == "Customer" && n.EntityId == entityId)),
+            "account" => await query.CountAsync(n => n.AccountId == entityId || (n.EntityType == "Account" && n.EntityId == entityId)),
             "contact" => await query.CountAsync(n => n.ContactId == entityId || (n.EntityType == "Contact" && n.EntityId == entityId)),
             "opportunity" => await query.CountAsync(n => n.OpportunityId == entityId || (n.EntityType == "Opportunity" && n.EntityId == entityId)),
             "lead" => await query.CountAsync(n => n.LeadId == entityId || (n.EntityType == "Lead" && n.EntityId == entityId)),
@@ -724,7 +724,7 @@ public class NotesController : ControllerBase
         {
             switch (dto.EntityType.ToLower())
             {
-                case "customer": note.AccountId = dto.EntityId; break;
+                case "account": note.AccountId = dto.EntityId; break;
                 case "contact": note.ContactId = dto.EntityId; break;
                 case "opportunity": note.OpportunityId = dto.EntityId; break;
                 case "lead": note.LeadId = dto.EntityId; break;

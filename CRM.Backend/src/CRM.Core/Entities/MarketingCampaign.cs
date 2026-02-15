@@ -441,10 +441,10 @@ public class MarketingCampaign : BaseEntity
     public int DealsWon { get; set; } = 0;
 
     /// <summary>
-    /// FUNCTIONAL: Customers acquired
-    /// TECHNICAL: New customers from campaign
+    /// FUNCTIONAL: Accounts acquired
+    /// TECHNICAL: New accounts from campaign
     /// </summary>
-    public int CustomersAcquired { get; set; } = 0;
+    public int AccountsAcquired { get; set; } = 0;
 
     /// <summary>
     /// FUNCTIONAL: Lead-to-MQL rate

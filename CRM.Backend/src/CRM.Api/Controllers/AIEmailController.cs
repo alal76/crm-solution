@@ -218,7 +218,7 @@ Respond ONLY with valid JSON in this exact format:
             string customerContext = "";
             if (request.AccountId.HasValue)
             {
-                var customer = await _context.Customers
+                var customer = await _context.Accounts
                     .AsNoTracking()
                     .FirstOrDefaultAsync(c => c.Id == request.AccountId.Value);
 

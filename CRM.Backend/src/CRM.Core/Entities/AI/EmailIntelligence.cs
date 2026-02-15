@@ -236,8 +236,8 @@ public class EmailIntelligence : BaseEntity
     /// <summary>Related opportunity ID if identified</summary>
     public int? OpportunityId { get; set; }
 
-    /// <summary>Related customer ID if identified</summary>
-    [Column("CustomerId")]
+    /// <summary>Related account ID if identified</summary>
+    [Column("AccountId")]
     public int? AccountId { get; set; }
 
     /// <summary>Related support case ID if identified</summary>

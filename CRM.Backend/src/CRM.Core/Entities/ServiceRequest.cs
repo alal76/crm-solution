@@ -475,10 +475,10 @@ public class ServiceRequest : BaseEntity
 
     #endregion
 
-    #region Customer & Contact Association
+    #region Account & Contact Association
 
-    /// <summary>Associated customer/account ID</summary>
-    [Column("CustomerId")]
+    /// <summary>Associated account ID</summary>
+    [Column("AccountId")]
     public int? AccountId { get; set; }
 
     /// <summary>Associated contact ID</summary>

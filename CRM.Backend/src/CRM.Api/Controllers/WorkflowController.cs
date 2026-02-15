@@ -1050,11 +1050,10 @@ public class WorkflowController : ControllerBase
 
     private List<ConfigOption> GetEntityTypesInternal() => new()
     {
-        new() { Value = "Customer", Label = "Customer" },
+        new() { Value = "Account", Label = "Account" },
         new() { Value = "Lead", Label = "Lead" },
         new() { Value = "Contact", Label = "Contact" },
         new() { Value = "Opportunity", Label = "Opportunity" },
-        new() { Value = "Account", Label = "Account" },
         new() { Value = "ServiceRequest", Label = "Service Request" },
         new() { Value = "Quote", Label = "Quote" },
         new() { Value = "Campaign", Label = "Campaign" }
@@ -1248,22 +1247,10 @@ public class WorkflowController : ControllerBase
             new() { Name = "ExpectedCloseDate", Label = "Expected Close Date", Type = "date", Required = false, Group = "Dates" },
             new() { Name = "Type", Label = "Type", Type = "enum", Required = false, EnumValues = new List<string> { "NewBusiness", "ExistingBusiness", "Renewal", "Upsell" }, Group = "Classification" },
             new() { Name = "OwnerId", Label = "Owner", Type = "reference", Required = false, ReferenceEntity = "User", Group = "Assignment" },
-            new() { Name = "CustomerId", Label = "Customer", Type = "reference", Required = false, ReferenceEntity = "Customer", Group = "Related" },
+            new() { Name = "AccountId", Label = "Account", Type = "reference", Required = false, ReferenceEntity = "Account", Group = "Related" },
             new() { Name = "LeadId", Label = "Lead", Type = "reference", Required = false, ReferenceEntity = "Lead", Group = "Related" },
             new() { Name = "IsClosed", Label = "Is Closed", Type = "boolean", Required = false, Group = "Status" },
             new() { Name = "IsWon", Label = "Is Won", Type = "boolean", Required = false, Group = "Status" },
-        },
-        ["Customer"] = new()
-        {
-            new() { Name = "Status", Label = "Status", Type = "enum", Required = true, EnumValues = new List<string> { "Active", "Inactive", "Prospect", "Churned" }, Group = "Status" },
-            new() { Name = "Name", Label = "Name", Type = "string", Required = true, Group = "Basic" },
-            new() { Name = "Email", Label = "Email", Type = "string", Required = false, Group = "Contact" },
-            new() { Name = "Phone", Label = "Phone", Type = "string", Required = false, Group = "Contact" },
-            new() { Name = "Type", Label = "Type", Type = "enum", Required = false, EnumValues = new List<string> { "Individual", "Business", "Enterprise", "Government" }, Group = "Classification" },
-            new() { Name = "Industry", Label = "Industry", Type = "string", Required = false, Group = "Business" },
-            new() { Name = "AnnualRevenue", Label = "Annual Revenue", Type = "number", Required = false, Group = "Business" },
-            new() { Name = "OwnerId", Label = "Owner", Type = "reference", Required = false, ReferenceEntity = "User", Group = "Assignment" },
-            new() { Name = "AccountId", Label = "Account", Type = "reference", Required = false, ReferenceEntity = "Account", Group = "Related" },
         },
         ["ServiceRequest"] = new()
         {
@@ -1273,7 +1260,7 @@ public class WorkflowController : ControllerBase
             new() { Name = "Description", Label = "Description", Type = "string", Required = false, Group = "Basic" },
             new() { Name = "Type", Label = "Type", Type = "enum", Required = false, EnumValues = new List<string> { "Question", "Problem", "Incident", "Request", "Task" }, Group = "Classification" },
             new() { Name = "OwnerId", Label = "Owner", Type = "reference", Required = false, ReferenceEntity = "User", Group = "Assignment" },
-            new() { Name = "CustomerId", Label = "Customer", Type = "reference", Required = false, ReferenceEntity = "Customer", Group = "Related" },
+            new() { Name = "AccountId", Label = "Account", Type = "reference", Required = false, ReferenceEntity = "Account", Group = "Related" },
             new() { Name = "DueDate", Label = "Due Date", Type = "date", Required = false, Group = "Dates" },
             new() { Name = "SLABreachedAt", Label = "SLA Breach Date", Type = "date", Required = false, Group = "SLA" },
         },
@@ -1302,11 +1289,13 @@ public class WorkflowController : ControllerBase
         },
         ["Account"] = new()
         {
+            new() { Name = "Status", Label = "Status", Type = "enum", Required = true, EnumValues = new List<string> { "Active", "Inactive", "Prospect", "Churned" }, Group = "Status" },
             new() { Name = "Name", Label = "Name", Type = "string", Required = true, Group = "Basic" },
+            new() { Name = "Email", Label = "Email", Type = "string", Required = false, Group = "Contact" },
+            new() { Name = "Phone", Label = "Phone", Type = "string", Required = false, Group = "Contact" },
             new() { Name = "Type", Label = "Type", Type = "enum", Required = false, EnumValues = new List<string> { "Prospect", "Customer", "Partner", "Vendor", "Other" }, Group = "Classification" },
             new() { Name = "Industry", Label = "Industry", Type = "string", Required = false, Group = "Business" },
             new() { Name = "Website", Label = "Website", Type = "string", Required = false, Group = "Contact" },
-            new() { Name = "Phone", Label = "Phone", Type = "string", Required = false, Group = "Contact" },
             new() { Name = "AnnualRevenue", Label = "Annual Revenue", Type = "number", Required = false, Group = "Business" },
             new() { Name = "EmployeeCount", Label = "Employee Count", Type = "number", Required = false, Group = "Business" },
             new() { Name = "OwnerId", Label = "Owner", Type = "reference", Required = false, ReferenceEntity = "User", Group = "Assignment" },
@@ -1319,7 +1308,7 @@ public class WorkflowController : ControllerBase
             new() { Name = "Discount", Label = "Discount (%)", Type = "number", Required = false, Group = "Value" },
             new() { Name = "ExpirationDate", Label = "Expiration Date", Type = "date", Required = false, Group = "Dates" },
             new() { Name = "OpportunityId", Label = "Opportunity", Type = "reference", Required = false, ReferenceEntity = "Opportunity", Group = "Related" },
-            new() { Name = "CustomerId", Label = "Customer", Type = "reference", Required = false, ReferenceEntity = "Customer", Group = "Related" },
+            new() { Name = "AccountId", Label = "Account", Type = "reference", Required = false, ReferenceEntity = "Account", Group = "Related" },
             new() { Name = "OwnerId", Label = "Owner", Type = "reference", Required = false, ReferenceEntity = "User", Group = "Assignment" },
         }
     };
@@ -1335,11 +1324,11 @@ public class WorkflowController : ControllerBase
         ["Opportunity"] = new()
         {
             new() { Name = "Owner", Label = "Owner (User)", EntityType = "User", RelationType = "parent" },
-            new() { Name = "Customer", Label = "Customer", EntityType = "Customer", RelationType = "parent" },
+            new() { Name = "Account", Label = "Account", EntityType = "Account", RelationType = "parent" },
             new() { Name = "Lead", Label = "Source Lead", EntityType = "Lead", RelationType = "parent" },
             new() { Name = "Quotes", Label = "Quotes", EntityType = "Quote", RelationType = "child" },
         },
-        ["Customer"] = new()
+        ["Account"] = new()
         {
             new() { Name = "Owner", Label = "Owner (User)", EntityType = "User", RelationType = "parent" },
             new() { Name = "Account", Label = "Account", EntityType = "Account", RelationType = "parent" },
@@ -1349,7 +1338,7 @@ public class WorkflowController : ControllerBase
         ["ServiceRequest"] = new()
         {
             new() { Name = "Owner", Label = "Owner (User)", EntityType = "User", RelationType = "parent" },
-            new() { Name = "Customer", Label = "Customer", EntityType = "Customer", RelationType = "parent" },
+            new() { Name = "Account", Label = "Account", EntityType = "Account", RelationType = "parent" },
         },
         ["Contact"] = new()
         {
@@ -1365,13 +1354,13 @@ public class WorkflowController : ControllerBase
         {
             new() { Name = "Owner", Label = "Owner (User)", EntityType = "User", RelationType = "parent" },
             new() { Name = "Contacts", Label = "Contacts", EntityType = "Contact", RelationType = "child" },
-            new() { Name = "Customers", Label = "Customers", EntityType = "Customer", RelationType = "child" },
+            new() { Name = "Accounts", Label = "Accounts", EntityType = "Account", RelationType = "child" },
         },
         ["Quote"] = new()
         {
             new() { Name = "Owner", Label = "Owner (User)", EntityType = "User", RelationType = "parent" },
             new() { Name = "Opportunity", Label = "Opportunity", EntityType = "Opportunity", RelationType = "parent" },
-            new() { Name = "Customer", Label = "Customer", EntityType = "Customer", RelationType = "parent" },
+            new() { Name = "Account", Label = "Account", EntityType = "Account", RelationType = "parent" },
         }
     };
 
@@ -1384,11 +1373,10 @@ public class WorkflowController : ControllerBase
     {
         var types = new[]
         {
-            new { value = "Customer", label = "Customer" },
+            new { value = "Account", label = "Account" },
             new { value = "Lead", label = "Lead" },
             new { value = "Contact", label = "Contact" },
             new { value = "Opportunity", label = "Opportunity" },
-            new { value = "Account", label = "Account" },
             new { value = "ServiceRequest", label = "Service Request" },
             new { value = "Quote", label = "Quote" },
             new { value = "Campaign", label = "Campaign" }

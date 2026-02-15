@@ -244,24 +244,24 @@ internal class Program
         Console.WriteLine("👥 Creating sample users...");
         var users = await SeedUsers(context, departments);
 
-        // Create Customers
-        var customerCount = int.Parse(seedingConfig["Customers"] ?? "50");
-        Console.WriteLine($"👤 Creating {customerCount} customers...");
-        var customers = await SeedCustomers(context, users, customerCount);
+        // Create Accounts
+        var accountCount = int.Parse(seedingConfig["Accounts"] ?? "50");
+        Console.WriteLine($"👤 Creating {accountCount} accounts...");
+        var accounts = await SeedAccounts(context, users, accountCount);
 
         // Create Products
         var productCount = int.Parse(seedingConfig["Products"] ?? "25");
         Console.WriteLine($"📦 Creating {productCount} products...");
         var products = await SeedProducts(context, productCount);
 
-        // Create Accounts (linked to customers)
-        Console.WriteLine($"💼 Creating accounts for customers...");
-        var subscriptions = await SeedSubscriptions(context, customers, products);
+        // Create Subscriptions (linked to accounts)
+        Console.WriteLine("💼 Creating subscriptions for accounts...");
+        var subscriptions = await SeedSubscriptions(context, accounts, products);
 
         // Create Contacts
         var contactCount = int.Parse(seedingConfig["Contacts"] ?? "100");
         Console.WriteLine($"📇 Creating {contactCount} contacts...");
-        var contacts = await SeedContacts(context, customers, contactCount);
+        var contacts = await SeedContacts(context, accounts, contactCount);
 
         // Create Campaigns
         var campaignCount = int.Parse(seedingConfig["Campaigns"] ?? "10");
@@ -281,26 +281,26 @@ internal class Program
         // Create Tasks
         var taskCount = int.Parse(seedingConfig["Tasks"] ?? "50");
         Console.WriteLine($"✅ Creating {taskCount} tasks...");
-        await SeedTasks(context, customers, opportunities, users, taskCount);
+        await SeedTasks(context, accounts, opportunities, users, taskCount);
 
         // Create Notes
         var noteCount = int.Parse(seedingConfig["Notes"] ?? "75");
         Console.WriteLine($"📝 Creating {noteCount} notes...");
-        await SeedNotes(context, customers, opportunities, users, noteCount);
+        await SeedNotes(context, accounts, opportunities, users, noteCount);
 
         // Create Quotes
         var quoteCount = int.Parse(seedingConfig["Quotes"] ?? "20");
         Console.WriteLine($"📋 Creating {quoteCount} quotes...");
-        await SeedQuotes(context, customers, opportunities, users, quoteCount);
+        await SeedQuotes(context, accounts, opportunities, users, quoteCount);
 
         // Create Interactions
         var interactionCount = int.Parse(seedingConfig["Interactions"] ?? "100");
         Console.WriteLine($"💬 Creating {interactionCount} interactions...");
-        await SeedInteractions(context, customers, contacts, users, interactionCount);
+        await SeedInteractions(context, accounts, contacts, users, interactionCount);
 
         // Create Activities
         Console.WriteLine("📊 Creating activity log...");
-        await SeedActivities(context, users, customers, opportunities, 50);
+        await SeedActivities(context, users, accounts, opportunities, 50);
     }
 
     private static async Task<List<Department>> SeedDepartments(CrmDbContext context)
@@ -314,7 +314,7 @@ internal class Program
         {
             new() { Name = "Sales", Description = "Sales and business development", DepartmentCode = "SALES", IsActive = true },
             new() { Name = "Marketing", Description = "Marketing and campaigns", DepartmentCode = "MKTG", IsActive = true },
-            new() { Name = "Support", Description = "Customer support and service", DepartmentCode = "SUPP", IsActive = true },
+            new() { Name = "Support", Description = "Account support and service", DepartmentCode = "SUPP", IsActive = true },
             new() { Name = "Engineering", Description = "Product development", DepartmentCode = "ENG", IsActive = true },
             new() { Name = "Finance", Description = "Finance and accounting", DepartmentCode = "FIN", IsActive = true }
         };
@@ -348,20 +348,20 @@ internal class Program
         return await context.Users.ToListAsync();
     }
 
-    private static async Task<List<Account>> SeedCustomers(CrmDbContext context, List<User> users, int count)
+    private static async Task<List<Account>> SeedAccounts(CrmDbContext context, List<User> users, int count)
     {
-        if (await context.Customers.AnyAsync())
+        if (await context.Accounts.AnyAsync())
         {
-            return await context.Customers.ToListAsync();
+            return await context.Accounts.ToListAsync();
         }
 
         var faker = new Bogus.Faker();
-        var customers = new List<Account>();
+        var accounts = new List<Account>();
         var salesUsers = users.Where(u => u.Role == (int)UserRole.Sales || u.Role == (int)UserRole.Manager).ToList();
 
         for (int i = 0; i < count; i++)
         {
-            var customer = new Account
+            var account = new Account
             {
                 FirstName = faker.Name.FirstName(),
                 LastName = faker.Name.LastName(),
@@ -371,11 +371,6 @@ internal class Program
                 Company = faker.Company.CompanyName(),
                 JobTitle = faker.Name.JobTitle(),
                 Website = faker.Internet.Url(),
-                Address = faker.Address.StreetAddress(),
-                City = faker.Address.City(),
-                State = faker.Address.StateAbbr(),
-                ZipCode = faker.Address.ZipCode(),
-                Country = "USA",
                 Industry = faker.Commerce.Categories(1)[0],
                 NumberOfEmployees = faker.Random.Int(10, 5000),
                 AnnualRevenue = faker.Random.Decimal(100000, 10000000),
@@ -393,13 +388,13 @@ internal class Program
                 Notes = faker.Lorem.Paragraph(),
                 CreatedAt = faker.Date.Past(1)
             };
-            customers.Add(customer);
+            accounts.Add(account);
         }
 
-        context.Customers.AddRange(customers);
+        context.Accounts.AddRange(accounts);
         await context.SaveChangesAsync();
-        Console.WriteLine($"   Created {count} customers");
-        return customers;
+        Console.WriteLine($"   Created {count} accounts");
+        return accounts;
     }
 
     private static async Task<List<Product>> SeedProducts(CrmDbContext context, int count)
@@ -603,7 +598,7 @@ internal class Program
         return products;
     }
 
-    private static async Task<List<Subscription>> SeedSubscriptions(CrmDbContext context, List<Account> customers, List<Product> products)
+    private static async Task<List<Subscription>> SeedSubscriptions(CrmDbContext context, List<Account> accounts, List<Product> products)
     {
         if (await context.Subscriptions.AnyAsync())
         {
@@ -618,11 +613,11 @@ internal class Program
         var currencies = new[] { "USD", "EUR", "GBP", "CAD" };
 
         int accountNumber = 1;
-        foreach (var customer in customers)
+        foreach (var account in accounts)
         {
-            // Create 1-3 accounts per customer
-            var accountCount = faker.Random.Int(1, 3);
-            for (int i = 0; i < accountCount; i++)
+            // Create 1-3 subscriptions per account
+            var subscriptionCount = faker.Random.Int(1, 3);
+            for (int i = 0; i < subscriptionCount; i++)
             {
                 var product = faker.Random.Bool(0.7f) ? faker.PickRandom(products) : null;
                 var mrr = faker.Random.Decimal(500, 10000);
@@ -632,7 +627,7 @@ internal class Program
                 var subscription = new Subscription
                 {
                     SubscriptionNumber = $"SUB-{accountNumber:D6}",
-                    AccountId = customer.Id,
+                    AccountId = account.Id,
                     ProductId = product?.Id,
                     SubscriptionStatus = faker.PickRandom(subscriptionStatuses),
 
@@ -683,7 +678,7 @@ internal class Program
         return subscriptions;
     }
 
-    private static async Task<List<Contact>> SeedContacts(CrmDbContext context, List<Account> customers, int count)
+    private static async Task<List<Contact>> SeedContacts(CrmDbContext context, List<Account> accounts, int count)
     {
         if (await context.Contacts.AnyAsync())
         {
@@ -714,7 +709,7 @@ internal class Program
                 ZipCode = faker.Address.ZipCode(),
                 LeadScore = faker.Random.Int(0, 100),
                 LeadSource = faker.PickRandom(new[] { "Website", "Referral", "LinkedIn", "Trade Show", "Email Campaign" }),
-                AccountId = faker.Random.Bool(0.3f) ? faker.PickRandom(customers).Id : null,
+                AccountId = faker.Random.Bool(0.3f) ? faker.PickRandom(accounts).Id : null,
                 Notes = faker.Lorem.Paragraph(),
                 DateAdded = faker.Date.Past(1)
             };
@@ -811,7 +806,7 @@ internal class Program
                 OpportunitiesCreated = opportunitiesCreated,
                 OpportunitiesInfluenced = faker.Random.Int(10, 100),
                 DealsWon = dealsWon,
-                CustomersAcquired = dealsWon,
+                AccountsAcquired = dealsWon,
                 LeadToMqlRate = leadsGenerated > 0 ? (double)mqlsGenerated / leadsGenerated * 100 : 0,
                 MqlToSqlRate = mqlsGenerated > 0 ? (double)sqlsGenerated / mqlsGenerated * 100 : 0,
                 ConversionRate = faker.Random.Double(1, 10),
@@ -880,7 +875,7 @@ internal class Program
 
                 // Classification
                 Tags = string.Join(",", faker.Commerce.Categories(2)),
-                Category = faker.PickRandom(new[] { "Demand Generation", "Brand Awareness", "Product Marketing", "Customer Marketing", "Field Marketing" }),
+                Category = faker.PickRandom(new[] { "Demand Generation", "Brand Awareness", "Product Marketing", "Account Marketing", "Field Marketing" }),
                 FiscalQuarter = faker.PickRandom(new[] { "Q1", "Q2", "Q3", "Q4" }),
                 FiscalYear = DateTime.Now.Year,
 
@@ -1028,7 +1023,7 @@ internal class Program
         return opportunities;
     }
 
-    private static async Task SeedTasks(CrmDbContext context, List<Account> customers, List<Opportunity> opportunities, List<User> users, int count)
+    private static async Task SeedTasks(CrmDbContext context, List<Account> accounts, List<Opportunity> opportunities, List<User> users, int count)
     {
         if (await context.CrmTasks.AnyAsync())
         {
@@ -1052,7 +1047,7 @@ internal class Program
                 StartDate = faker.Date.Past(1),
                 PercentComplete = faker.Random.Int(0, 100),
                 EstimatedMinutes = faker.Random.Int(15, 120),
-                AccountId = faker.Random.Bool(0.5f) ? faker.PickRandom(customers).Id : null,
+                AccountId = faker.Random.Bool(0.5f) ? faker.PickRandom(accounts).Id : null,
                 OpportunityId = faker.Random.Bool(0.3f) ? faker.PickRandom(opportunities).Id : null,
                 AssignedToUserId = faker.PickRandom(salesUsers).Id,
                 CreatedByUserId = faker.PickRandom(salesUsers).Id,
@@ -1067,7 +1062,7 @@ internal class Program
         Console.WriteLine($"   Created {count} tasks");
     }
 
-    private static async Task SeedNotes(CrmDbContext context, List<Account> customers, List<Opportunity> opportunities, List<User> users, int count)
+    private static async Task SeedNotes(CrmDbContext context, List<Account> accounts, List<Opportunity> opportunities, List<User> users, int count)
     {
         if (await context.Notes.AnyAsync())
         {
@@ -1088,7 +1083,7 @@ internal class Program
                 Visibility = (NoteVisibility)faker.Random.Int(0, 2),
                 IsPinned = faker.Random.Bool(0.1f),
                 IsImportant = faker.Random.Bool(0.15f),
-                AccountId = faker.Random.Bool(0.4f) ? faker.PickRandom(customers).Id : null,
+                AccountId = faker.Random.Bool(0.4f) ? faker.PickRandom(accounts).Id : null,
                 OpportunityId = faker.Random.Bool(0.3f) ? faker.PickRandom(opportunities).Id : null,
                 CreatedByUserId = faker.PickRandom(users).Id,
                 Tags = faker.Random.Bool(0.3f) ? string.Join(",", faker.Commerce.Categories(2)) : null,
@@ -1102,7 +1097,7 @@ internal class Program
         Console.WriteLine($"   Created {count} notes");
     }
 
-    private static async Task SeedQuotes(CrmDbContext context, List<Account> customers, List<Opportunity> opportunities, List<User> users, int count)
+    private static async Task SeedQuotes(CrmDbContext context, List<Account> accounts, List<Opportunity> opportunities, List<User> users, int count)
     {
         if (await context.Quotes.AnyAsync())
         {
@@ -1121,11 +1116,11 @@ internal class Program
             var taxRate = 8.25m;
             var tax = (subtotal - discount) * (taxRate / 100);
 
-            var customer = faker.PickRandom(customers);
+            var account = faker.PickRandom(accounts);
             var quote = new Quote
             {
                 QuoteNumber = $"Q-{DateTime.UtcNow.Year}-{(i + 1).ToString().PadLeft(5, '0')}",
-                Name = $"Quote for {customer.Company}",
+                Name = $"Quote for {account.Company}",
                 Description = faker.Lorem.Sentence(),
                 Status = (QuoteStatus)faker.Random.Int(0, 8),
                 QuoteDate = faker.Date.Past(1),
@@ -1138,13 +1133,13 @@ internal class Program
                 Total = subtotal - discount + tax,
                 PaymentTerms = faker.PickRandom(new[] { "Net 30", "Net 60", "Due on Receipt", "Net 15" }),
                 ValidityDays = faker.PickRandom(new[] { 15, 30, 45, 60 }),
-                BillingName = $"{customer.FirstName} {customer.LastName}",
-                BillingAddress = customer.Address,
-                BillingCity = customer.City,
-                BillingState = customer.State,
-                BillingZipCode = customer.ZipCode,
-                BillingCountry = customer.Country,
-                AccountId = customer.Id,
+                BillingName = $"{account.FirstName} {account.LastName}",
+                BillingAddress = account.Address,
+                BillingCity = account.City,
+                BillingState = account.State,
+                BillingZipCode = account.ZipCode,
+                BillingCountry = account.Country,
+                AccountId = account.Id,
                 OpportunityId = faker.Random.Bool(0.5f) ? faker.PickRandom(opportunities).Id : null,
                 AssignedToUserId = faker.PickRandom(salesUsers).Id,
                 CreatedByUserId = faker.PickRandom(salesUsers).Id,
@@ -1158,7 +1153,7 @@ internal class Program
         Console.WriteLine($"   Created {count} quotes");
     }
 
-    private static async Task SeedInteractions(CrmDbContext context, List<Account> customers, List<Contact> contacts, List<User> users, int count)
+    private static async Task SeedInteractions(CrmDbContext context, List<Account> accounts, List<Contact> contacts, List<User> users, int count)
     {
         if (await context.Interactions.AnyAsync())
         {
@@ -1170,7 +1165,7 @@ internal class Program
 
         for (int i = 0; i < count; i++)
         {
-            var customer = faker.PickRandom(customers);
+            var account = faker.PickRandom(accounts);
             var interaction = new Interaction
             {
                 InteractionType = (InteractionType)faker.Random.Int(0, 15),
@@ -1183,7 +1178,7 @@ internal class Program
                 Outcome = (InteractionOutcome)faker.Random.Int(0, 7),
                 Sentiment = (InteractionSentiment)faker.Random.Int(0, 4),
                 IsCompleted = faker.Random.Bool(0.8f),
-                AccountId = customer.Id,
+                AccountId = account.Id,
                 ContactId = faker.Random.Bool(0.3f) ? faker.PickRandom(contacts).Id : null,
                 AssignedToUserId = faker.PickRandom(users).Id,
                 CreatedByUserId = faker.PickRandom(users).Id,
@@ -1199,7 +1194,7 @@ internal class Program
         Console.WriteLine($"   Created {count} interactions");
     }
 
-    private static async Task SeedActivities(CrmDbContext context, List<User> users, List<Account> customers, List<Opportunity> opportunities, int count)
+    private static async Task SeedActivities(CrmDbContext context, List<User> users, List<Account> accounts, List<Opportunity> opportunities, int count)
     {
         if (await context.Activities.AnyAsync())
         {
@@ -1223,9 +1218,9 @@ internal class Program
                 UserId = user.Id,
                 UserName = $"{user.FirstName} {user.LastName}",
                 UserEmail = user.Email,
-                EntityType = faker.PickRandom(new[] { "Customer", "Opportunity", "Contact", "Product" }),
+                EntityType = faker.PickRandom(new[] { "Account", "Opportunity", "Contact", "Product" }),
                 EntityId = faker.Random.Int(1, 50),
-                AccountId = faker.Random.Bool(0.4f) ? faker.PickRandom(customers).Id : null,
+                AccountId = faker.Random.Bool(0.4f) ? faker.PickRandom(accounts).Id : null,
                 OpportunityId = faker.Random.Bool(0.3f) ? faker.PickRandom(opportunities).Id : null,
                 IsSystem = faker.Random.Bool(0.2f),
                 IsPrivate = false,
@@ -1249,8 +1244,8 @@ internal class Program
             ActivityType.CallReceived => $"Inbound call from {faker.Name.FullName()}",
             ActivityType.MeetingScheduled => $"Meeting scheduled with {faker.Name.FullName()}",
             ActivityType.MeetingCompleted => $"Meeting completed with {faker.Company.CompanyName()}",
-            ActivityType.CustomerCreated => $"New customer: {faker.Company.CompanyName()}",
-            ActivityType.CustomerUpdated => $"Customer updated: {faker.Company.CompanyName()}",
+            ActivityType.AccountCreated => $"New account: {faker.Company.CompanyName()}",
+            ActivityType.AccountUpdated => $"Account updated: {faker.Company.CompanyName()}",
             ActivityType.OpportunityCreated => $"New opportunity created",
             ActivityType.OpportunityUpdated => $"Opportunity updated",
             ActivityType.OpportunityWon => $"Opportunity won: {faker.Commerce.ProductName()}",

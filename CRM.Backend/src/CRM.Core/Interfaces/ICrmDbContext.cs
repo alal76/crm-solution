@@ -27,7 +27,8 @@ namespace CRM.Core.Interfaces;
 /// </summary>
 public interface ICrmDbContext
 {
-    DbSet<Account> Customers { get; }
+    DbSet<Account> Accounts { get; }
+    DbSet<Preferences> Preferences { get; }
     DbSet<CRM.Core.Models.Contact> Contacts { get; }
     DbSet<Lead> Leads { get; }
     DbSet<LeadProductInterest> LeadProductInterests { get; }
@@ -56,6 +57,7 @@ public interface ICrmDbContext
     DbSet<DatabaseBackup> DatabaseBackups { get; }
     DbSet<BackupSchedule> BackupSchedules { get; }
     DbSet<SystemSettings> SystemSettings { get; }
+    DbSet<BrandingConfig> BrandingConfigs { get; }
     DbSet<CrmTask> CrmTasks { get; }
     DbSet<Note> Notes { get; }
     DbSet<Activity> Activities { get; }
@@ -70,8 +72,8 @@ public interface ICrmDbContext
     DbSet<ServiceRequestCustomFieldValue> ServiceRequestCustomFieldValues { get; }
     DbSet<ModuleFieldConfiguration> ModuleFieldConfigurations { get; }
     DbSet<FieldMasterDataLink> FieldMasterDataLinks { get; }
-    DbSet<Account> Accounts { get; }
     DbSet<Address> Addresses { get; }
+    DbSet<EntityAddressLink> EntityAddressLinks { get; }
     DbSet<ContactDetail> ContactDetails { get; }
     DbSet<SocialAccount> SocialAccounts { get; }
     DbSet<ContactInfoLink> ContactInfoLinks { get; }

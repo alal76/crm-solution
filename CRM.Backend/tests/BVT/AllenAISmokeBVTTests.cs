@@ -495,7 +495,7 @@ public class AllenAISmokeBVTTests
         // Assert - Churn prediction methods exist
         var methods = typeof(IAllenAIService).GetMethods();
         methods.Should().Contain(m => m.Name == "CalculateChurnRiskAsync");
-        methods.Should().Contain(m => m.Name == "GetHighChurnRiskCustomersAsync");
+        methods.Should().Contain(m => m.Name == "GetHighChurnRiskAccountsAsync");
     }
 
     [Fact]

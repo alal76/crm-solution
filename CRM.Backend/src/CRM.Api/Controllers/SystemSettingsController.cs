@@ -16,6 +16,7 @@
 
 using CRM.Core.Dtos;
 using CRM.Core.Interfaces;
+using CRM.Core.Validation;
 using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Services;
 using Microsoft.AspNetCore.Http;
@@ -23,6 +24,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using System.Security.Cryptography.X509Certificates;
+using System.Text.Json;
 
 namespace CRM.API.Controllers;
 
@@ -137,7 +139,7 @@ public class SystemSettingsController : ControllerBase
 
             switch (moduleName.ToLower())
             {
-                case "customers": request.CustomersEnabled = enabled; break;
+                case "accounts": request.AccountsEnabled = enabled; break;
                 case "contacts": request.ContactsEnabled = enabled; break;
                 case "leads": request.LeadsEnabled = enabled; break;
                 case "opportunities": request.OpportunitiesEnabled = enabled; break;
@@ -605,6 +607,7 @@ public class SystemSettingsController : ControllerBase
     {
         try
         {
+            ValidateNavigationOrderConfig(request.NavOrderConfig);
             var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             int? userId = int.TryParse(userIdClaim, out int parsedId) ? parsedId : null;
 
@@ -619,6 +622,11 @@ public class SystemSettingsController : ControllerBase
             _logger.LogInformation("AUDIT: NavigationOrderUpdated {UserId} {ConfigSize}", userId, request.NavOrderConfig?.Length ?? 0);
 
             return Ok(settings);
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning(ex, "Navigation order validation failed");
+            return BadRequest(ex.Message);
         }
         catch (Exception ex)
         {
@@ -770,7 +778,7 @@ public class SystemSettingsController : ControllerBase
             {
                 coreModules = new
                 {
-                    customers = new { enabled = settings.CustomersEnabled, name = "Customers", description = "Manage customer records and relationships" },
+                    accounts = new { enabled = settings.AccountsEnabled, name = "Accounts", description = "Manage account records and relationships" },
                     contacts = new { enabled = settings.ContactsEnabled, name = "Contacts", description = "Manage contact information" },
                     leads = new { enabled = settings.LeadsEnabled, name = "Leads", description = "Track and manage sales leads" },
                     opportunities = new { enabled = settings.OpportunitiesEnabled, name = "Opportunities", description = "Track sales opportunities and pipeline" },
@@ -841,7 +849,7 @@ public class SystemSettingsController : ControllerBase
 
             var updateRequest = new UpdateSystemSettingsRequest
             {
-                CustomersEnabled = request.CustomersEnabled,
+                AccountsEnabled = request.AccountsEnabled,
                 ContactsEnabled = request.ContactsEnabled,
                 LeadsEnabled = request.LeadsEnabled,
                 OpportunitiesEnabled = request.OpportunitiesEnabled,
@@ -873,6 +881,114 @@ public class SystemSettingsController : ControllerBase
             return StatusCode(500, "Error updating features");
         }
     }
+
+    private static void ValidateNavigationOrderConfig(string navOrderConfig)
+    {
+        if (string.IsNullOrWhiteSpace(navOrderConfig))
+        {
+            throw new ArgumentException("Navigation order configuration is required.");
+        }
+
+        NavigationOrderConfigPayload? payload;
+        try
+        {
+            payload = JsonSerializer.Deserialize<NavigationOrderConfigPayload>(navOrderConfig, new JsonSerializerOptions
+            {
+                PropertyNameCaseInsensitive = true
+            });
+        }
+        catch (JsonException ex)
+        {
+            throw new ArgumentException("Navigation order configuration is not valid JSON.", ex);
+        }
+
+        if (payload == null)
+        {
+            throw new ArgumentException("Navigation order configuration is invalid.");
+        }
+
+        var navItems = payload.NavItems ?? new List<NavOrderItem>();
+        var categories = payload.Categories ?? new List<NavCategoryItem>();
+        var adminSubcategories = payload.AdminSubcategories ?? new List<NavAdminSubcategoryItem>();
+
+        foreach (var category in categories)
+        {
+            UiConfigurationValidator.ValidateNavigationKey(category.Id, "Category id");
+        }
+        UiConfigurationValidator.EnsureUniqueKeys(categories.Select(c => c.Id), "Category id");
+        UiConfigurationValidator.EnsureNonNegativeOrders(categories.Select(c => (c.Id, c.Order)), "Category");
+
+        foreach (var subcategory in adminSubcategories)
+        {
+            UiConfigurationValidator.ValidateNavigationKey(subcategory.Id, "Admin subcategory id");
+        }
+        UiConfigurationValidator.EnsureUniqueKeys(adminSubcategories.Select(s => s.Id), "Admin subcategory id");
+        UiConfigurationValidator.EnsureNonNegativeOrders(adminSubcategories.Select(s => (s.Id, s.Order)), "Admin subcategory");
+
+        foreach (var item in navItems)
+        {
+            UiConfigurationValidator.ValidateNavigationKey(item.Id, "Navigation item id");
+            UiConfigurationValidator.ValidateNavigationKey(item.Category, "Navigation category");
+        }
+        UiConfigurationValidator.EnsureUniqueKeys(navItems.Select(i => i.Id), "Navigation item id");
+        UiConfigurationValidator.EnsureNonNegativeOrders(navItems.Select(i => (i.Id, i.Order)), "Navigation item");
+
+        var categoryIds = new HashSet<string>(categories.Select(c => c.Id), StringComparer.OrdinalIgnoreCase);
+        var adminSubcategoryIds = new HashSet<string>(adminSubcategories.Select(s => s.Id), StringComparer.OrdinalIgnoreCase);
+
+        foreach (var item in navItems)
+        {
+            if (!categoryIds.Contains(item.Category))
+            {
+                throw new ArgumentException($"Navigation item '{item.Id}' references unknown category '{item.Category}'.");
+            }
+
+            if (item.Category.Equals("admin", StringComparison.OrdinalIgnoreCase))
+            {
+                if (string.IsNullOrWhiteSpace(item.AdminSubcategory))
+                {
+                    throw new ArgumentException($"Navigation item '{item.Id}' is missing an admin subcategory.");
+                }
+
+                if (!adminSubcategoryIds.Contains(item.AdminSubcategory))
+                {
+                    throw new ArgumentException($"Navigation item '{item.Id}' references unknown admin subcategory '{item.AdminSubcategory}'.");
+                }
+            }
+        }
+    }
+}
+
+internal sealed class NavigationOrderConfigPayload
+{
+    public List<NavOrderItem>? NavItems { get; set; }
+    public List<NavCategoryItem>? Categories { get; set; }
+    public List<NavAdminSubcategoryItem>? AdminSubcategories { get; set; }
+}
+
+internal sealed class NavOrderItem
+{
+    public string Id { get; set; } = string.Empty;
+    public int Order { get; set; }
+    public bool Visible { get; set; }
+    public string Category { get; set; } = string.Empty;
+    public string? AdminSubcategory { get; set; }
+    public string? CustomLabel { get; set; }
+}
+
+internal sealed class NavCategoryItem
+{
+    public string Id { get; set; } = string.Empty;
+    public string Label { get; set; } = string.Empty;
+    public int Order { get; set; }
+}
+
+internal sealed class NavAdminSubcategoryItem
+{
+    public string Id { get; set; } = string.Empty;
+    public string Label { get; set; } = string.Empty;
+    public string? Icon { get; set; }
+    public int Order { get; set; }
 }
 
 /// <summary>
@@ -917,7 +1033,7 @@ public class SampleDataStatusResponse
 public class UpdateFeaturesRequest
 {
     // Core Modules
-    public bool? CustomersEnabled { get; set; }
+    public bool? AccountsEnabled { get; set; }
     public bool? ContactsEnabled { get; set; }
     public bool? LeadsEnabled { get; set; }
     public bool? OpportunitiesEnabled { get; set; }

@@ -913,7 +913,7 @@ public class LeadManagementSystemEntityTests
         var settings = new SystemSettings();
 
         // Assert - All modules enabled by default
-        settings.CustomersEnabled.Should().BeTrue();
+        settings.AccountsEnabled.Should().BeTrue();
         settings.ContactsEnabled.Should().BeTrue();
         settings.LeadsEnabled.Should().BeTrue();
         settings.OpportunitiesEnabled.Should().BeTrue();
@@ -940,7 +940,7 @@ public class LeadManagementSystemEntityTests
         // Arrange & Act
         var settings = new SystemSettings
         {
-            CustomersEnabled = false,
+            AccountsEnabled = false,
             LeadsEnabled = false,
             CampaignsEnabled = false,
             WorkflowsEnabled = false,
@@ -948,7 +948,7 @@ public class LeadManagementSystemEntityTests
         };
 
         // Assert
-        settings.CustomersEnabled.Should().BeFalse();
+        settings.AccountsEnabled.Should().BeFalse();
         settings.LeadsEnabled.Should().BeFalse();
         settings.CampaignsEnabled.Should().BeFalse();
         settings.WorkflowsEnabled.Should().BeFalse();

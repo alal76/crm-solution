@@ -2,7 +2,7 @@
 
 > **Last Updated:** February 14, 2026
 > **Purpose:** Consolidated list of all PENDING enhancements and action items
-> **Total Pending Items:** 180
+> **Total Pending Items:** 204 (180 + 24 from SPEC-SYS-002 Authentication)
 > **Completed items have been archived — see git history for prior state**
 
 ---
@@ -11,7 +11,7 @@
 
 > **[specifications/IMPLEMENTATION_PLAN.md](specifications/IMPLEMENTATION_PLAN.md)** - Detailed 16-week implementation guide
 >
-> **Specification Progress:** 12/47 complete (25.5%) — see [specifications/INDEX.md](specifications/INDEX.md)
+> **Specification Progress:** 12/48 complete (25.0%) — see [specifications/INDEX.md](specifications/INDEX.md)
 
 ---
 
@@ -37,20 +37,20 @@
 
 *Extracted from completed feature specifications. See individual spec files for full context.*
 
-### SPEC-CRM-001 (Account Management) — 10 Items
+### ✅ SPEC-CRM-001 (Account Management) — 10 Items COMPLETE
 
-| ID | Priority | Description | Spec Section |
-|----|----------|-------------|--------------|
-| TODO-CRM001-01 | P1 | Implement frontend field-level validation matching backend rules | 2.3 |
-| TODO-CRM001-02 | P2 | Add bulk import/export functionality for accounts | 2.2 |
-| TODO-CRM001-03 | P2 | Implement account merge UI for duplicate resolution | 2.2 |
-| TODO-CRM001-04 | P2 | Add account hierarchy visualization (parent/child tree) | 2.2 |
-| TODO-CRM001-05 | P2 | Implement territory assignment UI in account details | 2.2 |
-| TODO-CRM001-06 | P2 | Add health score calculation service and display | 2.2 |
-| TODO-CRM001-07 | P3 | Implement account timeline aggregation from all related entities | 2.2 |
-| TODO-CRM001-08 | P1 | Add missing backend validations (duplicate email check, phone format) | 3.5 |
-| TODO-CRM001-09 | P2 | Implement soft delete cascade for related contacts/opportunities | 3.4 |
-| TODO-CRM001-10 | P1 | Add database indexes for frequently queried columns | 4.5 |
+| ID | Priority | Description | Spec Section | Status |
+|----|----------|-------------|---------------|--------|
+| TODO-CRM001-01 | P1 | Implement frontend field-level validation matching backend rules | 2.3 | ✅ Completed (2026-02-14) |
+| TODO-CRM001-02 | P2 | Add bulk import/export functionality for accounts | 2.2 | ✅ Completed (2026-02-14) |
+| TODO-CRM001-03 | P2 | Implement account merge UI for duplicate resolution | 2.2 | ✅ Completed (2026-02-14) |
+| TODO-CRM001-04 | P2 | Add account hierarchy visualization (parent/child tree) | 2.2 | ✅ Completed (2026-02-14) |
+| TODO-CRM001-05 | P2 | Implement territory assignment UI in account details | 2.2 | ✅ Completed (2026-02-14) |
+| TODO-CRM001-06 | P2 | Add health score calculation service and display | 2.2 | ✅ Completed (2026-02-14) |
+| TODO-CRM001-07 | P3 | Implement account timeline aggregation from all related entities | 2.2 | ✅ Completed (2026-02-14) |
+| TODO-CRM001-08 | P1 | Add missing backend validations (duplicate email check, phone format) | 3.5 | ✅ Completed (2026-02-14) |
+| TODO-CRM001-09 | P2 | Implement soft delete cascade for related contacts/opportunities | 3.4 | ✅ Completed (2026-02-14) |
+| TODO-CRM001-10 | P1 | Add database indexes for frequently queried columns | 4.5 | ✅ Completed (2026-02-14) |
 
 ### SPEC-CRM-002 (Lead Management) — 8 Items
 
@@ -78,6 +78,16 @@
 | TODO-CRM003-07 | P2 | Implement forecast category assignment | 2.2 |
 | TODO-CRM003-08 | P2 | Add opportunity team/split commission tracking | 2.2 |
 
+### ✅ SPEC-CRM-008 (Account Data Normalization) — 2 Items COMPLETE
+
+**Implementation Status**: ✅ **COMPLETE** as of February 14, 2026  
+**Coverage**: Frontend UI + Backend services + Full test coverage
+
+| ID | Priority | Description | Spec Section | Status |
+|----|----------|-------------|---------------|--------|
+| TODO-CRM008-003 | P2 | Add account address unit tests | 5.1 | ✅ Completed (2026-02-14) |
+| TODO-CRM008-004 | P3 | Add account address E2E tests | 5.3 | ✅ Completed (2026-02-14) |
+
 ### SPEC-SALES-006 (Subscription Management) — 5 Items
 
 | ID | Priority | Description | Spec Section |
@@ -97,6 +107,35 @@
 | TODO-SALES007-03 | P2 | Implement accelerator/decelerator rules | 3.4 |
 | TODO-SALES007-04 | P3 | Add commission forecast based on pipeline | 3.4 |
 | TODO-SALES007-05 | P2 | Implement clawback automation for churned deals | 3.4 |
+
+### SPEC-SYS-002 (Authentication & Security) — 24 Items
+
+| ID | Priority | Description | Spec Section |
+|----|----------|-------------|--------------|
+| TODO-AUTH-001 | P1 | Implement LinkedIn OAuth provider | 7.1 |
+| TODO-AUTH-002 | P1 | Implement Apple OAuth provider (privacy-focused) | 7.1 |
+| TODO-AUTH-003 | P1 | Add Okta/Enterprise SSO support | 7.1 |
+| TODO-AUTH-004 | P1 | Implement generic OpenID Connect provider | 7.1 |
+| TODO-AUTH-005 | P1 | Add OAuth provider state validation and CSRF protection | 7.1 |
+| TODO-AUTH-006 | P1 | Implement OAuth token refresh for long-lived sessions | 7.1 |
+| TODO-AUTH-007 | P1 | Implement SMS OTP via Twilio integration | 8.1 |
+| TODO-AUTH-008 | P1 | Implement Email OTP via SendGrid | 8.1 |
+| TODO-AUTH-009 | P1 | Implement WebAuthn/FIDO2 support | 8.1 |
+| TODO-AUTH-010 | P1 | Add biometric login (platform-specific) | 8.1 |
+| TODO-AUTH-011 | P1 | Add 2FA enforcement policies per user group | 8.1 |
+| TODO-AUTH-012 | P1 | Implement backup code regeneration | 8.1 |
+| TODO-AUTH-013 | P2 | Add concurrent session limit enforcement | 6.0 |
+| TODO-AUTH-014 | P2 | Implement password history validation (last 5 passwords) | 6.0 |
+| TODO-AUTH-015 | P2 | Implement IP-based session binding | 6.0 |
+| TODO-AUTH-016 | P2 | Add audit logging for all auth events | 6.0 |
+| TODO-AUTH-017 | P2 | Implement passwordless login (magic links) | 6.0 |
+| TODO-AUTH-018 | P2 | Add OAuth provider account linking/unlinking | 7.1 |
+| TODO-AUTH-019 | P2 | Implement 2FA device trust (remember device) | 8.1 |
+| TODO-AUTH-020 | P3 | Implement session activity tracking dashboard | 6.0 |
+| TODO-AUTH-021 | P3 | Add login analytics and anomaly detection | 6.0 |
+| TODO-AUTH-022 | P3 | Implement risk-based authentication | 6.0 |
+| TODO-AUTH-023 | P3 | Add OAuth provider device flow support | 7.1 |
+| TODO-AUTH-024 | P3 | Implement geolocation-based login alerts | 6.0 |
 
 ### SPEC-SYS-007 (Navigation Management) — 4 Items
 
@@ -125,18 +164,13 @@
 
 | ID | Priority | Description | Spec Section |
 |----|----------|-------------|--------------|
-| TODO-SYS010-001 | P2 | Add centralized validation for module/navigation keys | 6.3 |
-| TODO-SYS010-002 | P3 | Enforce consistent navigation order validation in frontend | 6.1 |
-| TODO-SYS010-003 | P2 | Add audit logging for UI configuration changes | 6.2 |
+| *(No pending items)* |  |  |  |
 
-### SPEC-UX-001 (User Interface) — 4 Items
+### SPEC-UX-001 (User Interface) — 0 Items
 
 | ID | Priority | Description | Spec Section |
 |----|----------|-------------|--------------|
-| TODO-UX001-001 | P2 | Define accessibility baseline for core UI components | 6.2 |
-| TODO-UX001-002 | P2 | Add shared empty/loading state components and usage guidelines | 6.2 |
-| TODO-UX001-003 | P3 | Enforce theme palette FK constraints in schema + API | 6.1 |
-| TODO-UX001-004 | P3 | Add centralized theme color validation utilities | 6.3 |
+| *(No pending items)* |  |  |  |
 
 ### SPEC-SYS-001 (User Management) — 3 Items
 
@@ -534,10 +568,10 @@
 | Priority | Count | Description |
 |----------|-------|-------------|
 | **P0 — Critical** | 0 | No critical blockers |
-| **P1 — High** | 12 | Core functionality gaps: validations, lead conversion, global search, inline editing |
-| **P2 — Medium** | 90 | Service completion, testing, integrations, reporting, AI features |
-| **P3 — Low** | 64 | Portal, mobile, advanced customization, nice-to-have UX |
-| **Total** | **166** | |
+| **P1 — High** | 36 | Core functionality gaps: OAuth providers, 2FA methods, auth validations, lead conversion, global search, inline editing |
+| **P2 — Medium** | 109 | Service completion, testing, integrations, reporting, AI features, session security |
+| **P3 — Low** | 59 | Portal, mobile, advanced customization, nice-to-have UX |
+| **Total** | **204** | |
 
 ### Recommended Implementation Order
 

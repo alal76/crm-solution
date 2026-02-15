@@ -44,7 +44,7 @@ public class OrdersController : ControllerBase
     #region CRUD Operations
 
     /// <summary>Gets all orders with optional filters.</summary>
-    /// <param name="customerId">Filter by customer/account ID</param>
+    /// <param name="accountId">Filter by account ID</param>
     /// <param name="status">Filter by order status</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>List of orders</returns>
@@ -54,13 +54,13 @@ public class OrdersController : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<Order>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<IEnumerable<Order>>> GetAll(
-        [FromQuery] int? customerId = null,
+        [FromQuery] int? accountId = null,
         [FromQuery] OrderStatus? status = null,
         CancellationToken cancellationToken = default)
     {
         try
         {
-            var orders = await _orderService.GetAllAsync(customerId, status, cancellationToken);
+            var orders = await _orderService.GetAllAsync(accountId, status, cancellationToken);
             return Ok(orders);
         }
         catch (Exception ex)

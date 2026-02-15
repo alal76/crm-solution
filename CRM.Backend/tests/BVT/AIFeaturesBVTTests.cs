@@ -295,7 +295,7 @@ public class AIFeaturesBVTTests
         dataSources.Should().HaveCountGreaterOrEqualTo(6);
         dataSources.Should().Contain(ReportDataSource.Leads);
         dataSources.Should().Contain(ReportDataSource.Opportunities);
-        dataSources.Should().Contain(ReportDataSource.Customers);
+        dataSources.Should().Contain(ReportDataSource.Accounts);
     }
 
     [Fact]

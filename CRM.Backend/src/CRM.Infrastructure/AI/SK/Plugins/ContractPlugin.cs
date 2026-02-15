@@ -97,17 +97,17 @@ public class ContractPlugin : CrmPluginBase
     }
 
     /// <summary>
-    /// Searches contracts by keyword or filters by customer and status.
+    /// Searches contracts by keyword or filters by account and status.
     /// </summary>
     /// <param name="searchTerm">Optional search term to filter by contract name, number, or description.</param>
-    /// <param name="customerId">Optional customer ID to filter by.</param>
+    /// <param name="accountId">Optional account ID to filter by.</param>
     /// <param name="status">Optional status filter (e.g., "Draft", "Active", "Expired", "Terminated").</param>
     /// <returns>A JSON array of matching contracts.</returns>
     [KernelFunction("SearchContracts")]
-    [Description("Search contracts by keyword, customer, or status.")]
+    [Description("Search contracts by keyword, account, or status.")]
     public async Task<string> SearchContractsAsync(
         [Description("Search term for contract name, number, or description (optional)")] string? searchTerm = null,
-        [Description("Customer ID to filter by (optional)")] int? customerId = null,
+        [Description("Account ID to filter by (optional)")] int? accountId = null,
         [Description("Status filter: Draft, Active, Expired, Terminated, Suspended (optional)")] string? status = null)
     {
         try
@@ -127,7 +127,7 @@ public class ContractPlugin : CrmPluginBase
                 }
 
                 contracts = await _contractService.GetAllAsync(
-                    customerId: customerId,
+                    accountId: accountId,
                     status: parsedStatus);
             }
 
@@ -189,18 +189,18 @@ public class ContractPlugin : CrmPluginBase
     }
 
     /// <summary>
-    /// Retrieves active contracts for a specific customer.
+    /// Retrieves active contracts for a specific account.
     /// </summary>
-    /// <param name="customerId">The customer ID to get active contracts for.</param>
-    /// <returns>A JSON array of the customer's active contracts.</returns>
+    /// <param name="accountId">The account ID to get active contracts for.</param>
+    /// <returns>A JSON array of the account's active contracts.</returns>
     [KernelFunction("GetActiveContracts")]
-    [Description("Get all active contracts for a specific customer.")]
+    [Description("Get all active contracts for a specific account.")]
     public async Task<string> GetActiveContractsAsync(
-        [Description("Customer ID to get active contracts for")] int customerId)
+        [Description("Account ID to get active contracts for")] int accountId)
     {
         try
         {
-            var contracts = await _contractService.GetActiveContractsAsync(customerId);
+            var contracts = await _contractService.GetActiveContractsAsync(accountId);
 
             var summaries = contracts.Select(c => new
             {

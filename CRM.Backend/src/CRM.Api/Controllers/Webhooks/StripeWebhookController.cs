@@ -556,7 +556,7 @@ public class StripeWebhookController : ControllerBase
     {
         var subscriptionId = GetObjectId(stripeEvent);
         var status = GetObjectStringProperty(stripeEvent, "status");
-        var customerId = GetObjectStringProperty(stripeEvent, "customer");
+        var stripeCustomerId = GetObjectStringProperty(stripeEvent, "customer");
 
         var action = stripeEvent.Type switch
         {
@@ -567,8 +567,8 @@ public class StripeWebhookController : ControllerBase
         };
 
         _logger.LogInformation(
-            "Subscription {Action}: {SubscriptionId}, Status={Status}, Customer={CustomerId}",
-            action, subscriptionId, status, customerId);
+            "Subscription {Action}: {SubscriptionId}, Status={Status}, StripeCustomerId={StripeCustomerId}",
+            action, subscriptionId, status, stripeCustomerId);
 
         await CreateActivityAsync(
             $"Subscription {action}",

@@ -19,6 +19,7 @@ using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Linq;
 
 namespace CRM.Api.Controllers;
 
@@ -57,15 +58,18 @@ public class AccountsController : ControllerBase
 {
     private readonly IAccountService _accountService;
     private readonly ILogger<AccountsController> _logger;
+    private readonly IContactInfoService _contactInfoService;
 
     /// <summary>
     /// Initializes the controller with required services.
     /// </summary>
     /// <param name="accountService">Service for account business logic</param>
+    /// <param name="contactInfoService">Service for contact information</param>
     /// <param name="logger">Logger for error and audit logging</param>
-    public AccountsController(IAccountService accountService, ILogger<AccountsController> logger)
+    public AccountsController(IAccountService accountService, IContactInfoService contactInfoService, ILogger<AccountsController> logger)
     {
         _accountService = accountService;
+        _contactInfoService = contactInfoService;
         _logger = logger;
     }
 
@@ -121,6 +125,175 @@ public class AccountsController : ControllerBase
         {
             _logger.LogError(ex, "Error retrieving account {Id}", id);
             return StatusCode(500, new { message = "Error retrieving account", error = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Get all addresses linked to an account.
+    /// </summary>
+    [HttpGet("{id}/addresses")]
+    [ProducesResponseType(typeof(IEnumerable<LinkedAddressDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetAddresses(int id)
+    {
+        try
+        {
+            var addresses = await _accountService.GetAccountAddressesAsync(id);
+            return Ok(addresses);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving addresses for account {Id}", id);
+            return StatusCode(500, new { message = "Error retrieving addresses", error = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Get the primary billing address for an account.
+    /// </summary>
+    [HttpGet("{id}/addresses/primary-billing")]
+    [ProducesResponseType(typeof(LinkedAddressDto), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetPrimaryBillingAddress(int id)
+    {
+        try
+        {
+            var address = await _accountService.GetPrimaryBillingAddressAsync(id);
+            if (address == null)
+                return NotFound(new { message = "Primary billing address not found" });
+
+            return Ok(address);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving primary billing address for account {Id}", id);
+            return StatusCode(500, new { message = "Error retrieving primary billing address", error = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Get the primary shipping address for an account.
+    /// </summary>
+    [HttpGet("{id}/addresses/primary-shipping")]
+    [ProducesResponseType(typeof(LinkedAddressDto), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetPrimaryShippingAddress(int id)
+    {
+        try
+        {
+            var address = await _accountService.GetPrimaryShippingAddressAsync(id);
+            if (address == null)
+                return NotFound(new { message = "Primary shipping address not found" });
+
+            return Ok(address);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving primary shipping address for account {Id}", id);
+            return StatusCode(500, new { message = "Error retrieving primary shipping address", error = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Link a new or existing address to an account.
+    /// </summary>
+    [HttpPost("{id}/addresses")]
+    [ProducesResponseType(typeof(LinkedAddressDto), StatusCodes.Status201Created)]
+    public async Task<IActionResult> AddAddress(int id, [FromBody] LinkAddressDto dto)
+    {
+        try
+        {
+            dto.EntityType = EntityType.Account.ToString();
+            dto.EntityId = id;
+
+            if (!dto.AddressId.HasValue && dto.NewAddress == null)
+                return BadRequest(new { message = "AddressId or NewAddress is required." });
+
+            var address = await _contactInfoService.LinkAddressAsync(dto);
+            return CreatedAtAction(nameof(GetAddresses), new { id }, address);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error adding address for account {Id}", id);
+            return StatusCode(500, new { message = "Error adding address", error = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Update an address linked to an account.
+    /// </summary>
+    [HttpPut("{id}/addresses/{addressId}")]
+    [ProducesResponseType(typeof(AddressDto), StatusCodes.Status200OK)]
+    public async Task<IActionResult> UpdateAddress(int id, int addressId, [FromBody] CreateAddressDto dto)
+    {
+        try
+        {
+            var address = await _contactInfoService.UpdateAddressAsync(addressId, dto);
+            return Ok(address);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating address {AddressId} for account {Id}", addressId, id);
+            return StatusCode(500, new { message = "Error updating address", error = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Unlink an address from an account.
+    /// </summary>
+    [HttpDelete("{id}/addresses/{addressId}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    public async Task<IActionResult> RemoveAddress(int id, int addressId)
+    {
+        try
+        {
+            var links = await _accountService.GetAccountAddressesAsync(id);
+            var link = links.FirstOrDefault(a => a.Id == addressId);
+            if (link == null)
+                return NotFound(new { message = "Address link not found" });
+
+            await _contactInfoService.UnlinkAddressAsync(link.LinkId);
+            return NoContent();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error removing address {AddressId} from account {Id}", addressId, id);
+            return StatusCode(500, new { message = "Error removing address", error = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Set an address as the primary billing address for an account.
+    /// </summary>
+    [HttpPost("{id}/addresses/{addressId}/set-primary-billing")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> SetPrimaryBilling(int id, int addressId)
+    {
+        try
+        {
+            await _accountService.SetPrimaryBillingAddressAsync(id, addressId);
+            return Ok(new { message = "Primary billing address updated" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error setting primary billing address for account {Id}", id);
+            return StatusCode(500, new { message = "Error setting primary billing address", error = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Set an address as the primary shipping address for an account.
+    /// </summary>
+    [HttpPost("{id}/addresses/{addressId}/set-primary-shipping")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> SetPrimaryShipping(int id, int addressId)
+    {
+        try
+        {
+            await _accountService.SetPrimaryShippingAddressAsync(id, addressId);
+            return Ok(new { message = "Primary shipping address updated" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error setting primary shipping address for account {Id}", id);
+            return StatusCode(500, new { message = "Error setting primary shipping address", error = ex.Message });
         }
     }
 

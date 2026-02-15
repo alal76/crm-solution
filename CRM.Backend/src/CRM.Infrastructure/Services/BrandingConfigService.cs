@@ -4,6 +4,8 @@ using CRM.Core.Interfaces;
 using CRM.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using SixLabors.ImageSharp;
+using System.Text.RegularExpressions;
 
 namespace CRM.Infrastructure.Services;
 
@@ -23,6 +25,10 @@ public class BrandingConfigService : IBrandingConfigService
     private const long MaxLogoSizeBytes = 2 * 1024 * 1024; // 2 MB
     private const long MaxFaviconSizeBytes = 500 * 1024; // 500 KB
     private const int MaxSolutionNameLength = 100;
+    private const int MinLogoDimension = 200;
+    private const int MaxLogoDimension = 500;
+    private static readonly int[] AllowedFaviconDimensions = { 32, 64 };
+    private static readonly Regex SolutionNameRegex = new("^[A-Za-z0-9 ]+$", RegexOptions.Compiled);
 
     public BrandingConfigService(
         ICrmDbContext context,
@@ -102,7 +108,11 @@ public class BrandingConfigService : IBrandingConfigService
             var config = await GetOrCreateBrandingConfigAsync(cancellationToken);
             var oldValue = config.SolutionName;
             
-            config.SolutionName = solutionName.Trim();
+            var normalizedSolutionName = solutionName.Trim();
+            if (!SolutionNameRegex.IsMatch(normalizedSolutionName))
+                throw new ArgumentException("Solution name can only contain letters, numbers, and spaces", nameof(solutionName));
+
+            config.SolutionName = normalizedSolutionName;
             config.UpdatedAt = DateTime.UtcNow;
 
             _context.Set<BrandingConfig>().Update(config);
@@ -140,8 +150,20 @@ public class BrandingConfigService : IBrandingConfigService
                 };
             }
 
-            // Decode base64 and save file
+            // Decode base64 and validate dimensions
             var fileData = Convert.FromBase64String(request.FileContent);
+            var (logoDimensionsValid, logoDimensionError) = ValidateLogoDimensions(fileData);
+            if (!logoDimensionsValid)
+            {
+                return new BrandingOperationResponse
+                {
+                    Success = false,
+                    Message = logoDimensionError ?? "Logo dimension validation failed",
+                    ValidationErrors = new Dictionary<string, string> { { "logo", logoDimensionError ?? "Invalid logo dimensions" } }
+                };
+            }
+
+            // Save file
             var filePathUrl = await _fileStorageService.SaveFileAsync(fileData, request.FileName, "branding/logos", cancellationToken);
 
             // Update configuration
@@ -204,8 +226,20 @@ public class BrandingConfigService : IBrandingConfigService
                 };
             }
 
-            // Decode base64 and save file
+            // Decode base64 and validate dimensions
             var fileData = Convert.FromBase64String(request.FileContent);
+            var (faviconDimensionsValid, faviconDimensionError) = ValidateFaviconDimensions(fileData);
+            if (!faviconDimensionsValid)
+            {
+                return new BrandingOperationResponse
+                {
+                    Success = false,
+                    Message = faviconDimensionError ?? "Favicon dimension validation failed",
+                    ValidationErrors = new Dictionary<string, string> { { "favicon", faviconDimensionError ?? "Invalid favicon dimensions" } }
+                };
+            }
+
+            // Save file
             var filePathUrl = await _fileStorageService.SaveFileAsync(fileData, request.FileName, "branding/favicons", cancellationToken);
 
             // Update configuration
@@ -322,23 +356,23 @@ public class BrandingConfigService : IBrandingConfigService
         try
         {
             if (string.IsNullOrWhiteSpace(fileName))
-                return Task.FromResult((false, "File name cannot be empty"));
+                return Task.FromResult<(bool IsValid, string? ErrorMessage)>((false, "File name cannot be empty"));
 
-            if (!AllowedLogoMimeTypes.Split(',').Contains(mimeType))
-                return Task.FromResult((false, $"Only PNG and JPEG files are allowed for logos"));
+            if (!AllowedLogoMimeTypes.Split(',').Contains(mimeType, StringComparer.OrdinalIgnoreCase))
+                return Task.FromResult<(bool IsValid, string? ErrorMessage)>((false, "Only PNG and JPEG files are allowed for logos"));
 
             if (fileSizeBytes > MaxLogoSizeBytes)
-                return Task.FromResult((false, $"Logo file size cannot exceed {MaxLogoSizeBytes / (1024 * 1024)} MB"));
+                return Task.FromResult<(bool IsValid, string? ErrorMessage)>((false, $"Logo file size cannot exceed {MaxLogoSizeBytes / (1024 * 1024)} MB"));
 
             if (fileSizeBytes == 0)
-                return Task.FromResult((false, "Logo file cannot be empty"));
+                return Task.FromResult<(bool IsValid, string? ErrorMessage)>((false, "Logo file cannot be empty"));
 
-            return Task.FromResult((true, null as string?));
+            return Task.FromResult<(bool IsValid, string? ErrorMessage)>((true, null));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error validating logo");
-            return Task.FromResult((false, "Error validating logo"));
+            return Task.FromResult<(bool IsValid, string? ErrorMessage)>((false, "Error validating logo"));
         }
     }
 
@@ -350,23 +384,63 @@ public class BrandingConfigService : IBrandingConfigService
         try
         {
             if (string.IsNullOrWhiteSpace(fileName))
-                return Task.FromResult((false, "File name cannot be empty"));
+                return Task.FromResult<(bool IsValid, string? ErrorMessage)>((false, "File name cannot be empty"));
 
-            if (!AllowedFaviconMimeTypes.Split(',').Contains(mimeType))
-                return Task.FromResult((false, "Only ICO and PNG files are allowed for favicons"));
+            if (!AllowedFaviconMimeTypes.Split(',').Contains(mimeType, StringComparer.OrdinalIgnoreCase))
+                return Task.FromResult<(bool IsValid, string? ErrorMessage)>((false, "Only ICO and PNG files are allowed for favicons"));
 
             if (fileSizeBytes > MaxFaviconSizeBytes)
-                return Task.FromResult((false, $"Favicon file size cannot exceed {MaxFaviconSizeBytes / 1024} KB"));
+                return Task.FromResult<(bool IsValid, string? ErrorMessage)>((false, $"Favicon file size cannot exceed {MaxFaviconSizeBytes / 1024} KB"));
 
             if (fileSizeBytes == 0)
-                return Task.FromResult((false, "Favicon file cannot be empty"));
+                return Task.FromResult<(bool IsValid, string? ErrorMessage)>((false, "Favicon file cannot be empty"));
 
-            return Task.FromResult((true, null as string?));
+            return Task.FromResult<(bool IsValid, string? ErrorMessage)>((true, null));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error validating favicon");
-            return Task.FromResult((false, "Error validating favicon"));
+            return Task.FromResult<(bool IsValid, string? ErrorMessage)>((false, "Error validating favicon"));
+        }
+    }
+
+    private static (bool IsValid, string? ErrorMessage) ValidateLogoDimensions(byte[] fileData)
+    {
+        try
+        {
+            using var image = Image.Load(fileData);
+            if (image.Width != image.Height)
+                return (false, "Logo must be a square image");
+
+            if (image.Width < MinLogoDimension || image.Width > MaxLogoDimension)
+            {
+                return (false, $"Logo dimensions must be between {MinLogoDimension}x{MinLogoDimension} and {MaxLogoDimension}x{MaxLogoDimension}px");
+            }
+
+            return (true, null);
+        }
+        catch
+        {
+            return (false, "Unable to read logo dimensions");
+        }
+    }
+
+    private static (bool IsValid, string? ErrorMessage) ValidateFaviconDimensions(byte[] fileData)
+    {
+        try
+        {
+            using var image = Image.Load(fileData);
+            if (image.Width != image.Height)
+                return (false, "Favicon must be a square image");
+
+            if (!AllowedFaviconDimensions.Contains(image.Width))
+                return (false, "Favicon dimensions must be 32x32 or 64x64px");
+
+            return (true, null);
+        }
+        catch
+        {
+            return (false, "Unable to read favicon dimensions");
         }
     }
 

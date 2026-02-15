@@ -258,6 +258,16 @@ const commonShadows = [
 
 // Function to get component overrides for a specific theme mode
 const getComponentOverrides = (colors: typeof md3LightColors, isDark: boolean): ThemeOptions['components'] => ({
+  MuiButtonBase: {
+    styleOverrides: {
+      root: {
+        '&.Mui-focusVisible': {
+          outline: `3px solid ${colors.primary}`,
+          outlineOffset: 2,
+        },
+      },
+    },
+  },
   MuiButton: {
     styleOverrides: {
       root: {
@@ -436,6 +446,10 @@ const getComponentOverrides = (colors: typeof md3LightColors, isDark: boolean): 
       body: {
         backgroundColor: colors.background,
         color: colors.onBackground,
+      },
+      ':focus-visible': {
+        outline: `3px solid ${colors.primary}`,
+        outlineOffset: 2,
       },
     },
   },

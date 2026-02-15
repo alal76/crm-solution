@@ -119,9 +119,9 @@ public class AuthResponse
 /// </summary>
 public class UserPermissions
 {
-    public bool CanCreateCustomers { get; set; }
-    public bool CanEditCustomers { get; set; }
-    public bool CanDeleteCustomers { get; set; }
+    public bool CanCreateAccounts { get; set; }
+    public bool CanEditAccounts { get; set; }
+    public bool CanDeleteAccounts { get; set; }
 
     public bool CanCreateOpportunities { get; set; }
     public bool CanEditOpportunities { get; set; }
@@ -145,7 +145,7 @@ public class GroupPermissionsDto
 
     // Menu Access
     public bool CanAccessDashboard { get; set; } = true;
-    public bool CanAccessCustomers { get; set; }
+    public bool CanAccessAccounts { get; set; }
     public bool CanAccessContacts { get; set; }
     public bool CanAccessLeads { get; set; }
     public bool CanAccessOpportunities { get; set; }
@@ -164,10 +164,10 @@ public class GroupPermissionsDto
     public bool CanAccessUserManagement { get; set; }
 
     // CRUD Permissions
-    public bool CanCreateCustomers { get; set; }
-    public bool CanEditCustomers { get; set; }
-    public bool CanDeleteCustomers { get; set; }
-    public bool CanViewAllCustomers { get; set; }
+    public bool CanCreateAccounts { get; set; }
+    public bool CanEditAccounts { get; set; }
+    public bool CanDeleteAccounts { get; set; }
+    public bool CanViewAllAccounts { get; set; }
 
     public bool CanCreateContacts { get; set; }
     public bool CanEditContacts { get; set; }

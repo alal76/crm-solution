@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using CRM.Core.Dtos;
+using CRM.Core.Validation;
 using CRM.Infrastructure.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -66,11 +67,17 @@ public class ModuleUIConfigController : ControllerBase
     {
         try
         {
+            UiConfigurationValidator.ValidateModuleName(moduleName);
             var config = await _service.GetModuleConfigAsync(moduleName);
             if (config == null)
                 return NotFound(new { message = $"Module configuration not found for {moduleName}" });
 
             return Ok(config);
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning(ex, "Validation error getting module UI configuration for {ModuleName}", moduleName);
+            return BadRequest(new { message = ex.Message });
         }
         catch (Exception ex)
         {
@@ -89,11 +96,17 @@ public class ModuleUIConfigController : ControllerBase
     {
         try
         {
+            UiConfigurationValidator.ValidateModuleName(moduleName);
             var config = await _service.GetCompleteModuleConfigAsync(moduleName);
             if (config == null)
                 return NotFound(new { message = $"Module configuration not found for {moduleName}" });
 
             return Ok(config);
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning(ex, "Validation error getting complete module configuration for {ModuleName}", moduleName);
+            return BadRequest(new { message = ex.Message });
         }
         catch (Exception ex)
         {
@@ -112,8 +125,15 @@ public class ModuleUIConfigController : ControllerBase
     {
         try
         {
+            UiConfigurationValidator.ValidateModuleName(dto.ModuleName);
             var result = await _service.CreateModuleConfigAsync(dto);
+            _logger.LogInformation("AUDIT: ModuleUIConfigCreated {ModuleName}", result.ModuleName);
             return CreatedAtAction(nameof(GetModuleConfig), new { moduleName = result.ModuleName }, result);
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning(ex, "Validation error creating module UI configuration");
+            return BadRequest(new { message = ex.Message });
         }
         catch (Exception ex)
         {
@@ -133,11 +153,18 @@ public class ModuleUIConfigController : ControllerBase
     {
         try
         {
+            UiConfigurationValidator.ValidateModuleName(moduleName);
             var result = await _service.UpdateModuleConfigAsync(moduleName, dto);
             if (result == null)
                 return NotFound(new { message = $"Module configuration not found for {moduleName}" });
 
+            _logger.LogInformation("AUDIT: ModuleUIConfigUpdated {ModuleName}", moduleName);
             return Ok(result);
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning(ex, "Validation error updating module UI configuration for {ModuleName}", moduleName);
+            return BadRequest(new { message = ex.Message });
         }
         catch (Exception ex)
         {
@@ -157,7 +184,13 @@ public class ModuleUIConfigController : ControllerBase
         try
         {
             var result = await _service.BatchUpdateModulesAsync(dto);
+            _logger.LogInformation("AUDIT: ModuleUIConfigBatchUpdated {Count}", dto.Modules.Count);
             return Ok(result);
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning(ex, "Validation error batch updating module configurations");
+            return BadRequest(new { message = ex.Message });
         }
         catch (Exception ex)
         {
@@ -177,11 +210,18 @@ public class ModuleUIConfigController : ControllerBase
     {
         try
         {
+            UiConfigurationValidator.ValidateModuleName(moduleName);
             var result = await _service.UpdateLinkedEntitiesAsync(moduleName, linkedEntities);
             if (result == null)
                 return NotFound(new { message = $"Module configuration not found for {moduleName}" });
 
+            _logger.LogInformation("AUDIT: ModuleUIConfigLinkedEntitiesUpdated {ModuleName} {Count}", moduleName, linkedEntities.Count);
             return Ok(result);
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning(ex, "Validation error updating linked entities for {ModuleName}", moduleName);
+            return BadRequest(new { message = ex.Message });
         }
         catch (Exception ex)
         {
@@ -201,11 +241,18 @@ public class ModuleUIConfigController : ControllerBase
     {
         try
         {
+            UiConfigurationValidator.ValidateModuleName(moduleName);
             var result = await _service.UpdateTabsConfigAsync(moduleName, tabs);
             if (result == null)
                 return NotFound(new { message = $"Module configuration not found for {moduleName}" });
 
+            _logger.LogInformation("AUDIT: ModuleUIConfigTabsUpdated {ModuleName} {Count}", moduleName, tabs.Count);
             return Ok(result);
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning(ex, "Validation error updating tabs config for {ModuleName}", moduleName);
+            return BadRequest(new { message = ex.Message });
         }
         catch (Exception ex)
         {
@@ -225,11 +272,19 @@ public class ModuleUIConfigController : ControllerBase
     {
         try
         {
+            UiConfigurationValidator.ValidateModuleName(moduleName);
             var result = await _service.SaveCompleteModuleConfigAsync(moduleName, dto);
             if (result == null)
                 return NotFound(new { message = $"Module configuration not found for {moduleName}" });
 
+            _logger.LogInformation("AUDIT: ModuleUIConfigCompleteSaved {ModuleName} Tabs={TabCount} Fields={FieldCount} Links={LinkCount}",
+                moduleName, dto.Tabs.Count, dto.Fields.Count, dto.LinkedEntities.Count);
             return Ok(result);
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning(ex, "Validation error saving complete module configuration for {ModuleName}", moduleName);
+            return BadRequest(new { message = ex.Message });
         }
         catch (Exception ex)
         {
@@ -249,11 +304,18 @@ public class ModuleUIConfigController : ControllerBase
     {
         try
         {
+            UiConfigurationValidator.ValidateModuleName(moduleName);
             var result = await _service.ResetModuleToDefaultsAsync(moduleName);
             if (result == null)
                 return NotFound(new { message = $"Module configuration not found for {moduleName}" });
 
+            _logger.LogInformation("AUDIT: ModuleUIConfigResetToDefaults {ModuleName}", moduleName);
             return Ok(result);
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning(ex, "Validation error resetting module {ModuleName} to defaults", moduleName);
+            return BadRequest(new { message = ex.Message });
         }
         catch (Exception ex)
         {
@@ -273,6 +335,7 @@ public class ModuleUIConfigController : ControllerBase
         try
         {
             await _service.InitializeDefaultConfigsAsync();
+            _logger.LogInformation("AUDIT: ModuleUIConfigDefaultsInitialized");
             return Ok(new { message = "Default module configurations initialized successfully" });
         }
         catch (Exception ex)
@@ -293,11 +356,18 @@ public class ModuleUIConfigController : ControllerBase
     {
         try
         {
+            UiConfigurationValidator.ValidateModuleName(moduleName);
             var result = await _service.ToggleModuleAsync(moduleName, enabled);
             if (result == null)
                 return NotFound(new { message = $"Module configuration not found for {moduleName}" });
 
+            _logger.LogInformation("AUDIT: ModuleUIConfigToggled {ModuleName} {Enabled}", moduleName, enabled);
             return Ok(result);
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning(ex, "Validation error toggling module {ModuleName}", moduleName);
+            return BadRequest(new { message = ex.Message });
         }
         catch (Exception ex)
         {

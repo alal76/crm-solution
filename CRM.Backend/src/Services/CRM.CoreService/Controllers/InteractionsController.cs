@@ -42,7 +42,7 @@ public class InteractionsController : ControllerBase
 
     [HttpGet]
     public async Task<ActionResult<IEnumerable<Interaction>>> GetInteractions(
-        [FromQuery] int? customerId = null,
+        [FromQuery] int? accountId = null,
         [FromQuery] int? opportunityId = null,
         [FromQuery] int? assignedToUserId = null,
         [FromQuery] InteractionType? interactionType = null,
@@ -56,8 +56,8 @@ public class InteractionsController : ControllerBase
             .Include(i => i.AssignedToUser)
             .AsQueryable();
 
-        if (customerId.HasValue)
-            query = query.Where(i => i.AccountId == customerId);
+        if (accountId.HasValue)
+            query = query.Where(i => i.AccountId == accountId);
         if (opportunityId.HasValue)
             query = query.Where(i => i.OpportunityId == opportunityId);
         if (assignedToUserId.HasValue)
@@ -118,15 +118,15 @@ public class InteractionsController : ControllerBase
 
         if (interaction.AccountId > 0)
         {
-            var customer = await _context.Customers.FindAsync(interaction.AccountId);
-            if (customer != null)
+            var account = await _context.Accounts.FindAsync(interaction.AccountId);
+            if (account != null)
             {
-                customer.LastActivityDate = DateTime.UtcNow;
+                account.LastActivityDate = DateTime.UtcNow;
                 await _context.SaveChangesAsync();
             }
         }
 
-        _logger.LogInformation("Interaction {InteractionId} created for customer {CustomerId}", interaction.Id, interaction.AccountId);
+        _logger.LogInformation("Interaction {InteractionId} created for account {AccountId}", interaction.Id, interaction.AccountId);
         return CreatedAtAction(nameof(GetInteraction), new { id = interaction.Id }, interaction);
     }
 
@@ -188,7 +188,7 @@ public class InteractionsController : ControllerBase
     {
         var interaction = new Interaction
         {
-            AccountId = request.CustomerId,
+            AccountId = request.AccountId,
             OpportunityId = request.OpportunityId,
             InteractionType = request.InteractionType,
             Direction = request.Direction,
@@ -210,25 +210,25 @@ public class InteractionsController : ControllerBase
 
         if (interaction.AccountId > 0)
         {
-            var customer = await _context.Customers.FindAsync(interaction.AccountId);
-            if (customer != null)
+            var account = await _context.Accounts.FindAsync(interaction.AccountId);
+            if (account != null)
             {
-                customer.LastActivityDate = DateTime.UtcNow;
+                account.LastActivityDate = DateTime.UtcNow;
                 await _context.SaveChangesAsync();
             }
         }
 
-        _logger.LogInformation("Quick interaction logged for customer {CustomerId}: {Type}", request.CustomerId, request.InteractionType);
+        _logger.LogInformation("Quick interaction logged for account {AccountId}: {Type}", request.AccountId, request.InteractionType);
         return CreatedAtAction(nameof(GetInteraction), new { id = interaction.Id }, interaction);
     }
 
-    [HttpGet("customer/{customerId}/history")]
-    public async Task<ActionResult<IEnumerable<Interaction>>> GetCustomerHistory(int customerId, [FromQuery] int limit = 50)
+    [HttpGet("account/{accountId}/history")]
+    public async Task<ActionResult<IEnumerable<Interaction>>> GetAccountHistory(int accountId, [FromQuery] int limit = 50)
     {
         var interactions = await _context.Interactions
             .Include(i => i.AssignedToUser)
             .Include(i => i.Opportunity)
-            .Where(i => i.AccountId == customerId)
+            .Where(i => i.AccountId == accountId)
             .OrderByDescending(i => i.InteractionDate)
             .Take(limit)
             .ToListAsync();
@@ -322,7 +322,7 @@ public class InteractionsController : ControllerBase
                 return NotFound(new { message = "Interaction not found" });
 
             if (interaction.AccountId <= 0)
-                return BadRequest(new { message = "Interaction must be linked to a customer before creating a service request" });
+                return BadRequest(new { message = "Interaction must be linked to an account before creating a service request" });
 
             // Determine priority
             var priority = ServiceRequestPriority.Medium;
@@ -394,12 +394,12 @@ public class InteractionsController : ControllerBase
             if (interaction == null)
                 return NotFound(new { message = "Interaction not found" });
 
-            var customerId = request.CustomerId ?? interaction.AccountId;
+            var accountId = request.AccountId ?? interaction.AccountId;
 
-            // Create customer if needed and none exists
-            if (customerId <= 0 && request.CreateCustomerIfNeeded)
+            // Create account if needed and none exists
+            if (accountId <= 0 && request.CreateAccountIfNeeded)
             {
-                var newCustomer = new Account
+                var newAccount = new Account
                 {
                     Category = AccountCategory.Individual,
                     FirstName = request.FirstName,
@@ -410,17 +410,17 @@ public class InteractionsController : ControllerBase
                     LeadSource = $"Interaction-{interaction.InteractionType}",
                     CreatedAt = DateTime.UtcNow
                 };
-                _context.Customers.Add(newCustomer);
+                _context.Accounts.Add(newAccount);
                 await _context.SaveChangesAsync();
-                customerId = newCustomer.Id;
+                accountId = newAccount.Id;
             }
 
-            if (customerId <= 0)
-                return BadRequest(new { message = "CustomerId is required or CreateCustomerIfNeeded must be true" });
+            if (accountId <= 0)
+                return BadRequest(new { message = "AccountId is required or CreateAccountIfNeeded must be true" });
 
             var contact = new Contact
             {
-                AccountId = customerId,
+                AccountId = accountId,
                 FirstName = request.FirstName,
                 LastName = request.LastName,
                 EmailPrimary = request.Email ?? interaction.EmailAddress,
@@ -436,14 +436,14 @@ public class InteractionsController : ControllerBase
             // Link interaction to the new contact
             interaction.ContactId = contact.Id;
             if (interaction.AccountId <= 0)
-                interaction.AccountId = customerId;
+                interaction.AccountId = accountId;
             interaction.UpdatedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync();
 
             _logger.LogInformation("Created contact {ContactId} from interaction {InteractionId}",
                 contact.Id, interaction.Id);
 
-            return Ok(new { contactId = contact.Id, customerId = customerId });
+            return Ok(new { contactId = contact.Id, accountId = accountId });
         }
         catch (Exception ex)
         {
@@ -453,7 +453,7 @@ public class InteractionsController : ControllerBase
     }
 
     /// <summary>
-    /// Link an interaction to entities (customer, contact, opportunity, service request)
+    /// Link an interaction to entities (account, contact, opportunity, service request)
     /// </summary>
     [HttpPost("{id}/link")]
     public async Task<IActionResult> LinkInteraction(int id, [FromBody] LinkInteractionRequest request)
@@ -464,12 +464,12 @@ public class InteractionsController : ControllerBase
             if (interaction == null)
                 return NotFound(new { message = "Interaction not found" });
 
-            if (request.CustomerId.HasValue)
+            if (request.AccountId.HasValue)
             {
-                var customer = await _context.Customers.FindAsync(request.CustomerId.Value);
-                if (customer == null)
-                    return BadRequest(new { message = "Customer not found" });
-                interaction.AccountId = request.CustomerId.Value;
+                var account = await _context.Accounts.FindAsync(request.AccountId.Value);
+                if (account == null)
+                    return BadRequest(new { message = "Account not found" });
+                interaction.AccountId = request.AccountId.Value;
             }
 
             if (request.ContactId.HasValue)
@@ -572,7 +572,7 @@ public class InteractionsController : ControllerBase
         var interactions = await _context.Interactions
             .Include(i => i.Account)
             .Where(i =>
-                // Unlinked to customer
+                // Unlinked to account
                 (i.AccountId <= 0) ||
                 // Follow-up overdue
                 (i.FollowUpDate != null && i.FollowUpDate < now && !i.IsCompleted) ||
@@ -609,7 +609,7 @@ public class CompleteInteractionRequest
 
 public class LogInteractionRequest
 {
-    public int CustomerId { get; set; }
+    public int AccountId { get; set; }
     public int? OpportunityId { get; set; }
     public InteractionType InteractionType { get; set; }
     public InteractionDirection Direction { get; set; } = InteractionDirection.Outbound;
@@ -639,13 +639,13 @@ public class CreateContactFromInteractionRequest
     public string? Email { get; set; }
     public string? Phone { get; set; }
     public string? Title { get; set; }
-    public int? CustomerId { get; set; }
-    public bool CreateCustomerIfNeeded { get; set; } = false;
+    public int? AccountId { get; set; }
+    public bool CreateAccountIfNeeded { get; set; } = false;
 }
 
 public class LinkInteractionRequest
 {
-    public int? CustomerId { get; set; }
+    public int? AccountId { get; set; }
     public int? ContactId { get; set; }
     public int? OpportunityId { get; set; }
     public int? ServiceRequestId { get; set; }

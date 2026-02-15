@@ -264,7 +264,7 @@ public class LeadsController : ControllerBase
             var opportunity = new Opportunity
             {
                 Name = request.OpportunityName ?? $"{lead.CompanyName} - Opportunity",
-                AccountId = request.CustomerId ?? lead.AccountId ?? 0, // AccountId is required
+                AccountId = request.AccountId ?? lead.AccountId ?? 0, // AccountId is required
                 PrimaryContactId = lead.ContactId,
                 Amount = request.EstimatedValue ?? 0,
                 Stage = OpportunityStage.Discovery,
@@ -401,7 +401,7 @@ public class UpdateLeadRequest
 public class ConvertLeadRequest
 {
     public string? OpportunityName { get; set; }
-    public int? CustomerId { get; set; }
+    public int? AccountId { get; set; }
     public decimal? EstimatedValue { get; set; }
     public DateTime? ExpectedCloseDate { get; set; }
 }

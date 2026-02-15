@@ -27,6 +27,9 @@ var builder = WebApplication.CreateBuilder(args);
 // Add service defaults (logging, auth, CORS, health checks)
 builder.AddServiceDefaults();
 
+// Add in-memory cache for preference caching
+builder.Services.AddMemoryCache();
+
 // Add controllers from this assembly explicitly
 builder.Services.AddControllers()
     .AddApplicationPart(typeof(Program).Assembly);
@@ -40,6 +43,7 @@ builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 // Register shared/utility services
 builder.Services.AddScoped<NormalizationService>();
 builder.Services.AddScoped<IContactInfoService, ContactInfoService>();
+builder.Services.AddScoped<IPreferencesService, PreferencesService>();
 
 // Register customer-related services
 builder.Services.AddScoped<IAccountService, AccountService>();

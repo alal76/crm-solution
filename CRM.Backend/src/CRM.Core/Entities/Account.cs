@@ -85,7 +85,7 @@ public enum AccountPriority
 /// Account entity for managing account information
 /// Supports both Individual and Organization accounts
 /// </summary>
-[Table("Customers")] // Keep table name for backward compatibility during migration
+[Table("Accounts")]
 public class Account : BaseEntity
 {
     #region Category & Type
@@ -211,70 +211,6 @@ public class Account : BaseEntity
     [MaxLength(500)]
     [Url]
     public string? Website { get; set; }
-
-    #endregion
-
-    #region Address - Primary/Billing
-
-    /// <summary>Street address</summary>
-    [Required]
-    [MaxLength(255)]
-    public string Address { get; set; } = string.Empty;
-
-    /// <summary>Address line 2</summary>
-    [MaxLength(255)]
-    public string? Address2 { get; set; }
-
-    /// <summary>City</summary>
-    [Required]
-    [MaxLength(100)]
-    public string City { get; set; } = string.Empty;
-
-    /// <summary>State/Province</summary>
-    [Required]
-    [MaxLength(100)]
-    public string State { get; set; } = string.Empty;
-
-    /// <summary>Postal/ZIP code</summary>
-    [Required]
-    [MaxLength(20)]
-    public string ZipCode { get; set; } = string.Empty;
-
-    /// <summary>Country</summary>
-    [Required]
-    [MaxLength(100)]
-    public string Country { get; set; } = string.Empty;
-
-    #endregion
-
-    #region Address - Shipping
-
-    /// <summary>Shipping street address</summary>
-    [MaxLength(255)]
-    public string? ShippingAddress { get; set; }
-
-    /// <summary>Shipping address line 2</summary>
-    [MaxLength(255)]
-    public string? ShippingAddress2 { get; set; }
-
-    /// <summary>Shipping city</summary>
-    [MaxLength(100)]
-    public string? ShippingCity { get; set; }
-
-    /// <summary>Shipping state</summary>
-    [MaxLength(100)]
-    public string? ShippingState { get; set; }
-
-    /// <summary>Shipping postal/ZIP code</summary>
-    [MaxLength(20)]
-    public string? ShippingZipCode { get; set; }
-
-    /// <summary>Shipping country</summary>
-    [MaxLength(100)]
-    public string? ShippingCountry { get; set; }
-
-    /// <summary>Whether shipping address is same as billing</summary>
-    public bool ShippingSameAsBilling { get; set; } = true;
 
     #endregion
 
@@ -415,30 +351,23 @@ public class Account : BaseEntity
     [Url]
     public string? FacebookUrl { get; set; }
 
-    /// <summary>Email marketing opt-in</summary>
-    public bool OptInEmail { get; set; } = true;
-
-    /// <summary>SMS marketing opt-in</summary>
-    public bool OptInSms { get; set; } = false;
-
-    /// <summary>Phone marketing opt-in</summary>
-    public bool OptInPhone { get; set; } = true;
-
-    /// <summary>Preferred contact method</summary>
-    [MaxLength(50)]
-    public string? PreferredContactMethod { get; set; }
-
     /// <summary>Preferred contact time</summary>
     [MaxLength(50)]
     public string? PreferredContactTime { get; set; }
 
-    /// <summary>Timezone</summary>
-    [MaxLength(100)]
-    public string? Timezone { get; set; }
+    #endregion
 
-    /// <summary>Preferred language</summary>
-    [MaxLength(50)]
-    public string? PreferredLanguage { get; set; }
+    #region Preferences
+
+    /// <summary>
+    /// Default communication preferences for this account.
+    /// </summary>
+    public int? PreferencesId { get; set; }
+
+    /// <summary>
+    /// Default preferences entity (shared across contacts unless overridden).
+    /// </summary>
+    public Preferences? Preferences { get; set; }
 
     #endregion
 

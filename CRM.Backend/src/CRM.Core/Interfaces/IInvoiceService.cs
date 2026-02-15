@@ -28,7 +28,7 @@ public interface IInvoiceService
 
     /// <summary>Gets all invoices with optional filtering.</summary>
     Task<IEnumerable<Invoice>> GetAllAsync(
-        int? customerId = null,
+        int? accountId = null,
         InvoiceStatus? status = null,
         CancellationToken cancellationToken = default);
 
@@ -60,7 +60,7 @@ public interface IInvoiceService
     /// <summary>Generates the next invoice number.</summary>
     Task<string> GenerateInvoiceNumberAsync(CancellationToken cancellationToken = default);
 
-    /// <summary>Sends an invoice to the customer.</summary>
+    /// <summary>Sends an invoice to the account.</summary>
     Task<bool> SendInvoiceAsync(int invoiceId, CancellationToken cancellationToken = default);
 
     /// <summary>Marks an invoice as viewed.</summary>
@@ -105,8 +105,8 @@ public interface IInvoiceService
     /// <summary>Gets invoices due within a date range.</summary>
     Task<IEnumerable<Invoice>> GetInvoicesDueAsync(DateTime fromDate, DateTime toDate, CancellationToken cancellationToken = default);
 
-    /// <summary>Gets invoice statistics for a customer.</summary>
-    Task<InvoiceStatistics> GetCustomerStatisticsAsync(int customerId, CancellationToken cancellationToken = default);
+    /// <summary>Gets invoice statistics for an account.</summary>
+    Task<InvoiceStatistics> GetAccountStatisticsAsync(int accountId, CancellationToken cancellationToken = default);
 
     #endregion
 

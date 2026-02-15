@@ -77,8 +77,8 @@ public enum ReportDataSource
     /// <summary>Opportunities</summary>
     Opportunities = 1,
 
-    /// <summary>Customers</summary>
-    Customers = 2,
+    /// <summary>Accounts</summary>
+    Accounts = 2,
 
     /// <summary>Contacts</summary>
     Contacts = 3,

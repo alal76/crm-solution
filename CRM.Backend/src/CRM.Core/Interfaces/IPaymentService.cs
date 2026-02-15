@@ -28,7 +28,7 @@ public interface IPaymentService
 
     /// <summary>Gets all payments with optional filtering.</summary>
     Task<IEnumerable<Payment>> GetAllAsync(
-        int? customerId = null,
+        int? accountId = null,
         int? invoiceId = null,
         PaymentStatus? status = null,
         CancellationToken cancellationToken = default);
@@ -102,8 +102,8 @@ public interface IPaymentService
     /// <summary>Gets payment statistics.</summary>
     Task<PaymentStatistics> GetStatisticsAsync(DateTime? fromDate = null, DateTime? toDate = null, CancellationToken cancellationToken = default);
 
-    /// <summary>Gets payment history for a customer.</summary>
-    Task<IEnumerable<Payment>> GetCustomerPaymentHistoryAsync(int customerId, CancellationToken cancellationToken = default);
+    /// <summary>Gets payment history for an account.</summary>
+    Task<IEnumerable<Payment>> GetAccountPaymentHistoryAsync(int accountId, CancellationToken cancellationToken = default);
 
     #endregion
 

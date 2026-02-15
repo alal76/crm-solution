@@ -69,3 +69,21 @@ html, body, #root {
   width: auto;
   margin-bottom: 0;
 }
+
+/* Skip link for keyboard navigation */
+.skip-link {
+  position: absolute;
+  top: -40px;
+  left: 16px;
+  background: #ffffff;
+  color: #1c1b1f;
+  padding: 8px 12px;
+  border-radius: 6px;
+  text-decoration: none;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  z-index: 10000;
+}
+
+.skip-link:focus {
+  top: 16px;
+}

@@ -793,7 +793,7 @@ public class WorkflowWorkerService : BackgroundService
         {
             object? entity = entityType.ToLowerInvariant() switch
             {
-                "account" or "customer" => await dbContext.Customers.FindAsync(new object[] { entityId }, ct),
+                "account" or "customer" => await dbContext.Accounts.FindAsync(new object[] { entityId }, ct),
                 "contact" => await dbContext.Contacts.FindAsync(new object[] { entityId }, ct),
                 "lead" => await dbContext.Leads.FindAsync(new object[] { entityId }, ct),
                 "opportunity" => await dbContext.Opportunities.FindAsync(new object[] { entityId }, ct),

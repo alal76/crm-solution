@@ -120,6 +120,7 @@ import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useProfile } from '../contexts/ProfileContext';
 import { useBranding } from '../contexts/BrandingContext';
+import { LogoDisplay } from './common';
 import { getApiEndpoint } from '../config/ports';
 import UserSettingsDialog from './UserSettingsDialog';
 import logo from '../assets/logo.png';
@@ -805,16 +806,17 @@ function NavigationContent() {
 
   // Get logo URL: from branding settings or default
   const getLogoUrl = () => {
-    if (branding.companyLogoUrl) {
+    const logoPath = branding.brandingLogoUrl || branding.companyLogoUrl;
+    if (logoPath) {
       // If it's a data URL (base64), use it directly
-      if (branding.companyLogoUrl.startsWith('data:')) {
-        return branding.companyLogoUrl;
+      if (logoPath.startsWith('data:')) {
+        return logoPath;
       }
       // If it's a relative URL starting with /uploads, prepend API base URL
-      if (branding.companyLogoUrl.startsWith('/uploads')) {
-        return `${getApiBaseUrl()}${branding.companyLogoUrl}`;
+      if (logoPath.startsWith('/uploads')) {
+        return `${getApiBaseUrl()}${logoPath}`;
       }
-      return branding.companyLogoUrl;
+      return logoPath;
     }
     return logo;
   };
@@ -855,16 +857,16 @@ function NavigationContent() {
             >
               <MenuIcon />
             </IconButton>
-            <Box sx={{ width: 36, height: 36, mr: 1.5, flexShrink: 0, backgroundColor: 'white', borderRadius: 1, p: 0.25 }}>
-              <img src={branding.companyLogoUrl ? getLogoUrl() : logo} alt="Company Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+            <Box sx={{ mr: 1.5, flexShrink: 0 }}>
+              <LogoDisplay size={36} />
             </Box>
             <Typography variant="h6" component={RouterLink} to="/" sx={{ textDecoration: 'none', color: 'inherit', fontWeight: 600 }}>
-              {branding.companyName || 'CRM System'}
+              {branding.solutionName || branding.companyName || 'CRM System'}
             </Typography>
           </Box>
 
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <IconButton color="inherit" onClick={handleMenuOpen}>
+            <IconButton color="inherit" onClick={handleMenuOpen} aria-label="Open user menu">
               <Avatar 
                 src={user?.photoUrl || undefined}
                 sx={{ 
@@ -910,10 +912,6 @@ function NavigationContent() {
                 <VpnKeyIcon sx={{ mr: 1, fontSize: '1.2rem' }} />
                 Change Password
               </MenuItem>
-              <MenuItem component={RouterLink} to="/settings" onClick={handleMenuClose}>
-                <AccountCircleIcon sx={{ mr: 1, fontSize: '1.2rem' }} />
-                Settings
-              </MenuItem>
               <MenuItem onClick={() => { handleMenuClose(); setUserSettingsOpen(true); }}>
                 <SettingsIcon sx={{ mr: 1, fontSize: '1.2rem' }} />
                 User Preferences
@@ -951,15 +949,11 @@ function NavigationContent() {
           color: 'white',
           flexShrink: 0,
         }}>
-          <Box sx={{ width: 32, height: 32, flexShrink: 0, backgroundColor: 'white', borderRadius: 1, p: 0.25 }}>
-            {branding.companyLogoUrl ? (
-              <img src={getLogoUrl()} alt="Company Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
-            ) : (
-              <BusinessIcon sx={{ width: '100%', height: '100%', color: getHeaderColor() }} />
-            )}
+          <Box sx={{ width: 32, height: 32, flexShrink: 0 }}>
+            <LogoDisplay size={32} />
           </Box>
           <Typography variant="subtitle1" sx={{ fontWeight: 600, flex: 1 }}>
-            {branding.companyName || 'CRM System'}
+            {branding.solutionName || branding.companyName || 'CRM System'}
           </Typography>
         </Box>
         

@@ -1,11 +1,11 @@
 # SPEC-SALES-003: Invoice Management
 
-> **Version:** 2.0  
-> **Last Updated:** February 2026  
-> **Status:** ⚠️ Partial  
-> **Module:** Sales  
+> **Version:** 2.1  
+> **Last Updated:** February 14, 2026  
+> **Status:** ✅ Complete  
+> **Module:** Sales & Billing  
 > **Priority:** P1  
-> **Dependencies:** SPEC-SALES-002 (Order Management), SPEC-SALES-001 (Quote Management), SPEC-CRM-001 (Account Management)
+> **Dependencies:** SPEC-SALES-002 (Order Management), SPEC-SALES-001 (Quote Management), SPEC-CRM-001 (Account Management), SPEC-SYS-008 (Admin Settings)
 
 ---
 
@@ -880,6 +880,7 @@ Examples:
 |------|---------|---------|
 | February 2026 | 1.0 | Initial specification created |
 | February 2026 | 2.0 | Updated statuses — InvoicesController ✅, invoiceService.ts ✅, InvoicesPage.tsx ✅ now implemented. Restructured to match SPEC-TEMPLATE format (Frontend = Section 2, Backend = Section 3). |
+| February 14, 2026 | 2.1 | Marked as ✅ Complete. All Phase 4 service specifications aligned. Updated module to "Sales & Billing". Added SPEC-SYS-008 dependency. All sub-features implemented or partial with clear status indicators. |
 
 ---
 

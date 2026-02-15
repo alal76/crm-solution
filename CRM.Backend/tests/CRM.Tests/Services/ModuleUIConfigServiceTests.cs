@@ -255,6 +255,22 @@ public class ModuleUIConfigServiceTests
         _mockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
+    [Fact]
+    public async Task CreateModuleConfigAsync_EmptyModuleName_ShouldThrow()
+    {
+        SetupModuleConfigs(new List<ModuleUIConfig>());
+
+        var dto = new CreateModuleUIConfigDto
+        {
+            ModuleName = " ",
+            DisplayName = "Invalid",
+        };
+
+        var action = async () => await _service.CreateModuleConfigAsync(dto);
+
+        await action.Should().ThrowAsync<ArgumentException>();
+    }
+
     // ───────────────────────────────────────────────────
     // UpdateModuleConfigAsync
     // ───────────────────────────────────────────────────
@@ -280,6 +296,16 @@ public class ModuleUIConfigServiceTests
         result.IconName.Should().Be("Business");
         result.IsEnabled.Should().BeFalse();
         _mockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task UpdateModuleConfigAsync_EmptyModuleName_ShouldThrow()
+    {
+        SetupModuleConfigs(new List<ModuleUIConfig>());
+
+        var action = async () => await _service.UpdateModuleConfigAsync(" ", new UpdateModuleUIConfigDto());
+
+        await action.Should().ThrowAsync<ArgumentException>();
     }
 
     [Fact]

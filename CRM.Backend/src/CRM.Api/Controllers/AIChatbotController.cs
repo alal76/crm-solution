@@ -365,24 +365,24 @@ public class AIChatbotController : ControllerBase
         documentation.AppendLine("## Main Modules");
         documentation.AppendLine();
 
-        documentation.AppendLine("### Customers/Accounts");
-        documentation.AppendLine("- Manage both individual and organization customers");
+        documentation.AppendLine("### Accounts");
+        documentation.AppendLine("- Manage both individual and organization accounts");
         documentation.AppendLine("- Track customer information including contacts, addresses, and communication history");
         documentation.AppendLine("- Customer lifecycle stages: Lead, Prospect, Customer, Churned");
         documentation.AppendLine("- Customer categories: Individual (B2C) and Organization (B2B)");
         documentation.AppendLine();
 
         documentation.AppendLine("### Contacts");
-        documentation.AppendLine("- Store contact information linked to customers");
+        documentation.AppendLine("- Store contact information linked to accounts");
         documentation.AppendLine("- Multiple phone numbers, emails, and addresses per contact");
         documentation.AppendLine("- Social media links and communication preferences");
         documentation.AppendLine();
 
         documentation.AppendLine("### Leads");
-        documentation.AppendLine("- Track potential customers through the sales funnel");
+        documentation.AppendLine("- Track potential accounts through the sales funnel");
         documentation.AppendLine("- Lead stages: New, Contacted, Qualified, Proposal, Negotiation, Won, Lost");
         documentation.AppendLine("- Lead sources: Website, Referral, Campaign, Trade Show, etc.");
-        documentation.AppendLine("- Convert leads to opportunities or customers");
+        documentation.AppendLine("- Convert leads to opportunities or accounts");
         documentation.AppendLine();
 
         documentation.AppendLine("### Opportunities");
@@ -421,7 +421,7 @@ public class AIChatbotController : ControllerBase
         documentation.AppendLine("### Tasks & Activities");
         documentation.AppendLine("- Task management with due dates and assignments");
         documentation.AppendLine("- Activity tracking (calls, meetings, emails)");
-        documentation.AppendLine("- Link activities to customers, opportunities, and leads");
+        documentation.AppendLine("- Link activities to accounts, opportunities, and leads");
         documentation.AppendLine();
 
         documentation.AppendLine("### Workflows");
@@ -462,7 +462,7 @@ public class AIChatbotController : ControllerBase
         documentation.AppendLine("- AI-recommended retention strategies");
         documentation.AppendLine("- Churn probability percentage with confidence score");
         documentation.AppendLine("- Early warning indicators and alerts");
-        documentation.AppendLine("- Usage: Navigate to Customers > Select customer > Risk Assessment tab");
+        documentation.AppendLine("- Usage: Navigate to Accounts > Select account > Risk Assessment tab");
         documentation.AppendLine();
 
         documentation.AppendLine("### Next Best Action Recommendations");
@@ -496,13 +496,13 @@ public class AIChatbotController : ControllerBase
         // Get dynamic data about the system
         try
         {
-            var customerCount = await _context.Customers.CountAsync(c => !c.IsDeleted);
+            var accountCount = await _context.Accounts.CountAsync(c => !c.IsDeleted);
             var contactCount = await _context.Contacts.CountAsync();
             var opportunityCount = await _context.Opportunities.CountAsync(o => !o.IsDeleted);
             var productCount = await _context.Products.CountAsync(p => !p.IsDeleted);
 
             documentation.AppendLine("## Current System Statistics");
-            documentation.AppendLine($"- Total Customers: {customerCount}");
+            documentation.AppendLine($"- Total Accounts: {accountCount}");
             documentation.AppendLine($"- Total Contacts: {contactCount}");
             documentation.AppendLine($"- Total Opportunities: {opportunityCount}");
             documentation.AppendLine($"- Total Products: {productCount}");
@@ -522,12 +522,12 @@ public class AIChatbotController : ControllerBase
         documentation.AppendLine();
 
         documentation.AppendLine("## Tips");
-        documentation.AppendLine("- Use the search bar to quickly find customers, contacts, or opportunities");
+        documentation.AppendLine("- Use the search bar to quickly find accounts, contacts, or opportunities");
         documentation.AppendLine("- Select accounts in the Context Panel to filter data across pages");
         documentation.AppendLine("- Use workflows to automate repetitive tasks");
         documentation.AppendLine("- Set up email templates for consistent communication");
         documentation.AppendLine("- Review AI lead scores daily to prioritize high-value prospects");
-        documentation.AppendLine("- Check churn risk predictions weekly to proactively retain at-risk customers");
+        documentation.AppendLine("- Check churn risk predictions weekly to proactively retain at-risk accounts");
         documentation.AppendLine("- Use AI-suggested next best actions to optimize your sales approach");
         documentation.AppendLine("- Configure Allen AI models for cost-effective AI features (free tier available)");
 
@@ -577,7 +577,7 @@ public class AIChatbotController : ControllerBase
 
         try
         {
-            var accounts = await _context.Customers
+            var accounts = await _context.Accounts
                 .Where(c => accountIds.Contains(c.Id) && !c.IsDeleted)
                 .Select(c => new
                 {

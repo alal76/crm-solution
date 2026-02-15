@@ -175,7 +175,7 @@ public class AIPredictiveAnalyticsService : IAIPredictiveAnalyticsService
     {
         _logger.LogInformation("Predicting churn risk for Account {AccountId}", accountId);
 
-        var account = await _context.Customers
+        var account = await _context.Accounts
             .AsNoTracking()
             .FirstOrDefaultAsync(a => a.Id == accountId && !a.IsDeleted, cancellationToken);
 
@@ -487,7 +487,7 @@ public class AIPredictiveAnalyticsService : IAIPredictiveAnalyticsService
         // Factor 6: Account health (if linked)
         if (opportunity.AccountId > 0)
         {
-            var acct = await _context.Customers
+            var acct = await _context.Accounts
                 .AsNoTracking()
                 .FirstOrDefaultAsync(a => a.Id == opportunity.AccountId && !a.IsDeleted, cancellationToken);
 

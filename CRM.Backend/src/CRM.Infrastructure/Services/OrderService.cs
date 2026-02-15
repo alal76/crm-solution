@@ -43,7 +43,7 @@ public class OrderService : IOrderService
 
     /// <inheritdoc />
     public async Task<IEnumerable<Order>> GetAllAsync(
-        int? customerId = null,
+        int? accountId = null,
         OrderStatus? status = null,
         CancellationToken cancellationToken = default)
     {
@@ -52,9 +52,9 @@ public class OrderService : IOrderService
             .Include(o => o.LineItems)
             .Where(o => !o.IsDeleted);
 
-        if (customerId.HasValue)
+        if (accountId.HasValue)
         {
-            query = query.Where(o => o.AccountId == customerId.Value);
+            query = query.Where(o => o.AccountId == accountId.Value);
         }
 
         if (status.HasValue)

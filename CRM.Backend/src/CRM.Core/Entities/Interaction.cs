@@ -255,8 +255,8 @@ public class Interaction : BaseEntity
 
     #region Relationships
 
-    /// <summary>Associated customer ID</summary>
-    [Column("CustomerId")]
+    /// <summary>Associated account ID</summary>
+    [Column("AccountId")]
     public int? AccountId { get; set; }
 
     /// <summary>Associated contact ID</summary>

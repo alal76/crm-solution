@@ -66,7 +66,7 @@ CREATE TABLE IF NOT EXISTS `UserGroups` (
   `IsSystemAdmin` tinyint(1) NOT NULL DEFAULT 0,
   `AccessibleMenuItems` text DEFAULT '[]',
   `CanAccessDashboard` tinyint(1) NOT NULL DEFAULT 1,
-  `CanAccessCustomers` tinyint(1) NOT NULL DEFAULT 1,
+  `CanAccessAccounts` tinyint(1) NOT NULL DEFAULT 1,
   `CanAccessContacts` tinyint(1) NOT NULL DEFAULT 1,
   `CanAccessLeads` tinyint(1) NOT NULL DEFAULT 1,
   `CanAccessOpportunities` tinyint(1) NOT NULL DEFAULT 1,
@@ -82,10 +82,10 @@ CREATE TABLE IF NOT EXISTS `UserGroups` (
   `CanAccessReports` tinyint(1) NOT NULL DEFAULT 1,
   `CanAccessSettings` tinyint(1) NOT NULL DEFAULT 0,
   `CanAccessUserManagement` tinyint(1) NOT NULL DEFAULT 0,
-  `CanCreateCustomers` tinyint(1) NOT NULL DEFAULT 1,
-  `CanEditCustomers` tinyint(1) NOT NULL DEFAULT 1,
-  `CanDeleteCustomers` tinyint(1) NOT NULL DEFAULT 0,
-  `CanViewAllCustomers` tinyint(1) NOT NULL DEFAULT 1,
+  `CanCreateAccounts` tinyint(1) NOT NULL DEFAULT 1,
+  `CanEditAccounts` tinyint(1) NOT NULL DEFAULT 1,
+  `CanDeleteAccounts` tinyint(1) NOT NULL DEFAULT 0,
+  `CanViewAllAccounts` tinyint(1) NOT NULL DEFAULT 1,
   `CanCreateContacts` tinyint(1) NOT NULL DEFAULT 1,
   `CanEditContacts` tinyint(1) NOT NULL DEFAULT 1,
   `CanDeleteContacts` tinyint(1) NOT NULL DEFAULT 0,
@@ -185,9 +185,9 @@ CREATE TABLE IF NOT EXISTS `UserProfiles` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- ----------------------------------------------------------------------------
--- Table: Customers
+-- Table: Accounts
 -- ----------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS `Customers` (
+CREATE TABLE IF NOT EXISTS `Accounts` (
   `Id` int(11) NOT NULL AUTO_INCREMENT,
   `Name` varchar(200) NOT NULL,
   `Type` varchar(50) NOT NULL DEFAULT 'Business',
@@ -204,16 +204,16 @@ CREATE TABLE IF NOT EXISTS `Customers` (
   `LogoUrl` varchar(500) DEFAULT NULL,
   `OwnerId` int(11) DEFAULT NULL,
   `AssignedUserId` int(11) DEFAULT NULL,
-  `ParentCustomerId` int(11) DEFAULT NULL,
+  `ParentAccountId` int(11) DEFAULT NULL,
   `CreatedAt` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
   `UpdatedAt` datetime(6) DEFAULT NULL ON UPDATE CURRENT_TIMESTAMP(6),
   `IsDeleted` tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`Id`),
-  KEY `IX_Customers_OwnerId` (`OwnerId`),
-  KEY `IX_Customers_AssignedUserId` (`AssignedUserId`),
-  KEY `IX_Customers_ParentCustomerId` (`ParentCustomerId`),
-  KEY `IX_Customers_Status` (`Status`),
-  KEY `IX_Customers_Type` (`Type`)
+  KEY `IX_Accounts_OwnerId` (`OwnerId`),
+  KEY `IX_Accounts_AssignedUserId` (`AssignedUserId`),
+  KEY `IX_Accounts_ParentAccountId` (`ParentAccountId`),
+  KEY `IX_Accounts_Status` (`Status`),
+  KEY `IX_Accounts_Type` (`Type`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- ----------------------------------------------------------------------------
@@ -245,21 +245,21 @@ CREATE TABLE IF NOT EXISTS `Contacts` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- ----------------------------------------------------------------------------
--- Table: CustomerContacts (Junction table)
+-- Table: AccountContacts (Junction table)
 -- ----------------------------------------------------------------------------
-CREATE TABLE IF NOT EXISTS `CustomerContacts` (
+CREATE TABLE IF NOT EXISTS `AccountContacts` (
   `Id` int(11) NOT NULL AUTO_INCREMENT,
-  `CustomerId` int(11) NOT NULL,
+  `AccountId` int(11) NOT NULL,
   `ContactId` int(11) NOT NULL,
   `IsPrimary` tinyint(1) NOT NULL DEFAULT 0,
   `Role` varchar(100) DEFAULT NULL,
   `CreatedAt` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
   `IsDeleted` tinyint(1) NOT NULL DEFAULT 0,
   PRIMARY KEY (`Id`),
-  UNIQUE KEY `IX_CustomerContacts_CustomerId_ContactId` (`CustomerId`, `ContactId`),
-  KEY `IX_CustomerContacts_ContactId` (`ContactId`),
-  CONSTRAINT `FK_CustomerContacts_Customers` FOREIGN KEY (`CustomerId`) REFERENCES `Customers` (`Id`) ON DELETE CASCADE,
-  CONSTRAINT `FK_CustomerContacts_Contacts` FOREIGN KEY (`ContactId`) REFERENCES `Contacts` (`Id`) ON DELETE CASCADE
+  UNIQUE KEY `IX_AccountContacts_AccountId_ContactId` (`AccountId`, `ContactId`),
+  KEY `IX_AccountContacts_ContactId` (`ContactId`),
+  CONSTRAINT `FK_AccountContacts_Accounts` FOREIGN KEY (`AccountId`) REFERENCES `Accounts` (`Id`) ON DELETE CASCADE,
+  CONSTRAINT `FK_AccountContacts_Contacts` FOREIGN KEY (`ContactId`) REFERENCES `Contacts` (`Id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- ----------------------------------------------------------------------------

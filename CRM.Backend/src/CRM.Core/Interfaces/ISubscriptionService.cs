@@ -28,7 +28,7 @@ public interface ISubscriptionService
 
     /// <summary>Gets all subscriptions with optional filtering.</summary>
     Task<IEnumerable<Subscription>> GetAllAsync(
-        int? customerId = null,
+        int? accountId = null,
         SubscriptionStatus? status = null,
         CancellationToken cancellationToken = default);
 
@@ -150,9 +150,8 @@ public interface ISubscriptionService
 
     #region Queries
 
-    /// <summary>Gets active subscriptions for a customer.</summary>
-    Task<IEnumerable<Subscription>> GetActiveSubscriptionsAsync(int customerId, CancellationToken cancellationToken = default);
-
+    /// <summary>Gets active subscriptions for an account.</summary>
+    Task<IEnumerable<Subscription>> GetActiveSubscriptionsAsync(int accountId, CancellationToken cancellationToken = default);
     /// <summary>Gets expiring subscriptions within a date range.</summary>
     Task<IEnumerable<Subscription>> GetExpiringSubscriptionsAsync(DateTime fromDate, DateTime toDate, CancellationToken cancellationToken = default);
 
@@ -165,7 +164,6 @@ public interface ISubscriptionService
     /// <summary>Calculates Annual Recurring Revenue (ARR).</summary>
     Task<decimal> CalculateARRAsync(CancellationToken cancellationToken = default);
 
-    /// <summary>Gets churn rate for a period.</summary>
     Task<double> GetChurnRateAsync(DateTime fromDate, DateTime toDate, CancellationToken cancellationToken = default);
 
     #endregion

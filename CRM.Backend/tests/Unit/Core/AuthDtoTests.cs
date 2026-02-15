@@ -340,7 +340,7 @@ public class AuthDtoTests
             {
                 IsSystemAdmin = true,
                 CanAccessDashboard = true,
-                CanAccessCustomers = true
+                CanAccessAccounts = true
             };
 
             // Act
@@ -382,9 +382,9 @@ public class AuthDtoTests
             var permissions = new UserPermissions();
 
             // Assert - All permissions should default to false
-            permissions.CanCreateCustomers.Should().BeFalse();
-            permissions.CanEditCustomers.Should().BeFalse();
-            permissions.CanDeleteCustomers.Should().BeFalse();
+            permissions.CanCreateAccounts.Should().BeFalse();
+            permissions.CanEditAccounts.Should().BeFalse();
+            permissions.CanDeleteAccounts.Should().BeFalse();
             permissions.CanCreateOpportunities.Should().BeFalse();
             permissions.CanEditOpportunities.Should().BeFalse();
             permissions.CanDeleteOpportunities.Should().BeFalse();
@@ -402,15 +402,15 @@ public class AuthDtoTests
             // Act
             var permissions = new UserPermissions
             {
-                CanCreateCustomers = true,
-                CanEditCustomers = true,
-                CanDeleteCustomers = false
+                CanCreateAccounts = true,
+                CanEditAccounts = true,
+                CanDeleteAccounts = false
             };
 
             // Assert
-            permissions.CanCreateCustomers.Should().BeTrue();
-            permissions.CanEditCustomers.Should().BeTrue();
-            permissions.CanDeleteCustomers.Should().BeFalse();
+            permissions.CanCreateAccounts.Should().BeTrue();
+            permissions.CanEditAccounts.Should().BeTrue();
+            permissions.CanDeleteAccounts.Should().BeFalse();
         }
 
         [Fact]
@@ -490,7 +490,7 @@ public class AuthDtoTests
             var permissions = new GroupPermissionsDto
             {
                 CanAccessDashboard = true,
-                CanAccessCustomers = true,
+                CanAccessAccounts = true,
                 CanAccessContacts = true,
                 CanAccessLeads = true,
                 CanAccessOpportunities = true,
@@ -511,7 +511,7 @@ public class AuthDtoTests
 
             // Assert
             permissions.CanAccessDashboard.Should().BeTrue();
-            permissions.CanAccessCustomers.Should().BeTrue();
+            permissions.CanAccessAccounts.Should().BeTrue();
             permissions.CanAccessContacts.Should().BeTrue();
             permissions.CanAccessLeads.Should().BeTrue();
             permissions.CanAccessOpportunities.Should().BeTrue();
@@ -536,17 +536,17 @@ public class AuthDtoTests
             // Act
             var permissions = new GroupPermissionsDto
             {
-                CanCreateCustomers = true,
-                CanEditCustomers = true,
-                CanDeleteCustomers = true,
-                CanViewAllCustomers = true
+                CanCreateAccounts = true,
+                CanEditAccounts = true,
+                CanDeleteAccounts = false,
+                CanViewAllAccounts = true
             };
 
             // Assert
-            permissions.CanCreateCustomers.Should().BeTrue();
-            permissions.CanEditCustomers.Should().BeTrue();
-            permissions.CanDeleteCustomers.Should().BeTrue();
-            permissions.CanViewAllCustomers.Should().BeTrue();
+            permissions.CanCreateAccounts.Should().BeTrue();
+            permissions.CanEditAccounts.Should().BeTrue();
+            permissions.CanDeleteAccounts.Should().BeTrue();
+            permissions.CanViewAllAccounts.Should().BeTrue();
         }
 
         [Fact]
@@ -777,9 +777,9 @@ public class AuthDtoTests
                 AccessiblePages = new List<string> { "Dashboard", "Contacts", "Leads" },
                 Permissions = new UserPermissions
                 {
-                    CanCreateCustomers = true,
-                    CanEditCustomers = true,
-                    CanDeleteCustomers = false
+                    CanCreateAccounts = true,
+                    CanEditAccounts = true,
+                    CanDeleteAccounts = false
                 }
             };
 
@@ -910,10 +910,10 @@ public class AuthDtoTests
                 {
                     IsSystemAdmin = true,
                     CanAccessDashboard = true,
-                    CanAccessCustomers = true,
+                    CanAccessAccounts = true,
                     CanAccessSettings = true,
                     CanAccessUserManagement = true,
-                    CanDeleteCustomers = true,
+                    CanDeleteAccounts = true,
                     DataAccessScope = "all"
                 }
             };

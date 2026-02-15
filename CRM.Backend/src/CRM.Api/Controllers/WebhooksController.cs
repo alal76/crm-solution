@@ -55,7 +55,7 @@ public class WebhooksController : ControllerBase
             _logger.LogInformation("Receiving web form submission from {Email}", dto.Email);
 
             // Try to find or create customer/contact
-            var (customerId, contactId) = await FindOrSuggestContactAsync(dto.Email, dto.Phone, dto.Name);
+            var (accountId, contactId) = await FindOrSuggestContactAsync(dto.Email, dto.Phone, dto.Name);
 
             // Create the interaction
             var interaction = new Interaction
@@ -71,7 +71,7 @@ public class WebhooksController : ControllerBase
                 EmailAddress = dto.Email,
                 PhoneNumber = dto.Phone,
                 Sentiment = InteractionSentiment.Neutral,
-                AccountId = customerId,
+                AccountId = accountId,
                 ContactId = contactId,
                 Tags = dto.FormType,
                 CustomFields = dto.CustomFieldsJson,
@@ -94,7 +94,7 @@ public class WebhooksController : ControllerBase
                 FromAddress = dto.Email,
                 FromName = dto.Name,
                 ReceivedAt = DateTime.UtcNow,
-                AccountId = customerId,
+                AccountId = accountId,
                 ContactId = contactId,
                 LinkedEntityType = "Interaction",
                 LinkedEntityId = interaction.Id,
@@ -112,7 +112,7 @@ public class WebhooksController : ControllerBase
                 Success = true,
                 InteractionId = interaction.Id,
                 MessageId = message.Id,
-                AccountId = customerId,
+                AccountId = accountId,
                 ContactId = contactId,
                 Message = "Web form submission received successfully"
             });
@@ -151,7 +151,7 @@ public class WebhooksController : ControllerBase
             }
 
             // Try to find linked customer/contact
-            var (customerId, contactId) = await FindOrSuggestContactAsync(dto.From, null, dto.FromName);
+            var (accountId, contactId) = await FindOrSuggestContactAsync(dto.From, null, dto.FromName);
 
             // Check for existing conversation (thread)
             string conversationId = dto.ConversationId ?? dto.InReplyTo ?? Guid.NewGuid().ToString();
@@ -177,7 +177,7 @@ public class WebhooksController : ControllerBase
                 InReplyToExternalId = dto.InReplyTo,
                 ConversationId = conversationId,
                 ReceivedAt = dto.ReceivedAt ?? DateTime.UtcNow,
-                AccountId = customerId,
+                AccountId = accountId,
                 ContactId = contactId,
                 AttachmentCount = dto.Attachments?.Count ?? 0,
                 AttachmentsJson = dto.Attachments != null ? JsonSerializer.Serialize(dto.Attachments) : null,
@@ -206,7 +206,7 @@ public class WebhooksController : ControllerBase
                     Status = ConversationStatus.Open,
                     ParticipantAddress = dto.From,
                     ParticipantName = dto.FromName,
-                    AccountId = customerId,
+                    AccountId = accountId,
                     ContactId = contactId,
                     MessageCount = 1,
                     UnreadCount = 1,
@@ -229,7 +229,7 @@ public class WebhooksController : ControllerBase
                 EmailAddress = dto.From,
                 IsCompleted = true,
                 CompletedDate = DateTime.UtcNow,
-                AccountId = customerId,
+                AccountId = accountId,
                 ContactId = contactId,
                 CreatedAt = DateTime.UtcNow
             };
@@ -251,7 +251,7 @@ public class WebhooksController : ControllerBase
                 InteractionId = interaction.Id,
                 MessageId = message.Id,
                 ConversationId = conversationId,
-                AccountId = customerId,
+                AccountId = accountId,
                 ContactId = contactId,
                 Message = "Email received successfully"
             });
@@ -329,7 +329,7 @@ public class WebhooksController : ControllerBase
             }
 
             // Try to find linked customer/contact by phone
-            var (customerId, contactId) = await FindOrSuggestContactAsync(null, dto.FromPhone, dto.FromName);
+            var (accountId, contactId) = await FindOrSuggestContactAsync(null, dto.FromPhone, dto.FromName);
 
             var message = new CommunicationMessage
             {
@@ -344,7 +344,7 @@ public class WebhooksController : ControllerBase
                 ConversationId = dto.ConversationId ?? dto.FromPhone,
                 WhatsAppMessageType = dto.MessageType,
                 ReceivedAt = dto.Timestamp ?? DateTime.UtcNow,
-                AccountId = customerId,
+                AccountId = accountId,
                 ContactId = contactId,
                 CreatedAt = DateTime.UtcNow
             };
@@ -361,7 +361,7 @@ public class WebhooksController : ControllerBase
                 InteractionDate = dto.Timestamp ?? DateTime.UtcNow,
                 PhoneNumber = dto.FromPhone,
                 IsCompleted = true,
-                AccountId = customerId,
+                AccountId = accountId,
                 ContactId = contactId,
                 CreatedAt = DateTime.UtcNow
             };
@@ -374,7 +374,7 @@ public class WebhooksController : ControllerBase
                 Success = true,
                 InteractionId = interaction.Id,
                 MessageId = message.Id,
-                AccountId = customerId,
+                AccountId = accountId,
                 ContactId = contactId,
                 Message = "WhatsApp message received successfully"
             });
@@ -460,7 +460,7 @@ public class WebhooksController : ControllerBase
             }
 
             // Try to find linked customer by social handle
-            var (customerId, contactId) = await FindContactBySocialHandle(dto.SenderHandle, channelType);
+            var (accountId, contactId) = await FindContactBySocialHandle(dto.SenderHandle, channelType);
 
             var message = new CommunicationMessage
             {
@@ -475,7 +475,7 @@ public class WebhooksController : ControllerBase
                 SocialPostId = dto.PostId,
                 IsPublicPost = dto.IsPublicPost,
                 ReceivedAt = dto.Timestamp ?? DateTime.UtcNow,
-                AccountId = customerId,
+                AccountId = accountId,
                 ContactId = contactId,
                 MetadataJson = JsonSerializer.Serialize(new
                 {
@@ -498,7 +498,7 @@ public class WebhooksController : ControllerBase
                 Description = dto.Text ?? "",
                 InteractionDate = dto.Timestamp ?? DateTime.UtcNow,
                 IsCompleted = true,
-                AccountId = customerId,
+                AccountId = accountId,
                 ContactId = contactId,
                 Tags = dto.Hashtags != null ? string.Join(",", dto.Hashtags) : null,
                 CreatedAt = DateTime.UtcNow
@@ -512,7 +512,7 @@ public class WebhooksController : ControllerBase
                 Success = true,
                 InteractionId = interaction.Id,
                 MessageId = message.Id,
-                AccountId = customerId,
+                AccountId = accountId,
                 ContactId = contactId,
                 Message = $"{channelType} message received successfully"
             });
@@ -524,13 +524,13 @@ public class WebhooksController : ControllerBase
         }
     }
 
-    private async Task<(int? CustomerId, int? ContactId)> FindOrSuggestContactAsync(
+    private async Task<(int? AccountId, int? ContactId)> FindOrSuggestContactAsync(
         string? email, string? phone, string? name)
     {
         // Try to find by email first
         if (!string.IsNullOrEmpty(email))
         {
-            var customer = await _context.Customers
+            var customer = await _context.Accounts
                 .Where(c => c.Email == email && !c.IsDeleted)
                 .FirstOrDefaultAsync();
             if (customer != null)
@@ -547,7 +547,7 @@ public class WebhooksController : ControllerBase
         if (!string.IsNullOrEmpty(phone))
         {
             var normalizedPhone = NormalizePhone(phone);
-            var customer = await _context.Customers
+            var customer = await _context.Accounts
                 .Where(c => (c.Phone == phone || c.Phone == normalizedPhone ||
                            c.MobilePhone == phone || c.MobilePhone == normalizedPhone) && !c.IsDeleted)
                 .FirstOrDefaultAsync();
@@ -565,7 +565,7 @@ public class WebhooksController : ControllerBase
         return (null, null);
     }
 
-    private async Task<(int? CustomerId, int? ContactId)> FindContactBySocialHandle(
+    private async Task<(int? AccountId, int? ContactId)> FindContactBySocialHandle(
         string handle, ChannelType channelType)
     {
         var network = channelType switch
@@ -578,7 +578,7 @@ public class WebhooksController : ControllerBase
 
         // This would need a proper social accounts linkage table
         // For now, try to match against customer social fields
-        var customer = await _context.Customers
+        var customer = await _context.Accounts
             .Where(c => c.TwitterHandle == handle || c.LinkedInUrl!.Contains(handle))
             .FirstOrDefaultAsync();
 

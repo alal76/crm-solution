@@ -47,7 +47,7 @@ public class SubscriptionService : ISubscriptionService
     #region CRUD Operations
 
     public async Task<IEnumerable<Subscription>> GetAllAsync(
-        int? customerId = null,
+        int? accountId = null,
         SubscriptionStatus? status = null,
         CancellationToken cancellationToken = default)
     {
@@ -56,9 +56,9 @@ public class SubscriptionService : ISubscriptionService
             .Include(s => s.Product)
             .Where(s => !s.IsDeleted);
 
-        if (customerId.HasValue)
+        if (accountId.HasValue)
         {
-            query = query.Where(s => s.AccountId == customerId.Value);
+            query = query.Where(s => s.AccountId == accountId.Value);
         }
 
         if (status.HasValue)
@@ -719,11 +719,11 @@ public class SubscriptionService : ISubscriptionService
 
     #region Queries
 
-    public async Task<IEnumerable<Subscription>> GetActiveSubscriptionsAsync(int customerId, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<Subscription>> GetActiveSubscriptionsAsync(int accountId, CancellationToken cancellationToken = default)
     {
         return await _context.Subscriptions
             .Include(s => s.Product)
-            .Where(s => s.AccountId == customerId && s.SubscriptionStatus == SubscriptionStatus.Active && !s.IsDeleted)
+            .Where(s => s.AccountId == accountId && s.SubscriptionStatus == SubscriptionStatus.Active && !s.IsDeleted)
             .OrderByDescending(s => s.CreatedAt)
             .ToListAsync(cancellationToken);
     }

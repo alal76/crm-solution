@@ -30,7 +30,7 @@ namespace CRM.Api.Controllers;
 /// <remarks>
 /// Provides operations for:
 /// - Activity feed management (create, read, delete)
-/// - Timeline views for customers, opportunities, and entities
+/// - Timeline views for accounts, opportunities, and entities
 /// - Event attendee management (add, update response, track attendance)
 /// - Activity statistics and recent activity retrieval
 /// </remarks>
@@ -54,7 +54,7 @@ public class ActivitiesController : ControllerBase
     /// <summary>
     /// Get all activities with optional filtering.
     /// </summary>
-    /// <param name="customerId">Filter by customer/account ID.</param>
+    /// <param name="accountId">Filter by account ID.</param>
     /// <param name="opportunityId">Filter by opportunity ID.</param>
     /// <param name="userId">Filter by user ID who created the activity.</param>
     /// <param name="activityType">Filter by activity type.</param>
@@ -70,7 +70,7 @@ public class ActivitiesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<IEnumerable<Activity>>> GetActivities(
-        [FromQuery] int? customerId = null,
+        [FromQuery] int? accountId = null,
         [FromQuery] int? opportunityId = null,
         [FromQuery] int? userId = null,
         [FromQuery] ActivityType? activityType = null,
@@ -84,8 +84,8 @@ public class ActivitiesController : ControllerBase
             .Include(a => a.Opportunity)
             .AsQueryable();
 
-        if (customerId.HasValue)
-            query = query.Where(a => a.AccountId == customerId);
+        if (accountId.HasValue)
+            query = query.Where(a => a.AccountId == accountId);
 
         if (opportunityId.HasValue)
             query = query.Where(a => a.OpportunityId == opportunityId);
@@ -208,7 +208,7 @@ public class ActivitiesController : ControllerBase
     /// <summary>
     /// Get activities for a specific entity.
     /// </summary>
-    /// <param name="entityType">The entity type (e.g., Customer, Contact, Lead).</param>
+    /// <param name="entityType">The entity type (e.g., Account, Contact, Lead).</param>
     /// <param name="entityId">The entity ID.</param>
     /// <param name="limit">Maximum number of activities to return (default: 50).</param>
     /// <returns>List of activities for the specified entity.</returns>
@@ -245,23 +245,23 @@ public class ActivitiesController : ControllerBase
     }
 
     /// <summary>
-    /// Get customer timeline (all activities related to a customer).
+    /// Get account timeline (all activities related to an account).
     /// </summary>
-    /// <param name="customerId">The customer/account ID.</param>
+    /// <param name="accountId">The account ID.</param>
     /// <param name="limit">Maximum number of activities to return (default: 100).</param>
-    /// <returns>Timeline of activities for the customer.</returns>
-    /// <response code="200">Returns the customer timeline.</response>
+    /// <returns>Timeline of activities for the account.</returns>
+    /// <response code="200">Returns the account timeline.</response>
     /// <response code="401">Unauthorized - User is not authenticated.</response>
     /// <response code="500">Internal server error.</response>
-    [HttpGet("customer/{customerId}/timeline")]
+    [HttpGet("account/{accountId}/timeline")]
     [ProducesResponseType(typeof(IEnumerable<Activity>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<IEnumerable<Activity>>> GetCustomerTimeline(int customerId, [FromQuery] int limit = 100)
+    public async Task<ActionResult<IEnumerable<Activity>>> GetAccountTimeline(int accountId, [FromQuery] int limit = 100)
     {
         var activities = await _context.Activities
             .Include(a => a.User)
-            .Where(a => a.AccountId == customerId)
+            .Where(a => a.AccountId == accountId)
             .OrderByDescending(a => a.ActivityDate)
             .Take(limit)
             .ToListAsync();

@@ -606,7 +606,7 @@ public class MergeService : IMergeService
                 break;
 
             case DuplicateEntityType.Account:
-                // Relink opportunities (AccountId property, mapped to CustomerId column)
+                // Relink opportunities (AccountId property, mapped to legacy account column)
                 var opportunities = await _context.Set<Opportunity>()
                     .Where(o => o.AccountId == sourceRecordId)
                     .ToListAsync(cancellationToken);
@@ -618,11 +618,11 @@ public class MergeService : IMergeService
 
                 // Relink contacts
                 var contacts = await _context.Set<Contact>()
-                    .Where(c => c.CustomerId == sourceRecordId)
+                    .Where(c => c.AccountId == sourceRecordId)
                     .ToListAsync(cancellationToken);
                 foreach (var contact in contacts)
                 {
-                    contact.CustomerId = targetRecordId;
+                    contact.AccountId = targetRecordId;
                 }
                 relinked["Contacts"] = contacts.Count;
 
@@ -1042,12 +1042,12 @@ public class MergeService : IMergeService
                 if (relinked.ContainsKey("Contacts") && relinked["Contacts"] > 0)
                 {
                     var contacts = await _context.Set<Contact>()
-                        .Where(c => c.CustomerId == masterRecordId)
+                        .Where(c => c.AccountId == masterRecordId)
                         .Take(relinked["Contacts"])
                         .ToListAsync(cancellationToken);
                     foreach (var contact in contacts)
                     {
-                        contact.CustomerId = sourceRecordId;
+                        contact.AccountId = sourceRecordId;
                     }
                 }
 
@@ -1338,7 +1338,7 @@ public class MergeService : IMergeService
 
                 // Count contacts
                 var contactCount = await _context.Set<Contact>()
-                    .CountAsync(c => c.CustomerId.HasValue && recordIds.Contains(c.CustomerId.Value), cancellationToken);
+                    .CountAsync(c => c.AccountId.HasValue && recordIds.Contains(c.AccountId.Value), cancellationToken);
                 if (contactCount > 0)
                 {
                     previews.Add(new RelatedRecordPreview

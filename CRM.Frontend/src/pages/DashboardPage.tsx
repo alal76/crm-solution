@@ -36,6 +36,7 @@ import {
   Dialog,
   DialogContent,
 } from '@mui/material';
+import { EnhancedEmptyState } from '../components/common';
 import {
   TrendingUp as TrendingUpIcon,
   TrendingDown as TrendingDownIcon,
@@ -577,9 +578,13 @@ function DashboardPage() {
                   ))}
                 </Box>
               ) : items.length === 0 ? (
-                <Box sx={{ textAlign: 'center', py: 4 }}>
-                  <Typography color="textSecondary">No data available</Typography>
-                </Box>
+                <EnhancedEmptyState
+                  variant="no-data"
+                  illustration="activities"
+                  title="No recent activity"
+                  description="Once your team starts working, updates will appear here."
+                  compact
+                />
               ) : (
                 <Box>
                   {items.map((item, index) => (

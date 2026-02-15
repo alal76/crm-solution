@@ -47,6 +47,12 @@ export type { EnhancedEmptyStateProps, EmptyStateVariant, EntityIllustration } f
 export { DialogHeader } from './DialogHeader';
 export type { DialogHeaderProps, DialogMode, DialogEntityType } from './DialogHeader';
 
+export { default as AddressModalComponent } from './AddressModalComponent';
+export type { AddressModalComponentProps } from './AddressModalComponent';
+
+// Logo Display for branding
+export { default as LogoDisplay } from './LogoDisplay';
+
 // Chat Timeline Item for displaying chat messages in activity timeline
 export { default as ChatTimelineItem } from './ChatTimelineItem';
 export type { ChatMessageActivity } from './ChatTimelineItem';

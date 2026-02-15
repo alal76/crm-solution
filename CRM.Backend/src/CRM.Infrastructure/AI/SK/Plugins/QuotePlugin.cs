@@ -98,16 +98,16 @@ public class QuotePlugin : CrmPluginBase
     }
 
     /// <summary>
-    /// Searches quotes with optional filters for customer, opportunity, and status.
+    /// Searches quotes with optional filters for account, opportunity, and status.
     /// </summary>
-    /// <param name="customerId">Optional customer ID to filter by.</param>
+    /// <param name="accountId">Optional account ID to filter by.</param>
     /// <param name="opportunityId">Optional opportunity ID to filter by.</param>
     /// <param name="status">Optional status filter (e.g., "Draft", "Sent", "Accepted", "Rejected").</param>
     /// <returns>A JSON array of matching quotes.</returns>
     [KernelFunction("SearchQuotes")]
-    [Description("Search sales quotes filtered by customer, opportunity, or status.")]
+    [Description("Search sales quotes filtered by account, opportunity, or status.")]
     public async Task<string> SearchQuotesAsync(
-        [Description("Customer ID to filter by (optional)")] int? customerId = null,
+        [Description("Account ID to filter by (optional)")] int? accountId = null,
         [Description("Opportunity ID to filter by (optional)")] int? opportunityId = null,
         [Description("Status filter: Draft, Sent, Accepted, Rejected, Expired (optional)")] string? status = null)
     {
@@ -120,7 +120,7 @@ public class QuotePlugin : CrmPluginBase
             }
 
             var quotes = await _quoteService.GetQuotesAsync(
-                customerId: customerId,
+                accountId: accountId,
                 opportunityId: opportunityId,
                 status: parsedStatus);
 
@@ -176,16 +176,16 @@ public class QuotePlugin : CrmPluginBase
     /// Creates a new sales quote.
     /// </summary>
     /// <param name="name">The quote name/title.</param>
-    /// <param name="customerId">The customer ID the quote is for.</param>
+    /// <param name="accountId">The account ID the quote is for.</param>
     /// <param name="opportunityId">Optional related opportunity ID.</param>
     /// <param name="expirationDays">Number of days until the quote expires. Defaults to 30.</param>
     /// <returns>A JSON object with the created quote details.</returns>
     [KernelFunction("CreateQuote")]
-    [Description("Create a new sales quote for a customer.")]
+    [Description("Create a new sales quote for an account.")]
     [RequiresApproval(Tier = "standard", Description = "Creates a new sales quote")]
     public async Task<string> CreateQuoteAsync(
         [Description("Quote name or title")] string name,
-        [Description("Customer ID the quote is for")] int customerId,
+        [Description("Account ID the quote is for")] int accountId,
         [Description("Related opportunity ID (optional)")] int? opportunityId = null,
         [Description("Number of days until the quote expires")] int expirationDays = 30)
     {
@@ -194,7 +194,7 @@ public class QuotePlugin : CrmPluginBase
             var quote = new Quote
             {
                 Name = name,
-                AccountId = customerId,
+                AccountId = accountId,
                 OpportunityId = opportunityId,
                 Status = QuoteStatus.Draft,
                 ExpirationDate = DateTime.UtcNow.AddDays(expirationDays),
@@ -221,13 +221,13 @@ public class QuotePlugin : CrmPluginBase
     }
 
     /// <summary>
-    /// Sends a quote to the customer for review.
+    /// Sends a quote to the account for review.
     /// </summary>
     /// <param name="quoteId">The ID of the quote to send.</param>
     /// <returns>A JSON object indicating send success or failure.</returns>
     [KernelFunction("SendQuote")]
-    [Description("Send a quote to the customer for review.")]
-    [RequiresApproval(Tier = "standard", Description = "Sends a quote to the customer")]
+    [Description("Send a quote to the account for review.")]
+    [RequiresApproval(Tier = "standard", Description = "Sends a quote to the account")]
     public async Task<string> SendQuoteAsync(
         [Description("The ID of the quote to send")] int quoteId)
     {

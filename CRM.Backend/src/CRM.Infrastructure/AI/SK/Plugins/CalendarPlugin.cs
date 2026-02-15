@@ -55,18 +55,18 @@ public class CalendarPlugin : CrmPluginBase
     #region Read Operations
 
     /// <summary>
-    /// Retrieves activities with optional filters for customer, user, type, and date range.
+    /// Retrieves activities with optional filters for account, user, type, and date range.
     /// </summary>
-    /// <param name="customerId">Optional customer ID to filter by.</param>
+    /// <param name="accountId">Optional account ID to filter by.</param>
     /// <param name="userId">Optional user ID to filter by.</param>
     /// <param name="activityType">Optional activity type to filter by (e.g., "EmailSent", "CallMade", "MeetingScheduled").</param>
     /// <param name="daysBack">Number of days to look back. Defaults to 30.</param>
     /// <param name="limit">Maximum number of activities to return. Defaults to 25.</param>
     /// <returns>A JSON array of matching activities.</returns>
     [KernelFunction("GetActivities")]
-    [Description("Get activities filtered by customer, user, type, and date range.")]
+    [Description("Get activities filtered by account, user, type, and date range.")]
     public async Task<string> GetActivitiesAsync(
-        [Description("Customer ID to filter by (optional)")] int? customerId = null,
+        [Description("Account ID to filter by (optional)")] int? accountId = null,
         [Description("User ID to filter by (optional)")] int? userId = null,
         [Description("Activity type filter: EmailSent, CallMade, MeetingScheduled, TaskCompleted, NoteAdded (optional)")] string? activityType = null,
         [Description("Number of days to look back from today")] int daysBack = 30,
@@ -83,7 +83,7 @@ public class CalendarPlugin : CrmPluginBase
             var fromDate = DateTime.UtcNow.AddDays(-daysBack);
 
             var activities = await _activityService.GetActivitiesAsync(
-                customerId: customerId,
+                accountId: accountId,
                 opportunityId: null,
                 userId: userId,
                 activityType: parsedType,

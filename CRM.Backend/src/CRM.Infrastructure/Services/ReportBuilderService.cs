@@ -498,7 +498,7 @@ public class ReportBuilderService : IReportBuilderService
 
     private static ReportEntityDataSource MapEntitySource(string source) => source switch
     {
-        "Accounts" => ReportEntityDataSource.Customers,
+        "Accounts" => ReportEntityDataSource.Accounts,
         "Leads" => ReportEntityDataSource.Leads,
         "Opportunities" => ReportEntityDataSource.Opportunities,
         "Contacts" => ReportEntityDataSource.Contacts,
@@ -508,7 +508,7 @@ public class ReportBuilderService : IReportBuilderService
 
     private static string MapDataSourceToEntitySource(ReportEntityDataSource ds) => ds switch
     {
-        ReportEntityDataSource.Customers => "Accounts",
+        ReportEntityDataSource.Accounts => "Accounts",
         ReportEntityDataSource.Leads => "Leads",
         ReportEntityDataSource.Opportunities => "Opportunities",
         ReportEntityDataSource.Contacts => "Contacts",
@@ -552,7 +552,7 @@ public class ReportBuilderService : IReportBuilderService
 
     private async Task<List<Dictionary<string, object?>>> ExecuteAccountsReportAsync(ReportDefinition report, CancellationToken ct)
     {
-        var query = _context.Customers.Where(c => !c.IsDeleted);
+        var query = _context.Accounts.Where(c => !c.IsDeleted);
         var entities = await query.ToListAsync(ct);
 
         return entities.Select(e => new Dictionary<string, object?>

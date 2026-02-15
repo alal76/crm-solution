@@ -6,10 +6,6 @@ import {
   CardContent,
   CardHeader,
   Chip,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
   Grid,
   IconButton,
   List,
@@ -46,6 +42,7 @@ import {
   Error as ErrorIcon,
   Info as InfoIcon,
 } from '@mui/icons-material';
+import { AddressModalComponent } from '../common';
 import { contactInfoService, EntityType, LinkedAddressDto, CreateAddressDto, AddressType } from '../../services/contactInfoService';
 import zipCodeService, { CountryInfo, StateInfo, ZipCodeLookupResult, ZipCodeValidationResult, LocalityInfo } from '../../services/zipCodeService';
 import { debounce } from 'lodash';
@@ -68,6 +65,7 @@ const AddressManager: React.FC<AddressManagerProps> = ({
   const [addresses, setAddresses] = useState<LinkedAddressDto[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingAddress, setEditingAddress] = useState<LinkedAddressDto | null>(null);
   
@@ -381,6 +379,7 @@ const AddressManager: React.FC<AddressManagerProps> = ({
     setZipLookupResults([]);
     setShowZipLookupResults(false);
     setPostalCodeValidation(null);
+    setFormError(null);
 
     if (address) {
       setEditingAddress(address);
@@ -434,9 +433,16 @@ const AddressManager: React.FC<AddressManagerProps> = ({
     setZipLookupResults([]);
     setShowZipLookupResults(false);
     setPostalCodeValidation(null);
+    setFormError(null);
   };
 
   const handleSave = async () => {
+    if (!formData.line1.trim() || !formData.city.trim()) {
+      setFormError('Address Line 1 and City are required.');
+      return;
+    }
+    setFormError(null);
+
     try {
       const { addressType, isPrimary, ...addressData } = formData;
 
@@ -612,12 +618,20 @@ const AddressManager: React.FC<AddressManagerProps> = ({
       </CardContent>
 
       {/* Add/Edit Dialog */}
-      <Dialog open={dialogOpen} onClose={handleCloseDialog} maxWidth="md" fullWidth>
-        <DialogTitle>
-          {editingAddress ? 'Edit Address' : 'Add Address'}
-        </DialogTitle>
-        <DialogContent>
-          <Grid container spacing={2} sx={{ mt: 1 }}>
+      <AddressModalComponent
+        open={dialogOpen}
+        title={editingAddress ? 'Edit Address' : 'Add Address'}
+        onClose={handleCloseDialog}
+        onSave={handleSave}
+        saveLabel={editingAddress ? 'Save Changes' : 'Add Address'}
+        disableSave={!formData.line1.trim() || !formData.city.trim()}
+      >
+        <Grid container spacing={2} sx={{ mt: 1 }}>
+          {formError && (
+            <Grid item xs={12}>
+              <Alert severity="error">{formError}</Alert>
+            </Grid>
+          )}
             <Grid item xs={12} sm={6}>
               <FormControl fullWidth size="small">
                 <InputLabel>Address Type</InputLabel>
@@ -1040,14 +1054,8 @@ const AddressManager: React.FC<AddressManagerProps> = ({
               />
             </Grid>
           </Grid>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseDialog}>Cancel</Button>
-          <Button onClick={handleSave} variant="contained" color="primary">
-            {editingAddress ? 'Save Changes' : 'Add Address'}
-          </Button>
-        </DialogActions>
-      </Dialog>
+        </Grid>
+      </AddressModalComponent>
     </Card>
   );
 };

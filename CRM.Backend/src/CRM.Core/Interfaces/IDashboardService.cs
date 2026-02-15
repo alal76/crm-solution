@@ -42,7 +42,7 @@ public interface IDashboardService
 /// </summary>
 public class DashboardStats
 {
-    public EntityCount Customers { get; set; } = new();
+    public EntityCount Accounts { get; set; } = new();
     public EntityCount Contacts { get; set; } = new();
     public OpportunityStats Opportunities { get; set; } = new();
     public EntityCount Products { get; set; } = new();

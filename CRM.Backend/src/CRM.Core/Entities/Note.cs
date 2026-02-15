@@ -65,7 +65,7 @@ public class Note : BaseEntity
     // Polymorphic entity attachment (primary method for associating notes)
 
     /// <summary>
-    /// Entity type this note is attached to: Customer, Contact, Lead, Opportunity, Campaign, Quote, ServiceRequest, Product, Task, Interaction
+    /// Entity type this note is attached to: Account, Contact, Lead, Opportunity, Campaign, Quote, ServiceRequest, Product, Task, Interaction
     /// </summary>
     public string? EntityType { get; set; }
 
@@ -75,7 +75,7 @@ public class Note : BaseEntity
     public int? EntityId { get; set; }
 
     // Legacy relationships (kept for backward compatibility, prefer EntityType+EntityId)
-    [Column("CustomerId")]
+    [Column("AccountId")]
     public int? AccountId { get; set; }
     public int? ContactId { get; set; }
     public int? OpportunityId { get; set; }

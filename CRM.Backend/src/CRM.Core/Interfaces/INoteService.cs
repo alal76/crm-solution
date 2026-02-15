@@ -27,7 +27,7 @@ public interface INoteService
     /// Get notes with optional filtering
     /// </summary>
     Task<IEnumerable<Note>> GetNotesAsync(
-        int? customerId = null,
+        int? accountId = null,
         int? opportunityId = null,
         int? productId = null,
         NoteType? noteType = null,

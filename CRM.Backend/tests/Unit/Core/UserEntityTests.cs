@@ -414,7 +414,7 @@ public class UserEntityTests
 
             // Assert - Menu permissions all false by default (except Dashboard)
             group.CanAccessDashboard.Should().BeTrue();
-            group.CanAccessCustomers.Should().BeFalse();
+            group.CanAccessAccounts.Should().BeFalse();
             group.CanAccessContacts.Should().BeFalse();
             group.CanAccessLeads.Should().BeFalse();
             group.CanAccessOpportunities.Should().BeFalse();
@@ -460,11 +460,11 @@ public class UserEntityTests
             // Arrange & Act
             var group = new UserGroup();
 
-            // Assert - Customer CRUD
-            group.CanCreateCustomers.Should().BeFalse();
-            group.CanEditCustomers.Should().BeFalse();
-            group.CanDeleteCustomers.Should().BeFalse();
-            group.CanViewAllCustomers.Should().BeFalse();
+            // Assert - Account CRUD
+            group.CanCreateAccounts.Should().BeFalse();
+            group.CanEditAccounts.Should().BeFalse();
+            group.CanDeleteAccounts.Should().BeFalse();
+            group.CanViewAllAccounts.Should().BeFalse();
 
             // Assert - Contact CRUD
             group.CanCreateContacts.Should().BeFalse();
@@ -528,7 +528,7 @@ public class UserEntityTests
                 DataAccessScope = "all",
                 // Enable all menu access
                 CanAccessDashboard = true,
-                CanAccessCustomers = true,
+                CanAccessAccounts = true,
                 CanAccessContacts = true,
                 CanAccessLeads = true,
                 CanAccessOpportunities = true,
@@ -546,10 +546,10 @@ public class UserEntityTests
                 CanAccessSettings = true,
                 CanAccessUserManagement = true,
                 // Enable all CRUD
-                CanCreateCustomers = true,
-                CanEditCustomers = true,
-                CanDeleteCustomers = true,
-                CanViewAllCustomers = true,
+                CanCreateAccounts = true,
+                CanEditAccounts = true,
+                CanDeleteAccounts = true,
+                CanViewAllAccounts = true,
                 // Enable data operations
                 CanExportData = true,
                 CanImportData = true,
@@ -579,7 +579,7 @@ public class UserEntityTests
                 DataAccessScope = "team",
                 // Sales-relevant menu access
                 CanAccessDashboard = true,
-                CanAccessCustomers = true,
+                CanAccessAccounts = true,
                 CanAccessContacts = true,
                 CanAccessLeads = true,
                 CanAccessOpportunities = true,
@@ -589,9 +589,9 @@ public class UserEntityTests
                 CanAccessActivities = true,
                 CanAccessNotes = true,
                 // Sales-relevant CRUD
-                CanCreateCustomers = true,
-                CanEditCustomers = true,
-                CanViewAllCustomers = false, // Only see own customers
+                CanCreateAccounts = true,
+                CanEditAccounts = true,
+                CanViewAllAccounts = false, // Only see own accounts
                 CanCreateContacts = true,
                 CanEditContacts = true,
                 CanCreateLeads = true,
@@ -610,7 +610,7 @@ public class UserEntityTests
             salesGroup.IsSystemAdmin.Should().BeFalse();
             salesGroup.DataAccessScope.Should().Be("team");
             salesGroup.CanAccessSettings.Should().BeFalse();
-            salesGroup.CanDeleteCustomers.Should().BeFalse();
+            salesGroup.CanDeleteAccounts.Should().BeFalse();
             salesGroup.CanConvertLeads.Should().BeTrue();
             salesGroup.CanCloseOpportunities.Should().BeTrue();
             salesGroup.CanExportData.Should().BeTrue();
@@ -704,7 +704,7 @@ public class UserEntityTests
                 Id = 1,
                 Name = "Sales Team",
                 IsSystemAdmin = false,
-                CanAccessCustomers = true,
+                CanAccessAccounts = true,
                 CanAccessOpportunities = true
             };
 
@@ -723,7 +723,7 @@ public class UserEntityTests
             user.PrimaryGroupId.Should().Be(1);
             user.PrimaryGroup.Should().NotBeNull();
             user.PrimaryGroup!.Name.Should().Be("Sales Team");
-            user.PrimaryGroup.CanAccessCustomers.Should().BeTrue();
+            user.PrimaryGroup.CanAccessAccounts.Should().BeTrue();
         }
 
         [Fact]
@@ -870,7 +870,7 @@ public class UserEntityTests
             {
                 Id = 3,
                 Name = "Sales",
-                CanAccessCustomers = true,
+                CanAccessAccounts = true,
                 CanAccessOpportunities = true,
                 CanCreateOpportunities = true,
                 CanEditOpportunities = true

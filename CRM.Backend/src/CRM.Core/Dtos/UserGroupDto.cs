@@ -34,7 +34,7 @@ public class UserGroupDto
 
     // Menu Permissions
     public bool CanAccessDashboard { get; set; }
-    public bool CanAccessCustomers { get; set; }
+    public bool CanAccessAccounts { get; set; }
     public bool CanAccessContacts { get; set; }
     public bool CanAccessLeads { get; set; }
     public bool CanAccessOpportunities { get; set; }
@@ -53,10 +53,10 @@ public class UserGroupDto
     public bool CanAccessUserManagement { get; set; }
 
     // Entity CRUD Permissions
-    public bool CanCreateCustomers { get; set; }
-    public bool CanEditCustomers { get; set; }
-    public bool CanDeleteCustomers { get; set; }
-    public bool CanViewAllCustomers { get; set; }
+    public bool CanCreateAccounts { get; set; }
+    public bool CanEditAccounts { get; set; }
+    public bool CanDeleteAccounts { get; set; }
+    public bool CanViewAllAccounts { get; set; }
 
     public bool CanCreateContacts { get; set; }
     public bool CanEditContacts { get; set; }
@@ -120,7 +120,7 @@ public class CreateUserGroupRequest
 
     // Menu Permissions
     public bool CanAccessDashboard { get; set; } = true;
-    public bool CanAccessCustomers { get; set; } = false;
+    public bool CanAccessAccounts { get; set; } = false;
     public bool CanAccessContacts { get; set; } = false;
     public bool CanAccessLeads { get; set; } = false;
     public bool CanAccessOpportunities { get; set; } = false;
@@ -139,10 +139,10 @@ public class CreateUserGroupRequest
     public bool CanAccessUserManagement { get; set; } = false;
 
     // Entity CRUD Permissions
-    public bool CanCreateCustomers { get; set; } = false;
-    public bool CanEditCustomers { get; set; } = false;
-    public bool CanDeleteCustomers { get; set; } = false;
-    public bool CanViewAllCustomers { get; set; } = false;
+    public bool CanCreateAccounts { get; set; } = false;
+    public bool CanEditAccounts { get; set; } = false;
+    public bool CanDeleteAccounts { get; set; } = false;
+    public bool CanViewAllAccounts { get; set; } = false;
 
     public bool CanCreateContacts { get; set; } = false;
     public bool CanEditContacts { get; set; } = false;

@@ -40,7 +40,7 @@ public class InvoiceService : IInvoiceService
 
     /// <inheritdoc />
     public async Task<IEnumerable<Invoice>> GetAllAsync(
-        int? customerId = null,
+        int? accountId = null,
         InvoiceStatus? status = null,
         CancellationToken cancellationToken = default)
     {
@@ -49,9 +49,9 @@ public class InvoiceService : IInvoiceService
             .Include(i => i.LineItems)
             .Where(i => !i.IsDeleted);
 
-        if (customerId.HasValue)
+        if (accountId.HasValue)
         {
-            query = query.Where(i => i.AccountId == customerId.Value);
+            query = query.Where(i => i.AccountId == accountId.Value);
         }
 
         if (status.HasValue)
@@ -505,10 +505,10 @@ public class InvoiceService : IInvoiceService
     }
 
     /// <inheritdoc />
-    public async Task<InvoiceStatistics> GetCustomerStatisticsAsync(int customerId, CancellationToken cancellationToken = default)
+    public async Task<InvoiceStatistics> GetAccountStatisticsAsync(int accountId, CancellationToken cancellationToken = default)
     {
         var invoices = await _context.Invoices
-            .Where(i => i.AccountId == customerId && !i.IsDeleted)
+            .Where(i => i.AccountId == accountId && !i.IsDeleted)
             .ToListAsync(cancellationToken);
 
         var today = DateTime.UtcNow.Date;

@@ -258,9 +258,12 @@ The CRM database follows a normalized 3NF design with the following characterist
 | `CustomFields` | Custom field definitions |
 | `ModuleFieldConfigurations` | Field visibility configs |
 | `ModuleUIConfigs` | UI module configs |
+| `BrandingConfigs` | Solution name, logos, favicon settings |
 | `ColorPalettes` | Theme color palettes |
 | `LLMProviderSettings` | AI provider configs |
 | `FieldMasterDataLinks` | Field ↔ Master data links |
+
+**Theme Palette FK:** `SystemSettings.SelectedPaletteId` references `ColorPalettes.Id` with `ON DELETE SET NULL` to keep theme selection consistent.
 
 ### 18. Master Data
 | Table | Description |

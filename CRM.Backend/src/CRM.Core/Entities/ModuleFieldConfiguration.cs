@@ -118,6 +118,7 @@ public class ModuleFieldConfiguration : BaseEntity
 /// </summary>
 public static class ModuleNames
 {
+    public const string Accounts = "Accounts";
     public const string Customers = "Customers";
     public const string Contacts = "Contacts";
     public const string Leads = "Leads";

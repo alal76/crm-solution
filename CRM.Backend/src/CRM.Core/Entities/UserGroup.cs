@@ -124,7 +124,7 @@ public class UserGroup : BaseEntity
     /// <summary>
     /// FUNCTIONAL: Whether members can see Customers
     /// </summary>
-    public bool CanAccessCustomers { get; set; } = false;
+        public bool CanAccessAccounts { get; set; } = false;
 
     /// <summary>
     /// FUNCTIONAL: Whether members can see Contacts
@@ -211,10 +211,10 @@ public class UserGroup : BaseEntity
     #region Entity CRUD Permissions
 
     // Customer Permissions
-    public bool CanCreateCustomers { get; set; } = false;
-    public bool CanEditCustomers { get; set; } = false;
-    public bool CanDeleteCustomers { get; set; } = false;
-    public bool CanViewAllCustomers { get; set; } = false; // vs. only assigned
+        public bool CanCreateAccounts { get; set; } = false;
+        public bool CanEditAccounts { get; set; } = false;
+        public bool CanDeleteAccounts { get; set; } = false;
+        public bool CanViewAllAccounts { get; set; } = false; // vs. only assigned
 
     // Contact Permissions
     public bool CanCreateContacts { get; set; } = false;

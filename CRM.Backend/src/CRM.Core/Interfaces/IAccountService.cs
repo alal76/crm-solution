@@ -48,6 +48,13 @@ public interface IAccountService
     Task<bool> AssignContactToAccountAsync(int accountId, int contactId);
     Task<bool> UnassignContactFromAccountAsync(int accountId, int contactId);
 
+    // Address management (normalized)
+    Task<List<LinkedAddressDto>> GetAccountAddressesAsync(int accountId);
+    Task<LinkedAddressDto?> GetPrimaryBillingAddressAsync(int accountId);
+    Task<LinkedAddressDto?> GetPrimaryShippingAddressAsync(int accountId);
+    Task SetPrimaryBillingAddressAsync(int accountId, int addressId);
+    Task SetPrimaryShippingAddressAsync(int accountId, int addressId);
+
     // Additional queries
     Task<IEnumerable<AccountDto>> GetAccountsByAssignedUserAsync(int userId);
     Task<IEnumerable<AccountDto>> GetAccountsByLifecycleStageAsync(AccountLifecycleStage stage);

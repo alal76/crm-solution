@@ -270,7 +270,7 @@ public class CampaignExecutionService
             {
                 { "campaignId", campaignId },
                 { "contactId", recipient.ContactId.Value },
-                { "customerId", recipient.AccountId ?? 0 },
+                { "accountId", recipient.AccountId ?? 0 },
                 { "email", recipient.Email ?? "" },
                 { "triggerEvent", triggerEvent }
             };

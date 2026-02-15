@@ -17,6 +17,7 @@
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
+using CRM.Core.Validation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
@@ -63,6 +64,7 @@ public class ModuleUIConfigService
     /// </summary>
     public async Task<ModuleUIConfigDto?> GetModuleConfigAsync(string moduleName)
     {
+        UiConfigurationValidator.ValidateModuleName(moduleName);
         var config = await _context.ModuleUIConfigs
             .FirstOrDefaultAsync(c => c.ModuleName == moduleName);
 
@@ -74,6 +76,7 @@ public class ModuleUIConfigService
     /// </summary>
     public async Task<CompleteModuleConfigDto?> GetCompleteModuleConfigAsync(string moduleName)
     {
+        UiConfigurationValidator.ValidateModuleName(moduleName);
         var moduleConfig = await _context.ModuleUIConfigs
             .FirstOrDefaultAsync(c => c.ModuleName == moduleName);
 
@@ -147,6 +150,7 @@ public class ModuleUIConfigService
     /// </summary>
     public async Task<ModuleUIConfigDto> CreateModuleConfigAsync(CreateModuleUIConfigDto dto)
     {
+        UiConfigurationValidator.ValidateModuleName(dto.ModuleName);
         var entity = new ModuleUIConfig
         {
             ModuleName = dto.ModuleName,
@@ -177,6 +181,7 @@ public class ModuleUIConfigService
     /// </summary>
     public async Task<ModuleUIConfigDto?> UpdateModuleConfigAsync(string moduleName, UpdateModuleUIConfigDto dto)
     {
+        UiConfigurationValidator.ValidateModuleName(moduleName);
         var entity = await _context.ModuleUIConfigs
             .FirstOrDefaultAsync(c => c.ModuleName == moduleName);
 
@@ -208,6 +213,10 @@ public class ModuleUIConfigService
     /// </summary>
     public async Task<List<ModuleUIConfigDto>> BatchUpdateModulesAsync(BatchModuleUIConfigUpdateDto dto)
     {
+        foreach (var update in dto.Modules)
+        {
+            UiConfigurationValidator.ValidateModuleName(update.ModuleName);
+        }
         var moduleNames = dto.Modules.Select(m => m.ModuleName).ToList();
         var configs = await _context.ModuleUIConfigs
             .Where(c => moduleNames.Contains(c.ModuleName))
@@ -235,6 +244,7 @@ public class ModuleUIConfigService
     /// </summary>
     public async Task<ModuleUIConfigDto?> UpdateLinkedEntitiesAsync(string moduleName, List<LinkedEntityConfigItem> linkedEntities)
     {
+        UiConfigurationValidator.ValidateModuleName(moduleName);
         var entity = await _context.ModuleUIConfigs
             .FirstOrDefaultAsync(c => c.ModuleName == moduleName);
 
@@ -254,6 +264,7 @@ public class ModuleUIConfigService
     /// </summary>
     public async Task<ModuleUIConfigDto?> UpdateTabsConfigAsync(string moduleName, List<TabConfigItem> tabs)
     {
+        UiConfigurationValidator.ValidateModuleName(moduleName);
         var entity = await _context.ModuleUIConfigs
             .FirstOrDefaultAsync(c => c.ModuleName == moduleName);
 
@@ -273,6 +284,7 @@ public class ModuleUIConfigService
     /// </summary>
     public async Task<CompleteModuleConfigDto?> SaveCompleteModuleConfigAsync(string moduleName, SaveCompleteModuleConfigDto dto)
     {
+        UiConfigurationValidator.ValidateModuleName(moduleName);
         var moduleConfig = await _context.ModuleUIConfigs
             .FirstOrDefaultAsync(c => c.ModuleName == moduleName);
 
@@ -327,6 +339,7 @@ public class ModuleUIConfigService
     /// </summary>
     public async Task<CompleteModuleConfigDto?> ResetModuleToDefaultsAsync(string moduleName)
     {
+        UiConfigurationValidator.ValidateModuleName(moduleName);
         var moduleConfig = await _context.ModuleUIConfigs
             .FirstOrDefaultAsync(c => c.ModuleName == moduleName);
 
@@ -378,7 +391,7 @@ public class ModuleUIConfigService
         var defaultModules = new[]
         {
             ("Dashboard", "Analytics and overview", "Dashboard", true),
-            ("Customers", "Customer management", "People", true),
+            ("Accounts", "Account management", "People", true),
             ("Contacts", "Contact information", "Contacts", true),
             ("Leads", "Lead management", "PersonAdd", true),
             ("Opportunities", "Sales opportunities", "TrendingUp", true),
@@ -436,6 +449,7 @@ public class ModuleUIConfigService
     /// </summary>
     public async Task<ModuleUIConfigDto?> ToggleModuleAsync(string moduleName, bool enabled)
     {
+        UiConfigurationValidator.ValidateModuleName(moduleName);
         var entity = await _context.ModuleUIConfigs
             .FirstOrDefaultAsync(c => c.ModuleName == moduleName);
 

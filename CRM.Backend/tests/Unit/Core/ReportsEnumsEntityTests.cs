@@ -454,7 +454,7 @@ public class ReportsEnumsEntityTests
     {
         ((int)ReportDataSource.Leads).Should().Be(0);
         ((int)ReportDataSource.Opportunities).Should().Be(1);
-        ((int)ReportDataSource.Customers).Should().Be(2);
+        ((int)ReportDataSource.Accounts).Should().Be(2);
         ((int)ReportDataSource.Contacts).Should().Be(3);
         ((int)ReportDataSource.Activities).Should().Be(4);
         ((int)ReportDataSource.SalesPerformance).Should().Be(5);

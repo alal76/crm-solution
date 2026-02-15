@@ -27,7 +27,7 @@ public interface IActivityService
     /// Get activities with optional filtering
     /// </summary>
     Task<IEnumerable<Activity>> GetActivitiesAsync(
-        int? customerId = null,
+        int? accountId = null,
         int? opportunityId = null,
         int? userId = null,
         ActivityType? activityType = null,
@@ -56,9 +56,9 @@ public interface IActivityService
     Task<IEnumerable<Activity>> GetByEntityAsync(string entityType, int entityId, int limit = 50);
 
     /// <summary>
-    /// Get customer timeline (all activities related to a customer)
+    /// Get account timeline (all activities related to an account)
     /// </summary>
-    Task<IEnumerable<Activity>> GetCustomerTimelineAsync(int customerId, int limit = 100);
+    Task<IEnumerable<Activity>> GetAccountTimelineAsync(int accountId, int limit = 100);
 
     /// <summary>
     /// Get opportunity timeline

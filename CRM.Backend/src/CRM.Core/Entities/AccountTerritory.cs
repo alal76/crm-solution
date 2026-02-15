@@ -148,7 +148,7 @@ public class AccountTerritoryAssignment
     /// The account being assigned
     /// </summary>
     [Required]
-    [Column("CustomerId")]
+    [Column("AccountId")]
     public int AccountId { get; set; }
 
     /// <summary>

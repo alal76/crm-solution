@@ -784,7 +784,7 @@ public class CommunicationsController : ControllerBase
         [FromQuery] string? direction = null,
         [FromQuery] string? status = null,
         [FromQuery] bool? unreadOnly = null,
-        [FromQuery] int? customerId = null,
+        [FromQuery] int? accountId = null,
         [FromQuery] int? contactId = null,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 50)
@@ -806,8 +806,8 @@ public class CommunicationsController : ControllerBase
             if (unreadOnly == true)
                 query = query.Where(m => !m.IsRead);
 
-            if (customerId.HasValue)
-                query = query.Where(m => m.AccountId == customerId);
+            if (accountId.HasValue)
+                query = query.Where(m => m.AccountId == accountId);
 
             if (contactId.HasValue)
                 query = query.Where(m => m.ContactId == contactId);
@@ -1138,7 +1138,7 @@ public class CommunicationsController : ControllerBase
     public async Task<ActionResult<List<ConversationListDto>>> GetConversations(
         [FromQuery] string? channelType = null,
         [FromQuery] string? status = null,
-        [FromQuery] int? customerId = null,
+        [FromQuery] int? accountId = null,
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 50)
     {
@@ -1153,8 +1153,8 @@ public class CommunicationsController : ControllerBase
             if (!string.IsNullOrEmpty(status) && Enum.TryParse<ConversationStatus>(status, true, out var st))
                 query = query.Where(c => c.Status == st);
 
-            if (customerId.HasValue)
-                query = query.Where(c => c.AccountId == customerId);
+            if (accountId.HasValue)
+                query = query.Where(c => c.AccountId == accountId);
 
             var conversations = await query
                 .OrderByDescending(c => c.IsPinned)

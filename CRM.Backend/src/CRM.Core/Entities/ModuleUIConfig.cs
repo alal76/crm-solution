@@ -102,7 +102,7 @@ public static class DefaultModuleConfigs
 {
     public static readonly string[] AllModules = new[]
     {
-        ModuleNames.Customers,
+        ModuleNames.Accounts,
         ModuleNames.Contacts,
         ModuleNames.Leads,
         ModuleNames.Opportunities,
@@ -117,16 +117,16 @@ public static class DefaultModuleConfigs
 
     public static readonly Dictionary<string, string[]> DefaultLinkedEntities = new()
     {
-        [ModuleNames.Customers] = new[] { "Contacts", "Opportunities", "Quotes", "Tasks", "Activities", "Notes" },
-        [ModuleNames.Contacts] = new[] { "Customers", "Opportunities", "Tasks", "Activities", "Notes" },
+        [ModuleNames.Accounts] = new[] { "Contacts", "Opportunities", "Quotes", "Tasks", "Activities", "Notes" },
+        [ModuleNames.Contacts] = new[] { "Accounts", "Opportunities", "Tasks", "Activities", "Notes" },
         [ModuleNames.Leads] = new[] { "Tasks", "Activities", "Notes" },
-        [ModuleNames.Opportunities] = new[] { "Customers", "Contacts", "Products", "Quotes", "Tasks", "Activities", "Notes" },
+        [ModuleNames.Opportunities] = new[] { "Accounts", "Contacts", "Products", "Quotes", "Tasks", "Activities", "Notes" },
         [ModuleNames.Products] = new[] { "Opportunities", "Quotes" },
-        ["Services"] = new[] { "Customers", "Quotes" },
+        ["Services"] = new[] { "Accounts", "Quotes" },
         ["Campaigns"] = new[] { "Leads", "Contacts", "Tasks", "Activities" },
-        ["Quotes"] = new[] { "Customers", "Contacts", "Products", "Opportunities" },
-        ["Tasks"] = new[] { "Customers", "Contacts", "Leads", "Opportunities" },
-        ["Activities"] = new[] { "Customers", "Contacts", "Leads", "Opportunities" },
-        ["Notes"] = new[] { "Customers", "Contacts", "Leads", "Opportunities" }
+        ["Quotes"] = new[] { "Accounts", "Contacts", "Products", "Opportunities" },
+        ["Tasks"] = new[] { "Accounts", "Contacts", "Leads", "Opportunities" },
+        ["Activities"] = new[] { "Accounts", "Contacts", "Leads", "Opportunities" },
+        ["Notes"] = new[] { "Accounts", "Contacts", "Leads", "Opportunities" }
     };
 }

@@ -510,7 +510,7 @@ public class DashboardBuilderService : IDashboardBuilderService
 
     private async Task<Dictionary<string, object>> GetAccountCountAsync(CancellationToken ct)
     {
-        var count = await _context.Customers
+        var count = await _context.Accounts
             .CountAsync(c => !c.IsDeleted, ct);
 
         return new Dictionary<string, object>

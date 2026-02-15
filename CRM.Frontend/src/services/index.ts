@@ -1,5 +1,6 @@
 export { default as accountService } from './accountService';
 export { default as approvalService } from './approvalService';
+export { default as brandingConfigService } from './brandingConfigService';
 export { default as campaignExecutionService } from './campaignExecutionService';
 export { default as cloudDeploymentService } from './cloudDeploymentService';
 export { default as commissionService } from './commissionService';

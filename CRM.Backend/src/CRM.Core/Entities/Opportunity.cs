@@ -166,7 +166,7 @@ public class Opportunity : BaseEntity
     #region Foreign Keys
 
     /// <summary>Customer/company for this opportunity (required)</summary>
-    [Column("CustomerId")]
+    [Column("AccountId")]
     public int AccountId { get; set; }
 
     /// <summary>Primary contact person</summary>

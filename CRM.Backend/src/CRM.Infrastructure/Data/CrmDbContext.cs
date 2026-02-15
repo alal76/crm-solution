@@ -42,7 +42,8 @@ public class CrmDbContext : DbContext, ICrmDbContext
         _configuration = configuration;
     }
 
-    public DbSet<Account> Customers { get; set; }
+    public DbSet<Account> Accounts { get; set; }
+    public DbSet<Preferences> Preferences { get; set; }
     public DbSet<AccountContact> AccountContacts { get; set; }
     public DbSet<Opportunity> Opportunities { get; set; }
     public DbSet<Product> Products { get; set; }
@@ -124,6 +125,7 @@ public class CrmDbContext : DbContext, ICrmDbContext
 
     // System settings
     public DbSet<SystemSettings> SystemSettings { get; set; }
+    public DbSet<BrandingConfig> BrandingConfigs { get; set; }
 
     // Color palettes
     public DbSet<ColorPalette> ColorPalettes { get; set; }
@@ -134,9 +136,6 @@ public class CrmDbContext : DbContext, ICrmDbContext
     // Module field configurations
         public DbSet<ModuleFieldConfiguration> ModuleFieldConfigurations { get; set; }
         public DbSet<ModuleUIConfig> ModuleUIConfigs { get; set; }
-
-        /// <summary>Alias for Customers DbSet. Both map to the Account entity on the "Customers" table.</summary>
-        public DbSet<Account> Accounts => Customers;
         public DbSet<FieldMasterDataLink> FieldMasterDataLinks { get; set; }
 
     // Communication entities
@@ -192,8 +191,6 @@ public class CrmDbContext : DbContext, ICrmDbContext
     public DbSet<AccountTerritory> AccountTerritories { get; set; }
     public DbSet<AccountTerritoryAssignment> AccountTerritoryAssignments { get; set; }
 
-    /// <summary>Alias for AccountTerritoryAssignments (legacy naming).</summary>
-    public DbSet<AccountTerritoryAssignment> CustomerTerritoryAssignments => AccountTerritoryAssignments;
 
     // Campaign execution entities
     public DbSet<CampaignRecipient> CampaignRecipients { get; set; }
@@ -494,7 +491,10 @@ public class CrmDbContext : DbContext, ICrmDbContext
             // Map renamed properties to original database columns for backward compatibility
             entity.Property(e => e.AccountHealthScore).HasColumnName("CustomerHealthScore");
             // AccountType, ReferredByAccountId, ParentAccountId columns exist in database with these names
-            entity.HasIndex(e => e.Email);
+            entity.HasIndex(e => e.Email).IsUnique();
+            entity.HasIndex(e => e.AssignedToUserId);
+            entity.HasIndex(e => e.AccountManagerId);
+            entity.HasIndex(e => e.CreatedAt);
             entity.HasIndex(e => e.Category);
             entity.HasIndex(e => e.Company);
 
@@ -508,6 +508,31 @@ public class CrmDbContext : DbContext, ICrmDbContext
                 .WithMany()
                 .HasForeignKey(e => e.ParentAccountId)
                 .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasOne(e => e.Preferences)
+                .WithMany(p => p.Accounts)
+                .HasForeignKey(e => e.PreferencesId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        modelBuilder.Entity<Preferences>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.PreferredContactMethod).HasMaxLength(50);
+            entity.Property(e => e.PreferredLanguage).HasMaxLength(50);
+            entity.Property(e => e.Timezone).HasMaxLength(100);
+
+            entity.HasIndex(e => new
+                {
+                    e.OptInEmail,
+                    e.OptInSms,
+                    e.OptInPhone,
+                    e.OptInPostal,
+                    e.PreferredContactMethod,
+                    e.PreferredLanguage,
+                    e.Timezone
+                })
+                .IsUnique();
         });
 
         // Configure CustomerContact (junction table for organization contacts)
@@ -800,10 +825,15 @@ public class CrmDbContext : DbContext, ICrmDbContext
                 .HasForeignKey(c => c.PreferredContactMethodLookupId)
                 .OnDelete(DeleteBehavior.SetNull);
 
-            // Contact belongs to Customer (one-to-many)
-            entity.HasOne(c => c.Customer)
-                .WithMany(cust => cust.Contacts)
-                .HasForeignKey(c => c.CustomerId)
+            // Contact belongs to Account (one-to-many)
+            entity.HasOne(c => c.Account)
+                .WithMany(a => a.Contacts)
+                .HasForeignKey(c => c.AccountId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasOne(c => c.Preferences)
+                .WithMany(p => p.Contacts)
+                .HasForeignKey(c => c.PreferencesId)
                 .OnDelete(DeleteBehavior.SetNull);
         });
 
@@ -933,6 +963,13 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.Property(e => e.DefaultCurrency).HasMaxLength(10);
             entity.Property(e => e.DefaultTimezone).HasMaxLength(100);
             entity.Property(e => e.DefaultLanguage).HasMaxLength(10);
+
+            entity.HasIndex(e => e.SelectedPaletteId);
+
+            entity.HasOne(e => e.SelectedPalette)
+                .WithMany()
+                .HasForeignKey(e => e.SelectedPaletteId)
+                .OnDelete(DeleteBehavior.SetNull);
         });
 
         // Configure LLMProviderSetting
