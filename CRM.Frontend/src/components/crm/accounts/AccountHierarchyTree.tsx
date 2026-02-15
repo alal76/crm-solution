@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
   Box,
-  TreeView,
-  TreeItem,
   CircularProgress,
   Alert,
   Button,
@@ -19,6 +17,7 @@ import {
   IconButton,
   Tooltip,
 } from '@mui/material';
+import { TreeView, TreeItem } from '@mui/x-tree-view';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import EditIcon from '@mui/icons-material/Edit';
