@@ -52,7 +52,7 @@ public class CreditMemoServiceTests
         var service = CreateService(context);
 
         var account = new Account { Company = "Acme", Email = "acc@acme.com", Phone = "123", Category = AccountCategory.Organization };
-        context.Customers.Add(account);
+        context.Accounts.Add(account);
         await context.SaveChangesAsync();
 
         var memo = new CreditMemo { AccountId = account.Id, Amount = -50m, Status = CreditMemoStatus.Draft };
@@ -69,7 +69,7 @@ public class CreditMemoServiceTests
         var service = CreateService(context);
 
         var account = new Account { Company = "Acme", Email = "acc@acme.com", Phone = "123", Category = AccountCategory.Organization };
-        context.Customers.Add(account);
+        context.Accounts.Add(account);
         var memo = new CreditMemo { AccountId = account.Id, Amount = -50m, CreditMemoNumber = "CM-1" };
         context.CreditMemos.Add(memo);
         await context.SaveChangesAsync();
@@ -86,7 +86,7 @@ public class CreditMemoServiceTests
         var service = CreateService(context);
 
         var account = new Account { Company = "Acme", Email = "acc@acme.com", Phone = "123", Category = AccountCategory.Organization };
-        context.Customers.Add(account);
+        context.Accounts.Add(account);
         var memo = new CreditMemo { AccountId = account.Id, Amount = -50m, CreditMemoNumber = "CM-2" };
         context.CreditMemos.Add(memo);
         await context.SaveChangesAsync();
@@ -105,7 +105,7 @@ public class CreditMemoServiceTests
         var service = CreateService(context);
 
         var account = new Account { Company = "Acme", Email = "acc@acme.com", Phone = "123", Category = AccountCategory.Organization };
-        context.Customers.Add(account);
+        context.Accounts.Add(account);
         await context.SaveChangesAsync();
 
         var invoice = new Invoice
@@ -138,7 +138,7 @@ public class CreditMemoServiceTests
         var service = CreateService(context);
 
         var account = new Account { Company = "Acme", Email = "acc@acme.com", Phone = "123", Category = AccountCategory.Organization };
-        context.Customers.Add(account);
+        context.Accounts.Add(account);
         await context.SaveChangesAsync();
 
         var invoice = new Invoice
@@ -172,7 +172,7 @@ public class CreditMemoServiceTests
         var service = CreateService(context);
 
         var account = new Account { Company = "Acme", Email = "acc@acme.com", Phone = "123", Category = AccountCategory.Organization };
-        context.Customers.Add(account);
+        context.Accounts.Add(account);
         var memo = new CreditMemo
         {
             AccountId = account.Id,
@@ -197,7 +197,7 @@ public class CreditMemoServiceTests
         var service = CreateService(context);
 
         var account = new Account { Company = "Acme", Email = "acc@acme.com", Phone = "123", Category = AccountCategory.Organization };
-        context.Customers.Add(account);
+        context.Accounts.Add(account);
         var memo = new CreditMemo
         {
             AccountId = account.Id,
