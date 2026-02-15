@@ -55,7 +55,6 @@ export type { AddressFormComponentProps } from './AddressFormComponent';
 
 export { default as AddressListComponent } from './AddressListComponent';
 export type { AddressListComponentProps } from './AddressListComponent';
-export type { AddressModalComponentProps } from './AddressModalComponent';
 
 // Logo Display for branding
 export { default as LogoDisplay } from './LogoDisplay';
