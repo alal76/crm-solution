@@ -608,6 +608,26 @@ builder.Services.AddScoped<IConversationService, ConversationService>();
 builder.Services.AddScoped<IEventAttendeeService, EventAttendeeService>();
 // Email Sequence service (drip campaigns)
 builder.Services.AddScoped<CRM.Core.Interfaces.IEmailSequenceService, CRM.Infrastructure.Services.EmailSequenceService>();
+
+// SPRINT 1-2: TIER-1 CRITICAL SERVICES (Commission, Campaign, Email Sequence, Webhook Management)
+// Commission Management Services (4 services)
+builder.Services.AddScoped<ICommissionPlanService, CommissionPlanService>();
+builder.Services.AddScoped<ICommissionCalculationService, CommissionCalculationService>();
+builder.Services.AddScoped<ICommissionApprovalService, CommissionApprovalService>();
+builder.Services.AddScoped<ICommissionPayoutService, CommissionPayoutService>();
+
+// Campaign Management Services (3 services)
+builder.Services.AddScoped<ICampaignRecipientService, CampaignRecipientService>();
+builder.Services.AddScoped<ICampaignMetricsService, CampaignMetricsService>();
+builder.Services.AddScoped<ICampaignExecutionService, CampaignExecutionService>();
+
+// Email Sequence Management Service (enhanced)
+builder.Services.AddScoped<IEmailSequenceManagementService, EmailSequenceManagementService>();
+
+// Webhook Management Services (2 services)
+builder.Services.AddScoped<IWebhookManagementService, WebhookManagementService>();
+builder.Services.AddScoped<IWebhookDispatcherService, WebhookDispatcherService>();
+
 // Pricing & Bundles
 builder.Services.AddScoped<CRM.Core.Interfaces.IPricingService, CRM.Infrastructure.Services.PricingService>();
 builder.Services.AddScoped<CRM.Core.Interfaces.IProductBundleService, CRM.Infrastructure.Services.ProductBundleService>();
