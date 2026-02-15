@@ -58,7 +58,7 @@ public class UserService : IUserService, IUserInputPort
                     LastName = u.LastName,
                     Role = ((UserRole)u.Role).ToString(),
                     IsActive = u.IsActive,
-                    LastLoginDate = u.LastLoginDate,
+                    LastLoginDate = u.LastLoginAt,
                     DepartmentId = u.DepartmentId,
                     UserProfileId = u.UserProfileId,
                     CreatedAt = u.CreatedAt
@@ -89,7 +89,7 @@ public class UserService : IUserService, IUserInputPort
                     LastName = u.LastName,
                     Role = ((UserRole)u.Role).ToString(),
                     IsActive = u.IsActive,
-                    LastLoginDate = u.LastLoginDate,
+                    LastLoginDate = u.LastLoginAt,
                     DepartmentId = u.DepartmentId,
                     UserProfileId = u.UserProfileId,
                     CreatedAt = u.CreatedAt
@@ -119,7 +119,7 @@ public class UserService : IUserService, IUserInputPort
                     LastName = u.LastName,
                     Role = ((UserRole)u.Role).ToString(),
                     IsActive = u.IsActive,
-                    LastLoginDate = u.LastLoginDate,
+                    LastLoginDate = u.LastLoginAt,
                     DepartmentId = u.DepartmentId,
                     UserProfileId = u.UserProfileId,
                     CreatedAt = u.CreatedAt

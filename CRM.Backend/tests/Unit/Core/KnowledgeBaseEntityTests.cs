@@ -411,7 +411,7 @@ public class KnowledgeBaseEntityTests
     [Fact]
     public void SLAPolicy_ShouldInitializeWithDefaults()
     {
-        var policy = new SLAPolicy();
+        var policy = new CRM.Core.Entities.KnowledgeBase.SLAPolicy();
 
         policy.Name.Should().Be(string.Empty);
         policy.Description.Should().BeNull();
@@ -431,7 +431,7 @@ public class KnowledgeBaseEntityTests
     [Fact]
     public void SLAPolicy_ShouldSetProperties()
     {
-        var policy = new SLAPolicy
+        var policy = new CRM.Core.Entities.KnowledgeBase.SLAPolicy
         {
             Name = "Enterprise SLA",
             Description = "For enterprise customers",
@@ -454,7 +454,7 @@ public class KnowledgeBaseEntityTests
     [Fact]
     public void SLAPolicy_Collections_ShouldInitializeEmpty()
     {
-        var policy = new SLAPolicy();
+        var policy = new CRM.Core.Entities.KnowledgeBase.SLAPolicy();
 
         policy.Targets.Should().NotBeNull().And.BeEmpty();
         policy.EscalationRules.Should().NotBeNull().And.BeEmpty();
@@ -547,7 +547,7 @@ public class KnowledgeBaseEntityTests
     [Fact]
     public void EscalationRule_ShouldInitializeWithDefaults()
     {
-        var rule = new EscalationRule();
+        var rule = new CRM.Core.Entities.KnowledgeBase.EscalationRule();
 
         rule.SLAPolicyId.Should().Be(0);
         rule.Name.Should().Be(string.Empty);
@@ -568,7 +568,7 @@ public class KnowledgeBaseEntityTests
     [Fact]
     public void EscalationRule_ShouldSetProperties()
     {
-        var rule = new EscalationRule
+        var rule = new CRM.Core.Entities.KnowledgeBase.EscalationRule
         {
             SLAPolicyId = 1,
             Name = "First Warning",
@@ -589,7 +589,7 @@ public class KnowledgeBaseEntityTests
     [Fact]
     public void EscalationRule_ReassignUser_ShouldSetProperties()
     {
-        var rule = new EscalationRule
+        var rule = new CRM.Core.Entities.KnowledgeBase.EscalationRule
         {
             Name = "Escalate to Manager",
             EscalationType = EscalationType.ReassignUser,
@@ -604,7 +604,7 @@ public class KnowledgeBaseEntityTests
     [Fact]
     public void EscalationRule_IncreasePriority_ShouldSetNewPriority()
     {
-        var rule = new EscalationRule
+        var rule = new CRM.Core.Entities.KnowledgeBase.EscalationRule
         {
             Name = "Increase Priority",
             EscalationType = EscalationType.IncreasePriority,

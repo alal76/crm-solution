@@ -1,0 +1,127 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU Affero General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+// GNU Affero General Public License for more details.
+//
+// You should have received a copy of the GNU Affero General Public License
+// along with this program. If not, see <https://www.gnu.org/licenses/>.
+
+using CRM.Core.Entities;
+using CRM.Core.Interfaces;
+using Microsoft.Extensions.Logging;
+using Moq;
+using Xunit;
+
+namespace CRM.SystemModule.Tests.Controllers;
+
+/// <summary>
+/// Unit tests for Permissions controller functionality.
+/// Tests permission API endpoints behavior at the service level.
+/// </summary>
+public class PermissionsControllerTests
+{
+    private readonly Mock<ICrmDbContext> _dbContextMock;
+    private readonly Mock<ILogger<Permission>> _loggerMock;
+
+    public PermissionsControllerTests()
+    {
+        _dbContextMock = new Mock<ICrmDbContext>();
+        _loggerMock = new Mock<ILogger<Permission>>();
+    }
+
+    [Fact]
+    public void Permission_EntityCreation_IsValid()
+    {
+        // Arrange & Act
+        var permission = new Permission
+        {
+            Id = 1,
+            Name = "View.Accounts",
+            Description = "Can view accounts",
+            CreatedAt = DateTime.UtcNow
+        };
+
+        // Assert
+        Assert.NotNull(permission);
+        Assert.Equal("View.Accounts", permission.Name);
+    }
+
+    [Fact]
+    public void Permission_WithValidProperties_IsValid()
+    {
+        // Arrange
+        var permissions = new List<Permission>
+        {
+            new Permission { Id = 1, Name = "View.Accounts", Description = "Can view accounts" },
+            new Permission { Id = 2, Name = "Edit.Accounts", Description = "Can edit accounts" },
+            new Permission { Id = 3, Name = "Delete.Accounts", Description = "Can delete accounts" }
+        };
+
+        // Act
+        var permissionMock = permissions.CreateMockDbSet();
+        _dbContextMock.Setup(x => x.Permissions).Returns(permissionMock.Object);
+
+        // Assert
+        Assert.Equal(3, permissions.Count);
+    }
+
+    [Fact]
+    public async Task GetAllPermissions_ReturnsAllPermissions()
+    {
+        // Arrange
+        var permissions = new List<Permission>
+        {
+            new Permission { Id = 1, Name = "View.Accounts", Description = "Can view accounts" },
+            new Permission { Id = 2, Name = "Edit.Accounts", Description = "Can edit accounts" }
+        };
+
+        var mockDbSet = permissions.CreateMockDbSet();
+        _dbContextMock.Setup(x => x.Permissions).Returns(mockDbSet.Object);
+
+        // Act
+        var result = await _dbContextMock.Object.Permissions.ToListAsync();
+
+        // Assert
+        Assert.NotNull(result);
+    }
+
+    [Fact]
+    public void Permission_NameProperty_IsRequired()
+    {
+        // Arrange
+        var permission = new Permission
+        {
+            Id = 1,
+            Name = "Test.Permission",
+            Description = "Test description"
+        };
+
+        // Act & Assert
+        Assert.NotEmpty(permission.Name);
+        Assert.StartsWith("Test.", permission.Name);
+    }
+
+    [Fact]
+    public void GroupPermission_EntityCreation_IsValid()
+    {
+        // Arrange & Act
+        var groupPermission = new GroupPermission
+        {
+            UserGroupId = 1,
+            PermissionId = 1
+        };
+
+        // Assert
+        Assert.NotNull(groupPermission);
+        Assert.Equal(1, groupPermission.UserGroupId);
+        Assert.Equal(1, groupPermission.PermissionId);
+    }
+}

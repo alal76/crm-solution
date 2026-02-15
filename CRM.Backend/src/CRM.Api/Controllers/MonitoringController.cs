@@ -750,8 +750,8 @@ public class MonitoringController : ControllerBase
         try
         {
             var users = await _context.Users
-                .Where(u => u.LastLoginDate != null && u.LastLoginDate > recentThreshold)
-                .OrderByDescending(u => u.LastLoginDate)
+                .Where(u => u.LastLoginAt != null && u.LastLoginAt > recentThreshold)
+                .OrderByDescending(u => u.LastLoginAt)
                 .Take(50)
                 .Select(u => new
                 {
@@ -759,7 +759,7 @@ public class MonitoringController : ControllerBase
                     u.FirstName,
                     u.LastName,
                     u.Email,
-                    u.LastLoginDate,
+                    u.LastLoginAt,
                     u.Role,
                     u.IsActive
                 })
@@ -771,8 +771,8 @@ public class MonitoringController : ControllerBase
                 UserName = $"{u.FirstName} {u.LastName}",
                 Email = u.Email,
                 Role = u.Role.ToString(),
-                LoginTime = u.LastLoginDate ?? DateTime.UtcNow,
-                LastActivity = u.LastLoginDate ?? DateTime.UtcNow,
+                LoginTime = u.LastLoginAt ?? DateTime.UtcNow,
+                LastActivity = u.LastLoginAt ?? DateTime.UtcNow,
                 IpAddress = "N/A",
                 IsActive = u.IsActive
             }).ToList();

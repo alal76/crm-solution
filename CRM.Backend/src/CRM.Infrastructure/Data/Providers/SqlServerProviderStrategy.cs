@@ -112,6 +112,8 @@ public class SqlServerProviderStrategy : DatabaseProviderStrategyBase
 
         return baseConnectionString.TrimEnd(';') + optimizations;
     }
+
+    public override string GetUtcNowSql() => "GETUTCDATE()";
 }
 
 /// <summary>

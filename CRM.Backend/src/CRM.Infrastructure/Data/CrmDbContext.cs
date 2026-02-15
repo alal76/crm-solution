@@ -59,6 +59,16 @@ public class CrmDbContext : DbContext, ICrmDbContext
     public DbSet<UserGroup> UserGroups { get; set; }
     public DbSet<UserGroupMember> UserGroupMembers { get; set; }
     public DbSet<UserApprovalRequest> UserApprovalRequests { get; set; }
+    
+    // RBAC - Role-Based Access Control (SYS-012)
+    public DbSet<Role> Roles { get; set; }
+    public DbSet<Permission> Permissions { get; set; }
+    public DbSet<RolePermission> RolePermissions { get; set; }
+    public DbSet<UserRoleAssignment> UserRoleAssignments { get; set; }
+    
+    /// <summary>Alias for UserRoleAssignments for backward compatibility</summary>
+    public DbSet<UserRoleAssignment> UserRoles => UserRoleAssignments;
+    
     public DbSet<DatabaseBackup> DatabaseBackups { get; set; }
     public DbSet<BackupSchedule> BackupSchedules { get; set; }
 
@@ -137,6 +147,21 @@ public class CrmDbContext : DbContext, ICrmDbContext
         public DbSet<ModuleFieldConfiguration> ModuleFieldConfigurations { get; set; }
         public DbSet<ModuleUIConfig> ModuleUIConfigs { get; set; }
         public DbSet<FieldMasterDataLink> FieldMasterDataLinks { get; set; }
+
+    // UI Preferences and Customizations
+    public DbSet<UIPreference> UIPreferences { get; set; }
+    public DbSet<UICustomization> UICustomizations { get; set; }
+    public DbSet<DashboardCustomization> DashboardCustomizations { get; set; }
+
+    // Feature Flags (SYS-004)
+    public DbSet<FeatureFlag> FeatureFlags { get; set; }
+    public DbSet<FeatureFlagVariant> FeatureFlagVariants { get; set; }
+
+    // Feature Flag Audit Trail
+    public DbSet<FeatureFlagAuditLog> FeatureFlagAuditLogs { get; set; }
+
+    // Performance Metrics
+    public DbSet<PerformanceMetric> PerformanceMetrics { get; set; }
 
     // Communication entities
     public DbSet<CommunicationChannel> CommunicationChannels { get; set; }
@@ -292,6 +317,15 @@ public class CrmDbContext : DbContext, ICrmDbContext
     public DbSet<TeamMember> TeamMembers { get; set; }
 
     // =============================================================================
+    // Admin Configuration Entities (Commission Rules, Discount Rules, SLA, Escalation, Queues, Sales Config)
+    // =============================================================================
+    public DbSet<CommissionRule> CommissionRules { get; set; }
+    public DbSet<CommissionHistory> CommissionHistories { get; set; }
+    public DbSet<DiscountRule> DiscountRules { get; set; }
+    public DbSet<DiscountHistory> DiscountHistories { get; set; }
+    public DbSet<SalesConfiguration> SalesConfigurations { get; set; }
+
+    // =============================================================================
     // AI Entities (Lead Scoring, Predictions, Insights)
     // =============================================================================
     public DbSet<AIModel> AIModels { get; set; }
@@ -325,11 +359,14 @@ public class CrmDbContext : DbContext, ICrmDbContext
     public DbSet<KnowledgeCategory> KnowledgeCategories { get; set; }
     public DbSet<ServiceRequestArticle> ServiceRequestArticles { get; set; }
     public DbSet<ArticleFeedback> ArticleFeedbacks { get; set; }
-    public DbSet<SLAPolicy> SLAPolicies { get; set; }
+    public DbSet<CRM.Core.Entities.SLAPolicy> SLAPolicies { get; set; }
     public DbSet<SLATarget> SLATargets { get; set; }
     public DbSet<SLAInstance> SLAInstances { get; set; }
     public DbSet<BusinessHours> BusinessHoursConfigs { get; set; }
-    public DbSet<EscalationRule> EscalationRules { get; set; }
+    public DbSet<CRM.Core.Entities.EscalationRule> EscalationRules { get; set; }
+    public DbSet<ITSM.ServiceQueue> ServiceQueues { get; set; }
+
+    // NOTE: EscalationPolicy, EscalationLevel, EscalationHistory services are disabled pending proper entity implementation
 
     // =============================================================================
     // ITSM Module Entities (Incident, Problem, Change, CMDB, Knowledge, Catalog)
@@ -920,7 +957,7 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.HasIndex(e => e.Email).IsUnique();
 
             // Column mappings for backward compatibility with existing database schema
-            entity.Property(e => e.LastLoginDate).HasColumnName("LastLoginAt");
+            entity.Property(e => e.LastLoginAt).HasColumnName("LastLoginAt");
             entity.Property(e => e.EmailVerified).HasColumnName("IsEmailVerified");
             // Role is stored as INT in database matching the UserRole enum values
 
@@ -986,6 +1023,100 @@ public class CrmDbContext : DbContext, ICrmDbContext
                 .WithMany(g => g.Members)
                 .HasForeignKey(e => e.UserGroupId)
                 .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // Configure Role (RBAC - SYS-012)
+        modelBuilder.Entity<Role>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(100);
+            entity.HasIndex(e => e.Name).IsUnique();
+            entity.Property(e => e.Description).HasMaxLength(500);
+            entity.Property(e => e.HierarchyLevel).IsRequired().HasDefaultValue(3); // Default to User level
+            entity.Property(e => e.IsSystemDefined).IsRequired().HasDefaultValue(false);
+            entity.Property(e => e.IsActive).IsRequired().HasDefaultValue(true);
+            
+            // Indexes for common queries
+            entity.HasIndex(e => e.HierarchyLevel);
+            entity.HasIndex(e => e.IsActive);
+            entity.HasIndex(e => new { e.IsActive, e.IsSystemDefined });
+        });
+
+        // Configure Permission (RBAC - SYS-012)
+        modelBuilder.Entity<Permission>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).IsRequired().HasMaxLength(255); // Format: {Module}.{Action}
+            entity.HasIndex(e => e.Name).IsUnique();
+            entity.Property(e => e.DisplayName).IsRequired().HasMaxLength(255);
+            entity.Property(e => e.Module).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.Category).IsRequired().HasMaxLength(50); // Create, Update, Delete, Export, View, etc.
+            entity.Property(e => e.Description).HasMaxLength(500);
+            entity.Property(e => e.IsSystemDefined).IsRequired().HasDefaultValue(false);
+            entity.Property(e => e.IsActive).IsRequired().HasDefaultValue(true);
+            
+            // Indexes for common queries
+            entity.HasIndex(e => e.Module);
+            entity.HasIndex(e => e.Category);
+            entity.HasIndex(e => new { e.Module, e.Category });
+            entity.HasIndex(e => e.IsActive);
+            entity.HasIndex(e => new { e.IsActive, e.IsSystemDefined });
+        });
+
+        // Configure RolePermission (Junction table for Role-Permission many-to-many)
+        modelBuilder.Entity<RolePermission>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            
+            // Unique constraint: role can only have permission once
+            entity.HasIndex(e => new { e.RoleId, e.PermissionId }).IsUnique();
+            
+            entity.HasOne(e => e.Role)
+                .WithMany(r => r.RolePermissions)
+                .HasForeignKey(e => e.RoleId)
+                .OnDelete(DeleteBehavior.Cascade);
+            
+            entity.HasOne(e => e.Permission)
+                .WithMany(p => p.RolePermissions)
+                .HasForeignKey(e => e.PermissionId)
+                .OnDelete(DeleteBehavior.Cascade);
+            
+            entity.Property(e => e.AssignedAt).IsRequired().HasDefaultValueSql(providerStrategy.GetUtcNowSql());
+            
+            // Indexes for common queries
+            entity.HasIndex(e => e.RoleId);
+            entity.HasIndex(e => e.PermissionId);
+        });
+
+        // Configure UserRoleAssignment (Junction table for User-Role many-to-many with temporal validity)
+        modelBuilder.Entity<UserRoleAssignment>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            
+            // Unique constraint: user can only have a role once (active roles)
+            // Multiple entries allowed with different EffectiveFrom/EffectiveTo for history
+            entity.HasIndex(e => new { e.UserId, e.RoleId, e.EffectiveFrom });
+            
+            entity.HasOne(e => e.User)
+                .WithMany(u => u.RoleAssignments)
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+            
+            entity.HasOne(e => e.Role)
+                .WithMany(r => r.UserRoles)
+                .HasForeignKey(e => e.RoleId)
+                .OnDelete(DeleteBehavior.Cascade);
+            
+            entity.Property(e => e.EffectiveFrom).IsRequired().HasDefaultValueSql(providerStrategy.GetUtcNowSql());
+            entity.Property(e => e.EffectiveTo).IsRequired(false);
+            entity.Property(e => e.AssignedAt).IsRequired().HasDefaultValueSql(providerStrategy.GetUtcNowSql());
+            entity.Property(e => e.Notes).HasMaxLength(500);
+            
+            // Indexes for common queries
+            entity.HasIndex(e => e.UserId);
+            entity.HasIndex(e => e.RoleId);
+            entity.HasIndex(e => new { e.UserId, e.EffectiveFrom, e.EffectiveTo });
+            entity.HasIndex(e => new { e.EffectiveFrom, e.EffectiveTo });
         });
 
         // Configure SystemSettings
@@ -3137,7 +3268,7 @@ public class CrmDbContext : DbContext, ICrmDbContext
         // Do NOT add ToTable() mappings that would cause shared-table conflicts between the two namespaces.
 
         // SLAPolicy configuration
-        modelBuilder.Entity<SLAPolicy>(entity =>
+        modelBuilder.Entity<CRM.Core.Entities.SLAPolicy>(entity =>
         {
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Name).IsRequired().HasMaxLength(200);
@@ -3152,7 +3283,7 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.HasIndex(e => e.Priority);
 
             entity.HasOne(e => e.BusinessHours)
-                .WithMany(b => b.Policies)
+                .WithMany()
                 .HasForeignKey(e => e.BusinessHoursId)
                 .OnDelete(DeleteBehavior.SetNull);
         });
@@ -3183,7 +3314,7 @@ public class CrmDbContext : DbContext, ICrmDbContext
         });
 
         // EscalationRule configuration
-        modelBuilder.Entity<EscalationRule>(entity =>
+        modelBuilder.Entity<CRM.Core.Entities.EscalationRule>(entity =>
         {
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Name).IsRequired().HasMaxLength(200);

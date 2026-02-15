@@ -284,8 +284,11 @@ public class UpdateSystemSettingsRequest
 
 /// <summary>
 /// Minimal DTO for frontend permission checking - what modules are enabled globally
+/// RENAMED from ModuleStatusDto to EnabledModulesDto to avoid conflict with
+/// ModuleStatusDto in RBACAndAdminDtos.cs (which represents operational status).
+/// This DTO represents module enabled/disabled configuration, not operational status.
 /// </summary>
-public class ModuleStatusDto
+public class EnabledModulesDto
 {
     public bool AccountsEnabled { get; set; }
     public bool ContactsEnabled { get; set; }

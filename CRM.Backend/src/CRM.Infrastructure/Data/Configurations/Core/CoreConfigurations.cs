@@ -209,7 +209,7 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.HasIndex(e => e.Email).IsUnique();
 
         // Column mappings for backward compatibility
-        builder.Property(e => e.LastLoginDate).HasColumnName("LastLoginAt");
+        builder.Property(e => e.LastLoginAt).HasColumnName("LastLoginAt");
         builder.Property(e => e.EmailVerified).HasColumnName("IsEmailVerified");
 
         // Configure relationships

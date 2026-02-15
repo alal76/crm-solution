@@ -881,9 +881,10 @@ public class AccountEntityTests
 
     public class AccountCommunicationPreferencesTests
     {
-        [Fact]
         // DISABLED: OptIn and communication preference fields moved to Preferences entity
+        // All test methods are disabled
         /*
+        [Fact]
         public void Account_OptInDefaults_ShouldBeReasonable()
         {
             var account = new Account();

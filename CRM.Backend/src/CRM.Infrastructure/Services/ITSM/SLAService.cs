@@ -44,7 +44,7 @@ public class SLAService : ISLAService
     {
         var context = _dbContextResolver.ResolveContext();
 
-        var policy = new SLAPolicy
+        var policy = new CRM.Core.Entities.ITSM.SLAPolicy
         {
             Name = dto.Name,
             TargetType = dto.TargetType,
@@ -102,7 +102,7 @@ public class SLAService : ISLAService
             _ => policy.P1ResolutionMinutes
         };
 
-        var instance = new SLAInstance
+        var instance = new CRM.Core.Entities.ITSM.SLAInstance
         {
             SLAPolicyId = policy.SLAPolicyId,
             TargetId = targetId,
@@ -358,7 +358,7 @@ public class SLAService : ISLAService
         }
     }
 
-    private SLAPolicyDto MapPolicyToDto(SLAPolicy policy)
+    private SLAPolicyDto MapPolicyToDto(CRM.Core.Entities.ITSM.SLAPolicy policy)
     {
         return new SLAPolicyDto
         {
@@ -372,7 +372,7 @@ public class SLAService : ISLAService
         };
     }
 
-    private SLAInstanceDto MapInstanceToDto(SLAInstance instance, SLAPolicy policy)
+    private SLAInstanceDto MapInstanceToDto(CRM.Core.Entities.ITSM.SLAInstance instance, CRM.Core.Entities.ITSM.SLAPolicy policy)
     {
         var now = DateTime.UtcNow;
 

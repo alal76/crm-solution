@@ -591,3 +591,19 @@ public class CreateEscalationLevelDto
 
     public int? EmailTemplateId { get; set; }
 }
+
+/// <summary>
+/// DTO for escalation history record.
+/// </summary>
+public class EscalationHistoryDto
+{
+    public int Id { get; set; }
+    public int PolicyId { get; set; }
+    public int ServiceRequestId { get; set; }
+    public int EscalationLevel { get; set; }
+    public string LevelName { get; set; } = string.Empty;
+    public DateTime ExecutedAt { get; set; }
+    public int? NotifyUserId { get; set; }
+    public int? NotifyTeamId { get; set; }
+    public string Status { get; set; } = "Pending";
+}
