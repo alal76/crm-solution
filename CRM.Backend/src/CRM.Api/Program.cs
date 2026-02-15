@@ -427,6 +427,7 @@ builder.Services.AddScoped<ICrmDbContext>(provider =>
 // Register Services (backward compatibility)
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped<IAccountService, AccountService>();
+builder.Services.AddScoped<IAddressService, AddressService>();
 builder.Services.AddScoped<IOpportunityService, OpportunityService>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IMarketingCampaignService, MarketingCampaignService>();

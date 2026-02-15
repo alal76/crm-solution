@@ -106,6 +106,37 @@ public class CreateAddressDto
 }
 
 /// <summary>
+/// DTO for updating an address
+/// </summary>
+public class UpdateAddressDto
+{
+    public string? Label { get; set; }
+    public string? Line1 { get; set; }
+    public string? Line2 { get; set; }
+    public string? Line3 { get; set; }
+    public string? City { get; set; }
+    public string? State { get; set; }
+    public string? PostalCode { get; set; }
+    public string? County { get; set; }
+    public string? CountryCode { get; set; }
+    public string? Country { get; set; }
+    public int? ZipCodeId { get; set; }
+    public int? LocalityId { get; set; }
+    public string? Locality { get; set; }
+    public decimal? Latitude { get; set; }
+    public decimal? Longitude { get; set; }
+    public string? GeocodeAccuracy { get; set; }
+    public bool? IsVerified { get; set; }
+    public string? VerificationSource { get; set; }
+    public bool? IsResidential { get; set; }
+    public string? DeliveryInstructions { get; set; }
+    public string? AccessHours { get; set; }
+    public string? SiteContactName { get; set; }
+    public string? SiteContactPhone { get; set; }
+    public string? Notes { get; set; }
+}
+
+/// <summary>
 /// DTO for linking an address to an entity
 /// </summary>
 public class LinkAddressDto

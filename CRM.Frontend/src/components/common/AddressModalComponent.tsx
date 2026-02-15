@@ -5,18 +5,23 @@ import {
   DialogContent,
   DialogTitle,
   Button,
+  CircularProgress,
+  Alert,
 } from '@mui/material';
 
 export interface AddressModalComponentProps {
   open: boolean;
   title: string;
   onClose: () => void;
-  onSave: () => void;
+  onSave?: () => void;
   saveLabel?: string;
   disableSave?: boolean;
   maxWidth?: 'xs' | 'sm' | 'md' | 'lg' | 'xl';
   fullWidth?: boolean;
   children: React.ReactNode;
+  isLoading?: boolean;
+  error?: string | null;
+  showActions?: boolean;
 }
 
 const AddressModalComponent: React.FC<AddressModalComponentProps> = ({
@@ -29,17 +34,35 @@ const AddressModalComponent: React.FC<AddressModalComponentProps> = ({
   maxWidth = 'md',
   fullWidth = true,
   children,
+  isLoading = false,
+  error = null,
+  showActions = true,
 }) => {
   return (
     <Dialog open={open} onClose={onClose} maxWidth={maxWidth} fullWidth={fullWidth}>
       <DialogTitle>{title}</DialogTitle>
-      <DialogContent>{children}</DialogContent>
-      <DialogActions>
-        <Button onClick={onClose}>Cancel</Button>
-        <Button onClick={onSave} variant="contained" color="primary" disabled={disableSave}>
-          {saveLabel}
-        </Button>
-      </DialogActions>
+      <DialogContent>
+        {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+        {children}
+      </DialogContent>
+      {showActions && (
+        <DialogActions>
+          <Button onClick={onClose} disabled={isLoading}>
+            Cancel
+          </Button>
+          {onSave && (
+            <Button
+              onClick={onSave}
+              variant="contained"
+              color="primary"
+              disabled={disableSave || isLoading}
+              startIcon={isLoading ? <CircularProgress size={20} /> : undefined}
+            >
+              {isLoading ? 'Saving...' : saveLabel}
+            </Button>
+          )}
+        </DialogActions>
+      )}
     </Dialog>
   );
 };
