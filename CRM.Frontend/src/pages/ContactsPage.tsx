@@ -311,8 +311,8 @@ function ContactsPage() {
 
   const getAccountName = (accountId?: number) => {
     if (!accountId) return null;
-    const customer = customers.find(c => c.id === accountId);
-    return customer ? (customer.displayName || `${customer.firstName} ${customer.lastName}`.trim() || customer.company) : null;
+    const customer = accounts.find(c => c.id === accountId);
+    return customer ? (customer.displayName ||  `${customer.firstName} ${customer.lastName}`.trim() || customer.company) : null;
   };
 
   const handleAddContact = () => {

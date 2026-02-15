@@ -345,7 +345,7 @@ function DashboardPage() {
   const getWidgetValue = useCallback((dataSource: string): WidgetData => {
     switch (dataSource) {
       case 'accounts.count':
-        return { value: stats?.accounts?.total ?? accounts.length };
+        return { value: stats?.customers?.total ?? accounts.length };
       case 'contacts.count':
         return { value: stats?.contacts?.total ?? 0 };
       case 'opportunities.count':
@@ -666,7 +666,7 @@ function DashboardPage() {
   const renderFallbackDashboard = () => {
     const totalPipeline = stats?.opportunities?.openValue ?? 0;
     const totalRevenue = stats?.opportunities?.wonValue ?? 0;
-    const totalAccounts = stats?.accounts?.total ?? accounts.length;
+    const totalAccounts = stats?.customers?.total ?? accounts.length;
 
     const fallbackStats = [
       { title: 'Total Pipeline', value: formatCurrency(totalPipeline), icon: TrendingUpIcon, color: '#6750A4', link: '/opportunities', menuKey: 'Opportunities' },

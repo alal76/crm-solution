@@ -918,7 +918,7 @@ function InteractionsPage() {
       <DialogContent>
         <Stack spacing={2} sx={{ mt: 1 }}>
           <Autocomplete
-            options={customers}
+            options={accounts}
             getOptionLabel={(c) => c.companyName || `${c.firstName || ''} ${c.lastName || ''}`.trim() || `Account #${c.id}`}
             value={accounts.find(c => c.id === parseInt(linkForm.accountId)) || null}
             onChange={(_, v) => setLinkForm({ ...linkForm, accountId: v ? String(v.id) : '' })}
@@ -1057,7 +1057,7 @@ function InteractionsPage() {
             fullWidth
           />
           <Autocomplete
-            options={customers}
+            options={accounts}
             getOptionLabel={(c) => c.companyName || `${c.firstName || ''} ${c.lastName || ''}`.trim() || `Account #${c.id}`}
             value={accounts.find(c => c.id === parseInt(contactForm.accountId)) || null}
             onChange={(_, v) => setContactForm({ ...contactForm, accountId: v ? String(v.id) : '' })}

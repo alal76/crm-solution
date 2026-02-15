@@ -165,7 +165,7 @@ function AccountOverviewPage() {
   useEffect(() => {
     filterCustomers();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchQuery, searchType, customers, selectedAccountManager]);
+  }, [searchQuery, searchType, accounts, selectedAccountManager]);
 
   const fetchAccounts = async () => {
     try {
@@ -190,7 +190,7 @@ function AccountOverviewPage() {
   };
 
   const filterCustomers = () => {
-    let filtered = [...customers];
+    let filtered = [...accounts];
     const query = searchQuery.toLowerCase().trim();
 
     if (selectedAccountManager) {
