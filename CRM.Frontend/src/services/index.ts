@@ -20,6 +20,7 @@ export { default as orderService } from './orderService';
 export { default as paymentService } from './paymentService';
 export { default as pricingService } from './pricingService';
 export { default as relationshipService } from './relationshipService';
+export { default as settingsService } from './settingsService';
 export { default as subscriptionService } from './subscriptionService';
 export { default as teamService } from './teamService';
 export { default as territoryService } from './territoryService';

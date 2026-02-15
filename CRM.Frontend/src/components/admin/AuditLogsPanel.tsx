@@ -202,3 +202,4 @@ const AuditLogsPanel: React.FC = () => {
 };
 
 export default AuditLogsPanel;
+export { AuditLogsPanel };

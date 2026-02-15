@@ -27,9 +27,9 @@ interface GroupPermissions {
   canAccessUserManagement: boolean;
   
   // CRUD Permissions
-  canCreateCustomers: boolean;
-  canEditCustomers: boolean;
-  canDeleteCustomers: boolean;
+  canCreateAccounts: boolean;
+  canEditAccounts: boolean;
+  canDeleteAccounts: boolean;
   canViewAllCustomers: boolean;
   
   canCreateContacts: boolean;
@@ -102,9 +102,9 @@ interface ModuleStatus {
 
 // Legacy permissions interface for backward compatibility
 interface UserPermissions {
-  canCreateCustomers: boolean;
-  canEditCustomers: boolean;
-  canDeleteCustomers: boolean;
+  canCreateAccounts: boolean;
+  canEditAccounts: boolean;
+  canDeleteAccounts: boolean;
   canCreateOpportunities: boolean;
   canEditOpportunities: boolean;
   canDeleteOpportunities: boolean;
@@ -175,9 +175,9 @@ const defaultGroupPermissions: GroupPermissions = {
   canAccessReports: false,
   canAccessSettings: false,
   canAccessUserManagement: false,
-  canCreateCustomers: false,
-  canEditCustomers: false,
-  canDeleteCustomers: false,
+  canCreateAccounts: false,
+  canEditAccounts: false,
+  canDeleteAccounts: false,
   canViewAllCustomers: false,
   canCreateContacts: false,
   canEditContacts: false,

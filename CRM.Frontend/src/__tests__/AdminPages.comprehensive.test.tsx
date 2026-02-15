@@ -783,7 +783,7 @@ describe('Admin - Group Management', () => {
     it('should display available permissions', () => {
       const permissions = [
         'view_dashboard', 'edit_dashboard',
-        'view_customers', 'create_customers', 'edit_customers', 'delete_customers',
+        'view_accounts', 'create_accounts', 'edit_accounts', 'delete_accounts',
         'view_opportunities', 'create_opportunities', 'edit_opportunities', 'delete_opportunities',
         'admin_access', 'view_settings', 'edit_settings',
       ];
@@ -791,8 +791,8 @@ describe('Admin - Group Management', () => {
     });
 
     it('should assign permissions to group', async () => {
-      mockApiClient.put.mockResolvedValue({ data: { permissions: ['view_dashboard', 'view_customers'] } });
-      await mockApiClient.put('/usergroups/2/permissions', { permissions: ['view_dashboard', 'view_customers'] });
+      mockApiClient.put.mockResolvedValue({ data: { permissions: ['view_dashboard', 'view_accounts'] } });
+      await mockApiClient.put('/usergroups/2/permissions', { permissions: ['view_dashboard', 'view_accounts'] });
       
       expect(mockApiClient.put).toHaveBeenCalled();
     });

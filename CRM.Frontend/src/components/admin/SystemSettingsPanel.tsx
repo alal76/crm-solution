@@ -37,7 +37,7 @@ interface SystemSettings {
   timeFormat: string;
   logoUrl: string;
   faviconUrl: string;
-  rateLimit PerMinute: number;
+  rateLimitPerMinute: number;
   accountsEnabled: boolean;
   contactsEnabled: boolean;
   leadsEnabled: boolean;
@@ -365,7 +365,7 @@ const SystemSettingsPanel: React.FC = () => {
                 onChange={(e) => handleChange('rateLimitPerMinute', parseInt(e.target.value))}
                 variant="outlined"
                 size="small"
-                helper Text="Maximum API requests per minute per user"
+                helperText="Maximum API requests per minute per user"
               />
             </Grid>
           </Grid>
@@ -387,7 +387,6 @@ const SystemSettingsPanel: React.FC = () => {
           startIcon={<SaveIcon />}
           onClick={handleSave}
           disabled={Object.keys(changes).length === 0 || saving}
-          loading={saving}
         >
           {saving ? 'Saving...' : 'Save Changes'}
         </Button>
@@ -397,3 +396,4 @@ const SystemSettingsPanel: React.FC = () => {
 };
 
 export default SystemSettingsPanel;
+export { SystemSettingsPanel };

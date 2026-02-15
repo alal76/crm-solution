@@ -155,7 +155,6 @@ function ReportsPage() {
           </Tooltip>
           <Button variant="contained" startIcon={<AddIcon />} onClick={handleCreateNew}>
             Create Report
-            import { EnhancedEmptyState } from '../components/common';
           </Button>
         </Box>
       </Box>

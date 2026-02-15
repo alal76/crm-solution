@@ -175,7 +175,7 @@ const CONTACT_SEARCHABLE_FIELDS = [
 
 function ContactsPage() {
   const [contacts, setContacts] = useState<Contact[]>([]);
-  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [accounts, setAccounts] = useState<Customer[]>([]);
   const [contactInfoCache, setContactInfoCache] = useState<Record<number, ContactInfoSummary>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -282,7 +282,7 @@ function ContactsPage() {
   // Fetch contacts
   useEffect(() => {
     fetchContacts();
-    fetchCustomers();
+    fetchAccounts();
   }, [fetchContacts]);
 
   useEffect(() => {
@@ -300,10 +300,10 @@ function ContactsPage() {
     })();
   }, []);
 
-  const fetchCustomers = async () => {
+  const fetchAccounts = async () => {
     try {
       const response = await apiClient.get('/accounts');
-      setCustomers(response.data);
+      setAccounts(response.data);
     } catch (err) {
       console.error('Error fetching customers:', err);
     }

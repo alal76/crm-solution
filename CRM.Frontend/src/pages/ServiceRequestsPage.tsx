@@ -240,7 +240,7 @@ function ServiceRequestsPage() {
   const [subcategories, setSubcategories] = useState<ServiceRequestSubcategory[]>([]);
   const [filteredSubcategories, setFilteredSubcategories] = useState<ServiceRequestSubcategory[]>([]);
   const [customFields, setCustomFields] = useState<ServiceRequestCustomFieldDefinition[]>([]);
-  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [accounts, setAccounts] = useState<Customer[]>([]);
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [users, setUsers] = useState<User[]>([]);
   const [groups, setGroups] = useState<UserGroup[]>([]);
@@ -297,7 +297,7 @@ function ServiceRequestsPage() {
         setCategories(catRes.data);
         setSubcategories(subRes.data);
         setCustomFields(fieldRes.data);
-        setCustomers(custRes.data);
+        setAccounts(custRes.data);
         setContacts(contactRes.data);
         setUsers(userRes.data);
         

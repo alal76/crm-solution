@@ -59,9 +59,9 @@ interface GroupPermissions {
   canAccessReports: boolean;
   canAccessSettings: boolean;
   canAccessUserManagement: boolean;
-  canCreateCustomers: boolean;
-  canEditCustomers: boolean;
-  canDeleteCustomers: boolean;
+  canCreateAccounts: boolean;
+  canEditAccounts: boolean;
+  canDeleteAccounts: boolean;
   canViewAllCustomers: boolean;
   canCreateContacts: boolean;
   canEditContacts: boolean;
@@ -138,9 +138,9 @@ const defaultPermissions: GroupPermissions = {
   canAccessReports: false,
   canAccessSettings: false,
   canAccessUserManagement: false,
-  canCreateCustomers: false,
-  canEditCustomers: false,
-  canDeleteCustomers: false,
+  canCreateAccounts: false,
+  canEditAccounts: false,
+  canDeleteAccounts: false,
   canViewAllCustomers: false,
   canCreateContacts: false,
   canEditContacts: false,
@@ -604,9 +604,9 @@ function GroupManagementTab() {
                 </AccordionSummary>
                 <AccordionDetails>
                   <Grid container spacing={1}>
-                    <Grid item xs={6}>{renderPermissionSwitch('canCreateCustomers', 'Create')}</Grid>
-                    <Grid item xs={6}>{renderPermissionSwitch('canEditCustomers', 'Edit')}</Grid>
-                    <Grid item xs={6}>{renderPermissionSwitch('canDeleteCustomers', 'Delete')}</Grid>
+                    <Grid item xs={6}>{renderPermissionSwitch('canCreateAccounts', 'Create')}</Grid>
+                    <Grid item xs={6}>{renderPermissionSwitch('canEditAccounts', 'Edit')}</Grid>
+                    <Grid item xs={6}>{renderPermissionSwitch('canDeleteAccounts', 'Delete')}</Grid>
                     <Grid item xs={6}>{renderPermissionSwitch('canViewAllCustomers', 'View All')}</Grid>
                   </Grid>
                 </AccordionDetails>

@@ -134,7 +134,7 @@ function RoleBasedRoute({
   // Check permission
   if (requiredPermission) {
     // Cast to expected permission key type - requiredPermission should match UserPermissions or GroupPermissions keys
-    type PermissionKey = 'canCreateCustomers' | 'canEditCustomers' | 'canDeleteCustomers' | 
+    type PermissionKey = 'canCreateAccounts' | 'canEditAccounts' | 'canDeleteAccounts' | 
       'canCreateOpportunities' | 'canEditOpportunities' | 'canDeleteOpportunities' |
       'canCreateProducts' | 'canEditProducts' | 'canDeleteProducts' |
       'canManageCampaigns' | 'canViewReports' | 'canManageUsers';

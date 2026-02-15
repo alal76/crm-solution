@@ -2,7 +2,7 @@
  * CRM Solution - Customer Relationship Management System
  * Copyright (C) 2024-2026 Abhishek Lal
  *
- * CustomersPage Component Tests
+ * AccountsPage Component Tests
  * Comprehensive tests for customer CRUD, search, filters, and import/export
  */
 
@@ -20,8 +20,8 @@ jest.mock('react-router-dom', () => ({
   useNavigate: () => mockNavigate,
 }));
 
-// Mock customers data
-const mockCustomers = [
+// Mock accounts data
+const mockAccounts = [
   {
     id: 1,
     firstName: 'John',
@@ -85,8 +85,8 @@ const mockCustomers = [
 ];
 
 const mockApiClient = {
-  get: jest.fn().mockResolvedValue({ data: mockCustomers }),
-  post: jest.fn().mockResolvedValue({ data: { ...mockCustomers[0], id: 4 } }),
+  get: jest.fn().mockResolvedValue({ data: mockAccounts }),
+  post: jest.fn().mockResolvedValue({ data: { ...mockAccounts[0], id: 4 } }),
   put: jest.fn().mockResolvedValue({ data: { success: true } }),
   delete: jest.fn().mockResolvedValue({ data: { success: true } }),
 };
@@ -95,34 +95,34 @@ const mockApiClient = {
 // Test Suite: Customer List Display
 // ============================================================================
 
-describe('CustomersPage - Customer List Display', () => {
-  it('should display customer list', () => {
-    expect(mockCustomers.length).toBe(3);
+describe('AccountsPage - Account List Display', () => {
+  it('should display account list', () => {
+    expect(mockAccounts.length).toBe(3);
   });
 
   it('should display customer first name', () => {
-    expect(mockCustomers[0].firstName).toBe('John');
+    expect(mockAccounts[0].firstName).toBe('John');
   });
 
   it('should display customer last name', () => {
-    expect(mockCustomers[0].lastName).toBe('Doe');
+    expect(mockAccounts[0].lastName).toBe('Doe');
   });
 
   it('should display customer company', () => {
-    expect(mockCustomers[0].company).toBe('Acme Corporation');
+    expect(mockAccounts[0].company).toBe('Acme Corporation');
   });
 
   it('should display customer email', () => {
-    expect(mockCustomers[0].email).toBe('john.doe@acme.com');
+    expect(mockAccounts[0].email).toBe('john.doe@acme.com');
   });
 
   it('should display customer phone', () => {
-    expect(mockCustomers[0].phone).toBe('555-0101');
+    expect(mockAccounts[0].phone).toBe('555-0101');
   });
 
   it('should display customer city and state', () => {
-    expect(mockCustomers[0].city).toBe('New York');
-    expect(mockCustomers[0].state).toBe('NY');
+    expect(mockAccounts[0].city).toBe('New York');
+    expect(mockAccounts[0].state).toBe('NY');
   });
 
   it('should display all required table headers', () => {
@@ -137,7 +137,7 @@ describe('CustomersPage - Customer List Display', () => {
     const formatDisplayName = (customer: any) => {
       return `${customer.firstName} ${customer.lastName}`;
     };
-    expect(formatDisplayName(mockCustomers[0])).toBe('John Doe');
+    expect(formatDisplayName(mockAccounts[0])).toBe('John Doe');
   });
 });
 
@@ -145,19 +145,19 @@ describe('CustomersPage - Customer List Display', () => {
 // Test Suite: Customer Type Handling
 // ============================================================================
 
-describe('CustomersPage - Customer Types', () => {
+describe('AccountsPage - Account Types', () => {
   const ACCOUNT_TYPES = [
     { value: 0, label: 'Individual' },
     { value: 1, label: 'Business' },
   ];
 
   it('should identify individual customers', () => {
-    const individual = mockCustomers.find(c => c.customerType === 0);
+    const individual = mockAccounts.find(c => c.customerType === 0);
     expect(individual?.firstName).toBe('John');
   });
 
   it('should identify business customers', () => {
-    const businesses = mockCustomers.filter(c => c.customerType === 1);
+    const businesses = mockAccounts.filter(c => c.customerType === 1);
     expect(businesses.length).toBe(2);
   });
 
@@ -171,7 +171,7 @@ describe('CustomersPage - Customer Types', () => {
 
   it('should filter by customer type', () => {
     const filterByType = (type: number) => {
-      return mockCustomers.filter(c => c.customerType === type);
+      return mockAccounts.filter(c => c.customerType === type);
     };
     expect(filterByType(1).length).toBe(2);
   });
@@ -181,7 +181,7 @@ describe('CustomersPage - Customer Types', () => {
 // Test Suite: Lifecycle Stage
 // ============================================================================
 
-describe('CustomersPage - Lifecycle Stages', () => {
+describe('AccountsPage - Lifecycle Stages', () => {
   const LIFECYCLE_STAGES = [
     { value: 0, label: 'Lead', color: 'default' },
     { value: 1, label: 'Prospect', color: 'info' },
@@ -212,7 +212,7 @@ describe('CustomersPage - Lifecycle Stages', () => {
 
   it('should filter by lifecycle stage', () => {
     const filterByStage = (stage: number) => {
-      return mockCustomers.filter(c => c.lifecycleStage === stage);
+      return mockAccounts.filter(c => c.lifecycleStage === stage);
     };
     expect(filterByStage(1).length).toBe(1);
   });
@@ -222,7 +222,7 @@ describe('CustomersPage - Lifecycle Stages', () => {
 // Test Suite: Priority Handling
 // ============================================================================
 
-describe('CustomersPage - Priority Handling', () => {
+describe('AccountsPage - Priority Handling', () => {
   const PRIORITIES = [
     { value: 1, label: 'High', color: 'error' },
     { value: 2, label: 'Medium', color: 'warning' },
@@ -230,7 +230,7 @@ describe('CustomersPage - Priority Handling', () => {
   ];
 
   it('should identify high priority customers', () => {
-    const highPriority = mockCustomers.filter(c => c.priority === 1);
+    const highPriority = mockAccounts.filter(c => c.priority === 1);
     expect(highPriority.length).toBe(1);
     expect(highPriority[0].firstName).toBe('Jane');
   });
@@ -244,7 +244,7 @@ describe('CustomersPage - Priority Handling', () => {
   });
 
   it('should sort by priority', () => {
-    const sorted = [...mockCustomers].sort((a, b) => a.priority - b.priority);
+    const sorted = [...mockAccounts].sort((a, b) => a.priority - b.priority);
     expect(sorted[0].priority).toBe(1);
   });
 });
@@ -253,7 +253,7 @@ describe('CustomersPage - Priority Handling', () => {
 // Test Suite: Create Customer
 // ============================================================================
 
-describe('CustomersPage - Create Customer', () => {
+describe('AccountsPage - Create Account', () => {
   it('should have add customer button', () => {
     const addButtonText = 'Add Customer';
     expect(addButtonText).toBeTruthy();
@@ -321,7 +321,7 @@ describe('CustomersPage - Create Customer', () => {
 // Test Suite: Edit Customer
 // ============================================================================
 
-describe('CustomersPage - Edit Customer', () => {
+describe('AccountsPage - Edit Account', () => {
   it('should have edit button for each row', () => {
     const hasEditButton = true;
     expect(hasEditButton).toBe(true);
@@ -333,12 +333,12 @@ describe('CustomersPage - Edit Customer', () => {
       editingCustomer = customer;
     };
     
-    openEditDialog(mockCustomers[0]);
-    expect(editingCustomer).toBe(mockCustomers[0]);
+    openEditDialog(mockAccounts[0]);
+    expect(editingCustomer).toBe(mockAccounts[0]);
   });
 
   it('should update customer data', async () => {
-    const updatedData = { ...mockCustomers[0], firstName: 'Updated' };
+    const updatedData = { ...mockAccounts[0], firstName: 'Updated' };
     
     mockApiClient.put.mockResolvedValue({ data: updatedData });
     const result = await mockApiClient.put('/accounts/1', updatedData);
@@ -357,7 +357,7 @@ describe('CustomersPage - Edit Customer', () => {
 // Test Suite: Delete Customer
 // ============================================================================
 
-describe('CustomersPage - Delete Customer', () => {
+describe('AccountsPage - Delete Account', () => {
   it('should have delete button for each row', () => {
     const hasDeleteButton = true;
     expect(hasDeleteButton).toBe(true);
@@ -380,7 +380,7 @@ describe('CustomersPage - Delete Customer', () => {
   });
 
   it('should remove customer from list after delete', () => {
-    let customers = [...mockCustomers];
+    let accounts = [...mockAccounts];
     const deleteCustomer = (id: number) => {
       customers = customers.filter(c => c.id !== id);
     };
@@ -400,7 +400,7 @@ describe('CustomersPage - Delete Customer', () => {
 // Test Suite: Search Functionality
 // ============================================================================
 
-describe('CustomersPage - Search', () => {
+describe('AccountsPage - Search', () => {
   it('should have search input', () => {
     const hasSearchInput = true;
     expect(hasSearchInput).toBe(true);
@@ -408,7 +408,7 @@ describe('CustomersPage - Search', () => {
 
   it('should search by first name', () => {
     const searchTerm = 'John';
-    const filtered = mockCustomers.filter(c => 
+    const filtered = mockAccounts.filter(c => 
       c.firstName.toLowerCase().includes(searchTerm.toLowerCase())
     );
     expect(filtered.length).toBe(1);
@@ -416,7 +416,7 @@ describe('CustomersPage - Search', () => {
 
   it('should search by last name', () => {
     const searchTerm = 'Smith';
-    const filtered = mockCustomers.filter(c => 
+    const filtered = mockAccounts.filter(c => 
       c.lastName.toLowerCase().includes(searchTerm.toLowerCase())
     );
     expect(filtered.length).toBe(1);
@@ -424,7 +424,7 @@ describe('CustomersPage - Search', () => {
 
   it('should search by company name', () => {
     const searchTerm = 'Tech';
-    const filtered = mockCustomers.filter(c => 
+    const filtered = mockAccounts.filter(c => 
       c.company.toLowerCase().includes(searchTerm.toLowerCase())
     );
     expect(filtered.length).toBe(1);
@@ -432,7 +432,7 @@ describe('CustomersPage - Search', () => {
 
   it('should search by email', () => {
     const searchTerm = 'jane';
-    const filtered = mockCustomers.filter(c => 
+    const filtered = mockAccounts.filter(c => 
       c.email.toLowerCase().includes(searchTerm.toLowerCase())
     );
     expect(filtered.length).toBe(1);
@@ -442,7 +442,7 @@ describe('CustomersPage - Search', () => {
     const searchTerm = 'global';
     const SEARCHABLE_FIELDS = ['firstName', 'lastName', 'company', 'email', 'city'];
     
-    const filtered = mockCustomers.filter(customer => 
+    const filtered = mockAccounts.filter(customer => 
       SEARCHABLE_FIELDS.some(field => 
         String(customer[field as keyof typeof customer])
           .toLowerCase()
@@ -454,7 +454,7 @@ describe('CustomersPage - Search', () => {
 
   it('should return empty array for no matches', () => {
     const searchTerm = 'nonexistent';
-    const filtered = mockCustomers.filter(c => 
+    const filtered = mockAccounts.filter(c => 
       c.firstName.toLowerCase().includes(searchTerm.toLowerCase())
     );
     expect(filtered.length).toBe(0);
@@ -462,7 +462,7 @@ describe('CustomersPage - Search', () => {
 
   it('should be case insensitive', () => {
     const searchTerm = 'JOHN';
-    const filtered = mockCustomers.filter(c => 
+    const filtered = mockAccounts.filter(c => 
       c.firstName.toLowerCase().includes(searchTerm.toLowerCase())
     );
     expect(filtered.length).toBe(1);
@@ -473,10 +473,10 @@ describe('CustomersPage - Search', () => {
 // Test Suite: Advanced Search / Filters
 // ============================================================================
 
-describe('CustomersPage - Advanced Search', () => {
+describe('AccountsPage - Advanced Search', () => {
   it('should filter by customer type', () => {
     const filterByType = (type: number) => 
-      mockCustomers.filter(c => c.customerType === type);
+      mockAccounts.filter(c => c.customerType === type);
     
     expect(filterByType(0).length).toBe(1);
     expect(filterByType(1).length).toBe(2);
@@ -484,28 +484,28 @@ describe('CustomersPage - Advanced Search', () => {
 
   it('should filter by lifecycle stage', () => {
     const filterByStage = (stage: number) => 
-      mockCustomers.filter(c => c.lifecycleStage === stage);
+      mockAccounts.filter(c => c.lifecycleStage === stage);
     
     expect(filterByStage(1).length).toBe(1);
   });
 
   it('should filter by city', () => {
     const filterByCity = (city: string) => 
-      mockCustomers.filter(c => c.city === city);
+      mockAccounts.filter(c => c.city === city);
     
     expect(filterByCity('New York').length).toBe(1);
   });
 
   it('should filter by state', () => {
     const filterByState = (state: string) => 
-      mockCustomers.filter(c => c.state === state);
+      mockAccounts.filter(c => c.state === state);
     
     expect(filterByState('CA').length).toBe(1);
   });
 
   it('should filter by industry', () => {
     const filterByIndustry = (industry: string) => 
-      mockCustomers.filter(c => c.industry === industry);
+      mockAccounts.filter(c => c.industry === industry);
     
     expect(filterByIndustry('Technology').length).toBe(1);
   });
@@ -516,7 +516,7 @@ describe('CustomersPage - Advanced Search', () => {
       state: 'CA',
     };
     
-    let filtered = mockCustomers;
+    let filtered = mockAccounts;
     if (filters.customerType !== undefined) {
       filtered = filtered.filter(c => c.customerType === filters.customerType);
     }
@@ -543,9 +543,9 @@ describe('CustomersPage - Advanced Search', () => {
 // Test Suite: Sorting
 // ============================================================================
 
-describe('CustomersPage - Sorting', () => {
+describe('AccountsPage - Sorting', () => {
   it('should sort by first name ascending', () => {
-    const sorted = [...mockCustomers].sort((a, b) => 
+    const sorted = [...mockAccounts].sort((a, b) => 
       a.firstName.localeCompare(b.firstName)
     );
     expect(sorted[0].firstName).toBe('Bob');
@@ -553,28 +553,28 @@ describe('CustomersPage - Sorting', () => {
   });
 
   it('should sort by first name descending', () => {
-    const sorted = [...mockCustomers].sort((a, b) => 
+    const sorted = [...mockAccounts].sort((a, b) => 
       b.firstName.localeCompare(a.firstName)
     );
     expect(sorted[0].firstName).toBe('John');
   });
 
   it('should sort by company name', () => {
-    const sorted = [...mockCustomers].sort((a, b) => 
+    const sorted = [...mockAccounts].sort((a, b) => 
       a.company.localeCompare(b.company)
     );
     expect(sorted[0].company).toBe('Acme Corporation');
   });
 
   it('should sort by annual revenue', () => {
-    const sorted = [...mockCustomers].sort((a, b) => 
+    const sorted = [...mockAccounts].sort((a, b) => 
       b.annualRevenue - a.annualRevenue
     );
     expect(sorted[0].annualRevenue).toBe(10000000);
   });
 
   it('should sort by created date', () => {
-    const sorted = [...mockCustomers].sort((a, b) => 
+    const sorted = [...mockAccounts].sort((a, b) => 
       new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
     );
     expect(sorted[0].firstName).toBe('Jane');
@@ -597,7 +597,7 @@ describe('CustomersPage - Sorting', () => {
 // Test Suite: Pagination
 // ============================================================================
 
-describe('CustomersPage - Pagination', () => {
+describe('AccountsPage - Pagination', () => {
   const allCustomers = Array.from({ length: 50 }, (_, i) => ({
     id: i + 1,
     firstName: `Customer${i + 1}`,
@@ -665,7 +665,7 @@ describe('CustomersPage - Pagination', () => {
 // Test Suite: Import/Export
 // ============================================================================
 
-describe('CustomersPage - Import/Export', () => {
+describe('AccountsPage - Import/Export', () => {
   it('should have import button', () => {
     const hasImportButton = true;
     expect(hasImportButton).toBe(true);
@@ -696,7 +696,7 @@ describe('CustomersPage - Import/Export', () => {
       return JSON.stringify(data, null, 2);
     };
     
-    const json = exportToJSON(mockCustomers);
+    const json = exportToJSON(mockAccounts);
     expect(JSON.parse(json).length).toBe(3);
   });
 
@@ -732,7 +732,7 @@ describe('CustomersPage - Import/Export', () => {
 // Test Suite: Contact Info Panel
 // ============================================================================
 
-describe('CustomersPage - Contact Info Panel', () => {
+describe('AccountsPage - Contact Info Panel', () => {
   it('should display emails', () => {
     const emails = ['john@acme.com', 'john.personal@email.com'];
     expect(emails.length).toBeGreaterThan(0);
@@ -767,7 +767,7 @@ describe('CustomersPage - Contact Info Panel', () => {
 // Test Suite: Form Tabs
 // ============================================================================
 
-describe('CustomersPage - Form Tabs', () => {
+describe('AccountsPage - Form Tabs', () => {
   it('should have basic info tab', () => {
     const tabs = ['Basic Info', 'Contact', 'Address', 'Additional', 'Notes'];
     expect(tabs).toContain('Basic Info');
@@ -805,7 +805,7 @@ describe('CustomersPage - Form Tabs', () => {
 // Test Suite: Error Handling
 // ============================================================================
 
-describe('CustomersPage - Error Handling', () => {
+describe('AccountsPage - Error Handling', () => {
   it('should display API error message', () => {
     const errorMessage = 'Failed to load customers';
     expect(errorMessage).toBeTruthy();
@@ -841,7 +841,7 @@ describe('CustomersPage - Error Handling', () => {
 // Test Suite: Empty States
 // ============================================================================
 
-describe('CustomersPage - Empty States', () => {
+describe('AccountsPage - Empty States', () => {
   it('should show empty state when no customers', () => {
     const customers: any[] = [];
     const isEmpty = customers.length === 0;
@@ -864,7 +864,7 @@ describe('CustomersPage - Empty States', () => {
 // Test Suite: Loading States
 // ============================================================================
 
-describe('CustomersPage - Loading States', () => {
+describe('AccountsPage - Loading States', () => {
   it('should show loading indicator', () => {
     const loading = true;
     expect(loading).toBe(true);

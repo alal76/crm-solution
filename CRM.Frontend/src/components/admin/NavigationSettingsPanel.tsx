@@ -137,3 +137,4 @@ const NavigationSettingsPanel: React.FC = () => {
 };
 
 export default NavigationSettingsPanel;
+export { NavigationSettingsPanel };

@@ -102,7 +102,7 @@ const mockContacts = [
   },
 ];
 
-const mockCustomers = [
+const mockAccounts = [
   { id: 1, firstName: 'John', lastName: 'Doe', company: 'Acme Corp', displayName: 'John Doe (Acme Corp)' },
   { id: 2, firstName: 'Jane', lastName: 'Smith', company: 'TechStart', displayName: 'Jane Smith (TechStart)' },
 ];
@@ -359,7 +359,7 @@ describe('ContactsPage - Customer Linking', () => {
   });
 
   it('should display available customers', () => {
-    expect(mockCustomers.length).toBe(2);
+    expect(mockAccounts.length).toBe(2);
   });
 
   it('should link contact to customer', () => {
@@ -386,7 +386,7 @@ describe('ContactsPage - Customer Linking', () => {
   it('should display linked customer name', () => {
     const getLinkedCustomerName = (accountId: number | null) => {
       if (!accountId) return 'Not linked';
-      const customer = mockCustomers.find(c => c.id === accountId);
+      const customer = mockAccounts.find(c => c.id === accountId);
       return customer?.displayName || 'Unknown';
     };
     

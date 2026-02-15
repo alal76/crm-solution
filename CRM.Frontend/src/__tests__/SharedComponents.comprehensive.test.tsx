@@ -786,14 +786,14 @@ describe('Component - ProtectedRoute', () => {
 describe('Component - RoleBasedRoute', () => {
   describe('Permission Check', () => {
     it('should allow users with permission', () => {
-      const userPermissions = ['view_dashboard', 'view_customers', 'admin_access'];
+      const userPermissions = ['view_dashboard', 'view_accounts', 'admin_access'];
       const requiredPermission = 'admin_access';
       const hasPermission = userPermissions.includes(requiredPermission);
       expect(hasPermission).toBe(true);
     });
 
     it('should deny users without permission', () => {
-      const userPermissions = ['view_dashboard', 'view_customers'];
+      const userPermissions = ['view_dashboard', 'view_accounts'];
       const requiredPermission = 'admin_access';
       const hasPermission = userPermissions.includes(requiredPermission);
       expect(hasPermission).toBe(false);

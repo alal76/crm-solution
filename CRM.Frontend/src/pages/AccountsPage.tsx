@@ -15,6 +15,9 @@ import {
   DialogHeader,
   RelatedEntitiesPanel,
   EnhancedEmptyState,
+  AddressListComponent,
+  AddressFormComponent,
+  AddressModalComponent,
 } from '../components/common';
 import {
   LIFECYCLE_STAGE_OPTIONS,
@@ -30,7 +33,12 @@ import {
   FilterAlt as FilterIcon, Close as CloseIcon, Note as NoteIcon,
   TrendingUp as TrendingUpIcon,
   Settings as SettingsIcon,
+  Upload as UploadIcon,
+  Download as DownloadIcon,
+  LocationOn as LocationIcon,
 } from '@mui/icons-material';
+import { Address, CreateAddressDto, UpdateAddressDto } from '../types/address.types';
+import addressService from '../services/addressService';
 import apiClient from '../services/apiClient';
 import { getApiErrorMessage } from '../utils/errorHandler';
 import DuplicateDetectionDialog from '../components/duplicates/DuplicateDetectionDialog';
@@ -48,6 +56,9 @@ import { useAccountContext } from '../contexts/AccountContextProvider';
 import { useProfile } from '../contexts/ProfileContext';
 import { useApiState } from '../hooks/useApiState';
 import { useEntityTypeSubscription } from '../hooks/useSignalR';
+import { createAccountValidationSchema } from '../validation/accountSchema';
+import BulkImportDialog from '../components/dialogs/BulkImportDialog';
+import BulkExportButton from '../components/buttons/BulkExportButton';
 import logo from '../assets/logo.png';
 import { BaseEntity } from '../types';
 import logger from '../services/logger';
@@ -268,6 +279,14 @@ function AccountsPage() {
   const [contactIsPrimary, setContactIsPrimary] = useState(false);
   const [contactIsDecisionMaker, setContactIsDecisionMaker] = useState(false);
 
+  // Address management state
+  const [accountAddresses, setAccountAddresses] = useState<Address[]>([]);
+  const [addressesLoading, setAddressesLoading] = useState(false);
+  const [addressesError, setAddressesError] = useState<string | null>(null);
+  const [addressModalOpen, setAddressModalOpen] = useState(false);
+  const [editingAddress, setEditingAddress] = useState<Address | null>(null);
+  const [addressFormSubmitting, setAddressFormSubmitting] = useState(false);
+
   // Search state
   const [searchFilters, setSearchFilters] = useState<SearchFilter[]>([]);
   const [searchText, setSearchText] = useState('');
@@ -288,6 +307,9 @@ function AccountsPage() {
   const [duplicateCheckResult, setDuplicateCheckResult] = useState<DuplicateCheckResult | null>(null);
   const [duplicateLoading, setDuplicateLoading] = useState(false);
   const [mergeDialogOpen, setMergeDialogOpen] = useState(false);
+
+  // Bulk import/export state
+  const [bulkImportDialogOpen, setBulkImportDialogOpen] = useState(false);
 
   // API state for dialog operations
   const dialogApi = useApiState({ successTimeout: 3000 });
@@ -386,6 +408,77 @@ function AccountsPage() {
     }
   };
 
+  const fetchAccountAddresses = async (accountId: number) => {
+    try {
+      setAddressesLoading(true);
+      setAddressesError(null);
+      const addresses = await addressService.getAccountAddresses(accountId);
+      setAccountAddresses(addresses);
+    } catch (err: any) {
+      console.error('Error fetching account addresses:', err);
+      setAddressesError(
+        err?.response?.data?.message || 'Failed to load addresses'
+      );
+      setAccountAddresses([]);
+    } finally {
+      setAddressesLoading(false);
+    }
+  };
+
+  const handleAddAddressClick = () => {
+    setEditingAddress(null);
+    setAddressModalOpen(true);
+  };
+
+  const handleEditAddressClick = (address: Address) => {
+    setEditingAddress(address);
+    setAddressModalOpen(true);
+  };
+
+  const handleCloseAddressModal = () => {
+    setAddressModalOpen(false);
+    setEditingAddress(null);
+    setAddressFormSubmitting(false);
+  };
+
+  const handleSaveAddress = async (values: CreateAddressDto | UpdateAddressDto) => {
+    if (!editingId) return;
+
+    setAddressFormSubmitting(true);
+
+    try {
+      if (editingAddress) {
+        // Update existing address
+        const updated = await addressService.updateAddress(
+          editingId,
+          editingAddress.id,
+          values as UpdateAddressDto
+        );
+        setAccountAddresses((prev) =>
+          prev.map((a) => (a.id === updated.id ? updated : a))
+        );
+      } else {
+        // Create new address
+        const created = await addressService.createAddress(
+          editingId,
+          values as CreateAddressDto
+        );
+        setAccountAddresses((prev) => [...prev, created]);
+      }
+
+      setSuccessMessage(editingAddress ? 'Address updated successfully' : 'Address created successfully');
+      handleCloseAddressModal();
+      setTimeout(() => setSuccessMessage(null), 3000);
+    } catch (err: any) {
+      console.error('Error saving address:', err);
+      setAddressesError(
+        err?.response?.data?.message || 'Failed to save address'
+      );
+    } finally {
+      setAddressFormSubmitting(false);
+    }
+  };
+
   // Form handlers
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
@@ -420,6 +513,8 @@ function AccountsPage() {
       setFormData(formValues);
       // Fetch linked contacts for all accounts
       fetchAccountContacts(account.id);
+      // Fetch addresses for the account
+      fetchAccountAddresses(account.id);
       preferencesService.getAccountPreferences(account.id)
         .then(prefs => setPreferencesForm({ ...INITIAL_PREFERENCES, ...prefs }))
         .catch(err => {
@@ -429,10 +524,12 @@ function AccountsPage() {
     } else {
       setEditingId(null);
       setAccountContacts([]);
+      setAccountAddresses([]);
       setFormData(INITIAL_FORM_DATA);
       setPreferencesForm(INITIAL_PREFERENCES);
     }
     setPreferencesError(null);
+    setAddressesError(null);
     setOpenDialog(true);
   }, []);
 
@@ -513,7 +610,19 @@ function AccountsPage() {
   const handleSaveAccount = async () => {
     setDialogError(null);
 
-    if (!validateRequiredFields()) return;
+    // Use Yup schema validation with async email uniqueness check
+    const schema = createAccountValidationSchema(editingId || undefined);
+    try {
+      await schema.validate(formData, { abortEarly: false });
+    } catch (validationError: any) {
+      const errorMessages = validationError.inner
+        ?.map((e: any) => e.message)
+        .filter((m: string, i: number, arr: string[]) => arr.indexOf(m) === i) // Remove duplicates
+        .join('\n');
+      setDialogError(errorMessages || 'Validation failed');
+      logger.warn('[AccountsPage] Validation failed:', errorMessages);
+      return; // Stop if validation fails
+    }
 
     try {
       // Transform form data before sending - convert empty strings to null for date fields
@@ -543,6 +652,7 @@ function AccountsPage() {
       setTimeout(() => setSuccessMessage(null), 3000);
     } catch (err: any) {
       setDialogError(getApiErrorMessage(err, 'Failed to save account'));
+      logger.error('[AccountsPage] Save account error:', err);
     }
   };
 
@@ -567,7 +677,7 @@ function AccountsPage() {
   // Multi-select handlers
   const handleSelectAll = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.checked) {
-      setSelectedIds(filteredAccounts.map(account => account.id));
+      setSelectedIds(filteredAccounts.map(c => c.id));
     } else {
       setSelectedIds([]);
     }
@@ -663,7 +773,8 @@ function AccountsPage() {
         isPrimaryContact: contactIsPrimary,
         isDecisionMaker: contactIsDecisionMaker,
       });
-      fetchCustomerContacts(editingId);
+      const response = await apiClient.get(`/accounts/${editingId}/contacts`);
+      setAccountContacts(response.data);
       setAddContactDialogOpen(false);
       setSelectedContactId(null);
       setContactRole(0);
@@ -682,7 +793,8 @@ function AccountsPage() {
     if (window.confirm('Are you sure you want to remove this contact from the account?')) {
       try {
         await apiClient.delete(`/accounts/${editingId}/contacts/${contactId}`);
-        fetchCustomerContacts(editingId);
+        const response = await apiClient.get(`/accounts/${editingId}/contacts`);
+        setAccountContacts(response.data);
         setSuccessMessage('Contact removed successfully');
         setTimeout(() => setSuccessMessage(null), 3000);
       } catch (err: any) {
@@ -746,6 +858,11 @@ function AccountsPage() {
       baseTabs.push({ index: 101, name: 'Linked Contacts' });
     }
 
+    // Add Addresses tab when editing
+    if (editingId) {
+      baseTabs.push({ index: 105, name: 'Addresses' });
+    }
+
     // Add Related tab when editing (show related opportunities, service requests, etc.)
     if (editingId) {
       baseTabs.push({ index: 103, name: 'Related' });
@@ -798,6 +915,22 @@ function AccountsPage() {
               entityType="accounts"
               entityLabel="Accounts"
               onImportComplete={fetchAccounts}
+            />
+            <Tooltip title="Bulk import accounts from CSV">
+              <Button
+                variant="outlined"
+                size="small"
+                startIcon={<UploadIcon />}
+                onClick={() => setBulkImportDialogOpen(true)}
+                sx={{ borderColor: '#6750A4', color: '#6750A4' }}
+              >
+                Import
+              </Button>
+            </Tooltip>
+            <BulkExportButton 
+              variant="outlined" 
+              size="small"
+              sx={{ borderColor: '#6750A4', color: '#6750A4' }}
             />
             <Button
               variant="outlined"
@@ -887,7 +1020,7 @@ function AccountsPage() {
                     Merge Selected
                   </Button>
                 )}
-                {hasPermission('canDeleteCustomers') && (
+                {hasPermission('canDeleteAccounts') && (
                   <Button
                     variant="contained"
                     size="small"
@@ -1001,13 +1134,11 @@ function AccountsPage() {
                               <EditIcon fontSize="small" />
                             </IconButton>
                           </Tooltip>
-                          {hasPermission('canDeleteCustomers') && (
-                            <Tooltip title="Delete">
-                              <IconButton size="small" onClick={() => handleDeleteAccount(account.id)} sx={{ color: '#f44336' }}>
-                                <DeleteIcon fontSize="small" />
-                              </IconButton>
-                            </Tooltip>
-                          )}
+                          <Tooltip title="Delete">
+                            <IconButton size="small" onClick={() => handleDeleteAccount(account.id)} sx={{ color: '#f44336' }}>
+                              <DeleteIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
                         </TableCell>
                       </TableRow>
                     );
@@ -1074,6 +1205,7 @@ function AccountsPage() {
                 icon={
                   tab.index === 100 ? <ContactPhoneIcon fontSize="small" /> : 
                   tab.index === 101 ? <GroupIcon fontSize="small" /> : 
+                  tab.index === 105 ? <LocationIcon fontSize="small" /> :
                   tab.index === 102 ? <NoteIcon fontSize="small" /> : 
                   tab.index === 103 ? <TrendingUpIcon fontSize="small" /> :
                   tab.index === 104 ? <SettingsIcon fontSize="small" /> :
@@ -1119,7 +1251,7 @@ function AccountsPage() {
                 <TabPanel value={dialogTab} index={visibleTabs.findIndex(t => t.index === 101)}>
                   <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Typography variant="subtitle1" fontWeight={600}>
-                      Linked Contacts ({customerContacts.length})
+                      Linked Contacts ({accountContacts.length})
                     </Typography>
                     <Button
                       variant="outlined"
@@ -1131,14 +1263,14 @@ function AccountsPage() {
                     </Button>
                   </Box>
 
-                  {customerContacts.length === 0 ? (
+                  {accountContacts.length === 0 ? (
                     <Paper elevation={0} sx={{ p: 4, textAlign: 'center', backgroundColor: '#F5EFF7', borderRadius: 2 }}>
                       <GroupIcon sx={{ fontSize: 48, color: '#6750A4', opacity: 0.5, mb: 1 }} />
                       <Typography color="textSecondary">No contacts linked to this account</Typography>
                     </Paper>
                   ) : (
                     <List sx={{ bgcolor: 'background.paper', borderRadius: 1, border: '1px solid #e0e0e0' }}>
-                      {customerContacts.map((contact, index) => (
+                      {accountContacts.map((contact: AccountContact, index: number) => (
                         <Box key={contact.id}>
                           {index > 0 && <Divider />}
                           <ListItem>
@@ -1183,6 +1315,27 @@ function AccountsPage() {
                       ))}
                     </List>
                   )}
+                </TabPanel>
+              )}
+
+              {/* Addresses Tab */}
+              {editingId && (
+                <TabPanel value={dialogTab} index={visibleTabs.findIndex(t => t.index === 105)}>
+                  <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2 }}>
+                    Manage Addresses
+                  </Typography>
+                  <AddressListComponent
+                    accountId={editingId}
+                    addresses={accountAddresses}
+                    isLoading={addressesLoading}
+                    error={addressesError}
+                    onAddClick={handleAddAddressClick}
+                    onEditClick={handleEditAddressClick}
+                    onDeleteSuccess={() => {
+                      setSuccessMessage('Address deleted successfully');
+                      setTimeout(() => setSuccessMessage(null), 3000);
+                    }}
+                  />
                 </TabPanel>
               )}
 
@@ -1340,11 +1493,28 @@ function AccountsPage() {
           <ActionButton
             label={editingId ? 'Update' : 'Create'}
             loading={dialogApi.loading}
-            onClick={handleSaveCustomer}
+            onClick={handleSaveAccount}
             color="primary"
           />
         </DialogActions>
       </Dialog>
+
+      {/* Address Modal */}
+      <AddressModalComponent
+        open={addressModalOpen}
+        title={editingAddress ? 'Edit Address' : 'Add New Address'}
+        onClose={handleCloseAddressModal}
+        isLoading={addressFormSubmitting}
+        error={addressesError}
+      >
+        <AddressFormComponent
+          address={editingAddress || undefined}
+          onSubmit={handleSaveAddress}
+          onCancel={handleCloseAddressModal}
+          isLoading={addressFormSubmitting}
+          error={addressesError}
+        />
+      </AddressModalComponent>
 
       {/* Add Contact Dialog */}
       <Dialog open={addContactDialogOpen} onClose={() => setAddContactDialogOpen(false)} maxWidth="sm" fullWidth>
@@ -1353,7 +1523,7 @@ function AccountsPage() {
           <Grid container spacing={2} sx={{ mt: 1 }}>
             <Grid item xs={12}>
               <Autocomplete
-                options={contacts.filter(c => !customerContacts.some(cc => cc.contactId === c.id))}
+                options={contacts.filter((c: Contact) => !accountContacts.some((cc: AccountContact) => cc.contactId === c.id))}
                 getOptionLabel={(option) => `${option.firstName} ${option.lastName}${option.company ? ` (${option.company})` : ''}`}
                 value={contacts.find(c => c.id === selectedContactId) || null}
                 onChange={(_, newValue) => setSelectedContactId(newValue?.id || null)}
@@ -1503,19 +1673,19 @@ function AccountsPage() {
         }}
         onUpdateExisting={(recordId) => {
           setDuplicateDialogOpen(false);
-          const customer = customers.find(c => c.id === recordId);
+          const customer = accounts.find((c: Account) => c.id === recordId);
           if (customer) handleOpenDialog(customer);
         }}
         onViewRecord={(recordId) => {
           setDuplicateDialogOpen(false);
-          const customer = customers.find(c => c.id === recordId);
+          const customer = accounts.find((c: Account) => c.id === recordId);
           if (customer) handleOpenDialog(customer);
         }}
         onMergeRecords={(masterRecordId, recordsToMerge) => {
           setDuplicateDialogOpen(false);
           const allIds = [masterRecordId, ...recordsToMerge];
           const records: MergeRecordData[] = allIds
-            .map(rid => customers.find(c => c.id === rid))
+            .map((rid: number) => accounts.find((c: Account) => c.id === rid))
             .filter(Boolean)
             .map(c => ({ id: c!.id, displayName: c!.company || `${c!.firstName} ${c!.lastName}`, data: c as any }));
           if (records.length >= 2) {
@@ -1530,14 +1700,25 @@ function AccountsPage() {
         onClose={() => setMergeDialogOpen(false)}
         entityType="Account"
         records={selectedIds
-          .map(sid => customers.find(c => c.id === sid))
+          .map((sid: number) => accounts.find((c: Account) => c.id === sid))
           .filter(Boolean)
-          .map(c => ({ id: c!.id, displayName: c!.company || `${c!.firstName} ${c!.lastName}`, data: c as any }))}
+          .map((c: Account | undefined) => ({ id: c!.id, displayName: c!.company || `${c!.firstName} ${c!.lastName}`, data: c as any }))}
         onMergeComplete={(result) => {
           setMergeDialogOpen(false);
           setSelectedIds([]);
           setSuccessMessage(`Records merged successfully into master record #${result.masterRecordId}`);
           fetchAccounts();
+        }}
+      />
+
+      {/* Bulk Import Dialog */}
+      <BulkImportDialog
+        open={bulkImportDialogOpen}
+        onClose={() => setBulkImportDialogOpen(false)}
+        onImportComplete={(count) => {
+          setSuccessMessage(`${count} account(s) imported successfully`);
+          fetchAccounts();
+          setBulkImportDialogOpen(false);
         }}
       />
     </Box>

@@ -118,7 +118,7 @@ interface Customer {
 
 function QuotesPage() {
   const [quotes, setQuotes] = useState<Quote[]>([]);
-  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [accounts, setAccounts] = useState<Customer[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
@@ -150,7 +150,7 @@ function QuotesPage() {
 
   useEffect(() => {
     fetchQuotes();
-    fetchCustomers();
+    fetchAccounts();
   }, []);
 
   const fetchQuotes = async () => {
@@ -166,12 +166,12 @@ function QuotesPage() {
     }
   };
 
-  const fetchCustomers = async () => {
+  const fetchAccounts = async () => {
     try {
       const response = await apiClient.get('/accounts');
-      setCustomers(response.data);
+      setAccounts(response.data);
     } catch (err) {
-      console.error('Error fetching customers:', err);
+      console.error('Error fetching accounts:', err);
     }
   };
 
@@ -547,7 +547,7 @@ function QuotesPage() {
                 title={searchFilters.length > 0 ? "No quotes match your filters" : "No quotes yet"}
                 description={searchFilters.length > 0 
                   ? "Try adjusting your filters to find what you're looking for"
-                  : "Create your first quote to start generating proposals for customers"
+                  : "Create your first quote to start generating proposals for accounts"
                 }
                 variant={searchFilters.length > 0 ? "no-results" : "no-data"}
                 primaryActionLabel="Create Quote"
