@@ -37,6 +37,7 @@ import {
   Refresh as RefreshIcon,
 } from '@mui/icons-material';
 import { ReportDesigner, ReportConfig } from '../components/analytics';
+import { EnhancedEmptyState } from '../components/common';
 import reportService, { ReportDefinitionDto } from '../services/reportService';
 
 type ReportSummary = ReportDefinitionDto;
