@@ -166,3 +166,4 @@ const FeatureFlagsPanel: React.FC = () => {
 };
 
 export default FeatureFlagsPanel;
+export { FeatureFlagsPanel };

@@ -1,6 +1,6 @@
 import React from 'react';
 import { screen } from '@testing-library/react';
-import CustomersPage from '../../pages/CustomersPage';
+import AccountsPage from '../../pages/AccountsPage';
 import { renderWithProviders } from '../../test-utils/renderWithProviders';
 
 jest.mock('../../services/apiClient', () => ({
@@ -119,9 +119,9 @@ jest.mock('../../services/logger', () => ({
   debug: jest.fn(),
 }));
 
-describe('CustomersPage', () => {
+describe('AccountsPage', () => {
   it('renders the accounts header', async () => {
-    renderWithProviders(<CustomersPage />);
+    renderWithProviders(<AccountsPage />);
 
     expect(await screen.findByRole('heading', { name: /^accounts$/i })).toBeInTheDocument();
   });

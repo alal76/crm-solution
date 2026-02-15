@@ -230,7 +230,7 @@ function RelationshipsPage() {
   // Data states
   const [relationshipTypes, setRelationshipTypes] = useState<RelationshipType[]>([]);
   const [relationships, setRelationships] = useState<AccountRelationship[]>([]);
-  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [accounts, setAccounts] = useState<Customer[]>([]);
   
   // Dialog states
   const [typeDialogOpen, setTypeDialogOpen] = useState(false);
@@ -300,14 +300,14 @@ function RelationshipsPage() {
   const fetchData = useCallback(async () => {
     try {
       setLoading(true);
-      const [typesRes, relationshipsRes, customersRes] = await Promise.all([
+      const [typesRes, relationshipsRes, accountsRes] = await Promise.all([
         relationshipService.getRelationshipTypes(),
         relationshipService.getAccountRelationships(),
         apiClient.get('/accounts')
       ]);
       setRelationshipTypes(typesRes);
       setRelationships(relationshipsRes);
-      setCustomers(customersRes.data);
+      setAccounts(accountsRes.data);
       setError(null);
     } catch (err) {
       setError('Failed to load relationship data');
@@ -323,7 +323,7 @@ function RelationshipsPage() {
 
   // Get customer display name
   const getAccountName = (accountId: number) => {
-    const customer = customers.find(c => c.id === accountId);
+    const customer = accounts.find(c => c.id === accountId);
     if (!customer) return `Customer #${accountId}`;
     if (customer.company) return customer.company;
     return `${customer.firstName || ''} ${customer.lastName || ''}`.trim();
@@ -828,18 +828,18 @@ function RelationshipsPage() {
           <Grid container spacing={2} sx={{ mt: 1 }}>
             <Grid item xs={12} md={6}>
               <Autocomplete
-                options={customers}
+                options={accounts}
                 getOptionLabel={(c) => c.company || `${c.firstName || ''} ${c.lastName || ''}`.trim()}
-                value={customers.find(c => c.id === relationshipForm.sourceAccountId) || null}
+                value={accounts.find(c => c.id === relationshipForm.sourceAccountId) || null}
                 onChange={(_, v) => setRelationshipForm({ ...relationshipForm, sourceAccountId: v?.id || 0 })}
                 renderInput={(params) => <TextField {...params} label="Source Account" required />}
               />
             </Grid>
             <Grid item xs={12} md={6}>
               <Autocomplete
-                options={customers}
+                options={accounts}
                 getOptionLabel={(c) => c.company || `${c.firstName || ''} ${c.lastName || ''}`.trim()}
-                value={customers.find(c => c.id === relationshipForm.targetAccountId) || null}
+                value={accounts.find(c => c.id === relationshipForm.targetAccountId) || null}
                 onChange={(_, v) => setRelationshipForm({ ...relationshipForm, targetAccountId: v?.id || 0 })}
                 renderInput={(params) => <TextField {...params} label="Target Account" required />}
               />

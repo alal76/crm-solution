@@ -41,7 +41,7 @@ import {
 } from '@mui/material';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
 import SaveIcon from '@mui/icons-material/Save';
-import { useUIPreferences } from '../contexts/UIPreferencesContext';
+import { useUIPreferences } from '../../contexts/UIPreferencesContext';
 
 export const UICustomizationPage: React.FC = () => {
   const { preferences, loading, error, savePreferences, resetPreferences } = useUIPreferences();
@@ -151,12 +151,11 @@ export const UICustomizationPage: React.FC = () => {
           <Card>
             <CardHeader title="Theme" />
             <CardContent>
-              <FormControl fullWidth>
+              <FormControl fullWidth disabled={isSaving}>
                 <FormLabel>Color Scheme</FormLabel>
                 <RadioGroup
                   value={preferences.theme}
                   onChange={handleThemeChange}
-                  disabled={isSaving}
                   sx={{ mt: 2 }}
                 >
                   <FormControlLabel value="light" control={<Radio />} label="Light" />

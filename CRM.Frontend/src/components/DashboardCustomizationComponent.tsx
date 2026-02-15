@@ -52,7 +52,7 @@ import {
   Star as StarIcon,
   StarOutline as StarOutlineIcon
 } from '@mui/icons-material';
-import apiClient from '../../services/apiClient';
+import apiClient from '../services/apiClient';
 
 interface DashboardWidget {
   id: string;
@@ -252,7 +252,7 @@ export const DashboardCustomizationComponent: React.FC<{ userId?: number }> = ()
     try {
       const response = await apiClient.post<Dashboard>('/api/ui-preferences/dashboards', dashboard);
       setSelectedDashboard(response.data);
-      setDashboards(dashboards.map(d =>
+      setDashboards(dashboards.map((d: Dashboard) =>
         d.dashboardName === response.data.dashboardName ? response.data : d
       ));
       setError(null);
@@ -526,4 +526,5 @@ export const DashboardCustomizationComponent: React.FC<{ userId?: number }> = ()
   );
 };
 
+export { DashboardCustomizationComponent };
 export default DashboardCustomizationComponent;

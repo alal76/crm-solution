@@ -66,7 +66,7 @@ export const mockProfile = {
   firstName: 'Admin',
   lastName: 'User',
   role: 'Admin',
-  permissions: ['view_customers', 'edit_customers', 'delete_customers', 'view_opportunities', 'edit_opportunities'],
+  permissions: ['view_accounts', 'edit_accounts', 'delete_accounts', 'view_opportunities', 'edit_opportunities'],
   menuAccess: ['Dashboard', 'Accounts', 'Contacts', 'Opportunities', 'Products', 'Campaigns', 'Settings'],
 };
 
@@ -111,7 +111,7 @@ export const BrandingContext = React.createContext(mockBrandingContext);
 // ============================================================================
 // Mock Test Data
 // ============================================================================
-export const mockCustomers = [
+export const mockAccounts = [
   {
     id: 1,
     firstName: 'John',
@@ -145,6 +145,9 @@ export const mockCustomers = [
     modifiedAt: '2024-02-15T11:30:00Z',
   },
 ];
+
+// Backwards compatibility alias
+export const mockCustomers = mockAccounts;
 
 export const mockContacts = [
   {
@@ -259,7 +262,7 @@ export const mockLeads = [
 ];
 
 export const mockDashboardStats = {
-  totalCustomers: 150,
+  totalAccounts: 150,
   totalOpportunities: 45,
   totalRevenue: 2500000,
   openLeads: 25,

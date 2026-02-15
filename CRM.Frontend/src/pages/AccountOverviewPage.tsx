@@ -80,10 +80,10 @@ interface User {
 const LIFECYCLE_STAGES = LIFECYCLE_STAGE_OPTIONS;
 const ACCOUNT_TYPES = ACCOUNT_TYPE_OPTIONS;
 
-function CustomerOverviewPage() {
+function AccountOverviewPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchType, setSearchType] = useState<'all' | 'name' | 'email' | 'id' | 'phone' | 'accountManager'>('all');
-  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [accounts, setAccounts] = useState<Customer[]>([]);
   const [filteredCustomers, setFilteredCustomers] = useState<Customer[]>([]);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [contacts, setContacts] = useState<Contact[]>([]);
@@ -148,7 +148,7 @@ function CustomerOverviewPage() {
   };
 
   useEffect(() => {
-    fetchCustomers();
+    fetchAccounts();
     fetchAccountManagers();
     fetchApiStatus();
   }, []);
@@ -167,11 +167,11 @@ function CustomerOverviewPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchQuery, searchType, customers, selectedAccountManager]);
 
-  const fetchCustomers = async () => {
+  const fetchAccounts = async () => {
     try {
       setLoading(true);
       const response = await apiClient.get('/accounts');
-      setCustomers(response.data || []);
+      setAccounts(response.data || []);
       setError(null);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to fetch customers');
@@ -1028,4 +1028,4 @@ function CustomerOverviewPage() {
   );
 }
 
-export default CustomerOverviewPage;
+export default AccountOverviewPage;

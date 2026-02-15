@@ -76,7 +76,7 @@ const mockAdminUser = {
   firstName: 'Admin',
   lastName: 'User',
   role: 'Admin',
-  permissions: ['view_dashboard', 'view_customers', 'edit_customers', 'view_settings', 'admin_access'],
+  permissions: ['view_dashboard', 'view_accounts', 'edit_accounts', 'view_settings', 'admin_access'],
 };
 
 const mockSalesUser = {
@@ -85,7 +85,7 @@ const mockSalesUser = {
   firstName: 'Sales',
   lastName: 'Rep',
   role: 'Sales',
-  permissions: ['view_dashboard', 'view_customers', 'view_opportunities', 'edit_opportunities'],
+  permissions: ['view_dashboard', 'view_accounts', 'view_opportunities', 'edit_opportunities'],
 };
 
 const mockViewOnlyUser = {
@@ -94,13 +94,13 @@ const mockViewOnlyUser = {
   firstName: 'Viewer',
   lastName: 'User',
   role: 'Viewer',
-  permissions: ['view_dashboard', 'view_customers'],
+  permissions: ['view_dashboard', 'view_accounts'],
 };
 
 // Navigation items configuration
 const NAVIGATION_ITEMS = [
   { id: 'dashboard', path: '/dashboard', label: 'Dashboard', icon: 'Dashboard', permission: 'view_dashboard' },
-  { id: 'accounts', path: '/accounts', label: 'Accounts', icon: 'People', permission: 'view_customers' },
+  { id: 'accounts', path: '/accounts', label: 'Accounts', icon: 'People', permission: 'view_accounts' },
   { id: 'contacts', path: '/contacts', label: 'Contacts', icon: 'Contacts', permission: 'view_contacts' },
   { id: 'opportunities', path: '/opportunities', label: 'Opportunities', icon: 'TrendingUp', permission: 'view_opportunities' },
   { id: 'products', path: '/products', label: 'Products', icon: 'Inventory', permission: 'view_products' },

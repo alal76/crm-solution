@@ -3,7 +3,7 @@
  * CSV export button for downloading all accounts data
  */
 import React, { useState } from 'react';
-import { Button, CircularProgress, Tooltip } from '@mui/material';
+import { Button, CircularProgress, Tooltip, SxProps, Theme } from '@mui/material';
 import { Download as DownloadIcon } from '@mui/icons-material';
 import apiClient from '../../services/apiClient';
 import logger from '../../services/logger';
@@ -13,6 +13,7 @@ interface BulkExportButtonProps {
   size?: 'small' | 'medium' | 'large';
   color?: 'inherit' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning';
   disabled?: boolean;
+  sx?: SxProps<Theme>;
 }
 
 /**
@@ -91,6 +92,7 @@ const BulkExportButton: React.FC<BulkExportButtonProps> = ({
   size = 'medium',
   color = 'primary',
   disabled = false,
+  sx,
 }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -152,6 +154,7 @@ const BulkExportButton: React.FC<BulkExportButtonProps> = ({
           disabled={disabled || isLoading}
           onClick={handleExport}
           startIcon={isLoading ? <CircularProgress size={20} /> : <DownloadIcon />}
+          sx={sx}
         >
           {isLoading ? 'Exporting...' : 'Export CSV'}
         </Button>

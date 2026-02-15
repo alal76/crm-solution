@@ -14,19 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-import React, { useContext } from 'react';
-import { UIPreferencesContext } from '../contexts/UIPreferencesContext';
-
-/**
- * Hook to access UI preferences
- */
-export const useUIPreferences = () => {
-  const context = useContext(UIPreferencesContext);
-  if (!context) {
-    throw new Error('useUIPreferences must be used within UIPreferencesProvider');
-  }
-  return context;
-};
+import React from 'react';
 
 /**
  * Hook to check if a feature flag is enabled for the current user

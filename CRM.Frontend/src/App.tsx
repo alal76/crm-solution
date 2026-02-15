@@ -26,6 +26,7 @@ import { ProfileProvider } from './contexts/ProfileContext';
 import { BrandingProvider } from './contexts/BrandingContext';
 import { AccountContextProvider } from './contexts/AccountContextProvider';
 import { EntityContextProvider } from './contexts/EntityContext';
+import { UIPreferencesProvider } from './contexts/UIPreferencesContext';
 import { AppThemeProvider, useTheme } from './contexts/ThemeContext';
 import { SignalRProvider } from './contexts/SignalRContext';
 import Navigation from './components/Navigation';
@@ -140,7 +141,7 @@ const SLAInstanceListPage = lazy(() => import('./pages/itsm/SLAInstanceListPage'
 // ----------------------------------------------------------------------------
 const AccountsPage = lazy(() => import('./pages/AccountsPage'));
 const ContactsPage = lazy(() => import('./pages/ContactsPage'));
-const AccountOverviewPage = lazy(() => import('./pages/CustomerOverviewPage'));
+const AccountOverviewPage = lazy(() => import('./pages/AccountOverviewPage'));
 const RelationshipsPage = lazy(() => import('./pages/RelationshipsPage'));
 
 // ----------------------------------------------------------------------------
@@ -254,7 +255,8 @@ function ThemedApp() {
                 <LayoutProvider>
                   <AccountContextProvider>
                     <EntityContextProvider>
-                      <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+                      <UIPreferencesProvider>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
                         <a href="#main-content" className="skip-link">
                           Skip to main content
                         </a>
@@ -1427,7 +1429,8 @@ function ThemedApp() {
                       <Footer />
                       <ContextFlyout />
                     </Box>
-                  </EntityContextProvider>
+                      </UIPreferencesProvider>
+                    </EntityContextProvider>
                   </AccountContextProvider>
                 </LayoutProvider>
               </BrandingProvider>

@@ -234,7 +234,7 @@ function InteractionsPage() {
   const [createServiceRequestDialogOpen, setCreateServiceRequestDialogOpen] = useState(false);
 
   // Entity lookup state
-  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [accounts, setAccounts] = useState<Customer[]>([]);
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
 
@@ -300,12 +300,12 @@ function InteractionsPage() {
 
   const fetchEntities = async () => {
     try {
-      const [customersRes, contactsRes, opportunitiesRes] = await Promise.all([
+      const [accountsRes, contactsRes, opportunitiesRes] = await Promise.all([
         apiClient.get('/accounts?limit=100'),
         apiClient.get('/contacts?limit=100'),
         apiClient.get('/opportunities?limit=100'),
       ]);
-      setCustomers(customersRes.data);
+      setAccounts(accountsRes.data);
       setContacts(contactsRes.data);
       setOpportunities(opportunitiesRes.data);
     } catch (err) {
@@ -920,7 +920,7 @@ function InteractionsPage() {
           <Autocomplete
             options={customers}
             getOptionLabel={(c) => c.companyName || `${c.firstName || ''} ${c.lastName || ''}`.trim() || `Account #${c.id}`}
-            value={customers.find(c => c.id === parseInt(linkForm.accountId)) || null}
+            value={accounts.find(c => c.id === parseInt(linkForm.accountId)) || null}
             onChange={(_, v) => setLinkForm({ ...linkForm, accountId: v ? String(v.id) : '' })}
             renderInput={(params) => <TextField {...params} label="Account" fullWidth />}
           />
@@ -1059,7 +1059,7 @@ function InteractionsPage() {
           <Autocomplete
             options={customers}
             getOptionLabel={(c) => c.companyName || `${c.firstName || ''} ${c.lastName || ''}`.trim() || `Account #${c.id}`}
-            value={customers.find(c => c.id === parseInt(contactForm.accountId)) || null}
+            value={accounts.find(c => c.id === parseInt(contactForm.accountId)) || null}
             onChange={(_, v) => setContactForm({ ...contactForm, accountId: v ? String(v.id) : '' })}
             renderInput={(params) => <TextField {...params} label="Account" fullWidth />}
           />

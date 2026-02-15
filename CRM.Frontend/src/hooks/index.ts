@@ -10,3 +10,10 @@ export {
   useEditingNotification,
   useSignalRConnection,
 } from './useSignalR';
+
+// UI Customization hooks
+export {
+  useFeatureFlag,
+  useFeatureFlagVariant,
+  useDashboardCustomization,
+} from './useUICustomization';

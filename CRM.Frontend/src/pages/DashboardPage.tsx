@@ -85,7 +85,7 @@ import {
   PipelineSummary,
   WidgetType,
 } from '../services/dashboardService';
-import { opportunityService, campaignService, accountService, Opportunity, Account, Customer } from '../services/apiService';
+import { opportunityService, campaignService, accountService, Opportunity, Account } from '../services/apiService';
 import { useProfile } from '../contexts/ProfileContext';
 import { DashboardBuilder } from '../components/analytics';
 import { AnalyticsEmbed } from '../components/common';
@@ -234,7 +234,7 @@ function DashboardPage() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [pipeline, setPipeline] = useState<PipelineSummary | null>(null);
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
-  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [accounts, setAccounts] = useState<Account[]>([]);
   const [campaignCount, setCampaignCount] = useState(0);
   
   // Derived state
@@ -315,10 +315,10 @@ function DashboardPage() {
       }
 
       try {
-        const customersResponse = await accountService.getAll();
-        setCustomers(customersResponse.data || []);
+        const accountsResponse = await accountService.getAll();
+        setAccounts(accountsResponse.data || []);
       } catch (err) {
-        console.warn('Could not load customers');
+        console.warn('Could not load accounts');
       }
 
       try {
@@ -344,8 +344,8 @@ function DashboardPage() {
   // Compute widget data based on data source
   const getWidgetValue = useCallback((dataSource: string): WidgetData => {
     switch (dataSource) {
-      case 'customers.count':
-        return { value: stats?.customers?.total ?? customers.length };
+      case 'accounts.count':
+        return { value: stats?.accounts?.total ?? accounts.length };
       case 'contacts.count':
         return { value: stats?.contacts?.total ?? 0 };
       case 'opportunities.count':
@@ -404,7 +404,7 @@ function DashboardPage() {
       default:
         return { value: '--' };
     }
-  }, [stats, pipeline, opportunities, customers, campaignCount]);
+  }, [stats, pipeline, opportunities, accounts, campaignCount]);
 
   // Render widget based on type
   const renderWidget = (widget: DashboardWidget) => {
@@ -666,12 +666,12 @@ function DashboardPage() {
   const renderFallbackDashboard = () => {
     const totalPipeline = stats?.opportunities?.openValue ?? 0;
     const totalRevenue = stats?.opportunities?.wonValue ?? 0;
-    const totalCustomers = stats?.customers?.total ?? customers.length;
+    const totalAccounts = stats?.accounts?.total ?? accounts.length;
 
     const fallbackStats = [
       { title: 'Total Pipeline', value: formatCurrency(totalPipeline), icon: TrendingUpIcon, color: '#6750A4', link: '/opportunities', menuKey: 'Opportunities' },
       { title: 'Active Campaigns', value: campaignCount, icon: CampaignIcon, color: '#06A77D', link: '/campaigns', menuKey: 'Campaigns' },
-      { title: 'Accounts', value: totalCustomers.toLocaleString(), icon: PeopleIcon, color: '#0092BC', link: '/accounts', menuKey: 'Accounts' },
+      { title: 'Accounts', value: totalAccounts.toLocaleString(), icon: PeopleIcon, color: '#0092BC', link: '/accounts', menuKey: 'Accounts' },
       { title: 'Total Revenue', value: formatCurrency(totalRevenue), icon: ShoppingCartIcon, color: '#F57C00', link: '/opportunities', menuKey: 'Opportunities' },
     ];
 

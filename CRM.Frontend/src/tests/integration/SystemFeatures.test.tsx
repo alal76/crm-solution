@@ -17,15 +17,15 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
-import { UICustomizationPage } from '../../../pages/admin/UICustomizationPage';
-import { FeatureFlagsDashboard } from '../../../pages/admin/FeatureFlagsDashboard';
-import { PerformanceMonitoringPage } from '../../../pages/admin/PerformanceMonitoringPage';
-import { DashboardCustomizationComponent } from '../../../components/DashboardCustomizationComponent';
-import { UIPreferencesProvider, useUIPreferences } from '../../../contexts/UIPreferencesContext';
-import { useFeatureFlag, useFeatureFlagVariant, useDashboardCustomization } from '../../../hooks/useUICustomization';
-import apiClient from '../../../services/apiClient';
+import { UICustomizationPage } from '../../pages/admin/UICustomizationPage';
+import { FeatureFlagsDashboard } from '../../pages/admin/FeatureFlagsDashboard';
+import { PerformanceMonitoringPage } from '../../pages/admin/PerformanceMonitoringPage';
+import { DashboardCustomizationComponent } from '../../components/DashboardCustomizationComponent';
+import { UIPreferencesProvider, useUIPreferences } from '../../contexts/UIPreferencesContext';
+import { useFeatureFlag, useFeatureFlagVariant, useDashboardCustomization } from '../../hooks/useUICustomization';
+import apiClient from '../../services/apiClient';
 
-jest.mock('../../../services/apiClient');
+jest.mock('../../services/apiClient');
 
 // Test Suite 1: useFeatureFlag Hook
 describe('useFeatureFlag Hook', () => {

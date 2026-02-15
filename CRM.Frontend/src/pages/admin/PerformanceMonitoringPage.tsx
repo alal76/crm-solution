@@ -149,7 +149,7 @@ export const PerformanceMonitoringPage: React.FC = () => {
     );
   }
 
-  const memoryUsage = (cacheStats.memoryUsedBytes / cacheStats.maxMemoryBytes) * 100;
+  const memoryUsage = cacheStats ? (cacheStats.memoryUsedBytes ?? 0) / (cacheStats.maxMemoryBytes ?? 1) * 100 : 0;
   const getPriorityColor = (priority: string) => {
     switch (priority) {
       case 'High':
@@ -159,6 +159,46 @@ export const PerformanceMonitoringPage: React.FC = () => {
       default:
         return 'info';
     }
+  };
+
+  // Provide safe defaults for cache stats
+  const safeCacheStats: CacheStats = cacheStats ? {
+    totalHits: cacheStats.totalHits ?? 0,
+    totalMisses: cacheStats.totalMisses ?? 0,
+    hitRate: cacheStats.hitRate ?? 0,
+    memoryUsedBytes: cacheStats.memoryUsedBytes ?? 0,
+    maxMemoryBytes: cacheStats.maxMemoryBytes ?? 1,
+    cachedItemCount: cacheStats.cachedItemCount ?? 0
+  } : {
+    totalHits: 0,
+    totalMisses: 0,
+    hitRate: 0,
+    memoryUsedBytes: 0,
+    maxMemoryBytes: 1,
+    cachedItemCount: 0
+  };
+
+  // Provide safe defaults for dashboard data
+  const safeData: PerformanceDashboard = dashboard ? {
+    averageResponseTimeMs: dashboard.averageResponseTimeMs ?? 0,
+    P95ResponseTimeMs: dashboard.P95ResponseTimeMs ?? 0,
+    P99ResponseTimeMs: dashboard.P99ResponseTimeMs ?? 0,
+    cacheHitRate: dashboard.cacheHitRate ?? 0,
+    errorRate: dashboard.errorRate ?? 0,
+    totalRequestsLastHour: dashboard.totalRequestsLastHour ?? 0,
+    totalRequestsLastDay: dashboard.totalRequestsLastDay ?? 0,
+    topEndpoints: dashboard.topEndpoints ?? [],
+    recommendations: dashboard.recommendations ?? []
+  } : {
+    averageResponseTimeMs: 0,
+    P95ResponseTimeMs: 0,
+    P99ResponseTimeMs: 0,
+    cacheHitRate: 0,
+    errorRate: 0,
+    totalRequestsLastHour: 0,
+    totalRequestsLastDay: 0,
+    topEndpoints: [],
+    recommendations: []
   };
 
   return (
@@ -203,7 +243,7 @@ export const PerformanceMonitoringPage: React.FC = () => {
                   Avg Response Time
                 </Typography>
                 <Typography variant="h6">
-                  {dashboard.averageResponseTimeMs.toFixed(0)}ms
+                  {safeData.averageResponseTimeMs.toFixed(0)}ms
                 </Typography>
               </Box>
             </Box>
@@ -218,7 +258,7 @@ export const PerformanceMonitoringPage: React.FC = () => {
                   Cache Hit Rate
                 </Typography>
                 <Typography variant="h6">
-                  {(dashboard.cacheHitRate * 100).toFixed(1)}%
+                  {(safeData.cacheHitRate * 100).toFixed(1)}%
                 </Typography>
               </Box>
             </Box>
@@ -233,7 +273,7 @@ export const PerformanceMonitoringPage: React.FC = () => {
                   Error Rate
                 </Typography>
                 <Typography variant="h6">
-                  {(dashboard.errorRate * 100).toFixed(2)}%
+                  {(safeData.errorRate * 100).toFixed(2)}%
                 </Typography>
               </Box>
             </Box>
@@ -248,7 +288,7 @@ export const PerformanceMonitoringPage: React.FC = () => {
                   Requests (24h)
                 </Typography>
                 <Typography variant="h6">
-                  {dashboard.totalRequestsLastDay.toLocaleString()}
+                  {safeData.totalRequestsLastDay.toLocaleString()}
                 </Typography>
               </Box>
             </Box>
@@ -267,16 +307,16 @@ export const PerformanceMonitoringPage: React.FC = () => {
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                     <Typography variant="body2">P95</Typography>
                     <Typography variant="body2" fontWeight="bold">
-                      {dashboard.P95ResponseTimeMs}ms
+                      {safeData.P95ResponseTimeMs}ms
                     </Typography>
                   </Box>
                   <LinearProgress
                     variant="determinate"
-                    value={Math.min(100, (dashboard.P95ResponseTimeMs / 500) * 100)}
+                    value={Math.min(100, (safeData.P95ResponseTimeMs / 500) * 100)}
                     sx={{
                       backgroundColor: '#f0f0f0',
                       '& .MuiLinearProgress-bar': {
-                        backgroundColor: dashboard.P95ResponseTimeMs > 500 ? '#ff6b6b' : '#4caf50'
+                        backgroundColor: safeData.P95ResponseTimeMs > 500 ? '#ff6b6b' : '#4caf50'
                       }
                     }}
                   />
@@ -285,16 +325,16 @@ export const PerformanceMonitoringPage: React.FC = () => {
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                     <Typography variant="body2">P99</Typography>
                     <Typography variant="body2" fontWeight="bold">
-                      {dashboard.P99ResponseTimeMs}ms
+                      {safeData.P99ResponseTimeMs}ms
                     </Typography>
                   </Box>
                   <LinearProgress
                     variant="determinate"
-                    value={Math.min(100, (dashboard.P99ResponseTimeMs / 1000) * 100)}
+                    value={Math.min(100, (safeData.P99ResponseTimeMs / 1000) * 100)}
                     sx={{
                       backgroundColor: '#f0f0f0',
                       '& .MuiLinearProgress-bar': {
-                        backgroundColor: dashboard.P99ResponseTimeMs > 1000 ? '#ff6b6b' : '#4caf50'
+                        backgroundColor: safeData.P99ResponseTimeMs > 1000 ? '#ff6b6b' : '#4caf50'
                       }
                     }}
                   />
@@ -314,17 +354,17 @@ export const PerformanceMonitoringPage: React.FC = () => {
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                     <Typography variant="body2">Memory Usage</Typography>
                     <Typography variant="body2" fontWeight="bold">
-                      {(cacheStats.memoryUsedBytes / 1024 / 1024).toFixed(2)}MB / {(cacheStats.maxMemoryBytes / 1024 / 1024).toFixed(2)}MB
+                      {(safeCacheStats.memoryUsedBytes / 1024 / 1024).toFixed(2)}MB / {(safeCacheStats.maxMemoryBytes / 1024 / 1024).toFixed(2)}MB
                     </Typography>
                   </Box>
                   <LinearProgress variant="determinate" value={memoryUsage} />
                 </Box>
                 <Box>
-                  <Typography variant="body2">Items Cached: {cacheStats.cachedItemCount.toLocaleString()}</Typography>
+                  <Typography variant="body2">Items Cached: {safeCacheStats.cachedItemCount.toLocaleString()}</Typography>
                 </Box>
                 <Box>
                   <Typography variant="body2">
-                    Hit/Miss: {cacheStats.totalHits.toLocaleString()} / {cacheStats.totalMisses.toLocaleString()}
+                    Hit/Miss: {safeCacheStats.totalHits.toLocaleString()} / {safeCacheStats.totalMisses.toLocaleString()}
                   </Typography>
                 </Box>
               </Stack>
@@ -350,7 +390,7 @@ export const PerformanceMonitoringPage: React.FC = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {dashboard.topEndpoints.map((ep) => (
+                {safeData.topEndpoints.map((ep) => (
                   <TableRow key={ep.endpoint} hover>
                     <TableCell>{ep.endpoint}</TableCell>
                     <TableCell align="right">{ep.totalRequests.toLocaleString()}</TableCell>
@@ -373,12 +413,12 @@ export const PerformanceMonitoringPage: React.FC = () => {
       </Card>
 
       {/* Recommendations */}
-      {dashboard.recommendations.length > 0 && (
+      {safeData.recommendations.length > 0 && (
         <Card>
           <CardHeader title="Performance Recommendations" />
           <CardContent>
             <Stack spacing={2}>
-              {dashboard.recommendations.map((rec, idx) => (
+              {safeData.recommendations.map((rec, idx) => (
                 <Paper key={idx} sx={{ p: 2, backgroundColor:
                   rec.priority === 'High' ? '#ffebee' : rec.priority === 'Medium' ? '#fff3e0' : '#e3f2fd'
                 }}>

@@ -12,9 +12,9 @@ interface UserProfile {
   departmentId: number;
   departmentName?: string;
   isActive: boolean;
-  canCreateCustomers: boolean;
-  canEditCustomers: boolean;
-  canDeleteCustomers: boolean;
+  canCreateAccounts: boolean;
+  canEditAccounts: boolean;
+  canDeleteAccounts: boolean;
   canCreateOpportunities: boolean;
   canEditOpportunities: boolean;
   canDeleteOpportunities: boolean;
@@ -37,9 +37,9 @@ interface ProfileForm {
   description: string;
   departmentId: number;
   isActive: boolean;
-  canCreateCustomers: boolean;
-  canEditCustomers: boolean;
-  canDeleteCustomers: boolean;
+  canCreateAccounts: boolean;
+  canEditAccounts: boolean;
+  canDeleteAccounts: boolean;
   canCreateOpportunities: boolean;
   canEditOpportunities: boolean;
   canDeleteOpportunities: boolean;
@@ -64,9 +64,9 @@ function ProfileManagementPage() {
     description: '',
     departmentId: 0,
     isActive: true,
-    canCreateCustomers: false,
-    canEditCustomers: false,
-    canDeleteCustomers: false,
+    canCreateAccounts: false,
+    canEditAccounts: false,
+    canDeleteAccounts: false,
     canCreateOpportunities: false,
     canEditOpportunities: false,
     canDeleteOpportunities: false,
@@ -108,9 +108,9 @@ function ProfileManagementPage() {
         description: profile.description,
         departmentId: profile.departmentId,
         isActive: profile?.isActive !== false,
-        canCreateCustomers: profile.canCreateCustomers,
-        canEditCustomers: profile.canEditCustomers,
-        canDeleteCustomers: profile.canDeleteCustomers,
+        canCreateAccounts: profile.canCreateAccounts,
+        canEditAccounts: profile.canEditAccounts,
+        canDeleteAccounts: profile.canDeleteAccounts,
         canCreateOpportunities: profile.canCreateOpportunities,
         canEditOpportunities: profile.canEditOpportunities,
         canDeleteOpportunities: profile.canDeleteOpportunities,
@@ -128,9 +128,9 @@ function ProfileManagementPage() {
         description: '',
         departmentId: departments[0]?.id || 0,
         isActive: true,
-        canCreateCustomers: false,
-        canEditCustomers: false,
-        canDeleteCustomers: false,
+        canCreateAccounts: false,
+        canEditAccounts: false,
+        canDeleteAccounts: false,
         canCreateOpportunities: false,
         canEditOpportunities: false,
         canDeleteOpportunities: false,
@@ -328,19 +328,19 @@ function ProfileManagementPage() {
           <Grid container spacing={1}>
             <Grid item xs={12}>
               <FormControlLabel
-                control={<Checkbox name="canCreateCustomers" checked={formData.canCreateCustomers} onChange={handleInputChange} />}
+                control={<Checkbox name="canCreateAccounts" checked={formData.canCreateAccounts} onChange={handleInputChange} />}
                 label="Create Accounts"
               />
             </Grid>
             <Grid item xs={12}>
               <FormControlLabel
-                control={<Checkbox name="canEditCustomers" checked={formData.canEditCustomers} onChange={handleInputChange} />}
+                control={<Checkbox name="canEditAccounts" checked={formData.canEditAccounts} onChange={handleInputChange} />}
                 label="Edit Accounts"
               />
             </Grid>
             <Grid item xs={12}>
               <FormControlLabel
-                control={<Checkbox name="canDeleteCustomers" checked={formData.canDeleteCustomers} onChange={handleInputChange} />}
+                control={<Checkbox name="canDeleteAccounts" checked={formData.canDeleteAccounts} onChange={handleInputChange} />}
                 label="Delete Accounts"
               />
             </Grid>

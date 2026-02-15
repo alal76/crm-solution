@@ -45,6 +45,8 @@ interface UIContextType {
 
 const UIPreferencesContext = createContext<UIContextType | undefined>(undefined);
 
+export { UIPreferencesContext };
+
 export const UIPreferencesProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [preferences, setPreferences] = useState<UIPreference | null>(null);
   const [loading, setLoading] = useState(true);

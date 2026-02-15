@@ -93,3 +93,4 @@ const UserSettingsPanel: React.FC = () => {
 };
 
 export default UserSettingsPanel;
+export { UserSettingsPanel };
