@@ -76,11 +76,13 @@ export const AccountHierarchyTree: React.FC<AccountHierarchyTreeProps> = ({
       setLoading(true);
       setError(null);
       const response = await accountService.getAll();
-      const accounts = response.data || response as unknown as Account[];
-      setAccounts(accounts);
+      const accountsData = (response.data || response) as Account[];
+      // Filter to ensure all accounts have an id (required for hierarchy building)
+      const validAccounts = accountsData.filter((a): a is Account & { id: number } => a.id !== undefined);
+      setAccounts(validAccounts);
 
       // Build hierarchy from flat account list
-      const hierarchy = buildHierarchy(accounts);
+      const hierarchy = buildHierarchy(validAccounts);
       setHierarchyNodes(hierarchy);
 
       // Expand root nodes by default
