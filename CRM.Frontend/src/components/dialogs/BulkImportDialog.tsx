@@ -16,9 +16,9 @@ import {
   Error as ErrorIcon,
   Close as CloseIcon 
 } from '@mui/icons-material';
-import apiClient from '../services/apiClient';
-import { createBulkAccountValidationSchema, BulkImportRow } from '../validation/accountSchema';
-import logger from '../services/logger';
+import apiClient from '../../services/apiClient';
+import { createBulkAccountValidationSchema, BulkImportRow } from '../../validation/accountSchema';
+import logger from '../../services/logger';
 
 interface BulkImportDialogProps {
   open: boolean;
