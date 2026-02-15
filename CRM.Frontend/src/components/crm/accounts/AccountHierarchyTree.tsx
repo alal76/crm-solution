@@ -22,7 +22,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import ChevronRightIcon from '@mui/icons-material/ChevronRight';
 import EditIcon from '@mui/icons-material/Edit';
 import LinkIcon from '@mui/icons-material/Link';
-import accountService from '../../../services/accountService';
+import accountService, { Account } from '../../../services/accountService';
 
 interface AccountHierarchyNode {
   id: number;
@@ -76,10 +76,11 @@ export const AccountHierarchyTree: React.FC<AccountHierarchyTreeProps> = ({
       setLoading(true);
       setError(null);
       const response = await accountService.getAll();
-      setAccounts(response);
+      const accounts = response.data || response as unknown as Account[];
+      setAccounts(accounts);
 
       // Build hierarchy from flat account list
-      const hierarchy = buildHierarchy(response);
+      const hierarchy = buildHierarchy(accounts);
       setHierarchyNodes(hierarchy);
 
       // Expand root nodes by default
