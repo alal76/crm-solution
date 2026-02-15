@@ -1,9 +1,12 @@
 #!/usr/bin/env pwsh
 
-$repoPath = "c:\Users\AbhishekLal\OneDrive - HSO\Documents\Work\Vibe\CRM"
-$gitHubRepo = "https://github.com/YOUR_USERNAME/CRM.git"  # Update this with actual GitHub repo
+# Determine the repository path dynamically (parent of scripts directory)
+$scriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$repoPath = Split-Path -Parent (Split-Path -Parent $scriptDir)
+$gitHubRepo = "https://github.com/YOUR_USERNAME/crm-solution.git"  # Update this with actual GitHub repo
 
 Write-Host "Initializing Git repository..." -ForegroundColor Yellow
+Write-Host "Repository path: $repoPath" -ForegroundColor Cyan
 Set-Location $repoPath
 
 # Initialize git if not already initialized

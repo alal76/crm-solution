@@ -677,7 +677,7 @@ function AccountsPage() {
   // Multi-select handlers
   const handleSelectAll = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.checked) {
-      setSelectedIds(filteredCustomers.map(c => c.id));
+      setSelectedIds(filteredAccounts.map(c => c.id));
     } else {
       setSelectedIds([]);
     }
@@ -773,7 +773,8 @@ function AccountsPage() {
         isPrimaryContact: contactIsPrimary,
         isDecisionMaker: contactIsDecisionMaker,
       });
-      fetchCustomerContacts(editingId);
+      const response = await apiClient.get(`/accounts/${editingId}/contacts`);
+      setAccountContacts(response.data);
       setAddContactDialogOpen(false);
       setSelectedContactId(null);
       setContactRole(0);
@@ -792,7 +793,8 @@ function AccountsPage() {
     if (window.confirm('Are you sure you want to remove this contact from the account?')) {
       try {
         await apiClient.delete(`/accounts/${editingId}/contacts/${contactId}`);
-        fetchCustomerContacts(editingId);
+        const response = await apiClient.get(`/accounts/${editingId}/contacts`);
+        setAccountContacts(response.data);
         setSuccessMessage('Contact removed successfully');
         setTimeout(() => setSuccessMessage(null), 3000);
       } catch (err: any) {
@@ -1249,7 +1251,7 @@ function AccountsPage() {
                 <TabPanel value={dialogTab} index={visibleTabs.findIndex(t => t.index === 101)}>
                   <Box sx={{ mb: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Typography variant="subtitle1" fontWeight={600}>
-                      Linked Contacts ({customerContacts.length})
+                      Linked Contacts ({accountContacts.length})
                     </Typography>
                     <Button
                       variant="outlined"
@@ -1261,14 +1263,14 @@ function AccountsPage() {
                     </Button>
                   </Box>
 
-                  {customerContacts.length === 0 ? (
+                  {accountContacts.length === 0 ? (
                     <Paper elevation={0} sx={{ p: 4, textAlign: 'center', backgroundColor: '#F5EFF7', borderRadius: 2 }}>
                       <GroupIcon sx={{ fontSize: 48, color: '#6750A4', opacity: 0.5, mb: 1 }} />
                       <Typography color="textSecondary">No contacts linked to this account</Typography>
                     </Paper>
                   ) : (
                     <List sx={{ bgcolor: 'background.paper', borderRadius: 1, border: '1px solid #e0e0e0' }}>
-                      {customerContacts.map((contact, index) => (
+                      {accountContacts.map((contact: AccountContact, index: number) => (
                         <Box key={contact.id}>
                           {index > 0 && <Divider />}
                           <ListItem>
@@ -1491,7 +1493,7 @@ function AccountsPage() {
           <ActionButton
             label={editingId ? 'Update' : 'Create'}
             loading={dialogApi.loading}
-            onClick={handleSaveCustomer}
+            onClick={handleSaveAccount}
             color="primary"
           />
         </DialogActions>
@@ -1521,7 +1523,7 @@ function AccountsPage() {
           <Grid container spacing={2} sx={{ mt: 1 }}>
             <Grid item xs={12}>
               <Autocomplete
-                options={contacts.filter(c => !customerContacts.some(cc => cc.contactId === c.id))}
+                options={contacts.filter((c: Contact) => !accountContacts.some((cc: AccountContact) => cc.contactId === c.id))}
                 getOptionLabel={(option) => `${option.firstName} ${option.lastName}${option.company ? ` (${option.company})` : ''}`}
                 value={contacts.find(c => c.id === selectedContactId) || null}
                 onChange={(_, newValue) => setSelectedContactId(newValue?.id || null)}
@@ -1671,19 +1673,19 @@ function AccountsPage() {
         }}
         onUpdateExisting={(recordId) => {
           setDuplicateDialogOpen(false);
-          const customer = customers.find(c => c.id === recordId);
+          const customer = accounts.find((c: Account) => c.id === recordId);
           if (customer) handleOpenDialog(customer);
         }}
         onViewRecord={(recordId) => {
           setDuplicateDialogOpen(false);
-          const customer = customers.find(c => c.id === recordId);
+          const customer = accounts.find((c: Account) => c.id === recordId);
           if (customer) handleOpenDialog(customer);
         }}
         onMergeRecords={(masterRecordId, recordsToMerge) => {
           setDuplicateDialogOpen(false);
           const allIds = [masterRecordId, ...recordsToMerge];
           const records: MergeRecordData[] = allIds
-            .map(rid => customers.find(c => c.id === rid))
+            .map((rid: number) => accounts.find((c: Account) => c.id === rid))
             .filter(Boolean)
             .map(c => ({ id: c!.id, displayName: c!.company || `${c!.firstName} ${c!.lastName}`, data: c as any }));
           if (records.length >= 2) {
@@ -1698,9 +1700,9 @@ function AccountsPage() {
         onClose={() => setMergeDialogOpen(false)}
         entityType="Account"
         records={selectedIds
-          .map(sid => customers.find(c => c.id === sid))
+          .map((sid: number) => accounts.find((c: Account) => c.id === sid))
           .filter(Boolean)
-          .map(c => ({ id: c!.id, displayName: c!.company || `${c!.firstName} ${c!.lastName}`, data: c as any }))}
+          .map((c: Account | undefined) => ({ id: c!.id, displayName: c!.company || `${c!.firstName} ${c!.lastName}`, data: c as any }))}
         onMergeComplete={(result) => {
           setMergeDialogOpen(false);
           setSelectedIds([]);
@@ -1723,4 +1725,4 @@ function AccountsPage() {
   );
 }
 
-export default CustomersPage;
+export default AccountsPage;
