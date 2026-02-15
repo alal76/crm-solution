@@ -192,7 +192,7 @@ export const AccountHierarchyTree: React.FC<AccountHierarchyTreeProps> = ({
     return (
       <TreeItem
         key={nodeId}
-        nodeId={nodeId}
+        itemId={nodeId}
         label={
           <Box
             sx={{
