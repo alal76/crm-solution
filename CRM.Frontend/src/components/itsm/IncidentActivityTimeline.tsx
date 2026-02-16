@@ -88,12 +88,15 @@ export const IncidentActivityTimeline: React.FC<IncidentActivityTimelineProps> =
     return labels[type];
   };
 
-  const getActivityColor = (type: IncidentActivity['type']): 'inherit' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning' = {
-    'comment': 'primary',
-    'status_change': 'info',
-    'assignment': 'success',
-    'attachment': 'warning',
-  }[type];
+  const getActivityColor = (type: IncidentActivity['type']): 'inherit' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning' => {
+    const colors: Record<IncidentActivity['type'], 'inherit' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning'> = {
+      'comment': 'primary',
+      'status_change': 'info',
+      'assignment': 'success',
+      'attachment': 'warning',
+    };
+    return colors[type];
+  };
 
   if (loading) {
     return (
