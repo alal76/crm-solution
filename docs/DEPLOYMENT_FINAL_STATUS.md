@@ -93,7 +93,7 @@ Status:    LIVE ON dev SERVER
 ✅ docs/DEPLOYMENT_COMPLETE_SUMMARY.md (this document)
 ✅ docs/SYSTEM_MODULE_COMPLETION.md (detailed implementation report)
 ✅ docs/SESSION_CHANGE_SUMMARY.md (comprehensive changelog)
-✅ docs/specifications/INDEX.md (updated completion metrics)
+✅ docs/11-specifications/INDEX.md (updated completion metrics)
 ✅ GITHUB_ACTIONS_RUN143_ANALYSIS.md (issue analysis & fixes)
 ```
 
@@ -400,7 +400,7 @@ All 12 specifications (SYS-001 through SYS-012) have been developed to productio
 
 For questions about this deployment:
 - Check [docs/SYSTEM_MODULE_COMPLETION.md](../docs/SYSTEM_MODULE_COMPLETION.md) for implementation details
-- Check [docs/specifications/INDEX.md](../docs/specifications/INDEX.md) for specification status
+- Check [docs/11-specifications/INDEX.md](../docs/11-specifications/INDEX.md) for specification status
 - Check [docs/SOLUTION_CONTEXT.md](../docs/SOLUTION_CONTEXT.md) for overall architecture
 
 ---

@@ -22,7 +22,7 @@
 | SPEC-ARCH-005: Validation | 911 lines | ✅ Complete | DataAnnotations + FluentValidation, 4-layer approach |
 | **TOTAL** | **5,092 lines** | **✅ COMPLETE** | **75+ real CRM code examples** |
 
-**Location:** `/docs/specifications/SPEC-ARCH-*.md`
+**Location:** `/docs/11-specifications/SPEC-ARCH-*.md`
 
 **Deliverables:**
 - ✅ Complete framework documentation
@@ -253,11 +253,11 @@ All following phases have complete implementation guides:
 All work committed to branch: `feature/p0-p1-architecture-specs-2026-02-16`
 
 **Architecture Specifications:**
-- `/docs/specifications/SPEC-ARCH-001-DTOStandard.md`
-- `/docs/specifications/SPEC-ARCH-002-ErrorHandlingStrategy.md`
-- `/docs/specifications/SPEC-ARCH-003-DependencyInjectionPatterns.md`
-- `/docs/specifications/SPEC-ARCH-004-CachingStrategy.md`
-- `/docs/specifications/SPEC-ARCH-005-ValidationFramework.md`
+- `/docs/11-specifications/SPEC-ARCH-001-DTOStandard.md`
+- `/docs/11-specifications/SPEC-ARCH-002-ErrorHandlingStrategy.md`
+- `/docs/11-specifications/SPEC-ARCH-003-DependencyInjectionPatterns.md`
+- `/docs/11-specifications/SPEC-ARCH-004-CachingStrategy.md`
+- `/docs/11-specifications/SPEC-ARCH-005-ValidationFramework.md`
 
 **DTO Infrastructure:**
 - `/CRM.Backend/src/CRM.Core/Dtos/BaseDtoInterfaces.cs`

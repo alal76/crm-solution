@@ -273,7 +273,7 @@ npm run build 2>&1 | grep -i "error"
 ```
 
 ### 4. Documentation Update
-Update: `docs/specifications/SPEC-SYS-001-*.md` with:
+Update: `docs/11-specifications/SPEC-SYS-001-*.md` with:
 - [x] Backend Service Implementation
 - [x] Controller Implementation
 - [x] Frontend Component Implementation  

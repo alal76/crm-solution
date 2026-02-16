@@ -312,7 +312,7 @@ Outcome: Feature parity with specifications
 ## References
 
 - **Full Report:** [ARCHITECTURAL_ALIGNMENT_ASSESSMENT.md](docs/development/ARCHITECTURAL_ALIGNMENT_ASSESSMENT.md)
-- **Specifications:** [docs/specifications/INDEX.md](docs/specifications/INDEX.md)
+- **Specifications:** [docs/11-specifications/INDEX.md](docs/11-specifications/INDEX.md)
 - **Coding Standards:** [CODING_STANDARDS.md](docs/development/CODING_STANDARDS.md)
 - **Architecture:** [docs/architecture/](docs/architecture/)
 - **Remediation Plan:** [docs/SOLUTION_GAPS_REMEDIATION_PLAN.md](docs/SOLUTION_GAPS_REMEDIATION_PLAN.md)

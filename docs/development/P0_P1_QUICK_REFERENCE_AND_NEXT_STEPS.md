@@ -420,7 +420,7 @@ Before moving to next phase, ensure:
 
 📁 **Implementation Plan:** P0_P1_CRITICAL_SERVICES_IMPLEMENTATION_PLAN.md  
 📁 **Phase 1-2 Completion:** P0_P1_PHASE1_PHASE2_COMPLETION_REPORT.md  
-📁 **Specifications:** docs/specifications/SPEC-ITSM-*.md, SPEC-SALES-*.md  
+📁 **Specifications:** docs/11-specifications/SPEC-ITSM-*.md, SPEC-SALES-*.md  
 📁 **Architecture:** docs/SOLUTION_CONTEXT.md, ARCHITECTURE_OVERVIEW.md  
 
 ---

@@ -22,7 +22,7 @@ The CRM solution has been brought to **production-ready status** with:
 - Clear path to future refactoring (4-6 hours, next maintenance sprint)
 
 ### Phase 2: Update All Specifications ✅
-- Updated `/docs/specifications/INDEX.md` with feature completion status
+- Updated `/docs/11-specifications/INDEX.md` with feature completion status
 - Created `SOLUTION_GAPS_REMEDIATION_PLAN.md` cataloging all technical debt
 - Created `DEPLOYMENT_READINESS.md` with 98.5% readiness score
 - Updated 4 specification files marking all features as `✅ IMPLEMENTED & PRODUCTION READY`
@@ -126,7 +126,7 @@ Deployment Readiness: 98.5%
 
 | Document | Purpose | Status |
 |----------|---------|--------|
-| docs/specifications/INDEX.md | Spec index with features section | ✅ Updated |
+| docs/11-specifications/INDEX.md | Spec index with features section | ✅ Updated |
 | SOLUTION_GAPS_REMEDIATION_PLAN.md | Technical debt & roadmap | ✅ Created |
 | DEPLOYMENT_READINESS.md | Readiness score & verification | ✅ Created |
 | DEPLOYMENT_GUIDE_192.168.0.9.md | Step-by-step deployment | ✅ Created |

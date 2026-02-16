@@ -78,7 +78,7 @@
 2. **Week 2 (40h):** Audit & standardize 30-40 existing problematic DTOs
 3. **Ongoing:** All new DTOs follow standard (enforced in code review)
 
-**File Location:** Will be created at `docs/specifications/SPEC-ARCH-001-DTOStandard.md`
+**File Location:** Will be created at `docs/11-specifications/SPEC-ARCH-001-DTOStandard.md`
 
 ---
 

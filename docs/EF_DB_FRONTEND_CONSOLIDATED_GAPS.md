@@ -51,7 +51,7 @@ Scope: EF DbSet entities, MariaDB schema, Backend controllers, Frontend types/se
 
 - `docs/audits/WORKFLOW_BACKEND_AUDIT.md` — Generated: 2026-02-12 (comprehensive workflow entities, DTOs, services, controllers, DbSet and DI registration audit)
 - `docs/SOLUTION_GAPS_REMEDIATION_PLAN.md` — Last Updated: 2026-02-11 (active remediation plan & phase progress)
-- `docs/specifications/INDEX.md` — Last Updated: 2026-02-12 (spec index reflecting completed specs and planned items)
+- `docs/11-specifications/INDEX.md` — Last Updated: 2026-02-12 (spec index reflecting completed specs and planned items)
 - `docs/MASTER_TODO_LIST.md` — Last Updated: 2026-02-08 (master list of extracted TODOs and priorities)
 - `docs/architecture/PLUGGABLE_ARCHITECTURE_IMPLEMENTATION_TRACKER.md` — Last Updated: 2026-02-05 (provider implementation tracker)
 - `docs/EF_DB_FRONTEND_REMEDIATION_SUMMARY.md` — (see remediation history commits listed above) — latest updates applied Feb 12, 2026

@@ -350,7 +350,7 @@
 
 - [DTO_STANDARDIZATION_COMPREHENSIVE_AUDIT.md](DTO_STANDARDIZATION_COMPREHENSIVE_AUDIT.md) - Full audit report with all findings
 - [SOLUTION_GAPS_REMEDIATION_PLAN.md](docs/development/SOLUTION_GAPS_REMEDIATION_PLAN.md) - Remediation timeline
-- [docs/specifications/SPEC-ARCH-001.md](docs/specifications/SPEC-ARCH-001.md) - Architecture specification (in progress)
+- [docs/11-specifications/SPEC-ARCH-001.md](docs/11-specifications/SPEC-ARCH-001.md) - Architecture specification (in progress)
 
 ---
 

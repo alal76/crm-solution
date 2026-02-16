@@ -71,7 +71,7 @@ cd e2e-tests && npx playwright test tests/bvt/api-bvt.spec.ts
 
 | Day | Task | Spec Reference | Files |
 |-----|------|----------------|-------|
-| Mon | Create SPEC-CRM-004-ContactManagement.md | Copy SPEC-TEMPLATE.md | `docs/specifications/` |
+| Mon | Create SPEC-CRM-004-ContactManagement.md | Copy SPEC-TEMPLATE.md | `docs/11-specifications/` |
 | Mon | Document existing Contact entity, DTOs, service | Sections 1-3 | Spec file |
 | Tue | Identify gaps: missing validations, UI components | Section 6 | Spec file |
 | Tue | Create ContactServiceTests.cs (15+ tests) | Section 5.1 | `tests/CRM.Tests/Services/` |
@@ -92,7 +92,7 @@ dotnet test && npm test -- --watchAll=false && npx playwright test tests/bvt/
 
 | Day | Task | Spec Reference | Files |
 |-----|------|----------------|-------|
-| Mon | Create SPEC-CRM-005-ActivityManagement.md | Copy SPEC-TEMPLATE.md | `docs/specifications/` |
+| Mon | Create SPEC-CRM-005-ActivityManagement.md | Copy SPEC-TEMPLATE.md | `docs/11-specifications/` |
 | Mon | Audit Activity entity (calls, meetings, tasks, notes) | Sections 1-3 | Spec file |
 | Tue | Create ActivityServiceTests.cs (20+ tests) | Section 5.1 | `tests/CRM.Tests/Services/` |
 | Tue | Implement Activity timeline service | Section 3.3 | `ActivityService.cs` |
@@ -113,7 +113,7 @@ dotnet test && npm test -- --watchAll=false && npx playwright test tests/bvt/
 
 | Day | Task | Spec Reference | Files |
 |-----|------|----------------|-------|
-| Mon | Create SPEC-CRM-006-PipelineManagement.md | Copy SPEC-TEMPLATE.md | `docs/specifications/` |
+| Mon | Create SPEC-CRM-006-PipelineManagement.md | Copy SPEC-TEMPLATE.md | `docs/11-specifications/` |
 | Mon | Document Pipeline, Stage entities | Sections 1-3 | Spec file |
 | Tue | Create PipelineServiceTests.cs (15+ tests) | Section 5.1 | `tests/CRM.Tests/Services/` |
 | Tue | Implement PipelineService CRUD | Section 3.3 | `PipelineService.cs` |
@@ -134,7 +134,7 @@ dotnet test && npm test -- --watchAll=false && npx playwright test tests/bvt/
 
 | Day | Task | Spec Reference | Files |
 |-----|------|----------------|-------|
-| Mon | Create SPEC-CRM-007-TaskManagement.md | Copy SPEC-TEMPLATE.md | `docs/specifications/` |
+| Mon | Create SPEC-CRM-007-TaskManagement.md | Copy SPEC-TEMPLATE.md | `docs/11-specifications/` |
 | Mon | Document CrmTask entity, relationships | Sections 1-3 | Spec file |
 | Tue | Create TaskServiceTests.cs (15+ tests) | Section 5.1 | `tests/CRM.Tests/Services/` |
 | Tue | Implement TaskService with reminders | Section 3.3 | `TaskService.cs` |
@@ -166,13 +166,13 @@ npx playwright test --project=chromium
 
 | Day | Task | Spec Reference | Files |
 |-----|------|----------------|-------|
-| Mon | Create SPEC-SALES-001-QuoteManagement.md | Copy SPEC-TEMPLATE.md | `docs/specifications/` |
+| Mon | Create SPEC-SALES-001-QuoteManagement.md | Copy SPEC-TEMPLATE.md | `docs/11-specifications/` |
 | Mon | Document Quote, QuoteLineItem entities | Sections 1-3 | Spec file |
 | Tue | Create QuoteServiceTests.cs (20+ tests) | Section 5.1 | `tests/CRM.Tests/Services/` |
 | Tue | Verify/enhance QuoteService implementation | Section 3.3 | `QuoteService.cs` |
 | Wed | Create QuoteBuilder.tsx component | Section 2.2 | `src/components/quotes/` |
 | Wed | Create QuoteLineItemEditor.tsx | Section 2.2 | `src/components/quotes/` |
-| Thu | Create SPEC-SALES-002-OrderManagement.md | Copy SPEC-TEMPLATE.md | `docs/specifications/` |
+| Thu | Create SPEC-SALES-002-OrderManagement.md | Copy SPEC-TEMPLATE.md | `docs/11-specifications/` |
 | Thu | Create OrderServiceTests.cs (15+ tests) | Section 5.1 | `tests/CRM.Tests/Services/` |
 | Fri | Create OrderForm.tsx, OrderList.tsx | Section 2.2 | `src/components/orders/` |
 | Fri | Create E2E tests for quotes/orders (12+ tests) | Section 5.3 | `e2e-tests/tests/sales/` |
@@ -187,12 +187,12 @@ dotnet test && npm test -- --watchAll=false && npx playwright test tests/bvt/
 
 | Day | Task | Spec Reference | Files |
 |-----|------|----------------|-------|
-| Mon | Create SPEC-SALES-003-InvoiceManagement.md | Copy SPEC-TEMPLATE.md | `docs/specifications/` |
+| Mon | Create SPEC-SALES-003-InvoiceManagement.md | Copy SPEC-TEMPLATE.md | `docs/11-specifications/` |
 | Mon | Document Invoice, InvoiceLineItem entities | Sections 1-3 | Spec file |
 | Tue | Create InvoiceServiceTests.cs (20+ tests) | Section 5.1 | `tests/CRM.Tests/Services/` |
 | Tue | Verify/enhance InvoiceService | Section 3.3 | `InvoiceService.cs` |
 | Wed | Create InvoiceView.tsx, InvoicePDF.tsx | Section 2.2 | `src/components/invoices/` |
-| Wed | Create SPEC-SALES-004-PaymentManagement.md | Copy SPEC-TEMPLATE.md | `docs/specifications/` |
+| Wed | Create SPEC-SALES-004-PaymentManagement.md | Copy SPEC-TEMPLATE.md | `docs/11-specifications/` |
 | Thu | Create PaymentServiceTests.cs (15+ tests) | Section 5.1 | `tests/CRM.Tests/Services/` |
 | Thu | Verify/enhance PaymentService | Section 3.3 | `PaymentService.cs` |
 | Fri | Create PaymentForm.tsx, PaymentHistory.tsx | Section 2.2 | `src/components/payments/` |
@@ -208,12 +208,12 @@ dotnet test && npm test -- --watchAll=false && npx playwright test tests/bvt/
 
 | Day | Task | Spec Reference | Files |
 |-----|------|----------------|-------|
-| Mon | Create SPEC-SALES-005-ContractManagement.md | Copy SPEC-TEMPLATE.md | `docs/specifications/` |
+| Mon | Create SPEC-SALES-005-ContractManagement.md | Copy SPEC-TEMPLATE.md | `docs/11-specifications/` |
 | Mon | Document Contract entity, renewal workflow | Sections 1-3 | Spec file |
 | Tue | Create ContractServiceTests.cs (15+ tests) | Section 5.1 | `tests/CRM.Tests/Services/` |
 | Tue | Verify/enhance ContractService | Section 3.3 | `ContractService.cs` |
 | Wed | Create ContractView.tsx, ContractRenewal.tsx | Section 2.2 | `src/components/contracts/` |
-| Wed | Create SPEC-SALES-006-SubscriptionManagement.md | Copy SPEC-TEMPLATE.md | `docs/specifications/` |
+| Wed | Create SPEC-SALES-006-SubscriptionManagement.md | Copy SPEC-TEMPLATE.md | `docs/11-specifications/` |
 | Thu | Create SubscriptionServiceTests.cs (15+ tests) | Section 5.1 | `tests/CRM.Tests/Services/` |
 | Thu | Verify/enhance SubscriptionService | Section 3.3 | `SubscriptionService.cs` |
 | Fri | Create SubscriptionDashboard.tsx | Section 2.2 | `src/components/subscriptions/` |
@@ -229,7 +229,7 @@ dotnet test && npm test -- --watchAll=false && npx playwright test tests/bvt/
 
 | Day | Task | Spec Reference | Files |
 |-----|------|----------------|-------|
-| Mon | Create SPEC-SALES-007-CommissionManagement.md | Copy SPEC-TEMPLATE.md | `docs/specifications/` |
+| Mon | Create SPEC-SALES-007-CommissionManagement.md | Copy SPEC-TEMPLATE.md | `docs/11-specifications/` |
 | Mon | Document Commission, CommissionPlan entities | Sections 1-3 | Spec file |
 | Tue | Create CommissionServiceTests.cs (15+ tests) | Section 5.1 | `tests/CRM.Tests/Services/` |
 | Tue | Verify/enhance CommissionService | Section 3.3 | `CommissionService.cs` |
@@ -261,12 +261,12 @@ npx playwright test --project=chromium
 
 | Day | Task | Spec Reference | Files |
 |-----|------|----------------|-------|
-| Mon | Create SPEC-MKT-001-CampaignManagement.md | Copy SPEC-TEMPLATE.md | `docs/specifications/` |
+| Mon | Create SPEC-MKT-001-CampaignManagement.md | Copy SPEC-TEMPLATE.md | `docs/11-specifications/` |
 | Mon | Document Campaign, CampaignRecipient entities | Sections 1-3 | Spec file |
 | Tue | Create CampaignServiceTests.cs (20+ tests) | Section 5.1 | `tests/CRM.Tests/Services/` |
 | Tue | Verify/enhance CampaignService | Section 3.3 | `CampaignService.cs` |
 | Wed | Create CampaignBuilder.tsx | Section 2.2 | `src/components/campaigns/` |
-| Wed | Create SPEC-MKT-002-EmailTemplates.md | Copy SPEC-TEMPLATE.md | `docs/specifications/` |
+| Wed | Create SPEC-MKT-002-EmailTemplates.md | Copy SPEC-TEMPLATE.md | `docs/11-specifications/` |
 | Thu | Create EmailTemplateServiceTests.cs (15+ tests) | Section 5.1 | `tests/CRM.Tests/Services/` |
 | Thu | Create EmailTemplateEditor.tsx (WYSIWYG) | Section 2.2 | `src/components/templates/` |
 | Fri | Create E2E tests (10+ tests) | Section 5.3 | `e2e-tests/tests/marketing/` |
@@ -276,13 +276,13 @@ npx playwright test --project=chromium
 
 | Day | Task | Spec Reference | Files |
 |-----|------|----------------|-------|
-| Mon | Create SPEC-MKT-003-EmailSequences.md | Copy SPEC-TEMPLATE.md | `docs/specifications/` |
+| Mon | Create SPEC-MKT-003-EmailSequences.md | Copy SPEC-TEMPLATE.md | `docs/11-specifications/` |
 | Mon | Create EmailSequenceServiceTests.cs (12+ tests) | Section 5.1 | `tests/CRM.Tests/Services/` |
 | Tue | Create SequenceBuilder.tsx | Section 2.2 | `src/components/sequences/` |
-| Tue | Create SPEC-MKT-004-WebFormBuilder.md | Copy SPEC-TEMPLATE.md | `docs/specifications/` |
+| Tue | Create SPEC-MKT-004-WebFormBuilder.md | Copy SPEC-TEMPLATE.md | `docs/11-specifications/` |
 | Wed | Create FormBuilderServiceTests.cs (12+ tests) | Section 5.1 | `tests/CRM.Tests/Services/` |
 | Wed | Create FormDesigner.tsx | Section 2.2 | `src/components/forms/` |
-| Thu | Create SPEC-MKT-005-WebTracking.md | Copy SPEC-TEMPLATE.md | `docs/specifications/` |
+| Thu | Create SPEC-MKT-005-WebTracking.md | Copy SPEC-TEMPLATE.md | `docs/11-specifications/` |
 | Thu | Create WebTrackingServiceTests.cs (10+ tests) | Section 5.1 | `tests/CRM.Tests/Services/` |
 | Fri | Create E2E tests (12+ tests) | Section 5.3 | `e2e-tests/tests/marketing/` |
 | Fri | **Marketing Module Complete** | 5/5 specs | Update INDEX.md |
@@ -291,13 +291,13 @@ npx playwright test --project=chromium
 
 | Day | Task | Spec Reference | Files |
 |-----|------|----------------|-------|
-| Mon | Create SPEC-SD-001-ServiceRequestManagement.md | Copy SPEC-TEMPLATE.md | `docs/specifications/` |
+| Mon | Create SPEC-SD-001-ServiceRequestManagement.md | Copy SPEC-TEMPLATE.md | `docs/11-specifications/` |
 | Mon | Document ServiceRequest entity | Sections 1-3 | Spec file |
 | Tue | Create ServiceRequestServiceTests.cs (20+ tests) | Section 5.1 | `tests/CRM.Tests/Services/` |
 | Tue | Verify/enhance existing ITSM services | Section 3.3 | `ServiceRequestService.cs` |
-| Wed | Create SPEC-SD-002-KnowledgeBase.md | Copy SPEC-TEMPLATE.md | `docs/specifications/` |
+| Wed | Create SPEC-SD-002-KnowledgeBase.md | Copy SPEC-TEMPLATE.md | `docs/11-specifications/` |
 | Wed | Create KnowledgeServiceTests.cs (15+ tests) | Section 5.1 | `tests/CRM.Tests/Services/` |
-| Thu | Create SPEC-SD-003-SLAManagement.md | Copy SPEC-TEMPLATE.md | `docs/specifications/` |
+| Thu | Create SPEC-SD-003-SLAManagement.md | Copy SPEC-TEMPLATE.md | `docs/11-specifications/` |
 | Thu | Create SLAServiceTests.cs (15+ tests) | Section 5.1 | `tests/CRM.Tests/Services/` |
 | Fri | Create E2E tests (12+ tests) | Section 5.3 | `e2e-tests/tests/servicedesk/` |
 | Fri | Update spec statuses | Section 7 | Specs + INDEX.md |
@@ -306,12 +306,12 @@ npx playwright test --project=chromium
 
 | Day | Task | Spec Reference | Files |
 |-----|------|----------------|-------|
-| Mon | Create SPEC-SD-004-WorkflowEngine.md | Copy SPEC-TEMPLATE.md | `docs/specifications/` |
+| Mon | Create SPEC-SD-004-WorkflowEngine.md | Copy SPEC-TEMPLATE.md | `docs/11-specifications/` |
 | Mon | Document WorkflowDefinition, WorkflowInstance | Sections 1-3 | Spec file |
 | Tue | Create WorkflowServiceTests.cs (20+ tests) | Section 5.1 | `tests/CRM.Tests/Services/` |
 | Tue | Verify/enhance WorkflowService | Section 3.3 | `WorkflowService.cs` |
 | Wed | Create WorkflowDesigner.tsx | Section 2.2 | `src/components/workflows/` |
-| Wed | Create SPEC-SD-005-EscalationRules.md | Copy SPEC-TEMPLATE.md | `docs/specifications/` |
+| Wed | Create SPEC-SD-005-EscalationRules.md | Copy SPEC-TEMPLATE.md | `docs/11-specifications/` |
 | Thu | Create EscalationServiceTests.cs (12+ tests) | Section 5.1 | `tests/CRM.Tests/Services/` |
 | Thu | Create EscalationRuleBuilder.tsx | Section 2.2 | `src/components/escalations/` |
 | Fri | Create E2E tests (10+ tests) | Section 5.3 | `e2e-tests/tests/servicedesk/` |
@@ -338,13 +338,13 @@ npx playwright test --project=chromium
 
 | Day | Task | Spec Reference | Files |
 |-----|------|----------------|-------|
-| Mon | Create SPEC-ITSM-001-IncidentManagement.md | Copy SPEC-TEMPLATE.md | `docs/specifications/` |
+| Mon | Create SPEC-ITSM-001-IncidentManagement.md | Copy SPEC-TEMPLATE.md | `docs/11-specifications/` |
 | Mon | Document Incident entity (extends ServiceRequest) | Sections 1-3 | Spec file |
-| Tue | Create SPEC-ITSM-002-ProblemManagement.md | Copy SPEC-TEMPLATE.md | `docs/specifications/` |
+| Tue | Create SPEC-ITSM-002-ProblemManagement.md | Copy SPEC-TEMPLATE.md | `docs/11-specifications/` |
 | Tue | Create ProblemServiceTests.cs (15+ tests) | Section 5.1 | `tests/CRM.Tests/Services/` |
-| Wed | Create SPEC-ITSM-003-ChangeManagement.md | Copy SPEC-TEMPLATE.md | `docs/specifications/` |
+| Wed | Create SPEC-ITSM-003-ChangeManagement.md | Copy SPEC-TEMPLATE.md | `docs/11-specifications/` |
 | Wed | Create ChangeServiceTests.cs (15+ tests) | Section 5.1 | `tests/CRM.Tests/Services/` |
-| Thu | Create SPEC-ITSM-004-CMDB.md | Copy SPEC-TEMPLATE.md | `docs/specifications/` |
+| Thu | Create SPEC-ITSM-004-CMDB.md | Copy SPEC-TEMPLATE.md | `docs/11-specifications/` |
 | Thu | Create CMDBServiceTests.cs (15+ tests) | Section 5.1 | `tests/CRM.Tests/Services/` |
 | Fri | Create E2E tests (15+ tests) | Section 5.3 | `e2e-tests/tests/itsm/` |
 | Fri | **ITSM Module Complete** | 4/4 specs | Update INDEX.md |
@@ -353,14 +353,14 @@ npx playwright test --project=chromium
 
 | Day | Task | Spec Reference | Files |
 |-----|------|----------------|-------|
-| Mon | Create SPEC-SYS-001-UserManagement.md | Copy SPEC-TEMPLATE.md | `docs/specifications/` |
-| Mon | Create SPEC-SYS-002-Authentication.md | Copy SPEC-TEMPLATE.md | `docs/specifications/` |
+| Mon | Create SPEC-SYS-001-UserManagement.md | Copy SPEC-TEMPLATE.md | `docs/11-specifications/` |
+| Mon | Create SPEC-SYS-002-Authentication.md | Copy SPEC-TEMPLATE.md | `docs/11-specifications/` |
 | Tue | Create UserServiceTests.cs (15+ tests) | Section 5.1 | `tests/CRM.Tests/Services/` |
 | Tue | Create AuthServiceTests.cs (20+ tests) | Section 5.1 | `tests/CRM.Tests/Services/` |
-| Wed | Create SPEC-SYS-003-UserGroupsPermissions.md | Copy SPEC-TEMPLATE.md | `docs/specifications/` |
+| Wed | Create SPEC-SYS-003-UserGroupsPermissions.md | Copy SPEC-TEMPLATE.md | `docs/11-specifications/` |
 | Wed | Create PermissionsServiceTests.cs (15+ tests) | Section 5.1 | `tests/CRM.Tests/Services/` |
-| Thu | Create SPEC-SYS-004-SystemSettings.md | Copy SPEC-TEMPLATE.md | `docs/specifications/` |
-| Thu | Create SPEC-SYS-005-AuditLogging.md | Copy SPEC-TEMPLATE.md | `docs/specifications/` |
+| Thu | Create SPEC-SYS-004-SystemSettings.md | Copy SPEC-TEMPLATE.md | `docs/11-specifications/` |
+| Thu | Create SPEC-SYS-005-AuditLogging.md | Copy SPEC-TEMPLATE.md | `docs/11-specifications/` |
 | Fri | Create E2E tests (12+ tests) | Section 5.3 | `e2e-tests/tests/system/` |
 | Fri | **System Module Complete** | 5/5 specs | Update INDEX.md |
 
@@ -368,13 +368,13 @@ npx playwright test --project=chromium
 
 | Day | Task | Spec Reference | Files |
 |-----|------|----------------|-------|
-| Mon | Create SPEC-AI-001-LeadScoring.md | Copy SPEC-TEMPLATE.md | `docs/specifications/` |
+| Mon | Create SPEC-AI-001-LeadScoring.md | Copy SPEC-TEMPLATE.md | `docs/11-specifications/` |
 | Mon | Document LeadScoreModel, prediction workflow | Sections 1-3 | Spec file |
-| Tue | Create SPEC-AI-002-OpportunityInsights.md | Copy SPEC-TEMPLATE.md | `docs/specifications/` |
+| Tue | Create SPEC-AI-002-OpportunityInsights.md | Copy SPEC-TEMPLATE.md | `docs/11-specifications/` |
 | Tue | Create AIServiceTests.cs (20+ tests) | Section 5.1 | `tests/CRM.Tests/Services/` |
-| Wed | Create SPEC-AI-003-ChurnPrediction.md | Copy SPEC-TEMPLATE.md | `docs/specifications/` |
+| Wed | Create SPEC-AI-003-ChurnPrediction.md | Copy SPEC-TEMPLATE.md | `docs/11-specifications/` |
 | Wed | Create LeadScoringDashboard.tsx | Section 2.2 | `src/components/ai/` |
-| Thu | Create SPEC-AI-004-EmailIntelligence.md | Copy SPEC-TEMPLATE.md | `docs/specifications/` |
+| Thu | Create SPEC-AI-004-EmailIntelligence.md | Copy SPEC-TEMPLATE.md | `docs/11-specifications/` |
 | Thu | Create OpportunityInsightsPanel.tsx | Section 2.2 | `src/components/ai/` |
 | Fri | Create E2E tests (10+ tests) | Section 5.3 | `e2e-tests/tests/ai/` |
 | Fri | **AI Module Complete** | 4/4 specs | Update INDEX.md |
@@ -383,11 +383,11 @@ npx playwright test --project=chromium
 
 | Day | Task | Spec Reference | Files |
 |-----|------|----------------|-------|
-| Mon | Create SPEC-INT-001-WebhookManagement.md | Copy SPEC-TEMPLATE.md | `docs/specifications/` |
+| Mon | Create SPEC-INT-001-WebhookManagement.md | Copy SPEC-TEMPLATE.md | `docs/11-specifications/` |
 | Mon | Document webhook subscription system | Sections 1-3 | Spec file |
-| Tue | Create SPEC-INT-002-ProviderIntegration.md | Copy SPEC-TEMPLATE.md | `docs/specifications/` |
+| Tue | Create SPEC-INT-002-ProviderIntegration.md | Copy SPEC-TEMPLATE.md | `docs/11-specifications/` |
 | Tue | Create WebhookServiceTests.cs (15+ tests) | Section 5.1 | `tests/CRM.Tests/Services/` |
-| Wed | Create SPEC-INT-003-ImportExport.md | Copy SPEC-TEMPLATE.md | `docs/specifications/` |
+| Wed | Create SPEC-INT-003-ImportExport.md | Copy SPEC-TEMPLATE.md | `docs/11-specifications/` |
 | Wed | Create ImportExportServiceTests.cs (15+ tests) | Section 5.1 | `tests/CRM.Tests/Services/` |
 | Thu | Create E2E tests (10+ tests) | Section 5.3 | `e2e-tests/tests/integration/` |
 | Thu | Run FULL regression suite | All tests | All test files |

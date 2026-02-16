@@ -25,12 +25,12 @@
 ## File Locations
 
 ```
-✅ docs/specifications/SPEC-ARCH-001-DTOStandard.md (1,302 lines)
-✅ docs/specifications/SPEC-ARCH-002-ErrorHandlingStrategy.md (1,205 lines)
-✅ docs/specifications/SPEC-ARCH-003-DependencyInjectionPatterns.md (916 lines)
-✅ docs/specifications/SPEC-ARCH-004-CachingStrategy.md (758 lines)
-✅ docs/specifications/SPEC-ARCH-005-ValidationFramework.md (911 lines)
-✅ docs/specifications/INDEX.md (UPDATED - Added architecture section)
+✅ docs/11-specifications/SPEC-ARCH-001-DTOStandard.md (1,302 lines)
+✅ docs/11-specifications/SPEC-ARCH-002-ErrorHandlingStrategy.md (1,205 lines)
+✅ docs/11-specifications/SPEC-ARCH-003-DependencyInjectionPatterns.md (916 lines)
+✅ docs/11-specifications/SPEC-ARCH-004-CachingStrategy.md (758 lines)
+✅ docs/11-specifications/SPEC-ARCH-005-ValidationFramework.md (911 lines)
+✅ docs/11-specifications/INDEX.md (UPDATED - Added architecture section)
 ```
 
 ---
@@ -381,4 +381,4 @@ Expected return: **50% reduction in onboarding time**, **35% fewer code review i
 **Date:** February 16, 2026  
 **Status:** ✅ Ready for team adoption
 
-Files available at `/docs/specifications/SPEC-ARCH-*.md`
+Files available at `/docs/11-specifications/SPEC-ARCH-*.md`
