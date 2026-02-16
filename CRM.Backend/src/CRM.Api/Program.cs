@@ -166,6 +166,9 @@ builder.Services.AddHybridCache(options =>
 // Add database caching service
 builder.Services.AddScoped<IDbCacheService, DbCacheService>();
 
+// Storage Redis configuration status for conditional service registration
+builder.Services.AddSingleton(sp => new { IsRedisEnabled = redisEnabled });
+
 // Configure monitoring service
 var monitoringConfig = builder.Configuration.GetSection("Monitoring");
 builder.Services.Configure<MonitoringOptions>(monitoringConfig);
@@ -496,7 +499,17 @@ builder.Services.AddScoped<IPerformanceOptimizationService, PerformanceOptimizat
 
 // SYS-002: RBAC and Permission Cache Services
 // Role-Based Access Control (RBAC) with Redis-backed permission caching for optimal performance
-builder.Services.AddScoped<IPermissionCacheService, PermissionCacheService>();
+// Only register PermissionCacheService if Redis is enabled (it requires IConnectionMultiplexer)
+var redisEnabledForRBAC = builder.Configuration.GetSection("Redis").GetValue("Enabled", true);
+if (redisEnabledForRBAC)
+{
+    builder.Services.AddScoped<IPermissionCacheService, PermissionCacheService>();
+}
+else
+{
+    // Register a no-op implementation when Redis is disabled to prevent DI errors
+    builder.Services.AddScoped<IPermissionCacheService>(sp => new InMemoryPermissionCacheService());
+}
 builder.Services.AddScoped<IRBACService, RBACService>();
 
 // builder.Services.AddScoped<IProviderHealthService, ProviderHealthService>(); // DISABLED for System Module isolation
@@ -764,7 +777,13 @@ var workflowWorkerOptions = new WorkflowWorkerOptions
     EnableLLMActions = builder.Configuration.GetValue<bool>("Workflow:EnableLLMActions", true)
 };
 builder.Services.AddSingleton(workflowWorkerOptions);
-builder.Services.AddHostedService<WorkflowWorkerService>();
+
+// Conditionally add WorkflowWorkerService - can be disabled via SKIP_WORKFLOW_WORKER=true
+var skipWorkflowWorker = builder.Configuration.GetValue<bool>("SKIP_WORKFLOW_WORKER", false);
+if (!skipWorkflowWorker)
+{
+    builder.Services.AddHostedService<WorkflowWorkerService>();
+}
 
 // Workflow Trigger Service + Scheduled Workflow Background Service
 builder.Services.AddScoped<IWorkflowTriggerService, WorkflowTriggerService>();
