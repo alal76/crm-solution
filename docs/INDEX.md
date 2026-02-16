@@ -156,8 +156,8 @@ See [AGENT_CONTEXT.md](AGENT_CONTEXT.md) for:
 
 | File | Description |
 |------|-------------|
-| [ARCHITECTURE_OVERVIEW.md](../ARCHITECTURE_OVERVIEW.md) | High-level architecture diagram |
-| [SOLUTION_CONTEXT.md](../SOLUTION_CONTEXT.md) | Complete context reference |
+| [ARCHITECTURE_OVERVIEW.md](docs/development/ARCHITECTURE_OVERVIEW.md) | High-level architecture diagram |
+| [SOLUTION_CONTEXT.md](docs/development/SOLUTION_CONTEXT.md) | Complete context reference |
 | [CHANGELOG.md](../CHANGELOG.md) | Version history |
 | [README.md](../README.md) | Project introduction |
 

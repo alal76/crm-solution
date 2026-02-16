@@ -69,13 +69,11 @@ public class EmailSequenceManagementService : IEmailSequenceManagementService
         {
             Name = dto.Name,
             Description = dto.Description,
-            Status = "Draft",
-            SequenceType = dto.SequenceType,
-            DefaultFromName = dto.DefaultFromName,
-            DefaultFromEmail = dto.DefaultFromEmail,
-            DefaultReplyTo = dto.DefaultReplyTo,
+            Status = EmailSequenceStatus.Draft,
+            FromName = dto.DefaultFromName,
+            FromEmail = dto.DefaultFromEmail,
+            ReplyToEmail = dto.DefaultReplyTo,
             OwnerId = dto.OwnerId,
-            CampaignId = dto.CampaignId,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
@@ -102,10 +100,13 @@ public class EmailSequenceManagementService : IEmailSequenceManagementService
             sequence.Description = dto.Description;
 
         if (dto.DefaultFromName != null)
-            sequence.DefaultFromName = dto.DefaultFromName;
+            sequence.FromName = dto.DefaultFromName;
 
         if (dto.DefaultFromEmail != null)
-            sequence.DefaultFromEmail = dto.DefaultFromEmail;
+            sequence.FromEmail = dto.DefaultFromEmail;
+
+        if (dto.DefaultReplyTo != null)
+            sequence.ReplyToEmail = dto.DefaultReplyTo;
 
         sequence.UpdatedAt = DateTime.UtcNow;
         _context.EmailSequences.Update(sequence);
@@ -147,11 +148,17 @@ public class EmailSequenceManagementService : IEmailSequenceManagementService
         var step = new EmailSequenceStep
         {
             EmailSequenceId = sequenceId,
+            Name = dto.Name,
+            StepType = EmailStepType.Email,
             Subject = dto.Subject,
-            BodyHtml = dto.BodyHtml,
-            DelayDays = dto.DelayDays ?? 0,
-            DelayHours = dto.DelayHours ?? 0,
-            StepOrder = dto.StepOrder,
+            Body = dto.HtmlContent,
+            BodyPlainText = dto.TextContent,
+            DelayDays = dto.DelayDays,
+            DelayHours = dto.DelayHours,
+            DelayMinutes = dto.DelayMinutes,
+            StepOrder = 1,
+            TimingMode = StepTimingMode.Delay,
+            SpecificTime = dto.SpecificTime?.ToString(@"hh\:mm"),
             IsActive = true,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
@@ -172,11 +179,14 @@ public class EmailSequenceManagementService : IEmailSequenceManagementService
         if (step == null)
             throw new InvalidOperationException($"Step {stepId} not found in sequence {sequenceId}");
 
+        step.Name = dto.Name;
         step.Subject = dto.Subject;
-        step.BodyHtml = dto.BodyHtml;
-        step.DelayDays = dto.DelayDays ?? 0;
-        step.DelayHours = dto.DelayHours ?? 0;
-        step.StepOrder = dto.StepOrder;
+        step.Body = dto.HtmlContent;
+        step.BodyPlainText = dto.TextContent;
+        step.DelayDays = dto.DelayDays;
+        step.DelayHours = dto.DelayHours;
+        step.DelayMinutes = dto.DelayMinutes;
+        step.SpecificTime = dto.SpecificTime?.ToString(@"hh\:mm");
         step.UpdatedAt = DateTime.UtcNow;
 
         _context.EmailSequenceSteps.Update(step);
@@ -239,7 +249,7 @@ public class EmailSequenceManagementService : IEmailSequenceManagementService
             throw new InvalidOperationException($"Email sequence {sequenceId} not found");
 
         var contact = await _context.Contacts
-            .FirstOrDefaultAsync(c => c.Id == dto.ContactId && !c.IsDeleted, cancellationToken);
+            .FirstOrDefaultAsync(c => c.Id == dto.ContactId, cancellationToken);
 
         if (contact == null)
             throw new InvalidOperationException($"Contact {dto.ContactId} not found");
@@ -248,7 +258,7 @@ public class EmailSequenceManagementService : IEmailSequenceManagementService
         {
             EmailSequenceId = sequenceId,
             ContactId = dto.ContactId,
-            Status = "Active",
+            Status = EnrollmentStatus.Active,
             EnrolledAt = DateTime.UtcNow,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
@@ -282,7 +292,7 @@ public class EmailSequenceManagementService : IEmailSequenceManagementService
         if (enrollment == null)
             return false;
 
-        enrollment.Status = "Paused";
+        enrollment.Status = EnrollmentStatus.Paused;
         enrollment.UpdatedAt = DateTime.UtcNow;
         _context.EmailSequenceEnrollments.Update(enrollment);
         await _context.SaveChangesAsync(cancellationToken);
@@ -298,7 +308,7 @@ public class EmailSequenceManagementService : IEmailSequenceManagementService
         if (enrollment == null)
             return false;
 
-        enrollment.Status = "Active";
+        enrollment.Status = EnrollmentStatus.Active;
         enrollment.UpdatedAt = DateTime.UtcNow;
         _context.EmailSequenceEnrollments.Update(enrollment);
         await _context.SaveChangesAsync(cancellationToken);
@@ -315,7 +325,7 @@ public class EmailSequenceManagementService : IEmailSequenceManagementService
             return false;
 
         enrollment.IsDeleted = true;
-        enrollment.Status = "Exited";
+        enrollment.Status = EnrollmentStatus.Removed;
         enrollment.UpdatedAt = DateTime.UtcNow;
         _context.EmailSequenceEnrollments.Update(enrollment);
         await _context.SaveChangesAsync(cancellationToken);
@@ -338,10 +348,8 @@ public class EmailSequenceManagementService : IEmailSequenceManagementService
         {
             SequenceId = sequenceId,
             TotalEnrolled = enrollments.Count,
-            ActiveEnrollments = enrollments.Count(e => e.Status == "Active"),
-            PausedEnrollments = enrollments.Count(e => e.Status == "Paused"),
-            CompletedEnrollments = enrollments.Count(e => e.Status == "Completed"),
-            CalculatedAt = DateTime.UtcNow
+            TotalActive = enrollments.Count(e => e.Status == EnrollmentStatus.Active),
+            TotalCompleted = enrollments.Count(e => e.Status == EnrollmentStatus.Completed)
         };
 
         return await Task.FromResult(analytics);
@@ -355,7 +363,7 @@ public class EmailSequenceManagementService : IEmailSequenceManagementService
         if (sequence == null)
             throw new InvalidOperationException($"Email sequence {sequenceId} not found");
 
-        sequence.Status = "Active";
+        sequence.Status = EmailSequenceStatus.Active;
         sequence.UpdatedAt = DateTime.UtcNow;
         _context.EmailSequences.Update(sequence);
         await _context.SaveChangesAsync(cancellationToken);
@@ -365,8 +373,12 @@ public class EmailSequenceManagementService : IEmailSequenceManagementService
         var result = new CRM.Core.Dtos.EmailSequenceExecutionResultDto
         {
             SequenceId = sequenceId,
-            Success = true,
-            ExecutedAt = DateTime.UtcNow
+            EmailsSent = 0,
+            EnrollmentsProcessed = 0,
+            Errors = 0,
+            Status = "Active",
+            ExecutedAt = DateTime.UtcNow,
+            Duration = TimeSpan.Zero
         };
         return await Task.FromResult(result);
     }
@@ -384,11 +396,10 @@ public class EmailSequenceManagementService : IEmailSequenceManagementService
         {
             Name = newName,
             Description = $"Copy of {original.Name}",
-            Status = "Draft",
-            SequenceType = original.SequenceType,
-            DefaultFromName = original.DefaultFromName,
-            DefaultFromEmail = original.DefaultFromEmail,
-            DefaultReplyTo = original.DefaultReplyTo,
+            Status = EmailSequenceStatus.Draft,
+            FromName = original.FromName,
+            FromEmail = original.FromEmail,
+            ReplyToEmail = original.ReplyToEmail,
             OwnerId = original.OwnerId,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
@@ -403,11 +414,17 @@ public class EmailSequenceManagementService : IEmailSequenceManagementService
             var stepCopy = new EmailSequenceStep
             {
                 EmailSequenceId = copy.Id,
+                Name = step.Name,
+                StepType = step.StepType,
                 Subject = step.Subject,
-                BodyHtml = step.BodyHtml,
+                Body = step.Body,
+                BodyPlainText = step.BodyPlainText,
                 DelayDays = step.DelayDays,
                 DelayHours = step.DelayHours,
+                DelayMinutes = step.DelayMinutes,
                 StepOrder = step.StepOrder,
+                SpecificTime = step.SpecificTime,
+                TimingMode = step.TimingMode,
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
@@ -432,13 +449,18 @@ public class EmailSequenceManagementService : IEmailSequenceManagementService
             Id = sequence.Id,
             Name = sequence.Name,
             Description = sequence.Description,
-            Status = sequence.Status,
-            SequenceType = sequence.SequenceType,
-            DefaultFromName = sequence.DefaultFromName,
-            DefaultFromEmail = sequence.DefaultFromEmail,
-            DefaultReplyTo = sequence.DefaultReplyTo,
+            Status = sequence.Status.ToString(),
+            DefaultFromName = sequence.FromName,
+            DefaultFromEmail = sequence.FromEmail,
+            DefaultReplyTo = sequence.ReplyToEmail,
             OwnerId = sequence.OwnerId,
-            CampaignId = sequence.CampaignId,
+            TotalEnrolled = sequence.TotalEnrolled,
+            TotalCompleted = sequence.TotalCompleted,
+            TotalActive = sequence.ActiveEnrollments,
+            OpenRate = sequence.TotalEmailsSent > 0 ? (decimal)sequence.TotalOpens / sequence.TotalEmailsSent : 0,
+            ClickRate = sequence.TotalEmailsSent > 0 ? (decimal)sequence.TotalClicks / sequence.TotalEmailsSent : 0,
+            ReplyRate = sequence.TotalEmailsSent > 0 ? (decimal)sequence.TotalReplies / sequence.TotalEmailsSent : 0,
+            ConversionRate = sequence.TotalEnrolled > 0 ? (decimal)sequence.TotalCompleted / sequence.TotalEnrolled : 0,
             CreatedAt = sequence.CreatedAt,
             UpdatedAt = sequence.UpdatedAt
         };
@@ -449,12 +471,24 @@ public class EmailSequenceManagementService : IEmailSequenceManagementService
         return new EmailSequenceStepDto
         {
             Id = step.Id,
-            EmailSequenceId = step.EmailSequenceId,
+            SequenceId = step.EmailSequenceId,
+            StepNumber = step.StepOrder,
+            StepType = step.StepType.ToString(),
+            Name = step.Name,
             Subject = step.Subject,
-            BodyHtml = step.BodyHtml,
+            HtmlContent = step.Body,
+            TextContent = step.BodyPlainText,
             DelayDays = step.DelayDays,
             DelayHours = step.DelayHours,
-            StepOrder = step.StepOrder
+            DelayMinutes = step.DelayMinutes,
+            TimingMode = step.TimingMode.ToString(),
+            SpecificTime = !string.IsNullOrEmpty(step.SpecificTime) ? TimeSpan.Parse(step.SpecificTime) : null,
+            SendOnWeekends = true,
+            IsABTest = false,
+            ABTestPercentage = 50,
+            IsActive = step.IsActive,
+            CreatedAt = step.CreatedAt,
+            UpdatedAt = step.UpdatedAt
         };
     }
 
@@ -463,83 +497,18 @@ public class EmailSequenceManagementService : IEmailSequenceManagementService
         return new EmailSequenceEnrollmentDto
         {
             Id = enrollment.Id,
-            EmailSequenceId = enrollment.EmailSequenceId,
+            SequenceId = enrollment.EmailSequenceId,
             ContactId = enrollment.ContactId,
-            Status = enrollment.Status,
+            Status = enrollment.Status.ToString(),
+            Email = enrollment.RecipientEmail,
             EnrolledAt = enrollment.EnrolledAt,
-            CreatedAt = enrollment.CreatedAt
+            CurrentStepNumber = enrollment.CurrentStepIndex,
+            TotalEmailsSent = enrollment.EmailsSent,
+            TotalEmailsOpened = enrollment.TotalOpens,
+            TotalLinksClicked = enrollment.TotalClicks
         };
     }
 
     #endregion
 }
 
-/// <summary>
-/// DTO for email sequence enrollment request.
-/// </summary>
-public class CreateEmailSequenceEnrollmentDto
-{
-    public int ContactId { get; set; }
-}
-
-/// <summary>
-/// DTO for email sequence enrollment response.
-/// </summary>
-public class EmailSequenceEnrollmentDto
-{
-    public int Id { get; set; }
-    public int EmailSequenceId { get; set; }
-    public int ContactId { get; set; }
-    public string Status { get; set; } = string.Empty;
-    public DateTime EnrolledAt { get; set; }
-    public DateTime CreatedAt { get; set; }
-}
-
-/// <summary>
-/// DTO for email sequence analytics response.
-/// </summary>
-public class EmailSequenceAnalyticsDto
-{
-    public int SequenceId { get; set; }
-    public int TotalEnrolled { get; set; }
-    public int ActiveEnrollments { get; set; }
-    public int PausedEnrollments { get; set; }
-    public int CompletedEnrollments { get; set; }
-    public DateTime CalculatedAt { get; set; }
-}
-
-/// <summary>
-/// DTO for email sequence execution result.
-/// </summary>
-public class EmailSequenceExecutionResultDto
-{
-    public int SequenceId { get; set; }
-    public bool Success { get; set; }
-    public DateTime ExecutedAt { get; set; }
-}
-
-/// <summary>
-/// DTO for email sequence step request.
-/// </summary>
-public class CreateEmailSequenceStepDto
-{
-    public string Subject { get; set; } = string.Empty;
-    public string BodyHtml { get; set; } = string.Empty;
-    public int? DelayDays { get; set; }
-    public int? DelayHours { get; set; }
-    public int StepOrder { get; set; }
-}
-
-/// <summary>
-/// DTO for email sequence step response.
-/// </summary>
-public class EmailSequenceStepDto
-{
-    public int Id { get; set; }
-    public int EmailSequenceId { get; set; }
-    public string Subject { get; set; } = string.Empty;
-    public string BodyHtml { get; set; } = string.Empty;
-    public int DelayDays { get; set; }
-    public int DelayHours { get; set; }
-    public int StepOrder { get; set; }
-}

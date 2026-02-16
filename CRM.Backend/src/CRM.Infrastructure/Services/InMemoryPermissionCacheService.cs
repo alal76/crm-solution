@@ -152,10 +152,12 @@ public class InMemoryPermissionCacheService : IPermissionCacheService
         
         var stats = new PermissionCacheStatisticsDto
         {
-            TotalCachedUsers = _cache.Count,
-            CacheHitRate = 0, // Not tracked in simple implementation
-            AverageCacheSizeKB = _cache.Sum(kvp => kvp.Value.Permissions.Sum(p => p.Length)) / 1024,
-            LastUpdatedUtc = DateTime.UtcNow
+            CachedUserCount = _cache.Count,
+            TotalHits = 0,
+            TotalMisses = 0,
+            AveragePermissionsPerUser = _cache.Count > 0 ? _cache.Values.Average(entry => entry.Permissions.Count) : 0,
+            ApproximateMemoryUsageBytes = _cache.Sum(kvp => kvp.Value.Permissions.Sum(p => p.Length)),
+            LastResetAt = null
         };
         
         return Task.FromResult(stats);

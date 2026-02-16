@@ -163,6 +163,15 @@ public interface ICampaignMetricsService
 /// </summary>
 public interface ICommissionCalculationService
 {
+    /// <summary>Calculates commission for a deal with detailed DTO.</summary>
+    Task<CommissionCalculationResultDto> CalculateForDealAsync(CommissionDealCalculationDto dto, CancellationToken cancellationToken = default);
+
+    /// <summary>Calculates commission for an order with detailed DTO.</summary>
+    Task<CommissionCalculationResultDto> CalculateForOrderAsync(CommissionOrderCalculationDto dto, CancellationToken cancellationToken = default);
+
+    /// <summary>Calculates commission for a period with detailed DTO.</summary>
+    Task<CommissionPeriodCalculationResultDto> CalculateForPeriodAsync(CommissionPeriodCalculationDto dto, CancellationToken cancellationToken = default);
+
     /// <summary>Calculates commission for an opportunity/deal.</summary>
     Task<CommissionCalculationResultDto> CalculateDealAsync(int opportunityId, int? planId = null, CancellationToken cancellationToken = default);
 
@@ -179,7 +188,7 @@ public interface ICommissionCalculationService
     Task<decimal> ApplyAcceleratorAsync(int planId, decimal baseAmount, decimal achievementPercent, CancellationToken cancellationToken = default);
 
     /// <summary>Validates commission calculation against business rules.</summary>
-    Task<bool> ValidateAsync(CommissionCalculationResultDto calculation, CancellationToken cancellationToken = default);
+    Task<CommissionValidationResultDto> ValidateAsync(CommissionCalculationValidationDto validation, CancellationToken cancellationToken = default);
 }
 
 /// <summary>
@@ -227,6 +236,9 @@ public interface ICommissionPayoutService
 
     /// <summary>Reconciles payouts against financial records.</summary>
     Task<bool> ReconcileAsync(int statementId, CancellationToken cancellationToken = default);
+
+    /// <summary>Finalizes a commission payout.</summary>
+    Task<CommissionPayoutDto?> FinalizeAsync(int payoutId, CancellationToken cancellationToken = default);
 
     /// <summary>Gets payout schedule/calendar.</summary>
     Task<List<object>> GetPayoutScheduleAsync(int userId, CancellationToken cancellationToken = default);

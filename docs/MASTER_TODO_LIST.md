@@ -1352,8 +1352,8 @@ npm run build
 - ✅ [specifications/INDEX.md](specifications/INDEX.md) — Update status weekly 
 - ✅ [MASTER_TODO_LIST.md](MASTER_TODO_LIST.md) — Update before sprint planning
 - ✅ [specifications/IMPLEMENTATION_PLAN.md](specifications/IMPLEMENTATION_PLAN.md) — Update roadmap monthly
-- ✅ [SOLUTION_GAPS_REMEDIATION_PLAN.md](../SOLUTION_GAPS_REMEDIATION_PLAN.md) — Update phase status
-- ✅ [CODING_STANDARDS.md](../CODING_STANDARDS.md) — Add new patterns as specs created
+- ✅ [SOLUTION_GAPS_REMEDIATION_PLAN.md](docs/development/SOLUTION_GAPS_REMEDIATION_PLAN.md) — Update phase status
+- ✅ [CODING_STANDARDS.md](docs/development/CODING_STANDARDS.md) — Add new patterns as specs created
 
 **Sync Frequency:**
 - Daily: Update TODO status & progress notes

@@ -266,8 +266,8 @@ P3 - LOW (40 items)      ■■░░░░░░░░░░░░░░░░�
 | **Audit Report** | Comprehensive analysis | ✅ New | [View](docs/SPECIFICATION_AUDIT_REPORT_FEB15.md) |
 | **Session Status** | This session summary | ✅ New | [View](docs/SESSION_STATUS_UPDATE_FEB15.md) |
 | **Master TODO** | All 396 TODOs | ✅ Referenced | [View](docs/MASTER_TODO_LIST.md) |
-| **Architecture** | Technical design | ✅ Complete | [View](ARCHITECTURE_OVERVIEW.md) |
-| **Solution Context** | Complete reference | ✅ Complete | [View](SOLUTION_CONTEXT.md) |
+| **Architecture** | Technical design | ✅ Complete | [View](docs/development/ARCHITECTURE_OVERVIEW.md) |
+| **Solution Context** | Complete reference | ✅ Complete | [View](docs/development/SOLUTION_CONTEXT.md) |
 
 ---
 

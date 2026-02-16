@@ -653,4 +653,4 @@ jobs:
 ## Test Results
 
 See [TEST_RESULTS_SUMMARY.md](../../e2e-tests/TEST_RESULTS_SUMMARY.md) for latest E2E test results.
-See [TESTING_SUMMARY.md](../../TESTING_SUMMARY.md) for overall testing status.
+See [TESTING_SUMMARY.md](docs/test/TESTING_SUMMARY.md) for overall testing status.

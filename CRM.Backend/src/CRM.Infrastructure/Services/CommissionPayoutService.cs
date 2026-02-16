@@ -93,17 +93,14 @@ public class CommissionPayoutService : ICommissionPayoutService, ICommissionPayo
 
         var statement = new CRM.Core.Dtos.CommissionStatementDto
         {
-            StatementPeriodStart = from,
-            StatementPeriodEnd = to,
             UserId = userId,
-            TotalCommissions = commissions.Count,
+            PeriodStartDate = from,
+            PeriodEndDate = to,
+            CommissionCount = commissions.Count,
             TotalAmount = commissions.Sum(c => c.CommissionAmount),
             ApprovedAmount = commissions.Where(c => c.Status == CommissionStatus.Approved).Sum(c => c.CommissionAmount),
             PaidAmount = commissions.Where(c => c.Status == CommissionStatus.Paid).Sum(c => c.CommissionAmount),
-            ClawedBackAmount = commissions.Where(c => c.Status == CommissionStatus.ClawedBack).Sum(c => c.CommissionAmount),
-            NetPayable = commissions.Where(c => c.Status == CommissionStatus.Approved || c.Status == CommissionStatus.Paid)
-                .Sum(c => c.CommissionAmount) - commissions.Where(c => c.Status == CommissionStatus.ClawedBack).Sum(c => c.CommissionAmount),
-            GeneratedAt = DateTime.UtcNow
+            CreatedAt = DateTime.UtcNow
         };
 
         return statement;
@@ -140,6 +137,33 @@ public class CommissionPayoutService : ICommissionPayoutService, ICommissionPayo
             .ToListAsync(cancellationToken);
 
         return commissions.Cast<object>().ToList();
+    }
+
+    public async Task<CommissionPayoutDto?> FinalizeAsync(int payoutId, CancellationToken cancellationToken = default)
+    {
+        var commission = await _context.Commissions
+            .FirstOrDefaultAsync(c => c.Id == payoutId && !c.IsDeleted, cancellationToken);
+
+        if (commission == null)
+            return null;
+
+        commission.Status = CommissionStatus.Paid;
+        commission.PaidDate = DateTime.UtcNow;
+        commission.UpdatedAt = DateTime.UtcNow;
+        _context.Commissions.Update(commission);
+        await _context.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation("Commission payout {PayoutId} finalized", payoutId);
+        
+        return new CommissionPayoutDto
+        {
+            Id = commission.Id,
+            UserId = commission.UserId,
+            TotalCommissionAmount = commission.CommissionAmount,
+            Status = commission.Status.ToString(),
+            CreatedAt = commission.CreatedAt,
+            UpdatedAt = commission.UpdatedAt ?? DateTime.UtcNow
+        };
     }
 }
 

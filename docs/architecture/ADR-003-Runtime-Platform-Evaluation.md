@@ -4,7 +4,7 @@
 > **Date:** 2026-02-18  
 > **Decision Makers:** Architecture Team  
 > **Supersedes:** None  
-> **References:** [ADR-001 Pluggable Architecture](ADR-001-Pluggable-Architecture-Strategy.md), [ADR-002 EF Core Schema Management](ADR-002-EF-Core-Schema-Management.md), [SOLUTION_CONTEXT.md](../../SOLUTION_CONTEXT.md)
+> **References:** [ADR-001 Pluggable Architecture](ADR-001-Pluggable-Architecture-Strategy.md), [ADR-002 EF Core Schema Management](ADR-002-EF-Core-Schema-Management.md), [SOLUTION_CONTEXT.md](docs/development/SOLUTION_CONTEXT.md)
 
 ---
 

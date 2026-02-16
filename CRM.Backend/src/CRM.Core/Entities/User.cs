@@ -100,6 +100,12 @@ public class User : BaseEntity
     [MaxLength(100)]
     public string LastName { get; set; } = string.Empty;
 
+    /// <summary>Full name (concatenated FirstName and LastName)</summary>
+    public string FullName
+    {
+        get => $"{FirstName} {LastName}".Trim();
+    }
+
     /// <summary>BCrypt hashed password - never store plain text passwords</summary>
     [Required]
     public string PasswordHash { get; set; } = string.Empty;

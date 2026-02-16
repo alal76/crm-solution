@@ -1247,5 +1247,5 @@ With the recommended 59-week investment, the CRM Solution can achieve **85%+ ent
 - [ADR-001 Pluggable Architecture Strategy](../architecture/ADR-001-Pluggable-Architecture-Strategy.md)
 - [COMPREHENSIVE_GAP_ANALYSIS_RESULTS.md](../Enhancements%20planned/COMPREHENSIVE_GAP_ANALYSIS_RESULTS.md)
 - [CRM_GAP_ANALYSIS.md](../CRM_GAP_ANALYSIS.md)
-- [ITSM_IMPLEMENTATION_STATUS.md](../../ITSM_IMPLEMENTATION_STATUS.md)
-- [SOLUTION_CONTEXT.md](../../SOLUTION_CONTEXT.md)
+- [ITSM_IMPLEMENTATION_STATUS.md](docs/status/ITSM_IMPLEMENTATION_STATUS.md)
+- [SOLUTION_CONTEXT.md](docs/development/SOLUTION_CONTEXT.md)

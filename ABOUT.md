@@ -201,7 +201,7 @@ This is an **ongoing experiment in "vibe coding"** and AI-assisted enterprise so
 - 📚 **Learning Focus:** Primarily an architectural and development methodology showcase
 - 🎓 **Experimental Nature:** Findings will inform future writeups on AI-assisted enterprise development
 
-See the [Security Best Practices](SECURITY_BEST_PRACTICES.md) guide for deployment considerations.
+See the [Security Best Practices](docs/development/SECURITY_BEST_PRACTICES.md) guide for deployment considerations.
 
 ---
 
@@ -245,11 +245,11 @@ This experimental project thrives on community input and real-world feedback:
 
 ## 📚 Learn More
 
-- [Architecture Overview](ARCHITECTURE_OVERVIEW.md) - Deep dive into system design
-- [Microservices Guide](MICROSERVICES_ARCHITECTURE.md) - Service decomposition details
+- [Architecture Overview](docs/development/ARCHITECTURE_OVERVIEW.md) - Deep dive into system design
+- [Microservices Guide](docs/development/MICROSERVICES_ARCHITECTURE.md) - Service decomposition details
 - [Deployment Guide](docs/deployment/) - Production deployment steps
 - [API Reference](README.md#-api-reference) - Complete endpoint documentation
-- [Testing Guide](TESTING_SUMMARY.md) - Testing strategies and execution
+- [Testing Guide](docs/test/TESTING_SUMMARY.md) - Testing strategies and execution
 
 ---
 

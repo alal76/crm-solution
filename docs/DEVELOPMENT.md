@@ -586,7 +586,7 @@ REACT_APP_SIGNALR_URL=http://localhost:5000/hub
 | Document | Description |
 |----------|-------------|
 | [DATABASE_SETUP.md](DATABASE_SETUP.md) | Database configuration |
-| [../ARCHITECTURE_OVERVIEW.md](../ARCHITECTURE_OVERVIEW.md) | System architecture |
-| [../MICROSERVICES_ARCHITECTURE.md](../MICROSERVICES_ARCHITECTURE.md) | Microservices |
-| [../TESTING_SUMMARY.md](../TESTING_SUMMARY.md) | Testing guide |
+| [../ARCHITECTURE_OVERVIEW.md](docs/development/ARCHITECTURE_OVERVIEW.md) | System architecture |
+| [../MICROSERVICES_ARCHITECTURE.md](docs/development/MICROSERVICES_ARCHITECTURE.md) | Microservices |
+| [../TESTING_SUMMARY.md](docs/test/TESTING_SUMMARY.md) | Testing guide |
 | [deployment/](deployment/) | Deployment guides |

@@ -13,6 +13,7 @@ export * from './crm';
 export * from './marketing';
 export * from './auth';
 export * from './address.types';
+export * from './workflows';
 
 /**
  * Pagination request parameters

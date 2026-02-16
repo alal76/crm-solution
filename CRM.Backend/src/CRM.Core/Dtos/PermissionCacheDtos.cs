@@ -43,5 +43,10 @@ namespace CRM.Core.Dtos
         /// When statistics were last reset
         /// </summary>
         public DateTime? LastResetAt { get; set; }
+
+        /// <summary>
+        /// When statistics were last updated
+        /// </summary>
+        public DateTime LastUpdatedUtc { get; set; }
     }
 }

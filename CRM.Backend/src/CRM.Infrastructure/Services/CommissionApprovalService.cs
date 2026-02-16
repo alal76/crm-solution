@@ -174,16 +174,3 @@ public class CommissionApprovalService : ICommissionApprovalService, ICommission
         return true;
     }
 }
-
-/// <summary>
-/// Commission approval audit trail entity.
-/// </summary>
-public class CommissionApprovalAudit
-{
-    public int Id { get; set; }
-    public int CommissionId { get; set; }
-    public string Action { get; set; } = string.Empty;
-    public int? ApprovedById { get; set; }
-    public string? Notes { get; set; }
-    public DateTime CreatedAt { get; set; }
-}

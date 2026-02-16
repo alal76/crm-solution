@@ -179,6 +179,7 @@ public class WebhookStatisticsDto
     public int TotalDeliveries { get; set; }
     public int SuccessfulDeliveries { get; set; }
     public int FailedDeliveries { get; set; }
+    public int PendingDeliveries { get; set; }
     public double SuccessRate { get; set; }
     public double AverageDurationMs { get; set; }
     public int ConsecutiveFailures { get; set; }
@@ -211,7 +212,9 @@ public class WebhookDeliveryHistoryDto
     public int WebhookId { get; set; }
     public string Url { get; set; } = string.Empty;
     public int TotalDeliveries { get; set; }
+    public int TotalCount { get; set; }
     public List<WebhookDeliveryDto> RecentDeliveries { get; set; } = new();
+    public List<WebhookDeliveryDto> Deliveries { get; set; } = new();
     public int Page { get; set; }
     public int PageSize { get; set; }
     public int TotalPages { get; set; }

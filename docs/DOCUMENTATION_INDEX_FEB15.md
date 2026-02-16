@@ -37,30 +37,30 @@
 ### Architecture & Design
 | Document | Purpose | Link |
 |----------|---------|------|
-| **ARCHITECTURE_OVERVIEW.md** | System architecture, tech stack, patterns | [View](ARCHITECTURE_OVERVIEW.md) |
-| **SOLUTION_CONTEXT.md** | Complete technical reference | [View](SOLUTION_CONTEXT.md) |
-| **MICROSERVICES_ARCHITECTURE.md** | Microservices design and deployment | [View](MICROSERVICES_ARCHITECTURE.md) |
+| **ARCHITECTURE_OVERVIEW.md** | System architecture, tech stack, patterns | [View](docs/development/ARCHITECTURE_OVERVIEW.md) |
+| **SOLUTION_CONTEXT.md** | Complete technical reference | [View](docs/development/SOLUTION_CONTEXT.md) |
+| **MICROSERVICES_ARCHITECTURE.md** | Microservices design and deployment | [View](docs/development/MICROSERVICES_ARCHITECTURE.md) |
 
 ### Implementation Guides
 | Document | Purpose | Link |
 |----------|---------|------|
 | **Copilot Instructions** | Development standards and patterns | [View](.github/copilot-instructions.md) |
-| **CODING_STANDARDS.md** | Code style, naming conventions | [View](CODING_STANDARDS.md) |
-| **SECURITY_BEST_PRACTICES.md** | Security implementation guide | [View](SECURITY_BEST_PRACTICES.md) |
+| **CODING_STANDARDS.md** | Code style, naming conventions | [View](docs/development/CODING_STANDARDS.md) |
+| **SECURITY_BEST_PRACTICES.md** | Security implementation guide | [View](docs/development/SECURITY_BEST_PRACTICES.md) |
 
 ### Deployment & Infrastructure
 | Document | Purpose | Link |
 |----------|---------|------|
-| **DEPLOYMENT_AND_TESTING.md** | Deployment procedures and testing | [View](DEPLOYMENT_AND_TESTING.md) |
+| **DEPLOYMENT_AND_TESTING.md** | Deployment procedures and testing | [View](docs/test/DEPLOYMENT_AND_TESTING.md) |
 | **azure/AZURE_DEPLOYMENT.md** | Azure deployment guide | [View](azure/AZURE_DEPLOYMENT.md) |
-| **DEV_ENVIRONMENT_SETUP.md** | Local development environment | [View](DEV_ENVIRONMENT_SETUP.md) |
+| **DEV_ENVIRONMENT_SETUP.md** | Local development environment | [View](docs/development/DEV_ENVIRONMENT_SETUP.md) |
 
 ### Testing & Quality
 | Document | Purpose | Link |
 |----------|---------|------|
-| **TESTING_SUMMARY.md** | Test strategy and coverage | [View](TESTING_SUMMARY.md) |
-| **PHASE_1_6_TEST_SUITE_REPORT.md** | Latest test execution report | [View](PHASE_1_6_TEST_SUITE_REPORT.md) |
-| **EXECUTION_COMPLETE.md** | Test execution completion summary | [View](EXECUTION_COMPLETE.md) |
+| **TESTING_SUMMARY.md** | Test strategy and coverage | [View](docs/test/TESTING_SUMMARY.md) |
+| **PHASE_1_6_TEST_SUITE_REPORT.md** | Latest test execution report | [View](docs/test/PHASE_1_6_TEST_SUITE_REPORT.md) |
+| **EXECUTION_COMPLETE.md** | Test execution completion summary | [View](docs/development/EXECUTION_COMPLETE.md) |
 
 ---
 

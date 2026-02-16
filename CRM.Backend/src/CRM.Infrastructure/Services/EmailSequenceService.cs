@@ -187,5 +187,271 @@ namespace CRM.Infrastructure.Services
 
             return dto;
         }
+
+        public async Task<bool> ResumeSequenceAsync(int sequenceId, CancellationToken cancellationToken = default)
+        {
+            var sequence = await _context.EmailSequences
+                .FirstOrDefaultAsync(s => s.Id == sequenceId && !s.IsDeleted, cancellationToken);
+            if (sequence == null) return false;
+
+            sequence.Status = EmailSequenceStatus.Active;
+            sequence.UpdatedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync(cancellationToken);
+            _logger.LogInformation("Resumed email sequence {SequenceId}", sequenceId);
+            return true;
+        }
+
+        public async Task<bool> PauseSequenceAsync(int sequenceId, CancellationToken cancellationToken = default)
+        {
+            var sequence = await _context.EmailSequences
+                .FirstOrDefaultAsync(s => s.Id == sequenceId && !s.IsDeleted, cancellationToken);
+            if (sequence == null) return false;
+
+            sequence.Status = EmailSequenceStatus.Paused;
+            sequence.UpdatedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync(cancellationToken);
+            _logger.LogInformation("Paused email sequence {SequenceId}", sequenceId);
+            return true;
+        }
+
+        public async Task<bool> CompleteSequenceAsync(int sequenceId, CancellationToken cancellationToken = default)
+        {
+            var sequence = await _context.EmailSequences
+                .FirstOrDefaultAsync(s => s.Id == sequenceId && !s.IsDeleted, cancellationToken);
+            if (sequence == null) return false;
+
+            sequence.Status = EmailSequenceStatus.Archived;
+            sequence.IsActive = false;
+            sequence.UpdatedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync(cancellationToken);
+            _logger.LogInformation("Completed email sequence {SequenceId}", sequenceId);
+            return true;
+        }
+
+        public async Task<int> EnrollContactsAsync(int sequenceId, List<int> contactIds, int? enrolledById = null, CancellationToken cancellationToken = default)
+        {
+            if (contactIds == null || contactIds.Count == 0) return 0;
+
+            var successCount = 0;
+            foreach (var contactId in contactIds.Distinct())
+            {
+                await EnrollContactAsync(sequenceId, contactId, enrolledById, cancellationToken);
+                successCount++;
+            }
+
+            return successCount;
+        }
+
+        public async Task<bool> UnenrollContactAsync(int sequenceId, int contactId, CancellationToken cancellationToken = default)
+        {
+            var enrollment = await _context.EmailSequenceEnrollments
+                .FirstOrDefaultAsync(e => e.EmailSequenceId == sequenceId && e.ContactId == contactId && !e.IsDeleted, cancellationToken);
+            if (enrollment == null) return false;
+
+            enrollment.Status = EnrollmentStatus.Removed;
+            enrollment.CompletedAt = DateTime.UtcNow;
+            enrollment.ExitReason = SequenceExitCondition.OnUnsubscribe;
+            enrollment.IsDeleted = true;
+            enrollment.UpdatedAt = DateTime.UtcNow;
+
+            var sequence = await _context.EmailSequences
+                .FirstOrDefaultAsync(s => s.Id == sequenceId && !s.IsDeleted, cancellationToken);
+            if (sequence != null && sequence.ActiveEnrollments > 0)
+            {
+                sequence.ActiveEnrollments -= 1;
+                sequence.UpdatedAt = DateTime.UtcNow;
+            }
+
+            await _context.SaveChangesAsync(cancellationToken);
+            _logger.LogInformation("Unenrolled contact {ContactId} from sequence {SequenceId}", contactId, sequenceId);
+            return true;
+        }
+
+        public async Task<EmailSequenceStepExecution> ExecuteSequenceStepAsync(int stepId, int enrollmentId, CancellationToken cancellationToken = default)
+        {
+            var step = await _context.EmailSequenceSteps
+                .FirstOrDefaultAsync(s => s.Id == stepId && !s.IsDeleted, cancellationToken);
+            if (step == null) throw new InvalidOperationException("Step not found");
+
+            var enrollment = await _context.EmailSequenceEnrollments
+                .FirstOrDefaultAsync(e => e.Id == enrollmentId && !e.IsDeleted, cancellationToken);
+            if (enrollment == null) throw new InvalidOperationException("Enrollment not found");
+
+            var execution = new EmailSequenceStepExecution
+            {
+                EmailSequenceStepId = stepId,
+                EmailSequenceEnrollmentId = enrollmentId,
+                ScheduledAt = DateTime.UtcNow,
+                ExecutedAt = DateTime.UtcNow,
+                Success = true
+            };
+
+            _context.EmailSequenceStepExecutions.Add(execution);
+
+            enrollment.CurrentStepId = stepId;
+            enrollment.CurrentStepIndex = step.StepOrder;
+            enrollment.LastStepExecutedAt = DateTime.UtcNow;
+            enrollment.StepsCompleted += 1;
+
+            step.ExecutionCount += 1;
+            if (step.StepType == EmailStepType.Email)
+            {
+                step.EmailsSent += 1;
+                enrollment.EmailsSent += 1;
+            }
+
+            await _context.SaveChangesAsync(cancellationToken);
+            return execution;
+        }
+
+        public async Task<bool> SkipStepAsync(int stepId, int enrollmentId, CancellationToken cancellationToken = default)
+        {
+            var enrollment = await _context.EmailSequenceEnrollments
+                .FirstOrDefaultAsync(e => e.Id == enrollmentId && !e.IsDeleted, cancellationToken);
+            if (enrollment == null) return false;
+
+            enrollment.CurrentStepId = stepId;
+            enrollment.LastStepExecutedAt = DateTime.UtcNow;
+            enrollment.UpdatedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync(cancellationToken);
+            return true;
+        }
+
+        public Task<bool> EvaluateConditionAsync(int conditionId, int contactId, CancellationToken cancellationToken = default)
+        {
+            // Placeholder until explicit condition entities are implemented.
+            return Task.FromResult(true);
+        }
+
+        public async Task<bool> RecordStepDeliveryAsync(int stepId, int enrollmentId, string deliveryStatus, CancellationToken cancellationToken = default)
+        {
+            var execution = await _context.EmailSequenceStepExecutions
+                .FirstOrDefaultAsync(e => e.EmailSequenceStepId == stepId && e.EmailSequenceEnrollmentId == enrollmentId, cancellationToken);
+
+            if (execution == null)
+            {
+                execution = new EmailSequenceStepExecution
+                {
+                    EmailSequenceStepId = stepId,
+                    EmailSequenceEnrollmentId = enrollmentId,
+                    ScheduledAt = DateTime.UtcNow,
+                    ExecutedAt = DateTime.UtcNow
+                };
+                _context.EmailSequenceStepExecutions.Add(execution);
+            }
+
+            execution.Success = !string.Equals(deliveryStatus, "failed", StringComparison.OrdinalIgnoreCase);
+            execution.MessageId = deliveryStatus;
+
+            var step = await _context.EmailSequenceSteps.FirstOrDefaultAsync(s => s.Id == stepId, cancellationToken);
+            var enrollment = await _context.EmailSequenceEnrollments.FirstOrDefaultAsync(e => e.Id == enrollmentId, cancellationToken);
+            if (step != null)
+            {
+                step.ExecutionCount += 1;
+                step.EmailsSent += 1;
+            }
+            if (enrollment != null)
+            {
+                enrollment.EmailsSent += 1;
+            }
+
+            await _context.SaveChangesAsync(cancellationToken);
+            return true;
+        }
+
+        public async Task<bool> RecordOpeningAsync(int stepId, int enrollmentId, CancellationToken cancellationToken = default)
+        {
+            var execution = await _context.EmailSequenceStepExecutions
+                .FirstOrDefaultAsync(e => e.EmailSequenceStepId == stepId && e.EmailSequenceEnrollmentId == enrollmentId, cancellationToken);
+
+            if (execution != null)
+            {
+                execution.Opens += 1;
+            }
+
+            var enrollment = await _context.EmailSequenceEnrollments.FirstOrDefaultAsync(e => e.Id == enrollmentId, cancellationToken);
+            if (enrollment != null)
+            {
+                enrollment.TotalOpens += 1;
+            }
+
+            var step = await _context.EmailSequenceSteps.FirstOrDefaultAsync(s => s.Id == stepId, cancellationToken);
+            if (step != null)
+            {
+                step.Opens += 1;
+            }
+
+            await _context.SaveChangesAsync(cancellationToken);
+            return true;
+        }
+
+        public async Task<bool> RecordClickAsync(int stepId, int enrollmentId, string url, CancellationToken cancellationToken = default)
+        {
+            var execution = await _context.EmailSequenceStepExecutions
+                .FirstOrDefaultAsync(e => e.EmailSequenceStepId == stepId && e.EmailSequenceEnrollmentId == enrollmentId, cancellationToken);
+
+            if (execution != null)
+            {
+                execution.Clicks += 1;
+            }
+
+            var enrollment = await _context.EmailSequenceEnrollments.FirstOrDefaultAsync(e => e.Id == enrollmentId, cancellationToken);
+            if (enrollment != null)
+            {
+                enrollment.TotalClicks += 1;
+            }
+
+            var step = await _context.EmailSequenceSteps.FirstOrDefaultAsync(s => s.Id == stepId, cancellationToken);
+            if (step != null)
+            {
+                step.Clicks += 1;
+            }
+
+            await _context.SaveChangesAsync(cancellationToken);
+            return true;
+        }
+
+        public async Task<SequenceAnalyticsDto> GetSequenceAnalyticsAsync(int sequenceId, CancellationToken cancellationToken = default)
+        {
+            var sequence = await _context.EmailSequences
+                .AsNoTracking()
+                .FirstOrDefaultAsync(s => s.Id == sequenceId && !s.IsDeleted, cancellationToken);
+
+            if (sequence == null) throw new InvalidOperationException("Sequence not found");
+
+            var totalEnrolled = sequence.TotalEnrolled == 0 ? 1 : sequence.TotalEnrolled;
+            return new SequenceAnalyticsDto
+            {
+                SequenceId = sequence.Id,
+                TotalEnrolled = sequence.TotalEnrolled,
+                Completed = sequence.TotalCompleted,
+                Unsubscribed = sequence.TotalUnsubscribes,
+                AverageOpenRate = (decimal)sequence.TotalOpens / totalEnrolled,
+                AverageClickRate = (decimal)sequence.TotalClicks / totalEnrolled,
+                TotalConverted = sequence.TotalMeetingsBooked
+            };
+        }
+
+        public async Task<EnrollmentProgressDto> GetRecipientProgressAsync(int enrollmentId, CancellationToken cancellationToken = default)
+        {
+            var enrollment = await _context.EmailSequenceEnrollments
+                .AsNoTracking()
+                .FirstOrDefaultAsync(e => e.Id == enrollmentId && !e.IsDeleted, cancellationToken);
+
+            if (enrollment == null) throw new InvalidOperationException("Enrollment not found");
+
+            return new EnrollmentProgressDto
+            {
+                EnrollmentId = enrollment.Id,
+                SequenceId = enrollment.EmailSequenceId,
+                ContactId = enrollment.ContactId ?? 0,
+                CurrentStepIndex = enrollment.CurrentStepIndex,
+                StartedAt = enrollment.EnrolledAt,
+                CompletedAt = enrollment.CompletedAt,
+                IsActive = enrollment.Status == EnrollmentStatus.Active,
+                OpenCount = enrollment.TotalOpens,
+                ClickCount = enrollment.TotalClicks
+            };
+        }
     }
 }

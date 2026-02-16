@@ -573,7 +573,7 @@ await db.Database.MigrateAsync();
 - [EF Core Migrations Documentation](https://learn.microsoft.com/en-us/ef/core/managing-schemas/migrations/)
 - [ADR-001: Pluggable Architecture Strategy](ADR-001-Pluggable-Architecture-Strategy.md)
 - [DATABASE_CONFIGURATION.md](DATABASE_CONFIGURATION.md)
-- [SOLUTION_CONTEXT.md](../../SOLUTION_CONTEXT.md) — Section 8
+- [SOLUTION_CONTEXT.md](docs/development/SOLUTION_CONTEXT.md) — Section 8
 
 ---
 

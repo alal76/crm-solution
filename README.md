@@ -534,16 +534,16 @@ crm-solution/
 
 | Document | Description |
 |----------|-------------|
-| [Coding Standards](CODING_STANDARDS.md) | Code style guidelines |
-| [Security Best Practices](SECURITY_BEST_PRACTICES.md) | Security guidelines |
+| [Coding Standards](docs/development/CODING_STANDARDS.md) | Code style guidelines |
+| [Security Best Practices](docs/development/SECURITY_BEST_PRACTICES.md) | Security guidelines |
 | [Architecture Decisions](docs/architecture/decisions/README.md) | ADR framework |
 
 ### Architecture
 
 | Document | Description |
 |----------|-------------|
-| [Architecture Overview](ARCHITECTURE_OVERVIEW.md) | High-level system design |
-| [Microservices Architecture](MICROSERVICES_ARCHITECTURE.md) | Service decomposition |
+| [Architecture Overview](docs/development/ARCHITECTURE_OVERVIEW.md) | High-level system design |
+| [Microservices Architecture](docs/development/MICROSERVICES_ARCHITECTURE.md) | Service decomposition |
 | [Database Configuration](docs/architecture/DATABASE_CONFIGURATION.md) | Multi-database support |
 
 ### Deployment
@@ -572,7 +572,7 @@ crm-solution/
 |----------|-------------|
 | [Development Guide](docs/DEVELOPMENT.md) | Local setup |
 | [How-To Guide](docs/HOWTO.md) | Common tasks |
-| [Testing Summary](TESTING_SUMMARY.md) | Test strategies |
+| [Testing Summary](docs/test/TESTING_SUMMARY.md) | Test strategies |
 
 ---
 

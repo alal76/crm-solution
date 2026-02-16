@@ -14,11 +14,12 @@ public class CurrencyCodeAttribute : ValidationAttribute
     private static readonly Regex _currencyCodeRegex = new("^[A-Z]{3}$", RegexOptions.Compiled);
 
     /// <summary>
-    /// Gets or sets the error message to use if validation fails.
-    /// Default: "Currency code must be a valid 3-letter ISO 4217 code (e.g., USD, EUR, GBP)."
+    /// Initializes a new instance of the <see cref="CurrencyCodeAttribute"/> class.
     /// </summary>
-    public override string ErrorMessage { get; set; } = 
-        "Currency code must be a valid 3-letter ISO 4217 code (e.g., USD, EUR, GBP).";
+    public CurrencyCodeAttribute()
+    {
+        ErrorMessage = "Currency code must be a valid 3-letter ISO 4217 code (e.g., USD, EUR, GBP).";
+    }
 
     /// <summary>
     /// Validates the currency code.
@@ -45,11 +46,12 @@ public class PhoneNumberAttribute : ValidationAttribute
     private static readonly Regex _e164Regex = new("^\\+[1-9]\\d{1,14}$", RegexOptions.Compiled);
 
     /// <summary>
-    /// Gets or sets the error message to use if validation fails.
-    /// Default: "Phone number must be in E.164 format (e.g., +14155552671)."
+    /// Initializes a new instance of the <see cref="PhoneNumberAttribute"/> class.
     /// </summary>
-    public override string ErrorMessage { get; set; } = 
-        "Phone number must be in E.164 format (e.g., +14155552671, max 15 digits).";
+    public PhoneNumberAttribute()
+    {
+        ErrorMessage = "Phone number must be in E.164 format (e.g., +14155552671, max 15 digits).";
+    }
 
     /// <summary>
     /// Validates the phone number.
@@ -144,7 +146,8 @@ public class DecimalPrecisionAttribute : ValidationAttribute
         _scale = scale;
 
         var maxValue = (decimal)Math.Pow(10, precision - scale) - (decimal)Math.Pow(10, -scale);
-        ErrorMessage ??= $"Value must have at most {precision} total digits with {scale} decimal places (max: {maxValue:F{scale}}).";
+        string formatSpec = "F" + scale;
+        ErrorMessage ??= $"Value must have at most {precision} total digits with {scale} decimal places.";
     }
 
     /// <summary>
@@ -227,11 +230,12 @@ public class IsoDateAttribute : ValidationAttribute
     private static readonly Regex _isoDateRegex = new(@"^\d{4}-\d{2}-\d{2}$", RegexOptions.Compiled);
 
     /// <summary>
-    /// Gets or sets the error message to use if validation fails.
-    /// Default: "Date must be in ISO 8601 format (YYYY-MM-DD)."
+    /// Initializes a new instance of the <see cref="IsoDateAttribute"/> class.
     /// </summary>
-    public override string ErrorMessage { get; set; } = 
-        "Date must be in ISO 8601 format (YYYY-MM-DD, e.g., 2026-02-16).";
+    public IsoDateAttribute()
+    {
+        ErrorMessage = "Date must be in ISO 8601 format (YYYY-MM-DD, e.g., 2026-02-16).";
+    }
 
     /// <summary>
     /// Validates the ISO date format.
@@ -306,10 +310,12 @@ public class ValidEnumAttribute : ValidationAttribute
 public class PercentageAttribute : ValidationAttribute
 {
     /// <summary>
-    /// Gets or sets the error message to use if validation fails.
-    /// Default: "Value must be a percentage between 0 and 100."
+    /// Initializes a new instance of the <see cref="PercentageAttribute"/> class.
     /// </summary>
-    public override string ErrorMessage { get; set; } = "Value must be a percentage between 0 and 100.";
+    public PercentageAttribute()
+    {
+        ErrorMessage = "Value must be a percentage between 0 and 100.";
+    }
 
     /// <summary>
     /// Validates the percentage value.
@@ -342,11 +348,12 @@ public class PercentageAttribute : ValidationAttribute
 public class NotBlankAttribute : ValidationAttribute
 {
     /// <summary>
-    /// Gets or sets the error message to use if validation fails.
-    /// Default: "This field is required and cannot be empty or whitespace."
+    /// Initializes a new instance of the <see cref="NotBlankAttribute"/> class.
     /// </summary>
-    public override string ErrorMessage { get; set; } = 
-        "This field is required and cannot be empty or whitespace.";
+    public NotBlankAttribute()
+    {
+        ErrorMessage = "This field is required and cannot be empty or whitespace.";
+    }
 
     /// <summary>
     /// Validates that the string is not blank.

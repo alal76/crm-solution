@@ -55,6 +55,9 @@ public interface ICommissionPlanService
     /// <summary>Assigns a plan to a user."""
     Task<bool> AssignToUserAsync(int planId, int userId, DateTime? effectiveDate = null, CancellationToken cancellationToken = default);
 
+    /// <summary>Unassigns a plan from a user.</summary>
+    Task<bool> UnassignFromUserAsync(int planId, int userId, CancellationToken cancellationToken = default);
+
     /// <summary>Removes a plan assignment from a user.</summary>
     Task<bool> RemoveFromUserAsync(int planId, int userId, CancellationToken cancellationToken = default);
 
@@ -69,13 +72,13 @@ public interface ICommissionPlanService
     #region Tier Management
 
     /// <summary>Gets tiers for a commission plan.</summary>
-    Task<IEnumerable<CommissionTierDto>> GetTiersAsync(int planId, CancellationToken cancellationToken = default);
+    Task<IEnumerable<CRM.Core.Dtos.CommissionTierDto>> GetTiersAsync(int planId, CancellationToken cancellationToken = default);
 
     /// <summary>Adds a tier to a plan."""
-    Task<CommissionTierDto> AddTierAsync(int planId, CreateCommissionTierDto dto, CancellationToken cancellationToken = default);
+    Task<CRM.Core.Dtos.CommissionTierDto> AddTierAsync(int planId, CreateCommissionTierDto dto, CancellationToken cancellationToken = default);
 
     /// <summary>Updates a tier.</summary>
-    Task<CommissionTierDto> UpdateTierAsync(int tierId, UpdateCommissionTierDto dto, CancellationToken cancellationToken = default);
+    Task<CRM.Core.Dtos.CommissionTierDto> UpdateTierAsync(int tierId, UpdateCommissionTierDto dto, CancellationToken cancellationToken = default);
 
     /// <summary>Removes a tier from a plan.</summary>
     Task<bool> RemoveTierAsync(int tierId, CancellationToken cancellationToken = default);

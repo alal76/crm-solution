@@ -68,7 +68,7 @@ public class DiscountRuleService : IDiscountRuleService
             CreatedAt = DateTime.UtcNow
         };
 
-        await _ruleRepository.AddAsync(rule, ct);
+        await _ruleRepository.AddAsync(rule);
         _logger.LogInformation("Discount rule created: {RuleName} (ID: {RuleId})", rule.Name, rule.Id);
 
         return MapToDto(rule);

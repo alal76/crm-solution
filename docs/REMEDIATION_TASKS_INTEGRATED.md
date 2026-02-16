@@ -55,7 +55,7 @@ This document consolidates findings from four comprehensive gap analyses into an
 5. [ ] Run test suite to confirm execution
 6. [ ] Document fixes for team
 
-**Reference:** See [SYSTEM_MODULE_REMEDIATION_GUIDE.md](SYSTEM_MODULE_REMEDIATION_GUIDE.md)
+**Reference:** See [SYSTEM_MODULE_REMEDIATION_GUIDE.md](docs/development/SYSTEM_MODULE_REMEDIATION_GUIDE.md)
 
 ---
 
@@ -848,12 +848,12 @@ This document consolidates findings from four comprehensive gap analyses into an
 1. [UNIFIED_REMEDIATION_PLAN.md](UNIFIED_REMEDIATION_PLAN.md) - Full implementation roadmap
 2. [EXECUTIVE_BRIEFING_REMEDIATION.md](EXECUTIVE_BRIEFING_REMEDIATION.md) - Leadership summary
 3. [SPRINT0_QUICK_START.md](SPRINT0_QUICK_START.md) - Week 1 action plan
-4. [FRONTEND_GAP_ANALYSIS_REPORT.md](FRONTEND_GAP_ANALYSIS_REPORT.md) - Detailed frontend gaps
+4. [FRONTEND_GAP_ANALYSIS_REPORT.md](docs/status/FRONTEND_GAP_ANALYSIS_REPORT.md) - Detailed frontend gaps
 5. [BACKEND_GAPS_ANALYSIS_REPORT.md](BACKEND_GAPS_ANALYSIS_REPORT.md) - Detailed backend gaps
 6. [DATABASE_GAPS_ANALYSIS.md](DATABASE_GAPS_ANALYSIS.md) - Detailed database gaps
-7. [ARCHITECTURAL_ALIGNMENT_ASSESSMENT.md](ARCHITECTURAL_ALIGNMENT_ASSESSMENT.md) - Architecture deep dive
+7. [ARCHITECTURAL_ALIGNMENT_ASSESSMENT.md](docs/development/ARCHITECTURAL_ALIGNMENT_ASSESSMENT.md) - Architecture deep dive
 8. [specifications/INDEX.md](specifications/INDEX.md) - Feature specifications
-9. [SOLUTION_GAPS_REMEDIATION_PLAN.md](SOLUTION_GAPS_REMEDIATION_PLAN.md) - Previous remediation status
+9. [SOLUTION_GAPS_REMEDIATION_PLAN.md](docs/development/SOLUTION_GAPS_REMEDIATION_PLAN.md) - Previous remediation status
 
 ---
 

@@ -326,6 +326,7 @@ public class CrmDbContext : DbContext, ICrmDbContext
     // =============================================================================
     public DbSet<CommissionRule> CommissionRules { get; set; }
     public DbSet<CommissionHistory> CommissionHistories { get; set; }
+    public DbSet<CommissionApprovalAudit> CommissionApprovalAudits { get; set; }
     public DbSet<DiscountRule> DiscountRules { get; set; }
     public DbSet<DiscountHistory> DiscountHistories { get; set; }
     public DbSet<SalesConfiguration> SalesConfigurations { get; set; }
@@ -3461,13 +3462,12 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.Property(e => e.IpAddress).HasMaxLength(50);
             entity.Property(e => e.UserAgent).HasMaxLength(2000);
             entity.Property(e => e.Country).HasMaxLength(100);
-            entity.Property(e => e.State).HasMaxLength(100);
+            entity.Property(e => e.Region).HasMaxLength(100);
             entity.Property(e => e.City).HasMaxLength(100);
-            entity.Property(e => e.BrowserName).HasMaxLength(100);
+            entity.Property(e => e.Browser).HasMaxLength(100);
             entity.Property(e => e.BrowserVersion).HasMaxLength(50);
             entity.Property(e => e.DeviceType).HasMaxLength(50);
             entity.Property(e => e.OperatingSystem).HasMaxLength(100);
-            entity.Property(e => e.OperatingSystemVersion).HasMaxLength(50);
             
             // Relationships
             entity.HasOne(e => e.Contact)
@@ -3505,14 +3505,11 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.HasKey(e => e.Id);
             entity.Property(e => e.SessionId).IsRequired().HasMaxLength(100);
             entity.Property(e => e.WebVisitorId).IsRequired();
-            entity.Property(e => e.ReferrerUrl).HasMaxLength(2000);
-            entity.Property(e => e.SourceMedium).HasMaxLength(100);
-            entity.Property(e => e.SourceCampaign).HasMaxLength(255);
-            entity.Property(e => e.UTMSource).HasMaxLength(100);
-            entity.Property(e => e.UTMMedium).HasMaxLength(100);
-            entity.Property(e => e.UTMCampaign).HasMaxLength(255);
-            entity.Property(e => e.UTMContent).HasMaxLength(255);
-            entity.Property(e => e.UTMTerm).HasMaxLength(255);
+            entity.Property(e => e.Referrer).HasMaxLength(2000);
+            entity.Property(e => e.LandingPage).HasMaxLength(2000);
+            entity.Property(e => e.ExitPage).HasMaxLength(2000);
+            entity.Property(e => e.IpAddress).HasMaxLength(100);
+            entity.Property(e => e.UtmParameters).HasColumnType("TEXT");
             
             // Relationship: WebSession -> WebVisitor (many-to-one)
             entity.HasOne(e => e.WebVisitor)
@@ -3538,13 +3535,12 @@ public class CrmDbContext : DbContext, ICrmDbContext
         {
             entity.HasKey(e => e.Id);
             entity.Property(e => e.PageUrl).IsRequired().HasMaxLength(2000);
+            entity.Property(e => e.PagePath).HasMaxLength(2000);
             entity.Property(e => e.PageTitle).HasMaxLength(500);
             entity.Property(e => e.WebVisitorId).IsRequired();
             entity.Property(e => e.WebSessionId);
-            entity.Property(e => e.EventType).HasMaxLength(100);
-            entity.Property(e => e.DurationSeconds);
-            entity.Property(e => e.ScrollDepthPercent).HasPrecision(5, 2);
-            entity.Property(e => e.InteractionData).HasColumnType("TEXT");
+            entity.Property(e => e.Referrer).HasMaxLength(2000);
+            entity.Property(e => e.QueryParameters).HasColumnType("TEXT");
             
             // Relationships
             entity.HasOne(e => e.WebVisitor)
@@ -3562,7 +3558,6 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.HasIndex(e => e.WebSessionId).HasDatabaseName("IX_WebPageViews_WebSessionId");
             entity.HasIndex(e => e.CreatedAt).HasDatabaseName("IX_WebPageViews_CreatedAt");
             entity.HasIndex(e => new { e.WebVisitorId, e.CreatedAt }).HasDatabaseName("IX_WebPageViews_WebVisitorId_CreatedAt");
-            entity.HasIndex(e => e.EventType).HasDatabaseName("IX_WebPageViews_EventType");
         });
 
         // =============================================================================
@@ -3631,11 +3626,11 @@ public class CrmDbContext : DbContext, ICrmDbContext
         // ChangeApproval configuration
         modelBuilder.Entity<ITSM.ChangeApproval>(entity =>
         {
-            entity.HasKey(e => e.ChangeApprovalId);
+            entity.HasKey(e => e.ApprovalId);
             entity.HasIndex(e => e.ChangeId).HasDatabaseName("IX_ChangeApprovals_ChangeId");
             entity.HasIndex(e => e.ApproverId).HasDatabaseName("IX_ChangeApprovals_ApproverId");
             entity.HasIndex(e => e.ApprovalStatus).HasDatabaseName("IX_ChangeApprovals_ApprovalStatus");
-            entity.HasIndex(e => new { e.ChangeId, e.ApprovalLevel }).IsUnique().HasDatabaseName("IX_ChangeApprovals_ChangeId_ApprovalLevel");
+            entity.HasIndex(e => new { e.ChangeId, e.ApprovalRole }).IsUnique().HasDatabaseName("IX_ChangeApprovals_ChangeId_ApprovalRole");
             
             // ChangeApproval -> Change (many-to-one)
             entity.HasOne(e => e.Change)
@@ -3675,7 +3670,7 @@ public class CrmDbContext : DbContext, ICrmDbContext
         // Service -> ServiceCI relationship (one-to-many)
         modelBuilder.Entity<ITSM.Service>(entity =>
         {
-            entity.HasMany(e => e.ServiceCIs)
+            entity.HasMany(e => e.ConfigurationItems)
                 .WithOne(sc => sc.Service)
                 .HasForeignKey(sc => sc.ServiceId)
                 .OnDelete(DeleteBehavior.Cascade);
@@ -3691,7 +3686,7 @@ public class CrmDbContext : DbContext, ICrmDbContext
             
             // ServiceCI -> Service (many-to-one)
             entity.HasOne(e => e.Service)
-                .WithMany(s => s.ServiceCIs)
+                .WithMany(s => s.ConfigurationItems)
                 .HasForeignKey(e => e.ServiceId)
                 .OnDelete(DeleteBehavior.Cascade);
             

@@ -21,8 +21,8 @@
 **Estimated Fix Time:** 3-4 hours (Phases 1-3)
 
 **Documentation:**
-- See [SYSTEM_MODULE_TEST_EXECUTION_REPORT.md](../SYSTEM_MODULE_TEST_EXECUTION_REPORT.md) — Detailed test execution report with complete error list
-- See [SYSTEM_MODULE_REMEDIATION_GUIDE.md](../SYSTEM_MODULE_REMEDIATION_GUIDE.md) — Step-by-step implementation guide to fix all 188 errors
+- See [SYSTEM_MODULE_TEST_EXECUTION_REPORT.md](docs/test/SYSTEM_MODULE_TEST_EXECUTION_REPORT.md) — Detailed test execution report with complete error list
+- See [SYSTEM_MODULE_REMEDIATION_GUIDE.md](docs/development/SYSTEM_MODULE_REMEDIATION_GUIDE.md) — Step-by-step implementation guide to fix all 188 errors
 
 **Next Action:** Execute remediation phases immediately. See remediation guide for detailed implementation steps.
 
@@ -79,6 +79,7 @@ The following items remain from the remediation effort:
 ## Completed This Update
 
 - Documented .NET 10 upgrade execution kickoff (no remediation items closed).
+- ITSM Problem Management foundation: re-registered Problem services via adapter and corrected known error validation (Phase 3 start).
 
 ### P-09 — Unskip E2E tests (Completed)
 

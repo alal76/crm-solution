@@ -133,8 +133,8 @@ Infrastructure configuration should:
 
 ## Related Documents
 
-- [CODING_STANDARDS.md](../../CODING_STANDARDS.md)
-- [SECURITY_BEST_PRACTICES.md](../../SECURITY_BEST_PRACTICES.md)
+- [CODING_STANDARDS.md](docs/development/CODING_STANDARDS.md)
+- [SECURITY_BEST_PRACTICES.md](docs/development/SECURITY_BEST_PRACTICES.md)
 - [ADR-001](001-coding-standards-enforcement.md)
 - [ADR-002](002-security-headers-middleware.md)
 - [ADR-003](003-microservices-architecture.md)

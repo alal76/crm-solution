@@ -35,17 +35,17 @@ namespace CRM.Api.Controllers;
 /// - Advanced search and filtering
 /// </summary>
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/problems")]
 [Authorize]
 [Produces("application/json")]
-public class ProblemsController : ControllerBase
+public class LegacyProblemsController : ControllerBase
 {
     private readonly IProblemService _problemService;
-    private readonly ILogger<ProblemsController> _logger;
+    private readonly ILogger<LegacyProblemsController> _logger;
 
-    public ProblemsController(
+    public LegacyProblemsController(
         IProblemService problemService,
-        ILogger<ProblemsController> logger)
+        ILogger<LegacyProblemsController> logger)
     {
         _problemService = problemService;
         _logger = logger;

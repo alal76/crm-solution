@@ -33,7 +33,7 @@ public class CommissionPlansController : ControllerBase
     /// Gets all commission plans with pagination.
     /// </summary>
     [HttpGet]
-    [ProducesResponseType(typeof(PaginatedDto<CommissionPlanDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(IEnumerable<CommissionPlanDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetAll(
@@ -44,7 +44,7 @@ public class CommissionPlansController : ControllerBase
         try
         {
             _logger.LogInformation("Getting all commission plans: page={Page}, pageSize={PageSize}", page, pageSize);
-            var result = await _service.GetAllAsync(page, pageSize, cancellationToken);
+            var result = await _service.GetAllAsync(cancellationToken);
             return Ok(result);
         }
         catch (Exception ex)
@@ -162,7 +162,7 @@ public class CommissionPlansController : ControllerBase
     /// Activates a commission plan.
     /// </summary>
     [HttpPost("{id}/activate")]
-    [ProducesResponseType(typeof(CommissionPlanDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Activate(
@@ -173,10 +173,10 @@ public class CommissionPlansController : ControllerBase
         {
             _logger.LogInformation("Activating commission plan: id={Id}", id);
             var result = await _service.ActivateAsync(id, cancellationToken);
-            if (result == null)
+            if (!result)
                 return NotFound(new { message = $"Commission plan with id {id} not found" });
 
-            return Ok(result);
+            return Ok(new { message = "Commission plan activated successfully" });
         }
         catch (Exception ex)
         {
@@ -189,7 +189,7 @@ public class CommissionPlansController : ControllerBase
     /// Deactivates a commission plan.
     /// </summary>
     [HttpPost("{id}/deactivate")]
-    [ProducesResponseType(typeof(CommissionPlanDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Deactivate(
@@ -200,10 +200,10 @@ public class CommissionPlansController : ControllerBase
         {
             _logger.LogInformation("Deactivating commission plan: id={Id}", id);
             var result = await _service.DeactivateAsync(id, cancellationToken);
-            if (result == null)
+            if (!result)
                 return NotFound(new { message = $"Commission plan with id {id} not found" });
 
-            return Ok(result);
+            return Ok(new { message = "Commission plan deactivated successfully" });
         }
         catch (Exception ex)
         {
@@ -227,7 +227,7 @@ public class CommissionPlansController : ControllerBase
         try
         {
             _logger.LogInformation("Assigning commission plan to user: planId={PlanId}, userId={UserId}", id, userId);
-            await _service.AssignToUserAsync(id, userId, cancellationToken);
+            await _service.AssignToUserAsync(id, userId, effectiveDate: null, cancellationToken: cancellationToken);
             return Ok(new { message = "Commission plan assigned successfully" });
         }
         catch (Exception ex)
@@ -335,7 +335,7 @@ public class CommissionPlansController : ControllerBase
         try
         {
             _logger.LogInformation("Updating tier: planId={PlanId}, tierId={TierId}", id, tierId);
-            var result = await _service.UpdateTierAsync(id, tierId, dto, cancellationToken);
+            var result = await _service.UpdateTierAsync(tierId, dto, cancellationToken);
             if (result == null)
                 return NotFound(new { message = $"Tier with id {tierId} not found in plan {id}" });
 

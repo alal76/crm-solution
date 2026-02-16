@@ -112,47 +112,28 @@ public class EmailSequenceConfiguration : IEntityTypeConfiguration<EmailSequence
     public void Configure(EntityTypeBuilder<EmailSequence> builder)
     {
         builder.HasKey(e => e.Id);
-        
-        // Required properties
         builder.Property(e => e.Name).IsRequired().HasMaxLength(255);
-        builder.Property(e => e.Status).HasMaxLength(50).HasDefaultValue("Draft");
-        builder.Property(e => e.SequenceType).HasMaxLength(50);
-        
-        // Optional properties
-        builder.Property(e => e.Description).HasMaxLength(1000);
-        builder.Property(e => e.DefaultFromName).HasMaxLength(100);
-        builder.Property(e => e.DefaultFromEmail).HasMaxLength(255);
-        builder.Property(e => e.DefaultReplyTo).HasMaxLength(255);
         
         // Relationships
-        // EmailSequence -> User (Owner)
+        builder.HasOne(e => e.Sender)
+            .WithMany()
+            .HasForeignKey(e => e.SenderId)
+            .OnDelete(DeleteBehavior.SetNull);
+        
         builder.HasOne(e => e.Owner)
             .WithMany()
             .HasForeignKey(e => e.OwnerId)
             .OnDelete(DeleteBehavior.SetNull);
         
-        // EmailSequence -> MarketingCampaign
-        builder.HasOne(e => e.Campaign)
-            .WithMany()
-            .HasForeignKey(e => e.CampaignId)
-            .OnDelete(DeleteBehavior.SetNull);
-        
-        // EmailSequence -> EmailSequenceStep (one-to-many)
         builder.HasMany(e => e.Steps)
-            .WithOne(s => s.Sequence)
-            .HasForeignKey(s => s.SequenceId)
+            .WithOne(s => s.EmailSequence)
+            .HasForeignKey(s => s.EmailSequenceId)
             .OnDelete(DeleteBehavior.Cascade);
         
-        // EmailSequence -> EmailSequenceEnrollment (one-to-many)
         builder.HasMany(e => e.Enrollments)
-            .WithOne(e => e.Sequence)
-            .HasForeignKey(e => e.SequenceId)
+            .WithOne(e => e.EmailSequence)
+            .HasForeignKey(e => e.EmailSequenceId)
             .OnDelete(DeleteBehavior.Cascade);
-        
-        // Indexes for performance
-        builder.HasIndex(e => e.Status).HasDatabaseName("IX_EmailSequences_Status");
-        builder.HasIndex(e => e.CreatedAt).HasDatabaseName("IX_EmailSequences_CreatedAt");
-        builder.HasIndex(e => e.OwnerId).HasDatabaseName("IX_EmailSequences_OwnerId");
     }
 }
 
@@ -165,34 +146,13 @@ public class EmailSequenceStepConfiguration : IEntityTypeConfiguration<EmailSequ
     public void Configure(EntityTypeBuilder<EmailSequenceStep> builder)
     {
         builder.HasKey(e => e.Id);
-        
-        // Required properties
-        builder.Property(e => e.SequenceId).IsRequired();
-        builder.Property(e => e.StepOrder).IsRequired();
         builder.Property(e => e.Name).IsRequired().HasMaxLength(255);
-        builder.Property(e => e.StepType).HasDefaultValue(0); // Email = 0
+        builder.Property(e => e.EmailSequenceId).IsRequired();
         
-        // Optional properties
-        builder.Property(e => e.Template).HasColumnType("TEXT");
-        builder.Property(e => e.DelayInDays).HasDefaultValue(0);
-        builder.Property(e => e.ScheduleTime).HasMaxLength(50);
-        builder.Property(e => e.ConditionJson).HasColumnType("TEXT");
-        
-        // Relationship: EmailSequenceStep -> EmailSequence (many-to-one)
-        builder.HasOne(e => e.Sequence)
+        builder.HasOne(e => e.EmailSequence)
             .WithMany(s => s.Steps)
-            .HasForeignKey(e => e.SequenceId)
+            .HasForeignKey(e => e.EmailSequenceId)
             .OnDelete(DeleteBehavior.Cascade);
-        
-        // EmailSequenceStep -> ServiceRequestCategory (for conditions)
-        builder.HasOne(e => e.ConditionCategory)
-            .WithMany()
-            .HasForeignKey(e => e.ConditionCategoryId)
-            .OnDelete(DeleteBehavior.SetNull);
-        
-        // Indexes for performance
-        builder.HasIndex(e => e.SequenceId).HasDatabaseName("IX_EmailSequenceSteps_SequenceId");
-        builder.HasIndex(e => new { e.SequenceId, e.StepOrder }).HasDatabaseName("IX_EmailSequenceSteps_SequenceId_StepOrder");
     }
 }
 
@@ -208,9 +168,9 @@ public class EmailSequenceEnrollmentConfiguration : IEntityTypeConfiguration<Ema
         
         // Required properties
         builder.Property(e => e.SequenceId).IsRequired();
-        builder.Property(e => e.Email).IsRequired().HasMaxLength(255);
-        builder.Property(e => e.Status).HasMaxLength(50).HasDefaultValue("Active");
-        builder.Property(e => e.CurrentStepNumber).HasDefaultValue(1);
+        builder.Property(e => e.RecipientEmail).IsRequired().HasMaxLength(255);
+        builder.Property(e => e.Status).HasMaxLength(50).HasDefaultValue(EnrollmentStatus.Active);
+        builder.Property(e => e.CurrentStepIndex).HasDefaultValue(0);
         builder.Property(e => e.EnrolledAt).HasDefaultValueSql("GETUTCDATE()");
         
         // Optional properties
@@ -222,7 +182,7 @@ public class EmailSequenceEnrollmentConfiguration : IEntityTypeConfiguration<Ema
         
         // Relationships
         // EmailSequenceEnrollment -> EmailSequence (many-to-one)
-        builder.HasOne(e => e.Sequence)
+        builder.HasOne(e => e.EmailSequence)
             .WithMany(s => s.Enrollments)
             .HasForeignKey(e => e.SequenceId)
             .OnDelete(DeleteBehavior.Cascade);
@@ -247,8 +207,8 @@ public class EmailSequenceEnrollmentConfiguration : IEntityTypeConfiguration<Ema
         
         // EmailSequenceEnrollment -> EmailSequenceStepExecution (one-to-many)
         builder.HasMany(e => e.StepExecutions)
-            .WithOne(se => se.Enrollment)
-            .HasForeignKey(se => se.EnrollmentId)
+            .WithOne(se => se.EmailSequenceEnrollment)
+            .HasForeignKey(se => se.EmailSequenceEnrollmentId)
             .OnDelete(DeleteBehavior.Cascade);
         
         // Indexes for performance
@@ -271,35 +231,39 @@ public class EmailSequenceStepExecutionConfiguration : IEntityTypeConfiguration<
         builder.HasKey(e => e.Id);
         
         // Required properties
-        builder.Property(e => e.EnrollmentId).IsRequired();
-        builder.Property(e => e.StepId).IsRequired();
-        builder.Property(e => e.ExecutionStatus).HasMaxLength(50);
-        builder.Property(e => e.ExecutedAt).HasDefaultValueSql("GETUTCDATE()");
+        builder.Property(e => e.EmailSequenceStepId).IsRequired();
+        builder.Property(e => e.EmailSequenceEnrollmentId).IsRequired();
+        builder.Property(e => e.ScheduledAt).IsRequired();
+        builder.Property(e => e.Success).HasDefaultValue(false);
         
         // Optional properties
+        builder.Property(e => e.ExecutedAt);
         builder.Property(e => e.ErrorMessage).HasMaxLength(1000);
-        builder.Property(e => e.EmailMessageId).HasMaxLength(255);
-        builder.Property(e => e.OpenedAt);
-        builder.Property(e => e.ClickedAt);
-        builder.Property(e => e.BouncedAt);
+        builder.Property(e => e.MessageId).HasMaxLength(255);
+        builder.Property(e => e.Opens).HasDefaultValue(0);
+        builder.Property(e => e.Clicks).HasDefaultValue(0);
+        builder.Property(e => e.Replied).HasDefaultValue(false);
+        builder.Property(e => e.RepliedAt);
+        builder.Property(e => e.Bounced).HasDefaultValue(false);
+        builder.Property(e => e.BounceType).HasMaxLength(50);
         
         // Relationships
         // EmailSequenceStepExecution -> EmailSequenceEnrollment
-        builder.HasOne(e => e.Enrollment)
+        builder.HasOne(e => e.EmailSequenceEnrollment)
             .WithMany(en => en.StepExecutions)
-            .HasForeignKey(e => e.EnrollmentId)
+            .HasForeignKey(e => e.EmailSequenceEnrollmentId)
             .OnDelete(DeleteBehavior.Cascade);
         
         // EmailSequenceStepExecution -> EmailSequenceStep
-        builder.HasOne(e => e.Step)
+        builder.HasOne(e => e.EmailSequenceStep)
             .WithMany()
-            .HasForeignKey(e => e.StepId)
+            .HasForeignKey(e => e.EmailSequenceStepId)
             .OnDelete(DeleteBehavior.Restrict);
         
         // Indexes for performance
-        builder.HasIndex(e => e.EnrollmentId).HasDatabaseName("IX_EmailSequenceStepExecutions_EnrollmentId");
+        builder.HasIndex(e => e.EmailSequenceEnrollmentId).HasDatabaseName("IX_EmailSequenceStepExecutions_EnrollmentId");
         builder.HasIndex(e => e.ExecutedAt).HasDatabaseName("IX_EmailSequenceStepExecutions_ExecutedAt");
-        builder.HasIndex(e => e.ExecutionStatus).HasDatabaseName("IX_EmailSequenceStepExecutions_ExecutionStatus");
+        builder.HasIndex(e => e.Success).HasDatabaseName("IX_EmailSequenceStepExecutions_Success");
     }
 }
 

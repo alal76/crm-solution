@@ -70,7 +70,8 @@ public class EscalationRuleAdminService : IEscalationRuleAdminService
             CreatedAt = DateTime.UtcNow
         };
 
-        await _ruleRepository.AddAsync(rule, ct);
+        await _ruleRepository.AddAsync(rule);
+        await _ruleRepository.SaveAsync();
         _logger.LogInformation("Escalation rule created: {RuleName} (ID: {RuleId})", rule.Name, rule.Id);
 
         return MapToDto(rule);
@@ -78,7 +79,7 @@ public class EscalationRuleAdminService : IEscalationRuleAdminService
 
     public async Task<EscalationRuleDto> UpdateAsync(int id, UpdateEscalationRuleDto dto, CancellationToken ct = default)
     {
-        var rule = await _ruleRepository.GetByIdAsync(id, ct)
+        var rule = await _ruleRepository.GetByIdAsync(id)
             ?? throw new KeyNotFoundException($"Escalation rule with ID {id} not found");
 
         if (!string.IsNullOrWhiteSpace(dto.Name))
@@ -107,7 +108,8 @@ public class EscalationRuleAdminService : IEscalationRuleAdminService
             rule.IsActive = dto.IsActive.Value;
 
         rule.UpdatedAt = DateTime.UtcNow;
-        await _ruleRepository.UpdateAsync(rule, ct);
+        await _ruleRepository.UpdateAsync(rule);
+        await _ruleRepository.SaveAsync();
         _logger.LogInformation("Escalation rule updated: {RuleName} (ID: {RuleId})", rule.Name, rule.Id);
 
         return MapToDto(rule);
@@ -115,23 +117,24 @@ public class EscalationRuleAdminService : IEscalationRuleAdminService
 
     public async Task<EscalationRuleDto?> GetByIdAsync(int id, CancellationToken ct = default)
     {
-        var rule = await _ruleRepository.GetByIdAsync(id, ct);
+        var rule = await _ruleRepository.GetByIdAsync(id);
         return rule == null ? null : MapToDto(rule);
     }
 
     public async Task<List<EscalationRuleDto>> GetAllAsync(CancellationToken ct = default)
     {
-        var rules = await _ruleRepository.GetAllAsync(ct);
+        var rules = await _ruleRepository.GetAllAsync();
         return rules.Select(MapToDto).ToList();
     }
 
     public async Task DeleteAsync(int id, CancellationToken ct = default)
     {
-        var rule = await _ruleRepository.GetByIdAsync(id, ct)
+        var rule = await _ruleRepository.GetByIdAsync(id)
             ?? throw new KeyNotFoundException($"Escalation rule with ID {id} not found");
 
         rule.IsDeleted = true;
-        await _ruleRepository.UpdateAsync(rule, ct);
+        await _ruleRepository.UpdateAsync(rule);
+        await _ruleRepository.SaveAsync();
         _logger.LogInformation("Escalation rule deleted: {RuleId}", id);
     }
 
@@ -140,16 +143,15 @@ public class EscalationRuleAdminService : IEscalationRuleAdminService
         int serviceRequestId,
         CancellationToken ct = default)
     {
-        var rule = await _ruleRepository.GetByIdAsync(ruleId, ct)
+        var rule = await _ruleRepository.GetByIdAsync(ruleId)
             ?? throw new KeyNotFoundException($"Escalation rule with ID {ruleId} not found");
 
-        var sr = await _srRepository.GetByIdAsync(serviceRequestId, ct)
+        var sr = await _srRepository.GetByIdAsync(serviceRequestId)
             ?? throw new KeyNotFoundException($"Service request with ID {serviceRequestId} not found");
 
         var ruleMatched = rule.IsActive
-            && rule.Priority == sr.Priority
-            && (string.IsNullOrEmpty(rule.Category) || rule.Category == sr.Category)
-            && (string.IsNullOrEmpty(rule.Queue) || rule.Queue == sr.Queue);
+            && rule.Priority == sr.Priority.ToString()
+            && (string.IsNullOrEmpty(rule.Category) || rule.Category == sr.CategoryId?.ToString());
 
         return new EscalationRuleTestResultDto
         {
@@ -170,7 +172,7 @@ public class EscalationRuleAdminService : IEscalationRuleAdminService
         string priority,
         CancellationToken ct = default)
     {
-        var rules = await _ruleRepository.GetAllAsync(ct);
+        var rules = await _ruleRepository.GetAllAsync();
 
         var applicable = rules
             .Where(r => r.IsActive && r.Priority == priority)

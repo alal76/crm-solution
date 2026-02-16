@@ -192,6 +192,8 @@ public class Change
     // Navigation Properties
     public ICollection<ChangeApproval>? Approvals { get; set; }
 
+    public ICollection<ChangeBlackout>? Blackouts { get; set; }
+
     public ICollection<ChangeImpactedCI>? ImpactedCIs { get; set; }
 
     public ICollection<ChangeTask>? Tasks { get; set; }
@@ -246,6 +248,12 @@ public class ChangeBlackout
 {
     [Key]
     public int BlackoutId { get; set; }
+
+    [Required]
+    public int ChangeId { get; set; }
+
+    [ForeignKey(nameof(ChangeId))]
+    public Change? Change { get; set; }
 
     [Required]
     [StringLength(200)]

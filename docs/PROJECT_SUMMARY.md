@@ -323,9 +323,9 @@ npx playwright test
 | Document | Description |
 |----------|-------------|
 | [README.md](../README.md) | Main documentation |
-| [ARCHITECTURE_OVERVIEW.md](../ARCHITECTURE_OVERVIEW.md) | System architecture |
-| [MICROSERVICES_ARCHITECTURE.md](../MICROSERVICES_ARCHITECTURE.md) | Microservices |
-| [TESTING_SUMMARY.md](../TESTING_SUMMARY.md) | Testing guide |
+| [ARCHITECTURE_OVERVIEW.md](docs/development/ARCHITECTURE_OVERVIEW.md) | System architecture |
+| [MICROSERVICES_ARCHITECTURE.md](docs/development/MICROSERVICES_ARCHITECTURE.md) | Microservices |
+| [TESTING_SUMMARY.md](docs/test/TESTING_SUMMARY.md) | Testing guide |
 | [DEVELOPMENT.md](DEVELOPMENT.md) | Developer guide |
 | [DATABASE_SETUP.md](DATABASE_SETUP.md) | Database setup |
 
