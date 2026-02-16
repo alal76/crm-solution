@@ -154,7 +154,7 @@ public class WebhookManagementService : IWebhookManagementService, IWebhookManag
         return await GetByIdAsync(webhook.Id, cancellationToken) ?? throw new InvalidOperationException("Toggle failed");
     }
 
-    public async Task<WebhookTestResultDto> TestAsync(int id, WebhookTestDto testData, CancellationToken cancellationToken = default)
+    public async Task<CRM.Core.Dtos.WebhookTestResultDto> TestAsync(int id, CRM.Core.Dtos.WebhookTestDto testData, CancellationToken cancellationToken = default)
     {
         var webhook = await _context.Webhooks
             .FirstOrDefaultAsync(w => w.Id == id && !w.IsDeleted, cancellationToken);
@@ -190,7 +190,7 @@ public class WebhookManagementService : IWebhookManagementService, IWebhookManag
 
     #region Delivery Tracking
 
-    public async Task<WebhookDeliveryHistoryDto> GetDeliveriesAsync(int webhookId, int page = 1, int pageSize = 20, CancellationToken cancellationToken = default)
+    public async Task<CRM.Core.Dtos.WebhookDeliveryHistoryDto> GetDeliveriesAsync(int webhookId, int page = 1, int pageSize = 20, CancellationToken cancellationToken = default)
     {
         var deliveries = await _context.WebhookDeliveries
             .Where(d => d.WebhookId == webhookId && !d.IsDeleted)
@@ -199,7 +199,7 @@ public class WebhookManagementService : IWebhookManagementService, IWebhookManag
             .Take(pageSize)
             .ToListAsync(cancellationToken);
 
-        var history = new WebhookDeliveryHistoryDto
+        var history = new CRM.Core.Dtos.WebhookDeliveryHistoryDto
         {
             WebhookId = webhookId,
             Deliveries = deliveries.Select(d => MapDeliveryToDto(d)).ToList(),
@@ -237,13 +237,13 @@ public class WebhookManagementService : IWebhookManagementService, IWebhookManag
         return MapDeliveryToDto(delivery);
     }
 
-    public async Task<WebhookStatisticsDto> GetStatisticsAsync(int id, CancellationToken cancellationToken = default)
+    public async Task<CRM.Core.Dtos.WebhookStatisticsDto> GetStatisticsAsync(int id, CancellationToken cancellationToken = default)
     {
         var deliveries = await _context.WebhookDeliveries
             .Where(d => d.WebhookId == id && !d.IsDeleted)
             .ToListAsync(cancellationToken);
 
-        var stats = new WebhookStatisticsDto
+        var stats = new CRM.Core.Dtos.WebhookStatisticsDto
         {
             WebhookId = id,
             TotalDeliveries = deliveries.Count,
@@ -260,9 +260,9 @@ public class WebhookManagementService : IWebhookManagementService, IWebhookManag
 
     #region Event Management
 
-    public async Task<IEnumerable<WebhookEventDto>> GetAvailableEventsAsync(CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<CRM.Core.Dtos.WebhookEventDto>> GetAvailableEventsAsync(CancellationToken cancellationToken = default)
     {
-        var events = new List<WebhookEventDto>
+        var events = new List<CRM.Core.Dtos.WebhookEventDto>
         {
             new() { Name = "account.created", Description = "When an account is created" },
             new() { Name = "account.updated", Description = "When an account is updated" },
@@ -276,7 +276,7 @@ public class WebhookManagementService : IWebhookManagementService, IWebhookManag
             new() { Name = "campaign.executed", Description = "When a campaign is executed" }
         };
 
-        return await Task.FromResult((IEnumerable<WebhookEventDto>)events);
+        return await Task.FromResult((IEnumerable<CRM.Core.Dtos.WebhookEventDto>)events);
     }
 
     #endregion

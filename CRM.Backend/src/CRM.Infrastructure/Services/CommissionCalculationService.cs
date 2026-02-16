@@ -39,7 +39,7 @@ public class CommissionCalculationService : ICommissionCalculationService, IComm
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    public async Task<CommissionCalculationResultDto> CalculateDealAsync(int opportunityId, int? planId = null, CancellationToken cancellationToken = default)
+    public async Task<CRM.Core.Dtos.CommissionCalculationResultDto> CalculateDealAsync(int opportunityId, int? planId = null, CancellationToken cancellationToken = default)
     {
         var opportunity = await _context.Opportunities
             .AsNoTracking()
@@ -55,7 +55,7 @@ public class CommissionCalculationService : ICommissionCalculationService, IComm
         if (plan == null)
             throw new InvalidOperationException("No commission plan available for calculation");
 
-        var result = new CommissionCalculationResultDto
+        var result = new CRM.Core.Dtos.CommissionCalculationResultDto
         {
             OpportunityId = opportunityId,
             Amount = opportunity.Amount ?? 0,
@@ -82,7 +82,7 @@ public class CommissionCalculationService : ICommissionCalculationService, IComm
         return result;
     }
 
-    public async Task<CommissionCalculationResultDto> CalculateOrderAsync(int orderId, int? planId = null, CancellationToken cancellationToken = default)
+    public async Task<CRM.Core.Dtos.CommissionCalculationResultDto> CalculateOrderAsync(int orderId, int? planId = null, CancellationToken cancellationToken = default)
     {
         var order = await _context.Orders
             .AsNoTracking()
@@ -98,7 +98,7 @@ public class CommissionCalculationService : ICommissionCalculationService, IComm
         if (plan == null)
             throw new InvalidOperationException("No commission plan available for calculation");
 
-        var result = new CommissionCalculationResultDto
+        var result = new CRM.Core.Dtos.CommissionCalculationResultDto
         {
             OrderId = orderId,
             Amount = order.TotalAmount ?? 0,
@@ -114,13 +114,13 @@ public class CommissionCalculationService : ICommissionCalculationService, IComm
         return result;
     }
 
-    public async Task<CommissionStatisticsDto> CalculatePeriodAsync(int userId, DateTime from, DateTime to, CancellationToken cancellationToken = default)
+    public async Task<CRM.Core.Dtos.CommissionStatisticsDto> CalculatePeriodAsync(int userId, DateTime from, DateTime to, CancellationToken cancellationToken = default)
     {
         var commissions = await _context.Commissions
             .Where(c => c.UserId == userId && !c.IsDeleted && c.CreatedAt >= from && c.CreatedAt <= to)
             .ToListAsync(cancellationToken);
 
-        var stats = new CommissionStatisticsDto
+        var stats = new CRM.Core.Dtos.CommissionStatisticsDto
         {
             UserId = userId,
             PeriodStart = from,
