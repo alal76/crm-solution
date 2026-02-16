@@ -259,7 +259,7 @@ Next: Phase 3 ProblemManagementService implementation
 ### Communication
 - All documentation in root directory (PHASE_*.md files)
 - Copilot instructions in `.github/copilot-instructions.md`
-- Architecture reference: `docs/11-specifications/SPEC-ARCH-*.md`
+- Architecture reference: `docs/11-11-11-specifications/SPEC-ARCH-*.md`
 
 ---
 

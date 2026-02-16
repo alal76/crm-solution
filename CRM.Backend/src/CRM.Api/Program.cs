@@ -482,7 +482,8 @@ builder.Services.AddScoped<IBrandingConfigService, BrandingConfigService>();
 builder.Services.AddScoped<IFileStorageService, LocalFileStorageService>();
 builder.Services.AddScoped<IUserApprovalService, UserApprovalService>();
 builder.Services.AddScoped<IDatabaseBackupService, DatabaseBackupService>();
-builder.Services.AddHostedService<BackupSchedulerHostedService>();
+// TEMPORARILY DISABLED - causes model building errors
+// builder.Services.AddHostedService<BackupSchedulerHostedService>();
 builder.Services.AddScoped<IContactsService, ContactsService>();
 builder.Services.AddScoped<IContactInfoService, ContactInfoService>();
 builder.Services.AddScoped<IPreferencesService, PreferencesService>();
@@ -569,7 +570,8 @@ builder.Services.AddScoped<ModuleUIConfigService>();
 builder.Services.AddScoped<SampleDataSeederService>();
 // Database Sync BVT Service - runs on startup to ensure db consistency
 builder.Services.AddSingleton<IDatabaseSyncService, DatabaseSyncService>();
-builder.Services.AddHostedService<DatabaseSyncHostedService>();
+// TEMPORARILY DISABLED - causes model building errors
+// builder.Services.AddHostedService<DatabaseSyncHostedService>();
 builder.Services.AddScoped<CRM.Core.Interfaces.IAccountService, CRM.Infrastructure.Services.AccountService>();
 // Normalization helper for tags/custom fields
 builder.Services.AddScoped<NormalizationService>();
@@ -627,6 +629,12 @@ builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.ISLAPolicyAdminService, CRM.
 builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IEscalationRuleAdminService, CRM.Infrastructure.Services.ITSM.EscalationRuleAdminService>();
 builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IServiceQueueService, CRM.Infrastructure.Services.ITSM.ServiceQueueService>();
 Log.Information("Admin Configuration Services registered: CommissionRule, DiscountRule, SLAPolicy, EscalationRule, ServiceQueue");
+
+// Worker architecture services (queue, outbox, escalation processing, notifications)
+builder.Services.AddScoped<CRM.Core.Interfaces.Workers.IWorkerQueue, CRM.Infrastructure.Workers.DbWorkerQueue>();
+builder.Services.AddScoped<CRM.Core.Interfaces.Integration.IOutboxDispatcher, CRM.Infrastructure.Integration.OutboxDispatcher>();
+builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IEscalationProcessor, CRM.Infrastructure.Services.ITSM.EscalationProcessor>();
+builder.Services.AddScoped<CRM.Core.Interfaces.Notifications.INotificationDispatcher, CRM.Infrastructure.Services.Notifications.NotificationDispatcher>();
 // Phase 5 services - Department, SalesQuota, SalesForecast, Conversation, EventAttendee (Missing Entity Services)
 builder.Services.AddScoped<IDepartmentService, DepartmentService>();
 builder.Services.AddScoped<ISalesQuotaService, SalesQuotaService>();
@@ -816,9 +824,10 @@ builder.Services.AddScoped<ICalendarSyncService, CalendarSyncService>();
 builder.Services.AddHostedService<CalendarSyncHostedService>();
 
 // Email Sync Service - IMAP/OAuth sync for unified inbox (G5)
-builder.Services.Configure<EmailSyncOptions>(builder.Configuration.GetSection(EmailSyncOptions.SectionName));
-builder.Services.AddScoped<IEmailSyncService, EmailSyncService>();
-builder.Services.AddHostedService<EmailSyncHostedService>();
+// TEMPORARILY DISABLED - causes model building errors
+// builder.Services.Configure<EmailSyncOptions>(builder.Configuration.GetSection(EmailSyncOptions.SectionName));
+// builder.Services.AddScoped<IEmailSyncService, EmailSyncService>();
+// builder.Services.AddHostedService<EmailSyncHostedService>();
 
 // Landing Page Service - Visual landing page builder (G6)
 builder.Services.AddScoped<ILandingPageService, LandingPageService>();

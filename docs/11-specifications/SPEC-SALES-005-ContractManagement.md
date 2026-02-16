@@ -547,5 +547,5 @@ All 27 interface methods fully implemented with:
 - [IContractService.cs](../../CRM.Backend/src/CRM.Core/Interfaces/IContractService.cs) - Service interface
 - [ContractService.cs](../../CRM.Backend/src/CRM.Infrastructure/Services/ContractService.cs) - Service implementation
 - [ContractsController.cs](../../CRM.Backend/src/Services/CRM.SalesService/Controllers/ContractsController.cs) - API controller
-- [PHASE4_SERVICE_SPECIFICATIONS.md](../PHASE4_SERVICE_SPECIFICATIONS.md) - Service specifications
+- [PHASE4_SERVICE_SPECIFICATIONS.md](../PHASE4_SERVICE_SPECIFICATIONS.md) - Service 11-specifications
 - [DATABASE_SCHEMA.md](../../database/DATABASE_SCHEMA.md) - Database schema reference

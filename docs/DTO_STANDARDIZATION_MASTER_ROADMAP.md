@@ -220,7 +220,7 @@ Impact: ZERO breaking changes (purely additive)
 
 5. **Integration** (15+ DTOs)
    - Enhanced Webhook definitions
-   - ImportJob specifications
+   - ImportJob 11-specifications
    - ExportJob configurations
    - IntegrationMapping definitions
 

@@ -40,7 +40,7 @@
 
 - **Database Schema:** ✅ Complete (tables created via EF Core migrations)
 - **Entity Framework:** ✅ DbContext complete
-- **DTOs:** ⚠️ 18 missing DTOs across specifications
+- **DTOs:** ⚠️ 18 missing DTOs across 11-specifications
 - **Interfaces:** ⚠️ Some interfaces incomplete or missing methods
 - **Services:** ⚠️ 15 missing service implementations
 - **Validation:** ⚠️ Backend validation rules inconsistently applied

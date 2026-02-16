@@ -22,7 +22,7 @@ This documentation provides complete coverage of the CRM Solution from architect
 | [🚀 Deployment](08-deployment/README.md) | Docker, Kubernetes, CI/CD | DevOps, Ops |
 | [📋 Operations](09-operations/README.md) | Monitoring, maintenance, runbooks | Ops, Support |
 | [🔍 Traceability](10-traceability/README.md) | Feature-to-code mapping | All Teams |
-| [🧾 Specifications](11-specifications/INDEX.md) | Feature specs and templates | All Teams |
+| [🧾 Specifications](11-11-11-specifications/INDEX.md) | Feature specs and templates | All Teams |
 | [🧭 Enhancements](12-%20Enhancements%20planned) | Future enhancements backlog | Product, Leads |
 
 ---

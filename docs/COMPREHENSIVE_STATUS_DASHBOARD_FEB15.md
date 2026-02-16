@@ -2,7 +2,7 @@
 
 > **Generated:** February 15, 2026, 14:45 UTC  
 > **Last Updated:** Real-time as of this generation  
-> **Scope:** All 49 CRM specifications, 9 modules, 396 tracked TODOs
+> **Scope:** All 49 CRM 11-specifications, 9 modules, 396 tracked TODOs
 
 ---
 
@@ -262,7 +262,7 @@ P3 - LOW (40 items)      ■■░░░░░░░░░░░░░░░░�
 
 | Document | Purpose | Status | Link |
 |----------|---------|--------|------|
-| **INDEX.md** | Quick spec reference | ✅ Updated | [View](docs/11-specifications/INDEX.md) |
+| **INDEX.md** | Quick spec reference | ✅ Updated | [View](docs/11-11-11-specifications/INDEX.md) |
 | **Audit Report** | Comprehensive analysis | ✅ New | [View](SPECIFICATION_AUDIT_REPORT_FEB15.md) |
 | **Session Status** | This session summary | ✅ New | [View](SESSION_STATUS_UPDATE_FEB15.md) |
 | **Master TODO** | All 396 TODOs | ✅ Referenced | [View](MASTER_TODO_LIST.md) |

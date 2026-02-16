@@ -667,4 +667,4 @@ Honest assessment of where this CRM stands as a **deployed solution with all pro
    - Collaboration (22%) — record comments, @mentions, activity feed, presence
    - Customization engine (30%) — custom objects, page layouts, validation rules
 5. 📝 See [MASTER_TODO_LIST.md](MASTER_TODO_LIST.md) for 142 pending action items
-6. 📝 See [specifications/INDEX.md](specifications/INDEX.md) for 10/40 completed specifications
+6. 📝 See [11-11-specifications/INDEX.md](11-11-specifications/INDEX.md) for 10/40 completed 11-specifications

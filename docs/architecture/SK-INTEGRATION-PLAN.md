@@ -21,7 +21,7 @@
 8. [NuGet Package Manifest](#8-nuget-package-manifest)
 9. [Entity Model & EF Core Schema](#9-entity-model--ef-core-schema)
 10. [CRM Plugin Catalog](#10-crm-plugin-catalog)
-11. [Agent Specifications](#11-agent-specifications)
+11. [Agent Specifications](#11-agent-11-specifications)
 12. [Infrastructure Setup](#12-infrastructure-setup)
 13. [Testing Strategy](#13-testing-strategy)
 14. [Feature Flags & Rollout](#14-feature-flags--rollout)

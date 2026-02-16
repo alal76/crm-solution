@@ -16,8 +16,10 @@
 
 using CRM.Core.Entities;
 using CRM.Core.Entities.AI;
+using CRM.Core.Entities.Integration;
 using CRM.Core.Entities.KnowledgeBase;
 using CRM.Core.Entities.Reports;
+using CRM.Core.Entities.Workers;
 using CRM.Core.Entities.Workflow;
 using CRM.Core.Interfaces;
 using CRM.Core.Models;
@@ -369,7 +371,8 @@ public class CrmDbContext : DbContext, ICrmDbContext
     public DbSet<SLATarget> SLATargets { get; set; }
     public DbSet<SLAInstance> SLAInstances { get; set; }
     public DbSet<BusinessHours> BusinessHoursConfigs { get; set; }
-    public DbSet<CRM.Core.Entities.EscalationRule> EscalationRules { get; set; }
+    // DISABLED: Conflicts with ITSM.EscalationRule - both trying to use "EscalationRule" table
+    // public DbSet<CRM.Core.Entities.EscalationRule> EscalationRules { get; set; }
     public DbSet<ITSM.ServiceQueue> ServiceQueues { get; set; }
 
     // NOTE: EscalationPolicy, EscalationLevel, EscalationHistory services are disabled pending proper entity implementation
@@ -429,6 +432,11 @@ public class CrmDbContext : DbContext, ICrmDbContext
     // =============================================================================
     // Integration & Webhook Entities
     // =============================================================================
+    // Worker architecture
+    public DbSet<WorkerJob> WorkerJobs { get; set; }
+    public DbSet<WorkerExecution> WorkerExecutions { get; set; }
+    public DbSet<OutboxEvent> OutboxEvents { get; set; }
+
     public DbSet<ITSM.WebhookSubscription> WebhookSubscriptions { get; set; }
     public DbSet<ITSM.WebhookDelivery> WebhookDeliveries { get; set; }
 
@@ -479,6 +487,11 @@ public class CrmDbContext : DbContext, ICrmDbContext
     {
         base.OnModelCreating(modelBuilder);
 
+        // CRITICAL: Ignore CRM.Core.Entities.EscalationRule to prevent conflict with ITSM.EscalationRule
+        // Both entity types were trying to map to "EscalationRule" table. ITSM version uses "ITSMEscalationRules" instead.
+        modelBuilder.Ignore<CRM.Core.Entities.EscalationRule>();
+
+
         // Use Strategy Pattern for database provider-specific configurations
         var factory = new DatabaseProviderStrategyFactory(_configuration);
         var databaseProvider = _configuration?["DatabaseProvider"]?.ToLower() ?? "mariadb";
@@ -487,6 +500,40 @@ public class CrmDbContext : DbContext, ICrmDbContext
         // Get provider-specific column types for use in configurations
         var longTextType = providerStrategy.LongTextColumnType;
         var textType = providerStrategy.TextColumnType;
+
+        // Worker architecture entities
+        modelBuilder.Entity<WorkerJob>(entity =>
+        {
+            entity.Property(e => e.JobType).HasMaxLength(100).IsRequired();
+            entity.Property(e => e.Payload).HasColumnType(longTextType);
+            entity.Property(e => e.CorrelationId).HasMaxLength(100);
+            entity.Property(e => e.LastError).HasColumnType(textType);
+            entity.HasIndex(e => new { e.Status, e.NextAttemptAt })
+                .HasDatabaseName("IX_WorkerJobs_Status_NextAttemptAt");
+            entity.HasIndex(e => e.JobType)
+                .HasDatabaseName("IX_WorkerJobs_JobType");
+        });
+
+        modelBuilder.Entity<WorkerExecution>(entity =>
+        {
+            entity.Property(e => e.ErrorMessage).HasColumnType(textType);
+            entity.Property(e => e.NodeId).HasMaxLength(100);
+            entity.HasIndex(e => e.WorkerJobId)
+                .HasDatabaseName("IX_WorkerExecutions_WorkerJobId");
+        });
+
+        modelBuilder.Entity<OutboxEvent>(entity =>
+        {
+            entity.Property(e => e.EventType).HasMaxLength(100).IsRequired();
+            entity.Property(e => e.Payload).HasColumnType(longTextType);
+            entity.Property(e => e.CorrelationId).HasMaxLength(100);
+            entity.Property(e => e.IdempotencyKey).HasMaxLength(100);
+            entity.Property(e => e.LastError).HasColumnType(textType);
+            entity.HasIndex(e => e.Status)
+                .HasDatabaseName("IX_OutboxEvents_Status");
+            entity.HasIndex(e => e.OccurredAt)
+                .HasDatabaseName("IX_OutboxEvents_OccurredAt");
+        });
 
         // Configure RowVersion for all entities that inherit from BaseEntity
         // This enables optimistic concurrency control using the provider strategy
@@ -3244,7 +3291,7 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.HasIndex(e => new { e.ArticleId, e.RelatedArticleId }).IsUnique();
 
             entity.HasOne(e => e.Article)
-                .WithMany(a => a.RelatedArticles)
+                .WithMany()
                 .HasForeignKey(e => e.ArticleId)
                 .OnDelete(DeleteBehavior.Cascade);
 
@@ -3328,6 +3375,9 @@ public class CrmDbContext : DbContext, ICrmDbContext
         });
 
         // EscalationRule configuration
+        // DISABLED: Conflicts with ITSM.EscalationRule namespace - needs table disambiguation
+        // TODO: Configure separate tables for CRM.Core.Entities.EscalationRule vs ITSM.EscalationRule
+        /*
         modelBuilder.Entity<CRM.Core.Entities.EscalationRule>(entity =>
         {
             entity.HasKey(e => e.Id);
@@ -3349,6 +3399,7 @@ public class CrmDbContext : DbContext, ICrmDbContext
                 .HasForeignKey(e => e.ReassignToUserId)
                 .OnDelete(DeleteBehavior.SetNull);
         });
+        */
 
         // SLAInstance configuration
         modelBuilder.Entity<SLAInstance>(entity =>

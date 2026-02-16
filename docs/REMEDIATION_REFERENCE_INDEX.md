@@ -265,7 +265,7 @@ Integration Testing ──┘
 - [.github/copilot-instructions.md](../.github/copilot-instructions.md) — Architectural patterns & standards
 
 ### Specifications
-- [docs/11-specifications/INDEX.md](./specifications/INDEX.md) — All 49 feature specifications
+- [docs/11-11-11-specifications/INDEX.md](./11-11-specifications/INDEX.md) — All 49 feature 11-specifications
 - [docs/MASTER_TODO_LIST.md](./MASTER_TODO_LIST.md) — 396 TODO items by module
 
 ### Testing & Quality

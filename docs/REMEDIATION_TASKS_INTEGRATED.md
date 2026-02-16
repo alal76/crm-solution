@@ -80,7 +80,7 @@ This document consolidates findings from four comprehensive gap analyses into an
 - [ ] Campaign components (7+ components)
 - [ ] Campaign test suite (40+ tests)
 
-**Specification:** [SPEC-MKT-001](11-specifications/SPEC-MKT-001-CampaignManagement.md) (Pending creation)
+**Specification:** [SPEC-MKT-001](11-11-11-specifications/SPEC-MKT-001-CampaignManagement.md) (Pending creation)
 
 ---
 
@@ -128,8 +128,8 @@ This document consolidates findings from four comprehensive gap analyses into an
 - [ ] Change Management UI (3 pages, 6+ components)
 
 **References:**
-- [SPEC-ITSM-002](11-specifications/SPEC-ITSM-002-ProblemManagement.md)
-- [SPEC-ITSM-003](11-specifications/SPEC-ITSM-003-ChangeManagement.md)
+- [SPEC-ITSM-002](11-11-11-specifications/SPEC-ITSM-002-ProblemManagement.md)
+- [SPEC-ITSM-003](11-11-11-specifications/SPEC-ITSM-003-ChangeManagement.md)
 
 ---
 
@@ -151,7 +151,7 @@ This document consolidates findings from four comprehensive gap analyses into an
 - [ ] IncidentSLAStatusWidget (SLA progress indicators)
 - [ ] BulkIncidentActionModal (bulk reassign, status change)
 
-**Reference:** Spec section [SPEC-ITSM-001](11-specifications/SPEC-ITSM-001-IncidentManagement.md) - Section 2: Frontend
+**Reference:** Spec section [SPEC-ITSM-001](11-11-11-specifications/SPEC-ITSM-001-IncidentManagement.md) - Section 2: Frontend
 
 ---
 
@@ -180,7 +180,7 @@ This document consolidates findings from four comprehensive gap analyses into an
 - [ ] GET /api/commissions (list with filtering)
 - [ ] POST /api/commissions/payout (initiate payout)
 
-**Reference:** [SPEC-SALES-007](11-specifications/SPEC-SALES-007-CommissionManagement.md)
+**Reference:** [SPEC-SALES-007](11-11-11-specifications/SPEC-SALES-007-CommissionManagement.md)
 
 ---
 
@@ -852,7 +852,7 @@ This document consolidates findings from four comprehensive gap analyses into an
 5. [BACKEND_GAPS_ANALYSIS_REPORT.md](BACKEND_GAPS_ANALYSIS_REPORT.md) - Detailed backend gaps
 6. [DATABASE_GAPS_ANALYSIS.md](DATABASE_GAPS_ANALYSIS.md) - Detailed database gaps
 7. [ARCHITECTURAL_ALIGNMENT_ASSESSMENT.md](development/ARCHITECTURAL_ALIGNMENT_ASSESSMENT.md) - Architecture deep dive
-8. [specifications/INDEX.md](specifications/INDEX.md) - Feature specifications
+8. [11-11-specifications/INDEX.md](11-11-specifications/INDEX.md) - Feature 11-specifications
 9. [SOLUTION_GAPS_REMEDIATION_PLAN.md](docs/development/SOLUTION_GAPS_REMEDIATION_PLAN.md) - Previous remediation status
 
 ---

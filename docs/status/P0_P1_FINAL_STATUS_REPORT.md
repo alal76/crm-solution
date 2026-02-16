@@ -426,7 +426,7 @@ git commit -am "docs: Add implementation plans and guides"
 
 ## RESOURCES FOR IMPLEMENTATION TEAM
 
-📁 **Specifications:** `docs/11-specifications/SPEC-ITSM-*.md`, `SPEC-SALES-*.md`  
+📁 **Specifications:** `docs/11-11-11-specifications/SPEC-ITSM-*.md`, `SPEC-SALES-*.md`  
 📁 **Architecture:** `SOLUTION_CONTEXT.md`, `ARCHITECTURE_OVERVIEW.md`  
 📁 **Existing Services:** Review Phase 1-2 services as implementation templates  
 📁 **Database:** Check CrmDbContext for entity definitions  

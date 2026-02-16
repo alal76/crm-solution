@@ -136,7 +136,7 @@ All database migration files for the System Module (SYS-001 through SYS-012) hav
 - AdminConfiguration
 - SystemSettings
 - EmailConfiguration
-- ...others based on specifications
+- ...others based on 11-specifications
 
 ---
 
@@ -476,15 +476,15 @@ dotnet ef migrations remove --project src/CRM.Infrastructure
 
 ## Related Specifications
 
-- [SPEC-SYS-001](../specifications/SPEC-SYS-001-UserAuthenticationManagement.md) - User Authentication
-- [SPEC-SYS-002](../specifications/SPEC-SYS-002-UserGroupsOrganization.md) - User Groups
-- [SPEC-SYS-003](../specifications/SPEC-SYS-003-UserProfile.md) - User Profiles
-- [SPEC-SYS-004](../specifications/SPEC-SYS-004-FeatureFlags.md) - Feature Flags
-- [SPEC-SYS-006](../11-specifications/SPEC-SYS-006-AuditLogging.md) - Audit Logging
-- [SPEC-SYS-008](../specifications/SPEC-SYS-008-AdminConfiguration.md) - Admin Config
-- [SPEC-SYS-010](../specifications/SPEC-SYS-010-UIPreferences.md) - UI Preferences
-- [SPEC-SYS-011](../specifications/SPEC-SYS-011-PerformanceMetrics.md) - Performance Metrics
-- [SPEC-SYS-012](../11-specifications/SPEC-SYS-012-RBAC.md) - RBAC
+- [SPEC-SYS-001](../11-11-specifications/SPEC-SYS-001-UserAuthenticationManagement.md) - User Authentication
+- [SPEC-SYS-002](../11-11-specifications/SPEC-SYS-002-UserGroupsOrganization.md) - User Groups
+- [SPEC-SYS-003](../11-11-specifications/SPEC-SYS-003-UserProfile.md) - User Profiles
+- [SPEC-SYS-004](../11-11-specifications/SPEC-SYS-004-FeatureFlags.md) - Feature Flags
+- [SPEC-SYS-006](../11-11-11-specifications/SPEC-SYS-006-AuditLogging.md) - Audit Logging
+- [SPEC-SYS-008](../11-11-specifications/SPEC-SYS-008-AdminConfiguration.md) - Admin Config
+- [SPEC-SYS-010](../11-11-specifications/SPEC-SYS-010-UIPreferences.md) - UI Preferences
+- [SPEC-SYS-011](../11-11-specifications/SPEC-SYS-011-PerformanceMetrics.md) - Performance Metrics
+- [SPEC-SYS-012](../11-11-11-specifications/SPEC-SYS-012-RBAC.md) - RBAC
 
 ---
 

@@ -62,11 +62,11 @@ Once Phase 3 completes:
 - `/docs/legacy/summary/PHASE_2_DTO_CONSOLIDATION_PLAN.md` - Consolidation strategy
 
 ### Key Architecture Documents
-- `/docs/11-specifications/SPEC-ARCH-001.md` - DTO standardization (MUST READ)
-- `/docs/11-specifications/SPEC-ARCH-002.md` - Error handling
-- `/docs/11-specifications/SPEC-ARCH-003.md` - Dependency injection
-- `/docs/11-specifications/SPEC-ARCH-004.md` - Caching
-- `/docs/11-specifications/SPEC-ARCH-005.md` - Validation
+- `/docs/11-11-11-specifications/SPEC-ARCH-001.md` - DTO standardization (MUST READ)
+- `/docs/11-11-11-specifications/SPEC-ARCH-002.md` - Error handling
+- `/docs/11-11-11-specifications/SPEC-ARCH-003.md` - Dependency injection
+- `/docs/11-11-11-specifications/SPEC-ARCH-004.md` - Caching
+- `/docs/11-11-11-specifications/SPEC-ARCH-005.md` - Validation
 
 ### Solution Status
 - `/docs/legacy/summary/VICTORY_DECLARATION_P0P1_PHASE1.md` - Phase 1 achievement summary 

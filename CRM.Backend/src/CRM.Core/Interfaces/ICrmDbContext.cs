@@ -15,7 +15,9 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using CRM.Core.Entities;
+using CRM.Core.Entities.Integration;
 using CRM.Core.Entities.KnowledgeBase;
+using CRM.Core.Entities.Workers;
 using CRM.Core.Entities.Workflow;
 using CRM.Core.Models;
 using Microsoft.EntityFrameworkCore;
@@ -203,7 +205,8 @@ public interface ICrmDbContext
     // SLA (Service Level Agreement) - Non-ITSM versions
     DbSet<CRM.Core.Entities.SLAPolicy> SLAPolicies { get; }
     DbSet<CRM.Core.Entities.KnowledgeBase.SLAInstance> SLAInstances { get; }
-    DbSet<CRM.Core.Entities.EscalationRule> EscalationRules { get; }
+    // DISABLED: Conflicts with ITSM.EscalationRule - both trying to use "EscalationRule" table
+    // DbSet<CRM.Core.Entities.EscalationRule> EscalationRules { get; }
     DbSet<CRM.Core.Entities.ITSM.ServiceQueue> ServiceQueues { get; }
     
     // ITSM SLA entities
@@ -268,6 +271,11 @@ public interface ICrmDbContext
     // Integration & Webhooks
     DbSet<CRM.Core.Entities.ITSM.WebhookSubscription> WebhookSubscriptions { get; }
     DbSet<CRM.Core.Entities.ITSM.WebhookDelivery> WebhookDeliveries { get; }
+
+    // Worker architecture
+    DbSet<WorkerJob> WorkerJobs { get; }
+    DbSet<WorkerExecution> WorkerExecutions { get; }
+    DbSet<OutboxEvent> OutboxEvents { get; }
 
     // Reports
     DbSet<CRM.Core.Entities.Reports.ReportDefinition> ReportDefinitions { get; }
