@@ -1,7 +1,7 @@
 # Consolidated Specification TODO Items
 > **Date:** February 14, 2026
-> **Source:** Extracted from 14 pending/partial specifications
-> **Total Items:** 204 TODO items across 14 specifications
+> **Source:** Extracted from 14 pending/partial 11-specifications
+> **Total Items:** 204 TODO items across 14 11-specifications
 > **Purpose:** Consolidated reference for managing specification implementation gaps
 
 ---
@@ -10,7 +10,7 @@
 
 | Category | Count | Breakdown |
 |----------|-------|-----------|
-| **Total TODO Items** | 204 | Across 14 specifications |
+| **Total TODO Items** | 204 | Across 14 11-specifications |
 | **By Priority** | | |
 | - P0 (Critical) | 12 | System-blocking items |
 | - P1 (High) | 68 | High-priority features |
@@ -547,10 +547,10 @@ Payment processing, refunds, reconciliation, and payment method management.
 ## Notes for Integration into MASTER_TODO_LIST.md
 
 1. **Current State**: MASTER_TODO_LIST.md currently lists 204 total pending items
-2. **This Consolidation**: Provides the detailed breakdown of those 204+ items across 14 specifications
+2. **This Consolidation**: Provides the detailed breakdown of those 204+ items across 14 11-specifications
 3. **Format**: Uses consistent markdown table format with Priority, Description, Status, and Spec Section columns
 4. **Status Field**: All items currently marked as "Not Started" (can be updated as implementation progresses)
 5. **Traceability**: Each item references the specification section for detailed context
-6. **Deduplication**: Items consolidated from specification TODOs (no duplicates detected across specifications)
+6. **Deduplication**: Items consolidated from specification TODOs (no duplicates detected across 11-specifications)
 7. **Grouping**: Organized by specification for clarity and implementation planning
 

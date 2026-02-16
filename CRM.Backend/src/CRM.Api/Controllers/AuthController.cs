@@ -76,8 +76,8 @@ public class AuthController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError($"Registration error: {ex.Message}");
-            return StatusCode(500, new { message = "An error occurred during registration" });
+            _logger.LogError(ex, "Registration error for {Email}", request.Email);
+            return StatusCode(500, new { message = "An error occurred during registration", detail = ex.Message });
         }
     }
 
@@ -113,8 +113,8 @@ public class AuthController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError($"Login error: {ex.Message}");
-            return StatusCode(500, new { message = "An error occurred during login" });
+            _logger.LogError(ex, "Login error for {Email}", request.Email);
+            return StatusCode(500, new { message = "An error occurred during login", detail = ex.Message });
         }
     }
 

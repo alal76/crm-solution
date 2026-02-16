@@ -601,7 +601,7 @@ public class UniqueEmailValidator : AbstractValidator<CreateAccountDto>
 ### Certification
 **✅ ARCHITECTURE COMPLIANCE VERIFIED**
 
-This codebase is fully compliant with all P0/P1 architecture specifications.
+This codebase is fully compliant with all P0/P1 architecture 11-specifications.
 
 ---
 

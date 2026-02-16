@@ -193,7 +193,7 @@ public class SLAPolicy : BaseEntity
     public ICollection<SLATarget> Targets { get; set; } = new List<SLATarget>();
 
     /// <summary>Escalation rules</summary>
-    public ICollection<EscalationRule> EscalationRules { get; set; } = new List<EscalationRule>();
+    public ICollection<SLAPolicyEscalationRule> EscalationRules { get; set; } = new List<SLAPolicyEscalationRule>();
 
     #endregion
 }
@@ -263,7 +263,7 @@ public class BusinessHours : BaseEntity
 /// <summary>
 /// Escalation rule within SLA policy.
 /// </summary>
-public class EscalationRule : BaseEntity
+public class SLAPolicyEscalationRule : BaseEntity
 {
     #region References
 

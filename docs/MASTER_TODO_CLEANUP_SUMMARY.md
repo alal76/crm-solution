@@ -13,7 +13,7 @@ The MASTER_TODO_LIST.md has been **completely reorganized and consolidated** to 
 
 ✅ **Completed:** Cleanup plan included as Section 0  
 ✅ **Integrated:** 50 gap analysis items from Feb 16 sub-agent reports  
-✅ **Added:** 12 new architecture specifications (SPEC-ARCH-*) with 60-hour initiative  
+✅ **Added:** 12 new architecture 11-specifications (SPEC-ARCH-*) with 60-hour initiative  
 ✅ **Reorganized:** 15 major sections with consistent numbering & formatting  
 ✅ **Regression Prevention:** Comprehensive validation checklist + consistency audit (Section 15)  
 ✅ **Maintained:** Architecture consistency & module boundaries throughout  
@@ -58,7 +58,7 @@ Status: Reorganized for clarity; regression prevention plan in place; consistenc
 
 ### 3. New Section 1: Architecture Specifications (60 hours)
 
-**Added:** Complete architecture initiative with 12 specifications
+**Added:** Complete architecture initiative with 12 11-specifications
 
 **Critical (Week 1):**
 - SPEC-ARCH-001: DTO Standardization (20h)
@@ -152,7 +152,7 @@ dotnet build --configuration Release
 
 #### 15.4 Architecture Consistency Audit (Monthly)
 8-point checklist including:
-- Items marked in specifications
+- Items marked in 11-specifications
 - No duplicate TODO IDs
 - Module prefixes consistent
 - Priority distribution reasonable
@@ -228,8 +228,8 @@ dotnet build --configuration Release
    - Business impact documented
 
 2. **Supporting Documents Referenced:**
-   - [specifications/GAP_ANALYSIS_EXECUTIVE_SUMMARY.md](11-specifications/GAP_ANALYSIS_EXECUTIVE_SUMMARY.md)
-   - [specifications/INDEX.md](specifications/INDEX.md) — Section 7
+   - [11-11-specifications/GAP_ANALYSIS_EXECUTIVE_SUMMARY.md](11-11-11-specifications/GAP_ANALYSIS_EXECUTIVE_SUMMARY.md)
+   - [11-11-specifications/INDEX.md](11-11-specifications/INDEX.md) — Section 7
    - Backend/Frontend/Database gap analysis reports
 
 3. **Architecture Specs Addition:**
@@ -304,7 +304,7 @@ dotnet build --configuration Release
 ### Week 2-3 (Remaining Architecture Specs)
 - [ ] Create SPEC-ARCH-006 through SPEC-ARCH-012 (26h)
 - [ ] Review & approve all 12 specs (4h)
-- [ ] Update [specifications/INDEX.md](specifications/INDEX.md) (2h)
+- [ ] Update [11-11-specifications/INDEX.md](11-11-specifications/INDEX.md) (2h)
 - [ ] Total: ~32h
 
 ### Week 3-4 (Backend Gap Closure)
@@ -362,7 +362,7 @@ dotnet build --configuration Release
 4. **Implementation Questions:** Follow Section 15.2 checklist
 5. **Documentation Questions:** Check Section 15.5 sync schedule
 
-**For emergencies:** Reference [specifications/INDEX.md](specifications/INDEX.md) Section 7 for authoritative status
+**For emergencies:** Reference [11-11-specifications/INDEX.md](11-11-specifications/INDEX.md) Section 7 for authoritative status
 
 ---
 

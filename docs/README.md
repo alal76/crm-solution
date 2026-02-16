@@ -23,7 +23,7 @@ docs/
 ├── 08-deployment/                    # Deployment guides
 ├── 09-operations/                    # Operations & runbooks
 ├── 10-traceability/                  # Feature traceability
-├── 11-specifications/                # Feature specs and templates
+├── 11-11-11-specifications/                # Feature specs and templates
 ├── 12- Enhancements planned/         # Future enhancements backlog
 ├── development/                      # Architecture, build, infra, DB
 ├── status/                           # Status, reports, checklists
@@ -61,7 +61,7 @@ docs/
 | Document | Description |
 |----------|-------------|
 | [SOLUTION_CONTEXT.md](development/SOLUTION_CONTEXT.md) | Feature and module overview |
-| [11-specifications/INDEX.md](11-specifications/INDEX.md) | Feature specifications |
+| [11-11-11-specifications/INDEX.md](11-11-11-specifications/INDEX.md) | Feature 11-specifications |
 
 ### Testing
 | Document | Description |

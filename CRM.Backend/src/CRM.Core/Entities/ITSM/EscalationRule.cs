@@ -14,6 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using System.ComponentModel.DataAnnotations.Schema;
+
 namespace CRM.Core.Entities.ITSM;
 
 /// <summary>
@@ -37,6 +39,7 @@ public enum EscalationTargetType
 /// <summary>
 /// Escalation rule entity for configuring escalation policies
 /// </summary>
+[Table("ITSMEscalationRules")]
 public class EscalationRule : BaseEntity
 {
     /// <summary>Rule name (e.g., "Critical Issue Auto-Escalate")</summary>

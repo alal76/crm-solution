@@ -1034,12 +1034,12 @@ WebhookSubscriptions
 
 ## 📚 References
 
-- [ITSM-001 Incident Management](11-specifications/SPEC-ITSM-001-IncidentManagement.md)
-- [ITSM-002 Problem Management](11-specifications/SPEC-ITSM-002-ProblemManagement.md)
-- [ITSM-003 Change Management](11-specifications/SPEC-ITSM-003-ChangeManagement.md)
-- [ITSM-004 CMDB](11-specifications/SPEC-ITSM-004-CMDB.md)
-- [MKT-003 Email Sequences](11-specifications/SPEC-MKT-003-EmailSequences.md)
-- [INT-002 Provider Integration](11-specifications/SPEC-INT-002-ProviderIntegration.md)
+- [ITSM-001 Incident Management](11-11-11-specifications/SPEC-ITSM-001-IncidentManagement.md)
+- [ITSM-002 Problem Management](11-11-11-specifications/SPEC-ITSM-002-ProblemManagement.md)
+- [ITSM-003 Change Management](11-11-11-specifications/SPEC-ITSM-003-ChangeManagement.md)
+- [ITSM-004 CMDB](11-11-11-specifications/SPEC-ITSM-004-CMDB.md)
+- [MKT-003 Email Sequences](11-11-11-specifications/SPEC-MKT-003-EmailSequences.md)
+- [INT-002 Provider Integration](11-11-11-specifications/SPEC-INT-002-ProviderIntegration.md)
 
 ---
 

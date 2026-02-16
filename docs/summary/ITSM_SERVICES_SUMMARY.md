@@ -353,7 +353,7 @@ After implementation, verify:
 ## 📚 Additional Resources
 
 **Related Documentation:**
-- [Feature Specification Framework](docs/11-specifications/INDEX.md)
+- [Feature Specification Framework](docs/11-11-11-specifications/INDEX.md)
 - [SOLUTION_GAPS_REMEDIATION_PLAN.md](docs/SOLUTION_GAPS_REMEDIATION_PLAN.md)
 - [ARCHITECTURE_OVERVIEW.md](../development/ARCHITECTURE_OVERVIEW.md)
 - [Phase 4 Service Specifications](../PHASE4_SERVICE_SPECIFICATIONS.md)

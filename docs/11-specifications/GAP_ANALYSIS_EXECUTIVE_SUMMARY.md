@@ -78,7 +78,7 @@
 2. **Week 2 (40h):** Audit & standardize 30-40 existing problematic DTOs
 3. **Ongoing:** All new DTOs follow standard (enforced in code review)
 
-**File Location:** Will be created at `docs/11-specifications/SPEC-ARCH-001-DTOStandard.md`
+**File Location:** Will be created at `docs/11-11-11-specifications/SPEC-ARCH-001-DTOStandard.md`
 
 ---
 
@@ -205,7 +205,7 @@
 ### Action Items (Next 72 Hours):
 
 1. ✅ **Approve:** Create SPEC-ARCH-001-DTOStandard.md 
-2. ✅ **Approve:** Create 11 SPEC-ARCH-* architecture specifications
+2. ✅ **Approve:** Create 11 SPEC-ARCH-* architecture 11-specifications
 3. ✅ **Schedule:** Backend gap remediation (ITSM services, Admin config) = Week 1 sprint
 4. ✅ **Schedule:** Frontend gap remediation (Type safety, validation) = Week 1 sprint
 5. ✅ **Assign:** Someone to create SPEC-ARCH-001 through SPEC-ARCH-004 (Priority 1)

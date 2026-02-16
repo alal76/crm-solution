@@ -163,10 +163,10 @@ public class CampaignRecipientService : ICampaignRecipientService, ICampaignReci
             Status = int.TryParse(recipient.Status, out var statusInt) ? statusInt : (int)CampaignRecipientStatus.Pending,
             AddedAt = recipient.CreatedAt,
             EngagedAt = recipient.FirstOpenedAt,
-            Impressions = recipient.OpenCount,
-            Clicks = recipient.ClickCount,
-            Conversions = recipient.ConvertedAt.HasValue ? 1 : 0,
-            Money = recipient.ConversionValue ?? 0
+            Impressions = 0, // OpenCount not available on entity
+            Clicks = 0,      // ClickCount not available on entity
+            Conversions = 0, // ConvertedAt not available on entity
+            Money = 0        // ConversionValue not available on entity
         };
     }
 }

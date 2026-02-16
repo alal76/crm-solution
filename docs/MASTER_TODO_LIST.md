@@ -57,9 +57,9 @@
 
 ## Implementation Plan Reference
 
-> **[specifications/IMPLEMENTATION_PLAN.md](11-specifications/IMPLEMENTATION_PLAN.md)** - Detailed 16-week implementation guide
-> **[specifications/GAP_ANALYSIS_EXECUTIVE_SUMMARY.md](11-specifications/GAP_ANALYSIS_EXECUTIVE_SUMMARY.md)** - Gap analysis & spec needs recommendations
-> **[specifications/INDEX.md](specifications/INDEX.md)** - Complete specification status & gap analysis (Section 7)
+> **[11-11-specifications/IMPLEMENTATION_PLAN.md](11-11-11-specifications/IMPLEMENTATION_PLAN.md)** - Detailed 16-week implementation guide
+> **[11-11-specifications/GAP_ANALYSIS_EXECUTIVE_SUMMARY.md](11-11-11-specifications/GAP_ANALYSIS_EXECUTIVE_SUMMARY.md)** - Gap analysis & spec needs recommendations
+> **[11-11-specifications/INDEX.md](11-11-specifications/INDEX.md)** - Complete specification status & gap analysis (Section 7)
 > **Specification Progress:** 35/49 complete (71.4%) — 13 partial, 3 pending  
 > **Architecture Specs Needed:** 11 new SPEC-ARCH-* files (2-3 week initiative)
 > **System Module Status:** 100% complete ✅ (12 specs, all production-ready)
@@ -69,11 +69,11 @@
 ## Table of Contents
 
 1. [✅ Cleanup Plan & Completion Summary](#cleanup-plan--completion-summary-feb-16-2026)
-2. [🏗️ Architecture Specifications (NEW)](#1-architecture-specifications-planning-60-hours)
+2. [🏗️ Architecture Specifications (NEW)](#1-architecture-11-specifications-planning-60-hours)
 3. [📋 Feature Specification TODOs](#2-feature-specification-todos)
-   - [System Module Specifications](#system-module-specifications)
-   - [Sales Module Specifications](#sales-module-specifications)
-   - [Service Desk Module Specifications](#service-desk-module-specifications)
+   - [System Module Specifications](#system-module-11-specifications)
+   - [Sales Module Specifications](#sales-module-11-specifications)
+   - [Service Desk Module Specifications](#service-desk-module-11-specifications)
 4. [🧪 Integration & Advanced Features](#3-integration--advanced-features)
 5. [📊 Audit Remediation & Gaps](#4-audit-remediation--solution-gaps)
 6. [🔧 Infrastructure & DevOps](#5-infrastructure--devops)
@@ -84,7 +84,7 @@
 ## 1. 🏗️ ARCHITECTURE SPECIFICATIONS (Planning & Implementation)
 
 > **Status:** New initiative from Feb 16 Gap Analysis
-> **Total:** 12 specifications (11 SPEC-ARCH files + 1 DTO standard)
+> **Total:** 12 11-specifications (11 SPEC-ARCH files + 1 DTO standard)
 > **Duration:** 2-3 weeks (60 hours total)
 > **Priority:** 🔴 CRITICAL — Blocks optimal on-boarding and consistency
 > **ROI:** 50 hours saved per developer on-boarding × 5 new devs = 250+ hours saved
@@ -207,7 +207,7 @@
 ### 2.1 Gap Analysis Alignment (50 Items From Feb 16 Sub-Agent Reports)
 
 > **Source:** 5 comprehensive sub-agent gap analyses (Backend, Frontend, Database, DTO, Architecture)
-> **Documentation:** [specifications/GAP_ANALYSIS_EXECUTIVE_SUMMARY.md](11-specifications/GAP_ANALYSIS_EXECUTIVE_SUMMARY.md)
+> **Documentation:** [11-11-specifications/GAP_ANALYSIS_EXECUTIVE_SUMMARY.md](11-11-11-specifications/GAP_ANALYSIS_EXECUTIVE_SUMMARY.md)
 > **Impact:** These items are NEW gaps identified, not previously in master list
 > **Total Effort:** 360 hours over 8-10 weeks
 
@@ -473,7 +473,7 @@
 
 ## 2.2 ✅ COMPLETED FEATURE SPECIFICATIONS (Archived Reference)
 
-*Extracted from completed feature specifications. See individual spec files for full context.*
+*Extracted from completed feature 11-specifications. See individual spec files for full context.*
 *These items are preserved for traceability and regression prevention — not action items.*
 
 ### ✅ SPEC-CRM-001 (Account Management) — 10 Items COMPLETE
@@ -1349,9 +1349,9 @@ npm run build
 ### 15.5 Documentation Sync
 
 **Keep These Documents Current:**
-- ✅ [specifications/INDEX.md](specifications/INDEX.md) — Update status weekly 
+- ✅ [11-11-specifications/INDEX.md](11-11-specifications/INDEX.md) — Update status weekly 
 - ✅ [MASTER_TODO_LIST.md](MASTER_TODO_LIST.md) — Update before sprint planning
-- ✅ [specifications/IMPLEMENTATION_PLAN.md](11-specifications/IMPLEMENTATION_PLAN.md) — Update roadmap monthly
+- ✅ [11-11-specifications/IMPLEMENTATION_PLAN.md](11-11-11-specifications/IMPLEMENTATION_PLAN.md) — Update roadmap monthly
 - ✅ [SOLUTION_GAPS_REMEDIATION_PLAN.md](docs/development/SOLUTION_GAPS_REMEDIATION_PLAN.md) — Update phase status
 - ✅ [CODING_STANDARDS.md](development/CODING_STANDARDS.md) — Add new patterns as specs created
 

@@ -854,7 +854,7 @@ dotnet test CRM.Backend/tests/CRM.Tests.csproj
 
 ## 12. Related Documentation
 
-- **SPEC-CRM-001:** [Account Management Specification](../docs/11-specifications/SPEC-CRM-001-AccountManagement.md)
+- **SPEC-CRM-001:** [Account Management Specification](../docs/11-11-11-specifications/SPEC-CRM-001-AccountManagement.md)
 - **TODO List:** [MASTER_TODO_LIST.md](../docs/MASTER_TODO_LIST.md)
 - **Database Schema:** [DATABASE_SCHEMA.md](../database/DATABASE_SCHEMA.md)
 - **Migration Files:** [/CRM.Backend/src/CRM.Infrastructure/Migrations/](../CRM.Backend/src/CRM.Infrastructure/Migrations/)

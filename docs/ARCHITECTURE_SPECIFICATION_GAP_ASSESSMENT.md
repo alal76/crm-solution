@@ -1,7 +1,7 @@
 # Architecture Specification Gap Assessment
 
 > **Assessment Date:** February 16, 2026  
-> **Scope:** Cross-cutting architectural patterns and design specifications  
+> **Scope:** Cross-cutting architectural patterns and design 11-specifications  
 > **Status:** RESEARCH COMPLETE - RECOMMENDATIONS PROVIDED  
 > **Actionable:** YES - Contains specific SPEC-ARCH-* template recommendations
 
@@ -9,11 +9,11 @@
 
 ## Executive Summary
 
-The CRM solution has robust **feature specifications** (52 SPEC-* files covering all modules) and **Architecture Decision Records (ADRs)** for major strategic decisions (Pluggable Architecture, EF Core, Semantic Kernel). However, **critical architectural patterns for daily development are scattered across code, middleware, and general documentation rather than formally specified.**
+The CRM solution has robust **feature 11-specifications** (52 SPEC-* files covering all modules) and **Architecture Decision Records (ADRs)** for major strategic decisions (Pluggable Architecture, EF Core, Semantic Kernel). However, **critical architectural patterns for daily development are scattered across code, middleware, and general documentation rather than formally specified.**
 
-**Key Finding:** A new developer cannot understand core implementation patterns (error handling, caching strategy, DI conventions, Ports & Adapters usage, provider plugin development) from specifications alone—they must infer from code or read scattered documentation.
+**Key Finding:** A new developer cannot understand core implementation patterns (error handling, caching strategy, DI conventions, Ports & Adapters usage, provider plugin development) from 11-specifications alone—they must infer from code or read scattered documentation.
 
-**Recommendation:** Create **8-10 SPEC-ARCH-* architecture specifications** that formalize cross-cutting concerns and design patterns, separate from (but linked to) feature specifications.
+**Recommendation:** Create **8-10 SPEC-ARCH-* architecture 11-specifications** that formalize cross-cutting concerns and design patterns, separate from (but linked to) feature 11-specifications.
 
 ---
 
@@ -25,7 +25,7 @@ The CRM solution has robust **feature specifications** (52 SPEC-* files covering
 |----------|----------|----------|--------|
 | **Strategic ADRs** | `docs/architecture/ADR-*.md` | 4 major decisions (Pluggable, EF Core, Runtime, SK) | ✅ Comprehensive |
 | **Hexagonal Architecture** | `docs/architecture/HEXAGONAL_ARCHITECTURE.md` | Port/adapter patterns | ✅ Documented |
-| **Feature Specifications** | `docs/11-specifications/SPEC-*.md` | 52 files covering all modules | ✅ Comprehensive |
+| **Feature Specifications** | `docs/11-11-11-specifications/SPEC-*.md` | 52 files covering all modules | ✅ Comprehensive |
 | **Build/Deployment** | `SOLUTION_CONTEXT.md` + build scripts | Build process, deployment | ✅ Documented |
 | **Coding Standards** | `docs/06-standards/README.md` | General naming/style conventions | ✅ Basic coverage |
 | **Design Overview** | `docs/02-design/README.md` | Data models, entity relationships | ✅ Documented |
@@ -401,7 +401,7 @@ public class AccountsController : ControllerBase { ... }
 **Decision: YES - Critical for onboarding and consistency**
 
 **Rationale:**
-- Feature specifications cover WHAT to build, not HOW to build it architecturally
+- Feature 11-specifications cover WHAT to build, not HOW to build it architecturally
 - New developers spend days understanding patterns by reading code
 - Cross-cutting concerns are implemented but architecture decisions are invisible
 - ADRs exist for strategic decisions but not tactical implementation patterns
@@ -448,7 +448,7 @@ SPEC-ARCH-003-CachingStrategy.md
 Each feature spec includes:
 ```markdown
 ### Architectural Patterns
-This feature follows these architectural specifications:
+This feature follows these architectural 11-specifications:
 - [SPEC-ARCH-001-ErrorHandling](../architecture/SPEC-ARCH-001-ErrorHandling.md) - Service exceptions
 - [SPEC-ARCH-003-CachingStrategy](../architecture/SPEC-ARCH-003-CachingStrategy.md) - Search result caching
 - [SPEC-ARCH-004-ValidationFramework](../architecture/SPEC-ARCH-004-ValidationFramework.md) - Input validation
@@ -458,8 +458,8 @@ Architecture specs include:
 ```markdown
 ### Feature Usage
 This pattern is used in:
-- [SPEC-CRM-001-AccountManagement](11-specifications/SPEC-CRM-001-AccountManagement.md) - Error handling
-- [SPEC-SYS-006-AuditLogging](11-specifications/SPEC-SYS-006-AuditLogging.md) - Audit logging
+- [SPEC-CRM-001-AccountManagement](11-11-11-specifications/SPEC-CRM-001-AccountManagement.md) - Error handling
+- [SPEC-SYS-006-AuditLogging](11-11-11-specifications/SPEC-SYS-006-AuditLogging.md) - Audit logging
 ```
 
 ---
@@ -622,7 +622,7 @@ Every new service must verify:
 
 **Decision: Establish "Architecture Compliance" audit process**
 
-Create a checklist for reviewing new code against architecture specifications:
+Create a checklist for reviewing new code against architecture 11-specifications:
 
 ```markdown
 ## Architecture Compliance Checklist
@@ -694,7 +694,7 @@ For future architectural choices, create lightweight "micro-ADRs" in each spec:
 ## 6. Implementation Timeline & Effort
 
 ### Phase 1: Foundation (Weeks 1-2)
-Create core architecture specifications:
+Create core architecture 11-specifications:
 - SPEC-ARCH-001: Error Handling
 - SPEC-ARCH-002: Dependency Injection
 - SPEC-ARCH-003: Caching Strategy
@@ -850,7 +850,7 @@ A: ...
 
 ## 8. References
 
-- [Feature Specification Template](11-specifications/SPEC-TEMPLATE.md)
+- [Feature Specification Template](11-11-11-specifications/SPEC-TEMPLATE.md)
 - [ADR-001-Pluggable-Architecture](architecture/ADR-001-Pluggable-Architecture-Strategy.md)
 - [Hexagonal Architecture](architecture/HEXAGONAL_ARCHITECTURE.md)
 ```
@@ -879,7 +879,7 @@ A: ...
 
 ### Key Takeaway
 
-The CRM solution has **strong tactical implementations** (middleware, providers, services all work) but lacks **architectural specifications documenting why and how** developers should implement new features. The gap is not in code quality but in **developer guidance and onboarding**.
+The CRM solution has **strong tactical implementations** (middleware, providers, services all work) but lacks **architectural 11-specifications documenting why and how** developers should implement new features. The gap is not in code quality but in **developer guidance and onboarding**.
 
 ### Call to Action
 

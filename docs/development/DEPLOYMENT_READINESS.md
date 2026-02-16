@@ -468,5 +468,5 @@ The CRM Solution is production-ready with all core features implemented, tested,
 | **Last Updated** | February 16, 2026 |
 | **Classification** | Internal |
 | **Confidentiality** | Confidential |
-| **Related Documents** | SOLUTION_GAPS_REMEDIATION_PLAN.md, docs/11-specifications/INDEX.md |
+| **Related Documents** | SOLUTION_GAPS_REMEDIATION_PLAN.md, docs/11-11-11-specifications/INDEX.md |
 

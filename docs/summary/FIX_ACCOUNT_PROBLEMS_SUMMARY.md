@@ -153,7 +153,7 @@ TOTAL: 20-27 hours over 4-5 weeks
 - 45+ TODO items with exact tasks for each phase
 - Database migration code examples
 - Service layer updates
-- API endpoint specifications
+- API endpoint 11-specifications
 - Frontend component designs
 
 ### Overall Progress Tracking

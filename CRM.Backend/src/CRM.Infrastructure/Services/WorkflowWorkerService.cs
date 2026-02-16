@@ -169,15 +169,21 @@ public class WorkflowWorkerService : BackgroundService
             // 2. Status is Running but lock has expired (worker died)
             // 3. Not in dead letter state
             // Priority: Lower number = higher priority
-            var task = await dbContext.WorkflowTasks
+            // Note: Filter queue names after materialization to prevent EF Core translation issues with local array
+            var queueNamesSet = _options.QueueNames.ToHashSet(StringComparer.OrdinalIgnoreCase);
+            var candidateTasks = await dbContext.WorkflowTasks
                 .Where(t => !t.IsDeleted && !t.IsDeadLetter &&
-                    t.QueueName != null && _options.QueueNames.Contains(t.QueueName) &&
+                    t.QueueName != null &&
                     ((t.Status == WorkflowTaskStatus.Pending && (t.LockedByWorkerId == null || t.LockExpiresAt < now)) ||
                      (t.Status == WorkflowTaskStatus.Running && t.LockExpiresAt < now)) &&
                     (t.ScheduledAt == null || t.ScheduledAt <= now))
                 .OrderBy(t => t.Priority)
                 .ThenBy(t => t.ScheduledAt ?? t.CreatedAt)
-                .FirstOrDefaultAsync(cancellationToken);
+                .ToListAsync(cancellationToken); // Materialize first
+
+            var task = candidateTasks
+                .Where(t => queueNamesSet.Contains(t.QueueName))
+                .FirstOrDefault();
 
             if (task == null)
             {

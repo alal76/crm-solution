@@ -386,6 +386,6 @@ The solution is now **71.4% complete overall** (up from 67%), with a clear remed
 **Deployment Date:** February 15, 2026, 18:15 UTC  
 **Last Updated:** February 15, 2026, 18:45 UTC  
 
-For detailed specifications, see: [docs/11-specifications/INDEX.md](../docs/11-specifications/INDEX.md)  
+For detailed 11-specifications, see: [docs/11-11-11-specifications/INDEX.md](../docs/11-11-11-specifications/INDEX.md)  
 For implementation details, see: [docs/SYSTEM_MODULE_COMPLETION.md](../docs/SYSTEM_MODULE_COMPLETION.md)  
 For GitHub Actions analysis, see: [GITHUB_ACTIONS_RUN143_ANALYSIS.md](development/GITHUB_ACTIONS_RUN143_ANALYSIS.md)

@@ -2,7 +2,7 @@
 
 > **Report Generated:** February 15, 2026  
 > **Scope:** MariaDB/MySQL (primary), SQL Server, PostgreSQL (supported)  
-> **Analysis Depth:** Entity definitions (CrmDbContext), specifications, migrations, and constraints  
+> **Analysis Depth:** Entity definitions (CrmDbContext), 11-specifications, migrations, and constraints  
 > **Total DbSets:** 200+ (confirmed in CrmDbContext)  
 > **Reporting Focus:** Missing tables, columns, relationships, indexes, constraints, migrations
 
@@ -1154,11 +1154,11 @@ GROUP BY l.Source;
 
 ## Related Documentation
 
-- [SPEC-ITSM-001-IncidentManagement.md](11-specifications/SPEC-ITSM-001-IncidentManagement.md) — Incident specifications
-- [SPEC-ITSM-002-ProblemManagement.md](11-specifications/SPEC-ITSM-002-ProblemManagement.md) — Problem specifications
-- [SPEC-ITSM-003-ChangeManagement.md](11-specifications/SPEC-ITSM-003-ChangeManagement.md) — Change specifications
-- [SPEC-SYS-006-AuditLogging.md](11-specifications/SPEC-SYS-006-AuditLogging.md) — Audit logging specs
-- [SPEC-INT-001-WebhookManagement.md](11-specifications/SPEC-INT-001-WebhookManagement.md) — Webhook specs
+- [SPEC-ITSM-001-IncidentManagement.md](11-11-11-specifications/SPEC-ITSM-001-IncidentManagement.md) — Incident 11-specifications
+- [SPEC-ITSM-002-ProblemManagement.md](11-11-11-specifications/SPEC-ITSM-002-ProblemManagement.md) — Problem 11-specifications
+- [SPEC-ITSM-003-ChangeManagement.md](11-11-11-specifications/SPEC-ITSM-003-ChangeManagement.md) — Change 11-specifications
+- [SPEC-SYS-006-AuditLogging.md](11-11-11-specifications/SPEC-SYS-006-AuditLogging.md) — Audit logging specs
+- [SPEC-INT-001-WebhookManagement.md](11-11-11-specifications/SPEC-INT-001-WebhookManagement.md) — Webhook specs
 - [CRM.Backend/src/CRM.Infrastructure/Data/CrmDbContext.cs](../../CRM.Backend/src/CRM.Infrastructure/Data/CrmDbContext.cs) — Entity mappings
 - [database/DATABASE_SCHEMA.md](../database/DATABASE_SCHEMA.md) — Schema documentation
 - [BACKEND_GAPS_TRACKING.md](BACKEND_GAPS_TRACKING.md) — Service implementation gaps

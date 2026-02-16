@@ -8,7 +8,7 @@ Copilot usage
 - Update documentation as you proceed (specs, remediation plan, and related docs).
 - Write and validate unit tests at the end of the task to ensure code quality and correctness.
 - Clean up terminals when done to maintain an organized workspace..
-- Where possible, use the provided documentation and specifications to guide your implementation and ensure consistency with the project's standards and requirements.
+- Where possible, use the provided documentation and 11-specifications to guide your implementation and ensure consistency with the project's standards and requirements.
 - where possible reuse terminals for related tasks to maintain context and reduce setup time, but feel free to open new terminals for unrelated tasks or when it helps keep things organized.
 ---
 
@@ -18,7 +18,7 @@ Copilot usage
 
 **Before implementing ANY feature, consult the feature specification:**
 
-📁 **[docs/11-specifications/INDEX.md](../docs/11-specifications/INDEX.md)** - Master index of all specifications
+📁 **[docs/11-11-11-specifications/INDEX.md](../docs/11-11-11-specifications/INDEX.md)** - Master index of all 11-specifications
 
 ### Specification Structure
 
@@ -36,7 +36,7 @@ Each feature has a specification file (`SPEC-{MODULE}-{SEQ}-{Name}.md`) with ful
 
 ### Before Writing Code
 
-1. **Find the spec:** `docs/11-specifications/SPEC-{MODULE}-{SEQ}-{FeatureName}.md` in not found create this file with understanding of the implimented code and the instructions . Add in addition put in additional details as you see fit to ensure the spec is comprehensive and clear for implementation. Use the `SPEC-TEMPLATE.md` as a starting point to maintain consistency across specifications.
+1. **Find the spec:** `docs/11-11-11-specifications/SPEC-{MODULE}-{SEQ}-{FeatureName}.md` in not found create this file with understanding of the implimented code and the instructions . Add in addition put in additional details as you see fit to ensure the spec is comprehensive and clear for implementation. Use the `SPEC-TEMPLATE.md` as a starting point to maintain consistency across 11-specifications.
 2. **Check implementation status:** Look for ✅ Implemented, ⚠️ Partial, ❌ Not Found markers
 3. **Follow validations:** Use exact rules from spec (both frontend AND backend)
 4. **Match data types:** Follow entity property types exactly

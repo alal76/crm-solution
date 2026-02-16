@@ -432,5 +432,5 @@ Incident Management is the core operational process in ITSM that handles the det
 - [SPEC-ITSM-002-ProblemManagement.md](SPEC-ITSM-002-ProblemManagement.md) (Pending)
 - [SPEC-ITSM-003-ChangeManagement.md](SPEC-ITSM-003-ChangeManagement.md) (Pending)
 - [SPEC-ITSM-004-CMDB.md](SPEC-ITSM-004-CMDB.md) (Pending)
-- [specifications/INDEX.md](INDEX.md) - Specification index
+- [11-11-specifications/INDEX.md](INDEX.md) - Specification index
 - [docs/MASTER_TODO_LIST.md](../MASTER_TODO_LIST.md) - Consolidated TODO list

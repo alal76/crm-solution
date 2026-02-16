@@ -1,7 +1,7 @@
 # CRM Solution Gaps Remediation Plan
 
 > **Created:** February 8, 2026  
-> **Last Updated:** February 15, 2026  
+> **Last Updated:** February 16, 2026  
 > **Status:** CRITICAL BLOCKER IDENTIFIED - System Module test suite blocked by 188 build errors
 
 ---
@@ -54,6 +54,28 @@ The following items remain from the remediation effort:
 |----|----------|-------------|-------|
 | P-AI-05 | 🟢 Low | Qdrant production deployment | Init script ready, needs production hosting |
 | P-AI-06 | 🟢 Low | Agent fine-tuning with production data | Requires usage data collection period |
+
+### One-Phase Remediation Plan — Worker Service Architecture (ITSM Escalation)
+
+**Goal:** Introduce a dedicated worker service architecture to handle ITSM escalation workloads (SLA breach detection, escalation routing, notifications, and audit trails) without impacting the API request path.
+
+**Specification:** [SPEC-ARCH-006-WorkerServiceArchitecture.md](11-specifications/SPEC-ARCH-006-WorkerServiceArchitecture.md)
+
+**Ordering, Tasks, Dependencies (single phase):**
+1. **Architecture & contract definition** — Define escalation event schema, retry policy, idempotency key strategy, and worker-to-API contract. **Depends on:** current ITSM escalation logic and SLA policies.
+2. **Queue/backbone selection & configuration plan** — Choose transport (e.g., Redis streams, RabbitMQ, or built-in background queue) and document configuration, scaling, and failure modes. **Depends on:** infrastructure constraints and deployment topology.
+3. **Outbox + dispatcher design** — Specify how escalation events are emitted from the API (outbox table, polling cadence, backoff) and how the worker consumes them. **Depends on:** database schema and transaction boundaries.
+4. **Worker service responsibilities** — Define escalation processing steps (evaluate SLA breach, route to escalation rule, create activities, notify), concurrency limits, and isolation boundaries. **Depends on:** ITSM escalation domain rules.
+5. **Observability & operations** — Add metrics, structured logs, DLQ/poison handling, and runbook procedures (replay, pause, drain). **Depends on:** logging/monitoring stack.
+6. **Test strategy** — Define unit/integration/E2E validation for escalation events, retries, idempotency, and failure recovery. **Depends on:** existing ITSM test suites.
+7. **Rollout plan** — Document feature flag/traffic shift, backward compatibility, and rollback steps. **Depends on:** feature flag system and deployment process.
+
+**Acceptance Criteria:**
+- Escalation workloads run asynchronously in a separate worker service, with no synchronous SLA processing in the API request path.
+- Events are durable (no loss on restarts) and idempotent, with replayable processing for failed messages.
+- Escalation processing supports retries and poison-message handling without blocking the queue.
+- Metrics and logs provide end-to-end visibility (enqueue, processing, outcome, latency).
+- Test plan covers success, retry, and failure paths for ITSM escalation workloads.
 
 ---
 
@@ -133,7 +155,7 @@ The following items remain from the remediation effort:
 ## References
 
 - [MASTER_TODO_LIST.md](MASTER_TODO_LIST.md) — 142 pending TODO items
-- [specifications/INDEX.md](specifications/INDEX.md) — 10/40 specs complete
+- [11-specifications/INDEX.md](11-specifications/INDEX.md) — 10/40 specs complete
 - [copilot-instructions.md](../.github/copilot-instructions.md)
 - [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md) — Complete third-party dependency licensing inventory
 

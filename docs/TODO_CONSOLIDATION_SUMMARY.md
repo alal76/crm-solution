@@ -1,6 +1,6 @@
 # TODO Consolidation Summary
 > **Date:** February 14, 2026  
-> **Task:** Extract and consolidate 429+ TODO items from 14 specifications  
+> **Task:** Extract and consolidate 429+ TODO items from 14 11-specifications  
 > **Status:** ✅ COMPLETE
 
 ---
@@ -144,7 +144,7 @@ Phase 7: Enhancements (13 items) [P3]
 - SYS-006 audit + INT-001 webhooks audit: Different scopes, not duplicate
 - SALES-003 invoices + SALES-004 payments: Sequential, not duplicate
 
-**Conclusion**: Consolidation is clean with zero true duplicates. Items are logically sequenced across specifications.
+**Conclusion**: Consolidation is clean with zero true duplicates. Items are logically sequenced across 11-specifications.
 
 ---
 
@@ -183,7 +183,7 @@ Phase 7: Enhancements (13 items) [P3]
 
 2. **Establish Implementation Prioritization Board**
    - Create GitHub Projects with P0/P1/P2/P3 columns
-   - Link issues to specifications
+   - Link issues to 11-specifications
    - Track progress per spec
 
 3. **Kickoff Critical Path (P0/P1 items)**
@@ -238,8 +238,8 @@ Phase 7: Enhancements (13 items) [P3]
 |----------|---------|--------|
 | [CONSOLIDATED_SPECIFICATION_TODOS.md](CONSOLIDATED_SPECIFICATION_TODOS.md) | Full TODO item reference | ✅ Created |
 | [MASTER_TODO_LIST.md](MASTER_TODO_LIST.md) | Integration point | 🔄 To be updated |
-| [specifications/INDEX.md](specifications/INDEX.md) | Spec navigation | ✅ Existing |
-| [specifications/IMPLEMENTATION_PLAN.md](11-specifications/IMPLEMENTATION_PLAN.md) | Timeline detail | ✅ Existing |
+| [11-11-specifications/INDEX.md](11-11-specifications/INDEX.md) | Spec navigation | ✅ Existing |
+| [11-11-specifications/IMPLEMENTATION_PLAN.md](11-11-11-specifications/IMPLEMENTATION_PLAN.md) | Timeline detail | ✅ Existing |
 | GitHub Projects Board | Work tracking | 📋 To create |
 
 ---
@@ -262,7 +262,7 @@ Phase 7: Enhancements (13 items) [P3]
 - SPEC-SALES-003: 15 items (Invoices)
 - SPEC-SALES-004: 17 items (Payments)
 
-**Total: 204 items distributed across 14 specifications**
+**Total: 204 items distributed across 14 11-specifications**
 
 ---
 
