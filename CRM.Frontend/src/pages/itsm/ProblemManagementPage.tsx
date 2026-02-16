@@ -41,24 +41,24 @@ import {
   Refresh as RefreshIcon,
   GetApp as DownloadIcon,
 } from '@mui/icons-material';
-import { useApiState } from '../hooks/useApiState';
+import { useApiState } from '../../hooks/useApiState';
 import {
   DialogError,
   DialogSuccess,
   ActionButton,
   EnhancedEmptyState,
   DialogHeader,
-} from '../components/common';
+} from '../../components/common';
 import problemService, {
   Problem,
   ProblemStatus,
   ProblemPriority,
   CreateProblemRequest,
   UpdateProblemRequest,
-} from '../services/problemService';
-import { ProblemRelatedIncidentsList } from '../components/itsm/ProblemRelatedIncidentsList';
-import logger from '../services/logger';
-import logo from '../assets/logo.png';
+} from '../../services/problemService';
+import { ProblemRelatedIncidentsList } from '../../components/itsm/ProblemRelatedIncidentsList';
+import logger from '../../services/logger';
+import logo from '../../assets/logo.png';
 
 // Helper functions
 const getStatusLabel = (status: ProblemStatus): string => {
@@ -200,7 +200,7 @@ export const ProblemManagementPage: React.FC = () => {
         {/* Error Alert */}
         {error && (
           <Alert severity="error" sx={{ mb: 2 }} onClose={clearError}>
-            {error}
+            {typeof error === 'string' ? error : error.message}
           </Alert>
         )}
 
@@ -231,7 +231,7 @@ export const ProblemManagementPage: React.FC = () => {
                         <EnhancedEmptyState
                           variant="no-data"
                           title="No problems found"
-                          message="Create a new problem to get started"
+                          description="Create a new problem to get started"
                         />
                       </TableCell>
                     </TableRow>
@@ -369,7 +369,7 @@ export const ProblemManagementPage: React.FC = () => {
 
       {/* Create/Edit Problem Dialog */}
       <Dialog open={formDialogOpen} onClose={() => setFormDialogOpen(false)} maxWidth="sm" fullWidth>
-        <DialogHeader mode="create" entityType="Problem" onClose={() => setFormDialogOpen(false)} />
+        <DialogHeader mode="create" entityType="problem" onClose={() => setFormDialogOpen(false)} />
         <DialogContent sx={{ pt: 2 }}>
           <Stack spacing={2}>
             <TextField

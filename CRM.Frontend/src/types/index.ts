@@ -12,8 +12,8 @@ export * from './itsm';
 export * from './crm';
 export * from './marketing';
 export * from './auth';
-export * from './address.types';
-export * from './workflows';
+// address.types re-exports omitted — Address already exported from ./common
+// workflows re-exports omitted — ValidationError conflicts with ./common
 
 /**
  * Pagination request parameters

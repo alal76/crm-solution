@@ -36,13 +36,13 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import EditIcon from '@mui/icons-material/Edit';
 import MoreVertIcon from '@mui/icons-material/MoreVert';
 import ArrowDownwardIcon from '@mui/icons-material/ArrowDownward';
-import marketingService from '../../services/marketingService';
+import marketingService from '../services/marketingService';
 import {
   EmailSequence,
   SequenceStep,
   SequenceStepType,
   CreateEmailSequenceDto
-} from '../../../types/marketing';
+} from '../types/marketing';
 
 /**
  * Email Sequence Builder Page Component

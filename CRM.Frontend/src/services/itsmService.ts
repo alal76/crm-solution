@@ -24,8 +24,8 @@ import {
   CreateChangeDto,
   UpdateChangeDto,
   CreateServiceRequestDto,
-  PaginatedResponse,
 } from '../types/itsm';
+import { PaginatedResponse } from '../types/common';
 
 /**
  * ITSM Service offering CRUD operations for all ITSM entities

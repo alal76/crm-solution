@@ -10,6 +10,9 @@ Copilot usage
 - Clean up terminals when done to maintain an organized workspace..
 - Where possible, use the provided documentation and 11-specifications to guide your implementation and ensure consistency with the project's standards and requirements.
 - where possible reuse terminals for related tasks to maintain context and reduce setup time, but feel free to open new terminals for unrelated tasks or when it helps keep things organized.
+- for deployments check the target architecture every time , for docker builds remove the old images before building the new ones to avoid confusion and ensure the latest code is being used. For Kubernetes deployments, ensure you are in the correct context and namespace before applying manifests or helm charts.
+- Cretae a problems and solutions tracking file where common problems and solutions are tracked - for common problems write helper scripts to automate the solution and add it to the repository for future use. Name this file common_development_issues.md in the /docs folder and keep it updated with any new issues encountered and their solutions, this will help future developers who might encounter the same issues and also help in tracking recurring problems that might indicate underlying issues in the codebase or development process.
+
 ---
 
 ## � Feature Specification Framework
@@ -18,7 +21,7 @@ Copilot usage
 
 **Before implementing ANY feature, consult the feature specification:**
 
-📁 **[docs/11-11-11-specifications/INDEX.md](../docs/11-11-11-specifications/INDEX.md)** - Master index of all 11-specifications
+📁 **[docs/11-specifications/INDEX.md](../docs/11-specifications/INDEX.md)** - Master index of all 11-specifications
 
 ### Specification Structure
 
@@ -36,7 +39,7 @@ Each feature has a specification file (`SPEC-{MODULE}-{SEQ}-{Name}.md`) with ful
 
 ### Before Writing Code
 
-1. **Find the spec:** `docs/11-11-11-specifications/SPEC-{MODULE}-{SEQ}-{FeatureName}.md` in not found create this file with understanding of the implimented code and the instructions . Add in addition put in additional details as you see fit to ensure the spec is comprehensive and clear for implementation. Use the `SPEC-TEMPLATE.md` as a starting point to maintain consistency across 11-specifications.
+1. **Find the spec:** `docs/11-specifications/SPEC-{MODULE}-{SEQ}-{FeatureName}.md` in not found create this file with understanding of the implimented code and the instructions . Add in addition put in additional details as you see fit to ensure the spec is comprehensive and clear for implementation. Use the `SPEC-TEMPLATE.md` as a starting point to maintain consistency across 11-specifications.
 2. **Check implementation status:** Look for ✅ Implemented, ⚠️ Partial, ❌ Not Found markers
 3. **Follow validations:** Use exact rules from spec (both frontend AND backend)
 4. **Match data types:** Follow entity property types exactly

@@ -54,7 +54,10 @@ export type DialogEntityType =
   | 'team'
   | 'user'
   | 'subscription'
-  | 'commission';
+  | 'commission'
+  | 'problem'
+  | 'change'
+  | 'webhook';
 
 export interface DialogHeaderProps {
   /** Mode of the dialog */
@@ -177,6 +180,21 @@ const entityConfigs: Record<DialogEntityType, {
     icon: <AttachMoneyIcon />,
     color: '#4CAF50',
     singularLabel: 'Commission',
+  },
+  problem: {
+    icon: <AssignmentIcon />,
+    color: '#F44336',
+    singularLabel: 'Problem',
+  },
+  change: {
+    icon: <AssignmentIcon />,
+    color: '#FF9800',
+    singularLabel: 'Change',
+  },
+  webhook: {
+    icon: <AssignmentIcon />,
+    color: '#607D8B',
+    singularLabel: 'Webhook',
   },
 };
 

@@ -219,7 +219,8 @@ function ContractsPage() {
     try {
       setLoading(true);
       const response = await apiClient.get('/contracts');
-      setContracts(response.data);
+      const data = response.data;
+      setContracts(Array.isArray(data) ? data : (data?.items ?? []));
       setError(null);
     } catch (err: any) {
       // If endpoint doesn't exist, show empty state

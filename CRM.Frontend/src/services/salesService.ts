@@ -26,12 +26,12 @@ import {
   UpdateContractDto,
   CreateSubscriptionDto,
   UpdateSubscriptionDto,
-  PaginatedResponse,
   QuoteStatus,
   OrderStatus,
   InvoiceStatus,
   PaymentStatus,
 } from '../types/sales';
+import { PaginatedResponse } from '../types/common';
 
 const salesService = {
   // =========================================================================
