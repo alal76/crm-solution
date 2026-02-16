@@ -583,6 +583,6 @@ dotnet ef migrations add MigrationName --project ../CRM.Infrastructure
 
 ## Related Documentation
 
-- [INFRASTRUCTURE_GUIDE.md](../guides/INFRASTRUCTURE_GUIDE.md)
+- [INFRASTRUCTURE_GUIDE.md](../INFRASTRUCTURE_GUIDE.md)
 - [DATABASE_SETUP.md](../DATABASE_SETUP.md)
 - [Docker README](../../docker/README.md)

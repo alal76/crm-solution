@@ -195,8 +195,8 @@ test('Test name', async ({ page }) => {
 ### ✅ Files Updated:
 1. `e2e-tests/tests/customers/account-addresses.spec.ts` (MAIN FIX)
 2. `.github/copilot-instructions.md` (CRITICAL section added)
-3. `CHROMIUM_FIXES_BATCH2_RESULTS.md` (Detailed documentation)
-4. `CHROMIUM_FIXES_BATCH2_COMPLETE.md` (Technical documentation)
+3. `docs/legacy/summary/CHROMIUM_FIXES_BATCH2_RESULTS.md` (Detailed documentation)
+4. `docs/legacy/summary/CHROMIUM_FIXES_BATCH2_COMPLETE.md` (Technical documentation)
 
 ---
 

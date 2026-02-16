@@ -240,7 +240,7 @@ services.AddScoped<ISearchPort>(sp =>
 | AI/LLM | Ollama (local) | - | OpenAI, Azure OpenAI, Anthropic |
 | Integrations | Webhooks | n8n | Zapier, Make |
 
-For detailed implementation guidance, see [ADR-001: Pluggable Architecture Strategy](docs/architecture/ADR-001-Pluggable-Architecture-Strategy.md).
+For detailed implementation guidance, see [ADR-001: Pluggable Architecture Strategy](../architecture/ADR-001-Pluggable-Architecture-Strategy.md).
 
 ---
 

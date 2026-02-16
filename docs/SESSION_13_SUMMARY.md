@@ -67,7 +67,7 @@ This session focused on implementing all medium and low priority recommendations
 **Impact**: High - Performance optimization guidance
 
 **Changes**:
-- Created comprehensive [N+1_QUERY_REVIEW_GUIDE.md](docs/N+1_QUERY_REVIEW_GUIDE.md)
+- Created comprehensive [N+1_QUERY_REVIEW_GUIDE.md](N+1_QUERY_REVIEW_GUIDE.md)
 - Documented detection strategies and optimization techniques
 - Identified high-risk areas (AccountService, OpportunityService, QuoteService)
 - Provided code examples and best practices
@@ -215,7 +215,7 @@ This session focused on implementing all medium and low priority recommendations
 **Impact**: Medium - Technical debt documentation
 
 **Changes**:
-- Created [COMPONENT_REFACTORING_RECOMMENDATIONS.md](docs/COMPONENT_REFACTORING_RECOMMENDATIONS.md)
+- Created [COMPONENT_REFACTORING_RECOMMENDATIONS.md](COMPONENT_REFACTORING_RECOMMENDATIONS.md)
 - Documented 4 large components requiring refactoring
 - Provided detailed refactoring strategies and folder structures
 
@@ -343,14 +343,14 @@ No build verification needed for package.json changes (dependency removal only).
 
 ## Documentation Created
 
-1. **[N+1_QUERY_REVIEW_GUIDE.md](docs/N+1_QUERY_REVIEW_GUIDE.md)** (15+ sections)
+1. **[N+1_QUERY_REVIEW_GUIDE.md](N+1_QUERY_REVIEW_GUIDE.md)** (15+ sections)
    - Detection strategies
    - Optimization techniques
    - Action plan with priorities
    - Code examples and anti-patterns
    - Testing strategies
 
-2. **[COMPONENT_REFACTORING_RECOMMENDATIONS.md](docs/COMPONENT_REFACTORING_RECOMMENDATIONS.md)** (4 components)
+2. **[COMPONENT_REFACTORING_RECOMMENDATIONS.md](COMPONENT_REFACTORING_RECOMMENDATIONS.md)** (4 components)
    - Current state analysis
    - Refactoring strategies
    - Folder structure proposals

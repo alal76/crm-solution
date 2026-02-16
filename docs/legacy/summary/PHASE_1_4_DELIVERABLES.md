@@ -18,7 +18,7 @@
 ### 📚 Documentation Files
 
 #### Main Reports
-1. **[PHASE_1_4_COMPLETION_REPORT.md](docs/summary/PHASE_1_4_COMPLETION_REPORT.md)** ⭐ **START HERE**
+1. **docs/legacy/summary/PHASE_1_4_COMPLETION_REPORT.md** ⭐ **START HERE**
    - Executive summary of implementation
    - All endpoints and their specifications
    - Build verification results
@@ -26,7 +26,7 @@
    - Deployment instructions
    - 120+ lines of detailed documentation
 
-2. **[PHASE_1_4_ADDRESS_API_CURL_EXAMPLES.md](docs/summary/PHASE_1_4_ADDRESS_API_CURL_EXAMPLES.md)**
+2. **docs/legacy/summary/PHASE_1_4_ADDRESS_API_CURL_EXAMPLES.md**
    - Sample curl commands for all 7 endpoints
    - Complete request/response examples
    - Error response examples
@@ -34,7 +34,7 @@
    - Setup instructions (JWT token, variables)
    - 250+ lines of ready-to-use examples
 
-3. **[PHASE_1_4_VERIFICATION_CHECKLIST.md](docs/summary/PHASE_1_4_VERIFICATION_CHECKLIST.md)**
+3. **docs/legacy/summary/PHASE_1_4_VERIFICATION_CHECKLIST.md**
    - Endpoint implementation status
    - Build verification results
    - Code quality verification
@@ -85,7 +85,7 @@ cat "CRM.Backend/src/CRM.Api/Controllers/AddressesController.cs"
 ```
 
 ### 2. Run curl Examples
-See [PHASE_1_4_ADDRESS_API_CURL_EXAMPLES.md](docs/summary/PHASE_1_4_ADDRESS_API_CURL_EXAMPLES.md) for:
+See docs/legacy/summary/PHASE_1_4_ADDRESS_API_CURL_EXAMPLES.md for:
 - Authentication setup
 - Create address example (POST)
 - Retrieve address example (GET)
@@ -175,7 +175,7 @@ AddressDto        - Response body (all fields)
 ## 📖 Documentation Structure
 
 ```
-PHASE_1_4_COMPLETION_REPORT.md
+docs/legacy/summary/PHASE_1_4_COMPLETION_REPORT.md
 ├── Executive Summary
 ├── Implementation Details
 ├── API Endpoints Summary (7 endpoints)
@@ -185,7 +185,7 @@ PHASE_1_4_COMPLETION_REPORT.md
 ├── Deployment Instructions
 └── Conclusion
 
-PHASE_1_4_ADDRESS_API_CURL_EXAMPLES.md
+docs/legacy/summary/PHASE_1_4_ADDRESS_API_CURL_EXAMPLES.md
 ├── Setup (JWT token, variables)
 ├── Sample curl Commands (7 endpoints)
 │   ├── Request format
@@ -194,7 +194,7 @@ PHASE_1_4_ADDRESS_API_CURL_EXAMPLES.md
 ├── Testing Workflow Example
 └── Implementation Summary
 
-PHASE_1_4_VERIFICATION_CHECKLIST.md
+docs/legacy/summary/PHASE_1_4_VERIFICATION_CHECKLIST.md
 ├── Endpoint Implementation Status (7/7)
 ├── Build Verification Results
 ├── File Verification
@@ -211,8 +211,8 @@ PHASE_1_4_VERIFICATION_CHECKLIST.md
 ## 🎯 Next Steps
 
 ### Immediate (Today)
-1. Review [PHASE_1_4_COMPLETION_REPORT.md](docs/summary/PHASE_1_4_COMPLETION_REPORT.md)
-2. Test using curl examples from [PHASE_1_4_ADDRESS_API_CURL_EXAMPLES.md](docs/summary/PHASE_1_4_ADDRESS_API_CURL_EXAMPLES.md)
+1. Review docs/legacy/summary/PHASE_1_4_COMPLETION_REPORT.md
+2. Test using curl examples from docs/legacy/summary/PHASE_1_4_ADDRESS_API_CURL_EXAMPLES.md
 3. Verify endpoints are accessible
 
 ### Short-term (This Week)

@@ -277,9 +277,9 @@ This is the MOST CRITICAL fix - routes must point to frontend, not backend.
 ## Documentation Created
 
 📄 **New Documentation Files:**
-1. ✅ `BATCH3_ITSM_UI_FIXESCOMPLETION.md` - Detailed Batch 3 report
-2. ✅ `BATCH4_STRATEGICPLAN.md` - Batch 4 execution strategy
-3. ✅ `SESSION6_COMPREHENSIVE_SUMMARY.md` (this file) - Overall session summary
+1. ✅ `docs/legacy/summary/BATCH3_ITSM_UI_FIXESCOMPLETION.md` - Detailed Batch 3 report
+2. ✅ `docs/legacy/summary/BATCH4_STRATEGICPLAN.md` - Batch 4 execution strategy
+3. ✅ `docs/legacy/summary/SESSION6_COMPREHENSIVE_SUMMARY.md` (this file) - Overall session summary
 
 📊 **Metrics & Tracking:**
 - Batch 1-3: 100% completion

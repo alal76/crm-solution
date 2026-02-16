@@ -55,7 +55,7 @@ This document consolidates findings from four comprehensive gap analyses into an
 5. [ ] Run test suite to confirm execution
 6. [ ] Document fixes for team
 
-**Reference:** See [SYSTEM_MODULE_REMEDIATION_GUIDE.md](docs/development/SYSTEM_MODULE_REMEDIATION_GUIDE.md)
+**Reference:** See [SYSTEM_MODULE_REMEDIATION_GUIDE.md](development/SYSTEM_MODULE_REMEDIATION_GUIDE.md)
 
 ---
 
@@ -80,7 +80,7 @@ This document consolidates findings from four comprehensive gap analyses into an
 - [ ] Campaign components (7+ components)
 - [ ] Campaign test suite (40+ tests)
 
-**Specification:** [SPEC-MKT-001](specifications/SPEC-MKT-001-CampaignManagement.md) (Pending creation)
+**Specification:** [SPEC-MKT-001](11-specifications/SPEC-MKT-001-CampaignManagement.md) (Pending creation)
 
 ---
 
@@ -128,8 +128,8 @@ This document consolidates findings from four comprehensive gap analyses into an
 - [ ] Change Management UI (3 pages, 6+ components)
 
 **References:**
-- [SPEC-ITSM-002](specifications/SPEC-ITSM-002-ProblemManagement.md)
-- [SPEC-ITSM-003](specifications/SPEC-ITSM-003-ChangeManagement.md)
+- [SPEC-ITSM-002](11-specifications/SPEC-ITSM-002-ProblemManagement.md)
+- [SPEC-ITSM-003](11-specifications/SPEC-ITSM-003-ChangeManagement.md)
 
 ---
 
@@ -151,7 +151,7 @@ This document consolidates findings from four comprehensive gap analyses into an
 - [ ] IncidentSLAStatusWidget (SLA progress indicators)
 - [ ] BulkIncidentActionModal (bulk reassign, status change)
 
-**Reference:** Spec section [SPEC-ITSM-001](specifications/SPEC-ITSM-001-IncidentManagement.md) - Section 2: Frontend
+**Reference:** Spec section [SPEC-ITSM-001](11-specifications/SPEC-ITSM-001-IncidentManagement.md) - Section 2: Frontend
 
 ---
 
@@ -180,7 +180,7 @@ This document consolidates findings from four comprehensive gap analyses into an
 - [ ] GET /api/commissions (list with filtering)
 - [ ] POST /api/commissions/payout (initiate payout)
 
-**Reference:** [SPEC-SALES-007](specifications/SPEC-SALES-007-CommissionManagement.md)
+**Reference:** [SPEC-SALES-007](11-specifications/SPEC-SALES-007-CommissionManagement.md)
 
 ---
 
@@ -242,8 +242,8 @@ This document consolidates findings from four comprehensive gap analyses into an
 ✅ **Completeness:** 100% of database layer work (P0-DB-001) delivered  
 
 **References & Artifacts:**
-- [DATABASE_SCHEMA_ADDITIONS.md](docs/DATABASE_SCHEMA_ADDITIONS.md) - Complete schema specification
-- [ITSM_IMPLEMENTATION_GUIDE.md](docs/ITSM_IMPLEMENTATION_GUIDE.md) - Deployment guide with examples
+- [DATABASE_SCHEMA_ADDITIONS.md](DATABASE_SCHEMA_ADDITIONS.md) - Complete schema specification
+- [ITSM_IMPLEMENTATION_GUIDE.md](ITSM_IMPLEMENTATION_GUIDE.md) - Deployment guide with examples
 - [20260215T180000_AddITSMMarketingIntegrationTables.cs](CRM.Backend/src/CRM.Infrastructure/Migrations/20260215T180000_AddITSMMarketingIntegrationTables.cs) - EF Core migration
 - [itsm_marketing_integration_mariadb.sql](database/schema/itsm_marketing_integration_mariadb.sql) - MariaDB DDL
 - [itsm_marketing_integration_sqlserver.sql](database/schema/itsm_marketing_integration_sqlserver.sql) - SQL Server DDL
@@ -848,10 +848,10 @@ This document consolidates findings from four comprehensive gap analyses into an
 1. [UNIFIED_REMEDIATION_PLAN.md](UNIFIED_REMEDIATION_PLAN.md) - Full implementation roadmap
 2. [EXECUTIVE_BRIEFING_REMEDIATION.md](EXECUTIVE_BRIEFING_REMEDIATION.md) - Leadership summary
 3. [SPRINT0_QUICK_START.md](SPRINT0_QUICK_START.md) - Week 1 action plan
-4. [FRONTEND_GAP_ANALYSIS_REPORT.md](docs/status/FRONTEND_GAP_ANALYSIS_REPORT.md) - Detailed frontend gaps
+4. [FRONTEND_GAP_ANALYSIS_REPORT.md](status/FRONTEND_GAP_ANALYSIS_REPORT.md) - Detailed frontend gaps
 5. [BACKEND_GAPS_ANALYSIS_REPORT.md](BACKEND_GAPS_ANALYSIS_REPORT.md) - Detailed backend gaps
 6. [DATABASE_GAPS_ANALYSIS.md](DATABASE_GAPS_ANALYSIS.md) - Detailed database gaps
-7. [ARCHITECTURAL_ALIGNMENT_ASSESSMENT.md](docs/development/ARCHITECTURAL_ALIGNMENT_ASSESSMENT.md) - Architecture deep dive
+7. [ARCHITECTURAL_ALIGNMENT_ASSESSMENT.md](development/ARCHITECTURAL_ALIGNMENT_ASSESSMENT.md) - Architecture deep dive
 8. [specifications/INDEX.md](specifications/INDEX.md) - Feature specifications
 9. [SOLUTION_GAPS_REMEDIATION_PLAN.md](docs/development/SOLUTION_GAPS_REMEDIATION_PLAN.md) - Previous remediation status
 

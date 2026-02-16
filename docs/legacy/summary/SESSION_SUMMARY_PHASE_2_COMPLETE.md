@@ -75,25 +75,25 @@
 
 ### Documentation Created
 
-1. **PHASE_2_DTO_CONSOLIDATION_PLAN.md** (3,000+ words)
+1. **docs/legacy/summary/PHASE_2_DTO_CONSOLIDATION_PLAN.md** (3,000+ words)
    - Detailed problem analysis
    - Root cause analysis
    - Consolidation strategy with options
    - Execution roadmap
 
-2. **PHASE_2_EXECUTION_REPORT.md** (2,500+ words)
+2. **docs/legacy/summary/PHASE_2_EXECUTION_REPORT.md** (2,500+ words)
    - What was completed
    - Issues identified and resolved
    - Build status reports
    - Recommendations for continuation
 
-3. **PHASE_2_COMPLETE.md** (2,000+ words)
+3. **docs/legacy/summary/PHASE_2_COMPLETE.md** (2,000+ words)
    - Completion checklist
    - Critical issues resolved
    - Risk assessment
    - Phase 3-4 readiness verification
 
-4. **PHASE_3_4_CONTINUATION_GUIDE.md** (4,000+ words)
+4. **docs/legacy/summary/PHASE_3_4_CONTINUATION_GUIDE.md** (4,000+ words)
    - Complete Phase 3 specification
    - 25 detailed method signatures
    - Implementation checklist
@@ -223,7 +223,7 @@ Next: Phase 3 ProblemManagementService implementation
    ```
 
 2. **Deploy Phase 3 Sub-Agent**
-   - Use prompt: `PHASE_3_4_CONTINUATION_GUIDE.md` (sections "PHASE 3 DETAILED SPECIFICATION")
+   - Use prompt: `docs/legacy/summary/PHASE_3_4_CONTINUATION_GUIDE.md` (sections "PHASE 3 DETAILED SPECIFICATION")
    - Deliverable: ProblemManagementService.cs (700+ lines, 25 methods)
    - Duration: 40 hours
    - Exit Criteria: dotnet build → 0 errors + 20 unit tests
@@ -286,10 +286,10 @@ Phase 2 focused on fixing the architectural foundation discovered during Phase 1
 ## FILES CHANGED THIS SESSION
 
 ### Created
-- PHASE_2_DTO_CONSOLIDATION_PLAN.md
-- PHASE_2_EXECUTION_REPORT.md
-- PHASE_2_COMPLETE.md
-- PHASE_3_4_CONTINUATION_GUIDE.md (THIS FILE - for next session)
+- docs/legacy/summary/PHASE_2_DTO_CONSOLIDATION_PLAN.md
+- docs/legacy/summary/PHASE_2_EXECUTION_REPORT.md
+- docs/legacy/summary/PHASE_2_COMPLETE.md
+- docs/legacy/summary/PHASE_3_4_CONTINUATION_GUIDE.md (THIS FILE - for next session)
 
 ### Modified
 - PaymentDto.cs (2 lines: qualified PaymentStatus to Entities.PaymentStatus)

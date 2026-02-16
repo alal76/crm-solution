@@ -470,7 +470,7 @@ dotnet test tests/CRM.Tests.csproj --list-tests 2>&1 | head -50
 ✅ **Phase 3 Complete:** Test project builds and tests can be discovered  
 
 Once this is completed, proceed to **System Module Test Execution** as documented in:  
-[SYSTEM_MODULE_TEST_EXECUTION_REPORT.md](docs/test/SYSTEM_MODULE_TEST_EXECUTION_REPORT.md)
+[SYSTEM_MODULE_TEST_EXECUTION_REPORT.md](../test/SYSTEM_MODULE_TEST_EXECUTION_REPORT.md)
 
 ---
 

@@ -871,6 +871,6 @@ This comprehensive health report confirms that the P0/P1 implementation is **pro
 
 *For detailed technical specifications, refer to:*
 - [SOLUTION_GAPS_REMEDIATION_PLAN.md](docs/development/SOLUTION_GAPS_REMEDIATION_PLAN.md)
-- [docs/SOLUTION_CONTEXT.md](docs/SOLUTION_CONTEXT.md)
-- [ARCHITECTURE_OVERVIEW.md](docs/development/ARCHITECTURE_OVERVIEW.md)
-- [CODING_STANDARDS.md](docs/development/CODING_STANDARDS.md)
+- [docs/SOLUTION_CONTEXT.md](../development/SOLUTION_CONTEXT.md)
+- [ARCHITECTURE_OVERVIEW.md](../development/ARCHITECTURE_OVERVIEW.md)
+- [CODING_STANDARDS.md](../development/CODING_STANDARDS.md)

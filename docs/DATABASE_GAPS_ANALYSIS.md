@@ -1154,14 +1154,14 @@ GROUP BY l.Source;
 
 ## Related Documentation
 
-- [SPEC-ITSM-001-IncidentManagement.md](../specifications/SPEC-ITSM-001-IncidentManagement.md) — Incident specifications
-- [SPEC-ITSM-002-ProblemManagement.md](../specifications/SPEC-ITSM-002-ProblemManagement.md) — Problem specifications
-- [SPEC-ITSM-003-ChangeManagement.md](../specifications/SPEC-ITSM-003-ChangeManagement.md) — Change specifications
-- [SPEC-SYS-006-AuditLogging.md](../specifications/SPEC-SYS-006-AuditLogging.md) — Audit logging specs
-- [SPEC-INT-001-WebhookManagement.md](../specifications/SPEC-INT-001-WebhookManagement.md) — Webhook specs
+- [SPEC-ITSM-001-IncidentManagement.md](11-specifications/SPEC-ITSM-001-IncidentManagement.md) — Incident specifications
+- [SPEC-ITSM-002-ProblemManagement.md](11-specifications/SPEC-ITSM-002-ProblemManagement.md) — Problem specifications
+- [SPEC-ITSM-003-ChangeManagement.md](11-specifications/SPEC-ITSM-003-ChangeManagement.md) — Change specifications
+- [SPEC-SYS-006-AuditLogging.md](11-specifications/SPEC-SYS-006-AuditLogging.md) — Audit logging specs
+- [SPEC-INT-001-WebhookManagement.md](11-specifications/SPEC-INT-001-WebhookManagement.md) — Webhook specs
 - [CRM.Backend/src/CRM.Infrastructure/Data/CrmDbContext.cs](../../CRM.Backend/src/CRM.Infrastructure/Data/CrmDbContext.cs) — Entity mappings
 - [database/DATABASE_SCHEMA.md](../database/DATABASE_SCHEMA.md) — Schema documentation
-- [BACKEND_GAPS_TRACKING.md](../BACKEND_GAPS_TRACKING.md) — Service implementation gaps
+- [BACKEND_GAPS_TRACKING.md](BACKEND_GAPS_TRACKING.md) — Service implementation gaps
 
 ---
 

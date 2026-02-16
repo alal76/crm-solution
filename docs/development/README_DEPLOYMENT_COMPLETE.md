@@ -33,7 +33,7 @@ chmod +x pre-deployment-check.sh
 | `DEPLOYMENT_READINESS_STATUS.md` | 15 KB | **STATUS REPORT** - Readiness verification | ✅ Ready |
 | `DEPLOYMENT_VERIFICATION_CHECKLIST.md` | 18 KB | **SIGN-OFF FORM** - Post-deployment verification | ✅ Ready |
 | `DEPLOYMENT_RESOURCE_INDEX.md` | 16 KB | **RESOURCE INDEX** - Complete file reference | ✅ Ready |
-| `DEPLOYMENT_SESSION_FINAL_REPORT.md` | 12 KB | **SESSION REPORT** - What was accomplished | ✅ Ready |
+| `docs/legacy/summary/DEPLOYMENT_SESSION_FINAL_REPORT.md` | 12 KB | **SESSION REPORT** - What was accomplished | ✅ Ready |
 
 ---
 
@@ -186,7 +186,7 @@ chmod +x deploy-to-dev-server.sh
 - `DEPLOYMENT_READINESS_STATUS.md`
 - `DEPLOYMENT_VERIFICATION_CHECKLIST.md`
 - `DEPLOYMENT_RESOURCE_INDEX.md`
-- `DEPLOYMENT_SESSION_FINAL_REPORT.md`
+- `docs/legacy/summary/DEPLOYMENT_SESSION_FINAL_REPORT.md`
 
 **Docker Files (Already Configured):**
 - `docker/docker-compose.yml`
@@ -283,7 +283,7 @@ Meilisearch: masterKey123
 → Read: `DEPLOYMENT_RESOURCE_INDEX.md`
 
 ### "What was accomplished?"
-→ Read: `DEPLOYMENT_SESSION_FINAL_REPORT.md`
+→ Read: `docs/legacy/summary/DEPLOYMENT_SESSION_FINAL_REPORT.md`
 
 ---
 

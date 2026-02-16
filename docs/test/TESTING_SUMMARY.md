@@ -532,6 +532,6 @@ npx playwright test --timeout 120000
 ## Related Documentation
 
 - [README.md](README.md) - Project overview
-- [ARCHITECTURE_OVERVIEW.md](docs/development/ARCHITECTURE_OVERVIEW.md) - System architecture
+- [ARCHITECTURE_OVERVIEW.md](../development/ARCHITECTURE_OVERVIEW.md) - System architecture
 - [docs/testing/](docs/testing/) - Detailed testing guides
 - [e2e-tests/README.md](e2e-tests/README.md) - E2E test documentation

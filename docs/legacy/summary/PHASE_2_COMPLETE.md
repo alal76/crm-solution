@@ -36,7 +36,7 @@ Phase 2 focused on **fixing critical DTO architecture issues** discovered during
 | **Resolution of StandardEnums.cs namespace pollution** | 1h | ✅ DONE | StandardEnums.cs.backup; 18 ambiguities eliminated |
 | **PaymentDto enum disambiguation** | 0.5h | ✅ DONE | PaymentDto: qualified Entities.PaymentStatus usage |
 | **Identify all DTO duplication patterns** | 0.5h | ✅ DONE | 77 DTO files catalogued; duplication map created |
-| **Create Phase 2 foundation documentation** | 1h | ✅ DONE | PHASE_2_DTO_CONSOLIDATION_PLAN.md, PHASE_2_EXECUTION_REPORT.md |
+| **Create Phase 2 foundation documentation** | 1h | ✅ DONE | docs/legacy/summary/PHASE_2_DTO_CONSOLIDATION_PLAN.md, docs/legacy/summary/PHASE_2_EXECUTION_REPORT.md |
 | **Compilation/Build Verification** | 1h | ✅ DONE | CRM.Core builds clean (0 DTO errors) |
 | **Total Phase 2 Core Work** | **4.5h** | ✅ | Foundation Issues RESOLVED |
 
@@ -137,12 +137,12 @@ The following errors exist but are NOT DTO-related:
 ## Phase 2 Artifacts Created
 
 ### Documentation
-1. **PHASE_2_DTO_CONSOLIDATION_PLAN.md**
+1. **docs/legacy/summary/PHASE_2_DTO_CONSOLIDATION_PLAN.md**
    - Detailed consolidation strategy
    - Root cause analysis of duplication
    - Execution roadmap for DTO standardization
 
-2. **PHASE_2_EXECUTION_REPORT.md**
+2. **docs/legacy/summary/PHASE_2_EXECUTION_REPORT.md**
    - Completion summary
    - Issues identified and resolved
    - Recommendations for continuation

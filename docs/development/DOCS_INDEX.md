@@ -9,7 +9,7 @@
 
 ## 🎯 START HERE
 
-**First time deploying?** → **Start with [START_HERE.md](docs/development/START_HERE.md)**
+**First time deploying?** → **Start with [START_HERE.md](START_HERE.md)**
 
 ---
 
@@ -19,16 +19,16 @@
 
 | Document | Purpose | When to Use | Read Time |
 |----------|---------|-------------|-----------|
-| **[START_HERE.md](docs/development/START_HERE.md)** | Executive summary + quick start | Before any deployment | 5 min |
-| **[QUICK_DEPLOY.md](docs/development/QUICK_DEPLOY.md)** | One-page quick reference | During actual deployment | 3 min |
+| **[START_HERE.md](START_HERE.md)** | Executive summary + quick start | Before any deployment | 5 min |
+| **[QUICK_DEPLOY.md](QUICK_DEPLOY.md)** | One-page quick reference | During actual deployment | 3 min |
 | **[DEPLOY.sh](DEPLOY.sh)** | Automated deployment script | Run on server | Auto (~20 min) |
 
 ### For Comprehensive Guidance (Full Details)
 
 | Document | Purpose | When to Use | Read Time |
 |----------|---------|-------------|-----------|
-| **[DEPLOYMENT_AND_TESTING.md](docs/test/DEPLOYMENT_AND_TESTING.md)** | Complete procedures + troubleshooting | Planning or troubleshooting | 30 min |
-| **[DEPLOYMENT_READY.md](docs/status/DEPLOYMENT_READY.md)** | Pre-flight checklist + risk assessment | Before critical deployments | 15 min |
+| **[DEPLOYMENT_AND_TESTING.md](../test/DEPLOYMENT_AND_TESTING.md)** | Complete procedures + troubleshooting | Planning or troubleshooting | 30 min |
+| **[DEPLOYMENT_READY.md](../status/DEPLOYMENT_READINESS_STATUS.md)** | Pre-flight checklist + risk assessment | Before critical deployments | 15 min |
 | **[RUN_E2E_TESTS.sh](RUN_E2E_TESTS.sh)** | Automated test execution | Running E2E tests | Auto (~10 min) |
 
 ### For Understanding the Fix
@@ -36,8 +36,8 @@
 | Document | Purpose | Details |
 |----------|---------|---------|
 | **This Document** | Links everything together | Overview of all docs |
-| **[START_HERE.md](docs/development/START_HERE.md)** | What was fixed and why | See "The Problem" section |
-| **[QUICK_DEPLOY.md](docs/development/QUICK_DEPLOY.md)** | AddressType Fix details | See "What's Deployed" section |
+| **[START_HERE.md](START_HERE.md)** | What was fixed and why | See "The Problem" section |
+| **[QUICK_DEPLOY.md](QUICK_DEPLOY.md)** | AddressType Fix details | See "What's Deployed" section |
 
 ---
 
@@ -78,7 +78,7 @@ QUICK_DEPLOY.md → Monitoring/Troubleshooting sections
 
 ## 📊 Document Purposes
 
-### [START_HERE.md](docs/development/START_HERE.md) ⭐ **READ FIRST**
+### [START_HERE.md](START_HERE.md) ⭐ **READ FIRST**
 - **What**: Executive summary + quick start guide
 - **Who**: Everyone (managers, developers, ops)
 - **Why**: Fast overview before diving into details
@@ -89,7 +89,7 @@ QUICK_DEPLOY.md → Monitoring/Troubleshooting sections
   - Health checks
   - Go/No-Go decision
 
-### [QUICK_DEPLOY.md](docs/development/QUICK_DEPLOY.md) 🚀 **QUICK REFERENCE**
+### [QUICK_DEPLOY.md](QUICK_DEPLOY.md) 🚀 **QUICK REFERENCE**
 - **What**: One-page deployment reference
 - **Who**: Ops/DevOps during deployment
 - **Why**: Fast lookup during actual deployment
@@ -99,7 +99,7 @@ QUICK_DEPLOY.md → Monitoring/Troubleshooting sections
   - Quick tests
   - Troubleshooting table
 
-### [DEPLOYMENT_AND_TESTING.md](docs/test/DEPLOYMENT_AND_TESTING.md) 📖 **COMPREHENSIVE GUIDE**
+### [DEPLOYMENT_AND_TESTING.md](../test/DEPLOYMENT_AND_TESTING.md) 📖 **COMPREHENSIVE GUIDE**
 - **What**: Full step-by-step procedures
 - **Who**: First-time deployers, architects
 - **Why**: Complete understanding of every step
@@ -111,7 +111,7 @@ QUICK_DEPLOY.md → Monitoring/Troubleshooting sections
   - Production checklist
   - Detailed troubleshooting
 
-### [DEPLOYMENT_READY.md](docs/status/DEPLOYMENT_READY.md) ✅ **PRE-FLIGHT CHECKLIST**
+### [DEPLOYMENT_READY.md](../status/DEPLOYMENT_READINESS_STATUS.md) ✅ **PRE-FLIGHT CHECKLIST**
 - **What**: Complete deployment readiness assessment
 - **Who**: Team leads, QA, deployment approvers
 - **Why**: Verification everything is ready before production
@@ -239,8 +239,8 @@ Use this to verify you have everything needed:
 
 | Question | Answer | Document |
 |----------|--------|----------|
-| Where do I start? | Read [START_HERE.md](docs/development/START_HERE.md) | START_HERE.md |
-| How do I deploy quickly? | Read [QUICK_DEPLOY.md](docs/development/QUICK_DEPLOY.md) + execute DEPLOY.sh | QUICK_DEPLOY.md |
+| Where do I start? | Read [START_HERE.md](START_HERE.md) | START_HERE.md |
+| How do I deploy quickly? | Read [QUICK_DEPLOY.md](QUICK_DEPLOY.md) + execute DEPLOY.sh | QUICK_DEPLOY.md |
 | What was fixed? | AddressType enum comparison issue in AccountAddressService | START_HERE.md |
 | How long does deployment take? | ~20-30 minutes (DEPLOY.sh: 20 min + tests: 10 min) | START_HERE.md |
 | Is it safe to deploy? | Yes, 🟢 Low risk (build pre-verified) | DEPLOYMENT_READY.md |
@@ -297,12 +297,12 @@ ssh root@192.168.0.9 'bash -s' < DEPLOY.sh
 ```
 
 **If planning deployment**:
-1. Read [START_HERE.md](docs/development/START_HERE.md) (5 min)
-2. Read [DEPLOYMENT_AND_TESTING.md](docs/test/DEPLOYMENT_AND_TESTING.md) (30 min)
+1. Read [START_HERE.md](START_HERE.md) (5 min)
+2. Read [DEPLOYMENT_AND_TESTING.md](../test/DEPLOYMENT_AND_TESTING.md) (30 min)
 3. Execute [DEPLOY.sh](DEPLOY.sh) (20 min)
 
 **If uncertain**:
-→ Read [START_HERE.md](docs/development/START_HERE.md) first - it will guide you
+→ Read [START_HERE.md](START_HERE.md) first - it will guide you
 
 ---
 

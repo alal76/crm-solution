@@ -391,7 +391,7 @@ All specs meet standard acceptance criteria:
 ## 10. File Updates Summary
 
 ### Updated Files
-1. **[MASTER_TODO_LIST.md](../MASTER_TODO_LIST.md)**
+1. **[MASTER_TODO_LIST.md](MASTER_TODO_LIST.md)**
    - Added: 51 Service Desk TODO items
    - Updated header: Total 255 items (was 204)
    - Added subsection: "Service Desk Module Specifications"
@@ -399,11 +399,11 @@ All specs meet standard acceptance criteria:
    - Priority matrix updated
 
 ### Unchanged Files
-2. **[specs/SPEC-SD-001-ServiceRequestManagement.md](SPEC-SD-001-ServiceRequestManagement.md)** ✅ Already complete
-3. **[specs/SPEC-SD-002-KnowledgeBase.md](SPEC-SD-002-KnowledgeBase.md)** ✅ Already complete
-4. **[specs/SPEC-SD-003-SLAManagement.md](SPEC-SD-003-SLAManagement.md)** ✅ Already complete
-5. **[specs/SPEC-SD-004-WorkflowEngine.md](SPEC-SD-004-WorkflowEngine.md)** ✅ Already complete
-6. **[specs/SPEC-SD-005-EscalationManagement.md](SPEC-SD-005-EscalationManagement.md)** ✅ Already complete
+2. **[specs/SPEC-SD-001-ServiceRequestManagement.md](11-specifications/SPEC-SD-001-ServiceRequestManagement.md)** ✅ Already complete
+3. **[specs/SPEC-SD-002-KnowledgeBase.md](11-specifications/SPEC-SD-002-KnowledgeBase.md)** ✅ Already complete
+4. **[specs/SPEC-SD-003-SLAManagement.md](11-specifications/SPEC-SD-003-SLAManagement.md)** ✅ Already complete
+5. **[specs/SPEC-SD-004-WorkflowEngine.md](11-specifications/SPEC-SD-004-WorkflowEngine.md)** ✅ Already complete
+6. **[specs/SPEC-SD-005-EscalationManagement.md](11-specifications/SPEC-SD-005-EscalationManagement.md)** ✅ Already complete
 
 ---
 

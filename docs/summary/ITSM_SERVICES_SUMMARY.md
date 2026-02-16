@@ -355,8 +355,8 @@ After implementation, verify:
 **Related Documentation:**
 - [Feature Specification Framework](docs/11-specifications/INDEX.md)
 - [SOLUTION_GAPS_REMEDIATION_PLAN.md](docs/SOLUTION_GAPS_REMEDIATION_PLAN.md)
-- [ARCHITECTURE_OVERVIEW.md](docs/development/ARCHITECTURE_OVERVIEW.md)
-- [Phase 4 Service Specifications](docs/PHASE4_SERVICE_SPECIFICATIONS.md)
+- [ARCHITECTURE_OVERVIEW.md](../development/ARCHITECTURE_OVERVIEW.md)
+- [Phase 4 Service Specifications](../PHASE4_SERVICE_SPECIFICATIONS.md)
 
 **External References:**
 - [ASP.NET Core Dependency Injection](https://docs.microsoft.com/en-us/dotnet/core/extensions/dependency-injection)

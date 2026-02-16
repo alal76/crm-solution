@@ -185,7 +185,6 @@ const SingleSLADisplay: React.FC<SingleSLADisplayProps> = ({
         }`}
       >
         <Chip
-          icon={icon}
           label={formatTimeRemaining(timeRemaining, timeRemaining.isOverdue)}
           size="small"
           sx={{

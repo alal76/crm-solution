@@ -931,10 +931,10 @@ Step 5: Change implemented during maintenance window
 | Document | Description |
 |----------|-------------|
 | [README.md](../README.md) | Solution overview with ITSM section |
-| [ITSM Implementation Status](docs/status/ITSM_IMPLEMENTATION_STATUS.md) | Technical implementation tracking |
+| [ITSM Implementation Status](status/ITSM_IMPLEMENTATION_STATUS.md) | Technical implementation tracking |
 | [Solution Gaps Remediation Plan](docs/development/SOLUTION_GAPS_REMEDIATION_PLAN.md) | Overall remediation progress |
 | [Specification Index](specifications/INDEX.md) | Feature specifications |
-| [Architecture Overview](docs/development/ARCHITECTURE_OVERVIEW.md) | System architecture |
+| [Architecture Overview](development/ARCHITECTURE_OVERVIEW.md) | System architecture |
 | [API Reference (Swagger)](http://localhost:5000/swagger) | Interactive API documentation |
 
 ---

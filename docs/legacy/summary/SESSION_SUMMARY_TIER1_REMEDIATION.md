@@ -38,7 +38,7 @@
   - Success criteria and next steps
 
 ### ✅ Documentation Updated
-- **SPRINT1_2_SERVICES_DELIVERY_REPORT.md** (500+ lines)
+- **docs/legacy/status/SPRINT1_2_SERVICES_DELIVERY_REPORT.md** (500+ lines)
   - Complete inventory of all 9 services
   - Method signatures and key implementations
   - DTO definitions and entity relationships
@@ -186,7 +186,7 @@ WebhookManagementService and WebhookDispatcherService were implemented but:
 
 ```
 ✅ TIER1_BUILD_ERROR_ANALYSIS.md (NEW - 400+ lines)
-✅ SPRINT1_2_SERVICES_DELIVERY_REPORT.md (COMMITTED - 500+ lines)
+✅ docs/legacy/status/SPRINT1_2_SERVICES_DELIVERY_REPORT.md (COMMITTED - 500+ lines)
 ✅ Git commit c3adc6f
 ```
 

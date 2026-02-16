@@ -462,8 +462,8 @@ See TODO-ITSM-01 through TODO-ITSM-02 in [MASTER_TODO_LIST.md](../MASTER_TODO_LI
 
 ## Related Documentation
 
-- [ARCHITECTURE_OVERVIEW.md](docs/development/ARCHITECTURE_OVERVIEW.md) — Solution-wide architecture
-- [ITSM_IMPLEMENTATION_STATUS.md](docs/status/ITSM_IMPLEMENTATION_STATUS.md) — Detailed status
+- [ARCHITECTURE_OVERVIEW.md](../development/ARCHITECTURE_OVERVIEW.md) — Solution-wide architecture
+- [ITSM_IMPLEMENTATION_STATUS.md](../status/ITSM_IMPLEMENTATION_STATUS.md) — Detailed status
 - [ITSM_USER_GUIDE.md](../ITSM_USER_GUIDE.md) — End-user guide
 - [SOLUTION_GAPS_REMEDIATION_PLAN.md](docs/development/SOLUTION_GAPS_REMEDIATION_PLAN.md) — Remaining work
 

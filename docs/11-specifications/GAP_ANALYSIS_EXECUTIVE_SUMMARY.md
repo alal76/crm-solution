@@ -223,11 +223,11 @@
 
 ## References
 
-- Full Backend Gap Analysis: [BACKEND_IMPLEMENTATION_GAP_ANALYSIS.md](docs/development/BACKEND_IMPLEMENTATION_GAP_ANALYSIS.md)
-- Full Frontend Gap Analysis: [FRONTEND_GAP_ANALYSIS.md](docs/development/FRONTEND_GAP_ANALYSIS.md)
-- Full Database Gap Analysis: [DATABASE_EF_CORE_GAP_ANALYSIS.md](docs/development/DATABASE_EF_CORE_GAP_ANALYSIS.md)
-- DTO Needs Assessment: [DTO_NEEDS_ASSESSMENT_REPORT.md](docs/status/DTO_NEEDS_ASSESSMENT_REPORT.md)
-- Architecture Assessment: [ARCHITECTURE_SPECIFICATION_GAP_ASSESSMENT.md](ARCHITECTURE_SPECIFICATION_GAP_ASSESSMENT.md)
+- Full Backend Gap Analysis: [BACKEND_IMPLEMENTATION_GAP_ANALYSIS.md](../development/BACKEND_IMPLEMENTATION_GAP_ANALYSIS.md)
+- Full Frontend Gap Analysis: [FRONTEND_GAP_ANALYSIS.md](../development/FRONTEND_GAP_ANALYSIS.md)
+- Full Database Gap Analysis: [DATABASE_EF_CORE_GAP_ANALYSIS.md](../development/DATABASE_EF_CORE_GAP_ANALYSIS.md)
+- DTO Needs Assessment: [DTO_NEEDS_ASSESSMENT_REPORT.md](../status/DTO_NEEDS_ASSESSMENT_REPORT.md)
+- Architecture Assessment: [ARCHITECTURE_SPECIFICATION_GAP_ASSESSMENT.md](../ARCHITECTURE_SPECIFICATION_GAP_ASSESSMENT.md)
 - Updated Index: [INDEX.md - Section 7 (New)](INDEX.md#7-comprehensive-gap-analysis--specification-needs-assessment)
 
 ---

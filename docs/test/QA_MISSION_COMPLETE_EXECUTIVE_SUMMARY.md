@@ -287,16 +287,16 @@ Deployment Ready:    100/100 ✅
 
 All comprehensive validation details are available in:
 
-1. **[QA_P0_P1_BUILD_HEALTH_REPORT_2026-02-16.md](docs/test/QA_P0_P1_BUILD_HEALTH_REPORT_2026-02-16.md)** 
+1. **[QA_P0_P1_BUILD_HEALTH_REPORT_2026-02-16.md](QA_P0_P1_BUILD_HEALTH_REPORT_2026-02-16.md)** 
    - Full 50+ page comprehensive report with all metrics and evidence
 
-2. **[QA_PHASE_EXECUTION_SUMMARY.md](docs/test/QA_PHASE_EXECUTION_SUMMARY.md)**
+2. **[QA_PHASE_EXECUTION_SUMMARY.md](QA_PHASE_EXECUTION_SUMMARY.md)**
    - Executive summary of all 7 phases
 
-3. **[ARCHITECTURE_COMPLIANCE_VERIFICATION.md](docs/status/ARCHITECTURE_COMPLIANCE_VERIFICATION.md)**
+3. **[ARCHITECTURE_COMPLIANCE_VERIFICATION.md](../status/ARCHITECTURE_COMPLIANCE_VERIFICATION.md)**
    - Detailed specification compliance audit
 
-4. **[QA_VALIDATION_COMPLETION_SUMMARY.md](docs/test/QA_VALIDATION_COMPLETION_SUMMARY.md)**
+4. **[QA_VALIDATION_COMPLETION_SUMMARY.md](QA_VALIDATION_COMPLETION_SUMMARY.md)**
    - Post-deployment action items and metrics
 
 5. **[SOLUTION_GAPS_REMEDIATION_PLAN.md](docs/development/SOLUTION_GAPS_REMEDIATION_PLAN.md)**

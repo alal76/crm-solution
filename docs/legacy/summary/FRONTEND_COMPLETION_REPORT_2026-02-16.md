@@ -147,7 +147,7 @@ const getActivityColor = (...): 'inherit' | 'primary' | ... => {
 
 ### 6. Documentation ✅
 
-#### FRONTEND_IMPLEMENTATION_SUMMARY_2026-02-16.md
+#### docs/legacy/summary/FRONTEND_IMPLEMENTATION_SUMMARY_2026-02-16.md
 - Complete session summary (500+ lines)
 - Metrics and statistics
 - File structure and counts
@@ -353,7 +353,7 @@ All effects properly typed
 
 ### Documentation Files (2)
 ```
-✅ FRONTEND_IMPLEMENTATION_SUMMARY_2026-02-16.md
+✅ docs/legacy/summary/FRONTEND_IMPLEMENTATION_SUMMARY_2026-02-16.md
 ✅ FRONTEND_TYPES_USAGE_GUIDE.md
 ```
 

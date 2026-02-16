@@ -262,7 +262,7 @@ This index provides a centralized catalog of all feature specifications in the C
 | 🟡 P1 | Import/Export (Excel/JSON) | Integration | Only CSV supported | 30% complete | 15h | NO |
 | 🟡 P2 | Campaign & Lead Scoring | Marketing | Analytics 15% complete | Partial | 25h | NO |
 
-**Backend Gap Detail:** [BACKEND_IMPLEMENTATION_GAP_ANALYSIS.md](docs/development/BACKEND_IMPLEMENTATION_GAP_ANALYSIS.md) (Created by sub-agent)
+**Backend Gap Detail:** [BACKEND_IMPLEMENTATION_GAP_ANALYSIS.md](../development/BACKEND_IMPLEMENTATION_GAP_ANALYSIS.md) (Created by sub-agent)
 
 #### Frontend Gaps (75% → Target: 90% by Week 3)
 
@@ -279,7 +279,7 @@ This index provides a centralized catalog of all feature specifications in the C
 | 🟡 P2 | Lead Form Extraction | CRM | Refactoring | Reusability low | 6h |
 | 🟢 P3 | Spec Index Accuracy (5 pages marked ❌) | Docs | Documentation | Team confusion | 2h |
 
-**Frontend Gap Detail:** [FRONTEND_GAP_ANALYSIS.md](docs/development/FRONTEND_GAP_ANALYSIS.md) (Created by sub-agent)
+**Frontend Gap Detail:** [FRONTEND_GAP_ANALYSIS.md](../development/FRONTEND_GAP_ANALYSIS.md) (Created by sub-agent)
 
 #### Database Schema Gaps (92-94% → Target: 98% by Week 1)
 
@@ -293,7 +293,7 @@ This index provides a centralized catalog of all feature specifications in the C
 | 🟡 P1 | Email Template Versioning Incomplete | Config | Template history broken | 2-3h | NO |
 | 🟡 P1 | Quote → Order Revenue Indexes | Perf | Q2C reporting slow | 1h | NO |
 
-**Database Gap Detail:** [DATABASE_EF_CORE_GAP_ANALYSIS.md](docs/development/DATABASE_EF_CORE_GAP_ANALYSIS.md) (Created by sub-agent)
+**Database Gap Detail:** [DATABASE_EF_CORE_GAP_ANALYSIS.md](../development/DATABASE_EF_CORE_GAP_ANALYSIS.md) (Created by sub-agent)
 
 ### 7.3 Architecture & Design Specification Needs
 
@@ -442,14 +442,14 @@ This index provides a centralized catalog of all feature specifications in the C
 
 - [SPEC-TEMPLATE.md](SPEC-TEMPLATE.md) - Specification template
 - [SPEC-ARCH-TEMPLATE.md](SPEC-ARCH-TEMPLATE.md) - Architecture specification template (TODO: Create Week 1)
-- [BACKEND_IMPLEMENTATION_GAP_ANALYSIS.md](docs/development/BACKEND_IMPLEMENTATION_GAP_ANALYSIS.md) - Detailed backend gaps (created Feb 16)
-- [FRONTEND_GAP_ANALYSIS.md](docs/development/FRONTEND_GAP_ANALYSIS.md) - Detailed frontend gaps (created Feb 16)
-- [DATABASE_EF_CORE_GAP_ANALYSIS.md](docs/development/DATABASE_EF_CORE_GAP_ANALYSIS.md) - Detailed database gaps (created Feb 16)
-- [DTO_NEEDS_ASSESSMENT_REPORT.md](docs/status/DTO_NEEDS_ASSESSMENT_REPORT.md) - DTO standardization justification (created Feb 16)
-- [ARCHITECTURE_SPECIFICATION_GAP_ASSESSMENT.md](ARCHITECTURE_SPECIFICATION_GAP_ASSESSMENT.md) - Architecture spec needs (created Feb 16)
+- [BACKEND_IMPLEMENTATION_GAP_ANALYSIS.md](../development/BACKEND_IMPLEMENTATION_GAP_ANALYSIS.md) - Detailed backend gaps (created Feb 16)
+- [FRONTEND_GAP_ANALYSIS.md](../development/FRONTEND_GAP_ANALYSIS.md) - Detailed frontend gaps (created Feb 16)
+- [DATABASE_EF_CORE_GAP_ANALYSIS.md](../development/DATABASE_EF_CORE_GAP_ANALYSIS.md) - Detailed database gaps (created Feb 16)
+- [DTO_NEEDS_ASSESSMENT_REPORT.md](../status/DTO_NEEDS_ASSESSMENT_REPORT.md) - DTO standardization justification (created Feb 16)
+- [ARCHITECTURE_SPECIFICATION_GAP_ASSESSMENT.md](../ARCHITECTURE_SPECIFICATION_GAP_ASSESSMENT.md) - Architecture spec needs (created Feb 16)
 - [MASTER_TODO_LIST.md](../MASTER_TODO_LIST.md) - Consolidated TODO items
-- [SOLUTION_CONTEXT.md](docs/development/SOLUTION_CONTEXT.md) - Solution overview
-- [ARCHITECTURE_OVERVIEW.md](docs/development/ARCHITECTURE_OVERVIEW.md) - Technical architecture
+- [SOLUTION_CONTEXT.md](../development/SOLUTION_CONTEXT.md) - Solution overview
+- [ARCHITECTURE_OVERVIEW.md](../development/ARCHITECTURE_OVERVIEW.md) - Technical architecture
 - [DATABASE_SCHEMA.md](../../database/DATABASE_SCHEMA.md) - Database reference
 
 ---

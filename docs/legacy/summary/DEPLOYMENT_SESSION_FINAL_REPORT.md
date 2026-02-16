@@ -298,7 +298,7 @@ Solution Root Directory:
 ├── DEPLOYMENT_READINESS_STATUS.md          ← STATUS REPORT
 ├── DEPLOYMENT_VERIFICATION_CHECKLIST.md    ← SIGN-OFF FORM
 ├── DEPLOYMENT_RESOURCE_INDEX.md            ← RESOURCE INDEX
-└── DEPLOYMENT_SESSION_FINAL_REPORT.md      ← THIS FILE
+└── docs/legacy/summary/DEPLOYMENT_SESSION_FINAL_REPORT.md      ← THIS FILE
 ```
 
 All files are in `/Users/alal/Code/Git CRM Solution/crm-solution/`

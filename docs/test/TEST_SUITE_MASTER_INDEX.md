@@ -637,9 +637,9 @@ npx playwright test -g "Complete Incident Workflow"
 
 | Document | Purpose | Link |
 |----------|---------|------|
-| **TEST_SUITE_DOCUMENTATION.md** | Comprehensive guide | [📖 Full Doc](docs/test/TEST_SUITE_DOCUMENTATION.md) |
-| **TEST_SUITE_QUICKSTART.md** | Quick start (30 sec) | [⚡ Quick Start](docs/test/TEST_SUITE_QUICKSTART.md) |
-| **This File** | Master index | [📑 Index](docs/test/TEST_SUITE_MASTER_INDEX.md) |
+| **TEST_SUITE_DOCUMENTATION.md** | Comprehensive guide | [📖 Full Doc](TEST_SUITE_DOCUMENTATION.md) |
+| **TEST_SUITE_QUICKSTART.md** | Quick start (30 sec) | [⚡ Quick Start](TEST_SUITE_QUICKSTART.md) |
+| **This File** | Master index | [📑 Index](TEST_SUITE_MASTER_INDEX.md) |
 
 ---
 

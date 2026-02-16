@@ -9,7 +9,7 @@
 ## 📋 Documentation Map
 
 ### 1. **START HERE** - Quick Problem Overview
-**File**: [`FIX_ACCOUNT_PROBLEMS.md`](docs/development/FIX_ACCOUNT_PROBLEMS.md)
+**File**: [`FIX_ACCOUNT_PROBLEMS.md`](FIX_ACCOUNT_PROBLEMS.md)
 - ✅ 5-minute executive summary
 - ✅ Each problem explained in plain English
 - ✅ Why each problem matters
@@ -18,7 +18,7 @@
 - **Read this first if you're new to the problems**
 
 ### 2. **TODAY'S TASK** - Immediate Action Plan
-**File**: [`IMMEDIATE_ACTION_PLAN.md`](docs/development/IMMEDIATE_ACTION_PLAN.md)
+**File**: [`IMMEDIATE_ACTION_PLAN.md`](IMMEDIATE_ACTION_PLAN.md)
 - ✅ Step-by-step copy-paste instructions
 - ✅ 90-minute quick wins (add fields)
 - ✅ Build verification commands
@@ -27,7 +27,7 @@
 - **Read this to START IMPLEMENTING TODAY**
 
 ### 3. **DETAILED ANALYSIS** - Complete Deep Dive
-**File**: [`ACCOUNT_DATA_NORMALIZATION_ANALYSIS.md`](docs/development/ACCOUNT_DATA_NORMALIZATION_ANALYSIS.md)
+**File**: [`ACCOUNT_DATA_NORMALIZATION_ANALYSIS.md`](ACCOUNT_DATA_NORMALIZATION_ANALYSIS.md)
 - ✅ Part 1: What IS properly normalized (Contacts, Relationships, Tags)
 - ✅ Part 2: What IS denormalized (Addresses, Phone/Email/Social)
 - ✅ Part 3: Additional missing data (Financial, Compliance, Partnership, Contact Preferences)
@@ -54,8 +54,8 @@
 ## 🚀 Quick Start Guide
 
 ### TODAY (90 minutes)
-1. Read: [`FIX_ACCOUNT_PROBLEMS.md`](docs/development/FIX_ACCOUNT_PROBLEMS.md) (15 min)
-2. Follow: [`IMMEDIATE_ACTION_PLAN.md`](docs/development/IMMEDIATE_ACTION_PLAN.md) Steps 1-3 (30 min)
+1. Read: [`FIX_ACCOUNT_PROBLEMS.md`](FIX_ACCOUNT_PROBLEMS.md) (15 min)
+2. Follow: [`IMMEDIATE_ACTION_PLAN.md`](IMMEDIATE_ACTION_PLAN.md) Steps 1-3 (30 min)
 3. Build & Commit (30 min)
 4. Result: ✅ Financial + Compliance + Partnership fields added
 
@@ -104,9 +104,9 @@ WEEK 4+ (Optional): Compliance & Reporting
 ## 📚 Related Documentation
 
 ### Architecture & Design
-- **[SOLUTION_CONTEXT.md](docs/development/SOLUTION_CONTEXT.md)** - Database schema overview, 3NF explanation
-- **[ARCHITECTURE_OVERVIEW.md](docs/development/ARCHITECTURE_OVERVIEW.md)** - System architecture patterns
-- **[database/DATABASE_SCHEMA.md](./database/DATABASE_SCHEMA.md)** - Complete database reference
+- **[SOLUTION_CONTEXT.md](SOLUTION_CONTEXT.md)** - Database schema overview, 3NF explanation
+- **[ARCHITECTURE_OVERVIEW.md](ARCHITECTURE_OVERVIEW.md)** - System architecture patterns
+- **[database/DATABASE_SCHEMA.md](../../database/DATABASE_SCHEMA.md)** - Complete database reference
 
 ### Code References
 - **Entity**: `CRM.Backend/src/CRM.Core/Entities/Account.cs` (575 lines)
@@ -250,11 +250,11 @@ git push origin fix/account-denormalization-phase1
 ## 📞 Getting Help
 
 ### If You're Stuck On...
-- **Understanding the problem**: See [`FIX_ACCOUNT_PROBLEMS.md`](docs/development/FIX_ACCOUNT_PROBLEMS.md)
-- **Exact implementation steps**: See [`IMMEDIATE_ACTION_PLAN.md`](docs/development/IMMEDIATE_ACTION_PLAN.md)
-- **Detailed TODO items**: See [`ACCOUNT_DATA_NORMALIZATION_ANALYSIS.md`](docs/development/ACCOUNT_DATA_NORMALIZATION_ANALYSIS.md)
-- **Database design**: See [`database/DATABASE_SCHEMA.md`](./database/DATABASE_SCHEMA.md)
-- **3NF concepts**: See [`SOLUTION_CONTEXT.md`](docs/development/SOLUTION_CONTEXT.md) - Database section
+- **Understanding the problem**: See [`FIX_ACCOUNT_PROBLEMS.md`](FIX_ACCOUNT_PROBLEMS.md)
+- **Exact implementation steps**: See [`IMMEDIATE_ACTION_PLAN.md`](IMMEDIATE_ACTION_PLAN.md)
+- **Detailed TODO items**: See [`ACCOUNT_DATA_NORMALIZATION_ANALYSIS.md`](ACCOUNT_DATA_NORMALIZATION_ANALYSIS.md)
+- **Database design**: See [`database/DATABASE_SCHEMA.md`](../../database/DATABASE_SCHEMA.md)
+- **3NF concepts**: See [`SOLUTION_CONTEXT.md`](SOLUTION_CONTEXT.md) - Database section
 
 ### Key Contacts
 - **Backend Questions**: Check `CRM.Backend/src/CRM.Infrastructure/Services/AccountService.cs`
@@ -314,10 +314,10 @@ Use this template to track progress:
 4. **WEEK 4+**: Optional enhancements (reporting, workflows)
 
 ✅ **START HERE:**
-→ Read [`FIX_ACCOUNT_PROBLEMS.md`](docs/development/FIX_ACCOUNT_PROBLEMS.md) (15 min)
-→ Follow [`IMMEDIATE_ACTION_PLAN.md`](docs/development/IMMEDIATE_ACTION_PLAN.md) (90 min)
+→ Read [`FIX_ACCOUNT_PROBLEMS.md`](FIX_ACCOUNT_PROBLEMS.md) (15 min)
+→ Follow [`IMMEDIATE_ACTION_PLAN.md`](IMMEDIATE_ACTION_PLAN.md) (90 min)
 → Commit to git & celebrate! 🎉
 
 ---
 
-**READY TO START? Open [`IMMEDIATE_ACTION_PLAN.md`](docs/development/IMMEDIATE_ACTION_PLAN.md) NOW!**
+**READY TO START? Open [`IMMEDIATE_ACTION_PLAN.md`](IMMEDIATE_ACTION_PLAN.md) NOW!**

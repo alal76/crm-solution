@@ -215,5 +215,5 @@ for f in *.disabled; do mv "$f" "${f%.disabled}"; done
 ---
 
 For detailed information, see:
-- [BUILD_FIXES_SUMMARY.md](docs/summary/BUILD_FIXES_SUMMARY.md)
-- [BUILD_ERRORS_RESOLUTION_REPORT.md](docs/status/BUILD_ERRORS_RESOLUTION_REPORT.md)
+- [BUILD_FIXES_SUMMARY.md](../summary/BUILD_FIXES_SUMMARY.md)
+- [BUILD_ERRORS_RESOLUTION_REPORT.md](../status/BUILD_ERRORS_RESOLUTION_REPORT.md)

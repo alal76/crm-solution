@@ -92,8 +92,8 @@ Redis:     crm-redis (internal)
 ## 📑 DETAILED DOCUMENTATION
 
 For complete details, see:
-1. **[DEPLOYMENT_VERIFICATION_REPORT.md](docs/status/DEPLOYMENT_VERIFICATION_REPORT.md)** - Full test results
-2. **[DEPLOYMENT_ACTION_PLAN.md](docs/development/DEPLOYMENT_ACTION_PLAN.md)** - Step-by-step fix instructions
+1. **[DEPLOYMENT_VERIFICATION_REPORT.md](../status/DEPLOYMENT_VERIFICATION_REPORT.md)** - Full test results
+2. **[DEPLOYMENT_ACTION_PLAN.md](../development/DEPLOYMENT_ACTION_PLAN.md)** - Step-by-step fix instructions
 
 ---
 

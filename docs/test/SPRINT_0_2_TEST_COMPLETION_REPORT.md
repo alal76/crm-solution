@@ -520,8 +520,8 @@ Integration (8)
    ```
 
 2. **Reference Documentation:**
-   - Comprehensive guide: [TEST_SUITE_DOCUMENTATION.md](docs/test/TEST_SUITE_DOCUMENTATION.md)
-   - Quick reference: [TEST_SUITE_QUICKSTART.md](docs/test/TEST_SUITE_QUICKSTART.md)
+   - Comprehensive guide: [TEST_SUITE_DOCUMENTATION.md](TEST_SUITE_DOCUMENTATION.md)
+   - Quick reference: [TEST_SUITE_QUICKSTART.md](TEST_SUITE_QUICKSTART.md)
 
 3. **Adding Tests:**
    - Follow Arrange-Act-Assert pattern
@@ -592,9 +592,9 @@ Integration (8)
 
 ### Getting Started
 
-1. Read [TEST_SUITE_QUICKSTART.md](docs/test/TEST_SUITE_QUICKSTART.md) (5 min)
+1. Read [TEST_SUITE_QUICKSTART.md](TEST_SUITE_QUICKSTART.md) (5 min)
 2. Run all tests locally (3 min)
-3. Review [TEST_SUITE_DOCUMENTATION.md](docs/test/TEST_SUITE_DOCUMENTATION.md) (15 min)
+3. Review [TEST_SUITE_DOCUMENTATION.md](TEST_SUITE_DOCUMENTATION.md) (15 min)
 
 ### Ongoing Maintenance
 

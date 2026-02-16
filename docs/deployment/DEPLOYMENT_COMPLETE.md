@@ -390,8 +390,8 @@ docker exec crm-mariadb mariadb -u crm_user -p -e "SELECT 1;"
 
 ## 📚 Documentation
 
-- **[ADMIN_SETTINGS_GUIDE.md](ADMIN_SETTINGS_GUIDE.md)** - Comprehensive feature documentation
-- **[SETTINGS_QUICK_REFERENCE.md](SETTINGS_QUICK_REFERENCE.md)** - Quick reference guide
+- **[ADMIN_SETTINGS_GUIDE.md](../features/ADMIN_SETTINGS_GUIDE.md)** - Comprehensive feature documentation
+- **[SETTINGS_QUICK_REFERENCE.md](../features/SETTINGS_QUICK_REFERENCE.md)** - Quick reference guide
 - **[API Documentation]** - OpenAPI/Swagger docs at `/swagger`
 
 ---

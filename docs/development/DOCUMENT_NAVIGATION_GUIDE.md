@@ -8,7 +8,7 @@
 ## 📋 Quick Links to Generated Documents
 
 ### For Decision Makers / Management
-**Start Here:** [SYSTEM_MODULE_TEST_BLOCKER_SUMMARY.md](docs/test/SYSTEM_MODULE_TEST_BLOCKER_SUMMARY.md)
+**Start Here:** [SYSTEM_MODULE_TEST_BLOCKER_SUMMARY.md](../test/SYSTEM_MODULE_TEST_BLOCKER_SUMMARY.md)
 - ✅ Executive summary (1 page)
 - ✅ Situation assessment
 - ✅ Impact analysis
@@ -19,7 +19,7 @@
 ---
 
 ### For Developers (Implementation)
-**Start Here:** [SYSTEM_MODULE_REMEDIATION_GUIDE.md](docs/development/SYSTEM_MODULE_REMEDIATION_GUIDE.md)
+**Start Here:** [SYSTEM_MODULE_REMEDIATION_GUIDE.md](SYSTEM_MODULE_REMEDIATION_GUIDE.md)
 - ✅ Step-by-step implementation guide
 - ✅ Complete code examples for all DTOs
 - ✅ Method implementation patterns
@@ -27,7 +27,7 @@
 - ✅ Verification commands
 - **Read Time:** 30 minutes | **Implementation Time:** ~3 hours
 
-**Then Use:** [REMEDIATION_CHECKLIST.md](docs/status/REMEDIATION_CHECKLIST.md)
+**Then Use:** [REMEDIATION_CHECKLIST.md](../status/REMEDIATION_CHECKLIST.md)
 - ✅ Actionable checklist
 - ✅ Track progress by phase
 - ✅ Verify each completed task
@@ -36,7 +36,7 @@
 ---
 
 ### For QA / Test Execution
-**Current Status:** [SYSTEM_MODULE_TEST_EXECUTION_REPORT.md](docs/test/SYSTEM_MODULE_TEST_EXECUTION_REPORT.md)
+**Current Status:** [SYSTEM_MODULE_TEST_EXECUTION_REPORT.md](../test/SYSTEM_MODULE_TEST_EXECUTION_REPORT.md)
 - ✅ Complete test execution report
 - ✅ All 188 compilation errors documented
 - ✅ Test files identified but not executed
@@ -48,7 +48,7 @@
 ---
 
 ### For Project Lead / Technical Manager
-**Comprehensive Summary:** [SYSTEM_MODULE_TEST_FINAL_REPORT.md](docs/test/SYSTEM_MODULE_TEST_FINAL_REPORT.md)
+**Comprehensive Summary:** [SYSTEM_MODULE_TEST_FINAL_REPORT.md](../test/SYSTEM_MODULE_TEST_FINAL_REPORT.md)
 - ✅ Executive summary
 - ✅ Error analysis by category
 - ✅ Impact assessment
@@ -62,17 +62,17 @@
 ## 🎯 Which Document Should I Read?
 
 ### "I'm the project manager and want a high-level overview"
-→ [SYSTEM_MODULE_TEST_BLOCKER_SUMMARY.md](docs/test/SYSTEM_MODULE_TEST_BLOCKER_SUMMARY.md) (5 min read)
+→ [SYSTEM_MODULE_TEST_BLOCKER_SUMMARY.md](../test/SYSTEM_MODULE_TEST_BLOCKER_SUMMARY.md) (5 min read)
 
 ### "I'm a developer and need to fix the code"
-→ [SYSTEM_MODULE_REMEDIATION_GUIDE.md](docs/development/SYSTEM_MODULE_REMEDIATION_GUIDE.md) (first read) +  
-→ [REMEDIATION_CHECKLIST.md](docs/status/REMEDIATION_CHECKLIST.md) (use during implementation)
+→ [SYSTEM_MODULE_REMEDIATION_GUIDE.md](SYSTEM_MODULE_REMEDIATION_GUIDE.md) (first read) +  
+→ [REMEDIATION_CHECKLIST.md](../status/REMEDIATION_CHECKLIST.md) (use during implementation)
 
 ### "I need detailed error information"
-→ [SYSTEM_MODULE_TEST_EXECUTION_REPORT.md](docs/test/SYSTEM_MODULE_TEST_EXECUTION_REPORT.md) (detailed technical reference)
+→ [SYSTEM_MODULE_TEST_EXECUTION_REPORT.md](../test/SYSTEM_MODULE_TEST_EXECUTION_REPORT.md) (detailed technical reference)
 
 ### "I want a complete summary for my team"
-→ [SYSTEM_MODULE_TEST_FINAL_REPORT.md](docs/test/SYSTEM_MODULE_TEST_FINAL_REPORT.md) (comprehensive overview)
+→ [SYSTEM_MODULE_TEST_FINAL_REPORT.md](../test/SYSTEM_MODULE_TEST_FINAL_REPORT.md) (comprehensive overview)
 
 ---
 
@@ -80,11 +80,11 @@
 
 | Document | Purpose | Audience | Length | When to Read |
 |----------|---------|----------|--------|--------------|
-| [SYSTEM_MODULE_TEST_BLOCKER_SUMMARY.md](docs/test/SYSTEM_MODULE_TEST_BLOCKER_SUMMARY.md) | Executive overview | Managers, leads | 1 page | Day 1 morning |
-| [SYSTEM_MODULE_REMEDIATION_GUIDE.md](docs/development/SYSTEM_MODULE_REMEDIATION_GUIDE.md) | Implementation guide | Developers | 10 pages | Day 1 before coding |
-| [REMEDIATION_CHECKLIST.md](docs/status/REMEDIATION_CHECKLIST.md) | Tracking checklist | Developers | 3 pages | During implementation |
-| [SYSTEM_MODULE_TEST_EXECUTION_REPORT.md](docs/test/SYSTEM_MODULE_TEST_EXECUTION_REPORT.md) | Detailed errors | QA, tech leads | 15 pages | For reference/troubleshooting |
-| [SYSTEM_MODULE_TEST_FINAL_REPORT.md](docs/test/SYSTEM_MODULE_TEST_FINAL_REPORT.md) | Comprehensive report | All stakeholders | 8 pages | Day 1 afternoon (team briefing) |
+| [SYSTEM_MODULE_TEST_BLOCKER_SUMMARY.md](../test/SYSTEM_MODULE_TEST_BLOCKER_SUMMARY.md) | Executive overview | Managers, leads | 1 page | Day 1 morning |
+| [SYSTEM_MODULE_REMEDIATION_GUIDE.md](SYSTEM_MODULE_REMEDIATION_GUIDE.md) | Implementation guide | Developers | 10 pages | Day 1 before coding |
+| [REMEDIATION_CHECKLIST.md](../status/REMEDIATION_CHECKLIST.md) | Tracking checklist | Developers | 3 pages | During implementation |
+| [SYSTEM_MODULE_TEST_EXECUTION_REPORT.md](../test/SYSTEM_MODULE_TEST_EXECUTION_REPORT.md) | Detailed errors | QA, tech leads | 15 pages | For reference/troubleshooting |
+| [SYSTEM_MODULE_TEST_FINAL_REPORT.md](../test/SYSTEM_MODULE_TEST_FINAL_REPORT.md) | Comprehensive report | All stakeholders | 8 pages | Day 1 afternoon (team briefing) |
 
 ---
 
@@ -93,15 +93,15 @@
 ### For the Next 3-4 Hours:
 
 1. **Project Lead** (NOW - 5 minutes)
-   - Read: [SYSTEM_MODULE_TEST_BLOCKER_SUMMARY.md](docs/test/SYSTEM_MODULE_TEST_BLOCKER_SUMMARY.md)
+   - Read: [SYSTEM_MODULE_TEST_BLOCKER_SUMMARY.md](../test/SYSTEM_MODULE_TEST_BLOCKER_SUMMARY.md)
    - Understand the blocker and timeline
 
 2. **Developer** (NOW - 30 minutes)
-   - Read: [SYSTEM_MODULE_REMEDIATION_GUIDE.md](docs/development/SYSTEM_MODULE_REMEDIATION_GUIDE.md)
+   - Read: [SYSTEM_MODULE_REMEDIATION_GUIDE.md](SYSTEM_MODULE_REMEDIATION_GUIDE.md)
    - Understand what needs to be done
 
 3. **Developer** (NEXT - 3 hours)
-   - Execute phases using: [REMEDIATION_CHECKLIST.md](docs/status/REMEDIATION_CHECKLIST.md)
+   - Execute phases using: [REMEDIATION_CHECKLIST.md](../status/REMEDIATION_CHECKLIST.md)
    - Create DTOs, fix DbContext, implement methods
    - Add missing using statements
 
@@ -113,7 +113,7 @@
 5. **QA/Tech Lead** (AFTER BUILD)
    - Execute tests
    - Generate coverage reports
-   - Use: [SYSTEM_MODULE_TEST_EXECUTION_REPORT.md](docs/test/SYSTEM_MODULE_TEST_EXECUTION_REPORT.md) as reference
+   - Use: [SYSTEM_MODULE_TEST_EXECUTION_REPORT.md](../test/SYSTEM_MODULE_TEST_EXECUTION_REPORT.md) as reference
 
 ---
 
@@ -179,17 +179,17 @@ A: Follow the remediation guide Phase 1-5. Phases 1-2 open up most errors.
 A: No, all 188 errors are interconnected. Must follow the plan sequentially.
 
 **Q: What should I do if I get stuck?**  
-A: Refer to [SYSTEM_MODULE_TEST_EXECUTION_REPORT.md](docs/test/SYSTEM_MODULE_TEST_EXECUTION_REPORT.md) for specific error details and solutions.
+A: Refer to [SYSTEM_MODULE_TEST_EXECUTION_REPORT.md](../test/SYSTEM_MODULE_TEST_EXECUTION_REPORT.md) for specific error details and solutions.
 
 ---
 
 ## 📞 Getting Help
 
-- **Need implementation details?** → [SYSTEM_MODULE_REMEDIATION_GUIDE.md](docs/development/SYSTEM_MODULE_REMEDIATION_GUIDE.md)
-- **Need error details?** → [SYSTEM_MODULE_TEST_EXECUTION_REPORT.md](docs/test/SYSTEM_MODULE_TEST_EXECUTION_REPORT.md)
-- **Need to track progress?** → [REMEDIATION_CHECKLIST.md](docs/status/REMEDIATION_CHECKLIST.md)
-- **Need executive summary?** → [SYSTEM_MODULE_TEST_BLOCKER_SUMMARY.md](docs/test/SYSTEM_MODULE_TEST_BLOCKER_SUMMARY.md)
-- **Need comprehensive report?** → [SYSTEM_MODULE_TEST_FINAL_REPORT.md](docs/test/SYSTEM_MODULE_TEST_FINAL_REPORT.md)
+- **Need implementation details?** → [SYSTEM_MODULE_REMEDIATION_GUIDE.md](SYSTEM_MODULE_REMEDIATION_GUIDE.md)
+- **Need error details?** → [SYSTEM_MODULE_TEST_EXECUTION_REPORT.md](../test/SYSTEM_MODULE_TEST_EXECUTION_REPORT.md)
+- **Need to track progress?** → [REMEDIATION_CHECKLIST.md](../status/REMEDIATION_CHECKLIST.md)
+- **Need executive summary?** → [SYSTEM_MODULE_TEST_BLOCKER_SUMMARY.md](../test/SYSTEM_MODULE_TEST_BLOCKER_SUMMARY.md)
+- **Need comprehensive report?** → [SYSTEM_MODULE_TEST_FINAL_REPORT.md](../test/SYSTEM_MODULE_TEST_FINAL_REPORT.md)
 
 ---
 
@@ -200,11 +200,11 @@ Once you complete remediation:
 - [ ] Solution compiles with 0 errors
 - [ ] Test project builds successfully
 - [ ] All 12 System Module test files can be discovered
-- [ ] Ready for test execution (see [SYSTEM_MODULE_TEST_EXECUTION_REPORT.md](docs/test/SYSTEM_MODULE_TEST_EXECUTION_REPORT.md) for next steps)
+- [ ] Ready for test execution (see [SYSTEM_MODULE_TEST_EXECUTION_REPORT.md](../test/SYSTEM_MODULE_TEST_EXECUTION_REPORT.md) for next steps)
 
 ---
 
 **Generated:** February 15, 2026  
 **Status:** DOCUMENTATION COMPLETE  
-**Action:** Begin remediation using [SYSTEM_MODULE_REMEDIATION_GUIDE.md](docs/development/SYSTEM_MODULE_REMEDIATION_GUIDE.md)
+**Action:** Begin remediation using [SYSTEM_MODULE_REMEDIATION_GUIDE.md](SYSTEM_MODULE_REMEDIATION_GUIDE.md)
 

@@ -189,7 +189,7 @@ export enum ExecutionStatus {
   Paused = 'Paused',
   Completed = 'Completed',
   Failed = 'Failed',
-  Rolled Back = 'Rolled Back',
+  RolledBack = 'Rolled Back',
   Cancelled = 'Cancelled'
 }
 

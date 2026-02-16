@@ -12,7 +12,7 @@
 
 #### 👔 Executive / Project Manager
 **Goal:** Understand status at high level  
-→ Start here: **[EXECUTIVE_SUMMARY_TIER1_STATUS.md](docs/summary/EXECUTIVE_SUMMARY_TIER1_STATUS.md)** (7 min read)
+→ Start here: **[EXECUTIVE_SUMMARY_TIER1_STATUS.md](../summary/EXECUTIVE_SUMMARY_TIER1_STATUS.md)** (7 min read)
 - What was built
 - What broke and why
 - Timeline to fix
@@ -20,7 +20,7 @@
 
 #### ⚡ Developer - Quick Start
 **Goal:** Understand what to fix TODAY  
-→ Start here: **[QUICK_REFERENCE_TIER1_FIX.md](docs/development/QUICK_REFERENCE_TIER1_FIX.md)** (5 min read)
+→ Start here: **[QUICK_REFERENCE_TIER1_FIX.md](QUICK_REFERENCE_TIER1_FIX.md)** (5 min read)
 - One-minute summary
 - 5 sequential fixes
 - Error locations
@@ -28,7 +28,7 @@
 
 #### 🔧 Developer - Deep Dive  
 **Goal:** Understand root causes & fix details  
-→ Start here: **[TIER1_BUILD_ERROR_ANALYSIS.md](docs/development/TIER1_BUILD_ERROR_ANALYSIS.md)** (15 min read)
+→ Start here: **[TIER1_BUILD_ERROR_ANALYSIS.md](TIER1_BUILD_ERROR_ANALYSIS.md)** (15 min read)
 - All 47 errors categorized
 - Root cause for each
 - Specific file locations & line numbers
@@ -36,7 +36,7 @@
 
 #### 📚 Architect / Lead Dev
 **Goal:** Understand architecture & methodology  
-→ Start here: **[SESSION_SUMMARY_TIER1_REMEDIATION.md](docs/summary/SESSION_SUMMARY_TIER1_REMEDIATION.md)** (20 min read)
+→ Start here: **[docs/legacy/summary/SESSION_SUMMARY_TIER1_REMEDIATION.md](../legacy/summary/SESSION_SUMMARY_TIER1_REMEDIATION.md)** (20 min read)
 - Complete context of what was built
 - Lessons learned
 - Architecture decisions
@@ -44,7 +44,7 @@
 
 #### 📋 Tester / QA
 **Goal:** Understand service inventory & test coverage  
-→ Start here: **[SPRINT1_2_SERVICES_DELIVERY_REPORT.md](docs/status/SPRINT1_2_SERVICES_DELIVERY_REPORT.md)** (15 min read)
+→ Start here: **[docs/legacy/status/SPRINT1_2_SERVICES_DELIVERY_REPORT.md](../legacy/status/SPRINT1_2_SERVICES_DELIVERY_REPORT.md)** (15 min read)
 - All 9 services itemized
 - Method details
 - DTOs and relationships
@@ -94,7 +94,7 @@
   - Remediation Plan by priority
   - Success criteria
 
-### 4. **SESSION_SUMMARY_TIER1_REMEDIATION.md** 📊 CONTEXT & LEARNINGS  
+### 4. **docs/legacy/summary/SESSION_SUMMARY_TIER1_REMEDIATION.md** 📊 CONTEXT & LEARNINGS  
 - **Purpose:** Complete session context & methodology
 - **Length:** ~250 lines
 - **Reading Time:** 15-20 minutes
@@ -109,7 +109,7 @@
   - Lessons learned
   - Recommended workflow
 
-### 5. **SPRINT1_2_SERVICES_DELIVERY_REPORT.md** 📋 SERVICE INVENTORY
+### 5. **docs/legacy/status/SPRINT1_2_SERVICES_DELIVERY_REPORT.md** 📋 SERVICE INVENTORY
 - **Purpose:** Complete inventory of all 9 services
 - **Length:** ~500 lines
 - **Reading Time:** 20-25 minutes
@@ -129,28 +129,28 @@
 
 ### Scenario 1: "I need to understand the big picture"
 **Time Budget:** 15 minutes
-1. Read [EXECUTIVE_SUMMARY_TIER1_STATUS.md](docs/summary/EXECUTIVE_SUMMARY_TIER1_STATUS.md) (7 min)
+1. Read [EXECUTIVE_SUMMARY_TIER1_STATUS.md](../summary/EXECUTIVE_SUMMARY_TIER1_STATUS.md) (7 min)
 2. Scan [TIER1_BUILD_ERROR_ANALYSIS.md](TIER1_BUILD_ERROR_ANALYSIS.md#error-category-1) intro (3 min)
-3. Check [QUICK_REFERENCE_TIER1_FIX.md](docs/development/QUICK_REFERENCE_TIER1_FIX.md) summary (5 min)
+3. Check [QUICK_REFERENCE_TIER1_FIX.md](QUICK_REFERENCE_TIER1_FIX.md) summary (5 min)
 
 ### Scenario 2: "I need to fix the build TODAY"
 **Time Budget:** 4.5-5 hours (includes fixing)
-1. Quick read [QUICK_REFERENCE_TIER1_FIX.md](docs/development/QUICK_REFERENCE_TIER1_FIX.md) (5 min)
-2. Reference [TIER1_BUILD_ERROR_ANALYSIS.md](docs/development/TIER1_BUILD_ERROR_ANALYSIS.md) as needed while fixing (ongoing)
+1. Quick read [QUICK_REFERENCE_TIER1_FIX.md](QUICK_REFERENCE_TIER1_FIX.md) (5 min)
+2. Reference [TIER1_BUILD_ERROR_ANALYSIS.md](TIER1_BUILD_ERROR_ANALYSIS.md) as needed while fixing (ongoing)
 3. Follow 5-fix sequence from Quick Reference (4.5 hours actual work)
 
 ### Scenario 3: "I need to review the services"
 **Time Budget:** 30 minutes
-1. [SPRINT1_2_SERVICES_DELIVERY_REPORT.md](docs/status/SPRINT1_2_SERVICES_DELIVERY_REPORT.md) - Scan service sections (15 min)
-2. [SESSION_SUMMARY_TIER1_REMEDIATION.md](docs/summary/SESSION_SUMMARY_TIER1_REMEDIATION.md) - Read Quality Metrics (5 min)
+1. [docs/legacy/status/SPRINT1_2_SERVICES_DELIVERY_REPORT.md](../legacy/status/SPRINT1_2_SERVICES_DELIVERY_REPORT.md) - Scan service sections (15 min)
+2. [docs/legacy/summary/SESSION_SUMMARY_TIER1_REMEDIATION.md](../legacy/summary/SESSION_SUMMARY_TIER1_REMEDIATION.md) - Read Quality Metrics (5 min)
 3. [TIER1_BUILD_ERROR_ANALYSIS.md](TIER1_BUILD_ERROR_ANALYSIS.md#current-build-status) - Check error count (5 min)
 
 ### Scenario 4: "I'm onboarding to the project"
 **Time Budget:** 45-60 minutes
-1. [EXECUTIVE_SUMMARY_TIER1_STATUS.md](docs/summary/EXECUTIVE_SUMMARY_TIER1_STATUS.md) - Full read (10 min)
-2. [SESSION_SUMMARY_TIER1_REMEDIATION.md](docs/summary/SESSION_SUMMARY_TIER1_REMEDIATION.md) - Full read (20 min)
-3. [SPRINT1_2_SERVICES_DELIVERY_REPORT.md](docs/status/SPRINT1_2_SERVICES_DELIVERY_REPORT.md) - Skim service details (10 min)
-4. [.github/copilot-instructions.md](.github/copilot-instructions.md) - Architecture sections (20 min)
+1. [EXECUTIVE_SUMMARY_TIER1_STATUS.md](../summary/EXECUTIVE_SUMMARY_TIER1_STATUS.md) - Full read (10 min)
+2. [docs/legacy/summary/SESSION_SUMMARY_TIER1_REMEDIATION.md](../legacy/summary/SESSION_SUMMARY_TIER1_REMEDIATION.md) - Full read (20 min)
+3. [docs/legacy/status/SPRINT1_2_SERVICES_DELIVERY_REPORT.md](../legacy/status/SPRINT1_2_SERVICES_DELIVERY_REPORT.md) - Skim service details (10 min)
+4. [.github/copilot-instructions.md](../../.github/copilot-instructions.md) - Architecture sections (20 min)
 
 ---
 
@@ -161,8 +161,8 @@
 | EXECUTIVE_SUMMARY_TIER1_STATUS.md | 600+ | 10 | Strategic overview |
 | QUICK_REFERENCE_TIER1_FIX.md | 180+ | 8 | Quick fix guide |
 | TIER1_BUILD_ERROR_ANALYSIS.md | 400+ | 12 | Technical analysis |
-| SESSION_SUMMARY_TIER1_REMEDIATION.md | 250+ | 10 | Context & learnings |
-| SPRINT1_2_SERVICES_DELIVERY_REPORT.md | 500+ | 15 | Service inventory |
+| docs/legacy/summary/SESSION_SUMMARY_TIER1_REMEDIATION.md | 250+ | 10 | Context & learnings |
+| docs/legacy/status/SPRINT1_2_SERVICES_DELIVERY_REPORT.md | 500+ | 15 | Service inventory |
 | **TOTAL DOCUMENTATION** | **1,930+** | **55** | **Complete package** |
 
 ---
@@ -172,17 +172,17 @@
 ### From EXECUTIVE_SUMMARY to...
 - Specific error: → [TIER1_BUILD_ERROR_ANALYSIS.md](TIER1_BUILD_ERROR_ANALYSIS.md#error-category)
 - Quick fixes: → [QUICK_REFERENCE_TIER1_FIX.md](QUICK_REFERENCE_TIER1_FIX.md#5-minute-fix-path)
-- Service details: → [SPRINT1_2_SERVICES_DELIVERY_REPORT.md](docs/status/SPRINT1_2_SERVICES_DELIVERY_REPORT.md)
+- Service details: → [docs/legacy/status/SPRINT1_2_SERVICES_DELIVERY_REPORT.md](../legacy/status/SPRINT1_2_SERVICES_DELIVERY_REPORT.md)
 
 ### From QUICK_REFERENCE to...
-- More details: → [TIER1_BUILD_ERROR_ANALYSIS.md](docs/development/TIER1_BUILD_ERROR_ANALYSIS.md)
-- Background info: → [SESSION_SUMMARY_TIER1_REMEDIATION.md](docs/summary/SESSION_SUMMARY_TIER1_REMEDIATION.md)
-- Service specs: → [SPRINT1_2_SERVICES_DELIVERY_REPORT.md](docs/status/SPRINT1_2_SERVICES_DELIVERY_REPORT.md)
+- More details: → [TIER1_BUILD_ERROR_ANALYSIS.md](TIER1_BUILD_ERROR_ANALYSIS.md)
+- Background info: → [docs/legacy/summary/SESSION_SUMMARY_TIER1_REMEDIATION.md](../legacy/summary/SESSION_SUMMARY_TIER1_REMEDIATION.md)
+- Service specs: → [docs/legacy/status/SPRINT1_2_SERVICES_DELIVERY_REPORT.md](../legacy/status/SPRINT1_2_SERVICES_DELIVERY_REPORT.md)
 
 ### From TIER1_BUILD_ERROR_ANALYSIS to...
-- Big picture: → [EXECUTIVE_SUMMARY_TIER1_STATUS.md](docs/summary/EXECUTIVE_SUMMARY_TIER1_STATUS.md)
-- Quick fixes: → [QUICK_REFERENCE_TIER1_FIX.md](docs/development/QUICK_REFERENCE_TIER1_FIX.md)
-- Session context: → [SESSION_SUMMARY_TIER1_REMEDIATION.md](SESSION_SUMMARY_TIER1_REMEDIATION.md#quality-metrics)
+- Big picture: → [EXECUTIVE_SUMMARY_TIER1_STATUS.md](../summary/EXECUTIVE_SUMMARY_TIER1_STATUS.md)
+- Quick fixes: → [QUICK_REFERENCE_TIER1_FIX.md](QUICK_REFERENCE_TIER1_FIX.md)
+- Session context: → [docs/legacy/summary/SESSION_SUMMARY_TIER1_REMEDIATION.md](../legacy/summary/SESSION_SUMMARY_TIER1_REMEDIATION.md#quality-metrics)
 
 ---
 
@@ -248,22 +248,22 @@
 ## 📍 Key Locations & Links
 
 ### Error Breakdown Locations
-- **All 47 errors categorized:** [TIER1_BUILD_ERROR_ANALYSIS.md#error-category-1](docs/development/TIER1_BUILD_ERROR_ANALYSIS.md)
-- **Ambiguous references:** [TIER1_BUILD_ERROR_ANALYSIS.md#error-category-1](docs/development/TIER1_BUILD_ERROR_ANALYSIS.md)
-- **Return type mismatches:** [TIER1_BUILD_ERROR_ANALYSIS.md#error-category-2](docs/development/TIER1_BUILD_ERROR_ANALYSIS.md)
-- **Missing entities:** [TIER1_BUILD_ERROR_ANALYSIS.md#error-category-3](docs/development/TIER1_BUILD_ERROR_ANALYSIS.md)
-- **Missing methods:** [TIER1_BUILD_ERROR_ANALYSIS.md#error-category-4](docs/development/TIER1_BUILD_ERROR_ANALYSIS.md)
+- **All 47 errors categorized:** [TIER1_BUILD_ERROR_ANALYSIS.md#error-category-1](TIER1_BUILD_ERROR_ANALYSIS.md)
+- **Ambiguous references:** [TIER1_BUILD_ERROR_ANALYSIS.md#error-category-1](TIER1_BUILD_ERROR_ANALYSIS.md)
+- **Return type mismatches:** [TIER1_BUILD_ERROR_ANALYSIS.md#error-category-2](TIER1_BUILD_ERROR_ANALYSIS.md)
+- **Missing entities:** [TIER1_BUILD_ERROR_ANALYSIS.md#error-category-3](TIER1_BUILD_ERROR_ANALYSIS.md)
+- **Missing methods:** [TIER1_BUILD_ERROR_ANALYSIS.md#error-category-4](TIER1_BUILD_ERROR_ANALYSIS.md)
 
 ### Fix Instructions
-- **Quick 5-step plan:** [QUICK_REFERENCE_TIER1_FIX.md#5-minute-fix-path](docs/development/QUICK_REFERENCE_TIER1_FIX.md)
-- **Detailed 6-phase plan:** [TIER1_BUILD_ERROR_ANALYSIS.md#remediation-plan](docs/development/TIER1_BUILD_ERROR_ANALYSIS.md)
-- **Complete workflow:** [EXECUTIVE_SUMMARY_TIER1_STATUS.md#next-steps-session-execution-plan](docs/summary/EXECUTIVE_SUMMARY_TIER1_STATUS.md)
+- **Quick 5-step plan:** [QUICK_REFERENCE_TIER1_FIX.md#5-minute-fix-path](QUICK_REFERENCE_TIER1_FIX.md)
+- **Detailed 6-phase plan:** [TIER1_BUILD_ERROR_ANALYSIS.md#remediation-plan](TIER1_BUILD_ERROR_ANALYSIS.md)
+- **Complete workflow:** [EXECUTIVE_SUMMARY_TIER1_STATUS.md#next-steps-session-execution-plan](../summary/EXECUTIVE_SUMMARY_TIER1_STATUS.md)
 
 ### Service Details
-- **All 9 services:** [SPRINT1_2_SERVICES_DELIVERY_REPORT.md](docs/status/SPRINT1_2_SERVICES_DELIVERY_REPORT.md)
-- **Commission services:** [SPRINT1_2_SERVICES_DELIVERY_REPORT.md#commission-services](docs/status/SPRINT1_2_SERVICES_DELIVERY_REPORT.md)
-- **Campaign services:** [SPRINT1_2_SERVICES_DELIVERY_REPORT.md#campaign-services](docs/status/SPRINT1_2_SERVICES_DELIVERY_REPORT.md)
-- **Email & Webhook services:** [SPRINT1_2_SERVICES_DELIVERY_REPORT.md#email-sequence-service](docs/status/SPRINT1_2_SERVICES_DELIVERY_REPORT.md)
+- **All 9 services:** [docs/legacy/status/SPRINT1_2_SERVICES_DELIVERY_REPORT.md](../legacy/status/SPRINT1_2_SERVICES_DELIVERY_REPORT.md)
+- **Commission services:** [docs/legacy/status/SPRINT1_2_SERVICES_DELIVERY_REPORT.md#commission-services](../legacy/status/SPRINT1_2_SERVICES_DELIVERY_REPORT.md)
+- **Campaign services:** [docs/legacy/status/SPRINT1_2_SERVICES_DELIVERY_REPORT.md#campaign-services](../legacy/status/SPRINT1_2_SERVICES_DELIVERY_REPORT.md)
+- **Email & Webhook services:** [docs/legacy/status/SPRINT1_2_SERVICES_DELIVERY_REPORT.md#email-sequence-service](../legacy/status/SPRINT1_2_SERVICES_DELIVERY_REPORT.md)
 
 ---
 
@@ -287,13 +287,13 @@
 ## 🎯 Next Steps
 
 ### Before Next Session
-- [ ] Review [EXECUTIVE_SUMMARY_TIER1_STATUS.md](docs/summary/EXECUTIVE_SUMMARY_TIER1_STATUS.md)
-- [ ] Bookmark [QUICK_REFERENCE_TIER1_FIX.md](docs/development/QUICK_REFERENCE_TIER1_FIX.md)
-- [ ] Save [TIER1_BUILD_ERROR_ANALYSIS.md](docs/development/TIER1_BUILD_ERROR_ANALYSIS.md) for reference
+- [ ] Review [EXECUTIVE_SUMMARY_TIER1_STATUS.md](../summary/EXECUTIVE_SUMMARY_TIER1_STATUS.md)
+- [ ] Bookmark [QUICK_REFERENCE_TIER1_FIX.md](QUICK_REFERENCE_TIER1_FIX.md)
+- [ ] Save [TIER1_BUILD_ERROR_ANALYSIS.md](TIER1_BUILD_ERROR_ANALYSIS.md) for reference
 
 ### During Next Session  
-- Follow Phase 1-6 from [QUICK_REFERENCE_TIER1_FIX.md](docs/development/QUICK_REFERENCE_TIER1_FIX.md)
-- Reference [TIER1_BUILD_ERROR_ANALYSIS.md](docs/development/TIER1_BUILD_ERROR_ANALYSIS.md) as needed
+- Follow Phase 1-6 from [QUICK_REFERENCE_TIER1_FIX.md](QUICK_REFERENCE_TIER1_FIX.md)
+- Reference [TIER1_BUILD_ERROR_ANALYSIS.md](TIER1_BUILD_ERROR_ANALYSIS.md) as needed
 - Verify build after each phase
 
 ### After Remediation Complete

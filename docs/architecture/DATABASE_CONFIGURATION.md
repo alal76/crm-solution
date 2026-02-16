@@ -151,4 +151,4 @@ The current dataset contains 130 sample US ZIP codes for major cities. To load t
 
 - [database/README.md](database/README.md) - Detailed database configuration guide
 - [DEPLOYMENT_README.md](DEPLOYMENT_README.md) - Kubernetes deployment guide
-- [ADMIN_SETTINGS_GUIDE.md](ADMIN_SETTINGS_GUIDE.md) - Admin settings documentation
+- [ADMIN_SETTINGS_GUIDE.md](../features/ADMIN_SETTINGS_GUIDE.md) - Admin settings documentation

@@ -275,12 +275,12 @@ npx playwright test
 
 All detailed information available in:
 
-- [IMPLEMENTATION_COMPLETE_SUMMARY.md](docs/summary/IMPLEMENTATION_COMPLETE_SUMMARY.md) - Comprehensive summary
-- [IMMEDIATE_ACTION_PLAN.md](docs/development/IMMEDIATE_ACTION_PLAN.md) - Original plan
-- [PHASE_1_4_COMPLETION_REPORT.md](docs/summary/PHASE_1_4_COMPLETION_REPORT.md) - API details
-- [PHASE_1_4_ADDRESS_API_CURL_EXAMPLES.md](docs/summary/PHASE_1_4_ADDRESS_API_CURL_EXAMPLES.md) - API testing
-- [PHASE_1_5_IMPLEMENTATION_REPORT.md](docs/summary/PHASE_1_5_IMPLEMENTATION_REPORT.md) - Frontend details
-- [PHASE_1_6_TEST_SUITE_REPORT.md](docs/test/PHASE_1_6_TEST_SUITE_REPORT.md) - Test details
+- [IMPLEMENTATION_COMPLETE_SUMMARY.md](../summary/IMPLEMENTATION_COMPLETE_SUMMARY.md) - Comprehensive summary
+- [IMMEDIATE_ACTION_PLAN.md](IMMEDIATE_ACTION_PLAN.md) - Original plan
+- [docs/legacy/summary/PHASE_1_4_COMPLETION_REPORT.md](../legacy/summary/PHASE_1_4_COMPLETION_REPORT.md) - API details
+- [docs/legacy/summary/PHASE_1_4_ADDRESS_API_CURL_EXAMPLES.md](../legacy/summary/PHASE_1_4_ADDRESS_API_CURL_EXAMPLES.md) - API testing
+- [docs/legacy/summary/PHASE_1_5_IMPLEMENTATION_REPORT.md](../legacy/summary/PHASE_1_5_IMPLEMENTATION_REPORT.md) - Frontend details
+- [PHASE_1_6_TEST_SUITE_REPORT.md](../test/PHASE_1_6_TEST_SUITE_REPORT.md) - Test details
 
 ---
 

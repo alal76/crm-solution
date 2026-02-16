@@ -361,7 +361,7 @@ echo "✅ All tests passed"
 ## 📖 Full Documentation
 
 For detailed test documentation, see:
-- [TEST_SUITE_DOCUMENTATION.md](docs/test/TEST_SUITE_DOCUMENTATION.md) - Comprehensive guide
+- [TEST_SUITE_DOCUMENTATION.md](TEST_SUITE_DOCUMENTATION.md) - Comprehensive guide
 - Backend patterns: [TESTING_PATTERNS.md](./docs/TESTING_PATTERNS.md) (if exists)
 - Frontend patterns: [TESTING_PATTERNS.md](./docs/TESTING_PATTERNS.md) (if exists)
 
@@ -443,13 +443,13 @@ Before committing code:
 | E2E flaky waits | Added explicit waits + retries | ✅ Resolved |
 | Database seed ordering | Use TestDbContextFactory | ✅ Resolved |
 
-See [TEST_SUITE_DOCUMENTATION.md](docs/test/TEST_SUITE_DOCUMENTATION.md) for full list.
+See [TEST_SUITE_DOCUMENTATION.md](TEST_SUITE_DOCUMENTATION.md) for full list.
 
 ---
 
 ## 📞 Need Help?
 
-1. **Check documentation:** [TEST_SUITE_DOCUMENTATION.md](docs/test/TEST_SUITE_DOCUMENTATION.md)
+1. **Check documentation:** [TEST_SUITE_DOCUMENTATION.md](TEST_SUITE_DOCUMENTATION.md)
 2. **View test examples:** Browse test files in folder above
 3. **Debug mode:** Use `--debug` flag or debugger
 4. **Ask team:** Post in #testing channel

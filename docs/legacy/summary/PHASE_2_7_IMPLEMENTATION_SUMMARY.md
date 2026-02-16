@@ -886,6 +886,6 @@ Before pushing to production:
 
 ---
 
-**Document:** PHASE_2_7_IMPLEMENTATION_SUMMARY.md  
+**Document:** docs/legacy/summary/PHASE_2_7_IMPLEMENTATION_SUMMARY.md  
 **Status:** APPROVED FOR PRODUCTION  
 **Date:** February 16, 2026

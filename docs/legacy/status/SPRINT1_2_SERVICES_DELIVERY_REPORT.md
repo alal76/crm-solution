@@ -453,10 +453,10 @@ builder.Services.AddScoped<IWebhookDispatcherService, WebhookDispatcherService>(
 
 ## References
 
-- **Specification:** [PHASE4_SERVICE_SPECIFICATIONS.md](../docs/PHASE4_SERVICE_SPECIFICATIONS.md)
-- **Architecture:** [ARCHITECTURE_OVERVIEW.md](docs/development/ARCHITECTURE_OVERVIEW.md)
-- **DI Guide:** [DI_QUICK_REFERENCE.md](docs/development/DI_QUICK_REFERENCE.md)
-- **Copilot Instructions:** [copilot-instructions.md](.github/copilot-instructions.md)
+- **Specification:** [PHASE4_SERVICE_SPECIFICATIONS.md](../../PHASE4_SERVICE_SPECIFICATIONS.md)
+- **Architecture:** [ARCHITECTURE_OVERVIEW.md](../../development/ARCHITECTURE_OVERVIEW.md)
+- **DI Guide:** [DI_QUICK_REFERENCE.md](../../development/DI_QUICK_REFERENCE.md)
+- **Copilot Instructions:** [copilot-instructions.md](../../../.github/copilot-instructions.md)
 
 ---
 

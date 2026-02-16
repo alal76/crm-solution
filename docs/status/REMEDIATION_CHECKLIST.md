@@ -184,8 +184,8 @@ If you encounter issues:
 - Rebuild from scratch
 
 ### Specific Method Questions
-- See: [SYSTEM_MODULE_REMEDIATION_GUIDE.md](docs/development/SYSTEM_MODULE_REMEDIATION_GUIDE.md)
-- Look at: [SYSTEM_MODULE_TEST_EXECUTION_REPORT.md](docs/test/SYSTEM_MODULE_TEST_EXECUTION_REPORT.md)
+- See: [SYSTEM_MODULE_REMEDIATION_GUIDE.md](../development/SYSTEM_MODULE_REMEDIATION_GUIDE.md)
+- Look at: [SYSTEM_MODULE_TEST_EXECUTION_REPORT.md](../test/SYSTEM_MODULE_TEST_EXECUTION_REPORT.md)
 - Check: Interface definition in `src/CRM.Core/Interfaces/IAdminConfigurationService.cs`
 
 ---
@@ -213,7 +213,7 @@ If you encounter issues:
 ---
 
 **Reference Documents:**
-- Full Error Report: [SYSTEM_MODULE_TEST_EXECUTION_REPORT.md](docs/test/SYSTEM_MODULE_TEST_EXECUTION_REPORT.md)
-- Detailed Guide: [SYSTEM_MODULE_REMEDIATION_GUIDE.md](docs/development/SYSTEM_MODULE_REMEDIATION_GUIDE.md)
-- Executive Summary: [SYSTEM_MODULE_TEST_BLOCKER_SUMMARY.md](docs/test/SYSTEM_MODULE_TEST_BLOCKER_SUMMARY.md)
+- Full Error Report: [SYSTEM_MODULE_TEST_EXECUTION_REPORT.md](../test/SYSTEM_MODULE_TEST_EXECUTION_REPORT.md)
+- Detailed Guide: [SYSTEM_MODULE_REMEDIATION_GUIDE.md](../development/SYSTEM_MODULE_REMEDIATION_GUIDE.md)
+- Executive Summary: [SYSTEM_MODULE_TEST_BLOCKER_SUMMARY.md](../test/SYSTEM_MODULE_TEST_BLOCKER_SUMMARY.md)
 
