@@ -161,7 +161,7 @@ public class EmailSequenceManagementService : IEmailSequenceManagementService
         await _context.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation("Step added to sequence {SequenceId}", sequenceId);
-        return MapStepToDto(step);
+        return await Task.FromResult(MapStepToDto(step));
     }
 
     public async Task<EmailSequenceStepDto> UpdateStepAsync(int sequenceId, int stepId, CreateEmailSequenceStepDto dto, CancellationToken cancellationToken = default)
@@ -183,7 +183,7 @@ public class EmailSequenceManagementService : IEmailSequenceManagementService
         await _context.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation("Step {StepId} updated", stepId);
-        return MapStepToDto(step);
+        return await Task.FromResult(MapStepToDto(step));
     }
 
     public async Task<bool> RemoveStepAsync(int sequenceId, int stepId, CancellationToken cancellationToken = default)
@@ -258,7 +258,7 @@ public class EmailSequenceManagementService : IEmailSequenceManagementService
         await _context.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation("Contact {ContactId} enrolled in sequence {SequenceId}", dto.ContactId, sequenceId);
-        return MapEnrollmentToDto(enrollment);
+        return await Task.FromResult(MapEnrollmentToDto(enrollment));
     }
 
     public async Task<List<EmailSequenceEnrollmentDto>> GetEnrollmentsAsync(int sequenceId, int page = 1, int pageSize = 50, CancellationToken cancellationToken = default)
@@ -271,7 +271,7 @@ public class EmailSequenceManagementService : IEmailSequenceManagementService
             .Take(pageSize)
             .ToListAsync(cancellationToken);
 
-        return enrollments.Select(MapEnrollmentToDto).ToList();
+        return await Task.FromResult(enrollments.Select(MapEnrollmentToDto).ToList());
     }
 
     public async Task<bool> PauseEnrollmentAsync(int sequenceId, int enrollmentId, CancellationToken cancellationToken = default)
@@ -344,7 +344,7 @@ public class EmailSequenceManagementService : IEmailSequenceManagementService
             CalculatedAt = DateTime.UtcNow
         };
 
-        return analytics;
+        return await Task.FromResult(analytics);
     }
 
     public async Task<EmailSequenceExecutionResultDto> ExecuteAsync(int sequenceId, CancellationToken cancellationToken = default)
@@ -362,12 +362,13 @@ public class EmailSequenceManagementService : IEmailSequenceManagementService
 
         _logger.LogInformation("Email sequence {SequenceId} executed", sequenceId);
 
-        return new EmailSequenceExecutionResultDto
+        var result = new EmailSequenceExecutionResultDto
         {
             SequenceId = sequenceId,
             Success = true,
             ExecutedAt = DateTime.UtcNow
         };
+        return await Task.FromResult(result);
     }
 
     public async Task<int> DuplicateAsync(int sequenceId, string newName, CancellationToken cancellationToken = default)

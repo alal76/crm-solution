@@ -227,7 +227,7 @@ public class CampaignMetricsService : ICampaignMetricsService, ICampaignMetricsI
             AnalyzedAt = DateTime.UtcNow
         };
 
-        return analysis;
+        return await Task.FromResult(analysis);
     }
 
     public async Task<CampaignPreviewDto> PreviewAsync(int campaignId, CancellationToken cancellationToken = default)
@@ -238,13 +238,15 @@ public class CampaignMetricsService : ICampaignMetricsService, ICampaignMetricsI
         if (campaign == null)
             throw new InvalidOperationException($"Campaign {campaignId} not found");
 
-        return new CampaignPreviewDto
+        var preview = new CampaignPreviewDto
         {
             CampaignId = campaignId,
             Subject = campaign.Name,
             PreviewText = campaign.Description,
             PreviewedAt = DateTime.UtcNow
         };
+
+        return await Task.FromResult(preview);
     }
 
     public async Task<int> DuplicateAsync(int campaignId, DuplicateCampaignDto dto, CancellationToken cancellationToken = default)

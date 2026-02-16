@@ -158,18 +158,18 @@ public class CommissionCalculationService : ICommissionCalculationService, IComm
     public async Task<bool> ValidateAsync(CommissionCalculationResultDto calculation, CancellationToken cancellationToken = default)
     {
         if (calculation == null)
-            return false;
+            return await Task.FromResult(false);
 
         if (calculation.FinalCommissionAmount < 0)
-            return false;
+            return await Task.FromResult(false);
 
         if (calculation.CommissionPlanId <= 0)
-            return false;
+            return await Task.FromResult(false);
 
         var plan = await _context.CommissionPlans
             .FirstOrDefaultAsync(p => p.Id == calculation.CommissionPlanId && !p.IsDeleted, cancellationToken);
 
-        return plan != null;
+        return await Task.FromResult(plan != null);
     }
 
     private async Task<CommissionPlan?> GetDefaultPlanAsync(int userId, CancellationToken cancellationToken = default)
