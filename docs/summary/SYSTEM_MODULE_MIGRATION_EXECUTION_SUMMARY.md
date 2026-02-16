@@ -297,7 +297,7 @@ A: For a new database: <1 second. For existing large databases: <30 seconds typi
 
 ## 📚 Related Documentation
 
-- [Feature Specification Index](./docs/specifications/INDEX.md)
+- [Feature Specification Index](./docs/11-specifications/INDEX.md)
 - [Solution Architecture](docs/development/ARCHITECTURE_OVERVIEW.md)
 - [Database Schema Reference](./database/DATABASE_SCHEMA.md)
 - [Copilot Instructions](./docs/copilot-instructions.md)

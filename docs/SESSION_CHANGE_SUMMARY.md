@@ -15,7 +15,7 @@
 
 | File | Changes | Impact |
 |------|---------|--------|
-| [docs/specifications/INDEX.md](../../docs/specifications/INDEX.md) | Updated overall completion from 67% → 71.4%, System Module: ⚠️ Partial → ✅ Complete 100%, Backend 82% → 84.2%, Frontend 59.4% → 62.2%, total specs complete 24 → 35 | **Primary tracking document updated** |
+| [docs/11-specifications/INDEX.md](../../docs/11-specifications/INDEX.md) | Updated overall completion from 67% → 71.4%, System Module: ⚠️ Partial → ✅ Complete 100%, Backend 82% → 84.2%, Frontend 59.4% → 62.2%, total specs complete 24 → 35 | **Primary tracking document updated** |
 | [docs/SYSTEM_MODULE_COMPLETION.md](../../docs/SYSTEM_MODULE_COMPLETION.md) | **NEW** — Comprehensive completion report (1,300+ lines) with all deliverables, metrics, sign-off checklist | **Full audit trail of delivery** |
 | [CRM.Backend/src/CRM.Api/Program.cs](../../CRM.Backend/src/CRM.Api/Program.cs) | Commented out Hangfire jobs, DI registrations for disabled services, fixed OptionalAuditLoggingService registration | Isolation for System Module |
 | [CRM.Backend/src/CRM.Api/Controllers/FeatureFlagManagementController.cs](../../CRM.Backend/src/CRM.Api/Controllers/FeatureFlagManagementController.cs) | Added `using Microsoft.AspNetCore.Authorization;` for AllowAnonymous attribute | Dependency fix |
@@ -366,7 +366,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
 
 | Document | Purpose | Link |
 |----------|---------|------|
-| **Index Updated** | Master tracking document | [INDEX.md](../../docs/specifications/INDEX.md) |
+| **Index Updated** | Master tracking document | [INDEX.md](../../docs/11-specifications/INDEX.md) |
 | **Completion Report** | Full audit trail & sign-off | [SYSTEM_MODULE_COMPLETION.md](../../docs/SYSTEM_MODULE_COMPLETION.md) |
 | **This Summary** | Session changes & deliverables | [SESSION_CHANGE_SUMMARY.md](../../docs/SESSION_CHANGE_SUMMARY.md) |
 

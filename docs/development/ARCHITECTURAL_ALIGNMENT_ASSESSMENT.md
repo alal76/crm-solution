@@ -1750,7 +1750,7 @@ Estimated Week 1 Effort: 38 hours across team
 
 ### B. Specification Compliance Details
 
-**See:** `/docs/specifications/INDEX.md` for complete specification status
+**See:** `/docs/11-specifications/INDEX.md` for complete specification status
 
 **See:** `/docs/BACKEND_GAPS_TRACKING.md` for backend task breakdown
 

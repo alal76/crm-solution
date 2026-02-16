@@ -53,7 +53,7 @@ export const IncidentBulkActionTools: React.FC<BulkActionToolsProps> = ({
 }) => {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
   const [statusDialogOpen, setStatusDialogOpen] = React.useState(false);
-  const [selectedStatus, setSelectedStatus] = React.useState<IncidentStatus>(IncidentStatus.InProgress);
+  const [selectedStatus, setSelectedStatus] = React.useState<number>(IncidentStatus.InProgress);
   const menuOpen = Boolean(anchorEl);
 
   const handleDeleteClick = async () => {
@@ -129,7 +129,7 @@ export const IncidentBulkActionTools: React.FC<BulkActionToolsProps> = ({
             <InputLabel>Status</InputLabel>
             <Select
               value={selectedStatus}
-              onChange={(e: SelectChangeEvent) => setSelectedStatus(Number(e.target.value))}
+              onChange={(e: SelectChangeEvent<number>) => setSelectedStatus(Number(e.target.value))}
               label="Status"
             >
               <MenuItem value={IncidentStatus.New}>New</MenuItem>

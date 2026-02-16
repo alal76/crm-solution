@@ -782,7 +782,7 @@ The P0/P1 implementation has successfully achieved all critical success criteria
 CRM.Backend/src/CRM.Core/Interfaces/ICrmDbContext.cs
 CRM.Backend/src/CRM.Infrastructure/Services/WebhookManagementService.cs
 docs/MASTER_TODO_LIST.md
-docs/specifications/INDEX.md
+docs/11-specifications/INDEX.md
 ```
 
 ### Files Created (New Implementation)
@@ -793,7 +793,7 @@ docs/specifications/INDEX.md
 - CRM.Backend/src/CRM.Api/Controllers/* (25+ controllers)
 - CRM.Frontend/src/components/* (50+ components)
 - CRM.Backend/tests/* (35+ test files)
-- docs/specifications/* (50+ spec documents)
+- docs/11-specifications/* (50+ spec documents)
 ```
 
 ---

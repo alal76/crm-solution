@@ -262,7 +262,7 @@ P3 - LOW (40 items)      ■■░░░░░░░░░░░░░░░░�
 
 | Document | Purpose | Status | Link |
 |----------|---------|--------|------|
-| **INDEX.md** | Quick spec reference | ✅ Updated | [View](docs/specifications/INDEX.md) |
+| **INDEX.md** | Quick spec reference | ✅ Updated | [View](docs/11-specifications/INDEX.md) |
 | **Audit Report** | Comprehensive analysis | ✅ New | [View](docs/SPECIFICATION_AUDIT_REPORT_FEB15.md) |
 | **Session Status** | This session summary | ✅ New | [View](docs/SESSION_STATUS_UPDATE_FEB15.md) |
 | **Master TODO** | All 396 TODOs | ✅ Referenced | [View](docs/MASTER_TODO_LIST.md) |

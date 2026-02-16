@@ -18,7 +18,7 @@ Copilot usage
 
 **Before implementing ANY feature, consult the feature specification:**
 
-📁 **[docs/specifications/INDEX.md](../docs/specifications/INDEX.md)** - Master index of all specifications
+📁 **[docs/11-specifications/INDEX.md](../docs/11-specifications/INDEX.md)** - Master index of all specifications
 
 ### Specification Structure
 
@@ -36,7 +36,7 @@ Each feature has a specification file (`SPEC-{MODULE}-{SEQ}-{Name}.md`) with ful
 
 ### Before Writing Code
 
-1. **Find the spec:** `docs/specifications/SPEC-{MODULE}-{SEQ}-{FeatureName}.md` in not found create this file with understanding of the implimented code and the instructions . Add in addition put in additional details as you see fit to ensure the spec is comprehensive and clear for implementation. Use the `SPEC-TEMPLATE.md` as a starting point to maintain consistency across specifications.
+1. **Find the spec:** `docs/11-specifications/SPEC-{MODULE}-{SEQ}-{FeatureName}.md` in not found create this file with understanding of the implimented code and the instructions . Add in addition put in additional details as you see fit to ensure the spec is comprehensive and clear for implementation. Use the `SPEC-TEMPLATE.md` as a starting point to maintain consistency across specifications.
 2. **Check implementation status:** Look for ✅ Implemented, ⚠️ Partial, ❌ Not Found markers
 3. **Follow validations:** Use exact rules from spec (both frontend AND backend)
 4. **Match data types:** Follow entity property types exactly

@@ -2,7 +2,7 @@
 
 > **Date Completed:** February 14, 2026  
 > **Developer:** GitHub Copilot  
-> **Specification Reference:** [SPEC-CRM-001-AccountManagement.md](docs/specifications/SPEC-CRM-001-AccountManagement.md)
+> **Specification Reference:** [SPEC-CRM-001-AccountManagement.md](docs/11-specifications/SPEC-CRM-001-AccountManagement.md)
 
 ---
 

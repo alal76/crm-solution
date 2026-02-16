@@ -70,7 +70,7 @@
 #### Gap-P1-001: Commission Management Pages (P0 - Critical)
 **Type:** Missing Pages  
 **Priority:** P0 - Critical  
-**Specification:** [SPEC-SALES-007-CommissionManagement.md](docs/specifications/SPEC-SALES-007-CommissionManagement.md)  
+**Specification:** [SPEC-SALES-007-CommissionManagement.md](docs/11-specifications/SPEC-SALES-007-CommissionManagement.md)  
 **Status:** ❌ Not Implemented
 
 **Pages Missing:**
@@ -91,7 +91,7 @@
 #### Gap-P1-002: ITSM Incident Management Pages (P0 - Critical)
 **Type:** Missing Pages  
 **Priority:** P0 - Critical  
-**Specification:** [SPEC-ITSM-001-IncidentManagement.md](docs/specifications/SPEC-ITSM-001-IncidentManagement.md)  
+**Specification:** [SPEC-ITSM-001-IncidentManagement.md](docs/11-specifications/SPEC-ITSM-001-IncidentManagement.md)  
 **Status:** ⚠️ Partial (List exists, details/forms missing)
 
 **Pages Status:**
@@ -119,7 +119,7 @@
 #### Gap-P1-003: ITSM Problem Management Pages (P1 - High)
 **Type:** Missing Pages  
 **Priority:** P1 - High  
-**Specification:** [SPEC-ITSM-002-ProblemManagement.md](docs/specifications/SPEC-ITSM-002-ProblemManagement.md)  
+**Specification:** [SPEC-ITSM-002-ProblemManagement.md](docs/11-specifications/SPEC-ITSM-002-ProblemManagement.md)  
 **Status:** ❌ Complete Missing
 
 **Pages Expected:**
@@ -142,7 +142,7 @@
 #### Gap-P1-004: ITSM Change Management Pages (P1 - High)
 **Type:** Missing Pages  
 **Priority:** P1 - High  
-**Specification:** [SPEC-ITSM-003-ChangeManagement.md](docs/specifications/SPEC-ITSM-003-ChangeManagement.md)  
+**Specification:** [SPEC-ITSM-003-ChangeManagement.md](docs/11-specifications/SPEC-ITSM-003-ChangeManagement.md)  
 **Status:** ❌ Complete Missing
 
 **Pages Expected:**
@@ -168,7 +168,7 @@
 #### Gap-P1-005: Webhook Management Pages (P1 - High)
 **Type:** Missing Pages  
 **Priority:** P1 - High  
-**Specification:** [SPEC-INT-001-WebhookManagement.md](docs/specifications/SPEC-INT-001-WebhookManagement.md)  
+**Specification:** [SPEC-INT-001-WebhookManagement.md](docs/11-specifications/SPEC-INT-001-WebhookManagement.md)  
 **Status:** ❌ Not Implemented
 
 **Pages Expected:**
@@ -188,7 +188,7 @@
 #### Gap-P1-006: Import/Export Pages (P1 - High)
 **Type:** Missing Pages  
 **Priority:** P1 - High  
-**Specification:** [SPEC-INT-003-ImportExport.md](docs/specifications/SPEC-INT-003-ImportExport.md)  
+**Specification:** [SPEC-INT-003-ImportExport.md](docs/11-specifications/SPEC-INT-003-ImportExport.md)  
 **Status:** ❌ Not Implemented
 
 **Pages Expected:**
@@ -210,7 +210,7 @@
 #### Gap-P1-007: Email Sequence Pages (P1 - High)
 **Type:** Missing Pages  
 **Priority:** P1 - High  
-**Specification:** [SPEC-MKT-003-EmailSequences.md](docs/specifications/SPEC-MKT-003-EmailSequences.md)  
+**Specification:** [SPEC-MKT-003-EmailSequences.md](docs/11-specifications/SPEC-MKT-003-EmailSequences.md)  
 **Status:** ❌ Not Implemented
 
 **Pages Expected:**
@@ -235,7 +235,7 @@
 #### Gap-P1-008: Form Builder Pages (P1 - High)
 **Type:** Missing Pages  
 **Priority:** P1 - High  
-**Specification:** [SPEC-MKT-004-WebFormBuilder.md](docs/specifications/SPEC-MKT-004-WebFormBuilder.md)  
+**Specification:** [SPEC-MKT-004-WebFormBuilder.md](docs/11-specifications/SPEC-MKT-004-WebFormBuilder.md)  
 **Status:** ⚠️ Partial (Entity exists, UI missing)
 
 **Pages Expected:**
@@ -275,7 +275,7 @@
 #### Gap-P1-010: Analytics & Reporting Pages (P2 - Medium)
 **Type:** Missing Pages  
 **Priority:** P2 - Medium  
-**Specification:** [SPEC-AI-005-FrontendAnalyticsUI.md](docs/specifications/SPEC-AI-005-FrontendAnalyticsUI.md)  
+**Specification:** [SPEC-AI-005-FrontendAnalyticsUI.md](docs/11-specifications/SPEC-AI-005-FrontendAnalyticsUI.md)  
 **Status:** ⚠️ Partial (AnalyticsPage exists, needs refinement)
 
 **Pages Needing Enhancement:**
@@ -291,7 +291,7 @@
 #### Gap-P1-011: Web Tracking & Visitor Pages (P2 - Medium)
 **Type:** Missing Pages  
 **Priority:** P2 - Medium  
-**Specification:** [SPEC-MKT-005-WebTracking.md](docs/specifications/SPEC-MKT-005-WebTracking.md)  
+**Specification:** [SPEC-MKT-005-WebTracking.md](docs/11-specifications/SPEC-MKT-005-WebTracking.md)  
 **Status:** ❌ Not Implemented
 
 **Pages Expected:**
@@ -1588,23 +1588,23 @@ export function useChangeConflictDetection(proposedDateTime: DateTime) {
 ## Specification Reference Quick Index
 
 ### Critical Path Specifications
-- [SPEC-ITSM-001: Incident Management](docs/specifications/SPEC-ITSM-001-IncidentManagement.md)
-- [SPEC-SALES-007: Commission Management](docs/specifications/SPEC-SALES-007-CommissionManagement.md)
-- [SPEC-SALES-002: Order Management](docs/specifications/SPEC-SALES-002-OrderManagement.md)
-- [SPEC-MKT-001: Campaign Management](docs/specifications/SPEC-MKT-001-CampaignManagement.md)
+- [SPEC-ITSM-001: Incident Management](docs/11-specifications/SPEC-ITSM-001-IncidentManagement.md)
+- [SPEC-SALES-007: Commission Management](docs/11-specifications/SPEC-SALES-007-CommissionManagement.md)
+- [SPEC-SALES-002: Order Management](docs/11-specifications/SPEC-SALES-002-OrderManagement.md)
+- [SPEC-MKT-001: Campaign Management](docs/11-specifications/SPEC-MKT-001-CampaignManagement.md)
 
 ### High Priority Specifications
-- [SPEC-ITSM-002: Problem Management](docs/specifications/SPEC-ITSM-002-ProblemManagement.md)
-- [SPEC-ITSM-003: Change Management](docs/specifications/SPEC-ITSM-003-ChangeManagement.md)
-- [SPEC-INT-001: Webhook Management](docs/specifications/SPEC-INT-001-WebhookManagement.md)
-- [SPEC-INT-003: Import/Export](docs/specifications/SPEC-INT-003-ImportExport.md)
-- [SPEC-MKT-003: Email Sequences](docs/specifications/SPEC-MKT-003-EmailSequences.md)
-- [SPEC-MKT-004: Web Form Builder](docs/specifications/SPEC-MKT-004-WebFormBuilder.md)
+- [SPEC-ITSM-002: Problem Management](docs/11-specifications/SPEC-ITSM-002-ProblemManagement.md)
+- [SPEC-ITSM-003: Change Management](docs/11-specifications/SPEC-ITSM-003-ChangeManagement.md)
+- [SPEC-INT-001: Webhook Management](docs/11-specifications/SPEC-INT-001-WebhookManagement.md)
+- [SPEC-INT-003: Import/Export](docs/11-specifications/SPEC-INT-003-ImportExport.md)
+- [SPEC-MKT-003: Email Sequences](docs/11-specifications/SPEC-MKT-003-EmailSequences.md)
+- [SPEC-MKT-004: Web Form Builder](docs/11-specifications/SPEC-MKT-004-WebFormBuilder.md)
 
 ### Medium Priority Specifications
-- [SPEC-AI-005-FE: Analytics UI](docs/specifications/SPEC-AI-005-FrontendAnalyticsUI.md)
-- [SPEC-MKT-005: Web Tracking](docs/specifications/SPEC-MKT-005-WebTracking.md)
-- [SPEC-SALES-006: Subscription Management](docs/specifications/SPEC-SALES-006-SubscriptionManagement.md)
+- [SPEC-AI-005-FE: Analytics UI](docs/11-specifications/SPEC-AI-005-FrontendAnalyticsUI.md)
+- [SPEC-MKT-005: Web Tracking](docs/11-specifications/SPEC-MKT-005-WebTracking.md)
+- [SPEC-SALES-006: Subscription Management](docs/11-specifications/SPEC-SALES-006-SubscriptionManagement.md)
 
 ---
 

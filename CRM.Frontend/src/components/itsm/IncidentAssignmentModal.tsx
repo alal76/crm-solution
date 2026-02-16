@@ -38,7 +38,7 @@ export const IncidentAssignmentModal: React.FC<AssignmentModalProps> = ({
   onAssign,
   onClose,
 }) => {
-  const { loading, error, setError } = useApiState();
+  const { loading, error: apiError, setError } = useApiState();
   const [assignmentType, setAssignmentType] = useState<'user' | 'group'>('user');
   const [selectedId, setSelectedId] = useState<number | undefined>(currentAssigneeId);
   const [userSearch, setUserSearch] = useState('');
@@ -78,7 +78,7 @@ export const IncidentAssignmentModal: React.FC<AssignmentModalProps> = ({
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
       <DialogTitle>Assign Incident</DialogTitle>
       <DialogContent sx={{ pt: 2 }}>
-        {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
+        {apiError && <Alert severity="error" sx={{ mb: 2 }}>{String(apiError)}</Alert>}
 
         <FormControl component="fieldset" fullWidth sx={{ mb: 2 }}>
           <FormLabel component="legend">Assign to</FormLabel>
@@ -119,7 +119,7 @@ export const IncidentAssignmentModal: React.FC<AssignmentModalProps> = ({
                   <Box>
                     <div>{item.name}</div>
                     {'email' in item && (
-                      <div style={{ fontSize: '0.875rem', color: '#666' }}>{item.email}</div>
+                      <div style={{ fontSize: '0.875rem', color: '#666' }}>{String((item as any).email)}</div>
                     )}
                   </Box>
                 }

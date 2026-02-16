@@ -133,7 +133,7 @@ Root Cause: Test project imports both Dtos and Entities namespaces without quali
    - Verify: `dotnet build` → 0 errors
 
 2. **Document Enum Hierarchy** (30 minutes)
-   - Create: `/docs/specifications/ENUM_HIERARCHY.md`
+   - Create: `/docs/11-specifications/ENUM_HIERARCHY.md`
    - Document: All entity enums, purposes, values
    - Note: DTOs use entity enums directly (no duplication)
    - Prevention: Add to code review checklist

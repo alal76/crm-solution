@@ -25,7 +25,7 @@ The CRM solution has robust **feature specifications** (52 SPEC-* files covering
 |----------|----------|----------|--------|
 | **Strategic ADRs** | `docs/architecture/ADR-*.md` | 4 major decisions (Pluggable, EF Core, Runtime, SK) | ✅ Comprehensive |
 | **Hexagonal Architecture** | `docs/architecture/HEXAGONAL_ARCHITECTURE.md` | Port/adapter patterns | ✅ Documented |
-| **Feature Specifications** | `docs/specifications/SPEC-*.md` | 52 files covering all modules | ✅ Comprehensive |
+| **Feature Specifications** | `docs/11-specifications/SPEC-*.md` | 52 files covering all modules | ✅ Comprehensive |
 | **Build/Deployment** | `SOLUTION_CONTEXT.md` + build scripts | Build process, deployment | ✅ Documented |
 | **Coding Standards** | `docs/06-standards/README.md` | General naming/style conventions | ✅ Basic coverage |
 | **Design Overview** | `docs/02-design/README.md` | Data models, entity relationships | ✅ Documented |

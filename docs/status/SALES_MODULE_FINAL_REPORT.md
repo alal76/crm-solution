@@ -408,7 +408,7 @@ The following pre-existing errors are OUTSIDE the scope of this Sales Module imp
 - `SPEC-SALES-003-InvoiceManagement.md` - Updated
 - `SPEC-SALES-004-PaymentManagement.md` - Updated
 - `SPEC-SALES-005-ContractManagement.md` - Updated
-- `docs/specifications/INDEX.md` - Updated with completion status
+- `docs/11-specifications/INDEX.md` - Updated with completion status
 
 ---
 

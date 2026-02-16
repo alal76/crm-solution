@@ -74,6 +74,7 @@ export const IncidentActivityTimeline: React.FC<IncidentActivityTimelineProps> =
       'status_change': <EditIcon />,
       'assignment': <AssignmentIcon />,
       'attachment': <AttachmentIcon />,
+      'assignment_group': <AssignmentIcon />,
     };
     return icons[type];
   };
@@ -84,16 +85,18 @@ export const IncidentActivityTimeline: React.FC<IncidentActivityTimelineProps> =
       'status_change': 'Status Changed',
       'assignment': 'Assigned',
       'attachment': 'Attachment',
+      'assignment_group': 'Group Assignment',
     };
     return labels[type];
   };
 
-  const getActivityColor = (type: IncidentActivity['type']): 'inherit' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning' => {
-    const colors: Record<IncidentActivity['type'], 'inherit' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning'> = {
+  const getActivityColor = (type: IncidentActivity['type']): 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning' => {
+    const colors: Record<IncidentActivity['type'], 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning'> = {
       'comment': 'primary',
       'status_change': 'info',
       'assignment': 'success',
       'attachment': 'warning',
+      'assignment_group': 'success',
     };
     return colors[type];
   };
