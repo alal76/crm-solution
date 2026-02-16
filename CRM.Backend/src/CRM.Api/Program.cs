@@ -145,6 +145,14 @@ if (redisEnabled && !string.IsNullOrEmpty(redisConnectionString))
         options.Configuration = redisConnectionString;
         options.InstanceName = redisInstanceName;
     });
+    
+    // Register IConnectionMultiplexer for services that require direct Redis access (like RBACService)
+    builder.Services.AddSingleton<StackExchange.Redis.IConnectionMultiplexer>(sp =>
+    {
+        var configOptions = StackExchange.Redis.ConfigurationOptions.Parse(redisConnectionString);
+        return StackExchange.Redis.ConnectionMultiplexer.Connect(configOptions);
+    });
+    
     builder.Services.AddSingleton<IRedisCacheService, RedisCacheService>();
 }
 else
