@@ -201,6 +201,60 @@ public class CommissionCalculationService : ICommissionCalculationService, IComm
 
         return tier?.CommissionRate ?? 0;
     }
+
+    /// <summary>
+    /// Validates commission calculation against business rules.
+    /// </summary>
+    public async Task<bool> ValidateAsync(CRM.Core.Dtos.CommissionCalculationResultDto calculation, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            if (calculation == null)
+            {
+                _logger.LogWarning("ValidateAsync: Calculation is null");
+                return false;
+            }
+
+            if (calculation.Amount < 0)
+            {
+                _logger.LogWarning("ValidateAsync: Amount {Amount} is negative", calculation.Amount);
+                return false;
+            }
+
+            if (calculation.CommissionPlanId <= 0)
+            {
+                _logger.LogWarning("ValidateAsync: Invalid PlanId {PlanId}", calculation.CommissionPlanId);
+                return false;
+            }
+
+            // Verify commission plan exists
+            var plan = await _context.CommissionPlans
+                .AsNoTracking()
+                .FirstOrDefaultAsync(p => p.Id == calculation.CommissionPlanId && !p.IsDeleted, cancellationToken);
+
+            if (plan == null)
+            {
+                _logger.LogWarning("ValidateAsync: Plan {PlanId} not found", calculation.CommissionPlanId);
+                return false;
+            }
+
+            // Verify final amount is greater than or equal to base amount
+            if (calculation.FinalCommissionAmount < calculation.BaseCommissionAmount)
+            {
+                _logger.LogWarning("ValidateAsync: Final amount {Final} less than base {Base}", 
+                    calculation.FinalCommissionAmount, calculation.BaseCommissionAmount);
+                return false;
+            }
+
+            _logger.LogInformation("ValidateAsync: Commission calculation valid");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "ValidateAsync: Error during validation");
+            return false;
+        }
+    }
 }
 
 /// <summary>

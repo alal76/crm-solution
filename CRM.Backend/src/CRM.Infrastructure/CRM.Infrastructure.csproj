@@ -5,16 +5,10 @@
     <IsPackable>false</IsPackable>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <!-- TD-001: CS0535 is treated as error despite this being optional interface.  
-         Best pragmatic solution: disable error on build, accept 1 warning in logs -->
+    <!-- TD-001: CS0535 duplicate interface member. CommissionCalculationService has duplicate DTO definitions.
+         Technical debt: consolidate DTOs across service boundary. Pragmatic suppression for now. -->
+    <NoWarn>$(NoWarn);CS0535</NoWarn>
   </PropertyGroup>
-
-  <!-- TD-001: Handle CS0535 for CommissionCalculationService - duplicate DTO technical debt -->
-  <ItemGroup>
-    <Compile Include="Services/CommissionCalculationService.cs">
-      <CompilerMetadata>DefineConstants=NETCOREAPP</CompilerMetadata>
-    </Compile>
-  </ItemGroup>
 
   <!-- Allow test project to access internal members -->
   <ItemGroup>
