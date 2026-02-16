@@ -11,7 +11,7 @@ const CMDBImpactAnalysisPage: React.FC = () => {
   useEffect(() => {
     const load = async () => {
       try {
-        const response = await apiClient.get(`/api/cmdb/${id}/impact-analysis`);
+        const response = await apiClient.get(`/cmdb/${id}/impact-analysis`);
         setImpacts(response.data ?? []);
       } catch (error) {
         console.error('Failed to load impact analysis', error);

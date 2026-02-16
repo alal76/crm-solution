@@ -11,7 +11,7 @@ class AddressService {
    */
   async getAccountAddresses(accountId: number): Promise<Address[]> {
     try {
-      const response = await apiClient.get<Address[]>(`/api/accounts/${accountId}/addresses`);
+      const response = await apiClient.get<Address[]>(`/accounts/${accountId}/addresses`);
       return response.data;
     } catch (error: any) {
       console.error(`Error fetching addresses for account ${accountId}:`, error);
@@ -25,7 +25,7 @@ class AddressService {
   async getAddressById(accountId: number, addressId: number): Promise<Address> {
     try {
       const response = await apiClient.get<Address>(
-        `/api/accounts/${accountId}/addresses/${addressId}`
+        `/accounts/${accountId}/addresses/${addressId}`
       );
       return response.data;
     } catch (error: any) {
@@ -40,7 +40,7 @@ class AddressService {
   async createAddress(accountId: number, address: CreateAddressDto): Promise<Address> {
     try {
       const response = await apiClient.post<Address>(
-        `/api/accounts/${accountId}/addresses`,
+        `/accounts/${accountId}/addresses`,
         address
       );
       return response.data;
@@ -60,7 +60,7 @@ class AddressService {
   ): Promise<Address> {
     try {
       const response = await apiClient.put<Address>(
-        `/api/accounts/${accountId}/addresses/${addressId}`,
+        `/accounts/${accountId}/addresses/${addressId}`,
         address
       );
       return response.data;
@@ -75,7 +75,7 @@ class AddressService {
    */
   async deleteAddress(accountId: number, addressId: number): Promise<void> {
     try {
-      await apiClient.delete(`/api/accounts/${accountId}/addresses/${addressId}`);
+      await apiClient.delete(`/accounts/${accountId}/addresses/${addressId}`);
     } catch (error: any) {
       console.error(`Error deleting address ${addressId}:`, error);
       throw error;
@@ -88,7 +88,7 @@ class AddressService {
   async setPrimaryBillingAddress(accountId: number, addressId: number): Promise<Address> {
     try {
       const response = await apiClient.patch<Address>(
-        `/api/accounts/${accountId}/addresses/${addressId}/set-primary-billing`
+        `/accounts/${accountId}/addresses/${addressId}/set-primary-billing`
       );
       return response.data;
     } catch (error: any) {
@@ -103,7 +103,7 @@ class AddressService {
   async setPrimaryShippingAddress(accountId: number, addressId: number): Promise<Address> {
     try {
       const response = await apiClient.patch<Address>(
-        `/api/accounts/${accountId}/addresses/${addressId}/set-primary-shipping`
+        `/accounts/${accountId}/addresses/${addressId}/set-primary-shipping`
       );
       return response.data;
     } catch (error: any) {

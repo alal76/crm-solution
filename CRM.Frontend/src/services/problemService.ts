@@ -142,7 +142,7 @@ const problemService = {
       if (filters.search) params.append('search', filters.search);
     }
 
-    const response = await apiClient.get(`/api/problems?${params}`);
+    const response = await apiClient.get(`/problems?${params}`);
     return response.data;
   },
 
@@ -150,7 +150,7 @@ const problemService = {
    * Get problem by ID
    */
   getProblem: async (id: number): Promise<Problem> => {
-    const response = await apiClient.get(`/api/problems/${id}`);
+    const response = await apiClient.get(`/problems/${id}`);
     return response.data;
   },
 
@@ -166,7 +166,7 @@ const problemService = {
    * Update problem
    */
   updateProblem: async (id: number, data: UpdateProblemRequest): Promise<Problem> => {
-    const response = await apiClient.put(`/api/problems/${id}`, data);
+    const response = await apiClient.put(`/problems/${id}`, data);
     return response.data;
   },
 
@@ -174,7 +174,7 @@ const problemService = {
    * Change problem status
    */
   changeStatus: async (id: number, status: ProblemStatus): Promise<Problem> => {
-    const response = await apiClient.patch(`/api/problems/${id}/status`, { status });
+    const response = await apiClient.patch(`/problems/${id}/status`, { status });
     return response.data;
   },
 
@@ -182,7 +182,7 @@ const problemService = {
    * Assign problem to user
    */
   assignToUser: async (id: number, userId: number): Promise<Problem> => {
-    const response = await apiClient.patch(`/api/problems/${id}/assign`, { assignedToId: userId });
+    const response = await apiClient.patch(`/problems/${id}/assign`, { assignedToId: userId });
     return response.data;
   },
 
@@ -190,7 +190,7 @@ const problemService = {
    * Get problem activity timeline
    */
   getActivity: async (problemId: number): Promise<ProblemActivity[]> => {
-    const response = await apiClient.get(`/api/problems/${problemId}/activity`);
+    const response = await apiClient.get(`/problems/${problemId}/activity`);
     return response.data;
   },
 
@@ -198,7 +198,7 @@ const problemService = {
    * Add comment to problem
    */
   addComment: async (problemId: number, content: string): Promise<ProblemActivity> => {
-    const response = await apiClient.post(`/api/problems/${problemId}/comments`, { content });
+    const response = await apiClient.post(`/problems/${problemId}/comments`, { content });
     return response.data;
   },
 
@@ -206,7 +206,7 @@ const problemService = {
    * Get related incidents for a problem
    */
   getRelatedIncidents: async (problemId: number): Promise<any[]> => {
-    const response = await apiClient.get(`/api/problems/${problemId}/related-incidents`);
+    const response = await apiClient.get(`/problems/${problemId}/related-incidents`);
     return response.data;
   },
 
@@ -214,14 +214,14 @@ const problemService = {
    * Link incident to problem
    */
   linkIncident: async (problemId: number, incidentId: number): Promise<void> => {
-    await apiClient.post(`/api/problems/${problemId}/incidents/${incidentId}`);
+    await apiClient.post(`/problems/${problemId}/incidents/${incidentId}`);
   },
 
   /**
    * Unlink incident from problem
    */
   unlinkIncident: async (problemId: number, incidentId: number): Promise<void> => {
-    await apiClient.delete(`/api/problems/${problemId}/incidents/${incidentId}`);
+    await apiClient.delete(`/problems/${problemId}/incidents/${incidentId}`);
   },
 
   /**
@@ -233,7 +233,7 @@ const problemService = {
     description: string,
     workaround?: string
   ): Promise<Problem> => {
-    const response = await apiClient.post(`/api/problems/${id}/root-cause`, {
+    const response = await apiClient.post(`/problems/${id}/root-cause`, {
       rootCauseAnalysis: analysis,
       rootCauseDescription: description,
       workaround,
@@ -245,7 +245,7 @@ const problemService = {
    * Resolve problem
    */
   resolve: async (id: number, resolutionNotes?: string): Promise<Problem> => {
-    const response = await apiClient.post(`/api/problems/${id}/resolve`, { resolutionNotes });
+    const response = await apiClient.post(`/problems/${id}/resolve`, { resolutionNotes });
     return response.data;
   },
 
@@ -253,7 +253,7 @@ const problemService = {
    * Close problem
    */
   close: async (id: number): Promise<Problem> => {
-    const response = await apiClient.post(`/api/problems/${id}/close`, {});
+    const response = await apiClient.post(`/problems/${id}/close`, {});
     return response.data;
   },
 
@@ -269,7 +269,7 @@ const problemService = {
    * Delete problem
    */
   deleteProblem: async (id: number): Promise<void> => {
-    await apiClient.delete(`/api/problems/${id}`);
+    await apiClient.delete(`/problems/${id}`);
   },
 };
 

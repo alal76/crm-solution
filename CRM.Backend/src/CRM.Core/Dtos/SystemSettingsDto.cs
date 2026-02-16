@@ -124,6 +124,13 @@ public class SystemSettingsDto
 
     #endregion
 
+    #region Worker Control Settings
+
+    public int WorkerMaxInstances { get; set; }
+    public string WorkerControlState { get; set; } = "Running";
+
+    #endregion
+
     #region Database Provider Features
 
     public bool MariaDbEnabled { get; set; }
@@ -258,6 +265,10 @@ public class UpdateSystemSettingsRequest
     public bool? SqliteEnabled { get; set; }
     public bool? MySqlEnabled { get; set; }
     public string? ActiveDatabaseProvider { get; set; }
+
+    // Worker Control Settings
+    public int? WorkerMaxInstances { get; set; }
+    public string? WorkerControlState { get; set; }
 
     // Navigation Settings
     public string? NavOrderConfig { get; set; }

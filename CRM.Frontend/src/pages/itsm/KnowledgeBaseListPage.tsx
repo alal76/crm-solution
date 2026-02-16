@@ -32,7 +32,7 @@ export const KnowledgeBaseListPage: React.FC = () => {
           pageNumber: '1',
           pageSize: '20'
         });
-        const response = await apiClient.get(`/api/knowledge/search?${params}`);
+        const response = await apiClient.get(`/knowledge/search?${params}`);
         setArticles(response.data ?? []);
       } catch (error) {
         console.error('Failed to load articles', error);

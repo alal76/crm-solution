@@ -127,12 +127,12 @@ const teamService = {
   getByName: (name: string) => apiClient.get<Team>(`/api/teams/by-name/${encodeURIComponent(name)}`),
   create: (team: Partial<Team>) => apiClient.post<Team>('/api/teams', team),
   update: (id: number, team: Partial<Team>) => apiClient.put<Team>(`/api/teams/${id}`, team),
-  delete: (id: number) => apiClient.delete(`/api/teams/${id}`),
+  delete: (id: number) => apiClient.delete(`/teams/${id}`),
 
   // Member Management
   addMember: (teamId: number, userId: number, role: TeamRole = TeamRole.Member) =>
     apiClient.post<TeamMember>(`/api/teams/${teamId}/members`, { userId, role }),
-  removeMember: (teamId: number, userId: number) => apiClient.delete(`/api/teams/${teamId}/members/${userId}`),
+  removeMember: (teamId: number, userId: number) => apiClient.delete(`/teams/${teamId}/members/${userId}`),
   updateMemberRole: (teamId: number, userId: number, role: TeamRole) =>
     apiClient.put<TeamMember>(`/api/teams/${teamId}/members/${userId}/role`, { role }),
   getMembers: (teamId: number) => apiClient.get<TeamMember[]>(`/api/teams/${teamId}/members`),
@@ -147,21 +147,21 @@ const teamService = {
 
   // Territory Management
   assignTerritory: (teamId: number, territoryId: number) =>
-    apiClient.post(`/api/teams/${teamId}/territories`, { territoryId }),
+    apiClient.post(`/teams/${teamId}/territories`, { territoryId }),
   removeTerritory: (teamId: number, territoryId: number) =>
-    apiClient.delete(`/api/teams/${teamId}/territories/${territoryId}`),
-  getTerritories: (teamId: number) => apiClient.get(`/api/teams/${teamId}/territories`),
+    apiClient.delete(`/teams/${teamId}/territories/${territoryId}`),
+  getTerritories: (teamId: number) => apiClient.get(`/teams/${teamId}/territories`),
   getTeamByTerritory: (territoryId: number) => apiClient.get<Team>(`/api/teams/by-territory/${territoryId}`),
 
   // Account Assignment
   assignAccount: (teamId: number, accountId: number) =>
-    apiClient.post(`/api/teams/${teamId}/accounts`, { accountId }),
+    apiClient.post(`/teams/${teamId}/accounts`, { accountId }),
   removeAccount: (teamId: number, accountId: number) =>
-    apiClient.delete(`/api/teams/${teamId}/accounts/${accountId}`),
-  getAssignedAccounts: (teamId: number) => apiClient.get(`/api/teams/${teamId}/accounts`),
+    apiClient.delete(`/teams/${teamId}/accounts/${accountId}`),
+  getAssignedAccounts: (teamId: number) => apiClient.get(`/teams/${teamId}/accounts`),
   getTeamByAccount: (accountId: number) => apiClient.get<Team>(`/api/teams/by-account/${accountId}`),
   bulkAssignAccounts: (teamId: number, accountIds: number[]) =>
-    apiClient.post(`/api/teams/${teamId}/accounts/bulk`, { accountIds }),
+    apiClient.post(`/teams/${teamId}/accounts/bulk`, { accountIds }),
 
   // Performance & Stats
   getPerformance: (teamId: number, fromDate?: string, toDate?: string) => {

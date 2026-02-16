@@ -21282,6 +21282,14 @@ namespace CRM.Infrastructure.Migrations.Auto
                     b.Property<bool>("WorkflowsEnabled")
                         .HasColumnType("tinyint(1)");
 
+                    b.Property<string>("WorkerControlState")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("VARCHAR(50)");
+
+                    b.Property<int>("WorkerMaxInstances")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
 
                     b.HasIndex("SelectedPaletteId");

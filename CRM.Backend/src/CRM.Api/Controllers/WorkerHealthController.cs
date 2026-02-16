@@ -76,11 +76,44 @@ public class WorkerHealthController : ControllerBase
     {
         var jobs = _context.WorkerJobs.AsNoTracking();
         var outbox = _context.OutboxEvents.AsNoTracking();
+        var now = DateTime.UtcNow;
 
         var queued = await jobs.CountAsync(j => j.Status == WorkerJobStatus.Queued, ct);
         var inProgress = await jobs.CountAsync(j => j.Status == WorkerJobStatus.InProgress, ct);
+        var completed = await jobs.CountAsync(j => j.Status == WorkerJobStatus.Completed, ct);
         var failed = await jobs.CountAsync(j => j.Status == WorkerJobStatus.Failed, ct);
+        var deadLettered = await jobs.CountAsync(j => j.Status == WorkerJobStatus.DeadLettered, ct);
+        var totalJobs = queued + inProgress + completed + failed + deadLettered;
+
+        var oldestQueuedAt = await jobs
+            .Where(j => j.Status == WorkerJobStatus.Queued)
+            .OrderBy(j => j.CreatedAt)
+            .Select(j => (DateTime?)j.CreatedAt)
+            .FirstOrDefaultAsync(ct);
+
+        var lastFailedJobAt = await jobs
+            .Where(j => j.Status == WorkerJobStatus.Failed)
+            .OrderByDescending(j => j.UpdatedAt ?? j.CreatedAt)
+            .Select(j => (DateTime?)(j.UpdatedAt ?? j.CreatedAt))
+            .FirstOrDefaultAsync(ct);
+
         var pendingOutbox = await outbox.CountAsync(o => o.Status == CRM.Core.Entities.Integration.OutboxEventStatus.Pending, ct);
+        var processingOutbox = await outbox.CountAsync(o => o.Status == CRM.Core.Entities.Integration.OutboxEventStatus.Processing, ct);
+        var completedOutbox = await outbox.CountAsync(o => o.Status == CRM.Core.Entities.Integration.OutboxEventStatus.Completed, ct);
+        var failedOutbox = await outbox.CountAsync(o => o.Status == CRM.Core.Entities.Integration.OutboxEventStatus.Failed, ct);
+        var totalOutbox = pendingOutbox + processingOutbox + completedOutbox + failedOutbox;
+
+        var oldestPendingOutboxAt = await outbox
+            .Where(o => o.Status == CRM.Core.Entities.Integration.OutboxEventStatus.Pending)
+            .OrderBy(o => o.OccurredAt)
+            .Select(o => (DateTime?)o.OccurredAt)
+            .FirstOrDefaultAsync(ct);
+
+        var lastFailedOutboxAt = await outbox
+            .Where(o => o.Status == CRM.Core.Entities.Integration.OutboxEventStatus.Failed)
+            .OrderByDescending(o => o.ProcessedAt ?? o.OccurredAt)
+            .Select(o => (DateTime?)(o.ProcessedAt ?? o.OccurredAt))
+            .FirstOrDefaultAsync(ct);
 
         return Ok(new
         {
@@ -89,12 +122,33 @@ public class WorkerHealthController : ControllerBase
             {
                 queued,
                 inProgress,
-                failed
+                completed,
+                failed,
+                deadLettered,
+                total = totalJobs
             },
             outbox = new
             {
-                pending = pendingOutbox
+                pending = pendingOutbox,
+                processing = processingOutbox,
+                completed = completedOutbox,
+                failed = failedOutbox,
+                total = totalOutbox
+            },
+            metrics = new
+            {
+                oldestQueuedAt,
+                oldestQueuedAgeSeconds = AgeSeconds(oldestQueuedAt, now),
+                lastFailedJobAt,
+                oldestPendingOutboxAt,
+                oldestPendingOutboxAgeSeconds = AgeSeconds(oldestPendingOutboxAt, now),
+                lastFailedOutboxAt
             }
         });
+    }
+
+    private static double? AgeSeconds(DateTime? timestamp, DateTime now)
+    {
+        return timestamp.HasValue ? (now - timestamp.Value).TotalSeconds : null;
     }
 }

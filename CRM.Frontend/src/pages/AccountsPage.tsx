@@ -643,13 +643,34 @@ function AccountsPage() {
       if (editingId) {
         await apiClient.put(`/accounts/${editingId}`, submitData);
         setSuccessMessage('Account updated successfully');
+        handleCloseDialog();
       } else {
-        await apiClient.post('/accounts', submitData);
-        setSuccessMessage('Account created successfully');
+        const response = await apiClient.post('/accounts', submitData);
+        const newAccount = response.data;
+        const newId = newAccount.id ?? newAccount.Id;
+
+        if (newId) {
+          // Auto-switch to edit mode so user can add linked entities immediately
+          setEditingId(newId);
+          setDialogError(null);
+          setSuccessMessage('Account created! You can now add contacts, addresses, and other linked information.');
+
+          // Fetch linked data for the new account
+          fetchAccountContacts(newId);
+          fetchAccountAddresses(newId);
+          preferencesService.getAccountPreferences(newId)
+            .then(prefs => setPreferencesForm({ ...INITIAL_PREFERENCES, ...prefs }))
+            .catch(() => setPreferencesForm(INITIAL_PREFERENCES));
+
+          // Switch to the Contact Info tab (first special tab after field config tabs)
+          setDialogTab(tabs.length);
+        } else {
+          setSuccessMessage('Account created successfully');
+          handleCloseDialog();
+        }
       }
-      handleCloseDialog();
       fetchAccounts();
-      setTimeout(() => setSuccessMessage(null), 3000);
+      setTimeout(() => setSuccessMessage(null), 5000);
     } catch (err: any) {
       setDialogError(getApiErrorMessage(err, 'Failed to save account'));
       logger.error('[AccountsPage] Save account error:', err);
@@ -1218,6 +1239,11 @@ function AccountsPage() {
         </Box>
         <DialogContent sx={{ pt: 2, minHeight: 400 }}>
           <DialogError error={dialogError} onClose={() => setDialogError(null)} />
+          {successMessage && editingId && (
+            <Alert severity="success" sx={{ mb: 2 }} onClose={() => setSuccessMessage(null)}>
+              {successMessage}
+            </Alert>
+          )}
           {fieldConfigsLoading ? (
             <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
               <CircularProgress />

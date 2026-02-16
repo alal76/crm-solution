@@ -28,7 +28,7 @@ export const KnowledgeArticleDetailPage: React.FC = () => {
   useEffect(() => {
     const loadArticle = async () => {
       try {
-        const response = await apiClient.get(`/api/knowledge/${id}`);
+        const response = await apiClient.get(`/knowledge/${id}`);
         setArticle(response.data);
       } catch (error) {
         console.error('Failed to load article', error);
@@ -42,7 +42,7 @@ export const KnowledgeArticleDetailPage: React.FC = () => {
 
   const handleFeedback = async (helpful: boolean) => {
     try {
-      await apiClient.post(`/api/knowledge/${id}/feedback`, { helpful });
+      await apiClient.post(`/knowledge/${id}/feedback`, { helpful });
       setFeedbackGiven(true);
     } catch (error) {
       console.error('Failed to submit feedback', error);
@@ -84,7 +84,7 @@ export const KnowledgeArticleDetailPage: React.FC = () => {
             showStats
             showRating
             onSubmitFeedback={async (feedback) => {
-              await apiClient.post(`/api/knowledge/${id}/feedback`, feedback);
+              await apiClient.post(`/knowledge/${id}/feedback`, feedback);
               setFeedbackGiven(true);
             }}
           />

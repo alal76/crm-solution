@@ -1,3 +1,3 @@
 // Sales Components Index
 export { CommissionPlanForm } from './CommissionPlanForm';
-export { PipelineKanban } from './PipelineKanban';
+export { default as PipelineKanban } from './PipelineKanban';

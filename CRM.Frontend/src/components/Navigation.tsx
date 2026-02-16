@@ -350,6 +350,7 @@ function NavigationContent() {
     'security-settings': { label: 'Security', icon: SecurityIcon, path: '/admin/security', menuName: 'SecuritySettings' },
     'feature-management': { label: 'Features', icon: FeatureToggleIcon, path: '/admin/features', menuName: 'FeatureManagement' },
     'database-settings': { label: 'Database', icon: StorageIcon, path: '/admin/database-settings', menuName: 'DatabaseSettings' },
+    'worker-ops': { label: 'Worker Operations', icon: SpeedIcon, path: '/admin/workers', menuName: 'WorkerOperations' },
     // User Administration
     'user-management': { label: 'Users', icon: PeopleIcon, path: '/admin/users', menuName: 'UserManagement' },
     'user-approvals': { label: 'Approvals', icon: PersonAddIcon, path: '/admin/approvals', menuName: 'UserApprovals' },
@@ -528,7 +529,7 @@ function NavigationContent() {
     'my-queue', 'activities', 'tasks', 'notes', 'communications', 'interactions'
   ], []);
   const defaultAdminOrder = useMemo(() => [
-    'monitoring-settings', 'deployment-settings', 'security-settings', 'feature-management',
+    'monitoring-settings', 'deployment-settings', 'security-settings', 'feature-management', 'worker-ops',
     'user-management', 'user-approvals', 'group-management', 'social-login',
     'branding-settings', 'navigation-settings', 'module-fields', 'sr-definitions', 'master-data', 'dashboard-settings', 'workflow-settings',
     'channel-settings', 'settings'
@@ -643,6 +644,7 @@ function NavigationContent() {
     { id: 'security-settings', order: 63, visible: true, category: 'admin', adminSubcategory: 'admin-system' },
     { id: 'feature-management', order: 64, visible: true, category: 'admin', adminSubcategory: 'admin-system' },
     { id: 'database-settings', order: 64.5, visible: true, category: 'admin', adminSubcategory: 'admin-system' },
+    { id: 'worker-ops', order: 64.6, visible: true, category: 'admin', adminSubcategory: 'admin-system' },
     // User Administration
     { id: 'user-management', order: 65, visible: true, category: 'admin', adminSubcategory: 'admin-users' },
     { id: 'user-approvals', order: 66, visible: true, category: 'admin', adminSubcategory: 'admin-users' },

@@ -183,6 +183,7 @@ const FormBuilderPage = lazy(() => import('./pages/FormBuilderPage'));
 // ----------------------------------------------------------------------------
 const DeploymentSettingsPage = lazy(() => import('./pages/admin/DeploymentSettingsPage'));
 const MonitoringSettingsPage = lazy(() => import('./pages/admin/MonitoringSettingsPage'));
+const WorkerOperationsPage = lazy(() => import('./pages/admin/WorkerOperationsPage'));
 const SecuritySettingsPage = lazy(() => import('./pages/admin/SecuritySettingsPage'));
 const FeatureManagementPage = lazy(() => import('./pages/admin/FeatureManagementPage'));
 const UserManagementSettingsPage = lazy(() => import('./pages/admin/UserManagementSettingsPage'));
@@ -1066,6 +1067,16 @@ function ThemedApp() {
                   <ProtectedRoute>
                     <RoleBasedRoute requiredPage="Settings">
                       <MonitoringSettingsPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/workers"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute requiredPage="Settings">
+                      <WorkerOperationsPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
                 }

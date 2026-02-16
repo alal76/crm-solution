@@ -995,7 +995,7 @@ function AccountOverviewPage() {
                       setConflictDialogOpen(false);
                       if (selectedCustomer) {
                         // Re-fetch the customer details
-                        apiClient.get(`/api/accounts/${selectedCustomer.id}`).then(resp => {
+                        apiClient.get(`/accounts/${selectedCustomer.id}`).then(resp => {
                           setSelectedCustomer(resp.data);
                         });
                       }

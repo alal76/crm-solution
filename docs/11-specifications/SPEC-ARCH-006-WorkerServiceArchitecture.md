@@ -23,7 +23,7 @@ Define a dedicated worker service architecture to run background processing work
 | WS-004 | Escalation Worker | SLA breach and escalation evaluation | ⚠️ |
 | WS-005 | Notification Worker | Async notification fan-out | ⚠️ |
 | WS-006 | Observability | Metrics, logs, tracing, retries | ❌ |
-| WS-007 | Operational Controls | Pause, drain, replay, DLQ | ❌ |
+| WS-007 | Operational Controls | Pause, drain, replay, DLQ | ⚠️ |
 
 ### 1.3 Use Cases
 | UC-ID | Use Case | Actor | Precondition | Postcondition | Status |
@@ -40,7 +40,7 @@ Define a dedicated worker service architecture to run background processing work
 ### 2.1 Pages
 | Component | File Path | Status | Notes |
 |-----------|-----------|--------|-------|
-| N/A | N/A | ❌ | No frontend changes required |
+| WorkerOperationsPage | `CRM.Frontend/src/pages/admin/WorkerOperationsPage.tsx` | ✅ | Admin UI for worker status and controls |
 
 ### 2.2 Components
 | Component | File Path | Status | Notes |
@@ -94,12 +94,18 @@ Define a dedicated worker service architecture to run background processing work
 | Controller | File Path | Endpoints | Status |
 |------------|-----------|-----------|--------|
 | WorkerHealthController | `CRM.Api/Controllers/WorkerHealthController.cs` | 2 | ✅ |
+| WorkerControlController | `CRM.Api/Controllers/WorkerControlController.cs` | 4 | ✅ |
 
 ### 3.6 API Endpoints
 | Method | Endpoint | Controller Method | Auth | Status |
 |--------|----------|-------------------|------|--------|
 | GET | `/api/workers/health` | GetHealth | No | ✅ |
 | GET | `/api/workers/stats` | GetStats | Yes | ✅ |
+| GET | `/api/workers/control` | GetControlStatus | Yes | ✅ |
+| PUT | `/api/workers/control/max-workers` | UpdateMaxWorkers | Yes | ✅ |
+| POST | `/api/workers/control/start` | StartWorkers | Yes | ✅ |
+| POST | `/api/workers/control/stop` | StopWorkers | Yes | ✅ |
+| POST | `/api/workers/control/restart` | RestartWorkers | Yes | ✅ |
 
 ### 3.7 Backend Validations
 | Field | Validation Rule | Location | Status |

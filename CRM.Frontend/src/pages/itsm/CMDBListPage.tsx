@@ -29,7 +29,7 @@ const CMDBListPage: React.FC = () => {
           pageNumber: '1',
           pageSize: '20'
         });
-        const response = await apiClient.get(`/api/cmdb?${params}`);
+        const response = await apiClient.get(`/cmdb?${params}`);
         setItems(response.data ?? []);
       } catch (error) {
         console.error('Failed to load configuration items', error);

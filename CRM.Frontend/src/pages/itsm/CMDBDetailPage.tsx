@@ -29,12 +29,12 @@ const CMDBDetailPage: React.FC = () => {
   useEffect(() => {
     const load = async () => {
       try {
-        const response = await apiClient.get(`/api/cmdb/${id}`);
+        const response = await apiClient.get(`/cmdb/${id}`);
         setCi(response.data);
         // Load relationships and service map (best-effort)
         const [relResp, svcResp] = await Promise.allSettled([
-          apiClient.get(`/api/cmdb/${id}/relationships`),
-          apiClient.get(`/api/cmdb/${id}/services`),
+          apiClient.get(`/cmdb/${id}/relationships`),
+          apiClient.get(`/cmdb/${id}/services`),
         ]);
         if (relResp.status === 'fulfilled') {
           setRelatedCIs(relResp.value.data?.relatedCIs ?? []);

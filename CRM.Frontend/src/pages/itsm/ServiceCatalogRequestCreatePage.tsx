@@ -19,7 +19,7 @@ const ServiceCatalogRequestCreatePage: React.FC = () => {
   useEffect(() => {
     const loadCatalogItem = async () => {
       try {
-        const response = await apiClient.get(`/api/catalog/items/${id}`);
+        const response = await apiClient.get(`/catalog/items/${id}`);
         setCatalogItem(response.data);
       } catch (error) {
         console.error('Failed to load catalog item', error);
