@@ -177,12 +177,13 @@ public class WebhookManagementService : IWebhookManagementService, IWebhookManag
 
         _logger.LogInformation("Webhook {WebhookId} test triggered", id);
 
-        return new WebhookTestResultDto
+        var result = new WebhookTestResultDto
         {
             Success = true,
             DeliveryId = delivery.Id,
             Message = "Webhook test queued for delivery"
         };
+        return await Task.FromResult(result);
     }
 
     #endregion
@@ -206,7 +207,7 @@ public class WebhookManagementService : IWebhookManagementService, IWebhookManag
                 .CountAsync(d => d.WebhookId == webhookId && !d.IsDeleted, cancellationToken)
         };
 
-        return history;
+        return await Task.FromResult(history);
     }
 
     public async Task<WebhookDeliveryDto?> GetDeliveryDetailAsync(int webhookId, int deliveryId, CancellationToken cancellationToken = default)
@@ -252,7 +253,7 @@ public class WebhookManagementService : IWebhookManagementService, IWebhookManag
             SuccessRate = deliveries.Any() ? (deliveries.Count(d => d.Status == "Delivered") * 100m / deliveries.Count) : 0
         };
 
-        return stats;
+        return await Task.FromResult(stats);
     }
 
     #endregion
@@ -275,7 +276,7 @@ public class WebhookManagementService : IWebhookManagementService, IWebhookManag
             new() { Name = "campaign.executed", Description = "When a campaign is executed" }
         };
 
-        return await Task.FromResult(events);
+        return await Task.FromResult((IEnumerable<WebhookEventDto>)events);
     }
 
     #endregion
