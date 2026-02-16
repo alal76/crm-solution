@@ -142,20 +142,3 @@ public class CommissionPayoutService : ICommissionPayoutService, ICommissionPayo
         return commissions.Cast<object>().ToList();
     }
 }
-
-/// <summary>
-/// DTO for commission statement response.
-/// </summary>
-public class CommissionStatementDto
-{
-    public DateTime StatementPeriodStart { get; set; }
-    public DateTime StatementPeriodEnd { get; set; }
-    public int UserId { get; set; }
-    public int TotalCommissions { get; set; }
-    public decimal TotalAmount { get; set; }
-    public decimal ApprovedAmount { get; set; }
-    public decimal PaidAmount { get; set; }
-    public decimal ClawedBackAmount { get; set; }
-    public decimal NetPayable { get; set; }
-    public DateTime GeneratedAt { get; set; }
-}

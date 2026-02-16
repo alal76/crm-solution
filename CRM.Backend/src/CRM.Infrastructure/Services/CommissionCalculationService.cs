@@ -193,36 +193,3 @@ public class CommissionCalculationService : ICommissionCalculationService, IComm
         return tier?.CommissionRate ?? 0;
     }
 }
-
-/// <summary>
-/// DTO for commission calculation result.
-/// </summary>
-public class CommissionCalculationResultDto
-{
-    public int? OpportunityId { get; set; }
-    public int? OrderId { get; set; }
-    public decimal Amount { get; set; }
-    public int CommissionPlanId { get; set; }
-    public decimal BaseCommissionRate { get; set; }
-    public decimal BaseCommissionAmount { get; set; }
-    public decimal? TierCommissionRate { get; set; }
-    public decimal? TierCommissionAmount { get; set; }
-    public decimal FinalCommissionAmount { get; set; }
-    public DateTime CreatedAt { get; set; }
-}
-
-/// <summary>
-/// DTO for commission statistics.
-/// </summary>
-public class CommissionStatisticsDto
-{
-    public int UserId { get; set; }
-    public DateTime PeriodStart { get; set; }
-    public DateTime PeriodEnd { get; set; }
-    public int TotalCommissions { get; set; }
-    public decimal TotalAmount { get; set; }
-    public decimal AverageAmount { get; set; }
-    public decimal ApprovedAmount { get; set; }
-    public decimal PaidAmount { get; set; }
-    public decimal PendingAmount { get; set; }
-}
