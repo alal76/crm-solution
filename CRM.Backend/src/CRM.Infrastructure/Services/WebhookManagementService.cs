@@ -16,6 +16,7 @@
 
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
+using CRM.Core.Entities.ITSM;
 using CRM.Core.Interfaces;
 using CRM.Core.Ports.Input;
 using CRM.Infrastructure.Data;
@@ -291,7 +292,7 @@ public class WebhookManagementService : IWebhookManagementService, IWebhookManag
         }
     }
 
-    private WebhookDto MapToDto(Webhook webhook)
+    private WebhookDto MapToDto(WebhookSubscription webhook)
     {
         return new WebhookDto
         {

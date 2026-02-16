@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using CRM.Core.Dtos;
 using CRM.Core.Entities;
 
 namespace CRM.Core.Interfaces;
@@ -67,25 +68,4 @@ public interface IColorPaletteService
     /// Get user-defined palettes
     /// </summary>
     Task<IEnumerable<ColorPaletteDto>> GetUserDefinedPalettesAsync();
-}
-
-/// <summary>
-/// DTO for color palette
-/// </summary>
-public class ColorPaletteDto
-{
-    public int Id { get; set; }
-    public string Name { get; set; } = string.Empty;
-    public string? Category { get; set; }
-    public List<string> Colors { get; set; } = new();
-    public bool IsUserDefined { get; set; }
-}
-
-/// <summary>
-/// Request to create a custom palette
-/// </summary>
-public class CreateCustomPaletteRequest
-{
-    public string Name { get; set; } = string.Empty;
-    public List<string> Colors { get; set; } = new();
 }

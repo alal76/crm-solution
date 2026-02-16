@@ -90,19 +90,13 @@ public enum CommissionStatus
     Paid = 3,
 
     /// <summary>Commission clawed back</summary>
-    Clawback = 4,
+    ClawedBack = 4,
 
     /// <summary>Commission adjusted</summary>
     Adjusted = 5,
 
     /// <summary>Commission cancelled</summary>
-    Cancelled = 6,
-
-    /// <summary>Commission rejected in approval</summary>
-    Rejected = 7,
-
-    /// <summary>Commission in draft state</summary>
-    Draft = 8
+    Cancelled = 6
 }
 
 /// <summary>

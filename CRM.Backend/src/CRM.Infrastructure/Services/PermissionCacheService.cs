@@ -1,6 +1,7 @@
 // CRM Solution - Customer Relationship Management System
 // Copyright (C) 2024-2026 Abhishek Lal
 
+using CRM.Core.Dtos;
 using CRM.Core.Interfaces;
 using Microsoft.Extensions.Logging;
 using StackExchange.Redis;

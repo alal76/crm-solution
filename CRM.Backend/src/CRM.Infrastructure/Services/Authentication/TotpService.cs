@@ -4,6 +4,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using CRM.Core.Dtos;
 using CRM.Core.Interfaces;
 using CRM.Core.Options;
 using CRM.Infrastructure.Data;

@@ -286,3 +286,16 @@ public class StepAnalyticsDto
     public decimal ClickRate { get; set; }
     public decimal ReplyRate { get; set; }
 }
+/// <summary>
+/// DTO for email sequence status
+/// </summary>
+public class SequenceStatusDto
+{
+    public int SequenceId { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public EmailSequenceStatus Status { get; set; }
+    public int TotalEnrolled { get; set; }
+    public int ActiveEnrollments { get; set; }
+    public int TotalCompleted { get; set; }
+    public int TotalEmailsSent { get; set; }
+}
