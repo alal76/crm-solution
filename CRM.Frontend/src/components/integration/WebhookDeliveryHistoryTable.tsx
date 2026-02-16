@@ -21,7 +21,6 @@ import {
   Button,
   Typography,
   Box,
-  Code,
   Tabs,
   Tab,
 } from '@mui/material';

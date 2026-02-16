@@ -160,20 +160,6 @@ public class DunningRecordDto
 }
 
 /// <summary>
-/// DTO for subscription metrics (MRR, ARR, churn, etc.).
-/// </summary>
-public class SubscriptionMetricsDto
-{
-    public int SubscriptionId { get; set; }
-    public decimal MRR { get; set; }
-    public decimal ARR { get; set; }
-    public decimal LifetimeValue { get; set; }
-    public DateTime? NextBillingDate { get; set; }
-    public int DaysUntilExpiry { get; set; }
-    public string Status { get; set; } = string.Empty;
-}
-
-/// <summary>
 /// DTO for company-wide subscription analytics.
 /// </summary>
 public class SubscriptionAnalyticsDto

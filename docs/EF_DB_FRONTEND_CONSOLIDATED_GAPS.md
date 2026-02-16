@@ -771,4 +771,4 @@ The SQL schema files and EF model used different names for the workflow engine. 
 
 ---
 
-*This document should be reviewed alongside [SOLUTION_GAPS_REMEDIATION_PLAN.md](SOLUTION_GAPS_REMEDIATION_PLAN.md), [MASTER_TODO_LIST.md](MASTER_TODO_LIST.md), and [EF_DB_FRONTEND_REMEDIATION_SUMMARY.md](EF_DB_FRONTEND_REMEDIATION_SUMMARY.md) for full context on implementation status.*
+*This document should be reviewed alongside [SOLUTION_GAPS_REMEDIATION_PLAN.md](docs/development/SOLUTION_GAPS_REMEDIATION_PLAN.md), [MASTER_TODO_LIST.md](MASTER_TODO_LIST.md), and [EF_DB_FRONTEND_REMEDIATION_SUMMARY.md](EF_DB_FRONTEND_REMEDIATION_SUMMARY.md) for full context on implementation status.*

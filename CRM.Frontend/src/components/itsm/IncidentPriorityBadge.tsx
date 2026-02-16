@@ -5,7 +5,7 @@
 import React, { useMemo } from 'react';
 import { Chip, ChipProps } from '@mui/material';
 import {
-  Priority as CriticalIcon,
+  ErrorOutline as CriticalIcon,
   SignalCellularAlt as HighIcon,
   SignalCellularAlt2Bar as MediumIcon,
   SignalCellular1Bar as LowIcon,

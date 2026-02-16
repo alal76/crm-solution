@@ -48,7 +48,7 @@ public class CommissionCalculationService : ICommissionCalculationService, IComm
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
-    public async Task<CRM.Core.Dtos.CommissionCalculationResultDto> CalculateDealAsync(int opportunityId, int? planId = null, CancellationToken cancellationToken = default)
+    public async Task<CommissionCalculationResultDto> CalculateDealAsync(int opportunityId, int? planId = null, CancellationToken cancellationToken = default)
     {
         var opportunity = await _context.Opportunities
             .AsNoTracking()
@@ -59,39 +59,38 @@ public class CommissionCalculationService : ICommissionCalculationService, IComm
 
         var plan = planId.HasValue
             ? await _context.CommissionPlans.FirstOrDefaultAsync(p => p.Id == planId && !p.IsDeleted, cancellationToken)
-            : await GetDefaultPlanAsync(opportunity.OwnerId, cancellationToken);
+            : await GetDefaultPlanAsync(opportunity.SalesOwnerId ?? 0, cancellationToken);
 
         if (plan == null)
             throw new InvalidOperationException("No commission plan available for calculation");
 
+        var amount = opportunity.Amount;
+        var baseCommissionAmount = amount * plan.BaseRate / 100m;
+        var tierRate = await GetApplicableTierRateAsync(plan.Id, amount, cancellationToken);
+        var tierCommissionAmount = tierRate > 0 && tierRate != plan.BaseRate ? (decimal?)(amount * tierRate / 100m) : null;
+        var finalAmount = tierCommissionAmount ?? baseCommissionAmount;
+
         var result = new CRM.Core.Dtos.CommissionCalculationResultDto
         {
+            UserId = opportunity.SalesOwnerId ?? 0,
             OpportunityId = opportunityId,
-            Amount = opportunity.Amount ?? 0,
+            Amount = amount,
             CommissionPlanId = plan.Id,
+            PlanName = plan.Name,
+            DealAmount = amount,
+            BaseCommissionAmount = baseCommissionAmount,
             BaseCommissionRate = plan.BaseRate,
-            BaseCommissionAmount = (opportunity.Amount ?? 0) * plan.BaseRate / 100,
+            TierCommissionAmount = tierCommissionAmount,
+            TierCommissionRate = tierRate > 0 ? tierRate : null,
+            FinalCommissionAmount = finalAmount,
             CreatedAt = DateTime.UtcNow
         };
-
-        // Apply tier-based rate
-        var tierRate = await GetApplicableTierRateAsync(plan.Id, result.Amount, cancellationToken);
-        if (tierRate > 0 && tierRate != plan.BaseRate)
-        {
-            result.TierCommissionAmount = result.Amount * tierRate / 100;
-            result.TierCommissionRate = tierRate;
-            result.FinalCommissionAmount = result.TierCommissionAmount;
-        }
-        else
-        {
-            result.FinalCommissionAmount = result.BaseCommissionAmount;
-        }
 
         _logger.LogInformation("Commission calculated for opportunity {OpportunityId}: {Amount}", opportunityId, result.FinalCommissionAmount);
         return result;
     }
 
-    public async Task<CRM.Core.Dtos.CommissionCalculationResultDto> CalculateOrderAsync(int orderId, int? planId = null, CancellationToken cancellationToken = default)
+    public async Task<CommissionCalculationResultDto> CalculateOrderAsync(int orderId, int? planId = null, CancellationToken cancellationToken = default)
     {
         var order = await _context.Orders
             .AsNoTracking()
@@ -102,44 +101,58 @@ public class CommissionCalculationService : ICommissionCalculationService, IComm
 
         var plan = planId.HasValue
             ? await _context.CommissionPlans.FirstOrDefaultAsync(p => p.Id == planId && !p.IsDeleted, cancellationToken)
-            : await GetDefaultPlanAsync(order.CreatedById, cancellationToken);
+            : await GetDefaultPlanAsync(order.UserId ?? 0, cancellationToken);
 
         if (plan == null)
             throw new InvalidOperationException("No commission plan available for calculation");
 
+        var amount = order.TotalAmount;
+        var baseCommissionAmount = amount * plan.BaseRate / 100;
+
         var result = new CRM.Core.Dtos.CommissionCalculationResultDto
         {
+            UserId = order.UserId ?? 0,
             OrderId = orderId,
-            Amount = order.TotalAmount ?? 0,
+            Amount = amount,
             CommissionPlanId = plan.Id,
+            PlanName = plan.Name,
+            DealAmount = amount,
+            BaseCommissionAmount = baseCommissionAmount,
             BaseCommissionRate = plan.BaseRate,
-            BaseCommissionAmount = (order.TotalAmount ?? 0) * plan.BaseRate / 100,
+            FinalCommissionAmount = baseCommissionAmount,
             CreatedAt = DateTime.UtcNow
         };
-
-        result.FinalCommissionAmount = result.BaseCommissionAmount;
 
         _logger.LogInformation("Commission calculated for order {OrderId}: {Amount}", orderId, result.FinalCommissionAmount);
         return result;
     }
 
-    public async Task<CRM.Core.Dtos.CommissionStatisticsDto> CalculatePeriodAsync(int userId, DateTime from, DateTime to, CancellationToken cancellationToken = default)
+    public async Task<CommissionStatisticsDto> CalculatePeriodAsync(int userId, DateTime from, DateTime to, CancellationToken cancellationToken = default)
     {
         var commissions = await _context.Commissions
             .Where(c => c.UserId == userId && !c.IsDeleted && c.CreatedAt >= from && c.CreatedAt <= to)
             .ToListAsync(cancellationToken);
 
-        var stats = new CRM.Core.Dtos.CommissionStatisticsDto
+        var approvedCommissions = commissions.Where(c => c.Status == CommissionStatus.Approved).ToList();
+        var paidCommissions = commissions.Where(c => c.Status == CommissionStatus.Paid).ToList();
+        var pendingCommissions = commissions.Where(c => c.Status == CommissionStatus.Pending).ToList();
+        var clawedBackCommissions = commissions.Where(c => c.Status == CommissionStatus.Rejected).ToList();
+
+        var stats = new CommissionStatisticsDto
         {
-            UserId = userId,
-            PeriodStart = from,
-            PeriodEnd = to,
             TotalCommissions = commissions.Count,
             TotalAmount = commissions.Sum(c => c.CommissionAmount),
-            AverageAmount = commissions.Any() ? commissions.Average(c => c.CommissionAmount) : 0,
-            ApprovedAmount = commissions.Where(c => c.Status == CommissionStatus.Approved).Sum(c => c.CommissionAmount),
-            PaidAmount = commissions.Where(c => c.Status == CommissionStatus.Paid).Sum(c => c.CommissionAmount),
-            PendingAmount = commissions.Where(c => c.Status == CommissionStatus.Pending).Sum(c => c.CommissionAmount)
+            ApprovedAmount = approvedCommissions.Sum(c => c.CommissionAmount),
+            PaidAmount = paidCommissions.Sum(c => c.CommissionAmount),
+            AverageCommission = commissions.Any() ? commissions.Average(c => c.CommissionAmount) : 0,
+            MaxCommission = commissions.Any() ? commissions.Max(c => c.CommissionAmount) : 0,
+            MinCommission = commissions.Any() ? commissions.Min(c => c.CommissionAmount) : 0,
+            PendingCount = pendingCommissions.Count,
+            ApprovedCount = approvedCommissions.Count,
+            PaidCount = paidCommissions.Count,
+            ClawedBackCount = clawedBackCommissions.Count,
+            StartDate = from,
+            EndDate = to
         };
 
         return stats;
@@ -165,47 +178,6 @@ public class CommissionCalculationService : ICommissionCalculationService, IComm
     }
 
     public async Task<bool> ValidateAsync(CommissionCalculationResultDto calculation, CancellationToken cancellationToken = default)
-    {
-        if (calculation == null)
-            return await Task.FromResult(false);
-
-        if (calculation.FinalCommissionAmount < 0)
-            return await Task.FromResult(false);
-
-        if (calculation.CommissionPlanId <= 0)
-            return await Task.FromResult(false);
-
-        var plan = await _context.CommissionPlans
-            .FirstOrDefaultAsync(p => p.Id == calculation.CommissionPlanId && !p.IsDeleted, cancellationToken);
-
-        return await Task.FromResult(plan != null);
-    }
-
-    private async Task<CommissionPlan?> GetDefaultPlanAsync(int userId, CancellationToken cancellationToken = default)
-    {
-        var assignment = await _context.CommissionPlanAssignments
-            .Include(a => a.CommissionPlan)
-            .FirstOrDefaultAsync(a => a.UserId == userId && !a.IsDeleted && a.EffectiveDate <= DateTime.UtcNow, cancellationToken);
-
-        return assignment?.CommissionPlan;
-    }
-
-    private async Task<decimal> GetApplicableTierRateAsync(int planId, decimal amount, CancellationToken cancellationToken = default)
-    {
-        var tier = await _context.CommissionTiers
-            .Where(t => t.CommissionPlanId == planId && !t.IsDeleted
-                && t.MinimumAmount <= amount
-                && (t.MaximumAmount == null || t.MaximumAmount >= amount))
-            .OrderBy(t => t.Sequence)
-            .FirstOrDefaultAsync(cancellationToken);
-
-        return tier?.CommissionRate ?? 0;
-    }
-
-    /// <summary>
-    /// Validates commission calculation against business rules.
-    /// </summary>
-    public async Task<bool> ValidateAsync(CRM.Core.Dtos.CommissionCalculationResultDto calculation, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -255,37 +227,132 @@ public class CommissionCalculationService : ICommissionCalculationService, IComm
             return false;
         }
     }
-}
 
-/// <summary>
-/// DTO for commission calculation result.
-/// </summary>
-public class CommissionCalculationResultDto
-{
-    public int? OpportunityId { get; set; }
-    public int? OrderId { get; set; }
-    public decimal Amount { get; set; }
-    public int CommissionPlanId { get; set; }
-    public decimal BaseCommissionRate { get; set; }
-    public decimal BaseCommissionAmount { get; set; }
-    public decimal? TierCommissionRate { get; set; }
-    public decimal? TierCommissionAmount { get; set; }
-    public decimal FinalCommissionAmount { get; set; }
-    public DateTime CreatedAt { get; set; }
-}
+    public async Task<CommissionCalculationResultDto> CalculateForDealAsync(CommissionDealCalculationDto dto, CancellationToken cancellationToken = default)
+    {
+        // Delegate to existing method if OpportunityId is set, otherwise create basic result
+        if (dto.OpportunityId > 0)
+        {
+            return await CalculateDealAsync(dto.OpportunityId, null, cancellationToken);
+        }
 
-/// <summary>
-/// DTO for commission statistics.
-/// </summary>
-public class CommissionStatisticsDto
-{
-    public int UserId { get; set; }
-    public DateTime PeriodStart { get; set; }
-    public DateTime PeriodEnd { get; set; }
-    public int TotalCommissions { get; set; }
-    public decimal TotalAmount { get; set; }
-    public decimal AverageAmount { get; set; }
-    public decimal ApprovedAmount { get; set; }
-    public decimal PaidAmount { get; set; }
-    public decimal PendingAmount { get; set; }
+        // Return basic result with provided data
+        return new CommissionCalculationResultDto
+        {
+            UserId = dto.UserId,
+            DealAmount = dto.DealAmount,
+            CommissionRate = dto.CommissionRate,
+            TierName = dto.CommissionTier,
+            FinalCommissionAmount = dto.Commission,
+            CreatedAt = DateTime.UtcNow
+        };
+    }
+
+    public async Task<CommissionCalculationResultDto> CalculateForOrderAsync(CommissionOrderCalculationDto dto, CancellationToken cancellationToken = default)
+    {
+        // Delegate to existing method if OrderId is set, otherwise create basic result
+        if (dto.OrderId > 0)
+        {
+            return await CalculateOrderAsync(dto.OrderId, null, cancellationToken);
+        }
+
+        // Return basic result with provided data
+        return new CommissionCalculationResultDto
+        {
+            UserId = dto.UserId,
+            OrderId = dto.OrderId,
+            DealAmount = dto.OrderAmount,
+            CommissionRate = 0,
+            FinalCommissionAmount = dto.Commission,
+            CreatedAt = DateTime.UtcNow
+        };
+    }
+
+    public async Task<CommissionPeriodCalculationResultDto> CalculateForPeriodAsync(CommissionPeriodCalculationDto dto, CancellationToken cancellationToken = default)
+    {
+        // Calculate total deal amount and commission for the period
+        var stats = await CalculatePeriodAsync(dto.UserId, dto.StartDate, dto.EndDate, cancellationToken);
+
+        return new CommissionPeriodCalculationResultDto
+        {
+            UserId = dto.UserId,
+            UserName = string.Empty,
+            StartDate = dto.StartDate,
+            EndDate = dto.EndDate,
+            TotalDealAmount = stats?.TotalAmount ?? 0,
+            TotalCommission = stats?.ApprovedAmount ?? 0,
+            DealCount = stats?.ApprovedCount ?? 0
+        };
+    }
+
+    public async Task<CommissionValidationResultDto> ValidateAsync(CommissionCalculationValidationDto validation, CancellationToken cancellationToken = default)
+    {
+        var result = new CommissionValidationResultDto
+        {
+            IsValid = true,
+            CalculatedCommission = 0,
+            ValidationErrors = new()
+        };
+
+        // Validate required fields
+        if (validation.RuleId <= 0)
+        {
+            result.IsValid = false;
+            result.ValidationErrors.Add("Rule ID is required and must be greater than 0");
+        }
+
+        if (validation.DealAmount <= 0)
+        {
+            result.IsValid = false;
+            result.ValidationErrors.Add("Deal amount must be greater than 0");
+        }
+
+        if (validation.UserId <= 0)
+        {
+            result.IsValid = false;
+            result.ValidationErrors.Add("User ID is required and must be greater than 0");
+        }
+
+        // If basic validation passed, check if rule exists
+        if (result.IsValid && validation.RuleId > 0)
+        {
+            var rule = await _context.CommissionRules
+                .FirstOrDefaultAsync(r => r.Id == validation.RuleId && !r.IsDeleted, cancellationToken);
+
+            if (rule == null)
+            {
+                result.IsValid = false;
+                result.ValidationErrors.Add($"Commission rule {validation.RuleId} not found");
+            }
+            else
+            {
+                // Calculate simple commission
+                result.CalculatedCommission = validation.DealAmount * rule.BaseRate / 100;
+            }
+        }
+
+        result.ValidationMessage = result.IsValid ? "Commission calculation is valid" : "Commission calculation has validation errors";
+        return result;
+    }
+
+    private async Task<CommissionPlan?> GetDefaultPlanAsync(int userId, CancellationToken cancellationToken = default)
+    {
+        var assignment = await _context.CommissionPlanAssignments
+            .Include(a => a.CommissionPlan)
+            .FirstOrDefaultAsync(a => a.UserId == userId && !a.IsDeleted && a.EffectiveDate <= DateTime.UtcNow, cancellationToken);
+
+        return assignment?.CommissionPlan;
+    }
+
+    private async Task<decimal> GetApplicableTierRateAsync(int planId, decimal amount, CancellationToken cancellationToken = default)
+    {
+        var tier = await _context.CommissionTiers
+            .Where(t => t.CommissionPlanId == planId && !t.IsDeleted
+                && t.MinimumAmount <= amount
+                && (t.MaximumAmount == null || t.MaximumAmount >= amount))
+            .OrderBy(t => t.Sequence)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        return tier?.CommissionRate ?? 0;
+    }
 }

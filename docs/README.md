@@ -200,10 +200,10 @@ These files are located in the repository root:
 | File | Description |
 |------|-------------|
 | [README.md](../README.md) | Main project README |
-| [ARCHITECTURE_OVERVIEW.md](../ARCHITECTURE_OVERVIEW.md) | System architecture |
-| [MICROSERVICES_ARCHITECTURE.md](../MICROSERVICES_ARCHITECTURE.md) | Microservices details |
-| [TESTING_SUMMARY.md](../TESTING_SUMMARY.md) | Test documentation |
-| [CONTACT_INFO_MIGRATION_PLAN.md](../CONTACT_INFO_MIGRATION_PLAN.md) | Data migration |
+| [ARCHITECTURE_OVERVIEW.md](docs/development/ARCHITECTURE_OVERVIEW.md) | System architecture |
+| [MICROSERVICES_ARCHITECTURE.md](docs/development/MICROSERVICES_ARCHITECTURE.md) | Microservices details |
+| [TESTING_SUMMARY.md](docs/test/TESTING_SUMMARY.md) | Test documentation |
+| [CONTACT_INFO_MIGRATION_PLAN.md](docs/development/CONTACT_INFO_MIGRATION_PLAN.md) | Data migration |
 
 ---
 

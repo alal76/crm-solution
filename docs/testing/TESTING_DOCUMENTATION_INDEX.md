@@ -14,7 +14,7 @@
 ### ✅ Verification & Checklists
 6. **[TESTING_IMPLEMENTATION_COMPLETE.md](TESTING_IMPLEMENTATION_COMPLETE.md)** - Implementation details
 7. **[TESTING_COMPLETE_CHECKLIST.md](TESTING_COMPLETE_CHECKLIST.md)** - Phase-by-phase checklist
-8. **[TESTING_SUMMARY.md](TESTING_SUMMARY.md)** - Complete summary
+8. **[TESTING_SUMMARY.md](docs/test/TESTING_SUMMARY.md)** - Complete summary
 
 ---
 
@@ -149,7 +149,7 @@ Project Root/
 → Read: [TESTING_IMPLEMENTATION_COMPLETE.md](TESTING_IMPLEMENTATION_COMPLETE.md)
 
 **Get Overall Summary**
-→ Read: [TESTING_SUMMARY.md](TESTING_SUMMARY.md)
+→ Read: [TESTING_SUMMARY.md](docs/test/TESTING_SUMMARY.md)
 
 **Add More Tests**
 → See: [TESTING_GUIDE.md](TESTING_GUIDE.md#test-maintenance-guidelines)

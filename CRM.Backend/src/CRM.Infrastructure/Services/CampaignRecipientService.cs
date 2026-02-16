@@ -66,7 +66,7 @@ public class CampaignRecipientService : ICampaignRecipientService, ICampaignReci
         if (campaign == null)
             throw new InvalidOperationException($"Campaign {campaignId} not found");
 
-        if (dto.ContactIds == null || !dto.ContactIds.Any())
+        if (dto.RecipientIds == null || !dto.RecipientIds.Any())
             return 0;
 
         // Get existing recipients for this campaign
@@ -76,13 +76,13 @@ public class CampaignRecipientService : ICampaignRecipientService, ICampaignReci
             .ToHashSetAsync(cancellationToken);
 
         int addedCount = 0;
-        foreach (var contactId in dto.ContactIds)
+        foreach (var contactId in dto.RecipientIds)
         {
             if (existingRecipientIds.Contains(contactId))
                 continue; // Skip if already a recipient
 
             var contact = await _context.Contacts
-                .FirstOrDefaultAsync(c => c.Id == contactId && !c.IsDeleted, cancellationToken);
+                .FirstOrDefaultAsync(c => c.Id == contactId, cancellationToken);
 
             if (contact == null)
                 continue;
@@ -91,7 +91,10 @@ public class CampaignRecipientService : ICampaignRecipientService, ICampaignReci
             {
                 CampaignId = campaignId,
                 ContactId = contactId,
-                Status = "Queued",
+                Email = contact.Email ?? string.Empty,
+                FirstName = contact.FirstName ?? string.Empty,
+                LastName = contact.LastName ?? string.Empty,
+                Status = CampaignRecipientStatus.Pending.ToString(),
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };
@@ -153,13 +156,17 @@ public class CampaignRecipientService : ICampaignRecipientService, ICampaignReci
             Id = recipient.Id,
             CampaignId = recipient.CampaignId,
             ContactId = recipient.ContactId,
-            ContactName = $"{recipient.Contact?.FirstName} {recipient.Contact?.LastName}",
-            ContactEmail = recipient.Contact?.Email,
-            Status = recipient.Status,
-            SentAt = recipient.SentAt,
-            OpenedAt = recipient.OpenedAt,
-            ClickedAt = recipient.ClickedAt,
-            CreatedAt = recipient.CreatedAt
+            AccountId = recipient.AccountId,
+            Email = recipient.Email ?? string.Empty,
+            FirstName = recipient.FirstName,
+            LastName = recipient.LastName,
+            Status = int.TryParse(recipient.Status, out var statusInt) ? statusInt : (int)CampaignRecipientStatus.Pending,
+            AddedAt = recipient.CreatedAt,
+            EngagedAt = recipient.FirstOpenedAt,
+            Impressions = recipient.OpenCount,
+            Clicks = recipient.ClickCount,
+            Conversions = recipient.ConvertedAt.HasValue ? 1 : 0,
+            Money = recipient.ConversionValue ?? 0
         };
     }
 }
@@ -192,24 +199,27 @@ public class CampaignMetricsService : ICampaignMetricsService, ICampaignMetricsI
             .ToListAsync(cancellationToken);
 
         var totalRecipients = recipients.Count;
-        var sentCount = recipients.Count(r => r.SentAt.HasValue);
-        var openedCount = recipients.Count(r => r.OpenedAt.HasValue);
-        var clickedCount = recipients.Count(r => r.ClickedAt.HasValue);
-        var bouncedCount = recipients.Count(r => r.Status == "Bounced");
+        var sentCount = recipients.Count(r => r.SendActualTime.HasValue);
+        var openedCount = recipients.Count(r => r.FirstOpenedAt.HasValue);
+        var clickedCount = recipients.Count(r => r.FirstClickedAt.HasValue);
+        var bouncedCount = recipients.Count(r => r.Status == CampaignRecipientStatus.Bounced.ToString());
 
         var metrics = new CampaignMetricsDto
         {
             CampaignId = campaignId,
-            TotalRecipients = totalRecipients,
-            SentCount = sentCount,
-            OpenCount = openedCount,
-            ClickCount = clickedCount,
-            BounceCount = bouncedCount,
-            OpenRate = totalRecipients > 0 ? (openedCount * 100m / totalRecipients) : 0,
-            ClickRate = totalRecipients > 0 ? (clickedCount * 100m / totalRecipients) : 0,
-            BounceRate = totalRecipients > 0 ? (bouncedCount * 100m / totalRecipients) : 0,
-            ConversionRate = recipients.Any() ? (clickedCount * 100m / sentCount) : 0,
-            CalculatedAt = DateTime.UtcNow
+            CampaignName = campaign.Name,
+            Impressions = totalRecipients,
+            Clicks = clickedCount,
+            Conversions = 0,
+            LeadsGenerated = 0,
+            MqlsGenerated = 0,
+            SqlsGenerated = 0,
+            ReveneGenerated = 0,
+            Roi = 0,
+            Cpl = 0,
+            Cpa = 0,
+            ClickThroughRate = totalRecipients > 0 ? (clickedCount * 100m / totalRecipients) : 0m,
+            ConversionRate = sentCount > 0 ? (openedCount * 100m / sentCount) : 0m
         };
 
         return metrics;
@@ -222,7 +232,7 @@ public class CampaignMetricsService : ICampaignMetricsService, ICampaignMetricsI
         var analysis = new CRM.Core.Dtos.CampaignAnalysisDto
         {
             CampaignId = campaignId,
-            Insights = GenerateInsights(metrics),
+            Insights = string.Join(", ", GenerateInsights(metrics)),
             Recommendations = GenerateRecommendations(metrics),
             AnalyzedAt = DateTime.UtcNow
         };
@@ -242,8 +252,7 @@ public class CampaignMetricsService : ICampaignMetricsService, ICampaignMetricsI
         {
             CampaignId = campaignId,
             Subject = campaign.Name,
-            PreviewText = campaign.Description,
-            PreviewedAt = DateTime.UtcNow
+            PreviewText = campaign.Description
         };
 
         return await Task.FromResult(preview);
@@ -261,7 +270,7 @@ public class CampaignMetricsService : ICampaignMetricsService, ICampaignMetricsI
         {
             Name = dto.NewName,
             Description = $"Copy of {original.Name}",
-            Status = "Draft",
+            Status = CampaignStatus.Draft,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
@@ -283,7 +292,7 @@ public class CampaignMetricsService : ICampaignMetricsService, ICampaignMetricsI
 
         // Retargeting logic - mark non-converters for re-engagement
         var nonConverters = await _context.CampaignRecipients
-            .Where(r => r.CampaignId == campaignId && !r.IsDeleted && r.ClickedAt == null)
+            .Where(r => r.CampaignId == campaignId && !r.IsDeleted && r.FirstClickedAt == null)
             .ToListAsync(cancellationToken);
 
         foreach (var recipient in nonConverters)
@@ -303,16 +312,16 @@ public class CampaignMetricsService : ICampaignMetricsService, ICampaignMetricsI
     {
         var insights = new List<string>();
 
-        if (metrics.OpenRate > 30)
-            insights.Add("Strong email open rate - audience is engaged");
-        else if (metrics.OpenRate < 10)
-            insights.Add("Low open rate - consider reviewing subject lines");
+        if (metrics.ClickThroughRate > 30)
+            insights.Add("Strong email click-through rate - audience is engaged");
+        else if (metrics.ClickThroughRate < 10)
+            insights.Add("Low click-through rate - consider reviewing call-to-action");
 
-        if (metrics.ClickRate > 10)
-            insights.Add("High click-through rate - call-to-action is effective");
+        if (metrics.ConversionRate > 10)
+            insights.Add("High conversion rate - campaign strategy is effective");
 
-        if (metrics.BounceRate > 5)
-            insights.Add("High bounce rate - review email list quality");
+        if (metrics.Impressions > 0 && metrics.Clicks == 0)
+            insights.Add("No clicks - audience may not be interested in the offer");
 
         return insights;
     }
@@ -321,55 +330,17 @@ public class CampaignMetricsService : ICampaignMetricsService, ICampaignMetricsI
     {
         var recommendations = new List<string>();
 
-        if (metrics.OpenRate < 15)
-            recommendations.Add("A/B test subject lines to improve open rates");
+        if (metrics.ClickThroughRate < 15)
+            recommendations.Add("A/B test call-to-action to improve click-through rates");
 
-        if (metrics.ClickRate < 5)
-            recommendations.Add("Improve call-to-action visibility and clarity");
+        if (metrics.ConversionRate < 5)
+            recommendations.Add("Review landing page experience and offer clarity");
 
-        if (metrics.BounceRate > 2)
-            recommendations.Add("Validate email addresses before sending");
+        if (metrics.Impressions > 0 && (metrics.Clicks * 100m / metrics.Impressions) < 2)
+            recommendations.Add("Review subject lines and preview text effectiveness");
 
         recommendations.Add("Segment recipients for more targeted campaigns");
 
         return recommendations;
     }
-}
-
-/// <summary>
-/// DTO for campaign analysis response.
-/// </summary>
-public class CampaignAnalysisDto
-{
-    public int CampaignId { get; set; }
-    public List<string> Insights { get; set; } = new();
-    public List<string> Recommendations { get; set; } = new();
-    public DateTime AnalyzedAt { get; set; }
-}
-
-/// <summary>
-/// DTO for campaign preview response.
-/// </summary>
-public class CampaignPreviewDto
-{
-    public int CampaignId { get; set; }
-    public string Subject { get; set; } = string.Empty;
-    public string PreviewText { get; set; } = string.Empty;
-    public DateTime PreviewedAt { get; set; }
-}
-
-/// <summary>
-/// DTO for duplicate campaign request.
-/// </summary>
-public class DuplicateCampaignDto
-{
-    public string NewName { get; set; } = string.Empty;
-}
-
-/// <summary>
-/// DTO for retarget campaign request.
-/// </summary>
-public class RetargetCampaignDto
-{
-    public string? RetargetMessage { get; set; }
 }

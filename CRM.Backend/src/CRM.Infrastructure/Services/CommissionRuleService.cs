@@ -131,7 +131,7 @@ public class CommissionRuleService : ICommissionRuleService
     public async Task<List<CommissionRuleDto>> GetApplicableRulesAsync(string saleType, CancellationToken ct = default)
     {
         var today = DateTime.UtcNow;
-        var rules = await _ruleRepository.GetAllAsync(ct);
+        var rules = await _ruleRepository.GetAllAsync();
 
         var applicable = rules
             .Where(r => r.SaleType == saleType
@@ -160,7 +160,7 @@ public class CommissionRuleService : ICommissionRuleService
 
         foreach (var ruleDto in applicableRules)
         {
-            var rule = await _ruleRepository.GetByIdAsync(ruleDto.Id, ct);
+            var rule = await _ruleRepository.GetByIdAsync(ruleDto.Id);
             if (rule == null) continue;
 
             if (rule.RuleType == CommissionRuleType.Tiered)
@@ -191,11 +191,11 @@ public class CommissionRuleService : ICommissionRuleService
 
         return new CommissionCalculationDto
         {
-            SalesAmount = saleAmount,
-            CommissionAmount = commissionAmount,
+            DealAmount = saleAmount,
+            Commission = commissionAmount,
             CommissionRate = matchedRule.Rate,
-            AppliedRule = matchedRule,
-            CalculationMethod = matchedRule.RuleType.ToString()
+            RuleId = matchedRule.Id,
+            RuleName = matchedRule.Name
         };
     }
 

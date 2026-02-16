@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using CRM.Core.Entities;
+using CRM.Core.Entities.ITSM;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -85,3 +86,38 @@ public class ServiceRequestCustomFieldValueConfiguration : IEntityTypeConfigurat
         builder.HasKey(e => e.Id);
     }
 }
+
+/// <summary>
+/// Entity configuration for ChangeBlackout (Change Management - ITSM module).
+/// </summary>
+public class ChangeBlackoutConfiguration : IEntityTypeConfiguration<ChangeBlackout>
+{
+    public void Configure(EntityTypeBuilder<ChangeBlackout> builder)
+    {
+        builder.HasKey(e => e.BlackoutId);
+        
+        builder.Property(e => e.Name).IsRequired().HasMaxLength(200);
+        builder.Property(e => e.Description).HasMaxLength(500);
+        builder.Property(e => e.Reason).HasMaxLength(500);
+        
+        // Relationship: ChangeBlackout -> Change
+        builder.HasOne(e => e.Change)
+            .WithMany(c => c.Blackouts)
+            .HasForeignKey(e => e.ChangeId)
+            .OnDelete(DeleteBehavior.Cascade);
+        
+        // Relationship: ChangeBlackout -> User (CreatedBy)
+        builder.HasOne(e => e.CreatedBy)
+            .WithMany()
+            .HasForeignKey(e => e.CreatedById)
+            .OnDelete(DeleteBehavior.SetNull);
+        
+        // Soft delete index
+        builder.HasIndex(e => e.IsDeleted);
+        // Date range index for blackout period queries
+        builder.HasIndex(e => new { e.StartDate, e.EndDate }).HasName("IX_ChangeBlackout_DateRange");
+        // Change lookup index
+        builder.HasIndex(e => e.ChangeId).HasName("IX_ChangeBlackout_ChangeId");
+    }
+}
+

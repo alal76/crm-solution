@@ -3074,8 +3074,8 @@ All external UIs should use SSO for seamless access:
 
 - [COMPREHENSIVE_GAP_ANALYSIS_RESULTS.md](../Enhancements%20planned/COMPREHENSIVE_GAP_ANALYSIS_RESULTS.md)
 - [CRM_Complete_Gap_Analysis_and_Implementation_Guide.md](../Enhancements%20planned/CRM_Complete_Gap_Analysis_and_Implementation_Guide.md)
-- [ARCHITECTURE_OVERVIEW.md](../../ARCHITECTURE_OVERVIEW.md)
-- [MICROSERVICES_ARCHITECTURE.md](../../MICROSERVICES_ARCHITECTURE.md)
+- [ARCHITECTURE_OVERVIEW.md](docs/development/ARCHITECTURE_OVERVIEW.md)
+- [MICROSERVICES_ARCHITECTURE.md](docs/development/MICROSERVICES_ARCHITECTURE.md)
 
 ### 16.2 Open Source Projects Referenced
 

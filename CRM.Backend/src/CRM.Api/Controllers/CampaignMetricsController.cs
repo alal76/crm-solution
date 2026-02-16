@@ -33,7 +33,7 @@ public class CampaignMetricsController : ControllerBase
     /// Gets metrics for a specific campaign.
     /// </summary>
     [HttpGet("{id}")]
-    [ProducesResponseType(typeof(CampaignMetricDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(CampaignMetricsDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetMetrics(
@@ -108,7 +108,7 @@ public class CampaignMetricsController : ControllerBase
     /// Duplicates metrics from an existing campaign to a new campaign.
     /// </summary>
     [HttpPost("duplicate")]
-    [ProducesResponseType(typeof(CampaignMetricDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(CampaignMetricsDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]

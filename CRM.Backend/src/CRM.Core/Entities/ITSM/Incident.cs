@@ -201,6 +201,8 @@ public class Incident
     public ICollection<IncidentAttachment>? Attachments { get; set; }
 
     public ICollection<IncidentHistory>? History { get; set; }
+
+    public ICollection<ProblemIncident>? ProblemIncidents { get; set; }
 }
 
 /// <summary>

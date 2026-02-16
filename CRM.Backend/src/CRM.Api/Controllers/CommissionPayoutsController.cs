@@ -33,7 +33,7 @@ public class CommissionPayoutsController : ControllerBase
     /// Marks a commission payout as paid.
     /// </summary>
     [HttpPost("{id}/mark-paid")]
-    [ProducesResponseType(typeof(CommissionPayoutDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> MarkPaid(
@@ -43,11 +43,11 @@ public class CommissionPayoutsController : ControllerBase
         try
         {
             _logger.LogInformation("Marking commission payout as paid: id={Id}", id);
-            var result = await _service.MarkPaidAsync(id, cancellationToken);
-            if (result == null)
+            var result = await _service.MarkPaidAsync(id, paidDate: null, reference: null, cancellationToken: cancellationToken);
+            if (!result)
                 return NotFound(new { message = $"Commission payout with id {id} not found" });
 
-            return Ok(result);
+            return Ok(new { message = "Commission payout marked as paid successfully" });
         }
         catch (Exception ex)
         {
@@ -60,7 +60,7 @@ public class CommissionPayoutsController : ControllerBase
     /// Claws back a commission payout.
     /// </summary>
     [HttpPost("{id}/clawback")]
-    [ProducesResponseType(typeof(CommissionPayoutDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Clawback(
@@ -71,11 +71,11 @@ public class CommissionPayoutsController : ControllerBase
         try
         {
             _logger.LogInformation("Processing clawback: payoutId={PayoutId}, reason={Reason}", id, dto.Reason);
-            var result = await _service.ClawbackAsync(id, dto, cancellationToken);
-            if (result == null)
+            var result = await _service.ClawbackAsync(id, dto.Reason, dto.ClawbackAmount, cancellationToken);
+            if (!result)
                 return NotFound(new { message = $"Commission payout with id {id} not found" });
 
-            return Ok(result);
+            return Ok(new { message = "Commission payout clawed back successfully" });
         }
         catch (Exception ex)
         {
@@ -101,7 +101,9 @@ public class CommissionPayoutsController : ControllerBase
         {
             _logger.LogInformation("Generating commission statement: userId={UserId}, startDate={StartDate}, endDate={EndDate}", 
                 userId, startDate, endDate);
-            var result = await _service.GenerateStatementAsync(userId, startDate, endDate, cancellationToken);
+            var from = startDate ?? DateTime.UtcNow.AddMonths(-1);
+            var to = endDate ?? DateTime.UtcNow;
+            var result = await _service.GenerateStatementAsync(userId, from, to, cancellationToken);
             if (result == null)
                 return NotFound(new { message = $"No commission data found for user {userId}" });
 
@@ -145,22 +147,21 @@ public class CommissionPayoutsController : ControllerBase
     /// Reconciles a commission payout with accounting records.
     /// </summary>
     [HttpPost("{id}/reconcile")]
-    [ProducesResponseType(typeof(CommissionReconciliationDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Reconcile(
         int id,
-        [FromBody] CommissionReconciliationDto dto,
         CancellationToken cancellationToken = default)
     {
         try
         {
             _logger.LogInformation("Reconciling commission payout: id={Id}", id);
-            var result = await _service.ReconcileAsync(id, dto, cancellationToken);
-            if (result == null)
+            var result = await _service.ReconcileAsync(id, cancellationToken);
+            if (!result)
                 return NotFound(new { message = $"Commission payout with id {id} not found" });
 
-            return Ok(result);
+            return Ok(new { message = "Commission payout reconciled successfully" });
         }
         catch (Exception ex)
         {

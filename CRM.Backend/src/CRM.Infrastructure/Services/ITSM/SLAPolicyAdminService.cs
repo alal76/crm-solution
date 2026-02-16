@@ -84,14 +84,11 @@ public class SLAPolicyAdminService : ISLAPolicyAdminService
             var policy = new CRM.Core.Entities.SLAPolicy
             {
                 Name = dto.Name,
-                Description = dto.Description,
-                Priority = dto.Priority,
-                Category = dto.Category,
-                ResponseTimeHours = dto.ResponseTimeHours,
-                ResolutionTimeHours = dto.ResolutionTimeHours,
-                BusinessHoursOnly = dto.BusinessHoursOnly,
-                Timezone = dto.Timezone,
-                BreachAction = dto.BreachAction,
+                Description = dto.Description ?? string.Empty,
+                Priority = CRM.Core.Entities.ServicePriority.Medium,
+                InitialResponseTimeMinutes = dto.ResponseTimeHours * 60,
+                ResolutionTimeMinutes = dto.ResolutionTimeHours * 60,
+                WorkingHoursOnly = dto.BusinessHoursOnly,
                 IsActive = dto.IsActive,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow,
@@ -124,31 +121,19 @@ public class SLAPolicyAdminService : ISLAPolicyAdminService
 
             if (!string.IsNullOrWhiteSpace(dto.Name))
                 policy.Name = dto.Name;
-            
+
             if (dto.Description != null)
                 policy.Description = dto.Description;
-            
-            if (!string.IsNullOrWhiteSpace(dto.Priority))
-                policy.Priority = dto.Priority;
-            
-            if (!string.IsNullOrWhiteSpace(dto.Category))
-                policy.Category = dto.Category;
-            
+
             if (dto.ResponseTimeHours.HasValue)
-                policy.ResponseTimeHours = dto.ResponseTimeHours.Value;
-            
+                policy.InitialResponseTimeMinutes = dto.ResponseTimeHours.Value * 60;
+
             if (dto.ResolutionTimeHours.HasValue)
-                policy.ResolutionTimeHours = dto.ResolutionTimeHours.Value;
-            
+                policy.ResolutionTimeMinutes = dto.ResolutionTimeHours.Value * 60;
+
             if (dto.BusinessHoursOnly.HasValue)
-                policy.BusinessHoursOnly = dto.BusinessHoursOnly.Value;
-            
-            if (!string.IsNullOrWhiteSpace(dto.Timezone))
-                policy.Timezone = dto.Timezone;
-            
-            if (!string.IsNullOrWhiteSpace(dto.BreachAction))
-                policy.BreachAction = dto.BreachAction;
-            
+                policy.WorkingHoursOnly = dto.BusinessHoursOnly.Value;
+
             if (dto.IsActive.HasValue)
                 policy.IsActive = dto.IsActive.Value;
 
@@ -238,12 +223,6 @@ public class SLAPolicyAdminService : ISLAPolicyAdminService
                 .AsNoTracking()
                 .Where(p => p.IsActive && !p.IsDeleted);
 
-            if (!string.IsNullOrEmpty(priority))
-                query = query.Where(p => p.Priority == priority);
-
-            if (!string.IsNullOrEmpty(category))
-                query = query.Where(p => p.Category == category);
-
             var policies = await query
                 .OrderBy(p => p.Name)
                 .ToListAsync(ct);
@@ -264,13 +243,13 @@ public class SLAPolicyAdminService : ISLAPolicyAdminService
             Id = policy.Id,
             Name = policy.Name,
             Description = policy.Description,
-            Priority = policy.Priority,
-            Category = policy.Category,
-            ResponseTimeHours = policy.ResponseTimeHours,
-            ResolutionTimeHours = policy.ResolutionTimeHours,
-            BusinessHoursOnly = policy.BusinessHoursOnly,
-            Timezone = policy.Timezone,
-            BreachAction = policy.BreachAction,
+            Priority = policy.Priority.ToString(),
+            Category = string.Empty,
+            ResponseTimeHours = policy.InitialResponseTimeMinutes / 60,
+            ResolutionTimeHours = policy.ResolutionTimeMinutes / 60,
+            BusinessHoursOnly = policy.WorkingHoursOnly,
+            Timezone = "UTC",
+            BreachAction = "Notify",
             IsActive = policy.IsActive,
             CreatedAt = policy.CreatedAt,
             UpdatedAt = policy.UpdatedAt

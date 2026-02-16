@@ -142,6 +142,8 @@ public class CommissionPlanDto
     public int TierCount { get; set; }
     public string? SplitRules { get; set; }
     public List<CommissionTierDto> Tiers { get; set; } = new();
+    public int UserCount { get; set; }
+    public int CommissionCount { get; set; }
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
 }
@@ -219,11 +221,16 @@ public class CommissionTierDto
 {
     public int Id { get; set; }
     public int PlanId { get; set; }
+    public int CommissionPlanId { get; set; }
     public int TierLevel { get; set; }
+    public int Sequence { get; set; }
     public string? TierName { get; set; }
     public decimal MinValue { get; set; }
+    public decimal MinimumAmount { get; set; }
     public decimal MaxValue { get; set; }
+    public decimal MaximumAmount { get; set; }
     public decimal Rate { get; set; }
+    public decimal CommissionRate { get; set; }
     public decimal? Accelerator { get; set; }
     public DateTime CreatedAt { get; set; }
 }
@@ -254,6 +261,22 @@ public class CreateCommissionTierDto
 
     [Range(0, 100)]
     public decimal? Accelerator { get; set; }
+
+    [Required]
+    [Range(0, double.MaxValue)]
+    public decimal MinimumAmount { get; set; }
+
+    [Required]
+    [Range(0, double.MaxValue)]
+    public decimal MaximumAmount { get; set; }
+
+    [Required]
+    [Range(0, 100)]
+    public decimal CommissionRate { get; set; }
+
+    [Required]
+    [Range(0, int.MaxValue)]
+    public int Sequence { get; set; }
 }
 
 /// <summary>
@@ -278,6 +301,18 @@ public class UpdateCommissionTierDto
 
     [Range(0, 100)]
     public decimal? Accelerator { get; set; }
+
+    [Range(0, double.MaxValue)]
+    public decimal? MinimumAmount { get; set; }
+
+    [Range(0, double.MaxValue)]
+    public decimal? MaximumAmount { get; set; }
+
+    [Range(0, 100)]
+    public decimal? CommissionRate { get; set; }
+
+    [Range(0, int.MaxValue)]
+    public int? Sequence { get; set; }
 }
 
 /// <summary>
@@ -434,15 +469,23 @@ public class CommissionCalculationResultDto
     public int? OpportunityId { get; set; }
     public int? OrderId { get; set; }
     public int PlanId { get; set; }
+    public int CommissionPlanId { get; set; }
     public string? PlanName { get; set; }
     public decimal DealAmount { get; set; }
+    public decimal Amount { get; set; }
     public decimal CommissionRate { get; set; }
     public decimal BaseAmount { get; set; }
+    public decimal BaseCommissionAmount { get; set; }
     public decimal? Accelerator { get; set; }
     public decimal FinalAmount { get; set; }
+    public decimal FinalCommissionAmount { get; set; }
     public int? TierLevel { get; set; }
     public string? TierName { get; set; }
     public List<CommissionBreakdownDto> Breakdown { get; set; } = new();
+    public DateTime CreatedAt { get; set; }
+    public decimal BaseCommissionRate { get; set; }
+    public decimal? TierCommissionAmount { get; set; }
+    public decimal? TierCommissionRate { get; set; }
 }
 
 /// <summary>

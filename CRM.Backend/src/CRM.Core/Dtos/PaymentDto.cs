@@ -36,7 +36,7 @@ public class PaymentDto
     
     public PaymentMethod PaymentMethod { get; set; }
     public PaymentType PaymentType { get; set; }
-    public PaymentStatus Status { get; set; }
+    public Entities.PaymentStatus Status { get; set; }
     
     public DateTime PaymentDate { get; set; }
     public DateTime? ProcessedDate { get; set; }
@@ -71,7 +71,7 @@ public class CreatePaymentDto
     public decimal Amount { get; set; }
     public PaymentMethod PaymentMethod { get; set; } = PaymentMethod.CreditCard;
     public PaymentType PaymentType { get; set; } = PaymentType.Payment;
-    public PaymentStatus Status { get; set; } = PaymentStatus.Pending;
+    public Entities.PaymentStatus Status { get; set; } = Entities.PaymentStatus.Pending;
     
     public DateTime? ScheduledDate { get; set; }
     

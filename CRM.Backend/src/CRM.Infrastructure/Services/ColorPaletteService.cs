@@ -231,16 +231,22 @@ public class ColorPaletteService : IColorPaletteService
     {
         Id = palette.Id,
         Name = palette.Name,
-        Category = palette.Category,
-        Colors = new List<string>
-        {
-            palette.Color1,
-            palette.Color2,
-            palette.Color3,
-            palette.Color4,
-            palette.Color5
-        },
-        IsUserDefined = palette.IsUserDefined
+        Description = palette.Category,  // Category from entity maps to Description in DTO
+        PrimaryColor = palette.Color1,
+        SecondaryColor = palette.Color2,
+        SuccessColor = palette.Color3,
+        WarningColor = palette.Color4,
+        ErrorColor = palette.Color5,
+        InfoColor = palette.Color1,
+        BackgroundLight = "#FFFFFF",
+        BackgroundDark = "#F5F5F5",
+        TextLight = "#000000",
+        TextDark = "#FFFFFF",
+        BorderColor = "#CCCCCC",
+        IsDefault = false,  // Entity doesn't have this property
+        IsActive = true,    // Entity doesn't have this property
+        CreatedAt = palette.CreatedAt,
+        UpdatedAt = palette.UpdatedAt
     };
 
     /// <summary>

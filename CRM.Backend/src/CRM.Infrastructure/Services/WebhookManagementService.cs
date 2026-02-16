@@ -190,11 +190,17 @@ public class WebhookManagementService : IWebhookManagementService, IWebhookManag
 
         _logger.LogInformation("Webhook {WebhookId} test triggered", id);
 
-        var result = new WebhookTestResultDto
+        var result = new CRM.Core.Dtos.WebhookTestResultDto
         {
+            WebhookId = id,
+            Url = webhook.TargetUrl,
+            EventType = testData.EventType,
             Success = true,
-            DeliveryId = delivery.WebhookDeliveryId,
-            Message = "Webhook test queued for delivery"
+            ResponseStatusCode = 200,
+            ResponseBody = "Test queued for delivery",
+            ErrorMessage = null,
+            DurationMs = 0,
+            TestedAt = DateTime.UtcNow
         };
         return await Task.FromResult(result);
     }
@@ -205,6 +211,13 @@ public class WebhookManagementService : IWebhookManagementService, IWebhookManag
 
     public async Task<CRM.Core.Dtos.WebhookDeliveryHistoryDto> GetDeliveriesAsync(int webhookId, int page = 1, int pageSize = 20, CancellationToken cancellationToken = default)
     {
+        var webhook = await _context.WebhookSubscriptions
+            .AsNoTracking()
+            .FirstOrDefaultAsync(w => w.WebhookSubscriptionId == webhookId && !w.IsDeleted, cancellationToken);
+
+        if (webhook == null)
+            throw new InvalidOperationException($"Webhook {webhookId} not found");
+
         var deliveries = await _context.WebhookDeliveries
             .Where(d => d.WebhookSubscriptionId == webhookId && !d.IsDeleted)
             .OrderByDescending(d => d.CreatedAt)
@@ -212,12 +225,18 @@ public class WebhookManagementService : IWebhookManagementService, IWebhookManag
             .Take(pageSize)
             .ToListAsync(cancellationToken);
 
+        var totalDeliveries = await _context.WebhookDeliveries
+            .CountAsync(d => d.WebhookSubscriptionId == webhookId && !d.IsDeleted, cancellationToken);
+
         var history = new CRM.Core.Dtos.WebhookDeliveryHistoryDto
         {
             WebhookId = webhookId,
-            Deliveries = deliveries.Select(d => MapDeliveryToDto(d)).ToList(),
-            TotalCount = await _context.WebhookDeliveries
-                .CountAsync(d => d.WebhookSubscriptionId == webhookId && !d.IsDeleted, cancellationToken)
+            Url = webhook.TargetUrl,
+            TotalDeliveries = totalDeliveries,
+            RecentDeliveries = deliveries.Select(d => MapDeliveryToDto(d)).ToList(),
+            Page = page,
+            PageSize = pageSize,
+            TotalPages = (totalDeliveries + pageSize - 1) / pageSize
         };
 
         return await Task.FromResult(history);
@@ -252,21 +271,60 @@ public class WebhookManagementService : IWebhookManagementService, IWebhookManag
 
     public async Task<CRM.Core.Dtos.WebhookStatisticsDto> GetStatisticsAsync(int id, CancellationToken cancellationToken = default)
     {
+        var webhook = await _context.WebhookSubscriptions
+            .AsNoTracking()
+            .FirstOrDefaultAsync(w => w.WebhookSubscriptionId == id && !w.IsDeleted, cancellationToken);
+
+        if (webhook == null)
+            throw new InvalidOperationException($"Webhook {id} not found");
+
         var deliveries = await _context.WebhookDeliveries
             .Where(d => d.WebhookSubscriptionId == id && !d.IsDeleted)
             .ToListAsync(cancellationToken);
 
+        var successfulCount = deliveries.Count(d => d.Success);
+        var failedCount = deliveries.Count(d => !d.Success);
+        var totalCount = deliveries.Count;
+        var successfulDeliveries = deliveries.Where(d => d.Success).OrderByDescending(d => d.CompletedAt).FirstOrDefault();
+        var failedDeliveries = deliveries.Where(d => !d.Success).OrderByDescending(d => d.UpdatedAt).FirstOrDefault();
+
         var stats = new CRM.Core.Dtos.WebhookStatisticsDto
         {
             WebhookId = id,
-            TotalDeliveries = deliveries.Count,
-            SuccessfulDeliveries = deliveries.Count(d => d.Success),
-            FailedDeliveries = deliveries.Count(d => !d.Success),
-            PendingDeliveries = deliveries.Count(d => !d.Success && d.AttemptNumber == 0),
-            SuccessRate = deliveries.Any() ? (deliveries.Count(d => d.Success) * 100m / deliveries.Count) : 0
+            Url = webhook.TargetUrl,
+            TotalDeliveries = totalCount,
+            SuccessfulDeliveries = successfulCount,
+            FailedDeliveries = failedCount,
+            SuccessRate = totalCount > 0 ? (successfulCount * 100.0 / totalCount) : 0,
+            AverageDurationMs = deliveries.Any(d => d.DurationMs.HasValue) ? deliveries.Where(d => d.DurationMs.HasValue).Average(d => d.DurationMs.Value) : 0,
+            ConsecutiveFailures = GetConsecutiveFailureCount(deliveries),
+            LastSuccessfulDelivery = successfulDeliveries?.CompletedAt,
+            LastFailedDelivery = failedDeliveries?.UpdatedAt,
+            ResponseCodeDistribution = GetResponseCodeDistribution(deliveries)
         };
 
         return await Task.FromResult(stats);
+    }
+
+    private int GetConsecutiveFailureCount(List<WebhookDelivery> deliveries)
+    {
+        var consecutiveFailures = 0;
+        foreach (var delivery in deliveries.OrderByDescending(d => d.CreatedAt))
+        {
+            if (!delivery.Success)
+                consecutiveFailures++;
+            else
+                break;
+        }
+        return consecutiveFailures;
+    }
+
+    private Dictionary<int, int> GetResponseCodeDistribution(List<WebhookDelivery> deliveries)
+    {
+        return deliveries
+            .Where(d => d.ResponseStatusCode.HasValue)
+            .GroupBy(d => d.ResponseStatusCode.Value)
+            .ToDictionary(g => g.Key, g => g.Count());
     }
 
     #endregion
@@ -471,54 +529,4 @@ public class WebhookDispatcherService : IWebhookDispatcherService, IWebhookDispa
             return eventTypes.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(e => e.Trim()).ToList();
         }
     }
-}
-
-/// <summary>
-/// DTO for webhook test request.
-/// </summary>
-public class WebhookTestDto
-{
-    public string Payload { get; set; } = "{}";
-}
-
-/// <summary>
-/// DTO for webhook test result.
-/// </summary>
-public class WebhookTestResultDto
-{
-    public bool Success { get; set; }
-    public int DeliveryId { get; set; }
-    public string Message { get; set; } = string.Empty;
-}
-
-/// <summary>
-/// DTO for webhook delivery history response.
-/// </summary>
-public class WebhookDeliveryHistoryDto
-{
-    public int WebhookId { get; set; }
-    public List<WebhookDeliveryDto> Deliveries { get; set; } = new();
-    public int TotalCount { get; set; }
-}
-
-/// <summary>
-/// DTO for webhook statistics response.
-/// </summary>
-public class WebhookStatisticsDto
-{
-    public int WebhookId { get; set; }
-    public int TotalDeliveries { get; set; }
-    public int SuccessfulDeliveries { get; set; }
-    public int FailedDeliveries { get; set; }
-    public int PendingDeliveries { get; set; }
-    public decimal SuccessRate { get; set; }
-}
-
-/// <summary>
-/// DTO for webhook event response.
-/// </summary>
-public class WebhookEventDto
-{
-    public string Name { get; set; } = string.Empty;
-    public string Description { get; set; } = string.Empty;
 }

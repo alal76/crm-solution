@@ -95,6 +95,21 @@ namespace CRM.Core.Dtos
         /// When the palette was last updated.
         /// </summary>
         public DateTime? UpdatedAt { get; set; }
+
+        /// <summary>
+        /// Category of the color palette (e.g., "Brand", "Theme", "Custom").
+        /// </summary>
+        public string? Category { get; set; }
+
+        /// <summary>
+        /// List of hex color codes in the palette.
+        /// </summary>
+        public List<string> Colors { get; set; } = new();
+
+        /// <summary>
+        /// Indicates if this is a user-defined custom palette.
+        /// </summary>
+        public bool IsUserDefined { get; set; }
     }
 
     /// <summary>

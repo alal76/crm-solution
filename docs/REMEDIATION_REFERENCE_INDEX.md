@@ -254,10 +254,10 @@ Integration Testing ──┘
 ## ARTIFACT LOCATIONS
 
 ### Gap Analysis Source Documents
-- [FRONTEND_GAP_ANALYSIS_REPORT.md](../../FRONTEND_GAP_ANALYSIS_REPORT.md) — 87 frontend gaps
+- [FRONTEND_GAP_ANALYSIS_REPORT.md](docs/status/FRONTEND_GAP_ANALYSIS_REPORT.md) — 87 frontend gaps
 - [docs/BACKEND_GAPS_ANALYSIS_REPORT.md](./BACKEND_GAPS_ANALYSIS_REPORT.md) — 127 backend gaps
 - [docs/DATABASE_GAPS_ANALYSIS.md](./DATABASE_GAPS_ANALYSIS.md) — 117 database gaps
-- [ARCHITECTURAL_ALIGNMENT_ASSESSMENT.md](../../ARCHITECTURAL_ALIGNMENT_ASSESSMENT.md) — Architecture gaps & health score
+- [ARCHITECTURAL_ALIGNMENT_ASSESSMENT.md](docs/development/ARCHITECTURAL_ALIGNMENT_ASSESSMENT.md) — Architecture gaps & health score
 
 ### Implementation Guides
 - [UNIFIED_REMEDIATION_PLAN.md](./UNIFIED_REMEDIATION_PLAN.md) — Comprehensive implementation guide

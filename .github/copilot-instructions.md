@@ -834,9 +834,9 @@ cd e2e-tests && npx playwright test
 
 | Document | Purpose |
 |----------|---------|
-| [SOLUTION_CONTEXT.md](../SOLUTION_CONTEXT.md) | Complete technical reference |
-| [ARCHITECTURE_OVERVIEW.md](../ARCHITECTURE_OVERVIEW.md) | System architecture |
-| [MICROSERVICES_ARCHITECTURE.md](../MICROSERVICES_ARCHITECTURE.md) | Microservices guide |
+| [SOLUTION_CONTEXT.md](docs/development/SOLUTION_CONTEXT.md) | Complete technical reference |
+| [ARCHITECTURE_OVERVIEW.md](docs/development/ARCHITECTURE_OVERVIEW.md) | System architecture |
+| [MICROSERVICES_ARCHITECTURE.md](docs/development/MICROSERVICES_ARCHITECTURE.md) | Microservices guide |
 | [docs/architecture/ADR-001-*.md](../docs/architecture/) | Architecture decisions |
 | [docs/architecture/PLUGGABLE_ARCHITECTURE_IMPLEMENTATION_TRACKER.md](../docs/architecture/PLUGGABLE_ARCHITECTURE_IMPLEMENTATION_TRACKER.md) | Implementation progress |
 | [docs/PHASE4_SERVICE_SPECIFICATIONS.md](../docs/PHASE4_SERVICE_SPECIFICATIONS.md) | **Phase 4 Service Interface Specifications** |

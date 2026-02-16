@@ -388,4 +388,4 @@ The solution is now **71.4% complete overall** (up from 67%), with a clear remed
 
 For detailed specifications, see: [docs/specifications/INDEX.md](../docs/specifications/INDEX.md)  
 For implementation details, see: [docs/SYSTEM_MODULE_COMPLETION.md](../docs/SYSTEM_MODULE_COMPLETION.md)  
-For GitHub Actions analysis, see: [GITHUB_ACTIONS_RUN143_ANALYSIS.md](./GITHUB_ACTIONS_RUN143_ANALYSIS.md)
+For GitHub Actions analysis, see: [GITHUB_ACTIONS_RUN143_ANALYSIS.md](docs/development/GITHUB_ACTIONS_RUN143_ANALYSIS.md)

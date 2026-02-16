@@ -92,6 +92,12 @@ public enum CommissionStatus
     /// <summary>Commission clawed back</summary>
     ClawedBack = 4,
 
+    /// <summary>Commission clawed back (alias for ClawedBack)</summary>
+    Clawback = 4,
+
+    /// <summary>Commission rejected</summary>
+    Rejected = 7,
+
     /// <summary>Commission adjusted</summary>
     Adjusted = 5,
 
@@ -266,6 +272,15 @@ public class CommissionTier : BaseEntity
     /// <summary>Accelerator multiplier</summary>
     public decimal Multiplier { get; set; } = 1;
 
+    /// <summary>Minimum amount for this tier (ranges)</summary>
+    public decimal MinimumAmount { get; set; } = 0;
+
+    /// <summary>Maximum amount for this tier (ranges)</summary>
+    public decimal? MaximumAmount { get; set; }
+
+    /// <summary>Sequence order for tier processing</summary>
+    public int Sequence { get; set; }
+
     /// <summary>Parent plan ID</summary>
     public int CommissionPlanId { get; set; }
 
@@ -299,6 +314,13 @@ public class CommissionPlanAssignment : BaseEntity
 
     /// <summary>Assignment start date</summary>
     public DateTime StartDate { get; set; }
+
+    /// <summary>Assignment effective date (alias for StartDate)</summary>
+    public DateTime EffectiveDate
+    {
+        get => StartDate;
+        set => StartDate = value;
+    }
 
     /// <summary>Assignment end date</summary>
     public DateTime? EndDate { get; set; }
@@ -424,6 +446,13 @@ public class Commission : BaseEntity
 
     /// <summary>Navigation to user</summary>
     public User? User { get; set; }
+
+    /// <summary>Sales representative user ID (alias for UserId)</summary>
+    public int SalesRepUserId
+    {
+        get => UserId;
+        set => UserId = value;
+    }
 
     /// <summary>Commission plan ID</summary>
     public int CommissionPlanId { get; set; }
@@ -627,4 +656,27 @@ public enum CommissionStatementStatus
 
     /// <summary>Paid</summary>
     Paid = 3
+}
+/// <summary>
+/// Commission approval audit trail entity.
+/// </summary>
+public class CommissionApprovalAudit : BaseEntity
+{
+    /// <summary>Commission ID</summary>
+    public int CommissionId { get; set; }
+
+    /// <summary>Navigation to commission</summary>
+    public Commission? Commission { get; set; }
+
+    /// <summary>Action performed (Approved, Rejected, etc.)</summary>
+    public string Action { get; set; } = string.Empty;
+
+    /// <summary>User ID who performed the action</summary>
+    public int? ApprovedById { get; set; }
+
+    /// <summary>Navigation to user who performed action</summary>
+    public User? ApprovedBy { get; set; }
+
+    /// <summary>Audit notes</summary>
+    public string? Notes { get; set; }
 }

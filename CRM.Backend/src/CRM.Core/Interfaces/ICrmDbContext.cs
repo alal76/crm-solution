@@ -50,6 +50,7 @@ public interface ICrmDbContext
     DbSet<PricingRuleUsage> PricingRuleUsages { get; }
     DbSet<Interaction> Interactions { get; }
     DbSet<MarketingCampaign> MarketingCampaigns { get; }
+    DbSet<CampaignRecipient> CampaignRecipients { get; }
     DbSet<CampaignMetric> CampaignMetrics { get; }
     DbSet<User> Users { get; }
     DbSet<OAuthToken> OAuthTokens { get; }
@@ -153,6 +154,7 @@ public interface ICrmDbContext
     DbSet<CommissionStatement> CommissionStatements { get; }
     DbSet<CommissionRule> CommissionRules { get; }
     DbSet<CommissionHistory> CommissionHistories { get; }
+    DbSet<CommissionApprovalAudit> CommissionApprovalAudits { get; }
     DbSet<DiscountRule> DiscountRules { get; }
     DbSet<DiscountHistory> DiscountHistories { get; }
 

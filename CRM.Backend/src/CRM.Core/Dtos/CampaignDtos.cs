@@ -188,6 +188,15 @@ public class CampaignMetricsDto
     public int TotalBudget { get; set; }
     public int ActualSpend { get; set; }
     public int BudgetRemaining { get; set; }
+    public decimal OpenRate { get; set; }
+    public decimal ClickRate { get; set; }
+    public decimal BounceRate { get; set; }
+    public DateTime? CalculatedAt { get; set; }
+    public int? TotalRecipients { get; set; }
+    public int? SentCount { get; set; }
+    public int? OpenCount { get; set; }
+    public int? ClickCount { get; set; }
+    public int? BounceCount { get; set; }
 }
 
 /// <summary>
@@ -315,3 +324,77 @@ public class CampaignListDto
     public int PageSize { get; set; }
     public int TotalPages { get; set; }
 }
+
+/// <summary>
+/// DTO for campaign analysis results.
+/// </summary>
+public class CampaignAnalysisResultDto
+{
+    public int CampaignId { get; set; }
+    public string CampaignName { get; set; } = string.Empty;
+    public decimal Roi { get; set; }
+    public decimal Cpl { get; set; }
+    public decimal Cpa { get; set; }
+    public int LeadsGenerated { get; set; }
+    public int MqlsGenerated { get; set; }
+    public int SqlsGenerated { get; set; }
+    public decimal ConversionRate { get; set; }
+    public DateTime AnalyzedAt { get; set; }
+    public string? Insights { get; set; }
+    public List<string> Recommendations { get; set; } = new();
+}
+
+/// <summary>
+/// DTO for campaign metrics preview.
+/// </summary>
+public class CampaignMetricsPreviewDto
+{
+    public int CampaignId { get; set; }
+    public string CampaignName { get; set; } = string.Empty;
+    public int Impressions { get; set; }
+    public int Clicks { get; set; }
+    public int Conversions { get; set; }
+    public decimal ClickThroughRate { get; set; }
+    public decimal ConversionRate { get; set; }
+    public decimal Roi { get; set; }
+    public int BudgetRemaining { get; set; }
+}
+
+/// <summary>
+/// DTO for duplicating a campaign.
+/// </summary>
+public class CampaignDuplicationDto
+{
+    public int SourceCampaignId { get; set; }
+    public int TargetCampaignId { get; set; }
+    public bool CopyRecipients { get; set; } = false;
+    public bool CopyMetrics { get; set; } = false;
+    public bool ResetDates { get; set; } = true;
+}
+
+/// <summary>
+/// DTO for campaign retargeting.
+/// </summary>
+public class CampaignRetargetingDto
+{
+    public int CampaignId { get; set; }
+    
+    [StringLength(500)]
+    public string? Criteria { get; set; }
+
+    public List<int>? ExcludeRecipientIds { get; set; }
+}
+
+/// <summary>
+/// Result of campaign retargeting.
+/// </summary>
+public class CampaignRetargetingResultDto
+{
+    public int CampaignId { get; set; }
+    public string CampaignName { get; set; } = string.Empty;
+    public int NewRecipientsCount { get; set; }
+    public int ProcessedCount { get; set; }
+    public int SkippedCount { get; set; }
+    public DateTime RetargetedAt { get; set; }
+}
+

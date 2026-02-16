@@ -754,7 +754,7 @@ Deployment is successful when:
 
 ## Contact & Support
 
-- **Technical Questions:** Reference [SOLUTION_CONTEXT.md](../../SOLUTION_CONTEXT.md)
+- **Technical Questions:** Reference [SOLUTION_CONTEXT.md](docs/development/SOLUTION_CONTEXT.md)
 - **Schema Details:** See [DATABASE_SCHEMA_ADDITIONS.md](./DATABASE_SCHEMA_ADDITIONS.md)
 - **Migration Code:** See [20260215T180000_AddITSMMarketingIntegrationTables.cs](../../CRM.Backend/src/CRM.Infrastructure/Migrations/)
 - **Entity Definitions:** Check [Problem.cs](../../CRM.Backend/src/CRM.Core/Entities/ITSM/), [Change.cs](../../CRM.Backend/src/CRM.Core/Entities/ITSM/)

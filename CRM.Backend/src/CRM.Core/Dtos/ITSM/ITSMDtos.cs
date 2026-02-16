@@ -110,6 +110,7 @@ public class ResolveIncidentDto
 // ============================================================================
 public class ProblemDto
 {
+    public int Id { get; set; }
     public int ProblemId { get; set; }
     public string Number { get; set; } = string.Empty;
     public string ShortDescription { get; set; } = string.Empty;
@@ -149,6 +150,8 @@ public class UpdateProblemDto
     public string? RootCause { get; set; }
     public string? Workaround { get; set; }
     public string? Solution { get; set; }
+    public string? Resolution { get; set; }
+    public string? ClosureComments { get; set; }
     public bool? KnownError { get; set; }
     public int? ProblemInvestigatorId { get; set; }
 }

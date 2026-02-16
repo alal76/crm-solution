@@ -16,11 +16,11 @@
 
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
-using CRM.Core.Interfaces;
 using CRM.Core.Ports.Input;
 using CRM.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using DtoCommissionTier = CRM.Core.Dtos.CommissionTierDto;
 
 namespace CRM.Infrastructure.Services;
 
@@ -28,7 +28,7 @@ namespace CRM.Infrastructure.Services;
 /// Implementation of ICommissionPlanService for commission plan management.
 /// Handles creation, modification, and assignment of commission plans with tiering support.
 /// </summary>
-public class CommissionPlanService : ICommissionPlanService, ICommissionPlanInputPort
+public class CommissionPlanService : CRM.Core.Interfaces.ICommissionPlanService, ICommissionPlanInputPort
 {
     private readonly ICrmDbContext _context;
     private readonly ILogger<CommissionPlanService> _logger;
@@ -223,6 +223,11 @@ public class CommissionPlanService : ICommissionPlanService, ICommissionPlanInpu
         return true;
     }
 
+    public async Task<bool> UnassignFromUserAsync(int planId, int userId, CancellationToken cancellationToken = default)
+    {
+        return await RemoveFromUserAsync(planId, userId, cancellationToken);
+    }
+
     public async Task<CommissionPlanDto?> GetUserPlanAsync(int userId, CancellationToken cancellationToken = default)
     {
         var assignment = await _context.CommissionPlanAssignments
@@ -261,7 +266,7 @@ public class CommissionPlanService : ICommissionPlanService, ICommissionPlanInpu
 
     #region Tier Management
 
-    public async Task<IEnumerable<CommissionTierDto>> GetTiersAsync(int planId, CancellationToken cancellationToken = default)
+    public async Task<IEnumerable<DtoCommissionTier>> GetTiersAsync(int planId, CancellationToken cancellationToken = default)
     {
         var tiers = await _context.CommissionTiers
             .Where(t => t.CommissionPlanId == planId && !t.IsDeleted)
@@ -271,7 +276,7 @@ public class CommissionPlanService : ICommissionPlanService, ICommissionPlanInpu
         return tiers.Select(t => MapTierToDto(t));
     }
 
-    public async Task<CommissionTierDto> AddTierAsync(int planId, CreateCommissionTierDto dto, CancellationToken cancellationToken = default)
+    public async Task<DtoCommissionTier> AddTierAsync(int planId, CreateCommissionTierDto dto, CancellationToken cancellationToken = default)
     {
         var plan = await _context.CommissionPlans
             .FirstOrDefaultAsync(p => p.Id == planId && !p.IsDeleted, cancellationToken);
@@ -297,7 +302,7 @@ public class CommissionPlanService : ICommissionPlanService, ICommissionPlanInpu
         return MapTierToDto(tier);
     }
 
-    public async Task<CommissionTierDto> UpdateTierAsync(int tierId, UpdateCommissionTierDto dto, CancellationToken cancellationToken = default)
+    public async Task<DtoCommissionTier> UpdateTierAsync(int tierId, UpdateCommissionTierDto dto, CancellationToken cancellationToken = default)
     {
         var tier = await _context.CommissionTiers
             .FirstOrDefaultAsync(t => t.Id == tierId && !t.IsDeleted, cancellationToken);
@@ -449,14 +454,14 @@ public class CommissionPlanService : ICommissionPlanService, ICommissionPlanInpu
         };
     }
 
-    private CommissionTierDto MapTierToDto(CommissionTier tier)
+    private DtoCommissionTier MapTierToDto(CommissionTier tier)
     {
-        return new CommissionTierDto
+        return new DtoCommissionTier
         {
             Id = tier.Id,
             CommissionPlanId = tier.CommissionPlanId,
             MinimumAmount = tier.MinimumAmount,
-            MaximumAmount = tier.MaximumAmount,
+            MaximumAmount = tier.MaximumAmount ?? 0m,
             CommissionRate = tier.CommissionRate,
             Sequence = tier.Sequence
         };

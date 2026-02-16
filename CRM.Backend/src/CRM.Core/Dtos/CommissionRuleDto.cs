@@ -71,15 +71,3 @@ public class UpdateCommissionRuleDto
     public DateTime? ExpiryDate { get; set; }
     public bool? IsActive { get; set; }
 }
-
-/// <summary>
-/// DTO for commission calculation result
-/// </summary>
-public class CommissionCalculationDto
-{
-    public decimal SalesAmount { get; set; }
-    public decimal CommissionAmount { get; set; }
-    public decimal CommissionRate { get; set; }
-    public CommissionRuleDto? AppliedRule { get; set; }
-    public string CalculationMethod { get; set; } = string.Empty;
-}

@@ -349,7 +349,7 @@
 ## 🔗 Related Documentation
 
 - [DTO_STANDARDIZATION_COMPREHENSIVE_AUDIT.md](DTO_STANDARDIZATION_COMPREHENSIVE_AUDIT.md) - Full audit report with all findings
-- [SOLUTION_GAPS_REMEDIATION_PLAN.md](SOLUTION_GAPS_REMEDIATION_PLAN.md) - Remediation timeline
+- [SOLUTION_GAPS_REMEDIATION_PLAN.md](docs/development/SOLUTION_GAPS_REMEDIATION_PLAN.md) - Remediation timeline
 - [docs/specifications/SPEC-ARCH-001.md](docs/specifications/SPEC-ARCH-001.md) - Architecture specification (in progress)
 
 ---
