@@ -85,13 +85,13 @@ public class CommissionPayoutService : ICommissionPayoutService, ICommissionPayo
         return true;
     }
 
-    public async Task<CommissionStatementDto> GenerateStatementAsync(int userId, DateTime from, DateTime to, CancellationToken cancellationToken = default)
+    public async Task<CRM.Core.Dtos.CommissionStatementDto> GenerateStatementAsync(int userId, DateTime from, DateTime to, CancellationToken cancellationToken = default)
     {
         var commissions = await _context.Commissions
             .Where(c => c.UserId == userId && !c.IsDeleted && c.CreatedAt >= from && c.CreatedAt <= to)
             .ToListAsync(cancellationToken);
 
-        var statement = new CommissionStatementDto
+        var statement = new CRM.Core.Dtos.CommissionStatementDto
         {
             StatementPeriodStart = from,
             StatementPeriodEnd = to,

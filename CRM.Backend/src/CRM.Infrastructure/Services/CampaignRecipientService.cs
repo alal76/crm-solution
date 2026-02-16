@@ -215,11 +215,11 @@ public class CampaignMetricsService : ICampaignMetricsService, ICampaignMetricsI
         return metrics;
     }
 
-    public async Task<CampaignAnalysisDto> AnalyzeAsync(int campaignId, CancellationToken cancellationToken = default)
+    public async Task<CRM.Core.Dtos.CampaignAnalysisDto> AnalyzeAsync(int campaignId, CancellationToken cancellationToken = default)
     {
         var metrics = await GetMetricsAsync(campaignId, cancellationToken);
 
-        var analysis = new CampaignAnalysisDto
+        var analysis = new CRM.Core.Dtos.CampaignAnalysisDto
         {
             CampaignId = campaignId,
             Insights = GenerateInsights(metrics),
@@ -230,7 +230,7 @@ public class CampaignMetricsService : ICampaignMetricsService, ICampaignMetricsI
         return await Task.FromResult(analysis);
     }
 
-    public async Task<CampaignPreviewDto> PreviewAsync(int campaignId, CancellationToken cancellationToken = default)
+    public async Task<CRM.Core.Dtos.CampaignPreviewDto> PreviewAsync(int campaignId, CancellationToken cancellationToken = default)
     {
         var campaign = await _context.MarketingCampaigns
             .FirstOrDefaultAsync(c => c.Id == campaignId && !c.IsDeleted, cancellationToken);
@@ -238,7 +238,7 @@ public class CampaignMetricsService : ICampaignMetricsService, ICampaignMetricsI
         if (campaign == null)
             throw new InvalidOperationException($"Campaign {campaignId} not found");
 
-        var preview = new CampaignPreviewDto
+        var preview = new CRM.Core.Dtos.CampaignPreviewDto
         {
             CampaignId = campaignId,
             Subject = campaign.Name,
@@ -249,7 +249,7 @@ public class CampaignMetricsService : ICampaignMetricsService, ICampaignMetricsI
         return await Task.FromResult(preview);
     }
 
-    public async Task<int> DuplicateAsync(int campaignId, DuplicateCampaignDto dto, CancellationToken cancellationToken = default)
+    public async Task<int> DuplicateAsync(int campaignId, CRM.Core.Dtos.DuplicateCampaignDto dto, CancellationToken cancellationToken = default)
     {
         var original = await _context.MarketingCampaigns
             .FirstOrDefaultAsync(c => c.Id == campaignId && !c.IsDeleted, cancellationToken);
@@ -273,7 +273,7 @@ public class CampaignMetricsService : ICampaignMetricsService, ICampaignMetricsI
         return copy.Id;
     }
 
-    public async Task<bool> RetargetAsync(int campaignId, RetargetCampaignDto dto, CancellationToken cancellationToken = default)
+    public async Task<bool> RetargetAsync(int campaignId, CRM.Core.Dtos.RetargetCampaignDto dto, CancellationToken cancellationToken = default)
     {
         var campaign = await _context.MarketingCampaigns
             .FirstOrDefaultAsync(c => c.Id == campaignId && !c.IsDeleted, cancellationToken);

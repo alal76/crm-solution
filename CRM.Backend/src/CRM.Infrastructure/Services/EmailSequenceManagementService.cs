@@ -136,7 +136,7 @@ public class EmailSequenceManagementService : IEmailSequenceManagementService
 
     #region Steps
 
-    public async Task<EmailSequenceStepDto> AddStepAsync(int sequenceId, CreateEmailSequenceStepDto dto, CancellationToken cancellationToken = default)
+    public async Task<CRM.Core.Dtos.EmailSequenceStepDto> AddStepAsync(int sequenceId, CRM.Core.Dtos.CreateEmailSequenceStepDto dto, CancellationToken cancellationToken = default)
     {
         var sequence = await _context.EmailSequences
             .FirstOrDefaultAsync(e => e.Id == sequenceId && !e.IsDeleted, cancellationToken);
@@ -164,7 +164,7 @@ public class EmailSequenceManagementService : IEmailSequenceManagementService
         return await Task.FromResult(MapStepToDto(step));
     }
 
-    public async Task<EmailSequenceStepDto> UpdateStepAsync(int sequenceId, int stepId, CreateEmailSequenceStepDto dto, CancellationToken cancellationToken = default)
+    public async Task<CRM.Core.Dtos.EmailSequenceStepDto> UpdateStepAsync(int sequenceId, int stepId, CRM.Core.Dtos.CreateEmailSequenceStepDto dto, CancellationToken cancellationToken = default)
     {
         var step = await _context.EmailSequenceSteps
             .FirstOrDefaultAsync(s => s.Id == stepId && s.EmailSequenceId == sequenceId && !s.IsDeleted, cancellationToken);
@@ -230,7 +230,7 @@ public class EmailSequenceManagementService : IEmailSequenceManagementService
 
     #region Enrollments
 
-    public async Task<EmailSequenceEnrollmentDto> EnrollAsync(int sequenceId, CreateEmailSequenceEnrollmentDto dto, CancellationToken cancellationToken = default)
+    public async Task<CRM.Core.Dtos.EmailSequenceEnrollmentDto> EnrollAsync(int sequenceId, CRM.Core.Dtos.CreateEmailSequenceEnrollmentDto dto, CancellationToken cancellationToken = default)
     {
         var sequence = await _context.EmailSequences
             .FirstOrDefaultAsync(e => e.Id == sequenceId && !e.IsDeleted, cancellationToken);
@@ -261,7 +261,7 @@ public class EmailSequenceManagementService : IEmailSequenceManagementService
         return await Task.FromResult(MapEnrollmentToDto(enrollment));
     }
 
-    public async Task<List<EmailSequenceEnrollmentDto>> GetEnrollmentsAsync(int sequenceId, int page = 1, int pageSize = 50, CancellationToken cancellationToken = default)
+    public async Task<System.Collections.Generic.List<CRM.Core.Dtos.EmailSequenceEnrollmentDto>> GetEnrollmentsAsync(int sequenceId, int page = 1, int pageSize = 50, CancellationToken cancellationToken = default)
     {
         var enrollments = await _context.EmailSequenceEnrollments
             .Where(e => e.EmailSequenceId == sequenceId && !e.IsDeleted)
@@ -328,13 +328,13 @@ public class EmailSequenceManagementService : IEmailSequenceManagementService
 
     #region Execution & Analytics
 
-    public async Task<EmailSequenceAnalyticsDto> GetAnalyticsAsync(int sequenceId, CancellationToken cancellationToken = default)
+    public async Task<CRM.Core.Dtos.EmailSequenceAnalyticsDto> GetAnalyticsAsync(int sequenceId, CancellationToken cancellationToken = default)
     {
         var enrollments = await _context.EmailSequenceEnrollments
             .Where(e => e.EmailSequenceId == sequenceId && !e.IsDeleted)
             .ToListAsync(cancellationToken);
 
-        var analytics = new EmailSequenceAnalyticsDto
+        var analytics = new CRM.Core.Dtos.EmailSequenceAnalyticsDto
         {
             SequenceId = sequenceId,
             TotalEnrolled = enrollments.Count,
@@ -347,7 +347,7 @@ public class EmailSequenceManagementService : IEmailSequenceManagementService
         return await Task.FromResult(analytics);
     }
 
-    public async Task<EmailSequenceExecutionResultDto> ExecuteAsync(int sequenceId, CancellationToken cancellationToken = default)
+    public async Task<CRM.Core.Dtos.EmailSequenceExecutionResultDto> ExecuteAsync(int sequenceId, CancellationToken cancellationToken = default)
     {
         var sequence = await _context.EmailSequences
             .FirstOrDefaultAsync(e => e.Id == sequenceId && !e.IsDeleted, cancellationToken);
@@ -362,7 +362,7 @@ public class EmailSequenceManagementService : IEmailSequenceManagementService
 
         _logger.LogInformation("Email sequence {SequenceId} executed", sequenceId);
 
-        var result = new EmailSequenceExecutionResultDto
+        var result = new CRM.Core.Dtos.EmailSequenceExecutionResultDto
         {
             SequenceId = sequenceId,
             Success = true,
