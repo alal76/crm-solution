@@ -149,7 +149,7 @@ const invoiceService = {
   getByInvoiceNumber: (invoiceNumber: string) => apiClient.get<Invoice>(`/api/invoices/by-number/${invoiceNumber}`),
   create: (invoice: Partial<Invoice>) => apiClient.post<Invoice>('/api/invoices', invoice),
   update: (id: number, invoice: Partial<Invoice>) => apiClient.put<Invoice>(`/api/invoices/${id}`, invoice),
-  delete: (id: number) => apiClient.delete(`/api/invoices/${id}`),
+  delete: (id: number) => apiClient.delete(`/invoices/${id}`),
 
   // Operations
   createFromOrder: (orderId: number) => apiClient.post<Invoice>(`/api/invoices/from-order/${orderId}`, {}),
@@ -169,9 +169,9 @@ const invoiceService = {
 
   // Payments
   recordPayment: (id: number, amount: number, method: PaymentMethod) =>
-    apiClient.post(`/api/invoices/${id}/payments`, { amount, method }),
+    apiClient.post(`/invoices/${id}/payments`, { amount, method }),
   getOutstandingBalance: (id: number) => apiClient.get<number>(`/api/invoices/${id}/balance`),
-  getPayments: (id: number) => apiClient.get(`/api/invoices/${id}/payments`),
+  getPayments: (id: number) => apiClient.get(`/invoices/${id}/payments`),
 
   // Queries
   getOverdue: (daysPastDue?: number) => {
@@ -192,7 +192,7 @@ const invoiceService = {
     apiClient.post<InvoiceLineItem>(`/api/invoices/${invoiceId}/line-items`, lineItem),
   updateLineItem: (lineItemId: number, lineItem: Partial<InvoiceLineItem>) =>
     apiClient.put<InvoiceLineItem>(`/api/invoices/line-items/${lineItemId}`, lineItem),
-  removeLineItem: (lineItemId: number) => apiClient.delete(`/api/invoices/line-items/${lineItemId}`),
+  removeLineItem: (lineItemId: number) => apiClient.delete(`/invoices/line-items/${lineItemId}`),
   getLineItems: (invoiceId: number) => apiClient.get<InvoiceLineItem[]>(`/api/invoices/${invoiceId}/line-items`),
 
   // Calculations

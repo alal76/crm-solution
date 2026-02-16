@@ -153,7 +153,7 @@ export const DashboardCustomizationComponent: React.FC<{ userId?: number }> = ()
   const handleSetDefaultDashboard = async (dashboardName: string) => {
     setSaving(true);
     try {
-      await apiClient.put(`/api/ui-preferences/dashboards/${dashboardName}/default`);
+      await apiClient.put(`/ui-preferences/dashboards/${dashboardName}/default`);
       await loadDashboards();
       setSuccessMessage(`${dashboardName} set as default`);
       setTimeout(() => setSuccessMessage(null), 3000);
@@ -169,7 +169,7 @@ export const DashboardCustomizationComponent: React.FC<{ userId?: number }> = ()
 
     setSaving(true);
     try {
-      await apiClient.delete(`/api/ui-preferences/dashboards/${dashboardName}`);
+      await apiClient.delete(`/ui-preferences/dashboards/${dashboardName}`);
       const updated = dashboards.filter(d => d.dashboardName !== dashboardName);
       setDashboards(updated);
       if (selectedDashboard?.dashboardName === dashboardName) {

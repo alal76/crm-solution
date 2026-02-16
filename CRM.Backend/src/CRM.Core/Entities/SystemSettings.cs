@@ -517,6 +517,20 @@ public class SystemSettings : BaseEntity
 
     #endregion
 
+    #region Worker Control Settings
+
+    /// <summary>
+    /// Maximum number of worker instances allowed to run (minimum 1).
+    /// </summary>
+    public int WorkerMaxInstances { get; set; } = 1;
+
+    /// <summary>
+    /// Current worker control state (Running, Paused, StopRequested, RestartRequested, Stopped).
+    /// </summary>
+    public string WorkerControlState { get; set; } = "Running";
+
+    #endregion
+
     #region Customization
 
     /// <summary>

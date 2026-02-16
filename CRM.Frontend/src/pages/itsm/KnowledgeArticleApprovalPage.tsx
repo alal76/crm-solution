@@ -45,7 +45,7 @@ const KnowledgeArticleApprovalPage: React.FC = () => {
     setError(null);
 
     try {
-      await apiClient.patch(`/api/knowledge/${articleId}/publish`);
+      await apiClient.patch(`/knowledge/${articleId}/publish`);
       setItems((prev) => prev.filter((item) => item.articleId !== articleId));
     } catch (publishError) {
       console.error('Failed to publish article', publishError);
@@ -60,7 +60,7 @@ const KnowledgeArticleApprovalPage: React.FC = () => {
     setError(null);
 
     try {
-      await apiClient.patch(`/api/knowledge/${articleId}/retire`);
+      await apiClient.patch(`/knowledge/${articleId}/retire`);
       setItems((prev) => prev.filter((item) => item.articleId !== articleId));
     } catch (rejectError) {
       console.error('Failed to reject article', rejectError);

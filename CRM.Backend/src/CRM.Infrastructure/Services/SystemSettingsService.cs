@@ -189,6 +189,21 @@ public class SystemSettingsService : ISystemSettingsService, ISystemSettingsInpu
             if (request.EmailNotificationsEnabled.HasValue) settings.EmailNotificationsEnabled = request.EmailNotificationsEnabled.Value;
             if (request.AuditLoggingEnabled.HasValue) settings.AuditLoggingEnabled = request.AuditLoggingEnabled.Value;
 
+            if (request.WorkerMaxInstances.HasValue)
+            {
+                if (request.WorkerMaxInstances.Value < 1)
+                {
+                    throw new ArgumentException("WorkerMaxInstances must be at least 1.", nameof(request.WorkerMaxInstances));
+                }
+
+                settings.WorkerMaxInstances = request.WorkerMaxInstances.Value;
+            }
+
+            if (!string.IsNullOrWhiteSpace(request.WorkerControlState))
+            {
+                settings.WorkerControlState = request.WorkerControlState;
+            }
+
             // Database provider settings - only one can be active at a time
             if (request.ActiveDatabaseProvider != null)
             {
@@ -291,6 +306,9 @@ public class SystemSettingsService : ISystemSettingsService, ISystemSettingsInpu
             ApiAccessEnabled = settings.ApiAccessEnabled,
             EmailNotificationsEnabled = settings.EmailNotificationsEnabled,
             AuditLoggingEnabled = settings.AuditLoggingEnabled,
+
+            WorkerMaxInstances = settings.WorkerMaxInstances,
+            WorkerControlState = settings.WorkerControlState,
 
             NavOrderConfig = settings.NavOrderConfig,
 

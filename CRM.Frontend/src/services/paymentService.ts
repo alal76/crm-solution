@@ -185,7 +185,7 @@ const paymentService = {
   getByTransactionId: (transactionId: string) => apiClient.get<Payment>(`/api/payments/by-transaction/${transactionId}`),
   create: (payment: Partial<Payment>) => apiClient.post<Payment>('/api/payments', payment),
   update: (id: number, payment: Partial<Payment>) => apiClient.put<Payment>(`/api/payments/${id}`, payment),
-  delete: (id: number) => apiClient.delete(`/api/payments/${id}`),
+  delete: (id: number) => apiClient.delete(`/payments/${id}`),
 
   // Payment Processing
   processPayment: (request: ProcessPaymentRequest) => apiClient.post<PaymentResult>('/api/payments/process', request),

@@ -100,7 +100,7 @@ The following items remain from the remediation effort:
 
 ## Completed This Update
 
-- Worker architecture: added worker health endpoints, concrete notification dispatcher, and updated EF model snapshot for worker/outbox tables.
+- Worker architecture: added worker health endpoints, worker control endpoints/UI, and updated EF model snapshot for worker/outbox tables.
 - Documented .NET 10 upgrade execution kickoff (no remediation items closed).
 - ITSM Problem Management foundation: re-registered Problem services via adapter and corrected known error validation (Phase 3 start).
 

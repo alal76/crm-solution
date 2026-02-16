@@ -186,7 +186,7 @@ const changeService = {
       if (filters.endDate) params.append('endDate', filters.endDate);
     }
 
-    const response = await apiClient.get(`/api/changes?${params}`);
+    const response = await apiClient.get(`/changes?${params}`);
     return response.data;
   },
 
@@ -194,7 +194,7 @@ const changeService = {
    * Get change by ID
    */
   getChange: async (id: number): Promise<Change> => {
-    const response = await apiClient.get(`/api/changes/${id}`);
+    const response = await apiClient.get(`/changes/${id}`);
     return response.data;
   },
 
@@ -210,7 +210,7 @@ const changeService = {
    * Update change
    */
   updateChange: async (id: number, data: UpdateChangeRequest): Promise<Change> => {
-    const response = await apiClient.put(`/api/changes/${id}`, data);
+    const response = await apiClient.put(`/changes/${id}`, data);
     return response.data;
   },
 
@@ -218,7 +218,7 @@ const changeService = {
    * Change status
    */
   changeStatus: async (id: number, status: ChangeStatus): Promise<Change> => {
-    const response = await apiClient.patch(`/api/changes/${id}/status`, { status });
+    const response = await apiClient.patch(`/changes/${id}/status`, { status });
     return response.data;
   },
 
@@ -226,7 +226,7 @@ const changeService = {
    * Submit for approval
    */
   submitForApproval: async (id: number, approvers: number[]): Promise<Change> => {
-    const response = await apiClient.post(`/api/changes/${id}/submit-approval`, { approvers });
+    const response = await apiClient.post(`/changes/${id}/submit-approval`, { approvers });
     return response.data;
   },
 
@@ -234,7 +234,7 @@ const changeService = {
    * Approve change
    */
   approveChange: async (id: number, comments?: string): Promise<ChangeApproval> => {
-    const response = await apiClient.post(`/api/changes/${id}/approve`, { comments });
+    const response = await apiClient.post(`/changes/${id}/approve`, { comments });
     return response.data;
   },
 
@@ -242,7 +242,7 @@ const changeService = {
    * Reject change
    */
   rejectChange: async (id: number, reason: string): Promise<ChangeApproval> => {
-    const response = await apiClient.post(`/api/changes/${id}/reject`, { reason });
+    const response = await apiClient.post(`/changes/${id}/reject`, { reason });
     return response.data;
   },
 
@@ -250,7 +250,7 @@ const changeService = {
    * Schedule change
    */
   scheduleChange: async (id: number, startDate: string, endDate: string): Promise<Change> => {
-    const response = await apiClient.post(`/api/changes/${id}/schedule`, { startDate, endDate });
+    const response = await apiClient.post(`/changes/${id}/schedule`, { startDate, endDate });
     return response.data;
   },
 
@@ -258,7 +258,7 @@ const changeService = {
    * Start change implementation
    */
   startImplementation: async (id: number): Promise<Change> => {
-    const response = await apiClient.post(`/api/changes/${id}/start`, {});
+    const response = await apiClient.post(`/changes/${id}/start`, {});
     return response.data;
   },
 
@@ -266,7 +266,7 @@ const changeService = {
    * Complete change
    */
   completeChange: async (id: number, comments?: string): Promise<Change> => {
-    const response = await apiClient.post(`/api/changes/${id}/complete`, { comments });
+    const response = await apiClient.post(`/changes/${id}/complete`, { comments });
     return response.data;
   },
 
@@ -274,7 +274,7 @@ const changeService = {
    * Rollback change
    */
   rollbackChange: async (id: number, reason: string): Promise<Change> => {
-    const response = await apiClient.post(`/api/changes/${id}/rollback`, { reason });
+    const response = await apiClient.post(`/changes/${id}/rollback`, { reason });
     return response.data;
   },
 
@@ -282,7 +282,7 @@ const changeService = {
    * Get change activity timeline
    */
   getActivity: async (changeId: number): Promise<ChangeActivity[]> => {
-    const response = await apiClient.get(`/api/changes/${changeId}/activity`);
+    const response = await apiClient.get(`/changes/${changeId}/activity`);
     return response.data;
   },
 
@@ -290,7 +290,7 @@ const changeService = {
    * Add comment to change
    */
   addComment: async (changeId: number, content: string): Promise<ChangeActivity> => {
-    const response = await apiClient.post(`/api/changes/${changeId}/comments`, { content });
+    const response = await apiClient.post(`/changes/${changeId}/comments`, { content });
     return response.data;
   },
 
@@ -302,7 +302,7 @@ const changeService = {
       startDate,
       endDate,
     });
-    const response = await apiClient.get(`/api/changes/calendar?${params}`);
+    const response = await apiClient.get(`/changes/calendar?${params}`);
     return response.data;
   },
 
@@ -310,7 +310,7 @@ const changeService = {
    * Get related incidents
    */
   getRelatedIncidents: async (changeId: number): Promise<any[]> => {
-    const response = await apiClient.get(`/api/changes/${changeId}/related-incidents`);
+    const response = await apiClient.get(`/changes/${changeId}/related-incidents`);
     return response.data;
   },
 
@@ -318,7 +318,7 @@ const changeService = {
    * Get related problems
    */
   getRelatedProblems: async (changeId: number): Promise<any[]> => {
-    const response = await apiClient.get(`/api/changes/${changeId}/related-problems`);
+    const response = await apiClient.get(`/changes/${changeId}/related-problems`);
     return response.data;
   },
 
@@ -334,7 +334,7 @@ const changeService = {
    * Detect conflicting changes
    */
   detectConflicts: async (id: number): Promise<Change[]> => {
-    const response = await apiClient.get(`/api/changes/${id}/conflicts`);
+    const response = await apiClient.get(`/changes/${id}/conflicts`);
     return response.data;
   },
 
@@ -342,7 +342,7 @@ const changeService = {
    * Delete change
    */
   deleteChange: async (id: number): Promise<void> => {
-    await apiClient.delete(`/api/changes/${id}`);
+    await apiClient.delete(`/changes/${id}`);
   },
 };
 

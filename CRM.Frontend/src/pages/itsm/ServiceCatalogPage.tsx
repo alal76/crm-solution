@@ -34,7 +34,7 @@ export const ServiceCatalogPage: React.FC = () => {
       setLoading(true);
       try {
         const params = searchTerm ? `?searchTerm=${searchTerm}` : '';
-        const response = await apiClient.get(`/api/catalog/search${params}`);
+        const response = await apiClient.get(`/catalog/search${params}`);
         setItems(response.data ?? []);
       } catch (error) {
         console.error('Failed to load catalog', error);

@@ -24,7 +24,7 @@ const ChangeCalendarPage: React.FC = () => {
           pageNumber: '1',
           pageSize: '50'
         });
-        const response = await apiClient.get(`/api/changes?${params}`);
+        const response = await apiClient.get(`/changes?${params}`);
         setItems(response.data.items ?? response.data);
       } catch (error) {
         console.error('Failed to load change calendar', error);

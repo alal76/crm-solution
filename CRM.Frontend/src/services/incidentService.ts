@@ -161,7 +161,7 @@ const incidentService = {
       if (filters.search) params.append('search', filters.search);
     }
 
-    const response = await apiClient.get(`/api/incidents?${params}`);
+    const response = await apiClient.get(`/incidents?${params}`);
     return response.data;
   },
 
@@ -169,7 +169,7 @@ const incidentService = {
    * Get incident by ID
    */
   getIncident: async (id: number): Promise<Incident> => {
-    const response = await apiClient.get(`/api/incidents/${id}`);
+    const response = await apiClient.get(`/incidents/${id}`);
     return response.data;
   },
 
@@ -185,7 +185,7 @@ const incidentService = {
    * Update incident
    */
   updateIncident: async (id: number, data: UpdateIncidentRequest): Promise<Incident> => {
-    const response = await apiClient.put(`/api/incidents/${id}`, data);
+    const response = await apiClient.put(`/incidents/${id}`, data);
     return response.data;
   },
 
@@ -193,7 +193,7 @@ const incidentService = {
    * Change incident status
    */
   changeStatus: async (id: number, status: IncidentStatus): Promise<Incident> => {
-    const response = await apiClient.patch(`/api/incidents/${id}/status`, { status });
+    const response = await apiClient.patch(`/incidents/${id}/status`, { status });
     return response.data;
   },
 
@@ -201,7 +201,7 @@ const incidentService = {
    * Assign incident to user
    */
   assignToUser: async (id: number, userId: number): Promise<Incident> => {
-    const response = await apiClient.patch(`/api/incidents/${id}/assign`, { assignedToId: userId });
+    const response = await apiClient.patch(`/incidents/${id}/assign`, { assignedToId: userId });
     return response.data;
   },
 
@@ -209,7 +209,7 @@ const incidentService = {
    * Assign incident to group
    */
   assignToGroup: async (id: number, groupId: number): Promise<Incident> => {
-    const response = await apiClient.patch(`/api/incidents/${id}/assign-group`, { teamId: groupId });
+    const response = await apiClient.patch(`/incidents/${id}/assign-group`, { teamId: groupId });
     return response.data;
   },
 
@@ -217,7 +217,7 @@ const incidentService = {
    * Get incident activity timeline
    */
   getActivity: async (incidentId: number): Promise<IncidentActivity[]> => {
-    const response = await apiClient.get(`/api/incidents/${incidentId}/activity`);
+    const response = await apiClient.get(`/incidents/${incidentId}/activity`);
     return response.data;
   },
 
@@ -225,7 +225,7 @@ const incidentService = {
    * Add comment to incident
    */
   addComment: async (incidentId: number, content: string): Promise<IncidentActivity> => {
-    const response = await apiClient.post(`/api/incidents/${incidentId}/comments`, { content });
+    const response = await apiClient.post(`/incidents/${incidentId}/comments`, { content });
     return response.data;
   },
 
@@ -233,7 +233,7 @@ const incidentService = {
    * Get SLA information for incident
    */
   getSLA: async (incidentId: number): Promise<IncidentSLA[]> => {
-    const response = await apiClient.get(`/api/incidents/${incidentId}/sla`);
+    const response = await apiClient.get(`/incidents/${incidentId}/sla`);
     return response.data;
   },
 
@@ -241,7 +241,7 @@ const incidentService = {
    * Get related incidents
    */
   getRelatedIncidents: async (incidentId: number): Promise<Incident[]> => {
-    const response = await apiClient.get(`/api/incidents/${incidentId}/related`);
+    const response = await apiClient.get(`/incidents/${incidentId}/related`);
     return response.data;
   },
 
@@ -263,14 +263,14 @@ const incidentService = {
    * Delete incident
    */
   deleteIncident: async (id: number): Promise<void> => {
-    await apiClient.delete(`/api/incidents/${id}`);
+    await apiClient.delete(`/incidents/${id}`);
   },
 
   /**
    * Escalate incident
    */
   escalate: async (id: number, reason?: string): Promise<Incident> => {
-    const response = await apiClient.post(`/api/incidents/${id}/escalate`, { reason });
+    const response = await apiClient.post(`/incidents/${id}/escalate`, { reason });
     return response.data;
   },
 
@@ -278,7 +278,7 @@ const incidentService = {
    * Resolve incident
    */
   resolve: async (id: number, resolutionNotes: string): Promise<Incident> => {
-    const response = await apiClient.post(`/api/incidents/${id}/resolve`, { resolutionNotes });
+    const response = await apiClient.post(`/incidents/${id}/resolve`, { resolutionNotes });
     return response.data;
   },
 
@@ -286,7 +286,7 @@ const incidentService = {
    * Close incident
    */
   close: async (id: number): Promise<Incident> => {
-    const response = await apiClient.post(`/api/incidents/${id}/close`, {});
+    const response = await apiClient.post(`/incidents/${id}/close`, {});
     return response.data;
   },
 
@@ -294,7 +294,7 @@ const incidentService = {
    * Reopen incident
    */
   reopen: async (id: number, reason: string): Promise<Incident> => {
-    const response = await apiClient.post(`/api/incidents/${id}/reopen`, { reason });
+    const response = await apiClient.post(`/incidents/${id}/reopen`, { reason });
     return response.data;
   },
 };

@@ -182,7 +182,7 @@ const webhookService = {
       if (filter.search) params.append('search', filter.search);
     }
 
-    const response = await apiClient.get(`/api/webhooks?${params}`);
+    const response = await apiClient.get(`/webhooks?${params}`);
     return response.data;
   },
 
@@ -190,7 +190,7 @@ const webhookService = {
    * Get webhook by ID
    */
   getWebhook: async (id: number): Promise<Webhook> => {
-    const response = await apiClient.get(`/api/webhooks/${id}`);
+    const response = await apiClient.get(`/webhooks/${id}`);
     return response.data;
   },
 
@@ -206,7 +206,7 @@ const webhookService = {
    * Update webhook
    */
   updateWebhook: async (id: number, data: UpdateWebhookRequest): Promise<Webhook> => {
-    const response = await apiClient.put(`/api/webhooks/${id}`, data);
+    const response = await apiClient.put(`/webhooks/${id}`, data);
     return response.data;
   },
 
@@ -214,14 +214,14 @@ const webhookService = {
    * Delete webhook
    */
   deleteWebhook: async (id: number): Promise<void> => {
-    await apiClient.delete(`/api/webhooks/${id}`);
+    await apiClient.delete(`/webhooks/${id}`);
   },
 
   /**
    * Enable webhook
    */
   enableWebhook: async (id: number): Promise<Webhook> => {
-    const response = await apiClient.patch(`/api/webhooks/${id}/enable`, {});
+    const response = await apiClient.patch(`/webhooks/${id}/enable`, {});
     return response.data;
   },
 
@@ -229,7 +229,7 @@ const webhookService = {
    * Disable webhook
    */
   disableWebhook: async (id: number): Promise<Webhook> => {
-    const response = await apiClient.patch(`/api/webhooks/${id}/disable`, {});
+    const response = await apiClient.patch(`/webhooks/${id}/disable`, {});
     return response.data;
   },
 
@@ -237,7 +237,7 @@ const webhookService = {
    * Pause webhook
    */
   pauseWebhook: async (id: number): Promise<Webhook> => {
-    const response = await apiClient.patch(`/api/webhooks/${id}/pause`, {});
+    const response = await apiClient.patch(`/webhooks/${id}/pause`, {});
     return response.data;
   },
 
@@ -245,7 +245,7 @@ const webhookService = {
    * Resume paused webhook
    */
   resumeWebhook: async (id: number): Promise<Webhook> => {
-    const response = await apiClient.patch(`/api/webhooks/${id}/resume`, {});
+    const response = await apiClient.patch(`/webhooks/${id}/resume`, {});
     return response.data;
   },
 
@@ -253,7 +253,7 @@ const webhookService = {
    * Test webhook with sample payload
    */
   testWebhook: async (id: number, testRequest: WebhookTestRequest): Promise<WebhookTestResult> => {
-    const response = await apiClient.post(`/api/webhooks/${id}/test`, testRequest);
+    const response = await apiClient.post(`/webhooks/${id}/test`, testRequest);
     return response.data;
   },
 
@@ -283,7 +283,7 @@ const webhookService = {
       if (filter.endDate) params.append('endDate', filter.endDate);
     }
 
-    const response = await apiClient.get(`/api/webhooks/${webhookId}/deliveries?${params}`);
+    const response = await apiClient.get(`/webhooks/${webhookId}/deliveries?${params}`);
     return response.data;
   },
 
@@ -291,7 +291,7 @@ const webhookService = {
    * Get specific delivery details
    */
   getDelivery: async (webhookId: number, deliveryId: number): Promise<WebhookDelivery> => {
-    const response = await apiClient.get(`/api/webhooks/${webhookId}/deliveries/${deliveryId}`);
+    const response = await apiClient.get(`/webhooks/${webhookId}/deliveries/${deliveryId}`);
     return response.data;
   },
 
@@ -324,7 +324,7 @@ const webhookService = {
     successRate: number;
     avgDeliveryTime: number;
   }> => {
-    const response = await apiClient.get(`/api/webhooks/${webhookId}/statistics`);
+    const response = await apiClient.get(`/webhooks/${webhookId}/statistics`);
     return response.data;
   },
 

@@ -320,6 +320,7 @@ namespace CRM.Infrastructure.Services
             items.Add(AdminItem("security-settings", "Security", "/admin/security", "Security", "Settings", "admin-system", 3));
             items.Add(AdminItem("feature-management", "Feature Flags", "/admin/features", "Flag", "Settings", "admin-system", 4));
             items.Add(AdminItem("database-settings", "Database", "/admin/database-settings", "Storage", "Settings", "admin-system", 5));
+            items.Add(AdminItem("worker-ops", "Worker Operations", "/admin/workers", "Speed", "Settings", "admin-system", 5.5));
             items.Add(AdminItem("test-results", "Test Results", "/admin/test-results", "Science", "Settings", "admin-system", 6));
             items.Add(AdminItem("llm-settings", "AI/LLM Settings", "/admin/llm", "Psychology", "Settings", "admin-system", 7));
 

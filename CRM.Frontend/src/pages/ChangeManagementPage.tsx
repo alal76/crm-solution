@@ -40,7 +40,7 @@ import {
   MenuItem
 } from '@mui/material';
 import { useParams, useNavigate } from 'react-router-dom';
-import itsmService from '../../services/itsmService';
+import itsmService from '../services/itsmService';
 import {
   Change,
   ChangeStatus,
@@ -48,7 +48,7 @@ import {
   ChangeRiskLevel,
   CreateChangeDto,
   CABVote
-} from '../../types/itsm';
+} from '../types/itsm';
 
 /**
  * Change Management Page Component

@@ -378,7 +378,7 @@ export default function LandingPagesPage() {
       };
 
       if (editingPage) {
-        await apiClient.put(`/api/landing-pages/${editingPage.id}`, payload);
+        await apiClient.put(`/landing-pages/${editingPage.id}`, payload);
       } else {
         await apiClient.post('/api/landing-pages', payload);
       }
@@ -402,7 +402,7 @@ export default function LandingPagesPage() {
 
     try {
       setDeleting(true);
-      await apiClient.delete(`/api/landing-pages/${pageToDelete.id}`);
+      await apiClient.delete(`/landing-pages/${pageToDelete.id}`);
       setDeleteDialogOpen(false);
       setPageToDelete(null);
       fetchPages();
@@ -415,7 +415,7 @@ export default function LandingPagesPage() {
 
   const handlePublish = async (page: LandingPage) => {
     try {
-      await apiClient.post(`/api/landing-pages/${page.id}/publish`);
+      await apiClient.post(`/landing-pages/${page.id}/publish`);
       fetchPages();
     } catch (err: any) {
       setError(err?.message || 'Failed to publish page');
@@ -424,7 +424,7 @@ export default function LandingPagesPage() {
 
   const handleUnpublish = async (page: LandingPage) => {
     try {
-      await apiClient.post(`/api/landing-pages/${page.id}/unpublish`);
+      await apiClient.post(`/landing-pages/${page.id}/unpublish`);
       fetchPages();
     } catch (err: any) {
       setError(err?.message || 'Failed to unpublish page');
@@ -433,7 +433,7 @@ export default function LandingPagesPage() {
 
   const handleDuplicate = async (page: LandingPage) => {
     try {
-      await apiClient.post(`/api/landing-pages/${page.id}/duplicate`);
+      await apiClient.post(`/landing-pages/${page.id}/duplicate`);
       fetchPages();
     } catch (err: any) {
       setError(err?.message || 'Failed to duplicate page');
@@ -448,7 +448,7 @@ export default function LandingPagesPage() {
 
     try {
       setBlocksLoading(true);
-      const response = await apiClient.get(`/api/landing-pages/${page.id}/blocks`);
+      const response = await apiClient.get(`/landing-pages/${page.id}/blocks`);
       setBlocks(response.data);
     } catch (err: any) {
       setError(err?.response?.data?.message || err?.message || 'Failed to load blocks');
@@ -538,7 +538,7 @@ export default function LandingPagesPage() {
 
     try {
       setBlocksSaving(true);
-      await apiClient.put(`/api/landing-pages/${designerPage.id}/blocks`, blocks);
+      await apiClient.put(`/landing-pages/${designerPage.id}/blocks`, blocks);
       setDesignerOpen(false);
       fetchPages();
     } catch (err: any) {
@@ -553,7 +553,7 @@ export default function LandingPagesPage() {
     try {
       setPreviewLoading(true);
       setPreviewOpen(true);
-      const response = await apiClient.get(`/api/landing-pages/${page.id}/preview`);
+      const response = await apiClient.get(`/landing-pages/${page.id}/preview`);
       setPreviewHtml(response.data.html);
     } catch (err: any) {
       setError(err?.response?.data?.message || err?.message || 'Failed to generate preview');
@@ -570,7 +570,7 @@ export default function LandingPagesPage() {
 
     try {
       setAnalyticsLoading(true);
-      const response = await apiClient.get(`/api/landing-pages/${page.id}/analytics`);
+      const response = await apiClient.get(`/landing-pages/${page.id}/analytics`);
       setAnalytics(response.data);
     } catch (err: any) {
       setError(err?.response?.data?.message || err?.message || 'Failed to load analytics');

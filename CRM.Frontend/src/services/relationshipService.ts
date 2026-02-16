@@ -222,7 +222,8 @@ const BASE_URL = '/relationships';
 // Relationship Types
 export const getRelationshipTypes = async (): Promise<RelationshipType[]> => {
   const response = await apiClient.get(`${BASE_URL}/types`);
-  return response.data;
+  const data = response.data;
+  return Array.isArray(data) ? data : (data?.items ?? []);
 };
 
 export const getRelationshipType = async (id: number): Promise<RelationshipType> => {
@@ -254,10 +255,15 @@ export const getAccountRelationships = async (
   accountId?: number
 ): Promise<AccountRelationship[]> => {
   const url = accountId
-    ? `${BASE_URL}?accountId=${accountId}`
+    ? `${BASE_URL}/account/${accountId}`
     : BASE_URL;
   const response = await apiClient.get(url);
-  return response.data;
+  // GET /relationships returns paginated { items, totalCount, ... }
+  // GET /relationships/account/:id returns a plain array
+  const data = response.data;
+  if (Array.isArray(data)) return data;
+  if (data && Array.isArray(data.items)) return data.items;
+  return [];
 };
 
 export const getAccountRelationship = async (id: number): Promise<AccountRelationship> => {
@@ -289,7 +295,8 @@ export const getRelationshipInteractions = async (
   relationshipId: number
 ): Promise<RelationshipInteraction[]> => {
   const response = await apiClient.get(`${BASE_URL}/${relationshipId}/interactions`);
-  return response.data;
+  const data = response.data;
+  return Array.isArray(data) ? data : (data?.items ?? []);
 };
 
 export const createRelationshipInteraction = async (
@@ -319,7 +326,8 @@ export const getHealthSnapshots = async (
   accountId: number
 ): Promise<AccountHealthSnapshot[]> => {
   const response = await apiClient.get(`${BASE_URL}/health/${accountId}`);
-  return response.data;
+  const data = response.data;
+  return Array.isArray(data) ? data : (data?.items ?? []);
 };
 
 export const createHealthSnapshot = async (

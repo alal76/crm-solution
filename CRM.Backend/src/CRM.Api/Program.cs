@@ -1025,6 +1025,18 @@ using (var scope = app.Services.CreateScope())
             Log.Warning(masterDataEx, "Failed to seed master data - continuing without");
         }
 
+        // Seed module field configurations (Accounts, Contacts, Leads, etc.) if not already populated
+        try
+        {
+            var coreDataSeeder = scope.ServiceProvider.GetRequiredService<ICoreDataSeederService>();
+            await coreDataSeeder.SeedModuleFieldConfigurationsAsync();
+            Log.Information("Module field configurations seeded successfully");
+        }
+        catch (Exception fieldConfigEx)
+        {
+            Log.Warning(fieldConfigEx, "Failed to seed module field configurations - continuing without");
+        }
+
         // Auto-seed sample data if configured
         var autoSeedSampleData = builder.Configuration.GetValue<bool>("SampleData:AutoSeed", false);
         if (autoSeedSampleData)

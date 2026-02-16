@@ -305,9 +305,10 @@ function RelationshipsPage() {
         relationshipService.getAccountRelationships(),
         apiClient.get('/accounts')
       ]);
-      setRelationshipTypes(typesRes);
-      setRelationships(relationshipsRes);
-      setAccounts(accountsRes.data);
+      setRelationshipTypes(Array.isArray(typesRes) ? typesRes : []);
+      setRelationships(Array.isArray(relationshipsRes) ? relationshipsRes : []);
+      const acctData = accountsRes.data;
+      setAccounts(Array.isArray(acctData) ? acctData : (acctData?.items ?? []));
       setError(null);
     } catch (err) {
       setError('Failed to load relationship data');

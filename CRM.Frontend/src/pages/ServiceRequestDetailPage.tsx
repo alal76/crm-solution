@@ -29,8 +29,8 @@ import {
   Checkbox
 } from '@mui/material';
 import { useParams, useNavigate } from 'react-router-dom';
-import itsmService from '../../services/itsmService';
-import { Incident, IncidentStatus, IncidentPriority } from '../../types/itsm';
+import itsmService from '../services/itsmService';
+import { Incident, IncidentStatus, IncidentPriority } from '../types/itsm';
 
 /**
  * Service Request Detail Page Component

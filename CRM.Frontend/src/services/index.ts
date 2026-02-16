@@ -25,4 +25,5 @@ export { default as subscriptionService } from './subscriptionService';
 export { default as teamService } from './teamService';
 export { default as territoryService } from './territoryService';
 export { default as workflowService } from './workflowService';
+export { default as workerAdminService } from './workerAdminService';
 export { default as zipCodeService } from './zipCodeService';

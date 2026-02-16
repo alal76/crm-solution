@@ -124,7 +124,7 @@ export const FeatureFlagsDashboard: React.FC = () => {
   const handleToggleFlag = async (flag: FeatureFlag) => {
     setSaving(true);
     try {
-      await apiClient.put(`/api/feature-flags/${flag.name}`, {
+      await apiClient.put(`/feature-flags/${flag.name}`, {
         enabled: !flag.enabled,
         rolloutPercentage: flag.rolloutPercentage
       });
@@ -143,7 +143,7 @@ export const FeatureFlagsDashboard: React.FC = () => {
 
     setSaving(true);
     try {
-      await apiClient.put(`/api/feature-flags/${selectedFlag.name}/rollout`, rolloutPercentage);
+      await apiClient.put(`/feature-flags/${selectedFlag.name}/rollout`, rolloutPercentage);
       await loadFlags();
       setSuccessMessage(`Rollout set to ${rolloutPercentage}%`);
       setEditDialogOpen(false);

@@ -126,7 +126,7 @@ const orderService = {
   getByOrderNumber: (orderNumber: string) => apiClient.get<Order>(`/api/orders/by-number/${orderNumber}`),
   create: (order: Partial<Order>) => apiClient.post<Order>('/api/orders', order),
   update: (id: number, order: Partial<Order>) => apiClient.put<Order>(`/api/orders/${id}`, order),
-  delete: (id: number) => apiClient.delete(`/api/orders/${id}`),
+  delete: (id: number) => apiClient.delete(`/orders/${id}`),
 
   // Order Operations
   createFromQuote: (quoteId: number) => apiClient.post<Order>(`/api/orders/from-quote/${quoteId}`, {}),
@@ -160,7 +160,7 @@ const orderService = {
     apiClient.post<OrderLineItem>(`/api/orders/${orderId}/line-items`, lineItem),
   updateLineItem: (lineItemId: number, lineItem: Partial<OrderLineItem>) =>
     apiClient.put<OrderLineItem>(`/api/orders/line-items/${lineItemId}`, lineItem),
-  removeLineItem: (lineItemId: number) => apiClient.delete(`/api/orders/line-items/${lineItemId}`),
+  removeLineItem: (lineItemId: number) => apiClient.delete(`/orders/line-items/${lineItemId}`),
   getLineItems: (orderId: number) => apiClient.get<OrderLineItem[]>(`/api/orders/${orderId}/line-items`),
 
   // Queries
@@ -185,8 +185,8 @@ const orderService = {
     apiClient.post<Order>(`/api/orders/${id}/coupon`, { couponCode }),
 
   // Invoicing
-  createInvoice: (orderId: number) => apiClient.post(`/api/orders/${orderId}/invoice`, {}),
-  getInvoices: (orderId: number) => apiClient.get(`/api/orders/${orderId}/invoices`),
+  createInvoice: (orderId: number) => apiClient.post(`/orders/${orderId}/invoice`, {}),
+  getInvoices: (orderId: number) => apiClient.get(`/orders/${orderId}/invoices`),
 };
 
 export default orderService;

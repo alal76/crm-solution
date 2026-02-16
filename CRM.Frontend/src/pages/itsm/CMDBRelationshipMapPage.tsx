@@ -61,8 +61,8 @@ const CMDBRelationshipMapPage: React.FC = () => {
     const load = async () => {
       try {
         const [ciResponse, relatedResponse] = await Promise.all([
-          apiClient.get(`/api/cmdb/${id}`),
-          apiClient.get(`/api/cmdb/${id}/related`),
+          apiClient.get(`/cmdb/${id}`),
+          apiClient.get(`/cmdb/${id}/related`),
         ]);
         setCi(ciResponse.data ?? null);
         setRelated(relatedResponse.data ?? []);
