@@ -1,13 +1,15 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: crm-app
+  name: crm-dev
+  labels:
+    name: crm-dev
 ---
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: crm-config
-  namespace: crm-app
+  namespace: crm-dev
 data:
   ASPNETCORE_ENVIRONMENT: "Production"
   DatabaseProvider: "mariadb"
@@ -49,7 +51,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: crm-provider-config
-  namespace: crm-app
+  namespace: crm-dev
 data:
   # External Provider Configuration (use when UseExternal* = true)
   # Chatwoot (Chat Provider)
@@ -73,7 +75,7 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: crm-secrets
-  namespace: crm-app
+  namespace: crm-dev
 type: Opaque
 stringData:
   # IMPORTANT: Replace these placeholder values before deploying to production
@@ -86,7 +88,7 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: crm-provider-secrets
-  namespace: crm-app
+  namespace: crm-dev
 type: Opaque
 stringData:
   # External Provider API Keys (populate when using external providers)

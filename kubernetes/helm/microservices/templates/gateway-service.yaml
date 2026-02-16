@@ -1,0 +1,18 @@
+{{- if .Values.services.gateway.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "crm-microservices.fullname" . }}-gateway
+  labels:
+    {{- include "crm-microservices.labels" . | nindent 4 }}
+    app.kubernetes.io/component: gateway
+spec:
+  type: ClusterIP
+  selector:
+    {{- include "crm-microservices.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: gateway
+  ports:
+  - port: {{ .Values.services.gateway.port }}
+    targetPort: {{ .Values.services.gateway.port }}
+    name: http
+{{- end }}

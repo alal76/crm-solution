@@ -3,7 +3,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: crm-core
-  namespace: crm-microservices
+  namespace: crm-dev-ms
   labels:
     app: crm-core
     tier: service
@@ -71,7 +71,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: crm-core
-  namespace: crm-microservices
+  namespace: crm-dev-ms
 spec:
   selector:
     app: crm-core
@@ -84,7 +84,7 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: crm-core-hpa
-  namespace: crm-microservices
+  namespace: crm-dev-ms
 spec:
   scaleTargetRef:
     apiVersion: apps/v1

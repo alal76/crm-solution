@@ -1,0 +1,17 @@
+{{- if .Values.db.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "crm-microservices.fullname" . }}-db-pvc
+  labels:
+    {{- include "crm-microservices.labels" . | nindent 4 }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  {{- if .Values.db.storageClass }}
+  storageClassName: {{ .Values.db.storageClass | quote }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.db.storageSize | quote }}
+{{- end }}

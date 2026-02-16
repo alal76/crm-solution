@@ -1,0 +1,29 @@
+{{- if .Values.services.core.hpa.enabled }}
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "crm-microservices.fullname" . }}-core
+  labels:
+    {{- include "crm-microservices.labels" . | nindent 4 }}
+    app.kubernetes.io/component: core
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "crm-microservices.fullname" . }}-core
+  minReplicas: {{ .Values.services.core.hpa.minReplicas }}
+  maxReplicas: {{ .Values.services.core.hpa.maxReplicas }}
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: {{ .Values.services.core.hpa.targetCPUUtilizationPercentage }}
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: {{ .Values.services.core.hpa.targetMemoryUtilizationPercentage }}
+{{- end }}

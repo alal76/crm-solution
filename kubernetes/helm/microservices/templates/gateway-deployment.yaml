@@ -1,0 +1,67 @@
+{{- if .Values.services.gateway.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "crm-microservices.fullname" . }}-gateway
+  labels:
+    {{- include "crm-microservices.labels" . | nindent 4 }}
+    app.kubernetes.io/component: gateway
+spec:
+  replicas: {{ .Values.services.gateway.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "crm-microservices.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: gateway
+  template:
+    metadata:
+      labels:
+        {{- include "crm-microservices.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: gateway
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+      containers:
+      - name: crm-gateway
+        image: {{ .Values.images.gateway.repository }}:{{ .Values.images.gateway.tag }}
+        imagePullPolicy: {{ .Values.images.gateway.pullPolicy }}
+        ports:
+        - containerPort: {{ .Values.services.gateway.port }}
+          name: http
+        envFrom:
+        - configMapRef:
+            name: {{ include "crm-microservices.fullname" . }}-config
+        - secretRef:
+            name: {{ include "crm-microservices.fullname" . }}-secrets
+        env:
+        - name: JwtSettings__Key
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "crm-microservices.fullname" . }}-secrets
+              key: JWT_KEY
+        - name: JwtSettings__Issuer
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "crm-microservices.fullname" . }}-config
+              key: JWT_ISSUER
+        - name: JwtSettings__Audience
+          valueFrom:
+            configMapKeyRef:
+              name: {{ include "crm-microservices.fullname" . }}-config
+              key: JWT_AUDIENCE
+        resources:
+          {{- toYaml (default .Values.resources.default .Values.resources.gateway) | nindent 10 }}
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: {{ .Values.services.gateway.port }}
+          initialDelaySeconds: 15
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: {{ .Values.services.gateway.port }}
+          initialDelaySeconds: 5
+          periodSeconds: 10
+{{- end }}

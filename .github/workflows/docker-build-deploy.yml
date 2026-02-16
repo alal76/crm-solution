@@ -163,5 +163,5 @@ jobs:
         kubectl apply -f kubernetes/02-application-tier.yaml
         kubectl apply -f kubernetes/03-presentation-tier.yaml
         kubectl apply -f kubernetes/04-ingress-network.yaml
-        kubectl rollout status deployment/crm-api -n crm-app --timeout=5m
-        kubectl rollout status deployment/crm-frontend -n crm-app --timeout=5m
+        kubectl rollout status deployment/crm-api -n crm-dev --timeout=5m
+        kubectl rollout status deployment/crm-frontend -n crm-dev --timeout=5m

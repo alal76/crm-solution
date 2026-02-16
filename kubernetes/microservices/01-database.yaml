@@ -3,7 +3,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: crm-db
-  namespace: crm-microservices
+  namespace: crm-dev-ms
   labels:
     app: crm-db
     tier: data
@@ -59,7 +59,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: crm-db
-  namespace: crm-microservices
+  namespace: crm-dev-ms
 spec:
   selector:
     app: crm-db

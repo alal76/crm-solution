@@ -1,0 +1,18 @@
+{{- if .Values.services.customer.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "crm-microservices.fullname" . }}-customer
+  labels:
+    {{- include "crm-microservices.labels" . | nindent 4 }}
+    app.kubernetes.io/component: customer
+spec:
+  type: ClusterIP
+  selector:
+    {{- include "crm-microservices.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: customer
+  ports:
+  - port: {{ .Values.services.customer.port }}
+    targetPort: {{ .Values.services.customer.port }}
+    name: http
+{{- end }}

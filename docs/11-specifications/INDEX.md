@@ -1,7 +1,7 @@
 # CRM Solution - Feature Specification Index
 
 > **Last Updated:** February 16, 2026 (5 Architecture Specs COMPLETE ✅)  
-> **Total Specifications:** 49 Feature Specs + 11 Required Architecture Specs (5 ✅ Complete | 6 ⏳ Pending)  
+> **Total Specifications:** 49 Feature Specs + 13 Required Architecture Specs (5 ✅ Complete | 8 ⏳ Pending)  
 > **Template Version:** 1.0  
 > **✅ Overall Status:** 71.4% Feature Complete | Core CRM 100% ✅ | Sales 72% | Service Desk 80% | ITSM 85%+ | **System 100%** ✅ | Backend 84% | Frontend 75% | Database 92-94%
 > **🆕 ARCHITECTURE SPECS:** 5/5 critical architectures documented (DTO, Error Handling, DI, Caching, Validation) | Ready for implementation guidance
@@ -33,6 +33,7 @@ The following 5 **critical architecture 11-specifications** have been created to
 | SPEC-ARCH-010 | Concurrency Control & Optimistic Locking | 🟡 HIGH | 3h |
 | SPEC-ARCH-011 | Data Isolation & Multi-Tenancy Strategy | 🟡 MEDIUM | 4h |
 | SPEC-ARCH-012 | API Versioning Strategy | 🟡 MEDIUM | 3h |
+| [SPEC-ARCH-013](SPEC-ARCH-013-InfrastructureDeploymentStandards.md) | Infrastructure & Deployment Standards | 🔴 HIGH | 6h |
 
 **Benefits of Architecture Specs:**
 - ✅ **Onboarding:** New developers learn patterns, not reinvent them

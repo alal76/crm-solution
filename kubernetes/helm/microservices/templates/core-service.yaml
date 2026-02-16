@@ -1,0 +1,18 @@
+{{- if .Values.services.core.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "crm-microservices.fullname" . }}-core
+  labels:
+    {{- include "crm-microservices.labels" . | nindent 4 }}
+    app.kubernetes.io/component: core
+spec:
+  type: ClusterIP
+  selector:
+    {{- include "crm-microservices.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: core
+  ports:
+  - port: {{ .Values.services.core.port }}
+    targetPort: {{ .Values.services.core.port }}
+    name: http
+{{- end }}

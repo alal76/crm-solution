@@ -1,0 +1,70 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "crm-monolith.fullname" . }}-api
+  labels:
+    {{- include "crm-monolith.labels" . | nindent 4 }}
+    app.kubernetes.io/component: api
+spec:
+  replicas: {{ .Values.api.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "crm-monolith.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: api
+  template:
+    metadata:
+      labels:
+        {{- include "crm-monolith.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: api
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+      containers:
+      - name: crm-api
+        image: {{ .Values.images.api.repository }}:{{ .Values.images.api.tag }}
+        imagePullPolicy: {{ .Values.images.api.pullPolicy }}
+        ports:
+        - containerPort: 5000
+          name: http
+        envFrom:
+        - configMapRef:
+            name: {{ include "crm-monolith.fullname" . }}-config
+        - secretRef:
+            name: {{ include "crm-monolith.fullname" . }}-secrets
+        env:
+        - name: Jwt__Secret
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "crm-monolith.fullname" . }}-secrets
+              key: JWT_SECRET
+        - name: Jwt__Issuer
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "crm-monolith.fullname" . }}-secrets
+              key: JWT_ISSUER
+        - name: Jwt__Audience
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "crm-monolith.fullname" . }}-secrets
+              key: JWT_AUDIENCE
+        - name: ConnectionStrings__DefaultConnection
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "crm-monolith.fullname" . }}-secrets
+              key: DB_CONNECTION_STRING
+        resources:
+          {{- toYaml .Values.api.resources | nindent 10 }}
+        livenessProbe:
+          httpGet:
+            path: /health/live
+            port: 5000
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        readinessProbe:
+          httpGet:
+            path: /health/ready
+            port: 5000
+          initialDelaySeconds: 5
+          periodSeconds: 10

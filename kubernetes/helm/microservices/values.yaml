@@ -1,0 +1,180 @@
+nameOverride: ""
+fullnameOverride: ""
+
+images:
+  gateway:
+    repository: crm-gateway
+    tag: latest
+    pullPolicy: IfNotPresent
+  identity:
+    repository: crm-identity
+    tag: latest
+    pullPolicy: IfNotPresent
+  customer:
+    repository: crm-customer
+    tag: latest
+    pullPolicy: IfNotPresent
+  sales:
+    repository: crm-sales
+    tag: latest
+    pullPolicy: IfNotPresent
+  marketing:
+    repository: crm-marketing
+    tag: latest
+    pullPolicy: IfNotPresent
+  servicedesk:
+    repository: crm-servicedesk
+    tag: latest
+    pullPolicy: IfNotPresent
+  core:
+    repository: crm-core
+    tag: latest
+    pullPolicy: IfNotPresent
+  frontend:
+    repository: crm-frontend
+    tag: latest
+    pullPolicy: IfNotPresent
+  db:
+    repository: mariadb
+    tag: "10.11"
+    pullPolicy: IfNotPresent
+
+config:
+  ASPNETCORE_ENVIRONMENT: Production
+  JWT_ISSUER: CRM.Api
+  JWT_AUDIENCE: CRM.Client
+  DB_HOST: crm-db
+  DB_PORT: "3306"
+  DB_NAME: crm_db
+  REACT_APP_API_URL: /api
+
+secrets:
+  JWT_KEY: change-me-generate-secure-secret-at-least-32-chars
+  DB_USER: crm_user
+  DB_PASSWORD: change-me
+  DB_ROOT_PASSWORD: change-me-root
+
+db:
+  enabled: true
+  storageClass: ""
+  storageSize: 10Gi
+
+services:
+  gateway:
+    enabled: true
+    replicaCount: 2
+    port: 5000
+    hpa:
+      enabled: false
+      minReplicas: 2
+      maxReplicas: 10
+      targetCPUUtilizationPercentage: 70
+      targetMemoryUtilizationPercentage: 80
+  identity:
+    enabled: true
+    replicaCount: 2
+    port: 5001
+    hpa:
+      enabled: false
+      minReplicas: 2
+      maxReplicas: 5
+      targetCPUUtilizationPercentage: 70
+      targetMemoryUtilizationPercentage: 80
+  customer:
+    enabled: true
+    replicaCount: 2
+    port: 5002
+    hpa:
+      enabled: false
+      minReplicas: 2
+      maxReplicas: 8
+      targetCPUUtilizationPercentage: 70
+      targetMemoryUtilizationPercentage: 80
+  sales:
+    enabled: true
+    replicaCount: 2
+    port: 5003
+    hpa:
+      enabled: false
+      minReplicas: 2
+      maxReplicas: 6
+      targetCPUUtilizationPercentage: 70
+      targetMemoryUtilizationPercentage: 80
+  marketing:
+    enabled: true
+    replicaCount: 1
+    port: 5004
+    hpa:
+      enabled: false
+      minReplicas: 1
+      maxReplicas: 4
+      targetCPUUtilizationPercentage: 70
+      targetMemoryUtilizationPercentage: 80
+  servicedesk:
+    enabled: true
+    replicaCount: 2
+    port: 5005
+    hpa:
+      enabled: false
+      minReplicas: 2
+      maxReplicas: 6
+      targetCPUUtilizationPercentage: 70
+      targetMemoryUtilizationPercentage: 80
+  core:
+    enabled: true
+    replicaCount: 2
+    port: 5006
+    hpa:
+      enabled: false
+      minReplicas: 2
+      maxReplicas: 6
+      targetCPUUtilizationPercentage: 70
+      targetMemoryUtilizationPercentage: 80
+  frontend:
+    enabled: true
+    replicaCount: 2
+    port: 80
+    hpa:
+      enabled: false
+      minReplicas: 2
+      maxReplicas: 10
+      targetCPUUtilizationPercentage: 70
+      targetMemoryUtilizationPercentage: 80
+
+ingress:
+  enabled: false
+  className: nginx
+  host: crm.example.com
+  tls:
+    enabled: false
+    secretName: crm-tls
+
+resources:
+  default:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 300m
+      memory: 512Mi
+  gateway:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 200m
+      memory: 256Mi
+  frontend:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 100m
+      memory: 128Mi
+  db:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      cpu: 500m
+      memory: 1Gi

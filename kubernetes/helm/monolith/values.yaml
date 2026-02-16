@@ -1,0 +1,90 @@
+nameOverride: ""
+fullnameOverride: ""
+
+images:
+  api:
+    repository: crm-api
+    tag: latest
+    pullPolicy: IfNotPresent
+  frontend:
+    repository: crm-frontend
+    tag: latest
+    pullPolicy: IfNotPresent
+  db:
+    repository: mariadb
+    tag: "11.2"
+    pullPolicy: IfNotPresent
+
+api:
+  replicaCount: 2
+  service:
+    type: ClusterIP
+    port: 5000
+  resources:
+    requests:
+      cpu: 250m
+      memory: 512Mi
+    limits:
+      cpu: 1000m
+      memory: 1Gi
+  hpa:
+    enabled: false
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+
+frontend:
+  replicaCount: 2
+  service:
+    type: ClusterIP
+    port: 80
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+  hpa:
+    enabled: false
+    minReplicas: 2
+    maxReplicas: 8
+    targetCPUUtilizationPercentage: 75
+    targetMemoryUtilizationPercentage: 80
+
+config:
+  ASPNETCORE_ENVIRONMENT: Production
+  DatabaseProvider: mariadb
+  NODE_ENV: production
+  REACT_APP_API_URL: /api
+
+secrets:
+  JWT_SECRET: change-me-generate-secure-secret-at-least-32-chars
+  JWT_ISSUER: CRM.Api
+  JWT_AUDIENCE: CRM.Client
+  DB_CONNECTION_STRING: ""
+
+db:
+  enabled: true
+  storageClass: ""
+  storageSize: 10Gi
+  database: crm_db
+  user: crm_user
+  password: change-me
+  rootPassword: change-me-root
+  resources:
+    requests:
+      cpu: 250m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 512Mi
+
+ingress:
+  enabled: false
+  className: nginx
+  host: crm.example.com
+  tls:
+    enabled: false
+    secretName: crm-tls

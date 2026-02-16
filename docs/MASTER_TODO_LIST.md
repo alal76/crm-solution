@@ -61,7 +61,7 @@
 > **[11-11-specifications/GAP_ANALYSIS_EXECUTIVE_SUMMARY.md](11-11-11-specifications/GAP_ANALYSIS_EXECUTIVE_SUMMARY.md)** - Gap analysis & spec needs recommendations
 > **[11-11-specifications/INDEX.md](11-11-specifications/INDEX.md)** - Complete specification status & gap analysis (Section 7)
 > **Specification Progress:** 35/49 complete (71.4%) — 13 partial, 3 pending  
-> **Architecture Specs Needed:** 11 new SPEC-ARCH-* files (2-3 week initiative)
+> **Architecture Specs Needed:** 12 new SPEC-ARCH-* files (2-3 week initiative)
 > **System Module Status:** 100% complete ✅ (12 specs, all production-ready)
 
 ---
@@ -84,7 +84,7 @@
 ## 1. 🏗️ ARCHITECTURE SPECIFICATIONS (Planning & Implementation)
 
 > **Status:** New initiative from Feb 16 Gap Analysis
-> **Total:** 12 11-specifications (11 SPEC-ARCH files + 1 DTO standard)
+> **Total:** 13 11-specifications (12 SPEC-ARCH files + 1 DTO standard)
 > **Duration:** 2-3 weeks (60 hours total)
 > **Priority:** 🔴 CRITICAL — Blocks optimal on-boarding and consistency
 > **ROI:** 50 hours saved per developer on-boarding × 5 new devs = 250+ hours saved
@@ -163,6 +163,7 @@
 | SPEC-ARCH-010 | Data Isolation & Multi-Tenancy | 4h | 🟡 MEDIUM | Query filters, soft delete enforcement, data boundaries, isolation testing |
 | SPEC-ARCH-011 | API Versioning Strategy | 3h | 🟡 MEDIUM | Major/minor versioning, deprecation path, backward compatibility |
 | SPEC-ARCH-012 | Frontend Architecture Patterns | 4h | 🟢 OPTIONAL | React patterns, state management, service layer, testing patterns |
+| SPEC-ARCH-013 | Infrastructure & Deployment Standards | 6h | 🟡 HIGH | Container naming, networks, deployment modes, cloud options |
 
 **Timeline:** Weeks 2-3 (parallel where dependencies allow)  
 **Effort:** 26 hours  
@@ -1000,6 +1001,13 @@
 | ID | Priority | Description |
 |----|----------|-------------|
 | TODO-INFRA-11 | P2 | Upgrade solution to .NET 10 (SDK, target frameworks, CI/CD, containers) |
+
+### 5.5 Infrastructure & Deployment Standards
+
+| ID | Priority | Description |
+|----|----------|-------------|
+| TODO-ARCH-013-003 | P1 | Add secrets manager guidance (Vault/AWS/Azure/GCP) |
+| TODO-ARCH-013-004 | P2 | Validate WorkerControlState values in API |
 
 ---
 

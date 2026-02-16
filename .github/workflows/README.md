@@ -23,6 +23,14 @@ This directory contains the active CI/CD workflows for the CRM Solution project.
   - **Build** — Docker images (API + Frontend) to GHCR with GHA build cache
   - **Deploy** — Kubernetes (main branch only, requires `KUBE_CONFIG` secret)
 
+  ### 3. **release.yml** — GitHub Release + Helm Packages
+  - **Triggers**: Git tags matching `v*.*.*` or manual dispatch
+  - **Purpose**: Build and push Docker images to GHCR, package Helm charts, and publish a GitHub release
+  - **Jobs**:
+    - **Build & Push** — API + Frontend images to GHCR
+    - **Helm Package** — Monolith and microservices charts with checksums
+    - **Release** — GitHub release with chart artifacts attached
+
 ### 3. **copilot-swe-agent/copilot** — GitHub Copilot Agent
 - **Managed by**: GitHub Copilot automation
 
@@ -43,17 +51,19 @@ All 3 backend test projects are included in `CRM.sln` and run on every build:
 
 ## Workflow Comparison
 
-| Feature | ci-cd.yml | docker-build-deploy.yml |
-|---------|-----------|------------------------|
-| Frontend Tests | ✅ Matrix (18.x, 20.x) | ❌ (handled by ci-cd.yml) |
-| Backend Tests | ✅ All 3 test projects | ❌ (handled by ci-cd.yml) |
-| BVT Tests | ✅ Playwright + MariaDB | ❌ (handled by ci-cd.yml) |
-| Docker Build | ✅ After all tests pass | ✅ Parallel (GHA cache) |
-| Code Quality | ✅ ESLint, StyleCop | ❌ |
-| Security Scan | ✅ npm audit, .NET vuln | ❌ |
-| Kubernetes Deploy | ❌ | ✅ If secrets configured |
-| Test Reports | ✅ TRX + BVT artifacts | ❌ |
-| Build Caching | ✅ GHA cache | ✅ GHA cache |
+| Feature | ci-cd.yml | docker-build-deploy.yml | release.yml |
+|---------|-----------|------------------------|------------|
+| Frontend Tests | ✅ Matrix (18.x, 20.x) | ❌ (handled by ci-cd.yml) | ❌ |
+| Backend Tests | ✅ All 3 test projects | ❌ (handled by ci-cd.yml) | ❌ |
+| BVT Tests | ✅ Playwright + MariaDB | ❌ (handled by ci-cd.yml) | ❌ |
+| Docker Build | ✅ After all tests pass | ✅ Parallel (GHA cache) | ✅ On tag |
+| Code Quality | ✅ ESLint, StyleCop | ❌ | ❌ |
+| Security Scan | ✅ npm audit, .NET vuln | ❌ | ❌ |
+| Kubernetes Deploy | ❌ | ✅ If secrets configured | ❌ |
+| Helm Package | ❌ | ❌ | ✅ |
+| GitHub Release | ❌ | ❌ | ✅ |
+| Test Reports | ✅ TRX + BVT artifacts | ❌ | ❌ |
+| Build Caching | ✅ GHA cache | ✅ GHA cache | ✅ GHA cache |
 
 ## Recommended Usage
 
@@ -75,7 +85,7 @@ These files are maintained for historical reference and can be reactivated by re
 
 | Secret | Workflow | Purpose | Required |
 |--------|----------|---------|----------|
-| `GITHUB_TOKEN` | Both | Container registry auth | Auto-provided |
+| `GITHUB_TOKEN` | All | Container registry auth + releases | Auto-provided |
 | `KUBE_CONFIG` | docker-build-deploy | K8s deployment (base64) | Optional — deploy skipped if absent |
 
 ## Container Registry

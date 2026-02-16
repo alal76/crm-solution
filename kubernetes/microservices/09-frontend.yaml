@@ -3,7 +3,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: crm-frontend
-  namespace: crm-microservices
+  namespace: crm-dev-ms
   labels:
     app: crm-frontend
     tier: presentation
@@ -46,7 +46,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: crm-frontend
-  namespace: crm-microservices
+  namespace: crm-dev-ms
 spec:
   selector:
     app: crm-frontend
@@ -59,7 +59,7 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: crm-frontend-hpa
-  namespace: crm-microservices
+  namespace: crm-dev-ms
 spec:
   scaleTargetRef:
     apiVersion: apps/v1

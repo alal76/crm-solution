@@ -1,0 +1,55 @@
+{{- if .Values.db.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "crm-microservices.fullname" . }}-db
+  labels:
+    {{- include "crm-microservices.labels" . | nindent 4 }}
+    app.kubernetes.io/component: database
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      {{- include "crm-microservices.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: database
+  template:
+    metadata:
+      labels:
+        {{- include "crm-microservices.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: database
+    spec:
+      containers:
+      - name: mariadb
+        image: {{ .Values.images.db.repository }}:{{ .Values.images.db.tag }}
+        imagePullPolicy: {{ .Values.images.db.pullPolicy }}
+        ports:
+        - containerPort: 3306
+          name: db
+        env:
+        - name: MARIADB_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "crm-microservices.fullname" . }}-secrets
+              key: DB_ROOT_PASSWORD
+        - name: MARIADB_DATABASE
+          value: {{ .Values.config.DB_NAME | quote }}
+        - name: MARIADB_USER
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "crm-microservices.fullname" . }}-secrets
+              key: DB_USER
+        - name: MARIADB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "crm-microservices.fullname" . }}-secrets
+              key: DB_PASSWORD
+        volumeMounts:
+        - name: db-storage
+          mountPath: /var/lib/mysql
+        resources:
+          {{- toYaml .Values.resources.db | nindent 10 }}
+      volumes:
+      - name: db-storage
+        persistentVolumeClaim:
+          claimName: {{ include "crm-microservices.fullname" . }}-db-pvc
+{{- end }}
