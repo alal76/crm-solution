@@ -3441,6 +3441,268 @@ public class CrmDbContext : DbContext, ICrmDbContext
         });
 
         // =============================================================================
+        // Email Sequence Configurations (Complete Entity Configuration)
+        // =============================================================================
+        // Apply IEntityTypeConfiguration implementations for Email Sequence entities
+        modelBuilder.ApplyConfiguration(new CRM.Infrastructure.Data.Configurations.Marketing.EmailSequenceConfiguration());
+        modelBuilder.ApplyConfiguration(new CRM.Infrastructure.Data.Configurations.Marketing.EmailSequenceStepConfiguration());
+        modelBuilder.ApplyConfiguration(new CRM.Infrastructure.Data.Configurations.Marketing.EmailSequenceEnrollmentConfiguration());
+        modelBuilder.ApplyConfiguration(new CRM.Infrastructure.Data.Configurations.Marketing.EmailSequenceStepExecutionConfiguration());
+
+        // =============================================================================
+        // Web Tracking Entity Configurations (Analytics & Performance)
+        // =============================================================================
+        
+        // WebVisitor configuration - Track anonymous web visitors
+        modelBuilder.Entity<WebVisitor>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.VisitorId).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.IpAddress).HasMaxLength(50);
+            entity.Property(e => e.UserAgent).HasMaxLength(2000);
+            entity.Property(e => e.Country).HasMaxLength(100);
+            entity.Property(e => e.State).HasMaxLength(100);
+            entity.Property(e => e.City).HasMaxLength(100);
+            entity.Property(e => e.BrowserName).HasMaxLength(100);
+            entity.Property(e => e.BrowserVersion).HasMaxLength(50);
+            entity.Property(e => e.DeviceType).HasMaxLength(50);
+            entity.Property(e => e.OperatingSystem).HasMaxLength(100);
+            entity.Property(e => e.OperatingSystemVersion).HasMaxLength(50);
+            
+            // Relationships
+            entity.HasOne(e => e.Contact)
+                .WithMany()
+                .HasForeignKey(e => e.ContactId)
+                .OnDelete(DeleteBehavior.SetNull);
+            
+            entity.HasOne(e => e.Lead)
+                .WithMany()
+                .HasForeignKey(e => e.LeadId)
+                .OnDelete(DeleteBehavior.SetNull);
+            
+            // WebVisitor -> WebSession (one-to-many)
+            entity.HasMany(e => e.Sessions)
+                .WithOne(s => s.WebVisitor)
+                .HasForeignKey(s => s.WebVisitorId)
+                .OnDelete(DeleteBehavior.Cascade);
+            
+            // WebVisitor -> WebPageView (one-to-many)
+            entity.HasMany(e => e.PageViews)
+                .WithOne(p => p.WebVisitor)
+                .HasForeignKey(p => p.WebVisitorId)
+                .OnDelete(DeleteBehavior.Cascade);
+            
+            // Indexes for performance
+            entity.HasIndex(e => e.VisitorId).HasDatabaseName("IX_WebVisitors_VisitorId");
+            entity.HasIndex(e => e.ContactId).HasDatabaseName("IX_WebVisitors_ContactId");
+            entity.HasIndex(e => e.LeadId).HasDatabaseName("IX_WebVisitors_LeadId");
+            entity.HasIndex(e => e.CreatedAt).HasDatabaseName("IX_WebVisitors_CreatedAt");
+        });
+
+        // WebSession configuration - Track individual sessions
+        modelBuilder.Entity<WebSession>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.SessionId).IsRequired().HasMaxLength(100);
+            entity.Property(e => e.WebVisitorId).IsRequired();
+            entity.Property(e => e.ReferrerUrl).HasMaxLength(2000);
+            entity.Property(e => e.SourceMedium).HasMaxLength(100);
+            entity.Property(e => e.SourceCampaign).HasMaxLength(255);
+            entity.Property(e => e.UTMSource).HasMaxLength(100);
+            entity.Property(e => e.UTMMedium).HasMaxLength(100);
+            entity.Property(e => e.UTMCampaign).HasMaxLength(255);
+            entity.Property(e => e.UTMContent).HasMaxLength(255);
+            entity.Property(e => e.UTMTerm).HasMaxLength(255);
+            
+            // Relationship: WebSession -> WebVisitor (many-to-one)
+            entity.HasOne(e => e.WebVisitor)
+                .WithMany(v => v.Sessions)
+                .HasForeignKey(e => e.WebVisitorId)
+                .OnDelete(DeleteBehavior.Cascade);
+            
+            // WebSession -> WebPageView (one-to-many)
+            entity.HasMany(e => e.PageViews)
+                .WithOne(p => p.WebSession)
+                .HasForeignKey(p => p.WebSessionId)
+                .OnDelete(DeleteBehavior.Cascade);
+            
+            // Indexes for performance
+            entity.HasIndex(e => e.SessionId).HasDatabaseName("IX_WebSessions_SessionId");
+            entity.HasIndex(e => e.WebVisitorId).HasDatabaseName("IX_WebSessions_WebVisitorId");
+            entity.HasIndex(e => e.StartedAt).HasDatabaseName("IX_WebSessions_StartedAt");
+            entity.HasIndex(e => new { e.WebVisitorId, e.StartedAt }).HasDatabaseName("IX_WebSessions_WebVisitorId_StartedAt");
+        });
+
+        // WebPageView configuration - Track individual page views
+        modelBuilder.Entity<WebPageView>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.PageUrl).IsRequired().HasMaxLength(2000);
+            entity.Property(e => e.PageTitle).HasMaxLength(500);
+            entity.Property(e => e.WebVisitorId).IsRequired();
+            entity.Property(e => e.WebSessionId);
+            entity.Property(e => e.EventType).HasMaxLength(100);
+            entity.Property(e => e.DurationSeconds);
+            entity.Property(e => e.ScrollDepthPercent).HasPrecision(5, 2);
+            entity.Property(e => e.InteractionData).HasColumnType("TEXT");
+            
+            // Relationships
+            entity.HasOne(e => e.WebVisitor)
+                .WithMany(v => v.PageViews)
+                .HasForeignKey(e => e.WebVisitorId)
+                .OnDelete(DeleteBehavior.Cascade);
+            
+            entity.HasOne(e => e.WebSession)
+                .WithMany(s => s.PageViews)
+                .HasForeignKey(e => e.WebSessionId)
+                .OnDelete(DeleteBehavior.SetNull);
+            
+            // Indexes for performance
+            entity.HasIndex(e => e.WebVisitorId).HasDatabaseName("IX_WebPageViews_WebVisitorId");
+            entity.HasIndex(e => e.WebSessionId).HasDatabaseName("IX_WebPageViews_WebSessionId");
+            entity.HasIndex(e => e.CreatedAt).HasDatabaseName("IX_WebPageViews_CreatedAt");
+            entity.HasIndex(e => new { e.WebVisitorId, e.CreatedAt }).HasDatabaseName("IX_WebPageViews_WebVisitorId_CreatedAt");
+            entity.HasIndex(e => e.EventType).HasDatabaseName("IX_WebPageViews_EventType");
+        });
+
+        // =============================================================================
+        // ITSM Relationship Configurations (Complete Missing Relationships)
+        // =============================================================================
+        
+        // Problem ↔ Incident many-to-many relationship
+        modelBuilder.Entity<ITSM.ProblemIncident>(entity =>
+        {
+            entity.HasKey(e => e.ProblemIncidentId);
+            entity.HasIndex(e => new { e.ProblemId, e.IncidentId }).IsUnique().HasDatabaseName("IX_ProblemIncidents_ProblemId_IncidentId");
+            
+            // ProblemIncident -> Problem (many-to-one)
+            entity.HasOne(e => e.Problem)
+                .WithMany(p => p.ProblemIncidents)
+                .HasForeignKey(e => e.ProblemId)
+                .OnDelete(DeleteBehavior.Cascade);
+            
+            // ProblemIncident -> Incident (many-to-one)
+            entity.HasOne(e => e.Incident)
+                .WithMany(i => i.ProblemIncidents)
+                .HasForeignKey(e => e.IncidentId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // Change Management relationships
+        modelBuilder.Entity<ITSM.Change>(entity =>
+        {
+            // Change -> ChangeApproval (one-to-many)
+            entity.HasMany(e => e.Approvals)
+                .WithOne(a => a.Change)
+                .HasForeignKey(a => a.ChangeId)
+                .OnDelete(DeleteBehavior.Cascade);
+            
+            // Change -> ChangeBlackout (one-to-many)
+            entity.HasMany(e => e.Blackouts)
+                .WithOne(b => b.Change)
+                .HasForeignKey(b => b.ChangeId)
+                .OnDelete(DeleteBehavior.Cascade);
+            
+            // Change -> ChangeImpactedCI (one-to-many)
+            entity.HasMany(e => e.ImpactedCIs)
+                .WithOne(ic => ic.Change)
+                .HasForeignKey(ic => ic.ChangeId)
+                .OnDelete(DeleteBehavior.Cascade);
+            
+            // Change -> ChangeTask (one-to-many)
+            entity.HasMany(e => e.Tasks)
+                .WithOne(t => t.Change)
+                .HasForeignKey(t => t.ChangeId)
+                .OnDelete(DeleteBehavior.Cascade);
+            
+            // Change -> ChangeComment (one-to-many)
+            entity.HasMany(e => e.Comments)
+                .WithOne(c => c.Change)
+                .HasForeignKey(c => c.ChangeId)
+                .OnDelete(DeleteBehavior.Cascade);
+            
+            // Change -> ChangeAttachment (one-to-many)
+            entity.HasMany(e => e.Attachments)
+                .WithOne(a => a.Change)
+                .HasForeignKey(a => a.ChangeId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // ChangeApproval configuration
+        modelBuilder.Entity<ITSM.ChangeApproval>(entity =>
+        {
+            entity.HasKey(e => e.ChangeApprovalId);
+            entity.HasIndex(e => e.ChangeId).HasDatabaseName("IX_ChangeApprovals_ChangeId");
+            entity.HasIndex(e => e.ApproverId).HasDatabaseName("IX_ChangeApprovals_ApproverId");
+            entity.HasIndex(e => e.ApprovalStatus).HasDatabaseName("IX_ChangeApprovals_ApprovalStatus");
+            entity.HasIndex(e => new { e.ChangeId, e.ApprovalLevel }).IsUnique().HasDatabaseName("IX_ChangeApprovals_ChangeId_ApprovalLevel");
+            
+            // ChangeApproval -> Change (many-to-one)
+            entity.HasOne(e => e.Change)
+                .WithMany(c => c.Approvals)
+                .HasForeignKey(e => e.ChangeId)
+                .OnDelete(DeleteBehavior.Cascade);
+            
+            // ChangeApproval -> User (Approver)
+            entity.HasOne(e => e.Approver)
+                .WithMany()
+                .HasForeignKey(e => e.ApproverId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // ChangeImpactedCI configuration
+        modelBuilder.Entity<ITSM.ChangeImpactedCI>(entity =>
+        {
+            entity.HasKey(e => e.ChangeImpactedCIId);
+            entity.HasIndex(e => e.ChangeId).HasDatabaseName("IX_ChangeImpactedCIs_ChangeId");
+            entity.HasIndex(e => e.CIId).HasDatabaseName("IX_ChangeImpactedCIs_CIId");
+            entity.HasIndex(e => e.Impact).HasDatabaseName("IX_ChangeImpactedCIs_ImpactLevel");
+            entity.HasIndex(e => new { e.ChangeId, e.CIId }).IsUnique().HasDatabaseName("IX_ChangeImpactedCIs_ChangeId_CIId");
+            
+            // ChangeImpactedCI -> Change (many-to-one)
+            entity.HasOne(e => e.Change)
+                .WithMany(c => c.ImpactedCIs)
+                .HasForeignKey(e => e.ChangeId)
+                .OnDelete(DeleteBehavior.Cascade);
+            
+            // ChangeImpactedCI -> ConfigurationItem (many-to-one)
+            entity.HasOne(e => e.ConfigurationItem)
+                .WithMany()
+                .HasForeignKey(e => e.CIId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // Service -> ServiceCI relationship (one-to-many)
+        modelBuilder.Entity<ITSM.Service>(entity =>
+        {
+            entity.HasMany(e => e.ServiceCIs)
+                .WithOne(sc => sc.Service)
+                .HasForeignKey(sc => sc.ServiceId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // ServiceCI configuration
+        modelBuilder.Entity<ITSM.ServiceCI>(entity =>
+        {
+            entity.HasKey(e => e.ServiceCIId);
+            entity.HasIndex(e => e.ServiceId).HasDatabaseName("IX_ServiceCIs_ServiceId");
+            entity.HasIndex(e => e.CIId).HasDatabaseName("IX_ServiceCIs_CIId");
+            entity.HasIndex(e => new { e.ServiceId, e.CIId }).IsUnique().HasDatabaseName("IX_ServiceCIs_ServiceId_CIId");
+            
+            // ServiceCI -> Service (many-to-one)
+            entity.HasOne(e => e.Service)
+                .WithMany(s => s.ServiceCIs)
+                .HasForeignKey(e => e.ServiceId)
+                .OnDelete(DeleteBehavior.Cascade);
+            
+            // ServiceCI -> ConfigurationItem (many-to-one)
+            entity.HasOne(e => e.ConfigurationItem)
+                .WithMany()
+                .HasForeignKey(e => e.CIId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+
+        // =============================================================================
         // Webhook Integration Entities
         // =============================================================================
         modelBuilder.Entity<ITSM.WebhookSubscription>(entity =>

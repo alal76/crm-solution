@@ -263,6 +263,10 @@ public interface ICrmDbContext
     DbSet<PerformanceMetric> PerformanceMetrics { get; }
     DbSet<FeatureFlagAuditLog> FeatureFlagAuditLogs { get; }
 
+    // Integration & Webhooks
+    DbSet<CRM.Core.Entities.ITSM.WebhookSubscription> WebhookSubscriptions { get; }
+    DbSet<CRM.Core.Entities.ITSM.WebhookDelivery> WebhookDeliveries { get; }
+
     // Reports
     DbSet<CRM.Core.Entities.Reports.ReportDefinition> ReportDefinitions { get; }
     DbSet<CRM.Core.Entities.Reports.ReportFolder> ReportFolders { get; }

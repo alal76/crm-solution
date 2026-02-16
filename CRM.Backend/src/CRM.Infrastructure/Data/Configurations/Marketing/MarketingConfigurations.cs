@@ -104,46 +104,202 @@ public class CampaignWorkflowConfiguration : IEntityTypeConfiguration<CampaignWo
 }
 
 /// <summary>
-/// Entity configuration for EmailSequence.
+/// Entity configuration for EmailSequence (Email drip campaigns).
+/// Ensures proper column constraints, relationships, and performance indexes.
 /// </summary>
 public class EmailSequenceConfiguration : IEntityTypeConfiguration<EmailSequence>
 {
     public void Configure(EntityTypeBuilder<EmailSequence> builder)
     {
         builder.HasKey(e => e.Id);
+        
+        // Required properties
+        builder.Property(e => e.Name).IsRequired().HasMaxLength(255);
+        builder.Property(e => e.Status).HasMaxLength(50).HasDefaultValue("Draft");
+        builder.Property(e => e.SequenceType).HasMaxLength(50);
+        
+        // Optional properties
+        builder.Property(e => e.Description).HasMaxLength(1000);
+        builder.Property(e => e.DefaultFromName).HasMaxLength(100);
+        builder.Property(e => e.DefaultFromEmail).HasMaxLength(255);
+        builder.Property(e => e.DefaultReplyTo).HasMaxLength(255);
+        
+        // Relationships
+        // EmailSequence -> User (Owner)
+        builder.HasOne(e => e.Owner)
+            .WithMany()
+            .HasForeignKey(e => e.OwnerId)
+            .OnDelete(DeleteBehavior.SetNull);
+        
+        // EmailSequence -> MarketingCampaign
+        builder.HasOne(e => e.Campaign)
+            .WithMany()
+            .HasForeignKey(e => e.CampaignId)
+            .OnDelete(DeleteBehavior.SetNull);
+        
+        // EmailSequence -> EmailSequenceStep (one-to-many)
+        builder.HasMany(e => e.Steps)
+            .WithOne(s => s.Sequence)
+            .HasForeignKey(s => s.SequenceId)
+            .OnDelete(DeleteBehavior.Cascade);
+        
+        // EmailSequence -> EmailSequenceEnrollment (one-to-many)
+        builder.HasMany(e => e.Enrollments)
+            .WithOne(e => e.Sequence)
+            .HasForeignKey(e => e.SequenceId)
+            .OnDelete(DeleteBehavior.Cascade);
+        
+        // Indexes for performance
+        builder.HasIndex(e => e.Status).HasDatabaseName("IX_EmailSequences_Status");
+        builder.HasIndex(e => e.CreatedAt).HasDatabaseName("IX_EmailSequences_CreatedAt");
+        builder.HasIndex(e => e.OwnerId).HasDatabaseName("IX_EmailSequences_OwnerId");
     }
 }
 
 /// <summary>
-/// Entity configuration for EmailSequenceStep.
+/// Entity configuration for EmailSequenceStep (Individual steps within sequences).
+/// Represents a single action in a sequence (email, wait, task, condition, etc.).
 /// </summary>
 public class EmailSequenceStepConfiguration : IEntityTypeConfiguration<EmailSequenceStep>
 {
     public void Configure(EntityTypeBuilder<EmailSequenceStep> builder)
     {
         builder.HasKey(e => e.Id);
+        
+        // Required properties
+        builder.Property(e => e.SequenceId).IsRequired();
+        builder.Property(e => e.StepOrder).IsRequired();
+        builder.Property(e => e.Name).IsRequired().HasMaxLength(255);
+        builder.Property(e => e.StepType).HasDefaultValue(0); // Email = 0
+        
+        // Optional properties
+        builder.Property(e => e.Template).HasColumnType("TEXT");
+        builder.Property(e => e.DelayInDays).HasDefaultValue(0);
+        builder.Property(e => e.ScheduleTime).HasMaxLength(50);
+        builder.Property(e => e.ConditionJson).HasColumnType("TEXT");
+        
+        // Relationship: EmailSequenceStep -> EmailSequence (many-to-one)
+        builder.HasOne(e => e.Sequence)
+            .WithMany(s => s.Steps)
+            .HasForeignKey(e => e.SequenceId)
+            .OnDelete(DeleteBehavior.Cascade);
+        
+        // EmailSequenceStep -> ServiceRequestCategory (for conditions)
+        builder.HasOne(e => e.ConditionCategory)
+            .WithMany()
+            .HasForeignKey(e => e.ConditionCategoryId)
+            .OnDelete(DeleteBehavior.SetNull);
+        
+        // Indexes for performance
+        builder.HasIndex(e => e.SequenceId).HasDatabaseName("IX_EmailSequenceSteps_SequenceId");
+        builder.HasIndex(e => new { e.SequenceId, e.StepOrder }).HasDatabaseName("IX_EmailSequenceSteps_SequenceId_StepOrder");
     }
 }
 
 /// <summary>
-/// Entity configuration for EmailSequenceEnrollment.
+/// Entity configuration for EmailSequenceEnrollment (Contact/Lead enrollment in a sequence).
+/// Tracks which contacts/leads are enrolled, their current status, and progress.
 /// </summary>
 public class EmailSequenceEnrollmentConfiguration : IEntityTypeConfiguration<EmailSequenceEnrollment>
 {
     public void Configure(EntityTypeBuilder<EmailSequenceEnrollment> builder)
     {
         builder.HasKey(e => e.Id);
+        
+        // Required properties
+        builder.Property(e => e.SequenceId).IsRequired();
+        builder.Property(e => e.Email).IsRequired().HasMaxLength(255);
+        builder.Property(e => e.Status).HasMaxLength(50).HasDefaultValue("Active");
+        builder.Property(e => e.CurrentStepNumber).HasDefaultValue(1);
+        builder.Property(e => e.EnrolledAt).HasDefaultValueSql("GETUTCDATE()");
+        
+        // Optional properties
+        builder.Property(e => e.ContactId);
+        builder.Property(e => e.LeadId);
+        builder.Property(e => e.CurrentStepId);
+        builder.Property(e => e.ExitReason).HasMaxLength(500);
+        builder.Property(e => e.EnrolledById);
+        
+        // Relationships
+        // EmailSequenceEnrollment -> EmailSequence (many-to-one)
+        builder.HasOne(e => e.Sequence)
+            .WithMany(s => s.Enrollments)
+            .HasForeignKey(e => e.SequenceId)
+            .OnDelete(DeleteBehavior.Cascade);
+        
+        // EmailSequenceEnrollment -> Contact
+        builder.HasOne(e => e.Contact)
+            .WithMany()
+            .HasForeignKey(e => e.ContactId)
+            .OnDelete(DeleteBehavior.SetNull);
+        
+        // EmailSequenceEnrollment -> Lead
+        builder.HasOne(e => e.Lead)
+            .WithMany()
+            .HasForeignKey(e => e.LeadId)
+            .OnDelete(DeleteBehavior.SetNull);
+        
+        // EmailSequenceEnrollment -> User (EnrolledBy)
+        builder.HasOne(e => e.EnrolledBy)
+            .WithMany()
+            .HasForeignKey(e => e.EnrolledById)
+            .OnDelete(DeleteBehavior.SetNull);
+        
+        // EmailSequenceEnrollment -> EmailSequenceStepExecution (one-to-many)
+        builder.HasMany(e => e.StepExecutions)
+            .WithOne(se => se.Enrollment)
+            .HasForeignKey(se => se.EnrollmentId)
+            .OnDelete(DeleteBehavior.Cascade);
+        
+        // Indexes for performance
+        builder.HasIndex(e => e.SequenceId).HasDatabaseName("IX_EmailSequenceEnrollments_SequenceId");
+        builder.HasIndex(e => e.Status).HasDatabaseName("IX_EmailSequenceEnrollments_Status");
+        builder.HasIndex(e => e.ContactId).HasDatabaseName("IX_EmailSequenceEnrollments_ContactId");
+        builder.HasIndex(e => e.LeadId).HasDatabaseName("IX_EmailSequenceEnrollments_LeadId");
+        builder.HasIndex(e => new { e.SequenceId, e.Status }).HasDatabaseName("IX_EmailSequenceEnrollments_SequenceId_Status");
     }
 }
 
 /// <summary>
-/// Entity configuration for EmailSequenceStepExecution.
+/// Entity configuration for EmailSequenceStepExecution (Execution history of individual steps).
+/// Captures when each step was executed, results, and any errors.
 /// </summary>
 public class EmailSequenceStepExecutionConfiguration : IEntityTypeConfiguration<EmailSequenceStepExecution>
 {
     public void Configure(EntityTypeBuilder<EmailSequenceStepExecution> builder)
     {
         builder.HasKey(e => e.Id);
+        
+        // Required properties
+        builder.Property(e => e.EnrollmentId).IsRequired();
+        builder.Property(e => e.StepId).IsRequired();
+        builder.Property(e => e.ExecutionStatus).HasMaxLength(50);
+        builder.Property(e => e.ExecutedAt).HasDefaultValueSql("GETUTCDATE()");
+        
+        // Optional properties
+        builder.Property(e => e.ErrorMessage).HasMaxLength(1000);
+        builder.Property(e => e.EmailMessageId).HasMaxLength(255);
+        builder.Property(e => e.OpenedAt);
+        builder.Property(e => e.ClickedAt);
+        builder.Property(e => e.BouncedAt);
+        
+        // Relationships
+        // EmailSequenceStepExecution -> EmailSequenceEnrollment
+        builder.HasOne(e => e.Enrollment)
+            .WithMany(en => en.StepExecutions)
+            .HasForeignKey(e => e.EnrollmentId)
+            .OnDelete(DeleteBehavior.Cascade);
+        
+        // EmailSequenceStepExecution -> EmailSequenceStep
+        builder.HasOne(e => e.Step)
+            .WithMany()
+            .HasForeignKey(e => e.StepId)
+            .OnDelete(DeleteBehavior.Restrict);
+        
+        // Indexes for performance
+        builder.HasIndex(e => e.EnrollmentId).HasDatabaseName("IX_EmailSequenceStepExecutions_EnrollmentId");
+        builder.HasIndex(e => e.ExecutedAt).HasDatabaseName("IX_EmailSequenceStepExecutions_ExecutedAt");
+        builder.HasIndex(e => e.ExecutionStatus).HasDatabaseName("IX_EmailSequenceStepExecutions_ExecutionStatus");
     }
 }
 

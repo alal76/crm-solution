@@ -46,20 +46,20 @@ public class WebhookManagementService : IWebhookManagementService, IWebhookManag
 
     public async Task<IEnumerable<WebhookDto>> GetAllAsync(bool? isActive = null, CancellationToken cancellationToken = default)
     {
-        var query = _context.Webhooks.Where(w => !w.IsDeleted);
+        var query = _context.WebhookSubscriptions.Where(w => !w.IsDeleted);
 
         if (isActive.HasValue)
-            query = query.Where(w => w.IsActive == isActive);
+            query = query.Where(w => w.IsActive == isActive.Value);
 
-        var webhooks = await query.OrderBy(w => w.Url).ToListAsync(cancellationToken);
+        var webhooks = await query.OrderBy(w => w.TargetUrl).ToListAsync(cancellationToken);
         return webhooks.Select(MapToDto);
     }
 
     public async Task<WebhookDto?> GetByIdAsync(int id, CancellationToken cancellationToken = default)
     {
-        var webhook = await _context.Webhooks
+        var webhook = await _context.WebhookSubscriptions
             .AsNoTracking()
-            .FirstOrDefaultAsync(w => w.Id == id && !w.IsDeleted, cancellationToken);
+            .FirstOrDefaultAsync(w => w.WebhookSubscriptionId == id && !w.IsDeleted, cancellationToken);
 
         return webhook != null ? MapToDto(webhook) : null;
     }
@@ -69,64 +69,75 @@ public class WebhookManagementService : IWebhookManagementService, IWebhookManag
         if (string.IsNullOrWhiteSpace(dto.Url))
             throw new ArgumentException("Webhook URL is required", nameof(dto.Url));
 
-        var webhook = new Webhook
+        var webhook = new WebhookSubscription
         {
-            Url = dto.Url,
-            Events = string.Join(",", dto.Events ?? new List<string>()),
-            Secret = GenerateSecret(),
-            IsActive = dto.IsActive ?? true,
-            RetryCount = dto.RetryCount ?? 3,
-            IsDeleted = false,
+            Name = dto.Description ?? dto.Url,
+            Description = dto.Description ?? string.Empty,
+            TargetUrl = dto.Url,
+            Secret = string.IsNullOrWhiteSpace(dto.Secret) ? GenerateSecret() : dto.Secret,
+            IsActive = dto.IsActive,
+            EventTypes = System.Text.Json.JsonSerializer.Serialize(dto.EventTypes ?? new List<string>()),
+            RetryCount = dto.MaxRetries,
+            TimeoutSeconds = dto.TimeoutSeconds,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
 
-        _context.Webhooks.Add(webhook);
+        _context.WebhookSubscriptions.Add(webhook);
         await _context.SaveChangesAsync(cancellationToken);
 
-        _logger.LogInformation("Webhook created with ID {WebhookId} for URL {Url}", webhook.Id, webhook.Url);
-        return await GetByIdAsync(webhook.Id, cancellationToken) ?? throw new InvalidOperationException("Creation failed");
+        _logger.LogInformation("Webhook created with ID {WebhookId} for URL {Url}", webhook.WebhookSubscriptionId, webhook.TargetUrl);
+        return await GetByIdAsync(webhook.WebhookSubscriptionId, cancellationToken) ?? throw new InvalidOperationException("Creation failed");
     }
 
     public async Task<WebhookDto> UpdateAsync(int id, UpdateWebhookDto dto, CancellationToken cancellationToken = default)
     {
-        var webhook = await _context.Webhooks
-            .FirstOrDefaultAsync(w => w.Id == id && !w.IsDeleted, cancellationToken);
+        var webhook = await _context.WebhookSubscriptions
+            .FirstOrDefaultAsync(w => w.WebhookSubscriptionId == id && !w.IsDeleted, cancellationToken);
 
         if (webhook == null)
             throw new InvalidOperationException($"Webhook {id} not found");
 
         if (!string.IsNullOrWhiteSpace(dto.Url))
-            webhook.Url = dto.Url;
+            webhook.TargetUrl = dto.Url;
 
-        if (dto.Events != null && dto.Events.Any())
-            webhook.Events = string.Join(",", dto.Events);
+        if (!string.IsNullOrWhiteSpace(dto.Description))
+            webhook.Description = dto.Description!;
+
+        if (!string.IsNullOrWhiteSpace(dto.Secret))
+            webhook.Secret = dto.Secret;
+
+        if (dto.EventTypes != null && dto.EventTypes.Any())
+            webhook.EventTypes = System.Text.Json.JsonSerializer.Serialize(dto.EventTypes);
 
         if (dto.IsActive.HasValue)
             webhook.IsActive = dto.IsActive.Value;
 
-        if (dto.RetryCount.HasValue)
-            webhook.RetryCount = dto.RetryCount.Value;
+        if (dto.MaxRetries.HasValue)
+            webhook.RetryCount = dto.MaxRetries.Value;
+
+        if (dto.TimeoutSeconds.HasValue)
+            webhook.TimeoutSeconds = dto.TimeoutSeconds.Value;
 
         webhook.UpdatedAt = DateTime.UtcNow;
-        _context.Webhooks.Update(webhook);
+        _context.WebhookSubscriptions.Update(webhook);
         await _context.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation("Webhook {WebhookId} updated", id);
-        return await GetByIdAsync(webhook.Id, cancellationToken) ?? throw new InvalidOperationException("Update failed");
+        return await GetByIdAsync(webhook.WebhookSubscriptionId, cancellationToken) ?? throw new InvalidOperationException("Update failed");
     }
 
     public async Task<bool> DeleteAsync(int id, CancellationToken cancellationToken = default)
     {
-        var webhook = await _context.Webhooks
-            .FirstOrDefaultAsync(w => w.Id == id && !w.IsDeleted, cancellationToken);
+        var webhook = await _context.WebhookSubscriptions
+            .FirstOrDefaultAsync(w => w.WebhookSubscriptionId == id && !w.IsDeleted, cancellationToken);
 
         if (webhook == null)
             return false;
 
         webhook.IsDeleted = true;
         webhook.UpdatedAt = DateTime.UtcNow;
-        _context.Webhooks.Update(webhook);
+        _context.WebhookSubscriptions.Update(webhook);
         await _context.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation("Webhook {WebhookId} deleted", id);
@@ -139,35 +150,37 @@ public class WebhookManagementService : IWebhookManagementService, IWebhookManag
 
     public async Task<WebhookDto> ToggleActiveAsync(int id, CancellationToken cancellationToken = default)
     {
-        var webhook = await _context.Webhooks
-            .FirstOrDefaultAsync(w => w.Id == id && !w.IsDeleted, cancellationToken);
+        var webhook = await _context.WebhookSubscriptions
+            .FirstOrDefaultAsync(w => w.WebhookSubscriptionId == id && !w.IsDeleted, cancellationToken);
 
         if (webhook == null)
             throw new InvalidOperationException($"Webhook {id} not found");
 
         webhook.IsActive = !webhook.IsActive;
         webhook.UpdatedAt = DateTime.UtcNow;
-        _context.Webhooks.Update(webhook);
+        _context.WebhookSubscriptions.Update(webhook);
         await _context.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation("Webhook {WebhookId} toggled to {Active}", id, webhook.IsActive);
-        return await GetByIdAsync(webhook.Id, cancellationToken) ?? throw new InvalidOperationException("Toggle failed");
+        return await GetByIdAsync(webhook.WebhookSubscriptionId, cancellationToken) ?? throw new InvalidOperationException("Toggle failed");
     }
 
     public async Task<CRM.Core.Dtos.WebhookTestResultDto> TestAsync(int id, CRM.Core.Dtos.WebhookTestDto testData, CancellationToken cancellationToken = default)
     {
-        var webhook = await _context.Webhooks
-            .FirstOrDefaultAsync(w => w.Id == id && !w.IsDeleted, cancellationToken);
+        var webhook = await _context.WebhookSubscriptions
+            .FirstOrDefaultAsync(w => w.WebhookSubscriptionId == id && !w.IsDeleted, cancellationToken);
 
         if (webhook == null)
             throw new InvalidOperationException($"Webhook {id} not found");
 
         var delivery = new WebhookDelivery
         {
-            WebhookId = id,
-            Payload = testData.Payload,
-            Status = "Pending",
-            Attempts = 0,
+            WebhookSubscriptionId = id,
+            EventType = testData.EventType,
+            TargetUrl = webhook.TargetUrl,
+            RequestBody = System.Text.Json.JsonSerializer.Serialize(testData.Payload ?? new Dictionary<string, object>()),
+            Success = false,
+            AttemptNumber = 0,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
@@ -180,7 +193,7 @@ public class WebhookManagementService : IWebhookManagementService, IWebhookManag
         var result = new WebhookTestResultDto
         {
             Success = true,
-            DeliveryId = delivery.Id,
+            DeliveryId = delivery.WebhookDeliveryId,
             Message = "Webhook test queued for delivery"
         };
         return await Task.FromResult(result);
@@ -193,7 +206,7 @@ public class WebhookManagementService : IWebhookManagementService, IWebhookManag
     public async Task<CRM.Core.Dtos.WebhookDeliveryHistoryDto> GetDeliveriesAsync(int webhookId, int page = 1, int pageSize = 20, CancellationToken cancellationToken = default)
     {
         var deliveries = await _context.WebhookDeliveries
-            .Where(d => d.WebhookId == webhookId && !d.IsDeleted)
+            .Where(d => d.WebhookSubscriptionId == webhookId && !d.IsDeleted)
             .OrderByDescending(d => d.CreatedAt)
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
@@ -204,7 +217,7 @@ public class WebhookManagementService : IWebhookManagementService, IWebhookManag
             WebhookId = webhookId,
             Deliveries = deliveries.Select(d => MapDeliveryToDto(d)).ToList(),
             TotalCount = await _context.WebhookDeliveries
-                .CountAsync(d => d.WebhookId == webhookId && !d.IsDeleted, cancellationToken)
+                .CountAsync(d => d.WebhookSubscriptionId == webhookId && !d.IsDeleted, cancellationToken)
         };
 
         return await Task.FromResult(history);
@@ -214,7 +227,7 @@ public class WebhookManagementService : IWebhookManagementService, IWebhookManag
     {
         var delivery = await _context.WebhookDeliveries
             .AsNoTracking()
-            .FirstOrDefaultAsync(d => d.Id == deliveryId && d.WebhookId == webhookId && !d.IsDeleted, cancellationToken);
+            .FirstOrDefaultAsync(d => d.WebhookDeliveryId == deliveryId && d.WebhookSubscriptionId == webhookId && !d.IsDeleted, cancellationToken);
 
         return delivery != null ? MapDeliveryToDto(delivery) : null;
     }
@@ -222,13 +235,13 @@ public class WebhookManagementService : IWebhookManagementService, IWebhookManag
     public async Task<WebhookDeliveryDto> RetryDeliveryAsync(int webhookId, int deliveryId, CancellationToken cancellationToken = default)
     {
         var delivery = await _context.WebhookDeliveries
-            .FirstOrDefaultAsync(d => d.Id == deliveryId && d.WebhookId == webhookId && !d.IsDeleted, cancellationToken);
+            .FirstOrDefaultAsync(d => d.WebhookDeliveryId == deliveryId && d.WebhookSubscriptionId == webhookId && !d.IsDeleted, cancellationToken);
 
         if (delivery == null)
             throw new InvalidOperationException($"Delivery {deliveryId} not found");
 
-        delivery.Status = "Pending";
-        delivery.Attempts = 0;
+        delivery.Success = false;
+        delivery.AttemptNumber = 0;
         delivery.UpdatedAt = DateTime.UtcNow;
         _context.WebhookDeliveries.Update(delivery);
         await _context.SaveChangesAsync(cancellationToken);
@@ -240,17 +253,17 @@ public class WebhookManagementService : IWebhookManagementService, IWebhookManag
     public async Task<CRM.Core.Dtos.WebhookStatisticsDto> GetStatisticsAsync(int id, CancellationToken cancellationToken = default)
     {
         var deliveries = await _context.WebhookDeliveries
-            .Where(d => d.WebhookId == id && !d.IsDeleted)
+            .Where(d => d.WebhookSubscriptionId == id && !d.IsDeleted)
             .ToListAsync(cancellationToken);
 
         var stats = new CRM.Core.Dtos.WebhookStatisticsDto
         {
             WebhookId = id,
             TotalDeliveries = deliveries.Count,
-            SuccessfulDeliveries = deliveries.Count(d => d.Status == "Delivered"),
-            FailedDeliveries = deliveries.Count(d => d.Status == "Failed"),
-            PendingDeliveries = deliveries.Count(d => d.Status == "Pending"),
-            SuccessRate = deliveries.Any() ? (deliveries.Count(d => d.Status == "Delivered") * 100m / deliveries.Count) : 0
+            SuccessfulDeliveries = deliveries.Count(d => d.Success),
+            FailedDeliveries = deliveries.Count(d => !d.Success),
+            PendingDeliveries = deliveries.Count(d => !d.Success && d.AttemptNumber == 0),
+            SuccessRate = deliveries.Any() ? (deliveries.Count(d => d.Success) * 100m / deliveries.Count) : 0
         };
 
         return await Task.FromResult(stats);
@@ -264,16 +277,16 @@ public class WebhookManagementService : IWebhookManagementService, IWebhookManag
     {
         var events = new List<CRM.Core.Dtos.WebhookEventDto>
         {
-            new() { Name = "account.created", Description = "When an account is created" },
-            new() { Name = "account.updated", Description = "When an account is updated" },
-            new() { Name = "account.deleted", Description = "When an account is deleted" },
-            new() { Name = "contact.created", Description = "When a contact is created" },
-            new() { Name = "contact.updated", Description = "When a contact is updated" },
-            new() { Name = "opportunity.created", Description = "When an opportunity is created" },
-            new() { Name = "opportunity.updated", Description = "When an opportunity is updated" },
-            new() { Name = "opportunity.closed", Description = "When an opportunity is closed" },
-            new() { Name = "commission.approved", Description = "When a commission is approved" },
-            new() { Name = "campaign.executed", Description = "When a campaign is executed" }
+            new() { EventType = "account.created", Description = "When an account is created", EntityType = "Account", IsActive = true },
+            new() { EventType = "account.updated", Description = "When an account is updated", EntityType = "Account", IsActive = true },
+            new() { EventType = "account.deleted", Description = "When an account is deleted", EntityType = "Account", IsActive = true },
+            new() { EventType = "contact.created", Description = "When a contact is created", EntityType = "Contact", IsActive = true },
+            new() { EventType = "contact.updated", Description = "When a contact is updated", EntityType = "Contact", IsActive = true },
+            new() { EventType = "opportunity.created", Description = "When an opportunity is created", EntityType = "Opportunity", IsActive = true },
+            new() { EventType = "opportunity.updated", Description = "When an opportunity is updated", EntityType = "Opportunity", IsActive = true },
+            new() { EventType = "opportunity.closed", Description = "When an opportunity is closed", EntityType = "Opportunity", IsActive = true },
+            new() { EventType = "commission.approved", Description = "When a commission is approved", EntityType = "Commission", IsActive = true },
+            new() { EventType = "campaign.executed", Description = "When a campaign is executed", EntityType = "Campaign", IsActive = true }
         };
 
         return await Task.FromResult((IEnumerable<CRM.Core.Dtos.WebhookEventDto>)events);
@@ -295,15 +308,35 @@ public class WebhookManagementService : IWebhookManagementService, IWebhookManag
 
     private WebhookDto MapToDto(WebhookSubscription webhook)
     {
+        var eventTypes = new List<string>();
+        try
+        {
+            eventTypes = System.Text.Json.JsonSerializer.Deserialize<List<string>>(webhook.EventTypes) ?? new List<string>();
+        }
+        catch
+        {
+            eventTypes = webhook.EventTypes.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(e => e.Trim()).ToList();
+        }
+
         return new WebhookDto
         {
-            Id = webhook.Id,
-            Url = webhook.Url,
-            Events = webhook.Events.Split(",").ToList(),
-            IsActive = webhook.IsActive,
+            Id = webhook.WebhookSubscriptionId,
+            Url = webhook.TargetUrl,
+            Description = webhook.Description,
             Secret = webhook.Secret,
-            RetryCount = webhook.RetryCount,
-            CreatedAt = webhook.CreatedAt
+            IsActive = webhook.IsActive,
+            EventTypes = eventTypes,
+            FilterCriteria = null,
+            MaxRetries = webhook.RetryCount,
+            RetryIntervalSeconds = 300,
+            TimeoutSeconds = webhook.TimeoutSeconds,
+            FailureCount = webhook.FailureCount,
+            DisabledReason = null,
+            DisabledAt = null,
+            LastDeliveryAt = webhook.LastTriggeredAt,
+            CreatedBy = webhook.CreatedByUserId,
+            CreatedAt = webhook.CreatedAt,
+            UpdatedAt = webhook.UpdatedAt
         };
     }
 
@@ -311,14 +344,19 @@ public class WebhookManagementService : IWebhookManagementService, IWebhookManag
     {
         return new WebhookDeliveryDto
         {
-            Id = delivery.Id,
-            WebhookId = delivery.WebhookId,
-            Payload = delivery.Payload,
-            Status = delivery.Status,
-            ResponseStatus = delivery.ResponseStatus,
-            Attempts = delivery.Attempts,
-            LastAttemptAt = delivery.LastAttemptAt,
-            CreatedAt = delivery.CreatedAt
+            Id = delivery.WebhookDeliveryId,
+            WebhookId = delivery.WebhookSubscriptionId,
+            Url = delivery.TargetUrl,
+            EventType = delivery.EventType,
+            TriggeredAt = delivery.CreatedAt,
+            CompletedAt = delivery.CompletedAt,
+            AttemptNumber = delivery.AttemptNumber,
+            ResponseStatusCode = delivery.ResponseStatusCode,
+            Success = delivery.Success,
+            ErrorMessage = delivery.ErrorMessage,
+            DurationMs = delivery.DurationMs,
+            RequestPayload = delivery.RequestBody,
+            ResponsePayload = delivery.ResponseBody
         };
     }
 
@@ -344,23 +382,25 @@ public class WebhookDispatcherService : IWebhookDispatcherService, IWebhookDispa
 
     public async Task DispatchAsync(string eventType, object payload, CancellationToken cancellationToken = default)
     {
-        var webhooks = await _context.Webhooks
+        var webhooks = await _context.WebhookSubscriptions
             .Where(w => !w.IsDeleted && w.IsActive)
             .ToListAsync(cancellationToken);
 
         foreach (var webhook in webhooks)
         {
-            var events = webhook.Events.Split(",");
+            var events = DeserializeEvents(webhook.EventTypes);
             if (!events.Contains(eventType) && !events.Contains("*"))
                 continue;
 
             var payloadJson = System.Text.Json.JsonSerializer.Serialize(payload);
             var delivery = new WebhookDelivery
             {
-                WebhookId = webhook.Id,
-                Payload = payloadJson,
-                Status = "Queued",
-                Attempts = 0,
+                WebhookSubscriptionId = webhook.WebhookSubscriptionId,
+                EventType = eventType,
+                TargetUrl = webhook.TargetUrl,
+                RequestBody = payloadJson,
+                Success = false,
+                AttemptNumber = 0,
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };
@@ -385,39 +425,51 @@ public class WebhookDispatcherService : IWebhookDispatcherService, IWebhookDispa
     public async Task ProcessQueueAsync(CancellationToken cancellationToken = default)
     {
         var pendingDeliveries = await _context.WebhookDeliveries
-            .Where(d => d.Status == "Queued" || d.Status == "Pending")
-            .Include(d => d.Webhook)
+            .Where(d => !d.Success)
+            .Include(d => d.Subscription)
             .ToListAsync(cancellationToken);
 
         _logger.LogInformation("Processing {Count} pending webhook deliveries", pendingDeliveries.Count);
 
         foreach (var delivery in pendingDeliveries)
         {
-            if (delivery.Webhook == null || delivery.Webhook.IsDeleted || !delivery.Webhook.IsActive)
+            if (delivery.Subscription == null || delivery.Subscription.IsDeleted || !delivery.Subscription.IsActive)
                 continue;
 
             try
             {
-                delivery.Status = "Processing";
-                delivery.Attempts++;
-                delivery.LastAttemptAt = DateTime.UtcNow;
+                delivery.AttemptNumber++;
                 _context.WebhookDeliveries.Update(delivery);
                 await _context.SaveChangesAsync(cancellationToken);
 
                 // In a real implementation, would make the HTTP request here
-                delivery.Status = "Delivered";
-                delivery.ResponseStatus = "200";
+                delivery.Success = true;
+                delivery.ResponseStatusCode = 200;
+                delivery.CompletedAt = DateTime.UtcNow;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error processing webhook delivery {DeliveryId}", delivery.Id);
-                delivery.Status = delivery.Attempts >= delivery.Webhook.RetryCount ? "Failed" : "Pending";
+                _logger.LogError(ex, "Error processing webhook delivery {DeliveryId}", delivery.WebhookDeliveryId);
+                delivery.Success = false;
+                delivery.ErrorMessage = ex.Message;
             }
 
             _context.WebhookDeliveries.Update(delivery);
         }
 
         await _context.SaveChangesAsync(cancellationToken);
+    }
+
+    private static List<string> DeserializeEvents(string eventTypes)
+    {
+        try
+        {
+            return System.Text.Json.JsonSerializer.Deserialize<List<string>>(eventTypes) ?? new List<string>();
+        }
+        catch
+        {
+            return eventTypes.Split(',', StringSplitOptions.RemoveEmptyEntries).Select(e => e.Trim()).ToList();
+        }
     }
 }
 

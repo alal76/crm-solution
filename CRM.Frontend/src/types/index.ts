@@ -1,23 +1,18 @@
 /**
- * Base entity interface that matches the backend BaseEntity class.
- * All domain entities should extend this interface.
+ * Central Type Exports
+ * Import all types from this file to maintain consistency
+ * and avoid circular dependencies
  */
-export interface BaseEntity {
-  id: number;
-  createdAt?: string;
-  updatedAt?: string | null;
-  isDeleted?: boolean;
-}
 
-/**
- * Audit metadata for entities - use for display components
- */
-export interface AuditMetadata {
-  createdAt?: string;
-  updatedAt?: string | null;
-  createdBy?: string;
-  updatedBy?: string;
-}
+// Re-export from modules
+export * from './common';
+export * from './accounts';
+export * from './sales';
+export * from './itsm';
+export * from './crm';
+export * from './marketing';
+export * from './auth';
+export * from './address.types';
 
 /**
  * Pagination request parameters
