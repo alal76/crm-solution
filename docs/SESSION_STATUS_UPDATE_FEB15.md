@@ -40,7 +40,7 @@ Overall:      67.4% Complete
 ```
 
 ### 2. Specification Audit Report Generated ✅
-**File:** [docs/SPECIFICATION_AUDIT_REPORT_FEB15.md](docs/SPECIFICATION_AUDIT_REPORT_FEB15.md)
+**File:** [docs/SPECIFICATION_AUDIT_REPORT_FEB15.md](SPECIFICATION_AUDIT_REPORT_FEB15.md)
 
 **Comprehensive Report Contents:**
 - Executive Summary with project health (🟡 Strong)
@@ -117,7 +117,7 @@ Overall:      67.4% Complete
    - Metrics: All categories
 
 ### Created
-1. **[docs/SPECIFICATION_AUDIT_REPORT_FEB15.md](docs/SPECIFICATION_AUDIT_REPORT_FEB15.md)**
+1. **[docs/SPECIFICATION_AUDIT_REPORT_FEB15.md](SPECIFICATION_AUDIT_REPORT_FEB15.md)**
    - 40+ pages comprehensive audit report
    - 9 module deep-dives
    - 5-phase roadmap
@@ -215,8 +215,8 @@ Overall:      67.4% Complete
 
 **Documentation:**
 - [INDEX.md](docs/11-specifications/INDEX.md) — Quick reference (updated)
-- [SPECIFICATION_AUDIT_REPORT_FEB15.md](docs/SPECIFICATION_AUDIT_REPORT_FEB15.md) — Comprehensive audit (new)
-- [MASTER_TODO_LIST.md](docs/MASTER_TODO_LIST.md) — Extracted TODOs (existing, 396 items)
+- [SPECIFICATION_AUDIT_REPORT_FEB15.md](SPECIFICATION_AUDIT_REPORT_FEB15.md) — Comprehensive audit (new)
+- [MASTER_TODO_LIST.md](MASTER_TODO_LIST.md) — Extracted TODOs (existing, 396 items)
 
 **Ready for:**
 1. Executive decision on deployment timeline

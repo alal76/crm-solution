@@ -57,8 +57,8 @@
 
 ## Implementation Plan Reference
 
-> **[specifications/IMPLEMENTATION_PLAN.md](specifications/IMPLEMENTATION_PLAN.md)** - Detailed 16-week implementation guide
-> **[specifications/GAP_ANALYSIS_EXECUTIVE_SUMMARY.md](specifications/GAP_ANALYSIS_EXECUTIVE_SUMMARY.md)** - Gap analysis & spec needs recommendations
+> **[specifications/IMPLEMENTATION_PLAN.md](11-specifications/IMPLEMENTATION_PLAN.md)** - Detailed 16-week implementation guide
+> **[specifications/GAP_ANALYSIS_EXECUTIVE_SUMMARY.md](11-specifications/GAP_ANALYSIS_EXECUTIVE_SUMMARY.md)** - Gap analysis & spec needs recommendations
 > **[specifications/INDEX.md](specifications/INDEX.md)** - Complete specification status & gap analysis (Section 7)
 > **Specification Progress:** 35/49 complete (71.4%) — 13 partial, 3 pending  
 > **Architecture Specs Needed:** 11 new SPEC-ARCH-* files (2-3 week initiative)
@@ -207,7 +207,7 @@
 ### 2.1 Gap Analysis Alignment (50 Items From Feb 16 Sub-Agent Reports)
 
 > **Source:** 5 comprehensive sub-agent gap analyses (Backend, Frontend, Database, DTO, Architecture)
-> **Documentation:** [specifications/GAP_ANALYSIS_EXECUTIVE_SUMMARY.md](specifications/GAP_ANALYSIS_EXECUTIVE_SUMMARY.md)
+> **Documentation:** [specifications/GAP_ANALYSIS_EXECUTIVE_SUMMARY.md](11-specifications/GAP_ANALYSIS_EXECUTIVE_SUMMARY.md)
 > **Impact:** These items are NEW gaps identified, not previously in master list
 > **Total Effort:** 360 hours over 8-10 weeks
 
@@ -1351,9 +1351,9 @@ npm run build
 **Keep These Documents Current:**
 - ✅ [specifications/INDEX.md](specifications/INDEX.md) — Update status weekly 
 - ✅ [MASTER_TODO_LIST.md](MASTER_TODO_LIST.md) — Update before sprint planning
-- ✅ [specifications/IMPLEMENTATION_PLAN.md](specifications/IMPLEMENTATION_PLAN.md) — Update roadmap monthly
+- ✅ [specifications/IMPLEMENTATION_PLAN.md](11-specifications/IMPLEMENTATION_PLAN.md) — Update roadmap monthly
 - ✅ [SOLUTION_GAPS_REMEDIATION_PLAN.md](docs/development/SOLUTION_GAPS_REMEDIATION_PLAN.md) — Update phase status
-- ✅ [CODING_STANDARDS.md](docs/development/CODING_STANDARDS.md) — Add new patterns as specs created
+- ✅ [CODING_STANDARDS.md](development/CODING_STANDARDS.md) — Add new patterns as specs created
 
 **Sync Frequency:**
 - Daily: Update TODO status & progress notes

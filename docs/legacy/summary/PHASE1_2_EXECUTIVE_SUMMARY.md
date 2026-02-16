@@ -69,7 +69,7 @@
 ✅ P0_P1_CRITICAL_SERVICES_IMPLEMENTATION_PLAN.md
    - 250+ lines, covers all 7 phases in detail
    
-✅ P0_P1_PHASE1_PHASE2_COMPLETION_REPORT.md  
+✅ docs/legacy/summary/P0_P1_PHASE1_PHASE2_COMPLETION_REPORT.md  
    - 350+ lines, with metrics, architecture compliance, next steps
    
 ✅ P0_P1_QUICK_REFERENCE_AND_NEXT_STEPS.md
@@ -352,16 +352,16 @@ git push origin feature/p0-p1-architecture-specs-2026-02-16
 
 ## APPENDIX: DOCUMENT REFERENCE
 
-📄 **[P0_P1_CRITICAL_SERVICES_IMPLEMENTATION_PLAN.md](docs/development/P0_P1_CRITICAL_SERVICES_IMPLEMENTATION_PLAN.md)**
+📄 **[P0_P1_CRITICAL_SERVICES_IMPLEMENTATION_PLAN.md](../../development/P0_P1_CRITICAL_SERVICES_IMPLEMENTATION_PLAN.md)**
 → Full 192-hour implementation roadmap for all 7 phases
 
-📄 **[P0_P1_PHASE1_PHASE2_COMPLETION_REPORT.md](docs/summary/P0_P1_PHASE1_PHASE2_COMPLETION_REPORT.md)**
+📄 **docs/legacy/summary/P0_P1_PHASE1_PHASE2_COMPLETION_REPORT.md**
 → Detailed metrics, code insights, and evidence of completion
 
-📄 **[P0_P1_QUICK_REFERENCE_AND_NEXT_STEPS.md](docs/development/P0_P1_QUICK_REFERENCE_AND_NEXT_STEPS.md)**
+📄 **[P0_P1_QUICK_REFERENCE_AND_NEXT_STEPS.md](../../development/P0_P1_QUICK_REFERENCE_AND_NEXT_STEPS.md)**
 → Quick reference for each phase with action items and commands
 
-📄 **[P0_P1_FINAL_STATUS_REPORT.md](docs/status/P0_P1_FINAL_STATUS_REPORT.md)**
+📄 **[P0_P1_FINAL_STATUS_REPORT.md](../../status/P0_P1_FINAL_STATUS_REPORT.md)**
 → Complete status report with checklists and timelines
 
 ---

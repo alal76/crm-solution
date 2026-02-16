@@ -9,16 +9,16 @@
 ### 🎯 I Want to...
 
 **Start Phase 2 immediately**
-→ Read: `PHASE2_IMPLEMENTATION_GUIDE.md` (400+ lines)
+→ Read: `docs/legacy/summary/PHASE2_IMPLEMENTATION_GUIDE.md` (400+ lines)
 → Then: Pick a service and start implementing using templates provided
 
 **Understand what was completed**
-→ Read: `PHASE1_FINAL_CHECKLIST.md` (This gives you the verification)
-→ Then: `PHASE1_COMPLETION_SUMMARY.md` (Comprehensive coverage map)
+→ Read: `docs/legacy/summary/PHASE1_FINAL_CHECKLIST.md` (This gives you the verification)
+→ Then: `docs/legacy/summary/PHASE1_COMPLETION_SUMMARY.md` (Comprehensive coverage map)
 
 **See the detailed roadmap**
 → Read: `BACKEND_SERVICES_IMPLEMENTATION_REPORT.md` (1,000+ lines, detailed)
-→ Alternative: `BACKEND_SERVICES_PHASE1_COMPLETE.md` (950+ lines, high-level)
+→ Alternative: `docs/legacy/summary/BACKEND_SERVICES_PHASE1_COMPLETE.md` (950+ lines, high-level)
 
 **Find the actual code files I created**
 → DTOs: `CRM.Backend/src/CRM.Core/Dtos/` (4 files, 1,280 lines)
@@ -26,10 +26,10 @@
 → Tests: `CRM.Backend/tests/Dtos/FeatureDtosTests.cs` (553 lines)
 
 **Reference the implementation templates**
-→ Read: `PHASE2_IMPLEMENTATION_GUIDE.md` Section 2-6 (Templates with code samples)
+→ Read: `docs/legacy/summary/PHASE2_IMPLEMENTATION_GUIDE.md` Section 2-6 (Templates with code samples)
 
 **Verify all files were created correctly**
-→ Read: `PHASE1_FINAL_CHECKLIST.md` Section "Verification Commands"
+→ Read: `docs/legacy/summary/PHASE1_FINAL_CHECKLIST.md` Section "Verification Commands"
 → Run: The provided bash commands to validate file counts
 
 ---
@@ -37,20 +37,20 @@
 ## Document Hierarchy & Reading Order
 
 ### Path A: Quick Overview (15 minutes)
-1. **Start Here:** `PHASE1_FINAL_CHECKLIST.md`
+1. **Start Here:** `docs/legacy/summary/PHASE1_FINAL_CHECKLIST.md`
    - ✅ What was delivered
    - ✅ Verification commands
    - ✅ File location index
    - Time: 10 minutes
 
-2. **Then:** `BACKEND_SERVICES_PHASE1_COMPLETE.md`
+2. **Then:** `docs/legacy/summary/BACKEND_SERVICES_PHASE1_COMPLETE.md`
    - ✅ High-level feature coverage
    - ✅ Code quality metrics
    - ✅ Next steps
    - Time: 5 minutes
 
 ### Path B: Comprehensive Reference (1 hour)
-1. **Start Here:** `PHASE1_COMPLETION_SUMMARY.md`
+1. **Start Here:** `docs/legacy/summary/PHASE1_COMPLETION_SUMMARY.md`
    - ✅ Executive summary
    - ✅ All 4 deliverable sections detailed
    - ✅ Quality validation matrix
@@ -64,7 +64,7 @@
    - ✅ Phase 2 what remains
    - Time: 20 minutes
 
-3. **Finally:** `PHASE2_IMPLEMENTATION_GUIDE.md`
+3. **Finally:** `docs/legacy/summary/PHASE2_IMPLEMENTATION_GUIDE.md`
    - ✅ Service implementation templates
    - ✅ Code examples
    - ✅ Implementation checklist
@@ -72,7 +72,7 @@
    - Time: 15 minutes
 
 ### Path C: Hands-On Implementation (Ongoing)
-1. **Reference:** `PHASE2_IMPLEMENTATION_GUIDE.md`
+1. **Reference:** `docs/legacy/summary/PHASE2_IMPLEMENTATION_GUIDE.md`
    - Service templates (section 2-6)
    - Implementation order (section 7)
    - Testing templates (section 8)
@@ -263,7 +263,7 @@
 
 ## The 4 Documentation Files
 
-### 1. PHASE1_FINAL_CHECKLIST.md
+### 1. docs/legacy/summary/PHASE1_FINAL_CHECKLIST.md
 **Purpose:** Quick verification that all Phase 1 deliverables exist and are correct  
 **Length:** ~400 lines  
 **Best For:** Quick sanity check, verification commands, file locations  
@@ -279,7 +279,7 @@
 
 ---
 
-### 2. PHASE1_COMPLETION_SUMMARY.md
+### 2. docs/legacy/summary/PHASE1_COMPLETION_SUMMARY.md
 **Purpose:** Comprehensive reference document for Phase 1 completion  
 **Length:** 1,200 lines  
 **Best For:** Understanding what was delivered and why  
@@ -316,7 +316,7 @@
 
 ---
 
-### 4. BACKEND_SERVICES_PHASE1_COMPLETE.md
+### 4. docs/legacy/summary/BACKEND_SERVICES_PHASE1_COMPLETE.md
 **Purpose:** High-level summary of Phase 1 completion  
 **Length:** 950+ lines  
 **Best For:** Quick overview before diving into details  
@@ -334,7 +334,7 @@
 
 ---
 
-### 5. PHASE2_IMPLEMENTATION_GUIDE.md
+### 5. docs/legacy/summary/PHASE2_IMPLEMENTATION_GUIDE.md
 **Purpose:** Practical guide with code templates for Phase 2 implementation  
 **Length:** 400+ lines  
 **Best For:** Actual implementation work during Phase 2  
@@ -370,11 +370,11 @@
 ## How Files Relate to Each Other
 
 ```
-PHASE1_FINAL_CHECKLIST.md
+docs/legacy/summary/PHASE1_FINAL_CHECKLIST.md
     ├─→ Points to all 4 code files
     └─→ Points to all 4 documentation files
         
-PHASE1_COMPLETION_SUMMARY.md
+docs/legacy/summary/PHASE1_COMPLETION_SUMMARY.md
     ├─→ References feature specifications (SPEC-SALES-007, SPEC-MKT-001, SPEC-INT-001, SPEC-MKT-003)
     ├─→ Summarizes EmailSequenceDtos.cs, CampaignDtos.cs, WebhookManagementDtos.cs, CommissionManagementDtos.cs
     ├─→ Analyzes FeatureServiceInterfaces.cs
@@ -387,12 +387,12 @@ BACKEND_SERVICES_IMPLEMENTATION_REPORT.md
     ├─→ Provides Phase 2 roadmap
     └─→ Includes risk mitigation
 
-BACKEND_SERVICES_PHASE1_COMPLETE.md
+docs/legacy/summary/BACKEND_SERVICES_PHASE1_COMPLETE.md
     ├─→ High-level overview of report
     ├─→ Quick reference for metrics
     └─→ Summary of what's complete
 
-PHASE2_IMPLEMENTATION_GUIDE.md
+docs/legacy/summary/PHASE2_IMPLEMENTATION_GUIDE.md
     └─→ Uses FeatureServiceInterfaces.cs as contract definition
     └─→ References EmailSequenceDtos.cs structure
     └─→ Provides templates for implementing services
@@ -466,18 +466,18 @@ PHASE2_IMPLEMENTATION_GUIDE.md
 ## Ready to Start Phase 2?
 
 ### Minimum Preparation (15 minutes)
-1. Read `PHASE1_FINAL_CHECKLIST.md`
+1. Read `docs/legacy/summary/PHASE1_FINAL_CHECKLIST.md`
 2. Verify files exist with provided bash commands
-3. Review `PHASE2_IMPLEMENTATION_GUIDE.md` section "Template 1"
+3. Review `docs/legacy/summary/PHASE2_IMPLEMENTATION_GUIDE.md` section "Template 1"
 4. Pick EmailSequenceManagementService as first implementation
 5. Start coding using provided template
 
 ### Recommended Preparation (1 hour)
-1. Read `PHASE1_COMPLETION_SUMMARY.md`
+1. Read `docs/legacy/summary/PHASE1_COMPLETION_SUMMARY.md`
 2. Review all 4 DTO files to understand structure
 3. Review service interfaces in `FeatureServiceInterfaces.cs`
 4. Study test patterns in `FeatureDtosTests.cs`
-5. Read `PHASE2_IMPLEMENTATION_GUIDE.md` carefully
+5. Read `docs/legacy/summary/PHASE2_IMPLEMENTATION_GUIDE.md` carefully
 6. Start implementation following 4-day schedule
 
 ### Thorough Preparation (2 hours)
@@ -496,15 +496,15 @@ PHASE2_IMPLEMENTATION_GUIDE.md
 
 | Item | Location | Document |
 |------|----------|----------|
-| Quick verification | `PHASE1_FINAL_CHECKLIST.md` | Line: "Verification Commands" |
+| Quick verification | `docs/legacy/summary/PHASE1_FINAL_CHECKLIST.md` | Line: "Verification Commands" |
 | Service method definitions | `FeatureServiceInterfaces.cs` | Line: 50-307 |
 | DTO property definitions | `*Dtos.cs` files | All properties documented |
 | Test examples | `FeatureDtosTests.cs` | All test classes |
-| Implementation templates | `PHASE2_IMPLEMENTATION_GUIDE.md` | Section 1-6 |
-| Success criteria | `PHASE1_COMPLETION_SUMMARY.md` | Section "Success Criteria" |
-| Feature coverage | `PHASE1_COMPLETION_SUMMARY.md` | Section "Feature Coverage Analysis" |
-| 4-day schedule | `PHASE2_IMPLEMENTATION_GUIDE.md` | Section 7 "Quick Implementation Order" |
-| Common mistakes | `PHASE2_IMPLEMENTATION_GUIDE.md` | Section 11 "Common Pitfalls" |
+| Implementation templates | `docs/legacy/summary/PHASE2_IMPLEMENTATION_GUIDE.md` | Section 1-6 |
+| Success criteria | `docs/legacy/summary/PHASE1_COMPLETION_SUMMARY.md` | Section "Success Criteria" |
+| Feature coverage | `docs/legacy/summary/PHASE1_COMPLETION_SUMMARY.md` | Section "Feature Coverage Analysis" |
+| 4-day schedule | `docs/legacy/summary/PHASE2_IMPLEMENTATION_GUIDE.md` | Section 7 "Quick Implementation Order" |
+| Common mistakes | `docs/legacy/summary/PHASE2_IMPLEMENTATION_GUIDE.md` | Section 11 "Common Pitfalls" |
 
 ---
 
@@ -512,11 +512,11 @@ PHASE2_IMPLEMENTATION_GUIDE.md
 
 | Document | Lines | Purpose | Read Time |
 |----------|-------|---------|-----------|
-| PHASE1_FINAL_CHECKLIST.md | 400 | Verification checklist | 10 min |
-| PHASE1_COMPLETION_SUMMARY.md | 1,200 | Comprehensive reference | 40 min |
+| docs/legacy/summary/PHASE1_FINAL_CHECKLIST.md | 400 | Verification checklist | 10 min |
+| docs/legacy/summary/PHASE1_COMPLETION_SUMMARY.md | 1,200 | Comprehensive reference | 40 min |
 | BACKEND_SERVICES_IMPLEMENTATION_REPORT.md | 1,000+ | Detailed roadmap | 50 min |
-| BACKEND_SERVICES_PHASE1_COMPLETE.md | 950+ | High-level summary | 30 min |
-| PHASE2_IMPLEMENTATION_GUIDE.md | 400+ | Implementation templates | 30 min |
+| docs/legacy/summary/BACKEND_SERVICES_PHASE1_COMPLETE.md | 950+ | High-level summary | 30 min |
+| docs/legacy/summary/PHASE2_IMPLEMENTATION_GUIDE.md | 400+ | Implementation templates | 30 min |
 | **TOTAL DOCUMENTATION** | **~4,000 lines** | **Complete reference library** | **3 hours** |
 
 **Code Files Statistics:**
@@ -551,6 +551,6 @@ PHASE2_IMPLEMENTATION_GUIDE.md
 - ✅ 100% specification compliance
 - ✅ Phase 2 ready to start immediately
 
-**Next Step:** Read `PHASE2_IMPLEMENTATION_GUIDE.md` and start coding services.
+**Next Step:** Read `docs/legacy/summary/PHASE2_IMPLEMENTATION_GUIDE.md` and start coding services.
 
 **Everything works, nothing is broken, and you can begin Phase 2 anytime.**

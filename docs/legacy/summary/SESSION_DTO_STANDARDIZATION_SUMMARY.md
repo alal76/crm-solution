@@ -20,7 +20,7 @@
 - [x] Cataloged 50+ missing DTOs for P0/P1 features
 
 **Audit Report Created:**
-- 📋 [DTO_STANDARDIZATION_COMPREHENSIVE_AUDIT.md](docs/DTO_STANDARDIZATION_COMPREHENSIVE_AUDIT.md) (3,000+ lines)
+- 📋 [DTO_STANDARDIZATION_COMPREHENSIVE_AUDIT.md](../../DTO_STANDARDIZATION_COMPREHENSIVE_AUDIT.md) (3,000+ lines)
   - Appendix: Detailed duplicate analysis
   - Gap analysis for new DTOs by module
   - Risk mitigation strategy
@@ -298,21 +298,21 @@ throw new ValidationException(ValidationMessages.Account.NotFound);
 ## 📋 DELIVERABLES CREATED
 
 ### Documentation (4 Files)
-1. ✅ [DTO_STANDARDIZATION_COMPREHENSIVE_AUDIT.md](docs/DTO_STANDARDIZATION_COMPREHENSIVE_AUDIT.md) (3,000+ lines)
+1. ✅ [DTO_STANDARDIZATION_COMPREHENSIVE_AUDIT.md](../../DTO_STANDARDIZATION_COMPREHENSIVE_AUDIT.md) (3,000+ lines)
    - Complete audit of all 85 DTOs
    - Duplicates identified with consolidation plans
    - Validation gaps documented
    - Missing DTOs cataloged by module
    - Risk assessment and mitigation strategies
 
-2. ✅ [DTO_STANDARDIZATION_PHASE2_COMPLETE.md](docs/DTO_STANDARDIZATION_PHASE2_COMPLETE.md) (1,000+ lines)
+2. ✅ [DTO_STANDARDIZATION_PHASE2_COMPLETE.md](../../DTO_STANDARDIZATION_PHASE2_COMPLETE.md) (1,000+ lines)
    - Phase 2 completion summary
    - Files created with purpose and impact
    - Metrics and verification checklist
    - Developer and architect guidance
    - Related documentation references
 
-3. ✅ [DTO_STANDARDIZATION_PHASE3_ACTION_PLAN.md](docs/DTO_STANDARDIZATION_PHASE3_ACTION_PLAN.md) (2,000+ lines)
+3. ✅ [DTO_STANDARDIZATION_PHASE3_ACTION_PLAN.md](../../DTO_STANDARDIZATION_PHASE3_ACTION_PLAN.md) (2,000+ lines)
    - Detailed 4-tier refactoring plan
    - Tier 1 Critical: Delete ColorPaletteDtos, consolidate password DTO, fix financial DTOs
    - Tier 2 High: TwoFactor consolidation, Account/Contact variants
@@ -323,7 +323,7 @@ throw new ValidationException(ValidationMessages.Account.NotFound);
    - Testing strategy and rollback procedures
    - Success metrics
 
-4. ✅ [DTO_STANDARDIZATION_MASTER_ROADMAP.md](docs/DTO_STANDARDIZATION_MASTER_ROADMAP.md) (2,000+ lines)
+4. ✅ [DTO_STANDARDIZATION_MASTER_ROADMAP.md](../../DTO_STANDARDIZATION_MASTER_ROADMAP.md) (2,000+ lines)
    - Complete project overview
    - All 4 phases summarized (Phase 1-2 complete, 3-4 pending)
    - Dependency graph
@@ -479,9 +479,9 @@ public async Task<ApiResponse<MyItemDto>> GetById(int id)
 ## 📞 SUPPORT & QUESTIONS
 
 **Documentation to Reference:**
-- Phase 2 Complete: See [DTO_STANDARDIZATION_PHASE2_COMPLETE.md](docs/DTO_STANDARDIZATION_PHASE2_COMPLETE.md)
-- Phase 3 Plan: See [DTO_STANDARDIZATION_PHASE3_ACTION_PLAN.md](docs/DTO_STANDARDIZATION_PHASE3_ACTION_PLAN.md)
-- Master Roadmap: See [DTO_STANDARDIZATION_MASTER_ROADMAP.md](docs/DTO_STANDARDIZATION_MASTER_ROADMAP.md)
+- Phase 2 Complete: See [DTO_STANDARDIZATION_PHASE2_COMPLETE.md](../../DTO_STANDARDIZATION_PHASE2_COMPLETE.md)
+- Phase 3 Plan: See [DTO_STANDARDIZATION_PHASE3_ACTION_PLAN.md](../../DTO_STANDARDIZATION_PHASE3_ACTION_PLAN.md)
+- Master Roadmap: See [DTO_STANDARDIZATION_MASTER_ROADMAP.md](../../DTO_STANDARDIZATION_MASTER_ROADMAP.md)
 
 ---
 

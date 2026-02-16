@@ -3294,10 +3294,12 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.HasIndex(e => e.IsActive);
             entity.HasIndex(e => e.Priority);
 
-            entity.HasOne(e => e.BusinessHours)
-                .WithMany()
-                .HasForeignKey(e => e.BusinessHoursId)
-                .OnDelete(DeleteBehavior.SetNull);
+            // NOTE: BusinessHoursId is a foreign key but BusinessHours property is a JSON string field
+            // If a navigation property to BusinessHours entity is needed, add it to the entity and uncomment the HasOne below
+            // entity.HasOne(e => e.BusinessHoursNavigation)
+            //     .WithMany()
+            //     .HasForeignKey(e => e.BusinessHoursId)
+            //     .OnDelete(DeleteBehavior.SetNull);
         });
 
         // SLATarget configuration

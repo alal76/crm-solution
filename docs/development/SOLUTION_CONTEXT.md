@@ -462,7 +462,7 @@ ADMIN_PASSWORD=your-admin-password
 ### Database Documentation
 
 Complete database documentation is available at:
-- [database/DATABASE_SCHEMA.md](database/DATABASE_SCHEMA.md) - Full schema reference (~171 tables)
+- [database/DATABASE_SCHEMA.md](../../database/DATABASE_SCHEMA.md) - Full schema reference (~171 tables)
 - [database/setup-database.sh](database/setup-database.sh) - Cross-platform setup script
 
 ### Manual Database Setup

@@ -14,10 +14,10 @@
 **Decision makers who need to understand investment, timeline, and ROI**
 
 **Read First (5 min):**
-- [MULTI_AGENT_COMPLETION_SUMMARY.md](docs/summary/MULTI_AGENT_COMPLETION_SUMMARY.md) - Overview of all findings
+- [MULTI_AGENT_COMPLETION_SUMMARY.md](../summary/MULTI_AGENT_COMPLETION_SUMMARY.md) - Overview of all findings
 
 **Read Second (10-15 min):**
-- [EXECUTIVE_BRIEFING_REMEDIATION.md](docs/EXECUTIVE_BRIEFING_REMEDIATION.md) - Strategic decision brief
+- [EXECUTIVE_BRIEFING_REMEDIATION.md](../EXECUTIVE_BRIEFING_REMEDIATION.md) - Strategic decision brief
   - Investment requirement: $1.36M - $1.74M
   - Timeline: 15-16 weeks
   - Go/No-Go decision framework
@@ -36,7 +36,7 @@
 **Need to plan sprints, allocate resources, and track progress**
 
 **Read First (30 min):**
-- [UNIFIED_REMEDIATION_PLAN.md](docs/UNIFIED_REMEDIATION_PLAN.md) - Complete 8-sprint roadmap
+- [UNIFIED_REMEDIATION_PLAN.md](../UNIFIED_REMEDIATION_PLAN.md) - Complete 8-sprint roadmap
   - Detailed sprint plans (Sprint 0-8)
   - Team allocation
   - Risk register
@@ -44,14 +44,14 @@
   - Dependency maps
 
 **Read Second (20 min):**
-- [REMEDIATION_TASKS_INTEGRATED.md](docs/REMEDIATION_TASKS_INTEGRATED.md) - All 327 gaps organized by priority
+- [REMEDIATION_TASKS_INTEGRATED.md](../REMEDIATION_TASKS_INTEGRATED.md) - All 327 gaps organized by priority
   - P0 Critical blockers (4 items)
   - P1 High priority (30+ items)
   - P2 Medium priority (50+ items)
   - P3 Polish & optimization
 
 **Read Third (5 min):**
-- [SPRINT0_QUICK_START.md](docs/SPRINT0_QUICK_START.md) - Week 1 action plan
+- [SPRINT0_QUICK_START.md](../SPRINT0_QUICK_START.md) - Week 1 action plan
   - Day-by-day build fix guide
   - Troubleshooting procedures
   - Escalation paths
@@ -70,19 +70,19 @@
 **Understand backend gaps, services, API endpoints, and architecture**
 
 **Read First (60 min):**
-- [BACKEND_GAPS_ANALYSIS_REPORT.md](docs/BACKEND_GAPS_ANALYSIS_REPORT.md) - Comprehensive backend analysis
+- [BACKEND_GAPS_ANALYSIS_REPORT.md](../BACKEND_GAPS_ANALYSIS_REPORT.md) - Comprehensive backend analysis
   - 127 total backend gaps
   - Missing endpoints, services, DTOs
   - Architecture assessment
   - Implementation roadmap
 
 **Reference Guide:**
-- [BACKEND_GAPS_SUMMARY.md](docs/BACKEND_GAPS_SUMMARY.md) - 5-page executive summary
-- [BACKEND_GAPS_TRACKING.md](docs/BACKEND_GAPS_TRACKING.md) - Detailed task checklist
-- [BACKEND_GAPS_INDEX.md](docs/BACKEND_GAPS_INDEX.md) - Navigation guide
+- [BACKEND_GAPS_SUMMARY.md](../BACKEND_GAPS_SUMMARY.md) - 5-page executive summary
+- [BACKEND_GAPS_TRACKING.md](../BACKEND_GAPS_TRACKING.md) - Detailed task checklist
+- [BACKEND_GAPS_INDEX.md](../BACKEND_GAPS_INDEX.md) - Navigation guide
 
 **Architecture Deep Dive:**
-- [ARCHITECTURAL_ALIGNMENT_ASSESSMENT.md](docs/ARCHITECTURAL_ALIGNMENT_ASSESSMENT.md) - Full 60-page assessment
+- [ARCHITECTURAL_ALIGNMENT_ASSESSMENT.md](ARCHITECTURAL_ALIGNMENT_ASSESSMENT.md) - Full 60-page assessment
   - Architecture health: 7.2/10
   - Hexagonal migration 40% incomplete
   - N+1 query issues (20-30 identified)
@@ -98,7 +98,7 @@
 - Critical blockers: Commission Mgmt, Problem Mgmt, Change Mgmt
 
 **Immediate Action:**
-1. Review [SPRINT0_QUICK_START.md](docs/SPRINT0_QUICK_START.md) - build errors
+1. Review [SPRINT0_QUICK_START.md](../SPRINT0_QUICK_START.md) - build errors
 2. Execute Sprint 0 fixes (Days 1-3)
 3. Follow Sprint 1 backend tasks (Weeks 2-5)
 
@@ -108,14 +108,14 @@
 **Understand frontend gaps, missing components, missing pages**
 
 **Read First (45 min):**
-- [FRONTEND_GAP_ANALYSIS_REPORT.md](docs/FRONTEND_GAP_ANALYSIS_REPORT.md) - Complete frontend analysis
+- [FRONTEND_GAP_ANALYSIS_REPORT.md](../status/FRONTEND_GAP_ANALYSIS_REPORT.md) - Complete frontend analysis
   - 87 total frontend gaps
   - Missing pages, components, services
   - Top 10 priority gaps
   - Implementation timeline by priority
 
 **Implementation Reference:**
-- [REMEDIATION_TASKS_INTEGRATED.md](docs/REMEDIATION_TASKS_INTEGRATED.md) - Frontend gaps section
+- [REMEDIATION_TASKS_INTEGRATED.md](../REMEDIATION_TASKS_INTEGRATED.md) - Frontend gaps section
   - 18 missing pages by priority
   - 42 missing components by priority
   - 8 missing services
@@ -141,7 +141,7 @@
 **Understand database schema gaps, migrations, indexes, constraints**
 
 **Read First (45 min):**
-- [DATABASE_GAPS_ANALYSIS.md](docs/DATABASE_GAPS_ANALYSIS.md) - Complete database analysis
+- [DATABASE_GAPS_ANALYSIS.md](../DATABASE_GAPS_ANALYSIS.md) - Complete database analysis
   - 117 total database gaps
   - Missing tables (10)
   - Missing columns (47)
@@ -169,7 +169,7 @@
 **Ensure alignment between specs, architecture, and implementation**
 
 **Read First (90 min):**
-- [ARCHITECTURAL_ALIGNMENT_ASSESSMENT.md](docs/ARCHITECTURAL_ALIGNMENT_ASSESSMENT.md) - Deep 60-page analysis
+- [ARCHITECTURAL_ALIGNMENT_ASSESSMENT.md](ARCHITECTURAL_ALIGNMENT_ASSESSMENT.md) - Deep 60-page analysis
   - Architecture health score: 7.2/10
   - Layer-by-layer assessment (Frontend, Backend, Database)
   - Design pattern compliance
@@ -178,7 +178,7 @@
   - Success metrics
 
 **Executive Summary:**
-- [ARCHITECTURAL_VALIDATION_SUMMARY.md](docs/ARCHITECTURAL_VALIDATION_SUMMARY.md) - 8-page quick version
+- [ARCHITECTURAL_VALIDATION_SUMMARY.md](../summary/ARCHITECTURAL_VALIDATION_SUMMARY.md) - 8-page quick version
   - Key findings
   - Critical fixes
   - Action plan
@@ -198,7 +198,7 @@
 **Understand test coverage gaps, test requirements, automation strategy**
 
 **Read First (40 min):**
-- [UNIFIED_REMEDIATION_PLAN.md](docs/UNIFIED_REMEDIATION_PLAN.md) - Testing section (pages 15-20)
+- [UNIFIED_REMEDIATION_PLAN.md](../UNIFIED_REMEDIATION_PLAN.md) - Testing section (pages 15-20)
   - Test requirements by sprint
   - E2E test strategy
   - API testing requirements
@@ -232,33 +232,33 @@
 ### EXECUTIVE SUMMARIES (Read First)
 | Document | Purpose | Pages | Read Time |
 |----------|---------|-------|-----------|
-| [MULTI_AGENT_COMPLETION_SUMMARY.md](docs/summary/MULTI_AGENT_COMPLETION_SUMMARY.md) | Overview of all findings | 8 | 10 min |
-| [EXECUTIVE_BRIEFING_REMEDIATION.md](docs/EXECUTIVE_BRIEFING_REMEDIATION.md) | Strategic decision brief | 2 | 5 min |
-| [REMEDIATION_REFERENCE_INDEX.md](docs/REMEDIATION_REFERENCE_INDEX.md) | Navigation guide | 3 | 5 min |
+| [MULTI_AGENT_COMPLETION_SUMMARY.md](../summary/MULTI_AGENT_COMPLETION_SUMMARY.md) | Overview of all findings | 8 | 10 min |
+| [EXECUTIVE_BRIEFING_REMEDIATION.md](../EXECUTIVE_BRIEFING_REMEDIATION.md) | Strategic decision brief | 2 | 5 min |
+| [REMEDIATION_REFERENCE_INDEX.md](../REMEDIATION_REFERENCE_INDEX.md) | Navigation guide | 3 | 5 min |
 
 ### PRIMARY PLANNING DOCUMENTS (Must Read)
 | Document | Purpose | Pages | Audience |
 |----------|---------|-------|----------|
-| [UNIFIED_REMEDIATION_PLAN.md](docs/UNIFIED_REMEDIATION_PLAN.md) | 8-sprint roadmap | 40 | PM, Tech Leads |
-| [REMEDIATION_TASKS_INTEGRATED.md](docs/REMEDIATION_TASKS_INTEGRATED.md) | 327 gaps organized | 20 | Dev Teams |
-| [SPRINT0_QUICK_START.md](docs/SPRINT0_QUICK_START.md) | Week 1 action plan | 5 | Sprint 0 Team |
+| [UNIFIED_REMEDIATION_PLAN.md](../UNIFIED_REMEDIATION_PLAN.md) | 8-sprint roadmap | 40 | PM, Tech Leads |
+| [REMEDIATION_TASKS_INTEGRATED.md](../REMEDIATION_TASKS_INTEGRATED.md) | 327 gaps organized | 20 | Dev Teams |
+| [SPRINT0_QUICK_START.md](../SPRINT0_QUICK_START.md) | Week 1 action plan | 5 | Sprint 0 Team |
 
 ### DETAILED ANALYSIS DOCUMENTS (Deep Dive)
 | Document | Focus | Pages | Audience |
 |----------|-------|-------|----------|
-| [FRONTEND_GAP_ANALYSIS_REPORT.md](docs/FRONTEND_GAP_ANALYSIS_REPORT.md) | 87 UI gaps | 25 | Frontend Team |
-| [BACKEND_GAPS_SUMMARY.md](docs/BACKEND_GAPS_SUMMARY.md) | Backend overview | 5 | Backend Team |
-| [BACKEND_GAPS_ANALYSIS_REPORT.md](docs/BACKEND_GAPS_ANALYSIS_REPORT.md) | 127 backend gaps | 45 | Backend Team |
-| [BACKEND_GAPS_TRACKING.md](docs/BACKEND_GAPS_TRACKING.md) | Backend checklist | 30 | Backend Devs |
-| [DATABASE_GAPS_ANALYSIS.md](docs/DATABASE_GAPS_ANALYSIS.md) | 117 DB gaps | 35 | DBA |
-| [ARCHITECTURAL_ALIGNMENT_ASSESSMENT.md](docs/ARCHITECTURAL_ALIGNMENT_ASSESSMENT.md) | Architecture review | 60 | Architects |
-| [ARCHITECTURAL_VALIDATION_SUMMARY.md](docs/ARCHITECTURAL_VALIDATION_SUMMARY.md) | Architecture quick ref | 8 | Tech Leads |
+| [FRONTEND_GAP_ANALYSIS_REPORT.md](../status/FRONTEND_GAP_ANALYSIS_REPORT.md) | 87 UI gaps | 25 | Frontend Team |
+| [BACKEND_GAPS_SUMMARY.md](../BACKEND_GAPS_SUMMARY.md) | Backend overview | 5 | Backend Team |
+| [BACKEND_GAPS_ANALYSIS_REPORT.md](../BACKEND_GAPS_ANALYSIS_REPORT.md) | 127 backend gaps | 45 | Backend Team |
+| [BACKEND_GAPS_TRACKING.md](../BACKEND_GAPS_TRACKING.md) | Backend checklist | 30 | Backend Devs |
+| [DATABASE_GAPS_ANALYSIS.md](../DATABASE_GAPS_ANALYSIS.md) | 117 DB gaps | 35 | DBA |
+| [ARCHITECTURAL_ALIGNMENT_ASSESSMENT.md](ARCHITECTURAL_ALIGNMENT_ASSESSMENT.md) | Architecture review | 60 | Architects |
+| [ARCHITECTURAL_VALIDATION_SUMMARY.md](../summary/ARCHITECTURAL_VALIDATION_SUMMARY.md) | Architecture quick ref | 8 | Tech Leads |
 
 ### NAVIGATION & REFERENCE
 | Document | Purpose | Pages |
 |----------|---------|-------|
-| [BACKEND_GAPS_INDEX.md](docs/BACKEND_GAPS_INDEX.md) | Backend nav guide | 3 |
-| [REMEDIATION_DELIVERY_SUMMARY.md](docs/REMEDIATION_DELIVERY_SUMMARY.md) | Completion confirmation | 2 |
+| [BACKEND_GAPS_INDEX.md](../BACKEND_GAPS_INDEX.md) | Backend nav guide | 3 |
+| [REMEDIATION_DELIVERY_SUMMARY.md](../REMEDIATION_DELIVERY_SUMMARY.md) | Completion confirmation | 2 |
 
 ---
 
@@ -267,23 +267,23 @@
 **By Time Available:**
 
 **5 Minutes:**
-- [EXECUTIVE_BRIEFING_REMEDIATION.md](docs/EXECUTIVE_BRIEFING_REMEDIATION.md)
+- [EXECUTIVE_BRIEFING_REMEDIATION.md](../EXECUTIVE_BRIEFING_REMEDIATION.md)
 
 **15 Minutes:**
-- [MULTI_AGENT_COMPLETION_SUMMARY.md](docs/summary/MULTI_AGENT_COMPLETION_SUMMARY.md)
-- [ARCHITECTURAL_VALIDATION_SUMMARY.md](docs/ARCHITECTURAL_VALIDATION_SUMMARY.md)
+- [MULTI_AGENT_COMPLETION_SUMMARY.md](../summary/MULTI_AGENT_COMPLETION_SUMMARY.md)
+- [ARCHITECTURAL_VALIDATION_SUMMARY.md](../summary/ARCHITECTURAL_VALIDATION_SUMMARY.md)
 
 **30 Minutes:**
-- [BACKEND_GAPS_SUMMARY.md](docs/BACKEND_GAPS_SUMMARY.md)
-- [FRONTEND_GAP_ANALYSIS_REPORT.md](docs/FRONTEND_GAP_ANALYSIS_REPORT.md) (abstract)
+- [BACKEND_GAPS_SUMMARY.md](../BACKEND_GAPS_SUMMARY.md)
+- [FRONTEND_GAP_ANALYSIS_REPORT.md](../status/FRONTEND_GAP_ANALYSIS_REPORT.md) (abstract)
 
 **60 Minutes:**
-- [UNIFIED_REMEDIATION_PLAN.md](docs/UNIFIED_REMEDIATION_PLAN.md) (Sprint 0-3)
-- [BACKEND_GAPS_ANALYSIS_REPORT.md](docs/BACKEND_GAPS_ANALYSIS_REPORT.md)
+- [UNIFIED_REMEDIATION_PLAN.md](../UNIFIED_REMEDIATION_PLAN.md) (Sprint 0-3)
+- [BACKEND_GAPS_ANALYSIS_REPORT.md](../BACKEND_GAPS_ANALYSIS_REPORT.md)
 
 **2-3 Hours:**
-- [ARCHITECTURAL_ALIGNMENT_ASSESSMENT.md](docs/ARCHITECTURAL_ALIGNMENT_ASSESSMENT.md)
-- [UNIFIED_REMEDIATION_PLAN.md](docs/UNIFIED_REMEDIATION_PLAN.md) (all sprints)
+- [ARCHITECTURAL_ALIGNMENT_ASSESSMENT.md](ARCHITECTURAL_ALIGNMENT_ASSESSMENT.md)
+- [UNIFIED_REMEDIATION_PLAN.md](../UNIFIED_REMEDIATION_PLAN.md) (all sprints)
 
 **4+ Hours:**
 - All documents (comprehensive review)
@@ -293,7 +293,7 @@
 ## 🎯 QUICK ANSWERS
 
 ### Q: What are the 4 critical blockers?
-**A:** See [REMEDIATION_TASKS_INTEGRATED.md](docs/REMEDIATION_TASKS_INTEGRATED.md) - Critical Blockers section
+**A:** See [REMEDIATION_TASKS_INTEGRATED.md](../REMEDIATION_TASKS_INTEGRATED.md) - Critical Blockers section
 - Build system errors (188 errors)
 - Campaign module 0% complete
 - Frontend-backend gap (22%)
@@ -301,15 +301,15 @@
 
 ### Q: When can we go live?
 **A:** Week 16-17 (15-16 weeks from start)
-- See [UNIFIED_REMEDIATION_PLAN.md](docs/UNIFIED_REMEDIATION_PLAN.md) - Implementation Timeline
+- See [UNIFIED_REMEDIATION_PLAN.md](../UNIFIED_REMEDIATION_PLAN.md) - Implementation Timeline
 
 ### Q: How much will this cost?
 **A:** $1.36M - $1.74M for 14-17 FTE, 15-16 weeks
-- See [EXECUTIVE_BRIEFING_REMEDIATION.md](docs/EXECUTIVE_BRIEFING_REMEDIATION.md)
+- See [EXECUTIVE_BRIEFING_REMEDIATION.md](../EXECUTIVE_BRIEFING_REMEDIATION.md)
 
 ### Q: What should we do first (Day 1)?
 **A:** Fix the build system (188 errors)
-- See [SPRINT0_QUICK_START.md](docs/SPRINT0_QUICK_START.md)
+- See [SPRINT0_QUICK_START.md](../SPRINT0_QUICK_START.md)
 
 ### Q: How many gaps are there?
 **A:** 327 total gaps
@@ -327,10 +327,10 @@
 
 ### Q: Where are the biggest gaps?
 **A:** Frontend (22% behind backend) and Campaign module (missing)
-- See [FRONTEND_GAP_ANALYSIS_REPORT.md](docs/FRONTEND_GAP_ANALYSIS_REPORT.md)
+- See [FRONTEND_GAP_ANALYSIS_REPORT.md](../status/FRONTEND_GAP_ANALYSIS_REPORT.md)
 
 ### Q: What do we need to fix immediately?
-**A:** See [REMEDIATION_TASKS_INTEGRATED.md](docs/REMEDIATION_TASKS_INTEGRATED.md) - P0 Priority Tasks
+**A:** See [REMEDIATION_TASKS_INTEGRATED.md](../REMEDIATION_TASKS_INTEGRATED.md) - P0 Priority Tasks
 - Build errors: 4-6 hours (Day 1)
 - ITSM database: 2-3 hours (Week 1)
 - Commission service: 16 hours (Week 1-2)
@@ -385,12 +385,12 @@ All deliverables complete:
 
 ## 🚀 NEXT STEPS
 
-1. **Executive Review** → Read [EXECUTIVE_BRIEFING_REMEDIATION.md](docs/EXECUTIVE_BRIEFING_REMEDIATION.md)
+1. **Executive Review** → Read [EXECUTIVE_BRIEFING_REMEDIATION.md](../EXECUTIVE_BRIEFING_REMEDIATION.md)
 2. **Approve Budget & Timeline** → Authorize $1.36M-$1.74M for 15-16 weeks
 3. **Commit Resources** → Allocate 14-17 FTE
-4. **Start Sprint 0** → Follow [SPRINT0_QUICK_START.md](docs/SPRINT0_QUICK_START.md)
+4. **Start Sprint 0** → Follow [SPRINT0_QUICK_START.md](../SPRINT0_QUICK_START.md)
 5. **Daily Standups** → Monitor progress weekly
-6. **Execute Sprints 1-8** → Follow [UNIFIED_REMEDIATION_PLAN.md](docs/UNIFIED_REMEDIATION_PLAN.md)
+6. **Execute Sprints 1-8** → Follow [UNIFIED_REMEDIATION_PLAN.md](../UNIFIED_REMEDIATION_PLAN.md)
 
 ---
 

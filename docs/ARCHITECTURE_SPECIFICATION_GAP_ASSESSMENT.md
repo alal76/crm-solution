@@ -458,8 +458,8 @@ Architecture specs include:
 ```markdown
 ### Feature Usage
 This pattern is used in:
-- [SPEC-CRM-001-AccountManagement](../../specifications/SPEC-CRM-001-AccountManagement.md) - Error handling
-- [SPEC-SYS-006-AuditLogging](../../specifications/SPEC-SYS-006-AuditLogging.md) - Audit logging
+- [SPEC-CRM-001-AccountManagement](11-specifications/SPEC-CRM-001-AccountManagement.md) - Error handling
+- [SPEC-SYS-006-AuditLogging](11-specifications/SPEC-SYS-006-AuditLogging.md) - Audit logging
 ```
 
 ---
@@ -850,9 +850,9 @@ A: ...
 
 ## 8. References
 
-- [Feature Specification Template](./SPEC-TEMPLATE.md)
-- [ADR-001-Pluggable-Architecture](../architecture/ADR-001-Pluggable-Architecture-Strategy.md)
-- [Hexagonal Architecture](../architecture/HEXAGONAL_ARCHITECTURE.md)
+- [Feature Specification Template](11-specifications/SPEC-TEMPLATE.md)
+- [ADR-001-Pluggable-Architecture](architecture/ADR-001-Pluggable-Architecture-Strategy.md)
+- [Hexagonal Architecture](architecture/HEXAGONAL_ARCHITECTURE.md)
 ```
 
 ---

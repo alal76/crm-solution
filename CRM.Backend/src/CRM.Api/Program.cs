@@ -542,8 +542,8 @@ Log.Information("ITSM Phase 1 Tier-1 Services registered: BusinessHoursCalculato
 // PHASE 2-4: Additional ITSM services - pending implementation
 builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IProblemManagementService, CRM.Infrastructure.Services.ITSM.ProblemManagementService>();
 builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IProblemService, CRM.Infrastructure.Services.ITSM.ProblemService>();
-//builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.ICMDBService, CRM.Infrastructure.Services.ITSM.CMDBService>();
-builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IChangeManagementService, CRM.Infrastructure.Services.ITSM.ChangeManagementService>();
+//builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.ICMDBService, CRM.Infrastructure.Services.ITSM.CMDBService>(); // NOT IMPLEMENTED
+//builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IChangeManagementService, CRM.Infrastructure.Services.ITSM.ChangeManagementService>(); // Depends on ICMDBService
 //builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IKnowledgeManagementService, CRM.Infrastructure.Services.ITSM.KnowledgeManagementService>();
 //builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IServiceCatalogService, CRM.Infrastructure.Services.ITSM.ServiceCatalogService>();
 // builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IEscalationRuleService, CRM.Infrastructure.Services.ITSM.EscalationRuleService>(); // DISABLED for System Module isolation

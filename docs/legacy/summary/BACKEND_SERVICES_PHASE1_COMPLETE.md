@@ -437,4 +437,4 @@ find CRM.Backend/src/CRM.Core/Interfaces -name "FeatureServiceInterfaces.cs" -ex
 
 ### Documentation Location
 - Full Report: `BACKEND_SERVICES_IMPLEMENTATION_REPORT.md`
-- Quick Summary: `BACKEND_SERVICES_PHASE1_COMPLETE.md` (this file)
+- Quick Summary: `docs/legacy/summary/BACKEND_SERVICES_PHASE1_COMPLETE.md` (this file)

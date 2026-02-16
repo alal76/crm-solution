@@ -228,7 +228,7 @@ dotnet build --configuration Release
    - Business impact documented
 
 2. **Supporting Documents Referenced:**
-   - [specifications/GAP_ANALYSIS_EXECUTIVE_SUMMARY.md](specifications/GAP_ANALYSIS_EXECUTIVE_SUMMARY.md)
+   - [specifications/GAP_ANALYSIS_EXECUTIVE_SUMMARY.md](11-specifications/GAP_ANALYSIS_EXECUTIVE_SUMMARY.md)
    - [specifications/INDEX.md](specifications/INDEX.md) — Section 7
    - Backend/Frontend/Database gap analysis reports
 

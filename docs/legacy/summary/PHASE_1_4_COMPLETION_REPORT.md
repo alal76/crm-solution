@@ -199,7 +199,7 @@ Output: CRM.Backend/src/CRM.Api/bin/Release/net10.0/CRM.Api.dll
 
 ### Sample curl Commands
 
-See accompanying file: [PHASE_1_4_ADDRESS_API_CURL_EXAMPLES.md](docs/summary/PHASE_1_4_ADDRESS_API_CURL_EXAMPLES.md)
+See accompanying file: docs/legacy/summary/PHASE_1_4_ADDRESS_API_CURL_EXAMPLES.md
 
 ### Quick Test Sequence
 
@@ -370,7 +370,7 @@ Action: Update Semantic Kernel package version in next security patch cycle
    ```
 
 4. **Test Address API**
-   - Use curl commands from [PHASE_1_4_ADDRESS_API_CURL_EXAMPLES.md](docs/summary/PHASE_1_4_ADDRESS_API_CURL_EXAMPLES.md)
+   - Use curl commands from docs/legacy/summary/PHASE_1_4_ADDRESS_API_CURL_EXAMPLES.md
    - Verify 201 Created responses for POST
    - Verify 200 OK responses for GET/PUT
    - Verify 204 No Content for DELETE
@@ -385,7 +385,7 @@ Action: Update Semantic Kernel package version in next security patch cycle
 3. ✅ MapAddressToDto() - Manual DTO mapping function
 
 ### Documentation
-1. ✅ [PHASE_1_4_ADDRESS_API_CURL_EXAMPLES.md](docs/summary/PHASE_1_4_ADDRESS_API_CURL_EXAMPLES.md) - Sample commands
+1. ✅ docs/legacy/summary/PHASE_1_4_ADDRESS_API_CURL_EXAMPLES.md - Sample commands
 2. ✅ This report - Complete implementation summary
 3. ✅ XML Documentation - Integrated into code
 

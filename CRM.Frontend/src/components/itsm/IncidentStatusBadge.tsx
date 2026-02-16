@@ -68,7 +68,6 @@ export const IncidentStatusBadge: React.FC<IncidentStatusBadgeProps> = ({
       color={config.color}
       variant={config.variant}
       size={size === 'small' ? 'small' : 'medium'}
-      icon={icon}
       onClick={onClick}
       clickable={clickable}
       sx={{

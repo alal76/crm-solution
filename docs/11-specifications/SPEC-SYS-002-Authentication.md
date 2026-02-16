@@ -1792,9 +1792,9 @@ public interface ITotpService
 
 ## 13. References
 
-- [SOLUTION_CONTEXT.md](../../SOLUTION_CONTEXT.md#6-authentication--security) - Authentication section
-- [ARCHITECTURE_OVERVIEW.md](../../ARCHITECTURE_OVERVIEW.md#security-architecture) - Security architecture
-- [PHASE4_SERVICE_SPECIFICATIONS.md](PHASE4_SERVICE_SPECIFICATIONS.md) - Related services
+- [SOLUTION_CONTEXT.md](../development/SOLUTION_CONTEXT.md#6-authentication--security) - Authentication section
+- [ARCHITECTURE_OVERVIEW.md](../development/ARCHITECTURE_OVERVIEW.md#security-architecture) - Security architecture
+- [PHASE4_SERVICE_SPECIFICATIONS.md](../PHASE4_SERVICE_SPECIFICATIONS.md) - Related services
 - RFC 6234: US Secure Hash and Signature Algorithms
 - RFC 7519: JSON Web Token (JWT)
 - RFC 6238: Time-Based One-Time Password Algorithm (TOTP)

@@ -41,8 +41,8 @@ OUTPUT: CRM.Api.dll successfully generated
   - Added: UpdateAddressDto class
 
 ### Documentation Generated ✅
-- [x] PHASE_1_4_ADDRESS_API_CURL_EXAMPLES.md (comprehensive examples)
-- [x] PHASE_1_4_COMPLETION_REPORT.md (detailed report)
+- [x] docs/legacy/summary/PHASE_1_4_ADDRESS_API_CURL_EXAMPLES.md (comprehensive examples)
+- [x] docs/legacy/summary/PHASE_1_4_COMPLETION_REPORT.md (detailed report)
 
 ---
 

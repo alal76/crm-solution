@@ -26,30 +26,30 @@ Four specialized Claude Opus 4.6 sub-agents have completed a comprehensive analy
 
 | Document | Purpose | Audience | Length |
 |----------|---------|----------|--------|
-| **[UNIFIED_REMEDIATION_PLAN.md](UNIFIED_REMEDIATION_PLAN.md)** | Complete implementation roadmap | Project Managers, Tech Leads | 40+ pages |
-| **[EXECUTIVE_BRIEFING_REMEDIATION.md](EXECUTIVE_BRIEFING_REMEDIATION.md)** | Strategic summary & ROI | Executive Leadership | 2 pages |
-| **[REMEDIATION_TASKS_INTEGRATED.md](REMEDIATION_TASKS_INTEGRATED.md)** | All 327 gaps organized by priority | Development Teams | 20+ pages |
-| **[SPRINT0_QUICK_START.md](SPRINT0_QUICK_START.md)** | Week 1 action plan (build fixes) | Sprint 0 Team | 5 pages |
+| **[UNIFIED_REMEDIATION_PLAN.md](../UNIFIED_REMEDIATION_PLAN.md)** | Complete implementation roadmap | Project Managers, Tech Leads | 40+ pages |
+| **[EXECUTIVE_BRIEFING_REMEDIATION.md](../EXECUTIVE_BRIEFING_REMEDIATION.md)** | Strategic summary & ROI | Executive Leadership | 2 pages |
+| **[REMEDIATION_TASKS_INTEGRATED.md](../REMEDIATION_TASKS_INTEGRATED.md)** | All 327 gaps organized by priority | Development Teams | 20+ pages |
+| **[SPRINT0_QUICK_START.md](../SPRINT0_QUICK_START.md)** | Week 1 action plan (build fixes) | Sprint 0 Team | 5 pages |
 
 ### DETAILED ANALYSIS DOCUMENTS
 
 | Document | Focus | Depth | Pages |
 |----------|-------|-------|-------|
-| **[FRONTEND_GAP_ANALYSIS_REPORT.md](docs/status/FRONTEND_GAP_ANALYSIS_REPORT.md)** | 87 UI/UX gaps | Comprehensive | 25+ |
-| **[BACKEND_GAPS_INDEX.md](BACKEND_GAPS_INDEX.md)** | Backend gaps navigation | Quick reference | 3 |
-| **[BACKEND_GAPS_SUMMARY.md](BACKEND_GAPS_SUMMARY.md)** | Backend executive summary | Overview | 5 |
-| **[BACKEND_GAPS_ANALYSIS_REPORT.md](BACKEND_GAPS_ANALYSIS_REPORT.md)** | 127 backend gaps detailed | Deep dive | 45+ |
-| **[BACKEND_GAPS_TRACKING.md](BACKEND_GAPS_TRACKING.md)** | Backend task checklist | Implementation | 30+ |
-| **[DATABASE_GAPS_ANALYSIS.md](DATABASE_GAPS_ANALYSIS.md)** | 117 database gaps | SQL ready | 35+ |
-| **[ARCHITECTURAL_ALIGNMENT_ASSESSMENT.md](docs/development/ARCHITECTURAL_ALIGNMENT_ASSESSMENT.md)** | Full architecture review | Technical deep dive | 60+ |
-| **[ARCHITECTURAL_VALIDATION_SUMMARY.md](docs/summary/ARCHITECTURAL_VALIDATION_SUMMARY.md)** | Architecture quick review | Leadership briefing | 8 |
+| **[FRONTEND_GAP_ANALYSIS_REPORT.md](../status/FRONTEND_GAP_ANALYSIS_REPORT.md)** | 87 UI/UX gaps | Comprehensive | 25+ |
+| **[BACKEND_GAPS_INDEX.md](../BACKEND_GAPS_INDEX.md)** | Backend gaps navigation | Quick reference | 3 |
+| **[BACKEND_GAPS_SUMMARY.md](../BACKEND_GAPS_SUMMARY.md)** | Backend executive summary | Overview | 5 |
+| **[BACKEND_GAPS_ANALYSIS_REPORT.md](../BACKEND_GAPS_ANALYSIS_REPORT.md)** | 127 backend gaps detailed | Deep dive | 45+ |
+| **[BACKEND_GAPS_TRACKING.md](../BACKEND_GAPS_TRACKING.md)** | Backend task checklist | Implementation | 30+ |
+| **[DATABASE_GAPS_ANALYSIS.md](../DATABASE_GAPS_ANALYSIS.md)** | 117 database gaps | SQL ready | 35+ |
+| **[ARCHITECTURAL_ALIGNMENT_ASSESSMENT.md](../development/ARCHITECTURAL_ALIGNMENT_ASSESSMENT.md)** | Full architecture review | Technical deep dive | 60+ |
+| **[ARCHITECTURAL_VALIDATION_SUMMARY.md](ARCHITECTURAL_VALIDATION_SUMMARY.md)** | Architecture quick review | Leadership briefing | 8 |
 
 ### REFERENCE DOCUMENTS
 
 | Document | Purpose |
 |----------|---------|
-| **[REMEDIATION_REFERENCE_INDEX.md](REMEDIATION_REFERENCE_INDEX.md)** | Navigation guide for all documents |
-| **[REMEDIATION_DELIVERY_SUMMARY.md](REMEDIATION_DELIVERY_SUMMARY.md)** | Confirmation of completion |
+| **[REMEDIATION_REFERENCE_INDEX.md](../REMEDIATION_REFERENCE_INDEX.md)** | Navigation guide for all documents |
+| **[REMEDIATION_DELIVERY_SUMMARY.md](../REMEDIATION_DELIVERY_SUMMARY.md)** | Confirmation of completion |
 
 ---
 
@@ -222,7 +222,7 @@ MILESTONES:
 
 ### TODAY (Approval Phase)
 1. **Executive Review**
-   - [ ] Review [EXECUTIVE_BRIEFING_REMEDIATION.md](EXECUTIVE_BRIEFING_REMEDIATION.md)
+   - [ ] Review [EXECUTIVE_BRIEFING_REMEDIATION.md](../EXECUTIVE_BRIEFING_REMEDIATION.md)
    - [ ] Review resource requirements & budget
    - [ ] Make Go/No-Go decision
    - [ ] Signal approval to teams
@@ -251,10 +251,10 @@ MILESTONES:
    - [ ] Finalize task estimates
    - [ ] Assign developers
 
-**Reference:** [SPRINT0_QUICK_START.md](SPRINT0_QUICK_START.md) for detailed day-by-day guide
+**Reference:** [SPRINT0_QUICK_START.md](../SPRINT0_QUICK_START.md) for detailed day-by-day guide
 
 ### WEEK 2+ (Sprint 1)
-- [ ] Follow [UNIFIED_REMEDIATION_PLAN.md](UNIFIED_REMEDIATION_PLAN.md)
+- [ ] Follow [UNIFIED_REMEDIATION_PLAN.md](../UNIFIED_REMEDIATION_PLAN.md)
 - [ ] Execute database schema creation
 - [ ] Begin backend service implementation
 - [ ] Daily standups, weekly progress reviews
@@ -266,38 +266,38 @@ MILESTONES:
 **Role-Based Reading Guide:**
 
 🏢 **For C-Level Executives:**
-1. Start: [EXECUTIVE_BRIEFING_REMEDIATION.md](EXECUTIVE_BRIEFING_REMEDIATION.md) (2 pages)
+1. Start: [EXECUTIVE_BRIEFING_REMEDIATION.md](../EXECUTIVE_BRIEFING_REMEDIATION.md) (2 pages)
 2. Decision: Approve timeline & budget
 3. Action: Authorize resource allocation
 
 👔 **For Project Managers:**
-1. Start: [UNIFIED_REMEDIATION_PLAN.md](UNIFIED_REMEDIATION_PLAN.md) (40 pages)
-2. Reference: [REMEDIATION_TASKS_INTEGRATED.md](REMEDIATION_TASKS_INTEGRATED.md) (sprint breakdowns)
+1. Start: [UNIFIED_REMEDIATION_PLAN.md](../UNIFIED_REMEDIATION_PLAN.md) (40 pages)
+2. Reference: [REMEDIATION_TASKS_INTEGRATED.md](../REMEDIATION_TASKS_INTEGRATED.md) (sprint breakdowns)
 3. Action: Create Jira boards, assign tasks
 
 👨‍💻 **For Backend Developers:**
-1. Start: [BACKEND_GAPS_ANALYSIS_REPORT.md](BACKEND_GAPS_ANALYSIS_REPORT.md) (45 pages)
-2. Reference: [BACKEND_GAPS_TRACKING.md](BACKEND_GAPS_TRACKING.md) (task checklist)
+1. Start: [BACKEND_GAPS_ANALYSIS_REPORT.md](../BACKEND_GAPS_ANALYSIS_REPORT.md) (45 pages)
+2. Reference: [BACKEND_GAPS_TRACKING.md](../BACKEND_GAPS_TRACKING.md) (task checklist)
 3. Action: Review Sprint 0 then Sprint 1 tasks
 
 🎨 **For Frontend Developers:**
-1. Start: [FRONTEND_GAP_ANALYSIS_REPORT.md](docs/status/FRONTEND_GAP_ANALYSIS_REPORT.md) (25 pages)
-2. Reference: [REMEDIATION_TASKS_INTEGRATED.md](REMEDIATION_TASKS_INTEGRATED.md) (frontend gaps)
+1. Start: [FRONTEND_GAP_ANALYSIS_REPORT.md](../status/FRONTEND_GAP_ANALYSIS_REPORT.md) (25 pages)
+2. Reference: [REMEDIATION_TASKS_INTEGRATED.md](../REMEDIATION_TASKS_INTEGRATED.md) (frontend gaps)
 3. Action: Review Sprint 3-5 tasks
 
 🗄️ **For Database Administrator:**
-1. Start: [DATABASE_GAPS_ANALYSIS.md](DATABASE_GAPS_ANALYSIS.md) (35 pages)
-2. Reference: [REMEDIATION_TASKS_INTEGRATED.md](REMEDIATION_TASKS_INTEGRATED.md) (DB gaps)
+1. Start: [DATABASE_GAPS_ANALYSIS.md](../DATABASE_GAPS_ANALYSIS.md) (35 pages)
+2. Reference: [REMEDIATION_TASKS_INTEGRATED.md](../REMEDIATION_TASKS_INTEGRATED.md) (DB gaps)
 3. Action: Create migration scripts for Sprint 1
 
 🏗️ **For Solution Architects:**
-1. Start: [ARCHITECTURAL_ALIGNMENT_ASSESSMENT.md](docs/development/ARCHITECTURAL_ALIGNMENT_ASSESSMENT.md) (60 pages)
-2. Reference: [ARCHITECTURAL_VALIDATION_SUMMARY.md](docs/summary/ARCHITECTURAL_VALIDATION_SUMMARY.md) (8 pages)
+1. Start: [ARCHITECTURAL_ALIGNMENT_ASSESSMENT.md](../development/ARCHITECTURAL_ALIGNMENT_ASSESSMENT.md) (60 pages)
+2. Reference: [ARCHITECTURAL_VALIDATION_SUMMARY.md](ARCHITECTURAL_VALIDATION_SUMMARY.md) (8 pages)
 3. Action: Review architecture decisions, guide implementation
 
 📋 **For QA/Testing:**
-1. Start: [UNIFIED_REMEDIATION_PLAN.md](UNIFIED_REMEDIATION_PLAN.md) (testing sections)
-2. Reference: [REMEDIATION_TASKS_INTEGRATED.md](REMEDIATION_TASKS_INTEGRATED.md) (test requirements)
+1. Start: [UNIFIED_REMEDIATION_PLAN.md](../UNIFIED_REMEDIATION_PLAN.md) (testing sections)
+2. Reference: [REMEDIATION_TASKS_INTEGRATED.md](../REMEDIATION_TASKS_INTEGRATED.md) (test requirements)
 3. Action: Create E2E test plans for each sprint
 
 ---
@@ -385,7 +385,7 @@ MILESTONES:
 
 ### For Development Teams
 1. **Start Sprint 0 TODAY** - build errors are critical blocker
-2. **Reference [SPRINT0_QUICK_START.md](SPRINT0_QUICK_START.md)** for day-by-day tasks
+2. **Reference [SPRINT0_QUICK_START.md](../SPRINT0_QUICK_START.md)** for day-by-day tasks
 3. **Follow architecture patterns** from system module (100% complete)
 4. **Use specification documents** as single source of truth
 5. **Daily communication** across frontend/backend/database teams
@@ -397,15 +397,15 @@ MILESTONES:
 All documents are located in: `/Users/alal/Code/Git CRM Solution/crm-solution/docs/`
 
 **For questions on:**
-- **Overall plan:** See [UNIFIED_REMEDIATION_PLAN.md](UNIFIED_REMEDIATION_PLAN.md)
-- **Executive summary:** See [EXECUTIVE_BRIEFING_REMEDIATION.md](EXECUTIVE_BRIEFING_REMEDIATION.md)
-- **Week 1 execution:** See [SPRINT0_QUICK_START.md](SPRINT0_QUICK_START.md)
-- **Frontend gaps:** See [FRONTEND_GAP_ANALYSIS_REPORT.md](docs/status/FRONTEND_GAP_ANALYSIS_REPORT.md)
-- **Backend gaps:** See [BACKEND_GAPS_ANALYSIS_REPORT.md](BACKEND_GAPS_ANALYSIS_REPORT.md)
-- **Database gaps:** See [DATABASE_GAPS_ANALYSIS.md](DATABASE_GAPS_ANALYSIS.md)
-- **Architecture:** See [ARCHITECTURAL_ALIGNMENT_ASSESSMENT.md](docs/development/ARCHITECTURAL_ALIGNMENT_ASSESSMENT.md)
-- **Task tracking:** See [REMEDIATION_TASKS_INTEGRATED.md](REMEDIATION_TASKS_INTEGRATED.md)
-- **Navigation:** See [REMEDIATION_REFERENCE_INDEX.md](REMEDIATION_REFERENCE_INDEX.md)
+- **Overall plan:** See [UNIFIED_REMEDIATION_PLAN.md](../UNIFIED_REMEDIATION_PLAN.md)
+- **Executive summary:** See [EXECUTIVE_BRIEFING_REMEDIATION.md](../EXECUTIVE_BRIEFING_REMEDIATION.md)
+- **Week 1 execution:** See [SPRINT0_QUICK_START.md](../SPRINT0_QUICK_START.md)
+- **Frontend gaps:** See [FRONTEND_GAP_ANALYSIS_REPORT.md](../status/FRONTEND_GAP_ANALYSIS_REPORT.md)
+- **Backend gaps:** See [BACKEND_GAPS_ANALYSIS_REPORT.md](../BACKEND_GAPS_ANALYSIS_REPORT.md)
+- **Database gaps:** See [DATABASE_GAPS_ANALYSIS.md](../DATABASE_GAPS_ANALYSIS.md)
+- **Architecture:** See [ARCHITECTURAL_ALIGNMENT_ASSESSMENT.md](../development/ARCHITECTURAL_ALIGNMENT_ASSESSMENT.md)
+- **Task tracking:** See [REMEDIATION_TASKS_INTEGRATED.md](../REMEDIATION_TASKS_INTEGRATED.md)
+- **Navigation:** See [REMEDIATION_REFERENCE_INDEX.md](../REMEDIATION_REFERENCE_INDEX.md)
 
 ---
 

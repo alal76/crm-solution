@@ -119,7 +119,7 @@
 3. ITSM/SLAPolicyAdminService.cs              (280 lines)
 4. ITSM/EscalationRuleAdminService.cs        (201 lines)
 5. P0_P1_CRITICAL_SERVICES_IMPLEMENTATION_PLAN.md
-6. P0_P1_PHASE1_PHASE2_COMPLETION_REPORT.md
+6. docs/legacy/summary/P0_P1_PHASE1_PHASE2_COMPLETION_REPORT.md
 7. P0_P1_QUICK_REFERENCE_AND_NEXT_STEPS.md
 ```
 
@@ -287,7 +287,7 @@ public class CommissionRuleServiceTests
 - Progress tracking table
 
 ### 2. Phase 1-2 Completion Report
-📄 **File:** P0_P1_PHASE1_PHASE2_COMPLETION_REPORT.md  
+📄 **File:** docs/legacy/summary/P0_P1_PHASE1_PHASE2_COMPLETION_REPORT.md  
 📌 **Content:**
 - Completion metrics and evidence
 - Service details with method counts

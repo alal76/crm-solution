@@ -57,9 +57,9 @@ Once Phase 3 completes:
 ## CRITICAL FILES TO KNOW
 
 ### Phase 2 Completion Reports
-- `/PHASE_2_COMPLETE.md` - What was accomplished, what issues were fixed
-- `/PHASE_2_EXECUTION_REPORT.md` - Detailed technical analysis
-- `/PHASE_2_DTO_CONSOLIDATION_PLAN.md` - Consolidation strategy
+- `/docs/legacy/summary/PHASE_2_COMPLETE.md` - What was accomplished, what issues were fixed
+- `/docs/legacy/summary/PHASE_2_EXECUTION_REPORT.md` - Detailed technical analysis
+- `/docs/legacy/summary/PHASE_2_DTO_CONSOLIDATION_PLAN.md` - Consolidation strategy
 
 ### Key Architecture Documents
 - `/docs/11-specifications/SPEC-ARCH-001.md` - DTO standardization (MUST READ)
@@ -69,7 +69,7 @@ Once Phase 3 completes:
 - `/docs/11-specifications/SPEC-ARCH-005.md` - Validation
 
 ### Solution Status
-- `/VICTORY_DECLARATION_P0P1_PHASE1.md` - Phase 1 achievement summary 
+- `/docs/legacy/summary/VICTORY_DECLARATION_P0P1_PHASE1.md` - Phase 1 achievement summary 
 - `/SOLUTION_GAPS_REMEDIATION_PLAN.md` - Master remediation tracking
 - Root `.github/copilot-instructions.md` - CRM architecture guide
 

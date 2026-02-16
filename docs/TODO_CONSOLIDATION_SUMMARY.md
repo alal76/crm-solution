@@ -239,7 +239,7 @@ Phase 7: Enhancements (13 items) [P3]
 | [CONSOLIDATED_SPECIFICATION_TODOS.md](CONSOLIDATED_SPECIFICATION_TODOS.md) | Full TODO item reference | ✅ Created |
 | [MASTER_TODO_LIST.md](MASTER_TODO_LIST.md) | Integration point | 🔄 To be updated |
 | [specifications/INDEX.md](specifications/INDEX.md) | Spec navigation | ✅ Existing |
-| [specifications/IMPLEMENTATION_PLAN.md](specifications/IMPLEMENTATION_PLAN.md) | Timeline detail | ✅ Existing |
+| [specifications/IMPLEMENTATION_PLAN.md](11-specifications/IMPLEMENTATION_PLAN.md) | Timeline detail | ✅ Existing |
 | GitHub Projects Board | Work tracking | 📋 To create |
 
 ---

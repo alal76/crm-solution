@@ -117,8 +117,8 @@ Plus: Delete methods have wrong return types (`Task` instead of `Task<bool>`).
 ## Next Steps
 
 1. **Read Details:**
-   - [SYSTEM_MODULE_TEST_EXECUTION_REPORT.md](docs/test/SYSTEM_MODULE_TEST_EXECUTION_REPORT.md) — Full error details
-   - [SYSTEM_MODULE_REMEDIATION_GUIDE.md](docs/development/SYSTEM_MODULE_REMEDIATION_GUIDE.md) — Step-by-step fix guide
+   - [SYSTEM_MODULE_TEST_EXECUTION_REPORT.md](SYSTEM_MODULE_TEST_EXECUTION_REPORT.md) — Full error details
+   - [SYSTEM_MODULE_REMEDIATION_GUIDE.md](../development/SYSTEM_MODULE_REMEDIATION_GUIDE.md) — Step-by-step fix guide
 
 2. **Execute Remediation:** Follow Phase 1-5 in remediation guide (3 hours)
 
@@ -154,8 +154,8 @@ Plus: Delete methods have wrong return types (`Task` instead of `Task<bool>`).
 ## Key Contacts
 
 For questions about the remediation plan:
-- See: [SYSTEM_MODULE_REMEDIATION_GUIDE.md](docs/development/SYSTEM_MODULE_REMEDIATION_GUIDE.md)
-- Specific error details: [SYSTEM_MODULE_TEST_EXECUTION_REPORT.md](docs/test/SYSTEM_MODULE_TEST_EXECUTION_REPORT.md)
+- See: [SYSTEM_MODULE_REMEDIATION_GUIDE.md](../development/SYSTEM_MODULE_REMEDIATION_GUIDE.md)
+- Specific error details: [SYSTEM_MODULE_TEST_EXECUTION_REPORT.md](SYSTEM_MODULE_TEST_EXECUTION_REPORT.md)
 
 ---
 

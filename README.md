@@ -552,7 +552,7 @@ crm-solution/
 |----------|-------------|
 | [Docker Setup](docs/deployment/DOCKER_SETUP.md) | Docker Compose guide |
 | [Kubernetes Guide](docs/deployment/KUBERNETES_DEPLOYMENT_GUIDE.md) | K8s deployment |
-| [Production Deploy](docs/deployment/DEPLOY_192.168.0.9.md) | Server deployment |
+| [Production Deploy](docs/development/DEPLOYMENT_GUIDE_192.168.0.9.md) | Server deployment |
 | [Infrastructure Guide](docs/INFRASTRUCTURE_GUIDE.md) | Infrastructure overview |
 
 ### Features

@@ -68,7 +68,7 @@
 ### Phase 2: Design & Specification (Hours 2-4)
 
 **Schema Design Document Created:**
-- **File:** [DATABASE_SCHEMA_ADDITIONS.md](docs/DATABASE_SCHEMA_ADDITIONS.md)
+- **File:** [DATABASE_SCHEMA_ADDITIONS.md](DATABASE_SCHEMA_ADDITIONS.md)
 - **Format:** Comprehensive 800+ line technical specification
 - **Contents:**
   - Table-by-table design with 51 column specifications
@@ -155,7 +155,7 @@
 
 ### Phase 5: Implementation Guide (Hours 8-10)
 
-**File Created:** [ITSM_IMPLEMENTATION_GUIDE.md](docs/ITSM_IMPLEMENTATION_GUIDE.md)
+**File Created:** [ITSM_IMPLEMENTATION_GUIDE.md](ITSM_IMPLEMENTATION_GUIDE.md)
 
 **Guide Contents:**
 1. **Pre-Deployment Checklist** - 15 items covering backups, permissions, testing
@@ -176,7 +176,7 @@
 
 ### Phase 6: Remediation Tracker Update (Hour 10)
 
-**Updated:** [REMEDIATION_TASKS_INTEGRATED.md](docs/REMEDIATION_TASKS_INTEGRATED.md)
+**Updated:** [REMEDIATION_TASKS_INTEGRATED.md](REMEDIATION_TASKS_INTEGRATED.md)
 
 **Changes Made:**
 - Changed status from "CRITICAL" to "✅ COMPLETE"

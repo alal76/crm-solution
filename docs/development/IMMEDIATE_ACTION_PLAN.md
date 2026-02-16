@@ -307,7 +307,7 @@ Once quick wins are committed, move to address normalization:
 **Total Test Coverage**: 156+ tests across all layers
 
 **Files**:
-- Backend: [PHASE_1_6_TEST_SUITE_REPORT.md](docs/test/PHASE_1_6_TEST_SUITE_REPORT.md) - Complete report with all details
+- Backend: [PHASE_1_6_TEST_SUITE_REPORT.md](../test/PHASE_1_6_TEST_SUITE_REPORT.md) - Complete report with all details
 - Tests created: 4 backend files, 2 frontend files, enhanced 1 E2E file
 
 **Timeline**: Completed in 3 hours | ✅ February 15, 2026

@@ -207,10 +207,10 @@ public async Task<IEnumerable<CommissionPlanDto>> GetAllAsync(CancellationToken 
 
 | Document | Lines | Purpose | Link |
 |----------|-------|---------|------|
-| TIER1_BUILD_ERROR_ANALYSIS.md | 400+ | Detailed categorized error breakdown with code examples | [Link](docs/development/TIER1_BUILD_ERROR_ANALYSIS.md) |
-| SESSION_SUMMARY_TIER1_REMEDIATION.md | 250+ | Complete session context, learnings, architecture decisions | [Link](docs/summary/SESSION_SUMMARY_TIER1_REMEDIATION.md) |
-| QUICK_REFERENCE_TIER1_FIX.md | 180+ | 5-minute summary, one-minute quick path, error locations | [Link](docs/development/QUICK_REFERENCE_TIER1_FIX.md) |
-| SPRINT1_2_SERVICES_DELIVERY_REPORT.md | 500+ | Service inventory, method details, test coverage metrics | [Link](docs/status/SPRINT1_2_SERVICES_DELIVERY_REPORT.md) |
+| TIER1_BUILD_ERROR_ANALYSIS.md | 400+ | Detailed categorized error breakdown with code examples | [Link](../development/TIER1_BUILD_ERROR_ANALYSIS.md) |
+| docs/legacy/summary/SESSION_SUMMARY_TIER1_REMEDIATION.md | 250+ | Complete session context, learnings, architecture decisions | Link |
+| QUICK_REFERENCE_TIER1_FIX.md | 180+ | 5-minute summary, one-minute quick path, error locations | [Link](../development/QUICK_REFERENCE_TIER1_FIX.md) |
+| docs/legacy/status/SPRINT1_2_SERVICES_DELIVERY_REPORT.md | 500+ | Service inventory, method details, test coverage metrics | Link |
 
 **Total Documentation: 1,330+ lines**
 
@@ -300,7 +300,7 @@ Sprint 1-2 Backend Services Implementation
 ```
 CREATED:
   ✅ TIER1_BUILD_ERROR_ANALYSIS.md (400+ lines)
-  ✅ SESSION_SUMMARY_TIER1_REMEDIATION.md (250+ lines)
+  ✅ docs/legacy/summary/SESSION_SUMMARY_TIER1_REMEDIATION.md (250+ lines)
   ✅ QUICK_REFERENCE_TIER1_FIX.md (180+ lines)
 
 COMMITTED:
@@ -412,11 +412,11 @@ BLOCKED UNTIL REMEDIATION:
 ## 📞 Questions?
 
 Refer to documentation in this order:
-1. **Quick answers:** [QUICK_REFERENCE_TIER1_FIX.md](docs/development/QUICK_REFERENCE_TIER1_FIX.md) (5 min read)
-2. **Detailed fixes:** [TIER1_BUILD_ERROR_ANALYSIS.md](docs/development/TIER1_BUILD_ERROR_ANALYSIS.md) (15 min read)
-3. **Deep context:** [SESSION_SUMMARY_TIER1_REMEDIATION.md](docs/summary/SESSION_SUMMARY_TIER1_REMEDIATION.md) (30 min read)
-4. **Service details:** [SPRINT1_2_SERVICES_DELIVERY_REPORT.md](docs/status/SPRINT1_2_SERVICES_DELIVERY_REPORT.md) (20 min read)
-5. **Copilot Instructions:** See [.github/copilot-instructions.md](.github/copilot-instructions.md)
+1. **Quick answers:** [QUICK_REFERENCE_TIER1_FIX.md](../development/QUICK_REFERENCE_TIER1_FIX.md) (5 min read)
+2. **Detailed fixes:** [TIER1_BUILD_ERROR_ANALYSIS.md](../development/TIER1_BUILD_ERROR_ANALYSIS.md) (15 min read)
+3. **Deep context:** docs/legacy/summary/SESSION_SUMMARY_TIER1_REMEDIATION.md (30 min read)
+4. **Service details:** docs/legacy/status/SPRINT1_2_SERVICES_DELIVERY_REPORT.md (20 min read)
+5. **Copilot Instructions:** See [.github/copilot-instructions.md](../../.github/copilot-instructions.md)
 
 ---
 

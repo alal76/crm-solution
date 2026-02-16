@@ -215,7 +215,7 @@ Tests run automatically in GitHub Actions (`.github/workflows/ci-cd.yml`):
 ## Related Documentation
 
 - [TESTING_SUMMARY.md](docs/test/TESTING_SUMMARY.md) — High-level testing overview
-- [SOLUTION_CONTEXT.md](docs/development/SOLUTION_CONTEXT.md) — Solution architecture
+- [SOLUTION_CONTEXT.md](development/SOLUTION_CONTEXT.md) — Solution architecture
 - [SOLUTION_GAPS_REMEDIATION_PLAN.md](docs/development/SOLUTION_GAPS_REMEDIATION_PLAN.md) — Test coverage gaps (Phase 10.10, 11.11)
 
 ---

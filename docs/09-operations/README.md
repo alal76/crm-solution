@@ -519,4 +519,4 @@ echo "Rollback complete. Verify application health."
 
 - [DEPLOYMENT.md](../08-deployment/README.md)
 - [TESTING.md](../07-testing/README.md)
-- [INFRASTRUCTURE_GUIDE.md](../../INFRASTRUCTURE_GUIDE.md)
+- [INFRASTRUCTURE_GUIDE.md](../INFRASTRUCTURE_GUIDE.md)

@@ -139,7 +139,7 @@ Email Sequences (10 DTOs)
 | Document | Lines | Purpose |
 |----------|-------|---------|
 | **BACKEND_SERVICES_IMPLEMENTATION_REPORT.md** | 1,000+ | Detailed implementation roadmap with architecture, timelines, risk analysis |
-| **BACKEND_SERVICES_PHASE1_COMPLETE.md** | 950+ | High-level summary of deliverables, feature coverage, success criteria |
+| **docs/legacy/summary/BACKEND_SERVICES_PHASE1_COMPLETE.md** | 950+ | High-level summary of deliverables, feature coverage, success criteria |
 
 **Documentation Quality:**
 - Executive summaries for quick reference
@@ -150,7 +150,7 @@ Email Sequences (10 DTOs)
 
 ### 5. Implementation Guide (Phase 2 Preparation)
 
-**Location:** `PHASE2_IMPLEMENTATION_GUIDE.md`
+**Location:** `docs/legacy/summary/PHASE2_IMPLEMENTATION_GUIDE.md`
 
 **Contents:**
 - Service implementation templates with full code examples
@@ -446,7 +446,7 @@ dotnet test CRM.Backend/tests
 
 ### Immediate Next (Phase 2 Kickoff)
 
-1. ✅ Review PHASE2_IMPLEMENTATION_GUIDE.md
+1. ✅ Review docs/legacy/summary/PHASE2_IMPLEMENTATION_GUIDE.md
 2. ✅ Review service implementation templates with code examples
 3. ⏳ **CREATE SERVICE IMPLEMENTATIONS** - Start with EmailSequenceManagementService
 4. ⏳ **ENHANCE CONTROLLERS** - Add new endpoints to email sequences controller
@@ -457,7 +457,7 @@ dotnet test CRM.Backend/tests
 ```bash
 # Start Phase 2 implementation
 # 1. Choose service (start with EmailSequenceManagementService)
-# 2. Use PHASE2_IMPLEMENTATION_GUIDE.md templates
+# 2. Use docs/legacy/summary/PHASE2_IMPLEMENTATION_GUIDE.md templates
 # 3. Follow implementation checklist
 # 4. Write tests as you go
 # 5. Commit incrementally
@@ -482,13 +482,13 @@ dotnet test CRM.Backend/tests
 - ✅ FeatureServiceInterfaces.cs - 307 lines, 9 interfaces
 - ✅ FeatureDtosTests.cs - 553 lines, 28+ tests
 - ✅ BACKEND_SERVICES_IMPLEMENTATION_REPORT.md - 1,000+ lines
-- ✅ BACKEND_SERVICES_PHASE1_COMPLETE.md - 950+ lines
-- ✅ PHASE2_IMPLEMENTATION_GUIDE.md - 400+ lines
+- ✅ docs/legacy/summary/BACKEND_SERVICES_PHASE1_COMPLETE.md - 950+ lines
+- ✅ docs/legacy/summary/PHASE2_IMPLEMENTATION_GUIDE.md - 400+ lines
 - ✅ PHASE1_COMPLETE.md - This document
 
 ### Phase 2 Resources
 
-- 📋 PHASE2_IMPLEMENTATION_GUIDE.md - Service templates, controller patterns, testing guide
+- 📋 docs/legacy/summary/PHASE2_IMPLEMENTATION_GUIDE.md - Service templates, controller patterns, testing guide
 - 📋 Existing CommissionsController.cs - Reference for REST patterns (1,237 lines)
 - 📋 Existing CommissionService.cs - Reference for service patterns (727 lines)
 - 📋 Existing WebhooksController.cs - Reference for webhook handling (754 lines)

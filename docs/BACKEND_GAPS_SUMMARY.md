@@ -278,11 +278,11 @@ grep -r "class ProblemService" CRM.Infrastructure/Services/
 
 For detailed implementation questions, refer to:
 
-1. **Commission Details:** [SPEC-SALES-007](../specifications/SPEC-SALES-007-CommissionManagement.md)
-2. **Problem Management:** [SPEC-ITSM-002](../specifications/SPEC-ITSM-002-ProblemManagement.md)
-3. **Change Management:** [SPEC-ITSM-003](../specifications/SPEC-ITSM-003-ChangeManagement.md)
-4. **Campaign Execution:** [SPEC-MKT-001](../specifications/SPEC-MKT-001-CampaignManagement.md)
-5. **Webhook Delivery:** [SPEC-INT-001](../specifications/SPEC-INT-001-WebhookManagement.md)
+1. **Commission Details:** [SPEC-SALES-007](11-specifications/SPEC-SALES-007-CommissionManagement.md)
+2. **Problem Management:** [SPEC-ITSM-002](11-specifications/SPEC-ITSM-002-ProblemManagement.md)
+3. **Change Management:** [SPEC-ITSM-003](11-specifications/SPEC-ITSM-003-ChangeManagement.md)
+4. **Campaign Execution:** [SPEC-MKT-001](11-specifications/SPEC-MKT-001-CampaignManagement.md)
+5. **Webhook Delivery:** [SPEC-INT-001](11-specifications/SPEC-INT-001-WebhookManagement.md)
 
 ---
 

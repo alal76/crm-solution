@@ -99,7 +99,7 @@ helm install crm ./kubernetes/helm/crm \
 
 ### Option 3: Azure Container Apps
 
-See [Azure Deployment Guide](azure/AZURE_DEPLOYMENT.md)
+See [Azure Deployment Guide](../azure/AZURE_DEPLOYMENT.md)
 
 ---
 

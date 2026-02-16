@@ -88,7 +88,7 @@ Edit `CRM.Backend/src/CRM.Api/appsettings.json`:
 }
 ```
 
-See [docs/DATABASE_SETUP.md](docs/DATABASE_SETUP.md) for other database options.
+See [docs/DATABASE_SETUP.md](../DATABASE_SETUP.md) for other database options.
 
 ### 3. Create Database & Run Migrations
 
@@ -147,9 +147,9 @@ CRM/
 ## 📚 Documentation
 
 - **[README.md](README.md)** - Comprehensive project documentation
-- **[docs/DATABASE_SETUP.md](docs/DATABASE_SETUP.md)** - Database configuration for all supported platforms
-- **[docs/DEVELOPMENT.md](docs/DEVELOPMENT.md)** - Development guide and best practices
-- **[.github/SETUP_PROGRESS.md](.github/SETUP_PROGRESS.md)** - Setup progress checklist
+- **[docs/DATABASE_SETUP.md](../DATABASE_SETUP.md)** - Database configuration for all supported platforms
+- **[docs/DEVELOPMENT.md](../DEVELOPMENT.md)** - Development guide and best practices
+- **[.github/SETUP_PROGRESS.md](../../.github/SETUP_PROGRESS.md)** - Setup progress checklist
 
 ## 🔧 Available Commands
 
@@ -230,7 +230,7 @@ The CRM supports multiple databases without code changes:
 ### Database connection fails?
 - Verify database is running
 - Check credentials in `appsettings.json`
-- Review [docs/DATABASE_SETUP.md](docs/DATABASE_SETUP.md)
+- Review [docs/DATABASE_SETUP.md](../DATABASE_SETUP.md)
 
 ## 🤝 Getting Help
 

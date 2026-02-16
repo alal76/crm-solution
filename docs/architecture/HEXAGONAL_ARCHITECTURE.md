@@ -224,6 +224,6 @@ public class CustomersController(ICustomerInputPort customerPort)
 
 ## Related Documentation
 
-- [IMPLEMENTATION_SUMMARY.md](IMPLEMENTATION_SUMMARY.md) - Overall implementation details
-- [CONTACTS_IMPLEMENTATION.md](CONTACTS_IMPLEMENTATION.md) - Contact module details
-- [TESTING_GUIDE.md](TESTING_GUIDE.md) - Testing approach
+- [IMPLEMENTATION_SUMMARY.md](../IMPLEMENTATION_SUMMARY.md) - Overall implementation details
+- [CONTACTS_IMPLEMENTATION.md](../features/CONTACTS_IMPLEMENTATION.md) - Contact module details
+- [TESTING_GUIDE.md](../testing/TESTING_GUIDE.md) - Testing approach

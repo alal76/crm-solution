@@ -480,11 +480,11 @@ dotnet ef migrations remove --project src/CRM.Infrastructure
 - [SPEC-SYS-002](../specifications/SPEC-SYS-002-UserGroupsOrganization.md) - User Groups
 - [SPEC-SYS-003](../specifications/SPEC-SYS-003-UserProfile.md) - User Profiles
 - [SPEC-SYS-004](../specifications/SPEC-SYS-004-FeatureFlags.md) - Feature Flags
-- [SPEC-SYS-006](../specifications/SPEC-SYS-006-AuditLogging.md) - Audit Logging
+- [SPEC-SYS-006](../11-specifications/SPEC-SYS-006-AuditLogging.md) - Audit Logging
 - [SPEC-SYS-008](../specifications/SPEC-SYS-008-AdminConfiguration.md) - Admin Config
 - [SPEC-SYS-010](../specifications/SPEC-SYS-010-UIPreferences.md) - UI Preferences
 - [SPEC-SYS-011](../specifications/SPEC-SYS-011-PerformanceMetrics.md) - Performance Metrics
-- [SPEC-SYS-012](../specifications/SPEC-SYS-012-RBAC.md) - RBAC
+- [SPEC-SYS-012](../11-specifications/SPEC-SYS-012-RBAC.md) - RBAC
 
 ---
 

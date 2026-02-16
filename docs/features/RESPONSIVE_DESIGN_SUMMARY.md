@@ -93,7 +93,7 @@ Large Desktop: 1200px+
    - Feature breakdown
    - Testing recommendations
 
-6. **[TESTING_RESPONSIVE_DESIGN.md](TESTING_RESPONSIVE_DESIGN.md)** - NEW
+6. **[TESTING_RESPONSIVE_DESIGN.md](../testing/TESTING_RESPONSIVE_DESIGN.md)** - NEW
    - Comprehensive testing guide
    - Testing checklist
    - Issue reporting guidelines
@@ -207,7 +207,7 @@ Large Desktop: 1200px+
 ## Documentation Files
 
 - [RESPONSIVE_DESIGN.md](RESPONSIVE_DESIGN.md) - Technical implementation details
-- [TESTING_RESPONSIVE_DESIGN.md](TESTING_RESPONSIVE_DESIGN.md) - Comprehensive testing guide
+- [TESTING_RESPONSIVE_DESIGN.md](../testing/TESTING_RESPONSIVE_DESIGN.md) - Comprehensive testing guide
 
 ## Key Metrics
 

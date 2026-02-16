@@ -155,16 +155,16 @@ git log --oneline | head -10
 ## Additional Resources
 
 📄 **Detailed Guides:**
-- [TIER1_BUILD_ERROR_ANALYSIS.md](docs/development/TIER1_BUILD_ERROR_ANALYSIS.md) - Complete breakdown with code examples
-- [SESSION_SUMMARY_TIER1_REMEDIATION.md](docs/summary/SESSION_SUMMARY_TIER1_REMEDIATION.md) - Full context & learnings
-- [SPRINT1_2_SERVICES_DELIVERY_REPORT.md](docs/status/SPRINT1_2_SERVICES_DELIVERY_REPORT.md) - Service inventory & design
+- [TIER1_BUILD_ERROR_ANALYSIS.md](TIER1_BUILD_ERROR_ANALYSIS.md) - Complete breakdown with code examples
+- [docs/legacy/summary/SESSION_SUMMARY_TIER1_REMEDIATION.md](../legacy/summary/SESSION_SUMMARY_TIER1_REMEDIATION.md) - Full context & learnings
+- [docs/legacy/status/SPRINT1_2_SERVICES_DELIVERY_REPORT.md](../legacy/status/SPRINT1_2_SERVICES_DELIVERY_REPORT.md) - Service inventory & design
 
 📋 **Copilot Instructions:** 
 - See `.github/copilot-instructions.md` sections 2 (Naming Conventions), 10 (Testing Standards)
 
 ## Next Steps in Session
 
-1. Open [TIER1_BUILD_ERROR_ANALYSIS.md](docs/development/TIER1_BUILD_ERROR_ANALYSIS.md)
+1. Open [TIER1_BUILD_ERROR_ANALYSIS.md](TIER1_BUILD_ERROR_ANALYSIS.md)
 2. Start with Fix 1 (30 min, highest impact)
 3. Run build verification after each fix
 4. When build succeeds → run tests

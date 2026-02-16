@@ -1758,11 +1758,11 @@ Estimated Week 1 Effort: 38 hours across team
 
 ### C. Related Documentation
 
-- [ADR-001-Pluggable-Architecture-Strategy.md](docs/architecture/ADR-001-Pluggable-Architecture-Strategy.md)
-- [HEXAGONAL_ARCHITECTURE.md](docs/architecture/HEXAGONAL_ARCHITECTURE.md)
-- [ADR-004-Semantic-Kernel-Integration.md](docs/architecture/ADR-004-Semantic-Kernel-Integration.md)
-- [CODING_STANDARDS.md](docs/development/CODING_STANDARDS.md)
-- [DATABASE_SCHEMA.md](database/DATABASE_SCHEMA.md)
+- [ADR-001-Pluggable-Architecture-Strategy.md](../architecture/ADR-001-Pluggable-Architecture-Strategy.md)
+- [HEXAGONAL_ARCHITECTURE.md](../architecture/HEXAGONAL_ARCHITECTURE.md)
+- [ADR-004-Semantic-Kernel-Integration.md](../architecture/ADR-004-Semantic-Kernel-Integration.md)
+- [CODING_STANDARDS.md](CODING_STANDARDS.md)
+- [DATABASE_SCHEMA.md](../../database/DATABASE_SCHEMA.md)
 
 ---
 

@@ -247,10 +247,10 @@ JWT_SECRET=your_jwt_secret
 ## 📚 Documentation
 
 For detailed information, see:
-- [IMPLEMENTATION_COMPLETE.md](IMPLEMENTATION_COMPLETE.md) - Full technical documentation
+- [IMPLEMENTATION_COMPLETE.md](../IMPLEMENTATION_COMPLETE.md) - Full technical documentation
 - [USER_MANAGEMENT_FEATURE.md](USER_MANAGEMENT_FEATURE.md) - Feature specifications
 - [USER_MANAGEMENT_QUICKSTART.md](USER_MANAGEMENT_QUICKSTART.md) - Quick reference guide
-- [FEATURE_CHECKLIST.md](FEATURE_CHECKLIST.md) - Complete feature list
+- [FEATURE_CHECKLIST.md](../FEATURE_CHECKLIST.md) - Complete feature list
 
 ---
 

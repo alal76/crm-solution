@@ -155,9 +155,9 @@ public class RolesController : ControllerBase
 |------|---------|---------|
 | [Program.cs](CRM.Backend/src/CRM.Api/Program.cs) | DI registration | +35 lines |
 | [appsettings.json](CRM.Backend/src/CRM.Api/appsettings.json) | Configuration | +1 line |
-| [SYSTEM_MODULE_DI_REGISTRATION_COMPLETE.md](docs/development/SYSTEM_MODULE_DI_REGISTRATION_COMPLETE.md) | Full docs | Created |
-| [SYSTEM_MODULE_DI_CHANGES_SUMMARY.md](docs/summary/SYSTEM_MODULE_DI_CHANGES_SUMMARY.md) | Change details | Created |
-| [DI_REGISTRATION_COMPLETION_REPORT.md](docs/summary/DI_REGISTRATION_COMPLETION_REPORT.md) | Full report | Created |
+| [SYSTEM_MODULE_DI_REGISTRATION_COMPLETE.md](SYSTEM_MODULE_DI_REGISTRATION_COMPLETE.md) | Full docs | Created |
+| [SYSTEM_MODULE_DI_CHANGES_SUMMARY.md](../summary/SYSTEM_MODULE_DI_CHANGES_SUMMARY.md) | Change details | Created |
+| [DI_REGISTRATION_COMPLETION_REPORT.md](../summary/DI_REGISTRATION_COMPLETION_REPORT.md) | Full report | Created |
 
 ---
 

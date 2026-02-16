@@ -102,11 +102,11 @@ export const RiskAssessmentForm: React.FC<RiskAssessmentFormProps> = ({
                 <RadioGroup
                   value={formData.riskLevel}
                   onChange={(e) => handleChange('riskLevel', Number(e.target.value))}
-                  disabled={readOnly}
                 >
                   {Object.entries(riskLevelDescriptions).map(([level, desc]) => (
                     <FormControlLabel
                       key={level}
+                      disabled={readOnly}
                       value={Number(level)}
                       control={<Radio />}
                       label={

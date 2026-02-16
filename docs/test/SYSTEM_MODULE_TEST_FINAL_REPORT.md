@@ -239,12 +239,12 @@ The following comprehensive documentation has been created:
 
 ### Immediate (Today)
 1. **Read Documentation**
-   - Review [SYSTEM_MODULE_TEST_BLOCKER_SUMMARY.md](docs/test/SYSTEM_MODULE_TEST_BLOCKER_SUMMARY.md) for overview
-   - Review [SYSTEM_MODULE_REMEDIATION_GUIDE.md](docs/development/SYSTEM_MODULE_REMEDIATION_GUIDE.md) for implementation steps
+   - Review [SYSTEM_MODULE_TEST_BLOCKER_SUMMARY.md](SYSTEM_MODULE_TEST_BLOCKER_SUMMARY.md) for overview
+   - Review [SYSTEM_MODULE_REMEDIATION_GUIDE.md](../development/SYSTEM_MODULE_REMEDIATION_GUIDE.md) for implementation steps
 
 2. **Execute Remediation**
    - Follow Phase 1-5 in remediation guide
-   - Use [REMEDIATION_CHECKLIST.md](docs/status/REMEDIATION_CHECKLIST.md) to track progress
+   - Use [REMEDIATION_CHECKLIST.md](../status/REMEDIATION_CHECKLIST.md) to track progress
    - Estimated time: 3-4 hours
 
 3. **Verify Build Success**
@@ -330,8 +330,8 @@ The following comprehensive documentation has been created:
 **Blocker Level:** CRITICAL - Prevents all System Module testing  
 
 **Documents to Review:**
-1. [SYSTEM_MODULE_TEST_BLOCKER_SUMMARY.md](docs/test/SYSTEM_MODULE_TEST_BLOCKER_SUMMARY.md) — Quick overview
-2. [SYSTEM_MODULE_REMEDIATION_GUIDE.md](docs/development/SYSTEM_MODULE_REMEDIATION_GUIDE.md) — Implementation guide
-3. [SYSTEM_MODULE_TEST_EXECUTION_REPORT.md](docs/test/SYSTEM_MODULE_TEST_EXECUTION_REPORT.md) — Detailed errors
-4. [REMEDIATION_CHECKLIST.md](docs/status/REMEDIATION_CHECKLIST.md) — Tracking checklist
+1. [SYSTEM_MODULE_TEST_BLOCKER_SUMMARY.md](SYSTEM_MODULE_TEST_BLOCKER_SUMMARY.md) — Quick overview
+2. [SYSTEM_MODULE_REMEDIATION_GUIDE.md](../development/SYSTEM_MODULE_REMEDIATION_GUIDE.md) — Implementation guide
+3. [SYSTEM_MODULE_TEST_EXECUTION_REPORT.md](SYSTEM_MODULE_TEST_EXECUTION_REPORT.md) — Detailed errors
+4. [REMEDIATION_CHECKLIST.md](../status/REMEDIATION_CHECKLIST.md) — Tracking checklist
 

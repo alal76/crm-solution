@@ -2,7 +2,7 @@
 
 **Status:** ⚠️ 7.2/10 — STABLE BUT INCOMPLETE  
 **Date:** February 15, 2026  
-**Full Report:** [ARCHITECTURAL_ALIGNMENT_ASSESSMENT.md](docs/development/ARCHITECTURAL_ALIGNMENT_ASSESSMENT.md)
+**Full Report:** [ARCHITECTURAL_ALIGNMENT_ASSESSMENT.md](../development/ARCHITECTURAL_ALIGNMENT_ASSESSMENT.md)
 
 ---
 
@@ -311,9 +311,9 @@ Outcome: Feature parity with specifications
 
 ## References
 
-- **Full Report:** [ARCHITECTURAL_ALIGNMENT_ASSESSMENT.md](docs/development/ARCHITECTURAL_ALIGNMENT_ASSESSMENT.md)
+- **Full Report:** [ARCHITECTURAL_ALIGNMENT_ASSESSMENT.md](../development/ARCHITECTURAL_ALIGNMENT_ASSESSMENT.md)
 - **Specifications:** [docs/11-specifications/INDEX.md](docs/11-specifications/INDEX.md)
-- **Coding Standards:** [CODING_STANDARDS.md](docs/development/CODING_STANDARDS.md)
+- **Coding Standards:** [CODING_STANDARDS.md](../development/CODING_STANDARDS.md)
 - **Architecture:** [docs/architecture/](docs/architecture/)
 - **Remediation Plan:** [docs/SOLUTION_GAPS_REMEDIATION_PLAN.md](docs/SOLUTION_GAPS_REMEDIATION_PLAN.md)
 

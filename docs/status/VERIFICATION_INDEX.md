@@ -9,31 +9,31 @@
 ## 📋 Quick Navigation
 
 ### For Executives
-Start here → [QA_VERIFICATION_COMPLETE.md](docs/test/QA_VERIFICATION_COMPLETE.md) (10 min read)
+Start here → [QA_VERIFICATION_COMPLETE.md](../test/QA_VERIFICATION_COMPLETE.md) (10 min read)
 - Quality dashboard with key metrics
 - Executive summary of findings
 - Timeline to production
 
 ### For Development Leadership  
-Start here → [GIT_COMMIT_STATUS.md](docs/status/GIT_COMMIT_STATUS.md) (15 min read)
+Start here → [GIT_COMMIT_STATUS.md](GIT_COMMIT_STATUS.md) (15 min read)
 - Commit decision framework
 - Success criteria checklist
 - Remediation timeline
 
 ### For QA Engineers
-Start here → [REGRESSION_TEST_RESULTS.md](docs/test/REGRESSION_TEST_RESULTS.md) (30 min read)
+Start here → [REGRESSION_TEST_RESULTS.md](../test/REGRESSION_TEST_RESULTS.md) (30 min read)
 - Complete test execution status
 - Feature regression analysis
 - Root cause analysis
 
 ### For Developers (Fixing Code)
-Start here → [BUILD_ERRORS_REMEDIATION_GUIDE.md](docs/development/BUILD_ERRORS_REMEDIATION_GUIDE.md) (60 min work)
+Start here → [BUILD_ERRORS_REMEDIATION_GUIDE.md](../development/BUILD_ERRORS_REMEDIATION_GUIDE.md) (60 min work)
 - Step-by-step fix instructions
 - All 18 errors explained
 - Verification checklist
 
 ### For Architects
-Start here → [CODE_QUALITY_VERIFICATION_REPORT.md](docs/status/CODE_QUALITY_VERIFICATION_REPORT.md) (45 min read)
+Start here → [CODE_QUALITY_VERIFICATION_REPORT.md](CODE_QUALITY_VERIFICATION_REPORT.md) (45 min read)
 - All 10 code quality standards
 - Architecture validation
 - Specification alignment

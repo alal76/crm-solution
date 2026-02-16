@@ -57,7 +57,6 @@ export const IncidentPriorityBadge: React.FC<IncidentPriorityBadgeProps> = ({
     <Chip
       label={config.label}
       color={config.color}
-      icon={config.icon}
       size={size === 'small' ? 'small' : 'medium'}
       variant="filled"
       sx={{ fontWeight: 500 }}

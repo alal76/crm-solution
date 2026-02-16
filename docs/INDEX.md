@@ -22,6 +22,8 @@ This documentation provides complete coverage of the CRM Solution from architect
 | [🚀 Deployment](08-deployment/README.md) | Docker, Kubernetes, CI/CD | DevOps, Ops |
 | [📋 Operations](09-operations/README.md) | Monitoring, maintenance, runbooks | Ops, Support |
 | [🔍 Traceability](10-traceability/README.md) | Feature-to-code mapping | All Teams |
+| [🧾 Specifications](11-specifications/INDEX.md) | Feature specs and templates | All Teams |
+| [🧭 Enhancements](12-%20Enhancements%20planned) | Future enhancements backlog | Product, Leads |
 
 ---
 
@@ -29,10 +31,10 @@ This documentation provides complete coverage of the CRM Solution from architect
 
 ### For New Developers
 
-1. **Read First:** [Architecture Overview](01-architecture/README.md)
-2. **Setup:** [Development Setup Guide](08-deployment/development-setup.md)
+1. **Read First:** [Architecture Overview](development/ARCHITECTURE_OVERVIEW.md)
+2. **Setup:** [Development Setup Guide](DEVELOPMENT.md)
 3. **Standards:** [Coding Standards](06-standards/README.md)
-4. **Run Locally:** [Quick Start](08-deployment/quick-start.md)
+4. **Run Locally:** [Deployment Guide](development/DEPLOYMENT_GUIDE_192.168.0.9.md)
 
 ### For AI Agents
 
@@ -156,14 +158,22 @@ See [AGENT_CONTEXT.md](AGENT_CONTEXT.md) for:
 
 | File | Description |
 |------|-------------|
-| [ARCHITECTURE_OVERVIEW.md](docs/development/ARCHITECTURE_OVERVIEW.md) | High-level architecture diagram |
-| [SOLUTION_CONTEXT.md](docs/development/SOLUTION_CONTEXT.md) | Complete context reference |
+| [ARCHITECTURE_OVERVIEW.md](development/ARCHITECTURE_OVERVIEW.md) | High-level architecture diagram |
+| [SOLUTION_CONTEXT.md](development/SOLUTION_CONTEXT.md) | Complete context reference |
 | [CHANGELOG.md](../CHANGELOG.md) | Version history |
 | [README.md](../README.md) | Project introduction |
 
+### Consolidated Documentation
+
+Primary docs are organized in:
+- [development/](development/)
+- [status/](status/)
+- [summary/](summary/)
+- [test/](test/)
+
 ### Legacy Documentation
 
-Previous documentation has been consolidated into this structure. Original files are preserved in [legacy/](legacy/) for reference.
+Archived session and historical docs live in [legacy/](legacy/). Links to legacy content should be treated as historical context only.
 
 ---
 

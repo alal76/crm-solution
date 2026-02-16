@@ -427,9 +427,9 @@ curl -v -H "Origin: http://frontend-origin" \
 
 ## Related Documentation
 
-- [SOLUTION_CONTEXT.md](docs/development/SOLUTION_CONTEXT.md) - Technical reference
-- [ARCHITECTURE_OVERVIEW.md](docs/development/ARCHITECTURE_OVERVIEW.md) - System architecture
-- [azure/AZURE_DEPLOYMENT.md](azure/AZURE_DEPLOYMENT.md) - Azure deployment guide
+- [SOLUTION_CONTEXT.md](../development/SOLUTION_CONTEXT.md) - Technical reference
+- [ARCHITECTURE_OVERVIEW.md](../development/ARCHITECTURE_OVERVIEW.md) - System architecture
+- [azure/AZURE_DEPLOYMENT.md](../../azure/AZURE_DEPLOYMENT.md) - Azure deployment guide
 - [docker/README.md](docker/README.md) - Docker configuration
 
 ---

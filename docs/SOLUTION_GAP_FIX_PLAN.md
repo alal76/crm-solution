@@ -420,8 +420,8 @@ services.AddScoped<IEmailTemplateService, EmailTemplateService>();
 
 ## Reference Documents
 
-- [SOLUTION_CONTEXT.md](docs/development/SOLUTION_CONTEXT.md) - Technical context
-- [ARCHITECTURE_OVERVIEW.md](docs/development/ARCHITECTURE_OVERVIEW.md) - Architecture patterns
+- [SOLUTION_CONTEXT.md](development/SOLUTION_CONTEXT.md) - Technical context
+- [ARCHITECTURE_OVERVIEW.md](development/ARCHITECTURE_OVERVIEW.md) - Architecture patterns
 - [TESTING_SUMMARY.md](docs/test/TESTING_SUMMARY.md) - Test documentation
 - [copilot-instructions.md](../.github/copilot-instructions.md) - Development standards
 

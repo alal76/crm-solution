@@ -310,8 +310,8 @@ async function clickElement(page: Page, selectorAttempts: string[]) {
 - ✅ `e2e-tests/tests/customers/account-addresses.spec.ts` (390→781 lines)
 
 **Documentation Files Created:**
-- ✅ `CHROMIUM_FIXES_BATCH2_COMPLETE.md` (This document)
-- ✅ `CHROMIUM_FIXES_BATCH1.md` (Previous batch summary)
+- ✅ `docs/legacy/summary/CHROMIUM_FIXES_BATCH2_COMPLETE.md` (This document)
+- ✅ `docs/legacy/summary/CHROMIUM_FIXES_BATCH1.md` (Previous batch summary)
 
 **Related Files:**
 - `.github/copilot-instructions.md` (Updated with Customer→Account migration CRITICAL section)

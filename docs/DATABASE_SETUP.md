@@ -466,5 +466,5 @@ FLUSH PRIVILEGES;
 ## Related Documentation
 
 - [DEVELOPMENT.md](DEVELOPMENT.md) - Developer guide
-- [../ARCHITECTURE_OVERVIEW.md](docs/development/ARCHITECTURE_OVERVIEW.md) - System architecture
+- [../ARCHITECTURE_OVERVIEW.md](development/ARCHITECTURE_OVERVIEW.md) - System architecture
 - [deployment/DOCKER_SETUP.md](deployment/DOCKER_SETUP.md) - Docker configuration

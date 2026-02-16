@@ -342,14 +342,14 @@ Results Reported
 ## 📞 Support & Resources
 
 ### Quick Links
-- **Quick Start**: [TESTING_QUICK_REFERENCE.md](TESTING_QUICK_REFERENCE.md)
-- **Complete Guide**: [TESTING_GUIDE.md](TESTING_GUIDE.md)
-- **Execution Guide**: [TEST_EXECUTION_GUIDE.md](TEST_EXECUTION_GUIDE.md)
-- **Documentation Index**: [TESTING_DOCUMENTATION_INDEX.md](TESTING_DOCUMENTATION_INDEX.md)
+- **Quick Start**: [TESTING_QUICK_REFERENCE.md](testing/TESTING_QUICK_REFERENCE.md)
+- **Complete Guide**: [TESTING_GUIDE.md](testing/TESTING_GUIDE.md)
+- **Execution Guide**: [TEST_EXECUTION_GUIDE.md](testing/TEST_EXECUTION_GUIDE.md)
+- **Documentation Index**: [TESTING_DOCUMENTATION_INDEX.md](testing/TESTING_DOCUMENTATION_INDEX.md)
 
 ### Getting Help
-1. Check [TESTING_GUIDE.md](TESTING_GUIDE.md) for comprehensive reference
-2. Review troubleshooting section in [TESTING_GUIDE.md](TESTING_GUIDE.md#troubleshooting)
+1. Check [TESTING_GUIDE.md](testing/TESTING_GUIDE.md) for comprehensive reference
+2. Review troubleshooting section in [TESTING_GUIDE.md](testing/TESTING_GUIDE.md#troubleshooting)
 3. Check GitHub Actions logs for CI/CD issues
 4. Review test file examples for patterns
 

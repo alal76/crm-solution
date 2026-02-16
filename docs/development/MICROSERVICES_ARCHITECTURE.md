@@ -460,7 +460,7 @@ kubectl get endpoints -n crm-microservices
 
 ## Related Documentation
 
-- [ARCHITECTURE_OVERVIEW.md](docs/development/ARCHITECTURE_OVERVIEW.md) - High-level system architecture
+- [ARCHITECTURE_OVERVIEW.md](ARCHITECTURE_OVERVIEW.md) - High-level system architecture
 - [README.md](README.md) - Project overview and quick start
 - [TESTING_SUMMARY.md](docs/test/TESTING_SUMMARY.md) - Testing information
 - [docs/deployment/](docs/deployment/) - Deployment guides

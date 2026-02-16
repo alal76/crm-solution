@@ -159,7 +159,7 @@ ERROR 2: ReportsPage.tsx (Line 255)
 ### Configuration Files
 - ✅ [~/.zshrc](../../.zshrc) - PATH configuration cleaned and fixed
 - ✅ [setup-dev-environment.sh](./setup-dev-environment.sh) - Environment validation script
-- ✅ [DEV_ENVIRONMENT_SETUP.md](docs/development/DEV_ENVIRONMENT_SETUP.md) - Setup documentation
+- ✅ [DEV_ENVIRONMENT_SETUP.md](DEV_ENVIRONMENT_SETUP.md) - Setup documentation
 
 ### Frontend Dependencies
 - ✅ yup@1.7.1 - Form validation
