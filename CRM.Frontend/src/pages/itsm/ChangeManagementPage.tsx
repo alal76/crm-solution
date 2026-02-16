@@ -38,28 +38,27 @@ import {
   Refresh as RefreshIcon,
   EventNote as ScheduleIcon,
 } from '@mui/icons-material';
-import { useApiState } from '../hooks/useApiState';
+import { useApiState } from '../../hooks/useApiState';
 import {
   DialogError,
   DialogSuccess,
   ActionButton,
   EnhancedEmptyState,
   DialogHeader,
-} from '../components/common';
+} from '../../components/common';
 import changeService, {
   Change,
   ChangeStatus,
   ChangePriority,
   ChangeRiskLevel,
-} from '../services/changeService';
+} from '../../services/changeService';
 import {
   ChangeImpactAnalysisPanel,
   RiskAssessmentForm,
   ChangeApprovalWorkflow,
-  ChangePreviewModal,
-} from '../components/itsm';
-import logger from '../services/logger';
-import logo from '../assets/logo.png';
+} from '../../components/itsm';
+import logger from '../../services/logger';
+import logo from '../../assets/logo.png';
 
 // Helper functions
 const getStatusLabel = (status: ChangeStatus): string => {
@@ -190,7 +189,7 @@ export const ChangeManagementPage: React.FC = () => {
         {/* Error Alert */}
         {error && (
           <Alert severity="error" sx={{ mb: 2 }} onClose={clearError}>
-            {error}
+            {typeof error === 'string' ? error : error.message}
           </Alert>
         )}
 
@@ -221,7 +220,7 @@ export const ChangeManagementPage: React.FC = () => {
                         <EnhancedEmptyState
                           variant="no-data"
                           title="No changes found"
-                          message="Create a new change to get started"
+                          description="Create a new change to get started"
                         />
                       </TableCell>
                     </TableRow>

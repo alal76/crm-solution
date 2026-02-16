@@ -19,8 +19,8 @@ import {
   UpdateEmailTemplateDto,
   CreateEmailSequenceDto,
   UpdateEmailSequenceDto,
-  PaginatedResponse,
 } from '../types/marketing';
+import { PaginatedResponse } from '../types/common';
 
 const marketingService = {
   // =========================================================================

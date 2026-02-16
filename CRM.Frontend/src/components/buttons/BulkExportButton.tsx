@@ -111,7 +111,7 @@ const BulkExportButton: React.FC<BulkExportButtonProps> = ({
         },
       });
 
-      const accounts = response.data.items || [];
+      const accounts = Array.isArray(response.data) ? response.data : (response.data?.items || []);
 
       if (accounts.length === 0) {
         setError('No accounts to export');

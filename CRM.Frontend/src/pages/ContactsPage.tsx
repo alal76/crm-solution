@@ -390,7 +390,7 @@ function ContactsPage() {
       // If creating new, switch to edit mode so user can add contact info
       if (!selectedContact && result) {
         const newContact = contacts.find(c => c.id === result) || 
-                          { ...formData, id: result, dateAdded: new Date().toISOString(), socialMediaLinks: [] } as Contact;
+                          { ...formData, id: result, dateAdded: new Date().toISOString(), socialMediaLinks: [], createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() } as Contact;
         setSelectedContact({ ...newContact, id: result } as Contact);
         setDialogTab(1); // Switch to Contact Info tab
       } else {

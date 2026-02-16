@@ -35,7 +35,8 @@ export type { RelatedIncidentsWidgetProps, RelatedIncident } from './RelatedInci
 // Change Management - NEW
 export { ChangeImpactAnalysisPanel } from './ChangeImpactAnalysisPanel';
 export { ChangeApprovalWorkflow } from './ChangeApprovalWorkflowPanel';
-export { RiskAssessmentForm } from './RiskAssessmentPanel';
+export { RiskAssessmentForm as RiskAssessmentPanelForm } from './RiskAssessmentPanel';
+export { RiskAssessmentForm } from './RiskAssessmentForm';
 
 // Existing Change Management
 export { ApprovalWorkflowPanel } from './ApprovalWorkflowPanel';

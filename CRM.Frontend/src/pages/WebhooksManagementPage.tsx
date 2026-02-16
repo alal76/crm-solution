@@ -208,7 +208,7 @@ export const WebhooksManagementPage: React.FC = () => {
         {/* Error Alert */}
         {error && (
           <Alert severity="error" sx={{ mb: 2 }} onClose={clearError}>
-            {error}
+            {typeof error === 'string' ? error : error.message}
           </Alert>
         )}
 
@@ -238,7 +238,7 @@ export const WebhooksManagementPage: React.FC = () => {
                         <EnhancedEmptyState
                           variant="no-data"
                           title="No webhooks found"
-                          message="Create a new webhook to get started"
+                          description="Create a new webhook to get started"
                         />
                       </TableCell>
                     </TableRow>
@@ -335,7 +335,7 @@ export const WebhooksManagementPage: React.FC = () => {
       <Dialog open={formDialogOpen} onClose={() => setFormDialogOpen(false)} maxWidth="md" fullWidth>
         <DialogHeader
           mode={editingWebhook ? 'edit' : 'create'}
-          entityType="Webhook"
+          entityType="webhook"
           onClose={() => setFormDialogOpen(false)}
         />
         <DialogContent sx={{ pt: 2 }}>
@@ -400,7 +400,7 @@ export const WebhooksManagementPage: React.FC = () => {
               <Box sx={{ mt: 2 }}>
                 <WebhookDeliveryHistoryTable
                   deliveries={deliveryHistory}
-                  onRetry={(id) => webhookService.retryDelivery(selectedWebhook.id, id)}
+                  onRetry={async (id) => { await webhookService.retryDelivery(selectedWebhook.id, id); }}
                 />
               </Box>
             )}
