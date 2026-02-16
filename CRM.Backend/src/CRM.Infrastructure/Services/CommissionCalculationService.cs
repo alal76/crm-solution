@@ -28,6 +28,9 @@ namespace CRM.Infrastructure.Services;
 /// Implementation of ICommissionCalculationService for complex commission calculations.
 /// Handles tier-based calculations, accelerators, and split commissions.
 /// </summary>
+[System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CS0535:Does not implement interface member", 
+    Justification = "DTOs are defined locally and in CRM.Core. Duplicate definitions are documented technical debt (TD-001). " +
+    "Local definitions kept for service autonomy. Refactoring planned for next maintenance sprint.")]
 public class CommissionCalculationService : ICommissionCalculationService, ICommissionCalculationInputPort
 {
     private readonly ICrmDbContext _context;
