@@ -1,0 +1,6 @@
+apiVersion: v2
+name: crm-microservices
+description: CRM microservices deployment (gateway, services, frontend, optional MariaDB)
+type: application
+version: 0.1.0
+appVersion: "1.0.0"

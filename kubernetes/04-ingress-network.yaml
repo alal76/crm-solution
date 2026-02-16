@@ -2,7 +2,7 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: crm-ingress
-  namespace: crm-app
+  namespace: crm-dev
   annotations:
     kubernetes.io/ingress.class: nginx
     cert-manager.io/cluster-issuer: letsencrypt-prod
@@ -36,7 +36,7 @@ apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
   name: crm-api-pdb
-  namespace: crm-app
+  namespace: crm-dev
 spec:
   minAvailable: 1
   selector:
@@ -48,7 +48,7 @@ apiVersion: policy/v1
 kind: PodDisruptionBudget
 metadata:
   name: crm-frontend-pdb
-  namespace: crm-app
+  namespace: crm-dev
 spec:
   minAvailable: 1
   selector:
@@ -60,7 +60,7 @@ apiVersion: v1
 kind: ResourceQuota
 metadata:
   name: crm-quota
-  namespace: crm-app
+  namespace: crm-dev
 spec:
   hard:
     requests.cpu: "10"
@@ -74,7 +74,7 @@ apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
   name: crm-network-policy
-  namespace: crm-app
+  namespace: crm-dev
 spec:
   podSelector: {}
   policyTypes:
@@ -84,13 +84,13 @@ spec:
   - from:
     - namespaceSelector:
         matchLabels:
-          name: crm-app
+          name: crm-dev
   egress:
   # Allow intra-namespace traffic (database, cache, etc.)
   - to:
     - namespaceSelector:
         matchLabels:
-          name: crm-app
+          name: crm-dev
   # Allow DNS resolution
   - to:
     - namespaceSelector: {}

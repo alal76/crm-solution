@@ -1,0 +1,63 @@
+{{- if .Values.services.servicedesk.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "crm-microservices.fullname" . }}-servicedesk
+  labels:
+    {{- include "crm-microservices.labels" . | nindent 4 }}
+    app.kubernetes.io/component: servicedesk
+spec:
+  replicas: {{ .Values.services.servicedesk.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "crm-microservices.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: servicedesk
+  template:
+    metadata:
+      labels:
+        {{- include "crm-microservices.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: servicedesk
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+      containers:
+      - name: crm-servicedesk
+        image: {{ .Values.images.servicedesk.repository }}:{{ .Values.images.servicedesk.tag }}
+        imagePullPolicy: {{ .Values.images.servicedesk.pullPolicy }}
+        ports:
+        - containerPort: {{ .Values.services.servicedesk.port }}
+          name: http
+        envFrom:
+        - configMapRef:
+            name: {{ include "crm-microservices.fullname" . }}-config
+        - secretRef:
+            name: {{ include "crm-microservices.fullname" . }}-secrets
+        env:
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "crm-microservices.fullname" . }}-secrets
+              key: DB_USER
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "crm-microservices.fullname" . }}-secrets
+              key: DB_PASSWORD
+        - name: ConnectionStrings__DefaultConnection
+          value: "Server=$(DB_HOST);Port=$(DB_PORT);Database=$(DB_NAME);User=$(DB_USER);Password=$(DB_PASSWORD);CharSet=utf8mb4;"
+        - name: JwtSettings__Key
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "crm-microservices.fullname" . }}-secrets
+              key: JWT_KEY
+        resources:
+          {{- toYaml (default .Values.resources.default .Values.resources.servicedesk) | nindent 10 }}
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: {{ .Values.services.servicedesk.port }}
+          initialDelaySeconds: 30
+          periodSeconds: 30
+{{- end }}

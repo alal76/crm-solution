@@ -3,7 +3,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: crm-gateway
-  namespace: crm-microservices
+  namespace: crm-dev-ms
   labels:
     app: crm-gateway
     tier: gateway
@@ -73,7 +73,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: crm-gateway
-  namespace: crm-microservices
+  namespace: crm-dev-ms
 spec:
   selector:
     app: crm-gateway
@@ -87,7 +87,7 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: crm-gateway-hpa
-  namespace: crm-microservices
+  namespace: crm-dev-ms
 spec:
   scaleTargetRef:
     apiVersion: apps/v1

@@ -1,0 +1,69 @@
+{{- if .Values.services.customer.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "crm-microservices.fullname" . }}-customer
+  labels:
+    {{- include "crm-microservices.labels" . | nindent 4 }}
+    app.kubernetes.io/component: customer
+spec:
+  replicas: {{ .Values.services.customer.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "crm-microservices.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: customer
+  template:
+    metadata:
+      labels:
+        {{- include "crm-microservices.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: customer
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+      containers:
+      - name: crm-customer
+        image: {{ .Values.images.customer.repository }}:{{ .Values.images.customer.tag }}
+        imagePullPolicy: {{ .Values.images.customer.pullPolicy }}
+        ports:
+        - containerPort: {{ .Values.services.customer.port }}
+          name: http
+        envFrom:
+        - configMapRef:
+            name: {{ include "crm-microservices.fullname" . }}-config
+        - secretRef:
+            name: {{ include "crm-microservices.fullname" . }}-secrets
+        env:
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "crm-microservices.fullname" . }}-secrets
+              key: DB_USER
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "crm-microservices.fullname" . }}-secrets
+              key: DB_PASSWORD
+        - name: ConnectionStrings__DefaultConnection
+          value: "Server=$(DB_HOST);Port=$(DB_PORT);Database=$(DB_NAME);User=$(DB_USER);Password=$(DB_PASSWORD);CharSet=utf8mb4;"
+        - name: JwtSettings__Key
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "crm-microservices.fullname" . }}-secrets
+              key: JWT_KEY
+        resources:
+          {{- toYaml (default .Values.resources.default .Values.resources.customer) | nindent 10 }}
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: {{ .Values.services.customer.port }}
+          initialDelaySeconds: 30
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: {{ .Values.services.customer.port }}
+          initialDelaySeconds: 10
+          periodSeconds: 10
+{{- end }}

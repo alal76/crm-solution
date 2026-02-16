@@ -1,0 +1,63 @@
+{{- if .Values.services.sales.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "crm-microservices.fullname" . }}-sales
+  labels:
+    {{- include "crm-microservices.labels" . | nindent 4 }}
+    app.kubernetes.io/component: sales
+spec:
+  replicas: {{ .Values.services.sales.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "crm-microservices.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: sales
+  template:
+    metadata:
+      labels:
+        {{- include "crm-microservices.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: sales
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        fsGroup: 1000
+      containers:
+      - name: crm-sales
+        image: {{ .Values.images.sales.repository }}:{{ .Values.images.sales.tag }}
+        imagePullPolicy: {{ .Values.images.sales.pullPolicy }}
+        ports:
+        - containerPort: {{ .Values.services.sales.port }}
+          name: http
+        envFrom:
+        - configMapRef:
+            name: {{ include "crm-microservices.fullname" . }}-config
+        - secretRef:
+            name: {{ include "crm-microservices.fullname" . }}-secrets
+        env:
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "crm-microservices.fullname" . }}-secrets
+              key: DB_USER
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "crm-microservices.fullname" . }}-secrets
+              key: DB_PASSWORD
+        - name: ConnectionStrings__DefaultConnection
+          value: "Server=$(DB_HOST);Port=$(DB_PORT);Database=$(DB_NAME);User=$(DB_USER);Password=$(DB_PASSWORD);CharSet=utf8mb4;"
+        - name: JwtSettings__Key
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "crm-microservices.fullname" . }}-secrets
+              key: JWT_KEY
+        resources:
+          {{- toYaml (default .Values.resources.default .Values.resources.sales) | nindent 10 }}
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: {{ .Values.services.sales.port }}
+          initialDelaySeconds: 30
+          periodSeconds: 30
+{{- end }}

@@ -1,0 +1,35 @@
+{{- if .Values.ingress.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "crm-microservices.fullname" . }}-ingress
+  labels:
+    {{- include "crm-microservices.labels" . | nindent 4 }}
+  annotations:
+    kubernetes.io/ingress.class: {{ .Values.ingress.className | quote }}
+spec:
+  {{- if .Values.ingress.tls.enabled }}
+  tls:
+  - hosts:
+    - {{ .Values.ingress.host | quote }}
+    secretName: {{ .Values.ingress.tls.secretName | quote }}
+  {{- end }}
+  rules:
+  - host: {{ .Values.ingress.host | quote }}
+    http:
+      paths:
+      - path: /api
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ include "crm-microservices.fullname" . }}-gateway
+            port:
+              number: {{ .Values.services.gateway.port }}
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ include "crm-microservices.fullname" . }}-frontend
+            port:
+              number: {{ .Values.services.frontend.port }}
+{{- end }}

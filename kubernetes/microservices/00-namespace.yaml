@@ -2,17 +2,18 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: crm-microservices
+  name: crm-dev-ms
   labels:
     app: crm
     architecture: microservices
+    name: crm-dev-ms
 ---
 # ConfigMap for shared configuration
 apiVersion: v1
 kind: ConfigMap
 metadata:
   name: crm-shared-config
-  namespace: crm-microservices
+  namespace: crm-dev-ms
 data:
   ASPNETCORE_ENVIRONMENT: "Production"
   JWT_ISSUER: "CRM.Api"
@@ -26,7 +27,7 @@ apiVersion: v1
 kind: Secret
 metadata:
   name: crm-secrets
-  namespace: crm-microservices
+  namespace: crm-dev-ms
 type: Opaque
 stringData:
   # IMPORTANT: Replace these placeholder values before deploying
