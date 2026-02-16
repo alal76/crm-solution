@@ -83,32 +83,3 @@ public interface IPerformanceOptimizationService
     /// </summary>
     Task<int> PurgeOldMetricsAsync(int daysToKeep = 30, CancellationToken cancellationToken = default);
 }
-
-/// <summary>
-/// DTO for performance dashboard
-/// </summary>
-public class PerformanceDashboardDto
-{
-    public double AverageResponseTimeMs { get; set; }
-    public int P95ResponseTimeMs { get; set; }
-    public int P99ResponseTimeMs { get; set; }
-    public double CacheHitRate { get; set; }
-    public double ErrorRate { get; set; }
-    public int TotalRequestsLastHour { get; set; }
-    public int TotalRequestsLastDay { get; set; }
-    public PerformanceStatisticsDto[] TopEndpoints { get; set; } = Array.Empty<PerformanceStatisticsDto>();
-    public PerformanceRecommendationDto[] Recommendations { get; set; } = Array.Empty<PerformanceRecommendationDto>();
-}
-
-/// <summary>
-/// DTO for error statistics
-/// </summary>
-public class ErrorStatisticsDto
-{
-    public int TotalErrors { get; set; }
-    public double ErrorRate { get; set; }
-    public Dictionary<int, int> ErrorsByStatus { get; set; } = new();
-    public Dictionary<string, int> ErrorsByEndpoint { get; set; } = new();
-    public DateTime PeriodStart { get; set; }
-    public DateTime PeriodEnd { get; set; }
-}

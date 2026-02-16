@@ -96,4 +96,13 @@ namespace CRM.Core.Dtos
         /// </summary>
         public DateTime? UpdatedAt { get; set; }
     }
+
+    /// <summary>
+    /// Request to create a custom palette
+    /// </summary>
+    public class CreateCustomPaletteRequest
+    {
+        public string Name { get; set; } = string.Empty;
+        public List<string> Colors { get; set; } = new();
+    }
 }

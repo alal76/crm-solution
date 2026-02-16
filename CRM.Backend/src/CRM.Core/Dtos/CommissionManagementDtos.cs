@@ -257,6 +257,30 @@ public class CreateCommissionTierDto
 }
 
 /// <summary>
+/// DTO for updating commission tier.
+/// </summary>
+public class UpdateCommissionTierDto
+{
+    [Range(1, int.MaxValue)]
+    public int? TierLevel { get; set; }
+
+    [StringLength(100)]
+    public string? TierName { get; set; }
+
+    [Range(0, double.MaxValue)]
+    public decimal? MinValue { get; set; }
+
+    [Range(0, double.MaxValue)]
+    public decimal? MaxValue { get; set; }
+
+    [Range(0, 100)]
+    public decimal? Rate { get; set; }
+
+    [Range(0, 100)]
+    public decimal? Accelerator { get; set; }
+}
+
+/// <summary>
 /// DTO for commission statement.
 /// </summary>
 public class CommissionStatementDto

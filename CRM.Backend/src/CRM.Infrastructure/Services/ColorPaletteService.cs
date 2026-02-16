@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System.Text.Json;
+using CRM.Core.Dtos;
 using CRM.Core.Interfaces;
 using CRM.Core.Entities;
 using CRM.Infrastructure.Data;
