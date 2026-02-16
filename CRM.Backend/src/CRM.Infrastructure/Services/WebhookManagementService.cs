@@ -420,3 +420,53 @@ public class WebhookDispatcherService : IWebhookDispatcherService, IWebhookDispa
         await _context.SaveChangesAsync(cancellationToken);
     }
 }
+
+/// <summary>
+/// DTO for webhook test request.
+/// </summary>
+public class WebhookTestDto
+{
+    public string Payload { get; set; } = "{}";
+}
+
+/// <summary>
+/// DTO for webhook test result.
+/// </summary>
+public class WebhookTestResultDto
+{
+    public bool Success { get; set; }
+    public int DeliveryId { get; set; }
+    public string Message { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// DTO for webhook delivery history response.
+/// </summary>
+public class WebhookDeliveryHistoryDto
+{
+    public int WebhookId { get; set; }
+    public List<WebhookDeliveryDto> Deliveries { get; set; } = new();
+    public int TotalCount { get; set; }
+}
+
+/// <summary>
+/// DTO for webhook statistics response.
+/// </summary>
+public class WebhookStatisticsDto
+{
+    public int WebhookId { get; set; }
+    public int TotalDeliveries { get; set; }
+    public int SuccessfulDeliveries { get; set; }
+    public int FailedDeliveries { get; set; }
+    public int PendingDeliveries { get; set; }
+    public decimal SuccessRate { get; set; }
+}
+
+/// <summary>
+/// DTO for webhook event response.
+/// </summary>
+public class WebhookEventDto
+{
+    public string Name { get; set; } = string.Empty;
+    public string Description { get; set; } = string.Empty;
+}
