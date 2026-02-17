@@ -1,0 +1,12 @@
+[
+  { "id": 1, "userId": 1, "action": "Login", "entity": "User", "entityId": 1, "timestamp": "2026-02-10T08:10:00Z" },
+  { "id": 2, "userId": 2, "action": "Create", "entity": "Quote", "entityId": 1, "timestamp": "2026-02-10T09:00:00Z" },
+  { "id": 3, "userId": 3, "action": "Update", "entity": "ServiceRequest", "entityId": 2, "timestamp": "2026-02-10T09:30:00Z" },
+  { "id": 4, "userId": 4, "action": "Create", "entity": "Campaign", "entityId": 1, "timestamp": "2026-02-10T10:00:00Z" },
+  { "id": 5, "userId": 5, "action": "Close", "entity": "Incident", "entityId": 6, "timestamp": "2026-02-11T11:00:00Z" },
+  { "id": 6, "userId": 6, "action": "Update", "entity": "Contract", "entityId": 2, "timestamp": "2026-02-11T12:15:00Z" },
+  { "id": 7, "userId": 7, "action": "Delete", "entity": "Contact", "entityId": 12, "timestamp": "2026-02-12T13:20:00Z" },
+  { "id": 8, "userId": 8, "action": "Login", "entity": "User", "entityId": 8, "timestamp": "2026-02-12T14:05:00Z" },
+  { "id": 9, "userId": 9, "action": "Update", "entity": "FeatureFlag", "entityId": 1, "timestamp": "2026-02-12T15:40:00Z" },
+  { "id": 10, "userId": 10, "action": "Create", "entity": "Invoice", "entityId": 5, "timestamp": "2026-02-13T08:45:00Z" }
+]

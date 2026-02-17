@@ -1,0 +1,20 @@
+[
+  { "TypeName": "Server", "TypeCategory": "Hardware", "Description": "Physical or virtual servers", "IconName": "server", "Color": "#2196F3", "SortOrder": 1, "IsActive": true },
+  { "TypeName": "Workstation", "TypeCategory": "Hardware", "Description": "Desktop computers and workstations", "IconName": "computer", "Color": "#4CAF50", "SortOrder": 2, "IsActive": true },
+  { "TypeName": "Laptop", "TypeCategory": "Hardware", "Description": "Laptop computers", "IconName": "laptop", "Color": "#8BC34A", "SortOrder": 3, "IsActive": true },
+  { "TypeName": "Network Device", "TypeCategory": "Hardware", "Description": "Routers, switches, firewalls", "IconName": "router", "Color": "#FF9800", "SortOrder": 4, "IsActive": true },
+  { "TypeName": "Storage", "TypeCategory": "Hardware", "Description": "SAN, NAS, storage arrays", "IconName": "storage", "Color": "#9C27B0", "SortOrder": 5, "IsActive": true },
+  { "TypeName": "Printer", "TypeCategory": "Hardware", "Description": "Printers and MFPs", "IconName": "print", "Color": "#795548", "SortOrder": 6, "IsActive": true },
+  { "TypeName": "Mobile Device", "TypeCategory": "Hardware", "Description": "Smartphones and tablets", "IconName": "phone_iphone", "Color": "#00BCD4", "SortOrder": 7, "IsActive": true },
+  { "TypeName": "Application", "TypeCategory": "Software", "Description": "Business applications", "IconName": "apps", "Color": "#3F51B5", "SortOrder": 10, "IsActive": true },
+  { "TypeName": "Database", "TypeCategory": "Software", "Description": "Database instances", "IconName": "database", "Color": "#E91E63", "SortOrder": 11, "IsActive": true },
+  { "TypeName": "Operating System", "TypeCategory": "Software", "Description": "Server and workstation OS", "IconName": "desktop_windows", "Color": "#607D8B", "SortOrder": 12, "IsActive": true },
+  { "TypeName": "Middleware", "TypeCategory": "Software", "Description": "Application servers, message queues", "IconName": "layers", "Color": "#009688", "SortOrder": 13, "IsActive": true },
+  { "TypeName": "License", "TypeCategory": "Software", "Description": "Software licenses", "IconName": "key", "Color": "#FFC107", "SortOrder": 14, "IsActive": true },
+  { "TypeName": "Business Service", "TypeCategory": "Service", "Description": "Business-facing IT services", "IconName": "business", "Color": "#F44336", "SortOrder": 20, "IsActive": true },
+  { "TypeName": "IT Service", "TypeCategory": "Service", "Description": "IT infrastructure services", "IconName": "build", "Color": "#673AB7", "SortOrder": 21, "IsActive": true },
+  { "TypeName": "Cloud Service", "TypeCategory": "Service", "Description": "Cloud-based services (SaaS, PaaS)", "IconName": "cloud", "Color": "#03A9F4", "SortOrder": 22, "IsActive": true },
+  { "TypeName": "Data Center", "TypeCategory": "Facility", "Description": "Data center facilities", "IconName": "location_city", "Color": "#FF5722", "SortOrder": 30, "IsActive": true },
+  { "TypeName": "Rack", "TypeCategory": "Facility", "Description": "Server racks", "IconName": "view_column", "Color": "#CDDC39", "SortOrder": 31, "IsActive": true },
+  { "TypeName": "UPS", "TypeCategory": "Facility", "Description": "Uninterruptible power supplies", "IconName": "battery_charging_full", "Color": "#FFEB3B", "SortOrder": 32, "IsActive": true }
+]

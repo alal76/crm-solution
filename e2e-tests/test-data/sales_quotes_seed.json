@@ -1,0 +1,12 @@
+[
+  { "id": 1, "accountId": 1, "contactId": 1, "status": "Draft", "totalAmount": 5200.00, "validUntil": "2026-03-20", "createdDate": "2026-02-05", "opportunityId": 1 },
+  { "id": 2, "accountId": 2, "contactId": 2, "status": "Sent", "totalAmount": 11800.00, "validUntil": "2026-03-25", "createdDate": "2026-02-06", "opportunityId": 2 },
+  { "id": 3, "accountId": 3, "contactId": 3, "status": "Accepted", "totalAmount": 7900.00, "validUntil": "2026-03-28", "createdDate": "2026-02-07", "opportunityId": 3 },
+  { "id": 4, "accountId": 4, "contactId": 4, "status": "Sent", "totalAmount": 15250.00, "validUntil": "2026-04-01", "createdDate": "2026-02-08", "opportunityId": 4 },
+  { "id": 5, "accountId": 5, "contactId": 5, "status": "Draft", "totalAmount": 2950.00, "validUntil": "2026-03-30", "createdDate": "2026-02-09", "opportunityId": 5 },
+  { "id": 6, "accountId": 6, "contactId": 6, "status": "Accepted", "totalAmount": 2100.00, "validUntil": "2026-03-29", "createdDate": "2026-02-10", "opportunityId": 6 },
+  { "id": 7, "accountId": 7, "contactId": 7, "status": "Sent", "totalAmount": 10050.00, "validUntil": "2026-04-05", "createdDate": "2026-02-11", "opportunityId": 7 },
+  { "id": 8, "accountId": 8, "contactId": 8, "status": "Sent", "totalAmount": 24800.00, "validUntil": "2026-04-10", "createdDate": "2026-02-12", "opportunityId": 8 },
+  { "id": 9, "accountId": 9, "contactId": 9, "status": "Draft", "totalAmount": 4100.00, "validUntil": "2026-03-26", "createdDate": "2026-02-13", "opportunityId": 9 },
+  { "id": 10, "accountId": 10, "contactId": 10, "status": "Sent", "totalAmount": 6050.00, "validUntil": "2026-03-31", "createdDate": "2026-02-14", "opportunityId": 10 }
+]

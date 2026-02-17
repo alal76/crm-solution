@@ -647,6 +647,14 @@ public class CrmDbContext : DbContext, ICrmDbContext
                 .WithMany()
                 .HasForeignKey(e => e.SourceCampaignId)
                 .OnDelete(DeleteBehavior.SetNull);
+
+            // Ignore polymorphic navigation properties that use OwnerType/OwnerId or
+            // EntityType/EntityId patterns — these don't have real FK columns on the
+            // target tables, so EF would otherwise create shadow FK columns (AccountId)
+            // which don't exist in the database.
+            entity.Ignore(e => e.ContactInfoLinks);
+            entity.Ignore(e => e.Addresses);
+            entity.Ignore(e => e.EntityAddressLinks);
         });
 
         modelBuilder.Entity<Preferences>(entity =>
@@ -754,6 +762,15 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.Property(e => e.Price).HasPrecision(18, 2);
             entity.Property(e => e.Cost).HasPrecision(18, 2);
             entity.HasIndex(e => e.SKU).IsUnique();
+
+            // Ignore navigation properties that have no direct FK on the target entity.
+            // Product↔Opportunity is many-to-many via OpportunityProduct junction table,
+            // not a direct one-to-many — this prevents shadow FK "ProductId" on Opportunities.
+            entity.Ignore(e => e.Opportunities);
+
+            // Product↔MarketingCampaign is a conceptual many-to-many with no junction table
+            // in the database — prevents EF from creating a shadow junction table.
+            entity.Ignore(e => e.MarketingCampaigns);
         });
 
         // Configure contact info tables
@@ -969,6 +986,9 @@ public class CrmDbContext : DbContext, ICrmDbContext
                 .WithMany(p => p.Contacts)
                 .HasForeignKey(c => c.PreferencesId)
                 .OnDelete(DeleteBehavior.SetNull);
+
+            // Ignore polymorphic ContactInfoLinks — uses OwnerType/OwnerId pattern
+            entity.Ignore(e => e.ContactInfoLinks);
         });
 
         // Configure Interaction
@@ -994,6 +1014,15 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Name).IsRequired().HasMaxLength(255);
             entity.Property(e => e.Budget).HasPrecision(18, 2);
+
+            // Ignore navigation properties that have no direct FK on the target entity.
+            // MarketingCampaign↔Product is conceptual many-to-many with no junction table
+            // in the database — prevents EF from creating a shadow junction table.
+            entity.Ignore(e => e.Products);
+
+            // Opportunity does not have MarketingCampaignId — prevents shadow FK
+            // "MarketingCampaignId" on Opportunities table.
+            entity.Ignore(e => e.Opportunities);
         });
 
         // Configure CampaignMetric
@@ -1035,6 +1064,11 @@ public class CrmDbContext : DbContext, ICrmDbContext
                 .WithMany(g => g.PrimaryUsers)
                 .HasForeignKey(e => e.PrimaryGroupId)
                 .OnDelete(DeleteBehavior.SetNull);
+
+            // User.UserRoles is a backward-compatibility alias for User.RoleAssignments.
+            // RoleAssignments is already configured via UserRoleAssignment Fluent API.
+            // Without Ignore, EF creates a duplicate relationship with shadow FK "UserId1".
+            entity.Ignore(e => e.UserRoles);
         });
 
         // Configure RefreshToken
@@ -1269,6 +1303,13 @@ public class CrmDbContext : DbContext, ICrmDbContext
                 .WithMany(p => p.Subscriptions)
                 .HasForeignKey(e => e.ProductId)
                 .OnDelete(DeleteBehavior.SetNull);
+
+            // Ignore polymorphic ContactInfoLinks — uses OwnerType/OwnerId pattern
+            entity.Ignore(e => e.ContactInfoLinks);
+
+            // Opportunity does not have SubscriptionId — prevents shadow FK
+            // "SubscriptionId" on Opportunities table.
+            entity.Ignore(e => e.Opportunities);
         });
 
         // Configure CrmTask
@@ -1794,9 +1835,11 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.Property(e => e.ConversationId).HasMaxLength(100);
             entity.Property(e => e.ExternalMessageId).HasMaxLength(500);
 
-            // CommunicationMessage -> Channel
+            // CommunicationMessage -> Channel (with inverse navigation on CommunicationChannel)
+            // Using .WithMany(c => c.Messages) prevents EF from treating
+            // CommunicationChannel.Messages as a separate relationship with shadow FK.
             entity.HasOne(e => e.Channel)
-                .WithMany()
+                .WithMany(c => c.Messages)
                 .HasForeignKey(e => e.ChannelId)
                 .OnDelete(DeleteBehavior.Restrict);
 

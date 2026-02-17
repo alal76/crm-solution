@@ -1,15 +1,15 @@
 {
-  "major": 2,
-  "minor": 0,
-  "patch": 0,
-  "lastUpdate": "2026-02-14",
-  "description": "CRM Solution v2.0.0 - .NET 10 LTS upgrade with native OpenAPI and built-in rate limiting",
+  "major": 0,
+  "minor": 560,
+  "patch": 2,
+  "lastUpdate": "2026-02-17",
+  "description": "CRM Solution v0.560.2 - Fix shadow FK issues, Groq LLM, healthchecks, missing tables",
   "git": {
     "branch": "dev",
-    "commit": "dedup-feature"
+    "commit": "fix-shadow-fk-and-missing-tables"
   },
   "environment": "production",
   "architecture": "monolith",
   "buildServer": "azure-devops",
-  "buildTime": "2026-02-14T12:00:00"
+  "buildTime": "2026-02-17T01:20:00"
 }

@@ -1,0 +1,57 @@
+[
+  {
+    "PolicyName": "P1 - Critical",
+    "Description": "Critical priority - Major system outage affecting multiple users or business-critical functions",
+    "Priority": 1,
+    "ResponseTimeMinutes": 15,
+    "ResolutionTimeMinutes": 240,
+    "EscalationEnabled": true,
+    "EscalationThresholdPercent": 75,
+    "BusinessHoursOnly": false,
+    "IsActive": true
+  },
+  {
+    "PolicyName": "P2 - High",
+    "Description": "High priority - Significant impact with difficult or no workaround",
+    "Priority": 2,
+    "ResponseTimeMinutes": 30,
+    "ResolutionTimeMinutes": 480,
+    "EscalationEnabled": true,
+    "EscalationThresholdPercent": 80,
+    "BusinessHoursOnly": false,
+    "IsActive": true
+  },
+  {
+    "PolicyName": "P3 - Medium",
+    "Description": "Medium priority - Moderate impact with workaround available",
+    "Priority": 3,
+    "ResponseTimeMinutes": 120,
+    "ResolutionTimeMinutes": 1440,
+    "EscalationEnabled": true,
+    "EscalationThresholdPercent": 85,
+    "BusinessHoursOnly": true,
+    "IsActive": true
+  },
+  {
+    "PolicyName": "P4 - Low",
+    "Description": "Low priority - Minor issue with minimal business impact",
+    "Priority": 4,
+    "ResponseTimeMinutes": 480,
+    "ResolutionTimeMinutes": 2880,
+    "EscalationEnabled": false,
+    "EscalationThresholdPercent": 90,
+    "BusinessHoursOnly": true,
+    "IsActive": true
+  },
+  {
+    "PolicyName": "P5 - Planning",
+    "Description": "Planning priority - Enhancement requests and non-urgent items",
+    "Priority": 5,
+    "ResponseTimeMinutes": 1440,
+    "ResolutionTimeMinutes": 10080,
+    "EscalationEnabled": false,
+    "EscalationThresholdPercent": 95,
+    "BusinessHoursOnly": true,
+    "IsActive": true
+  }
+]

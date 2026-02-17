@@ -1,0 +1,12 @@
+[
+  { "id": 1, "name": "Admin", "description": "Full system access" },
+  { "id": 2, "name": "Sales", "description": "Sales pipeline access" },
+  { "id": 3, "name": "Support", "description": "Service desk access" },
+  { "id": 4, "name": "Marketing", "description": "Campaign management" },
+  { "id": 5, "name": "Finance", "description": "Invoices and payments" },
+  { "id": 6, "name": "ITSM", "description": "ITSM operations" },
+  { "id": 7, "name": "Analyst", "description": "Reporting and analytics" },
+  { "id": 8, "name": "Manager", "description": "Team oversight" },
+  { "id": 9, "name": "Auditor", "description": "Read-only audit access" },
+  { "id": 10, "name": "Guest", "description": "Limited portal access" }
+]

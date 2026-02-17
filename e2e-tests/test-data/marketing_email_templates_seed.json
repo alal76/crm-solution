@@ -1,0 +1,12 @@
+[
+  { "id": 1, "name": "Launch Announcement", "subject": "Introducing Our New Platform", "type": "Marketing", "status": "Active" },
+  { "id": 2, "name": "Webinar Invite", "subject": "Join Our Spring Webinar", "type": "Event", "status": "Active" },
+  { "id": 3, "name": "Security Update", "subject": "Security Best Practices", "type": "Newsletter", "status": "Active" },
+  { "id": 4, "name": "Partner Co-Brand", "subject": "Partner Spotlight", "type": "Partner", "status": "Draft" },
+  { "id": 5, "name": "Quarter-End Promo", "subject": "Limited-Time Offer", "type": "Promotion", "status": "Active" },
+  { "id": 6, "name": "Cloud Migration Guide", "subject": "Your Cloud Migration Checklist", "type": "Education", "status": "Active" },
+  { "id": 7, "name": "SMB Growth Tips", "subject": "Grow Smarter This Quarter", "type": "Newsletter", "status": "Active" },
+  { "id": 8, "name": "Event Reminder", "subject": "Event Reminder: IT Summit", "type": "Event", "status": "Active" },
+  { "id": 9, "name": "Productivity Toolkit", "subject": "Boost Team Productivity", "type": "Marketing", "status": "Draft" },
+  { "id": 10, "name": "Referral Program", "subject": "Invite a Friend", "type": "Referral", "status": "Active" }
+]

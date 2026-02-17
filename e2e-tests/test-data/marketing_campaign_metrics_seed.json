@@ -1,0 +1,12 @@
+[
+  { "campaignId": 1, "impressions": 12000, "clicks": 820, "conversions": 42, "cost": 5200.00 },
+  { "campaignId": 2, "impressions": 8000, "clicks": 540, "conversions": 36, "cost": 4100.00 },
+  { "campaignId": 3, "impressions": 10000, "clicks": 610, "conversions": 30, "cost": 3600.00 },
+  { "campaignId": 4, "impressions": 15000, "clicks": 900, "conversions": 50, "cost": 7800.00 },
+  { "campaignId": 5, "impressions": 9000, "clicks": 430, "conversions": 21, "cost": 3000.00 },
+  { "campaignId": 6, "impressions": 11000, "clicks": 700, "conversions": 38, "cost": 4600.00 },
+  { "campaignId": 7, "impressions": 14000, "clicks": 880, "conversions": 44, "cost": 6900.00 },
+  { "campaignId": 8, "impressions": 6000, "clicks": 310, "conversions": 18, "cost": 5200.00 },
+  { "campaignId": 9, "impressions": 9500, "clicks": 560, "conversions": 27, "cost": 3300.00 },
+  { "campaignId": 10, "impressions": 10500, "clicks": 640, "conversions": 35, "cost": 4100.00 }
+]

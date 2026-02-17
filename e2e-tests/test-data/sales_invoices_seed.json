@@ -1,0 +1,12 @@
+[
+  { "id": 1, "orderId": 1, "accountId": 3, "invoiceNumber": "INV-2026-0001", "status": "Issued", "issueDate": "2026-02-20", "dueDate": "2026-03-20", "totalAmount": 7900.00 },
+  { "id": 2, "orderId": 2, "accountId": 6, "invoiceNumber": "INV-2026-0002", "status": "Paid", "issueDate": "2026-02-21", "dueDate": "2026-03-21", "totalAmount": 2100.00 },
+  { "id": 3, "orderId": 3, "accountId": 2, "invoiceNumber": "INV-2026-0003", "status": "Issued", "issueDate": "2026-02-22", "dueDate": "2026-03-22", "totalAmount": 11800.00 },
+  { "id": 4, "orderId": 4, "accountId": 4, "invoiceNumber": "INV-2026-0004", "status": "Issued", "issueDate": "2026-02-23", "dueDate": "2026-03-23", "totalAmount": 15250.00 },
+  { "id": 5, "orderId": 5, "accountId": 7, "invoiceNumber": "INV-2026-0005", "status": "Overdue", "issueDate": "2026-02-24", "dueDate": "2026-03-10", "totalAmount": 10050.00 },
+  { "id": 6, "orderId": 6, "accountId": 8, "invoiceNumber": "INV-2026-0006", "status": "Issued", "issueDate": "2026-02-25", "dueDate": "2026-03-25", "totalAmount": 24800.00 },
+  { "id": 7, "orderId": 7, "accountId": 1, "invoiceNumber": "INV-2026-0007", "status": "Draft", "issueDate": "2026-02-26", "dueDate": "2026-03-26", "totalAmount": 5200.00 },
+  { "id": 8, "orderId": 8, "accountId": 9, "invoiceNumber": "INV-2026-0008", "status": "Paid", "issueDate": "2026-02-27", "dueDate": "2026-03-27", "totalAmount": 4100.00 },
+  { "id": 9, "orderId": 9, "accountId": 10, "invoiceNumber": "INV-2026-0009", "status": "Issued", "issueDate": "2026-02-28", "dueDate": "2026-03-28", "totalAmount": 6050.00 },
+  { "id": 10, "orderId": 10, "accountId": 5, "invoiceNumber": "INV-2026-0010", "status": "Draft", "issueDate": "2026-03-01", "dueDate": "2026-04-01", "totalAmount": 2950.00 }
+]

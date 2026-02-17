@@ -1,0 +1,12 @@
+[
+  { "id": 1, "campaignId": 1, "recipientType": "Contact", "contactId": 1, "status": "Sent" },
+  { "id": 2, "campaignId": 1, "recipientType": "Contact", "contactId": 2, "status": "Opened" },
+  { "id": 3, "campaignId": 2, "recipientType": "Lead", "leadId": 1, "status": "Registered" },
+  { "id": 4, "campaignId": 2, "recipientType": "Lead", "leadId": 2, "status": "Attended" },
+  { "id": 5, "campaignId": 3, "recipientType": "Contact", "contactId": 3, "status": "Clicked" },
+  { "id": 6, "campaignId": 4, "recipientType": "Contact", "contactId": 4, "status": "Sent" },
+  { "id": 7, "campaignId": 5, "recipientType": "Lead", "leadId": 3, "status": "Opened" },
+  { "id": 8, "campaignId": 6, "recipientType": "Contact", "contactId": 5, "status": "Unsubscribed" },
+  { "id": 9, "campaignId": 7, "recipientType": "Lead", "leadId": 4, "status": "Clicked" },
+  { "id": 10, "campaignId": 9, "recipientType": "Contact", "contactId": 6, "status": "Opened" }
+]

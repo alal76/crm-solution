@@ -39,6 +39,7 @@ public static class AIServiceHelper
             "anthropic" => GetModelOrDefault(settings.Anthropic?.DefaultModel, "claude-3-5-sonnet-20241022"),
             "google" => GetModelOrDefault(settings.Google?.DefaultModel, "gemini-pro"),
             "deepseek" => GetModelOrDefault(settings.DeepSeek?.DefaultModel, "deepseek-chat"),
+            "groq" => GetModelOrDefault(settings.Groq?.DefaultModel, "llama-3.3-70b-versatile"),
             "allenai" => GetModelOrDefault(settings.AllenAI?.DefaultModel, "allenai/OLMo-7B-Instruct"),
             "local" => GetModelOrDefault(settings.Local?.DefaultModel, "llama2"),
             _ => "gpt-4o-mini"
@@ -135,6 +136,7 @@ public static class AIServiceHelper
             "anthropic" => settings.Anthropic,
             "google" => settings.Google,
             "deepseek" => settings.DeepSeek,
+            "groq" => settings.Groq,
             "allenai" => settings.AllenAI,
             "local" => settings.Local,
             _ => null
@@ -193,6 +195,7 @@ public static class AIServiceHelper
         public const string Anthropic = "anthropic";
         public const string Google = "google";
         public const string DeepSeek = "deepseek";
+        public const string Groq = "groq";
         public const string AllenAI = "allenai";
         public const string Local = "local";
     }
@@ -207,6 +210,7 @@ public static class AIServiceHelper
         public const string Anthropic = "claude-3-5-sonnet-20241022";
         public const string Google = "gemini-pro";
         public const string DeepSeek = "deepseek-chat";
+        public const string Groq = "llama-3.3-70b-versatile";
         public const string AllenAI = "allenai/OLMo-7B-Instruct";
         public const string Local = "llama2";
     }

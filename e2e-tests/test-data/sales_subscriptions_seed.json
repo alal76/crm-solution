@@ -1,0 +1,12 @@
+[
+  { "id": 1, "accountId": 1, "productId": 1, "status": "Active", "startDate": "2026-02-01", "endDate": "2027-01-31", "billingCycle": "Monthly", "amount": 500.00 },
+  { "id": 2, "accountId": 2, "productId": 2, "status": "Active", "startDate": "2026-02-05", "endDate": "2027-02-04", "billingCycle": "Monthly", "amount": 800.00 },
+  { "id": 3, "accountId": 3, "productId": 3, "status": "Trial", "startDate": "2026-02-10", "endDate": "2026-03-10", "billingCycle": "Monthly", "amount": 0.00 },
+  { "id": 4, "accountId": 4, "productId": 4, "status": "Active", "startDate": "2026-02-15", "endDate": "2026-08-14", "billingCycle": "Monthly", "amount": 1200.00 },
+  { "id": 5, "accountId": 5, "productId": 5, "status": "Canceled", "startDate": "2025-09-01", "endDate": "2026-02-28", "billingCycle": "Monthly", "amount": 300.00 },
+  { "id": 6, "accountId": 6, "productId": 6, "status": "Active", "startDate": "2026-02-20", "endDate": "2027-02-19", "billingCycle": "Annual", "amount": 6000.00 },
+  { "id": 7, "accountId": 7, "productId": 7, "status": "Active", "startDate": "2026-02-25", "endDate": "2027-02-24", "billingCycle": "Monthly", "amount": 900.00 },
+  { "id": 8, "accountId": 8, "productId": 8, "status": "Active", "startDate": "2026-02-28", "endDate": "2026-08-27", "billingCycle": "Monthly", "amount": 1500.00 },
+  { "id": 9, "accountId": 9, "productId": 9, "status": "Paused", "startDate": "2026-01-10", "endDate": "2026-07-09", "billingCycle": "Monthly", "amount": 350.00 },
+  { "id": 10, "accountId": 10, "productId": 10, "status": "Active", "startDate": "2026-02-12", "endDate": "2027-02-11", "billingCycle": "Annual", "amount": 7200.00 }
+]

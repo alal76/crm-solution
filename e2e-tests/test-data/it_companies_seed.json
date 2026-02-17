@@ -1,0 +1,129 @@
+{
+  "accounts": [
+    {
+      "name": "Microsoft",
+      "industry": "Technology",
+      "website": "https://www.microsoft.com",
+      "address": {
+        "street": "1 Microsoft Way",
+        "city": "Redmond",
+        "state": "WA",
+        "postalCode": "98052",
+        "country": "USA"
+      },
+      "phone": "+1-425-882-8080",
+      "executives": [
+        { "name": "Satya Nadella", "title": "Chief Executive Officer", "email": "satya.nadella@microsoft.com", "phone": "+1-425-882-8081" },
+        { "name": "Amy Hood", "title": "Chief Financial Officer", "email": "amy.hood@microsoft.com", "phone": "+1-425-882-8082" },
+        { "name": "Brad Smith", "title": "President & Vice Chair", "email": "brad.smith@microsoft.com", "phone": "+1-425-882-8083" },
+        { "name": "Judson Althoff", "title": "EVP, Chief Commercial Officer", "email": "judson.althoff@microsoft.com", "phone": "+1-425-882-8084" },
+        { "name": "Kathleen Hogan", "title": "Chief Human Resources Officer", "email": "kathleen.hogan@microsoft.com", "phone": "+1-425-882-8085" }
+      ]
+    },
+    {
+      "name": "Google",
+      "industry": "Technology",
+      "website": "https://www.google.com",
+      "address": {
+        "street": "1600 Amphitheatre Parkway",
+        "city": "Mountain View",
+        "state": "CA",
+        "postalCode": "94043",
+        "country": "USA"
+      },
+      "phone": "+1-650-253-0000",
+      "executives": [
+        { "name": "Sundar Pichai", "title": "Chief Executive Officer", "email": "sundar.pichai@google.com", "phone": "+1-650-253-0001" },
+        { "name": "Ruth Porat", "title": "President & Chief Investment Officer", "email": "ruth.porat@google.com", "phone": "+1-650-253-0002" },
+        { "name": "Thomas Kurian", "title": "CEO, Google Cloud", "email": "thomas.kurian@google.com", "phone": "+1-650-253-0003" },
+        { "name": "Prabhakar Raghavan", "title": "SVP, Search", "email": "prabhakar.raghavan@google.com", "phone": "+1-650-253-0004" }
+      ]
+    },
+    {
+      "name": "Amazon",
+      "industry": "E-commerce, Cloud Computing",
+      "website": "https://www.amazon.com",
+      "address": {
+        "street": "410 Terry Ave N",
+        "city": "Seattle",
+        "state": "WA",
+        "postalCode": "98109",
+        "country": "USA"
+      },
+      "phone": "+1-206-266-1000",
+      "executives": [
+        { "name": "Andy Jassy", "title": "President & CEO", "email": "andy.jassy@amazon.com", "phone": "+1-206-266-1001" },
+        { "name": "Brian Olsavsky", "title": "SVP & CFO", "email": "brian.olsavsky@amazon.com", "phone": "+1-206-266-1002" },
+        { "name": "Adam Selipsky", "title": "CEO, Amazon Web Services", "email": "adam.selipsky@amazon.com", "phone": "+1-206-266-1003" },
+        { "name": "Beth Galetti", "title": "SVP, People Experience & Technology", "email": "beth.galetti@amazon.com", "phone": "+1-206-266-1004" },
+        { "name": "Doug Herrington", "title": "CEO, Worldwide Amazon Stores", "email": "doug.herrington@amazon.com", "phone": "+1-206-266-1005" },
+        { "name": "David Zapolsky", "title": "SVP, General Counsel", "email": "david.zapolsky@amazon.com", "phone": "+1-206-266-1006" }
+      ]
+    }
+  ],
+  "productsAndServices": [
+    "Cloud Computing (IaaS, PaaS, SaaS)",
+    "Productivity Software Suite",
+    "Collaboration Tools",
+    "Enterprise Email",
+    "CRM Platform",
+    "ERP Solutions",
+    "AI/ML Services",
+    "Data Analytics Platform",
+    "Database Services",
+    "Web Hosting",
+    "Content Delivery Network (CDN)",
+    "Cybersecurity Solutions",
+    "Identity & Access Management",
+    "Mobile Device Management",
+    "IoT Platform",
+    "Developer Tools & SDKs",
+    "API Management",
+    "E-commerce Platform",
+    "Digital Advertising Services",
+    "Video Conferencing",
+    "Helpdesk & ITSM",
+    "Business Intelligence Tools",
+    "Search Engine Services",
+    "Cloud Storage",
+    "Backup & Disaster Recovery"
+  ],
+  "serviceRequestTypes": [
+    {
+      "type": "Technical Support",
+      "subtypes": ["Software Bug","System Outage","Performance Issue","Integration Problem","API Failure","Data Loss/Recovery"]
+    },
+    {
+      "type": "Account Management",
+      "subtypes": ["User Onboarding","User Offboarding","Role/Permission Change","Account Suspension","Password Reset"]
+    },
+    {
+      "type": "Billing & Payments",
+      "subtypes": ["Invoice Request","Payment Failure","Refund Request","Subscription Change","Tax Documentation"]
+    },
+    {
+      "type": "Product Inquiry",
+      "subtypes": ["Feature Request","Product Demo","Pricing Information","Trial Extension"]
+    },
+    {
+      "type": "Security",
+      "subtypes": ["Account Compromise","Phishing Report","Vulnerability Disclosure","Access Request","Security Incident"]
+    },
+    {
+      "type": "Hardware Support",
+      "subtypes": ["Device Setup","Device Replacement","Warranty Claim","Hardware Upgrade"]
+    },
+    {
+      "type": "Cloud Services",
+      "subtypes": ["Resource Provisioning","Quota Increase","Service Migration","Backup/Restore","Region Change"]
+    },
+    {
+      "type": "Compliance & Legal",
+      "subtypes": ["Data Privacy Request","GDPR Inquiry","Contract Review","Audit Request"]
+    },
+    {
+      "type": "Other",
+      "subtypes": ["General Inquiry","Feedback","Complaint"]
+    }
+  ]
+}

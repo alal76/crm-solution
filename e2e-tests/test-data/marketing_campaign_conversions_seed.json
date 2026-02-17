@@ -1,0 +1,12 @@
+[
+  { "id": 1, "campaignId": 1, "leadId": 1, "opportunityId": 1, "conversionDate": "2026-02-12", "value": 5200.00 },
+  { "id": 2, "campaignId": 2, "leadId": 2, "opportunityId": 2, "conversionDate": "2026-02-18", "value": 11800.00 },
+  { "id": 3, "campaignId": 3, "leadId": 3, "opportunityId": 3, "conversionDate": "2026-02-20", "value": 7900.00 },
+  { "id": 4, "campaignId": 4, "leadId": 4, "opportunityId": 4, "conversionDate": "2026-02-22", "value": 15250.00 },
+  { "id": 5, "campaignId": 5, "leadId": 5, "opportunityId": 5, "conversionDate": "2026-02-24", "value": 2950.00 },
+  { "id": 6, "campaignId": 6, "leadId": 6, "opportunityId": 6, "conversionDate": "2026-02-26", "value": 2100.00 },
+  { "id": 7, "campaignId": 7, "leadId": 7, "opportunityId": 7, "conversionDate": "2026-02-27", "value": 10050.00 },
+  { "id": 8, "campaignId": 8, "leadId": 8, "opportunityId": 8, "conversionDate": "2026-03-02", "value": 24800.00 },
+  { "id": 9, "campaignId": 9, "leadId": 9, "opportunityId": 9, "conversionDate": "2026-03-04", "value": 4100.00 },
+  { "id": 10, "campaignId": 10, "leadId": 10, "opportunityId": 10, "conversionDate": "2026-03-06", "value": 6050.00 }
+]

@@ -1,0 +1,12 @@
+[
+  { "id": 1, "name": "P1 Immediate Escalation", "priority": "Critical", "triggerMinutes": 30, "action": "NotifyManager", "isActive": true },
+  { "id": 2, "name": "P2 Escalate to Tier2", "priority": "High", "triggerMinutes": 120, "action": "AssignTier2", "isActive": true },
+  { "id": 3, "name": "P3 Escalate to Tier2", "priority": "Medium", "triggerMinutes": 240, "action": "AssignTier2", "isActive": true },
+  { "id": 4, "name": "P4 Escalate to Tier1", "priority": "Low", "triggerMinutes": 480, "action": "NotifyTeam", "isActive": true },
+  { "id": 5, "name": "Customer VIP Escalation", "priority": "High", "triggerMinutes": 60, "action": "NotifyDirector", "isActive": true },
+  { "id": 6, "name": "After Hours Escalation", "priority": "High", "triggerMinutes": 90, "action": "OnCall", "isActive": true },
+  { "id": 7, "name": "SLA Breach Warning", "priority": "Medium", "triggerMinutes": 180, "action": "NotifyTeam", "isActive": true },
+  { "id": 8, "name": "Security Incident Escalation", "priority": "Critical", "triggerMinutes": 15, "action": "NotifySecurity", "isActive": true },
+  { "id": 9, "name": "Billing Issue Escalation", "priority": "Medium", "triggerMinutes": 240, "action": "AssignBilling", "isActive": true },
+  { "id": 10, "name": "Executive Ticket Escalation", "priority": "High", "triggerMinutes": 45, "action": "NotifyManager", "isActive": true }
+]

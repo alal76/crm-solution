@@ -1,0 +1,12 @@
+[
+  { "id": 1, "title": "Resetting Passwords", "category": "Access", "status": "Published", "authorUserId": 3, "createdDate": "2026-01-10", "tags": ["password", "access"] },
+  { "id": 2, "title": "VPN Setup Guide", "category": "Network", "status": "Published", "authorUserId": 5, "createdDate": "2026-01-12", "tags": ["vpn", "remote"] },
+  { "id": 3, "title": "Email Client Troubleshooting", "category": "Email", "status": "Published", "authorUserId": 3, "createdDate": "2026-01-15", "tags": ["email", "outlook"] },
+  { "id": 4, "title": "Laptop Imaging Process", "category": "Hardware", "status": "Draft", "authorUserId": 5, "createdDate": "2026-01-18", "tags": ["laptop", "imaging"] },
+  { "id": 5, "title": "Printer Offline Fix", "category": "Hardware", "status": "Published", "authorUserId": 9, "createdDate": "2026-01-20", "tags": ["printer", "hardware"] },
+  { "id": 6, "title": "MFA Enrollment", "category": "Security", "status": "Published", "authorUserId": 7, "createdDate": "2026-01-22", "tags": ["mfa", "security"] },
+  { "id": 7, "title": "Teams Meeting Issues", "category": "Communication", "status": "Published", "authorUserId": 3, "createdDate": "2026-01-25", "tags": ["teams", "meeting"] },
+  { "id": 8, "title": "Software Installation Policy", "category": "Software", "status": "Published", "authorUserId": 5, "createdDate": "2026-01-28", "tags": ["software", "policy"] },
+  { "id": 9, "title": "Device Enrollment for MDM", "category": "Mobile", "status": "Draft", "authorUserId": 7, "createdDate": "2026-02-01", "tags": ["mdm", "mobile"] },
+  { "id": 10, "title": "Backup and Restore Basics", "category": "Data", "status": "Published", "authorUserId": 9, "createdDate": "2026-02-03", "tags": ["backup", "restore"] }
+]

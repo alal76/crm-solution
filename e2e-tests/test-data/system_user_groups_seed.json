@@ -1,0 +1,12 @@
+[
+  { "id": 1, "name": "Executive Team", "roleIds": [1, 8], "memberUserIds": [1, 6] },
+  { "id": 2, "name": "Sales Team", "roleIds": [2], "memberUserIds": [2, 4, 6, 8] },
+  { "id": 3, "name": "Support Team", "roleIds": [3], "memberUserIds": [3, 5, 7, 9] },
+  { "id": 4, "name": "Marketing Team", "roleIds": [4], "memberUserIds": [4, 8] },
+  { "id": 5, "name": "Finance Team", "roleIds": [5], "memberUserIds": [1, 10] },
+  { "id": 6, "name": "ITSM Team", "roleIds": [6], "memberUserIds": [3, 5, 7] },
+  { "id": 7, "name": "Analytics Team", "roleIds": [7], "memberUserIds": [2, 10] },
+  { "id": 8, "name": "Audit Team", "roleIds": [9], "memberUserIds": [1, 9] },
+  { "id": 9, "name": "Guest Users", "roleIds": [10], "memberUserIds": [9] },
+  { "id": 10, "name": "Ops Managers", "roleIds": [8, 6], "memberUserIds": [1, 3] }
+]

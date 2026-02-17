@@ -35,6 +35,7 @@ public class LLMProviderOptions
     public GoogleCloudOptions GoogleCloud { get; set; } = new();
     public AWSBedrockOptions AWSBedrock { get; set; } = new();
     public DeepSeekOptions DeepSeek { get; set; } = new();
+    public GroqOptions Groq { get; set; } = new();
     public AllenAIOptions AllenAI { get; set; } = new();
     public LocalLLMOptions LocalLLM { get; set; } = new();
     public CustomEndpointOptions CustomEndpoint { get; set; } = new();
@@ -43,7 +44,7 @@ public class LLMProviderOptions
     public int TimeoutSeconds { get; set; } = 60;
     public int MaxRetries { get; set; } = 3;
     public bool EnableFallback { get; set; } = true;
-    public string[] FallbackOrder { get; set; } = { "openai", "anthropic", "azure", "google", "allenai", "local" };
+    public string[] FallbackOrder { get; set; } = { "openai", "anthropic", "azure", "google", "allenai", "groq", "local" };
 }
 
 public class OpenAIOptions
@@ -108,6 +109,17 @@ public class DeepSeekOptions
     public string ApiKey { get; set; } = "";
     public string BaseUrl { get; set; } = "https://api.deepseek.com";
     public string DefaultModel { get; set; } = "deepseek-chat";  // or deepseek-coder, deepseek-reasoner
+}
+
+/// <summary>
+/// Groq AI configuration - Ultra-fast inference with OpenAI-compatible API
+/// Models: Llama 3.3, Mixtral, Gemma via custom LPU hardware
+/// </summary>
+public class GroqOptions
+{
+    public string ApiKey { get; set; } = "";
+    public string BaseUrl { get; set; } = "https://api.groq.com/openai/v1";
+    public string DefaultModel { get; set; } = "llama-3.3-70b-versatile";
 }
 
 /// <summary>
@@ -278,6 +290,7 @@ public class LLMService : ILLMService
                                   (IsValidApiKey(_options.AWSBedrock.AccessKeyId) &&
                                    IsValidApiKey(_options.AWSBedrock.SecretAccessKey)),
             "deepseek" => IsValidApiKey(_options.DeepSeek.ApiKey),
+            "groq" => IsValidApiKey(_options.Groq.ApiKey),
             "allenai" or "huggingface" or "ai2" => _options.AllenAI.Enabled &&
                                                     IsValidApiKey(_options.AllenAI.ApiKey),
             "local" or "ollama" or "lmstudio" or "vllm" => _options.LocalLLM.Enabled &&
@@ -312,6 +325,7 @@ public class LLMService : ILLMService
             new() { Value = "google", Label = "Google Cloud (Gemini)", IsConfigured = IsConfigured("google"), Models = GetModelsForProvider("google") },
             new() { Value = "bedrock", Label = "AWS Bedrock", IsConfigured = IsConfigured("bedrock"), Models = GetModelsForProvider("bedrock") },
             new() { Value = "deepseek", Label = "DeepSeek", IsConfigured = IsConfigured("deepseek"), Models = GetModelsForProvider("deepseek") },
+            new() { Value = "groq", Label = "Groq (Fast Inference)", IsConfigured = IsConfigured("groq"), Models = GetModelsForProvider("groq") },
             new() { Value = "allenai", Label = "Allen AI (Open Research)", IsConfigured = IsConfigured("allenai"), Models = GetModelsForProvider("allenai") },
             new() { Value = "local", Label = "Local LLM (Ollama/LM Studio)", IsConfigured = IsConfigured("local"), Models = GetModelsForProvider("local") },
             new() { Value = "custom", Label = "Custom Endpoint", IsConfigured = IsConfigured("custom"), Models = GetModelsForProvider("custom") }
@@ -371,6 +385,13 @@ public class LLMService : ILLMService
                 new() { Value = "deepseek-chat", Label = "DeepSeek Chat", Provider = "deepseek", IsDefault = _options.DeepSeek.DefaultModel == "deepseek-chat" },
                 new() { Value = "deepseek-coder", Label = "DeepSeek Coder", Provider = "deepseek", IsDefault = _options.DeepSeek.DefaultModel == "deepseek-coder" },
                 new() { Value = "deepseek-reasoner", Label = "DeepSeek Reasoner", Provider = "deepseek", IsDefault = _options.DeepSeek.DefaultModel == "deepseek-reasoner" }
+            },
+            "groq" => new List<LLMModelInfo>
+            {
+                new() { Value = "llama-3.3-70b-versatile", Label = "Llama 3.3 70B Versatile", Provider = "groq", IsDefault = _options.Groq.DefaultModel == "llama-3.3-70b-versatile" },
+                new() { Value = "llama-3.1-8b-instant", Label = "Llama 3.1 8B Instant", Provider = "groq", IsDefault = _options.Groq.DefaultModel == "llama-3.1-8b-instant" },
+                new() { Value = "mixtral-8x7b-32768", Label = "Mixtral 8x7B", Provider = "groq", IsDefault = _options.Groq.DefaultModel == "mixtral-8x7b-32768" },
+                new() { Value = "gemma2-9b-it", Label = "Gemma 2 9B IT", Provider = "groq", IsDefault = _options.Groq.DefaultModel == "gemma2-9b-it" }
             },
             "allenai" or "huggingface" or "ai2" => new List<LLMModelInfo>
             {
@@ -457,6 +478,7 @@ public class LLMService : ILLMService
                     "google" or "gemini" or "vertexai" => await CallGoogleCloudAsync(request, cancellationToken),
                     "aws" or "bedrock" => await CallAWSBedrockAsync(request, cancellationToken),
                     "deepseek" => await CallDeepSeekAsync(request, cancellationToken),
+                    "groq" => await CallGroqAsync(request, cancellationToken),
                     "allenai" or "huggingface" or "ai2" => await CallAllenAIAsync(request, cancellationToken),
                     "local" or "ollama" or "lmstudio" or "vllm" => await CallLocalLLMAsync(request, cancellationToken),
                     "custom" => await CallCustomEndpointAsync(request, cancellationToken),
@@ -1029,6 +1051,63 @@ public class LLMService : ILLMService
             Content = responseContent,
             Model = model,
             Provider = "deepseek",
+            TotalTokens = usage.GetProperty("total_tokens").GetInt32(),
+            PromptTokens = usage.GetProperty("prompt_tokens").GetInt32(),
+            CompletionTokens = usage.GetProperty("completion_tokens").GetInt32(),
+            Success = true
+        };
+    }
+
+    #endregion
+
+    #region Groq Provider
+
+    private async Task<LLMResponse> CallGroqAsync(LLMRequest request, CancellationToken cancellationToken)
+    {
+        // Groq uses OpenAI-compatible API at https://api.groq.com/openai/v1
+        var model = request.Model?.StartsWith("llama") == true || request.Model?.StartsWith("mixtral") == true || request.Model?.StartsWith("gemma") == true
+            ? request.Model : _options.Groq.DefaultModel;
+
+        var messages = request.Messages?.Select(m => new { role = m.Role, content = m.Content }).ToArray();
+
+        var requestBody = new
+        {
+            model,
+            messages,
+            max_tokens = request.MaxTokens > 0 ? request.MaxTokens : 4096,
+            temperature = request.Temperature
+        };
+
+        var httpRequest = new HttpRequestMessage(HttpMethod.Post, $"{_options.Groq.BaseUrl}/chat/completions");
+        httpRequest.Headers.Add("Authorization", $"Bearer {_options.Groq.ApiKey}");
+        httpRequest.Content = new StringContent(
+            JsonSerializer.Serialize(requestBody),
+            Encoding.UTF8,
+            "application/json");
+
+        var response = await _httpClient.SendAsync(httpRequest, cancellationToken);
+        var content = await response.Content.ReadAsStringAsync(cancellationToken);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            _logger.LogError("Groq API error: {StatusCode} - {Content}", response.StatusCode, content);
+            throw new Exception($"Groq API error: {response.StatusCode}");
+        }
+
+        var jsonResponse = JsonDocument.Parse(content);
+        var responseContent = jsonResponse.RootElement
+            .GetProperty("choices")[0]
+            .GetProperty("message")
+            .GetProperty("content")
+            .GetString() ?? "";
+
+        var usage = jsonResponse.RootElement.GetProperty("usage");
+
+        return new LLMResponse
+        {
+            Content = responseContent,
+            Model = model,
+            Provider = "groq",
             TotalTokens = usage.GetProperty("total_tokens").GetInt32(),
             PromptTokens = usage.GetProperty("prompt_tokens").GetInt32(),
             CompletionTokens = usage.GetProperty("completion_tokens").GetInt32(),

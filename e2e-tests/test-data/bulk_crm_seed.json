@@ -1,0 +1,102 @@
+
+{
+	"accounts": [
+		{ "id": 1, "name": "Acme Corporation", "industry": "Manufacturing", "website": "https://acme.com", "phone": "+1-555-1000", "address": "123 Main St, Springfield, IL" },
+		{ "id": 2, "name": "Globex Inc.", "industry": "Technology", "website": "https://globex.com", "phone": "+1-555-1001", "address": "456 Elm St, Boston, MA" },
+		{ "id": 3, "name": "Initech", "industry": "Software", "website": "https://initech.com", "phone": "+1-555-1002", "address": "789 Oak Ave, Austin, TX" },
+		{ "id": 4, "name": "Umbrella Corp", "industry": "Pharmaceuticals", "website": "https://umbrella.com", "phone": "+1-555-1003", "address": "321 Maple Rd, Raccoon City, OH" },
+		{ "id": 5, "name": "Stark Industries", "industry": "Aerospace", "website": "https://starkindustries.com", "phone": "+1-555-1004", "address": "1 Stark Tower, New York, NY" },
+		{ "id": 6, "name": "Wayne Enterprises", "industry": "Finance", "website": "https://wayneenterprises.com", "phone": "+1-555-1005", "address": "100 Wayne Plaza, Gotham, NJ" },
+		{ "id": 7, "name": "Hooli", "industry": "Technology", "website": "https://hooli.com", "phone": "+1-555-1006", "address": "200 Silicon Blvd, Palo Alto, CA" },
+		{ "id": 8, "name": "Wonka Industries", "industry": "Food & Beverage", "website": "https://wonka.com", "phone": "+1-555-1007", "address": "10 Chocolate Ln, Hershey, PA" },
+		{ "id": 9, "name": "Dunder Mifflin", "industry": "Paper", "website": "https://dundermifflin.com", "phone": "+1-555-1008", "address": "1725 Slough Ave, Scranton, PA" },
+		{ "id": 10, "name": "Vandelay Industries", "industry": "Import/Export", "website": "https://vandelay.com", "phone": "+1-555-1009", "address": "500 Export Dr, New York, NY" }
+	],
+	"contacts": [
+		{ "id": 1, "firstName": "John", "lastName": "Doe", "email": "john.doe@acme.com", "phone": "+1-555-2000", "accountId": 1 },
+		{ "id": 2, "firstName": "Jane", "lastName": "Smith", "email": "jane.smith@globex.com", "phone": "+1-555-2001", "accountId": 2 },
+		{ "id": 3, "firstName": "Peter", "lastName": "Gibbons", "email": "peter.gibbons@initech.com", "phone": "+1-555-2002", "accountId": 3 },
+		{ "id": 4, "firstName": "Alice", "lastName": "Johnson", "email": "alice.johnson@umbrella.com", "phone": "+1-555-2003", "accountId": 4 },
+		{ "id": 5, "firstName": "Tony", "lastName": "Stark", "email": "tony.stark@starkindustries.com", "phone": "+1-555-2004", "accountId": 5 },
+		{ "id": 6, "firstName": "Bruce", "lastName": "Wayne", "email": "bruce.wayne@wayneenterprises.com", "phone": "+1-555-2005", "accountId": 6 },
+		{ "id": 7, "firstName": "Gavin", "lastName": "Belson", "email": "gavin.belson@hooli.com", "phone": "+1-555-2006", "accountId": 7 },
+		{ "id": 8, "firstName": "Willy", "lastName": "Wonka", "email": "willy.wonka@wonka.com", "phone": "+1-555-2007", "accountId": 8 },
+		{ "id": 9, "firstName": "Pam", "lastName": "Beesly", "email": "pam.beesly@dundermifflin.com", "phone": "+1-555-2008", "accountId": 9 },
+		{ "id": 10, "firstName": "Art", "lastName": "Vandelay", "email": "art.vandelay@vandelay.com", "phone": "+1-555-2009", "accountId": 10 },
+		{ "id": 11, "firstName": "Dwight", "lastName": "Schrute", "email": "dwight.schrute@dundermifflin.com", "phone": "+1-555-2010", "accountId": 9 },
+		{ "id": 12, "firstName": "Pepper", "lastName": "Potts", "email": "pepper.potts@starkindustries.com", "phone": "+1-555-2011", "accountId": 5 }
+	],
+	"leads": [
+		{ "id": 1, "firstName": "Emily", "lastName": "Clark", "email": "emily.clark@gmail.com", "phone": "+1-555-3000", "company": "Clark Consulting", "status": "New" },
+		{ "id": 2, "firstName": "Michael", "lastName": "Scott", "email": "michael.scott@dundermifflin.com", "phone": "+1-555-3001", "company": "Dunder Mifflin", "status": "Contacted" },
+		{ "id": 3, "firstName": "Linda", "lastName": "Nguyen", "email": "linda.nguyen@globex.com", "phone": "+1-555-3002", "company": "Globex Inc.", "status": "Qualified" },
+		{ "id": 4, "firstName": "Oscar", "lastName": "Martinez", "email": "oscar.martinez@initech.com", "phone": "+1-555-3003", "company": "Initech", "status": "New" },
+		{ "id": 5, "firstName": "Rachel", "lastName": "Green", "email": "rachel.green@fashion.com", "phone": "+1-555-3004", "company": "Fashion House", "status": "Contacted" },
+		{ "id": 6, "firstName": "Jim", "lastName": "Halpert", "email": "jim.halpert@dundermifflin.com", "phone": "+1-555-3005", "company": "Dunder Mifflin", "status": "Qualified" },
+		{ "id": 7, "firstName": "Monica", "lastName": "Geller", "email": "monica.geller@culinary.com", "phone": "+1-555-3006", "company": "Culinary Creations", "status": "New" },
+		{ "id": 8, "firstName": "Ross", "lastName": "Geller", "email": "ross.geller@museum.com", "phone": "+1-555-3007", "company": "Natural History Museum", "status": "Contacted" },
+		{ "id": 9, "firstName": "Phoebe", "lastName": "Buffay", "email": "phoebe.buffay@music.com", "phone": "+1-555-3008", "company": "Buffay Music", "status": "Qualified" },
+		{ "id": 10, "firstName": "Chandler", "lastName": "Bing", "email": "chandler.bing@advertising.com", "phone": "+1-555-3009", "company": "Bing Advertising", "status": "New" }
+	],
+	"products": [
+		{ "id": 1, "name": "SuperWidget", "sku": "SW-100", "price": 199.99, "category": "Widgets" },
+		{ "id": 2, "name": "MegaGadget", "sku": "MG-200", "price": 299.99, "category": "Gadgets" },
+		{ "id": 3, "name": "UltraTool", "sku": "UT-300", "price": 149.99, "category": "Tools" },
+		{ "id": 4, "name": "PowerDevice", "sku": "PD-400", "price": 399.99, "category": "Devices" },
+		{ "id": 5, "name": "EcoWidget", "sku": "EW-500", "price": 99.99, "category": "Widgets" },
+		{ "id": 6, "name": "NanoGadget", "sku": "NG-600", "price": 49.99, "category": "Gadgets" },
+		{ "id": 7, "name": "ProTool", "sku": "PT-700", "price": 249.99, "category": "Tools" },
+		{ "id": 8, "name": "SmartDevice", "sku": "SD-800", "price": 499.99, "category": "Devices" },
+		{ "id": 9, "name": "MiniWidget", "sku": "MW-900", "price": 59.99, "category": "Widgets" },
+		{ "id": 10, "name": "AlphaGadget", "sku": "AG-1000", "price": 129.99, "category": "Gadgets" }
+	],
+	"opportunities": [
+		{ "id": 1, "name": "Acme - SuperWidget Deal", "accountId": 1, "productId": 1, "amount": 5000, "stage": "Proposal", "closeDate": "2026-03-15" },
+		{ "id": 2, "name": "Globex - MegaGadget Expansion", "accountId": 2, "productId": 2, "amount": 12000, "stage": "Negotiation", "closeDate": "2026-04-01" },
+		{ "id": 3, "name": "Initech - UltraTool Upgrade", "accountId": 3, "productId": 3, "amount": 8000, "stage": "Qualified", "closeDate": "2026-03-22" },
+		{ "id": 4, "name": "Umbrella - PowerDevice Rollout", "accountId": 4, "productId": 4, "amount": 15000, "stage": "Proposal", "closeDate": "2026-05-10" },
+		{ "id": 5, "name": "Stark - EcoWidget Pilot", "accountId": 5, "productId": 5, "amount": 3000, "stage": "Negotiation", "closeDate": "2026-03-30" },
+		{ "id": 6, "name": "Wayne - NanoGadget Order", "accountId": 6, "productId": 6, "amount": 2000, "stage": "Qualified", "closeDate": "2026-04-12" },
+		{ "id": 7, "name": "Hooli - ProTool Subscription", "accountId": 7, "productId": 7, "amount": 10000, "stage": "Proposal", "closeDate": "2026-04-25" },
+		{ "id": 8, "name": "Wonka - SmartDevice Launch", "accountId": 8, "productId": 8, "amount": 25000, "stage": "Negotiation", "closeDate": "2026-05-05" },
+		{ "id": 9, "name": "Dunder - MiniWidget Bulk", "accountId": 9, "productId": 9, "amount": 4000, "stage": "Qualified", "closeDate": "2026-03-28" },
+		{ "id": 10, "name": "Vandelay - AlphaGadget Import", "accountId": 10, "productId": 10, "amount": 6000, "stage": "Proposal", "closeDate": "2026-04-18" }
+	],
+	"serviceRequests": [
+		{ "id": 1, "accountId": 1, "contactId": 1, "title": "Cannot access portal", "category": "Support", "status": "Open", "priority": "High", "createdDate": "2026-02-10" },
+		{ "id": 2, "accountId": 2, "contactId": 2, "title": "Billing discrepancy", "category": "Billing", "status": "In Progress", "priority": "Medium", "createdDate": "2026-02-12" },
+		{ "id": 3, "accountId": 3, "contactId": 3, "title": "Feature request: API", "category": "Feature Request", "status": "Open", "priority": "Low", "createdDate": "2026-02-14" },
+		{ "id": 4, "accountId": 4, "contactId": 4, "title": "Product defect reported", "category": "Support", "status": "Resolved", "priority": "High", "createdDate": "2026-02-15" },
+		{ "id": 5, "accountId": 5, "contactId": 5, "title": "Request for quote", "category": "Sales", "status": "Open", "priority": "Medium", "createdDate": "2026-02-16" },
+		{ "id": 6, "accountId": 6, "contactId": 6, "title": "Password reset", "category": "Support", "status": "Closed", "priority": "Low", "createdDate": "2026-02-17" },
+		{ "id": 7, "accountId": 7, "contactId": 7, "title": "Integration assistance", "category": "Support", "status": "In Progress", "priority": "High", "createdDate": "2026-02-18" },
+		{ "id": 8, "accountId": 8, "contactId": 8, "title": "Shipping delay", "category": "Logistics", "status": "Open", "priority": "Medium", "createdDate": "2026-02-19" },
+		{ "id": 9, "accountId": 9, "contactId": 9, "title": "Invoice copy needed", "category": "Billing", "status": "Resolved", "priority": "Low", "createdDate": "2026-02-20" },
+		{ "id": 10, "accountId": 10, "contactId": 10, "title": "Product inquiry", "category": "Sales", "status": "Open", "priority": "Medium", "createdDate": "2026-02-21" }
+	],
+	"users": [
+		{ "id": 1, "username": "admin", "email": "admin@crm.local", "role": "Admin", "firstName": "System", "lastName": "Administrator" },
+		{ "id": 2, "username": "jdoe", "email": "jdoe@acme.com", "role": "Sales", "firstName": "John", "lastName": "Doe" },
+		{ "id": 3, "username": "jsmith", "email": "jsmith@globex.com", "role": "Support", "firstName": "Jane", "lastName": "Smith" },
+		{ "id": 4, "username": "pgibbons", "email": "pgibbons@initech.com", "role": "Sales", "firstName": "Peter", "lastName": "Gibbons" },
+		{ "id": 5, "username": "ajohnson", "email": "ajohnson@umbrella.com", "role": "Support", "firstName": "Alice", "lastName": "Johnson" },
+		{ "id": 6, "username": "tstark", "email": "tstark@starkindustries.com", "role": "Sales", "firstName": "Tony", "lastName": "Stark" },
+		{ "id": 7, "username": "bwayne", "email": "bwayne@wayneenterprises.com", "role": "Support", "firstName": "Bruce", "lastName": "Wayne" },
+		{ "id": 8, "username": "gbelson", "email": "gbelson@hooli.com", "role": "Sales", "firstName": "Gavin", "lastName": "Belson" },
+		{ "id": 9, "username": "wwonka", "email": "wwonka@wonka.com", "role": "Support", "firstName": "Willy", "lastName": "Wonka" },
+		{ "id": 10, "username": "pbeesly", "email": "pbeesly@dundermifflin.com", "role": "Sales", "firstName": "Pam", "lastName": "Beesly" }
+	],
+	"interactions": [
+		{ "id": 1, "accountId": 1, "contactId": 1, "type": "Call", "subject": "Introductory call", "date": "2026-02-01", "userId": 2 },
+		{ "id": 2, "accountId": 2, "contactId": 2, "type": "Email", "subject": "Product brochure sent", "date": "2026-02-02", "userId": 3 },
+		{ "id": 3, "accountId": 3, "contactId": 3, "type": "Meeting", "subject": "Demo scheduled", "date": "2026-02-03", "userId": 4 },
+		{ "id": 4, "accountId": 4, "contactId": 4, "type": "Call", "subject": "Support call", "date": "2026-02-04", "userId": 5 },
+		{ "id": 5, "accountId": 5, "contactId": 5, "type": "Email", "subject": "Quote sent", "date": "2026-02-05", "userId": 6 },
+		{ "id": 6, "accountId": 6, "contactId": 6, "type": "Meeting", "subject": "Quarterly review", "date": "2026-02-06", "userId": 7 },
+		{ "id": 7, "accountId": 7, "contactId": 7, "type": "Call", "subject": "Integration discussion", "date": "2026-02-07", "userId": 8 },
+		{ "id": 8, "accountId": 8, "contactId": 8, "type": "Email", "subject": "Order confirmation", "date": "2026-02-08", "userId": 9 },
+		{ "id": 9, "accountId": 9, "contactId": 9, "type": "Meeting", "subject": "Contract renewal", "date": "2026-02-09", "userId": 10 },
+		{ "id": 10, "accountId": 10, "contactId": 10, "type": "Call", "subject": "Product inquiry", "date": "2026-02-10", "userId": 2 }
+	]
+}
+

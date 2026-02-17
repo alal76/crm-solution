@@ -1,0 +1,12 @@
+[
+  { "id": 1, "userId": 2, "orderId": 1, "rate": 0.05, "amount": 395.00, "status": "Accrued", "period": "2026-02" },
+  { "id": 2, "userId": 4, "orderId": 2, "rate": 0.04, "amount": 84.00, "status": "Paid", "period": "2026-02" },
+  { "id": 3, "userId": 2, "orderId": 3, "rate": 0.05, "amount": 590.00, "status": "Accrued", "period": "2026-02" },
+  { "id": 4, "userId": 6, "orderId": 4, "rate": 0.06, "amount": 915.00, "status": "Accrued", "period": "2026-02" },
+  { "id": 5, "userId": 8, "orderId": 5, "rate": 0.05, "amount": 502.50, "status": "Accrued", "period": "2026-02" },
+  { "id": 6, "userId": 10, "orderId": 6, "rate": 0.05, "amount": 1240.00, "status": "Paid", "period": "2026-02" },
+  { "id": 7, "userId": 2, "orderId": 7, "rate": 0.04, "amount": 208.00, "status": "Accrued", "period": "2026-02" },
+  { "id": 8, "userId": 4, "orderId": 8, "rate": 0.05, "amount": 205.00, "status": "Paid", "period": "2026-02" },
+  { "id": 9, "userId": 6, "orderId": 9, "rate": 0.05, "amount": 302.50, "status": "Accrued", "period": "2026-02" },
+  { "id": 10, "userId": 8, "orderId": 10, "rate": 0.04, "amount": 118.00, "status": "Accrued", "period": "2026-02" }
+]

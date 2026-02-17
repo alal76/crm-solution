@@ -1,0 +1,12 @@
+[
+  { "id": 1, "name": "Q1 Product Launch", "type": "Email", "status": "Active", "startDate": "2026-02-01", "endDate": "2026-03-15", "budget": 20000.00, "ownerUserId": 2 },
+  { "id": 2, "name": "Spring Webinar Series", "type": "Webinar", "status": "Planned", "startDate": "2026-03-01", "endDate": "2026-04-30", "budget": 15000.00, "ownerUserId": 4 },
+  { "id": 3, "name": "Security Awareness Push", "type": "Email", "status": "Active", "startDate": "2026-02-10", "endDate": "2026-03-20", "budget": 12000.00, "ownerUserId": 6 },
+  { "id": 4, "name": "Partner Co-Marketing", "type": "Partner", "status": "Active", "startDate": "2026-02-15", "endDate": "2026-05-01", "budget": 30000.00, "ownerUserId": 8 },
+  { "id": 5, "name": "End of Quarter Promo", "type": "Digital", "status": "Planned", "startDate": "2026-03-10", "endDate": "2026-03-31", "budget": 18000.00, "ownerUserId": 10 },
+  { "id": 6, "name": "Cloud Migration Awareness", "type": "Email", "status": "Active", "startDate": "2026-02-05", "endDate": "2026-03-05", "budget": 14000.00, "ownerUserId": 2 },
+  { "id": 7, "name": "SMB Growth Campaign", "type": "Social", "status": "Active", "startDate": "2026-02-12", "endDate": "2026-04-12", "budget": 22000.00, "ownerUserId": 4 },
+  { "id": 8, "name": "Enterprise IT Summit", "type": "Event", "status": "Planned", "startDate": "2026-04-01", "endDate": "2026-04-03", "budget": 50000.00, "ownerUserId": 6 },
+  { "id": 9, "name": "Productivity Toolkit", "type": "Email", "status": "Active", "startDate": "2026-02-18", "endDate": "2026-03-25", "budget": 11000.00, "ownerUserId": 8 },
+  { "id": 10, "name": "Customer Advocacy Program", "type": "Referral", "status": "Active", "startDate": "2026-02-20", "endDate": "2026-06-20", "budget": 16000.00, "ownerUserId": 10 }
+]

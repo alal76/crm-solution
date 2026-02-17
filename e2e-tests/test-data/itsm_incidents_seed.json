@@ -1,0 +1,12 @@
+[
+  { "id": 1, "title": "Email Outage", "category": "Email", "status": "Open", "priority": "High", "reportedByContactId": 1, "accountId": 1, "openedDate": "2026-02-10" },
+  { "id": 2, "title": "VPN Down", "category": "Network", "status": "In Progress", "priority": "High", "reportedByContactId": 2, "accountId": 2, "openedDate": "2026-02-11" },
+  { "id": 3, "title": "Laptop Failure", "category": "Hardware", "status": "Open", "priority": "Medium", "reportedByContactId": 3, "accountId": 3, "openedDate": "2026-02-12" },
+  { "id": 4, "title": "Database Slow", "category": "Software", "status": "Open", "priority": "Medium", "reportedByContactId": 4, "accountId": 4, "openedDate": "2026-02-13" },
+  { "id": 5, "title": "Phishing Alert", "category": "Security", "status": "Open", "priority": "Critical", "reportedByContactId": 5, "accountId": 5, "openedDate": "2026-02-14" },
+  { "id": 6, "title": "Printer Offline", "category": "Hardware", "status": "Resolved", "priority": "Low", "reportedByContactId": 6, "accountId": 6, "openedDate": "2026-02-15" },
+  { "id": 7, "title": "CRM Login Issue", "category": "Access", "status": "Open", "priority": "High", "reportedByContactId": 7, "accountId": 7, "openedDate": "2026-02-16" },
+  { "id": 8, "title": "WiFi Instability", "category": "Network", "status": "In Progress", "priority": "Medium", "reportedByContactId": 8, "accountId": 8, "openedDate": "2026-02-17" },
+  { "id": 9, "title": "Endpoint Malware", "category": "Security", "status": "Open", "priority": "Critical", "reportedByContactId": 9, "accountId": 9, "openedDate": "2026-02-18" },
+  { "id": 10, "title": "File Share Access", "category": "Access", "status": "Resolved", "priority": "Low", "reportedByContactId": 10, "accountId": 10, "openedDate": "2026-02-19" }
+]
