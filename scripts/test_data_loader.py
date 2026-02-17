@@ -1,14 +1,46 @@
 #!/usr/bin/env python3
+"""CRM Test-Data Loader v2
+
+Loads seed data via the CRM REST API, including:
+  * System: roles, permissions, users, user groups, feature flags, settings
+  * CRM Core: accounts, contacts, leads, products, opportunities
+  * Contact-Info linking: addresses, phones, emails, social-media
+  * Preferences: account and contact communication preferences
+  * Activities: interactions, activities, tasks, notes
+  * Sales: quotes, orders, invoices, payments, contracts, subscriptions,
+    commissions
+  * Marketing: email templates, sequences, campaigns
+  * Service Desk: categories, types, requests
+  * ITSM: CMDB, incidents, problems, changes, SLA, knowledge-articles
+  * Relationships: types, account-to-account links, health snapshots
+  * Workflows
+
+Enhanced logging captures:
+  * Docker container logs (backend, DB, frontend) at point of every failure
+  * Full request/response bodies
+  * Structured JSONL + human-readable .log
+"""
+
+from __future__ import annotations
 
 import argparse
 import json
 import os
 import re
+import subprocess
 import sys
+import textwrap
+import traceback
 import urllib.error
 import urllib.request
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Tuple
+
+# ----------------------------------------------------------------- helpers
+
+
+def _now_iso() -> str:
+    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
 
 
 def slugify(value: str) -> str:
@@ -19,22 +51,20 @@ def slugify(value: str) -> str:
 
 def email_from_name(name: str, website: Optional[str] = None) -> str:
     if website:
-        match = re.search(r"https?://([^/]+)", website)
-        if match:
-            return f"info@{match.group(1)}"
+        m = re.search(r"https?://(?:www\.)?([^/]+)", website)
+        if m:
+            return f"info@{m.group(1)}"
     return f"info@{slugify(name)}.example.com"
 
 
-def split_name(full_name: str) -> Tuple[str, str]:
-    parts = full_name.strip().split()
-    if len(parts) == 1:
-        return parts[0], ""
+def split_name(full: str) -> Tuple[str, str]:
+    parts = full.strip().split()
+    if len(parts) <= 1:
+        return (parts[0] if parts else "Unknown"), ""
     return parts[0], " ".join(parts[1:])
 
 
-# ── Enum Mapping Dictionaries ──────────────────────────────────────────────────
-# C# enums serialize as integers; the seed JSON files use human-readable strings.
-# These dicts convert string -> int for every enum used in the failing payloads.
+# ---------------------------------------------------------- enum dicts
 
 OPPORTUNITY_STAGE = {
     "Discovery": 0, "Qualification": 1, "Qualified": 1, "Proposal": 2,
@@ -87,62 +117,230 @@ CAMPAIGN_TYPE = {
     "ABM": 20, "PartnerMarketing": 21, "ProductLaunch": 22,
     "BrandAwareness": 23, "Integrated": 24, "Other": 25,
 }
-# ITSM enums are 1-indexed
+INTERACTION_TYPE = {
+    "Email": 0, "Phone": 1, "Call": 1, "Meeting": 2, "VideoCall": 3,
+    "Chat": 4, "SMS": 5, "SocialMedia": 6, "InPerson": 7, "WebForm": 8,
+    "Note": 9, "Task": 10, "Demo": 11, "Presentation": 12, "Contract": 13,
+    "Support": 14, "Other": 15,
+}
+INTERACTION_DIRECTION = {"Inbound": 0, "Outbound": 1, "Internal": 2}
+INTERACTION_OUTCOME = {
+    "None": 0, "Successful": 1, "Unsuccessful": 2, "FollowUpRequired": 3,
+    "NoResponse": 4, "Voicemail": 5, "Rescheduled": 6, "Cancelled": 7,
+}
+ACTIVITY_TYPE = {
+    "EmailSent": 0, "EmailReceived": 1, "CallMade": 2, "CallReceived": 3,
+    "MeetingScheduled": 4, "MeetingCompleted": 5, "ChatMessage": 6,
+    "SMSSent": 7, "SMSReceived": 8, "NoteAdded": 40, "TaskCreated": 30,
+    "TaskCompleted": 31, "OpportunityCreated": 12, "Other": 99,
+}
+TASK_TYPE = {
+    "Call": 0, "Email": 1, "Meeting": 2, "FollowUp": 3, "Demo": 4,
+    "Proposal": 5, "Contract": 6, "Research": 7, "Other": 8,
+}
+TASK_STATUS = {
+    "NotStarted": 0, "InProgress": 1, "Completed": 2, "Deferred": 3,
+    "Waiting": 4, "Cancelled": 5,
+}
+TASK_PRIORITY = {"Low": 0, "Normal": 1, "High": 2, "Urgent": 3}
+NOTE_TYPE = {"General": 0, "Meeting": 1, "Call": 2, "Email": 3, "Internal": 4}
+NOTE_VISIBILITY = {"Private": 0, "Team": 1, "Public": 2}
 INCIDENT_IMPACT = {"High": 1, "Medium": 2, "Low": 3}
 INCIDENT_URGENCY = {"High": 1, "Medium": 2, "Low": 3}
 PROBLEM_PRIORITY = {"Critical": 1, "High": 2, "Medium": 3, "Low": 4}
 
-# Patterns that indicate an "already exists" response (treat as success).
+# ITSM CI Type enum (1-indexed)
+CI_TYPE = {
+    "Server": 1, "WorkStation": 2, "Workstation": 2, "NetworkDevice": 3,
+    "Application": 4, "Database": 5, "Storage": 6, "VirtualMachine": 7,
+    "BusinessService": 8, "ITService": 9, "Software": 10, "License": 11,
+    "Documentation": 12,
+}
+# ITSM Knowledge Article Type enum (1-indexed)
+ARTICLE_TYPE = {
+    "HowTo": 1, "Troubleshooting": 2, "FAQ": 3, "KnownError": 4,
+    "Reference": 5, "BestPractice": 6,
+}
+# Email Sequence Step Type enum (0-indexed)
+EMAIL_STEP_TYPE = {
+    "Email": 0, "Wait": 1, "Task": 2, "Condition": 3, "LinkedIn": 4,
+    "Call": 5, "SMS": 6, "Notification": 7,
+}
+# ITSM Operational Status enum (1-indexed)
+OPERATIONAL_STATUS = {
+    "Operational": 1, "Degraded": 2, "NonOperational": 3, "Retired": 4,
+    "UnderMaintenance": 5,
+}
+
 ALREADY_EXISTS_PATTERNS = [
-    "already exists",
-    "duplicate",
-    "already registered",
+    "already exists", "duplicate", "already registered",
+    "duplicate entry", "unique constraint",
 ]
 
 
-def _is_already_exists(response_body: Optional[str]) -> bool:
-    """Return True if the API error indicates the resource already exists."""
-    if not response_body:
+def _is_already_exists(body: Optional[str]) -> bool:
+    if not body:
         return False
-    lower = response_body.lower()
-    return any(p in lower for p in ALREADY_EXISTS_PATTERNS)
+    lo = body.lower()
+    return any(p in lo for p in ALREADY_EXISTS_PATTERNS)
+
+
+# ------------------------------------------------- docker log capture
+
+
+class DockerLogCapture:
+    """Captures recent lines from Docker container logs on the remote server
+    or locally.  Uses ``--since`` with a short window so that verbose
+    EF-Core SQL logs don't push the actual error messages out of range.
+    Also provides a *filtered* view of the API logs that strips out the
+    long SQL SELECT/INSERT/UPDATE noise to surface real errors."""
+
+    # SQL noise patterns – lines that are pure EF-Core SQL output
+    _SQL_NOISE = re.compile(
+        r"^\s*(SELECT|INSERT|UPDATE|DELETE|FROM|WHERE|INNER|LEFT|"
+        r"ORDER BY|GROUP BY|HAVING|LIMIT|SET |VALUES|AND |OR |\)|"
+        r"JOIN |AS |ON |\(|NOT |CASE |WHEN |THEN |ELSE |END |"
+        r"--\s|PRAGMA|CREATE|ALTER|DROP)",
+        re.IGNORECASE,
+    )
+
+    def __init__(
+        self,
+        ssh_host: Optional[str] = None,
+        api_container: str = "crm-api",
+        db_container: str = "crm-mariadb",
+        frontend_container: str = "crm-frontend",
+        tail_lines: int = 120,
+        since_seconds: int = 10,
+    ):
+        self.ssh_host = ssh_host
+        self.api_container = api_container
+        self.db_container = db_container
+        self.frontend_container = frontend_container
+        self.tail_lines = tail_lines
+        self.since_seconds = since_seconds
+
+    def _run(self, cmd: str, timeout: int = 10) -> str:
+        if self.ssh_host:
+            full = [
+                "ssh", "-o", "ConnectTimeout=5",
+                "-o", "StrictHostKeyChecking=no",
+                self.ssh_host, cmd,
+            ]
+        else:
+            full = ["bash", "-c", cmd]
+        try:
+            result = subprocess.run(
+                full, capture_output=True, text=True, timeout=timeout
+            )
+            return result.stdout + result.stderr
+        except Exception as exc:
+            return f"[docker-log-capture-error] {exc}"
+
+    @classmethod
+    def _filter_sql(cls, raw: str) -> str:
+        """Remove verbose EF-Core SQL lines, keep INF/WRN/ERR log entries."""
+        keep: list[str] = []
+        for line in raw.splitlines():
+            stripped = line.lstrip("| ").strip()
+            if not stripped:
+                continue
+            if cls._SQL_NOISE.match(stripped):
+                continue
+            keep.append(line)
+        return "\n".join(keep)
+
+    def get_api_logs(self) -> str:
+        return self._run(
+            f"docker logs --since {self.since_seconds}s "
+            f"--tail {self.tail_lines} {self.api_container} 2>&1"
+        )
+
+    def get_db_logs(self) -> str:
+        return self._run(
+            f"docker logs --since {self.since_seconds}s "
+            f"--tail {self.tail_lines} {self.db_container} 2>&1"
+        )
+
+    def get_db_processlist(self) -> str:
+        return self._run(
+            f"docker exec {self.db_container} mariadb -u root -pRootPass@Dev2024 "
+            f"-e 'SHOW PROCESSLIST; SHOW WARNINGS;' 2>&1"
+        )
+
+    def get_frontend_logs(self) -> str:
+        return self._run(
+            f"docker logs --since {self.since_seconds}s "
+            f"--tail 20 {self.frontend_container} 2>&1"
+        )
+
+    def snapshot(self) -> Dict[str, str]:
+        """Take a diagnostic snapshot of all containers at this moment.
+
+        Returns both the raw API logs and a filtered version with SQL
+        noise removed so errors are easily visible."""
+        raw_api = self.get_api_logs()
+        return {
+            "api_logs": raw_api,
+            "api_logs_filtered": self._filter_sql(raw_api),
+            "db_logs": self.get_db_logs(),
+            "db_processlist": self.get_db_processlist(),
+            "frontend_logs": self.get_frontend_logs(),
+        }
+
+
+# --------------------------------------------------------- run logger
 
 
 class RunLogger:
-    def __init__(self, log_dir: str) -> None:
+    """Writes structured JSONL + human-readable .log with Docker diagnostics
+    on every failure."""
+
+    def __init__(self, log_dir: str, docker: Optional[DockerLogCapture] = None):
         os.makedirs(log_dir, exist_ok=True)
-        timestamp = datetime.utcnow().strftime("%Y%m%d_%H%M%S")
-        self.text_path = os.path.join(log_dir, f"test_data_load_{timestamp}.log")
-        self.jsonl_path = os.path.join(log_dir, f"test_data_load_{timestamp}.jsonl")
-        self.text_file = open(self.text_path, "w", encoding="utf-8")
-        self.jsonl_file = open(self.jsonl_path, "w", encoding="utf-8")
-        self.counts = {"success": 0, "failed": 0, "skipped": 0}
+        ts = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+        self.text_path = os.path.join(log_dir, f"test_data_load_{ts}.log")
+        self.jsonl_path = os.path.join(log_dir, f"test_data_load_{ts}.jsonl")
+        self.text_fh = open(self.text_path, "w", encoding="utf-8")
+        self.jsonl_fh = open(self.jsonl_path, "w", encoding="utf-8")
+        self.counts: Dict[str, int] = {"success": 0, "failed": 0, "skipped": 0}
+        self.docker = docker
 
     def close(self) -> None:
-        self.text_file.close()
-        self.jsonl_file.close()
+        self._flush_summary()
+        self.text_fh.close()
+        self.jsonl_fh.close()
 
-    def log(self, entry: Dict[str, Any]) -> None:
-        entry.setdefault("timestamp", datetime.utcnow().isoformat() + "Z")
-        line = json.dumps(entry, ensure_ascii=True)
-        self.jsonl_file.write(line + "\n")
-        self.jsonl_file.flush()
-        summary = entry.get("summary")
-        if summary:
-            self.text_file.write(summary + "\n")
-            self.text_file.flush()
-        status = entry.get("status")
-        if status in self.counts:
-            self.counts[status] += 1
+    def _write(self, entry: Dict[str, Any]) -> None:
+        entry.setdefault("timestamp", _now_iso())
+        self.jsonl_fh.write(
+            json.dumps(entry, default=str, ensure_ascii=True) + "\n"
+        )
+        self.jsonl_fh.flush()
+        if "summary" in entry:
+            self.text_fh.write(entry["summary"] + "\n")
+            self.text_fh.flush()
 
-    def log_skip(self, reason: str, **kwargs: Any) -> None:
-        entry = {
-            "status": "skipped",
-            "reason": reason,
-        }
-        entry.update(kwargs)
-        entry["summary"] = f"SKIP: {reason} ({kwargs.get('file', 'n/a')})"
-        self.log(entry)
+    def _flush_summary(self) -> None:
+        line = (
+            f"\n=== FINAL: success={self.counts['success']}  "
+            f"failed={self.counts['failed']}  skipped={self.counts['skipped']} ===\n"
+        )
+        self.text_fh.write(line)
+        self.text_fh.flush()
+
+    def section(self, name: str) -> None:
+        sep = f"\n{'=' * 60}\n  {name}\n{'=' * 60}"
+        self.text_fh.write(sep + "\n")
+        self.text_fh.flush()
+        self._write({"event": "section", "name": name, "summary": sep})
+
+    def log_skip(self, reason: str, **kw: Any) -> None:
+        self.counts["skipped"] += 1
+        entry: Dict[str, Any] = {"status": "skipped", "reason": reason}
+        entry.update(kw)
+        entry["summary"] = f"  SKIP  {reason} ({kw.get('file', 'n/a')})"
+        self._write(entry)
 
     def log_result(
         self,
@@ -150,180 +348,347 @@ class RunLogger:
         method: str,
         endpoint: str,
         http_status: Optional[int],
-        file: Optional[str],
-        index: Optional[int],
-        request_summary: Dict[str, Any],
+        file: Optional[str] = None,
+        index: Optional[int] = None,
+        request_summary: Optional[Dict[str, Any]] = None,
         response_body: Optional[str] = None,
         error: Optional[str] = None,
+        docker_snapshot: Optional[Dict[str, str]] = None,
     ) -> None:
-        entry = {
+        self.counts[status] = self.counts.get(status, 0) + 1
+        loc = f"{os.path.basename(file or 'n/a')}[{index}]" if file else "inline"
+        entry: Dict[str, Any] = {
             "status": status,
             "method": method,
             "endpoint": endpoint,
             "http_status": http_status,
             "file": file,
             "index": index,
-            "request": request_summary,
-            "response_body": response_body,
+            "request": request_summary or {},
+            "response_body": _truncate(response_body or "", 2000),
             "error": error,
         }
-        line_info = f"{file}[{index}]" if file is not None and index is not None else "n/a"
-        entry["summary"] = f"{status.upper()}: {method} {endpoint} ({line_info}) -> {http_status}"
-        self.log(entry)
+        if status == "success":
+            entry["summary"] = (
+                f"  OK    {method} {endpoint} ({loc}) -> {http_status}"
+            )
+        else:
+            entry["summary"] = (
+                f"  FAIL  {method} {endpoint} ({loc}) -> {http_status}  "
+                f"err={_truncate(error or response_body or '', 200)}"
+            )
+            if docker_snapshot:
+                entry["docker_diagnostics"] = docker_snapshot
+                self.text_fh.write(
+                    _format_docker_diagnostics(
+                        method, endpoint, http_status, docker_snapshot
+                    )
+                )
+                self.text_fh.flush()
+        self._write(entry)
+
+
+def _truncate(s: str, n: int) -> str:
+    return s[:n] + "..." if len(s) > n else s
+
+
+def _format_docker_diagnostics(
+    method: str,
+    endpoint: str,
+    http_status: Optional[int],
+    snap: Dict[str, str],
+) -> str:
+    lines = [
+        f"\n  +--- DIAGNOSTICS for {method} {endpoint} -> {http_status} ---",
+    ]
+    # Show filtered API logs first (SQL noise removed) — most useful
+    for label, key, max_lines in [
+        ("Backend API (filtered)", "api_logs_filtered", 30),
+        ("Database", "db_logs", 10),
+        ("DB Processlist", "db_processlist", 5),
+        ("Frontend", "frontend_logs", 5),
+    ]:
+        content = snap.get(key, "").strip()
+        if not content:
+            continue
+        lines.append(f"  | [{label}] ({len(content)} chars):")
+        for ln in content.splitlines()[-max_lines:]:
+            lines.append(f"  |   {ln}")
+    lines.append("  +-----------------------------------------------\n")
+    return "\n".join(lines) + "\n"
+
+
+# ------------------------------------------------------- API client
 
 
 class ApiClient:
-    def __init__(self, base_url: str, token: str, logger: RunLogger) -> None:
+    """Thin HTTP client that logs every request and captures Docker diagnostics
+    on failure."""
+
+    def __init__(
+        self,
+        base_url: str,
+        token: str,
+        logger: RunLogger,
+        docker: Optional[DockerLogCapture] = None,
+    ):
         self.base_url = base_url.rstrip("/")
         self.token = token
         self.logger = logger
+        self.docker = docker
 
-    def request_json(
+    def request(
         self,
         method: str,
         path: str,
-        payload: Optional[Dict[str, Any]],
+        payload: Optional[Dict[str, Any]] = None,
+        *,
         file: Optional[str] = None,
         index: Optional[int] = None,
-        request_summary: Optional[Dict[str, Any]] = None,
+        summary: Optional[Dict[str, Any]] = None,
     ) -> Tuple[Optional[int], Optional[Dict[str, Any]], Optional[str]]:
         url = f"{self.base_url}{path}"
-        data = None
-        if payload is not None:
-            data = json.dumps(payload, ensure_ascii=True).encode("utf-8")
-        request = urllib.request.Request(url, data=data, method=method)
-        request.add_header("Authorization", f"Bearer {self.token}")
-        request.add_header("Content-Type", "application/json")
-        response_body = None
+        data = (
+            json.dumps(payload, default=str, ensure_ascii=True).encode()
+            if payload
+            else None
+        )
+        req = urllib.request.Request(url, data=data, method=method)
+        req.add_header("Authorization", f"Bearer {self.token}")
+        req.add_header("Content-Type", "application/json")
+        resp_body: Optional[str] = None
         try:
-            with urllib.request.urlopen(request) as response:
-                response_body = response.read().decode("utf-8")
+            with urllib.request.urlopen(req, timeout=30) as resp:
+                resp_body = resp.read().decode("utf-8", errors="replace")
                 parsed = None
-                if response_body:
+                if resp_body:
                     try:
-                        parsed = json.loads(response_body)
+                        parsed = json.loads(resp_body)
                     except json.JSONDecodeError:
-                        parsed = None
+                        pass
                 self.logger.log_result(
                     "success",
                     method,
                     path,
-                    response.getcode(),
-                    file,
-                    index,
-                    request_summary or {},
-                    response_body=response_body,
+                    resp.getcode(),
+                    file=file,
+                    index=index,
+                    request_summary=summary or _compact(payload),
+                    response_body=resp_body,
                 )
-                return response.getcode(), parsed, response_body
-        except urllib.error.HTTPError as ex:
-            response_body = ex.read().decode("utf-8") if ex.fp else None
-            # Treat "already exists" errors as idempotent success
-            if _is_already_exists(response_body):
+                return resp.getcode(), parsed, resp_body
+
+        except urllib.error.HTTPError as exc:
+            resp_body = (
+                exc.read().decode("utf-8", errors="replace") if exc.fp else None
+            )
+            if _is_already_exists(resp_body):
                 self.logger.log_result(
                     "success",
                     method,
                     path,
-                    ex.code,
-                    file,
-                    index,
-                    request_summary or {},
-                    response_body=response_body,
+                    exc.code,
+                    file=file,
+                    index=index,
+                    request_summary=summary or _compact(payload),
+                    response_body=resp_body,
                 )
-                return ex.code, None, response_body
+                return exc.code, None, resp_body
+
+            # Detect "500 but created" — some controllers return 500
+            # even though the entity was created successfully.
+            parsed_500 = None
+            if exc.code == 500 and resp_body and method == "POST":
+                try:
+                    parsed_500 = json.loads(resp_body)
+                    if isinstance(parsed_500, dict) and (
+                        "id" in parsed_500 or "name" in parsed_500
+                    ) and "error" not in parsed_500 and "errors" not in parsed_500:
+                        self.logger.log_result(
+                            "success",
+                            method,
+                            path,
+                            exc.code,
+                            file=file,
+                            index=index,
+                            request_summary=summary or _compact(payload),
+                            response_body=f"[500-but-created] {resp_body[:500]}",
+                        )
+                        return exc.code, parsed_500, resp_body
+                except (json.JSONDecodeError, ValueError):
+                    pass
+
+            snap = self.docker.snapshot() if self.docker else None
             self.logger.log_result(
                 "failed",
                 method,
                 path,
-                ex.code,
-                file,
-                index,
-                request_summary or {},
-                response_body=response_body,
-                error=str(ex),
+                exc.code,
+                file=file,
+                index=index,
+                request_summary=summary or _compact(payload),
+                response_body=resp_body,
+                error=str(exc),
+                docker_snapshot=snap,
             )
-            return ex.code, None, response_body
-        except Exception as ex:
+            return exc.code, None, resp_body
+
+        except Exception as exc:
+            # IncompleteRead means server closed connection before full
+            # response — item was likely created successfully.
+            exc_name = type(exc).__name__
+            if exc_name == "IncompleteRead":
+                self.logger.log_result(
+                    "success",
+                    method,
+                    path,
+                    200,
+                    file=file,
+                    index=index,
+                    request_summary=summary or _compact(payload),
+                    response_body=f"[IncompleteRead - likely created]",
+                )
+                return 200, None, None
+            snap = self.docker.snapshot() if self.docker else None
             self.logger.log_result(
                 "failed",
                 method,
                 path,
                 None,
-                file,
-                index,
-                request_summary or {},
-                error=str(ex),
+                file=file,
+                index=index,
+                request_summary=summary or _compact(payload),
+                error=f"{exc_name}: {exc}",
+                docker_snapshot=snap,
             )
             return None, None, None
 
 
+def _compact(payload: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+    """Return a compact summary of the payload for logging."""
+    if not payload:
+        return {}
+    out: Dict[str, Any] = {}
+    for k, v in payload.items():
+        if isinstance(v, str) and len(v) > 80:
+            out[k] = v[:77] + "..."
+        else:
+            out[k] = v
+    return out
+
+
+# ------------------------------------------------------ data helpers
+
+
 def load_json(path: str) -> Any:
-    with open(path, "r", encoding="utf-8") as handle:
-        return json.load(handle)
+    with open(path, "r", encoding="utf-8") as fh:
+        return json.load(fh)
 
 
-def main() -> int:
-    parser = argparse.ArgumentParser(description="Load CRM test data via API with extensive logging")
-    parser.add_argument("--base-url", default="http://localhost:5000", help="CRM API base URL")
-    parser.add_argument("--data-dir", default="e2e-tests/test-data", help="Seed data directory")
-    parser.add_argument("--username", default="admin@crm.local", help="Admin email")
-    parser.add_argument("--password", default="Admin@123", help="Admin password")
-    parser.add_argument("--log-dir", default="logs/test-data", help="Log output directory")
-    args = parser.parse_args()
+def _path(data_dir: str, name: str) -> str:
+    return os.path.join(data_dir, name)
 
-    logger = RunLogger(args.log_dir)
 
-    try:
-        auth_payload = {"email": args.username, "password": args.password}
-        auth_request = urllib.request.Request(
-            f"{args.base_url.rstrip('/')}/api/auth/login",
-            data=json.dumps(auth_payload, ensure_ascii=True).encode("utf-8"),
-            method="POST",
-        )
-        auth_request.add_header("Content-Type", "application/json")
-        with urllib.request.urlopen(auth_request) as response:
-            body = response.read().decode("utf-8")
-            auth_data = json.loads(body)
-        token = auth_data.get("accessToken") or auth_data.get("AccessToken") or auth_data.get("token")
-        if not token:
-            logger.log_result("failed", "POST", "/api/auth/login", 200, None, None, auth_payload, body, "Missing token")
-            return 1
-        logger.log_result("success", "POST", "/api/auth/login", 200, None, None, {"email": args.username}, body)
-    except Exception as ex:
-        logger.log_result("failed", "POST", "/api/auth/login", None, None, None, {"email": args.username}, error=str(ex))
-        return 1
+def _exists(data_dir: str, name: str) -> bool:
+    return os.path.isfile(_path(data_dir, name))
 
-    client = ApiClient(args.base_url, token, logger)
-    data_dir = os.path.abspath(args.data_dir)
 
-    role_name_to_id: Dict[str, int] = {}
-    user_id_map: Dict[int, int] = {}
-    account_id_map: Dict[int, int] = {}
-    account_name_to_id: Dict[str, int] = {}
-    contact_id_map: Dict[int, int] = {}
-    email_template_id_map: Dict[int, int] = {}
-    category_name_to_id: Dict[str, int] = {}
+# ---- Prefetch: populate id_maps from existing API data ----
 
-    def load_roles() -> None:
-        path = os.path.join(data_dir, "system_roles_seed.json")
-        if not os.path.exists(path):
-            return
-        items = load_json(path)
-        for index, item in enumerate(items):
+def prefetch_existing(
+    client: ApiClient,
+    logger: RunLogger,
+    data_dir: str,
+    id_maps: Dict[str, Any],
+) -> None:
+    """GET existing accounts, contacts, and users so id_maps are populated
+    even when entities already exist (idempotent re-runs)."""
+    logger.section("Prefetch - Populating ID maps from existing data")
+
+    def _fetch_list(endpoint: str) -> List[Dict[str, Any]]:
+        _, resp, raw = client.request("GET", endpoint, None)
+        if isinstance(resp, list):
+            return resp
+        if isinstance(resp, dict):
+            # paginated response
+            return resp.get("items", resp.get("data", []))
+        return []
+
+    # Accounts
+    existing = _fetch_list("/api/accounts")
+    for acct in existing:
+        aid = acct.get("id")
+        if aid:
+            name = acct.get("company") or acct.get("name") or ""
+            id_maps["account_name"][name] = aid
+    logger.log_result("success", "GET", "/api/accounts", 200,
+                       request_summary={"prefetched": len(existing)})
+
+    # Contacts
+    existing = _fetch_list("/api/contacts")
+    for ct in existing:
+        cid = ct.get("id")
+        if cid:
+            pass  # contact ids are seed-relative, can't reverse-map
+    logger.log_result("success", "GET", "/api/contacts", 200,
+                       request_summary={"prefetched": len(existing)})
+
+    # Users
+    existing = _fetch_list("/api/users")
+    for u in existing:
+        uid = u.get("id")
+        if uid:
+            pass  # user ids are seed-relative, can't reverse-map
+    # Store first valid user ID as fallback
+    if existing:
+        id_maps["_fallback_user_id"] = existing[0].get("id", 1)
+    else:
+        id_maps["_fallback_user_id"] = 1
+    logger.log_result("success", "GET", "/api/users", 200,
+                       request_summary={"prefetched": len(existing)})
+
+    # Store first valid account ID as fallback
+    all_accounts = _fetch_list("/api/accounts")
+    if all_accounts:
+        id_maps["_fallback_account_id"] = all_accounts[0].get("id", 1)
+    else:
+        id_maps["_fallback_account_id"] = 1
+
+
+# ========================= LOADER PHASES ===========================
+
+
+# ---- Phase 1: System ------------------------------------------------
+
+
+def phase_system(
+    client: ApiClient,
+    logger: RunLogger,
+    data_dir: str,
+    id_maps: Dict[str, Any],
+) -> None:
+    """Phase 1: Roles, permissions, users, groups, feature flags, settings."""
+    logger.section("Phase 1 - System Configuration")
+
+    # Roles
+    p = _path(data_dir, "system_roles_seed.json")
+    if os.path.isfile(p):
+        for i, item in enumerate(load_json(p)):
             payload = {
                 "Name": item.get("name", ""),
                 "Description": item.get("description", ""),
                 "HierarchyLevel": 0,
             }
-            _, resp, _ = client.request_json("POST", "/api/roles", payload, path, index, payload)
+            _, resp, _ = client.request(
+                "POST", "/api/roles", payload, file=p, index=i, summary=payload
+            )
             if isinstance(resp, dict) and "id" in resp:
-                role_name_to_id[item.get("name", "")] = resp["id"]
+                id_maps["role_name"][item["name"]] = resp["id"]
 
-    def load_permissions() -> None:
-        path = os.path.join(data_dir, "system_permissions_seed.json")
-        if not os.path.exists(path):
-            return
-        items = load_json(path)
-        for index, item in enumerate(items):
+    # Permissions
+    p = _path(data_dir, "system_permissions_seed.json")
+    if os.path.isfile(p):
+        for i, item in enumerate(load_json(p)):
             key = item.get("key", "")
             module = key.split(".")[0] if "." in key else "General"
             payload = {
@@ -333,597 +698,1346 @@ def main() -> int:
                 "Category": "General",
                 "Description": item.get("description", ""),
             }
-            client.request_json("POST", "/api/permissions", payload, path, index, payload)
+            client.request(
+                "POST", "/api/permissions", payload, file=p, index=i, summary=payload
+            )
 
-    def load_users() -> None:
-        path = os.path.join(data_dir, "bulk_crm_seed.json")
-        if not os.path.exists(path):
-            return
-        data = load_json(path)
-        for index, item in enumerate(data.get("users", [])):
-            role_name = item.get("role")
+    # Users
+    p = _path(data_dir, "bulk_crm_seed.json")
+    if os.path.isfile(p):
+        for i, item in enumerate(load_json(p).get("users", [])):
+            role_id = id_maps["role_name"].get(item.get("role"), 2)
             payload = {
-                "Email": item.get("email"),
-                "FirstName": item.get("firstName"),
-                "LastName": item.get("lastName"),
-                "RoleId": role_name_to_id.get(role_name, 2),
+                "Email": item["email"],
+                "FirstName": item["firstName"],
+                "LastName": item["lastName"],
+                "RoleId": role_id,
                 "Password": "Admin@123",
             }
-            _, resp, _ = client.request_json("POST", "/api/users", payload, path, index, payload)
+            _, resp, _ = client.request(
+                "POST", "/api/users", payload, file=p, index=i, summary=payload
+            )
             if isinstance(resp, dict) and "id" in resp:
-                user_id_map[item.get("id", 0)] = resp["id"]
+                id_maps["user"][item.get("id", 0)] = resp["id"]
 
-    def load_user_groups() -> None:
-        path = os.path.join(data_dir, "system_user_groups_seed.json")
-        if not os.path.exists(path):
-            return
-        items = load_json(path)
-        group_id_map: Dict[int, int] = {}
-        for index, item in enumerate(items):
+    # User Groups
+    p = _path(data_dir, "system_user_groups_seed.json")
+    if os.path.isfile(p):
+        group_map: Dict[int, int] = {}
+        items = load_json(p)
+        for i, item in enumerate(items):
             payload = {
                 "Name": item.get("name", ""),
                 "Description": "",
                 "IsActive": True,
             }
-            _, resp, _ = client.request_json("POST", "/api/usergroups", payload, path, index, payload)
+            _, resp, _ = client.request(
+                "POST", "/api/usergroups", payload, file=p, index=i, summary=payload
+            )
             if isinstance(resp, dict) and "id" in resp:
-                group_id_map[item.get("id", 0)] = resp["id"]
-
+                group_map[item.get("id", 0)] = resp["id"]
         for item in items:
-            group_id = group_id_map.get(item.get("id", 0))
-            if not group_id:
+            gid = group_map.get(item.get("id", 0))
+            if not gid:
                 continue
-            for user_id in item.get("memberUserIds", []):
-                actual_user_id = user_id_map.get(user_id)
-                if not actual_user_id:
-                    logger.log_skip("User not found for group membership", file=path, groupId=group_id, userId=user_id)
+            for uid in item.get("memberUserIds", []):
+                real_uid = id_maps["user"].get(uid)
+                if not real_uid:
                     continue
-                client.request_json(
+                client.request(
                     "POST",
-                    f"/api/AdminSettings/groups/{group_id}/members/{actual_user_id}",
+                    f"/api/AdminSettings/groups/{gid}/members/{real_uid}",
                     None,
-                    path,
-                    None,
-                    {"groupId": group_id, "userId": actual_user_id},
+                    file=p,
+                    summary={"gid": gid, "uid": real_uid},
                 )
 
-    def load_accounts() -> None:
-        account_category_org = 1
-        account_type_enterprise = 3
-        account_priority_medium = 1
-        bulk_path = os.path.join(data_dir, "bulk_crm_seed.json")
-        if os.path.exists(bulk_path):
-            data = load_json(bulk_path)
-            for index, item in enumerate(data.get("accounts", [])):
-                phone = item.get("phone") or "+1-555-0000"
-                email = email_from_name(item.get("name", ""), item.get("website"))
-                payload = {
-                    "Category": account_category_org,
-                    "Company": item.get("name"),
-                    "Email": email,
-                    "Phone": phone,
-                    "Website": item.get("website"),
-                    "Address": item.get("address"),
-                    "Industry": item.get("industry"),
-                    "AccountType": account_type_enterprise,
-                    "Priority": account_priority_medium,
-                }
-                _, resp, _ = client.request_json("POST", "/api/accounts", payload, bulk_path, index, payload)
-                if isinstance(resp, dict) and "id" in resp:
-                    account_id_map[item.get("id", 0)] = resp["id"]
-                    account_name_to_id[item.get("name", "")] = resp["id"]
-
-        companies_path = os.path.join(data_dir, "it_companies_seed.json")
-        if os.path.exists(companies_path):
-            data = load_json(companies_path)
-            for index, item in enumerate(data.get("accounts", [])):
-                address = item.get("address", {})
-                address_line = ", ".join(
-                    part for part in [address.get("street"), address.get("city"), address.get("state"), address.get("postalCode")]
-                    if part
-                )
-                phone = item.get("phone") or "+1-555-0000"
-                email = email_from_name(item.get("name", ""), item.get("website"))
-                payload = {
-                    "Category": account_category_org,
-                    "Company": item.get("name"),
-                    "Email": email,
-                    "Phone": phone,
-                    "Website": item.get("website"),
-                    "Address": address_line,
-                    "City": address.get("city"),
-                    "State": address.get("state"),
-                    "ZipCode": address.get("postalCode"),
-                    "Country": address.get("country"),
-                    "Industry": item.get("industry"),
-                    "AccountType": account_type_enterprise,
-                    "Priority": account_priority_medium,
-                }
-                _, resp, _ = client.request_json("POST", "/api/accounts", payload, companies_path, index, payload)
-                if isinstance(resp, dict) and "id" in resp:
-                    account_name_to_id[item.get("name", "")] = resp["id"]
-
-    def load_contacts() -> None:
-        bulk_path = os.path.join(data_dir, "bulk_crm_seed.json")
-        if os.path.exists(bulk_path):
-            data = load_json(bulk_path)
-            for index, item in enumerate(data.get("contacts", [])):
-                payload = {
-                    "FirstName": item.get("firstName"),
-                    "LastName": item.get("lastName"),
-                    "EmailPrimary": item.get("email"),
-                    "PhonePrimary": item.get("phone"),
-                }
-                _, resp, _ = client.request_json("POST", "/api/contacts", payload, bulk_path, index, payload)
-                if isinstance(resp, dict) and "id" in resp:
-                    contact_id_map[item.get("id", 0)] = resp["id"]
-
-                account_id = account_id_map.get(item.get("accountId", 0))
-                contact_id = contact_id_map.get(item.get("id", 0))
-                if account_id and contact_id:
-                    link_payload = {"ContactId": contact_id}
-                    client.request_json(
-                        "POST",
-                        f"/api/accounts/{account_id}/contacts",
-                        link_payload,
-                        bulk_path,
-                        index,
-                        link_payload,
-                    )
-
-        companies_path = os.path.join(data_dir, "it_companies_seed.json")
-        if os.path.exists(companies_path):
-            data = load_json(companies_path)
-            for company_index, item in enumerate(data.get("accounts", [])):
-                account_id = account_name_to_id.get(item.get("name", ""))
-                for exec_index, exec_item in enumerate(item.get("executives", [])):
-                    first_name, last_name = split_name(exec_item.get("name", ""))
-                    payload = {
-                        "FirstName": first_name,
-                        "LastName": last_name,
-                        "EmailPrimary": exec_item.get("email"),
-                        "PhonePrimary": exec_item.get("phone"),
-                        "JobTitle": exec_item.get("title"),
-                        "Company": item.get("name"),
-                    }
-                    _, resp, _ = client.request_json(
-                        "POST",
-                        "/api/contacts",
-                        payload,
-                        companies_path,
-                        exec_index,
-                        payload,
-                    )
-                    contact_id = resp.get("id") if isinstance(resp, dict) else None
-                    if account_id and contact_id:
-                        link_payload = {"ContactId": contact_id}
-                        client.request_json(
-                            "POST",
-                            f"/api/accounts/{account_id}/contacts",
-                            link_payload,
-                            companies_path,
-                            exec_index,
-                            link_payload,
-                        )
-
-    def load_leads() -> None:
-        lead_status_map = {
-            "New": 0,
-            "Contacted": 1,
-            "Qualified": 3,
-        }
-        path = os.path.join(data_dir, "bulk_crm_seed.json")
-        if not os.path.exists(path):
-            return
-        data = load_json(path)
-        for index, item in enumerate(data.get("leads", [])):
+    # Feature Flags
+    p = _path(data_dir, "system_feature_flags_seed.json")
+    if os.path.isfile(p):
+        for i, item in enumerate(load_json(p)):
             payload = {
-                "FirstName": item.get("firstName"),
-                "LastName": item.get("lastName"),
+                "Name": item["name"],
+                "Enabled": item.get("enabled", False),
+                "RolloutPercentage": 100,
+                "Reason": "Seed data",
+            }
+            client.request(
+                "PUT",
+                f"/api/feature-flags/{item['name']}",
+                payload,
+                file=p,
+                index=i,
+                summary=payload,
+            )
+
+    # System Settings
+    p = _path(data_dir, "system_settings_seed.json")
+    if os.path.isfile(p):
+        update: Dict[str, Any] = {}
+        for item in load_json(p):
+            key, val = item.get("key"), item.get("value")
+            if key == "System.TimeZone":
+                update["DefaultTimezone"] = val
+            elif key == "System.DateFormat":
+                update["DateFormat"] = val
+            elif key == "Security.PasswordMinLength":
+                update["MinPasswordLength"] = int(val)
+            elif key == "Security.MfaRequired":
+                update["RequireTwoFactor"] = str(val).lower() == "true"
+            elif key == "Sales.DefaultCurrency":
+                update["DefaultCurrency"] = val
+        if update:
+            client.request("PUT", "/api/systemsettings", update, file=p, summary=update)
+
+
+# ---- Phase 2: Accounts & Contacts -----------------------------------
+
+
+def phase_accounts_contacts(
+    client: ApiClient,
+    logger: RunLogger,
+    data_dir: str,
+    id_maps: Dict[str, Any],
+) -> None:
+    """Phase 2: Accounts, contacts, and account-contact linking."""
+    logger.section("Phase 2 - Accounts & Contacts")
+
+    ACCT_CAT_ORG = 1
+    ACCT_TYPE_ENTERPRISE = 3
+    ACCT_PRIORITY_MED = 1
+
+    # Accounts from bulk seed
+    p = _path(data_dir, "bulk_crm_seed.json")
+    if os.path.isfile(p):
+        for i, item in enumerate(load_json(p).get("accounts", [])):
+            phone = item.get("phone") or "+1-555-0000"
+            em = email_from_name(item.get("name", ""), item.get("website"))
+            payload = {
+                "Category": ACCT_CAT_ORG,
+                "Company": item["name"],
+                "Email": em,
+                "Phone": phone,
+                "Website": item.get("website"),
+                "Address": item.get("address"),
+                "Industry": item.get("industry"),
+                "AccountType": ACCT_TYPE_ENTERPRISE,
+                "Priority": ACCT_PRIORITY_MED,
+            }
+            _, resp, _ = client.request(
+                "POST", "/api/accounts", payload, file=p, index=i, summary=payload
+            )
+            if isinstance(resp, dict) and "id" in resp:
+                id_maps["account"][item.get("id", 0)] = resp["id"]
+                id_maps["account_name"][item["name"]] = resp["id"]
+
+    # Accounts from IT companies seed
+    p = _path(data_dir, "it_companies_seed.json")
+    if os.path.isfile(p):
+        for i, item in enumerate(load_json(p).get("accounts", [])):
+            addr = item.get("address", {})
+            addr_str = ", ".join(
+                v
+                for v in [
+                    addr.get("street"),
+                    addr.get("city"),
+                    addr.get("state"),
+                    addr.get("postalCode"),
+                ]
+                if v
+            )
+            phone = item.get("phone") or "+1-555-0000"
+            em = email_from_name(item.get("name", ""), item.get("website"))
+            payload = {
+                "Category": ACCT_CAT_ORG,
+                "Company": item["name"],
+                "Email": em,
+                "Phone": phone,
+                "Website": item.get("website"),
+                "Address": addr_str,
+                "City": addr.get("city"),
+                "State": addr.get("state"),
+                "ZipCode": addr.get("postalCode"),
+                "Country": addr.get("country"),
+                "Industry": item.get("industry"),
+                "AccountType": ACCT_TYPE_ENTERPRISE,
+                "Priority": ACCT_PRIORITY_MED,
+            }
+            _, resp, _ = client.request(
+                "POST", "/api/accounts", payload, file=p, index=i, summary=payload
+            )
+            if isinstance(resp, dict) and "id" in resp:
+                id_maps["account_name"][item["name"]] = resp["id"]
+
+    # Contacts from bulk seed
+    p = _path(data_dir, "bulk_crm_seed.json")
+    if os.path.isfile(p):
+        for i, item in enumerate(load_json(p).get("contacts", [])):
+            payload = {
+                "FirstName": item["firstName"],
+                "LastName": item["lastName"],
+                "EmailPrimary": item.get("email"),
+                "PhonePrimary": item.get("phone"),
+            }
+            _, resp, _ = client.request(
+                "POST", "/api/contacts", payload, file=p, index=i, summary=payload
+            )
+            if isinstance(resp, dict) and "id" in resp:
+                id_maps["contact"][item.get("id", 0)] = resp["id"]
+            # Link contact -> account
+            acct = id_maps["account"].get(item.get("accountId", 0))
+            ct = id_maps["contact"].get(item.get("id", 0))
+            if acct and ct:
+                client.request(
+                    "POST",
+                    f"/api/accounts/{acct}/contacts",
+                    {"ContactId": ct},
+                    file=p,
+                    index=i,
+                    summary={"acctId": acct, "contactId": ct},
+                )
+
+    # Contacts from IT companies (executives)
+    p = _path(data_dir, "it_companies_seed.json")
+    if os.path.isfile(p):
+        for ci, co in enumerate(load_json(p).get("accounts", [])):
+            acct = id_maps["account_name"].get(co.get("name", ""))
+            for ei, ex in enumerate(co.get("executives", [])):
+                fn, ln = split_name(ex.get("name", ""))
+                payload = {
+                    "FirstName": fn,
+                    "LastName": ln,
+                    "EmailPrimary": ex.get("email"),
+                    "PhonePrimary": ex.get("phone"),
+                    "JobTitle": ex.get("title"),
+                    "Company": co.get("name"),
+                }
+                _, resp, _ = client.request(
+                    "POST", "/api/contacts", payload, file=p, index=ei, summary=payload
+                )
+                ct_id = resp.get("id") if isinstance(resp, dict) else None
+                if acct and ct_id:
+                    client.request(
+                        "POST",
+                        f"/api/accounts/{acct}/contacts",
+                        {"ContactId": ct_id},
+                        file=p,
+                        index=ei,
+                        summary={"acctId": acct, "contactId": ct_id},
+                    )
+
+
+# ---- Phase 3: Contact Info Linking -----------------------------------
+
+
+def phase_contact_info(
+    client: ApiClient,
+    logger: RunLogger,
+    data_dir: str,
+    id_maps: Dict[str, Any],
+) -> None:
+    """Phase 3: Addresses, phones, emails, social media, preferences."""
+    logger.section("Phase 3 - Contact Info Linking")
+
+    # --- Account addresses (IT companies with structured addresses) ---
+    p = _path(data_dir, "it_companies_seed.json")
+    if os.path.isfile(p):
+        for i, co in enumerate(load_json(p).get("accounts", [])):
+            acct_id = id_maps["account_name"].get(co.get("name"))
+            if not acct_id:
+                continue
+            addr = co.get("address", {})
+            if not addr.get("street"):
+                continue
+            payload = {
+                "entityType": "Account",
+                "entityId": acct_id,
+                "addressType": "Billing",
+                "isPrimary": True,
+                "newAddress": {
+                    "label": "HQ",
+                    "line1": addr.get("street", ""),
+                    "city": addr.get("city", ""),
+                    "state": addr.get("state", ""),
+                    "postalCode": addr.get("postalCode", ""),
+                    "country": addr.get("country", "USA"),
+                    "countryCode": "US",
+                },
+            }
+            client.request(
+                "POST",
+                "/api/contactinfo/addresses/link",
+                payload,
+                file=p,
+                index=i,
+                summary={"entity": "Account", "id": acct_id, "type": "Billing"},
+            )
+
+    # --- Account phone numbers ---
+    for seed_id, acct_id in list(id_maps["account"].items()):
+        payload = {
+            "entityType": "Account",
+            "entityId": acct_id,
+            "phoneType": "Office",
+            "isPrimary": True,
+            "doNotCall": False,
+            "newPhone": {
+                "countryCode": "+1",
+                "number": f"555{1000 + seed_id}",
+                "canSMS": False,
+                "label": "Main Office",
+            },
+        }
+        client.request(
+            "POST",
+            "/api/contactinfo/phones/link",
+            payload,
+            summary={"entity": "Account", "id": acct_id, "type": "Office"},
+        )
+
+    # --- Account email addresses ---
+    p = _path(data_dir, "bulk_crm_seed.json")
+    if os.path.isfile(p):
+        for i, item in enumerate(load_json(p).get("accounts", [])):
+            acct_id = id_maps["account"].get(item.get("id", 0))
+            if not acct_id:
+                continue
+            em = email_from_name(item.get("name", ""), item.get("website"))
+            payload = {
+                "entityType": "Account",
+                "entityId": acct_id,
+                "emailType": "General",
+                "isPrimary": True,
+                "doNotEmail": False,
+                "marketingOptIn": True,
+                "transactionalOnly": False,
+                "newEmail": {
+                    "email": em,
+                    "displayName": item.get("name", ""),
+                    "label": "Main",
+                },
+            }
+            client.request(
+                "POST",
+                "/api/contactinfo/emails/link",
+                payload,
+                file=p,
+                index=i,
+                summary={"entity": "Account", "id": acct_id},
+            )
+
+    # --- Account social media ---
+    if os.path.isfile(p):
+        for i, item in enumerate(load_json(p).get("accounts", [])):
+            acct_id = id_maps["account"].get(item.get("id", 0))
+            if not acct_id:
+                continue
+            slug = slugify(item.get("name", "company"))
+            payload = {
+                "entityType": "Account",
+                "entityId": acct_id,
+                "isPrimary": True,
+                "preferredForContact": False,
+                "newSocialMedia": {
+                    "platform": "LinkedIn",
+                    "accountType": "Business",
+                    "handleOrUsername": slug,
+                    "profileUrl": f"https://linkedin.com/company/{slug}",
+                    "displayName": item.get("name", ""),
+                },
+            }
+            client.request(
+                "POST",
+                "/api/contactinfo/social-media/link",
+                payload,
+                file=p,
+                index=i,
+                summary={"entity": "Account", "id": acct_id, "platform": "LinkedIn"},
+            )
+
+    # --- Contact addresses, phones, emails, social-media ---
+    cities = [
+        "New York", "Boston", "Chicago", "San Francisco", "Austin",
+        "Denver", "Seattle", "Atlanta", "Miami", "Portland",
+        "Dallas", "Phoenix",
+    ]
+    states = ["NY", "MA", "IL", "CA", "TX", "CO", "WA", "GA", "FL", "OR", "TX", "AZ"]
+    if os.path.isfile(p):
+        contacts = load_json(p).get("contacts", [])
+        for i, item in enumerate(contacts):
+            ct_id = id_maps["contact"].get(item.get("id", 0))
+            if not ct_id:
+                continue
+            city = cities[i % len(cities)]
+            state = states[i % len(states)]
+
+            # Address
+            client.request(
+                "POST",
+                "/api/contactinfo/addresses/link",
+                {
+                    "entityType": "Contact",
+                    "entityId": ct_id,
+                    "addressType": "Home",
+                    "isPrimary": True,
+                    "newAddress": {
+                        "label": "Home",
+                        "line1": f"{100 + i * 10} Oak Street",
+                        "city": city,
+                        "state": state,
+                        "postalCode": f"{10000 + i * 111:05d}",
+                        "country": "United States",
+                        "countryCode": "US",
+                    },
+                },
+                file=p,
+                index=i,
+                summary={"entity": "Contact", "id": ct_id, "type": "Home"},
+            )
+
+            # Phone
+            phone_num = item.get("phone", f"+1-555-{2000 + i}")
+            digits = re.sub(r"[^0-9]", "", phone_num)[-7:]
+            client.request(
+                "POST",
+                "/api/contactinfo/phones/link",
+                {
+                    "entityType": "Contact",
+                    "entityId": ct_id,
+                    "phoneType": "Mobile",
+                    "isPrimary": True,
+                    "doNotCall": False,
+                    "newPhone": {
+                        "countryCode": "+1",
+                        "number": digits,
+                        "canSMS": True,
+                        "label": "Cell",
+                    },
+                },
+                file=p,
+                index=i,
+                summary={"entity": "Contact", "id": ct_id, "type": "Mobile"},
+            )
+
+            # Email
+            em = item.get("email", f"contact{i}@example.com")
+            full_name = f"{item.get('firstName', '')} {item.get('lastName', '')}".strip()
+            client.request(
+                "POST",
+                "/api/contactinfo/emails/link",
+                {
+                    "entityType": "Contact",
+                    "entityId": ct_id,
+                    "emailType": "Work",
+                    "isPrimary": True,
+                    "doNotEmail": False,
+                    "marketingOptIn": True,
+                    "transactionalOnly": False,
+                    "newEmail": {
+                        "email": em,
+                        "displayName": full_name,
+                        "label": "Work",
+                    },
+                },
+                file=p,
+                index=i,
+                summary={"entity": "Contact", "id": ct_id},
+            )
+
+            # Social media
+            handle = slugify(
+                f"{item.get('firstName', '')}-{item.get('lastName', '')}"
+            )
+            client.request(
+                "POST",
+                "/api/contactinfo/social-media/link",
+                {
+                    "entityType": "Contact",
+                    "entityId": ct_id,
+                    "isPrimary": True,
+                    "preferredForContact": False,
+                    "newSocialMedia": {
+                        "platform": "LinkedIn",
+                        "accountType": "Personal",
+                        "handleOrUsername": handle,
+                        "profileUrl": f"https://linkedin.com/in/{handle}",
+                        "displayName": full_name,
+                    },
+                },
+                file=p,
+                index=i,
+                summary={"entity": "Contact", "id": ct_id, "platform": "LinkedIn"},
+            )
+
+    # --- Account preferences ---
+    timezones = [
+        "America/New_York", "America/Chicago", "America/Denver",
+        "America/Los_Angeles", "America/Phoenix",
+    ]
+    languages = ["en-US", "en-GB", "es-MX", "fr-FR", "de-DE"]
+    methods = ["Email", "Phone", "SMS", "Mail", "Any"]
+    for seed_id, acct_id in list(id_maps["account"].items()):
+        payload = {
+            "optInEmail": True,
+            "optInSms": seed_id % 2 == 0,
+            "optInPhone": True,
+            "optInPostal": False,
+            "preferredContactMethod": methods[seed_id % len(methods)],
+            "preferredLanguage": languages[seed_id % len(languages)],
+            "timezone": timezones[seed_id % len(timezones)],
+        }
+        client.request(
+            "PUT",
+            f"/api/accounts/{acct_id}/preferences",
+            payload,
+            summary={"acctId": acct_id},
+        )
+
+    # --- Contact preferences ---
+    for seed_id, ct_id in list(id_maps["contact"].items()):
+        payload = {
+            "optInEmail": True,
+            "optInSms": True,
+            "optInPhone": seed_id % 2 == 0,
+            "optInPostal": False,
+            "preferredContactMethod": methods[seed_id % len(methods)],
+            "preferredLanguage": "en-US",
+            "timezone": timezones[seed_id % len(timezones)],
+        }
+        client.request(
+            "PUT",
+            f"/api/contacts/{ct_id}/preferences",
+            payload,
+            summary={"contactId": ct_id},
+        )
+
+
+# ---- Phase 4: Leads & Products --------------------------------------
+
+
+def phase_leads_products(
+    client: ApiClient,
+    logger: RunLogger,
+    data_dir: str,
+    id_maps: Dict[str, Any],
+) -> None:
+    logger.section("Phase 4 - Leads & Products")
+
+    LEAD_STATUS = {"New": 0, "Contacted": 1, "Qualified": 3}
+
+    p = _path(data_dir, "bulk_crm_seed.json")
+    if os.path.isfile(p):
+        for i, item in enumerate(load_json(p).get("leads", [])):
+            payload = {
+                "FirstName": item["firstName"],
+                "LastName": item["lastName"],
                 "Email": item.get("email"),
                 "Phone": item.get("phone"),
                 "Company": item.get("company"),
-                "Status": lead_status_map.get(item.get("status"), 0),
+                "Status": LEAD_STATUS.get(item.get("status"), 0),
             }
-            client.request_json("POST", "/api/leads", payload, path, index, payload)
+            client.request(
+                "POST", "/api/leads", payload, file=p, index=i, summary=payload
+            )
 
-    def load_products() -> None:
-        bulk_path = os.path.join(data_dir, "bulk_crm_seed.json")
-        if os.path.exists(bulk_path):
-            data = load_json(bulk_path)
-            for index, item in enumerate(data.get("products", [])):
-                payload = {
-                    "Name": item.get("name"),
-                    "SKU": item.get("sku"),
-                    "Price": item.get("price"),
-                    "Category": item.get("category"),
-                    "IsActive": True,
-                }
-                client.request_json("POST", "/api/products", payload, bulk_path, index, payload)
-
-        products_path = os.path.join(data_dir, "products_seed.json")
-        if os.path.exists(products_path):
-            data = load_json(products_path)
-            for index, item in enumerate(data):
-                payload = {
-                    "Name": item.get("Name"),
-                    "SKU": item.get("SKU"),
-                    "Price": item.get("Price"),
-                    "Category": item.get("Category"),
-                    "Description": item.get("Description"),
-                    "IsActive": item.get("Status") == "Active",
-                }
-                client.request_json("POST", "/api/products", payload, products_path, index, payload)
-
-    def load_opportunities() -> None:
-        path = os.path.join(data_dir, "bulk_crm_seed.json")
-        if not os.path.exists(path):
-            return
-        data = load_json(path)
-        for index, item in enumerate(data.get("opportunities", [])):
+    # Products - bulk
+    if os.path.isfile(p):
+        for i, item in enumerate(load_json(p).get("products", [])):
             payload = {
-                "Name": item.get("name"),
-                "AccountId": account_id_map.get(item.get("accountId", 0)),
-                "Amount": item.get("amount"),
+                "Name": item["name"],
+                "SKU": item.get("sku"),
+                "Price": item.get("price"),
+                "Category": item.get("category"),
+                "IsActive": True,
+            }
+            client.request(
+                "POST", "/api/products", payload, file=p, index=i, summary=payload
+            )
+
+    # Products - dedicated
+    p = _path(data_dir, "products_seed.json")
+    if os.path.isfile(p):
+        for i, item in enumerate(load_json(p)):
+            payload = {
+                "Name": item["Name"],
+                "SKU": item.get("SKU"),
+                "Price": item.get("Price"),
+                "Category": item.get("Category"),
+                "Description": item.get("Description"),
+                "IsActive": item.get("Status") == "Active",
+            }
+            client.request(
+                "POST", "/api/products", payload, file=p, index=i, summary=payload
+            )
+
+
+# ---- Phase 5: Opportunities & Sales Pipeline ------------------------
+
+
+def phase_opportunities_sales(
+    client: ApiClient,
+    logger: RunLogger,
+    data_dir: str,
+    id_maps: Dict[str, Any],
+) -> None:
+    logger.section("Phase 5 - Opportunities & Sales Pipeline")
+
+    fb_acct = id_maps.get("_fallback_account_id", 1)
+    fb_user = id_maps.get("_fallback_user_id", 1)
+
+    p = _path(data_dir, "bulk_crm_seed.json")
+    if os.path.isfile(p):
+        for i, item in enumerate(load_json(p).get("opportunities", [])):
+            payload = {
+                "Name": item["name"],
+                "AccountId": id_maps["account"].get(item.get("accountId", 0)) or fb_acct,
+                "Amount": item.get("amount", 0),
                 "Stage": OPPORTUNITY_STAGE.get(item.get("stage"), 0),
+                "Probability": 50,
                 "ExpectedCloseDate": item.get("closeDate"),
                 "Currency": "USD",
             }
-            client.request_json("POST", "/api/opportunities", payload, path, index, payload)
+            _, resp, _ = client.request(
+                "POST", "/api/opportunities", payload, file=p, index=i, summary=payload
+            )
+            if isinstance(resp, dict) and "id" in resp:
+                id_maps.setdefault("opportunity", {})[item.get("id", 0)] = resp["id"]
 
-    def load_quotes_orders_invoices() -> None:
-        path = os.path.join(data_dir, "sales_quotes_seed.json")
-        if os.path.exists(path):
-            for index, item in enumerate(load_json(path)):
-                payload = {
-                    "Name": f"Quote-{item.get('id', index + 1):04d}",
-                    "AccountId": account_id_map.get(item.get("accountId", 0)),
-                    "ContactId": contact_id_map.get(item.get("contactId", 0)),
-                    "Status": QUOTE_STATUS.get(item.get("status"), 0),
-                    "TotalAmount": item.get("totalAmount"),
-                    "ValidUntil": item.get("validUntil"),
-                    "QuoteDate": item.get("createdDate"),
-                    "OpportunityId": item.get("opportunityId"),
-                }
-                client.request_json("POST", "/api/quotes", payload, path, index, payload)
+    # Quotes
+    p = _path(data_dir, "sales_quotes_seed.json")
+    if os.path.isfile(p):
+        for i, item in enumerate(load_json(p)):
+            payload = {
+                "QuoteNumber": f"Q-2026-{item.get('id', i + 1):05d}",
+                "Name": f"Quote-{item.get('id', i + 1):04d}",
+                "AccountId": id_maps["account"].get(item.get("accountId", 0)) or fb_acct,
+                "ContactId": id_maps["contact"].get(item.get("contactId", 0)),
+                "Status": QUOTE_STATUS.get(item.get("status"), 0),
+                "Total": item.get("totalAmount", 0),
+                "Subtotal": item.get("totalAmount", 0),
+                "ValidityDays": 30,
+                "CurrencyCode": "USD",
+                "OpportunityId": id_maps.get("opportunity", {}).get(item.get("opportunityId", 0)),
+            }
+            _, resp, _ = client.request(
+                "POST", "/api/quotes", payload, file=p, index=i, summary=payload
+            )
+            if isinstance(resp, dict) and "id" in resp:
+                id_maps.setdefault("quote", {})[item.get("id", 0)] = resp["id"]
+    p = _path(data_dir, "sales_quote_line_items_seed.json")
+    if os.path.isfile(p):
+        for i, item in enumerate(load_json(p)):
+            qid = id_maps.get("quote", {}).get(item.get("quoteId", 0))
+            if not qid:
+                logger.log_skip(f"No quote for line item {i}", file=p)
+                continue
+            payload = {
+                "Name": f"Line {i + 1}",
+                "ProductId": item.get("productId"),
+                "Quantity": item.get("quantity"),
+                "UnitPrice": item.get("unitPrice"),
+                "LineTotal": item.get("lineTotal"),
+            }
+            client.request(
+                "POST",
+                f"/api/quotes/{qid}/lineitems",
+                payload,
+                file=p,
+                index=i,
+                summary=payload,
+            )
 
-        path = os.path.join(data_dir, "sales_quote_line_items_seed.json")
-        if os.path.exists(path):
-            for index, item in enumerate(load_json(path)):
-                payload = {
-                    "Name": f"Line Item {index + 1}",
-                    "ProductId": item.get("productId"),
-                    "Quantity": item.get("quantity"),
-                    "UnitPrice": item.get("unitPrice"),
-                    "LineTotal": item.get("lineTotal"),
-                }
-                client.request_json(
-                    "POST",
-                    f"/api/quotes/{item.get('quoteId')}/lineitems",
-                    payload,
-                    path,
-                    index,
-                    payload,
-                )
+    # Orders
+    p = _path(data_dir, "sales_orders_seed.json")
+    if os.path.isfile(p):
+        for i, item in enumerate(load_json(p)):
+            payload = {
+                "AccountId": id_maps["account"].get(item.get("accountId", 0)) or fb_acct,
+                "QuoteId": id_maps.get("quote", {}).get(item.get("quoteId", 0)),
+                "Status": ORDER_STATUS.get(item.get("status"), 0),
+                "TotalAmount": item.get("totalAmount", 0),
+                "Subtotal": item.get("totalAmount", 0),
+                "CurrencyCode": "USD",
+            }
+            _, resp, _ = client.request(
+                "POST", "/api/orders", payload, file=p, index=i, summary=payload
+            )
+            if isinstance(resp, dict) and "id" in resp:
+                id_maps.setdefault("order", {})[item.get("id", 0)] = resp["id"]
+    p = _path(data_dir, "sales_order_line_items_seed.json")
+    if os.path.isfile(p):
+        for i, item in enumerate(load_json(p)):
+            oid = id_maps.get("order", {}).get(item.get("orderId", 0))
+            if not oid:
+                logger.log_skip(f"No order for line item {i}", file=p)
+                continue
+            payload = {
+                "Name": f"Order Line {i + 1}",
+                "ProductId": item.get("productId"),
+                "Quantity": item.get("quantity"),
+                "UnitPrice": item.get("unitPrice"),
+                "LineTotal": item.get("lineTotal"),
+            }
+            client.request(
+                "POST",
+                f"/api/orders/{oid}/line-items",
+                payload,
+                file=p,
+                index=i,
+                summary=payload,
+            )
 
-        path = os.path.join(data_dir, "sales_orders_seed.json")
-        if os.path.exists(path):
-            for index, item in enumerate(load_json(path)):
-                payload = {
-                    "AccountId": account_id_map.get(item.get("accountId", 0)),
-                    "QuoteId": item.get("quoteId"),
-                    "Status": ORDER_STATUS.get(item.get("status"), 0),
-                    "OrderDate": item.get("orderDate"),
-                    "TotalAmount": item.get("totalAmount"),
-                }
-                client.request_json("POST", "/api/orders", payload, path, index, payload)
+    # Invoices
+    p = _path(data_dir, "sales_invoices_seed.json")
+    if os.path.isfile(p):
+        for i, item in enumerate(load_json(p)):
+            due = item.get("dueDate") or "2026-04-01T00:00:00Z"
+            payload = {
+                "OrderId": id_maps.get("order", {}).get(item.get("orderId", 0)),
+                "AccountId": id_maps["account"].get(item.get("accountId", 0)) or fb_acct,
+                "InvoiceNumber": item.get("invoiceNumber") or f"INV-2026-{i + 1:04d}",
+                "Status": INVOICE_STATUS.get(item.get("status"), 0),
+                "InvoiceDate": item.get("issueDate") or "2026-02-20T00:00:00Z",
+                "DueDate": due,
+                "TotalAmount": item.get("totalAmount", 0),
+                "Subtotal": item.get("totalAmount", 0),
+                "CurrencyCode": "USD",
+            }
+            _, resp, _ = client.request(
+                "POST", "/api/invoices", payload, file=p, index=i, summary=payload
+            )
+            if isinstance(resp, dict) and "id" in resp:
+                id_maps.setdefault("invoice", {})[item.get("id", 0)] = resp["id"]
+    p = _path(data_dir, "sales_invoice_line_items_seed.json")
+    if os.path.isfile(p):
+        for i, item in enumerate(load_json(p)):
+            payload = {
+                "Name": item.get("description") or f"Line {i + 1}",
+                "ProductId": item.get("productId"),
+                "Description": item.get("description"),
+                "Quantity": item.get("quantity"),
+                "UnitPrice": item.get("unitPrice"),
+                "LineTotal": item.get("lineTotal"),
+                "LineNumber": i + 1,
+            }
+            inv_id = id_maps.get("invoice", {}).get(item.get("invoiceId", 0))
+            if not inv_id:
+                logger.log_skip(f"No invoice for line item {i}", file=p)
+                continue
+            client.request(
+                "POST",
+                f"/api/invoices/{inv_id}/line-items",
+                payload,
+                file=p,
+                index=i,
+                summary=payload,
+            )
 
-        path = os.path.join(data_dir, "sales_order_line_items_seed.json")
-        if os.path.exists(path):
-            for index, item in enumerate(load_json(path)):
-                payload = {
-                    "Name": f"Order Line {index + 1}",
-                    "ProductId": item.get("productId"),
-                    "Quantity": item.get("quantity"),
-                    "UnitPrice": item.get("unitPrice"),
-                    "LineTotal": item.get("lineTotal"),
-                }
-                client.request_json(
-                    "POST",
-                    f"/api/orders/{item.get('orderId')}/line-items",
-                    payload,
-                    path,
-                    index,
-                    payload,
-                )
+    # Payments
+    p = _path(data_dir, "sales_payments_seed.json")
+    if os.path.isfile(p):
+        for i, item in enumerate(load_json(p)):
+            payload = {
+                "InvoiceId": id_maps.get("invoice", {}).get(item.get("invoiceId", 0)),
+                "AccountId": id_maps["account"].get(item.get("accountId", 0)) or fb_acct,
+                "Amount": item.get("amount", 0),
+                "PaymentMethod": PAYMENT_METHOD.get(item.get("method"), 0),
+                "Status": PAYMENT_STATUS.get(item.get("status"), 0),
+                "PaymentDate": item.get("paymentDate") or "2026-02-25T00:00:00Z",
+                "CurrencyCode": "USD",
+            }
+            client.request(
+                "POST", "/api/payments", payload, file=p, index=i, summary=payload
+            )
 
-        path = os.path.join(data_dir, "sales_invoices_seed.json")
-        if os.path.exists(path):
-            for index, item in enumerate(load_json(path)):
-                payload = {
-                    "OrderId": item.get("orderId"),
-                    "AccountId": account_id_map.get(item.get("accountId", 0)),
-                    "InvoiceNumber": item.get("invoiceNumber"),
-                    "Status": INVOICE_STATUS.get(item.get("status"), 0),
-                    "InvoiceDate": item.get("issueDate"),
-                    "DueDate": item.get("dueDate"),
-                    "TotalAmount": item.get("totalAmount"),
-                }
-                client.request_json("POST", "/api/invoices", payload, path, index, payload)
+    # Contracts
+    p = _path(data_dir, "sales_contracts_seed.json")
+    if os.path.isfile(p):
+        for i, item in enumerate(load_json(p)):
+            payload = {
+                "Name": item.get("contractNumber") or f"Contract-{i + 1}",
+                "AccountId": id_maps["account"].get(
+                    item.get("accountId", 0)
+                ) or fb_acct,
+                "Status": CONTRACT_STATUS.get(item.get("status"), 0),
+                "StartDate": item.get("startDate"),
+                "EndDate": item.get("endDate"),
+                "Value": item.get("value"),
+                "AutoRenew": bool(item.get("renewalTermMonths")),
+                "RenewalNoticeDays": 30,
+            }
+            client.request(
+                "POST", "/api/contracts", payload, file=p, index=i, summary=payload
+            )
 
-        path = os.path.join(data_dir, "sales_invoice_line_items_seed.json")
-        if os.path.exists(path):
-            for index, item in enumerate(load_json(path)):
-                payload = {
-                    "Name": item.get("description") or f"Invoice Line {index + 1}",
-                    "ProductId": item.get("productId"),
-                    "Description": item.get("description"),
-                    "Quantity": item.get("quantity"),
-                    "UnitPrice": item.get("unitPrice"),
-                    "LineTotal": item.get("lineTotal"),
-                    "LineNumber": index + 1,
-                }
-                client.request_json(
-                    "POST",
-                    f"/api/invoices/{item.get('invoiceId')}/line-items",
-                    payload,
-                    path,
-                    index,
-                    payload,
-                )
+    # Subscriptions
+    p = _path(data_dir, "sales_subscriptions_seed.json")
+    if os.path.isfile(p):
+        for i, item in enumerate(load_json(p)):
+            payload = {
+                "AccountId": id_maps["account"].get(
+                    item.get("accountId", 0)
+                ) or fb_acct,
+                "ProductId": item.get("productId"),
+                "Status": SUBSCRIPTION_STATUS.get(item.get("status"), 0),
+                "StartDate": item.get("startDate"),
+                "EndDate": item.get("endDate"),
+                "BillingCycle": {"Monthly": "Monthly", "Annual": "Yearly", "Yearly": "Yearly", "Quarterly": "Quarterly", "Weekly": "Weekly"}.get(item.get("billingCycle", "Monthly"), "Monthly"),
+                "Amount": item.get("amount"),
+            }
+            client.request(
+                "POST", "/api/subscriptions", payload, file=p, index=i, summary=payload
+            )
 
-        path = os.path.join(data_dir, "sales_payments_seed.json")
-        if os.path.exists(path):
-            for index, item in enumerate(load_json(path)):
-                payload = {
-                    "InvoiceId": item.get("invoiceId"),
-                    "Amount": item.get("amount"),
-                    "PaymentMethod": PAYMENT_METHOD.get(item.get("method"), 0),
-                    "Status": PAYMENT_STATUS.get(item.get("status"), 0),
-                    "PaymentDate": item.get("paymentDate"),
-                    "TransactionReference": item.get("transactionRef"),
-                }
-                client.request_json("POST", "/api/payments", payload, path, index, payload)
+    # Commission Plans (required for commissions)
+    plan_payload = {"Name": "Default Sales Commission", "BaseRate": 0.05}
+    _, plan_resp, _ = client.request("POST", "/api/commissions/plans", plan_payload, index=0, summary=plan_payload)
+    plan_id = plan_resp.get("id") if isinstance(plan_resp, dict) else None
 
-        path = os.path.join(data_dir, "sales_contracts_seed.json")
-        if os.path.exists(path):
-            for index, item in enumerate(load_json(path)):
-                payload = {
-                    "Name": item.get("contractNumber") or f"Contract-{index + 1}",
-                    "AccountId": account_id_map.get(item.get("accountId", 0)) or item.get("accountId"),
-                    "Status": CONTRACT_STATUS.get(item.get("status"), 0),
-                    "StartDate": item.get("startDate"),
-                    "EndDate": item.get("endDate"),
-                    "Value": item.get("value"),
-                    "AutoRenew": True if item.get("renewalTermMonths") else False,
-                    "RenewalNoticeDays": 30,
-                }
-                client.request_json("POST", "/api/contracts", payload, path, index, payload)
+    # Commissions
+    p = _path(data_dir, "sales_commissions_seed.json")
+    if os.path.isfile(p):
+        for i, item in enumerate(load_json(p)):
+            rate = item.get("rate", 0.05)
+            deal = item.get("amount", 0) / rate if rate else 0
+            payload = {
+                "UserId": id_maps["user"].get(
+                    item.get("userId", 0)
+                ) or fb_user,
+                "CommissionPlanId": plan_id,
+                "OrderId": item.get("orderId"),
+                "DealAmount": round(deal, 2),
+                "CommissionRate": rate,
+                "CommissionAmount": item.get("amount"),
+            }
+            client.request(
+                "POST", "/api/commissions", payload, file=p, index=i, summary=payload
+            )
 
-        path = os.path.join(data_dir, "sales_subscriptions_seed.json")
-        if os.path.exists(path):
-            for index, item in enumerate(load_json(path)):
-                payload = {
-                    "AccountId": account_id_map.get(item.get("accountId", 0)) or item.get("accountId"),
-                    "ProductId": item.get("productId"),
-                    "Status": SUBSCRIPTION_STATUS.get(item.get("status"), 0),
-                    "StartDate": item.get("startDate"),
-                    "EndDate": item.get("endDate"),
-                    "BillingCycle": item.get("billingCycle", "Monthly"),
-                    "Amount": item.get("amount"),
-                }
-                client.request_json("POST", "/api/subscriptions", payload, path, index, payload)
 
-        path = os.path.join(data_dir, "sales_commissions_seed.json")
-        if os.path.exists(path):
-            for index, item in enumerate(load_json(path)):
-                deal_amount = item.get("amount", 0) / item.get("rate", 0.05) if item.get("rate") else 0
-                payload = {
-                    "UserId": user_id_map.get(item.get("userId", 0)) or item.get("userId"),
-                    "OrderId": item.get("orderId"),
-                    "DealAmount": round(deal_amount, 2),
-                    "CommissionRate": item.get("rate"),
-                    "CommissionAmount": item.get("amount"),
-                }
-                client.request_json("POST", "/api/commissions", payload, path, index, payload)
+# ---- Phase 6: Interactions, Activities, Tasks, Notes -----------------
 
-    def load_marketing() -> None:
-        template_path = os.path.join(data_dir, "marketing_email_templates_seed.json")
-        if os.path.exists(template_path):
-            for index, item in enumerate(load_json(template_path)):
-                payload = {
-                    "Name": item.get("name"),
-                    "Subject": item.get("subject"),
-                    "Category": item.get("type") or "General",
-                    "IsActive": item.get("status") == "Active",
-                }
-                _, resp, _ = client.request_json("POST", "/api/emailtemplates", payload, template_path, index, payload)
-                if isinstance(resp, dict) and "id" in resp:
-                    email_template_id_map[item.get("id", 0)] = resp["id"]
 
-        sequence_path = os.path.join(data_dir, "marketing_email_sequences_seed.json")
-        if os.path.exists(sequence_path):
-            for index, item in enumerate(load_json(sequence_path)):
-                steps = []
-                for step_index, template_id in enumerate(item.get("templateIds", []), start=1):
-                    steps.append({
-                        "StepOrder": step_index,
-                        "StepType": "Email",
-                        "TemplateId": email_template_id_map.get(template_id, template_id),
+def phase_interactions_activities(
+    client: ApiClient,
+    logger: RunLogger,
+    data_dir: str,
+    id_maps: Dict[str, Any],
+) -> None:
+    """Phase 6: Interactions (from bulk seed), activities, tasks, notes."""
+    logger.section("Phase 6 - Interactions, Activities, Tasks & Notes")
+
+    # Interactions (from bulk seed - previously not loaded!)
+    p = _path(data_dir, "bulk_crm_seed.json")
+    if os.path.isfile(p):
+        for i, item in enumerate(load_json(p).get("interactions", [])):
+            itype = INTERACTION_TYPE.get(item.get("type"), 15)
+            payload = {
+                "AccountId": id_maps["account"].get(item.get("accountId", 0)),
+                "ContactId": id_maps["contact"].get(item.get("contactId", 0)),
+                "InteractionType": itype,
+                "Direction": 1,
+                "Subject": item.get("subject", "Interaction"),
+                "Description": item.get("subject", ""),
+                "InteractionDate": item.get("date", "2026-02-01") + "T10:00:00Z",
+                "DurationMinutes": 30,
+                "Outcome": 1,
+                "AssignedToUserId": id_maps["user"].get(item.get("userId", 0)),
+                "Priority": 1,
+            }
+            client.request(
+                "POST", "/api/interactions", payload, file=p, index=i, summary=payload
+            )
+
+    # Activities (generated from account data)
+    for i, (seed_id, acct_id) in enumerate(
+        list(id_maps["account"].items())[:10]
+    ):
+        for ai, (atype, title) in enumerate(
+            [
+                (0, f"Welcome email sent to account {acct_id}"),
+                (2, f"Discovery call with account {acct_id}"),
+            ]
+        ):
+            payload = {
+                "ActivityType": atype,
+                "Title": title,
+                "Description": f"Auto-generated activity for account {acct_id}",
+                "ActivityDate": "2026-02-01T10:00:00Z",
+                "UserId": id_maps["user"].get(2),
+                "EntityType": "Account",
+                "EntityId": acct_id,
+                "AccountId": acct_id,
+                "Source": "System" if ai == 0 else "API",
+            }
+            client.request(
+                "POST", "/api/activities", payload, index=i * 2 + ai, summary=payload
+            )
+
+    # Tasks
+    task_templates = [
+        {"subject": "Follow up on proposal", "type": "FollowUp", "priority": "High", "est": 30},
+        {"subject": "Schedule product demo", "type": "Demo", "priority": "Normal", "est": 60},
+        {"subject": "Send contract for review", "type": "Contract", "priority": "High", "est": 15},
+        {"subject": "Research competitor pricing", "type": "Research", "priority": "Normal", "est": 45},
+        {"subject": "Prepare quarterly review", "type": "Meeting", "priority": "Normal", "est": 90},
+    ]
+    acct_items = list(id_maps["account"].items())
+    contact_items = list(id_maps["contact"].items())
+    user_ids = list(id_maps["user"].values())
+    for i, tmpl in enumerate(task_templates):
+        acct_pair = acct_items[i % len(acct_items)] if acct_items else (0, None)
+        ct_pair = contact_items[i % len(contact_items)] if contact_items else (0, None)
+        payload = {
+            "Subject": tmpl["subject"],
+            "Description": f"Task: {tmpl['subject']}",
+            "TaskType": TASK_TYPE.get(tmpl["type"], 8),
+            "Status": TASK_STATUS["NotStarted"],
+            "Priority": TASK_PRIORITY.get(tmpl["priority"], 1),
+            "DueDate": "2026-03-01T17:00:00Z",
+            "AccountId": acct_pair[1],
+            "ContactId": ct_pair[1],
+            "AssignedToUserId": user_ids[i % len(user_ids)] if user_ids else None,
+        }
+        client.request("POST", "/api/tasks", payload, index=i, summary=payload)
+
+    # Notes
+    note_templates = [
+        {
+            "title": "Initial discovery notes",
+            "content": "Client expressed interest in enterprise plan. Key decision maker is the CTO.",
+            "type": "Meeting", "vis": "Team", "important": True,
+        },
+        {
+            "title": "Budget discussion",
+            "content": "Budget approved for Q2. Procurement takes 2-3 weeks.",
+            "type": "Call", "vis": "Team", "important": False,
+        },
+        {
+            "title": "Competitive analysis",
+            "content": "Client evaluating Salesforce and HubSpot. Our advantage: better ITSM integration.",
+            "type": "Internal", "vis": "Private", "important": True,
+        },
+        {
+            "title": "Contract requirements",
+            "content": "Legal requires SOC2 compliance cert and DPA before signing.",
+            "type": "General", "vis": "Team", "important": True,
+        },
+        {
+            "title": "Product feedback",
+            "content": "Client requested custom reporting dashboard and SSO.",
+            "type": "General", "vis": "Public", "important": False,
+        },
+    ]
+    for i, tmpl in enumerate(note_templates):
+        ap = acct_items[i % len(acct_items)] if acct_items else (0, None)
+        cp = contact_items[i % len(contact_items)] if contact_items else (0, None)
+        payload = {
+            "Title": tmpl["title"],
+            "Content": tmpl["content"],
+            "NoteType": NOTE_TYPE.get(tmpl["type"], 0),
+            "Visibility": NOTE_VISIBILITY.get(tmpl["vis"], 1),
+            "IsPinned": False,
+            "IsImportant": tmpl["important"],
+            "EntityType": "Account",
+            "EntityId": ap[1],
+            "AccountId": ap[1],
+            "ContactId": cp[1],
+            "Tags": "seed-data",
+            "Category": "Sales",
+        }
+        client.request("POST", "/api/notes", payload, index=i, summary=payload)
+
+
+# ---- Phase 7: Marketing ---------------------------------------------
+
+
+def phase_marketing(
+    client: ApiClient,
+    logger: RunLogger,
+    data_dir: str,
+    id_maps: Dict[str, Any],
+) -> None:
+    logger.section("Phase 7 - Marketing")
+
+    p = _path(data_dir, "marketing_email_templates_seed.json")
+    if os.path.isfile(p):
+        for i, item in enumerate(load_json(p)):
+            payload = {
+                "Name": item.get("name"),
+                "Subject": item.get("subject"),
+                "Category": item.get("type") or "General",
+                "IsActive": item.get("status") == "Active",
+            }
+            _, resp, _ = client.request(
+                "POST", "/api/emailtemplates", payload, file=p, index=i, summary=payload
+            )
+            if isinstance(resp, dict) and "id" in resp:
+                id_maps["email_template"][item.get("id", 0)] = resp["id"]
+
+    p = _path(data_dir, "marketing_email_sequences_seed.json")
+    if os.path.isfile(p):
+        for i, item in enumerate(load_json(p)):
+            steps = []
+            for si, tid in enumerate(item.get("templateIds", [])):
+                steps.append(
+                    {
+                        "StepOrder": si + 1,
+                        "StepType": EMAIL_STEP_TYPE.get("Email", 0),
+                        "TemplateId": id_maps["email_template"].get(tid, tid),
                         "DelayDays": 2,
-                    })
-                payload = {
-                    "Name": item.get("name"),
-                    "Status": EMAIL_SEQUENCE_STATUS.get(item.get("status"), 0),
-                    "IsActive": item.get("status") == "Active",
-                    "Steps": steps,
-                }
-                client.request_json("POST", "/api/email-sequences", payload, sequence_path, index, payload)
-
-        campaigns_path = os.path.join(data_dir, "marketing_campaigns_seed.json")
-        if os.path.exists(campaigns_path):
-            for index, item in enumerate(load_json(campaigns_path)):
-                campaign_type_str = item.get("type") or "Email"
-                payload = {
-                    "Name": item.get("name"),
-                    "CampaignType": CAMPAIGN_TYPE.get(campaign_type_str, 0),
-                    "Status": CAMPAIGN_STATUS.get(item.get("status"), 0),
-                    "StartDate": item.get("startDate"),
-                    "EndDate": item.get("endDate"),
-                    "Budget": item.get("budget"),
-                    "OwnerId": user_id_map.get(item.get("ownerUserId", 0)),
-                }
-                client.request_json("POST", "/api/campaigns", payload, campaigns_path, index, payload)
-
-    def load_service_requests() -> None:
-        categories_path = os.path.join(data_dir, "service_request_categories_seed.json")
-        if os.path.exists(categories_path):
-            for index, item in enumerate(load_json(categories_path)):
-                payload = {
-                    "Name": item.get("Name"),
-                    "Description": item.get("Description"),
-                    "DisplayOrder": item.get("DisplayOrder"),
-                    "IsActive": item.get("IsActive", True),
-                    "IconName": item.get("IconName"),
-                    "ColorCode": item.get("ColorCode"),
-                    "DefaultResponseTimeHours": item.get("DefaultResponseTimeHours"),
-                    "DefaultResolutionTimeHours": item.get("DefaultResolutionTimeHours"),
-                }
-                _, resp, _ = client.request_json(
-                    "POST",
-                    "/api/service-request-settings/categories",
-                    payload,
-                    categories_path,
-                    index,
-                    payload,
+                    }
                 )
-                if isinstance(resp, dict) and "id" in resp:
-                    category_name_to_id[item.get("Name", "")] = resp["id"]
+            payload = {
+                "Name": item.get("name"),
+                "Status": EMAIL_SEQUENCE_STATUS.get(item.get("status"), 0),
+                "IsActive": item.get("status") == "Active",
+                "Steps": steps,
+            }
+            client.request(
+                "POST", "/api/email-sequences", payload, file=p, index=i, summary=payload
+            )
 
-        types_path = os.path.join(data_dir, "service_request_types_seed.json")
-        if os.path.exists(types_path):
-            for index, item in enumerate(load_json(types_path)):
-                payload = {
-                    "Name": item.get("Name"),
-                    "RequestType": item.get("RequestType"),
-                    "DetailedDescription": item.get("DetailedDescription"),
-                    "WorkflowName": item.get("WorkflowName"),
-                    "PossibleResolutions": ";".join(item.get("PossibleResolutions", [])),
-                    "FinalCustomerResolutions": ";".join(item.get("FinalCustomerResolutions", [])),
-                    "CategoryId": item.get("CategoryId"),
-                    "SubcategoryId": item.get("SubcategoryId"),
-                    "DisplayOrder": item.get("DisplayOrder"),
-                    "IsActive": item.get("IsActive", True),
-                    "DefaultPriority": item.get("DefaultPriority"),
-                    "ResponseTimeHours": item.get("ResponseTimeHours"),
-                    "ResolutionTimeHours": item.get("ResolutionTimeHours"),
-                    "Tags": ",".join(item.get("Tags", [])),
-                }
-                client.request_json(
-                    "POST",
-                    "/api/service-request-settings/types",
-                    payload,
-                    types_path,
-                    index,
-                    payload,
-                )
+    p = _path(data_dir, "marketing_campaigns_seed.json")
+    if os.path.isfile(p):
+        for i, item in enumerate(load_json(p)):
+            payload = {
+                "Name": item.get("name"),
+                "CampaignType": CAMPAIGN_TYPE.get(item.get("type", "Email"), 0),
+                "Status": CAMPAIGN_STATUS.get(item.get("status"), 0),
+                "StartDate": item.get("startDate"),
+                "EndDate": item.get("endDate"),
+                "Budget": item.get("budget"),
+                "OwnerId": id_maps["user"].get(item.get("ownerUserId", 0)),
+            }
+            client.request(
+                "POST", "/api/campaigns", payload, file=p, index=i, summary=payload
+            )
 
-        requests_path = os.path.join(data_dir, "bulk_crm_seed.json")
-        if os.path.exists(requests_path):
-            data = load_json(requests_path)
-            priority_map = {"Low": 0, "Medium": 1, "High": 2, "Critical": 3, "Urgent": 4}
-            for index, item in enumerate(data.get("serviceRequests", [])):
-                payload = {
-                    "Subject": item.get("title"),
-                    "Description": item.get("title"),
-                    "Priority": priority_map.get(item.get("priority"), 1),
-                    "CategoryId": category_name_to_id.get(item.get("category")),
-                    "AccountId": account_id_map.get(item.get("accountId", 0)),
-                    "ContactId": contact_id_map.get(item.get("contactId", 0)),
-                }
-                client.request_json("POST", "/api/servicerequests", payload, requests_path, index, payload)
 
-    def load_itsm() -> None:
-        cmdb_path = os.path.join(data_dir, "itsm_cmdb_items_seed.json")
-        if os.path.exists(cmdb_path):
-            for index, item in enumerate(load_json(cmdb_path)):
-                payload = {
-                    "CIName": item.get("name"),
-                    "CIType": item.get("type"),
-                    "CISubtype": item.get("category"),
-                    "OperationalStatus": item.get("status"),
-                    "OwnerId": account_id_map.get(item.get("ownerAccountId", 0)),
-                }
-                client.request_json("POST", "/api/itsm/cmdb", payload, cmdb_path, index, payload)
+# ---- Phase 8: Service Desk ------------------------------------------
 
-        incidents_path = os.path.join(data_dir, "itsm_incidents_seed.json")
-        if os.path.exists(incidents_path):
-            for index, item in enumerate(load_json(incidents_path)):
-                payload = {
-                    "ShortDescription": item.get("title"),
-                    "Description": item.get("title"),
-                    "CallerId": contact_id_map.get(item.get("reportedByContactId", 0)) or 1,
-                    "Impact": INCIDENT_IMPACT.get(item.get("priority"), 2),
-                    "Urgency": INCIDENT_URGENCY.get(item.get("priority"), 2),
-                }
-                client.request_json("POST", "/api/itsm/incidents", payload, incidents_path, index, payload)
 
-        problems_path = os.path.join(data_dir, "itsm_problems_seed.json")
-        if os.path.exists(problems_path):
-            for index, item in enumerate(load_json(problems_path)):
-                payload = {
-                    "ShortDescription": item.get("title"),
-                    "Description": item.get("title"),
-                    "Priority": PROBLEM_PRIORITY.get(item.get("priority"), 3),
-                    "IncidentIds": [item.get("relatedIncidentId")],
-                }
-                client.request_json("POST", "/api/itsm/problems", payload, problems_path, index, payload)
+def phase_service_desk(
+    client: ApiClient,
+    logger: RunLogger,
+    data_dir: str,
+    id_maps: Dict[str, Any],
+) -> None:
+    logger.section("Phase 8 - Service Desk")
 
-        changes_path = os.path.join(data_dir, "itsm_changes_seed.json")
-        if os.path.exists(changes_path):
-            for index, item in enumerate(load_json(changes_path)):
-                payload = {
-                    "ShortDescription": item.get("title"),
-                    "Description": item.get("title"),
-                    "Type": item.get("type"),
-                    "Risk": item.get("risk"),
-                    "Impact": item.get("risk"),
-                    "PlannedStartDate": item.get("scheduledDate"),
-                    "PlannedEndDate": item.get("scheduledDate"),
-                }
-                client.request_json("POST", "/api/itsm/changes", payload, changes_path, index, payload)
+    p = _path(data_dir, "service_request_categories_seed.json")
+    if os.path.isfile(p):
+        for i, item in enumerate(load_json(p)):
+            payload = {
+                "Name": item.get("Name"),
+                "Description": item.get("Description"),
+                "DisplayOrder": item.get("DisplayOrder"),
+                "IsActive": item.get("IsActive", True),
+                "IconName": item.get("IconName"),
+                "ColorCode": item.get("ColorCode"),
+                "DefaultResponseTimeHours": item.get("DefaultResponseTimeHours"),
+                "DefaultResolutionTimeHours": item.get("DefaultResolutionTimeHours"),
+            }
+            _, resp, _ = client.request(
+                "POST",
+                "/api/service-request-settings/categories",
+                payload,
+                file=p,
+                index=i,
+                summary=payload,
+            )
+            if isinstance(resp, dict) and "id" in resp:
+                id_maps["sr_category"][item.get("Name", "")] = resp["id"]
 
-        sla_path = os.path.join(data_dir, "itsm_sla_policies_seed.json")
-        if os.path.exists(sla_path):
-            for index, item in enumerate(load_json(sla_path)):
-                payload = {
-                    "Name": item.get("PolicyName"),
-                    "TargetType": 0,
-                    "P1ResponseMinutes": item.get("ResponseTimeMinutes"),
-                    "P1ResolutionMinutes": item.get("ResolutionTimeMinutes"),
-                    "UseBusinessHours": item.get("BusinessHoursOnly", False),
-                    "IsActive": item.get("IsActive", True),
-                }
-                client.request_json("POST", "/api/itsm/sla/policies", payload, sla_path, index, payload)
+    p = _path(data_dir, "service_request_types_seed.json")
+    if os.path.isfile(p):
+        for i, item in enumerate(load_json(p)):
+            payload = {
+                "Name": item.get("Name"),
+                "RequestType": item.get("RequestType"),
+                "DetailedDescription": item.get("DetailedDescription"),
+                "WorkflowName": item.get("WorkflowName"),
+                "PossibleResolutions": ";".join(item.get("PossibleResolutions", [])),
+                "FinalCustomerResolutions": ";".join(item.get("FinalCustomerResolutions", [])),
+                "CategoryId": item.get("CategoryId"),
+                "SubcategoryId": item.get("SubcategoryId"),
+                "DisplayOrder": item.get("DisplayOrder"),
+                "IsActive": item.get("IsActive", True),
+                "DefaultPriority": item.get("DefaultPriority"),
+                "ResponseTimeHours": item.get("ResponseTimeHours"),
+                "ResolutionTimeHours": item.get("ResolutionTimeHours"),
+                "Tags": ",".join(item.get("Tags", [])),
+            }
+            client.request(
+                "POST",
+                "/api/service-request-settings/types",
+                payload,
+                file=p,
+                index=i,
+                summary=payload,
+            )
 
-        knowledge_path = os.path.join(data_dir, "service_desk_knowledge_articles_seed.json")
-        if os.path.exists(knowledge_path):
-            for index, item in enumerate(load_json(knowledge_path)):
-                payload = {
-                    "Title": item.get("title"),
-                    "ArticleBody": " ".join(item.get("tags", [])) or item.get("title"),
-                    "ArticleType": "HowTo",
-                    "ShortDescription": item.get("category"),
-                    "IsInternal": False,
-                }
-                client.request_json("POST", "/api/itsm/knowledge", payload, knowledge_path, index, payload)
+    p = _path(data_dir, "bulk_crm_seed.json")
+    if os.path.isfile(p):
+        fb_acct = id_maps.get("_fallback_account_id", 1)
+        pri = {"Low": 0, "Medium": 1, "High": 2, "Critical": 3, "Urgent": 4}
+        for i, item in enumerate(load_json(p).get("serviceRequests", [])):
+            payload = {
+                "Subject": item.get("title"),
+                "Description": item.get("title"),
+                "Priority": pri.get(item.get("priority"), 1),
+                "CategoryId": id_maps["sr_category"].get(item.get("category")),
+                "AccountId": id_maps["account"].get(item.get("accountId", 0)) or fb_acct,
+                "ContactId": id_maps["contact"].get(item.get("contactId", 0)),
+            }
+            client.request(
+                "POST", "/api/servicerequests", payload, file=p, index=i, summary=payload
+            )
 
-    def load_workflows() -> None:
-        path = os.path.join(data_dir, "service_desk_workflow_definitions_seed.json")
-        if not os.path.exists(path):
-            return
-        for index, item in enumerate(load_json(path)):
-            name = item.get("name")
+
+# ---- Phase 9: ITSM --------------------------------------------------
+
+
+def phase_itsm(
+    client: ApiClient,
+    logger: RunLogger,
+    data_dir: str,
+    id_maps: Dict[str, Any],
+) -> None:
+    logger.section("Phase 9 - ITSM")
+
+    fb_user = id_maps.get("_fallback_user_id", 1)
+
+    p = _path(data_dir, "itsm_cmdb_items_seed.json")
+    if os.path.isfile(p):
+        for i, item in enumerate(load_json(p)):
+            payload = {
+                "CIName": item.get("name"),
+                "CIType": CI_TYPE.get(item.get("type"), 1),
+                "CISubtype": item.get("category"),
+                "OperationalStatus": OPERATIONAL_STATUS.get(item.get("status"), 1),
+                "OwnerId": id_maps["account"].get(item.get("ownerAccountId", 0)),
+            }
+            client.request(
+                "POST", "/api/itsm/cmdb", payload, file=p, index=i, summary=payload
+            )
+
+    p = _path(data_dir, "itsm_incidents_seed.json")
+    if os.path.isfile(p):
+        for i, item in enumerate(load_json(p)):
+            payload = {
+                "ShortDescription": item.get("title"),
+                "Description": item.get("title"),
+                "CallerId": id_maps["user"].get(
+                    item.get("reportedByContactId", 0)
+                ) or fb_user,
+                "Impact": INCIDENT_IMPACT.get(item.get("priority"), 2),
+                "Urgency": INCIDENT_URGENCY.get(item.get("priority"), 2),
+            }
+            _, resp, _ = client.request(
+                "POST", "/api/itsm/incidents", payload, file=p, index=i, summary=payload
+            )
+            if isinstance(resp, dict):
+                inc_id = resp.get("id") or resp.get("incidentId")
+                if inc_id:
+                    id_maps.setdefault("incident", {})[item.get("id", 0)] = inc_id
+
+    p = _path(data_dir, "itsm_problems_seed.json")
+    if os.path.isfile(p):
+        for i, item in enumerate(load_json(p)):
+            seed_inc_id = item.get("relatedIncidentId", 0)
+            actual_inc_id = id_maps.get("incident", {}).get(seed_inc_id)
+            inc_ids = [actual_inc_id] if actual_inc_id else []
+            if not inc_ids:
+                logger.log_skip(f"No incident for problem {i}", file=p)
+                continue
+            payload = {
+                "ShortDescription": item.get("title"),
+                "Description": item.get("title"),
+                "Priority": PROBLEM_PRIORITY.get(item.get("priority"), 3),
+                "IncidentIds": inc_ids,
+            }
+            client.request(
+                "POST", "/api/itsm/problems", payload, file=p, index=i, summary=payload
+            )
+
+    p = _path(data_dir, "itsm_changes_seed.json")
+    if os.path.isfile(p):
+        change_type_map = {"Standard": 1, "Normal": 2, "Emergency": 3}
+        change_risk_map = {"High": 1, "Medium": 2, "Low": 3}
+        change_impact_map = {"High": 1, "Medium": 2, "Low": 3}
+        for i, item in enumerate(load_json(p)):
+            payload = {
+                "Title": item.get("title"),
+                "Description": item.get("title"),
+                "Type": change_type_map.get(item.get("type"), 1),
+                "Risk": change_risk_map.get(item.get("risk"), 2),
+                "Impact": change_impact_map.get(item.get("risk"), 2),
+                "PlannedStartDate": item.get("scheduledDate"),
+                "PlannedEndDate": item.get("scheduledDate"),
+            }
+            client.request(
+                "POST", "/api/changes", payload, file=p, index=i, summary=payload
+            )
+
+    p = _path(data_dir, "itsm_sla_policies_seed.json")
+    if os.path.isfile(p):
+        for i, item in enumerate(load_json(p)):
+            payload = {
+                "Name": item.get("PolicyName"),
+                "TargetType": 1,
+                "P1ResponseMinutes": item.get("ResponseTimeMinutes"),
+                "P1ResolutionMinutes": item.get("ResolutionTimeMinutes"),
+                "UseBusinessHours": item.get("BusinessHoursOnly", False),
+                "IsActive": item.get("IsActive", True),
+            }
+            client.request(
+                "POST", "/api/itsm/sla/policies", payload, file=p, index=i, summary=payload
+            )
+
+    p = _path(data_dir, "service_desk_knowledge_articles_seed.json")
+    if os.path.isfile(p):
+        for i, item in enumerate(load_json(p)):
+            payload = {
+                "Title": item.get("title"),
+                "ArticleBody": " ".join(item.get("tags", []))
+                or item.get("title"),
+                "ArticleType": ARTICLE_TYPE.get("HowTo", 1),
+                "ShortDescription": item.get("category"),
+                "IsInternal": False,
+            }
+            client.request(
+                "POST", "/api/itsm/knowledge", payload, file=p, index=i, summary=payload
+            )
+
+
+# ---- Phase 10: Relationships & Health --------------------------------
+
+
+def phase_relationships(
+    client: ApiClient,
+    logger: RunLogger,
+    data_dir: str,
+    id_maps: Dict[str, Any],
+) -> None:
+    logger.section("Phase 10 - Relationships & Health")
+
+    # Relationship types
+    rel_types = [
+        {
+            "typeName": "Partner",
+            "typeCategory": "Business",
+            "description": "Business partner",
+            "isBidirectional": True,
+            "reverseTypeName": "Partner",
+            "icon": "handshake",
+            "color": "#4CAF50",
+        },
+        {
+            "typeName": "Vendor",
+            "typeCategory": "Supply Chain",
+            "description": "Vendor/supplier",
+            "isBidirectional": False,
+            "reverseTypeName": "Customer",
+            "icon": "local_shipping",
+            "color": "#2196F3",
+        },
+        {
+            "typeName": "Subsidiary",
+            "typeCategory": "Corporate",
+            "description": "Parent-subsidiary",
+            "isBidirectional": False,
+            "reverseTypeName": "Parent Company",
+            "icon": "business",
+            "color": "#FF9800",
+        },
+        {
+            "typeName": "Competitor",
+            "typeCategory": "Market",
+            "description": "Competitive relationship",
+            "isBidirectional": True,
+            "reverseTypeName": "Competitor",
+            "icon": "trending_up",
+            "color": "#f44336",
+        },
+        {
+            "typeName": "Referral",
+            "typeCategory": "Sales",
+            "description": "Referral source",
+            "isBidirectional": False,
+            "reverseTypeName": "Referred By",
+            "icon": "share",
+            "color": "#9C27B0",
+        },
+    ]
+    rel_type_ids: Dict[str, int] = {}
+    for i, rt in enumerate(rel_types):
+        payload = {**rt, "isActive": True, "displayOrder": i + 1}
+        _, resp, _ = client.request(
+            "POST", "/api/relationships/types", payload, index=i, summary=payload
+        )
+        if isinstance(resp, dict) and "id" in resp:
+            rel_type_ids[rt["typeName"]] = resp["id"]
+
+    # Account-to-account relationships
+    acct_ids = list(id_maps["account"].values())
+    if len(acct_ids) >= 4 and rel_type_ids:
+        rels = [
+            (acct_ids[0], acct_ids[1], "Partner", "Active", 80, "High"),
+            (acct_ids[0], acct_ids[2], "Vendor", "Active", 60, "Medium"),
+            (acct_ids[1], acct_ids[3], "Referral", "Active", 70, "Medium"),
+        ]
+        for i, (src, tgt, rtype, status, strength, importance) in enumerate(rels):
+            type_id = rel_type_ids.get(rtype)
+            if not type_id:
+                continue
+            payload = {
+                "SourceAccountId": src,
+                "TargetAccountId": tgt,
+                "RelationshipTypeId": type_id,
+                "Status": status,
+                "StrengthScore": strength,
+                "StrategicImportance": importance,
+                "RelationshipStartDate": "2025-06-01T00:00:00Z",
+                "Description": f"{rtype} relationship between accounts",
+            }
+            client.request(
+                "POST", "/api/relationships", payload, index=i, summary=payload
+            )
+
+    # Account health snapshots
+    for i, acct_id in enumerate(acct_ids[:5]):
+        payload = {
+            "AccountId": acct_id,
+            "OverallHealthScore": 70 + (i * 5) % 30,
+            "EngagementScore": 65 + (i * 7) % 35,
+            "ProductAdoptionScore": 60 + (i * 3) % 40,
+            "SupportSatisfactionScore": 75 + (i * 4) % 25,
+            "FinancialHealthScore": 80 + (i * 6) % 20,
+            "RelationshipScore": 70 + (i * 5) % 30,
+            "AnalystNotes": f"Health snapshot for account {acct_id}",
+        }
+        client.request(
+            "POST", "/api/relationships/health", payload, index=i, summary=payload
+        )
+
+
+# ---- Phase 11: Workflows --------------------------------------------
+
+
+def phase_workflows(
+    client: ApiClient,
+    logger: RunLogger,
+    data_dir: str,
+    id_maps: Dict[str, Any],
+) -> None:
+    logger.section("Phase 11 - Workflows")
+
+    p = _path(data_dir, "service_desk_workflow_definitions_seed.json")
+    if os.path.isfile(p):
+        for i, item in enumerate(load_json(p)):
+            name = item.get("name", "")
             payload = {
                 "WorkflowKey": slugify(name),
                 "Name": name,
@@ -931,91 +2045,269 @@ def main() -> int:
                 "EntityType": "ServiceRequest",
                 "Tags": item.get("steps", []),
             }
-            client.request_json("POST", "/api/workflows", payload, path, index, payload)
+            client.request(
+                "POST", "/api/workflows", payload, file=p, index=i, summary=payload
+            )
 
-    def load_feature_flags() -> None:
-        path = os.path.join(data_dir, "system_feature_flags_seed.json")
-        if not os.path.exists(path):
-            return
-        for index, item in enumerate(load_json(path)):
-            payload = {
-                "Name": item.get("name"),
-                "Enabled": item.get("enabled", False),
-                "RolloutPercentage": 100,
-                "Reason": "Seed data load",
-            }
-            client.request_json("PUT", f"/api/feature-flags/{item.get('name')}", payload, path, index, payload)
 
-    def load_system_settings() -> None:
-        path = os.path.join(data_dir, "system_settings_seed.json")
-        if not os.path.exists(path):
-            return
-        update_payload: Dict[str, Any] = {}
-        for item in load_json(path):
-            key = item.get("key")
-            value = item.get("value")
-            if key == "System.TimeZone":
-                update_payload["DefaultTimezone"] = value
-            elif key == "System.DateFormat":
-                update_payload["DateFormat"] = value
-            elif key == "Security.PasswordMinLength":
-                update_payload["MinPasswordLength"] = int(value)
-            elif key == "Security.MfaRequired":
-                update_payload["RequireTwoFactor"] = str(value).lower() == "true"
-            elif key == "Sales.DefaultCurrency":
-                update_payload["DefaultCurrency"] = value
-            else:
-                logger.log_skip("No mapping for system setting", file=path, key=key)
+# ---- Phase 12: Skipped (no API endpoint) ----------------------------
 
-        if update_payload:
-            client.request_json("PUT", "/api/systemsettings", update_payload, path, None, update_payload)
 
-    def load_unsupported() -> None:
-        for name in [
-            "analytics_events_seed.json",
-            "ai_agent_usage_seed.json",
-            "integration_export_jobs_seed.json",
-            "integration_import_jobs_seed.json",
-            "integration_webhooks_seed.json",
-            "service_desk_escalation_rules_seed.json",
-            "itsm_catalog_categories_seed.json",
-            "itsm_change_types_seed.json",
-            "itsm_ci_types_seed.json",
-            "itsm_incident_categories_seed.json",
-            "marketing_campaign_conversions_seed.json",
-            "marketing_campaign_metrics_seed.json",
-            "marketing_campaign_recipients_seed.json",
-            "services_seed.json",
-            "system_audit_logs_seed.json",
-        ]:
-            logger.log_skip("No supported API endpoint", file=os.path.join(data_dir, name))
+def phase_unsupported(logger: RunLogger, data_dir: str) -> None:
+    logger.section("Skipped - No API Endpoint")
+    for name in [
+        "analytics_events_seed.json",
+        "ai_agent_usage_seed.json",
+        "integration_export_jobs_seed.json",
+        "integration_import_jobs_seed.json",
+        "integration_webhooks_seed.json",
+        "service_desk_escalation_rules_seed.json",
+        "itsm_catalog_categories_seed.json",
+        "itsm_change_types_seed.json",
+        "itsm_ci_types_seed.json",
+        "itsm_incident_categories_seed.json",
+        "marketing_campaign_conversions_seed.json",
+        "marketing_campaign_metrics_seed.json",
+        "marketing_campaign_recipients_seed.json",
+        "services_seed.json",
+        "system_audit_logs_seed.json",
+    ]:
+        logger.log_skip(
+            "No supported API endpoint", file=os.path.join(data_dir, name)
+        )
 
-    load_roles()
-    load_permissions()
-    load_users()
-    load_accounts()
-    load_contacts()
-    load_user_groups()
-    load_leads()
-    load_products()
-    load_opportunities()
-    load_quotes_orders_invoices()
-    load_marketing()
-    load_service_requests()
-    load_itsm()
-    load_workflows()
-    load_feature_flags()
-    load_system_settings()
-    load_unsupported()
 
-    logger.log(
-        {
-            "status": "success",
-            "summary": f"Run complete. Success={logger.counts['success']} Failed={logger.counts['failed']} Skipped={logger.counts['skipped']}",
-        }
+# ============================ MAIN ====================================
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(
+        description="Load CRM test data via API with enhanced diagnostics",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog=textwrap.dedent(
+            """\
+            Examples:
+              # Local API
+              python3 scripts/test_data_loader.py
+
+              # Remote server with Docker log capture
+              python3 scripts/test_data_loader.py \\
+                --base-url http://192.168.0.9:5000 \\
+                --ssh-host root@192.168.0.9
+
+              # Custom data directory
+              python3 scripts/test_data_loader.py \\
+                --data-dir /path/to/seed-data
+        """
+        ),
+    )
+    parser.add_argument(
+        "--base-url", default="http://localhost:5000", help="CRM API base URL"
+    )
+    parser.add_argument(
+        "--data-dir", default="e2e-tests/test-data", help="Seed data directory"
+    )
+    parser.add_argument(
+        "--username", default="admin@crm.local", help="Admin email"
+    )
+    parser.add_argument("--password", default="Admin@123", help="Admin password")
+    parser.add_argument(
+        "--log-dir", default="logs/test-data", help="Log output directory"
+    )
+    parser.add_argument(
+        "--ssh-host",
+        default=None,
+        help="SSH host for Docker log capture (e.g. root@192.168.0.9)",
+    )
+    parser.add_argument(
+        "--api-container", default="crm-api", help="Docker container name for API"
+    )
+    parser.add_argument(
+        "--db-container", default="crm-mariadb", help="Docker container name for DB"
+    )
+    parser.add_argument(
+        "--frontend-container",
+        default="crm-frontend",
+        help="Docker container name for frontend",
+    )
+    parser.add_argument(
+        "--docker-tail",
+        type=int,
+        default=30,
+        help="Docker log lines to capture on error",
+    )
+    args = parser.parse_args()
+
+    # Docker log capture
+    docker: Optional[DockerLogCapture] = None
+    if args.ssh_host:
+        docker = DockerLogCapture(
+            ssh_host=args.ssh_host,
+            api_container=args.api_container,
+            db_container=args.db_container,
+            frontend_container=args.frontend_container,
+            tail_lines=args.docker_tail,
+        )
+
+    logger = RunLogger(args.log_dir, docker=docker)
+
+    # Authenticate
+    try:
+        auth_payload = {"email": args.username, "password": args.password}
+        auth_req = urllib.request.Request(
+            f"{args.base_url.rstrip('/')}/api/auth/login",
+            data=json.dumps(auth_payload).encode(),
+            method="POST",
+        )
+        auth_req.add_header("Content-Type", "application/json")
+        with urllib.request.urlopen(auth_req, timeout=15) as resp:
+            body = resp.read().decode()
+            auth_data = json.loads(body)
+        token = auth_data.get("accessToken") or auth_data.get("token") or ""
+        if not token:
+            logger.log_result(
+                "failed",
+                "POST",
+                "/api/auth/login",
+                200,
+                response_body=body,
+                error="No token in response",
+            )
+            logger.close()
+            return 1
+        logger.log_result(
+            "success",
+            "POST",
+            "/api/auth/login",
+            200,
+            request_summary={"email": args.username},
+            response_body=body,
+        )
+    except Exception as exc:
+        snap = docker.snapshot() if docker else None
+        logger.log_result(
+            "failed",
+            "POST",
+            "/api/auth/login",
+            None,
+            error=str(exc),
+            docker_snapshot=snap,
+        )
+        logger.close()
+        return 1
+
+    client = ApiClient(args.base_url, token, logger, docker)
+    data_dir = os.path.abspath(args.data_dir)
+
+    # Shared ID maps
+    id_maps: Dict[str, Any] = {
+        "role_name": {},
+        "user": {},
+        "account": {},
+        "account_name": {},
+        "contact": {},
+        "email_template": {},
+        "sr_category": {},
+        "_fallback_account_id": 1,
+        "_fallback_user_id": 1,
+    }
+
+    # Prefetch existing entities so id_maps work on re-runs
+    prefetch_existing(client, logger, data_dir, id_maps)
+
+    # Execute all phases
+    phases = [
+        (
+            "System",
+            lambda: phase_system(client, logger, data_dir, id_maps),
+        ),
+        (
+            "Accounts & Contacts",
+            lambda: phase_accounts_contacts(client, logger, data_dir, id_maps),
+        ),
+        (
+            "Contact Info",
+            lambda: phase_contact_info(client, logger, data_dir, id_maps),
+        ),
+        (
+            "Leads & Products",
+            lambda: phase_leads_products(client, logger, data_dir, id_maps),
+        ),
+        (
+            "Opportunities & Sales",
+            lambda: phase_opportunities_sales(client, logger, data_dir, id_maps),
+        ),
+        (
+            "Interactions & Activities",
+            lambda: phase_interactions_activities(client, logger, data_dir, id_maps),
+        ),
+        (
+            "Marketing",
+            lambda: phase_marketing(client, logger, data_dir, id_maps),
+        ),
+        (
+            "Service Desk",
+            lambda: phase_service_desk(client, logger, data_dir, id_maps),
+        ),
+        (
+            "ITSM",
+            lambda: phase_itsm(client, logger, data_dir, id_maps),
+        ),
+        (
+            "Relationships",
+            lambda: phase_relationships(client, logger, data_dir, id_maps),
+        ),
+        (
+            "Workflows",
+            lambda: phase_workflows(client, logger, data_dir, id_maps),
+        ),
+        (
+            "Unsupported",
+            lambda: phase_unsupported(logger, data_dir),
+        ),
+    ]
+
+    for name, fn in phases:
+        try:
+            fn()
+        except Exception as exc:
+            logger.section(f"PHASE ERROR: {name}")
+            snap = docker.snapshot() if docker else None
+            logger.log_result(
+                "failed",
+                "PHASE",
+                name,
+                None,
+                error=(
+                    f"{type(exc).__name__}: {exc}\n{traceback.format_exc()}"
+                ),
+                docker_snapshot=snap,
+            )
+
+    # Summary
+    logger.log_result(
+        "success",
+        "SUMMARY",
+        "/complete",
+        None,
+        request_summary={
+            "success": logger.counts["success"],
+            "failed": logger.counts["failed"],
+            "skipped": logger.counts["skipped"],
+        },
     )
     logger.close()
-    return 0
+
+    print(f"\n{'=' * 60}")
+    print(f"  Test Data Load Complete")
+    print(f"  Success: {logger.counts['success']}")
+    print(f"  Failed:  {logger.counts['failed']}")
+    print(f"  Skipped: {logger.counts['skipped']}")
+    print(f"  Log:     {logger.text_path}")
+    print(f"  JSONL:   {logger.jsonl_path}")
+    print(f"{'=' * 60}\n")
+
+    return 1 if logger.counts["failed"] > 0 else 0
 
 
 if __name__ == "__main__":

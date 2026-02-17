@@ -38,6 +38,33 @@ Each feature has a specification file (`SPEC-{MODULE}-{SEQ}-{Name}.md`) with ful
 | **6. Issues** | Naming inconsistencies, validation gaps |
 | **7. TODOs** | Extracted to [MASTER_TODO_LIST.md](../docs/MASTER_TODO_LIST.md) |
 
+
+### Database Schema Management (EF Core is Source of Truth)
+
+**IMPORTANT:**
+- The Entity Framework (EF) Core model and migrations are the **only** authoritative source for the database schema.
+- All tables, columns, constraints, and relationships must be defined in the C# model (`DbSet` in `CrmDbContext` and `OnModelCreating` configuration).
+- **Do not** make direct changes to the database schema (via SQL, admin tools, or raw DDL files). All schema changes must be made in code and applied via EF Core migrations.
+- **Never** use `EnsureCreated()` for production or shared databases. Only use `MigrateAsync()` and the migration workflow. If `EnsureCreated()` was used previously, drop and recreate the database using migrations to avoid drift.
+- All schema changes must be documented in the relevant feature specification (`docs/11-specifications/SPEC-*.md`) before implementation. Update the spec and mark as implemented when complete.
+- If schema drift is detected (DB does not match EF model), drop and recreate the database from migrations, or manually align the schema, then reapply migrations. See `docs/architecture/ADR-002-EF-Core-Schema-Management.md` for recovery steps.
+
+#### EF Core Migration Workflow (MANDATORY)
+1. Update or add entities in code (C# model, `DbSet`, `OnModelCreating`).
+2. Update the feature spec with the planned schema change.
+3. Run:
+  ```bash
+  dotnet ef migrations add <MigrationName> --project src/CRM.Infrastructure --startup-project src/CRM.Api
+  dotnet ef database update --project src/CRM.Infrastructure --startup-project src/CRM.Api
+  ```
+4. Validate the migration on all supported DBs (MariaDB, SQL Server, PostgreSQL).
+5. Commit migration files and update documentation/specs.
+
+**References:**
+- [docs/architecture/ADR-002-EF-Core-Schema-Management.md](../docs/architecture/ADR-002-EF-Core-Schema-Management.md)
+- [docs/development/DATABASE_EF_CORE_GAP_ANALYSIS.md](../docs/development/DATABASE_EF_CORE_GAP_ANALYSIS.md)
+
+---
 ### Before Writing Code
 
 1. **Find the spec:** `docs/11-specifications/SPEC-{MODULE}-{SEQ}-{FeatureName}.md` in not found create this file with understanding of the implimented code and the instructions . Add in addition put in additional details as you see fit to ensure the spec is comprehensive and clear for implementation. Use the `SPEC-TEMPLATE.md` as a starting point to maintain consistency across 11-specifications.
