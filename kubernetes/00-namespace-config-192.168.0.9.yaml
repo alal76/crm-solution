@@ -44,9 +44,9 @@ data:
   FRONTEND_EXTERNAL_PORT: "80"
   Frontend__Url: "http://192.168.0.9"
   
-  # Demo Database (auto-seeded)
-  DemoDatabase__AutoSeed: "true"
-  DemoDatabase__DatabaseName: "crm_demodb"
+  # DEPRECATED: Demo database feature removed - system uses single database only
+  # DemoDatabase__AutoSeed: "true"
+  # DemoDatabase__DatabaseName: "crm_demodb"
   
   # Contract Storage
   CONTRACT_STORAGE_PATH: "/app/data/contracts"

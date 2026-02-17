@@ -1,15 +1,15 @@
 {
   "major": 0,
   "minor": 560,
-  "patch": 5,
+  "patch": 6,
   "lastUpdate": "2026-02-17",
-  "description": "CRM Solution v0.560.5 - Fix EmailSequence circular reference, add global IgnoreCycles",
+  "description": "CRM Solution v0.560.6 - Test data loader v3: edit, delete, link/unlink, verification phases",
   "git": {
-    "branch": "dev",
-    "commit": "fix-email-sequence-circular-ref"
+    "branch": "bugfix/data-loader-failures",
+    "commit": "feat-test-loader-edit-delete-link-verify"
   },
   "environment": "production",
   "architecture": "monolith",
   "buildServer": "azure-devops",
-  "buildTime": "2026-02-17T19:15:00"
+  "buildTime": "2026-02-17T19:38:00"
 }
