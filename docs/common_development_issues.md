@@ -106,3 +106,19 @@
   docker save crm-api:latest | ssh root@192.168.0.9 "docker load"
   ```
 - **Where seen:** Deploying from Mac development machine to `192.168.0.9` Linux server
+
+---
+
+## Frontend /admin/features page crashes: "Cannot read properties of undefined (reading 'isActive')"
+
+- **Symptom:** TypeError at `/admin/features` admin page: `Cannot read properties of undefined (reading 'isActive')`. Page fails to render.
+- **Root Cause (v0.560.7):** The `FeatureManagementTab` component expected `databaseStatus.demoDatabase` and `features.systemSettings` to always be present. After the demo database feature was deprecated (single database policy), the API no longer returns `demoDatabase` in the `/api/systemsettings/database/status` response.
+- **Fix:**
+  1. Made `demoDatabase` optional in the `DatabaseStatus` TypeScript interface
+  2. Made `systemSettings` optional in the `FeatureConfiguration` interface  
+  3. Added conditional rendering: `{databaseStatus.demoDatabase && (...)}`
+  4. Used optional chaining: `features.systemSettings?.useDemoDatabase ?? false`
+  5. Removed the Demo Mode toggle UI (deprecated feature)
+- **File:** `CRM.Frontend/src/components/settings/FeatureManagementTab.tsx`
+- **Related:** Demo database deprecation per single database policy in copilot-instructions.md
+- **Where seen:** Admin settings → Features page after v0.560.7 demo database removal
