@@ -1,15 +1,15 @@
 {
   "major": 0,
   "minor": 560,
-  "patch": 10,
+  "patch": 11,
   "lastUpdate": "2026-02-17",
-  "description": "Test data loader: EXISTS status for duplicate detection, API response logging",
+  "description": "Fix API 500 errors: accounts duplicate, workflows, role permissions, contact preferences",
   "git": {
     "branch": "main",
-    "commit": "feat-loader-exists-status"
+    "commit": "fix-api-500-duplicate-handling"
   },
   "environment": "production",
   "architecture": "monolith",
   "buildServer": "azure-devops",
-  "buildTime": "2026-02-17T20:50:00"
+  "buildTime": "2026-02-17T21:10:00"
 }

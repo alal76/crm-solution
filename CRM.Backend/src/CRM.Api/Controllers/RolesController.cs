@@ -5,6 +5,7 @@ using CRM.Core.Dtos;
 using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace CRM.Api.Controllers;
 
@@ -198,21 +199,34 @@ public class RolesController : ControllerBase
     /// </summary>
     [HttpPost("{roleId}/permissions/{permissionId}")]
     [ProducesResponseType(typeof(RolePermissionDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(RolePermissionDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> AssignPermissionToRole(int roleId, int permissionId, CancellationToken cancellationToken)
     {
         try
         {
             var result = await _rbacService.AssignPermissionToRoleAsync(roleId, permissionId, cancellationToken);
+            // Service returns existing if already assigned - return 200 OK in that case
             return CreatedAtAction(nameof(GetRolePermissions), new { roleId }, result);
         }
         catch (KeyNotFoundException ex)
         {
             return NotFound(new { message = ex.Message });
         }
+        catch (DbUpdateException ex) when (ex.InnerException?.Message.Contains("Duplicate") == true
+                                          || ex.InnerException?.Message.Contains("unique") == true)
+        {
+            return Conflict(new { message = "Permission is already assigned to this role" });
+        }
+        catch (InvalidOperationException ex) when (ex.Message.Contains("already assigned"))
+        {
+            return Conflict(new { message = ex.Message });
+        }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Error assigning permission {permissionId} to role {roleId}");
-            return StatusCode(500, new { message = "Error assigning permission" });
+            _logger.LogError(ex, "Error assigning permission {PermissionId} to role {RoleId}", permissionId, roleId);
+            return StatusCode(500, new { message = "Error assigning permission", error = ex.Message });
         }
     }
 

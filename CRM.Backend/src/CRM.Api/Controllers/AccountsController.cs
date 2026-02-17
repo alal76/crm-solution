@@ -455,6 +455,7 @@ public class AccountsController : ControllerBase
     [HttpPost]
     [ProducesResponseType(typeof(AccountDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> Create([FromBody] CreateAccountDto dto)
     {
         try
@@ -478,6 +479,16 @@ public class AccountsController : ControllerBase
             await _notificationService.NotifyRecordCreatedAsync("Account", account.Id, account, userId);
 
             return CreatedAtAction(nameof(GetById), new { id = account.Id }, account);
+        }
+        catch (InvalidOperationException ex) when (ex.Message.Contains("already exists"))
+        {
+            // Duplicate account - return 409 Conflict
+            return Conflict(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            // Other validation errors (phone format, etc.)
+            return BadRequest(new { message = ex.Message });
         }
         catch (Exception ex)
         {

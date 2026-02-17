@@ -24,6 +24,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 using System.Text.Json;
 
@@ -182,14 +183,21 @@ public class WorkflowController : ControllerBase
     [Authorize(Roles = "Admin")]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> CreateWorkflow([FromBody] CreateWorkflowDto dto)
     {
         try
         {
+            if (string.IsNullOrWhiteSpace(dto.WorkflowKey))
+                return BadRequest(new { message = "WorkflowKey is required" });
+
+            if (string.IsNullOrWhiteSpace(dto.Name))
+                return BadRequest(new { message = "Name is required" });
+
             // Check for duplicate key
             var existing = await _workflowService.GetWorkflowByKeyAsync(dto.WorkflowKey);
             if (existing != null)
-                return BadRequest(new { message = "A workflow with this key already exists" });
+                return Conflict(new { message = "A workflow with this key already exists" });
 
             var workflow = new WorkflowDefinition
             {
@@ -210,6 +218,15 @@ public class WorkflowController : ControllerBase
 
             var result = await _workflowService.CreateWorkflowDefinitionAsync(workflow);
             return CreatedAtAction(nameof(GetWorkflow), new { id = result.Id }, new { id = result.Id });
+        }
+        catch (DbUpdateException ex) when (ex.InnerException?.Message.Contains("Duplicate") == true
+                                          || ex.InnerException?.Message.Contains("unique") == true)
+        {
+            return Conflict(new { message = "A workflow with this key already exists" });
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { message = ex.Message });
         }
         catch (Exception ex)
         {
