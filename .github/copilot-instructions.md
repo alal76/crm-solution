@@ -1,6 +1,7 @@
 # GitHub Copilot Instructions - CRM Solution
 
-> **Last Updated:** February 13, 2026  
+> **Last Updated:** February 17, 2026  
+> **Current Version:** 0.560.3  
 > **Load this file at the start of every agent session**
 
 Copilot usage
@@ -209,20 +210,80 @@ crm-solution/
 
 ## 3. Infrastructure & Network
 
-### 3.1 Development Server (192.168.0.9)
+### 3.1 Logical Network Stacks
+
+The CRM solution uses **three logical Docker network stacks** for separation of concerns:
+
+```
+┌─────────────────────────────────────────────────────────────────────────────────┐
+│                           CRM INFRASTRUCTURE                                     │
+├─────────────────────────────────────────────────────────────────────────────────┤
+│                                                                                  │
+│  ┌─────────────────────┐  ┌─────────────────────┐  ┌──────────────────────────┐ │
+│  │     crm-core        │  │      crm-db         │  │     crm-components       │ │
+│  │  (Application)      │  │    (Databases)      │  │   (Pluggable Providers)  │ │
+│  ├─────────────────────┤  ├─────────────────────┤  ├──────────────────────────┤ │
+│  │ • crm-api (5000)    │  │ • crm-mariadb(3306) │  │ • crm-meilisearch (7700) │ │
+│  │ • crm-frontend (80) │  │ • crm-redis (6379)  │  │ • crm-ollama (11434)     │ │
+│  │ • crm-gateway (5000)│  │ • crm-postgres(5432)│  │ • crm-chatwoot (3000)    │ │
+│  └─────────────────────┘  │ • crm-sqlserver     │  │ • crm-novu (3000)        │ │
+│                           │   (1433)            │  │ • crm-superset (8088)    │ │
+│                           └─────────────────────┘  │ • crm-docuseal (3000)    │ │
+│                                                    │ • crm-n8n (5678)         │ │
+│                                                    └──────────────────────────┘ │
+│                                                                                  │
+└─────────────────────────────────────────────────────────────────────────────────┘
+```
+
+| Network Stack | Purpose | Containers | External Access |
+|---------------|---------|------------|------------------|
+| **crm-core** | Core application services | crm-api, crm-frontend, crm-gateway | Yes (ports 80, 5000) |
+| **crm-db** | Database services | crm-mariadb, crm-redis, crm-postgres, crm-sqlserver | Internal only |
+| **crm-components** | Pluggable provider services | meilisearch, ollama, chatwoot, novu, superset, n8n, docuseal | Internal only |
+
+**Network Communication:**
+- All three networks are bridged allowing inter-stack communication
+- `crm-core` → `crm-db`: Database connections
+- `crm-core` → `crm-components`: Provider API calls
+- External → `crm-core` only: Public-facing services
+
+### 3.2 Development Server (192.168.0.9)
+
+#### crm-core Stack (Core Application)
 
 | Container | Port | Network Alias | Purpose |
 |-----------|------|---------------|---------|
 | `crm-api` | 5000 | crm-api | .NET Web API (Monolith) |
 | `crm-frontend` | 80 | crm-frontend | React app (Nginx) |
-| `crm-mariadb` | 3306 | crm-mariadb | MariaDB database |
-| `crm-redis` | 6379 | crm-redis | Redis cache |
-| `crm-meilisearch` | 7700 | crm-meilisearch | Search engine |
-| `crm-ollama` | 11434 | crm-ollama | Local LLM |
 
-**Docker Network:** `docker_crm-network` (bridge)
+#### crm-db Stack (Databases)
 
-### 3.2 Microservices Architecture
+| Container | Port | Network Alias | Purpose |
+|-----------|------|---------------|---------|
+| `crm-mariadb` | 3306 | crm-mariadb | MariaDB database (primary) |
+| `crm-redis` | 6379 | crm-redis | Redis cache & sessions |
+| `crm-postgres` | 5432 | crm-postgres | PostgreSQL (optional) |
+| `crm-sqlserver` | 1433 | crm-sqlserver | SQL Server (optional) |
+
+#### crm-components Stack (Pluggable Providers)
+
+| Container | Port | Network Alias | Category | Purpose |
+|-----------|------|---------------|----------|---------|
+| `crm-meilisearch` | 7700 | crm-meilisearch | Search | Full-text search engine |
+| `crm-ollama` | 11434 | crm-ollama | AI | Local LLM inference |
+| `crm-chatwoot` | 3000 | crm-chatwoot | Chat | Customer chat support |
+| `crm-novu` | 3000 | crm-novu | Notifications | Multi-channel notifications |
+| `crm-superset` | 8088 | crm-superset | Analytics | BI & data visualization |
+| `crm-docuseal` | 3000 | crm-docuseal | Signatures | E-signature workflows |
+| `crm-n8n` | 5678 | crm-n8n | Integrations | Workflow automation |
+
+**Docker Networks:** 
+- `crm_crm-network` (bridge) - Main unified network
+- `crm-core-network` (bridge) - Core stack isolation
+- `crm-db-network` (bridge) - Database stack isolation
+- `crm-components-network` (bridge) - Components stack isolation
+
+### 3.4 Microservices Architecture
 
 | Service | Port | Image | Domain |
 |---------|------|-------|--------|
@@ -234,7 +295,7 @@ crm-solution/
 | `crm-servicedesk` | 5005 | crm-servicedesk | Tickets, Workflows |
 | `crm-core` | 5006 | crm-core | Settings, Monitoring |
 
-### 3.3 Azure Resources Naming
+### 3.5 Azure Resources Naming
 
 | Resource | Naming Pattern | Example |
 |----------|----------------|---------|
@@ -251,7 +312,7 @@ crm-solution/
 | **AKS Cluster** | `aks-crm-{env}` | `aks-crm-prod` |
 | **Redis Cache** | `redis-crm-{env}` | `redis-crm-prod` |
 
-### 3.4 AWS Resources Naming
+### 3.6 AWS Resources Naming
 
 | Resource | Naming Pattern | Example |
 |----------|----------------|---------|
@@ -266,7 +327,7 @@ crm-solution/
 | **Security Group** | `sg-crm-{env}-{purpose}` | `sg-crm-prod-api` |
 | **IAM Role** | `role-crm-{env}-{purpose}` | `role-crm-prod-ecs-task` |
 
-### 3.5 GCP Resources Naming
+### 3.7 GCP Resources Naming
 
 | Resource | Naming Pattern | Example |
 |----------|----------------|---------|
@@ -278,7 +339,7 @@ crm-solution/
 | **Cloud Storage** | `gs-crm-{env}-{purpose}` | `gs-crm-prod-uploads` |
 | **Cloud Run** | `run-crm-{env}-{service}` | `run-crm-prod-api` |
 
-### 3.6 Kubernetes Resources Naming
+### 3.8 Kubernetes Resources Naming
 
 | Resource | Naming Pattern | Example |
 |----------|----------------|---------|
@@ -554,7 +615,356 @@ Location: `CRM.Core/Features/ProviderTypes.cs`
 }
 ```
 
-### 5.5 Semantic Kernel AI Integration
+### 5.5 Pluggable Component Details
+
+Each pluggable component can be deployed as a Docker container in the `crm-components` stack:
+
+#### 5.5.1 Search - Meilisearch
+
+| Property | Value |
+|----------|-------|
+| **Container** | `crm-meilisearch` |
+| **Image** | `getmeili/meilisearch:v1.6` |
+| **Port** | 7700 |
+| **Feature Flag** | `UseExternalSearch` |
+| **Provider Type** | `Meilisearch` |
+| **Data Volume** | `/meili_data` |
+
+```yaml
+# docker-compose.providers.yml
+crm-meilisearch:
+  image: getmeili/meilisearch:v1.6
+  container_name: crm-meilisearch
+  ports:
+    - "7700:7700"
+  environment:
+    - MEILI_MASTER_KEY=masterKey
+    - MEILI_ENV=development
+  volumes:
+    - meilisearch_data:/meili_data
+  networks:
+    - crm-components-network
+```
+
+**Configuration:**
+```json
+{
+  "Providers": {
+    "Search": {
+      "Type": "Meilisearch",
+      "Meilisearch": {
+        "Url": "http://crm-meilisearch:7700",
+        "ApiKey": "masterKey",
+        "IndexPrefix": "crm_"
+      }
+    }
+  }
+}
+```
+
+#### 5.5.2 AI - Ollama (Local LLM)
+
+| Property | Value |
+|----------|-------|
+| **Container** | `crm-ollama` |
+| **Image** | `ollama/ollama:latest` |
+| **Port** | 11434 |
+| **Feature Flag** | `UseExternalAI` |
+| **Provider Type** | `Ollama` |
+| **GPU Support** | Optional (NVIDIA) |
+
+```yaml
+crm-ollama:
+  image: ollama/ollama:latest
+  container_name: crm-ollama
+  ports:
+    - "11434:11434"
+  volumes:
+    - ollama_data:/root/.ollama
+  networks:
+    - crm-components-network
+  deploy:
+    resources:
+      reservations:
+        devices:
+          - driver: nvidia
+            count: all
+            capabilities: [gpu]
+```
+
+**Configuration:**
+```json
+{
+  "Providers": {
+    "AI": {
+      "Type": "Ollama",
+      "Ollama": {
+        "Url": "http://crm-ollama:11434",
+        "Model": "llama3.1:8b",
+        "EmbeddingModel": "nomic-embed-text"
+      }
+    }
+  }
+}
+```
+
+**Available Models:**
+- `llama3.1:8b` - General purpose (default)
+- `llama3.1:70b` - Large model
+- `mistral:7b` - Fast inference
+- `codellama:13b` - Code generation
+- `nomic-embed-text` - Embeddings
+
+#### 5.5.3 Chat - Chatwoot
+
+| Property | Value |
+|----------|-------|
+| **Container** | `crm-chatwoot` |
+| **Image** | `chatwoot/chatwoot:latest` |
+| **Port** | 3000 |
+| **Feature Flag** | `UseExternalChat` |
+| **Provider Type** | `Chatwoot` |
+| **Dependencies** | PostgreSQL, Redis |
+
+```yaml
+crm-chatwoot:
+  image: chatwoot/chatwoot:latest
+  container_name: crm-chatwoot
+  depends_on:
+    - crm-postgres
+    - crm-redis
+  ports:
+    - "3000:3000"
+  environment:
+    - SECRET_KEY_BASE=<secret>
+    - FRONTEND_URL=http://localhost:3000
+    - RAILS_ENV=production
+    - DATABASE_URL=postgres://crm_user:CrmPass@Dev2024@crm-postgres:5432/chatwoot
+    - REDIS_URL=redis://crm-redis:6379
+  networks:
+    - crm-components-network
+```
+
+**Configuration:**
+```json
+{
+  "Providers": {
+    "Chat": {
+      "Type": "Chatwoot",
+      "Chatwoot": {
+        "BaseUrl": "http://crm-chatwoot:3000",
+        "ApiKey": "<api-access-token>",
+        "AccountId": "1",
+        "InboxId": "1"
+      }
+    }
+  }
+}
+```
+
+#### 5.5.4 Notifications - Novu
+
+| Property | Value |
+|----------|-------|
+| **Container** | `crm-novu` |
+| **Image** | `ghcr.io/novuhq/novu/api:latest` |
+| **Port** | 3000 |
+| **Feature Flag** | `UseExternalNotifications` |
+| **Provider Type** | `Novu` |
+| **Dependencies** | MongoDB, Redis |
+
+```yaml
+crm-novu:
+  image: ghcr.io/novuhq/novu/api:latest
+  container_name: crm-novu
+  ports:
+    - "3000:3000"
+  environment:
+    - NODE_ENV=production
+    - MONGO_URL=mongodb://crm-mongo:27017/novu
+    - REDIS_HOST=crm-redis
+    - JWT_SECRET=<secret>
+  networks:
+    - crm-components-network
+```
+
+**Configuration:**
+```json
+{
+  "Providers": {
+    "Notifications": {
+      "Type": "Novu",
+      "Novu": {
+        "ApiKey": "api-key-from-novu-dashboard",
+        "ApplicationId": "app-id",
+        "BaseUrl": "http://crm-novu:3000"
+      }
+    }
+  }
+}
+```
+
+**Notification Channels:**
+- Email (SendGrid, Mailgun, SES)
+- SMS (Twilio, Nexmo)
+- Push (FCM, APNS)
+- In-App notifications
+- Slack, Discord webhooks
+
+#### 5.5.5 Analytics - Apache Superset
+
+| Property | Value |
+|----------|-------|
+| **Container** | `crm-superset` |
+| **Image** | `apache/superset:latest` |
+| **Port** | 8088 |
+| **Feature Flag** | `UseExternalAnalytics` |
+| **Provider Type** | `Superset` |
+| **Dependencies** | PostgreSQL/MySQL |
+
+```yaml
+crm-superset:
+  image: apache/superset:latest
+  container_name: crm-superset
+  ports:
+    - "8088:8088"
+  environment:
+    - SUPERSET_SECRET_KEY=<secret>
+    - SUPERSET_SQLALCHEMY_DATABASE_URI=mysql://crm_user:CrmPass@Dev2024@crm-mariadb:3306/superset
+  volumes:
+    - superset_data:/app/superset_home
+  networks:
+    - crm-components-network
+```
+
+**Configuration:**
+```json
+{
+  "Providers": {
+    "Analytics": {
+      "Type": "Superset",
+      "Superset": {
+        "Url": "http://crm-superset:8088",
+        "Username": "admin",
+        "Password": "<password>",
+        "DatabaseId": 1
+      }
+    }
+  }
+}
+```
+
+**Features:**
+- SQL Lab for ad-hoc queries
+- Dashboard builder
+- Chart visualizations
+- Scheduled reports
+- Role-based access control
+
+#### 5.5.6 E-Signatures - DocuSeal
+
+| Property | Value |
+|----------|-------|
+| **Container** | `crm-docuseal` |
+| **Image** | `docuseal/docuseal:latest` |
+| **Port** | 3000 |
+| **Feature Flag** | `UseExternalSignatures` |
+| **Provider Type** | `DocuSeal` |
+| **Data Volume** | `/data` |
+
+```yaml
+crm-docuseal:
+  image: docuseal/docuseal:latest
+  container_name: crm-docuseal
+  ports:
+    - "3000:3000"
+  environment:
+    - DATABASE_URL=postgres://crm_user:CrmPass@Dev2024@crm-postgres:5432/docuseal
+    - SECRET_KEY_BASE=<secret>
+  volumes:
+    - docuseal_data:/data
+  networks:
+    - crm-components-network
+```
+
+**Configuration:**
+```json
+{
+  "Providers": {
+    "Signatures": {
+      "Type": "DocuSeal",
+      "DocuSeal": {
+        "Url": "http://crm-docuseal:3000",
+        "ApiKey": "<api-key>",
+        "WebhookSecret": "<webhook-secret>"
+      }
+    }
+  }
+}
+```
+
+**Features:**
+- PDF document signing
+- Template management
+- Multi-signer workflows
+- Audit trails
+- Webhook notifications
+
+#### 5.5.7 Integrations - n8n
+
+| Property | Value |
+|----------|-------|
+| **Container** | `crm-n8n` |
+| **Image** | `n8nio/n8n:latest` |
+| **Port** | 5678 |
+| **Feature Flag** | `UseExternalIntegrations` |
+| **Provider Type** | `N8n` |
+| **Data Volume** | `/home/node/.n8n` |
+
+```yaml
+crm-n8n:
+  image: n8nio/n8n:latest
+  container_name: crm-n8n
+  ports:
+    - "5678:5678"
+  environment:
+    - N8N_BASIC_AUTH_ACTIVE=true
+    - N8N_BASIC_AUTH_USER=admin
+    - N8N_BASIC_AUTH_PASSWORD=<password>
+    - WEBHOOK_URL=http://crm-n8n:5678/
+    - DB_TYPE=postgresdb
+    - DB_POSTGRESDB_HOST=crm-postgres
+    - DB_POSTGRESDB_DATABASE=n8n
+  volumes:
+    - n8n_data:/home/node/.n8n
+  networks:
+    - crm-components-network
+```
+
+**Configuration:**
+```json
+{
+  "Providers": {
+    "Integrations": {
+      "Type": "N8n",
+      "N8n": {
+        "BaseUrl": "http://crm-n8n:5678",
+        "ApiKey": "<api-key>",
+        "WebhookBaseUrl": "http://crm-n8n:5678/webhook"
+      }
+    }
+  }
+}
+```
+
+**Available Integrations (400+):**
+- CRM: Salesforce, HubSpot, Pipedrive
+- Communication: Slack, Teams, Discord
+- Email: Gmail, Outlook, SendGrid
+- Cloud: AWS, GCP, Azure
+- Data: PostgreSQL, MongoDB, Airtable
+
+### 5.6 Semantic Kernel AI Integration
 
 The CRM includes a **Semantic Kernel v1.34.0** integration providing AI-powered agents:
 
