@@ -129,6 +129,14 @@ public class UserGroupsController : ControllerBase
             var group = await _userGroupService.CreateGroupAsync(request);
             return CreatedAtAction(nameof(GetById), new { id = group.Id }, group);
         }
+        catch (InvalidOperationException ex) when (ex.Message.Contains("already exists", StringComparison.OrdinalIgnoreCase))
+        {
+            return Conflict(new { error = ex.Message });
+        }
+        catch (Microsoft.EntityFrameworkCore.DbUpdateException ex) when (ex.InnerException?.Message?.Contains("Duplicate", StringComparison.OrdinalIgnoreCase) == true)
+        {
+            return Conflict(new { error = $"A user group with name '{request.Name}' already exists" });
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating user group");
