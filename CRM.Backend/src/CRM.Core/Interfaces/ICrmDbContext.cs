@@ -54,6 +54,7 @@ public interface ICrmDbContext
     DbSet<MarketingCampaign> MarketingCampaigns { get; }
     DbSet<CampaignRecipient> CampaignRecipients { get; }
     DbSet<CampaignMetric> CampaignMetrics { get; }
+    DbSet<CampaignConversion> CampaignConversions { get; }
     DbSet<User> Users { get; }
     DbSet<OAuthToken> OAuthTokens { get; }
     DbSet<RefreshToken> RefreshTokens { get; }

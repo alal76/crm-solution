@@ -1405,6 +1405,50 @@ def phase_leads_products(
             if sku:
                 existing_skus.add(sku)
 
+    # Services (via Products endpoint with ProductType=Service)
+    PRODUCT_TYPE = {"Physical": 0, "Digital": 1, "Service": 2, "Subscription": 3,
+                    "Bundle": 4, "Rental": 5, "Consulting": 6, "ManagedService": 7,
+                    "SupportContract": 8, "Training": 9, "License": 10}
+    SERVICE_TIER = {"Basic": 0, "Standard": 1, "Premium": 2, "Enterprise": 3}
+    p = _path(data_dir, "services_seed.json")
+    if os.path.isfile(p):
+        for i, item in enumerate(load_json(p)):
+            sku = item.get("SKU")
+            if sku and sku in existing_skus:
+                logger.log_skip(f"Service SKU {sku} already exists", file=p)
+                continue
+            # Map ServiceType string to ProductType enum
+            svc_type = item.get("ServiceType", "Service")
+            if "Consulting" in svc_type:
+                ptype = PRODUCT_TYPE["Consulting"]
+            elif "Managed" in svc_type:
+                ptype = PRODUCT_TYPE["ManagedService"]
+            elif "Training" in svc_type:
+                ptype = PRODUCT_TYPE["Training"]
+            elif "Support" in svc_type:
+                ptype = PRODUCT_TYPE["SupportContract"]
+            else:
+                ptype = PRODUCT_TYPE["Service"]
+            payload = {
+                "Name": item.get("Name"),
+                "SKU": sku,
+                "Description": item.get("Description"),
+                "ShortDescription": item.get("ShortDescription"),
+                "Category": item.get("Category"),
+                "SubCategory": item.get("SubCategory"),
+                "ProductType": ptype,
+                "ServiceTier": SERVICE_TIER.get(item.get("ServiceTier", "Standard"), 1),
+                "Price": item.get("Price"),
+                "Cost": item.get("Cost"),
+                "ListPrice": item.get("ListPrice"),
+                "IsActive": item.get("Status") == "Active",
+            }
+            client.request(
+                "POST", "/api/products", payload, file=p, index=i, summary=payload
+            )
+            if sku:
+                existing_skus.add(sku)
+
 
 # ---- Phase 5: Opportunities & Sales Pipeline ------------------------
 
@@ -1890,8 +1934,67 @@ def phase_marketing(
                 "Budget": item.get("budget"),
                 "OwnerId": id_maps["user"].get(item.get("ownerUserId", 0)),
             }
-            client.request(
+            _, resp, _ = client.request(
                 "POST", "/api/campaigns", payload, file=p, index=i, summary=payload
+            )
+            if isinstance(resp, dict) and "id" in resp:
+                id_maps.setdefault("campaign", {})[item.get("id", 0)] = resp["id"]
+
+    # Campaign Recipients
+    RECIPIENT_STATUS = {"Pending": 0, "Sent": 1, "Delivered": 2, "Opened": 3,
+                        "Clicked": 4, "Bounced": 5, "Unsubscribed": 6}
+    p = _path(data_dir, "marketing_campaign_recipients_seed.json")
+    if os.path.isfile(p):
+        for i, item in enumerate(load_json(p)):
+            payload = {
+                "CampaignId": id_maps.get("campaign", {}).get(item.get("campaignId"), item.get("campaignId")),
+                "ContactId": id_maps.get("contact", {}).get(item.get("contactId"), item.get("contactId")),
+                "LeadId": id_maps.get("lead", {}).get(item.get("leadId")),
+                "Email": item.get("email"),
+                "Status": RECIPIENT_STATUS.get(item.get("status", "Pending"), 0),
+                "SentAt": item.get("sentAt"),
+                "DeliveredAt": item.get("deliveredAt"),
+                "OpenedAt": item.get("openedAt"),
+            }
+            client.request(
+                "POST", "/api/campaign-recipients", payload, file=p, index=i, summary=payload
+            )
+
+    # Campaign Conversions (link campaigns to opportunities)
+    p = _path(data_dir, "marketing_campaign_conversions_seed.json")
+    if os.path.isfile(p):
+        for i, item in enumerate(load_json(p)):
+            payload = {
+                "CampaignId": id_maps.get("campaign", {}).get(item.get("campaignId"), item.get("campaignId")),
+                "OpportunityId": id_maps.get("opportunity", {}).get(item.get("opportunityId"), item.get("opportunityId")),
+                "LeadId": id_maps.get("lead", {}).get(item.get("leadId")),
+                "ConvertedAt": item.get("conversionDate"),
+                "ConversionValue": item.get("value"),  # seed data uses 'value'
+                "ConversionType": item.get("conversionType", "Opportunity"),
+            }
+            client.request(
+                "POST", "/api/campaign-conversions", payload, file=p, index=i, summary=payload
+            )
+
+    # Campaign Metrics - map seed data to CampaignMetric entity fields
+    p = _path(data_dir, "marketing_campaign_metrics_seed.json")
+    if os.path.isfile(p):
+        for i, item in enumerate(load_json(p)):
+            # The seed data has: campaignId, impressions, clicks, conversions, cost
+            # Map to CampaignMetric entity fields
+            payload = {
+                "CampaignId": id_maps.get("campaign", {}).get(item.get("campaignId"), item.get("campaignId")),
+                "MetricName": "Campaign Performance",
+                "MetricValue": item.get("impressions", 0),
+                "RecordedDate": datetime.now().isoformat(),
+                "TotalSent": item.get("impressions", 0),  # Use impressions as proxy for sent
+                "TotalDelivered": int(item.get("impressions", 0) * 0.95),  # Assume 95% delivery
+                "TotalOpened": int(item.get("clicks", 0) * 1.5),  # Estimate opens from clicks
+                "TotalClicked": item.get("clicks", 0),
+                "TotalConverted": item.get("conversions", 0),
+            }
+            client.request(
+                "POST", "/api/campaign-metrics", payload, file=p, index=i, summary=payload
             )
 
 
@@ -3248,10 +3351,6 @@ def phase_unsupported(logger: RunLogger, data_dir: str) -> None:
         "itsm_change_types_seed.json",
         "itsm_ci_types_seed.json",
         "itsm_incident_categories_seed.json",
-        "marketing_campaign_conversions_seed.json",
-        "marketing_campaign_metrics_seed.json",
-        "marketing_campaign_recipients_seed.json",
-        "services_seed.json",
         "system_audit_logs_seed.json",
     ]:
         logger.log_skip(

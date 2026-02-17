@@ -80,9 +80,8 @@ public class CampaignConversion : BaseEntity
     /// <summary>
     /// Type of conversion
     /// </summary>
-    [Required]
     [MaxLength(100)]
-    public string ConversionType { get; set; } = "Purchase";
+    public string? ConversionType { get; set; }
 
     /// <summary>
     /// Value of the conversion

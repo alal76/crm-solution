@@ -1,12 +1,12 @@
 {
   "major": 0,
   "minor": 560,
-  "patch": 11,
+  "patch": 12,
   "lastUpdate": "2026-02-17",
-  "description": "Fix API 500 errors: accounts duplicate, workflows, role permissions, contact preferences",
+  "description": "Add campaign endpoints and services loading: campaign-metrics, campaign-conversions, campaign-recipients; services via products",
   "git": {
     "branch": "main",
-    "commit": "fix-api-500-duplicate-handling"
+    "commit": "add-campaign-services-endpoints"
   },
   "environment": "production",
   "architecture": "monolith",
