@@ -1,0 +1,1 @@
+{"status": "failed", "method": "POST", "endpoint": "/api/auth/login", "http_status": null, "file": null, "index": null, "request": {}, "response_body": "", "error": "<urlopen error [Errno 61] Connection refused>", "summary": "  FAIL  POST /api/auth/login (inline) -> None  err=<urlopen error [Errno 61] Connection refused>", "timestamp": "2026-02-17T10:41:52.203571Z"}

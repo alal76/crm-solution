@@ -498,9 +498,11 @@ class ApiClient:
             # Detect "500 but created" — some controllers return 500
             # even though the entity was created successfully.
             parsed_500 = None
-            if exc.code == 500 and resp_body and method == "POST":
+            if exc.code == 500 and resp_body and method in ("POST", "PUT"):
                 try:
                     parsed_500 = json.loads(resp_body)
+                    # Case 1: Response is the created entity (has id/name,
+                    # no error keys)
                     if isinstance(parsed_500, dict) and (
                         "id" in parsed_500 or "name" in parsed_500
                     ) and "error" not in parsed_500 and "errors" not in parsed_500:
@@ -515,6 +517,25 @@ class ApiClient:
                             response_body=f"[500-but-created] {resp_body[:500]}",
                         )
                         return exc.code, parsed_500, resp_body
+                    # Case 2: Known backend bugs — preferences duplicate
+                    # entry, EF tracking, etc.  The error message tells us
+                    # the record already exists.
+                    err_msg = parsed_500.get("error", "") or parsed_500.get("message", "")
+                    if any(p in err_msg.lower() for p in [
+                        "duplicate entry", "saving the entity",
+                        "already exists",
+                    ]):
+                        self.logger.log_result(
+                            "success",
+                            method,
+                            path,
+                            exc.code,
+                            file=file,
+                            index=index,
+                            request_summary=summary or _compact(payload),
+                            response_body=f"[500-duplicate] {resp_body[:500]}",
+                        )
+                        return exc.code, None, resp_body
                 except (json.JSONDecodeError, ValueError):
                     pass
 
@@ -538,6 +559,22 @@ class ApiClient:
             # response — item was likely created successfully.
             exc_name = type(exc).__name__
             if exc_name == "IncompleteRead":
+                # Try to extract partial response to capture entity ID
+                partial_bytes = getattr(exc, "partial", b"")
+                partial_str = (
+                    partial_bytes.decode("utf-8", errors="replace")
+                    if isinstance(partial_bytes, bytes)
+                    else str(partial_bytes)
+                )
+                parsed_partial = None
+                if partial_str:
+                    try:
+                        parsed_partial = json.loads(partial_str)
+                    except json.JSONDecodeError:
+                        # Try to extract just the id from partial JSON
+                        m = re.search(r'"id"\s*:\s*(\d+)', partial_str)
+                        if m:
+                            parsed_partial = {"id": int(m.group(1))}
                 self.logger.log_result(
                     "success",
                     method,
@@ -546,9 +583,9 @@ class ApiClient:
                     file=file,
                     index=index,
                     request_summary=summary or _compact(payload),
-                    response_body=f"[IncompleteRead - likely created]",
+                    response_body=f"[IncompleteRead - partial {len(partial_str)} bytes]",
                 )
-                return 200, None, None
+                return 200, parsed_partial, partial_str
             snap = self.docker.snapshot() if self.docker else None
             self.logger.log_result(
                 "failed",
@@ -601,8 +638,9 @@ def prefetch_existing(
     data_dir: str,
     id_maps: Dict[str, Any],
 ) -> None:
-    """GET existing accounts, contacts, and users so id_maps are populated
-    even when entities already exist (idempotent re-runs)."""
+    """GET existing accounts, contacts, users, products, relationship types,
+    quotes, orders, and invoices so id_maps are populated even when entities
+    already exist (idempotent re-runs)."""
     logger.section("Prefetch - Populating ID maps from existing data")
 
     def _fetch_list(endpoint: str) -> List[Dict[str, Any]]:
@@ -653,6 +691,70 @@ def prefetch_existing(
         id_maps["_fallback_account_id"] = all_accounts[0].get("id", 1)
     else:
         id_maps["_fallback_account_id"] = 1
+
+    # Products — track existing SKUs so we can skip duplicates
+    existing_products = _fetch_list("/api/products")
+    existing_skus: set = set()
+    for prod in existing_products:
+        sku = prod.get("sku") or prod.get("SKU")
+        if sku:
+            existing_skus.add(sku)
+    id_maps["_existing_product_skus"] = existing_skus
+    logger.log_result("success", "GET", "/api/products", 200,
+                       request_summary={"prefetched": len(existing_products),
+                                        "skus": len(existing_skus)})
+
+    # Relationship types — track existing type names
+    existing_rel_types = _fetch_list("/api/relationships/types")
+    existing_type_names: set = set()
+    for rt in existing_rel_types:
+        tn = rt.get("typeName")
+        if tn:
+            existing_type_names.add(tn)
+    id_maps["_existing_rel_type_names"] = existing_type_names
+    logger.log_result("success", "GET", "/api/relationships/types", 200,
+                       request_summary={"prefetched": len(existing_rel_types)})
+
+    # Quotes — track existing QuoteNumbers → IDs for line items
+    # (quotes return huge responses that may trigger IncompleteRead)
+    existing_quotes = _fetch_list("/api/quotes")
+    for q in existing_quotes:
+        qid = q.get("id")
+        qnum = q.get("quoteNumber")
+        if qid and qnum:
+            id_maps.setdefault("_quote_by_number", {})[qnum] = qid
+    logger.log_result("success", "GET", "/api/quotes", 200,
+                       request_summary={"prefetched": len(existing_quotes)})
+
+    # Orders — track existing IDs
+    existing_orders = _fetch_list("/api/orders")
+    for o in existing_orders:
+        oid = o.get("id")
+        if oid:
+            id_maps.setdefault("_existing_order_ids", set()).add(oid)
+    logger.log_result("success", "GET", "/api/orders", 200,
+                       request_summary={"prefetched": len(existing_orders)})
+
+    # Email templates — track existing names
+    existing_templates = _fetch_list("/api/emailtemplates")
+    for t in existing_templates:
+        tid = t.get("id")
+        tname = t.get("name")
+        if tid and tname:
+            id_maps.setdefault("_template_by_name", {})[tname] = tid
+    logger.log_result("success", "GET", "/api/emailtemplates", 200,
+                       request_summary={"prefetched": len(existing_templates)})
+
+    # Email sequences — track existing names to skip duplicates
+    existing_seqs = _fetch_list("/api/email-sequences")
+    existing_seq_names: set = set()
+    for s in existing_seqs:
+        sname = s.get("name")
+        if sname:
+            existing_seq_names.add(sname)
+    id_maps["_existing_seq_names"] = existing_seq_names
+    logger.log_result("success", "GET", "/api/email-sequences", 200,
+                       request_summary={"prefetched": len(existing_seqs)})
 
 
 # ========================= LOADER PHASES ===========================
@@ -1241,11 +1343,16 @@ def phase_leads_products(
             )
 
     # Products - bulk
+    existing_skus = id_maps.get("_existing_product_skus", set())
     if os.path.isfile(p):
         for i, item in enumerate(load_json(p).get("products", [])):
+            sku = item.get("sku")
+            if sku and sku in existing_skus:
+                logger.log_skip(f"Product SKU {sku} already exists", file=p)
+                continue
             payload = {
                 "Name": item["name"],
-                "SKU": item.get("sku"),
+                "SKU": sku,
                 "Price": item.get("price"),
                 "Category": item.get("category"),
                 "IsActive": True,
@@ -1253,14 +1360,20 @@ def phase_leads_products(
             client.request(
                 "POST", "/api/products", payload, file=p, index=i, summary=payload
             )
+            if sku:
+                existing_skus.add(sku)
 
     # Products - dedicated
     p = _path(data_dir, "products_seed.json")
     if os.path.isfile(p):
         for i, item in enumerate(load_json(p)):
+            sku = item.get("SKU")
+            if sku and sku in existing_skus:
+                logger.log_skip(f"Product SKU {sku} already exists", file=p)
+                continue
             payload = {
                 "Name": item["Name"],
-                "SKU": item.get("SKU"),
+                "SKU": sku,
                 "Price": item.get("Price"),
                 "Category": item.get("Category"),
                 "Description": item.get("Description"),
@@ -1269,6 +1382,8 @@ def phase_leads_products(
             client.request(
                 "POST", "/api/products", payload, file=p, index=i, summary=payload
             )
+            if sku:
+                existing_skus.add(sku)
 
 
 # ---- Phase 5: Opportunities & Sales Pipeline ------------------------
@@ -1307,14 +1422,21 @@ def phase_opportunities_sales(
     p = _path(data_dir, "sales_quotes_seed.json")
     if os.path.isfile(p):
         for i, item in enumerate(load_json(p)):
+            qnum = f"Q-2026-{item.get('id', i + 1):05d}"
+            # Skip if already exists (prefetched)
+            if qnum in id_maps.get("_quote_by_number", {}):
+                id_maps.setdefault("quote", {})[item.get("id", 0)] = id_maps["_quote_by_number"][qnum]
+                logger.log_skip(f"Quote {qnum} already exists", file=p)
+                continue
             payload = {
-                "QuoteNumber": f"Q-2026-{item.get('id', i + 1):05d}",
+                "QuoteNumber": qnum,
                 "Name": f"Quote-{item.get('id', i + 1):04d}",
                 "AccountId": id_maps["account"].get(item.get("accountId", 0)) or fb_acct,
                 "ContactId": id_maps["contact"].get(item.get("contactId", 0)),
                 "Status": QUOTE_STATUS.get(item.get("status"), 0),
                 "Total": item.get("totalAmount", 0),
                 "Subtotal": item.get("totalAmount", 0),
+                "QuoteDate": _now_iso(),
                 "ValidityDays": 30,
                 "CurrencyCode": "USD",
                 "OpportunityId": id_maps.get("opportunity", {}).get(item.get("opportunityId", 0)),
@@ -1322,8 +1444,30 @@ def phase_opportunities_sales(
             _, resp, _ = client.request(
                 "POST", "/api/quotes", payload, file=p, index=i, summary=payload
             )
-            if isinstance(resp, dict) and "id" in resp:
+            if isinstance(resp, dict) and resp.get("id"):
                 id_maps.setdefault("quote", {})[item.get("id", 0)] = resp["id"]
+                id_maps.setdefault("_quote_by_number", {})[qnum] = resp["id"]
+    # Refresh quote ID map from API (handles IncompleteRead cases
+    # where we couldn't parse the response)
+    if not id_maps.get("quote"):
+        _, qlist, _ = client.request("GET", "/api/quotes", None)
+        if isinstance(qlist, dict):
+            qlist = qlist.get("items", qlist.get("data", []))
+        if isinstance(qlist, list):
+            for q in qlist:
+                qid = q.get("id")
+                qnum = q.get("quoteNumber")
+                if qid and qnum:
+                    id_maps.setdefault("_quote_by_number", {})[qnum] = qid
+            # Re-map seed IDs using quote numbers
+            p2 = _path(data_dir, "sales_quotes_seed.json")
+            if os.path.isfile(p2):
+                for i2, item2 in enumerate(load_json(p2)):
+                    qnum2 = f"Q-2026-{item2.get('id', i2 + 1):05d}"
+                    mapped_id = id_maps.get("_quote_by_number", {}).get(qnum2)
+                    if mapped_id:
+                        id_maps.setdefault("quote", {})[item2.get("id", 0)] = mapped_id
+
     p = _path(data_dir, "sales_quote_line_items_seed.json")
     if os.path.isfile(p):
         for i, item in enumerate(load_json(p)):
@@ -1661,10 +1805,17 @@ def phase_marketing(
     logger.section("Phase 7 - Marketing")
 
     p = _path(data_dir, "marketing_email_templates_seed.json")
+    template_by_name = id_maps.get("_template_by_name", {})
     if os.path.isfile(p):
         for i, item in enumerate(load_json(p)):
+            tname = item.get("name")
+            # If template already exists, use its ID
+            if tname and tname in template_by_name:
+                id_maps["email_template"][item.get("id", 0)] = template_by_name[tname]
+                logger.log_skip(f"Email template '{tname}' already exists", file=p)
+                continue
             payload = {
-                "Name": item.get("name"),
+                "Name": tname,
                 "Subject": item.get("subject"),
                 "Category": item.get("type") or "General",
                 "IsActive": item.get("status") == "Active",
@@ -1674,10 +1825,17 @@ def phase_marketing(
             )
             if isinstance(resp, dict) and "id" in resp:
                 id_maps["email_template"][item.get("id", 0)] = resp["id"]
+                if tname:
+                    template_by_name[tname] = resp["id"]
 
     p = _path(data_dir, "marketing_email_sequences_seed.json")
+    existing_seq_names = id_maps.get("_existing_seq_names", set())
     if os.path.isfile(p):
         for i, item in enumerate(load_json(p)):
+            seq_name = item.get("name")
+            if seq_name and seq_name in existing_seq_names:
+                logger.log_skip(f"Email sequence '{seq_name}' already exists", file=p)
+                continue
             steps = []
             for si, tid in enumerate(item.get("templateIds", [])):
                 steps.append(
@@ -1689,7 +1847,7 @@ def phase_marketing(
                     }
                 )
             payload = {
-                "Name": item.get("name"),
+                "Name": seq_name,
                 "Status": EMAIL_SEQUENCE_STATUS.get(item.get("status"), 0),
                 "IsActive": item.get("status") == "Active",
                 "Steps": steps,
@@ -1697,6 +1855,8 @@ def phase_marketing(
             client.request(
                 "POST", "/api/email-sequences", payload, file=p, index=i, summary=payload
             )
+            if seq_name:
+                existing_seq_names.add(seq_name)
 
     p = _path(data_dir, "marketing_campaigns_seed.json")
     if os.path.isfile(p):
@@ -1972,13 +2132,18 @@ def phase_relationships(
         },
     ]
     rel_type_ids: Dict[str, int] = {}
+    existing_type_names = id_maps.get("_existing_rel_type_names", set())
     for i, rt in enumerate(rel_types):
+        if rt["typeName"] in existing_type_names:
+            logger.log_skip(f"Relationship type '{rt['typeName']}' already exists")
+            continue
         payload = {**rt, "isActive": True, "displayOrder": i + 1}
         _, resp, _ = client.request(
             "POST", "/api/relationships/types", payload, index=i, summary=payload
         )
         if isinstance(resp, dict) and "id" in resp:
             rel_type_ids[rt["typeName"]] = resp["id"]
+            existing_type_names.add(rt["typeName"])
 
     # Account-to-account relationships
     acct_ids = list(id_maps["account"].values())
@@ -2133,7 +2298,7 @@ def main() -> int:
     parser.add_argument(
         "--docker-tail",
         type=int,
-        default=30,
+        default=120,
         help="Docker log lines to capture on error",
     )
     args = parser.parse_args()

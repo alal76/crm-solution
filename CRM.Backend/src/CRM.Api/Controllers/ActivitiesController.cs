@@ -167,6 +167,16 @@ public class ActivitiesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<Activity>> CreateActivity(Activity activity)
     {
+        // Validate required fields
+        if (string.IsNullOrWhiteSpace(activity.Title) || activity.Title.Length > 255)
+            return BadRequest("Title is required and must be <= 255 characters.");
+        if (activity.ActivityType < 0)
+            return BadRequest("ActivityType is required.");
+        if (!string.IsNullOrEmpty(activity.EntityType) && activity.EntityType.Length > 100)
+            return BadRequest("EntityType must be <= 100 characters.");
+        if (!string.IsNullOrEmpty(activity.SecondaryEntityType) && activity.SecondaryEntityType.Length > 100)
+            return BadRequest("SecondaryEntityType must be <= 100 characters.");
+
         activity.CreatedAt = DateTime.UtcNow;
         activity.UpdatedAt = DateTime.UtcNow;
 

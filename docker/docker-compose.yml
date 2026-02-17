@@ -13,7 +13,7 @@ services:
       - "${DB_EXTERNAL_PORT:-3306}:3306"
     environment:
       - Logging__LogLevel__Default=Debug
-      - MARIADB_ROOT_PASSWORD=${DB_ROOT_PASSWORD:-RootPass@Dev2024}
+      - MARIADB_ROOT_PASSWORD=${MARIADB_ROOT_PASSWORD:-RootPass@Dev2024}
       - MARIADB_DATABASE=${DB_NAME:-crm_db}
       - MARIADB_USER=${DB_USER:-crm_user}
       - MARIADB_PASSWORD=${DB_PASSWORD:-CrmPass@Dev2024}

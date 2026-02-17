@@ -955,10 +955,10 @@ var app = builder.Build();
 // }
 
 // ADR-002: Unified EF Core Schema Management
-// Supports EnsureCreated for fresh deployments and MigrateAsync for existing ones.
-// Set SKIP_DB_MIGRATION=true to skip all migration/schema management.
-// Set USE_ENSURE_CREATED=true to use EnsureCreated instead of MigrateAsync (for fresh DBs).
-// Set RECREATE_DATABASE=true to drop and recreate the database completely (destructive!).
+// IMPORTANT: For MariaDB/MySQL, use scripts/apply-migrations.sh instead of relying
+// on MigrateAsync() at startup. MySQL DDL is auto-committed (not transactional),
+// so partial migration failures leave orphan tables without history records.
+// Set SKIP_DB_MIGRATION=true to skip all migration/schema management at startup.
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<CrmDbContext>();
@@ -971,46 +971,86 @@ using (var scope = app.Services.CreateScope())
     {
         if (!skipMigration)
         {
-            var useEnsureCreated = Environment.GetEnvironmentVariable("USE_ENSURE_CREATED") == "true";
-            var recreateDatabase = Environment.GetEnvironmentVariable("RECREATE_DATABASE") == "true";
-
             if (!db.Database.IsRelational())
             {
-                useEnsureCreated = true;
-                Log.Information("Non-relational provider detected ({Provider}); using EnsureCreated instead of migrations", databaseProvider);
-            }
-
-            if (useEnsureCreated)
-            {
-                if (recreateDatabase)
-                {
-                    Log.Warning("RECREATE_DATABASE=true — dropping existing database for {Provider}...", databaseProvider);
-                    await db.Database.EnsureDeletedAsync();
-                    Log.Information("Database dropped successfully. Recreating...");
-                }
-
-                Log.Information("Creating schema for {Provider} database using EnsureCreated...", databaseProvider);
-                var created = await db.Database.EnsureCreatedAsync();
-                if (created)
-                {
-                    Log.Information("Database schema created successfully via EnsureCreated ({TableCount} entities in model)", db.Model.GetEntityTypes().Count());
-                }
-                else
-                {
-                    Log.Warning("EnsureCreated returned false — database already has tables. Schema was NOT created. Set RECREATE_DATABASE=true to force recreation.");
-                }
+                // Non-relational providers (InMemory, etc.) — use EnsureCreated
+                Log.Information("Non-relational provider detected ({Provider}); using EnsureCreated", databaseProvider);
+                await db.Database.EnsureCreatedAsync();
             }
             else
             {
-                Log.Information("Applying EF Core migrations for {Provider}...", databaseProvider);
-                await db.Database.MigrateAsync();
-                Log.Information("EF Core migrations applied successfully");
+                // Check if migrations are pending
+                var pendingMigrations = await db.Database.GetPendingMigrationsAsync();
+                var pendingList = pendingMigrations.ToList();
+                if (pendingList.Count > 0)
+                {
+                    Log.Information("Found {Count} pending migration(s) for {Provider}: {Migrations}",
+                        pendingList.Count, databaseProvider, string.Join(", ", pendingList));
+                    try
+                    {
+                        await db.Database.MigrateAsync();
+                        Log.Information("EF Core migrations applied successfully");
+                    }
+                    catch (Exception migEx)
+                    {
+                        Log.Error(migEx, "MigrateAsync failed. For MariaDB/MySQL, use scripts/apply-migrations.sh " +
+                            "to generate and apply idempotent SQL. MySQL DDL is auto-committed and cannot be " +
+                            "rolled back, causing 'Table already exists' errors on retry after partial failures.");
+                        throw;
+                    }
+                }
+                else
+                {
+                    Log.Information("No pending migrations for {Provider} — database is up to date", databaseProvider);
+                }
+            }
+        }
+
+        // Post-migration: check for required tables
+        var requiredTables = new[] { "UserGroups", "Users", "UserGroupMembers", "Departments", "SystemSettings", "Products", "Accounts", "Contacts", "Quotes", "Commissions" };
+        var missingTables = new List<string>();
+        foreach (var tableName in requiredTables)
+        {
+            var conn = db.Database.GetDbConnection();
+            if (conn.State != System.Data.ConnectionState.Open) await conn.OpenAsync();
+            using var cmd = conn.CreateCommand();
+            cmd.CommandText = "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = @tableName";
+            var param = cmd.CreateParameter();
+            param.ParameterName = "@tableName";
+            param.Value = tableName;
+            cmd.Parameters.Add(param);
+            var result = await cmd.ExecuteScalarAsync();
+            var exists = Convert.ToInt32(result) > 0;
+            if (!exists) missingTables.Add(tableName);
+        }
+        if (missingTables.Count > 0)
+        {
+            Log.Fatal("Database migration incomplete. Missing tables: {MissingTables}. Aborting seeding.", string.Join(", ", missingTables));
+            throw new Exception($"Missing tables after migration: {string.Join(", ", missingTables)}");
+        }
+
+        // DI registration check (basic seeder services only)
+        var diChecks = new[] { typeof(IMasterDataSeederService) };
+        foreach (var serviceType in diChecks)
+        {
+            if (scope.ServiceProvider.GetService(serviceType) == null)
+            {
+                Log.Fatal("Required service not registered in DI: {ServiceName}", serviceType.Name);
+                throw new Exception($"Missing DI registration: {serviceType.Name}");
             }
         }
 
         // Seed essential data (SysAdmin group + admin user only)
-        await DbSeed.SeedAsync(db);
-        Log.Information("Database setup completed successfully");
+        try
+        {
+            await DbSeed.SeedAsync(db);
+            Log.Information("Database setup completed successfully");
+        }
+        catch (Exception ex)
+        {
+            Log.Error(ex, "Error during SysAdmin/admin user seeding");
+            throw;
+        }
 
         // Seed master data (ZipCodes, ColorPalettes) if not already populated
         try
@@ -1023,45 +1063,36 @@ using (var scope = app.Services.CreateScope())
         }
         catch (Exception masterDataEx)
         {
-            Log.Warning(masterDataEx, "Failed to seed master data - continuing without");
+            Log.Error(masterDataEx, "Failed to seed master data");
+            throw;
         }
 
-        // Seed module field configurations (Accounts, Contacts, Leads, etc.) if not already populated
+        // Seed module field configurations (optional, non-blocking)
         try
         {
-            var coreDataSeeder = scope.ServiceProvider.GetRequiredService<ICoreDataSeederService>();
-            await coreDataSeeder.SeedModuleFieldConfigurationsAsync();
-            Log.Information("Module field configurations seeded successfully");
+            var coreDataSeeder = scope.ServiceProvider.GetService<ICoreDataSeederService>();
+            if (coreDataSeeder != null)
+            {
+                await coreDataSeeder.SeedModuleFieldConfigurationsAsync();
+                Log.Information("Module field configurations seeded successfully");
+            }
+            else
+            {
+                Log.Warning("ICoreDataSeederService not registered — skipping module field config seeding");
+            }
         }
         catch (Exception fieldConfigEx)
         {
-            Log.Warning(fieldConfigEx, "Failed to seed module field configurations - continuing without");
+            Log.Warning(fieldConfigEx, "Failed to seed module field configurations (non-fatal)");
         }
 
-        // Auto-seed sample data if configured
-        var autoSeedSampleData = builder.Configuration.GetValue<bool>("SampleData:AutoSeed", false);
-        if (autoSeedSampleData)
-        {
-            try
-            {
-                var sampleSeeder = scope.ServiceProvider.GetRequiredService<SampleDataSeederService>();
-                var isSeeded = await sampleSeeder.IsSampleDataSeededAsync();
-                if (!isSeeded)
-                {
-                    Log.Information("Seeding sample data...");
-                    await sampleSeeder.SeedAllSampleDataAsync();
-                    Log.Information("Sample data seeded successfully");
-                }
-            }
-            catch (Exception sampleDataEx)
-            {
-                Log.Warning(sampleDataEx, "Failed to auto-seed sample data - continuing without");
-            }
-        }
+        // NOTE: Sample data seeding is NOT run at startup.
+        // Use the Python test_data_loader.py script or POST /api/admin/seed to populate sample data.
     }
     catch (Exception ex)
     {
-        Log.Error(ex, "Error during database setup - continuing anyway");
+        Log.Fatal(ex, "Error during database setup. Startup aborted.");
+        throw;
     }
 }
 

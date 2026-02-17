@@ -1,0 +1,1 @@
+{"status": "failed", "method": "POST", "endpoint": "/api/auth/login", "http_status": null, "file": null, "index": null, "request": {}, "response_body": "", "error": "[Errno 54] Connection reset by peer", "summary": "  FAIL  POST /api/auth/login (inline) -> None  err=[Errno 54] Connection reset by peer", "timestamp": "2026-02-17T15:22:32.200040Z"}

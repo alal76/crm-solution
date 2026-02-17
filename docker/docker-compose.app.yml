@@ -34,24 +34,30 @@ services:
       # Allow all hosts (for health checks and external access)
       AllowedHosts: "*"
       
-      # Database Configuration (SQL Server or MariaDB)
-      DatabaseProvider: ${DATABASE_PROVIDER:-sqlserver}
-      DB_HOST: ${DB_HOST:-crm-mssql}
-      DB_PORT: ${DB_PORT:-1433}
+      # Database Configuration (MariaDB is the primary database)
+      DatabaseProvider: ${DATABASE_PROVIDER:-mariadb}
+      DB_HOST: ${DB_HOST:-crm-mariadb}
+      DB_PORT: ${DB_PORT:-3306}
       DB_NAME: ${DB_NAME:-crm_db}
       DB_USER: ${DB_USER:-crm_user}
-      DB_PASSWORD: ${DB_PASSWORD:-CrmPass@Dev2024!}
+      DB_PASSWORD: ${DB_PASSWORD:-CrmPass@Dev2024}
       
       # Connection String - format depends on DATABASE_PROVIDER
       # For sqlserver: Server=host;Database=db;User Id=user;Password=pass;TrustServerCertificate=True;
       # For mariadb: Server=host;Port=port;Database=db;User=user;Password=pass;
-      ConnectionStrings__DefaultConnection: ${CONNECTION_STRING:-Server=${DB_HOST:-crm-mssql};Database=${DB_NAME:-crm_db};User Id=${DB_USER:-crm_user};Password=${DB_PASSWORD:-CrmPass@Dev2024!};TrustServerCertificate=True;}
+      # Patch: Remove TrustServerCertificate for MariaDB (causes crash)
+      ConnectionStrings__DefaultConnection: ${CONNECTION_STRING:-Server=${DB_HOST:-crm-mariadb};Port=${DB_PORT:-3306};Database=${DB_NAME:-crm_db};User=${DB_USER:-crm_user};Password=${DB_PASSWORD:-CrmPass@Dev2024};}
+      DATABASE_CONNECTION_STRING: ${CONNECTION_STRING:-Server=${DB_HOST:-crm-mariadb};Port=${DB_PORT:-3306};Database=${DB_NAME:-crm_db};User=${DB_USER:-crm_user};Password=${DB_PASSWORD:-CrmPass@Dev2024};}
       
       # JWT Configuration
       Jwt__Secret: ${JWT_SECRET:-CrmJwtSecretKey2024!@ForSecureAuthentication}
       Jwt__Issuer: ${JWT_ISSUER:-CRMApp}
       Jwt__Audience: ${JWT_AUDIENCE:-CRMUsers}
       Jwt__ExpirationMinutes: ${JWT_EXPIRATION:-15}
+
+      # Increase logging verbosity for debugging
+      Logging__LogLevel__Default: Debug
+      Logging__LogLevel__Microsoft: Debug
       
       # LLM Configuration (Ollama - Local)
       LLMProviders__DefaultProvider: "local"
