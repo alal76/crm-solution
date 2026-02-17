@@ -387,6 +387,10 @@ class RunLogger:
             entry["summary"] = (
                 f"  OK    {method} {endpoint} ({loc}) -> {http_status}"
             )
+        elif status == "exists":
+            entry["summary"] = (
+                f"  EXISTS {method} {endpoint} ({loc}) -> {http_status}"
+            )
         else:
             entry["summary"] = (
                 f"  FAIL  {method} {endpoint} ({loc}) -> {http_status}  "
@@ -499,7 +503,7 @@ class ApiClient:
             )
             if _is_already_exists(resp_body):
                 self.logger.log_result(
-                    "success",
+                    "exists",
                     method,
                     path,
                     exc.code,
@@ -3486,6 +3490,7 @@ def main() -> int:
         None,
         request_summary={
             "success": logger.counts["success"],
+            "exists": logger.counts.get("exists", 0),
             "failed": logger.counts["failed"],
             "skipped": logger.counts["skipped"],
         },
@@ -3495,6 +3500,7 @@ def main() -> int:
     print(f"\n{'=' * 60}")
     print(f"  Test Data Load Complete")
     print(f"  Success: {logger.counts['success']}")
+    print(f"  Exists:  {logger.counts.get('exists', 0)}")
     print(f"  Failed:  {logger.counts['failed']}")
     print(f"  Skipped: {logger.counts['skipped']}")
     print(f"  Log:     {logger.text_path}")
