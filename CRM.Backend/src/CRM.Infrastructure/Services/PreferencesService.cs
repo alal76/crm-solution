@@ -227,21 +227,21 @@ public class PreferencesService : IPreferencesService
 
         if (contact.Preferences == null || contact.Preferences.IsDeleted)
         {
-            contact.Preferences = CreateDefaultPreferences();
-            contact.Preferences.CreatedAt = DateTime.UtcNow;
-            contact.Preferences.IsDeleted = false;
-            _context.Preferences.Add(contact.Preferences);
+            // Create new preferences entity and add to context first
+            var newPreferences = CreateDefaultPreferences();
+            newPreferences.CreatedAt = DateTime.UtcNow;
+            newPreferences.IsDeleted = false;
+            _context.Preferences.Add(newPreferences);
+            await _context.SaveChangesAsync(cancellationToken);
+
+            // Then link via foreign key to avoid EF tracking issues
+            contact.PreferencesId = newPreferences.Id;
+            contact.Preferences = newPreferences;
         }
 
         ApplyDto(contact.Preferences, dto);
         contact.Preferences.UpdatedAt = DateTime.UtcNow;
         contact.UseCustomPreferences = true;
-
-        if (contact.PreferencesId == null)
-        {
-            await _context.SaveChangesAsync(cancellationToken);
-            contact.PreferencesId = contact.Preferences.Id;
-        }
 
         await _context.SaveChangesAsync(cancellationToken);
         InvalidateContactCache(contactId);
