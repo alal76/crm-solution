@@ -671,6 +671,17 @@ builder.Services.AddScoped<IEmailSequenceManagementService, EmailSequenceManagem
 builder.Services.AddScoped<IWebhookManagementService, WebhookManagementService>();
 builder.Services.AddScoped<IWebhookDispatcherService, WebhookDispatcherService>();
 
+// Analytics, Audit, ITSM services (previously unregistered + new)
+builder.Services.AddScoped<CRM.Core.Interfaces.IAnalyticsEventService, CRM.Infrastructure.Services.AnalyticsEventService>();
+builder.Services.AddScoped<CRM.Core.Interfaces.IAuditLogService, CRM.Infrastructure.Services.AuditLogService>();
+builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.ICITypeService, CRM.Infrastructure.Services.ITSM.CITypeService>();
+builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IChangeTypeService, CRM.Infrastructure.Services.ITSM.ChangeTypeService>();
+builder.Services.AddScoped<CRM.Core.Interfaces.IAIAgentUsageService, CRM.Infrastructure.Services.AIAgentUsageService>();
+builder.Services.AddScoped<CRM.Core.Interfaces.IExportJobService, CRM.Infrastructure.Services.ExportJobService>();
+builder.Services.AddScoped<CRM.Core.Interfaces.IImportJobService, CRM.Infrastructure.Services.ImportJobService>();
+builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IIncidentCategoryService, CRM.Infrastructure.Services.ITSM.IncidentCategoryService>();
+builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.ICatalogCategoryService, CRM.Infrastructure.Services.ITSM.CatalogCategoryService>();
+
 // Pricing & Bundles
 builder.Services.AddScoped<CRM.Core.Interfaces.IPricingService, CRM.Infrastructure.Services.PricingService>();
 builder.Services.AddScoped<CRM.Core.Interfaces.IProductBundleService, CRM.Infrastructure.Services.ProductBundleService>();

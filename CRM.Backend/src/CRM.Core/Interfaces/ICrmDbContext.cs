@@ -292,6 +292,18 @@ public interface ICrmDbContext
     DbSet<CRM.Core.Entities.AI.AgentMemory> AgentMemories { get; }
     DbSet<CRM.Core.Entities.AI.AgentApprovalRequest> AgentApprovalRequests { get; }
 
+    // Previously missing DbSets (used by services via _dbContext.PropertyName)
+    DbSet<AnalyticsEvent> AnalyticsEvents { get; }
+    DbSet<AuditLog> AuditLogs { get; }
+    DbSet<CRM.Core.Entities.ITSM.CITypeDefinition> CITypes { get; }
+    DbSet<CRM.Core.Entities.ITSM.ChangeTypeEntity> ChangeTypes { get; }
+
+    // New entity DbSets
+    DbSet<AIAgentUsage> AIAgentUsages { get; }
+    DbSet<ExportJob> ExportJobs { get; }
+    DbSet<ImportJob> ImportJobs { get; }
+    DbSet<CRM.Core.Entities.ITSM.IncidentCategory> IncidentCategories { get; }
+
     DatabaseFacade Database { get; }
 
     /// <summary>
