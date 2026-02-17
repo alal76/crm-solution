@@ -1,0 +1,12 @@
+[
+  { "id": 1, "name": "Launch Drip", "status": "Active", "stepCount": 4, "templateIds": [1, 5, 6, 9] },
+  { "id": 2, "name": "Webinar Nurture", "status": "Active", "stepCount": 3, "templateIds": [2, 8, 7] },
+  { "id": 3, "name": "Security Awareness", "status": "Active", "stepCount": 3, "templateIds": [3, 6, 7] },
+  { "id": 4, "name": "Partner Campaign", "status": "Draft", "stepCount": 2, "templateIds": [4, 1] },
+  { "id": 5, "name": "Quarter-End Promo", "status": "Active", "stepCount": 2, "templateIds": [5, 9] },
+  { "id": 6, "name": "Cloud Migration", "status": "Active", "stepCount": 3, "templateIds": [6, 1, 7] },
+  { "id": 7, "name": "SMB Growth", "status": "Active", "stepCount": 3, "templateIds": [7, 6, 5] },
+  { "id": 8, "name": "Summit Follow-Up", "status": "Planned", "stepCount": 2, "templateIds": [8, 3] },
+  { "id": 9, "name": "Productivity Series", "status": "Draft", "stepCount": 3, "templateIds": [9, 6, 7] },
+  { "id": 10, "name": "Referral Journey", "status": "Active", "stepCount": 2, "templateIds": [10, 1] }
+]

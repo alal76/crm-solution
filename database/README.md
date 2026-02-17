@@ -16,7 +16,8 @@ database/
 │   ├── 006_activities_communication.sql # Activities, Notes, Emails
 │   ├── 007_consolidated_contact_info.sql # Addresses, Phones, Emails, Social
 │   ├── 008_security_enhancements.sql # Security policies, 2FA
-│   └── 009_junction_table_improvements.sql # Tags, EntityTags, LLM settings
+│   ├── 009_junction_table_improvements.sql # Tags, EntityTags, LLM settings
+│   └── 010_sales_orders.sql         # Orders and order line items
 ├── seed/                          # Seed data files
 │   ├── 001_color_palettes.sql     # System color palettes (30 palettes)
 │   ├── 002_module_ui_configs.sql  # Module navigation config (15 modules)
@@ -186,6 +187,11 @@ Junction tables and system configuration:
 - `SystemSettings` - System configuration
 - Adds missing unique indexes to all junction tables
 - Adds missing columns (ValidFrom, ValidTo, DoNotContact) to link tables
+
+### 010_sales_orders.sql
+Sales orders:
+- `Orders` - Sales orders
+- `OrderLineItems` - Order line items
 
 ## Seed Data
 

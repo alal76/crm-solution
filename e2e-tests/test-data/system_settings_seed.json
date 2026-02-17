@@ -1,0 +1,12 @@
+[
+  { "key": "System.TimeZone", "value": "UTC", "category": "System" },
+  { "key": "System.DateFormat", "value": "yyyy-MM-dd", "category": "System" },
+  { "key": "Email.FromAddress", "value": "noreply@crm.local", "category": "Email" },
+  { "key": "Email.SmtpHost", "value": "smtp.crm.local", "category": "Email" },
+  { "key": "Security.PasswordMinLength", "value": "12", "category": "Security" },
+  { "key": "Security.MfaRequired", "value": "true", "category": "Security" },
+  { "key": "UI.DefaultTheme", "value": "light", "category": "UI" },
+  { "key": "UI.PageSize", "value": "20", "category": "UI" },
+  { "key": "Sales.DefaultCurrency", "value": "USD", "category": "Sales" },
+  { "key": "Support.DefaultPriority", "value": "Medium", "category": "Support" }
+]

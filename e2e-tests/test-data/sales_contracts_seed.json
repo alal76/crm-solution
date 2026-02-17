@@ -1,0 +1,12 @@
+[
+  { "id": 1, "accountId": 1, "contractNumber": "CTR-2026-0001", "status": "Active", "startDate": "2026-01-01", "endDate": "2026-12-31", "value": 50000.00, "renewalTermMonths": 12 },
+  { "id": 2, "accountId": 2, "contractNumber": "CTR-2026-0002", "status": "Active", "startDate": "2026-02-01", "endDate": "2027-01-31", "value": 85000.00, "renewalTermMonths": 12 },
+  { "id": 3, "accountId": 3, "contractNumber": "CTR-2026-0003", "status": "Pending", "startDate": "2026-03-01", "endDate": "2027-02-28", "value": 42000.00, "renewalTermMonths": 12 },
+  { "id": 4, "accountId": 4, "contractNumber": "CTR-2026-0004", "status": "Active", "startDate": "2026-01-15", "endDate": "2026-07-14", "value": 32000.00, "renewalTermMonths": 6 },
+  { "id": 5, "accountId": 5, "contractNumber": "CTR-2026-0005", "status": "Expired", "startDate": "2025-01-01", "endDate": "2025-12-31", "value": 28000.00, "renewalTermMonths": 12 },
+  { "id": 6, "accountId": 6, "contractNumber": "CTR-2026-0006", "status": "Active", "startDate": "2026-02-10", "endDate": "2026-08-09", "value": 36000.00, "renewalTermMonths": 6 },
+  { "id": 7, "accountId": 7, "contractNumber": "CTR-2026-0007", "status": "Active", "startDate": "2026-02-20", "endDate": "2027-02-19", "value": 91000.00, "renewalTermMonths": 12 },
+  { "id": 8, "accountId": 8, "contractNumber": "CTR-2026-0008", "status": "Pending", "startDate": "2026-03-15", "endDate": "2027-03-14", "value": 120000.00, "renewalTermMonths": 12 },
+  { "id": 9, "accountId": 9, "contractNumber": "CTR-2026-0009", "status": "Active", "startDate": "2026-01-05", "endDate": "2026-06-30", "value": 27000.00, "renewalTermMonths": 6 },
+  { "id": 10, "accountId": 10, "contractNumber": "CTR-2026-0010", "status": "Active", "startDate": "2026-02-05", "endDate": "2026-12-04", "value": 45000.00, "renewalTermMonths": 10 }
+]

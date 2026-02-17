@@ -72,7 +72,7 @@ public class LLMSettingsDto
 {
     public string DefaultProvider { get; set; } = "local";
     public bool EnableFallback { get; set; } = true;
-    public List<string> FallbackOrder { get; set; } = new() { "local", "openai", "azure", "anthropic", "google", "deepseek", "allenai" };
+    public List<string> FallbackOrder { get; set; } = new() { "local", "openai", "azure", "anthropic", "google", "deepseek", "groq", "allenai" };
 
     /// <summary>
     /// Computed fallback order containing only configured providers.
@@ -91,6 +91,7 @@ public class LLMSettingsDto
     public LLMProviderSettingsDto Google { get; set; } = new();
     public LLMProviderSettingsDto Bedrock { get; set; } = new();
     public LLMProviderSettingsDto DeepSeek { get; set; } = new();
+    public LLMProviderSettingsDto Groq { get; set; } = new();
     public LLMProviderSettingsDto AllenAI { get; set; } = new();
     public LLMProviderSettingsDto Local { get; set; } = new();
 }

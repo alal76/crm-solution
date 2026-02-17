@@ -1,0 +1,12 @@
+[
+  { "id": 1, "key": "accounts.read", "description": "Read accounts" },
+  { "id": 2, "key": "accounts.write", "description": "Create/update accounts" },
+  { "id": 3, "key": "contacts.read", "description": "Read contacts" },
+  { "id": 4, "key": "contacts.write", "description": "Create/update contacts" },
+  { "id": 5, "key": "sales.quotes", "description": "Manage quotes" },
+  { "id": 6, "key": "sales.invoices", "description": "Manage invoices" },
+  { "id": 7, "key": "service.requests", "description": "Manage service requests" },
+  { "id": 8, "key": "itsm.incidents", "description": "Manage incidents" },
+  { "id": 9, "key": "admin.settings", "description": "Manage system settings" },
+  { "id": 10, "key": "audit.read", "description": "View audit logs" }
+]

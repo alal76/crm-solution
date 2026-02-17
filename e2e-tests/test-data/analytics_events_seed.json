@@ -1,0 +1,12 @@
+[
+  { "id": 1, "eventName": "QuoteCreated", "entityType": "Quote", "entityId": 1, "userId": 2, "timestamp": "2026-02-10T09:05:00Z", "metadata": { "amount": 5200 } },
+  { "id": 2, "eventName": "OrderSubmitted", "entityType": "Order", "entityId": 1, "userId": 4, "timestamp": "2026-02-10T09:20:00Z", "metadata": { "amount": 7900 } },
+  { "id": 3, "eventName": "InvoiceIssued", "entityType": "Invoice", "entityId": 1, "userId": 6, "timestamp": "2026-02-10T10:15:00Z", "metadata": { "amount": 7900 } },
+  { "id": 4, "eventName": "PaymentReceived", "entityType": "Payment", "entityId": 1, "userId": 6, "timestamp": "2026-02-10T11:30:00Z", "metadata": { "amount": 2100 } },
+  { "id": 5, "eventName": "CampaignLaunched", "entityType": "Campaign", "entityId": 1, "userId": 4, "timestamp": "2026-02-11T08:00:00Z", "metadata": { "budget": 20000 } },
+  { "id": 6, "eventName": "ServiceRequestOpened", "entityType": "ServiceRequest", "entityId": 1, "userId": 3, "timestamp": "2026-02-11T08:30:00Z", "metadata": { "priority": "High" } },
+  { "id": 7, "eventName": "IncidentCreated", "entityType": "Incident", "entityId": 1, "userId": 5, "timestamp": "2026-02-11T09:10:00Z", "metadata": { "priority": "High" } },
+  { "id": 8, "eventName": "FeatureFlagUpdated", "entityType": "FeatureFlag", "entityId": 1, "userId": 1, "timestamp": "2026-02-12T07:50:00Z", "metadata": { "enabled": true } },
+  { "id": 9, "eventName": "ContractSigned", "entityType": "Contract", "entityId": 2, "userId": 6, "timestamp": "2026-02-12T10:45:00Z", "metadata": { "value": 85000 } },
+  { "id": 10, "eventName": "SubscriptionActivated", "entityType": "Subscription", "entityId": 1, "userId": 2, "timestamp": "2026-02-12T12:05:00Z", "metadata": { "amount": 500 } }
+]

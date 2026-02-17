@@ -1,0 +1,12 @@
+[
+  { "id": 1, "invoiceId": 2, "amount": 2100.00, "method": "CreditCard", "status": "Completed", "paymentDate": "2026-02-25", "transactionRef": "TXN-0001" },
+  { "id": 2, "invoiceId": 1, "amount": 2000.00, "method": "BankTransfer", "status": "Pending", "paymentDate": "2026-02-26", "transactionRef": "TXN-0002" },
+  { "id": 3, "invoiceId": 3, "amount": 5000.00, "method": "ACH", "status": "Completed", "paymentDate": "2026-02-27", "transactionRef": "TXN-0003" },
+  { "id": 4, "invoiceId": 4, "amount": 7500.00, "method": "CreditCard", "status": "Failed", "paymentDate": "2026-02-28", "transactionRef": "TXN-0004" },
+  { "id": 5, "invoiceId": 5, "amount": 10050.00, "method": "Wire", "status": "Pending", "paymentDate": "2026-03-01", "transactionRef": "TXN-0005" },
+  { "id": 6, "invoiceId": 6, "amount": 12000.00, "method": "ACH", "status": "Completed", "paymentDate": "2026-03-02", "transactionRef": "TXN-0006" },
+  { "id": 7, "invoiceId": 7, "amount": 1000.00, "method": "CreditCard", "status": "Completed", "paymentDate": "2026-03-03", "transactionRef": "TXN-0007" },
+  { "id": 8, "invoiceId": 8, "amount": 4100.00, "method": "BankTransfer", "status": "Completed", "paymentDate": "2026-03-04", "transactionRef": "TXN-0008" },
+  { "id": 9, "invoiceId": 9, "amount": 3000.00, "method": "ACH", "status": "Pending", "paymentDate": "2026-03-05", "transactionRef": "TXN-0009" },
+  { "id": 10, "invoiceId": 10, "amount": 500.00, "method": "CreditCard", "status": "Completed", "paymentDate": "2026-03-06", "transactionRef": "TXN-0010" }
+]

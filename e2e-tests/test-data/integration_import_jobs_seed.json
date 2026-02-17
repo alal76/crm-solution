@@ -1,0 +1,12 @@
+[
+  { "id": 1, "entity": "Accounts", "source": "CSV", "status": "Completed", "submittedByUserId": 1, "submittedDate": "2026-02-10" },
+  { "id": 2, "entity": "Contacts", "source": "CSV", "status": "Completed", "submittedByUserId": 2, "submittedDate": "2026-02-11" },
+  { "id": 3, "entity": "Leads", "source": "API", "status": "Completed", "submittedByUserId": 4, "submittedDate": "2026-02-12" },
+  { "id": 4, "entity": "Products", "source": "CSV", "status": "Failed", "submittedByUserId": 6, "submittedDate": "2026-02-13" },
+  { "id": 5, "entity": "Opportunities", "source": "API", "status": "Completed", "submittedByUserId": 8, "submittedDate": "2026-02-14" },
+  { "id": 6, "entity": "Invoices", "source": "CSV", "status": "InProgress", "submittedByUserId": 10, "submittedDate": "2026-02-15" },
+  { "id": 7, "entity": "ServiceRequests", "source": "CSV", "status": "Completed", "submittedByUserId": 3, "submittedDate": "2026-02-16" },
+  { "id": 8, "entity": "Campaigns", "source": "API", "status": "Completed", "submittedByUserId": 5, "submittedDate": "2026-02-17" },
+  { "id": 9, "entity": "Incidents", "source": "CSV", "status": "Completed", "submittedByUserId": 7, "submittedDate": "2026-02-18" },
+  { "id": 10, "entity": "KnowledgeArticles", "source": "CSV", "status": "Completed", "submittedByUserId": 9, "submittedDate": "2026-02-19" }
+]

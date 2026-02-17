@@ -1,0 +1,12 @@
+[
+  { "name": "UseExternalSearch", "enabled": false, "description": "External search provider" },
+  { "name": "UseExternalChat", "enabled": false, "description": "External chat provider" },
+  { "name": "UseExternalNotifications", "enabled": false, "description": "External notifications" },
+  { "name": "UseExternalAnalytics", "enabled": false, "description": "External analytics" },
+  { "name": "UseExternalSignatures", "enabled": false, "description": "External signatures" },
+  { "name": "UseExternalAI", "enabled": true, "description": "External AI provider" },
+  { "name": "UseExternalIntegrations", "enabled": false, "description": "External integrations" },
+  { "name": "EnableITSM", "enabled": true, "description": "Enable ITSM module" },
+  { "name": "EnableMarketing", "enabled": true, "description": "Enable marketing module" },
+  { "name": "EnableCustomerPortal", "enabled": false, "description": "Enable customer portal" }
+]

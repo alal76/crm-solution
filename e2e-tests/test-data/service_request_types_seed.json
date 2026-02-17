@@ -1,0 +1,111 @@
+[
+  {
+    "Id": 1,
+    "Name": "Device Not Powering On",
+    "CategoryId": 1,
+    "SubcategoryId": 1,
+    "RequestType": "Complaint",
+    "DetailedDescription": "Customer reports desktop/laptop will not power on or boot up",
+    "WorkflowName": "Hardware Troubleshooting Workflow",
+    "PossibleResolutions": [
+      "Check power cable and outlet",
+      "Test with different power adapter",
+      "Replace power supply",
+      "Replace motherboard",
+      "Device replacement"
+    ],
+    "FinalCustomerResolutions": [
+      "Device repaired on-site",
+      "Replacement device shipped",
+      "Loaner device provided"
+    ],
+    "DisplayOrder": 1,
+    "IsActive": true,
+    "DefaultPriority": 2,
+    "ResponseTimeHours": 4,
+    "ResolutionTimeHours": 24,
+    "Tags": ["hardware", "power", "desktop", "laptop"]
+  },
+  {
+    "Id": 6,
+    "Name": "Network Connectivity Loss",
+    "CategoryId": 1,
+    "SubcategoryId": 2,
+    "RequestType": "Complaint",
+    "DetailedDescription": "Network devices offline or intermittent connectivity issues",
+    "WorkflowName": "Network Outage Resolution Workflow",
+    "PossibleResolutions": [
+      "Reboot device",
+      "Check cable connections",
+      "Update firmware",
+      "Replace faulty hardware",
+      "Reconfigure network settings"
+    ],
+    "FinalCustomerResolutions": [
+      "Connectivity restored",
+      "Faulty device replaced",
+      "Configuration corrected"
+    ],
+    "DisplayOrder": 1,
+    "IsActive": true,
+    "DefaultPriority": 3,
+    "ResponseTimeHours": 1,
+    "ResolutionTimeHours": 4,
+    "Tags": ["network", "connectivity", "outage"]
+  },
+  {
+    "Id": 28,
+    "Name": "System Won't Boot",
+    "CategoryId": 2,
+    "SubcategoryId": 8,
+    "RequestType": "Complaint",
+    "DetailedDescription": "Operating system fails to start or stuck in boot loop",
+    "WorkflowName": "OS Recovery Workflow",
+    "PossibleResolutions": [
+      "Boot into safe mode",
+      "Run startup repair",
+      "Restore system",
+      "Reinstall OS",
+      "Recover data",
+      "Restore from backup"
+    ],
+    "FinalCustomerResolutions": [
+      "OS repaired",
+      "System restored",
+      "Data recovered"
+    ],
+    "DisplayOrder": 1,
+    "IsActive": true,
+    "DefaultPriority": 2,
+    "ResponseTimeHours": 2,
+    "ResolutionTimeHours": 8,
+    "Tags": ["os", "boot", "windows", "startup"]
+  },
+  {
+    "Id": 64,
+    "Name": "Routine Maintenance Request",
+    "CategoryId": 6,
+    "SubcategoryId": 36,
+    "RequestType": "Request",
+    "DetailedDescription": "Customer requests scheduled maintenance or health check",
+    "WorkflowName": "Scheduled Maintenance Workflow",
+    "PossibleResolutions": [
+      "Schedule maintenance window",
+      "Perform updates",
+      "Run diagnostics",
+      "Generate report",
+      "Review with customer"
+    ],
+    "FinalCustomerResolutions": [
+      "Maintenance completed",
+      "Systems optimized",
+      "Report delivered"
+    ],
+    "DisplayOrder": 1,
+    "IsActive": true,
+    "DefaultPriority": 0,
+    "ResponseTimeHours": 24,
+    "ResolutionTimeHours": 72,
+    "Tags": ["maintenance", "managed", "health check"]
+  }
+]

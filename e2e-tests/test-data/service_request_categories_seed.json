@@ -1,0 +1,123 @@
+[
+  {
+    "Id": 1,
+    "Name": "Hardware",
+    "Description": "Hardware repair, installation, upgrade, and maintenance services",
+    "DisplayOrder": 1,
+    "IsActive": true,
+    "IconName": "Computer",
+    "ColorCode": "#1976D2",
+    "DefaultResponseTimeHours": 4,
+    "DefaultResolutionTimeHours": 24
+  },
+  {
+    "Id": 2,
+    "Name": "Software",
+    "Description": "Software installation, configuration, troubleshooting, and licensing",
+    "DisplayOrder": 2,
+    "IsActive": true,
+    "IconName": "Apps",
+    "ColorCode": "#4CAF50",
+    "DefaultResponseTimeHours": 2,
+    "DefaultResolutionTimeHours": 8
+  },
+  {
+    "Id": 3,
+    "Name": "Cloud Services",
+    "Description": "Cloud deployment, migration, IaaS, PaaS, SaaS, and hybrid cloud services",
+    "DisplayOrder": 3,
+    "IsActive": true,
+    "IconName": "Cloud",
+    "ColorCode": "#9C27B0",
+    "DefaultResponseTimeHours": 4,
+    "DefaultResolutionTimeHours": 24
+  },
+  {
+    "Id": 4,
+    "Name": "Consulting & Strategy",
+    "Description": "IT strategy, digital transformation, and technology consulting",
+    "DisplayOrder": 4,
+    "IsActive": true,
+    "IconName": "Lightbulb",
+    "ColorCode": "#FF5722",
+    "DefaultResponseTimeHours": 24,
+    "DefaultResolutionTimeHours": 120
+  },
+  {
+    "Id": 5,
+    "Name": "Implementation & Integration",
+    "Description": "Software implementation, system integration, and deployment services",
+    "DisplayOrder": 5,
+    "IsActive": true,
+    "IconName": "Build",
+    "ColorCode": "#3F51B5",
+    "DefaultResponseTimeHours": 24,
+    "DefaultResolutionTimeHours": 120
+  },
+  {
+    "Id": 6,
+    "Name": "Managed Services",
+    "Description": "Ongoing managed IT, security, and cloud services",
+    "DisplayOrder": 6,
+    "IsActive": true,
+    "IconName": "ManageAccounts",
+    "ColorCode": "#FF9800",
+    "DefaultResponseTimeHours": 4,
+    "DefaultResolutionTimeHours": 48
+  },
+  {
+    "Id": 7,
+    "Name": "Support & Maintenance",
+    "Description": "Help desk, on-site, and remote support services",
+    "DisplayOrder": 7,
+    "IsActive": true,
+    "IconName": "SupportAgent",
+    "ColorCode": "#00BCD4",
+    "DefaultResponseTimeHours": 1,
+    "DefaultResolutionTimeHours": 4
+  },
+  {
+    "Id": 8,
+    "Name": "Security Services",
+    "Description": "Security assessments, penetration testing, and incident response",
+    "DisplayOrder": 8,
+    "IsActive": true,
+    "IconName": "Security",
+    "ColorCode": "#F44336",
+    "DefaultResponseTimeHours": 2,
+    "DefaultResolutionTimeHours": 24
+  },
+  {
+    "Id": 9,
+    "Name": "Cloud Services (Professional)",
+    "Description": "Professional cloud migration, management, and optimization services",
+    "DisplayOrder": 9,
+    "IsActive": true,
+    "IconName": "CloudDone",
+    "ColorCode": "#673AB7",
+    "DefaultResponseTimeHours": 8,
+    "DefaultResolutionTimeHours": 72
+  },
+  {
+    "Id": 10,
+    "Name": "Data & Analytics",
+    "Description": "Business intelligence, data warehousing, and analytics services",
+    "DisplayOrder": 10,
+    "IsActive": true,
+    "IconName": "Analytics",
+    "ColorCode": "#607D8B",
+    "DefaultResponseTimeHours": 8,
+    "DefaultResolutionTimeHours": 72
+  },
+  {
+    "Id": 11,
+    "Name": "Specialized Services",
+    "Description": "VoIP, unified communications, cabling, and specialized IT services",
+    "DisplayOrder": 11,
+    "IsActive": true,
+    "IconName": "SettingsPhone",
+    "ColorCode": "#795548",
+    "DefaultResponseTimeHours": 4,
+    "DefaultResolutionTimeHours": 48
+  }
+]

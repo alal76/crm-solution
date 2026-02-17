@@ -1,0 +1,12 @@
+[
+  { "id": 1, "name": "CRM-App-Server-01", "type": "Server", "category": "Hardware", "status": "In Service", "ownerAccountId": 1 },
+  { "id": 2, "name": "CRM-DB-Server-01", "type": "Server", "category": "Hardware", "status": "In Service", "ownerAccountId": 2 },
+  { "id": 3, "name": "Edge-Firewall-01", "type": "Network Device", "category": "Hardware", "status": "In Service", "ownerAccountId": 3 },
+  { "id": 4, "name": "Corp-WiFi-Controller", "type": "Network Device", "category": "Hardware", "status": "In Service", "ownerAccountId": 4 },
+  { "id": 5, "name": "Email-Service", "type": "Application", "category": "Software", "status": "In Service", "ownerAccountId": 5 },
+  { "id": 6, "name": "VPN-Service", "type": "IT Service", "category": "Service", "status": "In Service", "ownerAccountId": 6 },
+  { "id": 7, "name": "Backup-Service", "type": "IT Service", "category": "Service", "status": "In Service", "ownerAccountId": 7 },
+  { "id": 8, "name": "Salesforce-Connector", "type": "Middleware", "category": "Software", "status": "Planned", "ownerAccountId": 8 },
+  { "id": 9, "name": "HR-Laptop-Fleet", "type": "Laptop", "category": "Hardware", "status": "In Service", "ownerAccountId": 9 },
+  { "id": 10, "name": "Data-Center-UPS-01", "type": "UPS", "category": "Facility", "status": "In Service", "ownerAccountId": 10 }
+]

@@ -1,0 +1,12 @@
+[
+  { "id": 1, "title": "Recurring VPN Failures", "status": "Investigating", "priority": "High", "relatedIncidentId": 2, "accountId": 2, "openedDate": "2026-02-12" },
+  { "id": 2, "title": "Email Latency", "status": "Open", "priority": "Medium", "relatedIncidentId": 1, "accountId": 1, "openedDate": "2026-02-13" },
+  { "id": 3, "title": "Server Patch Issues", "status": "Open", "priority": "Medium", "relatedIncidentId": 4, "accountId": 4, "openedDate": "2026-02-14" },
+  { "id": 4, "title": "Phishing Campaign Root Cause", "status": "Investigating", "priority": "Critical", "relatedIncidentId": 5, "accountId": 5, "openedDate": "2026-02-15" },
+  { "id": 5, "title": "Printer Driver Conflicts", "status": "Resolved", "priority": "Low", "relatedIncidentId": 6, "accountId": 6, "openedDate": "2026-02-16" },
+  { "id": 6, "title": "CRM Authentication Errors", "status": "Open", "priority": "High", "relatedIncidentId": 7, "accountId": 7, "openedDate": "2026-02-17" },
+  { "id": 7, "title": "Wireless Interference", "status": "Open", "priority": "Medium", "relatedIncidentId": 8, "accountId": 8, "openedDate": "2026-02-18" },
+  { "id": 8, "title": "Malware Containment", "status": "Investigating", "priority": "Critical", "relatedIncidentId": 9, "accountId": 9, "openedDate": "2026-02-19" },
+  { "id": 9, "title": "Access Control Drift", "status": "Open", "priority": "Medium", "relatedIncidentId": 10, "accountId": 10, "openedDate": "2026-02-20" },
+  { "id": 10, "title": "Laptop Hardware Defect Trend", "status": "Resolved", "priority": "Low", "relatedIncidentId": 3, "accountId": 3, "openedDate": "2026-02-21" }
+]

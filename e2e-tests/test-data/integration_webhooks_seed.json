@@ -1,0 +1,12 @@
+[
+  { "id": 1, "name": "Account Created", "url": "https://hooks.example.com/account-created", "event": "accounts.created", "isActive": true, "secretRef": "whsec-001" },
+  { "id": 2, "name": "Invoice Paid", "url": "https://hooks.example.com/invoice-paid", "event": "invoices.paid", "isActive": true, "secretRef": "whsec-002" },
+  { "id": 3, "name": "Ticket Updated", "url": "https://hooks.example.com/ticket-updated", "event": "servicerequests.updated", "isActive": true, "secretRef": "whsec-003" },
+  { "id": 4, "name": "Lead Converted", "url": "https://hooks.example.com/lead-converted", "event": "leads.converted", "isActive": true, "secretRef": "whsec-004" },
+  { "id": 5, "name": "Opportunity Won", "url": "https://hooks.example.com/opportunity-won", "event": "opportunities.won", "isActive": true, "secretRef": "whsec-005" },
+  { "id": 6, "name": "Contact Updated", "url": "https://hooks.example.com/contact-updated", "event": "contacts.updated", "isActive": true, "secretRef": "whsec-006" },
+  { "id": 7, "name": "Subscription Renewed", "url": "https://hooks.example.com/subscription-renewed", "event": "subscriptions.renewed", "isActive": false, "secretRef": "whsec-007" },
+  { "id": 8, "name": "Campaign Started", "url": "https://hooks.example.com/campaign-started", "event": "campaigns.started", "isActive": true, "secretRef": "whsec-008" },
+  { "id": 9, "name": "Incident Created", "url": "https://hooks.example.com/incident-created", "event": "incidents.created", "isActive": true, "secretRef": "whsec-009" },
+  { "id": 10, "name": "User Created", "url": "https://hooks.example.com/user-created", "event": "users.created", "isActive": true, "secretRef": "whsec-010" }
+]

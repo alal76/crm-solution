@@ -1,0 +1,12 @@
+[
+  { "id": 1, "invoiceId": 1, "productId": 3, "description": "UltraTool", "quantity": 20, "unitPrice": 150.00, "lineTotal": 3000.00 },
+  { "id": 2, "invoiceId": 1, "productId": 1, "description": "SuperWidget", "quantity": 10, "unitPrice": 200.00, "lineTotal": 2000.00 },
+  { "id": 3, "invoiceId": 2, "productId": 6, "description": "NanoGadget", "quantity": 30, "unitPrice": 50.00, "lineTotal": 1500.00 },
+  { "id": 4, "invoiceId": 3, "productId": 2, "description": "MegaGadget", "quantity": 20, "unitPrice": 300.00, "lineTotal": 6000.00 },
+  { "id": 5, "invoiceId": 4, "productId": 4, "description": "PowerDevice", "quantity": 25, "unitPrice": 400.00, "lineTotal": 10000.00 },
+  { "id": 6, "invoiceId": 5, "productId": 7, "description": "ProTool", "quantity": 25, "unitPrice": 250.00, "lineTotal": 6250.00 },
+  { "id": 7, "invoiceId": 6, "productId": 8, "description": "SmartDevice", "quantity": 40, "unitPrice": 500.00, "lineTotal": 20000.00 },
+  { "id": 8, "invoiceId": 7, "productId": 5, "description": "EcoWidget", "quantity": 20, "unitPrice": 100.00, "lineTotal": 2000.00 },
+  { "id": 9, "invoiceId": 8, "productId": 9, "description": "MiniWidget", "quantity": 30, "unitPrice": 60.00, "lineTotal": 1800.00 },
+  { "id": 10, "invoiceId": 9, "productId": 10, "description": "AlphaGadget", "quantity": 25, "unitPrice": 130.00, "lineTotal": 3250.00 }
+]

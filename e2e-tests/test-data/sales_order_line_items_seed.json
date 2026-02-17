@@ -1,0 +1,12 @@
+[
+  { "id": 1, "orderId": 1, "productId": 3, "quantity": 20, "unitPrice": 150.00, "lineTotal": 3000.00 },
+  { "id": 2, "orderId": 1, "productId": 1, "quantity": 10, "unitPrice": 200.00, "lineTotal": 2000.00 },
+  { "id": 3, "orderId": 2, "productId": 6, "quantity": 30, "unitPrice": 50.00, "lineTotal": 1500.00 },
+  { "id": 4, "orderId": 3, "productId": 2, "quantity": 20, "unitPrice": 300.00, "lineTotal": 6000.00 },
+  { "id": 5, "orderId": 4, "productId": 4, "quantity": 25, "unitPrice": 400.00, "lineTotal": 10000.00 },
+  { "id": 6, "orderId": 5, "productId": 7, "quantity": 25, "unitPrice": 250.00, "lineTotal": 6250.00 },
+  { "id": 7, "orderId": 6, "productId": 8, "quantity": 40, "unitPrice": 500.00, "lineTotal": 20000.00 },
+  { "id": 8, "orderId": 7, "productId": 5, "quantity": 20, "unitPrice": 100.00, "lineTotal": 2000.00 },
+  { "id": 9, "orderId": 8, "productId": 9, "quantity": 30, "unitPrice": 60.00, "lineTotal": 1800.00 },
+  { "id": 10, "orderId": 9, "productId": 10, "quantity": 25, "unitPrice": 130.00, "lineTotal": 3250.00 }
+]

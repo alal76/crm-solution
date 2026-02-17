@@ -122,6 +122,13 @@ public class LLMSettingsService : ILLMSettingsService
                     IsConfigured = _llmService.IsConfigured("deepseek")
                 },
 
+                Groq = new LLMProviderSettingsDto
+                {
+                    DefaultModel = GetSettingValue(dbSettings, "Groq.DefaultModel", _configOptions.Groq.DefaultModel),
+                    BaseUrl = GetSettingValue(dbSettings, "Groq.BaseUrl", _configOptions.Groq.BaseUrl),
+                    IsConfigured = _llmService.IsConfigured("groq")
+                },
+
                 AllenAI = new LLMProviderSettingsDto
                 {
                     DefaultModel = GetSettingValue(dbSettings, "AllenAI.DefaultModel", _configOptions.AllenAI.DefaultModel),
@@ -323,6 +330,9 @@ public class LLMSettingsService : ILLMSettingsService
                 new() { SettingKey = "DeepSeek.DefaultModel", SettingValue = _configOptions.DeepSeek.DefaultModel, ValueType = "string", Category = "provider.deepseek" },
                 new() { SettingKey = "DeepSeek.BaseUrl", SettingValue = _configOptions.DeepSeek.BaseUrl, ValueType = "string", Category = "provider.deepseek" },
 
+                new() { SettingKey = "Groq.DefaultModel", SettingValue = _configOptions.Groq.DefaultModel, ValueType = "string", Category = "provider.groq" },
+                new() { SettingKey = "Groq.BaseUrl", SettingValue = _configOptions.Groq.BaseUrl, ValueType = "string", Category = "provider.groq" },
+
                 new() { SettingKey = "AllenAI.DefaultModel", SettingValue = _configOptions.AllenAI.DefaultModel, ValueType = "string", Category = "provider.allenai", Description = "Allen AI OLMo/Tulu models via Hugging Face" },
                 new() { SettingKey = "AllenAI.BaseUrl", SettingValue = _configOptions.AllenAI.BaseUrl, ValueType = "string", Category = "provider.allenai" },
                 new() { SettingKey = "AllenAI.Enabled", SettingValue = _configOptions.AllenAI.Enabled.ToString().ToLower(), ValueType = "boolean", Category = "provider.allenai" },
@@ -415,6 +425,7 @@ public class LLMSettingsService : ILLMSettingsService
         "google" or "gemini" => "Google",
         "bedrock" or "aws" => "Bedrock",
         "deepseek" => "DeepSeek",
+        "groq" => "Groq",
         "allenai" or "huggingface" or "ai2" => "AllenAI",
         "local" or "ollama" => "Local",
         _ => providerKey
@@ -438,6 +449,7 @@ public class LLMSettingsService : ILLMSettingsService
             { "google", dto.Google?.IsConfigured ?? false },
             { "bedrock", dto.Bedrock?.IsConfigured ?? false },
             { "deepseek", dto.DeepSeek?.IsConfigured ?? false },
+            { "groq", dto.Groq?.IsConfigured ?? false },
             { "allenai", dto.AllenAI?.IsConfigured ?? false },
             { "local", dto.Local?.IsConfigured ?? false }
         };

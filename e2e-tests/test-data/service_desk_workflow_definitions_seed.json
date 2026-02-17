@@ -1,0 +1,12 @@
+[
+  { "id": 1, "name": "Password Reset Workflow", "module": "ServiceDesk", "status": "Active", "version": 1, "steps": ["Validate Identity", "Reset Password", "Notify User"] },
+  { "id": 2, "name": "Software Installation Workflow", "module": "ServiceDesk", "status": "Active", "version": 1, "steps": ["Verify License", "Install Software", "Confirm Access"] },
+  { "id": 3, "name": "Hardware Replacement Workflow", "module": "ServiceDesk", "status": "Active", "version": 2, "steps": ["Diagnose Issue", "Approve Replacement", "Ship Device", "Close Ticket"] },
+  { "id": 4, "name": "VPN Troubleshooting Workflow", "module": "ServiceDesk", "status": "Active", "version": 1, "steps": ["Check Connectivity", "Verify Credentials", "Update Client"] },
+  { "id": 5, "name": "Email Access Workflow", "module": "ServiceDesk", "status": "Active", "version": 1, "steps": ["Check Account", "Reset Password", "Test Login"] },
+  { "id": 6, "name": "Printer Support Workflow", "module": "ServiceDesk", "status": "Active", "version": 1, "steps": ["Check Queue", "Restart Device", "Update Driver"] },
+  { "id": 7, "name": "Onboarding Workflow", "module": "ServiceDesk", "status": "Active", "version": 1, "steps": ["Create Accounts", "Assign Licenses", "Provide Welcome Kit"] },
+  { "id": 8, "name": "Security Incident Triage", "module": "ServiceDesk", "status": "Active", "version": 1, "steps": ["Contain", "Assess", "Escalate"] },
+  { "id": 9, "name": "Backup Restore Workflow", "module": "ServiceDesk", "status": "Active", "version": 1, "steps": ["Validate Backup", "Restore Data", "Confirm Integrity"] },
+  { "id": 10, "name": "Remote Support Workflow", "module": "ServiceDesk", "status": "Active", "version": 1, "steps": ["Start Session", "Fix Issue", "Document Resolution"] }
+]
