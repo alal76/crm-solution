@@ -1,15 +1,15 @@
 {
   "major": 0,
-  "minor": 560,
-  "patch": 12,
+  "minor": 561,
+  "patch": 0,
   "lastUpdate": "2026-02-17",
-  "description": "Add campaign endpoints and services loading: campaign-metrics, campaign-conversions, campaign-recipients; services via products",
+  "description": "Implement all 11 remaining seed file endpoints: change-types, ci-types, incident-categories, escalation-rules, catalog-categories, analytics-events, audit-logs, ai-agent-usage, export-jobs, import-jobs, webhook-registrations",
   "git": {
     "branch": "main",
-    "commit": "add-campaign-services-endpoints"
+    "commit": "implement-seed-file-endpoints"
   },
   "environment": "production",
   "architecture": "monolith",
   "buildServer": "azure-devops",
-  "buildTime": "2026-02-17T21:10:00"
+  "buildTime": "2026-02-17T22:55:00"
 }

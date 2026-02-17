@@ -440,6 +440,18 @@ public class CrmDbContext : DbContext, ICrmDbContext
     public DbSet<ITSM.WebhookSubscription> WebhookSubscriptions { get; set; }
     public DbSet<ITSM.WebhookDelivery> WebhookDeliveries { get; set; }
 
+    // Previously missing DbSets (used by services via _dbContext.PropertyName)
+    public DbSet<AnalyticsEvent> AnalyticsEvents { get; set; }
+    public DbSet<AuditLog> AuditLogs { get; set; }
+    public DbSet<ITSM.CITypeDefinition> CITypes { get; set; }
+    public DbSet<ITSM.ChangeTypeEntity> ChangeTypes { get; set; }
+
+    // New entity DbSets
+    public DbSet<AIAgentUsage> AIAgentUsages { get; set; }
+    public DbSet<ExportJob> ExportJobs { get; set; }
+    public DbSet<ImportJob> ImportJobs { get; set; }
+    public DbSet<ITSM.IncidentCategory> IncidentCategories { get; set; }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
             if (!optionsBuilder.IsConfigured && _configuration != null)
@@ -3867,6 +3879,44 @@ public class CrmDbContext : DbContext, ICrmDbContext
             
             entity.HasIndex(new[] { "Success", "CreatedAt" })
                 .HasDatabaseName("IX_WebhookDeliveries_Success_CreatedAt");
+        });
+
+        // --- New entity configurations for seed data endpoints ---
+
+        modelBuilder.Entity<CRM.Core.Entities.ITSM.CITypeDefinition>(entity =>
+        {
+            entity.ToTable("CITypeDefinitions");
+            entity.HasKey(e => e.Id);
+        });
+
+        modelBuilder.Entity<CRM.Core.Entities.ITSM.ChangeTypeEntity>(entity =>
+        {
+            entity.ToTable("ChangeTypes");
+            entity.HasKey(e => e.Id);
+        });
+
+        modelBuilder.Entity<CRM.Core.Entities.ITSM.IncidentCategory>(entity =>
+        {
+            entity.ToTable("IncidentCategories");
+            entity.HasKey(e => e.Id);
+        });
+
+        modelBuilder.Entity<AIAgentUsage>(entity =>
+        {
+            entity.ToTable("AIAgentUsages");
+            entity.HasKey(e => e.Id);
+        });
+
+        modelBuilder.Entity<ExportJob>(entity =>
+        {
+            entity.ToTable("ExportJobs");
+            entity.HasKey(e => e.Id);
+        });
+
+        modelBuilder.Entity<ImportJob>(entity =>
+        {
+            entity.ToTable("ImportJobs");
+            entity.HasKey(e => e.Id);
         });
 
         // Apply provider-specific post-configuration using the Strategy Pattern

@@ -3338,24 +3338,204 @@ def phase_verify(
 # ---- Phase 16: Skipped (no API endpoint) ----------------------------
 
 
-def phase_unsupported(logger: RunLogger, data_dir: str) -> None:
-    logger.section("Phase 16 - Skipped (No API Endpoint)")
-    for name in [
-        "analytics_events_seed.json",
-        "ai_agent_usage_seed.json",
-        "integration_export_jobs_seed.json",
-        "integration_import_jobs_seed.json",
-        "integration_webhooks_seed.json",
-        "service_desk_escalation_rules_seed.json",
-        "itsm_catalog_categories_seed.json",
-        "itsm_change_types_seed.json",
-        "itsm_ci_types_seed.json",
-        "itsm_incident_categories_seed.json",
-        "system_audit_logs_seed.json",
-    ]:
-        logger.log_skip(
-            "No supported API endpoint", file=os.path.join(data_dir, name)
-        )
+def phase_unsupported(
+    client: ApiClient,
+    logger: RunLogger,
+    data_dir: str,
+    id_maps: Dict[str, Any],
+) -> None:
+    logger.section("Phase 16 - Previously Unsupported (Now Implemented)")
+
+    # --- ITSM Change Types ---
+    p = _path(data_dir, "itsm_change_types_seed.json")
+    if os.path.isfile(p):
+        for i, item in enumerate(load_json(p)):
+            payload = {
+                "TypeName": item.get("TypeName"),
+                "Description": item.get("Description"),
+                "RequiresCAB": item.get("RequiresCAB", False),
+                "RequiresApproval": item.get("RequiresApproval", False),
+                "DefaultRiskLevel": item.get("DefaultRiskLevel", "Medium"),
+                "LeadTimeDays": item.get("LeadTimeDays", 0),
+                "IsActive": item.get("IsActive", True),
+            }
+            client.request(
+                "POST", "/api/change-types", payload, file=p, index=i, summary=payload
+            )
+
+    # --- ITSM CI Types ---
+    p = _path(data_dir, "itsm_ci_types_seed.json")
+    if os.path.isfile(p):
+        for i, item in enumerate(load_json(p)):
+            payload = {
+                "TypeName": item.get("TypeName"),
+                "TypeCategory": item.get("TypeCategory"),
+                "Description": item.get("Description"),
+                "IconName": item.get("IconName"),
+                "Color": item.get("Color"),
+                "SortOrder": item.get("SortOrder", 0),
+                "IsActive": item.get("IsActive", True),
+            }
+            client.request(
+                "POST", "/api/ci-types", payload, file=p, index=i, summary=payload
+            )
+
+    # --- ITSM Catalog Categories ---
+    p = _path(data_dir, "itsm_catalog_categories_seed.json")
+    if os.path.isfile(p):
+        for i, item in enumerate(load_json(p)):
+            payload = {
+                "CategoryName": item.get("CategoryName"),
+                "Description": item.get("Description"),
+                "IconName": item.get("IconName"),
+                "Color": item.get("Color"),
+                "ParentCategoryId": item.get("ParentCategoryId"),
+                "SortOrder": item.get("SortOrder", 0),
+                "IsActive": item.get("IsActive", True),
+            }
+            client.request(
+                "POST", "/api/catalog-categories", payload, file=p, index=i, summary=payload
+            )
+
+    # --- ITSM Incident Categories ---
+    p = _path(data_dir, "itsm_incident_categories_seed.json")
+    if os.path.isfile(p):
+        priority_map = {"Critical": 1, "High": 2, "Medium": 3, "Low": 4}
+        for i, item in enumerate(load_json(p)):
+            raw_prio = item.get("DefaultPriority", "Medium")
+            prio_int = priority_map.get(raw_prio, 3) if isinstance(raw_prio, str) else raw_prio
+            payload = {
+                "CategoryName": item.get("CategoryName"),
+                "SubCategory": item.get("SubCategory"),
+                "Description": item.get("Description"),
+                "DefaultPriority": prio_int,
+                "IsActive": item.get("IsActive", True),
+            }
+            client.request(
+                "POST", "/api/incident-categories", payload, file=p, index=i, summary=payload
+            )
+
+    # --- Escalation Rules ---
+    p = _path(data_dir, "service_desk_escalation_rules_seed.json")
+    if os.path.isfile(p):
+        # Map seed action strings to EscalationTargetType enum values
+        target_type_map = {
+            "NotifyManager": "Manager",
+            "NotifyDirector": "Manager",
+            "NotifyTeam": "Group",
+            "NotifySecurity": "Group",
+            "AssignTier2": "Queue",
+            "AssignBilling": "Queue",
+            "OnCall": "User",
+        }
+        for i, item in enumerate(load_json(p)):
+            action = item.get("action", "User")
+            payload = {
+                "Name": item.get("name"),
+                "Priority": item.get("priority", "Medium"),
+                "AgeInMinutes": item.get("triggerMinutes", 60),
+                "TargetType": target_type_map.get(action, "User"),
+                "IsActive": item.get("isActive", True),
+            }
+            client.request(
+                "POST", "/api/escalation-rules", payload, file=p, index=i, summary=payload
+            )
+
+    # --- Analytics Events ---
+    p = _path(data_dir, "analytics_events_seed.json")
+    if os.path.isfile(p):
+        for i, item in enumerate(load_json(p)):
+            # Metadata must be a JSON string, not an object
+            metadata = item.get("metadata")
+            if metadata is not None and not isinstance(metadata, str):
+                metadata = json.dumps(metadata)
+            payload = {
+                "EventName": item.get("eventName"),
+                "EntityType": item.get("entityType"),
+                "EntityId": item.get("entityId", 1),
+                "UserId": item.get("userId"),
+                "Timestamp": item.get("timestamp"),
+                "Metadata": metadata,
+            }
+            client.request(
+                "POST", "/api/analytics-events", payload, file=p, index=i, summary=payload
+            )
+
+    # --- System Audit Logs ---
+    p = _path(data_dir, "system_audit_logs_seed.json")
+    if os.path.isfile(p):
+        for i, item in enumerate(load_json(p)):
+            payload = {
+                "Action": item.get("action"),
+                "EntityType": item.get("entity"),
+                "EntityId": item.get("entityId"),
+                "UserId": item.get("userId"),
+            }
+            client.request(
+                "POST", "/api/audit-logs", payload, file=p, index=i, summary=payload
+            )
+
+    # --- AI Agent Usage ---
+    p = _path(data_dir, "ai_agent_usage_seed.json")
+    if os.path.isfile(p):
+        for i, item in enumerate(load_json(p)):
+            payload = {
+                "AgentId": item.get("agentId"),
+                "UserId": item.get("userId"),
+                "RequestCount": item.get("requestCount", 0),
+                "Tokens": item.get("tokens", 0),
+                "Cost": item.get("cost", 0),
+                "UsageDate": item.get("usageDate"),
+            }
+            client.request(
+                "POST", "/api/ai-agent-usage", payload, file=p, index=i, summary=payload
+            )
+
+    # --- Integration Export Jobs ---
+    p = _path(data_dir, "integration_export_jobs_seed.json")
+    if os.path.isfile(p):
+        for i, item in enumerate(load_json(p)):
+            payload = {
+                "Entity": item.get("entity"),
+                "Destination": item.get("destination"),
+                "Status": item.get("status"),
+                "RequestedByUserId": item.get("requestedByUserId"),
+                "RequestedDate": item.get("requestedDate"),
+            }
+            client.request(
+                "POST", "/api/export-jobs", payload, file=p, index=i, summary=payload
+            )
+
+    # --- Integration Import Jobs ---
+    p = _path(data_dir, "integration_import_jobs_seed.json")
+    if os.path.isfile(p):
+        for i, item in enumerate(load_json(p)):
+            payload = {
+                "Entity": item.get("entity"),
+                "Source": item.get("source"),
+                "Status": item.get("status"),
+                "SubmittedByUserId": item.get("submittedByUserId"),
+                "SubmittedDate": item.get("submittedDate"),
+            }
+            client.request(
+                "POST", "/api/import-jobs", payload, file=p, index=i, summary=payload
+            )
+
+    # --- Integration Webhooks ---
+    p = _path(data_dir, "integration_webhooks_seed.json")
+    if os.path.isfile(p):
+        for i, item in enumerate(load_json(p)):
+            event_type = item.get("event", "")
+            payload = {
+                "Url": item.get("url"),
+                "Description": item.get("name"),
+                "Secret": item.get("secretRef"),
+                "EventTypes": [event_type] if event_type else [],
+                "IsActive": item.get("isActive", True),
+            }
+            client.request(
+                "POST", "/api/webhook-registrations", payload, file=p, index=i, summary=payload
+            )
 
 
 # ============================ MAIN ====================================
@@ -3560,7 +3740,7 @@ def main() -> int:
         ),
         (
             "Unsupported",
-            lambda: phase_unsupported(logger, data_dir),
+            lambda: phase_unsupported(client, logger, data_dir, id_maps),
         ),
     ]
 
