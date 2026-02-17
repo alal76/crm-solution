@@ -496,8 +496,11 @@ public class SystemSettings : BaseEntity
     #region Feature Flags
 
     /// <summary>
-    /// Whether to show the demo data option
+    /// [DEPRECATED] Whether to show the demo data option.
+    /// This property is kept for backward compatibility but should not be used.
+    /// Demo database feature removed - system uses single database only.
     /// </summary>
+    [Obsolete("Demo database feature removed. System uses single database only.")]
     public bool ShowDemoData { get; set; } = false;
 
     /// <summary>
@@ -623,16 +626,22 @@ public class SystemSettings : BaseEntity
 
     #endregion
 
-    #region Demo Database Settings
+    // DEPRECATED: Demo Database feature removed - system uses single database only
+    // See copilot-instructions.md for single database policy
+    #region Demo Database Settings (DEPRECATED)
 
     /// <summary>
-    /// Whether sample data has been seeded to production database
+    /// [DEPRECATED] Whether sample data has been seeded to production database.
+    /// This property is kept for backward compatibility but should not be used.
     /// </summary>
+    [Obsolete("Demo database feature removed. System uses single database only.")]
     public bool SampleDataSeeded { get; set; } = false;
 
     /// <summary>
-    /// Last time sample data was seeded to production database
+    /// [DEPRECATED] Last time sample data was seeded to production database.
+    /// This property is kept for backward compatibility but should not be used.
     /// </summary>
+    [Obsolete("Demo database feature removed. System uses single database only.")]
     public DateTime? SampleDataLastSeeded { get; set; }
 
     #endregion

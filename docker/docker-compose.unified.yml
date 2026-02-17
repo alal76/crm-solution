@@ -139,9 +139,9 @@ services:
       DB_PASSWORD: ${DB_PASSWORD:-CrmPass@Dev2024}
       ConnectionStrings__DefaultConnection: Server=crm-mariadb;Port=3306;Database=${DB_NAME:-crm_db};User=${DB_USER:-crm_user};Password=${DB_PASSWORD:-CrmPass@Dev2024};
       
-      # Demo Database
-      DemoDatabase__AutoSeed: ${DEMO_AUTO_SEED:-true}
-      DemoDatabase__DatabaseName: ${DEMO_DB_NAME:-crm_demodb}
+      # DEPRECATED: Demo database feature removed - system uses single database only
+      # DemoDatabase__AutoSeed: ${DEMO_AUTO_SEED:-true}
+      # DemoDatabase__DatabaseName: ${DEMO_DB_NAME:-crm_demodb}
       
       # Redis Cache - use container hostname
       Redis__ConnectionString: crm-redis:6379
