@@ -1,0 +1,145 @@
+# CRM Solution - Expected Database Schema Tables
+# This file lists all tables expected to exist after a successful deployment
+# Used by post-deployment-health-check.sh for schema validation
+#
+# Format: One table name per line
+# Lines starting with # are comments
+# Empty lines are ignored
+
+# =============================================================================
+# Core Authentication & Authorization
+# =============================================================================
+Users
+UserGroups
+UserGroupMembers
+UserProfiles
+UserApprovalRequests
+Departments
+OAuthTokens
+
+# =============================================================================
+# CRM Core Entities
+# =============================================================================
+Customers
+Contacts
+AccountContacts
+Leads
+Opportunities
+OpportunityProducts
+LeadProductInterests
+Products
+Interactions
+
+# =============================================================================
+# Contact Information (Polymorphic)
+# =============================================================================
+Addresses
+PhoneNumbers
+EmailAddresses
+SocialMediaAccounts
+EntityAddressLinks
+EntityPhoneLinks
+EntityEmailLinks
+EntitySocialMediaLinks
+ContactDetails
+SocialAccounts
+ContactInfoLinks
+
+# =============================================================================
+# Marketing & Campaigns
+# =============================================================================
+MarketingCampaigns
+CampaignMetrics
+CampaignRecipients
+CampaignLinkClicks
+CampaignABTests
+CampaignConversions
+CampaignWorkflows
+EmailTemplates
+EmailSequences
+EmailSequenceSteps
+EmailSequenceEnrollments
+EmailSequenceStepExecutions
+
+# =============================================================================
+# Sales & Quotes
+# =============================================================================
+Quotes
+QuoteLineItems
+Orders
+OrderLineItems
+Invoices
+InvoiceLineItems
+Payments
+Contracts
+Subscriptions
+SubscriptionItems
+
+# =============================================================================
+# Service Desk & ITSM
+# =============================================================================
+ServiceRequests
+ServiceRequestCategories
+ServiceRequestComments
+ServiceRequestAttachments
+ServiceRequestHistory
+KnowledgeArticles
+SLAPolicies
+SLAPrioritySettings
+SLAViolations
+EscalationRules
+EscalationConditions
+EscalationActions
+WorkflowDefinitions
+WorkflowSteps
+WorkflowConditions
+WorkflowActions
+WorkflowInstances
+WorkflowLogs
+ScheduledTriggers
+FormDefinitions
+FormSubmissions
+
+# =============================================================================
+# AI & Analytics
+# =============================================================================
+AIAgents
+AIAgentMessages
+AIUsageLogs
+AIPromptTemplates
+LeadScores
+LeadScoreHistory
+LeadScoringRules
+
+# =============================================================================
+# System & Configuration
+# =============================================================================
+SystemSettings
+ActivityLogs
+FileAttachments
+ImportExportJobs
+ImportExportMappings
+ApiKeys
+Webhooks
+WebhookLogs
+Notes
+Tasks
+
+# =============================================================================
+# Commission & Sales Performance
+# =============================================================================
+CommissionPlans
+Commissions
+SalesTargets
+SalesPerformance
+
+# =============================================================================
+# Calendar & Scheduling
+# =============================================================================
+CalendarIntegrations
+Appointments
+
+# =============================================================================
+# Entity Framework
+# =============================================================================
+__EFMigrationsHistory
