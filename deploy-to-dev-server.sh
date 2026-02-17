@@ -265,6 +265,9 @@ BUILD_SERVER=localhost
 ENABLE_DOCKER_MONITORING=true
 ENABLE_K8S_MONITORING=false
 
+# Rate Limiting (disabled for dev server to allow bulk data loading/testing)
+RATE_LIMITING_ENABLED=false
+
 # Feature Flags - Provider Selection
 USE_EXTERNAL_CHAT=false
 USE_EXTERNAL_SEARCH=false
