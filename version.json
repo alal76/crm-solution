@@ -1,15 +1,15 @@
 {
   "major": 0,
   "minor": 560,
-  "patch": 2,
+  "patch": 3,
   "lastUpdate": "2026-02-17",
-  "description": "CRM Solution v0.560.2 - Fix shadow FK issues, Groq LLM, healthchecks, missing tables",
+  "description": "CRM Solution v0.560.3 - Post-deployment health check module",
   "git": {
     "branch": "dev",
-    "commit": "fix-shadow-fk-and-missing-tables"
+    "commit": "add-post-deployment-health-check"
   },
   "environment": "production",
   "architecture": "monolith",
   "buildServer": "azure-devops",
-  "buildTime": "2026-02-17T01:20:00"
+  "buildTime": "2026-02-17T17:45:00"
 }
