@@ -32,6 +32,82 @@ def split_name(full_name: str) -> Tuple[str, str]:
     return parts[0], " ".join(parts[1:])
 
 
+# ── Enum Mapping Dictionaries ──────────────────────────────────────────────────
+# C# enums serialize as integers; the seed JSON files use human-readable strings.
+# These dicts convert string -> int for every enum used in the failing payloads.
+
+OPPORTUNITY_STAGE = {
+    "Discovery": 0, "Qualification": 1, "Qualified": 1, "Proposal": 2,
+    "Negotiation": 3, "ClosedWon": 4, "ClosedLost": 5,
+}
+QUOTE_STATUS = {
+    "New": 0, "Draft": 1, "UnderApproval": 2, "Approved": 3, "Shared": 4,
+    "Sent": 4, "Viewed": 5, "Accepted": 6, "Rejected": 7, "Expired": 8,
+    "Revised": 9, "Cancelled": 10, "Converted": 11,
+}
+ORDER_STATUS = {
+    "Draft": 0, "PendingApproval": 1, "Approved": 2, "Processing": 3,
+    "PartiallyFulfilled": 4, "Fulfilled": 5, "Delivered": 6, "Completed": 7,
+    "Cancelled": 8, "Returned": 9, "Refunded": 10, "OnHold": 11,
+}
+INVOICE_STATUS = {
+    "Draft": 0, "PendingApproval": 1, "Approved": 2, "Sent": 3, "Issued": 3,
+    "Viewed": 4, "PartiallyPaid": 5, "Paid": 6, "Overdue": 7, "Disputed": 8,
+    "Voided": 9, "WrittenOff": 10,
+}
+PAYMENT_STATUS = {
+    "Pending": 0, "Processing": 1, "Completed": 2, "Failed": 3,
+    "Declined": 4, "Cancelled": 5, "Refunded": 6, "PartiallyRefunded": 7,
+}
+PAYMENT_METHOD = {
+    "CreditCard": 0, "DebitCard": 1, "BankTransfer": 2, "WireTransfer": 3,
+    "Check": 4, "Cash": 5, "PayPal": 6, "Stripe": 7, "ApplePay": 8,
+    "GooglePay": 9, "Venmo": 10, "Crypto": 11, "StoreCredit": 12,
+    "GiftCard": 13, "Financing": 14, "PurchaseOrder": 15, "Other": 16,
+}
+CONTRACT_STATUS = {
+    "Draft": 0, "PendingApproval": 1, "Approved": 2, "Active": 3,
+    "Expired": 4, "Terminated": 5, "Renewed": 6, "OnHold": 7,
+}
+SUBSCRIPTION_STATUS = {
+    "Active": 0, "Current": 0, "Paused": 1, "Cancelled": 2, "Churned": 2,
+    "Suspended": 3, "PendingCancellation": 4, "Expired": 5, "Trial": 6,
+}
+EMAIL_SEQUENCE_STATUS = {"Draft": 0, "Active": 1, "Paused": 2, "Archived": 3}
+CAMPAIGN_STATUS = {
+    "Draft": 0, "Scheduled": 1, "Planned": 1, "Active": 2, "Paused": 3,
+    "Completed": 4, "Cancelled": 5, "Archived": 6, "PendingApproval": 7,
+}
+CAMPAIGN_TYPE = {
+    "Email": 0, "SocialMedia": 1, "PaidSearch": 2, "DisplayAds": 3,
+    "ContentMarketing": 4, "SEO": 5, "Event": 6, "Webinar": 7,
+    "DirectMail": 8, "Telemarketing": 9, "Referral": 10, "Affiliate": 11,
+    "Influencer": 12, "PR": 13, "TradeShow": 14, "Video": 15,
+    "Podcast": 16, "SMS": 17, "PushNotification": 18, "Retargeting": 19,
+    "ABM": 20, "PartnerMarketing": 21, "ProductLaunch": 22,
+    "BrandAwareness": 23, "Integrated": 24, "Other": 25,
+}
+# ITSM enums are 1-indexed
+INCIDENT_IMPACT = {"High": 1, "Medium": 2, "Low": 3}
+INCIDENT_URGENCY = {"High": 1, "Medium": 2, "Low": 3}
+PROBLEM_PRIORITY = {"Critical": 1, "High": 2, "Medium": 3, "Low": 4}
+
+# Patterns that indicate an "already exists" response (treat as success).
+ALREADY_EXISTS_PATTERNS = [
+    "already exists",
+    "duplicate",
+    "already registered",
+]
+
+
+def _is_already_exists(response_body: Optional[str]) -> bool:
+    """Return True if the API error indicates the resource already exists."""
+    if not response_body:
+        return False
+    lower = response_body.lower()
+    return any(p in lower for p in ALREADY_EXISTS_PATTERNS)
+
+
 class RunLogger:
     def __init__(self, log_dir: str) -> None:
         os.makedirs(log_dir, exist_ok=True)
@@ -141,6 +217,19 @@ class ApiClient:
                 return response.getcode(), parsed, response_body
         except urllib.error.HTTPError as ex:
             response_body = ex.read().decode("utf-8") if ex.fp else None
+            # Treat "already exists" errors as idempotent success
+            if _is_already_exists(response_body):
+                self.logger.log_result(
+                    "success",
+                    method,
+                    path,
+                    ex.code,
+                    file,
+                    index,
+                    request_summary or {},
+                    response_body=response_body,
+                )
+                return ex.code, None, response_body
             self.logger.log_result(
                 "failed",
                 method,
@@ -467,15 +556,6 @@ def main() -> int:
                 client.request_json("POST", "/api/products", payload, products_path, index, payload)
 
     def load_opportunities() -> None:
-        stage_map = {
-            "Discovery": "Discovery",
-            "Qualified": "Qualification",
-            "Qualification": "Qualification",
-            "Proposal": "Proposal",
-            "Negotiation": "Negotiation",
-            "ClosedWon": "ClosedWon",
-            "ClosedLost": "ClosedLost",
-        }
         path = os.path.join(data_dir, "bulk_crm_seed.json")
         if not os.path.exists(path):
             return
@@ -485,7 +565,7 @@ def main() -> int:
                 "Name": item.get("name"),
                 "AccountId": account_id_map.get(item.get("accountId", 0)),
                 "Amount": item.get("amount"),
-                "Stage": stage_map.get(item.get("stage"), "Discovery"),
+                "Stage": OPPORTUNITY_STAGE.get(item.get("stage"), 0),
                 "ExpectedCloseDate": item.get("closeDate"),
                 "Currency": "USD",
             }
@@ -496,9 +576,10 @@ def main() -> int:
         if os.path.exists(path):
             for index, item in enumerate(load_json(path)):
                 payload = {
+                    "Name": f"Quote-{item.get('id', index + 1):04d}",
                     "AccountId": account_id_map.get(item.get("accountId", 0)),
                     "ContactId": contact_id_map.get(item.get("contactId", 0)),
-                    "Status": item.get("status"),
+                    "Status": QUOTE_STATUS.get(item.get("status"), 0),
                     "TotalAmount": item.get("totalAmount"),
                     "ValidUntil": item.get("validUntil"),
                     "QuoteDate": item.get("createdDate"),
@@ -510,6 +591,7 @@ def main() -> int:
         if os.path.exists(path):
             for index, item in enumerate(load_json(path)):
                 payload = {
+                    "Name": f"Line Item {index + 1}",
                     "ProductId": item.get("productId"),
                     "Quantity": item.get("quantity"),
                     "UnitPrice": item.get("unitPrice"),
@@ -530,7 +612,7 @@ def main() -> int:
                 payload = {
                     "AccountId": account_id_map.get(item.get("accountId", 0)),
                     "QuoteId": item.get("quoteId"),
-                    "Status": item.get("status"),
+                    "Status": ORDER_STATUS.get(item.get("status"), 0),
                     "OrderDate": item.get("orderDate"),
                     "TotalAmount": item.get("totalAmount"),
                 }
@@ -540,6 +622,7 @@ def main() -> int:
         if os.path.exists(path):
             for index, item in enumerate(load_json(path)):
                 payload = {
+                    "Name": f"Order Line {index + 1}",
                     "ProductId": item.get("productId"),
                     "Quantity": item.get("quantity"),
                     "UnitPrice": item.get("unitPrice"),
@@ -561,8 +644,8 @@ def main() -> int:
                     "OrderId": item.get("orderId"),
                     "AccountId": account_id_map.get(item.get("accountId", 0)),
                     "InvoiceNumber": item.get("invoiceNumber"),
-                    "Status": item.get("status"),
-                    "IssueDate": item.get("issueDate"),
+                    "Status": INVOICE_STATUS.get(item.get("status"), 0),
+                    "InvoiceDate": item.get("issueDate"),
                     "DueDate": item.get("dueDate"),
                     "TotalAmount": item.get("totalAmount"),
                 }
@@ -572,11 +655,13 @@ def main() -> int:
         if os.path.exists(path):
             for index, item in enumerate(load_json(path)):
                 payload = {
+                    "Name": item.get("description") or f"Invoice Line {index + 1}",
                     "ProductId": item.get("productId"),
                     "Description": item.get("description"),
                     "Quantity": item.get("quantity"),
                     "UnitPrice": item.get("unitPrice"),
                     "LineTotal": item.get("lineTotal"),
+                    "LineNumber": index + 1,
                 }
                 client.request_json(
                     "POST",
@@ -593,10 +678,10 @@ def main() -> int:
                 payload = {
                     "InvoiceId": item.get("invoiceId"),
                     "Amount": item.get("amount"),
-                    "Method": item.get("method"),
-                    "Status": item.get("status"),
+                    "PaymentMethod": PAYMENT_METHOD.get(item.get("method"), 0),
+                    "Status": PAYMENT_STATUS.get(item.get("status"), 0),
                     "PaymentDate": item.get("paymentDate"),
-                    "TransactionRef": item.get("transactionRef"),
+                    "TransactionReference": item.get("transactionRef"),
                 }
                 client.request_json("POST", "/api/payments", payload, path, index, payload)
 
@@ -604,13 +689,14 @@ def main() -> int:
         if os.path.exists(path):
             for index, item in enumerate(load_json(path)):
                 payload = {
-                    "AccountId": account_id_map.get(item.get("accountId", 0)),
-                    "ContractNumber": item.get("contractNumber"),
-                    "Status": item.get("status"),
+                    "Name": item.get("contractNumber") or f"Contract-{index + 1}",
+                    "AccountId": account_id_map.get(item.get("accountId", 0)) or item.get("accountId"),
+                    "Status": CONTRACT_STATUS.get(item.get("status"), 0),
                     "StartDate": item.get("startDate"),
                     "EndDate": item.get("endDate"),
                     "Value": item.get("value"),
-                    "RenewalTermMonths": item.get("renewalTermMonths"),
+                    "AutoRenew": True if item.get("renewalTermMonths") else False,
+                    "RenewalNoticeDays": 30,
                 }
                 client.request_json("POST", "/api/contracts", payload, path, index, payload)
 
@@ -618,12 +704,12 @@ def main() -> int:
         if os.path.exists(path):
             for index, item in enumerate(load_json(path)):
                 payload = {
-                    "AccountId": account_id_map.get(item.get("accountId", 0)),
+                    "AccountId": account_id_map.get(item.get("accountId", 0)) or item.get("accountId"),
                     "ProductId": item.get("productId"),
-                    "Status": item.get("status"),
+                    "Status": SUBSCRIPTION_STATUS.get(item.get("status"), 0),
                     "StartDate": item.get("startDate"),
                     "EndDate": item.get("endDate"),
-                    "BillingCycle": item.get("billingCycle"),
+                    "BillingCycle": item.get("billingCycle", "Monthly"),
                     "Amount": item.get("amount"),
                 }
                 client.request_json("POST", "/api/subscriptions", payload, path, index, payload)
@@ -631,13 +717,13 @@ def main() -> int:
         path = os.path.join(data_dir, "sales_commissions_seed.json")
         if os.path.exists(path):
             for index, item in enumerate(load_json(path)):
+                deal_amount = item.get("amount", 0) / item.get("rate", 0.05) if item.get("rate") else 0
                 payload = {
-                    "UserId": user_id_map.get(item.get("userId", 0)),
+                    "UserId": user_id_map.get(item.get("userId", 0)) or item.get("userId"),
                     "OrderId": item.get("orderId"),
-                    "Rate": item.get("rate"),
-                    "Amount": item.get("amount"),
-                    "Status": item.get("status"),
-                    "Period": item.get("period"),
+                    "DealAmount": round(deal_amount, 2),
+                    "CommissionRate": item.get("rate"),
+                    "CommissionAmount": item.get("amount"),
                 }
                 client.request_json("POST", "/api/commissions", payload, path, index, payload)
 
@@ -668,7 +754,7 @@ def main() -> int:
                     })
                 payload = {
                     "Name": item.get("name"),
-                    "Status": item.get("status"),
+                    "Status": EMAIL_SEQUENCE_STATUS.get(item.get("status"), 0),
                     "IsActive": item.get("status") == "Active",
                     "Steps": steps,
                 }
@@ -677,11 +763,11 @@ def main() -> int:
         campaigns_path = os.path.join(data_dir, "marketing_campaigns_seed.json")
         if os.path.exists(campaigns_path):
             for index, item in enumerate(load_json(campaigns_path)):
+                campaign_type_str = item.get("type") or "Email"
                 payload = {
                     "Name": item.get("name"),
-                    "Type": item.get("type") or "Email",
-                    "CampaignType": item.get("type") or "Email",
-                    "Status": item.get("status"),
+                    "CampaignType": CAMPAIGN_TYPE.get(campaign_type_str, 0),
+                    "Status": CAMPAIGN_STATUS.get(item.get("status"), 0),
                     "StartDate": item.get("startDate"),
                     "EndDate": item.get("endDate"),
                     "Budget": item.get("budget"),
@@ -772,25 +858,23 @@ def main() -> int:
 
         incidents_path = os.path.join(data_dir, "itsm_incidents_seed.json")
         if os.path.exists(incidents_path):
-            impact_map = {"High": "High", "Medium": "Medium", "Low": "Low"}
             for index, item in enumerate(load_json(incidents_path)):
                 payload = {
                     "ShortDescription": item.get("title"),
                     "Description": item.get("title"),
                     "CallerId": contact_id_map.get(item.get("reportedByContactId", 0)) or 1,
-                    "Impact": impact_map.get(item.get("priority"), "Medium"),
-                    "Urgency": impact_map.get(item.get("priority"), "Medium"),
+                    "Impact": INCIDENT_IMPACT.get(item.get("priority"), 2),
+                    "Urgency": INCIDENT_URGENCY.get(item.get("priority"), 2),
                 }
                 client.request_json("POST", "/api/itsm/incidents", payload, incidents_path, index, payload)
 
         problems_path = os.path.join(data_dir, "itsm_problems_seed.json")
         if os.path.exists(problems_path):
-            priority_map = {"Critical": "Critical", "High": "High", "Medium": "Medium", "Low": "Low"}
             for index, item in enumerate(load_json(problems_path)):
                 payload = {
                     "ShortDescription": item.get("title"),
                     "Description": item.get("title"),
-                    "Priority": priority_map.get(item.get("priority"), "Medium"),
+                    "Priority": PROBLEM_PRIORITY.get(item.get("priority"), 3),
                     "IncidentIds": [item.get("relatedIncidentId")],
                 }
                 client.request_json("POST", "/api/itsm/problems", payload, problems_path, index, payload)
