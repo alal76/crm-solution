@@ -106,10 +106,20 @@ public class ServiceRequestSettingsController : ControllerBase
             var category = await _categoryService.CreateCategoryAsync(dto);
             return CreatedAtAction(nameof(GetCategory), new { id = category.Id }, category);
         }
+        catch (Microsoft.EntityFrameworkCore.DbUpdateException dbEx)
+        {
+            _logger.LogWarning(dbEx, "Duplicate or constraint violation creating category {Name}", dto.Name);
+            return Conflict(new { message = $"Category '{dto.Name}' already exists or violates a constraint." });
+        }
+        catch (InvalidOperationException ioEx)
+        {
+            _logger.LogWarning(ioEx, "Category already exists: {Name}", dto.Name);
+            return Conflict(new { message = $"Category '{dto.Name}' already exists." });
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating category");
-            return StatusCode(500, "An error occurred while creating the category");
+            return StatusCode(500, new { message = "An error occurred while creating the category", detail = ex.Message });
         }
     }
 
@@ -621,10 +631,15 @@ public class ServiceRequestSettingsController : ControllerBase
             var type = await _typeService.CreateTypeAsync(dto);
             return CreatedAtAction(nameof(GetTypeById), new { id = type.Id }, type);
         }
+        catch (Microsoft.EntityFrameworkCore.DbUpdateException dbEx)
+        {
+            _logger.LogWarning(dbEx, "Duplicate or constraint violation creating type {Name}", dto.Name);
+            return Conflict(new { message = $"Type '{dto.Name}' already exists or violates a constraint." });
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating service request type");
-            return StatusCode(500, "An error occurred");
+            return StatusCode(500, new { message = "An error occurred", detail = ex.Message });
         }
     }
 

@@ -1,0 +1,1 @@
+{"status": "failed", "method": "POST", "endpoint": "/api/auth/login", "http_status": null, "file": null, "index": null, "request": {}, "response_body": "", "error": "HTTP Error 500: Internal Server Error", "summary": "  FAIL  POST /api/auth/login (inline) -> None  err=HTTP Error 500: Internal Server Error", "timestamp": "2026-02-17T08:18:20.401534Z"}
