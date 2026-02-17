@@ -1,15 +1,15 @@
 {
   "major": 0,
   "minor": 560,
-  "patch": 9,
+  "patch": 10,
   "lastUpdate": "2026-02-17",
-  "description": "Rate limiting toggle via docker env var, copilot instructions updated with rate limiting docs",
+  "description": "Test data loader: EXISTS status for duplicate detection, API response logging",
   "git": {
     "branch": "main",
-    "commit": "feat-rate-limiting-docker-toggle"
+    "commit": "feat-loader-exists-status"
   },
   "environment": "production",
   "architecture": "monolith",
   "buildServer": "azure-devops",
-  "buildTime": "2026-02-17T20:40:00"
+  "buildTime": "2026-02-17T20:50:00"
 }
