@@ -139,7 +139,7 @@ public class CampaignRecipientDto
     public int? ContactId { get; set; }
     public int? LeadId { get; set; }
     public int? AccountId { get; set; }
-    public string Email { get; set; } = string.Empty;
+    public string? Email { get; set; }
     public string? Phone { get; set; }
     public string? FirstName { get; set; }
     public string? LastName { get; set; }

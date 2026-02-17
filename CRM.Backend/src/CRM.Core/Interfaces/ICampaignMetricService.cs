@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using CRM.Core.Dtos;
+using CRM.Core.Entities;
 
 namespace CRM.Core.Interfaces;
 
@@ -23,6 +24,11 @@ namespace CRM.Core.Interfaces;
 /// </summary>
 public interface ICampaignMetricService
 {
+    /// <summary>
+    /// Create a new campaign metric record.
+    /// </summary>
+    Task<CampaignMetric> CreateAsync(CampaignMetric metric, CancellationToken cancellationToken = default);
+
     /// <summary>
     /// Get metrics for a campaign.
     /// </summary>

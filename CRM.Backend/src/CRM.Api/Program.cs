@@ -657,10 +657,12 @@ builder.Services.AddScoped<ICommissionCalculationService, CommissionCalculationS
 builder.Services.AddScoped<ICommissionApprovalService, CommissionApprovalService>();
 builder.Services.AddScoped<ICommissionPayoutService, CommissionPayoutService>();
 
-// Campaign Management Services (3 services)
+// Campaign Management Services (5 services)
 builder.Services.AddScoped<ICampaignRecipientService, CampaignRecipientService>();
 builder.Services.AddScoped<ICampaignMetricsService, CampaignMetricsService>();
+builder.Services.AddScoped<ICampaignMetricService, CampaignMetricService>();
 builder.Services.AddScoped<ICampaignExecutionService, CampaignExecutionService>();
+builder.Services.AddScoped<ICampaignConversionService, CampaignConversionService>();
 
 // Email Sequence Management Service (enhanced)
 builder.Services.AddScoped<IEmailSequenceManagementService, EmailSequenceManagementService>();

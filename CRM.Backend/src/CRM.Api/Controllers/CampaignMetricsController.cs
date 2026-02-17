@@ -1,4 +1,5 @@
 using CRM.Core.Dtos;
+using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -11,7 +12,7 @@ namespace CRM.Api.Controllers;
 /// Provides endpoints for campaign analytics and performance analysis.
 /// </summary>
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/campaign-metrics")]
 [Authorize]
 public class CampaignMetricsController : ControllerBase
 {
@@ -27,6 +28,30 @@ public class CampaignMetricsController : ControllerBase
     {
         _service = service ?? throw new ArgumentNullException(nameof(service));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    }
+
+    /// <summary>
+    /// Creates a new campaign metric record.
+    /// </summary>
+    [HttpPost]
+    [ProducesResponseType(typeof(CampaignMetric), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> Create(
+        [FromBody] CampaignMetric metric,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            _logger.LogInformation("Creating campaign metric for campaign: campaignId={CampaignId}", metric.CampaignId);
+            var result = await _service.CreateAsync(metric, cancellationToken);
+            return CreatedAtAction(nameof(GetMetrics), new { id = result.CampaignId }, result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating campaign metric");
+            return StatusCode(StatusCodes.Status500InternalServerError, new { message = ex.Message });
+        }
     }
 
     /// <summary>
