@@ -1,15 +1,15 @@
 {
   "major": 0,
   "minor": 560,
-  "patch": 8,
+  "patch": 9,
   "lastUpdate": "2026-02-17",
-  "description": "CRM Solution v0.560.8 - Comprehensive test data loader with 16 phases, Docker log capture, idempotency",
+  "description": "Rate limiting toggle via docker env var, copilot instructions updated with rate limiting docs",
   "git": {
     "branch": "main",
-    "commit": "feat-test-data-loader-comprehensive"
+    "commit": "feat-rate-limiting-docker-toggle"
   },
   "environment": "production",
   "architecture": "monolith",
   "buildServer": "azure-devops",
-  "buildTime": "2026-02-17T20:00:00"
+  "buildTime": "2026-02-17T20:40:00"
 }

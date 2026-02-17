@@ -1,7 +1,7 @@
 # GitHub Copilot Instructions - CRM Solution
 
 > **Last Updated:** February 17, 2026  
-> **Current Version:** 0.560.7  
+> **Current Version:** 0.560.9  
 > **Load this file at the start of every agent session**
 
 Copilot usage
@@ -1057,6 +1057,62 @@ GET /health/ready # Readiness probe
 GET /health/live  # Kubernetes liveness
 ```
 
+### 6.5 Rate Limiting
+
+The API uses ASP.NET Core's built-in `AddRateLimiter` with a configuration-driven toggle in `Program.cs`. The custom `RateLimitingMiddleware` class exists but is **not** registered in the pipeline.
+
+**Configuration** (`appsettings.json`):
+
+```json
+"RateLimiting": {
+    "EnableEndpointRateLimiting": true,
+    "HttpStatusCode": 429,
+    "QuotaExceededMessage": "API calls quota exceeded!",
+    "GeneralRules": [
+      { "Endpoint": "*", "Period": "1m", "Limit": 1000 }
+    ],
+    "EndpointRules": {
+      "/api/auth/login":           { "Period": "1m", "Limit": 5 },
+      "/api/auth/register":        { "Period": "1h", "Limit": 3 },
+      "/api/auth/verify-2fa":      { "Period": "1m", "Limit": 10 },
+      "/api/auth/forgot-password": { "Period": "1h", "Limit": 5 },
+      "/api/auth/refresh-token":   { "Period": "1m", "Limit": 10 },
+      "/api/auth/logout":          { "Period": "1m", "Limit": 30 },
+      "/api/customers":            { "Period": "1m", "Limit": 500 },
+      "/api/contacts":             { "Period": "1m", "Limit": 500 },
+      "/api/opportunities":        { "Period": "1m", "Limit": 500 },
+      "/api/products":             { "Period": "1m", "Limit": 500 },
+      "/api/activities":           { "Period": "1m", "Limit": 300 },
+      "/api/workflowengine":       { "Period": "1m", "Limit": 200 },
+      "/api/reports":              { "Period": "1m", "Limit": 100 },
+      "/api/dashboard":            { "Period": "1m", "Limit": 200 },
+      "/api/llm":                  { "Period": "1m", "Limit": 60 }
+    }
+}
+```
+
+**Environment-based defaults:**
+- `appsettings.Development.json`: `EnableEndpointRateLimiting: false` (disabled)
+- `appsettings.Testing.json`: `EnableEndpointRateLimiting: false` (disabled)
+- `appsettings.json` (Production): `EnableEndpointRateLimiting: true` (enabled)
+- Code default: `!isDevelopment` (off in Development, on otherwise)
+
+**Docker override** (via `docker-compose.yml`):
+
+```yaml
+- RateLimiting__EnableEndpointRateLimiting=${RATE_LIMITING_ENABLED:-true}
+```
+
+**To disable rate limiting for bulk data loading or testing:**
+
+| Method | How |
+|--------|-----|
+| **Docker env var** | Set `RATE_LIMITING_ENABLED=false` in `.env` or pass `-e RateLimiting__EnableEndpointRateLimiting=false` to `docker run` |
+| **ASPNETCORE_ENVIRONMENT** | Set to `Development` (loads `appsettings.Development.json` which disables it) |
+| **appsettings override** | Add `"RateLimiting": { "EnableEndpointRateLimiting": false }` to the active appsettings file |
+
+**Note:** The dev server deploy script (`deploy-to-dev-server.sh`) sets `ASPNETCORE_ENVIRONMENT=Production` in the generated `.env`, which enables rate limiting. The `RATE_LIMITING_ENABLED=false` variable is included in the deploy script to disable it for development. When deploying to production, change this to `true`.
+
 ---
 
 ## 7. API Endpoints
@@ -1408,6 +1464,8 @@ FeatureManagement__UseExternalAI=true
 | CORS error | Check `AllowedOrigins` in appsettings.json |
 | EF Core tracking error | Use `.AsNoTracking()` or detach entity |
 | Provider not found | Check feature flag and provider type in config |
+| HTTP 429 Too Many Requests | Rate limiting is on. Disable with `-e RateLimiting__EnableEndpointRateLimiting=false` or set `RATE_LIMITING_ENABLED=false` in `.env` |
+| Test data loader 429 errors | Ensure `--base-url http://192.168.0.9:5000` points to the dev server (default is localhost) and rate limiting is disabled |
 
 ### Useful Commands
 
