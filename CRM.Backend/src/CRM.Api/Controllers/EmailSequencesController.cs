@@ -15,8 +15,10 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -43,14 +45,14 @@ namespace CRM.Api.Controllers
         /// List all email sequences.
         /// </summary>
         [HttpGet]
-        [ProducesResponseType(typeof(IEnumerable<EmailSequence>), 200)]
+        [ProducesResponseType(typeof(IEnumerable<EmailSequenceDto>), 200)]
         [ProducesResponseType(500)]
         public async Task<IActionResult> GetAll(CancellationToken ct)
         {
             try
             {
                 var sequences = await _service.GetAllAsync(ct);
-                return Ok(sequences);
+                return Ok(sequences.Select(MapToDto));
             }
             catch (Exception ex)
             {
@@ -63,7 +65,7 @@ namespace CRM.Api.Controllers
         /// Get an email sequence by ID.
         /// </summary>
         [HttpGet("{id}")]
-        [ProducesResponseType(typeof(EmailSequence), 200)]
+        [ProducesResponseType(typeof(EmailSequenceDto), 200)]
         [ProducesResponseType(404)]
         [ProducesResponseType(500)]
         public async Task<IActionResult> GetById(int id, CancellationToken ct)
@@ -72,7 +74,7 @@ namespace CRM.Api.Controllers
             {
                 var sequence = await _service.GetByIdAsync(id, ct);
                 if (sequence == null) return NotFound(new { message = $"Email sequence {id} not found" });
-                return Ok(sequence);
+                return Ok(MapToDto(sequence));
             }
             catch (Exception ex)
             {
@@ -82,21 +84,21 @@ namespace CRM.Api.Controllers
         }
 
         [HttpPost]
-        [ProducesResponseType(typeof(EmailSequence), 201)]
+        [ProducesResponseType(typeof(EmailSequenceDto), 201)]
         [ProducesResponseType(400)]
         [ProducesResponseType(500)]
         public async Task<IActionResult> Create([FromBody] EmailSequence sequence, CancellationToken ct)
         {
             if (sequence == null) return BadRequest("Sequence payload required");
             var created = await _service.CreateSequenceAsync(sequence, ct);
-            return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
+            return CreatedAtAction(nameof(GetById), new { id = created.Id }, MapToDto(created));
         }
 
         /// <summary>
         /// Update an existing email sequence.
         /// </summary>
         [HttpPut("{id}")]
-        [ProducesResponseType(typeof(EmailSequence), 200)]
+        [ProducesResponseType(typeof(EmailSequenceDto), 200)]
         [ProducesResponseType(400)]
         [ProducesResponseType(404)]
         [ProducesResponseType(500)]
@@ -107,7 +109,7 @@ namespace CRM.Api.Controllers
             try
             {
                 var updated = await _service.UpdateAsync(sequence, ct);
-                return Ok(updated);
+                return Ok(MapToDto(updated));
             }
             catch (InvalidOperationException)
             {
@@ -185,5 +187,68 @@ namespace CRM.Api.Controllers
             var status = await _service.GetSequenceStatusAsync(id, ct);
             return Ok(status);
         }
+
+        #region DTO Mapping
+
+        private static EmailSequenceDto MapToDto(EmailSequence entity)
+        {
+            return new EmailSequenceDto
+            {
+                Id = entity.Id,
+                Name = entity.Name,
+                Description = entity.Description,
+                Status = entity.Status.ToString(),
+                SequenceType = entity.SendFromOwner ? "Owner" : "Shared",
+                TotalEnrolled = entity.TotalEnrolled,
+                TotalCompleted = entity.TotalCompleted,
+                TotalActive = entity.ActiveEnrollments,
+                OpenRate = entity.TotalEmailsSent > 0 ? (decimal)entity.TotalOpens / entity.TotalEmailsSent * 100 : 0,
+                ClickRate = entity.TotalEmailsSent > 0 ? (decimal)entity.TotalClicks / entity.TotalEmailsSent * 100 : 0,
+                ReplyRate = entity.TotalEmailsSent > 0 ? (decimal)entity.TotalReplies / entity.TotalEmailsSent * 100 : 0,
+                ConversionRate = entity.TotalEnrolled > 0 ? (decimal)entity.TotalCompleted / entity.TotalEnrolled * 100 : 0,
+                DefaultFromName = entity.FromName,
+                DefaultFromEmail = entity.FromEmail,
+                DefaultReplyTo = entity.ReplyToEmail,
+                OwnerId = entity.OwnerId,
+                CampaignId = null,
+                CreatedAt = entity.CreatedAt,
+                UpdatedAt = entity.UpdatedAt,
+                Steps = entity.Steps?.Select(MapStepToDto).OrderBy(s => s.StepNumber).ToList() ?? new List<EmailSequenceStepDto>()
+            };
+        }
+
+        private static EmailSequenceStepDto MapStepToDto(EmailSequenceStep step)
+        {
+            return new EmailSequenceStepDto
+            {
+                Id = step.Id,
+                SequenceId = step.EmailSequenceId,
+                StepNumber = step.StepOrder,
+                StepType = step.StepType.ToString(),
+                Name = step.Name,
+                Subject = step.Subject,
+                HtmlContent = step.Body,
+                TextContent = step.BodyPlainText,
+                TemplateId = step.EmailTemplateId,
+                DelayDays = step.DelayDays,
+                DelayHours = step.DelayHours,
+                DelayMinutes = step.DelayMinutes,
+                TimingMode = step.TimingMode.ToString(),
+                SpecificTime = step.SpecificTime != null ? TimeSpan.TryParse(step.SpecificTime, out var ts) ? ts : null : null,
+                SendOnWeekends = false,
+                IsABTest = step.IsABTest,
+                ABVariant = step.ABVariant,
+                ABTestPercentage = step.ABSplitPercent ?? 50,
+                TotalSent = step.EmailsSent,
+                TotalOpened = step.Opens,
+                TotalClicked = step.Clicks,
+                TotalReplied = step.Replies,
+                IsActive = step.IsActive,
+                CreatedAt = step.CreatedAt,
+                UpdatedAt = step.UpdatedAt
+            };
+        }
+
+        #endregion
     }
 }

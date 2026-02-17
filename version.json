@@ -1,15 +1,15 @@
 {
   "major": 0,
   "minor": 560,
-  "patch": 4,
+  "patch": 5,
   "lastUpdate": "2026-02-17",
-  "description": "CRM Solution v0.560.4 - Fix DB migration/seeder startup bugs, Docker config corrections",
+  "description": "CRM Solution v0.560.5 - Fix EmailSequence circular reference, add global IgnoreCycles",
   "git": {
     "branch": "dev",
-    "commit": "fix-migration-seeder-docker-config"
+    "commit": "fix-email-sequence-circular-ref"
   },
   "environment": "production",
   "architecture": "monolith",
   "buildServer": "azure-devops",
-  "buildTime": "2026-02-17T18:55:00"
+  "buildTime": "2026-02-17T19:15:00"
 }
