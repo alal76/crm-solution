@@ -51,3 +51,58 @@
 - Cause: Schema deployments before 2026-02-17 did not include Orders/OrderLineItems tables; Quotes may be missing if schema files were not applied.
 - Fix: Apply database schema updates (schema files include `010_sales_orders.sql`). For existing databases, run the schema deploy or apply the file directly.
 - Where seen: `POST /api/orders/*` and `POST /api/quotes/*/lineitems` during test data load.
+
+---
+
+## MariaDB migration fails with "Table already exists"
+
+- **Symptom:** `dotnet ef database update` or `MigrateAsync()` fails with `MySqlException: Table 'X' already exists`. Re-running still fails because some tables were created but migration history was not recorded.
+- **Root Cause:** MariaDB/MySQL DDL statements (CREATE TABLE, ALTER TABLE, DROP TABLE) are **auto-committed and non-transactional**. If EF Core's `MigrateAsync()` fails partway through a migration, previously executed CREATE TABLE statements persist (auto-committed) but the migration record in `__EFMigrationsHistory` is NOT inserted (rolled back with the transaction). On retry, the first already-existing table causes an immediate failure.
+- **Additional causes found (v0.560.4):**
+  1. `Program.cs` had an `EnsureCreated()` fallback path that created ALL tables without recording ANY migration history
+  2. `ExecuteSqlRawAsync` had a string interpolation bug (`$"...'{{{table}}}'..."`) causing `FormatException` at startup
+  3. `docker-compose.app.yml` defaulted `DatabaseProvider` to `sqlserver` while connection string pointed to MariaDB
+  4. `appsettings.Development.json` connection string pointed to remote server (192.168.0.9), not local Docker, causing `dotnet ef` from host to target wrong DB
+- **Fix:**
+  1. **Do NOT use `EnsureCreated()` for any database that will use migrations** — this was removed from Program.cs
+  2. **Use the idempotent migration script for MariaDB** (safe retries):
+    ```bash
+    ./scripts/apply-migrations.sh --local --reset   # Full reset + apply
+    ./scripts/apply-migrations.sh --remote           # Apply to remote
+    ```
+  3. **If tables exist without migration history**, drop and recreate the database:
+    ```bash
+    docker exec -i crm-mariadb mysql -u root -pRootPass@Dev2024 -e "DROP DATABASE IF EXISTS crm_db; CREATE DATABASE crm_db; GRANT ALL ON crm_db.* TO 'crm_user'@'%';"
+    ```
+  4. **Verify connection string target** before running `dotnet ef` — check `appsettings.Development.json` to confirm it points to the intended database server
+- **Helper script:** `scripts/apply-migrations.sh` generates idempotent SQL via `dotnet ef migrations script --idempotent` and applies via MariaDB CLI, avoiding the transactional DDL problem.
+- **Where seen:** Fresh Docker deployments, database resets, CI/CD pipeline failures
+
+---
+
+## Docker DatabaseProvider mismatch causes startup crash
+
+- **Symptom:** API container fails to start or connects to wrong database. Logs may show connection errors or provider-specific SQL syntax errors.
+- **Root Cause:** `docker-compose.app.yml` had `DatabaseProvider` defaulting to `sqlserver` while the connection string and dependent containers were MariaDB. This caused EF Core to use the wrong SQL dialect.
+- **Fix:** Ensure `DatabaseProvider` environment variable matches the actual database:
+  ```yaml
+  DatabaseProvider: ${DB_PROVIDER:-mariadb}
+  DB_HOST: ${DB_HOST:-crm-mariadb}
+  DB_PORT: ${DB_PORT:-3306}
+  ```
+- **Where seen:** docker-compose.app.yml, docker-compose.unified.yml
+
+---
+
+## Multi-arch Docker build required for Mac → Linux deployment
+
+- **Symptom:** Docker image built on Mac (arm64) crashes or fails on Linux server (amd64) with exec format errors.
+- **Fix:** Always use multi-arch build for cross-platform deployment:
+  ```bash
+  docker buildx build --platform linux/amd64 -t crm-api:latest -f docker/Dockerfile.backend .
+  ```
+- **Transfer to remote:**
+  ```bash
+  docker save crm-api:latest | ssh root@192.168.0.9 "docker load"
+  ```
+- **Where seen:** Deploying from Mac development machine to `192.168.0.9` Linux server

@@ -1,15 +1,15 @@
 {
   "major": 0,
   "minor": 560,
-  "patch": 3,
+  "patch": 4,
   "lastUpdate": "2026-02-17",
-  "description": "CRM Solution v0.560.3 - Post-deployment health check module",
+  "description": "CRM Solution v0.560.4 - Fix DB migration/seeder startup bugs, Docker config corrections",
   "git": {
     "branch": "dev",
-    "commit": "add-post-deployment-health-check"
+    "commit": "fix-migration-seeder-docker-config"
   },
   "environment": "production",
   "architecture": "monolith",
   "buildServer": "azure-devops",
-  "buildTime": "2026-02-17T17:45:00"
+  "buildTime": "2026-02-17T18:55:00"
 }

@@ -171,7 +171,7 @@ public class EmailSequenceEnrollmentConfiguration : IEntityTypeConfiguration<Ema
         builder.Property(e => e.RecipientEmail).IsRequired().HasMaxLength(255);
         builder.Property(e => e.Status).HasMaxLength(50).HasDefaultValue(EnrollmentStatus.Active);
         builder.Property(e => e.CurrentStepIndex).HasDefaultValue(0);
-        builder.Property(e => e.EnrolledAt).HasDefaultValueSql("GETUTCDATE()");
+        builder.Property(e => e.EnrolledAt).HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
         
         // Optional properties
         builder.Property(e => e.ContactId);

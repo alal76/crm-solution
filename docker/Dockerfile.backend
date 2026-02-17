@@ -38,13 +38,18 @@ RUN dotnet publish "src/CRM.Api/CRM.Api.csproj" -c Release -o /app/publish
 # ============================================
 # Stage 2: Runtime (minimal image)
 # ============================================
-FROM mcr.microsoft.com/dotnet/aspnet:10.0-alpine AS runtime
+FROM mcr.microsoft.com/dotnet/sdk:10.0 AS runtime
+
 
 WORKDIR /app
 
-# Install minimal dependencies including ICU for globalization
-# Note: mariadb-client removed to reduce runtime attack surface (~30MB savings)
-RUN apk add --no-cache curl icu-libs icu-data-full
+
+# Install minimal dependencies including ICU for globalization and dotnet-ef for migrations
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends curl && \
+    dotnet tool install --global dotnet-ef && \
+    export PATH="$PATH:/root/.dotnet/tools" && \
+    rm -rf /var/lib/apt/lists/*
 
 # Create directories with proper permissions
 RUN mkdir -p /app/data /app/ssl /app/wwwroot/uploads/logos /app/wwwroot/uploads/users /app/wwwroot/uploads/customers /app/wwwroot/uploads/contacts && \
@@ -59,18 +64,21 @@ COPY --from=builder /app/publish .
 # Example K8s volume mount: /app/ssl/server.pfx
 
 # Create startup script
-RUN printf '#!/bin/sh\nset -e\necho "Starting CRM API..."\nif [ -f /app/ssl/server.pfx ]; then\n  echo "SSL certificate found - HTTPS on port 5001"\nelse\n  echo "No SSL - HTTP only on port 5000"\nfi\nexec "$@"\n' > /app/entrypoint.sh && \
+RUN printf '#!/bin/sh\nset -e\necho "Starting CRM API..."\nexport PATH="$PATH:/root/.dotnet/tools"\nif [ -f /app/ssl/server.pfx ]; then\n  echo "SSL certificate found - HTTPS on port 5001"\nelse\n  echo "No SSL - HTTP only on port 5000"\nfi\nexec "$@"\n' > /app/entrypoint.sh && \
     chmod +x /app/entrypoint.sh
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 \
     CMD curl -f http://localhost:5000/health || exit 1
 
+
 EXPOSE 5000 5001
+
 
 # SECURITY: SSL_CERT_PASSWORD must be provided at runtime via environment variable.
 # Do NOT bake passwords into the image. Mount the certificate via K8s secret or Docker volume.
 ARG SSL_CERT_PASSWORD=""
+
 
 # Environment configuration
 ENV ASPNETCORE_URLS=http://+:5000 \
@@ -80,7 +88,9 @@ ENV ASPNETCORE_URLS=http://+:5000 \
     SSL_CERT_PATH=/app/ssl/server.pfx \
     SSL_CERT_PASSWORD=${SSL_CERT_PASSWORD} \
     HTTPS_PORT=5001 \
-    HTTP_PORT=5000
+    HTTP_PORT=5000 \
+    PATH="/root/.dotnet/tools:$PATH"
+
 
 ENTRYPOINT ["/app/entrypoint.sh"]
 CMD ["dotnet", "CRM.Api.dll"]

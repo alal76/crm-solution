@@ -40,10 +40,10 @@ services:
     ports:
       - "3306:3306"
     environment:
-      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:-RootPass@Dev2024!}
+      MARIADB_ROOT_PASSWORD: RootPass@Dev2024
       MARIADB_DATABASE: ${MARIADB_DATABASE:-crm_db}
       MARIADB_USER: ${MARIADB_USER:-crm_user}
-      MARIADB_PASSWORD: ${MARIADB_PASSWORD:-CrmPass@Dev2024!}
+      MARIADB_PASSWORD: ${MARIADB_PASSWORD:-CrmPass@Dev2024}
     volumes:
       - mariadb-data:/var/lib/mysql
       - ./init-scripts/mariadb:/docker-entrypoint-initdb.d:ro
@@ -54,7 +54,7 @@ services:
       --max-connections=500
       --innodb-buffer-pool-size=256M
     healthcheck:
-      test: ["CMD", "mariadb-admin", "ping", "-h", "localhost", "-u", "root", "-p${MARIADB_ROOT_PASSWORD:-RootPass@Dev2024!}"]
+      test: ["CMD", "mariadb-admin", "ping", "-h", "localhost", "-u", "root", "-p${MARIADB_ROOT_PASSWORD:-RootPass@Dev2024}"]
       interval: 10s
       timeout: 5s
       retries: 5

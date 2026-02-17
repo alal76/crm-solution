@@ -1478,7 +1478,8 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.Property(e => e.Title).IsRequired().HasMaxLength(255);
             entity.Property(e => e.EntityType).HasMaxLength(100);
             entity.Property(e => e.SecondaryEntityType).HasMaxLength(100);
-            entity.Property(e => e.ActivityType).HasMaxLength(100);
+            // Removed HasMaxLength(100) from ActivityType (enum, not string)
+            // entity.Property(e => e.ActivityType).HasMaxLength(100);
 
             entity.HasOne(e => e.User)
                 .WithMany()
