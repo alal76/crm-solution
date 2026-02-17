@@ -92,7 +92,8 @@ interface FeatureConfiguration {
     whatsapp: FeatureStatus;
     socialMedia: FeatureStatus;
   };
-  systemSettings: {
+  // DEPRECATED: Demo database feature removed - systemSettings kept for backward compatibility
+  systemSettings?: {
     demoModeEnabled: boolean;
     useDemoDatabase: boolean;
   };
@@ -112,7 +113,8 @@ interface DatabaseStatus {
     isActive: boolean;
     modules: Record<string, number>;
   };
-  demoDatabase: {
+  // DEPRECATED: demoDatabase is optional - single database policy
+  demoDatabase?: {
     name: string;
     isActive: boolean;
     modules: Record<string, number>;
@@ -226,6 +228,8 @@ function FeatureManagementTab() {
     setHasChanges(true);
   };
 
+  // DEPRECATED: Demo database feature removed - kept for interface compatibility
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const handleDemoModeToggle = (enabled: boolean) => {
     if (!features) return;
 
@@ -234,7 +238,7 @@ function FeatureManagementTab() {
       return {
         ...prev,
         systemSettings: {
-          ...prev.systemSettings,
+          demoModeEnabled: prev.systemSettings?.demoModeEnabled ?? false,
           useDemoDatabase: enabled,
         },
       };
@@ -291,7 +295,8 @@ function FeatureManagementTab() {
         emailEnabled: features.communicationModules.email.enabled,
         whatsAppEnabled: features.communicationModules.whatsapp.enabled,
         socialMediaEnabled: features.communicationModules.socialMedia.enabled,
-        useDemoDatabase: features.systemSettings.useDemoDatabase,
+        // DEPRECATED: Demo database feature removed - always false
+        useDemoDatabase: features.systemSettings?.useDemoDatabase ?? false,
         activeDatabaseProvider: features.activeDatabaseProvider,
       };
 
@@ -502,74 +507,53 @@ function FeatureManagementTab() {
                 </CardContent>
               </Card>
             </Grid>
-            <Grid item xs={12} md={6}>
-              <Card variant={databaseStatus.demoDatabase.isActive ? 'elevation' : 'outlined'}>
-                <CardHeader
-                  title={
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <DemoIcon fontSize="small" />
-                      Demo Database
-                      {databaseStatus.demoDatabase.isActive && (
-                        <Chip label="ACTIVE" color="info" size="small" />
-                      )}
-                    </Box>
-                  }
-                  subheader={databaseStatus.demoDatabase.name}
-                />
-                <CardContent>
-                  <TableContainer>
-                    <Table size="small">
-                      <TableHead>
-                        <TableRow>
-                          <TableCell>Module</TableCell>
-                          <TableCell align="right">Field Configs</TableCell>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {Object.entries(databaseStatus.demoDatabase.modules).map(([module, count]) => (
-                          <TableRow key={module}>
-                            <TableCell>{module}</TableCell>
-                            <TableCell align="right">{count}</TableCell>
+            {/* Demo Database card - only show if demoDatabase exists (deprecated feature) */}
+            {databaseStatus.demoDatabase && (
+              <Grid item xs={12} md={6}>
+                <Card variant={databaseStatus.demoDatabase.isActive ? 'elevation' : 'outlined'}>
+                  <CardHeader
+                    title={
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <DemoIcon fontSize="small" />
+                        Demo Database (Deprecated)
+                        {databaseStatus.demoDatabase.isActive && (
+                          <Chip label="ACTIVE" color="info" size="small" />
+                        )}
+                      </Box>
+                    }
+                    subheader={databaseStatus.demoDatabase.name}
+                  />
+                  <CardContent>
+                    <TableContainer>
+                      <Table size="small">
+                        <TableHead>
+                          <TableRow>
+                            <TableCell>Module</TableCell>
+                            <TableCell align="right">Field Configs</TableCell>
                           </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
-                </CardContent>
-              </Card>
-            </Grid>
+                        </TableHead>
+                        <TableBody>
+                          {Object.entries(databaseStatus.demoDatabase.modules).map(([module, count]) => (
+                            <TableRow key={module}>
+                              <TableCell>{module}</TableCell>
+                              <TableCell align="right">{count}</TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </TableContainer>
+                  </CardContent>
+                </Card>
+              </Grid>
+            )}
           </Grid>
         )}
       </Paper>
 
-      {/* Demo Mode Toggle */}
-      <Paper sx={{ p: 3, mb: 3 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <DemoIcon color={features.systemSettings.useDemoDatabase ? 'info' : 'disabled'} />
-            <Box>
-              <Typography variant="h6">Demo Mode</Typography>
-              <Typography variant="body2" color="text.secondary">
-                Enable demo mode to use the demo database with sample data
-              </Typography>
-            </Box>
-          </Box>
-          <FormControlLabel
-            control={
-              <Switch
-                checked={features.systemSettings.useDemoDatabase}
-                onChange={(e) => handleDemoModeToggle(e.target.checked)}
-              />
-            }
-            label={features.systemSettings.useDemoDatabase ? 'Enabled' : 'Disabled'}
-          />
-        </Box>
-        {features.systemSettings.useDemoDatabase && (
-          <Alert severity="warning" sx={{ mt: 2 }}>
-            Demo mode is enabled. The system is using the demo database. Disable for production use.
-          </Alert>
-        )}
-      </Paper>
+      {/* Demo Mode Toggle - DEPRECATED: Single database policy in effect */}
+      {/* This section is hidden as demo database feature has been removed.
+          The system now operates with a single production database only.
+          See copilot-instructions.md for single database policy. */}
 
       {/* Database Provider Selection - Currently Disabled */}
       <Paper sx={{ p: 3, mb: 3, opacity: 0.7 }}>

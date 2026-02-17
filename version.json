@@ -1,15 +1,15 @@
 {
   "major": 0,
   "minor": 560,
-  "patch": 6,
+  "patch": 8,
   "lastUpdate": "2026-02-17",
-  "description": "CRM Solution v0.560.6 - Test data loader v3: edit, delete, link/unlink, verification phases",
+  "description": "CRM Solution v0.560.8 - Comprehensive test data loader with 16 phases, Docker log capture, idempotency",
   "git": {
-    "branch": "bugfix/data-loader-failures",
-    "commit": "feat-test-loader-edit-delete-link-verify"
+    "branch": "main",
+    "commit": "feat-test-data-loader-comprehensive"
   },
   "environment": "production",
   "architecture": "monolith",
   "buildServer": "azure-devops",
-  "buildTime": "2026-02-17T19:38:00"
+  "buildTime": "2026-02-17T20:00:00"
 }

@@ -1,7 +1,7 @@
 # GitHub Copilot Instructions - CRM Solution
 
 > **Last Updated:** February 17, 2026  
-> **Current Version:** 0.560.5  
+> **Current Version:** 0.560.7  
 > **Load this file at the start of every agent session**
 
 Copilot usage
@@ -64,6 +64,30 @@ Each feature has a specification file (`SPEC-{MODULE}-{SEQ}-{Name}.md`) with ful
 **References:**
 - [docs/architecture/ADR-002-EF-Core-Schema-Management.md](../docs/architecture/ADR-002-EF-Core-Schema-Management.md)
 - [docs/development/DATABASE_EF_CORE_GAP_ANALYSIS.md](../docs/development/DATABASE_EF_CORE_GAP_ANALYSIS.md)
+
+### Single Database Policy (MANDATORY)
+
+**CRITICAL:** The CRM solution operates with a **single database only** (`crm_db`).
+
+| Rule | Description |
+|------|-------------|
+| **No Demo Database** | The legacy "demo database" (`crm_demodb`) feature has been deprecated and removed. All DemoDatabase configuration has been commented out. |
+| **Single Connection String** | Only `ConnectionStrings__DefaultConnection` should be configured. No secondary database connections. |
+| **Sample Data in Production DB** | If sample/demo data is needed, seed it directly into the production database using `SampleDataSeederService`, not a separate database. |
+| **Deprecated Properties** | `SystemSettings.ShowDemoData`, `SampleDataSeeded`, and `SampleDataLastSeeded` are marked `[Obsolete]` and should not be used in new code. |
+
+**What was deprecated:**
+- `DemoDatabase__AutoSeed` environment variable
+- `DemoDatabase__DatabaseName` environment variable  
+- `crm_demodb` database name references
+- `DemoDbContextFactory`, `DemoDataController`, `DemoDataSeederService` (removed from codebase)
+- `IDemoDbContextFactory`, `IDemoModeState` interfaces (removed)
+
+**If you encounter demo database references:**
+1. Do NOT re-enable them
+2. Use the single production database (`crm_db`) for all operations
+3. Seed sample data using `SampleDataSeederService` if needed
+4. Report any active demo database code to be deprecated
 
 ---
 ### Before Writing Code
