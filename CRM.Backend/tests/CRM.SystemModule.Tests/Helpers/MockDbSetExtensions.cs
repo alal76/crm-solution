@@ -150,7 +150,7 @@ public class TestAsyncQueryProvider<TEntity> : IQueryProvider where TEntity : cl
 /// <summary>
 /// Async enumerable for test queries.
 /// </summary>
-public class TestAsyncEnumerable<T> : IAsyncEnumerable<T>, IQueryable<T>
+public class TestAsyncEnumerable<T> : IAsyncEnumerable<T>, IQueryable<T> where T : class
 {
     private readonly IQueryable<T> _inner;
 

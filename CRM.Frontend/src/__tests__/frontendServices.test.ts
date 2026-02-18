@@ -2,6 +2,7 @@
 // Tests for API service layer functions
 
 import axios from 'axios';
+// @ts-ignore - axios-mock-adapter may not have types in some setups
 import MockAdapter from 'axios-mock-adapter';
 
 // Mock API client

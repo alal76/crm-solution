@@ -382,12 +382,12 @@ describe('AccountsPage - Delete Account', () => {
   it('should remove customer from list after delete', () => {
     let accounts = [...mockAccounts];
     const deleteCustomer = (id: number) => {
-      customers = customers.filter(c => c.id !== id);
+      accounts = accounts.filter((c: { id: number }) => c.id !== id);
     };
     
     deleteCustomer(1);
-    expect(customers.length).toBe(2);
-    expect(customers.find(c => c.id === 1)).toBeUndefined();
+    expect(accounts.length).toBe(2);
+    expect(accounts.find((c: { id: number }) => c.id === 1)).toBeUndefined();
   });
 
   it('should show success message after delete', () => {

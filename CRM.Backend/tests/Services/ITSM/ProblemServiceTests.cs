@@ -14,385 +14,344 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using Xunit;
-using Moq;
-using FluentAssertions;
+using CRM.Core.DTOs.ITSM;
 using CRM.Core.Entities.ITSM;
-using CRM.Core.Entities;
 using CRM.Core.Interfaces;
+using CRM.Core.Interfaces.ITSM;
 using CRM.Infrastructure.Data;
+using CRM.Infrastructure.Services.ITSM;
+using CRM.Tests.Helpers;
+using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
+using Moq;
+using Xunit;
 
 namespace CRM.Tests.Services.ITSM;
 
-/// <summary>
-/// Comprehensive unit tests for Problem Management (35+ tests)
-/// Covers CRUD, RCA tracking, linking, and status workflow
-/// NOTE: Currently disabled - ILogger<IProblemService> is invalid (interfaces cannot be used as ILogger generic parameter)
-/// </summary>
-#if false
 public class ProblemServiceTests
 {
+    private readonly Mock<IDbContextResolver> _mockResolver;
     private readonly Mock<ICrmDbContext> _mockContext;
     private readonly Mock<ILogger<ProblemService>> _mockLogger;
+    private readonly IProblemService _service;
 
     public ProblemServiceTests()
     {
+        _mockResolver = new Mock<IDbContextResolver>();
         _mockContext = new Mock<ICrmDbContext>();
         _mockLogger = new Mock<ILogger<ProblemService>>();
+
+        _mockResolver.Setup(r => r.ResolveContext()).Returns(_mockContext.Object);
+        _service = new ProblemService(_mockResolver.Object, _mockLogger.Object);
     }
 
-    #region Problem CRUD Tests
+    // ========================================================================
+    // CreateProblemAsync
+    // ========================================================================
 
     [Fact]
-    public async Task CreateProblem_ShouldCreateNewProblem_WhenValidDataProvided()
+    public async Task CreateProblemAsync_ShouldCreateProblem_WhenValidDtoProvided()
     {
         // Arrange
-        var problem = new Problem 
-        { 
-            Title = "Database Connection Timeout",
-            Description = "Connection pool exhausted",
-            Status = ProblemStatus.Open,
-            Priority = PrioritySeverity.High,
+        var problems = new List<Problem>();
+        var mockSet = MockDbSetFactory.CreateMockDbSet(problems);
+        mockSet.Setup(m => m.Add(It.IsAny<Problem>())).Callback<Problem>(e => problems.Add(e));
+        _mockContext.Setup(c => c.Problems).Returns(mockSet.Object);
+        _mockContext.Setup(c => c.ProblemIncidents).Returns(MockDbSetFactory.CreateMockDbSet(new List<ProblemIncident>()).Object);
+        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+
+        var dto = new CreateProblemDto
+        {
+            ShortDescription = "Recurring network issue",
+            Description = "Network connectivity drops every 2 hours",
+            Priority = ProblemPriority.High
+        };
+
+        // Act
+        var result = await _service.CreateProblemAsync(dto, createdById: 1);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.ShortDescription.Should().Be("Recurring network issue");
+        mockSet.Verify(m => m.Add(It.IsAny<Problem>()), Times.Once);
+    }
+
+    [Fact]
+    public async Task CreateProblemAsync_ShouldGenerateNumber()
+    {
+        // Arrange
+        var problems = new List<Problem>();
+        var mockSet = MockDbSetFactory.CreateMockDbSet(problems);
+        mockSet.Setup(m => m.Add(It.IsAny<Problem>())).Callback<Problem>(e => problems.Add(e));
+        _mockContext.Setup(c => c.Problems).Returns(mockSet.Object);
+        _mockContext.Setup(c => c.ProblemIncidents).Returns(MockDbSetFactory.CreateMockDbSet(new List<ProblemIncident>()).Object);
+        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+
+        var dto = new CreateProblemDto
+        {
+            ShortDescription = "Number test",
+            Priority = ProblemPriority.Medium
+        };
+
+        // Act
+        var result = await _service.CreateProblemAsync(dto, createdById: 1);
+
+        // Assert
+        result.Number.Should().NotBeNullOrEmpty();
+    }
+
+    // ========================================================================
+    // GetProblemByIdAsync
+    // ========================================================================
+
+    [Fact]
+    public async Task GetProblemByIdAsync_ShouldReturnProblem_WhenExists()
+    {
+        // Arrange
+        var problems = new List<Problem>
+        {
+            new()
+            {
+                ProblemId = 1, Number = "PRB0001", ShortDescription = "Network issue",
+                State = ProblemState.New, Priority = ProblemPriority.High,
+                CreatedAt = DateTime.UtcNow, IsDeleted = false
+            }
+        };
+        _mockContext.Setup(c => c.Problems).Returns(MockDbSetFactory.CreateMockDbSet(problems).Object);
+        _mockContext.Setup(c => c.ProblemIncidents).Returns(MockDbSetFactory.CreateMockDbSet(new List<ProblemIncident>()).Object);
+
+        // Act
+        var result = await _service.GetProblemByIdAsync(1);
+
+        // Assert
+        result.Should().NotBeNull();
+        result!.ShortDescription.Should().Be("Network issue");
+    }
+
+    [Fact]
+    public async Task GetProblemByIdAsync_ShouldReturnNull_WhenNotFound()
+    {
+        // Arrange
+        _mockContext.Setup(c => c.Problems).Returns(MockDbSetFactory.CreateMockDbSet(new List<Problem>()).Object);
+
+        // Act
+        var result = await _service.GetProblemByIdAsync(999);
+
+        // Assert
+        result.Should().BeNull();
+    }
+
+    // ========================================================================
+    // GetProblemsAsync
+    // ========================================================================
+
+    [Fact]
+    public async Task GetProblemsAsync_ShouldReturnFilteredResults()
+    {
+        // Arrange
+        var problems = new List<Problem>
+        {
+            new() { ProblemId = 1, Number = "PRB0001", ShortDescription = "P1", State = ProblemState.New, Priority = ProblemPriority.High, CreatedAt = DateTime.UtcNow },
+            new() { ProblemId = 2, Number = "PRB0002", ShortDescription = "P2", State = ProblemState.Closed, Priority = ProblemPriority.Low, CreatedAt = DateTime.UtcNow },
+            new() { ProblemId = 3, Number = "PRB0003", ShortDescription = "P3", State = ProblemState.New, Priority = ProblemPriority.Medium, CreatedAt = DateTime.UtcNow }
+        };
+        _mockContext.Setup(c => c.Problems).Returns(MockDbSetFactory.CreateMockDbSet(problems).Object);
+        _mockContext.Setup(c => c.ProblemIncidents).Returns(MockDbSetFactory.CreateMockDbSet(new List<ProblemIncident>()).Object);
+
+        var filter = new ProblemFilterDto { State = ProblemState.New, PageNumber = 1, PageSize = 20 };
+
+        // Act
+        var (items, totalCount) = await _service.GetProblemsAsync(filter);
+
+        // Assert
+        totalCount.Should().Be(2);
+    }
+
+    // ========================================================================
+    // UpdateProblemAsync
+    // ========================================================================
+
+    [Fact]
+    public async Task UpdateProblemAsync_ShouldUpdateFields_WhenProblemExists()
+    {
+        // Arrange
+        var problem = new Problem
+        {
+            ProblemId = 1, Number = "PRB0001", ShortDescription = "Old desc",
+            State = ProblemState.New, Priority = ProblemPriority.Medium,
             CreatedAt = DateTime.UtcNow
         };
+        _mockContext.Setup(c => c.Problems).Returns(MockDbSetFactory.CreateMockDbSet(new List<Problem> { problem }).Object);
+        _mockContext.Setup(c => c.ProblemIncidents).Returns(MockDbSetFactory.CreateMockDbSet(new List<ProblemIncident>()).Object);
+        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
-        var mockDbSet = new Mock<DbSet<Problem>>();
-        _mockContext.Setup(x => x.Problems).Returns(mockDbSet.Object);
-        _mockContext.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(1);
+        var dto = new UpdateProblemDto { ShortDescription = "Updated desc", KnownError = true };
 
         // Act
-        var result = problem;
+        var result = await _service.UpdateProblemAsync(1, dto, modifiedById: 2);
 
         // Assert
         result.Should().NotBeNull();
-        result.Title.Should().Be("Database Connection Timeout");
-        result.Status.Should().Be(ProblemStatus.Open);
+        result.ShortDescription.Should().Be("Updated desc");
     }
 
+    // ========================================================================
+    // LinkIncidentAsync
+    // ========================================================================
+
     [Fact]
-    public async Task GetProblemById_ShouldReturnProblem_WhenIdExists()
+    public async Task LinkIncidentAsync_ShouldLink_WhenBothExist()
     {
         // Arrange
-        var problemId = 1;
-        var problem = new Problem { Id = problemId, Title = "Test Problem", Status = ProblemStatus.Open };
+        var problem = new Problem
+        {
+            ProblemId = 1, Number = "PRB0001", ShortDescription = "Test",
+            State = ProblemState.New, Priority = ProblemPriority.High,
+            CreatedAt = DateTime.UtcNow
+        };
+        var incident = new Incident
+        {
+            IncidentId = 10, Number = "INC0010", ShortDescription = "Related",
+            CallerId = 1, State = IncidentState.InProgress,
+            Impact = IncidentImpact.High, Urgency = IncidentUrgency.High,
+            CreatedAt = DateTime.UtcNow
+        };
+        var links = new List<ProblemIncident>();
+        var mockLinkSet = MockDbSetFactory.CreateMockDbSet(links);
+        mockLinkSet.Setup(m => m.Add(It.IsAny<ProblemIncident>())).Callback<ProblemIncident>(e => links.Add(e));
 
-        var mockDbSet = new Mock<DbSet<Problem>>();
-        mockDbSet.Setup(x => x.FindAsync(problemId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync(problem);
-
-        _mockContext.Setup(x => x.Problems).Returns(mockDbSet.Object);
+        _mockContext.Setup(c => c.Problems).Returns(MockDbSetFactory.CreateMockDbSet(new List<Problem> { problem }).Object);
+        _mockContext.Setup(c => c.Incidents).Returns(MockDbSetFactory.CreateMockDbSet(new List<Incident> { incident }).Object);
+        _mockContext.Setup(c => c.ProblemIncidents).Returns(mockLinkSet.Object);
+        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
         // Act
-        var result = await Task.FromResult(problem);
+        var result = await _service.LinkIncidentAsync(1, 10, createdById: 1);
+
+        // Assert
+        result.Should().BeTrue();
+    }
+
+    // ========================================================================
+    // MarkAsKnownErrorAsync
+    // ========================================================================
+
+    [Fact]
+    public async Task MarkAsKnownErrorAsync_ShouldSetKnownErrorFlag()
+    {
+        // Arrange
+        var problem = new Problem
+        {
+            ProblemId = 1, Number = "PRB0001", ShortDescription = "Test",
+            State = ProblemState.New, Priority = ProblemPriority.High,
+            KnownError = false, CreatedAt = DateTime.UtcNow
+        };
+        _mockContext.Setup(c => c.Problems).Returns(MockDbSetFactory.CreateMockDbSet(new List<Problem> { problem }).Object);
+        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+
+        // Act
+        var result = await _service.MarkAsKnownErrorAsync(1, modifiedById: 2);
+
+        // Assert
+        result.Should().BeTrue();
+        problem.KnownError.Should().BeTrue();
+    }
+
+    // ========================================================================
+    // GetRelatedIncidentsAsync
+    // ========================================================================
+
+    [Fact]
+    public async Task GetRelatedIncidentsAsync_ShouldReturnLinkedIncidents()
+    {
+        // Arrange
+        var incident1 = new Incident { IncidentId = 1, Number = "INC0001", ShortDescription = "Linked 1", CallerId = 1, State = IncidentState.New, Impact = IncidentImpact.High, Urgency = IncidentUrgency.High, CreatedAt = DateTime.UtcNow };
+        var incident2 = new Incident { IncidentId = 2, Number = "INC0002", ShortDescription = "Linked 2", CallerId = 2, State = IncidentState.New, Impact = IncidentImpact.Low, Urgency = IncidentUrgency.Low, CreatedAt = DateTime.UtcNow };
+        var links = new List<ProblemIncident>
+        {
+            new() { ProblemIncidentId = 1, ProblemId = 1, IncidentId = 1, CreatedAt = DateTime.UtcNow, Incident = incident1 },
+            new() { ProblemIncidentId = 2, ProblemId = 1, IncidentId = 2, CreatedAt = DateTime.UtcNow, Incident = incident2 }
+        };
+        _mockContext.Setup(c => c.ProblemIncidents).Returns(MockDbSetFactory.CreateMockDbSet(links).Object);
+        _mockContext.Setup(c => c.Incidents).Returns(MockDbSetFactory.CreateMockDbSet(new List<Incident> { incident1, incident2 }).Object);
+
+        // Act
+        var result = await _service.GetRelatedIncidentsAsync(1);
 
         // Assert
         result.Should().NotBeNull();
-        result.Title.Should().Be("Test Problem");
-    }
-
-    [Fact]
-    public async Task UpdateProblem_ShouldUpdateExistingProblem()
-    {
-        // Arrange
-        var problem = new Problem 
-        { 
-            Id = 1,
-            Title = "Updated Title",
-            Status = ProblemStatus.InProgress,
-            UpdatedAt = DateTime.UtcNow
-        };
-
-        _mockContext.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(1);
-
-        // Act
-        var result = problem;
-
-        // Assert
-        result.Title.Should().Be("Updated Title");
-        result.Status.Should().Be(ProblemStatus.InProgress);
-    }
-
-    [Fact]
-    public async Task DeleteProblem_ShouldSoftDeleteProblem()
-    {
-        // Arrange
-        var problem = new Problem { Id = 1, IsDeleted = false };
-
-        // Act
-        problem.IsDeleted = true;
-
-        // Assert
-        problem.IsDeleted.Should().BeTrue();
-    }
-
-    [Fact]
-    public async Task GetAllProblems_ShouldReturnAllProblems()
-    {
-        // Arrange
-        var problems = new List<Problem>
-        {
-            new Problem { Id = 1, Title = "Problem A", Status = ProblemStatus.Open },
-            new Problem { Id = 2, Title = "Problem B", Status = ProblemStatus.Resolved }
-        }.AsQueryable();
-
-        var mockDbSet = SetupMockDbSet(problems);
-        _mockContext.Setup(x => x.Problems).Returns(mockDbSet.Object);
-
-        // Act
-        var result = problems.Where(p => !p.IsDeleted).ToList();
-
-        // Assert
         result.Should().HaveCount(2);
     }
 
-    #endregion
-
-    #region RCA (Root Cause Analysis) Tests
+    // ========================================================================
+    // UpdateRootCauseAnalysisAsync
+    // ========================================================================
 
     [Fact]
-    public async Task AddRootCauseAnalysis_ShouldAddRCA()
+    public async Task UpdateRootCauseAnalysisAsync_ShouldSetRootCauseAndWorkaround()
     {
         // Arrange
-        var problem = new Problem { Id = 1, Title = "Test Problem" };
-        var rca = new RootCauseAnalysis 
-        { 
-            ProblemId = 1,
-            RootCause = "Misconfiguration in DB settings",
-            ImmediateImact = "Service unavailable for 2 hours",
-            LongTermImpact = "Data inconsistency"
+        var problem = new Problem
+        {
+            ProblemId = 1, Number = "PRB0001", ShortDescription = "RCA test",
+            State = ProblemState.New, Priority = ProblemPriority.High,
+            CreatedAt = DateTime.UtcNow
+        };
+        _mockContext.Setup(c => c.Problems).Returns(MockDbSetFactory.CreateMockDbSet(new List<Problem> { problem }).Object);
+        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+
+        // Act
+        var result = await _service.UpdateRootCauseAnalysisAsync(
+            1, rootCause: "Memory leak in service", workaround: "Restart daily", modifiedById: 3);
+
+        // Assert
+        result.Should().BeTrue();
+        problem.RootCause.Should().Be("Memory leak in service");
+        problem.Workaround.Should().Be("Restart daily");
+    }
+
+    // ========================================================================
+    // CreateProblemAsync with linked incidents
+    // ========================================================================
+
+    [Fact]
+    public async Task CreateProblemAsync_ShouldLinkIncidents_WhenIdsProvided()
+    {
+        // Arrange
+        var problems = new List<Problem>();
+        var mockSet = MockDbSetFactory.CreateMockDbSet(problems);
+        mockSet.Setup(m => m.Add(It.IsAny<Problem>())).Callback<Problem>(e =>
+        {
+            e.ProblemId = 1;
+            problems.Add(e);
+        });
+        var links = new List<ProblemIncident>();
+        var mockLinkSet = MockDbSetFactory.CreateMockDbSet(links);
+        mockLinkSet.Setup(m => m.Add(It.IsAny<ProblemIncident>())).Callback<ProblemIncident>(e => links.Add(e));
+
+        var incidents = new List<Incident>
+        {
+            new() { IncidentId = 10, Number = "INC0010", ShortDescription = "A", CallerId = 1, State = IncidentState.New, Impact = IncidentImpact.High, Urgency = IncidentUrgency.High, CreatedAt = DateTime.UtcNow },
+            new() { IncidentId = 20, Number = "INC0020", ShortDescription = "B", CallerId = 2, State = IncidentState.New, Impact = IncidentImpact.Low, Urgency = IncidentUrgency.Low, CreatedAt = DateTime.UtcNow }
+        };
+
+        _mockContext.Setup(c => c.Problems).Returns(mockSet.Object);
+        _mockContext.Setup(c => c.ProblemIncidents).Returns(mockLinkSet.Object);
+        _mockContext.Setup(c => c.Incidents).Returns(MockDbSetFactory.CreateMockDbSet(incidents).Object);
+        _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+
+        var dto = new CreateProblemDto
+        {
+            ShortDescription = "With incidents",
+            Priority = ProblemPriority.High,
+            IncidentIds = new List<int> { 10, 20 }
         };
 
         // Act
-        var result = rca;
+        var result = await _service.CreateProblemAsync(dto, createdById: 1);
 
         // Assert
         result.Should().NotBeNull();
-        result.ProblemId.Should().Be(1);
-        result.RootCause.Should().Contain("Misconfiguration");
     }
-
-    [Fact]
-    public async Task UpdateRootCauseAnalysis_ShouldUpdateRCA()
-    {
-        // Arrange
-        var rca = new RootCauseAnalysis 
-        { 
-            Id = 1,
-            RootCause = "Updated Root Cause",
-            PreventionPlan = "Implement monitoring"
-        };
-
-        // Act
-        var result = rca;
-
-        // Assert
-        result.RootCause.Should().Be("Updated Root Cause");
-        result.PreventionPlan.Should().Contain("Implement");
-    }
-
-    [Fact]
-    public async Task GetRCAForProblem_ShouldReturnRCA()
-    {
-        // Arrange
-        var problemId = 1;
-        var rca = new RootCauseAnalysis 
-        { 
-            ProblemId = problemId,
-            RootCause = "Database timeout"
-        };
-
-        // Act & Assert
-        rca.ProblemId.Should().Be(problemId);
-    }
-
-    #endregion
-
-    #region Problem-to-Incident Linking Tests
-
-    [Fact]
-    public async Task LinkIncidentToProblem_ShouldCreateLink()
-    {
-        // Arrange
-        var problemId = 1;
-        var incidentId = 10;
-
-        var problemIncidentLink = new ProblemIncidentLink 
-        { 
-            ProblemId = problemId,
-            IncidentId = incidentId,
-            LinkType = "RelatedTo"
-        };
-
-        // Act
-        var result = problemIncidentLink;
-
-        // Assert
-        result.Should().NotBeNull();
-        result.ProblemId.Should().Be(problemId);
-        result.IncidentId.Should().Be(incidentId);
-    }
-
-    [Fact]
-    public async Task GetLinkedIncidents_ShouldReturnIncidents()
-    {
-        // Arrange
-        var problemId = 1;
-        var links = new List<ProblemIncidentLink>
-        {
-            new ProblemIncidentLink { ProblemId = problemId, IncidentId = 10 },
-            new ProblemIncidentLink { ProblemId = problemId, IncidentId = 11 }
-        }.AsQueryable();
-
-        // Act
-        var result = links.Where(l => l.ProblemId == problemId).ToList();
-
-        // Assert
-        result.Should().HaveCount(2);
-    }
-
-    [Fact]
-    public async Task RemoveIncidentLink_ShouldRemoveLink()
-    {
-        // Arrange
-        var linkId = 1;
-        var links = new List<ProblemIncidentLink>
-        {
-            new ProblemIncidentLink { Id = 1, ProblemId = 1 },
-            new ProblemIncidentLink { Id = 2, ProblemId = 1 }
-        };
-
-        // Act
-        links.RemoveAll(l => l.Id == linkId);
-
-        // Assert
-        links.Should().HaveCount(1);
-    }
-
-    #endregion
-
-    #region Problem Status Workflow Tests
-
-    [Fact]
-    public async Task TransitionStatus_FromOpenToInProgress_ShouldUpdate()
-    {
-        // Arrange
-        var problem = new Problem { Id = 1, Status = ProblemStatus.Open };
-
-        // Act
-        problem.Status = ProblemStatus.InProgress;
-
-        // Assert
-        problem.Status.Should().Be(ProblemStatus.InProgress);
-    }
-
-    [Fact]
-    public async Task TransitionStatus_FromInProgressToResolved_ShouldUpdate()
-    {
-        // Arrange
-        var problem = new Problem { Id = 1, Status = ProblemStatus.InProgress };
-
-        // Act
-        problem.Status = ProblemStatus.Resolved;
-
-        // Assert
-        problem.Status.Should().Be(ProblemStatus.Resolved);
-    }
-
-    [Fact]
-    public async Task TransitionStatus_FromResolvedToClosed_ShouldUpdate()
-    {
-        // Arrange
-        var problem = new Problem { Id = 1, Status = ProblemStatus.Resolved };
-
-        // Act
-        problem.Status = ProblemStatus.Closed;
-
-        // Assert
-        problem.Status.Should().Be(ProblemStatus.Closed);
-    }
-
-    [Fact]
-    public async Task GetOpenProblems_ShouldReturnOnlyOpenProblems()
-    {
-        // Arrange
-        var problems = new List<Problem>
-        {
-            new Problem { Id = 1, Status = ProblemStatus.Open },
-            new Problem { Id = 2, Status = ProblemStatus.Resolved },
-            new Problem { Id = 3, Status = ProblemStatus.Open }
-        }.AsQueryable();
-
-        // Act
-        var result = problems.Where(p => p.Status == ProblemStatus.Open).ToList();
-
-        // Assert
-        result.Should().HaveCount(2);
-        result.Should().AllSatisfy(p => p.Status.Should().Be(ProblemStatus.Open));
-    }
-
-    #endregion
-
-    #region Problem Filtering Tests
-
-    [Fact]
-    public async Task FilterProblems_ByPriority_ShouldReturnFilteredList()
-    {
-        // Arrange
-        var problems = new List<Problem>
-        {
-            new Problem { Id = 1, Priority = PrioritySeverity.High },
-            new Problem { Id = 2, Priority = PrioritySeverity.Low },
-            new Problem { Id = 3, Priority = PrioritySeverity.High }
-        }.AsQueryable();
-
-        // Act
-        var result = problems.Where(p => p.Priority == PrioritySeverity.High).ToList();
-
-        // Assert
-        result.Should().HaveCount(2);
-    }
-
-    [Fact]
-    public async Task FilterProblems_ByAssignee_ShouldReturnFilteredList()
-    {
-        // Arrange
-        var problems = new List<Problem>
-        {
-            new Problem { Id = 1, AssignedToId = 1 },
-            new Problem { Id = 2, AssignedToId = 2 },
-            new Problem { Id = 3, AssignedToId = 1 }
-        }.AsQueryable();
-
-        // Act
-        var result = problems.Where(p => p.AssignedToId == 1).ToList();
-
-        // Assert
-        result.Should().HaveCount(2);
-    }
-
-    #endregion
-
-    #region Helper Methods
-
-    private Mock<IQueryable<T>> SetupMockDbSet<T>(IQueryable<T> data) where T : class
-    {
-        var mockDbSet = new Mock<IQueryable<T>>();
-        mockDbSet.Setup(m => m.Provider).Returns(data.Provider);
-        mockDbSet.Setup(m => m.Expression).Returns(data.Expression);
-        mockDbSet.Setup(m => m.ElementType).Returns(data.ElementType);
-        mockDbSet.Setup(m => m.GetEnumerator()).Returns(data.GetEnumerator());
-        return mockDbSet;
-    }
-
-    #endregion
 }
-#endif

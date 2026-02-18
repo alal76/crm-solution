@@ -145,10 +145,10 @@ public class SystemModuleDtoTests
     }
 
     [Fact]
-    public void LoginRequestDto_WithValidCredentials_IsValid()
+    public void LoginRequest_WithValidCredentials_IsValid()
     {
         // Arrange & Act
-        var loginDto = new LoginRequestDto
+        var loginDto = new LoginRequest
         {
             Email = "test@example.com",
             Password = "TestPassword123"
@@ -161,37 +161,34 @@ public class SystemModuleDtoTests
     }
 
     [Fact]
-    public void LoginResponseDto_WithValidToken_IsValid()
+    public void AuthResponse_WithValidToken_IsValid()
     {
         // Arrange & Act
         var token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...";
-        var loginResponseDto = new LoginResponseDto
+        var authResponse = new AuthResponse
         {
-            Token = token,
+            AccessToken = token,
             RefreshToken = "refresh-token-value",
-            ExpiresIn = 3600,
-            User = new UserDto
-            {
-                Id = 1,
-                Email = "test@example.com",
-                Username = "testuser",
-                FirstName = "Test",
-                LastName = "User",
-                Role = "Admin"
-            }
+            ExpiresAt = DateTime.UtcNow.AddHours(1),
+            UserId = 1,
+            Email = "test@example.com",
+            Username = "testuser",
+            FirstName = "Test",
+            LastName = "User",
+            Role = "Admin"
         };
 
         // Assert
-        Assert.NotNull(loginResponseDto);
-        Assert.NotEmpty(loginResponseDto.Token);
-        Assert.NotNull(loginResponseDto.User);
+        Assert.NotNull(authResponse);
+        Assert.NotEmpty(authResponse.AccessToken);
+        Assert.Equal("test@example.com", authResponse.Email);
     }
 
     [Fact]
-    public void RefreshTokenRequestDto_WithValidToken_IsValid()
+    public void RefreshTokenRequest_WithValidToken_IsValid()
     {
         // Arrange & Act
-        var refreshDto = new RefreshTokenRequestDto
+        var refreshDto = new RefreshTokenRequest
         {
             RefreshToken = "valid-refresh-token"
         };

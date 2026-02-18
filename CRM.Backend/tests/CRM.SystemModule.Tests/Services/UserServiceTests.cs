@@ -17,6 +17,7 @@
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using CRM.Infrastructure.Services;
+using CRM.SystemModule.Tests.Helpers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;

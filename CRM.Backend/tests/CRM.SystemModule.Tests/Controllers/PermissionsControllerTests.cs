@@ -16,6 +16,8 @@
 
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
+using CRM.SystemModule.Tests.Helpers;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
@@ -74,7 +76,7 @@ public class PermissionsControllerTests
     }
 
     [Fact]
-    public async Task GetAllPermissions_ReturnsAllPermissions()
+    public void GetAllPermissions_ReturnsAllPermissions()
     {
         // Arrange
         var permissions = new List<Permission>
@@ -87,10 +89,11 @@ public class PermissionsControllerTests
         _dbContextMock.Setup(x => x.Permissions).Returns(mockDbSet.Object);
 
         // Act
-        var result = await _dbContextMock.Object.Permissions.ToListAsync();
+        var result = _dbContextMock.Object.Permissions.ToList();
 
         // Assert
         Assert.NotNull(result);
+        Assert.Equal(2, result.Count);
     }
 
     [Fact]
