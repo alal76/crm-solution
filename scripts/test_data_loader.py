@@ -189,7 +189,7 @@ OPERATIONAL_STATUS = {
 
 ALREADY_EXISTS_PATTERNS = [
     "already exists", "duplicate", "already registered",
-    "duplicate entry", "unique constraint",
+    "duplicate entry", "unique constraint", "already assigned",
 ]
 
 
@@ -337,8 +337,10 @@ class RunLogger:
             self.text_fh.flush()
 
     def _flush_summary(self) -> None:
+        exists = self.counts.get("exists", 0)
         line = (
             f"\n=== FINAL: success={self.counts['success']}  "
+            f"exists={exists}  "
             f"failed={self.counts['failed']}  skipped={self.counts['skipped']} ===\n"
         )
         self.text_fh.write(line)
@@ -355,6 +357,14 @@ class RunLogger:
         entry: Dict[str, Any] = {"status": "skipped", "reason": reason}
         entry.update(kw)
         entry["summary"] = f"  SKIP  {reason} ({kw.get('file', 'n/a')})"
+        self._write(entry)
+
+    def log_exists_skip(self, reason: str, **kw: Any) -> None:
+        """Log a pre-flight 'already exists' check as 'exists' (not 'skipped')."""
+        self.counts["exists"] = self.counts.get("exists", 0) + 1
+        entry: Dict[str, Any] = {"status": "exists", "reason": reason}
+        entry.update(kw)
+        entry["summary"] = f"  EXISTS {reason} ({kw.get('file', 'n/a')})"
         self._write(entry)
 
     def log_result(
@@ -1368,7 +1378,7 @@ def phase_leads_products(
         for i, item in enumerate(load_json(p).get("products", [])):
             sku = item.get("sku")
             if sku and sku in existing_skus:
-                logger.log_skip(f"Product SKU {sku} already exists", file=p)
+                logger.log_exists_skip(f"Product SKU {sku} already exists", file=p)
                 continue
             payload = {
                 "Name": item["name"],
@@ -1389,7 +1399,7 @@ def phase_leads_products(
         for i, item in enumerate(load_json(p)):
             sku = item.get("SKU")
             if sku and sku in existing_skus:
-                logger.log_skip(f"Product SKU {sku} already exists", file=p)
+                logger.log_exists_skip(f"Product SKU {sku} already exists", file=p)
                 continue
             payload = {
                 "Name": item["Name"],
@@ -1415,7 +1425,7 @@ def phase_leads_products(
         for i, item in enumerate(load_json(p)):
             sku = item.get("SKU")
             if sku and sku in existing_skus:
-                logger.log_skip(f"Service SKU {sku} already exists", file=p)
+                logger.log_exists_skip(f"Service SKU {sku} already exists", file=p)
                 continue
             # Map ServiceType string to ProductType enum
             svc_type = item.get("ServiceType", "Service")
@@ -1490,7 +1500,7 @@ def phase_opportunities_sales(
             # Skip if already exists (prefetched)
             if qnum in id_maps.get("_quote_by_number", {}):
                 id_maps.setdefault("quote", {})[item.get("id", 0)] = id_maps["_quote_by_number"][qnum]
-                logger.log_skip(f"Quote {qnum} already exists", file=p)
+                logger.log_exists_skip(f"Quote {qnum} already exists", file=p)
                 continue
             payload = {
                 "QuoteNumber": qnum,
@@ -1876,7 +1886,7 @@ def phase_marketing(
             # If template already exists, use its ID
             if tname and tname in template_by_name:
                 id_maps["email_template"][item.get("id", 0)] = template_by_name[tname]
-                logger.log_skip(f"Email template '{tname}' already exists", file=p)
+                logger.log_exists_skip(f"Email template '{tname}' already exists", file=p)
                 continue
             payload = {
                 "Name": tname,
@@ -1898,7 +1908,7 @@ def phase_marketing(
         for i, item in enumerate(load_json(p)):
             seq_name = item.get("name")
             if seq_name and seq_name in existing_seq_names:
-                logger.log_skip(f"Email sequence '{seq_name}' already exists", file=p)
+                logger.log_exists_skip(f"Email sequence '{seq_name}' already exists", file=p)
                 continue
             steps = []
             for si, tid in enumerate(item.get("templateIds", [])):
@@ -2258,7 +2268,7 @@ def phase_relationships(
     existing_type_names = id_maps.get("_existing_rel_type_names", set())
     for i, rt in enumerate(rel_types):
         if rt["typeName"] in existing_type_names:
-            logger.log_skip(f"Relationship type '{rt['typeName']}' already exists")
+            logger.log_exists_skip(f"Relationship type '{rt['typeName']}' already exists")
             continue
         payload = {**rt, "isActive": True, "displayOrder": i + 1}
         _, resp, _ = client.request(

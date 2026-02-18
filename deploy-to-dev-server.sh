@@ -245,6 +245,9 @@ REDIS_PORT=6379
 REDIS_EXTERNAL_PORT=6379
 REDIS_ENABLED=true
 REDIS_INSTANCE=crm_
+Redis__ConnectionString=redis:6379
+Redis__InstanceName=crm_
+Redis__Enabled=true
 
 # Meilisearch Configuration
 MEILISEARCH_ENV=production
