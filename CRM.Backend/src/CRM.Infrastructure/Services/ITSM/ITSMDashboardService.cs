@@ -14,6 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
+using CRM.Core.Interfaces;
 using CRM.Core.Interfaces.ITSM;
 using Microsoft.Extensions.Logging;
 
@@ -25,13 +26,17 @@ namespace CRM.Infrastructure.Services.ITSM;
 /// </summary>
 public class ITSMDashboardService : IITSMDashboardService
 {
+    private readonly ICrmDbContext _dbContext;
     private readonly ILogger<ITSMDashboardService> _logger;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ITSMDashboardService"/> class.
     /// </summary>
-    public ITSMDashboardService(ILogger<ITSMDashboardService> logger)
+    public ITSMDashboardService(
+        ICrmDbContext dbContext,
+        ILogger<ITSMDashboardService> logger)
     {
+        _dbContext = dbContext;
         _logger = logger;
     }
 

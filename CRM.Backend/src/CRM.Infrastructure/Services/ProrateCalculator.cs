@@ -14,11 +14,11 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using ProrateResultDto = CRM.Core.Dtos.ProrateResultDto;
 
 namespace CRM.Infrastructure.Services;
 

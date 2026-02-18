@@ -31,4 +31,6 @@ public interface IUserGroupService
     Task<IEnumerable<UserGroupMemberDto>> GetGroupMembersAsync(int groupId);
     Task AddUserToGroupAsync(int groupId, int userId);
     Task RemoveUserFromGroupAsync(int groupId, int userId);
+    Task<bool> IsUserInGroupAsync(int userId, int groupId, CancellationToken cancellationToken = default);
+    Task<IEnumerable<UserGroupDto>> GetActiveGroupsAsync(CancellationToken cancellationToken = default);
 }

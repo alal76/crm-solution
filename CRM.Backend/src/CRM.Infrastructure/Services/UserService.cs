@@ -328,4 +328,53 @@ public class UserService : IUserService, IUserInputPort
             throw;
         }
     }
+
+    public async Task<UserDto?> GetUserByUsernameAsync(string username, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var user = await _context.Users
+                .Where(u => u.Username == username)
+                .Select(u => new UserDto
+                {
+                    Id = u.Id,
+                    Username = u.Username,
+                    Email = u.Email,
+                    FirstName = u.FirstName,
+                    LastName = u.LastName,
+                    Role = ((UserRole)u.Role).ToString(),
+                    IsActive = u.IsActive,
+                    LastLoginDate = u.LastLoginAt,
+                    DepartmentId = u.DepartmentId,
+                    UserProfileId = u.UserProfileId,
+                    CreatedAt = u.CreatedAt
+                })
+                .FirstOrDefaultAsync(cancellationToken);
+
+            return user;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving user by username {Username}", username);
+            throw;
+        }
+    }
+
+    public async Task<bool> IsUserActiveAsync(int userId, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var user = await _context.Users
+                .Where(u => u.Id == userId)
+                .Select(u => new { u.IsActive })
+                .FirstOrDefaultAsync(cancellationToken);
+
+            return user?.IsActive ?? false;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error checking if user {UserId} is active", userId);
+            throw;
+        }
+    }
 }
