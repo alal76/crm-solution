@@ -5,7 +5,7 @@
 ![Version](https://img.shields.io/badge/version-2.0.0-blue)
 ![.NET](https://img.shields.io/badge/.NET-8.0-purple)
 ![React](https://img.shields.io/badge/React-18-61DAFB)
-![License](https://img.shields.io/badge/license-AGPL--3.0-blue)
+![License](https://img.shields.io/badge/license-Source%20Available-orange)
 ![Build](https://img.shields.io/badge/build-passing-brightgreen)
 
 **Enterprise-Grade Customer Relationship Management System**
@@ -780,13 +780,13 @@ dotnet test --collect:"XPlat Code Coverage"
 
 ## 📄 License
 
-This project is licensed under the **GNU Affero General Public License v3.0 or later (AGPL-3.0-or-later)** — see [LICENSE](LICENSE) for the full text.
+This project is **source-available** — free for non-commercial use, commercial use requires a license. See [LICENSE](LICENSE) for the full terms.
 
 **Copyright © 2024–2026 Abhishek Lal. All rights reserved.**
 
 ### Third-Party Dependency Licensing Matrix
 
-All third-party components used in this solution are compatible with the AGPL-3.0 license. For the complete dependency inventory with version numbers and license details, see [docs/THIRD_PARTY_LICENSES.md](docs/THIRD_PARTY_LICENSES.md).
+All third-party components used in this solution are open source with permissive or copyleft licenses. For the complete dependency inventory with version numbers and license details, see [docs/THIRD_PARTY_LICENSES.md](docs/THIRD_PARTY_LICENSES.md).
 
 #### Backend (.NET 10.0) — Key Packages
 

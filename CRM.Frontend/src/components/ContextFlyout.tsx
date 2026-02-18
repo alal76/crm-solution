@@ -133,9 +133,9 @@ const ContextFlyout: React.FC<ContextFlyoutProps> = ({ onAccountsChange }) => {
         // The chatbot backend will load documentation - just notify it to initialize
         await apiClient.post('/ai/chatbot/initialize', {});
         setDocsLoaded(true);
-      } catch (error) {
-        console.error('Failed to initialize chatbot context:', error);
-        // Don't block - chatbot will work without pre-loaded docs
+      } catch (error: any) {
+        console.warn('Chatbot initialization skipped - AI features may be disabled:', error?.message);
+        // Don't block - chatbot will work without pre-loaded docs or just be unavailable
         setDocsLoaded(true);
       } finally {
         setDocsLoading(false);
@@ -155,10 +155,16 @@ const ContextFlyout: React.FC<ContextFlyoutProps> = ({ onAccountsChange }) => {
     const loadAgents = async () => {
       try {
         const response = await agentService.getAll();
-        const activeAgents = (response.data || []).filter((a: Agent) => a.isActive);
-        setAgents(activeAgents);
+        const data = response.data;
+        if (Array.isArray(data)) {
+          const activeAgents = data.filter((a: Agent) => a.isActive);
+          setAgents(activeAgents);
+        } else {
+          setAgents([]);
+        }
       } catch (error) {
-        console.error('Failed to load agents:', error);
+        console.warn('AI agents not available - feature may be disabled');
+        setAgents([]);
       }
     };
     loadAgents();

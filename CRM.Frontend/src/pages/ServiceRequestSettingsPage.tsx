@@ -1,7 +1,7 @@
 /**
  * CRM Solution - Customer Relationship Management System
  * Copyright (C) 2024-2026 Abhishek Lal
- * Licensed under the GNU Affero General Public License v3.0
+ * Licensed under the Source-Available License (see LICENSE) v3.0
  */
 
 import { TabPanel } from '../components/common';

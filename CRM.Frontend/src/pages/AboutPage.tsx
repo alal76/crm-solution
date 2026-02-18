@@ -2,18 +2,9 @@
  * CRM Solution - Customer Relationship Management System
  * Copyright (C) 2024-2026 Abhishek Lal
  *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <https://www.gnu.org/licenses/>.
+ * This software is source-available. Non-commercial use is permitted under
+ * the terms of the LICENSE file. Commercial use requires a separate license.
+ * See the LICENSE file in the root directory for full terms.
  */
 
 import React, { useState } from 'react';
@@ -255,18 +246,18 @@ const AboutPage: React.FC = () => {
                     <Typography variant="h6">License</Typography>
                   </Box>
                   <Typography variant="body1" paragraph>
-                    <strong>GNU Affero General Public License v3.0 (AGPL-3.0)</strong>
+                    <strong>Source-Available License — Commercial Use Requires a License</strong>
                   </Typography>
                   <Typography variant="body2" color="text.secondary" paragraph>
                     Copyright © 2024-2026 Abhishek Lal
                   </Typography>
                   <Typography variant="body2" color="text.secondary" paragraph>
-                    This is free software released under a copyleft license. You are free to use, 
-                    modify, and distribute this software under the terms of the AGPL-3.0.
+                    This software is source-available. You are free to view, study, modify, and use
+                    the code for non-commercial purposes. Commercial use requires a separate license.
                   </Typography>
-                  <Chip label="Open Source" color="success" size="small" sx={{ mr: 1 }} />
-                  <Chip label="Copyleft" color="info" size="small" sx={{ mr: 1 }} />
-                  <Chip label="Free Use" color="secondary" size="small" />
+                  <Chip label="Source Available" color="success" size="small" sx={{ mr: 1 }} />
+                  <Chip label="Non-Commercial Free" color="info" size="small" sx={{ mr: 1 }} />
+                  <Chip label="Commercial License Required" color="warning" size="small" />
                 </CardContent>
               </Card>
             </Grid>
@@ -300,8 +291,8 @@ const AboutPage: React.FC = () => {
                     <Typography variant="h6">Source Code</Typography>
                   </Box>
                   <Typography variant="body2" paragraph>
-                    This software is open source under the AGPL-3.0 license. 
-                    As required by the license, the source code is available for download.
+                    This software is source-available under a license that permits free non-commercial use.
+                    Commercial use requires a separate license. See the LICENSE file for details.
                   </Typography>
                   <Typography variant="body2" color="text.secondary">
                     For source code access, licensing questions, or contributions, please contact the author.

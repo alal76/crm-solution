@@ -1,7 +1,7 @@
 /**
  * CRM Solution - Customer Relationship Management System
  * Copyright (C) 2024-2026 Abhishek Lal
- * Licensed under the GNU Affero General Public License v3.0
+ * Licensed under the Source-Available License (see LICENSE) v3.0
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -102,9 +102,10 @@ const ApprovalsPage = () => {
     setError(null);
     try {
       const res = await approvalService.getMyPendingApprovals();
-      setPendingApprovals(res.data.items);
+      setPendingApprovals(res.data?.items ?? []);
     } catch (err: any) {
       setError(err.message || 'Failed to load pending approvals');
+      setPendingApprovals([]);
     } finally {
       setLoading(false);
     }
@@ -115,27 +116,30 @@ const ApprovalsPage = () => {
       const status = filterStatus !== 'all' ? filterStatus as ApprovalStatus : undefined;
       const entityType = filterEntityType !== 'all' ? filterEntityType as ApprovalEntityType : undefined;
       const res = await approvalService.getAllRequests(status, entityType, 1, 100);
-      setAllRequests(res.data.items);
+      setAllRequests(res.data?.items ?? []);
     } catch (err: any) {
       console.error('Failed to load requests:', err);
+      setAllRequests([]);
     }
   }, [filterStatus, filterEntityType]);
 
   const loadMatrices = useCallback(async () => {
     try {
       const res = await approvalService.getMatrices();
-      setMatrices(res.data);
+      setMatrices(res.data ?? []);
     } catch (err: any) {
       console.error('Failed to load matrices:', err);
+      setMatrices([]);
     }
   }, []);
 
   const loadStatistics = useCallback(async () => {
     try {
       const res = await approvalService.getStatistics();
-      setStatistics(res.data);
+      setStatistics(res.data ?? null);
     } catch (err: any) {
       console.error('Failed to load statistics:', err);
+      setStatistics(null);
     }
   }, []);
 
@@ -360,8 +364,8 @@ const ApprovalsPage = () => {
             <Grid item xs={12} sm={6} md={3}>
               <StatsCard
                 title="Pending Approvals"
-                value={statistics.pendingRequests}
-                subtitle={`${statistics.totalRequests} total`}
+                value={statistics?.pendingRequests ?? 0}
+                subtitle={`${statistics?.totalRequests ?? 0} total`}
                 icon={<PendingIcon sx={{ fontSize: 40 }} />}
                 color="#ed6c02"
               />
@@ -369,7 +373,7 @@ const ApprovalsPage = () => {
             <Grid item xs={12} sm={6} md={3}>
               <StatsCard
                 title="Approved"
-                value={statistics.approvedRequests}
+                value={statistics?.approvedRequests ?? 0}
                 subtitle="Total approved"
                 icon={<ThumbUp sx={{ fontSize: 40 }} />}
                 color="#2e7d32"
@@ -378,7 +382,7 @@ const ApprovalsPage = () => {
             <Grid item xs={12} sm={6} md={3}>
               <StatsCard
                 title="Rejected"
-                value={statistics.rejectedRequests}
+                value={statistics?.rejectedRequests ?? 0}
                 subtitle="Total rejected"
                 icon={<ThumbDown sx={{ fontSize: 40 }} />}
                 color="#d32f2f"

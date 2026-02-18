@@ -97,7 +97,7 @@ function Footer() {
         setDbStatus({ status: 'down' });
       }
 
-      // Check AI service health
+      // Check AI service health (optional - don't treat as error if disabled)
       try {
         const aiHealthUrl = getApiEndpoint('/api/ai/chatbot/health');
         const aiResponse = await axios.get(aiHealthUrl, { timeout: 5000 });
@@ -110,7 +110,7 @@ function Footer() {
           });
         }
       } catch (aiError: any) {
-        debugError('AI health check failed:', aiError.message);
+        // AI service being down is not critical - it may be intentionally disabled
         setAiStatus({ status: 'down' });
       }
     };
@@ -184,7 +184,7 @@ function Footer() {
           <span className="separator">|</span>
           <Link to="/licenses" className="footer-link">Licenses</Link>
           <span className="separator">|</span>
-          <span className="copyright">&copy; 2026 Abhishek Lal - AGPL-3.0</span>
+          <span className="copyright">&copy; 2024-2026 Abhishek Lal - Source Available</span>
         </div>
       </div>
     </footer>

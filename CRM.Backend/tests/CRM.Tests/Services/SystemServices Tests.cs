@@ -1,24 +1,16 @@
 // CRM Solution - Customer Relationship Management System
 // Copyright (C) 2024-2026 Abhishek Lal
 //
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Affero General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU Affero General Public License for more details.
-//
-// You should have received a copy of the GNU Affero General Public License
-// along with this program. If not, see <https://www.gnu.org/licenses/>.
+// This software is source-available. Non-commercial use is permitted under
+// the terms of the LICENSE file. Commercial use requires a separate license.
+// See the LICENSE file in the root directory for full terms.
 
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Services;
+using CRM.Tests.Helpers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Configuration;
@@ -43,6 +35,26 @@ public class FeatureFlagManagementServiceTests
         _mockFeatureManager = new Mock<IFeatureManager>();
         _mockConfiguration = new Mock<IConfiguration>();
         _mockLogger = new Mock<ILogger<FeatureFlagManagementService>>();
+
+        // Setup mock configuration to return proper values for GetValue extension methods
+        // Return null for rollout percentages/targeting so defaults are used
+        // Return "BuiltIn" only for provider type sections (Providers:{category}:Type)
+        _mockConfiguration.Setup(c => c.GetSection(It.Is<string>(k => k.StartsWith("Providers:") && k.EndsWith(":Type"))))
+            .Returns(() =>
+            {
+                var mockSection = new Mock<IConfigurationSection>();
+                mockSection.Setup(s => s.Value).Returns("BuiltIn");
+                return mockSection.Object;
+            });
+        
+        // Return null for all other sections (rollout percentages, targeted users, etc.)
+        _mockConfiguration.Setup(c => c.GetSection(It.Is<string>(k => !k.StartsWith("Providers:") || !k.EndsWith(":Type"))))
+            .Returns(() =>
+            {
+                var mockSection = new Mock<IConfigurationSection>();
+                mockSection.Setup(s => s.Value).Returns((string?)null);
+                return mockSection.Object;
+            });
         
         _service = new FeatureFlagManagementService(
             _mockDbContext.Object,
@@ -104,8 +116,8 @@ public class FeatureFlagManagementServiceTests
         // Arrange
         _mockFeatureManager.Setup(fm => fm.IsEnabledAsync("EnableITSM"))
             .ReturnsAsync(true);
-        _mockConfiguration.Setup(c => c.GetValue(It.IsAny<string>(), It.IsAny<int>()))
-            .Returns(50);
+        // Note: GetValue is an extension method and can't be mocked directly
+        // The service will use the default value (100 rollout) when configuration returns null
 
         // Act
         var result = await _service.IsFlagEnabledForUserAsync("EnableITSM", 1);
@@ -144,8 +156,7 @@ public class FeatureFlagManagementServiceTests
         _mockDbContext.Setup(d => d.FeatureFlagAuditLogs).Returns(mockDbSet.Object);
         _mockDbContext.Setup(d => d.SaveChangesAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(1);
-        _mockConfiguration.Setup(c => c.GetValue(It.IsAny<string>(), It.IsAny<string>()))
-            .Returns("100");
+        // Note: GetValue is an extension method - the service will use internal logic
 
         // Act
         var result = await _service.SetRolloutPercentageAsync("EnableITSM", 50, 1);
@@ -233,7 +244,7 @@ public class UserInterfaceServiceTests
     public async Task SaveUIPreferencesAsync_WithValidDto_ReturnsSavedPreferences()
     {
         // Arrange
-        var mockDbSet = new Mock<DbSet<UIPreference>>();
+        var mockDbSet = MockDbSetFactory.CreateMockDbSet(new List<UIPreference>());
         _mockDbContext.Setup(d => d.UIPreferences).Returns(mockDbSet.Object);
         _mockDbContext.Setup(d => d.SaveChangesAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(1);
@@ -251,8 +262,9 @@ public class UserInterfaceServiceTests
     [Fact]
     public async Task ResetUIPreferencesAsync_ResetsToDefaults()
     {
-        // Arrange
-        var mockDbSet = new Mock<DbSet<UIPreference>>();
+        // Arrange - create an existing preference to reset
+        var existingPref = new UIPreference { Id = 1, UserId = 1, Theme = "dark" };
+        var mockDbSet = MockDbSetFactory.CreateMockDbSet(new List<UIPreference> { existingPref });
         _mockDbContext.Setup(d => d.UIPreferences).Returns(mockDbSet.Object);
         _mockDbContext.Setup(d => d.SaveChangesAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(1);
@@ -268,7 +280,7 @@ public class UserInterfaceServiceTests
     public async Task SaveUICustomizationAsync_WithValidData_ReturnsSavedCustomization()
     {
         // Arrange
-        var mockDbSet = new Mock<DbSet<UICustomization>>();
+        var mockDbSet = MockDbSetFactory.CreateMockDbSet(new List<UICustomization>());
         _mockDbContext.Setup(d => d.UICustomizations).Returns(mockDbSet.Object);
         _mockDbContext.Setup(d => d.SaveChangesAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(1);
@@ -292,7 +304,7 @@ public class UserInterfaceServiceTests
     public async Task SaveDashboardCustomizationAsync_WithValidData_ReturnsSavedDashboard()
     {
         // Arrange
-        var mockDbSet = new Mock<DbSet<DashboardCustomization>>();
+        var mockDbSet = MockDbSetFactory.CreateMockDbSet(new List<DashboardCustomization>());
         _mockDbContext.Setup(d => d.DashboardCustomizations).Returns(mockDbSet.Object);
         _mockDbContext.Setup(d => d.SaveChangesAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(1);
@@ -314,8 +326,13 @@ public class UserInterfaceServiceTests
     [Fact]
     public async Task SetDefaultDashboardAsync_WithValidDashboard_ReturnsTrue()
     {
-        // Arrange
-        var mockDbSet = new Mock<DbSet<DashboardCustomization>>();
+        // Arrange - create dashboards with different default states
+        var dashboards = new List<DashboardCustomization>
+        {
+            new() { Id = 1, UserId = 1, DashboardName = "Old Default", IsDefault = true },
+            new() { Id = 2, UserId = 1, DashboardName = "Sales Dashboard", IsDefault = false }
+        };
+        var mockDbSet = MockDbSetFactory.CreateMockDbSet(dashboards);
         _mockDbContext.Setup(d => d.DashboardCustomizations).Returns(mockDbSet.Object);
         _mockDbContext.Setup(d => d.SaveChangesAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(1);
@@ -324,7 +341,7 @@ public class UserInterfaceServiceTests
         var result = await _service.SetDefaultDashboardAsync(1, "Sales Dashboard");
 
         // Assert
-        // This test would need proper setup to work, but demonstrates the pattern
+        Assert.True(result);
     }
 }
 
@@ -376,6 +393,14 @@ public class PerformanceOptimizationServiceTests
     [Fact]
     public async Task GetCacheStatisticsAsync_ReturnsCacheStats()
     {
+        // Arrange - mock the PerformanceMetrics DbSet that the service queries
+        var metrics = new List<PerformanceMetric>
+        {
+            new() { Id = 1, EndpointName = "GET /api/accounts", ResponseTimeMs = 100, Timestamp = DateTime.UtcNow }
+        };
+        var mockDbSet = MockDbSetFactory.CreateMockDbSet(metrics);
+        _mockDbContext.Setup(d => d.PerformanceMetrics).Returns(mockDbSet.Object);
+
         // Act
         var result = await _service.GetCacheStatisticsAsync();
 

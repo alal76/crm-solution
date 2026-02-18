@@ -2,7 +2,7 @@
 // Copyright (C) 2024-2026 Abhishek Lal
 //
 // This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Affero General Public License as published by
+// it under the terms of the Source-Available License (see LICENSE) as published by
 
 #pragma warning disable CS0535  // Does not implement interface member (TD-001 technical debt)
 // the Free Software Foundation, either version 3 of the License, or
@@ -11,9 +11,9 @@
 // This program is distributed in the hope that it will be useful,
 // but WITHOUT ANY WARRANTY; without even the implied warranty of
 // MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU Affero General Public License for more details.
+// Source-Available License (see LICENSE) for more details.
 //
-// You should have received a copy of the GNU Affero General Public License
+// You should have received a copy of the Source-Available License (see LICENSE)
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using CRM.Core.Dtos;

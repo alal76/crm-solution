@@ -1,7 +1,7 @@
 # GitHub Copilot Instructions - CRM Solution
 
 > **Last Updated:** February 18, 2026  
-> **Current Version:** 0.561.5  
+> **Current Version:** 0.561.6  
 > **Load this file at the start of every agent session**
 
 Copilot usage
@@ -12,9 +12,12 @@ Copilot usage
 - Where possible, use the provided documentation and 11-specifications to guide your implementation and ensure consistency with the project's standards and requirements.
 - where possible reuse terminals for related tasks to maintain context and reduce setup time, but feel free to open new terminals for unrelated tasks or when it helps keep things organized.
 - for deployments check the target architecture every time , for docker builds remove the old images before building the new ones to avoid confusion and ensure the latest code is being used. For Kubernetes deployments, ensure you are in the correct context and namespace before applying manifests or helm charts.
-- Cretae a problems and solutions tracking file where common problems and solutions are tracked - for common problems write helper scripts to automate the solution and add it to the repository for future use. Name this file common_development_issues.md in the /docs folder and keep it updated with any new issues encountered and their solutions, this will help future developers who might encounter the same issues and also help in tracking recurring problems that might indicate underlying issues in the codebase or development process.
+- Create a problems and solutions tracking file where common problems and solutions are tracked - for common problems write helper scripts to automate the solution and add it to the repository for future use. Name this file common_development_issues.md in the /docs folder and keep it updated with any new issues encountered and their solutions, this will help future developers who might encounter the same issues and also help in tracking recurring problems that might indicate underlying issues in the codebase or development process.update link to that file here once it's created.
+
 - Set current version of the solution to ver 0.560.1 and update it with every new feature or significant change, this will help in tracking the evolution of the solution and also in communicating the current state of the project to all stakeholders. update version .json on every commit . Depending on size of change evaluate if the version should be minor or patch and update accordingly, for example if it's a small bug fix that doesn't add any new features it would be a patch update (0.560.2) but if it's a new feature or a significant change it would be a minor update (0.561.0).
 - after first version update change this copilot version to match what is updated into the version.json file to ensure consistency and clarity in communication about the current version of the solution. This will help in tracking which version of the codebase is currently being worked on and also in communicating with other team members about the state of the project.
+
+- Do not delete any code without a very good reason, if you think some code is not needed or can be improved, first check if it's being used anywhere in the codebase, if it's not being used and you are sure it can be removed then mark it as dead code for deletion, but if it's being used or you are not sure about its usage then it's better to keep it and maybe mark it as deprecated or add comments for future reference. This will help in maintaining the integrity of the codebase and also in avoiding any unintended consequences of deleting code that might still be needed.
 ---
 
 ## � Feature Specification Framework
@@ -27,7 +30,7 @@ Copilot usage
 
 **After implimenting or updating any test case or test file, verify signature , field names , namespace ,field values and validations - update the relevant feature specification to mark the test as implemented and ensure all details are accurately reflected in the spec. This maintains the integrity of the documentation and provides a clear reference for future development and testing efforts.**
 
-**Do njot use heredoc - the output is usually garbled **
+**Do not use heredoc - the output is usually garbled , use scripts (python) as a workaround**
 
 📁 **[docs/11-specifications/INDEX.md](../docs/11-specifications/INDEX.md)** - Master index of all 11-specifications
 
@@ -278,7 +281,7 @@ The CRM solution uses **three logical Docker network stacks** for separation of 
 - External → `crm-core` only: Public-facing services
 
 ### 3.2 Development Server (192.168.0.9)
-
+use root as the username to login to the server and the ssh key is stored in the local ssh client. This server is used for development and testing purposes, and it hosts the Docker containers for the CRM solution. Ensure that you have the necessary permissions and access rights to connect to this server before attempting to log in.
 #### crm-core Stack (Core Application)
 
 | Container | Port | Network Alias | Purpose |

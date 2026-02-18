@@ -270,4 +270,4 @@ npx playwright test --trace on
 
 ## License
 
-This test suite is part of the CRM Solution project.
+This test suite is part of the CRM Solution project. Source-available — Commercial use requires a license.

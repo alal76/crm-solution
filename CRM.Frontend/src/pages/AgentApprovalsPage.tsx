@@ -96,12 +96,17 @@ const AgentApprovalsPage: React.FC = () => {
     try {
       setError(null);
       const { data } = await agentService.getApprovals();
-      const sorted = [...data].sort(
+      const sorted = [...(Array.isArray(data) ? data : [])].sort(
         (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
       );
       setApprovals(sorted);
     } catch (err: any) {
-      setError(err?.message || 'Failed to load approvals');
+      if (err?.response?.status === 500 || err?.response?.status === 503) {
+        setError('AI Agent subsystem is not available. Enable it in Administration > Feature Management.');
+      } else {
+        setError(err?.response?.data?.message || err?.message || 'Failed to load approvals');
+      }
+      setApprovals([]);
     } finally {
       setLoading(false);
     }

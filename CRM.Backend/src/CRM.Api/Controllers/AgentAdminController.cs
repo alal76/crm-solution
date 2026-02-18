@@ -1,27 +1,19 @@
-// -----------------------------------------------------------------------
-// CRM Solution - Semantic Kernel AI Integration
-// Copyright (c) 2024-2026 Abhishek Lal (CRM Solution). All rights reserved.
-// Licensed under the GNU Affero General Public License v3.0.
-// See LICENSE file in the project root for full license information.
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
 //
-// This file is part of the CRM Solution, an enterprise-grade
-// Customer Relationship Management system.
-//
-// Author: Abhishek Lal
-// Repository: https://github.com/abhisheklal04/crm-solution
-// Documentation: See /docs folder for architecture and API reference
-//
-// IMPORTANT: This is proprietary code. Unauthorized copying, modification,
-// or distribution is strictly prohibited.
-// -----------------------------------------------------------------------
+// This software is source-available. Non-commercial use is permitted under
+// the terms of the LICENSE file. Commercial use requires a separate license.
+// See the LICENSE file in the root directory for full terms.
 
 #nullable enable
 
+using CRM.Core.Features;
 using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.FeatureManagement;
 
 namespace CRM.Api.Controllers;
 
@@ -38,6 +30,7 @@ public class AgentAdminController : ControllerBase
 
     private readonly ICrmDbContext _dbContext;
     private readonly ILogger<AgentAdminController> _logger;
+    private readonly IFeatureManager _featureManager;
 
     #endregion
 
@@ -48,10 +41,11 @@ public class AgentAdminController : ControllerBase
     /// </summary>
     /// <param name="dbContext">The CRM database context.</param>
     /// <param name="logger">The logger instance.</param>
-    public AgentAdminController(ICrmDbContext dbContext, ILogger<AgentAdminController> logger)
+    public AgentAdminController(ICrmDbContext dbContext, ILogger<AgentAdminController> logger, IFeatureManager featureManager)
     {
         _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _featureManager = featureManager ?? throw new ArgumentNullException(nameof(featureManager));
     }
 
     #endregion
@@ -87,6 +81,11 @@ public class AgentAdminController : ControllerBase
     {
         try
         {
+            if (!await _featureManager.IsEnabledAsync(FeatureFlags.EnableAgentSubsystem))
+            {
+                return Ok(new { disabled = true, message = "AI Agent subsystem is currently disabled.", agents = Array.Empty<object>() });
+            }
+
             var agents = await _dbContext.AIAgents
                 .AsNoTracking()
                 .Where(a => !a.IsDeleted)

@@ -272,7 +272,7 @@ export interface CreateABTestRequest {
 // API Methods
 // ============================================================================
 
-const BASE_URL = '/campaign-execution';
+const BASE_URL = '/campaigns';
 
 // Campaign Workflows
 export const getCampaignWorkflows = async (
@@ -307,7 +307,7 @@ export const toggleWorkflowActive = async (
   workflowId: number,
   isActive: boolean
 ): Promise<CampaignWorkflow> => {
-  const response = await apiClient.patch(
+  const response = await apiClient.put(
     `${BASE_URL}/${campaignId}/workflows/${workflowId}`,
     { isActive }
   );
@@ -323,7 +323,8 @@ export const getCampaignRecipients = async (
     ? `${BASE_URL}/${campaignId}/recipients?status=${status}`
     : `${BASE_URL}/${campaignId}/recipients`;
   const response = await apiClient.get(url);
-  return response.data;
+  // Backend returns paginated response { items, totalCount, ... }
+  return response.data?.items ?? response.data;
 };
 
 export const addCampaignRecipients = async (
@@ -355,7 +356,7 @@ export const recordLinkClick = async (
 export const getCampaignConversions = async (
   campaignId: number
 ): Promise<CampaignConversion[]> => {
-  const response = await apiClient.get(`${BASE_URL}/${campaignId}/conversions`);
+  const response = await apiClient.get(`/campaign-conversions/campaign/${campaignId}`);
   return response.data;
 };
 
@@ -363,7 +364,7 @@ export const recordConversion = async (
   request: RecordConversionRequest
 ): Promise<CampaignConversion> => {
   const response = await apiClient.post(
-    `${BASE_URL}/${request.campaignId}/conversions`,
+    `/campaign-conversions`,
     request
   );
   return response.data;
@@ -373,7 +374,7 @@ export const recordConversion = async (
 export const getCampaignABTests = async (
   campaignId: number
 ): Promise<CampaignABTest[]> => {
-  const response = await apiClient.get(`${BASE_URL}/${campaignId}/ab-tests`);
+  const response = await apiClient.get(`${BASE_URL}/${campaignId}/abtests`);
   return response.data;
 };
 
@@ -381,7 +382,7 @@ export const createABTest = async (
   request: CreateABTestRequest
 ): Promise<CampaignABTest> => {
   const response = await apiClient.post(
-    `${BASE_URL}/${request.campaignId}/ab-tests`,
+    `${BASE_URL}/${request.campaignId}/abtests`,
     request
   );
   return response.data;
@@ -392,7 +393,7 @@ export const startABTest = async (
   testId: number
 ): Promise<CampaignABTest> => {
   const response = await apiClient.post(
-    `${BASE_URL}/${campaignId}/ab-tests/${testId}/start`
+    `${BASE_URL}/${campaignId}/abtests/${testId}/start`
   );
   return response.data;
 };
@@ -403,7 +404,7 @@ export const completeABTest = async (
   winningVariant: string
 ): Promise<CampaignABTest> => {
   const response = await apiClient.post(
-    `${BASE_URL}/${campaignId}/ab-tests/${testId}/complete`,
+    `${BASE_URL}/${campaignId}/abtests/${testId}/complete`,
     { winningVariant }
   );
   return response.data;

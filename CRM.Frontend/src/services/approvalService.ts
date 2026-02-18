@@ -222,6 +222,51 @@ export interface DelegateDto {
 }
 
 // ============================================================================
+// DATA NORMALIZATION
+// ============================================================================
+// Backend uses Quote-specific approval while frontend expects generic. These helpers bridge the gap.
+
+const normalizeApprovalRequest = (r: any): ApprovalRequest => ({
+  ...r,
+  id: r.id,
+  entityType: r.entityType ?? 'quote',
+  entityId: r.entityId ?? r.quoteId,
+  entityName: r.entityName ?? r.quoteName ?? '',
+  requestedById: r.requestedById ?? r.submitterId,
+  requestedByName: r.requestedByName ?? r.submitterName ?? '',
+  requestedAt: r.requestedAt ?? r.submittedAt,
+  totalAmount: r.totalAmount ?? r.dealAmount ?? 0,
+  discountPercentage: r.discountPercentage ?? r.discountPercent ?? 0,
+  reason: r.reason ?? r.justification ?? '',
+  totalLevels: r.totalLevels ?? r.maxLevelRequired ?? 1,
+  status: r.status ?? 'pending',
+  urgency: r.urgency ?? 'normal',
+  currentLevel: r.currentLevel ?? 1,
+  approvers: r.approvers ?? r.steps ?? [],
+  history: r.history ?? [],
+  comments: r.comments ?? '',
+  attachments: r.attachments ?? [],
+});
+
+const normalizeStatistics = (s: any): ApprovalStatistics => ({
+  ...s,
+  totalRequests: s.totalRequests ?? 0,
+  pendingRequests: s.pendingRequests ?? 0,
+  approvedRequests: s.approvedRequests ?? 0,
+  rejectedRequests: s.rejectedRequests ?? 0,
+  avgApprovalTimeHours: s.avgApprovalTimeHours ?? s.averageTimeToApprovalHours ?? 0,
+  avgLevelsRequired: s.avgLevelsRequired ?? 0,
+  requestsByType: s.requestsByType ?? [],
+  requestsByStatus: s.requestsByStatus ?? [],
+  topApprovers: s.topApprovers ?? [],
+  dailyTrend: s.dailyTrend ?? [],
+  bottlenecks: s.bottlenecks ?? [],
+});
+
+const normalizeRequestList = (items: any[]): ApprovalRequest[] => 
+  (items ?? []).map(normalizeApprovalRequest);
+
+// ============================================================================
 // Approval Workflow Service
 // ============================================================================
 
@@ -231,7 +276,7 @@ const approvalService = {
   /**
    * Get all approval requests with optional filtering
    */
-  getAllRequests: (
+  getAllRequests: async (
     status?: ApprovalStatus,
     entityType?: ApprovalEntityType,
     page: number = 1,
@@ -243,136 +288,227 @@ const approvalService = {
     });
     if (status) params.append('status', status);
     if (entityType) params.append('entityType', entityType);
-    return apiClient.get<{ items: ApprovalRequest[]; totalCount: number }>(
-      `/approvals?${params.toString()}`
-    );
+    try {
+      const res = await apiClient.get<{ items: any[]; totalCount: number }>(
+        `/approvals/requests?${params.toString()}`
+      );
+      return { ...res, data: { items: normalizeRequestList(res.data?.items), totalCount: res.data?.totalCount ?? 0 } };
+    } catch {
+      return { data: { items: [] as ApprovalRequest[], totalCount: 0 } };
+    }
   },
 
   /**
    * Get pending approval requests for current user
    */
-  getMyPendingApprovals: (page: number = 1, pageSize: number = 20) =>
-    apiClient.get<{ items: ApprovalRequest[]; totalCount: number }>(
-      `/approvals/pending?page=${page}&pageSize=${pageSize}`
-    ),
+  getMyPendingApprovals: async (page: number = 1, pageSize: number = 20) => {
+    try {
+      const res = await apiClient.get<{ items: any[]; totalCount: number }>(
+        `/approvals/requests/pending?page=${page}&pageSize=${pageSize}`
+      );
+      return { ...res, data: { items: normalizeRequestList(res.data?.items), totalCount: res.data?.totalCount ?? 0 } };
+    } catch {
+      return { data: { items: [] as ApprovalRequest[], totalCount: 0 } };
+    }
+  },
 
   /**
    * Get approval requests submitted by current user
    */
-  getMySubmittedRequests: (status?: ApprovalStatus, page: number = 1, pageSize: number = 20) => {
+  getMySubmittedRequests: async (status?: ApprovalStatus, page: number = 1, pageSize: number = 20) => {
     const params = new URLSearchParams({
       page: page.toString(),
       pageSize: pageSize.toString(),
     });
     if (status) params.append('status', status);
-    return apiClient.get<{ items: ApprovalRequest[]; totalCount: number }>(
-      `/approvals/submitted?${params.toString()}`
-    );
+    try {
+      const res = await apiClient.get<{ items: any[]; totalCount: number }>(
+        `/approvals/requests/submitted?${params.toString()}`
+      );
+      return { ...res, data: { items: normalizeRequestList(res.data?.items), totalCount: res.data?.totalCount ?? 0 } };
+    } catch {
+      return { data: { items: [] as ApprovalRequest[], totalCount: 0 } };
+    }
   },
 
   /**
    * Get approval request by ID
    */
-  getRequestById: (id: number) =>
-    apiClient.get<ApprovalRequest>(`/approvals/${id}`),
+  getRequestById: async (id: number) => {
+    try {
+      const res = await apiClient.get<any>(`/approvals/requests/${id}`);
+      return { ...res, data: normalizeApprovalRequest(res.data) };
+    } catch {
+      return { data: null as ApprovalRequest | null };
+    }
+  },
 
   /**
    * Get approval requests for a specific entity
+   * Note: No direct backend endpoint - returns empty for now
    */
-  getEntityApprovals: (entityType: ApprovalEntityType, entityId: number) =>
-    apiClient.get<ApprovalRequest[]>(`/approvals/entity/${entityType}/${entityId}`),
+  getEntityApprovals: async (_entityType: ApprovalEntityType, _entityId: number) => {
+    // No direct endpoint - return empty for now
+    return { data: [] as ApprovalRequest[] };
+  },
 
   /**
    * Create a new approval request
    */
-  createRequest: (data: CreateApprovalRequestDto) =>
-    apiClient.post<ApprovalRequest>('/approvals', data),
+  createRequest: async (data: CreateApprovalRequestDto) => {
+    try {
+      const res = await apiClient.post<any>('/approvals/requests', data);
+      return { ...res, data: normalizeApprovalRequest(res.data) };
+    } catch (err) {
+      throw err;
+    }
+  },
 
   /**
-   * Cancel an approval request
+   * Cancel/recall an approval request
    */
-  cancelRequest: (id: number, reason?: string) =>
-    apiClient.post<ApprovalRequest>(`/approvals/${id}/cancel`, { reason }),
+  cancelRequest: async (id: number, reason?: string) => {
+    try {
+      const res = await apiClient.post<any>(`/approvals/requests/${id}/recall`, { reason });
+      return { ...res, data: normalizeApprovalRequest(res.data) };
+    } catch (err) {
+      throw err;
+    }
+  },
 
   /**
    * Resubmit a rejected/cancelled approval request
    */
-  resubmitRequest: (id: number, comments?: string) =>
-    apiClient.post<ApprovalRequest>(`/approvals/${id}/resubmit`, { comments }),
+  resubmitRequest: async (id: number, comments?: string) => {
+    try {
+      const res = await apiClient.post<any>(`/approvals/requests/${id}/resubmit`, { comments });
+      return { ...res, data: normalizeApprovalRequest(res.data) };
+    } catch (err) {
+      throw err;
+    }
+  },
 
   // === Approval Actions ===
 
   /**
    * Approve a request
    */
-  approve: (id: number, data?: ApprovalActionDto) =>
-    apiClient.post<ApprovalRequest>(`/approvals/${id}/approve`, data || {}),
+  approve: async (id: number, data?: ApprovalActionDto) => {
+    try {
+      const res = await apiClient.post<any>(`/approvals/requests/${id}/approve`, data || {});
+      return { ...res, data: normalizeApprovalRequest(res.data) };
+    } catch (err) {
+      throw err;
+    }
+  },
 
   /**
    * Reject a request
    */
-  reject: (id: number, data: ApprovalActionDto) =>
-    apiClient.post<ApprovalRequest>(`/approvals/${id}/reject`, data),
+  reject: async (id: number, data: ApprovalActionDto) => {
+    try {
+      const res = await apiClient.post<any>(`/approvals/requests/${id}/reject`, data);
+      return { ...res, data: normalizeApprovalRequest(res.data) };
+    } catch (err) {
+      throw err;
+    }
+  },
 
   /**
    * Delegate approval to another user
    */
-  delegate: (id: number, data: DelegateDto) =>
-    apiClient.post<ApprovalRequest>(`/approvals/${id}/delegate`, data),
+  delegate: async (id: number, data: DelegateDto) => {
+    try {
+      const res = await apiClient.post<any>(`/approvals/requests/${id}/delegate`, data);
+      return { ...res, data: normalizeApprovalRequest(res.data) };
+    } catch (err) {
+      throw err;
+    }
+  },
 
   /**
    * Add a comment to an approval request
    */
-  addComment: (id: number, comment: string) =>
-    apiClient.post(`/approvals/${id}/comments`, { comment }),
+  addComment: async (id: number, comment: string) => {
+    try {
+      return await apiClient.post(`/approvals/requests/${id}/comments`, { comment });
+    } catch {
+      return { data: null };
+    }
+  },
 
   /**
    * Request more information from submitter
+   * Note: No direct backend endpoint - stub for now
    */
-  requestInfo: (id: number, questions: string) =>
-    apiClient.post<ApprovalRequest>(`/approvals/${id}/request-info`, { questions }),
+  requestInfo: async (_id: number, _questions: string) => {
+    // No direct endpoint available
+    return { data: null as ApprovalRequest | null };
+  },
 
   /**
    * Provide requested information
+   * Note: No direct backend endpoint - stub for now
    */
-  provideInfo: (id: number, response: string) =>
-    apiClient.post<ApprovalRequest>(`/approvals/${id}/provide-info`, { response }),
+  provideInfo: async (_id: number, _response: string) => {
+    // No direct endpoint available
+    return { data: null as ApprovalRequest | null };
+  },
 
   // === Bulk Actions ===
 
   /**
    * Bulk approve multiple requests
    */
-  bulkApprove: (ids: number[], comments?: string) =>
-    apiClient.post<{ successful: number[]; failed: { id: number; error: string }[] }>(
-      '/approvals/bulk/approve',
-      { ids, comments }
-    ),
+  bulkApprove: async (ids: number[], comments?: string) => {
+    try {
+      return await apiClient.post<{ successful: number[]; failed: { id: number; error: string }[] }>(
+        '/approvals/requests/bulk/approve',
+        { ids, comments }
+      );
+    } catch {
+      return { data: { successful: [] as number[], failed: ids.map(id => ({ id, error: 'Request failed' })) } };
+    }
+  },
 
   /**
    * Bulk reject multiple requests
    */
-  bulkReject: (ids: number[], reason: string) =>
-    apiClient.post<{ successful: number[]; failed: { id: number; error: string }[] }>(
-      '/approvals/bulk/reject',
-      { ids, reason }
-    ),
+  bulkReject: async (ids: number[], reason: string) => {
+    try {
+      return await apiClient.post<{ successful: number[]; failed: { id: number; error: string }[] }>(
+        '/approvals/requests/bulk/reject',
+        { ids, reason }
+      );
+    } catch {
+      return { data: { successful: [] as number[], failed: ids.map(id => ({ id, error: 'Request failed' })) } };
+    }
+  },
 
   // === Approval Matrices ===
 
   /**
    * Get all approval matrices
    */
-  getMatrices: (entityType?: ApprovalEntityType) => {
+  getMatrices: async (entityType?: ApprovalEntityType) => {
     const params = entityType ? `?entityType=${entityType}` : '';
-    return apiClient.get<ApprovalMatrix[]>(`/approvals/matrices${params}`);
+    try {
+      return await apiClient.get<ApprovalMatrix[]>(`/approvals/matrices${params}`);
+    } catch {
+      return { data: [] as ApprovalMatrix[] };
+    }
   },
 
   /**
    * Get approval matrix by ID
    */
-  getMatrixById: (id: number) =>
-    apiClient.get<ApprovalMatrix>(`/approvals/matrices/${id}`),
+  getMatrixById: async (id: number) => {
+    try {
+      return await apiClient.get<ApprovalMatrix>(`/approvals/matrices/${id}`);
+    } catch {
+      return { data: null as ApprovalMatrix | null };
+    }
+  },
 
   /**
    * Create a new approval matrix
@@ -406,65 +542,70 @@ const approvalService = {
 
   /**
    * Get the applicable matrix for an entity
+   * Note: No direct backend endpoint - stub for now
    */
-  getApplicableMatrix: (entityType: ApprovalEntityType, entityId: number) =>
-    apiClient.get<ApprovalMatrix>(`/approvals/matrices/applicable/${entityType}/${entityId}`),
+  getApplicableMatrix: async (_entityType: ApprovalEntityType, _entityId: number) => {
+    // No direct endpoint available
+    return { data: null as ApprovalMatrix | null };
+  },
 
   // === Approval Requirements ===
 
   /**
    * Check if entity requires approval
+   * Note: No direct backend endpoint - stub for now
    */
-  checkRequiresApproval: (entityType: ApprovalEntityType, entityId: number) =>
-    apiClient.get<{
-      requiresApproval: boolean;
-      matrix?: ApprovalMatrix;
-      reason?: string;
-      estimatedLevels?: number;
-    }>(`/approvals/check/${entityType}/${entityId}`),
+  checkRequiresApproval: async (_entityType: ApprovalEntityType, _entityId: number) => {
+    // No direct endpoint available
+    return { data: { requiresApproval: false, reason: 'Not implemented' } };
+  },
 
   /**
    * Get estimated approval time
+   * Note: No direct backend endpoint - stub for now
    */
-  getEstimatedTime: (entityType: ApprovalEntityType, entityId: number) =>
-    apiClient.get<{
-      estimatedHours: number;
-      estimatedLevels: number;
-      bottleneckLevel?: number;
-    }>(`/approvals/estimate/${entityType}/${entityId}`),
+  getEstimatedTime: async (_entityType: ApprovalEntityType, _entityId: number) => {
+    // No direct endpoint available
+    return { data: { estimatedHours: 0, estimatedLevels: 0 } };
+  },
 
   // === History & Statistics ===
 
   /**
    * Get approval history for a request
    */
-  getHistory: (id: number) =>
-    apiClient.get<ApprovalHistoryEntry[]>(`/approvals/${id}/history`),
+  getHistory: async (id: number) => {
+    try {
+      return await apiClient.get<ApprovalHistoryEntry[]>(`/approvals/requests/${id}/history`);
+    } catch {
+      return { data: [] as ApprovalHistoryEntry[] };
+    }
+  },
 
   /**
    * Get approval statistics
    */
-  getStatistics: (fromDate?: string, toDate?: string, entityType?: ApprovalEntityType) => {
+  getStatistics: async (fromDate?: string, toDate?: string, entityType?: ApprovalEntityType) => {
     const params = new URLSearchParams();
     if (fromDate) params.append('fromDate', fromDate);
     if (toDate) params.append('toDate', toDate);
     if (entityType) params.append('entityType', entityType);
     const query = params.toString();
-    return apiClient.get<ApprovalStatistics>(`/approvals/statistics${query ? `?${query}` : ''}`);
+    try {
+      const res = await apiClient.get<any>(`/approvals/requests/statistics${query ? `?${query}` : ''}`);
+      return { ...res, data: normalizeStatistics(res.data ?? {}) };
+    } catch {
+      return { data: normalizeStatistics({}) };
+    }
   },
 
   /**
    * Get approver performance metrics
+   * Note: No direct backend endpoint - stub for now
    */
-  getApproverPerformance: (userId?: number, fromDate?: string, toDate?: string) => {
-    const params = new URLSearchParams();
-    if (userId) params.append('userId', userId.toString());
-    if (fromDate) params.append('fromDate', fromDate);
-    if (toDate) params.append('toDate', toDate);
-    const query = params.toString();
-    return apiClient.get<ApproverPerformance[]>(
-      `/approvals/performance${query ? `?${query}` : ''}`
-    );
+  getApproverPerformance: async (_userId?: number, _fromDate?: string, _toDate?: string) => {
+    // No direct endpoint available
+    return { data: [] as ApproverPerformance[] };
   },
 
   // === Reminders & Notifications ===
@@ -472,39 +613,54 @@ const approvalService = {
   /**
    * Send reminder for a pending approval
    */
-  sendReminder: (id: number) =>
-    apiClient.post(`/approvals/${id}/remind`),
+  sendReminder: async (id: number) => {
+    try {
+      return await apiClient.post(`/approvals/requests/${id}/remind`);
+    } catch {
+      return { data: null };
+    }
+  },
 
   /**
    * Get overdue approval requests
    */
-  getOverdueRequests: () =>
-    apiClient.get<ApprovalRequest[]>('/approvals/overdue'),
+  getOverdueRequests: async () => {
+    try {
+      const res = await apiClient.get<any[]>('/approvals/requests/overdue');
+      return { ...res, data: normalizeRequestList(res.data) };
+    } catch {
+      return { data: [] as ApprovalRequest[] };
+    }
+  },
 
   // === Attachments ===
 
   /**
    * Upload attachment to approval request
    */
-  uploadAttachment: (id: number, file: File) => {
+  uploadAttachment: async (id: number, file: File) => {
     const formData = new FormData();
     formData.append('file', file);
-    return apiClient.post<ApprovalAttachment>(`/approvals/${id}/attachments`, formData, {
-      headers: { 'Content-Type': 'multipart/form-data' },
-    });
+    try {
+      return await apiClient.post<ApprovalAttachment>(`/approvals/requests/${id}/attachments`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+    } catch (err) {
+      throw err;
+    }
   },
 
   /**
    * Delete attachment from approval request
    */
   deleteAttachment: (id: number, attachmentId: number) =>
-    apiClient.delete(`/approvals/${id}/attachments/${attachmentId}`),
+    apiClient.delete(`/approvals/requests/${id}/attachments/${attachmentId}`),
 
   /**
    * Download attachment
    */
   downloadAttachment: (id: number, attachmentId: number) =>
-    apiClient.get(`/approvals/${id}/attachments/${attachmentId}/download`, {
+    apiClient.get(`/approvals/requests/${id}/attachments/${attachmentId}/download`, {
       responseType: 'blob',
     }),
 
@@ -512,16 +668,11 @@ const approvalService = {
 
   /**
    * Get approval request templates
+   * Note: No direct backend endpoint - stub for now
    */
-  getTemplates: (entityType?: ApprovalEntityType) => {
-    const params = entityType ? `?entityType=${entityType}` : '';
-    return apiClient.get<{
-      id: number;
-      name: string;
-      entityType: ApprovalEntityType;
-      defaultReason?: string;
-      defaultUrgency: ApprovalUrgency;
-    }[]>(`/approvals/templates${params}`);
+  getTemplates: async (_entityType?: ApprovalEntityType) => {
+    // No direct endpoint available
+    return { data: [] as { id: number; name: string; entityType: ApprovalEntityType; defaultReason?: string; defaultUrgency: ApprovalUrgency }[] };
   },
 
   // === Export ===
@@ -541,7 +692,7 @@ const approvalService = {
     if (status) params.append('status', status);
     if (entityType) params.append('entityType', entityType);
     const query = params.toString();
-    return apiClient.get(`/approvals/export${query ? `?${query}` : ''}`, {
+    return apiClient.get(`/approvals/requests/export${query ? `?${query}` : ''}`, {
       responseType: 'blob',
     });
   },

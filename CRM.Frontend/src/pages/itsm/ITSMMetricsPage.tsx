@@ -68,11 +68,11 @@ const ITSMMetricsPage: React.FC = () => {
     const load = async () => {
       try {
         const [incidentResponse, problemResponse, changeResponse, knowledgeResponse, slaResponse] = await Promise.all([
-          apiClient.get<PagedResult<IncidentSummary>>('/api/incidents?pageNumber=1&pageSize=5'),
-          apiClient.get<PagedResult<ProblemSummary>>('/api/problems?pageNumber=1&pageSize=5'),
-          apiClient.get<PagedResult<ChangeSummary>>('/api/changes?pageNumber=1&pageSize=5'),
-          apiClient.get<KnowledgeSummary[]>('/api/knowledge/search?searchTerm='),
-          apiClient.get<SLAInstance[]>('/api/sla/breached'),
+          apiClient.get<PagedResult<IncidentSummary>>('/itsm/incidents?pageNumber=1&pageSize=5'),
+          apiClient.get<PagedResult<ProblemSummary>>('/itsm/problems?pageNumber=1&pageSize=5'),
+          apiClient.get<PagedResult<ChangeSummary>>('/changes?pageNumber=1&pageSize=5'),
+          apiClient.get<KnowledgeSummary[]>('/itsm/knowledge/search?searchTerm='),
+          apiClient.get<SLAInstance[]>('/itsm/sla/breached'),
         ]);
 
         setIncidents(incidentResponse.data);

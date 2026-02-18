@@ -1,8 +1,9 @@
 // CRM Solution - Customer Relationship Management System
 // Copyright (C) 2024-2026 Abhishek Lal
 //
-// Licensed under the GNU Affero General Public License v3.0.
-// See https://www.gnu.org/licenses/ for details.
+// This software is source-available. Non-commercial use is permitted under
+// the terms of the LICENSE file. Commercial use requires a separate license.
+// See the LICENSE file in the root directory for full terms.
 
 using CRM.Core.Entities.AI;
 using CRM.Infrastructure.AI.SK.Agents;

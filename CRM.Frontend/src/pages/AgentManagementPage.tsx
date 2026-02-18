@@ -119,13 +119,24 @@ const AgentManagementPage: React.FC = () => {
       setLoading(true);
       setError(null);
       const response = await agentAdminService.getConfigs();
-      setAgents(response.data ?? []);
+      const data = response.data;
+      // Handle disabled response: { disabled: true, message: '...', agents: [] }
+      if (data && !Array.isArray(data) && (data as any).disabled) {
+        setAgents([]);
+        setError((data as any).message || 'AI Agent subsystem is currently disabled. Enable it in Administration > Feature Management.');
+      } else {
+        setAgents(Array.isArray(data) ? data : []);
+      }
     } catch (err: any) {
       const msg =
         err?.response?.data?.message ||
         err?.message ||
         'Failed to load agents';
-      setError(msg);
+      if (err?.response?.status === 500 || err?.response?.status === 503) {
+        setError('AI Agent subsystem is not available. Enable it in Administration > Feature Management.');
+      } else {
+        setError(msg);
+      }
     } finally {
       setLoading(false);
     }

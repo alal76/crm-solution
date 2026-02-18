@@ -1,18 +1,9 @@
 // CRM Solution - Customer Relationship Management System
 // Copyright (C) 2024-2026 Abhishek Lal
 //
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Affero General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU Affero General Public License for more details.
-//
-// You should have received a copy of the GNU Affero General Public License
-// along with this program. If not, see <https://www.gnu.org/licenses/>.
+// This software is source-available. Non-commercial use is permitted under
+// the terms of the LICENSE file. Commercial use requires a separate license.
+// See the LICENSE file in the root directory for full terms.
 
 using CRM.Api.Controllers;
 using CRM.Core.Dtos;
@@ -60,7 +51,7 @@ public class UserGroupsControllerTests
         var result = await _controller.GetAll();
 
         // Assert
-        var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
+        var okResult = result.Result.Should().BeOfType<OkObjectResult>().Subject;
         var returnedGroups = okResult.Value.Should().BeAssignableTo<IEnumerable<UserGroupDto>>().Subject;
         returnedGroups.Should().HaveCount(2);
     }
@@ -75,7 +66,7 @@ public class UserGroupsControllerTests
         var result = await _controller.GetAll();
 
         // Assert
-        var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
+        var okResult = result.Result.Should().BeOfType<OkObjectResult>().Subject;
         var returnedGroups = okResult.Value.Should().BeAssignableTo<IEnumerable<UserGroupDto>>().Subject;
         returnedGroups.Should().BeEmpty();
     }
@@ -91,7 +82,7 @@ public class UserGroupsControllerTests
         var result = await _controller.GetAll();
 
         // Assert
-        var statusResult = result.Should().BeOfType<ObjectResult>().Subject;
+        var statusResult = result.Result.Should().BeOfType<ObjectResult>().Subject;
         statusResult.StatusCode.Should().Be(500);
     }
 
@@ -110,7 +101,7 @@ public class UserGroupsControllerTests
         var result = await _controller.GetById(1);
 
         // Assert
-        var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
+        var okResult = result.Result.Should().BeOfType<OkObjectResult>().Subject;
         var returnedGroup = okResult.Value.Should().BeOfType<UserGroupDto>().Subject;
         returnedGroup.Id.Should().Be(1);
         returnedGroup.Name.Should().Be("Admins");
@@ -126,7 +117,7 @@ public class UserGroupsControllerTests
         var result = await _controller.GetById(999);
 
         // Assert
-        result.Should().BeOfType<NotFoundObjectResult>();
+        result.Result.Should().BeOfType<NotFoundObjectResult>();
     }
 
     #endregion
@@ -145,7 +136,7 @@ public class UserGroupsControllerTests
         var result = await _controller.Create(request);
 
         // Assert
-        var createdResult = result.Should().BeOfType<CreatedAtActionResult>().Subject;
+        var createdResult = result.Result.Should().BeOfType<CreatedAtActionResult>().Subject;
         createdResult.ActionName.Should().Be(nameof(UserGroupsController.GetById));
         createdResult.StatusCode.Should().Be(201);
     }
@@ -160,7 +151,7 @@ public class UserGroupsControllerTests
         var result = await _controller.Create(request);
 
         // Assert
-        result.Should().BeOfType<BadRequestObjectResult>();
+        result.Result.Should().BeOfType<BadRequestObjectResult>();
     }
 
     #endregion
@@ -179,7 +170,7 @@ public class UserGroupsControllerTests
         var result = await _controller.Update(1, request);
 
         // Assert
-        var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
+        var okResult = result.Result.Should().BeOfType<OkObjectResult>().Subject;
         var returnedGroup = okResult.Value.Should().BeOfType<UserGroupDto>().Subject;
         returnedGroup.Name.Should().Be("Updated Sales");
     }
@@ -195,7 +186,7 @@ public class UserGroupsControllerTests
         var result = await _controller.Update(999, request);
 
         // Assert
-        result.Should().BeOfType<NotFoundObjectResult>();
+        result.Result.Should().BeOfType<NotFoundObjectResult>();
     }
 
     #endregion
@@ -234,7 +225,7 @@ public class UserGroupsControllerTests
         var result = await _controller.GetMembers(1);
 
         // Assert
-        var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
+        var okResult = result.Result.Should().BeOfType<OkObjectResult>().Subject;
         var returnedMembers = okResult.Value.Should().BeAssignableTo<IEnumerable<UserGroupMemberDto>>().Subject;
         returnedMembers.Should().HaveCount(2);
     }
