@@ -119,10 +119,12 @@ build_images() {
     # Build Frontend image
     log_info "Building frontend image..."
     if [ -f "$SCRIPT_DIR/docker/Dockerfile.frontend" ]; then
-        if docker build \
+        if docker buildx build \
+            --platform $BUILD_PLATFORM \
             -t crm-frontend:latest \
             -f "$SCRIPT_DIR/docker/Dockerfile.frontend" \
-            "$SCRIPT_DIR" 2>&1 | tail -20; then
+            "$SCRIPT_DIR" \
+            --load 2>&1 | tail -20; then
             log_success "Frontend image built successfully"
         else
             log_error "Failed to build frontend image"

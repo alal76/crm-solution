@@ -135,9 +135,9 @@ public class SubscriptionMetricsAggregator : ISubscriptionMetricsAggregator
         return new SubscriptionMetricsDto
         {
             SubscriptionId = subscriptionId,
-            MRR = NormalizeToMonthly(subscription.Amount ?? 0.0m, subscription.BillingCycle ?? "Monthly"),
-            ARR = (subscription.ARR ?? 0.0m) > 0 ? subscription.ARR.Value : NormalizeToMonthly(subscription.Amount ?? 0.0m, subscription.BillingCycle ?? "Monthly") * 12,
-            LifetimeValue = subscription.Amount.HasValue ? subscription.Amount.Value * 24 : 0.0m, // Assume 24-month average
+            MRR = NormalizeToMonthly(subscription.Amount, subscription.BillingCycle ?? "Monthly"),
+            ARR = (subscription.ARR ?? 0.0m) > 0 ? subscription.ARR.Value : NormalizeToMonthly(subscription.Amount, subscription.BillingCycle ?? "Monthly") * 12,
+            CLV = subscription.Amount * 24, // Assume 24-month average lifetime value
             NextBillingDate = subscription.NextBillingDate,
             DaysUntilExpiry = daysUntilExpiry,
             Status = subscription.SubscriptionStatus.ToString()
@@ -226,7 +226,7 @@ public class SubscriptionMetricsAggregator : ISubscriptionMetricsAggregator
                         s.SubscriptionStatus == SubscriptionStatus.Paused))
             .ToListAsync(cancellationToken);
 
-        var mrr = subscriptions.Sum(s => NormalizeToMonthly(s.Amount ?? 0, s.BillingCycle ?? "Monthly"));
+        var mrr = subscriptions.Sum(s => NormalizeToMonthly(s.Amount, s.BillingCycle ?? "Monthly"));
 
         return Math.Round(mrr, 2);
     }
@@ -298,7 +298,7 @@ public class SubscriptionMetricsAggregator : ISubscriptionMetricsAggregator
                         s.SubscriptionStatus == SubscriptionStatus.Paused))
             .ToListAsync(cancellationToken);
 
-        var previousMrr = subscriptionsOneMonthAgo.Sum(s => NormalizeToMonthly(s.Amount ?? 0.0m, s.BillingCycle ?? "Monthly"));
+        var previousMrr = subscriptionsOneMonthAgo.Sum(s => NormalizeToMonthly(s.Amount, s.BillingCycle ?? "Monthly"));
 
         if (previousMrr <= 0)
             return 100m; // If no prior MRR, NRR = 100% (base case)

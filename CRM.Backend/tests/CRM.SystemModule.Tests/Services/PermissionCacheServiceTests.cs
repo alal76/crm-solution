@@ -66,7 +66,7 @@ public class PermissionCacheServiceTests
     }
 
     [Fact]
-    public async Task CacheUserPermissionsAsync_StoresPermissionsInCache()
+    public async Task SetUserPermissionsInCacheAsync_StoresPermissionsInCache()
     {
         // Arrange
         var userId = 1;
@@ -82,7 +82,7 @@ public class PermissionCacheServiceTests
             .ReturnsAsync(true);
 
         // Act
-        await _service.CacheUserPermissionsAsync(userId, permissions);
+        await _service.SetUserPermissionsInCacheAsync(userId, permissions);
 
         // Assert
         _dbMock.Verify(x => x.StringSetAsync(

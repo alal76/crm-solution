@@ -17,7 +17,7 @@
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using CRM.Infrastructure.Services;
-using CRM.Tests.Helpers;
+using CRM.SystemModule.Tests.Helpers;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
@@ -73,9 +73,9 @@ public class RolesControllerTests
             new UserGroupMember { Id = 1, UserId = userId, UserGroupId = 1, CreatedAt = DateTime.UtcNow }
         };
 
-        var userMock = MockDbSetFactory.CreateMockDbSet(users);
-        var userGroupMock = MockDbSetFactory.CreateMockDbSet(userGroups);
-        var groupMemberMock = MockDbSetFactory.CreateMockDbSet(groupMembers);
+        var userMock = users.CreateMockDbSet();
+        var userGroupMock = userGroups.CreateMockDbSet();
+        var groupMemberMock = groupMembers.CreateMockDbSet();
 
         _dbContextMock.Setup(x => x.Users).Returns(userMock.Object);
         _dbContextMock.Setup(x => x.UserGroups).Returns(userGroupMock.Object);
@@ -100,7 +100,7 @@ public class RolesControllerTests
             new Permission { Id = 3, Name = "Delete.Accounts", Description = "Can delete accounts" }
         };
 
-        var permissionMock = MockDbSetFactory.CreateMockDbSet(permissions);
+        var permissionMock = permissions.CreateMockDbSet();
         _dbContextMock.Setup(x => x.Permissions).Returns(permissionMock.Object);
 
         // Act
@@ -132,9 +132,9 @@ public class RolesControllerTests
             new Permission { Id = 1, Name = permission, Description = "Can view accounts" }
         };
 
-        var groupPermissions = new List<GroupPermission>
+        var rolePermissions = new List<RolePermission>
         {
-            new GroupPermission { UserGroupId = 1, PermissionId = 1 }
+            new RolePermission { RoleId = 1, PermissionId = 1 }
         };
 
         // Setup cache to indicate no cached permissions (force DB lookup)
@@ -143,15 +143,15 @@ public class RolesControllerTests
         _cacheMock.Setup(x => x.GetUserPermissionsFromCacheAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new HashSet<string>());
 
-        var userGroupMock = MockDbSetFactory.CreateMockDbSet(userGroups);
-        var groupMemberMock = MockDbSetFactory.CreateMockDbSet(groupMembers);
-        var permissionMock = MockDbSetFactory.CreateMockDbSet(permissions);
-        var groupPermissionMock = MockDbSetFactory.CreateMockDbSet(groupPermissions);
+        var userGroupMock = userGroups.CreateMockDbSet();
+        var groupMemberMock = groupMembers.CreateMockDbSet();
+        var permissionMock = permissions.CreateMockDbSet();
+        var rolePermissionMock = rolePermissions.CreateMockDbSet();
 
         _dbContextMock.Setup(x => x.UserGroups).Returns(userGroupMock.Object);
         _dbContextMock.Setup(x => x.UserGroupMembers).Returns(groupMemberMock.Object);
         _dbContextMock.Setup(x => x.Permissions).Returns(permissionMock.Object);
-        _dbContextMock.Setup(x => x.GroupPermissions).Returns(groupPermissionMock.Object);
+        _dbContextMock.Setup(x => x.RolePermissions).Returns(rolePermissionMock.Object);
 
         // Act
         var result = await _rbacService.CheckPermissionAsync(userId, permission);
@@ -172,20 +172,20 @@ public class RolesControllerTests
             new Permission { Id = 2, Name = "Edit.Accounts", Description = "Can edit accounts" }
         };
 
-        var groupPermissions = new List<GroupPermission>
+        var rolePermissions = new List<RolePermission>
         {
-            new GroupPermission { UserGroupId = roleId, PermissionId = 1 },
-            new GroupPermission { UserGroupId = roleId, PermissionId = 2 }
+            new RolePermission { RoleId = roleId, PermissionId = 1 },
+            new RolePermission { RoleId = roleId, PermissionId = 2 }
         };
 
-        var permissionMock = MockDbSetFactory.CreateMockDbSet(permissions);
-        var groupPermissionMock = MockDbSetFactory.CreateMockDbSet(groupPermissions);
+        var permissionMock = permissions.CreateMockDbSet();
+        var rolePermissionMock = rolePermissions.CreateMockDbSet();
 
         _dbContextMock.Setup(x => x.Permissions).Returns(permissionMock.Object);
-        _dbContextMock.Setup(x => x.GroupPermissions).Returns(groupPermissionMock.Object);
+        _dbContextMock.Setup(x => x.RolePermissions).Returns(rolePermissionMock.Object);
 
         // Act
-        var result = groupPermissions;
+        var result = rolePermissions;
 
         // Assert
         Assert.Equal(2, result.Count);

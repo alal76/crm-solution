@@ -15,6 +15,7 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using CRM.Core.Entities;
+using CRM.Core.Interfaces;
 using CRM.Infrastructure.Services;
 using CRM.Infrastructure.Data;
 using Microsoft.Extensions.Logging;

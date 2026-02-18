@@ -225,7 +225,7 @@ public class UserServiceTests
         _dbContextMock.Setup(x => x.Users).Returns(mockDbSet.Object);
 
         // Act
-        var result = await _service.GetAllAsync();
+        var result = await _service.GetAllUsersAsync();
 
         // Assert
         Assert.NotNull(result);

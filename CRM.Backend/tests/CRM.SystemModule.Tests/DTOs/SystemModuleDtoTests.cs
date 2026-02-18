@@ -60,7 +60,7 @@ public class SystemModuleDtoTests
             LastName = "User",
             Role = "Admin",
             IsActive = true,
-            LastLoginAt = DateTime.UtcNow,
+            LastLoginDate = DateTime.UtcNow,
             DepartmentId = 1,
             UserProfileId = 1,
             CreatedAt = DateTime.UtcNow
@@ -69,7 +69,7 @@ public class SystemModuleDtoTests
         // Act & Assert
         Assert.NotNull(userDto);
         Assert.True(userDto.IsActive);
-        Assert.NotNull(userDto.LastLoginAt);
+        Assert.NotNull(userDto.LastLoginDate);
     }
 
     [Fact]
@@ -206,15 +206,16 @@ public class SystemModuleDtoTests
         {
             Id = 1,
             CompanyName = "Test Company",
-            AppName = "CRM Solution",
-            Theme = "Light",
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
+            PrimaryColor = "#6750A4",
+            AccountsEnabled = true,
+            ContactsEnabled = true,
+            LeadsEnabled = true
         };
 
         // Assert
         Assert.NotNull(settingsDto);
         Assert.Equal("Test Company", settingsDto.CompanyName);
+        Assert.True(settingsDto.AccountsEnabled);
     }
 
     [Fact]
@@ -223,16 +224,19 @@ public class SystemModuleDtoTests
         // Arrange & Act
         var dashboardDto = new AdminDashboardDto
         {
-            TotalUsers = 100,
-            ActiveUsers = 85,
-            SystemUptime = 99.9,
-            LastBackupTime = DateTime.UtcNow.AddDays(-1),
-            AverageResponseTime = 150.5
+            SystemStatistics = new SystemStatisticsDto
+            {
+                TotalUsers = 100,
+                ActiveUsers = 85,
+                TotalAccounts = 50,
+                TotalContacts = 200
+            },
+            RefreshedAt = DateTime.UtcNow
         };
 
         // Assert
         Assert.NotNull(dashboardDto);
-        Assert.Equal(100, dashboardDto.TotalUsers);
-        Assert.Equal(99.9, dashboardDto.SystemUptime);
+        Assert.Equal(100, dashboardDto.SystemStatistics.TotalUsers);
+        Assert.Equal(85, dashboardDto.SystemStatistics.ActiveUsers);
     }
 }
