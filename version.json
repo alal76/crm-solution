@@ -3,8 +3,9 @@
   "minor": 561,
   "patch": 3,
   "lastUpdate": "2026-02-18",
-  "description": "Add public /test-results route for TestResultsPage dashboard (no auth required)",
+  "description": "Phase 17 extended module coverage + test logging framework",
   "features": [
+    "Phase 17: Departments, PriceBooks, ProductBundles, Territories, SalesQuotas, SalesForecasts, LeadRouting, LeadScoreRules, ApprovalMatrices, CreditMemos, Forms, LandingPages, Conversations, EventAttendees",
     "TestResultLogger service for centralized test result capture",
     "LoggedTestBase abstract class for automatic try-catch wrapping",
     "LoggingTestFramework custom xUnit framework with transparent test interception",
