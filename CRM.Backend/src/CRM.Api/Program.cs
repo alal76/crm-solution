@@ -554,11 +554,11 @@ builder.Services.AddScoped<CRM.Core.Interfaces.IChangeService, CRM.Infrastructur
 builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IKnowledgeManagementService, CRM.Infrastructure.Services.ITSM.KnowledgeManagementService>();
 //builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IServiceCatalogService, CRM.Infrastructure.Services.ITSM.ServiceCatalogService>();
 // builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IEscalationRuleService, CRM.Infrastructure.Services.ITSM.EscalationRuleService>(); // DISABLED for System Module isolation
-// builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IEscalationPolicyService, CRM.Infrastructure.Services.ITSM.EscalationPolicyService>(); // DISABLED for System Module isolation
+builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IEscalationPolicyService, CRM.Infrastructure.Services.ITSM.EscalationPolicyService>();
 // ITSM Phase 4 - Advanced Automation & Integration Services - DISABLED
 //builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IWebhookNotificationService, CRM.Infrastructure.Services.ITSM.WebhookNotificationService>();
 //builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IEmailToTicketService, CRM.Infrastructure.Services.ITSM.EmailToTicketService>();
-//builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IITSMDashboardService, CRM.Infrastructure.Services.ITSM.ITSMDashboardService>();
+builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IITSMDashboardService, CRM.Infrastructure.Services.ITSM.ITSMDashboardService>();
 //builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IMonitoringIntegrationService, CRM.Infrastructure.Services.ITSM.MonitoringIntegrationService>();
 //builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.ICICDIntegrationService, CRM.Infrastructure.Services.ITSM.CICDIntegrationService>();
 //builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.ISelfServiceChatbotService, CRM.Infrastructure.Services.ITSM.SelfServiceChatbotService>();
@@ -693,9 +693,9 @@ builder.Services.AddScoped<ICreditMemoService, CreditMemoService>();
 // Dunning Manager - payment failure recovery with 3-retry escalation
 // builder.Services.AddScoped<IDunningManager, DunningManager>(); // DISABLED for System Module isolation
 // Proration Calculator - 4 proration algorithms (ProRata, FullPrice, OneMonth, None)
-// builder.Services.AddScoped<IProrateCalculator, ProrateCalculator>(); // DISABLED for System Module isolation
+builder.Services.AddScoped<CRM.Infrastructure.Services.IProrateCalculator, ProrateCalculator>();
 // Subscription Metrics Aggregator - MRR/ARR/churn/NRR calculations
-// builder.Services.AddScoped<ISubscriptionMetricsAggregator, SubscriptionMetricsAggregator>(); // DISABLED for System Module isolation
+builder.Services.AddScoped<CRM.Infrastructure.Services.ISubscriptionMetricsAggregator, SubscriptionMetricsAggregator>();
 // Master data - Field-to-master-data linking service
 builder.Services.AddScoped<IFieldMasterDataService, FieldMasterDataService>();
 // Master data seeder - seeds ZipCodes and ColorPalettes on startup if empty

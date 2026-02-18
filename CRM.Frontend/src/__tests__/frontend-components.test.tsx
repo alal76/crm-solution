@@ -9,10 +9,11 @@ import '@testing-library/jest-dom';
 
 // ITSM Component Tests
 describe('ITSM Components', () => {
+  afterEach(cleanup);
+
   describe('IncidentStatusBadge', () => {
     it('should render status badge with correct label', () => {
       const { IncidentStatusBadge } = require('../components/itsm/IncidentStatusBadge');
-      const { render } = require('@testing-library/react');
       const { getByText } = render(
         <IncidentStatusBadge status={0} />
       );
@@ -21,7 +22,6 @@ describe('ITSM Components', () => {
 
     it('should apply correct color based on status', () => {
       const { IncidentStatusBadge } = require('../components/itsm/IncidentStatusBadge');
-      const { render } = require('@testing-library/react');
       const { container } = render(
         <IncidentStatusBadge status={2} />
       );
@@ -33,7 +33,6 @@ describe('ITSM Components', () => {
   describe('IncidentPriorityBadge', () => {
     it('should render priority with icon', () => {
       const { IncidentPriorityBadge } = require('../components/itsm/IncidentPriorityBadge');
-      const { render } = require('@testing-library/react');
       const { getByText } = render(
         <IncidentPriorityBadge priority={0} />
       );
@@ -44,7 +43,6 @@ describe('ITSM Components', () => {
   describe('IncidentSLAIndicator', () => {
     it('should render SLA progress correctly', () => {
       const { IncidentSLAIndicator } = require('../components/itsm/IncidentSLAIndicator');
-      const { render } = require('@testing-library/react');
       
       const mockSLA = {
         id: 1,
@@ -70,7 +68,6 @@ describe('ITSM Components', () => {
   describe('IncidentActivityTimeline', () => {
     it('should render activity timeline', () => {
       const { IncidentActivityTimeline } = require('../components/itsm/IncidentActivityTimeline');
-      const { render } = require('@testing-library/react');
       
       const mockActivities = [
         {
@@ -94,7 +91,6 @@ describe('ITSM Components', () => {
   describe('ProblemRelatedIncidentsList', () => {
     it('should show "no related incidents" when list is empty', () => {
       const { ProblemRelatedIncidentsList } = require('../components/itsm/ProblemRelatedIncidentsList');
-      const { render } = require('@testing-library/react');
       
       const { getByText } = render(
         <ProblemRelatedIncidentsList incidents={[]} />
@@ -104,7 +100,6 @@ describe('ITSM Components', () => {
 
     it('should display related incidents in table', () => {
       const { ProblemRelatedIncidentsList } = require('../components/itsm/ProblemRelatedIncidentsList');
-      const { render } = require('@testing-library/react');
       
       const mockIncidents = [
         {
@@ -128,31 +123,31 @@ describe('ITSM Components', () => {
 
 // Sales Component Tests
 describe('Sales Components', () => {
+  afterEach(cleanup);
+
   describe('CommissionPlanForm', () => {
     it('should render form fields', () => {
       const { CommissionPlanForm } = require('../components/sales/CommissionPlanForm');
-      const { render } = require('@testing-library/react');
       
-      const { getByLabelText } = render(
+      render(
         <CommissionPlanForm onSave={async () => {}} />
       );
       
-      expect(getByLabelText('Plan Name')).toBeInTheDocument();
-      expect(getByLabelText('Commission Type')).toBeInTheDocument();
+      expect(screen.getByLabelText('Plan Name')).toBeInTheDocument();
+      expect(screen.getAllByText('Commission Type').length).toBeGreaterThan(0);
     });
 
     it('should enable save button when required fields are filled', async () => {
       const { CommissionPlanForm } = require('../components/sales/CommissionPlanForm');
-      const { render: rtlRender } = require('@testing-library/react');
       
-      const { getByLabelText, getByText } = rtlRender(
+      render(
         <CommissionPlanForm onSave={async () => {}} />
       );
 
-      const nameInput = getByLabelText('Plan Name');
+      const nameInput = screen.getByLabelText('Plan Name');
       await userEvent.type(nameInput, 'Test Plan');
       
-      const saveButton = getByText('Save Commission Plan');
+      const saveButton = screen.getByText('Save Commission Plan');
       expect(saveButton).not.toBeDisabled();
     });
   });
@@ -160,24 +155,24 @@ describe('Sales Components', () => {
 
 // Integration Component Tests
 describe('Integration Components', () => {
+  afterEach(cleanup);
+
   describe('WebhookForm', () => {
     it('should render webhook form fields', () => {
       const { WebhookForm } = require('../components/integration/WebhookForm');
-      const { render } = require('@testing-library/react');
       
-      const { getByLabelText } = render(
+      render(
         <WebhookForm onSave={async () => {}} />
       );
       
-      expect(getByLabelText('Webhook Name')).toBeInTheDocument();
-      expect(getByLabelText('Webhook URL')).toBeInTheDocument();
+      expect(screen.getByLabelText(/Webhook Name/i)).toBeInTheDocument();
+      expect(screen.getByLabelText(/Webhook URL/i)).toBeInTheDocument();
     });
   });
 
   describe('WebhookDeliveryHistoryTable', () => {
     it('should display no delivery history message when empty', () => {
       const { WebhookDeliveryHistoryTable } = require('../components/integration/WebhookDeliveryHistoryTable');
-      const { render } = require('@testing-library/react');
       
       const { getByText } = render(
         <WebhookDeliveryHistoryTable deliveries={[]} />
@@ -189,10 +184,11 @@ describe('Integration Components', () => {
 
 // Page Component Tests
 describe('Page Components', () => {
+  afterEach(cleanup);
+
   describe('ProblemManagementPage', () => {
     it('should render problem management page header', () => {
       const { ProblemManagementPage } = require('../pages/itsm/ProblemManagementPage');
-      const { render } = require('@testing-library/react');
       
       const { getByText } = render(
         <ProblemManagementPage />
@@ -204,7 +200,6 @@ describe('Page Components', () => {
   describe('ChangeManagementPage', () => {
     it('should render change management page header', () => {
       const { ChangeManagementPage } = require('../pages/itsm/ChangeManagementPage');
-      const { render } = require('@testing-library/react');
       
       const { getByText } = render(
         <ChangeManagementPage />
@@ -216,7 +211,6 @@ describe('Page Components', () => {
   describe('WebhooksManagementPage', () => {
     it('should render webhooks management page header', () => {
       const { WebhooksManagementPage } = require('../pages/WebhooksManagementPage');
-      const { render } = require('@testing-library/react');
       
       const { getByText } = render(
         <WebhooksManagementPage />

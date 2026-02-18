@@ -14,7 +14,8 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using CRM.Core.Dtos.ITSM;
+using CRM.Core.Dtos;
+using CRM.Core.Entities.ITSM;
 using CRM.Core.Interfaces;
 using CRM.Core.Interfaces.ITSM;
 using Microsoft.EntityFrameworkCore;

@@ -15,22 +15,23 @@
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
 using System.Security.Claims;
-using CRM.Core.Dtos.ITSM;
+using CRM.Core.Dtos;
 using CRM.Core.Interfaces.ITSM;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
-namespace CRM.Api.Controllers;
+namespace CRM.Api.Controllers.ITSM;
 
 /// <summary>
 /// API controller for managing escalation policies with multiple levels.
 /// Provides CRUD operations and escalation management.
 /// </summary>
 [ApiController]
-[Route("api/escalation-policies")]
+[Route("api/itsm/escalation-policies")]
 [Authorize]
 [Produces("application/json")]
+[Tags("ITSM - Escalation Policies")]
 public class EscalationPoliciesController : ControllerBase
 {
     private readonly IEscalationPolicyService _escalationPolicyService;
@@ -274,7 +275,8 @@ public class EscalationPoliciesController : ControllerBase
                 return BadRequest(ModelState);
             }
 
-            var level = await _escalationPolicyService.AddPolicyLevelAsync(policyId, dto);
+            var userId = GetCurrentUserId();
+            var level = await _escalationPolicyService.AddLevelAsync(policyId, dto, userId ?? 1);
             return CreatedAtAction(nameof(GetPolicyLevels), new { policyId }, level);
         }
         catch (KeyNotFoundException ex)
@@ -311,7 +313,8 @@ public class EscalationPoliciesController : ControllerBase
                 return BadRequest(ModelState);
             }
 
-            var level = await _escalationPolicyService.UpdatePolicyLevelAsync(levelId, dto);
+            var userId = GetCurrentUserId();
+            var level = await _escalationPolicyService.UpdateLevelAsync(levelId, dto, userId ?? 1);
             return Ok(level);
         }
         catch (KeyNotFoundException ex)
@@ -339,7 +342,7 @@ public class EscalationPoliciesController : ControllerBase
     {
         try
         {
-            var result = await _escalationPolicyService.RemoveLevelAsync(levelId);
+            var result = await _escalationPolicyService.DeleteLevelAsync(levelId);
 
             if (!result)
             {
@@ -352,67 +355,6 @@ public class EscalationPoliciesController : ControllerBase
         {
             _logger.LogError(ex, "Error removing escalation level {LevelId}", levelId);
             return StatusCode(500, "An error occurred while removing the level");
-        }
-    }
-
-    #endregion
-
-    #region Escalation Management
-
-    /// <summary>
-    /// Execute an escalation policy for a service request.
-    /// </summary>
-    /// <param name="policyId">Policy ID</param>
-    /// <param name="serviceRequestId">Service Request ID</param>
-    /// <param name="escalationLevel">Escalation level to execute</param>
-    /// <returns>Escalation history record</returns>
-    [HttpPost("{policyId}/execute")]
-    [ProducesResponseType(typeof(EscalationHistoryDto), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<EscalationHistoryDto>> ExecuteEscalation(
-        int policyId,
-        [FromQuery] int serviceRequestId,
-        [FromQuery] int escalationLevel = 1)
-    {
-        try
-        {
-            var history = await _escalationPolicyService.ExecuteEscalationAsync(
-                policyId, serviceRequestId, escalationLevel);
-
-            return Ok(history);
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(ex.Message);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error executing escalation for service request {ServiceRequestId}", serviceRequestId);
-            return StatusCode(500, "An error occurred while executing escalation");
-        }
-    }
-
-    /// <summary>
-    /// Get escalation history for a service request.
-    /// </summary>
-    /// <param name="serviceRequestId">Service Request ID</param>
-    /// <returns>List of escalation history records</returns>
-    [HttpGet("history/{serviceRequestId}")]
-    [ProducesResponseType(typeof(List<EscalationHistoryDto>), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<List<EscalationHistoryDto>>> GetHistory(int serviceRequestId)
-    {
-        try
-        {
-            var history = await _escalationPolicyService.GetHistoryAsync(serviceRequestId);
-            return Ok(history);
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error getting escalation history for service request {ServiceRequestId}", serviceRequestId);
-            return StatusCode(500, "An error occurred while retrieving history");
         }
     }
 

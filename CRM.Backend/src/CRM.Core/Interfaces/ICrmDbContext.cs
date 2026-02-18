@@ -237,6 +237,11 @@ public interface ICrmDbContext
     DbSet<CRM.Core.Entities.ITSM.CatalogRequestApproval> CatalogRequestApprovals { get; }
     DbSet<CRM.Core.Entities.ITSM.CatalogRequestComment> CatalogRequestComments { get; }
 
+    // ITSM Escalation Policies
+    DbSet<CRM.Core.Entities.ITSM.EscalationPolicy> EscalationPolicies { get; }
+    DbSet<CRM.Core.Entities.ITSM.EscalationLevel> EscalationLevels { get; }
+    DbSet<CRM.Core.Entities.ITSM.EscalationHistory> EscalationHistories { get; }
+
     // Workflow Engine
     DbSet<WorkflowDefinition> WorkflowDefinitions { get; }
     DbSet<WorkflowVersion> WorkflowVersions { get; }

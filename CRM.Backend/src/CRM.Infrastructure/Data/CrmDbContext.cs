@@ -429,6 +429,11 @@ public class CrmDbContext : DbContext, ICrmDbContext
     public DbSet<ITSM.CatalogRequestApproval> CatalogRequestApprovals { get; set; }
     public DbSet<ITSM.CatalogRequestComment> CatalogRequestComments { get; set; }
 
+    // Escalation Policies
+    public DbSet<ITSM.EscalationPolicy> EscalationPolicies { get; set; }
+    public DbSet<ITSM.EscalationLevel> EscalationLevels { get; set; }
+    public DbSet<ITSM.EscalationHistory> EscalationHistories { get; set; }
+
     // =============================================================================
     // Integration & Webhook Entities
     // =============================================================================

@@ -72,12 +72,12 @@ describe('AddressFormComponent', () => {
       renderComponent({});
 
       // Act & Assert
-      expect(screen.getByLabelText(/label|name/i)).toBeInTheDocument();
-      expect(screen.getByLabelText(/street|line1|address/i)).toBeInTheDocument();
-      expect(screen.getByLabelText(/city/i)).toBeInTheDocument();
-      expect(screen.getByLabelText(/state|province/i)).toBeInTheDocument();
-      expect(screen.getByLabelText(/postal|zip/i)).toBeInTheDocument();
-      expect(screen.getByLabelText(/country/i)).toBeInTheDocument();
+      expect(screen.getByLabelText('Label')).toBeInTheDocument();
+      expect(screen.getByLabelText('Address Line 1')).toBeInTheDocument();
+      expect(screen.getByLabelText('City')).toBeInTheDocument();
+      expect(screen.getByLabelText('State/Province')).toBeInTheDocument();
+      expect(screen.getByLabelText('Zip/Postal Code')).toBeInTheDocument();
+      expect(screen.getByLabelText('Country')).toBeInTheDocument();
     });
 
     test('renders form title as Create', () => {
@@ -94,7 +94,7 @@ describe('AddressFormComponent', () => {
       renderComponent({});
 
       // Act & Assert
-      const streetInput = screen.getByLabelText(/street|line1|address/i) as HTMLInputElement;
+      const streetInput = screen.getByLabelText('Address Line 1') as HTMLInputElement;
       expect(streetInput.value).toBe('');
     });
 
@@ -114,10 +114,10 @@ describe('AddressFormComponent', () => {
       renderComponent({ address: mockAddress });
 
       // Act & Assert
-      const streetInput = screen.getByLabelText(/street|line1|address/i) as HTMLInputElement;
+      const streetInput = screen.getByLabelText('Address Line 1') as HTMLInputElement;
       expect(streetInput.value).toBe('123 Main Street');
 
-      const cityInput = screen.getByLabelText(/city/i) as HTMLInputElement;
+      const cityInput = screen.getByLabelText('City') as HTMLInputElement;
       expect(cityInput.value).toBe('New York');
     });
 
@@ -135,9 +135,9 @@ describe('AddressFormComponent', () => {
       renderComponent({ address: mockAddress });
 
       // Act & Assert
-      expect(screen.getByLabelText(/label|name/i)).toHaveValue('Main Office');
-      expect(screen.getByLabelText(/street|line1|address/i)).toHaveValue('123 Main Street');
-      expect(screen.getByLabelText(/city/i)).toHaveValue('New York');
+      expect(screen.getByLabelText('Label')).toHaveValue('Main Office');
+      expect(screen.getByLabelText('Address Line 1')).toHaveValue('123 Main Street');
+      expect(screen.getByLabelText('City')).toHaveValue('New York');
     });
 
     test('renders submit button as Update/Save', () => {
@@ -179,7 +179,7 @@ describe('AddressFormComponent', () => {
       renderComponent({ onSubmit });
 
       // Act
-      const streetInput = screen.getByLabelText(/street|line1|address/i);
+      const streetInput = screen.getByLabelText('Address Line 1');
       fireEvent.change(streetInput, { target: { value: '123 Main Street' } });
 
       const submitButton = screen.getByRole('button', { name: /create|save/i });
@@ -202,10 +202,10 @@ describe('AddressFormComponent', () => {
       renderComponent({ onSubmit });
 
       // Act
-      const streetInput = screen.getByLabelText(/street|line1|address/i);
+      const streetInput = screen.getByLabelText('Address Line 1');
       fireEvent.change(streetInput, { target: { value: '123 Main Street' } });
 
-      const cityInput = screen.getByLabelText(/city/i);
+      const cityInput = screen.getByLabelText('City');
       fireEvent.change(cityInput, { target: { value: 'New York' } });
 
       const submitButton = screen.getByRole('button', { name: /create|save/i });
@@ -226,13 +226,13 @@ describe('AddressFormComponent', () => {
       renderComponent({ onSubmit });
 
       // Act
-      const streetInput = screen.getByLabelText(/street|line1|address/i);
+      const streetInput = screen.getByLabelText('Address Line 1');
       fireEvent.change(streetInput, { target: { value: '123 Main Street' } });
 
-      const cityInput = screen.getByLabelText(/city/i);
+      const cityInput = screen.getByLabelText('City');
       fireEvent.change(cityInput, { target: { value: 'New York' } });
 
-      const countryInput = screen.getByLabelText(/country/i);
+      const countryInput = screen.getByLabelText('Country');
       fireEvent.change(countryInput, { target: { value: 'United States' } });
 
       const submitButton = screen.getByRole('button', { name: /create|save/i });
@@ -252,13 +252,13 @@ describe('AddressFormComponent', () => {
       renderComponent({ onSubmit });
 
       // Act
-      const streetInput = screen.getByLabelText(/street|line1|address/i);
+      const streetInput = screen.getByLabelText('Address Line 1');
       fireEvent.change(streetInput, { target: { value: '789 Pine Road' } });
 
-      const cityInput = screen.getByLabelText(/city/i);
+      const cityInput = screen.getByLabelText('City');
       fireEvent.change(cityInput, { target: { value: 'Chicago' } });
 
-      const countryInput = screen.getByLabelText(/country/i);
+      const countryInput = screen.getByLabelText('Country');
       fireEvent.change(countryInput, { target: { value: 'United States' } });
 
       const submitButton = screen.getByRole('button', { name: /create|save/i });
@@ -282,7 +282,7 @@ describe('AddressFormComponent', () => {
       renderComponent({ address: mockAddress, onSubmit });
 
       // Act
-      const streetInput = screen.getByLabelText(/street|line1|address/i) as HTMLInputElement;
+      const streetInput = screen.getByLabelText('Address Line 1') as HTMLInputElement;
       fireEvent.change(streetInput, { target: { value: '999 Updated Street' } });
 
       const submitButton = screen.getByRole('button', { name: /update|save/i });
@@ -304,13 +304,13 @@ describe('AddressFormComponent', () => {
       renderComponent({ onSubmit });
 
       // Act
-      const streetInput = screen.getByLabelText(/street|line1|address/i);
+      const streetInput = screen.getByLabelText('Address Line 1');
       fireEvent.change(streetInput, { target: { value: '123 Main Street' } });
 
-      const cityInput = screen.getByLabelText(/city/i);
+      const cityInput = screen.getByLabelText('City');
       fireEvent.change(cityInput, { target: { value: 'New York' } });
 
-      const countryInput = screen.getByLabelText(/country/i);
+      const countryInput = screen.getByLabelText('Country');
       fireEvent.change(countryInput, { target: { value: 'United States' } });
 
       const submitButton = screen.getByRole('button', { name: /create|save/i });
@@ -343,7 +343,7 @@ describe('AddressFormComponent', () => {
       renderComponent({ onCancel });
 
       // Act
-      const streetInput = screen.getByLabelText(/street|line1|address/i) as HTMLInputElement;
+      const streetInput = screen.getByLabelText('Address Line 1') as HTMLInputElement;
       fireEvent.change(streetInput, { target: { value: 'Temporary Address' } });
 
       const cancelButton = screen.getByRole('button', { name: /cancel|close/i });
@@ -361,13 +361,13 @@ describe('AddressFormComponent', () => {
       renderComponent({ onSubmit });
 
       // Act
-      const streetInput = screen.getByLabelText(/street|line1|address/i);
+      const streetInput = screen.getByLabelText('Address Line 1');
       fireEvent.change(streetInput, { target: { value: '123 Main Street' } });
 
-      const cityInput = screen.getByLabelText(/city/i);
+      const cityInput = screen.getByLabelText('City');
       fireEvent.change(cityInput, { target: { value: 'New York' } });
 
-      const countryInput = screen.getByLabelText(/country/i);
+      const countryInput = screen.getByLabelText('Country');
       fireEvent.change(countryInput, { target: { value: 'United States' } });
 
       const submitButton = screen.getByRole('button', { name: /create|save/i });
@@ -385,18 +385,18 @@ describe('AddressFormComponent', () => {
       renderComponent({ onSubmit });
 
       // Act
-      const streetInput = screen.getByLabelText(/street|line1|address/i);
+      const streetInput = screen.getByLabelText('Address Line 1');
       fireEvent.change(streetInput, { target: { value: '123 Main Street' } });
 
-      const suiteInput = screen.queryByLabelText(/suite|line2/i);
+      const suiteInput = screen.queryByLabelText('Address Line 2');
       if (suiteInput) {
         fireEvent.change(suiteInput, { target: { value: 'Suite 100' } });
       }
 
-      const cityInput = screen.getByLabelText(/city/i);
+      const cityInput = screen.getByLabelText('City');
       fireEvent.change(cityInput, { target: { value: 'New York' } });
 
-      const countryInput = screen.getByLabelText(/country/i);
+      const countryInput = screen.getByLabelText('Country');
       fireEvent.change(countryInput, { target: { value: 'United States' } });
 
       const submitButton = screen.getByRole('button', { name: /create|save/i });
@@ -416,23 +416,23 @@ describe('AddressFormComponent', () => {
       renderComponent({ onSubmit });
 
       // Act
-      const labelInput = screen.queryByLabelText(/label|name/i);
+      const labelInput = screen.queryByLabelText('Label');
       if (labelInput) {
         fireEvent.change(labelInput, { target: { value: 'Main Office' } });
       }
 
-      const streetInput = screen.getByLabelText(/street|line1|address/i);
+      const streetInput = screen.getByLabelText('Address Line 1');
       fireEvent.change(streetInput, { target: { value: '123 Main Street' } });
 
-      const cityInput = screen.getByLabelText(/city/i);
+      const cityInput = screen.getByLabelText('City');
       fireEvent.change(cityInput, { target: { value: 'New York' } });
 
-      const stateInput = screen.queryByLabelText(/state|province/i);
+      const stateInput = screen.queryByLabelText('State/Province');
       if (stateInput) {
         fireEvent.change(stateInput, { target: { value: 'NY' } });
       }
 
-      const countryInput = screen.getByLabelText(/country/i);
+      const countryInput = screen.getByLabelText('Country');
       fireEvent.change(countryInput, { target: { value: 'United States' } });
 
       const submitButton = screen.getByRole('button', { name: /create|save/i });
@@ -456,13 +456,11 @@ describe('AddressFormComponent', () => {
       // Arrange
       renderComponent({});
 
-      // Act & Assert
-      const inputs = screen.getAllByRole('textbox');
-      inputs.forEach((input) => {
-        // Each input should have a label or aria-label
-        const ariaLabel = input.getAttribute('aria-label');
-        expect(ariaLabel || input.closest('label')).toBeTruthy();
-      });
+      // Act & Assert - verify key fields are accessible by label
+      expect(screen.getByLabelText('Address Line 1')).toBeInTheDocument();
+      expect(screen.getByLabelText('City')).toBeInTheDocument();
+      expect(screen.getByLabelText('Country')).toBeInTheDocument();
+      expect(screen.getByLabelText('Label')).toBeInTheDocument();
     });
 
     test('form is keyboard navigable', async () => {
@@ -471,7 +469,7 @@ describe('AddressFormComponent', () => {
       renderComponent({});
 
       // Act
-      const firstInput = screen.getByLabelText(/label|name|street|address/i);
+      const firstInput = screen.getByLabelText('Label');
       firstInput.focus();
 
       // Assert

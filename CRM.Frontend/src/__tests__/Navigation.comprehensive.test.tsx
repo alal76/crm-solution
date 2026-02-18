@@ -276,9 +276,7 @@ describe('Navigation - Auto-Heal Config', () => {
     localStorage.setItem('crm_nav_order', JSON.stringify({
       navItems: [
         { id: 'dashboard', order: 0, visible: true, category: 'main' }
-      ],
-      categories: [],
-      adminSubcategories: []
+      ]
     }));
 
     render(<Navigation />);
@@ -287,10 +285,13 @@ describe('Navigation - Auto-Heal Config', () => {
     fireEvent.click(openButton);
 
     await waitFor(() => {
-      expect(screen.getByText('Workflows')).toBeInTheDocument();
+      // Look for the admin subcategory heading "Workflows & Dashboards"
+      expect(screen.getByText('Workflows & Dashboards')).toBeInTheDocument();
     });
 
-    expect(screen.getByText('Workflow Monitor')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText('Workflow Monitor')).toBeInTheDocument();
+    });
   });
 });
 

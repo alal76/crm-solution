@@ -393,4 +393,36 @@ public class UserGroupService : IUserGroupService, IUserGroupInputPort
             throw;
         }
     }
+
+    public async Task<bool> IsUserInGroupAsync(int userId, int groupId, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            return await _context.UserGroupMembers
+                .AnyAsync(m => m.UserId == userId && m.UserGroupId == groupId, cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error checking if user {UserId} is in group {GroupId}", userId, groupId);
+            throw;
+        }
+    }
+
+    public async Task<IEnumerable<UserGroupDto>> GetActiveGroupsAsync(CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var groups = await _context.UserGroups
+                .Where(g => g.IsActive)
+                .Select(g => MapToDto(g))
+                .ToListAsync(cancellationToken);
+
+            return groups;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving active user groups");
+            throw;
+        }
+    }
 }

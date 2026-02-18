@@ -34,4 +34,6 @@ public interface IUserService
     Task<bool> VerifyPasswordAsync(int userId, string password);
     Task ChangePasswordAsync(int userId, string currentPassword, string newPassword);
     Task<User?> GetUserEntityByIdAsync(int id);
+    Task<UserDto?> GetUserByUsernameAsync(string username, CancellationToken cancellationToken = default);
+    Task<bool> IsUserActiveAsync(int userId, CancellationToken cancellationToken = default);
 }
