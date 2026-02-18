@@ -53,7 +53,108 @@ interface DependencyCategory {
 }
 
 const LicensesPage: React.FC = () => {
-  const frontendDependencies: Dependency[] = [
+  // Pluggable Providers Inventory
+  const pluggableProviders = [
+    {
+      name: 'Meilisearch',
+      deployed: true,
+      license: 'MIT',
+      licenseUrl: 'https://github.com/meilisearch/MeiliSearch/blob/main/LICENSE',
+      description: 'Open-source search engine. Deployed as external provider.'
+    },
+    {
+      name: 'Ollama',
+      deployed: true,
+      license: 'MIT',
+      licenseUrl: 'https://github.com/ollama/ollama/blob/main/LICENSE',
+      description: 'Local LLM inference. Deployed as external AI provider.'
+    },
+    {
+      name: 'Chatwoot',
+      deployed: true,
+      license: 'MIT',
+      licenseUrl: 'https://github.com/chatwoot/chatwoot/blob/develop/LICENSE.md',
+      description: 'Customer chat support. Deployed as external chat provider.'
+    },
+    {
+      name: 'Novu',
+      deployed: true,
+      license: 'MIT',
+      licenseUrl: 'https://github.com/novuhq/novu/blob/main/LICENSE',
+      description: 'Multi-channel notifications. Deployed as external notification provider.'
+    },
+    {
+      name: 'Superset',
+      deployed: true,
+      license: 'Apache-2.0',
+      licenseUrl: 'https://github.com/apache/superset/blob/master/LICENSE',
+      description: 'BI & data visualization. Deployed as external analytics provider.'
+    },
+    {
+      name: 'DocuSeal',
+      deployed: true,
+      license: 'AGPL-3.0',
+      licenseUrl: 'https://github.com/docuseal/docuseal/blob/main/LICENSE',
+      description: 'E-signature workflows. Deployed as external signature provider.'
+    },
+    {
+      name: 'n8n',
+      deployed: true,
+      license: 'Fair Code',
+      licenseUrl: 'https://github.com/n8n-io/n8n/blob/main/LICENSE.md',
+      description: 'Workflow automation. Deployed as external integration provider.'
+    },
+    // Not deployed
+    {
+      name: 'Algolia',
+      deployed: false,
+      license: 'Commercial',
+      licenseUrl: 'https://www.algolia.com/policies/terms/',
+      description: 'SaaS search provider. Not deployed.'
+    },
+    {
+      name: 'Typesense',
+      deployed: false,
+      license: 'GPL-3.0',
+      licenseUrl: 'https://github.com/typesense/typesense/blob/main/LICENSE',
+      description: 'Open-source search provider. Not deployed.'
+    },
+    {
+      name: 'Twilio',
+      deployed: false,
+      license: 'Commercial',
+      licenseUrl: 'https://www.twilio.com/legal/tos',
+      description: 'SMS/voice notifications. Not deployed.'
+    },
+    {
+      name: 'SendGrid',
+      deployed: false,
+      license: 'Commercial',
+      licenseUrl: 'https://www.twilio.com/legal/sendgrid-terms',
+      description: 'Email notifications. Not deployed.'
+    },
+    {
+      name: 'PowerBI',
+      deployed: false,
+      license: 'Commercial',
+      licenseUrl: 'https://www.microsoft.com/en-us/licensing/product-licensing/power-bi',
+      description: 'Analytics SaaS. Not deployed.'
+    },
+    {
+      name: 'DocuSign',
+      deployed: false,
+      license: 'Commercial',
+      licenseUrl: 'https://www.docusign.com/company/terms-and-conditions',
+      description: 'E-signature SaaS. Not deployed.'
+    },
+    {
+      name: 'Zapier',
+      deployed: false,
+      license: 'Commercial',
+      licenseUrl: 'https://zapier.com/legal/terms/',
+      description: 'Workflow automation SaaS. Not deployed.'
+    },
+  ];
     {
       name: 'React',
       version: '18.2.0',
@@ -342,10 +443,10 @@ const LicensesPage: React.FC = () => {
               <strong>Source-Available License — Commercial Use Requires a License</strong>
             </Typography>
             <Typography variant="body2" sx={{ color: 'primary.contrastText' }}>
-              Copyright © 2024-2026 Abhishek Lal. This software is source-available.
-              Non-commercial use (personal, educational, research) is freely permitted.
-              Commercial use of this software requires a separate commercial license
-              from the copyright holder.
+              Copyright © 2024-2026 Abhishek Lal. This software is source-available.<br />
+              <b>Non-commercial use</b> (personal, educational, research) is freely permitted.<br />
+              <b>Commercial use</b> requires a separate commercial license from the copyright holder.<br />
+              <b>Contact:</b> <a href="mailto:abhishek.lal@crm.local">abhishek.lal@crm.local</a> for commercial license inquiries, support, or feature requests.
             </Typography>
             <Box sx={{ mt: 2 }}>
               <Chip label="Source Available" color="secondary" sx={{ mr: 1 }} />
@@ -362,17 +463,15 @@ const LicensesPage: React.FC = () => {
               License Summary
             </Typography>
             <Typography variant="body2" color="text.secondary" paragraph>
-              CRM Solution itself is source-available with a commercial license requirement.
-              All third-party dependencies used in this project are open source software
-              with permissive or copyleft licenses.
+              CRM Solution is <b>source-available</b> with a commercial license requirement.<br />
+              All third-party dependencies and pluggable providers are open source or commercial software with their own license terms.<br />
+              <b>Pluggable providers</b> may have additional license restrictions. See below for details.
             </Typography>
             <Grid container spacing={2}>
               <Grid item xs={6} sm={3}>
                 <Box sx={{ textAlign: 'center', p: 2 }}>
                   <Typography variant="h4" color="success.main">
-                    {categories.reduce((acc, cat) => 
-                      acc + cat.dependencies.filter(d => d.license === 'MIT').length, 0
-                    )}
+                    {categories.reduce((acc, cat) => acc + cat.dependencies.filter(d => d.license === 'MIT').length, 0) + pluggableProviders.filter(p => p.license === 'MIT').length}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">MIT License</Typography>
                 </Box>
@@ -380,9 +479,7 @@ const LicensesPage: React.FC = () => {
               <Grid item xs={6} sm={3}>
                 <Box sx={{ textAlign: 'center', p: 2 }}>
                   <Typography variant="h4" color="info.main">
-                    {categories.reduce((acc, cat) => 
-                      acc + cat.dependencies.filter(d => d.license === 'Apache-2.0').length, 0
-                    )}
+                    {categories.reduce((acc, cat) => acc + cat.dependencies.filter(d => d.license === 'Apache-2.0').length, 0) + pluggableProviders.filter(p => p.license === 'Apache-2.0').length}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">Apache 2.0</Typography>
                 </Box>
@@ -390,11 +487,7 @@ const LicensesPage: React.FC = () => {
               <Grid item xs={6} sm={3}>
                 <Box sx={{ textAlign: 'center', p: 2 }}>
                   <Typography variant="h4" color="warning.main">
-                    {categories.reduce((acc, cat) => 
-                      acc + cat.dependencies.filter(d => 
-                        d.license.includes('BSD') || d.license === 'ISC'
-                      ).length, 0
-                    )}
+                    {categories.reduce((acc, cat) => acc + cat.dependencies.filter(d => d.license.includes('BSD') || d.license === 'ISC').length, 0) + pluggableProviders.filter(p => p.license.includes('BSD') || p.license === 'ISC').length}
                   </Typography>
                   <Typography variant="body2" color="text.secondary">BSD/ISC</Typography>
                 </Box>
@@ -402,11 +495,9 @@ const LicensesPage: React.FC = () => {
               <Grid item xs={6} sm={3}>
                 <Box sx={{ textAlign: 'center', p: 2 }}>
                   <Typography variant="h4" color="error.main">
-                    {categories.reduce((acc, cat) => 
-                      acc + cat.dependencies.filter(d => d.license.includes('GPL')).length, 0
-                    )}
+                    {categories.reduce((acc, cat) => acc + cat.dependencies.filter(d => d.license.includes('GPL')).length, 0) + pluggableProviders.filter(p => p.license.includes('GPL')).length}
                   </Typography>
-                  <Typography variant="body2" color="text.secondary">GPL</Typography>
+                  <Typography variant="body2" color="text.secondary">GPL/AGPL</Typography>
                 </Box>
               </Grid>
             </Grid>
@@ -484,18 +575,73 @@ const LicensesPage: React.FC = () => {
           </Accordion>
         ))}
 
+        {/* Pluggable Providers Inventory */}
+        <Accordion defaultExpanded>
+          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+            <Typography variant="h6">Pluggable Architecture Inventory</Typography>
+            <Chip label={pluggableProviders.length} size="small" sx={{ ml: 2 }} />
+          </AccordionSummary>
+          <AccordionDetails>
+            <TableContainer>
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell><strong>Provider</strong></TableCell>
+                    <TableCell><strong>Deployed</strong></TableCell>
+                    <TableCell><strong>License</strong></TableCell>
+                    <TableCell><strong>Description</strong></TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {pluggableProviders.map((prov, idx) => (
+                    <TableRow key={idx}>
+                      <TableCell>
+                        <Typography variant="body2" fontWeight="medium">
+                          {prov.name}
+                        </Typography>
+                      </TableCell>
+                      <TableCell>
+                        <Chip label={prov.deployed ? 'Yes' : 'No'} color={prov.deployed ? 'success' : 'default'} size="small" />
+                      </TableCell>
+                      <TableCell>
+                        {prov.licenseUrl ? (
+                          <Link href={prov.licenseUrl} target="_blank" rel="noopener">
+                            <Chip label={prov.license} size="small" color={getLicenseColor(prov.license)} />
+                          </Link>
+                        ) : (
+                          <Chip label={prov.license} size="small" color={getLicenseColor(prov.license)} />
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <Typography variant="body2" color="text.secondary">
+                          {prov.description}
+                        </Typography>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+            <Box sx={{ mt: 2 }}>
+              <Typography variant="body2" color="text.secondary">
+                <b>Note:</b> Only deployed providers are available in the current environment. Others are documented for reference and can be enabled via configuration and feature flags.
+              </Typography>
+            </Box>
+          </AccordionDetails>
+        </Accordion>
+
         {/* Notice */}
         <Card variant="outlined" sx={{ mt: 4, bgcolor: 'grey.100' }}>
           <CardContent>
             <Typography variant="subtitle1" gutterBottom>
-              Notice
+              License Details & Commercial Use
             </Typography>
-            <Typography variant="body2" color="text.secondary">
-              This page lists the third-party open source software used in CRM Solution. 
-              Each package is used in accordance with its respective license terms. 
-              The presence of a package on this list does not imply any endorsement by 
-              the package authors or maintainers. For the complete license text of each 
-              package, please refer to the linked license files.
+            <Typography variant="body2" color="text.secondary" paragraph>
+              <b>CRM Solution:</b> Source-available license. Non-commercial use is free. Commercial use requires a license.<br />
+              <b>Third-party dependencies:</b> Used in accordance with their license terms. See tables above.<br />
+              <b>Pluggable providers:</b> May have additional license restrictions. See provider inventory above.<br />
+              <b>Commercial License Contact:</b> For commercial use, support, or feature requests, contact <a href="mailto:abhishek.lal@crm.local">abhishek.lal@crm.local</a>.<br />
+              The presence of a package or provider does not imply endorsement by its authors. For full license texts, see linked files.
             </Typography>
           </CardContent>
         </Card>

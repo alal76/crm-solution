@@ -560,10 +560,11 @@ public class ModuleUIConfigServiceTests
     public async Task InitializeDefaultConfigsAsync_AlreadyPopulated_ShouldSkip()
     {
         // Provide all 14 default module names so the service finds them all and skips creation
+        // Note: Module is "Accounts" (not "Customers") after the Account/Customer rename
         var configs = new List<ModuleUIConfig>
         {
             MakeConfig(1, "Dashboard"),
-            MakeConfig(2, "Customers"),
+            MakeConfig(2, "Accounts"),
             MakeConfig(3, "Contacts"),
             MakeConfig(4, "Leads"),
             MakeConfig(5, "Opportunities"),
