@@ -39,45 +39,28 @@ public class RolesControllerTests
     {
         // Arrange
         var userId = 1;
-        var users = new List<User>
+        var userRoles = new List<UserRoleAssignment>
         {
-            new User 
-            { 
-                Id = userId, 
-                Email = "test@example.com",
-                Username = "testuser",
-                FirstName = "Test",
-                LastName = "User",
-                Role = 1,
-                IsActive = true,
-                CreatedAt = DateTime.UtcNow
-            }
+            new UserRoleAssignment { Id = 1, UserId = userId, RoleId = 1, IsActive = true, IsDeleted = false, AssignedAt = DateTime.UtcNow }
         };
 
-        var userGroups = new List<UserGroup>
+        var roles = new List<Role>
         {
-            new UserGroup { Id = 1, Name = "Managers", Description = "Manager role", IsActive = true, CreatedAt = DateTime.UtcNow }
+            new Role { Id = 1, Name = "Managers", Description = "Manager role", IsActive = true, IsDeleted = false, CreatedAt = DateTime.UtcNow }
         };
 
-        var groupMembers = new List<UserGroupMember>
-        {
-            new UserGroupMember { Id = 1, UserId = userId, UserGroupId = 1, CreatedAt = DateTime.UtcNow }
-        };
+        var userRoleMock = userRoles.CreateMockDbSet();
+        var roleMock = roles.CreateMockDbSet();
 
-        var userMock = users.CreateMockDbSet();
-        var userGroupMock = userGroups.CreateMockDbSet();
-        var groupMemberMock = groupMembers.CreateMockDbSet();
-
-        _dbContextMock.Setup(x => x.Users).Returns(userMock.Object);
-        _dbContextMock.Setup(x => x.UserGroups).Returns(userGroupMock.Object);
-        _dbContextMock.Setup(x => x.UserGroupMembers).Returns(groupMemberMock.Object);
+        _dbContextMock.Setup(x => x.UserRoles).Returns(userRoleMock.Object);
+        _dbContextMock.Setup(x => x.Roles).Returns(roleMock.Object);
 
         // Act
         var result = await _rbacService.GetUserRolesAsync(userId);
 
         // Assert
-        Assert.NotNull(result);
-        Assert.NotEmpty(result);
+        Assert.Single(result);
+        Assert.Equal("Managers", result.First().Name);
     }
 
     [Fact]
@@ -108,14 +91,9 @@ public class RolesControllerTests
         var userId = 1;
         var permission = "View.Accounts";
 
-        var userGroups = new List<UserGroup>
+        var userRoles = new List<UserRoleAssignment>
         {
-            new UserGroup { Id = 1, Name = "Managers", Description = "Manager role", IsActive = true, CreatedAt = DateTime.UtcNow }
-        };
-
-        var groupMembers = new List<UserGroupMember>
-        {
-            new UserGroupMember { Id = 1, UserId = userId, UserGroupId = 1, CreatedAt = DateTime.UtcNow }
+            new UserRoleAssignment { Id = 1, UserId = userId, RoleId = 1, IsActive = true, IsDeleted = false, AssignedAt = DateTime.UtcNow }
         };
 
         var permissions = new List<Permission>
@@ -125,7 +103,7 @@ public class RolesControllerTests
 
         var rolePermissions = new List<RolePermission>
         {
-            new RolePermission { RoleId = 1, PermissionId = 1 }
+            new RolePermission { RoleId = 1, PermissionId = 1, IsDeleted = false }
         };
 
         // Setup cache to indicate no cached permissions (force DB lookup)
@@ -134,13 +112,11 @@ public class RolesControllerTests
         _cacheMock.Setup(x => x.GetUserPermissionsFromCacheAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new HashSet<string>());
 
-        var userGroupMock = userGroups.CreateMockDbSet();
-        var groupMemberMock = groupMembers.CreateMockDbSet();
+        var userRoleMock = userRoles.CreateMockDbSet();
         var permissionMock = permissions.CreateMockDbSet();
         var rolePermissionMock = rolePermissions.CreateMockDbSet();
 
-        _dbContextMock.Setup(x => x.UserGroups).Returns(userGroupMock.Object);
-        _dbContextMock.Setup(x => x.UserGroupMembers).Returns(groupMemberMock.Object);
+        _dbContextMock.Setup(x => x.UserRoles).Returns(userRoleMock.Object);
         _dbContextMock.Setup(x => x.Permissions).Returns(permissionMock.Object);
         _dbContextMock.Setup(x => x.RolePermissions).Returns(rolePermissionMock.Object);
 
