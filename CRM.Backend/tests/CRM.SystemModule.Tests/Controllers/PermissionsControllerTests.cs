@@ -113,18 +113,23 @@ public class PermissionsControllerTests
     }
 
     [Fact]
-    public void GroupPermission_EntityCreation_IsValid()
+    public void UserGroup_PermissionFlags_CanBeSet()
     {
         // Arrange & Act
-        var groupPermission = new GroupPermission
+        // Note: Permissions are stored as boolean flags on UserGroup, not as separate GroupPermission entities
+        var userGroup = new UserGroup
         {
-            UserGroupId = 1,
-            PermissionId = 1
+            Id = 1,
+            Name = "Administrators",
+            CanViewAccounts = true,
+            CanEditAccounts = true,
+            CanDeleteAccounts = true
         };
 
         // Assert
-        Assert.NotNull(groupPermission);
-        Assert.Equal(1, groupPermission.UserGroupId);
-        Assert.Equal(1, groupPermission.PermissionId);
+        Assert.NotNull(userGroup);
+        Assert.True(userGroup.CanViewAccounts);
+        Assert.True(userGroup.CanEditAccounts);
+        Assert.True(userGroup.CanDeleteAccounts);
     }
 }
