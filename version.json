@@ -1,15 +1,34 @@
 {
   "major": 0,
   "minor": 561,
-  "patch": 0,
-  "lastUpdate": "2026-02-17",
-  "description": "Implement all 11 remaining seed file endpoints: change-types, ci-types, incident-categories, escalation-rules, catalog-categories, analytics-events, audit-logs, ai-agent-usage, export-jobs, import-jobs, webhook-registrations",
+  "patch": 2,
+  "lastUpdate": "2026-02-18",
+  "description": "Test data loader: reclassify idempotent 'already exists' checks as 'exists' status, add analyze_loader_results.py, fix Redis connection in deploy script",
+  "features": [
+    "TestResultLogger service for centralized test result capture",
+    "LoggedTestBase abstract class for automatic try-catch wrapping",
+    "LoggingTestFramework custom xUnit framework with transparent test interception",
+    "TestResultsController API endpoints for result retrieval",
+    "TestResultsPage interactive React dashboard with filtering and drill-down",
+    "process-test-results.sh result aggregator and report generator",
+    "recover-disabled-tests.sh automated disabled test recovery",
+    "Enhanced run-tests.sh with integrated result processing",
+    "Comprehensive TEST_LOGGING_FRAMEWORK.md and TEST_AUTOMATION_INTEGRATION.md documentation"
+  ],
   "git": {
     "branch": "main",
-    "commit": "implement-seed-file-endpoints"
+    "commit": "implement-test-logging-framework"
   },
   "environment": "production",
   "architecture": "monolith",
   "buildServer": "azure-devops",
-  "buildTime": "2026-02-17T22:55:00"
+  "buildTime": "2026-02-17T23:30:00",
+  "testingImprovements": {
+    "frameworkVersion": "0.561.1",
+    "xunitVersion": "2.6.2+",
+    "logFormat": "JSON",
+    "storageLocation": "logs/test-results/",
+    "apiEndpoint": "/api/test-results/",
+    "dashboardUrl": "/test-results"
+  }
 }
