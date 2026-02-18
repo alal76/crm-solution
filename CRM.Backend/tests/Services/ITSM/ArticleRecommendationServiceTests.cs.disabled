@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using CRM.Core.DTOs.ITSM;
 using CRM.Core.Interfaces;
 using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Services.ITSM;
@@ -112,15 +113,13 @@ public class ArticleRecommendationServiceTests
         Enum.GetValues<ArticleFeedbackType>().Should().HaveCount(4);
         ArticleFeedbackType.Helpful.Should().BeDefined();
         ArticleFeedbackType.NotHelpful.Should().BeDefined();
-        ArticleFeedbackType.Viewed.Should().BeDefined();
-        ArticleFeedbackType.SolvedIncident.Should().BeDefined();
+        ArticleFeedbackType.NeedsUpdate.Should().BeDefined();
     }
 
     [Theory]
-    [InlineData(ArticleFeedbackType.Helpful, 0)]
-    [InlineData(ArticleFeedbackType.NotHelpful, 1)]
-    [InlineData(ArticleFeedbackType.Viewed, 2)]
-    [InlineData(ArticleFeedbackType.SolvedIncident, 3)]
+    [InlineData(ArticleFeedbackType.Helpful, 1)]
+    [InlineData(ArticleFeedbackType.NotHelpful, 2)]
+    [InlineData(ArticleFeedbackType.NeedsUpdate, 3)]
     public void ArticleFeedbackType_HasCorrectIntValues(ArticleFeedbackType type, int expectedValue)
     {
         // Assert
@@ -184,15 +183,15 @@ public class ArticleRecommendationServiceTests
     {
         // Assert
         Enum.GetValues<TrendDirection>().Should().HaveCount(3);
-        TrendDirection.Rising.Should().BeDefined();
+        TrendDirection.Up.Should().BeDefined();
         TrendDirection.Stable.Should().BeDefined();
-        TrendDirection.Falling.Should().BeDefined();
+        TrendDirection.Down.Should().BeDefined();
     }
 
     [Theory]
-    [InlineData(TrendDirection.Rising, 0)]
-    [InlineData(TrendDirection.Stable, 1)]
-    [InlineData(TrendDirection.Falling, 2)]
+    [InlineData(TrendDirection.Up, 1)]
+    [InlineData(TrendDirection.Down, 2)]
+    [InlineData(TrendDirection.Stable, 3)]
     public void TrendDirection_HasCorrectIntValues(TrendDirection direction, int expectedValue)
     {
         // Assert

@@ -51,6 +51,9 @@ public class EscalationRule : BaseEntity
     /// <summary>Priority level this rule applies to (Critical, High, Medium, Low)</summary>
     public string Priority { get; set; } = string.Empty;
 
+    /// <summary>SLA Policy ID this rule belongs to (optional)</summary>
+    public int? SLAPolicyId { get; set; }
+
     /// <summary>Category this rule applies to (null = all)</summary>
     public string? Category { get; set; }
 

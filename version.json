@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 561,
-  "patch": 3,
+  "patch": 5,
   "lastUpdate": "2026-02-18",
-  "description": "Phase 17 extended module coverage + test logging framework",
+  "description": "Fix ITSM service dependencies and enable System Module tests",
   "features": [
     "Phase 17: Departments, PriceBooks, ProductBundles, Territories, SalesQuotas, SalesForecasts, LeadRouting, LeadScoreRules, ApprovalMatrices, CreditMemos, Forms, LandingPages, Conversations, EventAttendees",
     "TestResultLogger service for centralized test result capture",

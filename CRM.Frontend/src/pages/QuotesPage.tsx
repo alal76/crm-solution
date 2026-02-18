@@ -67,25 +67,25 @@ const QUOTE_STATUSES = [
 
 interface Quote extends BaseEntity {
   quoteNumber: string;
-  title: string;
+  name: string;
   description?: string;
   accountId?: number;
-  customer?: { firstName: string; lastName: string; company?: string };
+  account?: { firstName: string; lastName: string; company?: string };
   opportunityId?: number;
   status: number;
   subtotal: number;
-  taxAmount: number;
-  discountAmount: number;
-  shippingAmount: number;
-  totalAmount: number;
+  tax: number;
+  discount: number;
+  shippingCost: number;
+  total: number;
   discountPercent: number;
-  taxPercent: number;
-  validUntil?: string;
+  taxRate: number;
+  expirationDate?: string;
   sentDate?: string;
   viewedDate?: string;
   acceptedDate?: string;
   rejectedDate?: string;
-  revisionNumber: number;
+  version: number;
   termsAndConditions?: string;
   notes?: string;
   billingAddress?: string;
@@ -93,16 +93,16 @@ interface Quote extends BaseEntity {
 }
 
 interface QuoteForm {
-  title: string;
+  name: string;
   description: string;
   accountId: number | '';
   opportunityId: number | '';
   status: number;
   subtotal: number;
-  taxPercent: number;
+  taxRate: number;
   discountPercent: number;
-  shippingAmount: number;
-  validUntil: string;
+  shippingCost: number;
+  expirationDate: string;
   termsAndConditions: string;
   notes: string;
   billingAddress: string;
@@ -142,9 +142,9 @@ function QuotesPage() {
   );
 
   const emptyForm: QuoteForm = {
-    title: '', description: '', accountId: '', opportunityId: '', status: 0,
-    subtotal: 0, taxPercent: 0, discountPercent: 0, shippingAmount: 0,
-    validUntil: '', termsAndConditions: '', notes: '', billingAddress: '', shippingAddress: '',
+    name: '', description: '', accountId: '', opportunityId: '', status: 0,
+    subtotal: 0, taxRate: 0, discountPercent: 0, shippingCost: 0,
+    expirationDate: '', termsAndConditions: '', notes: '', billingAddress: '', shippingAddress: '',
   };
   const [formData, setFormData] = useState<QuoteForm>(emptyForm);
 
@@ -180,11 +180,11 @@ function QuotesPage() {
     if (quote) {
       setEditingId(quote.id);
       setFormData({
-        title: quote.title, description: quote.description || '',
+        name: quote.name || '', description: quote.description || '',
         accountId: quote.accountId || '', opportunityId: quote.opportunityId || '',
-        status: quote.status, subtotal: quote.subtotal, taxPercent: quote.taxPercent,
-        discountPercent: quote.discountPercent, shippingAmount: quote.shippingAmount,
-        validUntil: quote.validUntil?.split('T')[0] || '',
+        status: quote.status, subtotal: quote.subtotal || 0, taxRate: quote.taxRate || 0,
+        discountPercent: quote.discountPercent || 0, shippingCost: quote.shippingCost || 0,
+        expirationDate: quote.expirationDate?.split('T')[0] || '',
         termsAndConditions: quote.termsAndConditions || '', notes: quote.notes || '',
         billingAddress: quote.billingAddress || '', shippingAddress: quote.shippingAddress || '',
       });
@@ -211,15 +211,15 @@ function QuotesPage() {
   };
 
   const calculateTotals = () => {
-    const discount = formData.subtotal * (formData.discountPercent / 100);
-    const taxable = formData.subtotal - discount;
-    const tax = taxable * (formData.taxPercent / 100);
-    const total = taxable + tax + formData.shippingAmount;
+    const discount = (formData.subtotal || 0) * ((formData.discountPercent || 0) / 100);
+    const taxable = (formData.subtotal || 0) - discount;
+    const tax = taxable * ((formData.taxRate || 0) / 100);
+    const total = taxable + tax + (formData.shippingCost || 0);
     return { discount, tax, total };
   };
 
   const handleSaveQuote = async () => {
-    if (!formData.title.trim()) {
+    if (!formData.name.trim()) {
       setDialogError('Please enter a quote title');
       return;
     }
@@ -228,9 +228,9 @@ function QuotesPage() {
       ...formData,
       accountId: formData.accountId || null,
       opportunityId: formData.opportunityId || null,
-      discountAmount: totals.discount,
-      taxAmount: totals.tax,
-      totalAmount: totals.total,
+      discount: totals.discount,
+      tax: totals.tax,
+      total: totals.total,
     };
     await dialogApi.execute(async () => {
       if (editingId) {
@@ -314,14 +314,14 @@ function QuotesPage() {
     }
 
     const status = getStatus(quote.status);
-    const accountName = quote.customer 
-      ? `${quote.customer.firstName} ${quote.customer.lastName}${quote.customer.company ? ` (${quote.customer.company})` : ''}`
+    const accountName = quote.account 
+      ? `${quote.account.firstName} ${quote.account.lastName}${quote.account.company ? ` (${quote.account.company})` : ''}`
       : 'N/A';
 
     generatePDF(
       {
         title: 'Quote',
-        subtitle: `${quote.quoteNumber} - ${quote.title}`,
+        subtitle: `${quote.quoteNumber} - ${quote.name}`,
         headerColor: '#6750A4',
         includeDate: true,
       },
@@ -330,11 +330,11 @@ function QuotesPage() {
           title: 'Quote Details',
           fields: [
             { label: 'Quote Number', value: quote.quoteNumber },
-            { label: 'Title', value: quote.title },
+            { label: 'Title', value: quote.name },
             { label: 'Status', value: status?.label || 'Unknown' },
             { label: 'Account', value: accountName },
-            { label: 'Valid Until', value: formatDate(quote.validUntil) },
-            { label: 'Revision', value: `v${quote.revisionNumber}` },
+            { label: 'Valid Until', value: formatDate(quote.expirationDate) },
+            { label: 'Revision', value: `v${quote.version}` },
           ],
         },
         lineItems.length > 0 ? {
@@ -355,10 +355,10 @@ function QuotesPage() {
           title: 'Totals',
           fields: [
             { label: 'Subtotal', value: formatCurrency(quote.subtotal) },
-            { label: 'Discount', value: `${formatCurrency(quote.discountAmount)} (${quote.discountPercent}%)` },
-            { label: 'Tax', value: `${formatCurrency(quote.taxAmount)} (${quote.taxPercent}%)` },
-            { label: 'Shipping', value: formatCurrency(quote.shippingAmount) },
-            { label: 'Total', value: formatCurrency(quote.totalAmount) },
+            { label: 'Discount', value: `${formatCurrency(quote.discount)} (${quote.discountPercent || 0}%)` },
+            { label: 'Tax', value: `${formatCurrency(quote.tax)} (${quote.taxRate || 0}%)` },
+            { label: 'Shipping', value: formatCurrency(quote.shippingCost) },
+            { label: 'Total', value: formatCurrency(quote.total) },
           ],
         },
         quote.termsAndConditions ? {
@@ -376,8 +376,8 @@ function QuotesPage() {
   const getStatus = (value: number) => QUOTE_STATUSES.find(s => s.value === value);
 
   const isExpired = (quote: Quote) => {
-    if (!quote.validUntil || quote.status === 4 || quote.status === 5) return false;
-    return new Date(quote.validUntil) < new Date();
+    if (!quote.expirationDate || quote.status === 4 || quote.status === 5) return false;
+    return new Date(quote.expirationDate) < new Date();
   };
 
   if (loading) {
@@ -447,7 +447,7 @@ function QuotesPage() {
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                           <QuoteIcon sx={{ color: '#6750A4' }} />
                           <Box>
-                            <Typography fontWeight={500}>{quote.title}</Typography>
+                            <Typography fontWeight={500}>{quote.name}</Typography>
                             {quote.description && (
                               <Typography variant="caption" color="textSecondary" sx={{ display: 'block', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                 {quote.description}
@@ -457,11 +457,11 @@ function QuotesPage() {
                         </Box>
                       </TableCell>
                       <TableCell>
-                        {quote.customer ? (
+                        {quote.account ? (
                           <Box>
-                            <Typography variant="body2">{quote.customer.firstName} {quote.customer.lastName}</Typography>
-                            {quote.customer.company && (
-                              <Typography variant="caption" color="textSecondary">{quote.customer.company}</Typography>
+                            <Typography variant="body2">{quote.account.firstName} {quote.account.lastName}</Typography>
+                            {quote.account.company && (
+                              <Typography variant="caption" color="textSecondary">{quote.account.company}</Typography>
                             )}
                           </Box>
                         ) : '—'}
@@ -476,19 +476,19 @@ function QuotesPage() {
                       </TableCell>
                       <TableCell>
                         <Box>
-                          <Typography fontWeight={500}>${quote.totalAmount?.toLocaleString(undefined, { minimumFractionDigits: 2 })}</Typography>
-                          {quote.discountAmount > 0 && (
-                            <Typography variant="caption" color="success.main">-${quote.discountAmount.toFixed(2)} discount</Typography>
+                          <Typography fontWeight={500}>${(quote.total || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</Typography>
+                          {(quote.discount || 0) > 0 && (
+                            <Typography variant="caption" color="success.main">-${(quote.discount || 0).toFixed(2)} discount</Typography>
                           )}
                         </Box>
                       </TableCell>
                       <TableCell>
                         <Typography variant="body2" sx={{ color: expired ? '#f44336' : 'inherit' }}>
-                          {quote.validUntil ? new Date(quote.validUntil).toLocaleDateString() : '—'}
+                          {quote.expirationDate ? new Date(quote.expirationDate).toLocaleDateString() : '—'}
                         </Typography>
                       </TableCell>
                       <TableCell>
-                        <Chip label={`v${quote.revisionNumber}`} size="small" variant="outlined" />
+                        <Chip label={`v${quote.version || 1}`} size="small" variant="outlined" />
                       </TableCell>
                       <TableCell align="center">
                         {quote.status === 0 && (
@@ -565,7 +565,7 @@ function QuotesPage() {
         <DialogHeader
           mode={editingId ? 'edit' : 'create'}
           entityType="quote"
-          entityName={editingId ? formData.title || undefined : undefined}
+          entityName={editingId ? formData.name || undefined : undefined}
           entityId={editingId || undefined}
           onClose={handleCloseDialog}
           status={editingId && formData.status !== undefined ? 
@@ -594,7 +594,7 @@ function QuotesPage() {
           <TabPanel value={dialogTab} index={0}>
             <Grid container spacing={2}>
               <Grid item xs={12}>
-                <TextField fullWidth label="Quote Title" name="title" value={formData.title} onChange={handleInputChange} required />
+                <TextField fullWidth label="Quote Title" name="name" value={formData.name} onChange={handleInputChange} required />
               </Grid>
               <Grid item xs={6}>
                 <EntitySelect
@@ -617,7 +617,7 @@ function QuotesPage() {
                 />
               </Grid>
               <Grid item xs={6}>
-                <TextField fullWidth label="Valid Until" name="validUntil" type="date" value={formData.validUntil} onChange={handleInputChange} InputLabelProps={{ shrink: true }} />
+                <TextField fullWidth label="Valid Until" name="expirationDate" type="date" value={formData.expirationDate} onChange={handleInputChange} InputLabelProps={{ shrink: true }} />
               </Grid>
               <Grid item xs={12}>
                 <TextField fullWidth label="Description" name="description" value={formData.description} onChange={handleInputChange} multiline rows={2} />
@@ -634,7 +634,7 @@ function QuotesPage() {
                     ...prev,
                     subtotal: t.subtotal,
                     discountPercent: t.discount > 0 && t.subtotal > 0 ? (t.discount / t.subtotal) * 100 : 0,
-                    taxPercent: t.tax > 0 && (t.subtotal - t.discount) > 0 ? (t.tax / (t.subtotal - t.discount)) * 100 : 0,
+                    taxRate: t.tax > 0 && (t.subtotal - t.discount) > 0 ? (t.tax / (t.subtotal - t.discount)) * 100 : 0,
                   }));
                 }}
               />
@@ -654,33 +654,33 @@ function QuotesPage() {
                 <TextField fullWidth label="Discount (%)" name="discountPercent" type="number" value={formData.discountPercent} onChange={handleInputChange} inputProps={{ min: 0, max: 100 }} />
               </Grid>
               <Grid item xs={6}>
-                <TextField fullWidth label="Tax (%)" name="taxPercent" type="number" value={formData.taxPercent} onChange={handleInputChange} inputProps={{ min: 0 }} />
+                <TextField fullWidth label="Tax (%)" name="taxRate" type="number" value={formData.taxRate} onChange={handleInputChange} inputProps={{ min: 0 }} />
               </Grid>
               <Grid item xs={6}>
-                <TextField fullWidth label="Shipping ($)" name="shippingAmount" type="number" value={formData.shippingAmount} onChange={handleInputChange} />
+                <TextField fullWidth label="Shipping ($)" name="shippingCost" type="number" value={formData.shippingCost} onChange={handleInputChange} />
               </Grid>
               <Grid item xs={12}>
                 <Divider sx={{ my: 2 }} />
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                   <Typography>Subtotal:</Typography>
-                  <Typography>${formData.subtotal.toFixed(2)}</Typography>
+                  <Typography>${(formData.subtotal || 0).toFixed(2)}</Typography>
                 </Box>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1, color: 'success.main' }}>
-                  <Typography>Discount ({formData.discountPercent}%):</Typography>
-                  <Typography>-${totals.discount.toFixed(2)}</Typography>
+                  <Typography>Discount ({formData.discountPercent || 0}%):</Typography>
+                  <Typography>-${(totals.discount || 0).toFixed(2)}</Typography>
                 </Box>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                  <Typography>Tax ({formData.taxPercent}%):</Typography>
-                  <Typography>${totals.tax.toFixed(2)}</Typography>
+                  <Typography>Tax ({formData.taxRate || 0}%):</Typography>
+                  <Typography>${(totals.tax || 0).toFixed(2)}</Typography>
                 </Box>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
                   <Typography>Shipping:</Typography>
-                  <Typography>${formData.shippingAmount.toFixed(2)}</Typography>
+                  <Typography>${(formData.shippingCost || 0).toFixed(2)}</Typography>
                 </Box>
                 <Divider sx={{ my: 1 }} />
                 <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                   <Typography variant="h6">Total:</Typography>
-                  <Typography variant="h6" fontWeight={700}>${totals.total.toFixed(2)}</Typography>
+                  <Typography variant="h6" fontWeight={700}>${(totals.total || 0).toFixed(2)}</Typography>
                 </Box>
               </Grid>
             </Grid>
@@ -729,7 +729,7 @@ function QuotesPage() {
               <NotesTab
                 entityType="Quote"
                 entityId={editingId}
-                entityName={formData.title || 'Quote'}
+                entityName={formData.name || 'Quote'}
               />
             ) : (
               <Alert severity="info" sx={{ mt: 2 }}>

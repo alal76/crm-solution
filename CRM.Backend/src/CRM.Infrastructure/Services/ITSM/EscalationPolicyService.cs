@@ -14,7 +14,7 @@
 // You should have received a copy of the GNU Affero General Public License
 // along with this program. If not, see <https://www.gnu.org/licenses/>.
 
-using CRM.Core.Dtos;
+using CRM.Core.DTOs.ITSM;
 using CRM.Core.Entities.ITSM;
 using CRM.Core.Interfaces;
 using CRM.Core.Interfaces.ITSM;
@@ -430,7 +430,7 @@ public class EscalationPolicyService : IEscalationPolicyService
                 .Select(MapLevelToDto)
                 .ToList() ?? new List<EscalationLevelDto>(),
             CreatedAt = policy.CreatedAt,
-            UpdatedAt = policy.UpdatedAt
+            UpdatedAt = policy.UpdatedAt ?? DateTime.UtcNow
         };
     }
 

@@ -20,6 +20,7 @@ using CRM.Core.Interfaces;
 using CRM.Core.Interfaces.ITSM;
 using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Services.ITSM;
+using IBusinessHoursCalculator = CRM.Core.Interfaces.ITSM.IBusinessHoursCalculator;
 using CRM.Tests.Helpers;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;

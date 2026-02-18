@@ -21,6 +21,7 @@ using CRM.Core.Interfaces;
 using CRM.Core.Interfaces.ITSM;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using EscalationRule = CRM.Core.Entities.ITSM.EscalationRule;
 
 namespace CRM.Infrastructure.Services.ITSM;
 
@@ -359,7 +360,7 @@ public class EscalationRuleService : IEscalationRuleService
                     // Match category
                     (r.Category == null || r.Category == serviceRequest.CategoryId.ToString()) ||
                     // Match queue
-                    (r.Queue == null || r.Queue == serviceRequest.AssignmentGroupId.ToString()))
+                    (r.Queue == null || r.Queue == serviceRequest.AssignedToGroupId.ToString()))
                 .OrderBy(r => r.AgeInMinutes)
                 .ToListAsync();
 
@@ -492,9 +493,9 @@ public class EscalationRuleService : IEscalationRuleService
     {
         return metricType switch
         {
-            SLAMetricType.ResponseTime => "High",
-            SLAMetricType.ResolutionTime => "Medium",
-            SLAMetricType.UpdateTime => "Low",
+            SLAMetricType.FirstResponse => "High",
+            SLAMetricType.Resolution => "Medium",
+            SLAMetricType.NextResponse => "Low",
             _ => "Medium"
         };
     }
@@ -503,10 +504,10 @@ public class EscalationRuleService : IEscalationRuleService
     {
         return priority?.ToLower() switch
         {
-            "critical" or "high" => SLAMetricType.ResponseTime,
-            "medium" => SLAMetricType.ResolutionTime,
-            "low" => SLAMetricType.UpdateTime,
-            _ => SLAMetricType.ResolutionTime
+            "critical" or "high" => SLAMetricType.FirstResponse,
+            "medium" => SLAMetricType.Resolution,
+            "low" => SLAMetricType.NextResponse,
+            _ => SLAMetricType.Resolution
         };
     }
 
@@ -594,7 +595,7 @@ public class EscalationRuleService : IEscalationRuleService
             case EscalationType.ReassignUser:
                 if (rule.ReassignToUserId.HasValue)
                 {
-                    serviceRequest.AssignedToId = rule.ReassignToUserId.Value;
+                    serviceRequest.AssignedToUserId = rule.ReassignToUserId.Value;
                     serviceRequest.UpdatedAt = DateTime.UtcNow;
                 }
                 break;
@@ -602,7 +603,7 @@ public class EscalationRuleService : IEscalationRuleService
             case EscalationType.ReassignTeam:
                 if (rule.ReassignToTeamId.HasValue)
                 {
-                    serviceRequest.AssignmentGroupId = rule.ReassignToTeamId.Value;
+                    serviceRequest.AssignedToGroupId = rule.ReassignToTeamId.Value;
                     serviceRequest.UpdatedAt = DateTime.UtcNow;
                 }
                 break;
@@ -612,7 +613,7 @@ public class EscalationRuleService : IEscalationRuleService
                 var currentPriority = (int)serviceRequest.Priority;
                 if (currentPriority > 0)
                 {
-                    serviceRequest.Priority = (ServicePriority)(currentPriority - 1);
+                    serviceRequest.Priority = (ServiceRequestPriority)(currentPriority - 1);
                     serviceRequest.UpdatedAt = DateTime.UtcNow;
                 }
                 break;
@@ -638,22 +639,13 @@ public class EscalationRuleService : IEscalationRuleService
                 break;
         }
 
-        // Record escalation in history
-        var history = new EscalationHistory
-        {
-            PolicyId = 0, // This rule-based escalation may not have a policy
-            ServiceRequestId = serviceRequest.Id,
-            EscalationLevel = 1,
-            ExecutedAt = DateTime.UtcNow,
-            NotifyUserId = rule.ReassignToUserId,
-            NotifyTeamId = rule.ReassignToTeamId,
-            Status = "Executed",
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow,
-            IsDeleted = false
-        };
+        // Log escalation execution (EscalationHistory is designed for Incidents, not ServiceRequests)
+        _logger.LogInformation(
+            "Escalation executed for service request {ServiceRequestId} - Rule: {RuleId}, " +
+            "Type: {EscalationType}, ReassignToUser: {UserId}, ReassignToTeam: {TeamId}",
+            serviceRequest.Id, rule.Id, rule.EscalationType, 
+            rule.ReassignToUserId, rule.ReassignToTeamId);
 
-        _dbContext.EscalationHistories.Add(history);
         await _dbContext.SaveChangesAsync();
     }
 

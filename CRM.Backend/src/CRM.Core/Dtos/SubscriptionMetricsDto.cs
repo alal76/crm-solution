@@ -109,6 +109,15 @@ public class SubscriptionMetricsDto
     /// <summary>Notes about metrics or anomalies</summary>
     [StringLength(1000)]
     public string? Notes { get; set; }
+
+    /// <summary>Next billing date</summary>
+    public DateTime? NextBillingDate { get; set; }
+
+    /// <summary>Days until subscription expiry (-1 if no expiry)</summary>
+    public int DaysUntilExpiry { get; set; }
+
+    /// <summary>Subscription status</summary>
+    public string? Status { get; set; }
 }
 
 /// <summary>

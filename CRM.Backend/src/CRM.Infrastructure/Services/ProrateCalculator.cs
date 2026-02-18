@@ -87,11 +87,11 @@ public class ProrateCalculator : IProrateCalculator
 
         decimal proratedAmount = prorationType switch
         {
-            "ProRata" => CalculateProRata(subscription.Amount ?? 0.0m, currentPeriodStart, currentPeriodEnd, changeDate),
-            "FullPrice" => CalculateFullPrice(subscription.Amount ?? 0.0m),
-            "OneMonth" => CalculateOneMonth(subscription.Amount ?? 0.0m),
-            "None" => CalculateNone(subscription.Amount ?? 0.0m, subscription.Amount ?? 0.0m),
-            _ => subscription.Amount ?? 0.0m
+            "ProRata" => CalculateProRata(subscription.Amount, currentPeriodStart, currentPeriodEnd, changeDate),
+            "FullPrice" => CalculateFullPrice(subscription.Amount),
+            "OneMonth" => CalculateOneMonth(subscription.Amount),
+            "None" => CalculateNone(subscription.Amount, subscription.Amount),
+            _ => subscription.Amount
         };
 
         var daysInCycle = (currentPeriodEnd - currentPeriodStart).Days;
@@ -101,11 +101,11 @@ public class ProrateCalculator : IProrateCalculator
         {
             SubscriptionId = subscriptionId,
             ProrationType = prorationType,
-            OriginalAmount = subscription.Amount ?? 0.0m,
+            OriginalAmount = subscription.Amount,
             DaysInCycle = daysInCycle,
             DaysUsed = daysUsed,
             ProratedAmount = proratedAmount,
-            CreditOrCharge = proratedAmount - (subscription.Amount ?? 0.0m),
+            CreditOrCharge = proratedAmount - subscription.Amount,
             EffectiveDate = changeDate,
             CalculationDetails = $"Period: {currentPeriodStart:yyyy-MM-dd} to {currentPeriodEnd:yyyy-MM-dd}, Days Used: {daysUsed}/{daysInCycle}"
         };

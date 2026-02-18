@@ -17,7 +17,7 @@
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using CRM.Infrastructure.Services;
-using CRM.Tests.Helpers;
+using CRM.SystemModule.Tests.Helpers;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
@@ -51,7 +51,7 @@ public class UserGroupsControllerTests
             new UserGroup { Id = 2, Name = "Viewers", Description = "Viewer role", IsActive = true, CreatedAt = DateTime.UtcNow }
         };
 
-        var mockDbSet = MockDbSetFactory.CreateMockDbSet(groups);
+        var mockDbSet = groups.CreateMockDbSet();
         _dbContextMock.Setup(x => x.UserGroups).Returns(mockDbSet.Object);
 
         // Act
@@ -71,7 +71,7 @@ public class UserGroupsControllerTests
             new UserGroup { Id = 1, Name = "Managers", Description = "Manager role", IsActive = true, CreatedAt = DateTime.UtcNow }
         };
 
-        var mockDbSet = MockDbSetFactory.CreateMockDbSet(groups);
+        var mockDbSet = groups.CreateMockDbSet();
         _dbContextMock.Setup(x => x.UserGroups).Returns(mockDbSet.Object);
 
         // Act
@@ -93,7 +93,7 @@ public class UserGroupsControllerTests
             new UserGroupMember { Id = 2, UserId = 2, UserGroupId = groupId, CreatedAt = DateTime.UtcNow }
         };
 
-        var mockDbSet = MockDbSetFactory.CreateMockDbSet(members);
+        var mockDbSet = members.CreateMockDbSet();
         _dbContextMock.Setup(x => x.UserGroupMembers).Returns(mockDbSet.Object);
 
         // Act
