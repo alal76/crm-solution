@@ -267,7 +267,7 @@ public class DtoMappingTests
         var dto = new SystemSettingsDto
         {
             Id = 1,
-            CustomersEnabled = true,
+            AccountsEnabled = true,
             LeadsEnabled = true,
             OpportunitiesEnabled = true,
             ProductsEnabled = true,
@@ -276,7 +276,7 @@ public class DtoMappingTests
 
         // Assert
         dto.Id.Should().Be(1);
-        dto.CustomersEnabled.Should().BeTrue();
+        dto.AccountsEnabled.Should().BeTrue();
         dto.LeadsEnabled.Should().BeTrue();
     }
 
@@ -287,7 +287,7 @@ public class DtoMappingTests
         var entity = new SystemSettings
         {
             Id = 1,
-            CustomersEnabled = true,
+            AccountsEnabled = true,
             LeadsEnabled = false,
             OpportunitiesEnabled = true
         };
@@ -296,13 +296,13 @@ public class DtoMappingTests
         var dto = new SystemSettingsDto
         {
             Id = entity.Id,
-            CustomersEnabled = entity.CustomersEnabled,
+            AccountsEnabled = entity.AccountsEnabled,
             LeadsEnabled = entity.LeadsEnabled,
             OpportunitiesEnabled = entity.OpportunitiesEnabled
         };
 
         // Assert
-        dto.CustomersEnabled.Should().BeTrue();
+        dto.AccountsEnabled.Should().BeTrue();
         dto.LeadsEnabled.Should().BeFalse();
         dto.OpportunitiesEnabled.Should().BeTrue();
     }

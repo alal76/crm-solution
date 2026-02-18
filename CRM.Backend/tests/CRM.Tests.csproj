@@ -23,6 +23,11 @@
     <Compile Remove="Unit\**" />
     <None Remove="Unit\**\*" />
     <None Remove="Unit\**" />
+    <!-- Exclude CRM.SystemModule.Tests/ project -->
+    <Compile Remove="CRM.SystemModule.Tests\**\*.cs" />
+    <Compile Remove="CRM.SystemModule.Tests\**" />
+    <None Remove="CRM.SystemModule.Tests\**\*" />
+    <None Remove="CRM.SystemModule.Tests\**" />
   </ItemGroup>
 
   <!-- Historical note: 97 test files were excluded due to entity drift. -->
@@ -56,6 +61,8 @@
     <ProjectReference Include="..\src\CRM.Infrastructure\CRM.Infrastructure.csproj" />
     <ProjectReference Include="..\src\Services\CRM.ServiceDefaults\CRM.ServiceDefaults.csproj" />
   </ItemGroup>
+
+  <!-- Test Logging Infrastructure is auto-included from Infrastructure folder -->
 
   <ItemGroup>
     <Content Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />

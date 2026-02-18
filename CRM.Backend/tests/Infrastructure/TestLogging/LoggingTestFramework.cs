@@ -19,7 +19,10 @@ using System.Reflection;
 using Xunit.Abstractions;
 using Xunit.Sdk;
 
-[assembly: Xunit.TestFramework("CRM.Tests.Infrastructure.TestLogging.LoggingTestFramework", "CRM.Tests")]
+// NOTE: Do not add assembly-level TestFramework attribute here.
+// Each test project that wants to use this framework should add its own
+// AssemblyInfo.cs with the attribute pointing to this framework type and its assembly name.
+// Example: [assembly: Xunit.TestFramework("CRM.Tests.Infrastructure.TestLogging.LoggingTestFramework", "YourAssemblyName")]
 
 namespace CRM.Tests.Infrastructure.TestLogging;
 

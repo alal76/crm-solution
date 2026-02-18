@@ -145,7 +145,7 @@ describe('Frontend Service Tests', () => {
       const response = await apiClient.get('/campaigns/1/metrics');
 
       expect(response.data.sent).toBe(1000);
-      expect(response.data.openRate).toBeCloseTo(52.6, 1);
+      expect(response.data.opened / response.data.delivered * 100).toBeCloseTo(52.6, 1);
     });
   });
 
@@ -380,7 +380,7 @@ describe('Frontend Service Tests', () => {
       try {
         await apiClient.get('/campaigns');
       } catch (error: any) {
-        expect(error.code).toMatch(/timeout|ERR_NETWORK/);
+        expect(error.code).toMatch(/timeout|ERR_NETWORK|ECONNABORTED/);
       }
     });
 

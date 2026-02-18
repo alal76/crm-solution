@@ -23,6 +23,10 @@ Copilot usage
 
 **Before implementing ANY feature, consult the feature specification:**
 
+**Before implenenting any test case or test file ensure the test matches the signature , data fields and validation rules specified in the relevant feature specification file in the docs/11-specifications folder. If the specification is missing or incomplete, create or update the spec before proceeding with implementation. This ensures consistency, traceability, and alignment with business requirements across the entire solution.**
+
+**After implimenting or updating any test case or test file, verify signature , field names , field values and validations - update the relevant feature specification to mark the test as implemented and ensure all details are accurately reflected in the spec. This maintains the integrity of the documentation and provides a clear reference for future development and testing efforts.**
+
 📁 **[docs/11-specifications/INDEX.md](../docs/11-specifications/INDEX.md)** - Master index of all 11-specifications
 
 ### Specification Structure

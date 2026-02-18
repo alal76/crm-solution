@@ -17,6 +17,7 @@
 using System.Linq.Expressions;
 using CRM.Core.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query;
 using Moq;
 
 namespace CRM.SystemModule.Tests.Helpers;
@@ -31,176 +32,142 @@ public static class MockDbSetExtensions
     /// </summary>
     public static Mock<DbSet<T>> CreateMockDbSet<T>(this List<T> items) where T : class
     {
-        var queryable = items.AsQueryable();
         var mockSet = new Mock<DbSet<T>>();
 
         // Setup IAsyncEnumerable
         mockSet.As<IAsyncEnumerable<T>>()
             .Setup(m => m.GetAsyncEnumerator(It.IsAny<CancellationToken>()))
-            .Returns(new AsyncEnumerator<T>(items.GetEnumerator()));
+            .Returns(() => new TestAsyncEnumerator<T>(items.GetEnumerator()));
 
-        // Setup IQueryable
+        // Setup IQueryable with async provider
         mockSet.As<IQueryable<T>>()
             .Setup(m => m.Provider)
-            .Returns(new TestAsyncQueryProvider<T>(queryable.Provider));
+            .Returns(new TestAsyncQueryProvider<T>(items.AsQueryable()));
 
         mockSet.As<IQueryable<T>>()
             .Setup(m => m.Expression)
-            .Returns(queryable.Expression);
+            .Returns(items.AsQueryable().Expression);
 
         mockSet.As<IQueryable<T>>()
             .Setup(m => m.ElementType)
-            .Returns(queryable.ElementType);
+            .Returns(items.AsQueryable().ElementType);
 
         mockSet.As<IQueryable<T>>()
             .Setup(m => m.GetEnumerator())
-            .Returns(queryable.GetEnumerator());
+            .Returns(() => items.GetEnumerator());
 
         // Setup FindAsync
-        mockSet.Setup(m => m.FindAsync(It.IsAny<object?[]>(), It.IsAny<CancellationToken>()))
-            .Returns<object?[]?, CancellationToken>((keys, ct) =>
+        mockSet.Setup(m => m.FindAsync(It.IsAny<object[]>()))
+            .Returns<object[]>(keyValues =>
             {
-                var item = items.FirstOrDefault();
-                return new ValueTask<T?>(item);
+                var key = keyValues.FirstOrDefault();
+                return ValueTask.FromResult(FindEntityByKey(items, key));
             });
+
+        mockSet.Setup(m => m.FindAsync(It.IsAny<object[]>(), It.IsAny<CancellationToken>()))
+            .Returns<object[], CancellationToken>((keyValues, _) =>
+            {
+                var key = keyValues.FirstOrDefault();
+                return ValueTask.FromResult(FindEntityByKey(items, key));
+            });
+
+        // Setup Add/AddAsync
+        mockSet.Setup(m => m.Add(It.IsAny<T>())).Callback<T>(e => items.Add(e));
+        mockSet.Setup(m => m.AddAsync(It.IsAny<T>(), It.IsAny<CancellationToken>()))
+            .Callback<T, CancellationToken>((e, _) => items.Add(e))
+            .ReturnsAsync((T e, CancellationToken _) => (Microsoft.EntityFrameworkCore.ChangeTracking.EntityEntry<T>)null!);
 
         return mockSet;
     }
 
-    /// <summary>
-    /// Setup a DbSet property on a mock context to return the mock DbSet.
-    /// </summary>
-    public static void SetupDbSet<T>(this Mock<ICrmDbContext> contextMock, Mock<DbSet<T>> dbSetMock) 
-        where T : class
+    private static T? FindEntityByKey<T>(List<T> items, object? key) where T : class
     {
-        // This is called by setting up the property on the context
+        if (key == null) return default;
+
+        var idProp = typeof(T).GetProperty("Id");
+        return idProp == null
+            ? items.FirstOrDefault()
+            : items.FirstOrDefault(e =>
+            {
+                var val = idProp.GetValue(e);
+                return val != null && Equals(val, Convert.ToInt32(key));
+            });
     }
 }
 
 /// <summary>
-/// Async enumerator for mock DbSet.
+/// Async query provider for EF Core mocking.
 /// </summary>
-public class AsyncEnumerator<T> : IAsyncEnumerator<T>
+public class TestAsyncQueryProvider<TEntity> : IQueryProvider, IAsyncQueryProvider
 {
-    private readonly IEnumerator<T> _inner;
+    private readonly IQueryable<TEntity> _inner;
 
-    public AsyncEnumerator(IEnumerator<T> inner)
+    public TestAsyncQueryProvider(IQueryable<TEntity> inner) => _inner = inner;
+
+    public IQueryable CreateQuery(Expression expression) => new TestAsyncEnumerable<TEntity>(expression, this);
+
+    public IQueryable<TElement> CreateQuery<TElement>(Expression expression) => new TestAsyncEnumerable<TElement>(expression, this);
+
+    public object? Execute(Expression expression) => _inner.Provider.Execute(expression);
+
+    public TResult Execute<TResult>(Expression expression) => _inner.Provider.Execute<TResult>(expression);
+
+    public TResult ExecuteAsync<TResult>(Expression expression, CancellationToken cancellationToken = default)
     {
-        _inner = inner;
-    }
+        var expectedResultType = typeof(TResult).GetGenericArguments()[0];
+        var executionResult = typeof(IQueryProvider)
+            .GetMethod(
+                name: nameof(IQueryProvider.Execute),
+                genericParameterCount: 1,
+                types: new[] { typeof(Expression) })
+            ?.MakeGenericMethod(expectedResultType)
+            .Invoke(this, new[] { expression });
 
-    public T Current => _inner.Current;
-
-    public async ValueTask<bool> MoveNextAsync()
-    {
-        return await Task.FromResult(_inner.MoveNext());
-    }
-
-    public async ValueTask DisposeAsync()
-    {
-        await Task.CompletedTask;
-        _inner.Dispose();
+        return (TResult)typeof(Task).GetMethod(nameof(Task.FromResult))
+            ?.MakeGenericMethod(expectedResultType)
+            .Invoke(null, new[] { executionResult })!;
     }
 }
 
 /// <summary>
-/// Async query provider for mock DbSet.
+/// Async enumerable wrapper for EF Core mocking.
 /// </summary>
-public class TestAsyncQueryProvider<TEntity> : IQueryProvider where TEntity : class
+public class TestAsyncEnumerable<T> : EnumerableQuery<T>, IAsyncEnumerable<T>, IQueryable<T>
 {
-    private readonly IQueryProvider _inner;
+    private readonly IQueryProvider _provider;
 
-    public TestAsyncQueryProvider(IQueryProvider inner)
+    public TestAsyncEnumerable(IEnumerable<T> enumerable) : base(enumerable)
     {
-        _inner = inner;
+        _provider = new TestAsyncQueryProvider<T>(this);
     }
 
-    public IQueryable CreateQuery(Expression expression)
+    public TestAsyncEnumerable(Expression expression, IQueryProvider provider) : base(expression)
     {
-        return new TestAsyncEnumerable<TEntity>(expression);
-    }
-
-    public IQueryable<TElement> CreateQuery<TElement>(Expression expression)
-    {
-        return new TestAsyncEnumerable<TElement>(expression);
-    }
-
-    public object Execute(Expression expression)
-    {
-        return _inner.Execute(expression)!;
-    }
-
-    public TResult Execute<TResult>(Expression expression)
-    {
-        return _inner.Execute<TResult>(expression);
-    }
-
-    public IAsyncEnumerable<TResult> ExecuteAsync<TResult>(Expression expression)
-    {
-        return new TestAsyncEnumerable<TResult>(expression);
-    }
-
-    public TResult ExecuteAsync<TResult>(Expression expression, CancellationToken cancellationToken)
-    {
-        var result = _inner.Execute(expression);
-        return (TResult)(object)Task.FromResult(result)!;
-    }
-}
-
-/// <summary>
-/// Async enumerable for test queries.
-/// </summary>
-public class TestAsyncEnumerable<T> : IAsyncEnumerable<T>, IQueryable<T>
-{
-    private readonly IQueryable<T> _inner;
-
-    public TestAsyncEnumerable(Expression expression)
-    {
-        _inner = new List<T>().AsQueryable().Provider.CreateQuery<T>(expression);
+        _provider = provider;
     }
 
     public IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken = default)
-    {
-        return new TestAsyncEnumerator<T>(_inner.GetEnumerator());
-    }
+        => new TestAsyncEnumerator<T>(this.AsEnumerable().GetEnumerator());
 
-    public IEnumerator<T> GetEnumerator()
-    {
-        return _inner.GetEnumerator();
-    }
-
-    System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
-    {
-        return _inner.GetEnumerator();
-    }
-
-    public Expression Expression => _inner.Expression;
-    public Type ElementType => _inner.ElementType;
-    public IQueryProvider Provider => _inner.Provider;
+    IQueryProvider IQueryable.Provider => _provider;
 }
 
 /// <summary>
-/// Generic async enumerator for non-class types.
+/// Async enumerator wrapper for EF Core mocking.
 /// </summary>
 public class TestAsyncEnumerator<T> : IAsyncEnumerator<T>
 {
     private readonly IEnumerator<T> _inner;
 
-    public TestAsyncEnumerator(IEnumerator<T> inner)
-    {
-        _inner = inner;
-    }
+    public TestAsyncEnumerator(IEnumerator<T> inner) => _inner = inner;
 
     public T Current => _inner.Current;
 
-    public async ValueTask<bool> MoveNextAsync()
-    {
-        return await Task.FromResult(_inner.MoveNext());
-    }
+    public ValueTask<bool> MoveNextAsync() => new(_inner.MoveNext());
 
-    public async ValueTask DisposeAsync()
+    public ValueTask DisposeAsync()
     {
-        await Task.CompletedTask;
         _inner.Dispose();
+        return ValueTask.CompletedTask;
     }
 }

@@ -69,6 +69,17 @@ jest.mock('../services/navigationConfigService', () => ({
   },
 }));
 
+jest.mock('../contexts/ThemeContext', () => ({
+  useTheme: () => ({
+    mode: 'light',
+    toggleTheme: jest.fn(),
+    setMode: jest.fn(),
+    primaryColor: '#6750A4',
+    setPrimaryColor: jest.fn(),
+  }),
+  AppThemeProvider: ({ children }: any) => children,
+}));
+
 // Mock user data
 const mockAdminUser = {
   userId: 1,
