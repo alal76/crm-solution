@@ -133,6 +133,21 @@ echo "╠═══════════════════════�
 printf "║  Passed: %-3d  Failed: %-3d  Timed Out: %-3d  Total: %-3d    ║\n" "$PASSED" "$FAILED" "$TIMED_OUT" "$TOTAL"
 echo "╚══════════════════════════════════════════════════════════════╝"
 
+# Step 3: Process test results and generate reports
+echo ""
+echo "╔══════════════════════════════════════════════════════════════╗"
+echo "║              Processing Test Results                        ║"
+echo "╚══════════════════════════════════════════════════════════════╝"
+echo ""
+
+if [[ -f "$TESTS_DIR/process-test-results.sh" ]]; then
+  bash "$TESTS_DIR/process-test-results.sh"
+else
+  echo "⚠️  process-test-results.sh not found — skipping result processing"
+fi
+
+echo ""
+
 # Exit with failure if anything failed
 if [[ $FAILED -gt 0 || $TIMED_OUT -gt 0 ]]; then
   exit 1

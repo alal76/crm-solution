@@ -167,7 +167,7 @@ public class CoreEntityTests
             PasswordHash = "hashedpassword123",
             Role = (int)UserRole.Sales,
             IsActive = true,
-            LastLoginDate = DateTime.UtcNow,
+            LastLoginAt = DateTime.UtcNow,
             CreatedAt = DateTime.UtcNow
         };
 

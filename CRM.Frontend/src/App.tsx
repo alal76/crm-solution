@@ -174,6 +174,7 @@ const ProfileManagementPage = lazy(() => import('./pages/ProfileManagementPage')
 // Info/Help Pages - Lazy Loaded
 // ----------------------------------------------------------------------------
 const AboutPage = lazy(() => import('./pages/AboutPage'));
+const PublicTestResultsPage = lazy(() => import('./pages/TestResultsPage'));
 const HelpPage = lazy(() => import('./pages/HelpPage'));
 const LicensesPage = lazy(() => import('./pages/LicensesPage'));
 const FormBuilderPage = lazy(() => import('./pages/FormBuilderPage'));
@@ -272,6 +273,7 @@ function ThemedApp() {
               <Route path="/register" element={<RegisterPage />} />
               <Route path="/password-reset" element={<PasswordResetPage />} />
               <Route path="/setup-password" element={<SetupPasswordPage />} />
+              <Route path="/test-results" element={<PublicTestResultsPage />} />
 
               {/* Protected Routes */}
               <Route

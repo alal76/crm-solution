@@ -21,6 +21,7 @@ using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using CRM.Infrastructure.Services;
 using CRM.Infrastructure.Data;
+using CRM.Core.Dtos;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System;
@@ -196,7 +197,7 @@ public class EmailSequenceServiceTests
         { 
             SequenceId = sequenceId,
             ContactId = contactId,
-            Status = "Active"
+            Status = EnrollmentStatus.Active
         };
 
         var mockEnrollmentSet = new Mock<DbSet<EmailSequenceEnrollment>>();
@@ -270,10 +271,9 @@ public class EmailSequenceServiceTests
         { 
             SequenceId = sequenceId,
             TotalEnrolled = 100,
-            ActiveEnrolled = 80,
-            Completed = 20,
-            Unsubscribed = 5,
-            IsActive = true
+            ActiveEnrollments = 80,
+            TotalCompleted = 20,
+            TotalEmailsSent = 50
         };
 
         // Act
@@ -282,7 +282,7 @@ public class EmailSequenceServiceTests
         // Assert
         result.Should().NotBeNull();
         result.TotalEnrolled.Should().Be(100);
-        result.ActiveEnrolled.Should().Be(80);
+        result.ActiveEnrollments.Should().Be(80);
     }
 
     [Fact]
@@ -292,17 +292,17 @@ public class EmailSequenceServiceTests
         var status = new SequenceStatusDto 
         { 
             TotalEnrolled = 100,
-            Completed = 50,
-            Unsubscribed = 10
+            TotalCompleted = 50,
+            ActiveEnrollments = 40
         };
 
         // Act
-        var completionRate = (decimal)status.Completed / status.TotalEnrolled;
-        var unsubscribeRate = (decimal)status.Unsubscribed / status.TotalEnrolled;
+        var completionRate = (decimal)status.TotalCompleted / status.TotalEnrolled;
+        var activeRate = (decimal)status.ActiveEnrollments / status.TotalEnrolled;
 
         // Assert
         completionRate.Should().Be(0.5m);
-        unsubscribeRate.Should().Be(0.1m);
+        activeRate.Should().Be(0.4m);
     }
 
     #endregion
@@ -318,7 +318,7 @@ public class EmailSequenceServiceTests
             SequenceId = 1,
             ContactId = 10,
             EnrolledAt = DateTime.UtcNow.AddDays(-5),
-            Status = "Active"
+            Status = EnrollmentStatus.Active
         };
 
         var delay = 3; // Days to wait after enrollment
@@ -337,7 +337,7 @@ public class EmailSequenceServiceTests
         var enrollment = new EmailSequenceEnrollment 
         { 
             EnrolledAt = DateTime.UtcNow,
-            Status = "Active"
+            Status = EnrollmentStatus.Active
         };
 
         var delay = 3; // Days to wait
@@ -358,7 +358,7 @@ public class EmailSequenceServiceTests
     {
         // Arrange
         var enrollmentId = 1;
-        var enrollment = new EmailSequenceEnrollment { Id = enrollmentId, Status = "Active" };
+        var enrollment = new EmailSequenceEnrollment { Id = enrollmentId, Status = EnrollmentStatus.Active };
 
         var mockDbSet = new Mock<DbSet<EmailSequenceEnrollment>>();
         mockDbSet.Setup(x => x.FindAsync(enrollmentId, It.IsAny<CancellationToken>()))
@@ -369,10 +369,10 @@ public class EmailSequenceServiceTests
             .ReturnsAsync(1);
 
         // Act
-        enrollment.Status = "Unsubscribed";
+        enrollment.Status = EnrollmentStatus.Unsubscribed;
 
         // Assert
-        enrollment.Status.Should().Be("Unsubscribed");
+        enrollment.Status.Should().Be(EnrollmentStatus.Unsubscribed);
     }
 
     [Fact]
@@ -382,8 +382,8 @@ public class EmailSequenceServiceTests
         var sequenceId = 1;
         var enrollments = new List<EmailSequenceEnrollment>
         {
-            new EmailSequenceEnrollment { Id = 1, SequenceId = sequenceId, Status = "Active" },
-            new EmailSequenceEnrollment { Id = 2, SequenceId = sequenceId, Status = "Completed" }
+            new EmailSequenceEnrollment { Id = 1, SequenceId = sequenceId, Status = EnrollmentStatus.Active },
+            new EmailSequenceEnrollment { Id = 2, SequenceId = sequenceId, Status = EnrollmentStatus.Completed }
         }.AsQueryable();
 
         var mockDbSet = SetupMockDbSet(enrollments);
@@ -411,7 +411,7 @@ public class EmailSequenceServiceTests
         { 
             SequenceId = sequenceId,
             ContactId = contactId,
-            Status = "Completed"
+            Status = EnrollmentStatus.Completed
         };
 
         // Act
@@ -458,26 +458,26 @@ public class EmailSequenceServiceTests
         var status = new SequenceStatusDto 
         { 
             TotalEnrolled = 0,
-            ActiveEnrolled = 0,
-            Completed = 0
+            ActiveEnrollments = 0,
+            TotalCompleted = 0
         };
 
         // Act & Assert
         status.TotalEnrolled.Should().Be(0);
-        status.ActiveEnrolled.Should().Be(0);
+        status.ActiveEnrollments.Should().Be(0);
     }
 
     #endregion
 
     #region Helper Methods
 
-    private Mock<IQueryable<T>> SetupMockDbSet<T>(IQueryable<T> data) where T : class
+    private Mock<DbSet<T>> SetupMockDbSet<T>(IQueryable<T> data) where T : class
     {
-        var mockDbSet = new Mock<IQueryable<T>>();
-        mockDbSet.Setup(m => m.Provider).Returns(data.Provider);
-        mockDbSet.Setup(m => m.Expression).Returns(data.Expression);
-        mockDbSet.Setup(m => m.ElementType).Returns(data.ElementType);
-        mockDbSet.Setup(m => m.GetEnumerator()).Returns(data.GetEnumerator());
+        var mockDbSet = new Mock<DbSet<T>>();
+        mockDbSet.As<IQueryable<T>>().Setup(m => m.Provider).Returns(data.Provider);
+        mockDbSet.As<IQueryable<T>>().Setup(m => m.Expression).Returns(data.Expression);
+        mockDbSet.As<IQueryable<T>>().Setup(m => m.ElementType).Returns(data.ElementType);
+        mockDbSet.As<IQueryable<T>>().Setup(m => m.GetEnumerator()).Returns(data.GetEnumerator());
         return mockDbSet;
     }
 

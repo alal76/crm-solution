@@ -112,7 +112,7 @@ public class ContractServiceTests
     }
 
     [Fact]
-    public async Task GetAllAsync_ShouldFilterByCustomerId()
+    public async Task GetAllAsync_ShouldFilterByAccountId()
     {
         // Arrange
         var contracts = new List<Contract>
@@ -124,7 +124,7 @@ public class ContractServiceTests
         SetupDbSets(contracts: contracts);
 
         // Act
-        var result = await _service.GetAllAsync(customerId: 10);
+        var result = await _service.GetAllAsync(accountId: 10);
 
         // Assert
         result.Should().HaveCount(2);
