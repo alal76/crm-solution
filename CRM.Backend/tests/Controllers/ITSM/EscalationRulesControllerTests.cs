@@ -24,15 +24,19 @@ using Xunit;
 
 namespace CRM.Tests.Controllers.ITSM;
 
+/// <summary>
+/// Unit tests for EscalationRulesController.
+/// Tests CRUD operations for escalation rules via IEscalationRuleAdminService.
+/// </summary>
 public class EscalationRulesControllerTests
 {
-    private readonly Mock<IEscalationRuleService> _mockService;
+    private readonly Mock<IEscalationRuleAdminService> _mockService;
     private readonly Mock<ILogger<EscalationRulesController>> _mockLogger;
     private readonly EscalationRulesController _controller;
 
     public EscalationRulesControllerTests()
     {
-        _mockService = new Mock<IEscalationRuleService>();
+        _mockService = new Mock<IEscalationRuleAdminService>();
         _mockLogger = new Mock<ILogger<EscalationRulesController>>();
         _controller = new EscalationRulesController(_mockService.Object, _mockLogger.Object);
     }
@@ -40,71 +44,70 @@ public class EscalationRulesControllerTests
     #region GET Tests
 
     [Fact]
-    public async Task GetRules_ShouldReturnRules_WhenRulesExist()
+    public async Task GetAll_ShouldReturnRules_WhenRulesExist()
     {
         // Arrange
-        var filter = new EscalationRuleFilterDto { PageNumber = 1, PageSize = 10 };
         var rules = new List<EscalationRuleDto>
         {
             new EscalationRuleDto
             {
                 Id = 1,
                 Name = "Test Rule",
-                SLAPolicyId = 1,
-                TriggerAtPercent = 75,
-                IsActive = true,
-                ExecutionOrder = 0
+                Priority = "Critical",
+                AgeInMinutes = 30,
+                IsActive = true
             }
         };
 
-        _mockService.Setup(x => x.GetRulesAsync(filter, default))
-            .ReturnsAsync((rules, 1));
+        _mockService.Setup(x => x.GetAllAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(rules);
 
         // Act
-        var result = await _controller.GetRules(filter);
+        var result = await _controller.GetAll(CancellationToken.None);
 
         // Assert
-        var okResult = Assert.IsType<OkObjectResult>(result);
-        Assert.NotNull(okResult.Value);
-        _mockService.Verify(x => x.GetRulesAsync(filter, default), Times.Once);
+        var okResult = Assert.IsType<OkObjectResult>(result.Result);
+        var returnedRules = Assert.IsType<List<EscalationRuleDto>>(okResult.Value);
+        Assert.Single(returnedRules);
+        _mockService.Verify(x => x.GetAllAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
-    public async Task GetRuleById_ShouldReturnRule_WhenRuleExists()
+    public async Task GetById_ShouldReturnRule_WhenRuleExists()
     {
         // Arrange
         var rule = new EscalationRuleDto
         {
             Id = 1,
             Name = "Test Rule",
-            SLAPolicyId = 1,
+            Priority = "Critical",
             IsActive = true
         };
 
-        _mockService.Setup(x => x.GetRuleByIdAsync(1, default))
+        _mockService.Setup(x => x.GetByIdAsync(1, It.IsAny<CancellationToken>()))
             .ReturnsAsync(rule);
 
         // Act
-        var result = await _controller.GetRuleById(1);
+        var result = await _controller.GetById(1, CancellationToken.None);
 
         // Assert
-        var okResult = Assert.IsType<OkObjectResult>(result);
-        Assert.NotNull((EscalationRuleDto)okResult.Value);
-        _mockService.Verify(x => x.GetRuleByIdAsync(1, default), Times.Once);
+        var okResult = Assert.IsType<OkObjectResult>(result.Result);
+        Assert.NotNull(okResult.Value);
+        _mockService.Verify(x => x.GetByIdAsync(1, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
-    public async Task GetRuleById_ShouldReturn404_WhenRuleNotFound()
+    public async Task GetById_ShouldReturn404_WhenRuleNotFound()
     {
         // Arrange
-        _mockService.Setup(x => x.GetRuleByIdAsync(999, default))
-            .ReturnsAsync((EscalationRuleDto)null);
+        _mockService.Setup(x => x.GetByIdAsync(999, It.IsAny<CancellationToken>()))
+            .ReturnsAsync((EscalationRuleDto?)null);
 
         // Act
-        var result = await _controller.GetRuleById(999);
+        var result = await _controller.GetById(999, CancellationToken.None);
 
         // Assert
-        Assert.IsType<NotFoundObjectResult>(result);
+        Assert.IsType<NotFoundResult>(result.Result);
     }
 
     #endregion
@@ -112,81 +115,58 @@ public class EscalationRulesControllerTests
     #region CREATE Tests
 
     [Fact]
-    public async Task CreateRule_ShouldReturn201_WhenValid()
+    public async Task Create_ShouldReturn201_WhenValid()
     {
         // Arrange
         var dto = new CreateEscalationRuleDto
         {
-            SLAPolicyId = 1,
             Name = "New Rule",
-            TriggerAtPercent = 75,
+            Priority = "High",
+            AgeInMinutes = 60,
+            TargetType = "User",
             IsActive = true
         };
 
-        var createdRule = new EscalationRuleDto { Id = 1, Name = "New Rule" };
+        var createdRule = new EscalationRuleDto
+        {
+            Id = 1,
+            Name = "New Rule",
+            Priority = "High",
+            AgeInMinutes = 60
+        };
 
-        _mockService.Setup(x => x.CreateRuleAsync(dto, 1, default))
+        _mockService.Setup(x => x.CreateAsync(dto, It.IsAny<CancellationToken>()))
             .ReturnsAsync(createdRule);
 
         // Act
-        var result = await _controller.CreateRule(dto);
+        var result = await _controller.Create(dto, CancellationToken.None);
 
         // Assert
-        var createdResult = Assert.IsType<CreatedAtActionResult>(result);
-        Assert.Equal(nameof(EscalationRulesController.GetRuleById), createdResult.ActionName);
-        _mockService.Verify(x => x.CreateRuleAsync(dto, 1, default), Times.Once);
+        var createdResult = Assert.IsType<CreatedAtActionResult>(result.Result);
+        Assert.Equal(nameof(EscalationRulesController.GetById), createdResult.ActionName);
+        _mockService.Verify(x => x.CreateAsync(dto, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
-    public async Task CreateRule_ShouldReturn400_WhenInvalid()
+    public async Task Create_ShouldReturn500_WhenServiceThrows()
     {
         // Arrange
-        var dto = new CreateEscalationRuleDto(); // Invalid - missing required fields
-        _controller.ModelState.AddModelError("Name", "Required");
+        var dto = new CreateEscalationRuleDto
+        {
+            Name = "New Rule",
+            Priority = "High",
+            AgeInMinutes = 60
+        };
+
+        _mockService.Setup(x => x.CreateAsync(dto, It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new Exception("Test error"));
 
         // Act
-        var result = await _controller.CreateRule(dto);
+        var result = await _controller.Create(dto, CancellationToken.None);
 
         // Assert
-        Assert.IsType<BadRequestObjectResult>(result);
-    }
-
-    #endregion
-
-    #region UPDATE Tests
-
-    [Fact]
-    public async Task UpdateRule_ShouldReturnUpdatedRule_WhenValid()
-    {
-        // Arrange
-        var dto = new UpdateEscalationRuleDto { Name = "Updated Rule" };
-        var updated = new EscalationRuleDto { Id = 1, Name = "Updated Rule" };
-
-        _mockService.Setup(x => x.UpdateRuleAsync(1, dto, 1, default))
-            .ReturnsAsync(updated);
-
-        // Act
-        var result = await _controller.UpdateRule(1, dto);
-
-        // Assert
-        var okResult = Assert.IsType<OkObjectResult>(result);
-        _mockService.Verify(x => x.UpdateRuleAsync(1, dto, 1, default), Times.Once);
-    }
-
-    [Fact]
-    public async Task UpdateRule_ShouldReturn404_WhenRuleNotFound()
-    {
-        // Arrange
-        var dto = new UpdateEscalationRuleDto { Name = "Updated" };
-
-        _mockService.Setup(x => x.UpdateRuleAsync(999, dto, 1, default))
-            .ThrowsAsync(new KeyNotFoundException());
-
-        // Act
-        var result = await _controller.UpdateRule(999, dto);
-
-        // Assert
-        Assert.IsType<NotFoundObjectResult>(result);
+        var statusResult = Assert.IsType<ObjectResult>(result.Result);
+        Assert.Equal(500, statusResult.StatusCode);
     }
 
     #endregion
@@ -194,68 +174,32 @@ public class EscalationRulesControllerTests
     #region DELETE Tests
 
     [Fact]
-    public async Task DeleteRule_ShouldReturn204_WhenRuleDeleted()
+    public async Task Delete_ShouldReturn204_WhenRuleDeleted()
     {
         // Arrange
-        _mockService.Setup(x => x.DeleteRuleAsync(1, default))
-            .ReturnsAsync(true);
+        _mockService.Setup(x => x.DeleteAsync(1, It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
 
         // Act
-        var result = await _controller.DeleteRule(1);
+        var result = await _controller.Delete(1, CancellationToken.None);
 
         // Assert
         Assert.IsType<NoContentResult>(result);
-        _mockService.Verify(x => x.DeleteRuleAsync(1, default), Times.Once);
+        _mockService.Verify(x => x.DeleteAsync(1, It.IsAny<CancellationToken>()), Times.Once);
     }
 
     [Fact]
-    public async Task DeleteRule_ShouldReturn404_WhenRuleNotFound()
+    public async Task Delete_ShouldReturn404_WhenRuleNotFound()
     {
         // Arrange
-        _mockService.Setup(x => x.DeleteRuleAsync(999, default))
-            .ReturnsAsync(false);
+        _mockService.Setup(x => x.DeleteAsync(999, It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new KeyNotFoundException("Rule not found"));
 
         // Act
-        var result = await _controller.DeleteRule(999);
+        var result = await _controller.Delete(999, CancellationToken.None);
 
         // Assert
-        Assert.IsType<NotFoundObjectResult>(result);
-    }
-
-    #endregion
-
-    #region Enable/Disable Tests
-
-    [Fact]
-    public async Task EnableRule_ShouldReturnEnabledRule_WhenSuccess()
-    {
-        // Arrange
-        var rule = new EscalationRuleDto { Id = 1, IsActive = true };
-        _mockService.Setup(x => x.EnableRuleAsync(1, 1, default))
-            .ReturnsAsync(rule);
-
-        // Act
-        var result = await _controller.EnableRule(1);
-
-        // Assert
-        var okResult = Assert.IsType<OkObjectResult>(result);
-        _mockService.Verify(x => x.EnableRuleAsync(1, 1, default), Times.Once);
-    }
-
-    [Fact]
-    public async Task DisableRule_ShouldReturnDisabledRule_WhenSuccess()
-    {
-        // Arrange
-        var rule = new EscalationRuleDto { Id = 1, IsActive = false };
-        _mockService.Setup(x => x.DisableRuleAsync(1, 1, default))
-            .ReturnsAsync(rule);
-
-        // Act
-        var result = await _controller.DisableRule(1);
-
-        // Assert
-        var okResult = Assert.IsType<OkObjectResult>(result);
-        _mockService.Verify(x => x.DisableRuleAsync(1, 1, default), Times.Once);
+        Assert.IsType<NotFoundResult>(result);
     }
 
     #endregion

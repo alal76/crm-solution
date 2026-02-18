@@ -26,15 +26,15 @@ import '@testing-library/jest-dom';
 
 const mockAddress: Address = {
   id: 1,
-  accountId: 1,
   label: 'Main Office',
   line1: '123 Main Street',
   line2: 'Suite 100',
   city: 'New York',
   state: 'NY',
-  postalCode: '10001',
+  zipCode: '10001',
   country: 'United States',
-  countryCode: 'US',
+  addressType: 'Primary',
+  isPrimary: true,
   createdAt: '2024-01-01T00:00:00.000Z',
   updatedAt: '2024-01-01T00:00:00.000Z',
 };
@@ -300,7 +300,7 @@ describe('AddressFormComponent', () => {
 
     test('disables submit button while submitting', async () => {
       // Arrange
-      const onSubmit = jest.fn(() => new Promise(resolve => setTimeout(resolve, 1000)));
+      const onSubmit = jest.fn((): Promise<void> => new Promise(resolve => setTimeout(resolve, 1000)));
       renderComponent({ onSubmit });
 
       // Act
