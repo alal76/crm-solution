@@ -17,7 +17,7 @@
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using CRM.Infrastructure.Services;
-using Microsoft.Extensions.Caching.Memory;
+using CRM.Tests.Helpers;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
@@ -31,14 +31,14 @@ namespace CRM.SystemModule.Tests.Controllers;
 public class RolesControllerTests
 {
     private readonly Mock<ICrmDbContext> _dbContextMock;
-    private readonly Mock<IMemoryCache> _cacheMock;
+    private readonly Mock<IPermissionCacheService> _cacheMock;
     private readonly Mock<ILogger<RBACService>> _loggerMock;
     private readonly RBACService _rbacService;
 
     public RolesControllerTests()
     {
         _dbContextMock = new Mock<ICrmDbContext>();
-        _cacheMock = new Mock<IMemoryCache>();
+        _cacheMock = new Mock<IPermissionCacheService>();
         _loggerMock = new Mock<ILogger<RBACService>>();
         _rbacService = new RBACService(_dbContextMock.Object, _cacheMock.Object, _loggerMock.Object);
     }
@@ -73,9 +73,9 @@ public class RolesControllerTests
             new UserGroupMember { Id = 1, UserId = userId, UserGroupId = 1, CreatedAt = DateTime.UtcNow }
         };
 
-        var userMock = users.CreateMockDbSet();
-        var userGroupMock = userGroups.CreateMockDbSet();
-        var groupMemberMock = groupMembers.CreateMockDbSet();
+        var userMock = MockDbSetFactory.CreateMockDbSet(users);
+        var userGroupMock = MockDbSetFactory.CreateMockDbSet(userGroups);
+        var groupMemberMock = MockDbSetFactory.CreateMockDbSet(groupMembers);
 
         _dbContextMock.Setup(x => x.Users).Returns(userMock.Object);
         _dbContextMock.Setup(x => x.UserGroups).Returns(userGroupMock.Object);
@@ -100,7 +100,7 @@ public class RolesControllerTests
             new Permission { Id = 3, Name = "Delete.Accounts", Description = "Can delete accounts" }
         };
 
-        var permissionMock = permissions.CreateMockDbSet();
+        var permissionMock = MockDbSetFactory.CreateMockDbSet(permissions);
         _dbContextMock.Setup(x => x.Permissions).Returns(permissionMock.Object);
 
         // Act
@@ -137,13 +137,16 @@ public class RolesControllerTests
             new GroupPermission { UserGroupId = 1, PermissionId = 1 }
         };
 
-        _cacheMock.Setup(x => x.TryGetValue(It.IsAny<object>(), out It.Ref<object>.IsAny))
-            .Returns(false);
+        // Setup cache to indicate no cached permissions (force DB lookup)
+        _cacheMock.Setup(x => x.IsUserPermissionsCachedAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(false);
+        _cacheMock.Setup(x => x.GetUserPermissionsFromCacheAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new HashSet<string>());
 
-        var userGroupMock = userGroups.CreateMockDbSet();
-        var groupMemberMock = groupMembers.CreateMockDbSet();
-        var permissionMock = permissions.CreateMockDbSet();
-        var groupPermissionMock = groupPermissions.CreateMockDbSet();
+        var userGroupMock = MockDbSetFactory.CreateMockDbSet(userGroups);
+        var groupMemberMock = MockDbSetFactory.CreateMockDbSet(groupMembers);
+        var permissionMock = MockDbSetFactory.CreateMockDbSet(permissions);
+        var groupPermissionMock = MockDbSetFactory.CreateMockDbSet(groupPermissions);
 
         _dbContextMock.Setup(x => x.UserGroups).Returns(userGroupMock.Object);
         _dbContextMock.Setup(x => x.UserGroupMembers).Returns(groupMemberMock.Object);
@@ -175,8 +178,8 @@ public class RolesControllerTests
             new GroupPermission { UserGroupId = roleId, PermissionId = 2 }
         };
 
-        var permissionMock = permissions.CreateMockDbSet();
-        var groupPermissionMock = groupPermissions.CreateMockDbSet();
+        var permissionMock = MockDbSetFactory.CreateMockDbSet(permissions);
+        var groupPermissionMock = MockDbSetFactory.CreateMockDbSet(groupPermissions);
 
         _dbContextMock.Setup(x => x.Permissions).Returns(permissionMock.Object);
         _dbContextMock.Setup(x => x.GroupPermissions).Returns(groupPermissionMock.Object);
