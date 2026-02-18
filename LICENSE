@@ -2,125 +2,119 @@ CRM Solution - Customer Relationship Management System
 Copyright (C) 2024-2026 Abhishek Lal
 
 ================================================================================
-                          PROPRIETARY LICENSE
+              SOURCE-AVAILABLE LICENSE WITH COMMERCIAL RESTRICTION
 ================================================================================
 
-This software is provided under a proprietary license that permits certain uses
-while restricting commercial redistribution and SaaS offerings without explicit
-author agreement. Read the full terms below.
+This software is source-available: you may view, study, modify, and use the
+source code freely for non-commercial purposes. Commercial use of this software
+requires a separate commercial license from the copyright holder.
 
 ================================================================================
-                        PERMITTED USES
+                          LICENSE TERMS
 ================================================================================
 
-You are permitted to:
+1. DEFINITIONS
 
-1. Use this software for internal, personal, or educational purposes
-2. Modify the software for your own internal use
-3. Run the software on your own infrastructure for your own business use
-4. Review and study the source code for learning purposes
-5. Create derivative works for internal use only
+   "Software" means the CRM Solution source code, documentation, and any 
+   associated files in this repository.
 
-================================================================================
-                    RESTRICTED USES - REQUIRE EXPLICIT AUTHORIZATION
-================================================================================
+   "Non-Commercial Use" means use for personal, educational, academic, 
+   research, evaluation, or internal non-revenue-generating purposes.
 
-You may NOT do the following without obtaining prior written agreement from
-Abhishek Lal (and potentially paying licensing fees):
-
-1. COMMERCIAL REDISTRIBUTION
-   Distribute, resell, or offer the software or derivatives as a standalone 
-   product to third parties for commercial purposes.
-
-2. SOFTWARE-AS-A-SERVICE (SaaS)
-   Offer the software or any derivative work as a hosted service, web 
-   application, cloud service, or any other form of service-based delivery 
-   to end users or customers (with or without payment).
-
-3. COMMERCIAL CONSULTING
-   Offer consulting, implementation, or support services based on this 
-   software to external customers for payment without authorization.
-
-4. REBRANDING & RESALE
-   Rebrand or relabel the software and offer it under a different name 
-   as a commercial product.
-
-5. BUNDLING FOR SALE
-   Bundle this software with other products for commercial sale without 
-   explicit authorization.
-
-6. COMMERCIAL HOSTING
-   Host or deploy this software as a service for customers or end-users
-   in exchange for payment, subscription fees, or any form of compensation.
+   "Commercial Use" means any use of the Software that is primarily intended 
+   for or directed toward commercial advantage or monetary compensation. This 
+   includes, but is not limited to:
+   (a) Using the Software to provide paid products or services
+   (b) Offering the Software or derivative works as SaaS, PaaS, or hosted service
+   (c) Selling, licensing, or distributing the Software for a fee
+   (d) Using the Software in a revenue-generating business operation
+   (e) Bundling the Software with commercial products
+   (f) Providing paid consulting, implementation, or support services based 
+       on this Software
 
 ================================================================================
-                    LICENSE FOR AUTHORIZED USE
+                        NON-COMMERCIAL USE GRANT
 ================================================================================
 
-For organizations or individuals wishing to use this software for the purposes
-listed under "Restricted Uses," a commercial license agreement must be negotiated
-with Abhishek Lal. Please contact the author to discuss licensing options.
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this Software, to use, copy, modify, and distribute the Software for 
+Non-Commercial Use, subject to the following conditions:
 
-Authorized commercial use may be granted under the following terms:
-- Commercial licensing fee (to be negotiated)
-- Usage restrictions based on organization size or deployment scope
+1. The above copyright notice and this license shall be included in all copies
+   or substantial portions of the Software.
+
+2. Attribution to the original author (Abhishek Lal) must be maintained in any
+   derivative works or distributions.
+
+3. Derivative works distributed for Non-Commercial Use must be distributed 
+   under these same license terms.
+
+================================================================================
+                     COMMERCIAL USE REQUIRES A LICENSE
+================================================================================
+
+Any Commercial Use of this Software requires a separate commercial license 
+agreement with the copyright holder. Without a valid commercial license, you 
+may NOT:
+
+1. Use the Software in any revenue-generating business operation
+2. Offer the Software or any derivative work as a hosted or managed service
+3. Sell, sublicense, or commercially distribute the Software or derivatives
+4. Rebrand or relabel the Software for commercial distribution
+5. Provide paid consulting or implementation services based on the Software
+
+To obtain a commercial license, contact:
+
+   Abhishek Lal
+   Email: abhishek@crmsolution.dev
+
+Commercial licenses may include:
+- Perpetual or subscription-based licensing options
+- Terms based on organization size or deployment scope
 - Support and maintenance agreements
 - Custom feature development options
 
 ================================================================================
-                    DERIVATIVE WORKS & MODIFICATIONS
+                    DERIVATIVE WORKS & CONTRIBUTIONS
 ================================================================================
 
-You may create and use derivative works internally. However:
+1. You may freely create and use derivative works for Non-Commercial Use.
 
-1. Any distribution of derivative works (even modified versions) that engage 
-   in any of the restricted uses above requires explicit written authorization.
+2. Contributions submitted to this repository (e.g., via pull requests) are 
+   licensed under these same terms and the contributor grants the copyright 
+   holder a perpetual, irrevocable license to use, modify, and sublicense 
+   the contribution.
 
-2. If you distribute derivative works to others, you must maintain this same
-   license text and include proper attribution to the original author.
-
-3. Internal modifications for your own use do not require authorization.
+3. Distribution of derivative works must maintain this license text and 
+   include proper attribution.
 
 ================================================================================
                     DISCLAIMER AND LIMITATION OF LIABILITY
 ================================================================================
 
-THIS SOFTWARE IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED,
-INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A
-PARTICULAR PURPOSE, AND NONINFRINGEMENT.
+THIS SOFTWARE IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT.
 
 IN NO EVENT SHALL ABHISHEK LAL OR ANY CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
 INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
 BUT NOT LIMITED TO PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
 DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY
-OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE
-OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
-OF THE POSSIBILITY OF SUCH DAMAGE.
+OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE,
+EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 ================================================================================
-                    CONTACT & COMMERCIAL LICENSING
+                          TERMINATION
 ================================================================================
 
-For commercial licensing inquiries, SaaS deployment permissions, or to negotiate
-alternative license terms, please contact:
+This license is effective until terminated. Your rights under this license
+terminate automatically if you fail to comply with any of its terms. Upon
+termination, you must immediately:
 
-  Abhishek Lal
-  Email: [your contact information here]
-
-Any use of this software beyond the permitted uses listed above without explicit
-written authorization from the copyright holder constitutes a breach of this license
-and may result in legal action.
-
-================================================================================
-                          TERMINATION OF LICENSE
-================================================================================
-
-This license is perpetual. However, if you violate any terms of this license,
-your rights are automatically terminated. Upon termination, you must immediately:
-
-1. Cease all use of the software
-2. Cease any distribution or offering of the software
-3. Remove all copies from your systems (except for backups)
+1. Cease all use of the Software
+2. Cease any distribution or offering of the Software
+3. Remove all copies from your systems
 
 ================================================================================
                               END OF LICENSE

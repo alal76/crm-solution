@@ -101,11 +101,25 @@ const AgentDirectoryPage = () => {
         setLoading(true);
         setError(null);
         const response = await agentService.getAll();
-        const activeAgents = (response.data || []).filter((a: Agent) => a?.isActive !== false);
-        setAgents(activeAgents);
+        const data = response.data;
+        // Handle case where backend returns empty array (agents disabled)
+        if (Array.isArray(data)) {
+          const activeAgents = data.filter((a: Agent) => a?.isActive !== false);
+          setAgents(activeAgents);
+        } else {
+          setAgents([]);
+        }
       } catch (err: any) {
         console.error('Failed to load agents:', err);
-        setError(err?.response?.data?.message || 'Failed to load AI agents. Please try again.');
+        // Don't show a scary error - just show empty state with info
+        const message = err?.response?.data?.message;
+        if (err?.response?.status === 500 || err?.response?.status === 503) {
+          setError('AI Agent subsystem is not available. This feature can be enabled in Administration > Feature Management.');
+        } else if (message) {
+          setError(message);
+        } else {
+          setError('AI Agents are not currently configured. You can enable them in Administration > Feature Management.');
+        }
       } finally {
         setLoading(false);
       }
@@ -173,7 +187,7 @@ const AgentDirectoryPage = () => {
       </Box>
 
       {error && (
-        <Alert severity="error" sx={{ mb: 2 }}>
+        <Alert severity="info" sx={{ mb: 2 }}>
           {error}
         </Alert>
       )}
@@ -241,13 +255,22 @@ const AgentDirectoryPage = () => {
         >
           <SmartToyIcon sx={{ fontSize: 64, color: '#CAC4D0', mb: 2 }} />
           <Typography variant="h6" sx={{ color: '#49454F', mb: 1 }}>
-            No AI agents available
+            {error ? 'AI Agents Disabled' : 'No AI agents available'}
           </Typography>
-          <Typography variant="body2" sx={{ color: '#79747E' }}>
+          <Typography variant="body2" sx={{ color: '#79747E', textAlign: 'center', maxWidth: 480 }}>
             {searchQuery || selectedCategory !== 'All'
               ? 'Try adjusting your search or filter criteria.'
-              : 'No active agents have been configured yet.'}
+              : error
+                ? 'The AI Agent subsystem is currently turned off. An administrator can enable it from Administration > Feature Management.'
+                : 'No active agents have been configured yet.'}
           </Typography>
+          {!searchQuery && selectedCategory === 'All' && (
+            <Chip
+              label="Feature Disabled"
+              size="small"
+              sx={{ mt: 2, backgroundColor: '#E8DEF8', color: '#4A4458' }}
+            />
+          )}
         </Box>
       ) : (
         <Grid container spacing={2.5}>

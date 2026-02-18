@@ -1,18 +1,9 @@
 // CRM Solution - Customer Relationship Management System
 // Copyright (C) 2024-2026 Abhishek Lal
 //
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Affero General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU Affero General Public License for more details.
-//
-// You should have received a copy of the GNU Affero General Public License
-// along with this program. If not, see <https://www.gnu.org/licenses/>.
+// This software is source-available. Non-commercial use is permitted under
+// the terms of the LICENSE file. Commercial use requires a separate license.
+// See the LICENSE file in the root directory for full terms.
 
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
@@ -45,7 +36,7 @@ public class CommissionService : ICommissionService
     {
         var query = _context.Commissions
             .Include(c => c.User)
-            .Include(c => c.Plan)
+            .Include(c => c.CommissionPlan)
             .Where(c => !c.IsDeleted);
 
         if (userId.HasValue)
@@ -65,7 +56,7 @@ public class CommissionService : ICommissionService
     {
         return await _context.Commissions
             .Include(c => c.User)
-            .Include(c => c.Plan)
+            .Include(c => c.CommissionPlan)
             .Include(c => c.Opportunity)
             .FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted, cancellationToken);
     }
@@ -84,8 +75,10 @@ public class CommissionService : ICommissionService
 
     public async Task<Commission> UpdateAsync(Commission commission, CancellationToken cancellationToken = default)
     {
-        var existing = await _context.Commissions.FindAsync(new object[] { commission.Id }, cancellationToken);
-        if (existing == null || existing.IsDeleted)
+        var exists = await _context.Commissions
+            .AsNoTracking()
+            .AnyAsync(c => c.Id == commission.Id && !c.IsDeleted, cancellationToken);
+        if (!exists)
         {
             throw new InvalidOperationException($"Commission {commission.Id} not found");
         }
@@ -281,8 +274,10 @@ public class CommissionService : ICommissionService
 
     public async Task<CommissionPlan> UpdatePlanAsync(CommissionPlan plan, CancellationToken cancellationToken = default)
     {
-        var existing = await _context.CommissionPlans.FindAsync(new object[] { plan.Id }, cancellationToken);
-        if (existing == null || existing.IsDeleted)
+        var exists = await _context.CommissionPlans
+            .AsNoTracking()
+            .AnyAsync(p => p.Id == plan.Id && !p.IsDeleted, cancellationToken);
+        if (!exists)
         {
             throw new InvalidOperationException($"Commission plan {plan.Id} not found");
         }
@@ -558,7 +553,7 @@ public class CommissionService : ICommissionService
             query = query.Where(c => c.CreatedAt <= toDate.Value);
         }
 
-        var commissions = await query.Include(c => c.Plan).ToListAsync(cancellationToken);
+        var commissions = await query.Include(c => c.CommissionPlan).ToListAsync(cancellationToken);
         var activePlans = await _context.CommissionPlans.CountAsync(p => p.Status == CommissionPlanStatus.Active && !p.IsDeleted, cancellationToken);
 
         return new CommissionStatistics
@@ -695,8 +690,10 @@ public class CommissionService : ICommissionService
 
     public async Task<CommissionTier> UpdateTierAsync(CommissionTier tier, CancellationToken cancellationToken = default)
     {
-        var existing = await _context.CommissionTiers.FindAsync(new object[] { tier.Id }, cancellationToken);
-        if (existing == null || existing.IsDeleted)
+        var exists = await _context.CommissionTiers
+            .AsNoTracking()
+            .AnyAsync(t => t.Id == tier.Id && !t.IsDeleted, cancellationToken);
+        if (!exists)
         {
             throw new InvalidOperationException($"Commission tier {tier.Id} not found");
         }

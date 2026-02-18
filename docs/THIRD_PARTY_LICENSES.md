@@ -1,7 +1,7 @@
 # CRM Solution — Third-Party Licenses & Dependency Inventory
 
 > **Last Updated:** February 17, 2026  
-> **CRM Solution License:** [AGPL-3.0-or-later](../LICENSE)  
+> **CRM Solution License:** [Source-Available — Commercial License Required](../LICENSE)  
 > **Copyright:** 2024–2026 Abhishek Lal  
 > **Purpose:** Complete inventory of all third-party dependencies, their licenses, and compatibility analysis.
 
@@ -24,15 +24,15 @@
 
 ## 1. CRM Solution License
 
-The CRM Solution is licensed under the **GNU Affero General Public License v3.0 or later (AGPL-3.0-or-later)**.
+The CRM Solution is licensed under a **Source-Available License with Commercial Restriction**.
 
 | Attribute | Value |
 |-----------|-------|
-| **SPDX Identifier** | `AGPL-3.0-or-later` |
-| **OSI Approved** | ✅ Yes |
-| **Copyleft** | ✅ Strong (network copyleft) |
-| **Patent Grant** | ✅ Yes |
-| **Key Requirement** | Source code must be made available to users who interact with the software over a network |
+| **License Type** | Source-Available (Custom) |
+| **Non-Commercial Use** | ✅ Free |
+| **Commercial Use** | ⚠️ Requires separate commercial license |
+| **Source Code** | ✅ Available |
+| **Key Requirement** | Commercial use (SaaS, resale, paid hosting, etc.) requires a license from the copyright holder |
 
 ### Additional Terms (per LICENSE file)
 

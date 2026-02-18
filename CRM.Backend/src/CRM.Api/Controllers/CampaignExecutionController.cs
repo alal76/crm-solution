@@ -1,18 +1,9 @@
 // CRM Solution - Customer Relationship Management System
 // Copyright (C) 2024-2026 Abhishek Lal
 //
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Affero General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU Affero General Public License for more details.
-//
-// You should have received a copy of the GNU Affero General Public License
-// along with this program. If not, see <https://www.gnu.org/licenses/>.
+// This software is source-available. Non-commercial use is permitted under
+// the terms of the LICENSE file. Commercial use requires a separate license.
+// See the LICENSE file in the root directory for full terms.
 
 using CRM.Infrastructure.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -233,6 +224,36 @@ public class CampaignExecutionController : ControllerBase
         {
             _logger.LogError(ex, "Error unlinking workflow {WorkflowId} from campaign {CampaignId}", workflowId, campaignId);
             return StatusCode(500, new { message = "Error unlinking workflow from campaign" });
+        }
+    }
+
+    /// <summary>
+    /// Execute a specific workflow linked to a campaign
+    /// </summary>
+    [HttpPost("{campaignId}/workflows/{workflowId}/execute")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> ExecuteCampaignWorkflow(int campaignId, int workflowId)
+    {
+        try
+        {
+            var campaignWorkflow = await _campaignExecutionService.GetCampaignWorkflowByIdAsync(workflowId);
+            if (campaignWorkflow == null || campaignWorkflow.CampaignId != campaignId)
+            {
+                return NotFound(new { message = "Campaign workflow not found" });
+            }
+
+            var triggeredCount = await _campaignExecutionService.TriggerWorkflowForCampaignAsync(
+                campaignId,
+                campaignWorkflow.WorkflowDefinitionId,
+                campaignWorkflow.TriggerEvent ?? "manual_execute");
+
+            return Ok(new { workflowInstanceId = workflowId, triggeredRecipients = triggeredCount });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error executing workflow {WorkflowId} for campaign {CampaignId}", workflowId, campaignId);
+            return StatusCode(500, new { message = "Error executing workflow" });
         }
     }
 

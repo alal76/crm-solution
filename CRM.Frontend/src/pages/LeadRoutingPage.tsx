@@ -1,7 +1,7 @@
 /**
  * CRM Solution - Customer Relationship Management System
  * Copyright (C) 2024-2026 Abhishek Lal
- * Licensed under the GNU Affero General Public License v3.0
+ * Licensed under the Source-Available License (see LICENSE) v3.0
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -335,8 +335,8 @@ const LeadRoutingPage = () => {
             <Grid item xs={12} sm={6} md={3}>
               <StatsCard
                 title="Success Rate"
-                value={`${(statistics.successRate * 100).toFixed(1)}%`}
-                subtitle={`${statistics.totalRoutedLeads} total routed`}
+                value={`${((statistics?.successRate ?? 0) * 100).toFixed(1)}%`}
+                subtitle={`${statistics?.totalRoutedLeads ?? 0} total routed`}
                 icon={<SuccessIcon sx={{ fontSize: 40 }} />}
                 color="#ed6c02"
               />
@@ -504,7 +504,7 @@ const LeadRoutingPage = () => {
                           </Tooltip>
                         )}
                       </TableCell>
-                      <TableCell align="right">{log.processingTimeMs}ms</TableCell>
+                      <TableCell align="right">{log.processingTimeMs ?? 0}ms</TableCell>
                     </TableRow>
                   ))}
                   {history.length === 0 && (
@@ -538,25 +538,25 @@ const LeadRoutingPage = () => {
                       <TableCell>
                         <Stack direction="row" spacing={1} alignItems="center">
                           <PeopleIcon color="action" />
-                          <Typography>{user.userName}</Typography>
+                          <Typography>{user.userName || `User #${user.userId}`}</Typography>
                         </Stack>
                       </TableCell>
-                      <TableCell align="center">{user.pendingLeads}</TableCell>
-                      <TableCell align="center">{user.leadsToday}</TableCell>
-                      <TableCell align="center">{user.capacity}</TableCell>
+                      <TableCell align="center">{user.pendingLeads ?? 0}</TableCell>
+                      <TableCell align="center">{user.leadsToday ?? 0}</TableCell>
+                      <TableCell align="center">{user.capacity ?? 0}</TableCell>
                       <TableCell>
                         <Stack direction="row" alignItems="center" spacing={1}>
                           <LinearProgress
                             variant="determinate"
-                            value={Math.min(user.utilizationPercentage, 100)}
+                            value={Math.min(user.utilizationPercentage ?? 0, 100)}
                             sx={{ flexGrow: 1, height: 8, borderRadius: 4 }}
                             color={
-                              user.utilizationPercentage >= 100 ? 'error' :
-                              user.utilizationPercentage >= 80 ? 'warning' : 'primary'
+                              (user.utilizationPercentage ?? 0) >= 100 ? 'error' :
+                              (user.utilizationPercentage ?? 0) >= 80 ? 'warning' : 'primary'
                             }
                           />
                           <Typography variant="body2" sx={{ minWidth: 40 }}>
-                            {user.utilizationPercentage.toFixed(0)}%
+                            {(user.utilizationPercentage ?? 0).toFixed(0)}%
                           </Typography>
                         </Stack>
                       </TableCell>
@@ -584,19 +584,24 @@ const LeadRoutingPage = () => {
                       <CardContent>
                         <Typography variant="h6" gutterBottom>Routing by Type</Typography>
                         <List>
-                          {statistics.routingByType?.map(item => (
+                          {(statistics.routingByType || []).map(item => (
                             <ListItem key={item.type}>
                               <ListItemText
                                 primary={getRoutingTypeLabel(item.type)}
-                                secondary={`${item.count} leads (${item.percentage.toFixed(1)}%)`}
+                                secondary={`${item.count ?? 0} leads (${(item.percentage ?? 0).toFixed(1)}%)`}
                               />
                               <LinearProgress
                                 variant="determinate"
-                                value={item.percentage}
+                                value={item.percentage ?? 0}
                                 sx={{ width: 100, height: 8, borderRadius: 4 }}
                               />
                             </ListItem>
                           ))}
+                          {(statistics.routingByType || []).length === 0 && (
+                            <Typography color="text.secondary" sx={{ py: 2, textAlign: 'center' }}>
+                              No routing data available
+                            </Typography>
+                          )}
                         </List>
                       </CardContent>
                     </Card>
@@ -606,15 +611,20 @@ const LeadRoutingPage = () => {
                       <CardContent>
                         <Typography variant="h6" gutterBottom>Top Users by Leads Received</Typography>
                         <List>
-                          {statistics.routingByUser?.slice(0, 5).map(user => (
+                          {(statistics.routingByUser || []).slice(0, 5).map(user => (
                             <ListItem key={user.userId}>
                               <ListItemIcon><PeopleIcon /></ListItemIcon>
                               <ListItemText
-                                primary={user.userName}
-                                secondary={`${user.leadsReceived} leads (${user.percentage.toFixed(1)}%)`}
+                                primary={user.userName || `User #${user.userId}`}
+                                secondary={`${user.leadsReceived ?? 0} leads (${(user.percentage ?? 0).toFixed(1)}%)`}
                               />
                             </ListItem>
                           ))}
+                          {(statistics.routingByUser || []).length === 0 && (
+                            <Typography color="text.secondary" sx={{ py: 2, textAlign: 'center' }}>
+                              No user routing data available
+                            </Typography>
+                          )}
                         </List>
                       </CardContent>
                     </Card>

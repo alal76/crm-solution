@@ -1,7 +1,7 @@
 // CRM Solution - Customer Relationship Management System
 // Copyright (C) 2024-2026 Abhishek Lal
 //
-// Licensed under the GNU Affero General Public License v3.0.
+// This software is source-available. Commercial use requires a license.
 
 using CRM.Core.Dtos;
 using CRM.Core.Entities.ITSM;

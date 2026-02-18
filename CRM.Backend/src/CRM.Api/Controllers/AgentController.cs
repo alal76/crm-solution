@@ -1,23 +1,14 @@
-// -----------------------------------------------------------------------
-// CRM Solution - Semantic Kernel AI Integration
-// Copyright (c) 2024-2026 Abhishek Lal (CRM Solution). All rights reserved.
-// Licensed under the GNU Affero General Public License v3.0.
-// See LICENSE file in the project root for full license information.
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
 //
-// This file is part of the CRM Solution, an enterprise-grade
-// Customer Relationship Management system.
-//
-// Author: Abhishek Lal
-// Repository: https://github.com/abhisheklal04/crm-solution
-// Documentation: See /docs folder for architecture and API reference
-//
-// IMPORTANT: This is proprietary code. Unauthorized copying, modification,
-// or distribution is strictly prohibited.
-// -----------------------------------------------------------------------
+// This software is source-available. Non-commercial use is permitted under
+// the terms of the LICENSE file. Commercial use requires a separate license.
+// See the LICENSE file in the root directory for full terms.
 
 #nullable enable
 
 using System.Security.Claims;
+using CRM.Core.Features;
 using CRM.Core.Interfaces;
 using CRM.Infrastructure.AI.SK.Agents;
 using CRM.Infrastructure.AI.SK.Services;
@@ -25,6 +16,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.FeatureManagement;
 
 namespace CRM.Api.Controllers;
 
@@ -43,6 +35,7 @@ public class AgentController : ControllerBase
     private readonly AgentOrchestrator _orchestrator;
     private readonly ICrmDbContext _dbContext;
     private readonly ILogger<AgentController> _logger;
+    private readonly IFeatureManager _featureManager;
 
     #endregion
 
@@ -59,12 +52,14 @@ public class AgentController : ControllerBase
         AgentExecutionService executionService,
         AgentOrchestrator orchestrator,
         ICrmDbContext dbContext,
-        ILogger<AgentController> logger)
+        ILogger<AgentController> logger,
+        IFeatureManager featureManager)
     {
         _executionService = executionService ?? throw new ArgumentNullException(nameof(executionService));
         _orchestrator = orchestrator ?? throw new ArgumentNullException(nameof(orchestrator));
         _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _featureManager = featureManager ?? throw new ArgumentNullException(nameof(featureManager));
     }
 
     #endregion
@@ -160,6 +155,13 @@ public class AgentController : ControllerBase
     {
         try
         {
+            // Check if agent subsystem is enabled
+            if (!await _featureManager.IsEnabledAsync(FeatureFlags.EnableAgentSubsystem))
+            {
+                _logger.LogInformation("Agent subsystem is disabled via feature flag");
+                return Ok(Array.Empty<object>());
+            }
+
             var agents = await _orchestrator.GetAvailableAgentsAsync(HttpContext.RequestAborted);
             return Ok(agents);
         }
@@ -182,6 +184,11 @@ public class AgentController : ControllerBase
     {
         try
         {
+            if (!await _featureManager.IsEnabledAsync(FeatureFlags.EnableAgentSubsystem))
+            {
+                return NotFound("AI Agent subsystem is currently disabled.");
+            }
+
             var agent = await _dbContext.AIAgents
                 .AsNoTracking()
                 .FirstOrDefaultAsync(a => a.Id == agentId && !a.IsDeleted, HttpContext.RequestAborted);
@@ -283,6 +290,11 @@ public class AgentController : ControllerBase
     {
         try
         {
+            if (!await _featureManager.IsEnabledAsync(FeatureFlags.EnableAgentSubsystem))
+            {
+                return BadRequest(new { message = "AI Agent subsystem is currently disabled. Please enable it in Feature Management settings." });
+            }
+
             if (string.IsNullOrWhiteSpace(request.Message))
             {
                 return BadRequest("Message cannot be empty.");

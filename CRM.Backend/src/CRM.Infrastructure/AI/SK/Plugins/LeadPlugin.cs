@@ -1,19 +1,9 @@
-// -----------------------------------------------------------------------
-// CRM Solution - Semantic Kernel AI Plugins
-// Copyright (c) 2024-2026 Abhishek Lal (CRM Solution). All rights reserved.
-// Licensed under the GNU Affero General Public License v3.0.
-// See LICENSE file in the project root for full license information.
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
 //
-// This file is part of the CRM Solution, an enterprise-grade
-// Customer Relationship Management system.
-//
-// Author: Abhishek Lal
-// Repository: https://github.com/abhisheklal04/crm-solution
-// Documentation: See /docs folder for architecture and API reference
-//
-// IMPORTANT: This is proprietary code. Unauthorized copying, modification,
-// or distribution is strictly prohibited.
-// -----------------------------------------------------------------------
+// This software is source-available. Non-commercial use is permitted under
+// the terms of the LICENSE file. Commercial use requires a separate license.
+// See the LICENSE file in the root directory for full terms.
 
 #nullable enable
 

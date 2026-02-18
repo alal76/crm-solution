@@ -1,7 +1,7 @@
 /**
  * CRM Solution - Customer Relationship Management System
  * Copyright (C) 2024-2026 Abhishek Lal
- * Licensed under the GNU Affero General Public License v3.0
+ * Licensed under the Source-Available License (see LICENSE) v3.0
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -286,7 +286,7 @@ export default function LandingPagesPage() {
   const fetchPages = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await apiClient.get('/api/landing-pages');
+      const response = await apiClient.get('/landing-pages');
       setPages(response.data);
       setError(null);
     } catch (err: any) {
@@ -380,7 +380,7 @@ export default function LandingPagesPage() {
       if (editingPage) {
         await apiClient.put(`/landing-pages/${editingPage.id}`, payload);
       } else {
-        await apiClient.post('/api/landing-pages', payload);
+        await apiClient.post('/landing-pages', payload);
       }
 
       setFormDialogOpen(false);

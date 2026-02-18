@@ -288,7 +288,7 @@ builder.Services.AddOpenApi("v1", options => {
             Version = "v2.0.0",
             Description = "Enterprise CRM Solution with Pluggable Architecture.",
             Contact = new() { Name = "CRM Solution Team", Email = "support@crm.local" },
-            License = new() { Name = "AGPL-3.0", Url = new Uri("https://www.gnu.org/licenses/agpl-3.0.html") }
+            License = new() { Name = "Source Available - Commercial License Required", Url = new Uri("https://github.com/alal76/crm-solution/blob/main/LICENSE") }
         };
         return Task.CompletedTask;
     });

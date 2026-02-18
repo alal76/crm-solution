@@ -735,11 +735,15 @@ function CommissionsPage() {
   // Render Functions
   // ============================================================================
 
-  const formatCurrency = (amount: number, currency: string = 'USD') => {
+  const formatCurrency = (amount?: number | null, currency: string = 'USD') => {
+    if (amount == null) return '-';
     return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(amount);
   };
 
-  const formatPercent = (value: number) => `${(value * 100).toFixed(1)}%`;
+  const formatPercent = (value?: number | null) => {
+    if (value == null) return '-';
+    return `${((value || 0) * 100).toFixed(1)}%`;
+  };
 
   // ============================================================================
   // Render

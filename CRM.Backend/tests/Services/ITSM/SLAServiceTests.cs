@@ -28,10 +28,10 @@ public class SLAServiceTests
     }
 
     [Theory]
-    [InlineData(SLATargetType.Incident, 0)]
-    [InlineData(SLATargetType.ServiceRequest, 1)]
-    [InlineData(SLATargetType.Problem, 2)]
-    [InlineData(SLATargetType.Change, 3)]
+    [InlineData(SLATargetType.Incident, 1)]
+    [InlineData(SLATargetType.ServiceRequest, 2)]
+    [InlineData(SLATargetType.Problem, 3)]
+    [InlineData(SLATargetType.Change, 4)]
     public void SLATargetType_HasCorrectIntValues(SLATargetType type, int expectedValue)
     {
         // Assert
@@ -51,7 +51,8 @@ public class SLAServiceTests
         // Assert
         dto.SLAPolicyId.Should().Be(0);
         dto.Name.Should().BeEmpty();
-        dto.TargetType.Should().Be(SLATargetType.Incident);
+        // Note: SLATargetType is a value type so defaults to 0 (undefined) unless explicitly set
+        ((int)dto.TargetType).Should().Be(0);
         dto.P1ResponseMinutes.Should().BeNull();
         dto.P1ResolutionMinutes.Should().BeNull();
         dto.UseBusinessHours.Should().BeFalse();

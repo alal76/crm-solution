@@ -176,4 +176,4 @@ docker network connect crm-network crm-frontend
 
 ## License
 
-AGPL-3.0
+Source-available — Commercial use requires a license. See LICENSE in the root directory.

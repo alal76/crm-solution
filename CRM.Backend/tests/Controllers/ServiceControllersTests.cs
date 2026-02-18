@@ -1,18 +1,9 @@
 // CRM Solution - Customer Relationship Management System
 // Copyright (C) 2024-2026 Abhishek Lal
 //
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Affero General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// GNU Affero General Public License for more details.
-//
-// You should have received a copy of the GNU Affero General Public License
-// along with this program. If not, see <https://www.gnu.org/licenses/>.
+// This software is source-available. Non-commercial use is permitted under
+// the terms of the LICENSE file. Commercial use requires a separate license.
+// See the LICENSE file in the root directory for full terms.
 
 using Xunit;
 using Moq;
@@ -71,7 +62,7 @@ public class CommissionsControllerTests
         var result = await _controller.GetAll(null, null, CancellationToken.None);
 
         // Assert
-        var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
+        var okResult = result.Result.Should().BeOfType<OkObjectResult>().Subject;
         var response = okResult.Value.As<IEnumerable<Commission>>();
         response.Should().HaveCount(2);
     }
@@ -89,7 +80,7 @@ public class CommissionsControllerTests
         var result = await _controller.GetById(1, CancellationToken.None);
 
         // Assert
-        var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
+        var okResult = result.Result.Should().BeOfType<OkObjectResult>().Subject;
         var response = okResult.Value.As<Commission>();
         response.Id.Should().Be(1);
     }
@@ -100,13 +91,13 @@ public class CommissionsControllerTests
         // Arrange
         _mockCommissionService
             .Setup(x => x.GetByIdAsync(999, It.IsAny<CancellationToken>()))
-            .ReturnsAsync((Commission)null);
+            .ReturnsAsync((Commission?)null);
 
         // Act
         var result = await _controller.GetById(999, CancellationToken.None);
 
-        // Assert
-        result.Should().BeOfType<NotFoundResult>();
+        // Assert - Controller returns NotFound(string) which is NotFoundObjectResult
+        result.Result.Should().BeOfType<NotFoundObjectResult>();
     }
 
     #endregion
@@ -134,7 +125,7 @@ public class CommissionsControllerTests
         var result = await _controller.Create(dto, CancellationToken.None);
 
         // Assert
-        var createdResult = result.Should().BeOfType<CreatedAtActionResult>().Subject;
+        var createdResult = result.Result.Should().BeOfType<CreatedAtActionResult>().Subject;
         createdResult.StatusCode.Should().Be(201);
     }
 
@@ -147,16 +138,22 @@ public class CommissionsControllerTests
     {
         // Arrange
         var updateDto = new CommissionUpdateRequest { DealAmount = 6000m, CommissionRate = 0.12m };
-        var commission = new Commission { Id = 1, Amount = 3000m };
+        var existing = new Commission { Id = 1, Amount = 3000m, Status = CommissionStatus.Pending };
+        var updated = new Commission { Id = 1, Amount = 3000m, DealAmount = 6000m };
+
+        // Controller calls GetByIdAsync first to check existence
+        _mockCommissionService
+            .Setup(x => x.GetByIdAsync(1, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(existing);
         _mockCommissionService
             .Setup(x => x.UpdateAsync(It.IsAny<Commission>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(commission);
+            .ReturnsAsync(updated);
 
         // Act
         var result = await _controller.Update(1, updateDto, CancellationToken.None);
 
         // Assert
-        var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
+        var okResult = result.Result.Should().BeOfType<OkObjectResult>().Subject;
         okResult.Value.Should().NotBeNull();
     }
 
@@ -178,7 +175,7 @@ public class CommissionsControllerTests
         var result = await _controller.Approve(1, approveRequest, CancellationToken.None);
 
         // Assert
-        var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
+        var okResult = result.Result.Should().BeOfType<OkObjectResult>().Subject;
         okResult.Value.As<Commission>().Status.Should().Be(CommissionStatus.Approved);
     }
 
@@ -187,7 +184,8 @@ public class CommissionsControllerTests
     {
         // Arrange
         var rejectRequest = new CommissionRejectRequest { Reason = "Does not meet criteria and quality standards" };
-        var commission = new Commission { Id = 1, Status = CommissionStatus.Rejected };
+        // Note: RejectAsync sets Status = Cancelled internally, but we mock the return
+        var commission = new Commission { Id = 1, Status = CommissionStatus.Cancelled };
         _mockCommissionService
             .Setup(x => x.RejectAsync(1, It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(commission);
@@ -196,8 +194,8 @@ public class CommissionsControllerTests
         var result = await _controller.Reject(1, rejectRequest, CancellationToken.None);
 
         // Assert
-        var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-        okResult.Value.As<Commission>().Status.Should().Be(CommissionStatus.Rejected);
+        var okResult = result.Result.Should().BeOfType<OkObjectResult>().Subject;
+        okResult.Value.As<Commission>().Status.Should().Be(CommissionStatus.Cancelled);
     }
 
     #endregion
@@ -217,7 +215,7 @@ public class CommissionsControllerTests
         var result = await _controller.CalculateForDeal(1, CancellationToken.None);
 
         // Assert
-        var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
+        var okResult = result.Result.Should().BeOfType<OkObjectResult>().Subject;
         okResult.Value.As<CommissionCalculation>().CalculatedAmount.Should().Be(500m);
     }
 
@@ -358,7 +356,7 @@ public class EmailSequencesControllerTests
     }
 
     [Fact]
-    public async Task Start_ShouldReturnOkResult()
+    public async Task Start_ShouldReturnNoContent()
     {
         // Arrange
         _mockSequenceService
@@ -368,12 +366,12 @@ public class EmailSequencesControllerTests
         // Act
         var result = await _controller.Start(1, CancellationToken.None);
 
-        // Assert
-        result.Should().BeOfType<OkObjectResult>();
+        // Assert - Controller returns NoContent() (204) on success
+        result.Should().BeOfType<NoContentResult>();
     }
 
     [Fact]
-    public async Task Stop_ShouldReturnOkResult()
+    public async Task Stop_ShouldReturnNoContent()
     {
         // Arrange
         _mockSequenceService
@@ -383,7 +381,7 @@ public class EmailSequencesControllerTests
         // Act
         var result = await _controller.Stop(1, CancellationToken.None);
 
-        // Assert
-        result.Should().BeOfType<OkObjectResult>();
+        // Assert - Controller returns NoContent() (204) on success
+        result.Should().BeOfType<NoContentResult>();
     }
 }

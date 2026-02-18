@@ -3,6 +3,7 @@
   "version": "0.0.24",
   "description": "CRM Frontend - Enterprise Customer Relationship Management System",
   "private": true,
+  "license": "SEE LICENSE IN LICENSE",
   "overrides": {
     "nth-check": "^2.1.1",
     "postcss": "^8.4.31",

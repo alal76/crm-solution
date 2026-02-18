@@ -9,7 +9,7 @@
 [![Version](https://img.shields.io/badge/version-1.9.0-blue)](https://github.com/alal76/crm-solution)
 [![.NET](https://img.shields.io/badge/.NET-8.0-purple)](https://dotnet.microsoft.com/)
 [![React](https://img.shields.io/badge/React-18-61DAFB)](https://react.dev/)
-[![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
+[![License](https://img.shields.io/badge/license-Source%20Available-orange)](LICENSE)
 [![Status](https://img.shields.io/badge/status-experimental-orange)](https://github.com/alal76/crm-solution)
 
 </div>

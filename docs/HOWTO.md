@@ -780,4 +780,4 @@ For developers integrating with CRM Solution:
 ---
 
 *This documentation is part of CRM Solution v0.0.24*  
-*Licensed under AGPL-3.0*
+*Source-available — Commercial use requires a license*

@@ -169,4 +169,4 @@ For billing addresses, use the `Billing` prefix:
 ## License
 
 Copyright (C) 2024-2026 Abhishek Lal  
-Licensed under the GNU Affero General Public License v3.0
+Source-available — Commercial use requires a license. See LICENSE file.

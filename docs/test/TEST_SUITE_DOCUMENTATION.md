@@ -703,7 +703,7 @@ Last 30 days:
 CRM Solution - Customer Relationship Management System
 Copyright (C) 2024-2026 Abhishek Lal
 
-This test suite is part of the CRM Solution and is subject to the GNU AGPL-3.0 license.
+This test suite is part of the CRM Solution and is source-available. Commercial use requires a license.
 
 ---
 

@@ -70,4 +70,4 @@ Previous deployment choices are saved in `config/deployment_config.json` and can
 
 ## License
 
-AGPL-3.0 - See LICENSE file in the root directory.
+Source-available — Commercial use requires a license. See LICENSE file in the root directory.

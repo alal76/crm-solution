@@ -411,7 +411,7 @@ const itsmService = {
    * Get ITSM dashboard metrics
    */
   getITSMMetrics: async () => {
-    return apiClient.get('/itsm/metrics');
+    return apiClient.get('/itsm/dashboard/metrics');
   },
 
   /**

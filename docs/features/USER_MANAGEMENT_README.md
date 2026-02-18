@@ -316,7 +316,7 @@ For support or questions, refer to the main project documentation or contact the
 
 ## 📄 License
 
-This project is part of the CRM Solution system. All rights reserved.
+This project is part of the CRM Solution system. Source-available — Commercial use requires a license.
 
 ---
 
