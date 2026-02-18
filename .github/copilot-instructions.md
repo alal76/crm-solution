@@ -27,6 +27,8 @@ Copilot usage
 
 **After implimenting or updating any test case or test file, verify signature , field names , namespace ,field values and validations - update the relevant feature specification to mark the test as implemented and ensure all details are accurately reflected in the spec. This maintains the integrity of the documentation and provides a clear reference for future development and testing efforts.**
 
+**Do njot use heredoc - the output is usually garbled **
+
 📁 **[docs/11-specifications/INDEX.md](../docs/11-specifications/INDEX.md)** - Master index of all 11-specifications
 
 ### Specification Structure

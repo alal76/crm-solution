@@ -196,7 +196,7 @@ public class EscalationPoliciesControllerTests
             IsDefault = true,
             Levels = new List<EscalationLevelDto>
             {
-                new() { LevelId = 1, LevelNumber = 1, WaitMinutes = 30 }
+                new() { Id = 1, LevelNumber = 1, EscalateAfterMinutes = 30 }
             }
         };
 
@@ -215,25 +215,29 @@ public class EscalationPoliciesControllerTests
         // Arrange & Act
         var dto = new EscalationLevelDto
         {
-            LevelId = 1,
+            Id = 1,
             PolicyId = 10,
             LevelNumber = 1,
-            WaitMinutes = 30,
-            NotifyEmail = "admin@example.com",
-            NotifyManagers = true,
-            ReassignToUserId = 5,
-            ReassignToTeamId = 2
+            Name = "First Level",
+            EscalateAfterMinutes = 30,
+            NotifyUserId = 5,
+            NotifyUserName = "Admin User",
+            NotifyTeamId = 2,
+            NotifyTeamName = "IT Support",
+            SendEmail = true,
+            SendSms = false
         };
 
         // Assert
-        dto.LevelId.Should().Be(1);
+        dto.Id.Should().Be(1);
         dto.PolicyId.Should().Be(10);
         dto.LevelNumber.Should().Be(1);
-        dto.WaitMinutes.Should().Be(30);
-        dto.NotifyEmail.Should().Be("admin@example.com");
-        dto.NotifyManagers.Should().BeTrue();
-        dto.ReassignToUserId.Should().Be(5);
-        dto.ReassignToTeamId.Should().Be(2);
+        dto.Name.Should().Be("First Level");
+        dto.EscalateAfterMinutes.Should().Be(30);
+        dto.NotifyUserId.Should().Be(5);
+        dto.NotifyTeamId.Should().Be(2);
+        dto.SendEmail.Should().BeTrue();
+        dto.SendSms.Should().BeFalse();
     }
 
     [Fact]

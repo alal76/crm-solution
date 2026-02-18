@@ -52,8 +52,9 @@ public class SLAServiceTests
         dto.SLAPolicyId.Should().Be(0);
         dto.Name.Should().BeEmpty();
         dto.TargetType.Should().Be(SLATargetType.Incident);
-        dto.P1ResponseMinutes.Should().Be(0);
-        dto.P1ResolutionMinutes.Should().Be(0);
+        dto.P1ResponseMinutes.Should().BeNull();
+        dto.P1ResolutionMinutes.Should().BeNull();
+        dto.UseBusinessHours.Should().BeFalse();
         dto.IsActive.Should().BeFalse();
     }
 
@@ -68,17 +69,8 @@ public class SLAServiceTests
             TargetType = SLATargetType.Incident,
             P1ResponseMinutes = 15,
             P1ResolutionMinutes = 60,
-            P2ResponseMinutes = 30,
-            P2ResolutionMinutes = 120,
-            P3ResponseMinutes = 60,
-            P3ResolutionMinutes = 480,
-            P4ResponseMinutes = 120,
-            P4ResolutionMinutes = 1440,
             UseBusinessHours = true,
-            ExcludeWeekends = true,
-            ExcludeHolidays = true,
-            IsActive = true,
-            IsDefault = true
+            IsActive = true
         };
 
         // Assert
@@ -102,12 +94,12 @@ public class SLAServiceTests
         // Assert
         dto.SLAInstanceId.Should().Be(0);
         dto.TargetId.Should().Be(0);
-        dto.SLAPolicyId.Should().Be(0);
-        dto.Priority.Should().Be(0);
+        dto.ResponseDueAt.Should().BeNull();
+        dto.ResolutionDueAt.Should().BeNull();
         dto.ResponseBreached.Should().BeFalse();
         dto.ResolutionBreached.Should().BeFalse();
-        dto.IsPaused.Should().BeFalse();
-        dto.IsCompleted.Should().BeFalse();
+        dto.MinutesUntilResponseBreach.Should().BeNull();
+        dto.MinutesUntilResolutionBreach.Should().BeNull();
     }
 
     [Fact]
@@ -119,18 +111,18 @@ public class SLAServiceTests
             SLAInstanceId = 1,
             TargetId = 100,
             TargetType = SLATargetType.Incident,
-            SLAPolicyId = 1,
-            Priority = 1,
             ResponseDueAt = DateTime.UtcNow.AddMinutes(15),
             ResolutionDueAt = DateTime.UtcNow.AddMinutes(60),
             ResponseBreached = true,
             ResolutionBreached = false,
-            IsCompleted = false
+            MinutesUntilResponseBreach = -5,
+            MinutesUntilResolutionBreach = 45
         };
 
         // Assert
         dto.ResponseBreached.Should().BeTrue();
         dto.ResolutionBreached.Should().BeFalse();
+        dto.MinutesUntilResponseBreach.Should().Be(-5);
     }
 
     #endregion
