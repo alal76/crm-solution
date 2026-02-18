@@ -396,7 +396,7 @@ public class PerformanceOptimizationServiceTests
         // Arrange - mock the PerformanceMetrics DbSet that the service queries
         var metrics = new List<PerformanceMetric>
         {
-            new() { Id = 1, EndpointName = "GET /api/accounts", ResponseTimeMs = 100, Timestamp = DateTime.UtcNow }
+            new() { Id = 1, EndpointName = "GET /api/accounts", ResponseTimeMs = 100, CreatedAt = DateTime.UtcNow }
         };
         var mockDbSet = MockDbSetFactory.CreateMockDbSet(metrics);
         _mockDbContext.Setup(d => d.PerformanceMetrics).Returns(mockDbSet.Object);
