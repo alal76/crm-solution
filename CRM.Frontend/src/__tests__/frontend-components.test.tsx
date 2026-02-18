@@ -142,9 +142,9 @@ describe('Sales Components', () => {
 
     it('should enable save button when required fields are filled', async () => {
       const { CommissionPlanForm } = require('../components/sales/CommissionPlanForm');
-      const { render } = render('react');
+      const { render: rtlRender } = require('@testing-library/react');
       
-      const { getByLabelText, getByText } = render(
+      const { getByLabelText, getByText } = rtlRender(
         <CommissionPlanForm onSave={async () => {}} />
       );
 

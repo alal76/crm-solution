@@ -307,7 +307,7 @@ describe('ITSM Components - Comprehensive Tests', () => {
     });
 
     it('should validate selection before submit', () => {
-      const isValid = (selectedUser) => selectedUser !== null;
+      const isValid = (selectedUser: { id: number } | null) => selectedUser !== null;
 
       expect(isValid(null)).toBe(false);
       expect(isValid({ id: 1 })).toBe(true);

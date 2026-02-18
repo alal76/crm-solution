@@ -35,8 +35,8 @@ const mockAddress: Address = {
   postalCode: '10001',
   country: 'United States',
   countryCode: 'US',
-  createdAt: new Date('2024-01-01'),
-  updatedAt: new Date('2024-01-01'),
+  createdAt: '2024-01-01T00:00:00.000Z',
+  updatedAt: '2024-01-01T00:00:00.000Z',
 };
 
 // Mock the address service
@@ -49,9 +49,7 @@ jest.mock('../../../services/addressService', () => ({
 
 const renderComponent = (props?: Partial<AddressFormComponentProps>) => {
   const defaultProps: AddressFormComponentProps = {
-    accountId: 1,
-    mode: 'create',
-    onSubmit: jest.fn(),
+    onSubmit: jest.fn().mockResolvedValue(undefined),
     onCancel: jest.fn(),
     ...props,
   };
@@ -71,7 +69,7 @@ describe('AddressFormComponent', () => {
   describe('Create Mode', () => {
     test('renders all required form fields in create mode', () => {
       // Arrange
-      renderComponent({ mode: 'create' });
+      renderComponent({});
 
       // Act & Assert
       expect(screen.getByLabelText(/label|name/i)).toBeInTheDocument();
@@ -84,7 +82,7 @@ describe('AddressFormComponent', () => {
 
     test('renders form title as Create', () => {
       // Arrange
-      renderComponent({ mode: 'create' });
+      renderComponent({});
 
       // Act & Assert
       const title = screen.getByText(/create|new/i) || screen.getByRole('heading');
@@ -93,7 +91,7 @@ describe('AddressFormComponent', () => {
 
     test('initializes form fields with empty values', () => {
       // Arrange
-      renderComponent({ mode: 'create' });
+      renderComponent({});
 
       // Act & Assert
       const streetInput = screen.getByLabelText(/street|line1|address/i) as HTMLInputElement;
@@ -102,7 +100,7 @@ describe('AddressFormComponent', () => {
 
     test('renders submit button as Create/Add', () => {
       // Arrange
-      renderComponent({ mode: 'create' });
+      renderComponent({});
 
       // Act & Assert
       const submitButton = screen.getByRole('button', { name: /create|add|save/i });
@@ -113,7 +111,7 @@ describe('AddressFormComponent', () => {
   describe('Edit Mode', () => {
     test('renders form in edit mode with address data', () => {
       // Arrange
-      renderComponent({ mode: 'edit', address: mockAddress });
+      renderComponent({ address: mockAddress });
 
       // Act & Assert
       const streetInput = screen.getByLabelText(/street|line1|address/i) as HTMLInputElement;
@@ -125,7 +123,7 @@ describe('AddressFormComponent', () => {
 
     test('renders form title as Edit', () => {
       // Arrange
-      renderComponent({ mode: 'edit', address: mockAddress });
+      renderComponent({ address: mockAddress });
 
       // Act & Assert
       const title = screen.getByText(/edit|update/i) || screen.getByRole('heading');
@@ -134,7 +132,7 @@ describe('AddressFormComponent', () => {
 
     test('pre-populates all address fields', () => {
       // Arrange
-      renderComponent({ mode: 'edit', address: mockAddress });
+      renderComponent({ address: mockAddress });
 
       // Act & Assert
       expect(screen.getByLabelText(/label|name/i)).toHaveValue('Main Office');
@@ -144,7 +142,7 @@ describe('AddressFormComponent', () => {
 
     test('renders submit button as Update/Save', () => {
       // Arrange
-      renderComponent({ mode: 'edit', address: mockAddress });
+      renderComponent({ address: mockAddress });
 
       // Act & Assert
       const submitButton = screen.getByRole('button', { name: /update|save/i });
@@ -156,7 +154,7 @@ describe('AddressFormComponent', () => {
     test('shows required field validation error for street', async () => {
       // Arrange
       const onSubmit = jest.fn();
-      renderComponent({ mode: 'create', onSubmit });
+      renderComponent({ onSubmit });
 
       // Act
       const submitButton = screen.getByRole('button', { name: /create|save/i });
@@ -178,7 +176,7 @@ describe('AddressFormComponent', () => {
     test('shows required field validation error for city', async () => {
       // Arrange
       const onSubmit = jest.fn();
-      renderComponent({ mode: 'create', onSubmit });
+      renderComponent({ onSubmit });
 
       // Act
       const streetInput = screen.getByLabelText(/street|line1|address/i);
@@ -201,7 +199,7 @@ describe('AddressFormComponent', () => {
     test('shows required field validation error for country', async () => {
       // Arrange
       const onSubmit = jest.fn();
-      renderComponent({ mode: 'create', onSubmit });
+      renderComponent({ onSubmit });
 
       // Act
       const streetInput = screen.getByLabelText(/street|line1|address/i);
@@ -225,7 +223,7 @@ describe('AddressFormComponent', () => {
     test('accepts valid form data', async () => {
       // Arrange
       const onSubmit = jest.fn();
-      renderComponent({ mode: 'create', onSubmit });
+      renderComponent({ onSubmit });
 
       // Act
       const streetInput = screen.getByLabelText(/street|line1|address/i);
@@ -251,7 +249,7 @@ describe('AddressFormComponent', () => {
     test('calls onSubmit with valid data on create', async () => {
       // Arrange
       const onSubmit = jest.fn();
-      renderComponent({ mode: 'create', onSubmit });
+      renderComponent({ onSubmit });
 
       // Act
       const streetInput = screen.getByLabelText(/street|line1|address/i);
@@ -281,7 +279,7 @@ describe('AddressFormComponent', () => {
     test('calls onSubmit with updated data on edit', async () => {
       // Arrange
       const onSubmit = jest.fn();
-      renderComponent({ mode: 'edit', address: mockAddress, onSubmit });
+      renderComponent({ address: mockAddress, onSubmit });
 
       // Act
       const streetInput = screen.getByLabelText(/street|line1|address/i) as HTMLInputElement;
@@ -303,7 +301,7 @@ describe('AddressFormComponent', () => {
     test('disables submit button while submitting', async () => {
       // Arrange
       const onSubmit = jest.fn(() => new Promise(resolve => setTimeout(resolve, 1000)));
-      renderComponent({ mode: 'create', onSubmit });
+      renderComponent({ onSubmit });
 
       // Act
       const streetInput = screen.getByLabelText(/street|line1|address/i);
@@ -342,7 +340,7 @@ describe('AddressFormComponent', () => {
     test('clears unsaved changes when cancelled', () => {
       // Arrange
       const onCancel = jest.fn();
-      renderComponent({ mode: 'create', onCancel });
+      renderComponent({ onCancel });
 
       // Act
       const streetInput = screen.getByLabelText(/street|line1|address/i) as HTMLInputElement;
@@ -360,7 +358,7 @@ describe('AddressFormComponent', () => {
     test('allows submission with only required fields', async () => {
       // Arrange
       const onSubmit = jest.fn();
-      renderComponent({ mode: 'create', onSubmit });
+      renderComponent({ onSubmit });
 
       // Act
       const streetInput = screen.getByLabelText(/street|line1|address/i);
@@ -384,7 +382,7 @@ describe('AddressFormComponent', () => {
     test('accepts optional fields like suite and notes', async () => {
       // Arrange
       const onSubmit = jest.fn();
-      renderComponent({ mode: 'create', onSubmit });
+      renderComponent({ onSubmit });
 
       // Act
       const streetInput = screen.getByLabelText(/street|line1|address/i);
@@ -415,7 +413,7 @@ describe('AddressFormComponent', () => {
     test('properly formats address data for submission', async () => {
       // Arrange
       const onSubmit = jest.fn();
-      renderComponent({ mode: 'create', onSubmit });
+      renderComponent({ onSubmit });
 
       // Act
       const labelInput = screen.queryByLabelText(/label|name/i);
@@ -456,7 +454,7 @@ describe('AddressFormComponent', () => {
   describe('Accessibility', () => {
     test('form inputs have proper labels', () => {
       // Arrange
-      renderComponent({ mode: 'create' });
+      renderComponent({});
 
       // Act & Assert
       const inputs = screen.getAllByRole('textbox');
@@ -470,7 +468,7 @@ describe('AddressFormComponent', () => {
     test('form is keyboard navigable', async () => {
       // Arrange
       const user = userEvent.setup();
-      renderComponent({ mode: 'create' });
+      renderComponent({});
 
       // Act
       const firstInput = screen.getByLabelText(/label|name|street|address/i);
