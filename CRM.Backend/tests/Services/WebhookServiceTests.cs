@@ -19,6 +19,7 @@ using Moq;
 using FluentAssertions;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
+using CRM.Core.Models;
 using CRM.Infrastructure.Services;
 using CRM.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -59,14 +60,14 @@ public class WebhookServiceTests
         // Arrange
         var submission = new WebFormSubmission 
         { 
-            FormId = "contact-form",
+            FormId = 1,
             Email = "contact@example.com",
             FirstName = "John",
             LastName = "Doe",
             Message = "Interested in your services"
         };
 
-        var mockContactDbSet = new Mock<DbSet<Contact>>();
+        var mockContactDbSet = new Mock<DbSet<CRM.Core.Models.Contact>>();
         _mockContext.Setup(x => x.Contacts).Returns(mockContactDbSet.Object);
         _mockContext.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(1);
@@ -92,7 +93,7 @@ public class WebhookServiceTests
             Timestamp = DateTime.UtcNow
         };
 
-        var mockContactDbSet = new Mock<DbSet<Contact>>();
+        var mockContactDbSet = new Mock<DbSet<CRM.Core.Models.Contact>>();
         _mockContext.Setup(x => x.Contacts).Returns(mockContactDbSet.Object);
         _mockContext.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(1);
@@ -231,7 +232,7 @@ public class WebhookServiceTests
         // Arrange
         var submission = new WebFormSubmission 
         { 
-            FormId = "contact-form",
+            FormId = 1,
             Email = "",
             FirstName = "John"
         };

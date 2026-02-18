@@ -30,6 +30,12 @@ Mutation & Verification Phases (12-15):
 
 Phase 16: Unsupported seed files (no API endpoint)
 
+Phase 17: Extended module coverage
+  * Departments, Price Books, Product Bundles, Territories
+  * Sales Quotas, Sales Forecasts, Lead Routing Rules, Lead Score Rules
+  * Approval Matrices, Credit Memos, Forms, Landing Pages
+  * Conversations, Event Attendees
+
 Enhanced logging captures:
   * Docker container logs (backend, DB, frontend) at point of every failure
   * Full request/response bodies
@@ -3334,6 +3340,9 @@ def phase_verify(
                 request_summary={"verified": "Test Loader Team exists"},
             )
 
+    # NOTE: Phase 17 extended module verifications moved to end of phase_extended_modules
+    # to run AFTER the data is created (Phase 17 runs after Phase 15)
+
     # Verify health endpoints
     for ep in ["/health", "/health/ready", "/health/live"]:
         status, _, _ = client.request("GET", ep, None,
@@ -3548,6 +3557,444 @@ def phase_unsupported(
             )
 
 
+# ---- Phase 17: Extended Module Coverage ------------------------------
+
+
+# Enums for Phase 17
+PRICE_BOOK_STATUS = {"Draft": 0, "Active": 1, "Inactive": 2, "Archived": 3}
+BUNDLE_PRICING_TYPE = {"FixedPrice": 0, "ComponentSum": 1, "PercentDiscount": 2, "Custom": 3}
+QUOTA_PERIOD_TYPE = {"Monthly": 0, "Quarterly": 1, "Annual": 2, "SemiAnnual": 3, "Weekly": 4, "Custom": 5}
+QUOTA_METRIC = {"Revenue": 0, "DealsCount": 1, "UnitsSold": 2, "NewCustomers": 3, "PipelineCreated": 4}
+LEAD_ASSIGNMENT_TYPE = {"RoundRobin": 0, "Weighted": 1, "Territory": 2, "ScoreBased": 3, "FirstCome": 4}
+ROUTING_RULE_STATUS = {"Active": 0, "Inactive": 1, "Draft": 2}
+LEAD_SCORE_RULE_TYPE = {"Attribute": 0, "Behavior": 1, "Decay": 2, "Demographic": 3, "FitScore": 4}
+RULE_OPERATOR = {"Equals": 0, "NotEquals": 1, "Contains": 2, "GreaterThan": 4, "LessThan": 5}
+CREDIT_MEMO_STATUS = {"Draft": 0, "PendingApproval": 1, "Approved": 2, "Applied": 4, "Voided": 6}
+CREDIT_MEMO_REASON = {"Return": 0, "BillingError": 1, "PriceAdjustment": 2, "Goodwill": 3, "Other": 11}
+FORM_STATUS = {"Draft": 0, "Published": 1, "Paused": 2, "Archived": 3}
+FORM_SUBMIT_ACTION = {"ShowMessage": 0, "Redirect": 1, "ShowForm": 2, "StayOnPage": 3}
+LANDING_PAGE_TEMPLATE = {"Blank": 0, "LeadCapture": 1, "ProductShowcase": 2, "EventRegistration": 3}
+CHANNEL_TYPE = {"Email": 0, "WhatsApp": 1, "Twitter": 2, "Facebook": 3, "SMS": 4, "LinkedIn": 5}
+CONVERSATION_STATUS = {"Open": 0, "Pending": 1, "Resolved": 2, "Closed": 3}
+ATTENDEE_TYPE = {"User": 0, "Contact": 1, "Lead": 2}
+ATTENDEE_RESPONSE_STATUS = {"NotResponded": 0, "Accepted": 1, "Declined": 2, "Tentative": 3}
+
+
+def phase_extended_modules(
+    client: ApiClient,
+    logger: RunLogger,
+    data_dir: str,
+    id_maps: Dict[str, Any],
+) -> None:
+    """Phase 17: Extended module coverage - PriceBooks, Territories, Quotas,
+    Lead Routing, Forms, Landing Pages, Conversations, etc."""
+    logger.section("Phase 17 - Extended Module Coverage")
+
+    fb_acct = id_maps.get("_fallback_account_id", 1)
+    fb_user = id_maps.get("_fallback_user_id", 1)
+    fb_contact = id_maps.get("_fallback_contact_id", 1)
+
+    # ---- Departments ----
+    departments = [
+        {"name": "Sales", "description": "Sales department", "departmentCode": "SALES"},
+        {"name": "Marketing", "description": "Marketing department", "departmentCode": "MKT"},
+        {"name": "Engineering", "description": "Engineering department", "departmentCode": "ENG"},
+        {"name": "Customer Success", "description": "Customer success team", "departmentCode": "CS"},
+        {"name": "Finance", "description": "Finance and accounting", "departmentCode": "FIN"},
+    ]
+    for i, dept in enumerate(departments):
+        client.request("POST", "/api/Departments", dept, index=i, summary={"dept": dept["name"]})
+
+    # ---- Price Books ----
+    price_books = [
+        {"name": "Standard Price Book", "code": "STD-2026", "status": 1, "isStandard": True, "currencyCode": "USD"},
+        {"name": "Enterprise Pricing", "code": "ENT-2026", "status": 1, "customerSegment": "Enterprise", "priority": 10},
+        {"name": "Partner Pricing", "code": "PTR-2026", "status": 1, "channel": "partner", "priority": 5},
+    ]
+    for i, pb in enumerate(price_books):
+        client.request("POST", "/api/pricebooks", pb, index=i, summary={"pricebook": pb["name"]})
+
+    # ---- Product Bundles ----
+    bundles = [
+        {
+            "name": "Starter Suite Bundle",
+            "sku": "BDL-START-001",
+            "bundleCode": "STARTER",
+            "description": "Perfect starter package for small businesses",
+            "status": 1,
+            "pricingType": 2,
+            "discountPercent": 15.0,
+            "currencyCode": "USD",
+            "isFeatured": True,
+        },
+        {
+            "name": "Enterprise Package",
+            "sku": "BDL-ENT-001",
+            "bundleCode": "ENTERPRISE",
+            "status": 1,
+            "pricingType": 0,
+            "fixedPrice": 4999.99,
+            "currencyCode": "USD",
+        },
+    ]
+    for i, b in enumerate(bundles):
+        client.request("POST", "/api/productbundles", b, index=i, summary={"bundle": b["name"]})
+
+    # ---- Territories ----
+    territories = [
+        {
+            "name": "North America - West",
+            "territoryCode": "NA-WEST",
+            "description": "Western US and Canada",
+            "countries": '["US", "CA"]',
+            "regions": '["West"]',
+            "isActive": True,
+            "annualQuota": 5000000,
+            "quotaCurrency": "USD",
+        },
+        {
+            "name": "North America - East",
+            "territoryCode": "NA-EAST",
+            "description": "Eastern US and Canada",
+            "countries": '["US", "CA"]',
+            "regions": '["East", "Northeast", "Southeast"]',
+            "isActive": True,
+            "annualQuota": 6000000,
+        },
+        {
+            "name": "EMEA",
+            "territoryCode": "EMEA",
+            "description": "Europe, Middle East, and Africa",
+            "countries": '["UK", "DE", "FR", "NL", "AE"]',
+            "isActive": True,
+            "quotaCurrency": "EUR",
+        },
+    ]
+    for i, t in enumerate(territories):
+        client.request("POST", "/api/territories", t, index=i, summary={"territory": t["name"]})
+
+    # ---- Sales Quotas ----
+    quotas = [
+        {
+            "name": "Q1 2026 Revenue Quota",
+            "periodType": 1,
+            "metric": 0,
+            "period": "2026-Q1",
+            "fiscalYear": 2026,
+            "fiscalQuarter": 1,
+            "periodStartDate": "2026-01-01T00:00:00Z",
+            "periodEndDate": "2026-03-31T23:59:59Z",
+            "targetAmount": 500000.00,
+            "currencyCode": "USD",
+            "stretchTargetAmount": 600000.00,
+            "minimumTargetAmount": 400000.00,
+        },
+        {
+            "name": "Q2 2026 Revenue Quota",
+            "periodType": 1,
+            "metric": 0,
+            "period": "2026-Q2",
+            "fiscalYear": 2026,
+            "fiscalQuarter": 2,
+            "periodStartDate": "2026-04-01T00:00:00Z",
+            "periodEndDate": "2026-06-30T23:59:59Z",
+            "targetAmount": 550000.00,
+            "currencyCode": "USD",
+        },
+    ]
+    for i, q in enumerate(quotas):
+        client.request("POST", "/api/sales-quotas", q, index=i, summary={"quota": q["name"]})
+
+    # ---- Sales Forecasts ----
+    forecasts = [
+        {
+            "name": "Q1 2026 Sales Forecast",
+            "period": "2026-Q1",
+            "periodStartDate": "2026-01-01T00:00:00Z",
+            "periodEndDate": "2026-03-31T23:59:59Z",
+            "fiscalYear": 2026,
+            "fiscalQuarter": 1,
+            "quotaAmount": 500000.00,
+            "currencyCode": "USD",
+            "closedWonAmount": 125000.00,
+            "commitAmount": 175000.00,
+            "bestCaseAmount": 100000.00,
+            "pipelineAmount": 250000.00,
+            "isSubmitted": False,
+        },
+    ]
+    for i, f in enumerate(forecasts):
+        client.request("POST", "/api/sales-forecasts", f, index=i, summary={"forecast": f["name"]})
+
+    # ---- Lead Routing Rules ----
+    routing_rules = [
+        {
+            "name": "Enterprise Leads - Round Robin",
+            "description": "Route enterprise leads to enterprise sales team",
+            "status": 0,
+            "priority": 10,
+            "assignmentType": 0,
+            "assignToTeam": True,
+            "businessHoursOnly": True,
+            "timezone": "America/New_York",
+            "sendNotification": True,
+            "notifyManager": True,
+        },
+        {
+            "name": "SMB Leads - Territory Based",
+            "description": "Route SMB leads based on geographic territory",
+            "status": 0,
+            "priority": 20,
+            "assignmentType": 2,
+            "sendNotification": True,
+        },
+    ]
+    for i, r in enumerate(routing_rules):
+        client.request("POST", "/api/LeadRouting/rules", r, index=i, summary={"rule": r["name"]})
+
+    # ---- Lead Score Rules ----
+    score_rules = [
+        {
+            "name": "Director+ Title Bonus",
+            "description": "Add points for Director, VP, or C-level job titles",
+            "ruleType": 0,
+            "fieldName": "JobTitle",
+            "operator": 2,
+            "value": "Director",
+            "scoreImpact": 20,
+            "isActive": True,
+            "priority": 10,
+            "category": "Demographics",
+        },
+        {
+            "name": "Email Open Engagement",
+            "description": "Add points when lead opens email",
+            "ruleType": 1,
+            "scoreImpact": 5,
+            "maxApplications": 10,
+            "isActive": True,
+            "priority": 50,
+            "category": "Engagement",
+            "actionType": "EmailOpen",
+        },
+        {
+            "name": "Inactivity Decay",
+            "description": "Decay score for inactive leads",
+            "ruleType": 2,
+            "scoreImpact": -5,
+            "decayDaysThreshold": 30,
+            "decayPointsPerPeriod": 5,
+            "decayPeriodDays": 7,
+            "isActive": True,
+            "priority": 100,
+            "category": "Decay",
+        },
+    ]
+    for i, sr in enumerate(score_rules):
+        client.request("POST", "/api/admin/LeadScoreRules", sr, index=i, summary={"rule": sr["name"]})
+
+    # ---- Approval Matrices ----
+    approval_matrices = [
+        {
+            "name": "Standard Discount Matrix",
+            "description": "Default approval matrix for standard discounts",
+            "isActive": True,
+            "priority": 1,
+            "appliesToAllProducts": True,
+            "requireAllLevels": False,
+            "allowParallelApproval": False,
+        },
+        {
+            "name": "Enterprise Discount Matrix",
+            "description": "Approval matrix for enterprise deals",
+            "isActive": True,
+            "priority": 2,
+            "customerSegments": "Enterprise",
+            "requireAllLevels": True,
+        },
+    ]
+    for i, am in enumerate(approval_matrices):
+        client.request("POST", "/api/approvals/matrices", am, index=i, summary={"matrix": am["name"]})
+
+    # ---- Credit Memos ----
+    credit_memos = [
+        {
+            "creditMemoNumber": "CM-100001",
+            "description": "Credit for billing error",
+            "status": 2,
+            "reason": 1,
+            "amount": 150.00,
+            "currencyCode": "USD",
+            "accountId": fb_acct,
+        },
+        {
+            "creditMemoNumber": "CM-100002",
+            "description": "Goodwill credit for service issue",
+            "status": 2,
+            "reason": 3,
+            "amount": 75.00,
+            "currencyCode": "USD",
+            "accountId": fb_acct,
+        },
+    ]
+    for i, cm in enumerate(credit_memos):
+        client.request("POST", "/api/creditmemos", cm, index=i, summary={"memo": cm["creditMemoNumber"]})
+
+    # ---- Forms ----
+    forms = [
+        {
+            "name": "Contact Us Form",
+            "formKey": "contact-us",
+            "title": "Contact Us",
+            "status": 1,
+            "submitButtonText": "Submit",
+            "createLead": True,
+            "notifyOwner": True,
+            "spamProtection": True,
+        },
+        {
+            "name": "Demo Request Form",
+            "formKey": "demo-request",
+            "title": "Request a Demo",
+            "status": 1,
+            "submitButtonText": "Request Demo",
+            "createLead": True,
+            "leadSource": "Demo Request",
+        },
+        {
+            "name": "Newsletter Signup",
+            "formKey": "newsletter",
+            "title": "Subscribe to Newsletter",
+            "status": 1,
+            "doubleOptIn": True,
+            "sendAutoresponder": True,
+        },
+    ]
+    for i, form in enumerate(forms):
+        client.request("POST", "/api/forms", form, index=i, summary={"form": form["name"]})
+
+    # ---- Landing Pages ----
+    landing_pages = [
+        {
+            "name": "Summer Promotion 2026",
+            "slug": "summer-promo-2026",
+            "title": "Summer Sale - 30% Off",
+            "metaDescription": "Limited time summer promotion with 30% savings",
+            "template": "LeadCapture",
+        },
+        {
+            "name": "Product Demo Landing",
+            "slug": "product-demo",
+            "title": "See Our Product in Action",
+            "template": "ProductShowcase",
+        },
+        {
+            "name": "Webinar Registration",
+            "slug": "webinar-q1-2026",
+            "title": "Q1 2026 Industry Trends Webinar",
+            "template": "EventRegistration",
+        },
+    ]
+    for i, lp in enumerate(landing_pages):
+        client.request("POST", "/api/landing-pages", lp, index=i, summary={"page": lp["name"]})
+
+    # ---- Conversations ----
+    conversations = [
+        {
+            "primaryChannelType": 0,
+            "subject": "Support Request - Order Issue",
+            "status": 0,
+            "priority": 1,
+            "contactId": fb_contact,
+            "assignedToUserId": fb_user,
+        },
+        {
+            "primaryChannelType": 0,
+            "subject": "Billing Inquiry",
+            "status": 0,
+            "priority": 1,
+            "accountId": fb_acct,
+        },
+        {
+            "primaryChannelType": 1,
+            "subject": "WhatsApp Support Thread",
+            "status": 0,
+            "priority": 2,
+            "participantAddress": "+1-555-0123",
+            "participantName": "John Customer",
+        },
+    ]
+    for i, conv in enumerate(conversations):
+        client.request("POST", "/api/conversations", conv, index=i, summary={"conv": conv["subject"]})
+
+    # ---- Event Attendees (requires activity ID) ----
+    # First fetch an existing activity/event to attach attendees
+    _, activities, _ = client.request("GET", "/api/activities?pageSize=1", None)
+    activity_id = None
+    if isinstance(activities, dict):
+        items = activities.get("items", activities.get("data", []))
+        if items and isinstance(items, list) and items[0].get("id"):
+            activity_id = items[0]["id"]
+    elif isinstance(activities, list) and activities:
+        activity_id = activities[0].get("id")
+
+    if activity_id and fb_contact:
+        attendees = [
+            {
+                "activityId": activity_id,
+                "attendeeType": 1,
+                "attendeeId": fb_contact,
+                "responseStatus": 1,
+                "isRequired": True,
+                "isOrganizer": False,
+            },
+        ]
+        for i, att in enumerate(attendees):
+            client.request("POST", "/api/event-attendees", att, index=i, summary={"attendee": att["attendeeId"]})
+
+    # ---- Phase 17 Verification (runs after data creation) ----
+    def _count_p17(endpoint: str) -> int:
+        _, resp, _ = client.request("GET", endpoint, None,
+                                     summary={"verify_count": endpoint})
+        if isinstance(resp, list):
+            return len(resp)
+        if isinstance(resp, dict):
+            tc = resp.get("totalCount")
+            if tc is not None:
+                return int(tc)
+            items = resp.get("items", resp.get("data", []))
+            return len(items)
+        return 0
+
+    def _verify_p17(endpoint: str, label: str, minimum: int) -> None:
+        count = _count_p17(endpoint)
+        if count >= minimum:
+            logger.log_result(
+                "success", "VERIFY", endpoint, 200,
+                request_summary={"label": label, "expected_min": minimum, "actual": count},
+            )
+        else:
+            logger.log_result(
+                "failed", "VERIFY", endpoint, 200,
+                error=f"{label}: expected >= {minimum} records, got {count}",
+                request_summary={"label": label, "expected_min": minimum, "actual": count},
+            )
+
+    _verify_p17("/api/Departments", "Departments", 3)
+    _verify_p17("/api/pricebooks", "Price Books", 1)
+    _verify_p17("/api/productbundles", "Product Bundles", 1)
+    _verify_p17("/api/territories", "Territories", 1)
+    _verify_p17("/api/sales-quotas", "Sales Quotas", 1)
+    _verify_p17("/api/sales-forecasts", "Sales Forecasts", 1)
+    _verify_p17("/api/LeadRouting/rules", "Lead Routing Rules", 1)
+    _verify_p17("/api/admin/LeadScoreRules", "Lead Score Rules", 1)
+    _verify_p17("/api/approvals/matrices", "Approval Matrices", 1)
+    _verify_p17("/api/creditmemos", "Credit Memos", 1)
+    _verify_p17("/api/forms", "Forms", 1)
+    _verify_p17("/api/landing-pages", "Landing Pages", 1)
+    _verify_p17("/api/conversations", "Conversations", 1)
+
+
 # ============================ MAIN ====================================
 
 
@@ -3751,6 +4198,10 @@ def main() -> int:
         (
             "Unsupported",
             lambda: phase_unsupported(client, logger, data_dir, id_maps),
+        ),
+        (
+            "Extended Modules",
+            lambda: phase_extended_modules(client, logger, data_dir, id_maps),
         ),
     ]
 

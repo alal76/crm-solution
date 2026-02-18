@@ -68,7 +68,7 @@ public class CommissionsControllerTests
             .ReturnsAsync(commissions);
 
         // Act
-        var result = await _controller.GetAll(cancellationToken: CancellationToken.None);
+        var result = await _controller.GetAll(null, null, CancellationToken.None);
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
@@ -208,7 +208,7 @@ public class CommissionsControllerTests
     public async Task CalculateForDeal_ShouldReturnCalculation()
     {
         // Arrange
-        var calculation = new CommissionCalculation { Amount = 500m };
+        var calculation = new CommissionCalculation { CalculatedAmount = 500m };
         _mockCommissionService
             .Setup(x => x.CalculateForDealAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(calculation);
@@ -218,7 +218,7 @@ public class CommissionsControllerTests
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-        okResult.Value.As<CommissionCalculation>().Amount.Should().Be(500m);
+        okResult.Value.As<CommissionCalculation>().CalculatedAmount.Should().Be(500m);
     }
 
     #endregion
@@ -254,7 +254,7 @@ public class CampaignsControllerTests
             .ReturnsAsync(campaigns);
 
         // Act
-        var result = await _controller.GetAll(CancellationToken.None);
+        var result = await _controller.GetAll();
 
         // Assert
         result.Should().BeOfType<OkObjectResult>();

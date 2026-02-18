@@ -68,8 +68,10 @@ public class NotificationDispatcherTests
             payload = new { ticketId = 42 }
         });
 
+        object? capturedPayload = null;
         _notificationPort
             .Setup(port => port.TriggerWorkflowAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<object>(), It.IsAny<CancellationToken>()))
+            .Callback<string, string, object, CancellationToken>((_, _, payload, _) => capturedPayload = payload)
             .ReturnsAsync(new NotificationResult { Success = true });
 
         var dispatcher = CreateDispatcher();
@@ -78,11 +80,15 @@ public class NotificationDispatcherTests
         _notificationPort.Verify(port => port.TriggerWorkflowAsync(
             "wf-1",
             "sub-1",
-            It.Is<object>(obj => obj is JsonElement element
-                && element.TryGetProperty("ticketId", out var value)
-                && value.GetInt32() == 42),
+            It.IsAny<object>(),
             It.IsAny<CancellationToken>()),
             Times.Once);
+
+        // Verify captured payload separately (outside expression tree)
+        capturedPayload.Should().NotBeNull();
+        var element = (JsonElement)capturedPayload!;
+        element.TryGetProperty("ticketId", out var ticketIdValue).Should().BeTrue();
+        ticketIdValue.GetInt32().Should().Be(42);
     }
 
     [Fact]

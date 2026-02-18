@@ -72,7 +72,7 @@ public class NoteServiceTests
         };
         SetupNotes(notes);
 
-        var result = await _service.GetNotesAsync(customerId: 10, pinned: true);
+        var result = await _service.GetNotesAsync(accountId: 10, pinned: true);
 
         result.Should().HaveCount(1);
         result.First().Id.Should().Be(1);
@@ -88,7 +88,7 @@ public class NoteServiceTests
         };
         SetupNotes(notes);
 
-        var result = await _service.GetNotesAsync(customerId: 10);
+        var result = await _service.GetNotesAsync(accountId: 10);
 
         result.Should().HaveCount(1);
         result.First().Id.Should().Be(2);

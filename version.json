@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 561,
-  "patch": 2,
+  "patch": 3,
   "lastUpdate": "2026-02-18",
-  "description": "Test data loader: reclassify idempotent 'already exists' checks as 'exists' status, add analyze_loader_results.py, fix Redis connection in deploy script",
+  "description": "Add public /test-results route for TestResultsPage dashboard (no auth required)",
   "features": [
     "TestResultLogger service for centralized test result capture",
     "LoggedTestBase abstract class for automatic try-catch wrapping",
