@@ -2,7 +2,8 @@
  * Component Tests for ITSM, Sales, and Integration modules
  */
 
-import { render, screen, fireEvent, waitFor, within } from '@testing-library/react';
+import React from 'react';
+import { render, screen, fireEvent, waitFor, within, cleanup } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 

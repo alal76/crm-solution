@@ -53,7 +53,7 @@ public class CommissionRuleServiceTests
             Rate = 5m
         };
 
-        _mockRuleRepository.Setup(r => r.AddAsync(It.IsAny<CommissionRule>(), It.IsAny<CancellationToken>()));
+        _mockRuleRepository.Setup(r => r.AddAsync(It.IsAny<CommissionRule>()));
 
         // Act
         var result = await _service.CreateAsync(dto);
@@ -79,7 +79,7 @@ public class CommissionRuleServiceTests
     {
         // Arrange
         var rule = new CommissionRule { Id = 1, Name = "Test", SaleType = "DirectSale", Rate = 5m };
-        _mockRuleRepository.Setup(r => r.GetByIdAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(rule);
+        _mockRuleRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(rule);
 
         // Act
         var result = await _service.GetByIdAsync(1);
@@ -105,15 +105,15 @@ public class CommissionRuleServiceTests
             ExpiryDate = null
         };
 
-        _mockRuleRepository.Setup(r => r.GetAllAsync(It.IsAny<CancellationToken>())).ReturnsAsync(new List<CommissionRule> { rule });
+        _mockRuleRepository.Setup(r => r.GetAllAsync()).ReturnsAsync(new List<CommissionRule> { rule });
 
         // Act
         var result = await _service.CalculateCommissionAsync(1000m, "DirectSale");
 
         // Assert
         Assert.NotNull(result);
-        Assert.Equal(1000m, result.SalesAmount);
-        Assert.Equal(100m, result.CommissionAmount); // 10% of 1000
+        Assert.Equal(1000m, result.DealAmount);
+        Assert.Equal(100m, result.Commission); // 10% of 1000
     }
 
     [Fact]
@@ -121,15 +121,15 @@ public class CommissionRuleServiceTests
     {
         // Arrange
         var rule = new CommissionRule { Id = 1, Name = "Test", IsDeleted = false };
-        _mockRuleRepository.Setup(r => r.GetByIdAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(rule);
-        _mockRuleRepository.Setup(r => r.UpdateAsync(It.IsAny<CommissionRule>(), It.IsAny<CancellationToken>()));
+        _mockRuleRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(rule);
+        _mockRuleRepository.Setup(r => r.UpdateAsync(It.IsAny<CommissionRule>()));
 
         // Act
         await _service.DeleteAsync(1);
 
         // Assert
         Assert.True(rule.IsDeleted);
-        _mockRuleRepository.Verify(r => r.UpdateAsync(rule, It.IsAny<CancellationToken>()), Times.Once);
+        _mockRuleRepository.Verify(r => r.UpdateAsync(rule), Times.Once);
     }
 }
 
@@ -162,7 +162,7 @@ public class DiscountRuleServiceTests
             CustomerTier = "Gold"
         };
 
-        _mockRuleRepository.Setup(r => r.AddAsync(It.IsAny<DiscountRule>(), It.IsAny<CancellationToken>()));
+        _mockRuleRepository.Setup(r => r.AddAsync(It.IsAny<DiscountRule>()));
 
         // Act
         var result = await _service.CreateAsync(dto);
@@ -177,7 +177,7 @@ public class DiscountRuleServiceTests
     public async Task CalculateDiscountAsync_WithNoApplicableRules_ReturnsZeroDiscount()
     {
         // Arrange
-        _mockRuleRepository.Setup(r => r.GetAllAsync(It.IsAny<CancellationToken>())).ReturnsAsync(new List<DiscountRule>());
+        _mockRuleRepository.Setup(r => r.GetAllAsync()).ReturnsAsync(new List<DiscountRule>());
 
         // Act
         var result = await _service.CalculateDiscountAsync(1, null, 1000m);
@@ -203,7 +203,7 @@ public class DiscountRuleServiceTests
             IsCumulative = true
         };
 
-        _mockRuleRepository.Setup(r => r.GetAllAsync(It.IsAny<CancellationToken>())).ReturnsAsync(new List<DiscountRule> { rule });
+        _mockRuleRepository.Setup(r => r.GetAllAsync()).ReturnsAsync(new List<DiscountRule> { rule });
 
         // Act
         var result = await _service.CalculateDiscountAsync(1, null, 1000m);

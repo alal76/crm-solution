@@ -168,14 +168,14 @@ public class CriticalPathBVTTests
     public void BVT014_User_LastLoginUpdate()
     {
         // Arrange
-        var user = new User { LastLoginDate = null };
+        var user = new User { LastLoginAt = null };
         var loginTime = DateTime.UtcNow;
 
         // Act
-        user.LastLoginDate = loginTime;
+        user.LastLoginAt = loginTime;
 
         // Assert
-        user.LastLoginDate.Should().Be(loginTime);
+        user.LastLoginAt.Should().Be(loginTime);
     }
 
     #endregion

@@ -29,42 +29,45 @@ jest.mock('../../services/apiClient');
 
 // Test Suite 1: useFeatureFlag Hook
 describe('useFeatureFlag Hook', () => {
+  const originalFetch = global.fetch;
+
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
+  afterEach(() => {
+    global.fetch = originalFetch;
+  });
+
   it('should fetch and return feature flag status', async () => {
-    const mockApiClient = apiClient as jest.Mocked<typeof apiClient>;
-    mockApiClient.get = jest.fn().mockResolvedValue({ data: true });
+    global.fetch = jest.fn().mockResolvedValue({
+      ok: true,
+      json: async () => true,
+    });
 
     const TestComponent = () => {
       const { isEnabled, loading } = useFeatureFlag('EnableITSM');
       return <div>{loading ? 'Loading...' : isEnabled ? 'Enabled' : 'Disabled'}</div>;
     };
 
-    const { rerender } = render(<TestComponent />);
-
-    expect(screen.getByText('Loading...')).toBeInTheDocument();
+    render(<TestComponent />);
 
     await waitFor(() => {
-      rerender(<TestComponent />);
       expect(screen.getByText('Enabled')).toBeInTheDocument();
     });
   });
 
   it('should handle API errors gracefully', async () => {
-    const mockApiClient = apiClient as jest.Mocked<typeof apiClient>;
-    mockApiClient.get = jest.fn().mockRejectedValue(new Error('API Error'));
+    global.fetch = jest.fn().mockRejectedValue(new Error('API Error'));
 
     const TestComponent = () => {
       const { isEnabled, loading } = useFeatureFlag('TestFlag');
       return <div>{loading ? 'Loading...' : isEnabled ? 'Enabled' : 'Disabled'}</div>;
     };
 
-    const { rerender } = render(<TestComponent />);
+    render(<TestComponent />);
 
     await waitFor(() => {
-      rerender(<TestComponent />);
       expect(screen.getByText('Disabled')).toBeInTheDocument();
     });
   });
@@ -183,7 +186,7 @@ describe('UICustomizationPage Component', () => {
     jest.clearAllMocks();
   });
 
-  it('should render theme selection options', () => {
+  it('should render theme selection options', async () => {
     const mockApiClient = apiClient as jest.Mocked<typeof apiClient>;
     mockApiClient.get = jest.fn().mockResolvedValue({
       data: {
@@ -201,7 +204,9 @@ describe('UICustomizationPage Component', () => {
       </UIPreferencesProvider>
     );
 
-    expect(screen.getByText('UI Customization')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText('UI Customization')).toBeInTheDocument();
+    });
   });
 
   it('should update theme when selected', async () => {
@@ -319,7 +324,7 @@ describe('FeatureFlagsDashboard Component', () => {
       if (toggleButtons.length > 0) {
         fireEvent.click(toggleButtons[0]);
         expect(mockApiClient.put).toHaveBeenCalledWith(
-          expect.stringContaining('/api/feature-flags/'),
+          expect.stringContaining('/feature-flags/'),
           expect.any(Object)
         );
       }

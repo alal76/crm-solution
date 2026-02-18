@@ -121,14 +121,16 @@ public class PermissionsControllerTests
         {
             Id = 1,
             Name = "Administrators",
-            CanViewAccounts = true,
+            CanAccessAccounts = true,
+            CanCreateAccounts = true,
             CanEditAccounts = true,
             CanDeleteAccounts = true
         };
 
         // Assert
         Assert.NotNull(userGroup);
-        Assert.True(userGroup.CanViewAccounts);
+        Assert.True(userGroup.CanAccessAccounts);
+        Assert.True(userGroup.CanCreateAccounts);
         Assert.True(userGroup.CanEditAccounts);
         Assert.True(userGroup.CanDeleteAccounts);
     }

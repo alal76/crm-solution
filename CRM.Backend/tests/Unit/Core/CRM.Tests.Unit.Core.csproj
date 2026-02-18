@@ -30,6 +30,17 @@
     <ProjectReference Include="..\..\..\src\CRM.Core\CRM.Core.csproj" />
   </ItemGroup>
 
+  <!-- Test Logging Infrastructure - linked from parent folder -->
+  <ItemGroup>
+    <Compile Include="..\..\Infrastructure\**\*.cs" Link="Infrastructure\%(RecursiveDir)%(Filename)%(Extension)" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="xunit.extensibility.core" Version="2.6.2" />
+    <PackageReference Include="xunit.extensibility.execution" Version="2.6.2" />
+    <PackageReference Include="xunit.runner.utility" Version="2.6.2" />
+  </ItemGroup>
+
   <ItemGroup>
     <Content Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
