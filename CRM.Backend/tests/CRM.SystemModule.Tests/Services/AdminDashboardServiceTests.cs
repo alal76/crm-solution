@@ -67,11 +67,11 @@ public class AdminDashboardServiceTests
         _dbContextMock.Setup(x => x.ServiceRequests).Returns(serviceRequests.CreateMockDbSet().Object);
 
         // Setup provider health
-        _providerHealthServiceMock.Setup(x => x.GetAllProviderHealthAsync(It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new List<ProviderHealthDto>());
+        _providerHealthServiceMock.Setup(x => x.GetProviderHealthDashboardAsync(It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new ProviderHealthDashboardDto());
 
         // Setup system settings
-        _systemSettingsServiceMock.Setup(x => x.GetCurrentSettingsAsync(It.IsAny<CancellationToken>()))
+        _systemSettingsServiceMock.Setup(x => x.GetSettingsAsync())
             .ReturnsAsync(new SystemSettingsDto { CompanyName = "Test Company" });
     }
 

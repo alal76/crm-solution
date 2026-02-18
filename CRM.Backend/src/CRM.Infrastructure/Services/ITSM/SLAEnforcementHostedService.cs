@@ -123,8 +123,7 @@ public class SLAEnforcementHostedService : BackgroundService
                         if (slaInstance.ServiceRequest != null)
                         {
                             await escalationRuleService.EvaluateRulesAsync(
-                                slaInstance.ServiceRequestId,
-                                cancellationToken);
+                                slaInstance.ServiceRequestId);
 
                             _logger.LogInformation(
                                 "Escalation rules evaluated for service request {ServiceRequestId}",

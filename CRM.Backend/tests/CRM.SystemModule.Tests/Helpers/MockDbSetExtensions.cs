@@ -150,7 +150,7 @@ public class TestAsyncQueryProvider<TEntity> : IQueryProvider where TEntity : cl
 /// <summary>
 /// Async enumerable for test queries.
 /// </summary>
-public class TestAsyncEnumerable<T> : IAsyncEnumerable<T>, IQueryable<T> where T : class
+public class TestAsyncEnumerable<T> : IAsyncEnumerable<T>, IQueryable<T>
 {
     private readonly IQueryable<T> _inner;
 
@@ -161,7 +161,7 @@ public class TestAsyncEnumerable<T> : IAsyncEnumerable<T>, IQueryable<T> where T
 
     public IAsyncEnumerator<T> GetAsyncEnumerator(CancellationToken cancellationToken = default)
     {
-        return new AsyncEnumerator<T>(_inner.GetEnumerator());
+        return new TestAsyncEnumerator<T>(_inner.GetEnumerator());
     }
 
     public IEnumerator<T> GetEnumerator()
@@ -177,4 +177,30 @@ public class TestAsyncEnumerable<T> : IAsyncEnumerable<T>, IQueryable<T> where T
     public Expression Expression => _inner.Expression;
     public Type ElementType => _inner.ElementType;
     public IQueryProvider Provider => _inner.Provider;
+}
+
+/// <summary>
+/// Generic async enumerator for non-class types.
+/// </summary>
+public class TestAsyncEnumerator<T> : IAsyncEnumerator<T>
+{
+    private readonly IEnumerator<T> _inner;
+
+    public TestAsyncEnumerator(IEnumerator<T> inner)
+    {
+        _inner = inner;
+    }
+
+    public T Current => _inner.Current;
+
+    public async ValueTask<bool> MoveNextAsync()
+    {
+        return await Task.FromResult(_inner.MoveNext());
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        await Task.CompletedTask;
+        _inner.Dispose();
+    }
 }
