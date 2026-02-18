@@ -541,6 +541,180 @@ public class TerritoriesController : ControllerBase
 
     #endregion
 
+    #region Hierarchy
+
+    /// <summary>
+    /// Get territory hierarchy (flat list with parent info — no parent/child entity exists, returns all territories).
+    /// </summary>
+    [HttpGet("hierarchy")]
+    [ProducesResponseType(typeof(IEnumerable<TerritoryHierarchyDto>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<IEnumerable<TerritoryHierarchyDto>>> GetHierarchy(CancellationToken cancellationToken)
+    {
+        var territories = await _territoryService.GetAllTerritoriesAsync(cancellationToken: cancellationToken);
+        var hierarchy = territories.Select(t => new TerritoryHierarchyDto
+        {
+            Id = t.Id,
+            Name = t.TerritoryName,
+            Code = t.TerritoryCode,
+            Description = t.Description,
+            IsActive = t.IsActive,
+            ParentId = null,
+            Children = new List<TerritoryHierarchyDto>()
+        });
+        return Ok(hierarchy);
+    }
+
+    #endregion
+
+    #region Aggregate Statistics
+
+    /// <summary>
+    /// Get statistics for all territories.
+    /// </summary>
+    [HttpGet("statistics")]
+    [ProducesResponseType(typeof(IEnumerable<TerritoryStatistics>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<IEnumerable<TerritoryStatistics>>> GetAllStatistics(
+        [FromQuery] DateTime? fromDate = null,
+        [FromQuery] DateTime? toDate = null,
+        CancellationToken cancellationToken = default)
+    {
+        var territories = await _territoryService.GetAllTerritoriesAsync(cancellationToken: cancellationToken);
+        var statsList = new List<TerritoryStatistics>();
+        foreach (var t in territories)
+        {
+            try
+            {
+                var stats = await _territoryService.GetTerritoryStatisticsAsync(t.Id, fromDate, toDate, cancellationToken);
+                statsList.Add(stats);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to get statistics for territory {TerritoryId}", t.Id);
+            }
+        }
+        return Ok(statsList);
+    }
+
+    /// <summary>
+    /// Get territory leaderboard by metric.
+    /// </summary>
+    [HttpGet("leaderboard")]
+    [ProducesResponseType(typeof(IEnumerable<TerritoryRanking>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<IEnumerable<TerritoryRanking>>> GetLeaderboard(
+        [FromQuery] string metric = "revenue",
+        [FromQuery] int limit = 10,
+        CancellationToken cancellationToken = default)
+    {
+        var rankingMetric = metric.ToLowerInvariant() switch
+        {
+            "deals" => TerritoryRankingMetric.OpportunitiesWon,
+            "pipeline" => TerritoryRankingMetric.PipelineValue,
+            "winrate" or "quota" => TerritoryRankingMetric.QuotaAttainment,
+            "newaccounts" => TerritoryRankingMetric.NewAccounts,
+            _ => TerritoryRankingMetric.Revenue
+        };
+        var rankings = await _territoryService.GetTerritoryRankingsAsync(limit, rankingMetric, cancellationToken: cancellationToken);
+        return Ok(rankings);
+    }
+
+    #endregion
+
+    #region Region Lookup
+
+    /// <summary>
+    /// Get territories by region name.
+    /// </summary>
+    [HttpGet("region/{region}")]
+    [ProducesResponseType(typeof(IEnumerable<AccountTerritory>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<IEnumerable<AccountTerritory>>> GetByRegion(
+        string region,
+        CancellationToken cancellationToken)
+    {
+        var territories = await _territoryService.GetTerritoriesByLocationAsync(region: region, cancellationToken: cancellationToken);
+        return Ok(territories);
+    }
+
+    /// <summary>
+    /// Get territory by code.
+    /// </summary>
+    [HttpGet("code/{code}")]
+    [ProducesResponseType(typeof(AccountTerritory), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<AccountTerritory>> GetByCode(string code, CancellationToken cancellationToken)
+    {
+        var territory = await _territoryService.GetTerritoryByCodeAsync(code, cancellationToken);
+        if (territory == null) return NotFound();
+        return Ok(territory);
+    }
+
+    #endregion
+
+    #region Rules & Quotas (Stub endpoints)
+
+    /// <summary>
+    /// Get rules for a territory (territory matching rules derived from territory config).
+    /// </summary>
+    [HttpGet("{territoryId:int}/rules")]
+    [ProducesResponseType(typeof(IEnumerable<TerritoryRuleDto>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<IEnumerable<TerritoryRuleDto>>> GetRules(int territoryId, CancellationToken cancellationToken)
+    {
+        var territory = await _territoryService.GetTerritoryByIdAsync(territoryId, cancellationToken);
+        if (territory == null) return NotFound();
+
+        // Derive rules from territory config fields
+        var rules = new List<TerritoryRuleDto>();
+        int ruleId = 1;
+
+        if (!string.IsNullOrWhiteSpace(territory.Countries))
+            rules.Add(new TerritoryRuleDto { Id = ruleId++, TerritoryId = territoryId, Field = "Country", Operator = "in", Value = territory.Countries, IsActive = true });
+        if (!string.IsNullOrWhiteSpace(territory.Regions))
+            rules.Add(new TerritoryRuleDto { Id = ruleId++, TerritoryId = territoryId, Field = "Region", Operator = "in", Value = territory.Regions, IsActive = true });
+        if (!string.IsNullOrWhiteSpace(territory.States))
+            rules.Add(new TerritoryRuleDto { Id = ruleId++, TerritoryId = territoryId, Field = "State", Operator = "in", Value = territory.States, IsActive = true });
+        if (!string.IsNullOrWhiteSpace(territory.Industries))
+            rules.Add(new TerritoryRuleDto { Id = ruleId++, TerritoryId = territoryId, Field = "Industry", Operator = "in", Value = territory.Industries, IsActive = true });
+        if (territory.RevenueRangeMin.HasValue || territory.RevenueRangeMax.HasValue)
+            rules.Add(new TerritoryRuleDto { Id = ruleId++, TerritoryId = territoryId, Field = "AnnualRevenue", Operator = "between", Value = $"{territory.RevenueRangeMin ?? 0}-{territory.RevenueRangeMax ?? decimal.MaxValue}", IsActive = true });
+
+        return Ok(rules);
+    }
+
+    /// <summary>
+    /// Get quotas for a territory.
+    /// </summary>
+    [HttpGet("{territoryId:int}/quotas")]
+    [ProducesResponseType(typeof(IEnumerable<TerritoryQuotaDto>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<IEnumerable<TerritoryQuotaDto>>> GetQuotas(
+        int territoryId,
+        [FromQuery] int? year = null,
+        CancellationToken cancellationToken = default)
+    {
+        var territory = await _territoryService.GetTerritoryByIdAsync(territoryId, cancellationToken);
+        if (territory == null) return NotFound();
+
+        var quotas = new List<TerritoryQuotaDto>();
+        if (territory.AnnualQuota.HasValue && territory.AnnualQuota.Value > 0)
+        {
+            var targetYear = year ?? DateTime.UtcNow.Year;
+            quotas.Add(new TerritoryQuotaDto
+            {
+                Id = 1,
+                TerritoryId = territoryId,
+                TerritoryName = territory.TerritoryName,
+                Year = targetYear,
+                Quarter = null,
+                Amount = territory.AnnualQuota.Value,
+                Currency = territory.QuotaCurrency,
+                Achieved = 0, // Would need opportunity data to calculate
+                Period = "Annual"
+            });
+        }
+
+        return Ok(quotas);
+    }
+
+    #endregion
+
     #region Helper Methods
 
     private int? GetCurrentUserId()
@@ -594,6 +768,40 @@ public class SetQuotaRequest
 {
     public decimal Quota { get; set; }
     public string Currency { get; set; } = "USD";
+}
+
+public class TerritoryHierarchyDto
+{
+    public int Id { get; set; }
+    public string Name { get; set; } = string.Empty;
+    public string? Code { get; set; }
+    public string? Description { get; set; }
+    public bool IsActive { get; set; }
+    public int? ParentId { get; set; }
+    public List<TerritoryHierarchyDto> Children { get; set; } = new();
+}
+
+public class TerritoryRuleDto
+{
+    public int Id { get; set; }
+    public int TerritoryId { get; set; }
+    public string Field { get; set; } = string.Empty;
+    public string Operator { get; set; } = string.Empty;
+    public string Value { get; set; } = string.Empty;
+    public bool IsActive { get; set; } = true;
+}
+
+public class TerritoryQuotaDto
+{
+    public int Id { get; set; }
+    public int TerritoryId { get; set; }
+    public string TerritoryName { get; set; } = string.Empty;
+    public int Year { get; set; }
+    public int? Quarter { get; set; }
+    public decimal Amount { get; set; }
+    public string Currency { get; set; } = "USD";
+    public decimal Achieved { get; set; }
+    public string Period { get; set; } = "Annual";
 }
 
 #endregion

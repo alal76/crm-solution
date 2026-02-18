@@ -1,0 +1,254 @@
+// CRM Solution - Escalation Policies Controller Tests
+// Minimal controller and DTO tests
+
+using CRM.Api.Controllers.ITSM;
+using CRM.Core.DTOs.ITSM;
+using CRM.Core.Interfaces.ITSM;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
+using Moq;
+using FluentAssertions;
+using Xunit;
+using System.Security.Claims;
+
+namespace CRM.Tests.Controllers.ITSM;
+
+/// <summary>
+/// Tests for EscalationPoliciesController.
+/// </summary>
+public class EscalationPoliciesControllerTests
+{
+    private readonly Mock<IEscalationPolicyService> _mockService;
+    private readonly Mock<ILogger<EscalationPoliciesController>> _mockLogger;
+    private readonly EscalationPoliciesController _controller;
+
+    public EscalationPoliciesControllerTests()
+    {
+        _mockService = new Mock<IEscalationPolicyService>();
+        _mockLogger = new Mock<ILogger<EscalationPoliciesController>>();
+        _controller = new EscalationPoliciesController(_mockService.Object, _mockLogger.Object);
+
+        // Set up a mock user context
+        var user = new ClaimsPrincipal(new ClaimsIdentity(new[]
+        {
+            new Claim(ClaimTypes.NameIdentifier, "1"),
+            new Claim(ClaimTypes.Name, "testuser")
+        }, "mock"));
+
+        _controller.ControllerContext = new ControllerContext
+        {
+            HttpContext = new DefaultHttpContext { User = user }
+        };
+    }
+
+    #region GetPolicies Tests
+
+    [Fact]
+    public async Task GetPolicies_ShouldReturnOk_WhenPoliciesExist()
+    {
+        // Arrange
+        var policies = new List<EscalationPolicyDto>
+        {
+            new() { Id = 1, Name = "Policy 1", IsActive = true },
+            new() { Id = 2, Name = "Policy 2", IsActive = true }
+        };
+
+        _mockService.Setup(x => x.GetPoliciesAsync(null))
+            .ReturnsAsync(policies);
+
+        // Act
+        var result = await _controller.GetPolicies(null);
+
+        // Assert
+        var okResult = result.Result.Should().BeOfType<OkObjectResult>().Subject;
+        var returnedPolicies = okResult.Value.Should().BeAssignableTo<IEnumerable<EscalationPolicyDto>>().Subject;
+        returnedPolicies.Should().HaveCount(2);
+    }
+
+    [Fact]
+    public async Task GetPolicies_ShouldReturnEmptyList_WhenNoPoliciesExist()
+    {
+        // Arrange
+        _mockService.Setup(x => x.GetPoliciesAsync(null))
+            .ReturnsAsync(new List<EscalationPolicyDto>());
+
+        // Act
+        var result = await _controller.GetPolicies(null);
+
+        // Assert
+        var okResult = result.Result.Should().BeOfType<OkObjectResult>().Subject;
+        var returnedPolicies = okResult.Value.Should().BeAssignableTo<IEnumerable<EscalationPolicyDto>>().Subject;
+        returnedPolicies.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task GetPolicies_ShouldFilterByActiveStatus()
+    {
+        // Arrange
+        var activePolicies = new List<EscalationPolicyDto>
+        {
+            new() { Id = 1, Name = "Active Policy", IsActive = true }
+        };
+
+        _mockService.Setup(x => x.GetPoliciesAsync(true))
+            .ReturnsAsync(activePolicies);
+
+        // Act
+        var result = await _controller.GetPolicies(true);
+
+        // Assert
+        var okResult = result.Result.Should().BeOfType<OkObjectResult>().Subject;
+        var returnedPolicies = okResult.Value.Should().BeAssignableTo<IEnumerable<EscalationPolicyDto>>().Subject;
+        returnedPolicies.Should().OnlyContain(p => p.IsActive);
+    }
+
+    #endregion
+
+    #region GetPolicyById Tests
+
+    [Fact]
+    public async Task GetPolicyById_ShouldReturnOk_WhenPolicyExists()
+    {
+        // Arrange
+        var policy = new EscalationPolicyDto
+        {
+            Id = 1,
+            Name = "Test Policy",
+            IsActive = true,
+            Description = "Test description"
+        };
+
+        _mockService.Setup(x => x.GetPolicyByIdAsync(1))
+            .ReturnsAsync(policy);
+
+        // Act
+        var result = await _controller.GetPolicyById(1);
+
+        // Assert
+        var okResult = result.Result.Should().BeOfType<OkObjectResult>().Subject;
+        var returnedPolicy = okResult.Value.Should().BeOfType<EscalationPolicyDto>().Subject;
+        returnedPolicy.Id.Should().Be(1);
+        returnedPolicy.Name.Should().Be("Test Policy");
+    }
+
+    [Fact]
+    public async Task GetPolicyById_ShouldReturnNotFound_WhenPolicyDoesNotExist()
+    {
+        // Arrange
+        _mockService.Setup(x => x.GetPolicyByIdAsync(999))
+            .ReturnsAsync((EscalationPolicyDto?)null);
+
+        // Act
+        var result = await _controller.GetPolicyById(999);
+
+        // Assert
+        result.Result.Should().BeOfType<NotFoundObjectResult>();
+    }
+
+    #endregion
+
+    #region Service Verification Tests
+
+    [Fact]
+    public async Task GetPolicies_ShouldCallServiceOnce()
+    {
+        // Arrange
+        _mockService.Setup(x => x.GetPoliciesAsync(null))
+            .ReturnsAsync(new List<EscalationPolicyDto>());
+
+        // Act
+        await _controller.GetPolicies(null);
+
+        // Assert
+        _mockService.Verify(x => x.GetPoliciesAsync(null), Times.Once);
+    }
+
+    [Fact]
+    public async Task GetPolicyById_ShouldCallServiceWithCorrectId()
+    {
+        // Arrange
+        var policy = new EscalationPolicyDto { Id = 42, Name = "Test" };
+        _mockService.Setup(x => x.GetPolicyByIdAsync(42))
+            .ReturnsAsync(policy);
+
+        // Act
+        await _controller.GetPolicyById(42);
+
+        // Assert
+        _mockService.Verify(x => x.GetPolicyByIdAsync(42), Times.Once);
+    }
+
+    #endregion
+
+    #region DTO Tests
+
+    [Fact]
+    public void EscalationPolicyDto_ShouldHaveCorrectStructure()
+    {
+        // Arrange & Act
+        var dto = new EscalationPolicyDto
+        {
+            Id = 1,
+            Name = "Production Escalation",
+            Description = "Policy for production issues",
+            IsActive = true,
+            IsDefault = true,
+            Levels = new List<EscalationLevelDto>
+            {
+                new() { LevelId = 1, LevelNumber = 1, WaitMinutes = 30 }
+            }
+        };
+
+        // Assert
+        dto.Id.Should().Be(1);
+        dto.Name.Should().Be("Production Escalation");
+        dto.Description.Should().Be("Policy for production issues");
+        dto.IsActive.Should().BeTrue();
+        dto.IsDefault.Should().BeTrue();
+        dto.Levels.Should().HaveCount(1);
+    }
+
+    [Fact]
+    public void EscalationLevelDto_ShouldHaveCorrectStructure()
+    {
+        // Arrange & Act
+        var dto = new EscalationLevelDto
+        {
+            LevelId = 1,
+            PolicyId = 10,
+            LevelNumber = 1,
+            WaitMinutes = 30,
+            NotifyEmail = "admin@example.com",
+            NotifyManagers = true,
+            ReassignToUserId = 5,
+            ReassignToTeamId = 2
+        };
+
+        // Assert
+        dto.LevelId.Should().Be(1);
+        dto.PolicyId.Should().Be(10);
+        dto.LevelNumber.Should().Be(1);
+        dto.WaitMinutes.Should().Be(30);
+        dto.NotifyEmail.Should().Be("admin@example.com");
+        dto.NotifyManagers.Should().BeTrue();
+        dto.ReassignToUserId.Should().Be(5);
+        dto.ReassignToTeamId.Should().Be(2);
+    }
+
+    [Fact]
+    public void CreateEscalationPolicyDto_ShouldHaveCorrectDefaults()
+    {
+        // Arrange & Act
+        var dto = new CreateEscalationPolicyDto();
+
+        // Assert
+        dto.Name.Should().BeEmpty();
+        dto.Description.Should().BeNull();
+        dto.IsActive.Should().BeTrue(); // Default per class definition
+        dto.IsDefault.Should().BeFalse();
+        dto.Levels.Should().BeNull();
+    }
+
+    #endregion
+}

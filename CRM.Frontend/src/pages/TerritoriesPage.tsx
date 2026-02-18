@@ -29,6 +29,61 @@ import territoryService, {
 } from '../services/territoryService';
 import logo from '../assets/logo.png';
 
+// ==================== DATA NORMALIZATION ====================
+// Backend returns AccountTerritory entity with different property names.
+// These helpers map backend responses to the frontend interfaces.
+
+const normalizeTerritory = (t: any): Territory => ({
+  ...t,
+  id: t.id,
+  name: t.name || t.territoryName || '',
+  code: t.code || t.territoryCode || '',
+  description: t.description || '',
+  region: t.region || t.regions || '',
+  country: t.country || t.countries || '',
+  isActive: t.isActive ?? true,
+  managerId: t.managerId || t.primaryOwnerId,
+  accountCount: t.accountCount ?? 0,
+  opportunityCount: t.opportunityCount ?? 0,
+});
+
+const normalizeHierarchy = (h: any): TerritoryHierarchy => ({
+  territory: h.territory ? normalizeTerritory(h.territory) : normalizeTerritory(h),
+  children: (h.children || []).map((c: any) => normalizeHierarchy(c)),
+  level: h.level ?? 0,
+  totalAccounts: h.totalAccounts ?? 0,
+  totalPipelineValue: h.totalPipelineValue ?? 0,
+});
+
+const normalizeStatistics = (s: any): TerritoryStatistics | null => {
+  if (!s) return null;
+  return {
+    ...s,
+    territoryId: s.territoryId,
+    territoryName: s.territoryName || '',
+    totalAccounts: s.totalAccounts ?? 0,
+    activeOpportunities: s.activeOpportunities ?? s.totalOpportunities ?? 0,
+    totalPipelineValue: s.totalPipelineValue ?? s.pipelineValue ?? 0,
+    closedWonValue: s.closedWonValue ?? s.totalRevenue ?? 0,
+    closedLostValue: s.closedLostValue ?? 0,
+    avgDealSize: s.avgDealSize ?? s.averageAccountValue ?? 0,
+    winRate: s.winRate ?? 0,
+    quotaAttainment: s.quotaAttainment ?? 0,
+    teamMemberCount: s.teamMemberCount ?? 0,
+    accountsBySegment: s.accountsBySegment ?? [],
+    monthlyTrend: s.monthlyTrend ?? [],
+  };
+};
+
+const toBackendTerritory = (t: Partial<Territory>): any => ({
+  ...t,
+  territoryName: t.name,
+  territoryCode: t.code,
+  regions: t.region,
+  countries: t.country,
+  primaryOwnerId: t.managerId,
+});
+
 // ==================== MAIN COMPONENT ====================
 
 const TerritoriesPage = () => {
@@ -60,10 +115,11 @@ const TerritoriesPage = () => {
         territoryService.getHierarchy(),
         territoryService.getAllStatistics(),
       ]);
-      setTerritories(territoriesRes.data);
-      setHierarchy(hierarchyRes.data);
+      setTerritories((territoriesRes.data || []).map(normalizeTerritory));
+      setHierarchy((hierarchyRes.data || []).map(normalizeHierarchy));
       // Use first territory's statistics or null if no territories
-      setStatistics(statsRes.data.length > 0 ? statsRes.data[0] : null);
+      const statsArr = statsRes.data || [];
+      setStatistics(statsArr.length > 0 ? normalizeStatistics(statsArr[0]) : null);
     } catch (err: any) {
       setError(err.message || 'Failed to load territories');
     } finally {
@@ -136,11 +192,13 @@ const TerritoriesPage = () => {
     if (!formData.name) return;
     setSaving(true);
     try {
+      const backendData = toBackendTerritory(formData);
       if (selectedTerritory?.id) {
-        await territoryService.update(selectedTerritory.id, formData);
+        backendData.id = selectedTerritory.id;
+        await territoryService.update(selectedTerritory.id, backendData);
         setSuccessMessage('Territory updated successfully');
       } else {
-        await territoryService.create(formData as Omit<Territory, 'id'>);
+        await territoryService.create(backendData);
         setSuccessMessage('Territory created successfully');
       }
       setEditDialog(false);
