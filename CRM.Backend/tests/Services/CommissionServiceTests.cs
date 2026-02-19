@@ -130,10 +130,12 @@ public class CommissionServiceTests : IDisposable
         result.Amount.Should().Be(2500m);
         result.Id.Should().BeGreaterThan(0);
         result.CreatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
+        result.IsDeleted.Should().BeFalse();
 
         // Verify persisted
         var fromDb = await _dbContext.Commissions.FindAsync(result.Id);
         fromDb.Should().NotBeNull();
+        fromDb!.IsDeleted.Should().BeFalse();
     }
 
     [Fact]
@@ -408,6 +410,12 @@ public class CommissionServiceTests : IDisposable
 
         // Assert
         result.Should().BeTrue();
+
+        // Verify assignment persisted
+        var assignments = _dbContext.CommissionPlanAssignments.Where(a => a.UserId == user.Id && !a.IsDeleted).ToList();
+        assignments.Should().ContainSingle();
+        assignments[0].CommissionPlanId.Should().Be(plan.Id);
+        assignments[0].IsActive.Should().BeTrue();
     }
 
     #endregion

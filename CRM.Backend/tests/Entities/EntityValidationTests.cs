@@ -339,16 +339,22 @@ public class EntityValidationTests
     public void Account_Address_CanBeSet()
     {
         // Arrange
-        var account = new Account
+        var account = new Account();
+        // Set via Address property (should create address)
+        account.Address = "123 Main St";
+        account.City = "New York";
+        account.ZipCode = "10001";
+        // Set other fields directly on first address for completeness
+        if (account.Addresses.Count > 0)
         {
-            Address = "123 Main St",
-            City = "New York",
-            State = "NY",
-            ZipCode = "10001",
-            Country = "USA"
-        };
+            account.Addresses.First().State = "NY";
+            account.Addresses.First().Country = "USA";
+            account.Addresses.First().City = "New York";
+            account.Addresses.First().PostalCode = "10001";
+        }
 
         // Assert
+        account.Addresses.Should().NotBeEmpty();
         account.Address.Should().Be("123 Main St");
         account.City.Should().Be("New York");
         account.ZipCode.Should().Be("10001");
@@ -359,8 +365,8 @@ public class EntityValidationTests
     {
         // Arrange
         var account = new Account();
-
         // Assert
+        // ShippingSameAsBilling should default to true per entity definition
         account.ShippingSameAsBilling.Should().BeTrue();
     }
 

@@ -11,25 +11,43 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace CRM.Core.Entities;
 
 /// <summary>
-/// Sales module configuration settings
+/// Sales module configuration settings.
 /// </summary>
 [Table("SalesConfigurations")]
 public class SalesConfiguration : BaseEntity
 {
+    /// <summary>
+    /// Configuration key.
+    /// </summary>
     [Required]
     [StringLength(255)]
-    public string Key { get; set; }
+    public string Key { get; set; } = string.Empty;
 
+    /// <summary>
+    /// Configuration value.
+    /// </summary>
     [Column(TypeName = "longtext")]
-    public string Value { get; set; }
+    public string Value { get; set; } = string.Empty;
 
+    /// <summary>
+    /// Description of the configuration.
+    /// </summary>
     [StringLength(255)]
-    public string Description { get; set; }
+    public string? Description { get; set; }
 
+    /// <summary>
+    /// Data type of the configuration (string, integer, decimal, boolean, json).
+    /// </summary>
     [StringLength(50)]
-    public string DataType { get; set; } // string, integer, decimal, boolean, json
+    public string DataType { get; set; } = string.Empty;
 
-    public bool IsSystem { get; set; } // System settings cannot be deleted
+    /// <summary>
+    /// Indicates if this is a system setting (cannot be deleted).
+    /// </summary>
+    public bool IsSystem { get; set; }
 
+    /// <summary>
+    /// Indicates if the configuration is active.
+    /// </summary>
     public bool IsActive { get; set; } = true;
 }

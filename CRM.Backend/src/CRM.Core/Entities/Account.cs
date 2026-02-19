@@ -649,10 +649,24 @@ public class Account : BaseEntity
         : $"{FirstName} {LastName}".Trim();
 
     /// <summary>Backward compatibility - returns first address street</summary>
+    /// <summary>
+    /// Backward compatibility - returns first address street. Not mapped. To set Address, add an Address to the Addresses collection.
+    /// </summary>
     public string? Address
     {
         get => Addresses?.FirstOrDefault()?.Line1;
-        set { /* for backward compat */ }
+        set
+        {
+            if (!string.IsNullOrWhiteSpace(value))
+            {
+                if (Addresses == null)
+                    Addresses = new List<Address>();
+                if (!Addresses.Any())
+                    Addresses.Add(new Address { Line1 = value });
+                else
+                    Addresses.First().Line1 = value;
+            }
+        }
     }
 
     /// <summary>Backward compatibility - returns first address city</summary>
@@ -684,7 +698,7 @@ public class Account : BaseEntity
     }
 
     /// <summary>Flag indicating if shipping address is same as billing</summary>
-    public bool ShippingSameAsBilling { get; set; } = false;
+    public bool ShippingSameAsBilling { get; set; } = true;
 
     #endregion
 }

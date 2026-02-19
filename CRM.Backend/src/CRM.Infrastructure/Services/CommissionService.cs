@@ -65,6 +65,7 @@ public class CommissionService : ICommissionService
     {
         commission.CreatedAt = DateTime.UtcNow;
         commission.UpdatedAt = DateTime.UtcNow;
+        commission.IsDeleted = false;
 
         _context.Commissions.Add(commission);
         await _context.SaveChangesAsync(cancellationToken);
@@ -317,8 +318,31 @@ public class CommissionService : ICommissionService
             throw new InvalidOperationException($"User {userId} not found");
         }
 
-        // Store plan assignment - would need a CommissionPlanAssignment entity
-        // For now, we'll add a record to track this
+        // Soft-delete previous assignments for this user
+        var previousAssignments = await _context.CommissionPlanAssignments
+            .Where(a => a.UserId == userId && !a.IsDeleted)
+            .ToListAsync(cancellationToken);
+        foreach (var assignment in previousAssignments)
+        {
+            assignment.IsDeleted = true;
+            assignment.UpdatedAt = DateTime.UtcNow;
+        }
+
+        // Create new assignment
+        var assignmentEntity = new CommissionPlanAssignment
+        {
+            UserId = userId,
+            CommissionPlanId = planId,
+            StartDate = effectiveDate ?? DateTime.UtcNow,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow,
+            IsActive = true,
+            IsDeleted = false
+        };
+        _context.CommissionPlanAssignments.Add(assignmentEntity);
+
+        await _context.SaveChangesAsync(cancellationToken);
+
         _logger.LogInformation("Assigned plan {PlanId} to user {UserId} effective {EffectiveDate}",
             planId, userId, effectiveDate ?? DateTime.UtcNow);
 

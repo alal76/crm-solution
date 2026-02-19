@@ -298,19 +298,34 @@ public class CampaignsControllerTests
 /// </summary>
 public class WebhooksControllerTests
 {
-    private readonly Mock<CrmDbContext> _mockContext;
-    private readonly Mock<ILogger<WebhooksController>> _mockLogger;
+    private readonly CrmDbContext _dbContext;
+    private readonly ILogger<WebhooksController> _logger;
     private readonly WebhooksController _controller;
 
     public WebhooksControllerTests()
     {
-        _mockContext = new Mock<CrmDbContext>();
-        _mockLogger = new Mock<ILogger<WebhooksController>>();
-        _controller = new WebhooksController(_mockContext.Object, _mockLogger.Object);
+        // Setup in-memory configuration
+        var inMemorySettings = new Dictionary<string, string>
+        {
+            { "DatabaseProvider", "inmemory" }
+        };
+        var configuration = new Microsoft.Extensions.Configuration.ConfigurationBuilder()
+            .AddInMemoryCollection(inMemorySettings)
+            .Build();
+
+        // Setup in-memory DbContext
+        var options = new Microsoft.EntityFrameworkCore.DbContextOptionsBuilder<CrmDbContext>()
+            .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+            .Options;
+        _dbContext = new CrmDbContext(options, configuration);
+
+        // Use a real logger or a simple mock
+        var loggerFactory = LoggerFactory.Create(builder => builder.AddDebug().SetMinimumLevel(LogLevel.Debug));
+        _logger = loggerFactory.CreateLogger<WebhooksController>();
+
+        _controller = new WebhooksController(_dbContext, _logger);
     }
 
-    // Note: Test methods removed as this controller's actual API methods have different signatures
-    // The controller has methods like IngestWebFormSubmission, IngestInboundEmail, etc.
     // Placeholder test to ensure class compiles
     [Fact]
     public void WebhooksController_ShouldInitialize()

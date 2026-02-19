@@ -92,11 +92,12 @@ public class CommissionRuleServiceTests
             RuleType = CommissionRuleType.Percentage,
             Rate = 10m,
             IsActive = true,
-            EffectiveDate = DateTime.UtcNow.AddDays(-1),
+            EffectiveDate = DateTime.UtcNow.AddDays(-10), // Always in the past
             ExpiryDate = null
         };
 
-        _mockRuleRepository.Setup(r => r.GetAllAsync()).ReturnsAsync(new List<CommissionRule> { rule });
+        var rules = new List<CommissionRule> { rule };
+        _mockRuleRepository.Setup(r => r.GetAllAsync()).ReturnsAsync(rules);
 
         // Act
         var result = await _service.CalculateCommissionAsync(1000m, "DirectSale");
@@ -190,7 +191,7 @@ public class DiscountRuleServiceTests
             Type = DiscountRuleType.Percentage,
             Value = 10m,
             IsActive = true,
-            EffectiveDate = DateTime.UtcNow.AddDays(-1),
+            EffectiveDate = DateTime.UtcNow.AddDays(-10), // Always in the past
             IsCumulative = true
         };
 

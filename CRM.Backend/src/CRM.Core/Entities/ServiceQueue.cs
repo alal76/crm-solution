@@ -11,32 +11,54 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace CRM.Core.Entities;
 
 /// <summary>
-/// Represents a service desk queue for organizing service requests
+/// Represents a service desk queue for organizing service requests.
 /// </summary>
 [Table("ServiceQueues")]
 public class ServiceQueue : BaseEntity
 {
+    /// <summary>
+    /// Name of the service queue.
+    /// </summary>
     [Required]
     [StringLength(255)]
-    public string Name { get; set; }
+    public string Name { get; set; } = string.Empty;
 
+    /// <summary>
+    /// Description of the service queue.
+    /// </summary>
     [StringLength(1024)]
-    public string Description { get; set; }
+    public string? Description { get; set; }
 
+    /// <summary>
+    /// Routing type for the queue.
+    /// </summary>
     [Required]
     public QueueRoutingType RoutingType { get; set; }
 
+    /// <summary>
+    /// JSON array of assigned user IDs.
+    /// </summary>
     [Column(TypeName = "longtext")]
-    public string AssignedUserIds { get; set; } // JSON array of user IDs
+    public string AssignedUserIds { get; set; } = string.Empty;
 
+    /// <summary>
+    /// JSON array of assigned group IDs.
+    /// </summary>
     [Column(TypeName = "longtext")]
-    public string AssignedGroupIds { get; set; } // JSON array of group IDs
-
+    public string AssignedGroupIds { get; set; } = string.Empty;
+    /// JSON array of required skills.
+    /// </summary>
     [Column(TypeName = "longtext")]
-    public string SkillRequirements { get; set; } // JSON array of required skills
+    public string SkillRequirements { get; set; } = string.Empty;
 
+    /// <summary>
+    /// Display order for the queue.
+    /// </summary>
     public int DisplayOrder { get; set; }
 
+    /// <summary>
+    /// Whether the queue is active.
+    /// </summary>
     public bool IsActive { get; set; } = true;
 }
 
