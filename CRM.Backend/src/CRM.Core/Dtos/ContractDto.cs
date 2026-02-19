@@ -18,40 +18,40 @@ public class ContractDto
     public string ContractNumber { get; set; } = string.Empty;
     public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
-    
+
     public int AccountId { get; set; }
     public string? AccountName { get; set; }
     public int? ContactId { get; set; }
     public string? ContactName { get; set; }
     public int? OwnerId { get; set; }
     public string? OwnerName { get; set; }
-    
+
     public ContractStatus Status { get; set; }
     public ContractType ContractType { get; set; }
-    
+
     public DateTime StartDate { get; set; }
     public DateTime EndDate { get; set; }
     public decimal TotalValue { get; set; }
     public decimal AnnualValue { get; set; }
-    
+
     public DateTime? ActivatedAt { get; set; }
     public DateTime? TerminatedAt { get; set; }
     public DateTime? SignedDate { get; set; }
-    
+
     public bool IsSigned { get; set; }
     public bool AutoRenew { get; set; }
     public int RenewalTermMonths { get; set; }
-    
+
     public string? PaymentTerms { get; set; }
     public string? TermsAndConditions { get; set; }
     public string? DocumentUrl { get; set; }
-    
+
     public int? ParentContractId { get; set; }
     public int? OpportunityId { get; set; }
-    
+
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
-    
+
     public bool IsExpiringSoon => Status == ContractStatus.Active && EndDate <= DateTime.UtcNow.AddDays(30);
     public bool IsExpired => Status == ContractStatus.Expired || (Status == ContractStatus.Active && EndDate < DateTime.UtcNow.Date);
     public int DaysUntilExpiry => (EndDate.Date - DateTime.UtcNow.Date).Days;

@@ -11,17 +11,17 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace CRM.Core.Entities;
 
 /// <summary>
-/// Represents a Service Level Agreement policy
+/// Represents a Service Level Agreement policy.
 /// </summary>
 [Table("SLAPolicies")]
 public class SLAPolicy : BaseEntity
 {
     [Required]
     [StringLength(255)]
-    public string Name { get; set; }
+    public string Name { get; set; } = string.Empty;
 
     [StringLength(1024)]
-    public string Description { get; set; }
+    public string? Description { get; set; }
 
     [Required]
     public ServicePriority Priority { get; set; }
@@ -35,7 +35,7 @@ public class SLAPolicy : BaseEntity
     public bool WorkingHoursOnly { get; set; }
 
     [Column(TypeName = "longtext")]
-    public string EscalationPath { get; set; } // JSON array of user IDs in escalation order
+    public string EscalationPath { get; set; } = string.Empty; // JSON array of user IDs in escalation order
 
     public bool IsActive { get; set; } = true;
 

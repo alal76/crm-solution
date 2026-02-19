@@ -66,6 +66,7 @@ public class ServiceIntegrationTests : IAsyncLifetime
 
         // Act
         var created = await service.CreateAsync(commission, CancellationToken.None);
+        await _context.SaveChangesAsync();
         var retrieved = await service.GetByIdAsync(created.Id, CancellationToken.None);
 
         // Assert
@@ -90,6 +91,7 @@ public class ServiceIntegrationTests : IAsyncLifetime
         };
 
         var created = await service.CreateAsync(commission, CancellationToken.None);
+        await _context.SaveChangesAsync();
 
         // Act
         var approved = await service.ApproveAsync(created.Id, 10, CancellationToken.None);
@@ -115,6 +117,9 @@ public class ServiceIntegrationTests : IAsyncLifetime
         };
 
         var createdPlan = await service.CreatePlanAsync(plan, CancellationToken.None);
+        // Seed user with Id = 1
+        _context.Users.Add(new User { Id = 1, Email = "user1@example.com", FirstName = "Test", LastName = "User" });
+        await _context.SaveChangesAsync();
 
         // Act
         var assigned = await service.AssignPlanToUserAsync(

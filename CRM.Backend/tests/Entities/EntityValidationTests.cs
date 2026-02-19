@@ -339,14 +339,14 @@ public class EntityValidationTests
     public void Account_Address_CanBeSet()
     {
         // Arrange
-        var account = new Account
-        {
-            Address = "123 Main St",
+        var account = new Account();
+        account.Addresses.Add(new Address {
+            Line1 = "123 Main St",
             City = "New York",
             State = "NY",
-            ZipCode = "10001",
+            PostalCode = "10001",
             Country = "USA"
-        };
+        });
 
         // Assert
         account.Address.Should().Be("123 Main St");

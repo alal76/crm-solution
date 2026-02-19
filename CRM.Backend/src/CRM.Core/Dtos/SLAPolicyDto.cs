@@ -8,30 +8,60 @@
 namespace CRM.Core.Dtos;
 
 /// <summary>
-/// DTO for SLA Policy
+/// DTO for SLA Policy.
 /// </summary>
 public class SLAPolicyDto
 {
     public int Id { get; set; }
 
-    public string Name { get; set; }
+    /// <summary>
+    /// Name of the SLA policy.
+    /// </summary>
+    public string Name { get; set; } = string.Empty;
 
-    public string Description { get; set; }
+    /// <summary>
+    /// Description of the SLA policy.
+    /// </summary>
+    public string? Description { get; set; }
 
-    public string Priority { get; set; } // Critical, High, Medium, Low
+    /// <summary>
+    /// Priority of the SLA policy (Critical, High, Medium, Low).
+    /// </summary>
+    public string Priority { get; set; } = string.Empty;
 
+    /// <summary>
+    /// Initial response time in minutes.
+    /// </summary>
     public int InitialResponseTimeMinutes { get; set; }
 
+    /// <summary>
+    /// Resolution time in minutes.
+    /// </summary>
     public int ResolutionTimeMinutes { get; set; }
 
+    /// <summary>
+    /// Whether the policy applies only during working hours.
+    /// </summary>
     public bool WorkingHoursOnly { get; set; }
 
-    public string EscalationPath { get; set; } // JSON array of user IDs
+    /// <summary>
+    /// Escalation path as a JSON array of user IDs.
+    /// </summary>
+    public string EscalationPath { get; set; } = string.Empty;
 
+    /// <summary>
+    /// Whether the policy is active.
+    /// </summary>
     public bool IsActive { get; set; }
 
+    /// <summary>
+    /// Date and time the policy was created.
+    /// </summary>
     public DateTime CreatedAt { get; set; }
 
+    /// <summary>
+    /// Date and time the policy was last updated.
+    /// </summary>
     public DateTime? UpdatedAt { get; set; }
 }
 
@@ -40,18 +70,39 @@ public class SLAPolicyDto
 /// </summary>
 public class CreateSLAPolicyDto
 {
-    public string Name { get; set; }
+    /// <summary>
+    /// Name of the SLA policy.
+    /// </summary>
+    public string Name { get; set; } = string.Empty;
 
-    public string Description { get; set; }
+    /// <summary>
+    /// Description of the SLA policy.
+    /// </summary>
+    public string? Description { get; set; }
 
-    public string Priority { get; set; }
+    /// <summary>
+    /// Priority of the SLA policy.
+    /// </summary>
+    public string Priority { get; set; } = string.Empty;
 
+    /// <summary>
+    /// Initial response time in minutes.
+    /// </summary>
     public int InitialResponseTimeMinutes { get; set; }
 
+    /// <summary>
+    /// Resolution time in minutes.
+    /// </summary>
     public int ResolutionTimeMinutes { get; set; }
 
+    /// <summary>
+    /// Whether the policy applies only during working hours.
+    /// </summary>
     public bool WorkingHoursOnly { get; set; }
 
+    /// <summary>
+    /// List of user IDs for escalation path.
+    /// </summary>
     public List<int> EscalationPathUserIds { get; set; } = new();
 }
 

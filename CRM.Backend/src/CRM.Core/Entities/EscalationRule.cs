@@ -11,52 +11,89 @@ using System.ComponentModel.DataAnnotations.Schema;
 namespace CRM.Core.Entities;
 
 /// <summary>
-/// Represents an escalation rule for service requests
+/// Represents an escalation rule for service requests.
 /// </summary>
 [Table("EscalationRules")]
 public class EscalationRule : BaseEntity
 {
+    /// <summary>
+    /// Name of the escalation rule.
+    /// </summary>
     [Required]
     [StringLength(255)]
-    public string Name { get; set; }
+    public string Name { get; set; } = string.Empty;
 
+    /// <summary>
+    /// Description of the escalation rule.
+    /// </summary>
     [StringLength(1024)]
-    public string Description { get; set; }
+    public string? Description { get; set; }
 
+    /// <summary>
+    /// JSON condition expression.
+    /// </summary>
     [Required]
     [Column(TypeName = "longtext")]
-    public string Condition { get; set; } // JSON condition expression
+    public string Condition { get; set; } = string.Empty;
 
+    /// <summary>
+    /// Metric used for the escalation condition.
+    /// </summary>
     [Required]
     public EscalationMetric ConditionMetric { get; set; }
 
+    /// <summary>
+    /// Threshold value for escalation.
+    /// </summary>
     [Required]
     public int ThresholdValue { get; set; }
 
+    /// <summary>
+    /// User ID to escalate to.
+    /// </summary>
     [ForeignKey("EscalateToUser")]
     public int? EscalateToUserId { get; set; }
 
+    /// <summary>
+    /// Group ID to escalate to.
+    /// </summary>
     [ForeignKey("EscalateToGroup")]
     public int? EscalateToGroupId { get; set; }
 
+    /// <summary>
+    /// Whether to send notification on escalation.
+    /// </summary>
     public bool SendNotification { get; set; } = true;
 
+    /// <summary>
+    /// Whether the rule is active.
+    /// </summary>
     public bool IsActive { get; set; } = true;
 
-    /// <summary>Foreign key to SLA Policy (if this escalation is linked to an SLA)</summary>
+    /// <summary>
+    /// Foreign key to SLA Policy (if this escalation is linked to an SLA)
+    /// </summary>
     public int? SLAPolicyId { get; set; }
 
-    /// <summary>Navigation property to SLA Policy</summary>
+    /// <summary>
+    /// Navigation property to SLA Policy
+    /// </summary>
     [ForeignKey("SLAPolicyId")]
     public virtual SLAPolicy? SLAPolicy { get; set; }
 
-    /// <summary>Metric used to trigger escalation</summary>
+    /// <summary>
+    /// Metric used to trigger escalation
+    /// </summary>
     public EscalationMetric? TriggerMetric { get; set; }
 
-    /// <summary>User to reassign to when escalating</summary>
+    /// <summary>
+    /// User to reassign to when escalating
+    /// </summary>
     public int? ReassignToUserId { get; set; }
 
-    /// <summary>Navigation property to reassign-to user</summary>
+    /// <summary>
+    /// Navigation property to reassign-to user
+    /// </summary>
     [ForeignKey("ReassignToUserId")]
     public virtual User? ReassignToUser { get; set; }
 

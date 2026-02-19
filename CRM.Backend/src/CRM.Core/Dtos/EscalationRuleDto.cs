@@ -8,32 +8,65 @@
 namespace CRM.Core.Dtos;
 
 /// <summary>
-/// DTO for Escalation Rule
+/// DTO for Escalation Rule.
 /// </summary>
 public class EscalationRuleDto
 {
     public int Id { get; set; }
 
-    public string Name { get; set; }
+    /// <summary>
+    /// Name of the escalation rule.
+    /// </summary>
+    public string Name { get; set; } = string.Empty;
 
-    public string Description { get; set; }
+    /// <summary>
+    /// Description of the escalation rule.
+    /// </summary>
+    public string? Description { get; set; }
 
-    public string Condition { get; set; } // JSON
+    /// <summary>
+    /// JSON condition for the rule.
+    /// </summary>
+    public string Condition { get; set; } = string.Empty;
 
-    public string ConditionMetric { get; set; } // AgeMinutes, PriorityLevel, AssigneeGroup
+    /// <summary>
+    /// Condition metric (e.g., AgeMinutes, PriorityLevel, AssigneeGroup).
+    /// </summary>
+    public string ConditionMetric { get; set; } = string.Empty;
 
+    /// <summary>
+    /// Threshold value for escalation.
+    /// </summary>
     public int ThresholdValue { get; set; }
 
+    /// <summary>
+    /// User ID to escalate to.
+    /// </summary>
     public int? EscalateToUserId { get; set; }
 
+    /// <summary>
+    /// Group ID to escalate to.
+    /// </summary>
     public int? EscalateToGroupId { get; set; }
 
+    /// <summary>
+    /// Whether to send notification on escalation.
+    /// </summary>
     public bool SendNotification { get; set; }
 
+    /// <summary>
+    /// Whether the rule is active.
+    /// </summary>
     public bool IsActive { get; set; }
 
+    /// <summary>
+    /// Date and time the rule was created.
+    /// </summary>
     public DateTime CreatedAt { get; set; }
 
+    /// <summary>
+    /// Date and time the rule was last updated.
+    /// </summary>
     public DateTime? UpdatedAt { get; set; }
 }
 
@@ -42,20 +75,44 @@ public class EscalationRuleDto
 /// </summary>
 public class CreateEscalationRuleDto
 {
-    public string Name { get; set; }
+    /// <summary>
+    /// Name of the escalation rule.
+    /// </summary>
+    public string Name { get; set; } = string.Empty;
 
-    public string Description { get; set; }
+    /// <summary>
+    /// Description of the escalation rule.
+    /// </summary>
+    public string? Description { get; set; }
 
-    public string Condition { get; set; }
+    /// <summary>
+    /// JSON condition for the rule.
+    /// </summary>
+    public string Condition { get; set; } = string.Empty;
 
-    public string ConditionMetric { get; set; }
+    /// <summary>
+    /// Condition metric for the rule.
+    /// </summary>
+    public string ConditionMetric { get; set; } = string.Empty;
 
+    /// <summary>
+    /// Threshold value for escalation.
+    /// </summary>
     public int ThresholdValue { get; set; }
 
+    /// <summary>
+    /// User ID to escalate to.
+    /// </summary>
     public int? EscalateToUserId { get; set; }
 
+    /// <summary>
+    /// Group ID to escalate to.
+    /// </summary>
     public int? EscalateToGroupId { get; set; }
 
+    /// <summary>
+    /// Whether to send notification on escalation.
+    /// </summary>
     public bool SendNotification { get; set; } = true;
 }
 

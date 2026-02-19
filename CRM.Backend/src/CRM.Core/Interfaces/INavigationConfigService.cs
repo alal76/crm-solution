@@ -78,5 +78,4 @@ namespace CRM.Core.Interfaces
         /// </summary>
         void InvalidateCache();
     }
-
 }
