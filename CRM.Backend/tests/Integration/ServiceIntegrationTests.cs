@@ -55,10 +55,16 @@ public class ServiceIntegrationTests : IAsyncLifetime
         // Arrange
         var logger = _loggerFactory.CreateLogger<CommissionService>();
         var service = new CommissionService(_context, logger);
-        
+
+        // Seed user required for commission
+        var user = new User { Id = 1, Email = "user1@example.com", FirstName = "Test", LastName = "User" };
+        _context.Users.Add(user);
+        await _context.SaveChangesAsync();
+
+        // Ensure user is tracked and saved before commission
         var commission = new Commission
         {
-            UserId = 1,
+            UserId = user.Id,
             Amount = 1000m,
             Status = CommissionStatus.Pending,
             CreatedAt = DateTime.UtcNow
@@ -81,10 +87,15 @@ public class ServiceIntegrationTests : IAsyncLifetime
         // Arrange
         var logger = _loggerFactory.CreateLogger<CommissionService>();
         var service = new CommissionService(_context, logger);
-        
+
+        // Seed user required for commission
+        var user = new User { Id = 1, Email = "user1@example.com", FirstName = "Test", LastName = "User" };
+        _context.Users.Add(user);
+        await _context.SaveChangesAsync();
+
         var commission = new Commission
         {
-            UserId = 1,
+            UserId = user.Id,
             Amount = 2000m,
             Status = CommissionStatus.Pending,
             CreatedAt = DateTime.UtcNow
@@ -107,7 +118,13 @@ public class ServiceIntegrationTests : IAsyncLifetime
         // Arrange
         var logger = _loggerFactory.CreateLogger<CommissionService>();
         var service = new CommissionService(_context, logger);
-        
+
+        // Seed user first
+        var user = new User { Id = 1, Email = "user1@example.com", FirstName = "Test", LastName = "User" };
+        _context.Users.Add(user);
+        await _context.SaveChangesAsync();
+
+        // Then create plan
         var plan = new CommissionPlan
         {
             Name = "Test Plan",
@@ -115,16 +132,13 @@ public class ServiceIntegrationTests : IAsyncLifetime
             CommissionType = CommissionType.FlatPercentage,
             IsActive = true
         };
-
         var createdPlan = await service.CreatePlanAsync(plan, CancellationToken.None);
-        // Seed user with Id = 1
-        _context.Users.Add(new User { Id = 1, Email = "user1@example.com", FirstName = "Test", LastName = "User" });
         await _context.SaveChangesAsync();
 
         // Act
         var assigned = await service.AssignPlanToUserAsync(
-            createdPlan.Id, 
-            1, 
+            createdPlan.Id,
+            user.Id,
             cancellationToken: CancellationToken.None);
 
         // Assert
@@ -276,6 +290,7 @@ public class ServiceIntegrationTests : IAsyncLifetime
         _context.EmailSequences.Add(sequence);
         await _context.SaveChangesAsync();
 
+        // Use the saved sequence.Id for all steps
         var steps = new List<EmailSequenceStep>
         {
             new EmailSequenceStep { SequenceId = sequence.Id, Order = 1, Template = "Step1" },
@@ -292,7 +307,7 @@ public class ServiceIntegrationTests : IAsyncLifetime
             .Where(s => s.SequenceId == sequence.Id)
             .OrderBy(s => s.Order)
             .ToList();
-        
+
         retrieved.Should().HaveCount(3);
         retrieved[0].Order.Should().Be(1);
         retrieved[1].Order.Should().Be(2);
@@ -443,12 +458,15 @@ public class ServiceIntegrationTests : IAsyncLifetime
         };
 
         _context.CommissionPlans.Add(plan);
+        // Seed user required for commission
+        var user = new User { Id = 1, Email = "user1@example.com", FirstName = "Test", LastName = "User" };
+        _context.Users.Add(user);
         await _context.SaveChangesAsync();
 
         // Act: Create commission
         var commission = new Commission
         {
-            UserId = 1,
+            UserId = user.Id,
             Amount = 5000m,
             Status = CommissionStatus.Pending
         };

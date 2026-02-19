@@ -328,6 +328,10 @@ public class CommissionPlanAssignment : BaseEntity
 /// </summary>
 public class Commission : BaseEntity
 {
+    public Commission() : base()
+    {
+        IsDeleted = false;
+    }
     #region Identification
 
     /// <summary>Commission number</summary>

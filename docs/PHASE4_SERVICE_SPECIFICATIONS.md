@@ -1139,7 +1139,7 @@ Task<bool> AssignPlanToUserAsync(
     int planId,
     int userId,
     DateTime? effectiveDate = null,
-    CancellationToken cancellationToken = default);
+    CancellationToken cancellationToken = default); <!-- ✅ Implemented: Persists CommissionPlanAssignment, soft-deletes previous, test verifies persistence -->
 
 Task<CommissionPlan?> GetUserPlanAsync(int userId, CancellationToken cancellationToken = default);
 ```

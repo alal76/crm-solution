@@ -655,7 +655,18 @@ public class Account : BaseEntity
     public string? Address
     {
         get => Addresses?.FirstOrDefault()?.Line1;
-        set { /* for backward compat */ }
+        set
+        {
+            if (!string.IsNullOrWhiteSpace(value))
+            {
+                if (Addresses == null)
+                    Addresses = new List<Address>();
+                if (!Addresses.Any())
+                    Addresses.Add(new Address { Line1 = value });
+                else
+                    Addresses.First().Line1 = value;
+            }
+        }
     }
 
     /// <summary>Backward compatibility - returns first address city</summary>

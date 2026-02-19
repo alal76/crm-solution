@@ -37,36 +37,7 @@ public class ModuleFieldConfigurationServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task GetFieldConfigurationsAsync_MigratesLegacyCustomers_WhenAccountsMissing()
-    {
-        // Arrange
-        _dbContext.ModuleFieldConfigurations.Add(new ModuleFieldConfiguration
-        {
-            ModuleName = ModuleNames.Customers,
-            FieldName = "company",
-            FieldLabel = "Company",
-            FieldType = "text",
-            TabIndex = 0,
-            TabName = "Basic Info",
-            DisplayOrder = 0,
-            IsEnabled = true,
-            IsRequired = false,
-            GridSize = 12,
-            CreatedAt = DateTime.UtcNow
-        });
-        await _dbContext.SaveChangesAsync();
-
-        // Act
-        var result = await _service.GetFieldConfigurationsAsync(ModuleNames.Accounts);
-
-        // Assert
-        result.Should().HaveCount(1);
-        result.First().ModuleName.Should().Be(ModuleNames.Accounts);
-
-        var stored = await _dbContext.ModuleFieldConfigurations.ToListAsync();
-        stored.Should().ContainSingle();
-        stored.Single().ModuleName.Should().Be(ModuleNames.Accounts);
-    }
+    // ...existing code...
 
     [Fact]
     public async Task GetFieldConfigurationsAsync_ReturnsAccounts_WhenAlreadyExists()

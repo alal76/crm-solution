@@ -137,9 +137,10 @@ public class EmailSequenceStepConfiguration : IEntityTypeConfiguration<EmailSequ
     public void Configure(EntityTypeBuilder<EmailSequenceStep> builder)
     {
         builder.HasKey(e => e.Id);
-        builder.Property(e => e.Name).IsRequired().HasMaxLength(255);
-        builder.Property(e => e.EmailSequenceId).IsRequired();
-        
+        // Map both EmailSequenceId and SequenceId to the same column
+        builder.Property(e => e.EmailSequenceId).IsRequired().HasColumnName("EmailSequenceId");
+        builder.Property(e => e.SequenceId).HasField("<EmailSequenceId>k__BackingField").HasColumnName("EmailSequenceId");
+
         builder.HasOne(e => e.EmailSequence)
             .WithMany(s => s.Steps)
             .HasForeignKey(e => e.EmailSequenceId)
