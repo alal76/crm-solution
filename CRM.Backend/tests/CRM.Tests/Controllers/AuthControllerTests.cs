@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Http;
 // CRM Solution - Customer Relationship Management System
 // Copyright (C) 2024-2026 Abhishek Lal
 //
@@ -185,11 +186,19 @@ public class AuthControllerTests
         // Arrange
         _mockAuthService.Setup(s => s.LogoutAsync(It.IsAny<int>())).ReturnsAsync(true);
 
+        // Mock User claim
+        var user = new System.Security.Claims.ClaimsPrincipal(new System.Security.Claims.ClaimsIdentity(new[]
+        {
+            new System.Security.Claims.Claim("sub", "1")
+        }, "mock"));
+        _controller.ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext { User = user } };
+
         // Act
         var result = await _controller.Logout();
 
         // Assert
-        result.Should().BeOfType<OkObjectResult>();
+            var objectResult = result.Should().BeOfType<OkObjectResult>().Subject;
+        objectResult.StatusCode.Should().Be(200);
     }
 
     #endregion
@@ -262,11 +271,19 @@ public class AuthControllerTests
         _mockAuthService.Setup(s => s.ChangePasswordAsync(It.IsAny<int>(), request.OldPassword, request.NewPassword, It.IsAny<CancellationToken>()))
             .ReturnsAsync(authResponse);
 
+        // Mock User claim
+        var user = new System.Security.Claims.ClaimsPrincipal(new System.Security.Claims.ClaimsIdentity(new[]
+        {
+            new System.Security.Claims.Claim("sub", "1")
+        }, "mock"));
+        _controller.ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext { User = user } };
+
         // Act
         var result = await _controller.ChangePassword(request);
 
         // Assert
-        result.Should().BeOfType<OkObjectResult>();
+            var objectResult = result.Should().BeOfType<OkObjectResult>().Subject;
+        objectResult.StatusCode.Should().Be(200);
     }
 
     [Fact]
@@ -283,11 +300,19 @@ public class AuthControllerTests
         _mockAuthService.Setup(s => s.ChangePasswordAsync(It.IsAny<int>(), request.OldPassword, request.NewPassword, It.IsAny<CancellationToken>()))
             .ThrowsAsync(new UnauthorizedAccessException("Current password is incorrect"));
 
+        // Mock User claim
+        var user = new System.Security.Claims.ClaimsPrincipal(new System.Security.Claims.ClaimsIdentity(new[]
+        {
+            new System.Security.Claims.Claim("sub", "1")
+        }, "mock"));
+        _controller.ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext { User = user } };
+
         // Act
         var result = await _controller.ChangePassword(request);
 
         // Assert
-        result.Should().BeOfType<UnauthorizedObjectResult>();
+            var objectResult = result.Should().BeOfType<UnauthorizedObjectResult>().Subject;
+        objectResult.StatusCode.Should().Be(401);
     }
 
     #endregion

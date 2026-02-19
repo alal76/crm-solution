@@ -626,13 +626,13 @@ public class AuthController : ControllerBase
             var userIdClaim = User.FindFirst("sub") ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
             if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
             {
-                return Unauthorized(new { message = "User ID not found in token" });
+                return new UnauthorizedObjectResult(new { message = "User ID not found in token" });
             }
 
             var success = await _authenticationService.LogoutAsync(userId);
             if (success)
             {
-                return Ok(new { message = "User logged out successfully" });
+                return new OkObjectResult(new { message = "User logged out successfully" });
             }
             else
             {
@@ -669,26 +669,26 @@ public class AuthController : ControllerBase
         try
         {
             if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+                return new BadRequestObjectResult(ModelState);
 
             var userIdClaim = User.FindFirst("sub") ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
             if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
             {
-                return Unauthorized(new { message = "User ID not found in token" });
+                return new UnauthorizedObjectResult(new { message = "User ID not found in token" });
             }
 
             var response = await _authenticationService.ChangePasswordAsync(userId, request.OldPassword, request.NewPassword);
-            return Ok(response);
+            return new OkObjectResult(response);
         }
         catch (UnauthorizedAccessException ex)
         {
             _logger.LogWarning($"Change password failed: {ex.Message}");
-            return Unauthorized(new { message = ex.Message });
+            return new UnauthorizedObjectResult(new { message = ex.Message });
         }
         catch (ArgumentException ex)
         {
             _logger.LogWarning($"Change password validation failed: {ex.Message}");
-            return BadRequest(new { message = ex.Message });
+            return new BadRequestObjectResult(new { message = ex.Message });
         }
         catch (Exception ex)
         {

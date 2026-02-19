@@ -128,25 +128,6 @@ public class EmailSequenceConfiguration : IEntityTypeConfiguration<EmailSequence
     }
 }
 
-/// <summary>
-/// Entity configuration for EmailSequenceStep (Individual steps within sequences).
-/// Represents a single action in a sequence (email, wait, task, condition, etc.).
-/// </summary>
-public class EmailSequenceStepConfiguration : IEntityTypeConfiguration<EmailSequenceStep>
-{
-    public void Configure(EntityTypeBuilder<EmailSequenceStep> builder)
-    {
-        builder.HasKey(e => e.Id);
-        // Map both EmailSequenceId and SequenceId to the same column
-        builder.Property(e => e.EmailSequenceId).IsRequired().HasColumnName("EmailSequenceId");
-        builder.Property(e => e.SequenceId).HasField("<EmailSequenceId>k__BackingField").HasColumnName("EmailSequenceId");
-
-        builder.HasOne(e => e.EmailSequence)
-            .WithMany(s => s.Steps)
-            .HasForeignKey(e => e.EmailSequenceId)
-            .OnDelete(DeleteBehavior.Cascade);
-    }
-}
 
 /// <summary>
 /// Entity configuration for EmailSequenceEnrollment (Contact/Lead enrollment in a sequence).

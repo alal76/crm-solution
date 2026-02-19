@@ -113,38 +113,13 @@ public class RBACServiceTests
         // Arrange
         var userId = 1;
 
-        var users = new List<User>
+        var userRoleAssignments = new List<UserRoleAssignment>
         {
-            new User 
-            { 
-                Id = userId, 
-                Email = "test@example.com",
-                Username = "testuser",
-                FirstName = "Test",
-                LastName = "User",
-                Role = 1,
-                IsActive = true,
-                CreatedAt = DateTime.UtcNow
-            }
+            new UserRoleAssignment { Id = 1, UserId = userId, RoleId = 1, AssignedAt = DateTime.UtcNow, EffectiveFrom = DateTime.UtcNow.AddDays(-1), EffectiveTo = null, Role = new Role { Id = 1, Name = "Managers", Description = "Manager role", IsActive = true, IsDeleted = false, CreatedAt = DateTime.UtcNow } }
         };
 
-        var userGroups = new List<UserGroup>
-        {
-            new UserGroup { Id = 1, Name = "Managers", Description = "Manager role" }
-        };
-
-        var groupMembers = new List<UserGroupMember>
-        {
-            new UserGroupMember { UserId = userId, UserGroupId = 1 }
-        };
-
-        var userMock = users.CreateMockDbSet();
-        var userGroupMock = userGroups.CreateMockDbSet();
-        var groupMemberMock = groupMembers.CreateMockDbSet();
-
-        _dbContextMock.Setup(x => x.Users).Returns(userMock.Object);
-        _dbContextMock.Setup(x => x.UserGroups).Returns(userGroupMock.Object);
-        _dbContextMock.Setup(x => x.UserGroupMembers).Returns(groupMemberMock.Object);
+        var userRoleMock = userRoleAssignments.CreateMockDbSet();
+        _dbContextMock.Setup(x => x.UserRoles).Returns(userRoleMock.Object);
 
         // Act
         var result = await _service.GetUserRolesAsync(userId);

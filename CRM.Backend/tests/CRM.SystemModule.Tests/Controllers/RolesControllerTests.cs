@@ -41,16 +41,28 @@ public class RolesControllerTests
         var userId = 1;
         var userRoles = new List<UserRoleAssignment>
         {
-            new UserRoleAssignment { Id = 1, UserId = userId, RoleId = 1, IsDeleted = false, AssignedAt = DateTime.UtcNow, EffectiveFrom = DateTime.UtcNow.AddDays(-1), EffectiveTo = DateTime.UtcNow.AddDays(1) }
-        };
-
-        var roles = new List<Role>
-        {
-            new Role { Id = 1, Name = "Managers", Description = "Manager role", IsActive = true, IsDeleted = false, CreatedAt = DateTime.UtcNow }
+            new UserRoleAssignment {
+                Id = 1,
+                UserId = userId,
+                RoleId = 1,
+                IsDeleted = false,
+                AssignedAt = DateTime.UtcNow,
+                EffectiveFrom = DateTime.UtcNow.AddDays(-1),
+                EffectiveTo = DateTime.UtcNow.AddDays(1),
+                // Link to Role
+                Role = new Role {
+                    Id = 1,
+                    Name = "Managers",
+                    Description = "Manager role",
+                    IsActive = true,
+                    IsDeleted = false,
+                    CreatedAt = DateTime.UtcNow
+                }
+            }
         };
 
         var userRoleMock = userRoles.CreateMockDbSet();
-        var roleMock = roles.CreateMockDbSet();
+        var roleMock = new List<Role> { userRoles[0].Role! }.CreateMockDbSet();
 
         _dbContextMock.Setup(x => x.UserRoles).Returns(userRoleMock.Object);
         _dbContextMock.Setup(x => x.Roles).Returns(roleMock.Object);
@@ -86,25 +98,54 @@ public class RolesControllerTests
 
     [Fact]
     public async Task CheckUserPermission_WithGrantedPermission_ReturnsTrue()
+            // Mock Users DbSet to return a user with UserRoles navigation property
+            var user = new User {
+                Id = userId,
+                IsDeleted = false,
+                UserRoles = userRoles
+            };
+            var usersMock = new List<User> { user }.CreateMockDbSet();
+            _dbContextMock.Setup(x => x.Users).Returns(usersMock.Object);
     {
         // Arrange
         var userId = 1;
         var permission = "View.Accounts";
 
+
         var userRoles = new List<UserRoleAssignment>
         {
-            new UserRoleAssignment { Id = 1, UserId = userId, RoleId = 1, IsDeleted = false, AssignedAt = DateTime.UtcNow, EffectiveFrom = DateTime.UtcNow.AddDays(-1), EffectiveTo = DateTime.UtcNow.AddDays(1) }
+            new UserRoleAssignment {
+                Id = 1,
+                UserId = userId,
+                RoleId = 1,
+                IsDeleted = false,
+                AssignedAt = DateTime.UtcNow,
+                EffectiveFrom = DateTime.UtcNow.AddDays(-1),
+                EffectiveTo = DateTime.UtcNow.AddDays(1),
+                Role = new Role {
+                    Id = 1,
+                    Name = "Managers",
+                    Description = "Manager role",
+                    IsActive = true,
+                    IsDeleted = false,
+                    CreatedAt = DateTime.UtcNow,
+                    RolePermissions = new List<RolePermission>()
+                }
+            }
         };
 
         var permissions = new List<Permission>
         {
-            new Permission { Id = 1, Name = permission, Description = "Can view accounts" }
+            new Permission { Id = 1, Name = permission, Description = "Can view accounts", IsActive = true, IsDeleted = false }
         };
 
         var rolePermissions = new List<RolePermission>
         {
-            new RolePermission { RoleId = 1, PermissionId = 1, IsDeleted = false }
+            new RolePermission { RoleId = 1, PermissionId = 1, IsDeleted = false, Permission = permissions[0] }
         };
+
+        // Link RolePermissions to Role
+        ((List<RolePermission>)userRoles[0].Role!.RolePermissions).AddRange(rolePermissions);
 
         // Setup cache to indicate no cached permissions (force DB lookup)
         _cacheMock.Setup(x => x.IsUserPermissionsCachedAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))

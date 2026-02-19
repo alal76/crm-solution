@@ -155,6 +155,9 @@ const LicensesPage: React.FC = () => {
       description: 'Workflow automation SaaS. Not deployed.'
     },
   ];
+
+  // Frontend dependencies
+  const frontendDependencies: Dependency[] = [
     {
       name: 'React',
       version: '18.2.0',
