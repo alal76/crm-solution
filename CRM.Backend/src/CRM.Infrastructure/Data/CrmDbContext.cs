@@ -591,6 +591,16 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.Property(e => e.Salutation).HasMaxLength(20);
             entity.Property(e => e.Suffix).HasMaxLength(20);
             entity.Property(e => e.Gender).HasMaxLength(20);
+            entity.Property(e => e.Industry).HasMaxLength(100); // [FIELD GAP REMEDIATED]
+
+            // Enum conversions for AccountType, Category, Priority, LifecycleStage
+            entity.Property(e => e.AccountType).HasConversion<int>();
+            entity.Property(e => e.Category).HasConversion<int>();
+            entity.Property(e => e.Priority).HasConversion<int>();
+            entity.Property(e => e.LifecycleStage).HasConversion<int>();
+
+            // Custom fields JSON serialization
+            entity.Property(e => e.CustomFields).HasColumnType("TEXT");
 
             // Map renamed properties to original database columns for backward compatibility
             entity.Property(e => e.AccountHealthScore).HasColumnName("CustomerHealthScore");

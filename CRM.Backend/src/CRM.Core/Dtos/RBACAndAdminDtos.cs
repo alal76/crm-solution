@@ -15,6 +15,7 @@ public class RoleDto
     public string Description { get; set; } = string.Empty;
     public int HierarchyLevel { get; set; }
     public bool IsSystemDefined { get; set; }
+    public bool IsActive { get; set; }
     public int PermissionCount { get; set; }
     public int UserCount { get; set; }
     public DateTime CreatedAt { get; set; }
@@ -57,6 +58,7 @@ public class PermissionDto
     public string Category { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public bool IsSystemDefined { get; set; }
+    public bool IsActive { get; set; }
     public int RoleCount { get; set; }
     public DateTime CreatedAt { get; set; }
 }

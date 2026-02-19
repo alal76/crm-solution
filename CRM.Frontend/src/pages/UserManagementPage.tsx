@@ -13,12 +13,15 @@ interface User {
   lastName: string;
   role: number;
   isActive: boolean;
+  isLocked: boolean;
   lastLoginDate?: string;
   departmentId?: number;
   userProfileId?: number;
   contactId?: number;
   contactName?: string;
   contactEmail?: string;
+  headerColor?: string;
+  photoUrl?: string;
 }
 
 interface Contact {

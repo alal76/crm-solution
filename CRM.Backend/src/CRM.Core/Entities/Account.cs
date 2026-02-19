@@ -205,11 +205,11 @@ public class Account : BaseEntity
 
     #endregion
 
-#region Business Information
+    #region Business Information
 
     /// <summary>Industry classification</summary>
     [MaxLength(100)]
-    public string? Industry { get; set; }
+    public string? Industry { get; set; } // [FIELD GAP REMEDIATED]
 
     /// <summary>Sub-industry classification</summary>
     [MaxLength(100)]

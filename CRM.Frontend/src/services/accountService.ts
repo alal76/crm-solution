@@ -7,51 +7,119 @@
  * The /api/accounts endpoint routes to the same controller as /api/customers,
  * so these are functionally equivalent.
  */
-import apiClient from './apiClient';
 
-export interface Account {
-  id?: number;
-  category?: number;
-  firstName?: string;
-  lastName?: string;
-  email?: string;
-  phone?: string;
-  company?: string;
-  legalName?: string;
-  jobTitle?: string;
-  city?: string;
-  state?: string;
-  country?: string;
-  postalCode?: string;
-  annualRevenue?: number;
-  customerType?: number;  // API compatibility - maps to accountType
-  priority?: number;
-  lifecycleStage?: number;
-  industry?: string;
-  website?: string;
-  [key: string]: any;
-}
+import apiClient from './apiClient';
+import {
+  Account,
+  AccountContact,
+  LinkedEmail,
+  LinkedPhone,
+  LinkedAddress,
+  LinkedSocialMedia
+} from '../types/accounts';
 
 export interface CreateAccountDto {
-  category: number;
+  category: string;
   firstName?: string;
   lastName?: string;
-  email?: string;
-  phone?: string;
+  salutation?: string;
+  suffix?: string;
+  dateOfBirth?: string;
+  gender?: string;
+  linkedContactId?: number;
   company?: string;
-  customerType?: number;
-  lifecycleStage?: number;
+  legalName?: string;
+  dbaName?: string;
+  taxId?: string;
+  registrationNumber?: string;
+  yearFounded?: number;
+  primaryContactId?: number;
+  email?: string;
+  secondaryEmail?: string;
+  phone?: string;
+  mobilePhone?: string;
+  faxNumber?: string;
+  jobTitle?: string;
+  website?: string;
+  address?: string;
+  address2?: string;
+  city?: string;
+  state?: string;
+  zipCode?: string;
+  country?: string;
+  shippingAddress?: string;
+  shippingAddress2?: string;
+  shippingCity?: string;
+  shippingState?: string;
+  shippingZipCode?: string;
+  shippingCountry?: string;
+  shippingSameAsBilling?: boolean;
+  industry?: string;
+  subIndustry?: string;
+  numberOfEmployees?: number;
+  employeeRange?: string;
+  annualRevenue?: number;
+  revenueRange?: string;
+  accountType?: string;
+  priority?: string;
+  stockSymbol?: string;
+  ownership?: string;
+  lifecycleStage?: string;
+  leadSource?: string;
+  firstContactDate?: string;
+  conversionDate?: string;
+  lastActivityDate?: string;
+  nextFollowUpDate?: string;
+  totalPurchases?: number;
+  accountBalance?: number;
+  creditLimit?: number;
+  paymentTerms?: string;
+  preferredPaymentMethod?: string;
+  currency?: string;
+  billingCycle?: string;
+  leadScore?: number;
+  accountHealthScore?: number;
+  npsScore?: number;
+  satisfactionRating?: number;
+  linkedInUrl?: string;
+  twitterHandle?: string;
+  facebookUrl?: string;
+  optInEmail?: boolean;
+  optInSms?: boolean;
+  optInPhone?: boolean;
+  preferredContactMethod?: string;
+  preferredContactTime?: string;
+  timezone?: string;
+  preferredLanguage?: string;
+  assignedToUserId?: number;
+  assignedToUserName?: string;
+  accountManagerId?: number;
+  accountManagerName?: string;
+  territory?: string;
+  region?: string;
+  tags?: string;
+  segment?: string;
+  referralSource?: string;
+  referredByAccountId?: number;
+  referredByAccountName?: string;
+  parentAccountId?: number;
+  parentAccountName?: string;
+  notes?: string;
+  internalNotes?: string;
+  description?: string;
+  customFields?: string | Record<string, any>;
+  displayName?: string;
+  contacts?: AccountContact[];
+  contactCount?: number;
+  emailAddresses?: LinkedEmail[];
+  phoneNumbers?: LinkedPhone[];
+  addresses?: LinkedAddress[];
+  socialMediaAccounts?: LinkedSocialMedia[];
+  isDeleted?: boolean;
   [key: string]: any;
 }
 
-export interface UpdateAccountDto {
-  firstName?: string;
-  lastName?: string;
-  email?: string;
-  phone?: string;
-  company?: string;
-  [key: string]: any;
-}
+export interface UpdateAccountDto extends Partial<CreateAccountDto> {}
 
 const accountService = {
   // === CRUD Operations ===
@@ -75,13 +143,29 @@ const accountService = {
   /**
    * Create a new account
    */
-  create: (data: CreateAccountDto) => apiClient.post<Account>('/accounts', data),
+  create: (data: CreateAccountDto) => {
+    // Convert customFields object to JSON string if needed
+    const payload = {
+      ...data,
+      customFields: typeof data.customFields === 'object' && data.customFields !== null
+        ? JSON.stringify(data.customFields)
+        : data.customFields
+    };
+    return apiClient.post<Account>('/accounts', payload);
+  },
   
   /**
    * Update an existing account
    */
-  update: (id: number, data: UpdateAccountDto) => 
-    apiClient.put<Account>(`/accounts/${id}`, data),
+  update: (id: number, data: UpdateAccountDto) => {
+    const payload = {
+      ...data,
+      customFields: typeof data.customFields === 'object' && data.customFields !== null
+        ? JSON.stringify(data.customFields)
+        : data.customFields
+    };
+    return apiClient.put<Account>(`/accounts/${id}`, payload);
+  },
   
   /**
    * Delete an account (soft delete)

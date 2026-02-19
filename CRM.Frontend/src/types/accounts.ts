@@ -13,44 +13,197 @@ import { BaseEntity } from './common';
  * Represents an organization or company in the CRM
  */
 export interface Account extends BaseEntity {
-  // Basic Information
-  category?: number;
+  // Core
+  id: number;
+  category: string; // "Individual" | "Organization"
+  isOrganization?: boolean;
+
+  // Individual fields
   firstName?: string;
   lastName?: string;
+  salutation?: string;
+  suffix?: string;
+  dateOfBirth?: string; // ISO string
+  gender?: string;
+  linkedContactId?: number;
+  linkedContactName?: string;
+
+  // Organization fields
   company?: string;
   legalName?: string;
+  dbaName?: string;
+  taxId?: string;
+  registrationNumber?: string;
+  yearFounded?: number;
+  primaryContactId?: number;
+  primaryContactName?: string;
+
+  // Contact Information
   email?: string;
+  secondaryEmail?: string;
   phone?: string;
+  mobilePhone?: string;
+  faxNumber?: string;
+  jobTitle?: string;
   website?: string;
-  
-  // Location
+
+  // Address - Billing
+  address?: string;
+  address2?: string;
   city?: string;
   state?: string;
+  zipCode?: string;
   country?: string;
-  postalCode?: string;
-  
+
+  // Address - Shipping
+  shippingAddress?: string;
+  shippingAddress2?: string;
+  shippingCity?: string;
+  shippingState?: string;
+  shippingZipCode?: string;
+  shippingCountry?: string;
+  shippingSameAsBilling?: boolean;
+
   // Business Information
   industry?: string;
+  subIndustry?: string;
+  numberOfEmployees?: number;
+  employeeRange?: string;
   annualRevenue?: number;
-  jobTitle?: string;
-  customerType?: number; // Enum: 'enterprise', 'mid-market', 'small-business'
+  revenueRange?: string;
   accountType?: string;
-  
-  // Status & Lifecycle
-  lifecycleStage?: number; // Enum: 'lead', 'customer', 'partner'
-  priority?: number; // 1: Low, 2: Medium, 3: High, 4: Critical
-  status?: string; // 'active', 'inactive', 'prospect'
-  
-  // Relationships
+  priority?: string;
+  stockSymbol?: string;
+  ownership?: string;
+
+  // Lifecycle & Status
+  lifecycleStage?: string;
+  leadSource?: string;
+  firstContactDate?: string;
+  conversionDate?: string;
+  lastActivityDate?: string;
+  nextFollowUpDate?: string;
+
+  // Financial
+  totalPurchases?: number;
+  accountBalance?: number;
+  creditLimit?: number;
+  paymentTerms?: string;
+  preferredPaymentMethod?: string;
+  currency?: string;
+  billingCycle?: string;
+
+  // Scoring
+  leadScore?: number;
+  accountHealthScore?: number;
+  npsScore?: number;
+  satisfactionRating?: number;
+
+  // Social & Communication
+  linkedInUrl?: string;
+  twitterHandle?: string;
+  facebookUrl?: string;
+  optInEmail?: boolean;
+  optInSms?: boolean;
+  optInPhone?: boolean;
+  preferredContactMethod?: string;
+  preferredContactTime?: string;
+  timezone?: string;
+  preferredLanguage?: string;
+
+  // Assignment
+  assignedToUserId?: number;
+  assignedToUserName?: string;
+  accountManagerId?: number;
+  accountManagerName?: string;
+  territory?: string;
+  region?: string;
+
+  // Classification
+  tags?: string;
+  segment?: string;
+  referralSource?: string;
+  referredByAccountId?: number;
+  referredByAccountName?: string;
   parentAccountId?: number;
-  ownerUserId?: number;
-  ownerName?: string;
   parentAccountName?: string;
-  
-  // Custom Fields
-  customField1?: string;
-  customField2?: string;
+
+  // Documentation
+  notes?: string;
+  internalNotes?: string;
+  description?: string;
+  customFields?: string | Record<string, any>;
+
+  // Metadata
+  createdAt?: string;
+  updatedAt?: string;
+  rowVersion?: string;
+
+  // Display
+  displayName?: string;
+
+  // Linked contacts (for organizations)
+  contacts?: AccountContact[];
+  contactCount?: number;
+
+  // Normalized Contact Info Collections
+  emailAddresses?: LinkedEmail[];
+  phoneNumbers?: LinkedPhone[];
+  addresses?: LinkedAddress[];
+  socialMediaAccounts?: LinkedSocialMedia[];
+
+  // Soft delete
+  isDeleted?: boolean;
+
   [key: string]: any; // Support for dynamic custom fields
+}
+
+export interface AccountContact {
+  id: number;
+  accountId: number;
+  contactId: number;
+  contactName: string;
+  contactEmail?: string;
+  contactPhone?: string;
+  role: string;
+  isPrimaryContact: boolean;
+  isDecisionMaker: boolean;
+  receivesBillingNotifications: boolean;
+  receivesMarketingEmails: boolean;
+  receivesTechnicalUpdates: boolean;
+}
+
+export interface LinkedEmail {
+  id: number;
+  email: string;
+  type?: string;
+  isPrimary?: boolean;
+}
+
+export interface LinkedPhone {
+  id: number;
+  phone: string;
+  type?: string;
+  isPrimary?: boolean;
+}
+
+export interface LinkedAddress {
+  id: number;
+  address: string;
+  address2?: string;
+  city?: string;
+  state?: string;
+  zipCode?: string;
+  country?: string;
+  type?: string;
+  isPrimary?: boolean;
+}
+
+export interface LinkedSocialMedia {
+  id: number;
+  platform: string;
+  handle?: string;
+  url?: string;
 }
 
 /**

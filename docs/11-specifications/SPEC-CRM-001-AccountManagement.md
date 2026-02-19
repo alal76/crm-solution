@@ -293,6 +293,18 @@ Manage comprehensive customer accounts that flexibly support B2B, B2C, and hybri
 ---
 
 ## 6. Inconsistencies & Issues
+### 6.4 Intentionally Omitted Fields and Rationale
+
+The following Account entity fields are intentionally omitted from certain layers or the UI, with rationale:
+
+| Field         | Omitted From | Rationale |
+|--------------|--------------|-----------|
+| IsDeleted    | Frontend UI  | Used for backend soft delete logic; not shown to end users to avoid confusion. Exposed in API/DTO for admin/reporting only. |
+| RowVersion   | Frontend UI  | Used for backend concurrency control; not relevant for end users. |
+| CustomFields | UI (partially) | Only surfaced if custom attributes are defined for the org; otherwise hidden for simplicity. |
+| SecondaryEmail, FaxNumber, SubIndustry | UI (partially) | Optional/rarely used fields; may be hidden in main forms but available in detail dialogs or via customization. |
+
+All other fields are present and mapped across backend, database, and frontend as required. Any further omissions should be documented here with business/UX justification.
 
 ### 6.1 Data Type Consistency
 | Location A | Location B | Type | Resolution | Status |

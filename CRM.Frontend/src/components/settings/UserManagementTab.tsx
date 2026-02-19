@@ -77,6 +77,7 @@ interface User {
   lastName: string;
   role: string;
   isActive: boolean;
+  isLocked?: boolean;
   emailVerified: boolean;
   departmentId: number | null;
   departmentName: string | null;
@@ -88,6 +89,8 @@ interface User {
   contact?: Contact;
   lastLoginDate: string | null;
   createdAt: string;
+  headerColor?: string;
+  photoUrl?: string;
 }
 
 interface UserGroup {
@@ -98,6 +101,32 @@ interface UserGroup {
 interface Department {
   id: number;
   name: string;
+}
+
+interface Role {
+  id: number;
+  name: string;
+  description: string;
+  hierarchyLevel: number;
+  isSystemDefined: boolean;
+  isActive: boolean;
+  permissionCount: number;
+  userCount: number;
+  createdAt: string;
+  updatedAt?: string;
+}
+
+interface Permission {
+  id: number;
+  name: string;
+  displayName: string;
+  module: string;
+  category: string;
+  description: string;
+  isSystemDefined: boolean;
+  isActive: boolean;
+  roleCount: number;
+  createdAt: string;
 }
 
 interface UserFormData {

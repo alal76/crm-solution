@@ -21,7 +21,13 @@ export interface Contact extends BaseEntity {
   reportingTo?: number; // Manager contact ID
   accountId?: number;
   accountName?: string;
-  status?: 'active' | 'inactive';
+  contactType?: 'Employee' | 'Partner' | 'Lead' | 'Customer' | 'Vendor' | 'Influencer' | 'Investor' | 'Media' | 'Other';
+  status?: 'active' | 'inactive' | 'pending' | 'blocked' | 'archived';
+  leadStatus?: string;
+  emailPrimary?: string;
+  phonePrimary?: string;
+  emailSecondary?: string;
+  phoneSecondary?: string;
   prefix?: string;
   middleName?: string;
   suffix?: string;
@@ -56,6 +62,7 @@ export interface CreateContactDto {
   phone?: string;
   jobTitle?: string;
   accountId?: number;
+  contactType?: string;
   status?: string;
 }
 
@@ -65,6 +72,7 @@ export interface UpdateContactDto {
   email?: string;
   phone?: string;
   jobTitle?: string;
+  contactType?: string;
   status?: string;
 }
 

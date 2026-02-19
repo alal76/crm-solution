@@ -19,6 +19,7 @@ public class UserDto
     public string LastName { get; set; } = string.Empty;
     public string Role { get; set; } = string.Empty;
     public bool IsActive { get; set; }
+    public bool IsLocked { get; set; }
     public int? DepartmentId { get; set; }
     public string? DepartmentName { get; set; }
     public int? UserProfileId { get; set; }
