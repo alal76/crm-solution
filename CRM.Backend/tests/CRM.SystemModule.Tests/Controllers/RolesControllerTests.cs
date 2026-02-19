@@ -41,7 +41,7 @@ public class RolesControllerTests
         var userId = 1;
         var userRoles = new List<UserRoleAssignment>
         {
-            new UserRoleAssignment { Id = 1, UserId = userId, RoleId = 1, IsActive = true, IsDeleted = false, AssignedAt = DateTime.UtcNow }
+            new UserRoleAssignment { Id = 1, UserId = userId, RoleId = 1, IsDeleted = false, AssignedAt = DateTime.UtcNow, EffectiveFrom = DateTime.UtcNow.AddDays(-1), EffectiveTo = DateTime.UtcNow.AddDays(1) }
         };
 
         var roles = new List<Role>
@@ -93,7 +93,7 @@ public class RolesControllerTests
 
         var userRoles = new List<UserRoleAssignment>
         {
-            new UserRoleAssignment { Id = 1, UserId = userId, RoleId = 1, IsActive = true, IsDeleted = false, AssignedAt = DateTime.UtcNow }
+            new UserRoleAssignment { Id = 1, UserId = userId, RoleId = 1, IsDeleted = false, AssignedAt = DateTime.UtcNow, EffectiveFrom = DateTime.UtcNow.AddDays(-1), EffectiveTo = DateTime.UtcNow.AddDays(1) }
         };
 
         var permissions = new List<Permission>
