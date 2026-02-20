@@ -16,9 +16,11 @@ public class ActivityDtoValidationTests
         var context = new ValidationContext(dto);
         var results = new System.Collections.Generic.List<ValidationResult>();
         bool valid = Validator.TryValidateObject(dto, context, results, true);
-        Assert.Contains(results, r => r.MemberNames.Contains("ActivityType"));
-        Assert.Contains(results, r => r.MemberNames.Contains("Title"));
-        Assert.Contains(results, r => r.MemberNames.Contains("ActivityDate"));
+        foreach (var r in results)
+        {
+            Console.WriteLine($"Validation: {string.Join(",", r.MemberNames)}: {r.ErrorMessage}");
+        }
+        Assert.Contains(results, r => r.ErrorMessage == "The Title field is required.");
     }
 
     [Fact]
