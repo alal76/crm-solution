@@ -30,11 +30,102 @@ export enum CampaignChannel {
   Other = 'other'
 }
 
+// Numeric enum mapping for API contract (backend CampaignType int)
+export enum CampaignTypeEnum {
+  Email = 0,
+  SMS = 1,
+  Social = 2,
+  WebPush = 3,
+  InApp = 4,
+  Direct = 5,
+  Phone = 6,
+  Other = 7
+}
+
+// Numeric enum mapping for API contract (backend CampaignStatus int)
+export enum CampaignStatusEnum {
+  Planning = 0,
+  Scheduled = 1,
+  Active = 2,
+  Paused = 3,
+  Completed = 4,
+  Archived = 5,
+  Cancelled = 6
+}
+
+// Numeric enum for Campaign objective (backend Objective int)
+export enum CampaignObjectiveEnum {
+  BrandAwareness = 0,
+  LeadGeneration = 1,
+  CustomerRetention = 2,
+  Upsell = 3,
+  ReEngagement = 4,
+  Other = 5
+}
+
+// Helper: Map numeric API status to string enum
+export function campaignStatusFromApi(val: number): CampaignStatus {
+  switch (val) {
+    case CampaignStatusEnum.Planning: return CampaignStatus.Planning;
+    case CampaignStatusEnum.Scheduled: return CampaignStatus.Scheduled;
+    case CampaignStatusEnum.Active: return CampaignStatus.Active;
+    case CampaignStatusEnum.Paused: return CampaignStatus.Paused;
+    case CampaignStatusEnum.Completed: return CampaignStatus.Completed;
+    case CampaignStatusEnum.Archived: return CampaignStatus.Archived;
+    case CampaignStatusEnum.Cancelled: return CampaignStatus.Cancelled;
+    default: return CampaignStatus.Planning;
+  }
+}
+
+// Helper: Map string enum to numeric API status
+export function campaignStatusToApi(val: CampaignStatus): number {
+  switch (val) {
+    case CampaignStatus.Planning: return CampaignStatusEnum.Planning;
+    case CampaignStatus.Scheduled: return CampaignStatusEnum.Scheduled;
+    case CampaignStatus.Active: return CampaignStatusEnum.Active;
+    case CampaignStatus.Paused: return CampaignStatusEnum.Paused;
+    case CampaignStatus.Completed: return CampaignStatusEnum.Completed;
+    case CampaignStatus.Archived: return CampaignStatusEnum.Archived;
+    case CampaignStatus.Cancelled: return CampaignStatusEnum.Cancelled;
+    default: return CampaignStatusEnum.Planning;
+  }
+}
+
+// Helper: Map numeric API type to string channel enum
+export function campaignTypeFromApi(val: number): CampaignChannel {
+  switch (val) {
+    case CampaignTypeEnum.Email: return CampaignChannel.Email;
+    case CampaignTypeEnum.SMS: return CampaignChannel.SMS;
+    case CampaignTypeEnum.Social: return CampaignChannel.Social;
+    case CampaignTypeEnum.WebPush: return CampaignChannel.WebPush;
+    case CampaignTypeEnum.InApp: return CampaignChannel.InApp;
+    case CampaignTypeEnum.Direct: return CampaignChannel.Direct;
+    case CampaignTypeEnum.Phone: return CampaignChannel.Phone;
+    default: return CampaignChannel.Other;
+  }
+}
+
+// Helper: Map string channel enum to numeric API type
+export function campaignTypeToApi(val: CampaignChannel): number {
+  switch (val) {
+    case CampaignChannel.Email: return CampaignTypeEnum.Email;
+    case CampaignChannel.SMS: return CampaignTypeEnum.SMS;
+    case CampaignChannel.Social: return CampaignTypeEnum.Social;
+    case CampaignChannel.WebPush: return CampaignTypeEnum.WebPush;
+    case CampaignChannel.InApp: return CampaignTypeEnum.InApp;
+    case CampaignChannel.Direct: return CampaignTypeEnum.Direct;
+    case CampaignChannel.Phone: return CampaignTypeEnum.Phone;
+    default: return CampaignTypeEnum.Other;
+  }
+}
+
 export interface Campaign extends BaseEntity {
   name: string;
   description?: string;
   status: CampaignStatus;
+  statusValue?: number;        // Numeric API value (use CampaignStatusEnum)
   channel: CampaignChannel;
+  campaignType?: number;       // Numeric API value (use CampaignTypeEnum)
   startDate: string;
   endDate?: string;
   budget?: number;
@@ -50,6 +141,7 @@ export interface Campaign extends BaseEntity {
   // Identity
   campaignCode?: string;
   objective?: string;
+  objectiveValue?: number;     // Numeric API value (use CampaignObjectiveEnum)
   objectiveType?: string;
   priority?: number;
 
@@ -148,18 +240,27 @@ export interface CampaignMetrics {
 export interface CreateCampaignDto {
   name: string;
   description?: string;
-  channel: CampaignChannel;
+  channel?: CampaignChannel;   // UI string enum (convert with campaignTypeToApi() before sending)
+  campaignType?: number;       // Numeric API value sent to backend (use CampaignTypeEnum)
+  objectiveValue?: number;     // Numeric objective sent to backend (use CampaignObjectiveEnum)
+  priority?: number;
   startDate: string;
   endDate?: string;
   budget?: number;
   targetAudience?: string;
+  segmentCriteria?: string;
+  tags?: string;
+  ownerId?: number;
   templateId?: number;
 }
 
 export interface UpdateCampaignDto {
   status?: CampaignStatus;
+  statusValue?: number;        // Numeric API value (use campaignStatusToApi())
+  objectiveValue?: number;
   endDate?: string;
-  budget?: string;
+  budget?: number;             // Fixed: was incorrectly typed as string
+  name?: string;
 }
 
 // ============================================================================

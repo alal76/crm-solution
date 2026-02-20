@@ -205,51 +205,6 @@ export interface LinkedSocialMedia {
 }
 
 /**
- * Create Account DTO
- * Payload for POST /api/accounts
- */
-export interface CreateAccountDto {
-  category?: number;
-  firstName?: string;
-  lastName?: string;
-  email?: string;
-  phone?: string;
-  company?: string;
-  customerType?: number;
-  lifecycleStage?: number;
-  industry?: string;
-  website?: string;
-  city?: string;
-  state?: string;
-  country?: string;
-  postalCode?: string;
-  [key: string]: any;
-}
-
-/**
- * Update Account DTO
- * Payload for PUT/PATCH /api/accounts/{id}
- */
-export interface UpdateAccountDto {
-  firstName?: string;
-  lastName?: string;
-  email?: string;
-  phone?: string;
-  company?: string;
-  industry?: string;
-  website?: string;
-  city?: string;
-  state?: string;
-  country?: string;
-  postalCode?: string;
-  jobTitle?: string;
-  lifecycleStage?: number;
-  priority?: number;
-  status?: string;
-  [key: string]: any;
-}
-
-/**
  * Account search result
  */
 export interface AccountSearchResult {

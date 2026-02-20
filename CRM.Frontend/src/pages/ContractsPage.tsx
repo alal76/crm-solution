@@ -105,6 +105,14 @@ interface ContractForm {
   parentContractId: number | null;
   opportunityId: number | null;
   quoteId: number | null;
+  contractFileUrl: string;
+  signedContractFileUrl: string;
+  approvedByUserId: number | null;
+  approvedDate: string;
+  rejectionReason: string;
+  suspensionReason: string;
+  suspendedDate: string;
+  terminationClause: string;
 }
 
 // ==================== TYPES ====================
@@ -204,6 +212,14 @@ function ContractsPage() {
     parentContractId: null,
     opportunityId: null,
     quoteId: null,
+    contractFileUrl: '',
+    signedContractFileUrl: '',
+    approvedByUserId: null,
+    approvedDate: '',
+    rejectionReason: '',
+    suspensionReason: '',
+    suspendedDate: '',
+    terminationClause: '',
   };
   const [formData, setFormData] = useState<ContractForm>(emptyForm);
 
@@ -261,6 +277,14 @@ function ContractsPage() {
         parentContractId: contract.parentContractId || null,
         opportunityId: contract.opportunityId || null,
         quoteId: contract.quoteId || null,
+        contractFileUrl: (contract as any).contractFileUrl || '',
+        signedContractFileUrl: (contract as any).signedContractFileUrl || '',
+        approvedByUserId: (contract as any).approvedByUserId || null,
+        approvedDate: (contract as any).approvedDate?.split('T')[0] || '',
+        rejectionReason: (contract as any).rejectionReason || '',
+        suspensionReason: (contract as any).suspensionReason || '',
+        suspendedDate: (contract as any).suspendedDate?.split('T')[0] || '',
+        terminationClause: (contract as any).terminationClause || '',
       });
     } else {
       setEditingId(null);
@@ -849,6 +873,107 @@ function ContractsPage() {
                         {' '}Auto Renew
                       </label>
                     </Box>
+                  </Grid>
+                </Grid>
+              </AccordionDetails>
+            </Accordion>
+
+            {/* Accordion for Documents & Approval */}
+            <Accordion sx={{ mt: 2 }}>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <Typography variant="subtitle1" fontWeight={600}>Documents &amp; Approval</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Grid container spacing={2}>
+                  <Grid item xs={12}>
+                    <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>Document URLs</Typography>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      label="Contract File URL"
+                      name="contractFileUrl"
+                      value={formData.contractFileUrl}
+                      onChange={handleInputChange}
+                      placeholder="https://..."
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      label="Signed Contract File URL"
+                      name="signedContractFileUrl"
+                      value={formData.signedContractFileUrl}
+                      onChange={handleInputChange}
+                      placeholder="https://..."
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <Typography variant="subtitle2" color="text.secondary" sx={{ mt: 1, mb: 1 }}>Approval</Typography>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      type="number"
+                      label="Approved By User ID"
+                      value={formData.approvedByUserId || ''}
+                      onChange={(e) => setFormData(prev => ({ ...prev, approvedByUserId: e.target.value ? parseInt(e.target.value) : null }))}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      type="date"
+                      label="Approved Date"
+                      name="approvedDate"
+                      value={formData.approvedDate}
+                      onChange={handleInputChange}
+                      InputLabelProps={{ shrink: true }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      label="Rejection Reason"
+                      name="rejectionReason"
+                      value={formData.rejectionReason}
+                      onChange={handleInputChange}
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <Typography variant="subtitle2" color="text.secondary" sx={{ mt: 1, mb: 1 }}>Suspension</Typography>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      label="Suspension Reason"
+                      name="suspensionReason"
+                      value={formData.suspensionReason}
+                      onChange={handleInputChange}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      type="date"
+                      label="Suspended Date"
+                      name="suspendedDate"
+                      value={formData.suspendedDate}
+                      onChange={handleInputChange}
+                      InputLabelProps={{ shrink: true }}
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      multiline
+                      rows={4}
+                      label="Termination Clause"
+                      name="terminationClause"
+                      value={formData.terminationClause}
+                      onChange={handleInputChange}
+                      placeholder="Describe the conditions under which this contract may be terminated"
+                    />
                   </Grid>
                 </Grid>
               </AccordionDetails>

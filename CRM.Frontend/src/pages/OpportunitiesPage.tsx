@@ -57,9 +57,10 @@ import AdvancedSearch, { SearchField, SearchFilter, filterData } from '../compon
 import { useAccountContext } from '../contexts/AccountContextProvider';
 import { useProfile } from '../contexts/ProfileContext';
 import { BaseEntity } from '../types';
-import { 
-  DialogError, 
-  DialogSuccess, 
+import { Opportunity } from '../types/crm';
+import {
+  DialogError,
+  DialogSuccess,
   ActionButton,
   DialogHeader,
   RelatedEntitiesPanel,
@@ -88,28 +89,6 @@ const SEARCH_FIELDS: SearchField[] = [
 
 const SEARCHABLE_FIELDS = ['name', 'solutionNotes', 'region'];
 
-interface Opportunity extends BaseEntity {
-  name: string;
-  stage: number;
-  probability: number;
-  amount: number;
-  currency?: string;
-  expectedCloseDate?: string;
-  pricingModel?: number;
-  termLengthMonths?: number;
-  solutionNotes?: string;
-  qualificationReason?: number;
-  qualificationNotes?: string;
-  region?: string;
-  accountId: number;
-  primaryContactId?: number;
-  salesOwnerId?: number;
-  leadId?: number;
-  // Navigation properties from API
-  accountName?: string;
-  primaryContactName?: string;
-  salesOwnerName?: string;
-}
 
 interface Account extends BaseEntity {
   firstName?: string;

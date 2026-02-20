@@ -88,6 +88,17 @@ interface PaymentForm {
   paymentMethod: PaymentMethod;
   reference: string;
   notes: string;
+  cardBrand: string;
+  cardLast4: string;
+  cardExpMonth: number;
+  cardExpYear: number;
+  cardholderName: string;
+  bankName: string;
+  accountLast4: string;
+  accountType: string;
+  gateway: string;
+  gatewayResponseCode: string;
+  internalNotes: string;
 }
 
 // ==================== CONSTANTS ====================
@@ -159,6 +170,17 @@ function PaymentsPage() {
     paymentMethod: PaymentMethod.CreditCard,
     reference: '',
     notes: '',
+    cardBrand: '',
+    cardLast4: '',
+    cardExpMonth: 0,
+    cardExpYear: 0,
+    cardholderName: '',
+    bankName: '',
+    accountLast4: '',
+    accountType: '',
+    gateway: '',
+    gatewayResponseCode: '',
+    internalNotes: '',
   };
   const [formData, setFormData] = useState<PaymentForm>(emptyForm);
 
@@ -481,6 +503,147 @@ function PaymentsPage() {
                     name="notes"
                     value={formData.notes}
                     onChange={handleInputChange}
+                  />
+                </Grid>
+              </Grid>
+            </AccordionDetails>
+          </Accordion>
+
+          {/* Accordion for Payment Details */}
+          <Accordion sx={{ mt: 2 }}>
+            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+              <Typography variant="subtitle1" fontWeight={600}>Payment Details</Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <Grid container spacing={2}>
+                <Grid item xs={12}>
+                  <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>Card Information</Typography>
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Card Brand"
+                    name="cardBrand"
+                    value={formData.cardBrand}
+                    onChange={handleInputChange}
+                    placeholder="e.g. Visa, Mastercard"
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Card Last 4"
+                    name="cardLast4"
+                    value={formData.cardLast4}
+                    onChange={handleInputChange}
+                    inputProps={{ maxLength: 4 }}
+                    placeholder="1234"
+                  />
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <TextField
+                    fullWidth
+                    type="number"
+                    label="Card Exp Month"
+                    name="cardExpMonth"
+                    value={formData.cardExpMonth || ''}
+                    onChange={handleInputChange}
+                    inputProps={{ min: 1, max: 12 }}
+                    placeholder="MM"
+                  />
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <TextField
+                    fullWidth
+                    type="number"
+                    label="Card Exp Year"
+                    name="cardExpYear"
+                    value={formData.cardExpYear || ''}
+                    onChange={handleInputChange}
+                    inputProps={{ min: 2020, max: 2099 }}
+                    placeholder="YYYY"
+                  />
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <TextField
+                    fullWidth
+                    label="Cardholder Name"
+                    name="cardholderName"
+                    value={formData.cardholderName}
+                    onChange={handleInputChange}
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <Typography variant="subtitle2" color="text.secondary" sx={{ mt: 1, mb: 1 }}>Bank Account</Typography>
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <TextField
+                    fullWidth
+                    label="Bank Name"
+                    name="bankName"
+                    value={formData.bankName}
+                    onChange={handleInputChange}
+                  />
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <TextField
+                    fullWidth
+                    label="Account Last 4"
+                    name="accountLast4"
+                    value={formData.accountLast4}
+                    onChange={handleInputChange}
+                    inputProps={{ maxLength: 4 }}
+                    placeholder="1234"
+                  />
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <FormControl fullWidth>
+                    <InputLabel>Account Type</InputLabel>
+                    <Select
+                      name="accountType"
+                      value={formData.accountType}
+                      onChange={handleSelectChange}
+                      label="Account Type"
+                    >
+                      <MenuItem value="">None</MenuItem>
+                      <MenuItem value="checking">Checking</MenuItem>
+                      <MenuItem value="savings">Savings</MenuItem>
+                      <MenuItem value="business">Business</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12}>
+                  <Typography variant="subtitle2" color="text.secondary" sx={{ mt: 1, mb: 1 }}>Gateway</Typography>
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Gateway"
+                    name="gateway"
+                    value={formData.gateway}
+                    onChange={handleInputChange}
+                    placeholder="e.g. Stripe, Braintree"
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Gateway Response Code"
+                    name="gatewayResponseCode"
+                    value={formData.gatewayResponseCode}
+                    onChange={handleInputChange}
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <TextField
+                    fullWidth
+                    multiline
+                    rows={3}
+                    label="Internal Notes"
+                    name="internalNotes"
+                    value={formData.internalNotes}
+                    onChange={handleInputChange}
+                    placeholder="Internal notes (not visible to customer)"
                   />
                 </Grid>
               </Grid>

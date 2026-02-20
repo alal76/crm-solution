@@ -110,19 +110,11 @@ export interface Lead extends BaseEntity {
   jobTitle?: string;
   status: LeadStatus;
   source?: LeadSource;
-  rating?: number; // 1-5
-  industry?: string;
-  employees?: number;
-  annualRevenue?: number;
   website?: string;
   leadScore?: number; // ML based lead scoring
   ownerId?: number;
   ownerName?: string;
-  priority?: 'high' | 'medium' | 'low';
   notes?: string;
-  convertedAccountId?: number;
-  convertedOpportunityId?: number;
-  convertedDate?: string;
   fitScore?: number;          // ML fit score from backend
   engagementScore?: number;   // ML engagement score from backend
   qualificationNotes?: string; // SDR qualification notes
@@ -152,9 +144,7 @@ export interface CreateLeadDto {
 
 export interface UpdateLeadDto {
   status?: LeadStatus;
-  rating?: number;
   ownerId?: number;
-  priority?: string;
   notes?: string;
   fitScore?: number;
   engagementScore?: number;
@@ -175,12 +165,12 @@ export interface LeadConversionResult {
 // ============================================================================
 
 export enum OpportunityStage {
-  Prospecting = 'prospecting',
-  Qualification = 'qualification',
-  Proposal = 'proposal',
-  Negotiation = 'negotiation',
-  Won = 'won',
-  Lost = 'lost'
+  Discovery = 0,
+  Qualification = 1,
+  Proposal = 2,
+  Negotiation = 3,
+  Won = 4,
+  Lost = 5
 }
 
 export interface Opportunity extends BaseEntity {
@@ -191,19 +181,11 @@ export interface Opportunity extends BaseEntity {
   primaryContactName?: string;
   ownerId?: number;
   ownerName?: string;
-  stage: OpportunityStage;
+  stage: number;               // OpportunityStage numeric value
   amount: number;
-  probability?: number; // 0-100%
-  expectedCloseDate: string;
-  actualCloseDate?: string;
-  reason?: string; // Reason for won/lost
-  nextStep?: string;
-  description?: string;
+  probability: number;         // 0-100%
+  expectedCloseDate?: string;
   products?: OpportunityProduct[];
-  competitors?: string[];
-  lossReason?: string;
-  leadSource?: string;
-  type?: 'new_business' | 'expansion' | 'renewal' | 'replacement';
   currency?: string;           // ISO currency code (default USD)
   pricingModel?: number;       // OpportunityPricingModel: 0=Subscription, 1=OneTime, 2=UsageBased, 3=Hybrid
   termLengthMonths?: number;   // Contract term length (1-120)
@@ -233,8 +215,8 @@ export interface CreateOpportunityDto {
   primaryContactId?: number;
   ownerId?: number;
   amount: number;
-  expectedCloseDate: string;
-  stage?: OpportunityStage;
+  expectedCloseDate?: string;
+  stage?: number;              // OpportunityStage numeric value
   currency?: string;
   pricingModel?: number;
   termLengthMonths?: number;
@@ -242,12 +224,10 @@ export interface CreateOpportunityDto {
 }
 
 export interface UpdateOpportunityDto {
-  stage?: OpportunityStage;
+  stage?: number;              // OpportunityStage numeric value
   amount?: number;
   probability?: number;
   expectedCloseDate?: string;
-  reason?: string;
-  nextStep?: string;
   currency?: string;
   pricingModel?: number;
   termLengthMonths?: number;
@@ -357,29 +337,40 @@ export function activityTypeToApi(val: ActivityType): number {
 
 export interface Activity extends BaseEntity {
   type: ActivityType;
+  activityType?: number;       // Numeric API contract value (use ActivityTypeEnum)
   subject: string;
+  title?: string;              // Activity title (alias: subject)
   description?: string;
+  details?: string;            // Extended description / body text
   entityType: 'Account' | 'Contact' | 'Lead' | 'Opportunity';
   entityId: number;
   activityDate: string;
   dueDate?: string;
   status: 'open' | 'completed' | 'cancelled';
   priority?: 'low' | 'normal' | 'high';
+  durationMinutes?: number;    // Duration in minutes
   ownerId?: number;
   ownerName?: string;
-  callDuration?: number; // Minutes
+  userId?: number;             // User who performed activity (alias: ownerId)
+  userName?: string;           // Display name of user
+  entityName?: string;         // Display name of related entity
+  callDuration?: number;       // Minutes (alias: durationMinutes for calls)
   direction?: 'inbound' | 'outbound';
   participants?: string[];
   location?: string;
   attachments?: string[];
-  title?: string;              // Activity title (alias: subject)
-  userId?: number;             // User who performed activity (alias: ownerId)
-  userName?: string;           // Display name of user
-  entityName?: string;         // Display name of related entity
   accountId?: number;          // Related account
   contactId?: number;          // Related contact
   opportunityId?: number;      // Related opportunity
   campaignId?: number;         // Related campaign
+  secondaryEntityType?: string; // Secondary related entity type
+  secondaryEntityId?: number;   // Secondary related entity ID
+  secondaryEntityName?: string; // Secondary related entity display name
+  productId?: number;          // Related product
+  taskId?: number;             // Related CRM task
+  quoteId?: number;            // Related quote
+  interactionId?: number;      // Related interaction
+  noteId?: number;             // Related note
   isSystem?: boolean;          // System-generated activity
   isPrivate?: boolean;         // Private/internal activity
   isImportant?: boolean;       // Flagged as important
@@ -392,13 +383,28 @@ export interface Activity extends BaseEntity {
 }
 
 export interface CreateActivityDto {
-  type: ActivityType;
-  subject: string;
+  // Legacy UI fields (kept for backward compatibility with existing forms)
+  type?: ActivityType;
+  subject?: string;
   description?: string;
-  entityType: 'Account' | 'Contact' | 'Lead' | 'Opportunity';
-  entityId: number;
+  entityType?: 'Account' | 'Contact' | 'Lead' | 'Opportunity';
+  entityId?: number;
+  // Backend API fields
+  activityType?: number;       // Numeric ActivityType (use ActivityTypeEnum)
+  title?: string;              // Activity title (maps to backend Title)
+  details?: string;            // Extended description
   activityDate: string;
   dueDate?: string;
+  durationMinutes?: number;
+  userId?: number;
+  accountId?: number;
+  contactId?: number;
+  opportunityId?: number;
+  isSystem?: boolean;
+  isPrivate?: boolean;
+  isImportant?: boolean;
+  tags?: string;
+  source?: string;
 }
 
 // ============================================================================
@@ -454,7 +460,7 @@ export interface CrmTask extends BaseEntity {
 }
 
 export interface CreateCrmTaskDto {
-  subject: string;
+  title: string;               // Maps to backend DTO Title (entity: Subject)
   description?: string;
   taskType: number;
   priority?: number;
@@ -470,7 +476,7 @@ export interface CreateCrmTaskDto {
 }
 
 export interface UpdateCrmTaskDto {
-  subject?: string;
+  title?: string;              // Maps to backend DTO Title (entity: Subject)
   description?: string;
   status?: number;
   priority?: number;

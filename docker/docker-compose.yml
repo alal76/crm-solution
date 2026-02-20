@@ -71,8 +71,8 @@ services:
   # API Tier (Application/Business Logic)
   api:
     build:
-      context: .
-      dockerfile: Dockerfile.backend
+      context: ..
+      dockerfile: docker/Dockerfile.backend
     image: crm-api:latest
     container_name: crm-api
     restart: unless-stopped
@@ -172,8 +172,8 @@ services:
   # Frontend Tier (Presentation)
   frontend:
     build:
-      context: .
-      dockerfile: Dockerfile.frontend
+      context: ..
+      dockerfile: docker/Dockerfile.frontend
       args:
         BUILD_DATE: "2026-01-20T12:00:00Z"
         REACT_APP_API_URL: ${REACT_APP_API_URL}

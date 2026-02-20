@@ -284,6 +284,16 @@ export interface Order extends BaseEntity {
   discountCode?: string;
   couponCode?: string;
 
+  // Revenue recognition (SaaS/subscription)
+  mrr?: number;                // Monthly Recurring Revenue
+  arr?: number;                // Annual Recurring Revenue
+  tcv?: number;                // Total Contract Value
+  acv?: number;                // Annual Contract Value
+  baseCurrencyAmount?: number; // Amount in base currency (when multi-currency)
+
+  // Additional workflow dates
+  holdDate?: string;           // Date order was placed on hold
+
   // Classification
   tags?: string;
   category?: string;

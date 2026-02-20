@@ -116,11 +116,16 @@ interface InvoiceForm {
   taxRate: number;
   internalNotes: string;
   billingName: string;
+  billingCompany: string;
   billingStreet: string;
   billingCity: string;
   billingState: string;
   billingPostalCode: string;
   billingCountry: string;
+  billingEmail: string;
+  billingPhone: string;
+  earlyPaymentDiscountPercent: number;
+  earlyPaymentDiscountDays: number;
 }
 
 // ==================== CONSTANTS ====================
@@ -185,11 +190,16 @@ function InvoicesPage() {
     taxRate: 0,
     internalNotes: '',
     billingName: '',
+    billingCompany: '',
     billingStreet: '',
     billingCity: '',
     billingState: '',
     billingPostalCode: '',
     billingCountry: '',
+    billingEmail: '',
+    billingPhone: '',
+    earlyPaymentDiscountPercent: 0,
+    earlyPaymentDiscountDays: 0,
   };
   const [formData, setFormData] = useState<InvoiceForm>(emptyForm);
 
@@ -247,11 +257,16 @@ function InvoicesPage() {
         taxRate: (invoice as any).taxRate || 0,
         internalNotes: (invoice as any).internalNotes || '',
         billingName: (invoice as any).billingName || '',
+        billingCompany: (invoice as any).billingCompany || '',
         billingStreet: (invoice as any).billingStreet || '',
         billingCity: (invoice as any).billingCity || '',
         billingState: (invoice as any).billingState || '',
         billingPostalCode: (invoice as any).billingPostalCode || '',
         billingCountry: (invoice as any).billingCountry || '',
+        billingEmail: (invoice as any).billingEmail || '',
+        billingPhone: (invoice as any).billingPhone || '',
+        earlyPaymentDiscountPercent: (invoice as any).earlyPaymentDiscountPercent || 0,
+        earlyPaymentDiscountDays: (invoice as any).earlyPaymentDiscountDays || 0,
       });
       fetchLineItems(invoice.id);
     } else {
@@ -632,27 +647,6 @@ function InvoicesPage() {
                     />
                   </Grid>
                   <Grid item xs={12}>
-                    <Typography variant="subtitle2" color="text.secondary" sx={{ mt: 1, mb: 1 }}>Billing Address</Typography>
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <TextField fullWidth label="Billing Name" name="billingName" value={formData.billingName} onChange={handleInputChange} />
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <TextField fullWidth label="Street" name="billingStreet" value={formData.billingStreet} onChange={handleInputChange} />
-                  </Grid>
-                  <Grid item xs={12} md={4}>
-                    <TextField fullWidth label="City" name="billingCity" value={formData.billingCity} onChange={handleInputChange} />
-                  </Grid>
-                  <Grid item xs={12} md={4}>
-                    <TextField fullWidth label="State" name="billingState" value={formData.billingState} onChange={handleInputChange} />
-                  </Grid>
-                  <Grid item xs={12} md={4}>
-                    <TextField fullWidth label="Postal Code" name="billingPostalCode" value={formData.billingPostalCode} onChange={handleInputChange} />
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <TextField fullWidth label="Country" name="billingCountry" value={formData.billingCountry} onChange={handleInputChange} />
-                  </Grid>
-                  <Grid item xs={12}>
                     <TextField
                       fullWidth
                       multiline
@@ -662,6 +656,122 @@ function InvoicesPage() {
                       value={formData.internalNotes}
                       onChange={handleInputChange}
                       placeholder="Internal notes (not visible to customer)"
+                    />
+                  </Grid>
+                </Grid>
+              </AccordionDetails>
+            </Accordion>
+
+            {/* Accordion for Billing Information */}
+            <Accordion sx={{ mt: 2 }}>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <Typography variant="subtitle1" fontWeight={600}>Billing Information</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      label="Billing Name"
+                      name="billingName"
+                      value={formData.billingName}
+                      onChange={handleInputChange}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      label="Billing Company"
+                      name="billingCompany"
+                      value={formData.billingCompany}
+                      onChange={handleInputChange}
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      label="Street"
+                      name="billingStreet"
+                      value={formData.billingStreet}
+                      onChange={handleInputChange}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    <TextField
+                      fullWidth
+                      label="City"
+                      name="billingCity"
+                      value={formData.billingCity}
+                      onChange={handleInputChange}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    <TextField
+                      fullWidth
+                      label="State"
+                      name="billingState"
+                      value={formData.billingState}
+                      onChange={handleInputChange}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    <TextField
+                      fullWidth
+                      label="Postal Code"
+                      name="billingPostalCode"
+                      value={formData.billingPostalCode}
+                      onChange={handleInputChange}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      label="Country"
+                      name="billingCountry"
+                      value={formData.billingCountry}
+                      onChange={handleInputChange}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      type="email"
+                      label="Billing Email"
+                      name="billingEmail"
+                      value={formData.billingEmail}
+                      onChange={handleInputChange}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      label="Billing Phone"
+                      name="billingPhone"
+                      value={formData.billingPhone}
+                      onChange={handleInputChange}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      type="number"
+                      label="Early Payment Discount %"
+                      name="earlyPaymentDiscountPercent"
+                      value={formData.earlyPaymentDiscountPercent}
+                      onChange={handleInputChange}
+                      inputProps={{ min: 0, max: 100, step: 0.01 }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      type="number"
+                      label="Early Payment Discount Days"
+                      name="earlyPaymentDiscountDays"
+                      value={formData.earlyPaymentDiscountDays}
+                      onChange={handleInputChange}
+                      inputProps={{ min: 0, step: 1 }}
+                      helperText="Number of days within which early discount applies"
                     />
                   </Grid>
                 </Grid>

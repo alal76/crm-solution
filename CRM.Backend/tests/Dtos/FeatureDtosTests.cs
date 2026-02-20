@@ -135,8 +135,8 @@ public class CampaignDtoTests
             Name = "Summer Campaign",
             CampaignType = 0,
             Budget = 5000m,
-            StartDate = DateTime.UtcNow,
-            EndDate = DateTime.UtcNow.AddDays(30)
+            StartDate = DateTime.UtcNow.ToString("o"),
+            EndDate = DateTime.UtcNow.AddDays(30).ToString("o")
         };
 
         // Assert

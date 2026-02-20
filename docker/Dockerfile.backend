@@ -16,6 +16,7 @@ FROM mcr.microsoft.com/dotnet/sdk:10.0 AS builder
 WORKDIR /src
 
 # Copy only project files first for layer caching
+# Copy solution file from CRM.Backend directory (context is workspace root)
 COPY CRM.Backend/CRM.sln ./
 COPY CRM.Backend/src/CRM.Core/CRM.Core.csproj ./src/CRM.Core/
 COPY CRM.Backend/src/CRM.Infrastructure/CRM.Infrastructure.csproj ./src/CRM.Infrastructure/

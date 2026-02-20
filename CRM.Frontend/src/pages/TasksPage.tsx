@@ -17,6 +17,7 @@ import apiClient from '../services/apiClient';
 import { TabPanel, DialogError, DialogSuccess, ActionButton } from '../components/common';
 import { useApiState } from '../hooks/useApiState';
 import { BaseEntity } from '../types';
+import { CrmTask } from '../types/crm';
 import {
   TASK_STATUS_OPTIONS,
   TASK_PRIORITY_OPTIONS,
@@ -109,26 +110,6 @@ interface QueueResponse {
   overdueCount: number;
 }
 
-interface CrmTask extends BaseEntity {
-  title: string;
-  description?: string;
-  taskType: number;
-  status: number;
-  priority: number;
-  dueDate?: string;
-  startDate?: string;
-  completedDate?: string;
-  estimatedHours?: number;
-  actualHours?: number;
-  percentComplete: number;
-  assignedToUserId?: number;
-  assignedToUser?: { firstName: string; lastName: string };
-  accountId?: number;
-  opportunityId?: number;
-  location?: string;
-  reminderDate?: string;
-  tags?: string;
-}
 
 interface TaskForm {
   title: string;
@@ -245,17 +226,18 @@ function TasksPage() {
         title: task.title, description: task.description || '',
         taskType: task.taskType, status: task.status, priority: task.priority,
         dueDate: task.dueDate?.split('T')[0] || '', startDate: task.startDate?.split('T')[0] || '',
-        estimatedHours: task.estimatedHours || 0, actualHours: task.actualHours || 0,
+        estimatedHours: task.estimatedMinutes ? task.estimatedMinutes / 60 : 0,
+        actualHours: task.actualMinutes ? task.actualMinutes / 60 : 0,
         percentComplete: task.percentComplete, assignedToUserId: task.assignedToUserId || '',
         accountId: task.accountId || '', opportunityId: task.opportunityId || '',
-        location: task.location || '', reminderDate: task.reminderDate?.split('T')[0] || '',
+        location: '', reminderDate: task.reminderDate?.split('T')[0] || '',
         tags: task.tags || '',
-        category: (task as any).category || '',
-        isRecurring: (task as any).isRecurring || false,
-        hasReminder: (task as any).hasReminder || false,
-        recurrenceEndDate: (task as any).recurrenceEndDate?.split('T')[0] || '',
-        contactId: (task as any).contactId || '',
-        campaignId: (task as any).campaignId || '',
+        category: task.category || '',
+        isRecurring: task.isRecurring || false,
+        hasReminder: task.hasReminder || false,
+        recurrenceEndDate: task.recurrenceEndDate?.split('T')[0] || '',
+        contactId: task.contactId || '',
+        campaignId: task.campaignId || '',
       });
     } else {
       setEditingId(null);

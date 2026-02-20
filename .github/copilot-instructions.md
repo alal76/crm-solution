@@ -51,6 +51,7 @@ To ensure ongoing data model and contract integrity, the following architecture 
 - **Field Naming Conventions:**
   - Avoid mismatches (e.g., subject/title, estimatedMinutes/estimatedHours).
   - Follow the DTO naming standard as defined in FIELD_GAP_REMEDIATION_PLAN.md.
+  - Implement defensive coding practices to handle potential nullability and type mismatches gracefully.
 
 - **UI Accordion Strategy:**
   - All forms must use a two-section layout: core fields in the main form, optional/secondary fields in a collapsible "Additional Information" accordion at the bottom.
