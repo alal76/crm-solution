@@ -3,7 +3,7 @@ import {
   Box, Card, CardContent, Typography, Button, Table, TableBody, TableCell, TableContainer, TableHead,
   TableRow, Dialog, DialogTitle, DialogContent, DialogActions, Alert, CircularProgress,
   TextField, Container, FormControl, InputLabel, Select, MenuItem, Chip, Grid,
-  IconButton, Tooltip, Tabs, Tab, SelectChangeEvent, Badge
+  IconButton, Tooltip, Tabs, Tab, SelectChangeEvent, Badge, Switch, FormControlLabel
 } from '@mui/material';
 import {
   Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, 
@@ -146,6 +146,12 @@ interface TaskForm {
   location: string;
   reminderDate: string;
   tags: string;
+  category: string;
+  isRecurring: boolean;
+  hasReminder: boolean;
+  recurrenceEndDate: string;
+  contactId: number | '';
+  campaignId: number | '';
 }
 
 interface User extends BaseEntity {
@@ -175,6 +181,7 @@ function TasksPage() {
     dueDate: '', startDate: '', estimatedHours: 0, actualHours: 0,
     percentComplete: 0, assignedToUserId: '', accountId: '', opportunityId: '',
     location: '', reminderDate: '', tags: '',
+    category: '', isRecurring: false, hasReminder: false, recurrenceEndDate: '', contactId: '', campaignId: '',
   };
   const [formData, setFormData] = useState<TaskForm>(emptyForm);
 
@@ -601,6 +608,12 @@ function TasksPage() {
                               location: '',
                               reminderDate: task.reminderDate?.split('T')[0] || '',
                               tags: task.tags || '',
+                              category: task.category || '',
+                              isRecurring: task.isRecurring || false,
+                              hasReminder: task.hasReminder || false,
+                              recurrenceEndDate: task.recurrenceEndDate?.split('T')[0] || '',
+                              contactId: task.contactId || '',
+                              campaignId: task.campaignId || '',
                             });
                             setOpenDialog(true);
                           }).catch(() => setError('Failed to load task details'));
@@ -638,6 +651,7 @@ function TasksPage() {
             <Tab label="Basic Info" />
             <Tab label="Scheduling" />
             <Tab label="Assignment" />
+            <Tab label="Additional" />
           </Tabs>
         </Box>
         <DialogContent sx={{ pt: 2, minHeight: 350 }}>
@@ -721,6 +735,67 @@ function TasksPage() {
                   value={formData.assignedToUserId}
                   onChange={handleSelectChange}
                   label="Assigned To"
+                  showAddNew={false}
+                />
+              </Grid>
+            </Grid>
+          </TabPanel>
+
+          <TabPanel value={dialogTab} index={3}>
+            <Grid container spacing={2}>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Category"
+                  name="category"
+                  value={formData.category}
+                  onChange={handleInputChange}
+                  placeholder="e.g. Follow-up, Admin, Sales"
+                />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField
+                  fullWidth
+                  label="Recurrence End Date"
+                  name="recurrenceEndDate"
+                  type="date"
+                  value={formData.recurrenceEndDate}
+                  onChange={handleInputChange}
+                  InputLabelProps={{ shrink: true }}
+                  disabled={!formData.isRecurring}
+                />
+              </Grid>
+              <Grid item xs={6}>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      name="isRecurring"
+                      checked={formData.isRecurring}
+                      onChange={(e) => setFormData(prev => ({ ...prev, isRecurring: e.target.checked }))}
+                    />
+                  }
+                  label="Recurring Task"
+                />
+              </Grid>
+              <Grid item xs={6}>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      name="hasReminder"
+                      checked={formData.hasReminder}
+                      onChange={(e) => setFormData(prev => ({ ...prev, hasReminder: e.target.checked }))}
+                    />
+                  }
+                  label="Has Reminder"
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <EntitySelect
+                  entityType="contact"
+                  name="contactId"
+                  value={formData.contactId}
+                  onChange={handleSelectChange}
+                  label="Related Contact"
                   showAddNew={false}
                 />
               </Grid>

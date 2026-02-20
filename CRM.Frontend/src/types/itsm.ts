@@ -384,6 +384,34 @@ export interface ServiceRequest extends BaseEntity {
   closureDate?: string;
   satisfactionRating?: number; // 1-5
   satisfactionComment?: string;
+
+  // From analysis: missing ServiceRequest fields
+  createdByUserId?: number;
+  createdByUserName?: string;
+  workflowId?: number;
+  workflowName?: string;
+  currentWorkflowStep?: string;
+  dueDate?: string;
+  firstResponseDate?: string;
+  closedDate?: string;
+  resolvedDate?: string;
+  resolutionSummary?: string;
+  resolutionCode?: string;
+  rootCause?: string;
+  relatedProductId?: number;
+  relatedProductName?: string;
+  customerFeedback?: string;
+  tags?: string;
+  internalNotes?: string;
+  escalationLevel?: number;    // 0-3
+  reopenCount?: number;
+  isVipAccount?: boolean;
+  estimatedEffortHours?: number;
+  actualEffortHours?: number;
+  slaStatus?: 'within' | 'at_risk' | 'breached';
+  externalReferenceId?: string;
+  sourceEmailAddress?: string;
+  isEscalated?: boolean;
 }
 
 export interface CreateServiceRequestDto {

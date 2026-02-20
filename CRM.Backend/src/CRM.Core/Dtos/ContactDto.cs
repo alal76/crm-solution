@@ -45,6 +45,28 @@ public class ContactDto
     public DateTime? LastModified { get; set; }
     public string? ModifiedBy { get; set; }
 
+    // Personal details
+    public string? Salutation { get; set; }
+    public string? Suffix { get; set; }
+    public string? Nickname { get; set; }
+    public string? Gender { get; set; }
+
+    // Additional phone numbers
+    public string? PhoneMobile { get; set; }
+    public string? PhoneFax { get; set; }
+
+    // Online presence
+    public string? Website { get; set; }
+    public string? LinkedInUrl { get; set; }
+    public string? TwitterHandle { get; set; }
+
+    // Communication preferences
+    public bool DoNotContact { get; set; }
+    public string? PreferredContactMethod { get; set; }
+
+    // Lead tracking
+    public string? LeadStatus { get; set; }
+
     // Customer relationship
     public int? AccountId { get; set; }
     public string Status { get; set; } = "Active";
@@ -84,6 +106,18 @@ public class CreateContactRequest
 
     public string? Notes { get; set; }
     public DateTime? DateOfBirth { get; set; }
+
+    public string? Salutation { get; set; }
+    public string? Suffix { get; set; }
+    public string? Nickname { get; set; }
+    public string? Gender { get; set; }
+    public string? PhoneMobile { get; set; }
+    public string? PhoneFax { get; set; }
+    public string? Website { get; set; }
+    public string? LinkedInUrl { get; set; }
+    public string? TwitterHandle { get; set; }
+    public bool DoNotContact { get; set; }
+    public string? PreferredContactMethod { get; set; }
 }
 
 public class UpdateContactRequest
@@ -111,6 +145,18 @@ public class UpdateContactRequest
 
     public string? Notes { get; set; }
     public DateTime? DateOfBirth { get; set; }
+
+    public string? Salutation { get; set; }
+    public string? Suffix { get; set; }
+    public string? Nickname { get; set; }
+    public string? Gender { get; set; }
+    public string? PhoneMobile { get; set; }
+    public string? PhoneFax { get; set; }
+    public string? Website { get; set; }
+    public string? LinkedInUrl { get; set; }
+    public string? TwitterHandle { get; set; }
+    public bool? DoNotContact { get; set; }
+    public string? PreferredContactMethod { get; set; }
 }
 
 public class AddSocialMediaRequest

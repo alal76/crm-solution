@@ -33,6 +33,8 @@ import {
   Collapse,
   Container,
   TableContainer,
+  Switch,
+  FormControlLabel,
 } from '@mui/material';
 import {
   Edit as EditIcon,
@@ -102,6 +104,13 @@ interface Lead extends BaseEntity {
   notes: string;
   dateAdded: string;
   contactType: number;
+  // Secondary contact fields
+  website?: string;
+  linkedInUrl?: string;
+  twitterHandle?: string;
+  phoneSecondary?: string;
+  doNotContact?: boolean;
+  preferredContactMethod?: string;
   // AI scoring fields
   score?: number;
   fitScore?: number;
@@ -137,6 +146,12 @@ interface LeadFormData {
   source: string;
   status: string;
   notes: string;
+  website: string;
+  linkedInUrl: string;
+  twitterHandle: string;
+  phoneSecondary: string;
+  doNotContact: boolean;
+  preferredContactMethod: string;
 }
 
 // Search fields for leads
@@ -292,6 +307,12 @@ function LeadsPage() {
         source: lead.source || 'website',
         status: lead.status || 'new',
         notes: lead.notes || '',
+        website: lead.website || '',
+        linkedInUrl: lead.linkedInUrl || '',
+        twitterHandle: lead.twitterHandle || '',
+        phoneSecondary: lead.phoneSecondary || '',
+        doNotContact: lead.doNotContact || false,
+        preferredContactMethod: lead.preferredContactMethod || '',
       });
     } else {
       setEditingId(null);
@@ -305,6 +326,12 @@ function LeadsPage() {
         source: 'website',
         status: 'new',
         notes: '',
+        website: '',
+        linkedInUrl: '',
+        twitterHandle: '',
+        phoneSecondary: '',
+        doNotContact: false,
+        preferredContactMethod: '',
       });
     }
     setDialogTab(0);
@@ -350,6 +377,12 @@ function LeadsPage() {
         jobTitle: formData.jobTitle,
         contactType: 2, // Lead
         notes: notesWithMeta,
+        website: formData.website,
+        linkedInUrl: formData.linkedInUrl,
+        twitterHandle: formData.twitterHandle,
+        phoneSecondary: formData.phoneSecondary,
+        doNotContact: formData.doNotContact,
+        preferredContactMethod: formData.preferredContactMethod,
       };
 
       if (editingId) {
@@ -961,9 +994,10 @@ function LeadsPage() {
         <Box sx={{ borderBottom: 1, borderColor: 'divider', px: 3 }}>
           <Tabs value={dialogTab} onChange={(_, v) => setDialogTab(v)} aria-label="Lead dialog tabs">
             <Tab label="Lead Info" id="lead-tab-0" aria-controls="lead-tabpanel-0" />
-            {editingId && <Tab label="Contact Info" icon={<ContactPhoneIcon fontSize="small" />} iconPosition="start" id="lead-tab-1" aria-controls="lead-tabpanel-1" />}
-            {editingId && <Tab label="Related" icon={<PersonAddIcon fontSize="small" />} iconPosition="start" id="lead-tab-2" aria-controls="lead-tabpanel-2" />}
-            <Tab label="Notes" icon={<NoteIcon fontSize="small" />} iconPosition="start" id={editingId ? "lead-tab-3" : "lead-tab-1"} aria-controls={editingId ? "lead-tabpanel-3" : "lead-tabpanel-1"} />
+            <Tab label="Additional Info" id="lead-tab-1" aria-controls="lead-tabpanel-1" />
+            {editingId && <Tab label="Contact Info" icon={<ContactPhoneIcon fontSize="small" />} iconPosition="start" id="lead-tab-2" aria-controls="lead-tabpanel-2" />}
+            {editingId && <Tab label="Related" icon={<PersonAddIcon fontSize="small" />} iconPosition="start" id="lead-tab-3" aria-controls="lead-tabpanel-3" />}
+            <Tab label="Notes" icon={<NoteIcon fontSize="small" />} iconPosition="start" id={editingId ? "lead-tab-4" : "lead-tab-2"} aria-controls={editingId ? "lead-tabpanel-4" : "lead-tabpanel-2"} />
           </Tabs>
         </Box>
         <DialogContent sx={{ pt: 2, minHeight: 350 }}>
@@ -1056,9 +1090,77 @@ function LeadsPage() {
             </Stack>
           )}
 
-          {/* Contact Info Tab - Only when editing */}
-          {editingId && dialogTab === 1 && (
+          {/* Additional Info Tab - Always visible (Tab 1) */}
+          {dialogTab === 1 && (
             <Box role="tabpanel" id="lead-tabpanel-1" aria-labelledby="lead-tab-1">
+              <Stack spacing={2}>
+                <Box sx={{ display: 'flex', gap: 2 }}>
+                  <TextField
+                    fullWidth
+                    label="Website"
+                    name="website"
+                    value={formData.website}
+                    onChange={handleInputChange}
+                    placeholder="https://"
+                  />
+                  <TextField
+                    fullWidth
+                    label="Secondary Phone"
+                    name="phoneSecondary"
+                    value={formData.phoneSecondary}
+                    onChange={handleInputChange}
+                  />
+                </Box>
+                <Box sx={{ display: 'flex', gap: 2 }}>
+                  <TextField
+                    fullWidth
+                    label="LinkedIn URL"
+                    name="linkedInUrl"
+                    value={formData.linkedInUrl}
+                    onChange={handleInputChange}
+                    placeholder="https://linkedin.com/in/..."
+                  />
+                  <TextField
+                    fullWidth
+                    label="Twitter Handle"
+                    name="twitterHandle"
+                    value={formData.twitterHandle}
+                    onChange={handleInputChange}
+                    placeholder="@username"
+                  />
+                </Box>
+                <FormControl fullWidth>
+                  <InputLabel>Preferred Contact Method</InputLabel>
+                  <Select
+                    name="preferredContactMethod"
+                    value={formData.preferredContactMethod}
+                    onChange={handleSelectChange}
+                    label="Preferred Contact Method"
+                  >
+                    <MenuItem value="">Not specified</MenuItem>
+                    <MenuItem value="Email">Email</MenuItem>
+                    <MenuItem value="Phone">Phone</MenuItem>
+                    <MenuItem value="SMS">SMS</MenuItem>
+                    <MenuItem value="Mail">Mail</MenuItem>
+                  </Select>
+                </FormControl>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      name="doNotContact"
+                      checked={formData.doNotContact}
+                      onChange={(e) => setFormData(prev => ({ ...prev, doNotContact: e.target.checked }))}
+                    />
+                  }
+                  label="Do Not Contact"
+                />
+              </Stack>
+            </Box>
+          )}
+
+          {/* Contact Info Tab - Only when editing */}
+          {editingId && dialogTab === 2 && (
+            <Box role="tabpanel" id="lead-tabpanel-2" aria-labelledby="lead-tab-2">
               <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2 }}>
                 Manage Contact Information
               </Typography>
@@ -1075,8 +1177,8 @@ function LeadsPage() {
           )}
 
           {/* Related Entities Tab - Only when editing */}
-          {editingId && dialogTab === 2 && (
-            <Box role="tabpanel" id="lead-tabpanel-2" aria-labelledby="lead-tab-2">
+          {editingId && dialogTab === 3 && (
+            <Box role="tabpanel" id="lead-tabpanel-3" aria-labelledby="lead-tab-3">
               <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2 }}>
                 Related Records
               </Typography>
@@ -1094,8 +1196,8 @@ function LeadsPage() {
           )}
 
           {/* Notes Tab - Index depends on whether we're editing (has Contact Info + Related tabs) or adding */}
-          {((editingId && dialogTab === 3) || (!editingId && dialogTab === 1)) && (
-            <Box role="tabpanel" id={editingId ? "lead-tabpanel-3" : "lead-tabpanel-1"} aria-labelledby={editingId ? "lead-tab-3" : "lead-tab-1"}>
+          {((editingId && dialogTab === 4) || (!editingId && dialogTab === 2)) && (
+            <Box role="tabpanel" id={editingId ? "lead-tabpanel-4" : "lead-tabpanel-2"} aria-labelledby={editingId ? "lead-tab-4" : "lead-tab-2"}>
               {editingId ? (
                 <NotesTab
                   entityType="Lead"

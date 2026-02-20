@@ -55,6 +55,41 @@ public class ContractDto
     public bool IsExpiringSoon => Status == ContractStatus.Active && EndDate <= DateTime.UtcNow.AddDays(30);
     public bool IsExpired => Status == ContractStatus.Expired || (Status == ContractStatus.Active && EndDate < DateTime.UtcNow.Date);
     public int DaysUntilExpiry => (EndDate.Date - DateTime.UtcNow.Date).Days;
+
+    // Dates
+    public DateTime? ActivatedDate { get; set; }
+    public DateTime? TerminatedDate { get; set; }
+
+    // Renewal details
+    public bool RenewalNoticeSent { get; set; }
+    public DateTime? RenewalNoticeSentDate { get; set; }
+    public DateTime? RenewalInitiatedAt { get; set; }
+    public DateTime? RenewalCompletedAt { get; set; }
+    public int? RenewalTermMonthsOverride { get; set; }
+
+    // Terms
+    public string? SpecialConditions { get; set; }
+    public string? TerminationClause { get; set; }
+    public string? TerminationReason { get; set; }
+
+    // Documents
+    public string? ContractFileUrl { get; set; }
+    public string? ContractFileName { get; set; }
+    public string? SignedContractFileUrl { get; set; }
+    public string? SignedContractFileName { get; set; }
+
+    // Approval
+    public int? ApprovedByUserId { get; set; }
+    public string? ApprovedByName { get; set; }
+    public DateTime? ApprovedDate { get; set; }
+    public string? RejectionReason { get; set; }
+
+    // Suspension
+    public string? SuspensionReason { get; set; }
+    public DateTime? SuspendedDate { get; set; }
+
+    // Relationships
+    public int? QuoteId { get; set; }
 }
 
 /// <summary>

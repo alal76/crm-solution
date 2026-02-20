@@ -49,6 +49,42 @@ public class PaymentDto
     
     public int? OriginalPaymentId { get; set; }
     public bool IsRefund => PaymentType == PaymentType.Refund;
+
+    // Identity additions
+    public string? ExternalPaymentId { get; set; }
+    public string? GatewayReference { get; set; }
+    public string? CheckNumber { get; set; }
+
+    // Amounts
+    public decimal? ProcessingFee { get; set; }
+    public decimal? NetAmount { get; set; }
+    public decimal? ExchangeRate { get; set; }
+
+    // Dates
+    public DateTime? SettledDate { get; set; }
+    public DateTime? DepositDate { get; set; }
+
+    // Card details (masked - last 4 only for security)
+    public string? CardBrand { get; set; }
+    public int? CardExpMonth { get; set; }
+    public int? CardExpYear { get; set; }
+
+    // Bank details (masked)
+    public string? BankName { get; set; }
+    public string? AccountLast4 { get; set; }
+    public string? AccountType { get; set; }
+
+    // Gateway
+    public string? Gateway { get; set; }
+    public string? GatewayResponseCode { get; set; }
+    public string? GatewayResponseMessage { get; set; }
+
+    // Relationships
+    public int? OrderId { get; set; }
+    public int? SubscriptionId { get; set; }
+
+    // Notes
+    public string? InternalNotes { get; set; }
 }
 
 /// <summary>

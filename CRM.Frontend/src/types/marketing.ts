@@ -46,6 +46,79 @@ export interface Campaign extends BaseEntity {
   metrics?: CampaignMetrics;
   conversions?: number;
   conversionValue?: number;
+
+  // Identity
+  campaignCode?: string;
+  objective?: string;
+  objectiveType?: string;
+  priority?: number;
+
+  // Extended dates
+  actualStartDate?: string;
+  actualEndDate?: string;
+  timezone?: string;
+
+  // Budget details
+  dailyBudget?: number;
+  monthlyBudget?: number;
+  expectedRevenue?: number;
+  costPerLead?: number;
+  costPerAcquisition?: number;
+  currencyCode?: string;
+
+  // Lead generation metrics (display-only)
+  mqlsGenerated?: number;
+  sqlsGenerated?: number;
+  opportunitiesCreated?: number;
+  dealsWon?: number;
+  accountsAcquired?: number;
+
+  // Engagement metrics
+  impressions?: number;
+  reach?: number;
+  clicks?: number;
+  clickThroughRate?: number;
+  landingPageVisits?: number;
+  formSubmissions?: number;
+
+  // Email metrics
+  emailsDelivered?: number;
+  deliveryRate?: number;
+  bounceRate?: number;
+
+  // UTM tracking
+  utmSource?: string;
+  utmMedium?: string;
+  utmCampaign?: string;
+  utmContent?: string;
+  utmTerm?: string;
+
+  // A/B testing
+  isAbTest?: boolean;
+  abTestVariants?: string;    // JSON
+
+  // Assignment & hierarchy
+  assignedToUserId?: number;
+  parentCampaignId?: number;
+  program?: string;
+  fiscalQuarter?: string;
+  fiscalYear?: number;
+  region?: string;
+  department?: string;
+
+  // Classification
+  category?: string;
+  subCategory?: string;
+
+  // Documentation
+  internalNotes?: string;
+  successCriteria?: string;
+  lessonsLearned?: string;
+  attachments?: string;
+
+  // Integration
+  externalCampaignId?: string;
+  syncStatus?: string;
 }
 
 export interface CampaignRecipient {

@@ -1,352 +1,750 @@
-# CRM Solution Field Gap Remediation Plan (Opus 4.6)
+# CRM Solution Field Gap Remediation Plan
 
 **Date:** 2026-02-20
-**Prepared by:** Claude Opus 4.6 (via GitHub Copilot)
+**Last Updated:** 2026-02-20 (Session 2 — Full Analysis Complete)
+**Prepared by:** Claude Sonnet 4.6
 
 ---
 
 ## Overview
-This document provides a comprehensive remediation plan for all field-level gaps and mismatches across the CRM solution, covering every major entity and module. It includes:
-- A summary of all detected gaps (frontend, backend, database)
-- Exact code changes required for each gap, with file/line references
-- Migration steps for database schema changes
-- A remediation checklist for tracking
-- Recommendations for future-proofing
+
+This document tracks all field-level gaps and mismatches across the CRM solution, covering every major entity and module. It is updated continuously as remediations are applied.
+
+**Scope:** Entity → DTO → Frontend Type → Frontend UI (4-layer coverage)
+**Goal:** 100% field visibility across all non-security fields. Security-sensitive fields (passwords, tokens, secrets) are intentionally excluded from DTO/Frontend layers.
 
 ---
 
-## 1. Gap Summary Table
+## Completed Remediations Log
 
-| Entity/Module | Field         | Layer(s) Missing/Outdated | File(s) to Update                        | Nature of Gap           |
-|---------------|--------------|---------------------------|------------------------------------------|-------------------------|
-| Account       | industry     | Backend, DB               | AccountDto.cs, Account.cs, migration     | ✅ Complete             |
-| Account       | IsDeleted    | Frontend                  | AccountDto.ts, AccountListItem.tsx       | ✅ Complete             |
-All Account entity field gaps have been remediated. Checklist items for `industry` (backend/DB) and `IsDeleted` (frontend) are complete. All fields are now present and mapped as required, with intentionally omitted fields and rationale documented in the Account specification.
+### Session 1 — 2026-02-20
 
-**Summary of Account Remediation:**
-- Added `industry` field to backend, DTO, and database.
-- Exposed `IsDeleted` in frontend DTO and documented rationale for UI omission.
-- Reviewed all Account fields for mapping consistency across layers.
-- Documented intentionally omitted fields and rationale in the Account specification.
-| Contact       | MiddleName   | Frontend, DB              | ContactDto.ts, Contact.cs, migration     | Field missing           |
-| Contact       | IsActive     | Frontend                  | ContactDto.ts, ContactListItem.tsx       | Not exposed             |
-| User          | IsLocked     | Frontend                  | UserDto.ts, UserListItem.tsx             | Not exposed             |
-| User          | lastLogin    | Backend, DB               | UserDto.cs, User.cs, migration           | Field missing           |
-| Role          | IsSystemDefined | Frontend               | RoleDto.ts, RoleListItem.tsx             | Not exposed             |
-| Permission    | IsSystemDefined | Frontend               | PermissionDto.ts, PermissionList.tsx     | Not exposed             |
-| ...           | ...          | ...                       | ...                                      | ...                     |
+#### Account Entity
+| Field | Change | Files Modified |
+|-------|--------|----------------|
+| `Industry` | Added to backend entity, DTO, and EF migration | `Account.cs`, `AccountDto.cs`, `20260219234030_AddIndustryToAccount.cs` |
+| `IsDeleted` | Exposed in frontend type | `accounts.ts` |
+
+**Account Status: ✅ All fields covered. Intentionally omitted: `RowVersion` (binary, no UI purpose).**
 
 ---
 
-## 2. Remediation Steps & Code Patch Instructions
+### Session 2 — 2026-02-20
 
-### Example: Add `industry` to Account (Backend & DB)
-- **AccountDto.cs**: Add `public string? Industry { get; set; }`
-- **Account.cs**: Add `public string? Industry { get; set; }`
-- **EF Migration**: Add `Industry` column to `Customers` table (nullable string)
+#### User Entity
+| Field | Layer Fixed | File Modified | Notes |
+|-------|-------------|---------------|-------|
+| `IsLocked` | Backend DTO | `UserDto.cs` | Added `public bool IsLocked { get; set; }` |
+| `IsLocked` | Frontend Type (UserManagementPage) | `UserManagementPage.tsx` | Added `isLocked: boolean` to User interface |
+| `IsLocked` | Frontend Type (UserManagementTab) | `UserManagementTab.tsx` | Added `isLocked?: boolean` to User interface |
+| `HeaderColor` | Frontend Type | `UserManagementPage.tsx`, `UserManagementTab.tsx` | Added `headerColor?: string` |
+| `PhotoUrl` | Frontend Type | `UserManagementPage.tsx`, `UserManagementTab.tsx` | Added `photoUrl?: string` |
 
-### Example: Expose `IsDeleted` in Account (Frontend)
-- **AccountDto.ts**: Add `isDeleted?: boolean`
-- **AccountListItem.tsx**: Display deleted status if needed
+**User intentionally omitted from DTO/Frontend:** `PasswordHash`, `TwoFactorSecret`, `BackupCodes`, `PasswordResetToken`, `PasswordResetTokenExpiry`, `EmailVerificationToken`, `RefreshTokens` (security), `FailedLoginAttempts`, `LockoutEnd` (security internal).
 
-### Example: Add `lastLogin` to User (Backend & DB)
-- **UserDto.cs**: Add `public DateTime? LastLogin { get; set; }`
-- **User.cs**: Add `public DateTime? LastLogin { get; set; }`
-- **EF Migration**: Add `LastLogin` column to `Users` table (nullable DateTime)
+#### Role Entity
+| Field | Layer Fixed | File Modified | Notes |
+|-------|-------------|---------------|-------|
+| `IsActive` | Backend DTO | `RBACAndAdminDtos.cs` | Added `public bool IsActive { get; set; }` to `RoleDto` |
+| `IsSystemDefined` + `IsActive` | Frontend Type | `UserManagementTab.tsx` | New `Role` interface with all fields |
 
-### Example: Add `MiddleName` to Contact (Frontend & DB)
-- **ContactDto.ts**: Add `middleName?: string`
-- **Contact.cs**: Add `public string? MiddleName { get; set; }`
-- **EF Migration**: Add `MiddleName` column to `Contacts` table (nullable string)
+#### Permission Entity
+| Field | Layer Fixed | File Modified | Notes |
+|-------|-------------|---------------|-------|
+| `IsActive` | Backend DTO | `RBACAndAdminDtos.cs` | Added `public bool IsActive { get; set; }` to `PermissionDto` |
+| `IsSystemDefined` + `IsActive` | Frontend Type | `UserManagementTab.tsx` | New `Permission` interface with all fields |
 
-### Example: Expose `IsSystemDefined` in Role (Frontend)
-- **RoleDto.ts**: Add `isSystemDefined?: boolean`
-- **RoleListItem.tsx**: Display system-defined status if needed
+#### Contact Entity
+| Field | Layer Fixed | File Modified | Notes |
+|-------|-------------|---------------|-------|
+| `contactType` | Frontend Type | `crm.ts` | Added full string union matching `ContactType` enum |
+| `status` | Frontend Type | `crm.ts` | Expanded from 2 to 5 values |
+| `leadStatus` | Frontend Type | `crm.ts` | Added for Lead-type contacts |
+| `emailPrimary`, `phonePrimary` | Frontend Type | `crm.ts` | Added as DTO-name aliases |
+| `emailSecondary`, `phoneSecondary` | Frontend Type | `crm.ts` | Added to match backend DTO |
+| `Salutation`, `Suffix`, `Nickname`, `Gender` | Backend DTO | `ContactDto.cs` | Added all personal detail fields |
+| `PhoneMobile`, `PhoneFax` | Backend DTO | `ContactDto.cs` | Added additional phone fields |
+| `Website`, `LinkedInUrl`, `TwitterHandle` | Backend DTO | `ContactDto.cs` | Added online presence fields |
+| `DoNotContact`, `PreferredContactMethod` | Backend DTO | `ContactDto.cs` | Added communication preferences |
+| `LeadStatus` | Backend DTO | `ContactDto.cs` | Added lead status field |
 
----
+#### Lead Entity
+| Field | Layer Fixed | File Modified | Notes |
+|-------|-------------|---------------|-------|
+| `fitScore`, `engagementScore` | Frontend Type | `crm.ts` | Added ML scoring fields |
+| `qualificationNotes` | Frontend Type | `crm.ts` | Added SDR handoff notes |
+| `region`, `campaignId`, `accountId`, `contactId` | Frontend Type | `crm.ts` | Added relationship/territory fields |
+| `mqlDate`, `sqlDate`, `lastActivityDate` | Frontend Type | `crm.ts` | Added funnel date tracking |
+| `tags` | Frontend Type | `crm.ts` | Added classification field |
+| `region`, `campaignId`, `qualificationNotes` | Frontend CreateDto | `crm.ts` | Added to `CreateLeadDto` |
+| `fitScore`, `engagementScore`, `qualificationNotes`, `region`, `campaignId` | Frontend UpdateDto | `crm.ts` | Added to `UpdateLeadDto` |
 
-## 3. Migration Steps
+#### Opportunity Entity
+| Field | Layer Fixed | File Modified | Notes |
+|-------|-------------|---------------|-------|
+| `currency`, `pricingModel`, `termLengthMonths` | Frontend Type | `crm.ts` | Added core deal fields |
+| `solutionNotes`, `qualificationReason`, `qualificationNotes` | Frontend Type | `crm.ts` | Added qualification fields |
+| `region`, `leadId` | Frontend Type | `crm.ts` | Added territory and source |
+| `salesOwnerId`, `salesOwnerName` | Frontend Type | `crm.ts` | Added (replaces `ownerId` mismatch) |
+| Added 8 missing fields | Frontend CreateDto/UpdateDto | `crm.ts` | Full DTO alignment |
 
-## 3. Full-Stack Field Mapping Tables (Opus 4.6)
+#### Quote Entity (Frontend Types)
+| Change | File Modified | Notes |
+|--------|---------------|-------|
+| +44 fields added | `sales.ts` | Approval workflow, signature, addresses, dates, docs, classification |
 
-### Account Entity Field Mapping
+#### Order Entity (Frontend Types)
+| Change | File Modified | Notes |
+|--------|---------------|-------|
+| +48 fields added | `sales.ts` | Identity, type/fulfillment, shipping details, payment, revenue recognition |
 
-| Field             | DB Type / Table ([link](CRM.Backend/src/CRM.Core/Entities/Account.cs)) | Backend Entity ([link](CRM.Backend/src/CRM.Core/Entities/Account.cs)) | Backend DTO ([link](CRM.Backend/src/CRM.Core/Dtos/AccountDto.cs)) | Frontend Type ([link](CRM.Frontend/src/types/accounts.ts)) | UI Component ([link](CRM.Frontend/src/pages/AccountsPage.tsx)) | Gaps / Notes |
-|-------------------|-----------------------------------------------------------------------|-----------------------------------------------------------------------|-------------------------------------------------------------------|-------------------------------------------------------------|---------------------------------------------------------------|--------------|
-| Id                | int (PK, Customers)                                                  | int (BaseEntity)                                                      | int                                                              | number (BaseEntity)                                         | Yes (row key, selection)                                      | Consistent   |
-| Category          | int (enum)                                                           | AccountCategory (enum)                                                | int                                                              | number                                                      | Yes (table col, form)                                         | Consistent   |
-| FirstName         | nvarchar(100)                                                        | string                                                                | string                                                           | string                                                      | Yes (form, table)                                             | Consistent   |
-| LastName          | nvarchar(100)                                                        | string                                                                | string                                                           | string                                                      | Yes (form, table)                                             | Consistent   |
-| Salutation        | nvarchar(20)                                                         | string?                                                               | string?                                                          | string?                                                     | Yes (form)                                                    | Consistent   |
-| Suffix            | nvarchar(20)                                                         | string?                                                               | string?                                                          | string?                                                     | Yes (form)                                                    | Consistent   |
-| DateOfBirth       | datetime                                                             | DateTime?                                                             | DateTime?                                                        | string? / Date?                                             | Yes (form)                                                    | Type mismatch: string/Date? in FE, DateTime? in BE            |
-| Gender            | nvarchar(10)                                                         | string?                                                               | string?                                                          | string?                                                     | Yes (form)                                                    | Consistent   |
-| LinkedContactId   | int?                                                                 | int?                                                                  | int?                                                             | number?                                                     | Yes (form)                                                    | Consistent   |
-| LinkedContactName | nvarchar(200)                                                        | string?                                                               | string?                                                          | string?                                                     | Yes (table)                                                   | Consistent   |
-| Company           | nvarchar(200)                                                        | string                                                                | string                                                           | string                                                      | Yes (form, table)                                             | Consistent   |
-| LegalName         | nvarchar(200)                                                        | string?                                                               | string?                                                          | string?                                                     | Yes (form)                                                    | Consistent   |
-| DbaName           | nvarchar(200)                                                        | string?                                                               | string?                                                          | string?                                                     | Yes (form)                                                    | Consistent   |
-| TaxId             | nvarchar(50)                                                         | string?                                                               | string?                                                          | string?                                                     | Yes (form)                                                    | Consistent   |
-| RegistrationNumber| nvarchar(50)                                                         | string?                                                               | string?                                                          | string?                                                     | Yes (form)                                                    | Consistent   |
-| YearFounded       | int?                                                                 | int?                                                                  | int?                                                             | number?                                                     | Yes (form)                                                    | Consistent   |
-| Email             | nvarchar(200)                                                        | string                                                                | string                                                           | string                                                      | Yes (form, table)                                             | Consistent   |
-| SecondaryEmail    | nvarchar(200)                                                        | string?                                                               | string?                                                          | string?                                                     | Yes (form)                                                    | Consistent   |
-| Phone             | nvarchar(50)                                                         | string                                                                | string                                                           | string                                                      | Yes (form, table)                                             | Consistent   |
-| MobilePhone       | nvarchar(50)                                                         | string?                                                               | string?                                                          | string?                                                     | Yes (form)                                                    | Consistent   |
-| FaxNumber         | nvarchar(50)                                                         | string?                                                               | string?                                                          | string?                                                     | Yes (form)                                                    | Consistent   |
-| JobTitle          | nvarchar(100)                                                        | string?                                                               | string?                                                          | string?                                                     | Yes (form, table)                                             | Consistent   |
-| Website           | nvarchar(200)                                                        | string?                                                               | string?                                                          | string?                                                     | Yes (form, table)                                             | Consistent   |
-| Industry          | nvarchar(100)                                                        | string?                                                               | string?                                                          | string?                                                     | Yes (form, table)                                             | Consistent   |
-| SubIndustry       | nvarchar(100)                                                        | string?                                                               | string?                                                          | string?                                                     | Yes (form)                                                    | Consistent   |
-| NumberOfEmployees | int?                                                                 | int?                                                                  | int?                                                             | number?                                                     | Yes (form)                                                    | Consistent   |
-| EmployeeRange     | nvarchar(50)                                                         | string?                                                               | string?                                                          | string?                                                     | Yes (form)                                                    | Consistent   |
-| AnnualRevenue     | decimal(18,2)?                                                       | decimal?                                                              | decimal?                                                         | number?                                                     | Yes (form, table)                                             | Consistent   |
-| RevenueRange      | nvarchar(50)                                                         | string?                                                               | string?                                                          | string?                                                     | Yes (form)                                                    | Consistent   |
-| AccountType       | int (enum)                                                           | AccountType (enum)                                                    | int                                                              | string/number                                               | Yes (form, table)                                             | FE type is string/number, BE is int/enum                     |
-| CustomerType      | int (enum)                                                           | CustomerType (enum)                                                   | int                                                              | number                                                      | Yes (form, table)                                             | Consistent   |
-| Priority          | int (enum)                                                           | AccountPriority (enum)                                                | int                                                              | number                                                      | Yes (form, table)                                             | Consistent   |
-| LifecycleStage    | int (enum)                                                           | AccountLifecycleStage (enum)                                          | int                                                              | number                                                      | Yes (form, table)                                             | Consistent   |
-| Status            | nvarchar(20)                                                         | string?                                                               | string?                                                          | string?                                                     | Yes (form, table)                                             | Consistent   |
-| City              | nvarchar(100)                                                        | string?                                                               | string?                                                          | string?                                                     | Yes (form, table)                                             | Consistent   |
-| State             | nvarchar(100)                                                        | string?                                                               | string?                                                          | string?                                                     | Yes (form, table)                                             | Consistent   |
-| Country           | nvarchar(100)                                                        | string?                                                               | string?                                                          | string?                                                     | Yes (form, table)                                             | Consistent   |
-| PostalCode        | nvarchar(20)                                                         | string?                                                               | string?                                                          | string?                                                     | Yes (form, table)                                             | Consistent   |
-| ParentAccountId   | int?                                                                 | int?                                                                  | int?                                                             | number?                                                     | Yes (form, table)                                             | Consistent   |
-| ParentAccountName | nvarchar(200)                                                        | string?                                                               | string?                                                          | string?                                                     | Yes (table)                                                   | Consistent   |
-| OwnerUserId       | int?                                                                 | int?                                                                  | int?                                                             | number?                                                     | Yes (table)                                                   | Consistent   |
-| OwnerName         | nvarchar(200)                                                        | string?                                                               | string?                                                          | string?                                                     | Yes (table)                                                   | Consistent   |
-| DisplayName       | nvarchar(200)                                                        | string                                                                | string                                                           | string                                                      | Yes (table)                                                   | Consistent   |
-| ContactCount      | int                                                                  | int                                                                   | int                                                              | number                                                      | Yes (table)                                                   | Consistent   |
-| Notes             | nvarchar(max)                                                        | string                                                                | string                                                           | string                                                      | Yes (form)                                                    | Consistent   |
-| InternalNotes     | nvarchar(max)                                                        | string?                                                               | string?                                                          | string?                                                     | Yes (form)                                                    | Consistent   |
-| Description       | nvarchar(max)                                                        | string?                                                               | string?                                                          | string?                                                     | Yes (form)                                                    | Consistent   |
-| CustomFields      | nvarchar(max) (JSON)                                                 | string?                                                               | string?                                                          | object / string?                                            | Yes (form)                                                    | FE may use object, BE uses string (JSON)                      |
-| CreatedAt         | datetime                                                             | DateTime                                                              | DateTime                                                         | string / Date                                               | Yes (table)                                                   | FE type is string/Date, BE is DateTime                        |
-| UpdatedAt         | datetime                                                             | DateTime?                                                             | DateTime?                                                        | string / Date                                               | Yes (table)                                                   | FE type is string/Date, BE is DateTime?                       |
-| IsDeleted         | bit                                                                  | bool                                                                  | bool                                                             | boolean                                                     | No (not shown in UI)                                          | Consistent, intentionally omitted from UI (see spec)   |
-| RowVersion        | rowversion                                                           | byte[]                                                                | byte[]                                                           | string?                                                     | No (not shown in UI)                                          | Consistent   |
+#### Invoice Entity
+| Change | File Modified | Notes |
+|--------|---------------|-------|
+| +36 fields to DTO | `InvoiceDto.cs` | Billing address, early payment, late fees, collections, docs |
+| +36 fields to Frontend Type | `sales.ts` | Full alignment with expanded DTO |
 
----
+#### Payment Entity
+| Change | File Modified | Notes |
+|--------|---------------|-------|
+| +17 fields to DTO | `PaymentDto.cs` | Card details, bank details, gateway, reconciliation |
+| +30 fields to Frontend Type | `sales.ts` | Full card/bank/gateway/reconciliation coverage |
 
-**Summary of Detected Gaps and Issues:**
+#### Contract Entity
+| Change | File Modified | Notes |
+|--------|---------------|-------|
+| +20 fields to DTO | `ContractDto.cs` | Renewal tracking, documents, approval, suspension |
+| +30 fields to Frontend Type | `sales.ts` | Full lifecycle coverage |
 
-- **Date/Time fields**: Frontend uses `string` or `Date`, backend uses `DateTime?`. Ensure consistent serialization/deserialization.
-- **AccountType**: Enum in backend, string/number in frontend. Should standardize to number (enum value) or map string to enum.
-- **CustomFields**: Backend uses string (JSON), frontend may use object. Need conversion logic in service layer.
-- **IsDeleted/RowVersion**: Not exposed in UI, but present in backend and DB (expected).
-- **No major missing fields**: All core fields are present across layers, but some optional fields (e.g., `SecondaryEmail`, `FaxNumber`, `SubIndustry`) may not be surfaced in all frontend forms or DTOs.
-- **TypeScript types**: Use `[key: string]: any` for extensibility, which may mask missing explicit fields.
-- **UI**: All major fields are present in the main Accounts page and forms, but some fields may be hidden or only shown in detail dialogs.
+#### Activity Entity
+| Change | File Modified | Notes |
+|--------|---------------|-------|
+| +17 fields added | `crm.ts` | title, userId, userName, entityName, accountId, contactId, opportunityId, campaignId, isSystem, isPrivate, isImportant, tags, category, source, oldValue, newValue, fieldsChanged |
 
-**Recommendation:**
-- Standardize enum handling (always use number for enums in API/DTO/FE).
-- Add explicit conversion for date fields and custom fields.
-- Review frontend forms to ensure all required fields are surfaced and validated.
-- Document any fields intentionally omitted from UI for business reasons.
+#### CrmTask Entity (new type)
+| Change | File Modified | Notes |
+|--------|---------------|-------|
+| Added `TaskStatus` enum | `crm.ts` | 6 values: NotStarted, InProgress, Completed, Deferred, WaitingOnOthers, Cancelled |
+| Added `TaskPriority` enum | `crm.ts` | 4 values: Low, Normal, High, Critical |
+| Added `CrmTask` interface | `crm.ts` | 29 fields — full backend entity coverage |
+| Added `CreateCrmTaskDto` | `crm.ts` | 13 fields |
+| Added `UpdateCrmTaskDto` | `crm.ts` | 15 fields |
 
----
+#### ServiceRequest Entity (Frontend Types)
+| Change | File Modified | Notes |
+|--------|---------------|-------|
+| +27 fields added | `itsm.ts` | Created by, workflow, due dates, resolution fields, SLA status, VIP flag, effort hours |
 
-### Contact Entity Field Mapping
-
-| Field                  | DB Type / Table ([schema](database/schema/007_consolidated_contact_info_v2.sql)) | Backend Entity ([Contact.cs](CRM.Backend/src/CRM.Core/Models/Contact.cs)) | Backend DTO ([ContactDto.cs](CRM.Backend/src/CRM.Core/Dtos/ContactDto.cs)) | Frontend Type ([crm.ts](CRM.Frontend/src/types/crm.ts)) | UI ([EntitySelect.tsx](CRM.Frontend/src/components/EntitySelect.tsx)) | Gaps/Notes |
-|------------------------|-----------------------------------------------------------------------------------|-------------------------------------------------------------------------|----------------------------------------------------------------------------|----------------------------------------------------------|-----------------------------------------------------------------------|------------|
-| Id                     | INT, PK (Contacts)                                                                | int Id                                                                  | int Id                                                                     | extends BaseEntity (id: number)                          | id (BaseEntityItem)                                                   | -          |
-| ContactType            | VARCHAR/ENUM (Contacts)                                                           | ContactType enum                                                        | string ContactType                                                         | N/A (missing)                                            | N/A                                                                  | Missing in FE type               |
-| Status                 | VARCHAR/ENUM (Contacts)                                                           | ContactStatus enum                                                      | string Status                                                              | status?: 'active' \| 'inactive'                         | N/A                                                                  | FE type limited to 2 values      |
-| LeadStatus             | VARCHAR/ENUM (Contacts)                                                           | LeadStatus? enum                                                        | N/A                                                                        | N/A                                                    | N/A                                                                  | Not exposed in DTO/FE            |
-| FirstName              | VARCHAR(100) (Contacts)                                                           | string FirstName                                                        | string FirstName                                                            | firstName: string                                       | firstName: string                                                    | -          |
-| LastName               | VARCHAR(100) (Contacts)                                                           | string LastName                                                         | string LastName                                                             | lastName: string                                        | lastName: string                                                     | -          |
-| MiddleName             | VARCHAR(50) (Contacts)                                                            | string? MiddleName                                                      | string? MiddleName                                                          | middleName?: string                                     | N/A                                                                  | -          |
-| Salutation             | VARCHAR(20) (Contacts)                                                            | string? Salutation                                                      | N/A                                                                        | prefix?: string                                         | N/A                                                                  | FE uses 'prefix'                 |
-| Suffix                 | VARCHAR(20) (Contacts)                                                            | string? Suffix                                                          | N/A                                                                        | suffix?: string                                         | N/A                                                                  | -          |
-| Nickname               | VARCHAR(50) (Contacts)                                                            | string? Nickname                                                        | N/A                                                                        | N/A                                                    | N/A                                                                  | Not in FE/DTO                    |
-| Gender                 | VARCHAR(20) (Contacts)                                                            | string? Gender                                                          | N/A                                                                        | N/A                                                    | N/A                                                                  | Not in FE/DTO                    |
-| DateOfBirth            | DATETIME (Contacts)                                                               | DateTime? DateOfBirth                                                   | DateTime? DateOfBirth                                                       | birthDate?: string                                      | N/A                                                                  | FE uses string                    |
-| EmailPrimary           | VARCHAR(200) (Contacts)                                                           | string? EmailPrimary                                                    | string? EmailPrimary                                                        | email?: string                                           | emailPrimary?: string (ContactItem, ContactFormData)                 | FE/DTO/Entity naming mismatch     |
-| EmailSecondary         | VARCHAR(200) (Contacts)                                                           | string? EmailSecondary                                                  | string? EmailSecondary                                                      | N/A                                                    | N/A                                                                  | Not in FE                         |
-| PhonePrimary           | VARCHAR(50) (Contacts)                                                            | string? PhonePrimary                                                    | string? PhonePrimary                                                        | phone?: string                                           | phonePrimary?: string (ContactItem, ContactFormData)                 | FE/DTO/Entity naming mismatch     |
-| PhoneSecondary         | VARCHAR(50) (Contacts)                                                            | string? PhoneSecondary                                                  | string? PhoneSecondary                                                      | N/A                                                    | N/A                                                                  | Not in FE                         |
-| PhoneMobile            | VARCHAR(50) (Contacts)                                                            | string? PhoneMobile                                                     | N/A                                                                        | mobile?: string                                         | N/A                                                                  | Not in DTO                        |
-| PhoneFax               | VARCHAR(50) (Contacts)                                                            | string? PhoneFax                                                        | N/A                                                                        | fax?: string                                            | N/A                                                                  | Not in DTO                        |
-| Address                | VARCHAR(500) (Contacts)                                                           | string? Address                                                         | string? Address                                                             | N/A                                                    | N/A                                                                  | Only in DTO/Entity                |
-| City                   | VARCHAR(100) (Contacts)                                                           | string? City                                                            | string? City                                                                | N/A                                                    | N/A                                                                  | Only in DTO/Entity                |
-| State                  | VARCHAR(100) (Contacts)                                                           | string? State                                                           | string? State                                                               | N/A                                                    | N/A                                                                  | Only in DTO/Entity                |
-| Country                | VARCHAR(100) (Contacts)                                                           | string? Country                                                         | string? Country                                                             | N/A                                                    | N/A                                                                  | Only in DTO/Entity                |
-| ZipCode                | VARCHAR(20) (Contacts)                                                            | string? ZipCode                                                         | string? ZipCode                                                             | N/A                                                    | N/A                                                                  | Only in DTO/Entity                |
-| MailingAddress         | VARCHAR(500) (Contacts)                                                           | string? MailingAddress                                                  | N/A                                                                        | N/A                                                    | N/A                                                                  | Not in DTO/FE                     |
-| JobTitle               | VARCHAR(200) (Contacts)                                                           | string? JobTitle                                                        | string? JobTitle                                                            | jobTitle?: string                                       | jobTitle: string (ContactFormData)                                   | -          |
-| Department             | VARCHAR(100) (Contacts)                                                           | string? Department                                                      | string? Department                                                          | department?: string                                     | N/A                                                                  | -          |
-| Company                | VARCHAR(200) (Contacts)                                                           | string? Company                                                         | string? Company                                                             | company?: string                                         | company: string (ContactFormData)                                    | -          |
-| ReportsTo              | VARCHAR(200) (Contacts)                                                           | string? ReportsTo                                                       | string? ReportsTo                                                            | reportingTo?: number                                     | N/A                                                                  | FE uses reportingTo (number), BE uses string                         |
-| Notes                  | VARCHAR(10000) (Contacts)                                                         | string? Notes                                                           | string? Notes                                                                | notes?: string                                           | N/A                                                                  | -          |
-| DateAdded              | DATETIME (Contacts)                                                               | DateTime DateAdded                                                      | DateTime DateAdded                                                           | N/A                                                    | N/A                                                                  | Not in FE                         |
-| LastModified           | DATETIME (Contacts)                                                               | DateTime? LastModified                                                  | DateTime? LastModified                                                       | N/A                                                    | N/A                                                                  | Not in FE                         |
-| ModifiedBy             | VARCHAR(200) (Contacts)                                                           | string? ModifiedBy                                                      | string? ModifiedBy                                                           | N/A                                                    | N/A                                                                  | Not in FE                         |
-| AccountId              | INT (Contacts)                                                                    | int? AccountId                                                          | int? AccountId                                                               | accountId?: number                                       | N/A                                                                  | -          |
-| SocialMediaLinks       | (junction table)                                                                  | ICollection<SocialMediaLink>                                            | List<SocialMediaLinkDto>                                                     | N/A                                                    | N/A                                                                  | Only in DTO/Entity                |
-| EmailAddresses         | (junction table)                                                                  | ICollection<ContactInfoLink>?                                           | List<LinkedEmailDto>?                                                        | addresses?: ContactAddress[]                              | N/A                                                                  | FE type is not 1:1 with backend   |
-| PhoneNumbers           | (junction table)                                                                  | ICollection<ContactInfoLink>?                                           | List<LinkedPhoneDto>?                                                        | N/A                                                    | N/A                                                                  | Only in DTO/Entity                |
-| Addresses              | (junction table)                                                                  | ICollection<ContactInfoLink>?                                           | List<LinkedAddressDto>?                                                      | addresses?: ContactAddress[]                              | N/A                                                                  | FE type is not 1:1 with backend   |
-| DoNotContact           | TINYINT(1) (Contacts)                                                             | bool DoNotContact                                                       | N/A                                                                        | doNotContact?: boolean                                    | N/A                                                                  | Not in DTO                        |
-| DoNotEmail             | (EntityEmailLinks)                                                                | N/A                                                                    | N/A                                                                        | doNotEmail?: boolean                                      | N/A                                                                  | Only in FE                        |
-| DoNotPhone             | (EntityPhoneLinks)                                                                | N/A                                                                    | N/A                                                                        | doNotPhone?: boolean                                      | N/A                                                                  | Only in FE                        |
-| Website                | VARCHAR(500) (Contacts)                                                           | string? Website                                                         | N/A                                                                        | website?: string                                         | N/A                                                                  | Not in DTO                        |
-| LinkedInProfile        | VARCHAR(500) (Contacts)                                                           | string? LinkedInUrl                                                     | N/A                                                                        | linkedInProfile?: string                                  | N/A                                                                  | FE/BE naming mismatch             |
-| TwitterHandle          | VARCHAR(100) (Contacts)                                                           | string? TwitterHandle                                                   | N/A                                                                        | twitterHandle?: string                                    | N/A                                                                  | -          |
-| PreferredContactMethod | ENUM/INT (Contacts)                                                               | PreferredContactMethod enum                                             | N/A                                                                        | preferredContactMethod?: 'email' \| ...                   | N/A                                                                  | FE uses string, BE uses enum      |
-| addresses (FE)         | (see ContactAddress)                                                              | N/A                                                                    | N/A                                                                        | addresses?: ContactAddress[]                              | N/A                                                                  | FE only, not mapped to BE/DTO     |
-
-**Summary of Detected Gaps:**
-
-- **ContactType**: Missing in frontend type.
-- **Status**: Frontend type only allows 'active'/'inactive', backend allows more.
-- **LeadStatus, Nickname, Gender, MailingAddress, etc.**: Not exposed in DTO/FE.
-- **Email/Phone fields**: Naming mismatches (`email` vs `EmailPrimary`, `phone` vs `PhonePrimary`), and FE does not support secondary/work/fax fields.
-- **ReportsTo**: Type mismatch (string in BE, number in FE).
-- **DoNotContact/DoNotEmail/DoNotPhone**: Only `DoNotContact` in BE, others only in FE.
-- **PreferredContactMethod**: Enum in BE, string in FE.
-- **LinkedInProfile**: Naming mismatch (`LinkedInUrl` in BE, `linkedInProfile` in FE).
-- **addresses**: FE type is not 1:1 with backend/DB normalized structure.
-- **Many fields in BE entity are not present in DTO or FE (e.g., custom fields, merge tracking, assignment, engagement tracking, etc.).**
-- **UI (EntitySelect, ContactFormData)**: Only supports a subset of fields (firstName, lastName, company, emailPrimary, phonePrimary, jobTitle).
-
-This mapping highlights significant normalization and naming differences, especially between backend and frontend, and a lack of full field coverage in the UI and DTOs.
+#### Campaign Entity (Frontend Types)
+| Change | File Modified | Notes |
+|--------|---------------|-------|
+| +62 fields added | `marketing.ts` | Budget, lead gen metrics, engagement, email metrics, UTM tracking, A/B testing, hierarchy, documentation |
 
 ---
 
-### User Entity Field Mapping Table
+## Current Field Coverage Status
 
-| Field              | DB Type ([schema/000_baseline_schema.sql](database/schema/000_baseline_schema.sql#L246)) | Backend Entity ([User.cs](CRM.Backend/src/CRM.Core/Entities/User.cs#L69)) | Backend DTO ([UserDto.cs](CRM.Backend/src/CRM.Core/Dtos/UserDto.cs#L13)) | Frontend Type ([UserManagementPage.tsx](CRM.Frontend/src/pages/UserManagementPage.tsx#L8)) / ([common.ts](CRM.Frontend/src/types/common.ts#L58)) | UI ([UserManagementPage.tsx](CRM.Frontend/src/pages/UserManagementPage.tsx)) | Gaps/Notes |
-|--------------------|------------------------------------------------------|------------------------------------------------------|------------------------------------------------------|------------------------------------------------------|------------------------------------------------------|------------|
-| Id                 | int(11)                                              | int                                                  | int                                                  | number                                               | Yes (id)                                            | -          |
-| Username           | varchar(100)                                         | string                                               | string                                               | string                                               | Yes (username)                                      | -          |
-| Email              | varchar(255)                                         | string                                               | string                                               | string                                               | Yes (email)                                         | -          |
-| PasswordHash       | varchar(512)                                         | string                                               | (not in UserDto)                                     | (not in User)                                        | No                                                 | Not exposed in DTO/FE (security best practice) |
-| FirstName          | varchar(100)                                         | string                                               | string                                               | string                                               | Yes (firstName)                                     | -          |
-| LastName           | varchar(100)                                         | string                                               | string                                               | string                                               | Yes (lastName)                                      | -          |
-| Phone              | varchar(50)                                          | (not present)                                        | (not present)                                        | string? ([common.ts](CRM.Frontend/src/types/common.ts#L62)) | No                                                 | Only in DB/FE common.ts, not in backend entity/DTO |
-| Role               | varchar(50)                                          | int (0-4)                                            | string                                               | number                                               | Yes (role)                                          | Type mismatch: DB/DTO string, Entity int, FE number |
-| IsActive           | tinyint(1)                                           | bool                                                 | bool                                                 | boolean                                              | Yes (isActive)                                      | -          |
-| IsEmailVerified    | tinyint(1)                                           | bool (EmailVerified)                                 | (not present)                                        | status? (as string)                                  | No                                                 | Not exposed in DTO/FE |
-| LastLoginAt        | datetime(6)                                          | DateTime?                                            | DateTime? (LastLoginDate)                            | string?                                              | Yes (lastLoginDate)                                 | DTO/FE use LastLoginDate alias |
-| FailedLoginAttempts| int(11)                                              | (not present)                                        | (not present)                                        | (not present)                                        | No                                                 | Not exposed in BE/FE |
-| LockoutEnd         | datetime(6)                                          | (not present)                                        | (not present)                                        | (not present)                                        | No                                                 | Not exposed in BE/FE |
-| RefreshToken       | varchar(512)                                         | (not present)                                        | (not present)                                        | (not present)                                        | No                                                 | Not exposed in BE/FE |
-| RefreshTokenExpiryTime | datetime(6)                                      | (not present)                                        | (not present)                                        | (not present)                                        | No                                                 | Not exposed in BE/FE |
-| TwoFactorEnabled   | tinyint(1)                                           | bool                                                 | (not present)                                        | (not present)                                        | No                                                 | Not exposed in DTO/FE |
-| TwoFactorSecret    | varchar(255)                                         | string?                                              | (not present)                                        | (not present)                                        | No                                                 | Not exposed in DTO/FE |
-| BackupCodes        | text                                                 | string?                                              | (not present)                                        | (not present)                                        | No                                                 | Not exposed in DTO/FE |
-| PasswordLastChangedAt | datetime(6)                                       | DateTime?                                            | (not present)                                        | (not present)                                        | No                                                 | Not exposed in DTO/FE |
-| MustResetPassword  | tinyint(1)                                           | bool                                                 | (not present)                                        | (not present)                                        | No                                                 | Not exposed in DTO/FE |
-| PasswordNeverSet   | tinyint(1)                                           | bool                                                 | (not present)                                        | (not present)                                        | No                                                 | Not exposed in DTO/FE |
-| PasswordResetToken | varchar(512)                                         | string?                                              | (not present)                                        | (not present)                                        | No                                                 | Not exposed in DTO/FE |
-| PasswordResetTokenExpiry | datetime(6)                                    | DateTime?                                            | (not present)                                        | (not present)                                        | No                                                 | Not exposed in DTO/FE |
-| HeaderColor        | varchar(10)                                          | string?                                              | string?                                              | (not present)                                        | No                                                 | Only in DTO, not in FE |
-| PhotoUrl           | varchar(500)                                         | string?                                              | string?                                              | (not present)                                        | No                                                 | Only in DTO, not in FE |
-| ThemePreference    | varchar(20)                                          | string                                               | (not present)                                        | (not present)                                        | No                                                 | Not exposed in DTO/FE |
-| DepartmentId       | int(11)                                              | int?                                                 | int?                                                 | number?                                              | Yes (departmentId)                                  | -          |
-| UserProfileId      | int(11)                                              | int?                                                 | int?                                                 | number?                                              | Yes (userProfileId)                                 | -          |
-| PrimaryGroupId     | int(11)                                              | int?                                                 | int?                                                 | (not present)                                        | No                                                 | Only in DTO, not in FE |
-| CreatedAt          | datetime(6)                                          | DateTime                                             | DateTime                                             | (not present)                                        | No                                                 | Only in DTO, not in FE |
-| UpdatedAt          | datetime(6)                                          | DateTime                                             | (not present)                                        | (not present)                                        | No                                                 | Not exposed in DTO/FE |
-| IsDeleted          | tinyint(1)                                           | bool                                                 | (not present)                                        | (not present)                                        | No                                                 | Not exposed in DTO/FE |
-| ContactId          | (not present)                                        | int?                                                 | int?                                                 | number?                                              | Yes (contactId)                                     | -          |
-| ContactName        | (not present)                                        | (not present)                                        | string?                                              | string?                                              | Yes (contactName)                                   | Only in DTO/FE |
-| ContactEmail       | (not present)                                        | (not present)                                        | string?                                              | string?                                              | Yes (contactEmail)                                  | Only in DTO/FE |
+### Account — ✅ Complete
+
+All 43 fields fully covered across DB → Entity → DTO → Frontend Type → UI.
+
+Intentionally hidden from UI: `IsDeleted` (admin filter only), `RowVersion` (ETag/concurrency, not user-visible).
 
 ---
 
-### Summary of Detected Gaps
+### Contact — ✅ Types + DTO Complete, ⚠️ UI Partial
 
-- **Role type mismatch:** DB and DTO use string, backend entity uses int, frontend uses number. This can cause serialization/deserialization issues.
-- **PasswordHash and sensitive fields:** Not exposed in DTO/FE (correct for security).
-- **Phone:** Exists in DB and FE common type, but not in backend entity or DTO.
-- **HeaderColor, PhotoUrl:** Present in DB, backend entity, and DTO, but not in frontend User type.
-- **PrimaryGroupId:** Present in DB, backend entity, and DTO, but not in frontend User type.
-- **CreatedAt/UpdatedAt/IsDeleted:** Present in DB and backend entity, only CreatedAt in DTO, not exposed in FE.
-- **ContactName/ContactEmail:** Only present in DTO and FE, not in DB or backend entity.
-- **TwoFactor, password reset, and other security fields:** Present in DB and backend entity, not exposed in DTO/FE (correct for security).
-- **UI coverage:** Main UI ([UserManagementPage.tsx](CRM.Frontend/src/pages/UserManagementPage.tsx)) covers core fields (id, username, email, firstName, lastName, role, isActive, lastLoginDate, departmentId, userProfileId, contactId, contactName, contactEmail).
+| Layer | Status | Notes |
+|-------|--------|-------|
+| DB Schema | ✅ | All fields in `Contacts` table |
+| Backend Entity (`Contact.cs`) | ✅ | Rich model in `CRM.Core/Models/Contact.cs` |
+| Backend DTO (`ContactDto.cs`) | ✅ | All key fields added in Session 2 |
+| Frontend Type (`crm.ts`) | ✅ | All key fields present after Session 2 fix |
+| Frontend UI (`ContactsPage.tsx`) | ⚠️ | Secondary fields not yet in form sections |
 
-**Recommendation:**
-- Align `role` type across all layers (prefer enum or string for clarity).
-- Consider exposing `HeaderColor`, `PhotoUrl`, and `PrimaryGroupId` in frontend if needed for UI features.
-- Document intentional omissions for sensitive/security fields.
-- Add missing fields to DTO/FE only if required by business logic/UI.
+**Contact intentionally omitted:** `MergedIntoId`, `MergeGroupId`, `IsMergedDuplicate`, `MergedAt` (merge tracking — admin-only operations).
 
 ---
 
-### Role Entity Field Mapping
+### User — ✅ Types Complete, ⚠️ UI Partial
 
-| Field            | DB Type         | Backend Entity ([RBACEntities.cs](CRM.Backend/src/CRM.Core/Entities/RBACEntities.cs#L37)) | Backend DTO ([RoleDto](CRM.Backend/src/CRM.Core/Dtos/RBACAndAdminDtos.cs#L8)) | Frontend Type | UI ([UserManagementTab.tsx](CRM.Frontend/src/components/settings/UserManagementTab.tsx#L1015)) | Gaps/Notes |
-|------------------|----------------|----------------------------------------------------------|----------------------------------------------------------|---------------|-------------------------------------------------------------|------------|
-| Id               | int (PK)       | int                                                      | int                                                      | number        | Used as key in lists                                         | -          |
-| Name             | varchar        | string                                                   | string                                                   | string        | Displayed in dropdowns, lists                               | -          |
-| Description      | varchar        | string                                                   | string                                                   | string        | Displayed in role details                                   | -          |
-| HierarchyLevel   | int            | int                                                      | int                                                      | number        | Not always shown in UI                                      | -          |
-| IsSystemDefined  | bit            | bool                                                     | bool                                                     | (missing)     | Not exposed in UI ([see gap](docs/FIELD_GAP_REMEDIATION_PLAN.md#L28)) | **GAP: Not exposed in frontend** |
-| IsActive         | bit            | bool                                                     | (missing)                                                | (missing)     | Not exposed                                                 | **GAP: Not in DTO or frontend** |
-| PermissionCount  | (computed)     | (not in entity)                                          | int                                                      | (missing)     | Not exposed                                                 | -          |
-| UserCount        | (computed)     | (not in entity)                                          | int                                                      | (missing)     | Not exposed                                                 | -          |
-| CreatedAt        | datetime       | DateTime                                                 | DateTime                                                 | (missing)     | Not exposed                                                 | -          |
-| UpdatedAt        | datetime       | DateTime?                                                | DateTime?                                                | (missing)     | Not exposed                                                 | -          |
-| RolePermissions  | n/a (relation) | ICollection<RolePermission>                              | (not in DTO)                                             | (missing)     | Not exposed                                                 | -          |
-| UserRoles        | n/a (relation) | ICollection<UserRoleAssignment>                          | (not in DTO)                                             | (missing)     | Not exposed                                                 | -          |
+| Layer | Status | Notes |
+|-------|--------|-------|
+| DB Schema | ✅ | Full schema |
+| Backend Entity (`User.cs`) | ✅ | Complete |
+| Backend DTO (`UserDto.cs`) | ✅ | `IsLocked`, `HeaderColor`, `PhotoUrl` all present after Session 2 |
+| Frontend Type (`UserManagementPage.tsx`) | ✅ | All fields after Session 2 |
+| Frontend Type (`UserManagementTab.tsx`) | ✅ | All fields after Session 2 |
+| Frontend UI | ⚠️ | `IsLocked`, `HeaderColor`, `PhotoUrl` not yet in form controls |
 
 ---
 
-### Permission Entity Field Mapping
+### Role — ✅ Types Complete
 
-| Field            | DB Type         | Backend Entity ([RBACEntities.cs](CRM.Backend/src/CRM.Core/Entities/RBACEntities.cs#L86)) | Backend DTO ([PermissionDto](CRM.Backend/src/CRM.Core/Dtos/RBACAndAdminDtos.cs#L34)) | Frontend Type | UI ([RoleBasedRoute.tsx](CRM.Frontend/src/components/RoleBasedRoute.tsx#L7)) | Gaps/Notes |
-|------------------|----------------|----------------------------------------------------------|----------------------------------------------------------|---------------|-------------------------------------------------------------|------------|
-| Id               | int (PK)       | int                                                      | int                                                      | number        | Used for permission checks                                   | -          |
-| Name             | varchar        | string                                                   | string                                                   | string        | Used for permission keys                                     | -          |
-| DisplayName      | varchar        | string                                                   | string                                                   | (missing)     | Not exposed                                                 | -          |
-| Module           | varchar        | string                                                   | string                                                   | (missing)     | Not exposed                                                 | -          |
-| Category         | varchar        | string                                                   | string                                                   | (missing)     | Not exposed                                                 | -          |
-| Description      | varchar        | string                                                   | string                                                   | (missing)     | Not exposed                                                 | -          |
-| IsSystemDefined  | bit            | bool                                                     | bool                                                     | (missing)     | Not exposed ([see gap](docs/FIELD_GAP_REMEDIATION_PLAN.md#L29)) | **GAP: Not exposed in frontend** |
-| IsActive         | bit            | bool                                                     | (missing)                                                | (missing)     | Not exposed                                                 | **GAP: Not in DTO or frontend** |
-| RoleCount        | (computed)     | (not in entity)                                          | int                                                      | (missing)     | Not exposed                                                 | -          |
-| CreatedAt        | datetime       | DateTime                                                 | DateTime                                                 | (missing)     | Not exposed                                                 | -          |
-| RolePermissions  | n/a (relation) | ICollection<RolePermission>                              | (not in DTO)                                             | (missing)     | Not exposed                                                 | -          |
+All role fields present in DTO and frontend type after Session 2. UI badge for `IsSystemDefined` pending.
 
 ---
 
-### Summary of Detected Gaps
+### Permission — ✅ Types Complete
 
-- **IsSystemDefined** is present in both backend entity and DTO for Role and Permission, but **not exposed in frontend types or UI**.
-- **IsActive** exists in backend entities for both Role and Permission but is **missing from DTOs and frontend**.
-- Several fields (e.g., DisplayName, Module, Category, Description, RoleCount, UserCount, CreatedAt, UpdatedAt) are not exposed in frontend types or UI, but this may be intentional for UI simplicity.
-- No direct frontend types (TypeScript interfaces) for Role or Permission found; permissions are referenced as strings or enums in route guards/components.
-- UI components (e.g., UserManagementTab, RoleBasedRoute) use role/permission names but do not display or utilize all backend fields.
-- **Recommendation:** Expose `IsSystemDefined` and `IsActive` in frontend types and UI if needed for admin/management features. Review if additional fields should be surfaced for richer UI/management.
-- For each new field in the DB, create an EF Core migration:
-  - `dotnet ef migrations add AddIndustryToAccount`
-  - `dotnet ef database update`
-- Update seed/sample data if required
+All permission fields present in DTO and frontend type after Session 2.
 
 ---
 
-## 4. Remediation Checklist
-- [x] Add missing fields to DTOs (TypeScript, C#)  
-- [x] Update backend entities and services  
-- [x] Create and apply EF Core migrations  
-- [x] Update frontend components to use new/exposed fields  
-- [x] Add/adjust validation as needed  
-- [x] Update tests to cover new fields  
-- [x] Document all changes in relevant specs  
+### Lead — ✅ Frontend Types Complete, ⚠️ UI Partial
+
+| Layer | Status | Notes |
+|-------|--------|-------|
+| DB Schema | ✅ | Complete |
+| Backend Entity (`Lead.cs`) | ✅ | 27 mapped fields |
+| Backend DTO (service response) | ✅ | GetById returns all fields |
+| Frontend Type (`crm.ts`) | ✅ | Fixed in Session 2 — 9 fields added, obsolete fields kept for compatibility |
+| Frontend UI (`LeadsPage.tsx`) | ⚠️ | Form shows 9 fields; fitScore, engagementScore, region, qualificationNotes not yet in form |
+
+**Note:** 8 frontend fields (`rating`, `industry`, `employees`, `annualRevenue`, `priority`, `convertedAccountId`, `convertedOpportunityId`, `convertedDate`) have no backend equivalent but were kept to avoid breaking changes. These should be removed in a future cleanup pass.
 
 ---
 
-## 5. Recommendations
-- Establish a field mapping matrix for all entities
-- Add automated checks for DTO/entity alignment
-- Review all new features for full-stack field consistency
-- Regularly update documentation/specs with field changes
+### Opportunity — ✅ Frontend Types Complete, ⚠️ UI Partial
+
+| Layer | Status | Notes |
+|-------|--------|-------|
+| DB Schema | ✅ | Complete |
+| Backend Entity (`Opportunity.cs`) | ✅ | 17 real fields + computed |
+| Backend DTO | ⚠️ | No dedicated DTO — entity returned directly |
+| Frontend Type (`crm.ts`) | ✅ | Fixed in Session 2 |
+| Frontend UI (`OpportunitiesPage.tsx`) | ✅ | Page has local override that's correct — all key fields in form |
+
+**Note:** `OpportunitiesPage.tsx` has a local `Opportunity` interface override that is more accurate than the global `crm.ts` type. The global type has been updated to match.
+
+**Remaining gap:** No dedicated backend DTO for Opportunity — entity is returned directly from API. Create `OpportunityDto.cs` as a future task.
 
 ---
 
-**End of Plan**
+### Quote — ✅ Frontend Types Expanded, ⚠️ No Backend DTO, ⚠️ UI Partial
 
-> All gaps are now tracked for remediation. Please follow the checklist and patch instructions for each field. Update this file as progress is made.
+| Layer | Status | Notes |
+|-------|--------|-------|
+| DB Schema | ✅ | 69 fields |
+| Backend Entity (`Quote.cs`) | ✅ | 69 mapped fields |
+| Backend DTO | ❌ | **NONE** — entity returned directly |
+| Frontend Type (`sales.ts`) | ✅ | Expanded from 18 → 62 fields in Session 2 |
+| Frontend UI (`QuotesPage.tsx`) | ⚠️ | Form has 5 tabs but missing approval, signature, individual address components |
+
+**Critical gap:** No `QuoteDtos.cs` — create as a priority task.
+
+---
+
+### Order — ✅ Frontend Types Expanded, ⚠️ No Backend DTO, ⚠️ UI Partial
+
+| Layer | Status | Notes |
+|-------|--------|-------|
+| DB Schema | ✅ | 79 fields |
+| Backend Entity (`Order.cs`) | ✅ | 79 mapped fields |
+| Backend DTO | ❌ | **NONE** — entity returned directly |
+| Frontend Type (`sales.ts`) | ✅ | Expanded from 18 → 66 fields in Session 2 |
+| Frontend UI (`OrdersPage.tsx`) | ⚠️ | Missing shipping tracking, payment details, revenue recognition |
+
+**Critical gap:** No `OrderDtos.cs` — create as a priority task.
+
+---
+
+### Invoice — ✅ DTO + Types Expanded, ⚠️ UI Partial
+
+| Layer | Status | Notes |
+|-------|--------|-------|
+| DB Schema | ✅ | 80+ fields |
+| Backend Entity (`Invoice.cs`) | ✅ | 80+ mapped fields |
+| Backend DTO (`InvoiceDto.cs`) | ✅ | Expanded from 20 → 56 fields in Session 2 |
+| Frontend Type (`sales.ts`) | ✅ | Expanded from 15 → 51 fields in Session 2 |
+| Frontend UI (`InvoicesPage.tsx`) | ⚠️ | Form only captures 5 core fields; billing address, early payment, late fees not in form |
+
+---
+
+### Payment — ✅ DTO + Types Expanded, ⚠️ UI Partial
+
+| Layer | Status | Notes |
+|-------|--------|-------|
+| DB Schema | ✅ | 60+ fields |
+| Backend Entity (`Payment.cs`) | ✅ | 60+ mapped fields |
+| Backend DTO (`PaymentDto.cs`) | ✅ | Expanded from 18 → 35 fields in Session 2 |
+| Frontend Type (`sales.ts`) | ✅ | Expanded from 11 → 41 fields in Session 2 |
+| Frontend UI (`PaymentsPage.tsx`) | ⚠️ | Form only captures 5 core fields; card/bank/gateway details not in form |
+
+---
+
+### Contract — ✅ DTO + Types Expanded, ⚠️ UI Partial
+
+| Layer | Status | Notes |
+|-------|--------|-------|
+| DB Schema | ✅ | 50+ fields |
+| Backend Entity (`Contract.cs`) | ✅ | 50+ mapped fields |
+| Backend DTO (`ContractDto.cs`) | ✅ | Expanded from 18 → 38 fields in Session 2 |
+| Frontend Type (`sales.ts`) | ✅ | Expanded from 13 → 43 fields in Session 2 |
+| Frontend UI (`ContractsPage.tsx`) | ⚠️ | 3-tab form; missing document management, approval/rejection, suspension fields |
+
+---
+
+### Activity — ✅ Frontend Types Expanded, ⚠️ No Backend DTO, ⚠️ Read-only UI
+
+| Layer | Status | Notes |
+|-------|--------|-------|
+| DB Schema | ✅ | 36+ fields |
+| Backend Entity (`Activity.cs`) | ✅ | 36 mapped fields |
+| Backend DTO | ❌ | **NONE** — entity returned directly |
+| Frontend Type (`crm.ts`) | ✅ | Expanded from 11 → 28 fields in Session 2 |
+| Frontend UI (`ActivitiesPage.tsx`) | ❌ | **Read-only timeline view only — no create/edit form** |
+
+**Gaps:** No backend DTO. No create/edit form in UI (activities are auto-generated by system or need a dedicated create flow).
+
+---
+
+### CrmTask — ✅ Frontend Types Added, ⚠️ No Backend DTO, ⚠️ UI Partial
+
+| Layer | Status | Notes |
+|-------|--------|-------|
+| DB Schema | ✅ | 44 fields |
+| Backend Entity (`CrmTask.cs`) | ✅ | 44 mapped fields |
+| Backend DTO | ❌ | **NONE** — entity returned directly |
+| Frontend Type (`crm.ts`) | ✅ | **NEW** — full `CrmTask` interface + enums + DTOs added in Session 2 |
+| Frontend UI (`TasksPage.tsx`) | ⚠️ | 3-tab form; missing recurrence, category, attachments, group assignment |
+
+**Note:** Previously, `CrmTask` was only defined locally in `TasksPage.tsx`. Now exported from `crm.ts`. Field naming alignment: backend uses `Subject`, frontend uses `title`. Backend stores time in minutes, frontend converts to hours.
+
+---
+
+### ServiceRequest — ✅ Frontend Types Expanded, ⚠️ UI Partial
+
+| Layer | Status | Notes |
+|-------|--------|-------|
+| DB Schema | ✅ | 49 fields |
+| Backend Entity (`ServiceRequest.cs`) | ✅ | 49 mapped fields |
+| Backend DTO | ✅ | Good coverage (~70%) |
+| Frontend Type (`itsm.ts`) | ✅ | Expanded from ~37 → 64 fields in Session 2 |
+| Frontend UI (`ServiceRequestsPage.tsx`) | ⚠️ | Main form tab good; SLA info, resolution fields, VIP status not in form |
+
+---
+
+### Campaign (MarketingCampaign) — ✅ Frontend Types Expanded, ⚠️ DTO Incomplete, ⚠️ UI Partial
+
+| Layer | Status | Notes |
+|-------|--------|-------|
+| DB Schema | ✅ | 100+ fields |
+| Backend Entity (`MarketingCampaign.cs`) | ✅ | 100+ mapped fields |
+| Backend DTO | ⚠️ | ~15% coverage — only ~15 fields in `CampaignDto` |
+| Frontend Type (`marketing.ts`) | ✅ | Expanded from ~49 → 111 fields in Session 2 |
+| Frontend UI (`CampaignsPage.tsx`) | ⚠️ | 5-tab form; budget details, advanced metrics, content fields, hierarchy not exposed |
+
+**Critical gap:** `CampaignDto` is severely limited — needs major expansion to expose the 100+ entity fields.
+
+---
+
+## Extended Entity Analysis Results
+
+### Lead Entity — ✅ Analysis Complete (Agent aacc725)
+
+**Entity:** 27 mapped fields in `Lead.cs`
+**Backend DTO coverage:** GetById returns all key fields via service mapping
+**Frontend type before fix:** 8 wrong fields (no backend equivalent), 9 missing fields
+**Frontend type after fix:** ✅ All backend fields present
+
+**Analysis Findings:**
+| Entity Field | In DTO | In TS Type (before) | In TS Type (after) | In UI Form |
+|---|---|---|---|---|
+| FirstName | ✓ | ✓ | ✓ | ✓ |
+| LastName | ✓ | ✓ | ✓ | ✓ |
+| Email | ✓ | ✓ | ✓ | ✓ |
+| Phone | ✓ | ✓ | ✓ | ✓ |
+| CompanyName | ✓ | ✓ | ✓ | ✓ |
+| Title | ✓ | ✓ (jobTitle) | ✓ | ✓ |
+| Status | ✓ | ✓ | ✓ | ✓ |
+| Source | ✓ | ✓ | ✓ | ✓ |
+| Score | ✓ | ✓ (leadScore) | ✓ | Table only |
+| FitScore | ✓ | ❌ | ✅ **Fixed** | ❌ |
+| EngagementScore | ✓ | ❌ | ✅ **Fixed** | ❌ |
+| QualificationNotes | ✓ | ❌ | ✅ **Fixed** | ❌ |
+| Region | ✓ | ❌ | ✅ **Fixed** | ❌ |
+| Website | ✓ | ✓ | ✓ | ❌ |
+| OwnerId | ✓ | ✓ | ✓ | ❌ |
+| CampaignId | ✓ | ❌ | ✅ **Fixed** | ❌ |
+| AccountId | ✓ | ❌ | ✅ **Fixed** | ❌ |
+| ContactId | ✓ | ❌ | ✅ **Fixed** | ❌ |
+| MqlDate | ✓ | ❌ | ✅ **Fixed** | ❌ |
+| SqlDate | ✓ | ❌ | ✅ **Fixed** | ❌ |
+| LastActivityDate | ✓ | ❌ | ✅ **Fixed** | ❌ |
+| Tags | ✓ | ❌ | ✅ **Fixed** | ❌ |
+| rating | ❌ | ✓ (no backend) | ✓ (kept) | ❌ |
+| industry | ❌ | ✓ (no backend) | ✓ (kept) | ❌ |
+| employees | ❌ | ✓ (no backend) | ✓ (kept) | ❌ |
+| annualRevenue | ❌ | ✓ (no backend) | ✓ (kept) | ❌ |
+| priority | ❌ | ✓ (no backend) | ✓ (kept) | ❌ |
+| convertedAccountId | ❌ | ✓ (no backend) | ✓ (kept) | ❌ |
+| convertedOpportunityId | ❌ | ✓ (no backend) | ✓ (kept) | ❌ |
+| convertedDate | ❌ | ✓ (no backend) | ✓ (kept) | ❌ |
+
+**UI remaining gaps:** FitScore, EngagementScore, Region, QualificationNotes not in LeadsPage form.
+
+---
+
+### Opportunity Entity — ✅ Analysis Complete (Agent a9a187e)
+
+**Entity:** 17 real mapped fields + computed properties in `Opportunity.cs`
+**Backend DTO:** None — entity returned directly from controller
+**Frontend type before fix:** 8 non-existent fields, 8 missing fields
+**Frontend type after fix:** ✅ All backend fields present
+
+**Analysis Findings:**
+| Entity Field | In DTO | In TS Type (before) | In TS Type (after) | In UI Form |
+|---|---|---|---|---|
+| Name | Direct | ✓ | ✓ | ✓ |
+| Stage | Direct | ✓ | ✓ | ✓ |
+| Amount | Direct | ✓ | ✓ | ✓ |
+| Probability | Direct | ✓ | ✓ | ✓ |
+| Currency | Direct | ❌ | ✅ **Fixed** | ✓ (page local) |
+| ExpectedCloseDate | Direct | ✓ | ✓ | ✓ |
+| PricingModel | Direct | ❌ | ✅ **Fixed** | ✓ (page local) |
+| TermLengthMonths | Direct | ❌ | ✅ **Fixed** | ✓ (page local) |
+| SolutionNotes | Direct | ❌ | ✅ **Fixed** | ✓ (page local) |
+| QualificationReason | Direct | ❌ | ✅ **Fixed** | ✓ (page local) |
+| QualificationNotes | Direct | ❌ | ✅ **Fixed** | ✓ (page local) |
+| Region | Direct | ❌ | ✅ **Fixed** | ✓ (page local) |
+| SalesOwnerId | Direct | ✓ (ownerId mismatch) | ✅ **Fixed** (salesOwnerId) | ✓ (page local) |
+| PrimaryContactId | Direct | ✓ | ✓ | ✓ |
+| AccountId | Direct | ✓ | ✓ | ✓ |
+| LeadId | Direct | ❌ | ✅ **Fixed** | ❌ |
+| reason, nextStep, description | ❌ | ✓ (no backend) | ✓ (kept) | ❌ |
+| competitors, lossReason, leadSource, type | ❌ | ✓ (no backend) | ✓ (kept) | ❌ |
+| actualCloseDate | ❌ | ✓ (no backend) | ✓ (kept) | ❌ |
+
+**Key finding:** `OpportunitiesPage.tsx` has a local interface override that is correct — the UI form already surfaces all backend fields. The global `crm.ts` type was the only gap.
+
+---
+
+### Quote Entity — ✅ Analysis Complete (Agent a32d301)
+
+**Entity:** 69 mapped fields in `Quote.cs`
+**Backend DTO:** ❌ NONE — entity returned directly (CRITICAL ARCHITECTURAL GAP)
+**Frontend type coverage before:** 18/69 fields (26%)
+**Frontend type coverage after:** 62/69 fields (90%)
+
+**Gap Summary:**
+- Approval workflow: `requiresApproval`, `isApproved`, `approvalDate`, `approvalNotes`, `submittedForApprovalDate`, `approvedByUserId`
+- Signature: `isSigned`, `signedDate`, `signedBy`, `signatureUrl`
+- Dates: `sentDate`, `viewedDate`, `acceptedDate`, `rejectedDate`, `actualDeliveryDate`, `expectedDeliveryDate`
+- Address components: `BillingName/Address/City/State/ZipCode/Country`, `ShippingName/Address/City/State/ZipCode/Country`
+- Contact details: `contactEmail`, `contactPhone`
+- Relationships: `assignedToUserId`, `createdByUserId`, `parentQuoteId`, `relationshipManagerId`
+- Terms: `deliveryTerms`, `warranty`, `warrantyMonths`, `warrantyEndDate`
+- Service dates: `serviceStartDate`, `serviceEndDate`
+- Documentation: `internalNotes`, `attachments`, `quotePdfUrl`
+- Classification: `tags`, `category`, `customFields`
+
+**52 fields added to `sales.ts` Quote interface in Session 2.**
+
+---
+
+### Order Entity — ✅ Analysis Complete (Agent a32d301)
+
+**Entity:** 79 mapped fields in `Order.cs`
+**Backend DTO:** ❌ NONE — entity returned directly (CRITICAL ARCHITECTURAL GAP)
+**Frontend type coverage before:** 18/79 fields (23%)
+**Frontend type coverage after:** 66/79 fields (84%)
+
+**Gap Summary:**
+- Identity: `orderNumber`, `externalOrderId`, `customerPONumber`, `referenceNumber`
+- Type/Fulfillment: `orderType`, `fulfillmentMethod`, `priority`
+- Revenue recognition: `mrr`, `arr`, `tcv`, `acv`, `oneTimeRevenue`, `recurringRevenue`
+- Full billing address (9 fields), full shipping address (9 fields)
+- Shipping details: `shippingMethod`, `trackingNumber`, `trackingUrl`, `shippingWeight`, `packageCount`
+- Payment: `paymentMethod`, `amountInvoiced`, `amountPaid`, `isPaid`
+- Hold/rejection: `holdReason`, `holdDate`, `rejectionReason`, `returnReason`
+- Discount codes: `discountCode`, `couponCode`
+- Notes: `internalNotes`, `specialInstructions`, `cancellationReason`
+
+**48 fields added to `sales.ts` Order interface in Session 2.**
+
+---
+
+### Invoice Entity — ✅ Analysis Complete (Agent a7ddf05)
+
+**Entity:** 80+ mapped fields in `Invoice.cs`
+**Backend DTO before:** 20 fields (InvoiceDto.cs)
+**Backend DTO after:** 56 fields (+36 fields added in Session 2)
+**Frontend type before:** 15 fields
+**Frontend type after:** 51 fields (+36 fields added in Session 2)
+
+**Key fields added to DTO and Frontend Type:**
+- Billing address: `billingName/Company/Street/City/State/PostalCode/Country/Email/Phone` (9 fields)
+- Early payment: `earlyPaymentDiscountPercent`, `earlyPaymentDiscountDays`, `earlyPaymentDiscountAmount`
+- Late fees: `lateFeePercent`, `lateFeeAmount`, `lateFeeTotal`
+- Collections: `reminderCount`, `lastReminderDate`, `nextReminderDate`, `inCollections`, `collectionsDate`, `collectionsReference`
+- Dates: `sentDate`, `viewedDate`, `voidedDate`
+- Documentation: `internalNotes`, `footer`, `termsAndConditions`, `voidReason`, `disputeReason`, `pdfUrl`
+- Relationships: `contactId`, `subscriptionId`, `originalInvoiceId`
+
+**UI remaining gaps:** `InvoicesPage.tsx` form only captures 5 core fields. Billing address, early payment, late fees, collections fields need accordion sections.
+
+---
+
+### Payment Entity — ✅ Analysis Complete (Agent a7ddf05)
+
+**Entity:** 60+ mapped fields in `Payment.cs`
+**Backend DTO before:** 18 fields (PaymentDto.cs)
+**Backend DTO after:** 35 fields (+17 fields added in Session 2)
+**Frontend type before:** 11 fields
+**Frontend type after:** 41 fields (+30 fields added in Session 2)
+
+**Key fields added to DTO and Frontend Type:**
+- Card details: `cardBrand`, `cardLast4`, `cardExpMonth`, `cardExpYear`, `cardholderName`
+- Bank details: `bankName`, `accountLast4`, `accountType`
+- Gateway: `gateway`, `gatewayResponseCode`, `gatewayResponseMessage`
+- Reconciliation: `isReconciled`, `reconciledDate`, `bankReference`
+- Dates: `processedDate`, `settledDate`, `depositDate`
+- Notes: `internalNotes`, `failureReason`, `refundReason`
+- Relationships: `orderId`, `subscriptionId`
+- Amounts: `processingFee`, `netAmount`, `exchangeRate`
+
+**UI remaining gaps:** `PaymentsPage.tsx` form captures only 5 fields. Card/bank/gateway details need accordion sections.
+
+---
+
+### Contract Entity — ✅ Analysis Complete (Agent a7ddf05)
+
+**Entity:** 50+ mapped fields in `Contract.cs`
+**Backend DTO before:** 18 fields (ContractDto.cs)
+**Backend DTO after:** 38 fields (+20 fields added in Session 2)
+**Frontend type before:** 13 fields
+**Frontend type after:** 43 fields (+30 fields added in Session 2)
+
+**Key fields added to DTO and Frontend Type:**
+- Renewal tracking: `renewalNoticeSent`, `renewalNoticeSentDate`, `renewalInitiatedAt`, `renewalCompletedAt`, `renewalTermMonthsOverride`
+- Documents: `contractFileUrl`, `contractFileName`, `signedContractFileUrl`, `signedContractFileName`
+- Approval: `approvedByUserId`, `approvedByName`, `approvedDate`, `rejectionReason`
+- Suspension: `suspensionReason`, `suspendedDate`
+- Dates: `activatedDate`, `terminatedDate`
+- Terms: `specialConditions`, `terminationClause`, `terminationReason`
+- Relationships: `quoteId`
+
+---
+
+### Activity Entity — ✅ Analysis Complete (Agent ab63dfc)
+
+**Entity:** 36 mapped fields in `Activity.cs`
+**Backend DTO:** ❌ NONE — entity returned directly
+**Frontend type before:** 11 fields (31% coverage)
+**Frontend type after:** 28 fields (+17 fields added in Session 2)
+
+**Key fields added to Frontend Type:**
+- `title` (alias for Title), `userId`, `userName`
+- `entityName` (denormalized display name)
+- Relationships: `accountId`, `contactId`, `opportunityId`, `campaignId`
+- Classification: `isSystem`, `isPrivate`, `isImportant`, `tags`, `category`
+- Audit: `source`, `oldValue`, `newValue`, `fieldsChanged`
+
+**Critical remaining gaps:**
+- No backend DTO — entity exposed directly
+- `ActivitiesPage.tsx` is **read-only timeline view only** — no create/edit form
+- Missing in frontend type: `SecondaryEntityType/Id/Name`, `ProductId`, `TaskId`, `QuoteId`, `InteractionId`, `NoteId`, `IpAddress`, `UserAgent`, `CustomFields`
+
+---
+
+### CrmTask Entity — ✅ Analysis Complete (Agent ab63dfc)
+
+**Entity:** 44 mapped fields in `CrmTask.cs`
+**Backend DTO:** ❌ NONE — entity returned directly
+**Frontend type before:** 15 local fields in `TasksPage.tsx` (not exported)
+**Frontend type after:** Full `CrmTask` interface with enums exported from `crm.ts`
+
+**Key fields added to Frontend Type (`crm.ts`):**
+- `TaskStatus` enum (6 values), `TaskPriority` enum (4 values)
+- `CrmTask` interface with 29 fields
+- `CreateCrmTaskDto` (13 fields), `UpdateCrmTaskDto` (15 fields)
+
+**Field name alignments required:**
+- Backend: `Subject` → Frontend: `subject` (aliased as `title` in UI)
+- Backend: `EstimatedMinutes` → Frontend: `estimatedMinutes` (UI converts to hours for display)
+
+**UI remaining gaps:** Recurrence fields (`isRecurring`, `recurrencePattern`, `recurrenceEndDate`), `category`, `attachments`, `assignedToGroupId`, `contactId`, `campaignId` not in `TasksPage.tsx` form.
+
+---
+
+### ServiceRequest Entity — ✅ Analysis Complete (Agent a82d5b9)
+
+**Entity:** 49 mapped fields in `ServiceRequest.cs`
+**Backend DTO coverage:** ~70%
+**Frontend type before:** 37 fields (~60%)
+**Frontend type after:** 64 fields (~90%+)
+
+**Key fields added to Frontend Type (`itsm.ts`):**
+- `createdByUserId`, `createdByUserName`
+- Workflow: `workflowId`, `workflowName`, `currentWorkflowStep`
+- Dates: `dueDate`, `firstResponseDate`, `closedDate`, `resolvedDate`
+- Resolution: `resolutionSummary`, `resolutionCode`, `rootCause`
+- Product: `relatedProductId`, `relatedProductName`
+- Feedback: `customerFeedback`, `satisfactionRating` (existing)
+- Classification: `tags`, `internalNotes`, `escalationLevel`, `reopenCount`, `isVipAccount`
+- Effort: `estimatedEffortHours`, `actualEffortHours`, `slaStatus`
+- External: `externalReferenceId`, `sourceEmailAddress`, `isEscalated`
+
+**UI remaining gaps:** SLA info, resolution fields (filled in by agent), VIP status flag not shown in create form.
+
+---
+
+### Campaign (MarketingCampaign) Entity — ✅ Analysis Complete (Agent a82d5b9)
+
+**Entity:** 100+ mapped fields in `MarketingCampaign.cs`
+**Backend DTO coverage:** ~15% (MOST SEVERE GAP)
+**Frontend type before:** ~49 fields (~10%)
+**Frontend type after:** ~111 fields
+
+**Key fields added to Frontend Type (`marketing.ts`):**
+- Budget details: `dailyBudget`, `monthlyBudget`, `expectedRevenue`, `costPerLead`, `costPerMql`, `costPerSql`, `costPerOpportunity`, `costPerAcquisition`, `currencyCode`
+- Lead gen metrics: `mqLsGenerated`, `sqlsGenerated`, `salsGenerated`, `opportunitiesCreated`, `opportunitiesInfluenced`, `dealsWon`, `accountsAcquired`
+- Engagement: `impressions`, `reach`, `frequency`, `clickThroughRate`, `landingPageVisits`, `formSubmissions`, `videoViews`, `videoCompletions`
+- Email metrics: `emailsSent`, `emailsDelivered`, `deliveryRate`, `emailsOpened`, `openRate`, `unsubscribes`, `bounces`
+- UTM: `utmSource`, `utmMedium`, `utmCampaign`, `utmContent`, `utmTerm`
+- A/B testing: `isABTest`, `variantAName`, `variantBName`, `variantAConversions`, `variantBConversions`
+- Assignment: `ownerId`, `assignedToUserId`, `department`, `approvedBy`
+- Hierarchy: `parentCampaignId`, `programId`, `initiativeId`, `fiscalQuarter`, `fiscalYear`
+- Classification: `category`, `subCategory`, `region`
+- Documentation: `internalNotes`, `successCriteria`, `lessonsLearned`, `attachments`
+
+**Critical remaining gap:** `CampaignDto` in backend only exposes ~15 fields. The `MarketingCampaign` entity has 100+ fields. This is the largest single backend DTO gap in the system.
+
+---
+
+## Remaining Work Summary
+
+### Priority 1: Create Missing Backend DTOs (Architectural Gaps)
+
+| Entity | Current State | Action Required | Files |
+|--------|---------------|-----------------|-------|
+| Quote | Entity returned directly | Create `QuoteDtos.cs` with `QuoteDto`, `CreateQuoteDto`, `UpdateQuoteDto` | New file |
+| Order | Entity returned directly | Create `OrderDtos.cs` with `OrderDto`, `CreateOrderDto`, `UpdateOrderDto` | New file |
+| Opportunity | Entity returned directly | Create `OpportunityDto.cs` | New file |
+| Activity | Entity returned directly | Create `ActivityDto.cs` | New file |
+| CrmTask | Entity returned directly | Create `CrmTaskDtos.cs` | New file |
+| Campaign | DTO has ~15% coverage | Massively expand `CampaignDto.cs` | Existing file |
+
+### Priority 2: Frontend UI — Add Accordion Sections for All Expanded Entities
+
+The TypeScript types are now complete. The next step is wiring the new fields into the UI. Per user's request to *"show all except those deliberately hidden"*, each entity's form dialog should have an "Additional Information" accordion at the bottom.
+
+| Entity | Page | Fields to Add to Accordion |
+|--------|------|---------------------------|
+| Lead | `LeadsPage.tsx` | fitScore, engagementScore, region, qualificationNotes, campaignId, mqlDate, sqlDate, tags |
+| Contact | `ContactsPage.tsx` | emailSecondary, phoneSecondary, department, address fields, doNotContact, preferredContactMethod |
+| User | `UserManagementPage/Tab.tsx` | isLocked toggle, headerColor picker, photoUrl field |
+| Invoice | `InvoicesPage.tsx` | Billing address (9 fields), early payment discount, late fees, collections, internalNotes |
+| Payment | `PaymentsPage.tsx` | Card details, bank details, gateway info, reconciliation fields |
+| Contract | `ContractsPage.tsx` | Document URLs, approval fields, suspension reason, terminationClause |
+| CrmTask | `TasksPage.tsx` | Recurrence fields, category, attachments, group assignment, contactId |
+| Activity | `ActivitiesPage.tsx` | **Create a form dialog** (currently read-only) |
+| ServiceRequest | `ServiceRequestsPage.tsx` | SLA status, resolution fields, VIP flag, effort hours |
+| Campaign | `CampaignsPage.tsx` | Budget details, advanced metrics, content fields, hierarchy |
+
+### Priority 3: Cleanup Pass
+
+| Task | Description |
+|------|-------------|
+| Remove phantom Lead fields | `crm.ts` Lead interface has 8 fields (`rating`, `industry`, `employees`, etc.) with no backend equivalent — remove in future breaking-change window |
+| Remove Opportunity phantom fields | `crm.ts` Opportunity has `reason`, `nextStep`, `description`, `competitors`, `lossReason`, `leadSource`, `type`, `actualCloseDate` with no backend equivalent |
+| Align `CrmTask.subject` vs `title` | Backend uses `Subject`, frontend UI uses `title`. Standardize in backend DTO when created |
+| Align `estimatedMinutes` conversion | Backend stores minutes, UI displays hours — document conversion or fix in DTO |
+
+---
+
+## Intentionally Excluded Fields (Do Not Fix)
+
+These fields are deliberately absent from DTO or Frontend layers for security or architectural reasons:
+
+| Entity | Field | Reason |
+|--------|-------|--------|
+| User | `PasswordHash` | Security — never serialize |
+| User | `TwoFactorSecret` | Security — never serialize |
+| User | `BackupCodes` | Security — never serialize |
+| User | `PasswordResetToken` | Security — never serialize |
+| User | `EmailVerificationToken` | Security — never serialize |
+| User | `RefreshTokens` | Security — managed by auth layer |
+| User | `FailedLoginAttempts` | Security internal — expose only as "IsLocked" |
+| User | `LockoutEnd` | Security internal |
+| Account | `RowVersion` | Binary ETag — no UI purpose |
+| Account | `IsDeleted` | Soft-delete flag — shown only in admin filter |
+| Contact | `MergedIntoId`, `MergeGroupId`, `IsMergedDuplicate` | Merge tracking — admin-only |
+| Payment | `GatewayResponseRaw` | Raw gateway JSON — internal only |
+| Payment | `FraudNotes`, `FraudFlagged` | Fraud/risk — show only to fraud team |
+| Payment | `IpAddress`, `DeviceFingerprint` | PII/audit data — not user-visible |
+| Activity | `IpAddress`, `UserAgent` | Audit metadata — read-only in detail view only |
+
+---
+
+## Architecture Recommendations
+
+1. **Create DTO layer for all direct-entity endpoints**: Quote, Order, Opportunity, Activity, CrmTask all return raw entities. DTOs should be the contract layer, not entities.
+2. **Enum alignment**: All enum fields should use `int` (numeric) values consistently in API/DTO contracts. Frontend should use TypeScript `const enum` or string union mapped from numeric values.
+3. **Date serialization**: Standardize on ISO 8601 strings from backend. Frontend should handle `string | null` for all date fields.
+4. **Field name conventions**: Avoid field name mismatches (subject/title, estimatedMinutes/estimatedHours). Define a DTO naming standard.
+5. **UI tab strategy**: Forms should use a two-section layout: core fields in the main form, optional/secondary fields in a collapsible "Additional Information" accordion at the bottom.
+6. **Campaign DTO expansion**: CampaignDto is the most critical single gap — expand from ~15 fields to cover the full 100+ entity fields.
+7. **Field mapping matrix**: Maintain this document as a living spec — update when adding/changing fields.
+8. **Automated alignment checks**: Consider adding a build-time test that verifies DTO public properties are a superset of the fields returned by the API (contract testing).
+
+---
+
+## Remediation Checklist
+
+### Session 1
+- [x] Account: `Industry` — Backend, DB, Frontend ✅
+- [x] Account: `IsDeleted` — Frontend type ✅
+
+### Session 2 — Backend DTOs
+- [x] User: `IsLocked` — Backend DTO + Frontend types ✅
+- [x] Role: `IsActive` — Backend DTO + Frontend type ✅
+- [x] Permission: `IsActive` — Backend DTO + Frontend type ✅
+- [x] Contact: `Salutation`, `Suffix`, `Nickname`, `Gender` — Backend DTO ✅
+- [x] Contact: `PhoneMobile`, `PhoneFax` — Backend DTO ✅
+- [x] Contact: `Website`, `LinkedInUrl`, `TwitterHandle` — Backend DTO ✅
+- [x] Contact: `DoNotContact`, `PreferredContactMethod`, `LeadStatus` — Backend DTO ✅
+- [x] Invoice: +36 fields — Backend DTO expanded ✅
+- [x] Payment: +17 fields — Backend DTO expanded ✅
+- [x] Contract: +20 fields — Backend DTO expanded ✅
+
+### Session 2 — Frontend Types
+- [x] User: `isLocked`, `headerColor`, `photoUrl` — Frontend types ✅
+- [x] Role: `IsSystemDefined` + `isActive` — Frontend type ✅
+- [x] Permission: `isSystemDefined` + `isActive` — Frontend type ✅
+- [x] Contact: `contactType`, `status` expansion, `leadStatus`, `emailPrimary/Secondary`, `phonePrimary/Secondary` — `crm.ts` ✅
+- [x] Lead: 9 missing fields added, `CreateLeadDto` + `UpdateLeadDto` expanded — `crm.ts` ✅
+- [x] Opportunity: 9 missing fields added, `salesOwnerId` fix, DTOs expanded — `crm.ts` ✅
+- [x] Activity: 17 fields added — `crm.ts` ✅
+- [x] CrmTask: New type with enums, full interface, DTOs — `crm.ts` ✅
+- [x] Quote: +44 fields — `sales.ts` ✅
+- [x] Order: +48 fields — `sales.ts` ✅
+- [x] Invoice: +36 fields — `sales.ts` ✅
+- [x] Payment: +30 fields — `sales.ts` ✅
+- [x] Contract: +30 fields — `sales.ts` ✅
+- [x] ServiceRequest: +27 fields — `itsm.ts` ✅
+- [x] Campaign: +62 fields — `marketing.ts` ✅
+
+### Remaining Work
+- [ ] Create backend `QuoteDtos.cs` with full DTO layer
+- [ ] Create backend `OrderDtos.cs` with full DTO layer
+- [ ] Create backend `OpportunityDto.cs`
+- [ ] Create backend `ActivityDto.cs`
+- [ ] Create backend `CrmTaskDtos.cs`
+- [ ] Expand `CampaignDto.cs` from ~15 to 100+ fields
+- [ ] Add accordion sections to `LeadsPage.tsx` for secondary fields
+- [ ] Add accordion sections to `ContactsPage.tsx` for secondary fields
+- [ ] Add accordion sections to `InvoicesPage.tsx` for billing address, early payment, late fees
+- [ ] Add accordion sections to `PaymentsPage.tsx` for card/bank/gateway details
+- [ ] Add accordion sections to `ContractsPage.tsx` for documents, approval, suspension
+- [ ] Add accordion sections to `TasksPage.tsx` for recurrence, category, attachments
+- [ ] Add accordion sections to `ServiceRequestsPage.tsx` for SLA, resolution, VIP
+- [ ] Add accordion sections to `CampaignsPage.tsx` for budget details, metrics, hierarchy
+- [ ] Add create/edit form dialog to `ActivitiesPage.tsx` (currently read-only)
+- [ ] Add UI controls for `isLocked`, `headerColor`, `photoUrl` to User management forms
+- [ ] Cleanup: Remove phantom fields from Lead and Opportunity in `crm.ts`
+
+---
+
+*Last updated: 2026-02-20 (Session 2 complete). Next: Priority 2 — Frontend UI accordion sections.*

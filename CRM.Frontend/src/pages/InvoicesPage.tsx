@@ -107,6 +107,16 @@ interface InvoiceForm {
   notes: string;
   orderId: number | null;
   quoteId: number | null;
+  paymentTerms: string;
+  discountPercent: number;
+  taxRate: number;
+  internalNotes: string;
+  billingName: string;
+  billingStreet: string;
+  billingCity: string;
+  billingState: string;
+  billingPostalCode: string;
+  billingCountry: string;
 }
 
 // ==================== CONSTANTS ====================
@@ -166,6 +176,16 @@ function InvoicesPage() {
     notes: '',
     orderId: null,
     quoteId: null,
+    paymentTerms: '',
+    discountPercent: 0,
+    taxRate: 0,
+    internalNotes: '',
+    billingName: '',
+    billingStreet: '',
+    billingCity: '',
+    billingState: '',
+    billingPostalCode: '',
+    billingCountry: '',
   };
   const [formData, setFormData] = useState<InvoiceForm>(emptyForm);
 
@@ -218,6 +238,16 @@ function InvoicesPage() {
         notes: invoice.notes || '',
         orderId: invoice.orderId || null,
         quoteId: invoice.quoteId || null,
+        paymentTerms: (invoice as any).paymentTerms || '',
+        discountPercent: (invoice as any).discountPercent || 0,
+        taxRate: (invoice as any).taxRate || 0,
+        internalNotes: (invoice as any).internalNotes || '',
+        billingName: (invoice as any).billingName || '',
+        billingStreet: (invoice as any).billingStreet || '',
+        billingCity: (invoice as any).billingCity || '',
+        billingState: (invoice as any).billingState || '',
+        billingPostalCode: (invoice as any).billingPostalCode || '',
+        billingCountry: (invoice as any).billingCountry || '',
       });
       fetchLineItems(invoice.id);
     } else {
@@ -493,6 +523,7 @@ function InvoicesPage() {
           <Tabs value={dialogTab} onChange={(_, v) => setDialogTab(v)} sx={{ mb: 2 }}>
             <Tab label="Invoice Details" />
             {editingId && <Tab label="Line Items" />}
+            <Tab label="Billing & Details" />
           </Tabs>
 
           <DialogError error={dialogApi.error} />
@@ -593,6 +624,80 @@ function InvoicesPage() {
               )}
             </TabPanel>
           )}
+
+          {/* Tab 2: Billing & Details */}
+          <TabPanel value={dialogTab} index={editingId ? 2 : 1}>
+            <Grid container spacing={2}>
+              <Grid item xs={12}>
+                <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>Pricing</Typography>
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <TextField
+                  fullWidth
+                  type="number"
+                  label="Discount %"
+                  name="discountPercent"
+                  value={formData.discountPercent}
+                  onChange={handleInputChange}
+                  inputProps={{ min: 0, max: 100, step: 0.01 }}
+                />
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <TextField
+                  fullWidth
+                  type="number"
+                  label="Tax Rate %"
+                  name="taxRate"
+                  value={formData.taxRate}
+                  onChange={handleInputChange}
+                  inputProps={{ min: 0, step: 0.01 }}
+                />
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <TextField
+                  fullWidth
+                  label="Payment Terms"
+                  name="paymentTerms"
+                  value={formData.paymentTerms}
+                  onChange={handleInputChange}
+                  placeholder="e.g. Net 30"
+                />
+              </Grid>
+              <Grid item xs={12}>
+                <Typography variant="subtitle2" color="text.secondary" sx={{ mt: 1, mb: 1 }}>Billing Address</Typography>
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField fullWidth label="Billing Name" name="billingName" value={formData.billingName} onChange={handleInputChange} />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField fullWidth label="Street" name="billingStreet" value={formData.billingStreet} onChange={handleInputChange} />
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <TextField fullWidth label="City" name="billingCity" value={formData.billingCity} onChange={handleInputChange} />
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <TextField fullWidth label="State" name="billingState" value={formData.billingState} onChange={handleInputChange} />
+              </Grid>
+              <Grid item xs={12} md={4}>
+                <TextField fullWidth label="Postal Code" name="billingPostalCode" value={formData.billingPostalCode} onChange={handleInputChange} />
+              </Grid>
+              <Grid item xs={12} md={6}>
+                <TextField fullWidth label="Country" name="billingCountry" value={formData.billingCountry} onChange={handleInputChange} />
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  multiline
+                  rows={3}
+                  label="Internal Notes"
+                  name="internalNotes"
+                  value={formData.internalNotes}
+                  onChange={handleInputChange}
+                  placeholder="Internal notes (not visible to customer)"
+                />
+              </Grid>
+            </Grid>
+          </TabPanel>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog}>Cancel</Button>

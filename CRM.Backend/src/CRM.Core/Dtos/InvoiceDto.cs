@@ -49,6 +49,53 @@ public class InvoiceDto
     public bool IsOverdue => Status != InvoiceStatus.Paid && DueDate < DateTime.UtcNow.Date;
 
     public List<InvoiceLineItemDto> LineItems { get; set; } = new();
+
+    // Dates
+    public DateTime? ServicePeriodStart { get; set; }
+    public DateTime? ServicePeriodEnd { get; set; }
+
+    // Pricing details
+    public decimal? DiscountPercent { get; set; }
+    public decimal? AmountCredited { get; set; }
+    public decimal? ExchangeRate { get; set; }
+
+    // Early payment discount
+    public decimal? EarlyPaymentDiscountPercent { get; set; }
+    public int? EarlyPaymentDiscountDays { get; set; }
+    public decimal? EarlyPaymentDiscountAmount { get; set; }
+
+    // Late fees
+    public decimal? LateFeePercent { get; set; }
+    public decimal? LateFeeAmount { get; set; }
+
+    // Billing address
+    public string? BillingName { get; set; }
+    public string? BillingCompany { get; set; }
+    public string? BillingStreet { get; set; }
+    public string? BillingCity { get; set; }
+    public string? BillingState { get; set; }
+    public string? BillingPostalCode { get; set; }
+    public string? BillingCountry { get; set; }
+    public string? BillingEmail { get; set; }
+    public string? BillingPhone { get; set; }
+
+    // Collections & dunning
+    public int? ReminderCount { get; set; }
+    public DateTime? LastReminderDate { get; set; }
+    public DateTime? NextReminderDate { get; set; }
+    public bool InCollections { get; set; }
+
+    // Documentation
+    public string? InternalNotes { get; set; }
+    public string? Footer { get; set; }
+    public string? TermsAndConditions { get; set; }
+    public string? DisputeReason { get; set; }
+    public string? PdfUrl { get; set; }
+
+    // Additional relationships
+    public int? ContactId { get; set; }
+    public int? SubscriptionId { get; set; }
+    public int? OriginalInvoiceId { get; set; }
 }
 
 /// <summary>
@@ -75,7 +122,17 @@ public class CreateInvoiceDto
     
     public int? OrderId { get; set; }
     public int? QuoteId { get; set; }
-    
+
+    public string? InternalNotes { get; set; }
+    public string? TermsAndConditions { get; set; }
+
+    // Billing address
+    public string? BillingName { get; set; }
+    public string? BillingStreet { get; set; }
+    public string? BillingCity { get; set; }
+    public string? BillingState { get; set; }
+    public string? BillingCountry { get; set; }
+
     public List<CreateInvoiceLineItemDto> LineItems { get; set; } = new();
 }
 
@@ -95,6 +152,16 @@ public class UpdateInvoiceDto
     
     public string? Description { get; set; }
     public string? Notes { get; set; }
+
+    public string? InternalNotes { get; set; }
+    public string? TermsAndConditions { get; set; }
+
+    // Billing address
+    public string? BillingName { get; set; }
+    public string? BillingStreet { get; set; }
+    public string? BillingCity { get; set; }
+    public string? BillingState { get; set; }
+    public string? BillingCountry { get; set; }
 }
 
 /// <summary>

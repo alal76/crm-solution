@@ -123,6 +123,17 @@ export interface Lead extends BaseEntity {
   convertedAccountId?: number;
   convertedOpportunityId?: number;
   convertedDate?: string;
+  fitScore?: number;          // ML fit score from backend
+  engagementScore?: number;   // ML engagement score from backend
+  qualificationNotes?: string; // SDR qualification notes
+  region?: string;            // Sales territory/region
+  campaignId?: number;        // Source campaign
+  accountId?: number;         // Matched account (after conversion)
+  contactId?: number;         // Matched contact (after conversion)
+  mqlDate?: string;           // Date qualified as Marketing Qualified Lead
+  sqlDate?: string;           // Date qualified as Sales Qualified Lead
+  lastActivityDate?: string;  // Last activity date
+  tags?: string;              // Comma-separated tags
 }
 
 export interface CreateLeadDto {
@@ -134,6 +145,9 @@ export interface CreateLeadDto {
   jobTitle?: string;
   source?: LeadSource;
   industry?: string;
+  region?: string;
+  campaignId?: number;
+  qualificationNotes?: string;
 }
 
 export interface UpdateLeadDto {
@@ -142,6 +156,11 @@ export interface UpdateLeadDto {
   ownerId?: number;
   priority?: string;
   notes?: string;
+  fitScore?: number;
+  engagementScore?: number;
+  qualificationNotes?: string;
+  region?: string;
+  campaignId?: number;
 }
 
 export interface LeadConversionResult {
@@ -185,6 +204,16 @@ export interface Opportunity extends BaseEntity {
   lossReason?: string;
   leadSource?: string;
   type?: 'new_business' | 'expansion' | 'renewal' | 'replacement';
+  currency?: string;           // ISO currency code (default USD)
+  pricingModel?: number;       // OpportunityPricingModel: 0=Subscription, 1=OneTime, 2=UsageBased, 3=Hybrid
+  termLengthMonths?: number;   // Contract term length (1-120)
+  solutionNotes?: string;      // Proposed solution description
+  qualificationReason?: number; // BANT: 0=Budget, 1=Need, 2=Timing, 3=Authority, 4=Fit
+  qualificationNotes?: string; // Qualification handoff notes
+  region?: string;             // Sales territory/region
+  leadId?: number;             // Source lead FK
+  salesOwnerId?: number;       // Account executive (backend field name)
+  salesOwnerName?: string;     // Account executive display name
 }
 
 export interface OpportunityProduct {
@@ -206,6 +235,10 @@ export interface CreateOpportunityDto {
   amount: number;
   expectedCloseDate: string;
   stage?: OpportunityStage;
+  currency?: string;
+  pricingModel?: number;
+  termLengthMonths?: number;
+  salesOwnerId?: number;
 }
 
 export interface UpdateOpportunityDto {
@@ -215,6 +248,13 @@ export interface UpdateOpportunityDto {
   expectedCloseDate?: string;
   reason?: string;
   nextStep?: string;
+  currency?: string;
+  pricingModel?: number;
+  termLengthMonths?: number;
+  solutionNotes?: string;
+  qualificationReason?: number;
+  qualificationNotes?: string;
+  region?: string;
 }
 
 // ============================================================================
@@ -289,6 +329,23 @@ export interface Activity extends BaseEntity {
   participants?: string[];
   location?: string;
   attachments?: string[];
+  title?: string;              // Activity title (alias: subject)
+  userId?: number;             // User who performed activity (alias: ownerId)
+  userName?: string;           // Display name of user
+  entityName?: string;         // Display name of related entity
+  accountId?: number;          // Related account
+  contactId?: number;          // Related contact
+  opportunityId?: number;      // Related opportunity
+  campaignId?: number;         // Related campaign
+  isSystem?: boolean;          // System-generated activity
+  isPrivate?: boolean;         // Private/internal activity
+  isImportant?: boolean;       // Flagged as important
+  tags?: string;               // Comma-separated tags
+  category?: string;           // Activity category
+  source?: string;             // Activity source (API, Web, Mobile, Import)
+  oldValue?: string;           // Previous value (for update activities)
+  newValue?: string;           // New value (for update activities)
+  fieldsChanged?: string[];    // Which fields changed (for update activities)
 }
 
 export interface CreateActivityDto {
@@ -299,6 +356,91 @@ export interface CreateActivityDto {
   entityId: number;
   activityDate: string;
   dueDate?: string;
+}
+
+// ============================================================================
+// TASKS
+// ============================================================================
+
+export enum TaskStatus {
+  NotStarted = 0,
+  InProgress = 1,
+  Completed = 2,
+  Deferred = 3,
+  WaitingOnOthers = 4,
+  Cancelled = 5
+}
+
+export enum TaskPriority {
+  Low = 0,
+  Normal = 1,
+  High = 2,
+  Critical = 3
+}
+
+export interface CrmTask extends BaseEntity {
+  subject: string;             // Backend field name (frontend may alias as 'title')
+  description?: string;
+  taskType: number;            // Enum: 0=Task, 1=Email, 2=Call, 3=Meeting, 4=Reminder, 5=Other
+  status: number;              // TaskStatus enum
+  priority: number;            // TaskPriority enum
+  dueDate?: string;
+  startDate?: string;
+  completedDate?: string;
+  reminderDate?: string;
+  hasReminder?: boolean;
+  percentComplete: number;     // 0-100
+  estimatedMinutes?: number;   // Backend uses minutes
+  actualMinutes?: number;      // Backend uses minutes
+  isRecurring?: boolean;
+  recurrencePattern?: string;  // JSON recurrence config
+  recurrenceEndDate?: string;
+  parentTaskId?: number;
+  accountId?: number;
+  contactId?: number;
+  opportunityId?: number;
+  campaignId?: number;
+  assignedToUserId?: number;
+  assignedToGroupId?: number;
+  createdByUserId?: number;
+  tags?: string;
+  category?: string;
+  attachments?: string;        // JSON array of attachment paths
+  customFields?: string;       // JSON custom fields
+}
+
+export interface CreateCrmTaskDto {
+  subject: string;
+  description?: string;
+  taskType: number;
+  priority?: number;
+  dueDate?: string;
+  startDate?: string;
+  reminderDate?: string;
+  estimatedMinutes?: number;
+  accountId?: number;
+  contactId?: number;
+  opportunityId?: number;
+  assignedToUserId?: number;
+  tags?: string;
+}
+
+export interface UpdateCrmTaskDto {
+  subject?: string;
+  description?: string;
+  status?: number;
+  priority?: number;
+  dueDate?: string;
+  startDate?: string;
+  completedDate?: string;
+  percentComplete?: number;
+  estimatedMinutes?: number;
+  actualMinutes?: number;
+  isRecurring?: boolean;
+  recurrencePattern?: string;
+  recurrenceEndDate?: string;
+  tags?: string;
+  category?: string;
 }
 
 // ============================================================================

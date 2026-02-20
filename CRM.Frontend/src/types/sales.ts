@@ -41,6 +41,64 @@ export interface Quote extends BaseEntity {
   createdById?: number;
   createdByName?: string;
   currency?: string; // ISO 4217 code (USD, EUR, etc.)
+
+  // Identity
+  quoteNumber?: string;
+  externalQuoteId?: string;
+  version?: number;
+  name?: string;
+  description?: string;
+
+  // Workflow dates
+  sentDate?: string;
+  viewedDate?: string;
+  acceptedDate?: string;
+  rejectedDate?: string;
+
+  // Approval workflow
+  requiresApproval?: boolean;
+  isApproved?: boolean;
+  approvalDate?: string;
+  approvalNotes?: string;
+  submittedForApprovalDate?: string;
+  approvedByUserId?: number;
+  approvedByName?: string;
+
+  // Signature
+  isSigned?: boolean;
+  signedDate?: string;
+  signedBy?: string;
+  signatureUrl?: string;
+
+  // Contact details
+  contactEmail?: string;
+  contactPhone?: string;
+
+  // Pricing & terms
+  discountReason?: string;
+  paymentTerms?: string;
+  deliveryTerms?: string;
+  warrantyMonths?: number;
+  warrantyEndDate?: string;
+
+  // Service/delivery dates
+  expectedDeliveryDate?: string;
+  actualDeliveryDate?: string;
+  serviceStartDate?: string;
+  serviceEndDate?: string;
+
+  // Relationships
+  assignedToUserId?: number;
+  createdByUserId?: number;
+  parentQuoteId?: number;
+
+  // Classification
+  tags?: string;
+  category?: string;
+  internalNotes?: string;
+  attachments?: string;
+  quotePdfUrl?: string;
+  customFields?: string;
 }
 
 export interface QuoteLineItem {
@@ -67,6 +125,12 @@ export interface CreateQuoteDto {
   terms?: string;
   discount?: number;
   currency?: string;
+  name?: string;
+  description?: string;
+  externalQuoteId?: string;
+  paymentTerms?: string;
+  internalNotes?: string;
+  assignedToUserId?: number;
 }
 
 export interface UpdateQuoteDto {
@@ -120,6 +184,71 @@ export interface Order extends BaseEntity {
   notes?: string;
   currency?: string;
   createdById?: number;
+
+  // Identity
+  orderNumber?: string;
+  externalOrderId?: string;
+  customerPONumber?: string;
+  referenceNumber?: string;
+
+  // Type & fulfillment
+  orderType?: number;          // 0=Standard, 1=Subscription, 2=Service, 3=Renewal
+  fulfillmentMethod?: number;  // 0=Delivery, 1=Pickup, 2=Digital, 3=Service
+  priority?: number;           // 0=Normal, 1=High, 2=Urgent
+
+  // Dates
+  approvedDate?: string;
+  promisedDeliveryDate?: string;
+  deliveredDate?: string;
+  completedDate?: string;
+  cancelledDate?: string;
+  contractStartDate?: string;
+  contractEndDate?: string;
+  fulfilledDate?: string;
+  submittedDate?: string;
+
+  // Pricing additions
+  handlingAmount?: number;
+  exchangeRate?: number;
+  discountReason?: string;
+
+  // Shipping details
+  shippingMethod?: string;
+  trackingNumber?: string;
+  trackingUrl?: string;
+  shippingWeight?: number;
+  packageCount?: number;
+
+  // Payment details
+  paymentMethod?: string;
+  amountInvoiced?: number;
+  amountPaid?: number;
+  balanceDue?: number;
+  isPaid?: boolean;
+
+  // Relationships
+  quoteId?: number;
+  ownerId?: number;
+  approvedById?: number;
+  parentOrderId?: number;
+
+  // Notes
+  internalNotes?: string;
+  specialInstructions?: string;
+  cancellationReason?: string;
+  termsAndConditions?: string;
+
+  // Workflow
+  holdReason?: string;
+  rejectionReason?: string;
+  returnReason?: string;
+  discountCode?: string;
+  couponCode?: string;
+
+  // Classification
+  tags?: string;
+  category?: string;
+  customFields?: string;
 }
 
 export interface OrderLineItem {
@@ -195,6 +324,67 @@ export interface Invoice extends BaseEntity {
   currency?: string;
   sendViaEmail?: boolean;
   emailSentDate?: string;
+
+  // Identity
+  invoiceNumber?: string;
+  externalInvoiceId?: string;
+  referenceNumber?: string;
+  batchNumber?: string;
+  invoiceType?: string;
+
+  // Dates
+  sentDate?: string;
+  viewedDate?: string;
+  paidDate?: string;
+  voidedDate?: string;
+  servicePeriodStart?: string;
+  servicePeriodEnd?: string;
+
+  // Pricing details
+  discountPercent?: number;
+  feesAmount?: number;
+  amountCredited?: number;
+  exchangeRate?: number;
+
+  // Early payment
+  earlyPaymentDiscountPercent?: number;
+  earlyPaymentDiscountDays?: number;
+  earlyPaymentDiscountAmount?: number;
+
+  // Late fees
+  lateFeePercent?: number;
+  lateFeeAmount?: number;
+
+  // Billing address
+  billingName?: string;
+  billingCompany?: string;
+  billingStreet?: string;
+  billingCity?: string;
+  billingState?: string;
+  billingPostalCode?: string;
+  billingCountry?: string;
+  billingEmail?: string;
+  billingPhone?: string;
+
+  // Collections
+  reminderCount?: number;
+  lastReminderDate?: string;
+  nextReminderDate?: string;
+  inCollections?: boolean;
+  collectionsDate?: string;
+
+  // Documentation
+  internalNotes?: string;
+  footer?: string;
+  termsAndConditions?: string;
+  voidReason?: string;
+  disputeReason?: string;
+  pdfUrl?: string;
+
+  // Relationships
+  contactId?: number;
+  subscriptionId?: number;
+  originalInvoiceId?: number;
 }
 
 export interface InvoiceLineItem {
@@ -262,6 +452,56 @@ export interface Payment extends BaseEntity {
   notes?: string;
   recordedBy?: string;
   currency?: string;
+
+  // Identity
+  paymentNumber?: string;
+  externalPaymentId?: string;
+  gatewayTransactionId?: string;
+  checkNumber?: string;
+  description?: string;
+
+  // Type & status
+  paymentType?: string;
+
+  // Amounts
+  processingFee?: number;
+  netAmount?: number;
+  exchangeRate?: number;
+
+  // Dates
+  processedDate?: string;
+  settledDate?: string;
+  depositDate?: string;
+
+  // Card details
+  cardBrand?: string;
+  cardLast4?: string;
+  cardExpMonth?: number;
+  cardExpYear?: number;
+  cardholderName?: string;
+
+  // Bank details
+  bankName?: string;
+  accountLast4?: string;
+  accountType?: string;
+
+  // Gateway
+  gateway?: string;
+  gatewayResponseCode?: string;
+  gatewayResponseMessage?: string;
+
+  // Relationships
+  orderId?: number;
+  subscriptionId?: number;
+
+  // Reconciliation
+  isReconciled?: boolean;
+  reconciledDate?: string;
+  bankReference?: string;
+
+  // Notes
+  internalNotes?: string;
+  failureReason?: string;
 }
 
 export interface CreatePaymentDto {
@@ -311,6 +551,51 @@ export interface Contract extends BaseEntity {
   supportLevel?: string; // Premium, Standard, Basic
   attachments?: string[];
   currency?: string;
+
+  // Identity
+  contractNumber?: string;
+  contractType?: string;
+
+  // Relationships
+  ownerId?: number;
+  ownerName?: string;
+  parentContractId?: number;
+  quoteId?: number;
+
+  // Dates
+  activatedDate?: string;
+  terminatedDate?: string;
+
+  // Renewal
+  renewalNoticeDays?: number;
+  renewalNoticeSent?: boolean;
+  renewalNoticeSentDate?: string;
+  renewalInitiatedAt?: string;
+  renewalCompletedAt?: string;
+  renewalTermMonths?: number;
+
+  // Financial
+  billingFrequency?: string;
+
+  // Terms
+  specialConditions?: string;
+  terminationClause?: string;
+  terminationReason?: string;
+
+  // Documents
+  contractFileUrl?: string;
+  contractFileName?: string;
+  signedContractFileUrl?: string;
+  signedContractFileName?: string;
+
+  // Approval
+  approvedByUserId?: number;
+  approvedDate?: string;
+  rejectionReason?: string;
+
+  // Suspension
+  suspensionReason?: string;
+  suspendedDate?: string;
 }
 
 export interface CreateContractDto {
