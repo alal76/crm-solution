@@ -9,6 +9,7 @@ using CRM.Core.Entities;
 using CRM.Core.Entities.Workflow;
 using CRM.Core.Interfaces;
 using CRM.Core.Ports.Input;
+using CRM.Core.DTOs;
 
 namespace CRM.Infrastructure.Services;
 

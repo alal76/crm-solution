@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import {
   Box, Card, CardContent, Typography, Button, Table, TableBody, TableCell, TableContainer, TableHead,
   TableRow, Dialog, DialogTitle, DialogContent, DialogActions, Alert, CircularProgress,
   TextField, Container, FormControl, InputLabel, Select, MenuItem, Chip, Grid,
@@ -249,6 +250,12 @@ function TasksPage() {
         accountId: task.accountId || '', opportunityId: task.opportunityId || '',
         location: task.location || '', reminderDate: task.reminderDate?.split('T')[0] || '',
         tags: task.tags || '',
+        category: (task as any).category || '',
+        isRecurring: (task as any).isRecurring || false,
+        hasReminder: (task as any).hasReminder || false,
+        recurrenceEndDate: (task as any).recurrenceEndDate?.split('T')[0] || '',
+        contactId: (task as any).contactId || '',
+        campaignId: (task as any).campaignId || '',
       });
     } else {
       setEditingId(null);
@@ -783,19 +790,19 @@ function TasksPage() {
                     />
                   </Grid>
                   <Grid item xs={12} md={6}>
-                    <EntitySelect
-                      entityType="campaign"
+                    <TextField
+                      fullWidth
+                      label="Related Campaign ID"
                       name="campaignId"
+                      type="number"
                       value={formData.campaignId}
-                      onChange={handleSelectChange}
-                      label="Related Campaign"
-                      showAddNew={false}
+                      onChange={(e) => setFormData(prev => ({ ...prev, campaignId: e.target.value ? parseInt(e.target.value) : '' }))}
+                      placeholder="Campaign ID"
                     />
                   </Grid>
                 </Grid>
               </AccordionDetails>
             </Accordion>
-          </TabPanel>
           </TabPanel>
 
           <TabPanel value={dialogTab} index={1}>

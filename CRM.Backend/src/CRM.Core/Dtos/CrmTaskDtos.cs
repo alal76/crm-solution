@@ -38,6 +38,37 @@ namespace CRM.Core.DTOs
         public bool IsDeleted { get; set; }
         public byte[]? RowVersion { get; set; }
     }
+
+    /// <summary>
+    /// DTO for creating a CRM Task.
+    /// </summary>
+    public class CreateCrmTaskDto
+    {
+        public string Title { get; set; } = string.Empty;
+        public string? Description { get; set; }
+        public int Priority { get; set; } = 1;
+        public string? DueDate { get; set; }
+        public int? OwnerUserId { get; set; }
+        public int? AccountId { get; set; }
+        public int? OpportunityId { get; set; }
+        public int? AssignedToUserId { get; set; }
+        // Add other fields as needed
+    }
+
+    /// <summary>
+    /// DTO for updating a CRM Task.
+    /// </summary>
+    public class UpdateCrmTaskDto
+    {
+        public string? Title { get; set; }
+        public string? Description { get; set; }
+        public int? Status { get; set; }
+        public int? Priority { get; set; }
+        public string? DueDate { get; set; }
+        public string? CompletedDate { get; set; }
+        public int? AssignedToUserId { get; set; }
+        // Add other updatable fields as needed
+    }
 }
 
 

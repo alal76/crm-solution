@@ -34,7 +34,13 @@ import {
   Select,
   Collapse,
   SelectChangeEvent,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  Switch,
+  FormControlLabel,
 } from '@mui/material';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import apiClient from '../services/apiClient';
 import { getApiErrorMessage } from '../utils/errorHandler';
@@ -127,11 +133,19 @@ interface Contact extends BaseEntity {
   dateOfBirth?: string;
   dateAdded: string;
   lastModified?: string;
+  // Extended fields (Session 2 DTO additions)
+  salutation?: string;
+  suffix?: string;
+  website?: string;
+  linkedInUrl?: string;
+  twitterHandle?: string;
+  doNotContact?: boolean;
+  preferredContactMethod?: string;
   // New: Contact info summary from one-to-many relationships
   contactInfoSummary?: ContactInfoSummary;
   modifiedBy?: string;
   socialMediaLinks: SocialMediaLink[];
-  
+
   // Normalized Contact Info Collections (source of truth)
   emailAddresses?: LinkedEmailDto[];
   phoneNumbers?: LinkedPhoneDto[];
@@ -151,6 +165,13 @@ interface CreateContactRequest {
   notes?: string;
   dateOfBirth?: string;
   accountId?: number | '';
+  salutation?: string;
+  suffix?: string;
+  website?: string;
+  linkedInUrl?: string;
+  twitterHandle?: string;
+  doNotContact?: boolean;
+  preferredContactMethod?: string;
 }
 
 const CONTACT_TYPES = ['Employee', 'Customer', 'Partner', 'Lead', 'Vendor', 'Other'];
@@ -338,6 +359,13 @@ function ContactsPage() {
       reportsTo: contact.reportsTo,
       notes: contact.notes,
       dateOfBirth: contact.dateOfBirth,
+      salutation: contact.salutation,
+      suffix: contact.suffix,
+      website: contact.website,
+      linkedInUrl: contact.linkedInUrl,
+      twitterHandle: contact.twitterHandle,
+      doNotContact: contact.doNotContact,
+      preferredContactMethod: contact.preferredContactMethod,
     });
     setSelectedContact(contact);
     setDialogTab(0);
@@ -979,6 +1007,86 @@ function ContactsPage() {
                   Save the contact first to add addresses, phone numbers, emails, and social media accounts.
                 </Alert>
               )}
+
+              {/* Additional Information accordion */}
+              <Accordion sx={{ mt: 1, boxShadow: 'none', border: '1px solid', borderColor: 'divider', borderRadius: 1 }} disableGutters>
+                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                  <Typography variant="subtitle2" fontWeight={600}>Additional Information</Typography>
+                </AccordionSummary>
+                <AccordionDetails>
+                  <Stack spacing={2}>
+                    <Box sx={{ display: 'flex', gap: 2 }}>
+                      <TextField
+                        label="Salutation"
+                        name="salutation"
+                        value={formData.salutation || ''}
+                        onChange={handleFormChange}
+                        fullWidth
+                        placeholder="Mr., Ms., Dr.…"
+                      />
+                      <TextField
+                        label="Suffix"
+                        name="suffix"
+                        value={formData.suffix || ''}
+                        onChange={handleFormChange}
+                        fullWidth
+                        placeholder="Jr., Sr., III…"
+                      />
+                    </Box>
+                    <TextField
+                      label="Website"
+                      name="website"
+                      value={formData.website || ''}
+                      onChange={handleFormChange}
+                      fullWidth
+                      placeholder="https://"
+                    />
+                    <Box sx={{ display: 'flex', gap: 2 }}>
+                      <TextField
+                        label="LinkedIn URL"
+                        name="linkedInUrl"
+                        value={formData.linkedInUrl || ''}
+                        onChange={handleFormChange}
+                        fullWidth
+                        placeholder="https://linkedin.com/in/…"
+                      />
+                      <TextField
+                        label="Twitter Handle"
+                        name="twitterHandle"
+                        value={formData.twitterHandle || ''}
+                        onChange={handleFormChange}
+                        fullWidth
+                        placeholder="@username"
+                      />
+                    </Box>
+                    <FormControl fullWidth>
+                      <InputLabel>Preferred Contact Method</InputLabel>
+                      <Select
+                        name="preferredContactMethod"
+                        value={formData.preferredContactMethod || ''}
+                        onChange={(e: SelectChangeEvent) => setFormData(prev => ({ ...prev, preferredContactMethod: e.target.value }))}
+                        label="Preferred Contact Method"
+                      >
+                        <MenuItem value="">Not specified</MenuItem>
+                        <MenuItem value="Email">Email</MenuItem>
+                        <MenuItem value="Phone">Phone</MenuItem>
+                        <MenuItem value="SMS">SMS</MenuItem>
+                        <MenuItem value="Mail">Mail</MenuItem>
+                      </Select>
+                    </FormControl>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          name="doNotContact"
+                          checked={formData.doNotContact || false}
+                          onChange={(e) => setFormData(prev => ({ ...prev, doNotContact: e.target.checked }))}
+                        />
+                      }
+                      label="Do Not Contact"
+                    />
+                  </Stack>
+                </AccordionDetails>
+              </Accordion>
             </Stack>
           )}
 

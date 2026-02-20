@@ -6,6 +6,7 @@
 // See the LICENSE file in the root directory for full terms.
 
 using CRM.Core.Entities;
+using CRM.Core.DTOs;
 using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -42,6 +43,58 @@ public class ActivitiesController : ControllerBase
         _normalization = normalization;
     }
 
+    // Mapping helpers
+    private static ActivityDto ToDto(Activity a) => new ActivityDto
+    {
+        Id = a.Id,
+        ActivityType = (int)a.ActivityType,
+        Subject = a.Title,
+        Description = a.Description,
+        StartDate = a.ActivityDate.ToString("o"),
+        EndDate = null, // Not present in entity
+        Status = 0, // Not present in entity
+        Priority = 0, // Not present in entity
+        AccountId = a.AccountId,
+        ContactId = a.ContactId,
+        OpportunityId = a.OpportunityId,
+        OwnerUserId = a.UserId ?? 0,
+        CreatedByUserId = a.UserId ?? 0,
+        CreatedAt = a.CreatedAt.ToString("o"),
+        UpdatedAt = a.UpdatedAt.ToString("o"),
+        IsDeleted = a.IsDeleted,
+        RowVersion = a.RowVersion
+    };
+
+    private static Activity ToEntity(CreateActivityDto dto)
+    {
+        return new Activity
+        {
+            ActivityType = (ActivityType)dto.ActivityType,
+            Title = dto.Subject ?? string.Empty,
+            Description = dto.Description,
+            ActivityDate = DateTime.TryParse(dto.StartDate, out var sd) ? sd : DateTime.UtcNow,
+            AccountId = dto.AccountId,
+            ContactId = dto.ContactId,
+            OpportunityId = dto.OpportunityId,
+            UserId = dto.OwnerUserId,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+    }
+
+    private static void UpdateEntity(Activity entity, UpdateActivityDto dto)
+    {
+        entity.ActivityType = (ActivityType)dto.ActivityType;
+        entity.Title = dto.Subject ?? entity.Title;
+        entity.Description = dto.Description ?? entity.Description;
+        if (DateTime.TryParse(dto.StartDate, out var sd)) entity.ActivityDate = sd;
+        entity.AccountId = dto.AccountId ?? entity.AccountId;
+        entity.ContactId = dto.ContactId ?? entity.ContactId;
+        entity.OpportunityId = dto.OpportunityId ?? entity.OpportunityId;
+        entity.UserId = dto.OwnerUserId;
+        entity.UpdatedAt = DateTime.UtcNow;
+    }
+
     /// <summary>
     /// Get all activities with optional filtering.
     /// </summary>
@@ -57,14 +110,14 @@ public class ActivitiesController : ControllerBase
     /// <response code="401">Unauthorized - User is not authenticated.</response>
     /// <response code="500">Internal server error.</response>
     [HttpGet]
-    [ProducesResponseType(typeof(IEnumerable<Activity>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(IEnumerable<ActivityDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<IEnumerable<Activity>>> GetActivities(
+    public async Task<ActionResult<IEnumerable<ActivityDto>>> GetActivities(
         [FromQuery] int? accountId = null,
         [FromQuery] int? opportunityId = null,
         [FromQuery] int? userId = null,
-        [FromQuery] ActivityType? activityType = null,
+        [FromQuery] int? activityType = null,
         [FromQuery] DateTime? fromDate = null,
         [FromQuery] DateTime? toDate = null,
         [FromQuery] int limit = 50)
@@ -85,7 +138,7 @@ public class ActivitiesController : ControllerBase
             query = query.Where(a => a.UserId == userId);
 
         if (activityType.HasValue)
-            query = query.Where(a => a.ActivityType == activityType);
+            query = query.Where(a => (int)a.ActivityType == activityType);
 
         if (fromDate.HasValue)
             query = query.Where(a => a.ActivityDate >= fromDate);
@@ -106,7 +159,7 @@ public class ActivitiesController : ControllerBase
             if (!string.IsNullOrWhiteSpace(cf)) a.CustomFields = cf;
         }
 
-        return Ok(activities);
+        return Ok(activities.Select(ToDto));
     }
 
     /// <summary>
@@ -119,11 +172,11 @@ public class ActivitiesController : ControllerBase
     /// <response code="401">Unauthorized - User is not authenticated.</response>
     /// <response code="500">Internal server error.</response>
     [HttpGet("{id}")]
-    [ProducesResponseType(typeof(Activity), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ActivityDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<Activity>> GetActivity(int id)
+    public async Task<ActionResult<ActivityDto>> GetActivity(int id)
     {
         var activity = await _context.Activities
             .Include(a => a.User)
@@ -139,7 +192,7 @@ public class ActivitiesController : ControllerBase
         var cf = await _normalization.GetCustomFieldsAsync("Activity", activity.Id);
         if (!string.IsNullOrWhiteSpace(cf)) activity.CustomFields = cf;
 
-        return Ok(activity);
+        return Ok(ToDto(activity));
     }
 
     /// <summary>
@@ -152,32 +205,23 @@ public class ActivitiesController : ControllerBase
     /// <response code="401">Unauthorized - User is not authenticated.</response>
     /// <response code="500">Internal server error.</response>
     [HttpPost]
-    [ProducesResponseType(typeof(Activity), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ActivityDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<Activity>> CreateActivity(Activity activity)
+    public async Task<ActionResult<ActivityDto>> CreateActivity([FromBody] CreateActivityDto dto)
     {
         // Validate required fields
-        if (string.IsNullOrWhiteSpace(activity.Title) || activity.Title.Length > 255)
-            return BadRequest("Title is required and must be <= 255 characters.");
-        if (activity.ActivityType < 0)
+        if (string.IsNullOrWhiteSpace(dto.Subject) || dto.Subject.Length > 255)
+            return BadRequest("Subject is required and must be <= 255 characters.");
+        if (dto.ActivityType < 0)
             return BadRequest("ActivityType is required.");
-        if (!string.IsNullOrEmpty(activity.EntityType) && activity.EntityType.Length > 100)
-            return BadRequest("EntityType must be <= 100 characters.");
-        if (!string.IsNullOrEmpty(activity.SecondaryEntityType) && activity.SecondaryEntityType.Length > 100)
-            return BadRequest("SecondaryEntityType must be <= 100 characters.");
 
-        activity.CreatedAt = DateTime.UtcNow;
-        activity.UpdatedAt = DateTime.UtcNow;
-
-        if (activity.ActivityDate == default)
-            activity.ActivityDate = DateTime.UtcNow;
-
+        var activity = ToEntity(dto);
         _context.Activities.Add(activity);
         await _context.SaveChangesAsync();
 
-        return CreatedAtAction(nameof(GetActivity), new { id = activity.Id }, activity);
+        return CreatedAtAction(nameof(GetActivity), new { id = activity.Id }, ToDto(activity));
     }
 
     /// <summary>
@@ -217,10 +261,10 @@ public class ActivitiesController : ControllerBase
     /// <response code="401">Unauthorized - User is not authenticated.</response>
     /// <response code="500">Internal server error.</response>
     [HttpGet("entity/{entityType}/{entityId}")]
-    [ProducesResponseType(typeof(IEnumerable<Activity>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(IEnumerable<ActivityDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<IEnumerable<Activity>>> GetActivitiesByEntity(
+    public async Task<ActionResult<IEnumerable<ActivityDto>>> GetActivitiesByEntity(
         string entityType,
         int entityId,
         [FromQuery] int limit = 50)
@@ -242,7 +286,7 @@ public class ActivitiesController : ControllerBase
             if (!string.IsNullOrWhiteSpace(cf)) a.CustomFields = cf;
         }
 
-        return Ok(activities);
+        return Ok(activities.Select(ToDto));
     }
 
     /// <summary>
@@ -255,10 +299,10 @@ public class ActivitiesController : ControllerBase
     /// <response code="401">Unauthorized - User is not authenticated.</response>
     /// <response code="500">Internal server error.</response>
     [HttpGet("account/{accountId}/timeline")]
-    [ProducesResponseType(typeof(IEnumerable<Activity>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(IEnumerable<ActivityDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<IEnumerable<Activity>>> GetAccountTimeline(int accountId, [FromQuery] int limit = 100)
+    public async Task<ActionResult<IEnumerable<ActivityDto>>> GetAccountTimeline(int accountId, [FromQuery] int limit = 100)
     {
         var activities = await _context.Activities
             .Include(a => a.User)
@@ -267,7 +311,7 @@ public class ActivitiesController : ControllerBase
             .Take(limit)
             .ToListAsync();
 
-        return Ok(activities);
+        return Ok(activities.Select(ToDto));
     }
 
     /// <summary>
@@ -280,10 +324,10 @@ public class ActivitiesController : ControllerBase
     /// <response code="401">Unauthorized - User is not authenticated.</response>
     /// <response code="500">Internal server error.</response>
     [HttpGet("opportunity/{opportunityId}/timeline")]
-    [ProducesResponseType(typeof(IEnumerable<Activity>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(IEnumerable<ActivityDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<IEnumerable<Activity>>> GetOpportunityTimeline(int opportunityId, [FromQuery] int limit = 100)
+    public async Task<ActionResult<IEnumerable<ActivityDto>>> GetOpportunityTimeline(int opportunityId, [FromQuery] int limit = 100)
     {
         var activities = await _context.Activities
             .Include(a => a.User)
@@ -300,7 +344,7 @@ public class ActivitiesController : ControllerBase
             if (!string.IsNullOrWhiteSpace(cf)) a.CustomFields = cf;
         }
 
-        return Ok(activities);
+        return Ok(activities.Select(ToDto));
     }
 
     /// <summary>
@@ -312,10 +356,10 @@ public class ActivitiesController : ControllerBase
     /// <response code="401">Unauthorized - User is not authenticated.</response>
     /// <response code="500">Internal server error.</response>
     [HttpGet("recent")]
-    [ProducesResponseType(typeof(IEnumerable<Activity>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(IEnumerable<ActivityDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<IEnumerable<Activity>>> GetRecentActivities([FromQuery] int limit = 20)
+    public async Task<ActionResult<IEnumerable<ActivityDto>>> GetRecentActivities([FromQuery] int limit = 20)
     {
         var activities = await _context.Activities
             .Include(a => a.User)
@@ -332,7 +376,7 @@ public class ActivitiesController : ControllerBase
             if (!string.IsNullOrWhiteSpace(cf)) a.CustomFields = cf;
         }
 
-        return Ok(activities);
+        return Ok(activities.Select(ToDto));
     }
 
     /// <summary>

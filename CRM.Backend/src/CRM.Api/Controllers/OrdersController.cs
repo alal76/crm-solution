@@ -7,6 +7,7 @@
 
 using System.ComponentModel.DataAnnotations;
 using CRM.Core.Entities;
+using CRM.Core.DTOs;
 using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -42,9 +43,9 @@ public class OrdersController : ControllerBase
     /// <response code="200">Returns the list of orders</response>
     /// <response code="500">If there was an internal server error</response>
     [HttpGet]
-    [ProducesResponseType(typeof(IEnumerable<Order>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(IEnumerable<OrderDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<IEnumerable<Order>>> GetAll(
+    public async Task<ActionResult<IEnumerable<OrderDto>>> GetAll(
         [FromQuery] int? accountId = null,
         [FromQuery] OrderStatus? status = null,
         CancellationToken cancellationToken = default)
@@ -69,10 +70,10 @@ public class OrdersController : ControllerBase
     /// <response code="404">If the order is not found</response>
     /// <response code="500">If there was an internal server error</response>
     [HttpGet("{id}")]
-    [ProducesResponseType(typeof(Order), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(OrderDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<Order>> GetById(int id, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<OrderDto>> GetById(int id, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -95,10 +96,10 @@ public class OrdersController : ControllerBase
     /// <response code="404">If the order is not found</response>
     /// <response code="500">If there was an internal server error</response>
     [HttpGet("by-number/{orderNumber}")]
-    [ProducesResponseType(typeof(Order), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(OrderDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<Order>> GetByOrderNumber(string orderNumber, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<OrderDto>> GetByOrderNumber(string orderNumber, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -121,15 +122,15 @@ public class OrdersController : ControllerBase
     /// <response code="400">If the order data is invalid</response>
     /// <response code="500">If there was an internal server error</response>
     [HttpPost]
-    [ProducesResponseType(typeof(Order), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(OrderDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<Order>> Create([FromBody] Order order, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<OrderDto>> Create([FromBody] CreateOrderDto dto, CancellationToken cancellationToken = default)
     {
         try
         {
             if (!ModelState.IsValid) return ValidationProblem(ModelState);
-            var created = await _orderService.CreateAsync(order, cancellationToken);
+            var created = await _orderService.CreateAsync(dto, cancellationToken);
             return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
         }
         catch (Exception ex)
@@ -149,17 +150,17 @@ public class OrdersController : ControllerBase
     /// <response code="404">If the order is not found</response>
     /// <response code="500">If there was an internal server error</response>
     [HttpPut("{id}")]
-    [ProducesResponseType(typeof(Order), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(OrderDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<Order>> Update(int id, [FromBody] Order order, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<OrderDto>> Update(int id, [FromBody] UpdateOrderDto dto, CancellationToken cancellationToken = default)
     {
         try
         {
             if (!ModelState.IsValid) return ValidationProblem(ModelState);
-            if (id != order.Id) return BadRequest("ID mismatch");
-            var updated = await _orderService.UpdateAsync(order, cancellationToken);
+            if (id != dto.Id) return BadRequest("ID mismatch");
+            var updated = await _orderService.UpdateAsync(dto, cancellationToken);
             return Ok(updated);
         }
         catch (Exception ex)
@@ -207,10 +208,10 @@ public class OrdersController : ControllerBase
     /// <response code="404">If the quote is not found</response>
     /// <response code="500">If there was an internal server error</response>
     [HttpPost("from-quote/{quoteId}")]
-    [ProducesResponseType(typeof(Order), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(OrderDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<Order>> CreateFromQuote(int quoteId, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<OrderDto>> CreateFromQuote(int quoteId, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -232,10 +233,10 @@ public class OrdersController : ControllerBase
     /// <response code="404">If the opportunity is not found</response>
     /// <response code="500">If there was an internal server error</response>
     [HttpPost("from-opportunity/{opportunityId}")]
-    [ProducesResponseType(typeof(Order), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(OrderDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<Order>> CreateFromOpportunity(int opportunityId, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<OrderDto>> CreateFromOpportunity(int opportunityId, CancellationToken cancellationToken = default)
     {
         try
         {

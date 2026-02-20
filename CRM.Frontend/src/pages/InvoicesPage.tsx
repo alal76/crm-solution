@@ -527,7 +527,6 @@ function InvoicesPage() {
           <Tabs value={dialogTab} onChange={(_, v) => setDialogTab(v)} sx={{ mb: 2 }}>
             <Tab label="Invoice Details" />
             {editingId && <Tab label="Line Items" />}
-            <Tab label="Billing & Details" />
           </Tabs>
 
           <DialogError error={dialogApi.error} />
@@ -704,7 +703,6 @@ function InvoicesPage() {
             </TabPanel>
           )}
 
-          {/* Tab 2: Billing & Details (removed, now in accordion) */}
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog}>Cancel</Button>

@@ -183,6 +183,12 @@ function LeadsPage() {
     source: 'website',
     status: 'new',
     notes: '',
+    website: '',
+    linkedInUrl: '',
+    twitterHandle: '',
+    phoneSecondary: '',
+    doNotContact: false,
+    preferredContactMethod: '',
   });
   
   // Search and filter state

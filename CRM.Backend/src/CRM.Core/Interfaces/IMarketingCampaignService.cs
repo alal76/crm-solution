@@ -12,13 +12,14 @@ namespace CRM.Core.Interfaces;
 /// <summary>
 /// Marketing campaign service interface
 /// </summary>
+using CRM.Core.Dtos;
 public interface IMarketingCampaignService
 {
-    Task<MarketingCampaign?> GetCampaignByIdAsync(int id);
-    Task<IEnumerable<MarketingCampaign>> GetAllCampaignsAsync();
-    Task<IEnumerable<MarketingCampaign>> GetActiveCampaignsAsync();
-    Task<int> CreateCampaignAsync(MarketingCampaign campaign);
-    Task UpdateCampaignAsync(MarketingCampaign campaign);
+    Task<CampaignDto?> GetCampaignByIdAsync(int id);
+    Task<IEnumerable<CampaignDto>> GetAllCampaignsAsync();
+    Task<IEnumerable<CampaignDto>> GetActiveCampaignsAsync();
+    Task<int> CreateCampaignAsync(CreateCampaignDto dto);
+    Task UpdateCampaignAsync(int id, UpdateCampaignDto dto);
     Task DeleteCampaignAsync(int id);
     Task AddCampaignMetricAsync(CampaignMetric metric);
 }

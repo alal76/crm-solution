@@ -5,7 +5,7 @@
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
 
-using CRM.Core.Entities;
+using CRM.Core.Dtos;
 using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -74,12 +74,13 @@ public class CampaignsController : ControllerBase
     }
 
     [HttpPost]
-    public async Task<IActionResult> Create(MarketingCampaign campaign)
+    public async Task<IActionResult> Create(CreateCampaignDto dto)
     {
         try
         {
-            var id = await _campaignService.CreateCampaignAsync(campaign);
-            return CreatedAtAction(nameof(GetById), new { id }, campaign);
+            var id = await _campaignService.CreateCampaignAsync(dto);
+            var created = await _campaignService.GetCampaignByIdAsync(id);
+            return CreatedAtAction(nameof(GetById), new { id }, created);
         }
         catch (Exception ex)
         {
@@ -89,12 +90,11 @@ public class CampaignsController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    public async Task<IActionResult> Update(int id, MarketingCampaign campaign)
+    public async Task<IActionResult> Update(int id, UpdateCampaignDto dto)
     {
         try
         {
-            campaign.Id = id;
-            await _campaignService.UpdateCampaignAsync(campaign);
+            await _campaignService.UpdateCampaignAsync(id, dto);
             return NoContent();
         }
         catch (Exception ex)

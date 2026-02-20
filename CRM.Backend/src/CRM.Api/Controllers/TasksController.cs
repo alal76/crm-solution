@@ -8,6 +8,7 @@
 using CRM.Core.Entities;
 using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Services;
+using CRM.Core.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -40,21 +41,9 @@ public class TasksController : ControllerBase
     /// <summary>
     /// Get all tasks with optional filtering.
     /// </summary>
-    /// <param name="accountId">Filter by account ID.</param>
-    /// <param name="opportunityId">Filter by opportunity ID.</param>
-    /// <param name="assignedToUserId">Filter by assigned user ID.</param>
-    /// <param name="status">Filter by task status.</param>
-    /// <param name="priority">Filter by task priority.</param>
-    /// <param name="overdue">Filter to show only overdue tasks.</param>
-    /// <returns>A list of tasks matching the filter criteria.</returns>
-    /// <response code="200">Returns the list of tasks.</response>
-    /// <response code="401">Unauthorized - user is not authenticated.</response>
-    /// <response code="500">Internal server error.</response>
     [HttpGet]
-    [ProducesResponseType(typeof(IEnumerable<CrmTask>), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<IEnumerable<CrmTask>>> GetTasks(
+    [ProducesResponseType(typeof(IEnumerable<CrmTaskDto>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<IEnumerable<CrmTaskDto>>> GetTasks(
         [FromQuery] int? accountId = null,
         [FromQuery] int? opportunityId = null,
         [FromQuery] int? assignedToUserId = null,
@@ -70,31 +59,20 @@ public class TasksController : ControllerBase
 
         if (accountId.HasValue)
             query = query.Where(t => t.AccountId == accountId);
-
         if (opportunityId.HasValue)
             query = query.Where(t => t.OpportunityId == opportunityId);
-
         if (assignedToUserId.HasValue)
             query = query.Where(t => t.AssignedToUserId == assignedToUserId);
-
         if (status.HasValue)
             query = query.Where(t => t.Status == status);
-
         if (priority.HasValue)
             query = query.Where(t => t.Priority == priority);
-
         if (overdue == true)
             query = query.Where(t => t.DueDate < DateTime.UtcNow && t.Status != CrmTaskStatus.Completed);
 
         var tasks = await query.OrderByDescending(t => t.DueDate).ToListAsync();
-        foreach (var t in tasks)
-        {
-            var nt = await _normalization.GetTagsAsync("CrmTask", t.Id);
-            if (!string.IsNullOrWhiteSpace(nt)) t.Tags = nt;
-            var cf = await _normalization.GetCustomFieldsAsync("CrmTask", t.Id);
-            if (!string.IsNullOrWhiteSpace(cf)) t.CustomFields = cf;
-        }
-        return Ok(tasks);
+        var dtos = tasks.Select(MapToDto).ToList();
+        return Ok(dtos);
     }
 
     /// <summary>
@@ -107,11 +85,9 @@ public class TasksController : ControllerBase
     /// <response code="404">Task not found.</response>
     /// <response code="500">Internal server error.</response>
     [HttpGet("{id}")]
-    [ProducesResponseType(typeof(CrmTask), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(CrmTaskDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<CrmTask>> GetTask(int id)
+    public async Task<ActionResult<CrmTaskDto>> GetTask(int id)
     {
         var task = await _context.CrmTasks
             .Include(t => t.Account)
@@ -119,16 +95,9 @@ public class TasksController : ControllerBase
             .Include(t => t.AssignedToUser)
             .Include(t => t.SubTasks)
             .FirstOrDefaultAsync(t => t.Id == id);
-
         if (task == null)
             return NotFound();
-
-        var nt = await _normalization.GetTagsAsync("CrmTask", task.Id);
-        if (!string.IsNullOrWhiteSpace(nt)) task.Tags = nt;
-        var cf = await _normalization.GetCustomFieldsAsync("CrmTask", task.Id);
-        if (!string.IsNullOrWhiteSpace(cf)) task.CustomFields = cf;
-
-        return Ok(task);
+        return Ok(MapToDto(task));
     }
 
     /// <summary>
@@ -141,20 +110,18 @@ public class TasksController : ControllerBase
     /// <response code="401">Unauthorized - user is not authenticated.</response>
     /// <response code="500">Internal server error.</response>
     [HttpPost]
-    [ProducesResponseType(typeof(CrmTask), StatusCodes.Status201Created)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<CrmTask>> CreateTask(CrmTask task)
+    [ProducesResponseType(typeof(CrmTaskDto), StatusCodes.Status201Created)]
+    public async Task<ActionResult<CrmTaskDto>> CreateTask([FromBody] CreateCrmTaskDto dto)
     {
+        if (string.IsNullOrWhiteSpace(dto.Title))
+            return BadRequest("Title is required.");
+        var task = MapFromCreateDto(dto);
         task.CreatedAt = DateTime.UtcNow;
         task.UpdatedAt = DateTime.UtcNow;
-
         _context.CrmTasks.Add(task);
         await _context.SaveChangesAsync();
-
-        _logger.LogInformation("Task {TaskId} created: {Subject}", task.Id, task.Subject);
-        return CreatedAtAction(nameof(GetTask), new { id = task.Id }, task);
+        _logger.LogInformation("Task {TaskId} created: {Title}", task.Id, task.Title);
+        return CreatedAtAction(nameof(GetTask), new { id = task.Id }, MapToDto(task));
     }
 
     /// <summary>
@@ -170,29 +137,13 @@ public class TasksController : ControllerBase
     /// <response code="500">Internal server error.</response>
     [HttpPut("{id}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> UpdateTask(int id, CrmTask task)
+    public async Task<IActionResult> UpdateTask(int id, [FromBody] UpdateCrmTaskDto dto)
     {
-        if (id != task.Id)
-            return BadRequest();
-
-        var existingTask = await _context.CrmTasks.FindAsync(id);
-        if (existingTask == null)
+        var task = await _context.CrmTasks.FindAsync(id);
+        if (task == null)
             return NotFound();
-
-        // Track completion
-        if (task.Status == CrmTaskStatus.Completed && existingTask.Status != CrmTaskStatus.Completed)
-        {
-            task.CompletedDate = DateTime.UtcNow;
-            task.PercentComplete = 100;
-        }
-
-        _context.Entry(existingTask).CurrentValues.SetValues(task);
-        existingTask.UpdatedAt = DateTime.UtcNow;
-
+        MapFromUpdateDto(dto, task);
+        task.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
         return NoContent();
     }
@@ -208,18 +159,13 @@ public class TasksController : ControllerBase
     /// <response code="500">Internal server error.</response>
     [HttpDelete("{id}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> DeleteTask(int id)
     {
         var task = await _context.CrmTasks.FindAsync(id);
         if (task == null)
             return NotFound();
-
         _context.CrmTasks.Remove(task);
         await _context.SaveChangesAsync();
-
         _logger.LogInformation("Task {TaskId} deleted", id);
         return NoContent();
     }
@@ -234,23 +180,17 @@ public class TasksController : ControllerBase
     /// <response code="404">Task not found.</response>
     /// <response code="500">Internal server error.</response>
     [HttpPut("{id}/complete")]
-    [ProducesResponseType(typeof(CrmTask), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(typeof(CrmTaskDto), StatusCodes.Status200OK)]
     public async Task<IActionResult> CompleteTask(int id)
     {
         var task = await _context.CrmTasks.FindAsync(id);
         if (task == null)
             return NotFound();
-
         task.Status = CrmTaskStatus.Completed;
         task.CompletedDate = DateTime.UtcNow;
-        task.PercentComplete = 100;
         task.UpdatedAt = DateTime.UtcNow;
-
         await _context.SaveChangesAsync();
-        return Ok(task);
+        return Ok(MapToDto(task));
     }
 
     /// <summary>
@@ -261,22 +201,18 @@ public class TasksController : ControllerBase
     /// <response code="401">Unauthorized - user is not authenticated.</response>
     /// <response code="500">Internal server error.</response>
     [HttpGet("due-today")]
-    [ProducesResponseType(typeof(IEnumerable<CrmTask>), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<IEnumerable<CrmTask>>> GetTasksDueToday()
+    [ProducesResponseType(typeof(IEnumerable<CrmTaskDto>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<IEnumerable<CrmTaskDto>>> GetTasksDueToday()
     {
         var today = DateTime.UtcNow.Date;
         var tomorrow = today.AddDays(1);
-
         var tasks = await _context.CrmTasks
             .Include(t => t.Account)
             .Include(t => t.AssignedToUser)
             .Where(t => t.DueDate >= today && t.DueDate < tomorrow && t.Status != CrmTaskStatus.Completed)
             .OrderBy(t => t.DueDate)
             .ToListAsync();
-
-        return Ok(tasks);
+        return Ok(tasks.Select(MapToDto));
     }
 
     /// <summary>
@@ -287,10 +223,8 @@ public class TasksController : ControllerBase
     /// <response code="401">Unauthorized - user is not authenticated.</response>
     /// <response code="500">Internal server error.</response>
     [HttpGet("overdue")]
-    [ProducesResponseType(typeof(IEnumerable<CrmTask>), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<IEnumerable<CrmTask>>> GetOverdueTasks()
+    [ProducesResponseType(typeof(IEnumerable<CrmTaskDto>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<IEnumerable<CrmTaskDto>>> GetOverdueTasks()
     {
         var tasks = await _context.CrmTasks
             .Include(t => t.Account)
@@ -298,8 +232,53 @@ public class TasksController : ControllerBase
             .Where(t => t.DueDate < DateTime.UtcNow && t.Status != CrmTaskStatus.Completed && t.Status != CrmTaskStatus.Cancelled)
             .OrderBy(t => t.DueDate)
             .ToListAsync();
+        return Ok(tasks.Select(MapToDto));
+    }
+    // Mapping helpers
+    private static CrmTaskDto MapToDto(CrmTask t)
+    {
+        return new CrmTaskDto
+        {
+            Id = t.Id,
+            Title = t.Subject,
+            Description = t.Description,
+            Status = (int)t.Status,
+            Priority = (int)t.Priority,
+            DueDate = t.DueDate?.ToString("o"),
+            CompletedDate = t.CompletedDate?.ToString("o"),
+            OwnerUserId = t.OwnerUserId,
+            CreatedByUserId = t.CreatedByUserId,
+            CreatedAt = t.CreatedAt.ToString("o"),
+            UpdatedAt = t.UpdatedAt.ToString("o"),
+            IsDeleted = t.IsDeleted,
+            RowVersion = t.RowVersion
+        };
+    }
 
-        return Ok(tasks);
+    private static CrmTask MapFromCreateDto(CreateCrmTaskDto dto)
+    {
+        return new CrmTask
+        {
+            Subject = dto.Title,
+            Description = dto.Description,
+            Priority = (CrmTaskPriority)dto.Priority,
+            DueDate = string.IsNullOrWhiteSpace(dto.DueDate) ? null : DateTime.Parse(dto.DueDate),
+            OwnerUserId = dto.OwnerUserId ?? 0,
+            AccountId = dto.AccountId,
+            OpportunityId = dto.OpportunityId,
+            AssignedToUserId = dto.AssignedToUserId
+        };
+    }
+
+    private static void MapFromUpdateDto(UpdateCrmTaskDto dto, CrmTask task)
+    {
+        if (dto.Title != null) task.Subject = dto.Title;
+        if (dto.Description != null) task.Description = dto.Description;
+        if (dto.Status.HasValue) task.Status = (CrmTaskStatus)dto.Status.Value;
+        if (dto.Priority.HasValue) task.Priority = (CrmTaskPriority)dto.Priority.Value;
+        if (dto.DueDate != null) task.DueDate = DateTime.Parse(dto.DueDate);
+        if (dto.CompletedDate != null) task.CompletedDate = DateTime.Parse(dto.CompletedDate);
+        if (dto.AssignedToUserId.HasValue) task.AssignedToUserId = dto.AssignedToUserId;
     }
 
     /// <summary>

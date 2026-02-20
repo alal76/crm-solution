@@ -37,9 +37,6 @@ public class ModuleFieldConfigurationServiceTests : IDisposable
     }
 
     [Fact]
-    // ...existing code...
-
-    [Fact]
     public async Task GetFieldConfigurationsAsync_ReturnsAccounts_WhenAlreadyExists()
     {
         // Arrange

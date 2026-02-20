@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { TabPanel, DialogHeader, RelatedEntitiesPanel, EnhancedEmptyState } from '../components/common';
+import {
   Box, Card, CardContent, Typography, Button, Table, TableBody, TableCell, TableHead,
   TableRow, Dialog, DialogTitle, DialogContent, DialogActions, Alert, CircularProgress,
   TextField, Container, FormControl, InputLabel, Select, MenuItem, Chip, Tabs, Tab,
@@ -662,7 +663,6 @@ function CampaignsPage() {
                 </Grid>
               </AccordionDetails>
             </Accordion>
-          </TabPanel>
           </TabPanel>
 
           <TabPanel value={dialogTab} index={1}>

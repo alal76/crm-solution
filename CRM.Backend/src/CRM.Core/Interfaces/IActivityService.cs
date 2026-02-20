@@ -6,6 +6,7 @@
 // See the LICENSE file in the root directory for full terms.
 
 using CRM.Core.Entities;
+using CRM.Core.DTOs;
 
 namespace CRM.Core.Interfaces;
 
@@ -14,56 +15,29 @@ namespace CRM.Core.Interfaces;
 /// </summary>
 public interface IActivityService
 {
-    /// <summary>
-    /// Get activities with optional filtering
-    /// </summary>
-    Task<IEnumerable<Activity>> GetActivitiesAsync(
+    Task<IEnumerable<ActivityDto>> GetActivitiesAsync(
         int? accountId = null,
         int? opportunityId = null,
         int? userId = null,
-        ActivityType? activityType = null,
+        int? activityType = null,
         DateTime? fromDate = null,
         DateTime? toDate = null,
         int limit = 50);
 
-    /// <summary>
-    /// Get an activity by ID
-    /// </summary>
-    Task<Activity?> GetByIdAsync(int id);
+    Task<ActivityDto?> GetByIdAsync(int id);
 
-    /// <summary>
-    /// Create a new activity
-    /// </summary>
-    Task<Activity> CreateAsync(Activity activity);
+    Task<ActivityDto> CreateAsync(CreateActivityDto dto);
 
-    /// <summary>
-    /// Delete an activity
-    /// </summary>
     Task<bool> DeleteAsync(int id);
 
-    /// <summary>
-    /// Get activities for a specific entity
-    /// </summary>
-    Task<IEnumerable<Activity>> GetByEntityAsync(string entityType, int entityId, int limit = 50);
+    Task<IEnumerable<ActivityDto>> GetByEntityAsync(string entityType, int entityId, int limit = 50);
 
-    /// <summary>
-    /// Get account timeline (all activities related to an account)
-    /// </summary>
-    Task<IEnumerable<Activity>> GetAccountTimelineAsync(int accountId, int limit = 100);
+    Task<IEnumerable<ActivityDto>> GetAccountTimelineAsync(int accountId, int limit = 100);
 
-    /// <summary>
-    /// Get opportunity timeline
-    /// </summary>
-    Task<IEnumerable<Activity>> GetOpportunityTimelineAsync(int opportunityId, int limit = 100);
+    Task<IEnumerable<ActivityDto>> GetOpportunityTimelineAsync(int opportunityId, int limit = 100);
 
-    /// <summary>
-    /// Get recent activities for dashboard
-    /// </summary>
-    Task<IEnumerable<Activity>> GetRecentAsync(int limit = 20);
+    Task<IEnumerable<ActivityDto>> GetRecentAsync(int limit = 20);
 
-    /// <summary>
-    /// Get activity statistics
-    /// </summary>
     Task<ActivityStats> GetStatsAsync(DateTime? fromDate = null, DateTime? toDate = null);
 }
 

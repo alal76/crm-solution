@@ -8,6 +8,8 @@
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using CRM.Core.Ports.Input;
+using CRM.Core.Dtos;
+using CRM.Api.Mappers;
 
 namespace CRM.Infrastructure.Services;
 
@@ -39,46 +41,41 @@ public class MarketingCampaignService : IMarketingCampaignService, ICampaignInpu
         _normalizationService = normalizationService;
     }
 
-    public async Task<MarketingCampaign?> GetCampaignByIdAsync(int id)
+    public async Task<CampaignDto?> GetCampaignByIdAsync(int id)
     {
         var c = await _repository.GetByIdAsync(id);
         if (c == null) return null;
-
         var tags = await _normalizationService.GetTagsAsync("MarketingCampaign", c.Id);
         if (!string.IsNullOrWhiteSpace(tags)) c.Tags = tags;
-
         var cfs = await _normalizationService.GetCustomFieldsAsync("MarketingCampaign", c.Id);
         if (!string.IsNullOrWhiteSpace(cfs)) c.CustomFields = cfs;
-
-        return c;
+        return CampaignMapper.ToDto(c);
     }
 
-    public async Task<IEnumerable<MarketingCampaign>> GetAllCampaignsAsync()
+    public async Task<IEnumerable<CampaignDto>> GetAllCampaignsAsync()
     {
         var items = await _repository.GetAllAsync();
         foreach (var c in items)
         {
             var tags = await _normalizationService.GetTagsAsync("MarketingCampaign", c.Id);
             if (!string.IsNullOrWhiteSpace(tags)) c.Tags = tags;
-
             var cfs = await _normalizationService.GetCustomFieldsAsync("MarketingCampaign", c.Id);
             if (!string.IsNullOrWhiteSpace(cfs)) c.CustomFields = cfs;
         }
-        return items;
+        return items.Select(CampaignMapper.ToDto);
     }
 
-    public async Task<IEnumerable<MarketingCampaign>> GetActiveCampaignsAsync()
+    public async Task<IEnumerable<CampaignDto>> GetActiveCampaignsAsync()
     {
         var items = await _repository.FindAsync(c => !c.IsDeleted && c.Status == CampaignStatus.Active);
         foreach (var c in items)
         {
             var tags = await _normalizationService.GetTagsAsync("MarketingCampaign", c.Id);
             if (!string.IsNullOrWhiteSpace(tags)) c.Tags = tags;
-
             var cfs = await _normalizationService.GetCustomFieldsAsync("MarketingCampaign", c.Id);
             if (!string.IsNullOrWhiteSpace(cfs)) c.CustomFields = cfs;
         }
-        return items;
+        return items.Select(CampaignMapper.ToDto);
     }
 
     /// <summary>
@@ -113,8 +110,9 @@ public class MarketingCampaignService : IMarketingCampaignService, ICampaignInpu
         }
     }
 
-    public async Task<int> CreateCampaignAsync(MarketingCampaign campaign)
+    public async Task<int> CreateCampaignAsync(CreateCampaignDto dto)
     {
+        var campaign = CampaignMapper.ToEntity(dto);
         ValidateCampaign(campaign);
         campaign.CreatedAt = DateTime.UtcNow;
         await _repository.AddAsync(campaign);
@@ -122,8 +120,12 @@ public class MarketingCampaignService : IMarketingCampaignService, ICampaignInpu
         return campaign.Id;
     }
 
-    public async Task UpdateCampaignAsync(MarketingCampaign campaign)
+    public async Task UpdateCampaignAsync(int id, UpdateCampaignDto dto)
     {
+        var campaign = await _repository.GetByIdAsync(id);
+        if (campaign == null)
+            throw new InvalidOperationException($"Campaign with ID {id} not found");
+        CampaignMapper.UpdateEntity(campaign, dto);
         ValidateCampaign(campaign);
         campaign.UpdatedAt = DateTime.UtcNow;
         await _repository.UpdateAsync(campaign);

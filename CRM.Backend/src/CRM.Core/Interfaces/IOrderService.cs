@@ -6,6 +6,7 @@
 // See the LICENSE file in the root directory for full terms.
 
 using CRM.Core.Entities;
+using CRM.Core.DTOs;
 
 namespace CRM.Core.Interfaces;
 
@@ -18,22 +19,22 @@ public interface IOrderService
     #region CRUD Operations
 
     /// <summary>Gets all orders with optional filtering.</summary>
-    Task<IEnumerable<Order>> GetAllAsync(
+    Task<IEnumerable<OrderDto>> GetAllAsync(
         int? accountId = null,
         OrderStatus? status = null,
         CancellationToken cancellationToken = default);
 
     /// <summary>Gets an order by ID.</summary>
-    Task<Order?> GetByIdAsync(int id, CancellationToken cancellationToken = default);
+    Task<OrderDto?> GetByIdAsync(int id, CancellationToken cancellationToken = default);
 
     /// <summary>Gets an order by order number.</summary>
-    Task<Order?> GetByOrderNumberAsync(string orderNumber, CancellationToken cancellationToken = default);
+    Task<OrderDto?> GetByOrderNumberAsync(string orderNumber, CancellationToken cancellationToken = default);
 
     /// <summary>Creates a new order.</summary>
-    Task<Order> CreateAsync(Order order, CancellationToken cancellationToken = default);
+    Task<OrderDto> CreateAsync(CreateOrderDto dto, CancellationToken cancellationToken = default);
 
     /// <summary>Updates an existing order.</summary>
-    Task<Order> UpdateAsync(Order order, CancellationToken cancellationToken = default);
+    Task<OrderDto> UpdateAsync(UpdateOrderDto dto, CancellationToken cancellationToken = default);
 
     /// <summary>Deletes an order (soft delete).</summary>
     Task<bool> DeleteAsync(int id, CancellationToken cancellationToken = default);
@@ -43,10 +44,10 @@ public interface IOrderService
     #region Order Operations
 
     /// <summary>Creates an order from a quote.</summary>
-    Task<Order> CreateFromQuoteAsync(int quoteId, CancellationToken cancellationToken = default);
+    Task<OrderDto> CreateFromQuoteAsync(int quoteId, CancellationToken cancellationToken = default);
 
     /// <summary>Creates an order from an opportunity.</summary>
-    Task<Order> CreateFromOpportunityAsync(int opportunityId, CancellationToken cancellationToken = default);
+    Task<OrderDto> CreateFromOpportunityAsync(int opportunityId, CancellationToken cancellationToken = default);
 
     /// <summary>Generates the next order number.</summary>
     Task<string> GenerateOrderNumberAsync(CancellationToken cancellationToken = default);

@@ -7,6 +7,8 @@
 
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
+using CRM.Core.Dtos;
+using CRM.Api.Mappers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -41,14 +43,15 @@ public class CampaignsController : ControllerBase
     /// <response code="200">Returns the list of campaigns</response>
     /// <response code="500">If there was an internal server error</response>
     [HttpGet]
-    [ProducesResponseType(typeof(IEnumerable<MarketingCampaign>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(IEnumerable<CampaignDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetAll()
     {
         try
         {
             var campaigns = await _campaignService.GetAllCampaignsAsync();
-            return Ok(campaigns);
+            var dtos = campaigns.Select(CampaignMapper.ToDto);
+            return Ok(dtos);
         }
         catch (Exception ex)
         {
@@ -64,14 +67,15 @@ public class CampaignsController : ControllerBase
     /// <response code="200">Returns the list of active campaigns</response>
     /// <response code="500">If there was an internal server error</response>
     [HttpGet("active")]
-    [ProducesResponseType(typeof(IEnumerable<MarketingCampaign>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(IEnumerable<CampaignDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetActive()
     {
         try
         {
             var campaigns = await _campaignService.GetActiveCampaignsAsync();
-            return Ok(campaigns);
+            var dtos = campaigns.Select(CampaignMapper.ToDto);
+            return Ok(dtos);
         }
         catch (Exception ex)
         {
@@ -89,7 +93,7 @@ public class CampaignsController : ControllerBase
     /// <response code="404">If the campaign is not found</response>
     /// <response code="500">If there was an internal server error</response>
     [HttpGet("{id}")]
-    [ProducesResponseType(typeof(MarketingCampaign), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(CampaignDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetById(int id)
@@ -101,8 +105,8 @@ public class CampaignsController : ControllerBase
             {
                 return NotFound(new { message = $"Campaign with ID {id} not found" });
             }
-
-            return Ok(campaign);
+            var dto = CampaignMapper.ToDto(campaign);
+            return Ok(dto);
         }
         catch (Exception ex)
         {
@@ -120,10 +124,10 @@ public class CampaignsController : ControllerBase
     /// <response code="400">If the campaign data is invalid (e.g., end date before start date, negative budget)</response>
     /// <response code="500">If there was an internal server error</response>
     [HttpPost]
-    [ProducesResponseType(typeof(MarketingCampaign), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(CampaignDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> Create([FromBody] MarketingCampaign campaign)
+    public async Task<IActionResult> Create([FromBody] CreateCampaignDto dto)
     {
         try
         {
@@ -131,22 +135,11 @@ public class CampaignsController : ControllerBase
             {
                 return BadRequest(ModelState);
             }
-
-            // Business validation: End date must be after start date
-            if (campaign.EndDate.HasValue && campaign.StartDate.HasValue &&
-                campaign.EndDate.Value < campaign.StartDate.Value)
-            {
-                return BadRequest(new { message = "End date cannot be before start date" });
-            }
-
-            // Business validation: Budget cannot be negative
-            if (campaign.Budget < 0)
-            {
-                return BadRequest(new { message = "Budget cannot be negative" });
-            }
-
-            var id = await _campaignService.CreateCampaignAsync(campaign);
-            return CreatedAtAction(nameof(GetById), new { id }, campaign);
+            var entity = CampaignMapper.ToEntity(dto);
+            var id = await _campaignService.CreateCampaignAsync(entity);
+            var created = await _campaignService.GetCampaignByIdAsync(id);
+            var result = created != null ? CampaignMapper.ToDto(created) : null;
+            return CreatedAtAction(nameof(GetById), new { id }, result);
         }
         catch (ArgumentException ex)
         {
@@ -174,7 +167,7 @@ public class CampaignsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> Update(int id, [FromBody] MarketingCampaign campaign)
+    public async Task<IActionResult> Update(int id, [FromBody] UpdateCampaignDto dto)
     {
         try
         {
@@ -182,22 +175,13 @@ public class CampaignsController : ControllerBase
             {
                 return BadRequest(ModelState);
             }
-
-            // Business validation: End date must be after start date
-            if (campaign.EndDate.HasValue && campaign.StartDate.HasValue &&
-                campaign.EndDate.Value < campaign.StartDate.Value)
+            var entity = await _campaignService.GetCampaignByIdAsync(id);
+            if (entity == null)
             {
-                return BadRequest(new { message = "End date cannot be before start date" });
+                return NotFound(new { message = $"Campaign with ID {id} not found" });
             }
-
-            // Business validation: Budget cannot be negative
-            if (campaign.Budget < 0)
-            {
-                return BadRequest(new { message = "Budget cannot be negative" });
-            }
-
-            campaign.Id = id;
-            await _campaignService.UpdateCampaignAsync(campaign);
+            CampaignMapper.UpdateEntity(entity, dto);
+            await _campaignService.UpdateCampaignAsync(entity);
             return NoContent();
         }
         catch (ArgumentException ex)

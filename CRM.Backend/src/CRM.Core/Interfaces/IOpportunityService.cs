@@ -6,6 +6,7 @@
 // See the LICENSE file in the root directory for full terms.
 
 using CRM.Core.Entities;
+using CRM.Core.DTOs;
 
 namespace CRM.Core.Interfaces;
 
@@ -27,4 +28,5 @@ public interface IOpportunityService
     Task UpdateOpportunityAsync(Opportunity opportunity);
     Task DeleteOpportunityAsync(int id);
     Task<decimal> GetTotalPipelineAsync();
+    // In future: switch to DTOs for all contracts
 }

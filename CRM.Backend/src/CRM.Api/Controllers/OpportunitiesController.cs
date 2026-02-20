@@ -6,6 +6,7 @@
 // See the LICENSE file in the root directory for full terms.
 
 using CRM.Core.Entities;
+using CRM.Core.DTOs;
 using CRM.Core.Interfaces;
 using CRM.Api.Hubs;
 using Microsoft.AspNetCore.Authorization;
@@ -47,14 +48,15 @@ public class OpportunitiesController : ControllerBase
     /// <response code="200">Returns the list of open opportunities</response>
     /// <response code="500">If there was an internal server error</response>
     [HttpGet]
-    [ProducesResponseType(typeof(IEnumerable<Opportunity>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(IEnumerable<OpportunityDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetOpen()
     {
         try
         {
             var opportunities = await _opportunityService.GetOpenOpportunitiesAsync();
-            return Ok(opportunities);
+            var dtos = opportunities.Select(MapToDto).ToList();
+            return Ok(dtos);
         }
         catch (Exception ex)
         {
@@ -72,7 +74,7 @@ public class OpportunitiesController : ControllerBase
     /// <response code="404">If the opportunity is not found</response>
     /// <response code="500">If there was an internal server error</response>
     [HttpGet("{id}")]
-    [ProducesResponseType(typeof(Opportunity), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(OpportunityDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetById(int id)
@@ -82,7 +84,7 @@ public class OpportunitiesController : ControllerBase
             var opportunity = await _opportunityService.GetOpportunityByIdAsync(id);
             if (opportunity == null)
                 return NotFound(new { message = $"Opportunity with ID {id} not found" });
-            return Ok(opportunity);
+            return Ok(MapToDto(opportunity));
         }
         catch (Exception ex)
         {
@@ -99,14 +101,15 @@ public class OpportunitiesController : ControllerBase
     /// <response code="200">Returns the list of opportunities</response>
     /// <response code="500">If there was an internal server error</response>
     [HttpGet("account/{accountId}")]
-    [ProducesResponseType(typeof(IEnumerable<Opportunity>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(IEnumerable<OpportunityDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetByAccountId(int accountId)
     {
         try
         {
             var opportunities = await _opportunityService.GetOpportunitiesByAccountAsync(accountId);
-            return Ok(opportunities);
+            var dtos = opportunities.Select(MapToDto).ToList();
+            return Ok(dtos);
         }
         catch (Exception ex)
         {
@@ -123,14 +126,15 @@ public class OpportunitiesController : ControllerBase
     /// <response code="200">Returns the list of opportunities</response>
     /// <response code="500">If there was an internal server error</response>
     [HttpGet("customer/{customerId}")]
-    [ProducesResponseType(typeof(List<Opportunity>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(List<OpportunityDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetByCustomerId(int customerId)
     {
         try
         {
             var opportunities = await _opportunityService.GetOpportunitiesByCustomerAsync(customerId);
-            return Ok(opportunities);
+            var dtos = opportunities.Select(MapToDto).ToList();
+            return Ok(dtos);
         }
         catch (Exception ex)
         {
@@ -171,24 +175,25 @@ public class OpportunitiesController : ControllerBase
     /// <response code="400">If the opportunity data is invalid</response>
     /// <response code="500">If there was an internal server error</response>
     [HttpPost]
-    [ProducesResponseType(typeof(Opportunity), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(OpportunityDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> Create([FromBody] Opportunity opportunity)
+    public async Task<IActionResult> Create([FromBody] CreateOpportunityDto dto)
     {
         try
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
+            var opportunity = MapFromCreateDto(dto);
             var id = await _opportunityService.CreateOpportunityAsync(opportunity);
             opportunity.Id = id;
 
             // Notify connected clients about the new opportunity
             var userId = User.FindFirst("sub")?.Value ?? User.FindFirst("nameid")?.Value;
-            await _notificationService.NotifyRecordCreatedAsync("Opportunity", id, opportunity, userId);
+            await _notificationService.NotifyRecordCreatedAsync("Opportunity", id, MapToDto(opportunity), userId);
 
-            return CreatedAtAction(nameof(GetById), new { id }, opportunity);
+            return CreatedAtAction(nameof(GetById), new { id }, MapToDto(opportunity));
         }
         catch (Exception ex)
         {
@@ -212,19 +217,23 @@ public class OpportunitiesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> Update(int id, [FromBody] Opportunity opportunity)
+    public async Task<IActionResult> Update(int id, [FromBody] UpdateOpportunityDto dto)
     {
         try
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            opportunity.Id = id;
+            var opportunity = await _opportunityService.GetOpportunityByIdAsync(id);
+            if (opportunity == null)
+                return NotFound();
+
+            MapFromUpdateDto(dto, opportunity);
             await _opportunityService.UpdateOpportunityAsync(opportunity);
 
             // Notify connected clients about the update
             var userId = User.FindFirst("sub")?.Value ?? User.FindFirst("nameid")?.Value;
-            await _notificationService.NotifyRecordUpdatedAsync("Opportunity", id, opportunity, userId);
+            await _notificationService.NotifyRecordUpdatedAsync("Opportunity", id, MapToDto(opportunity), userId);
 
             return NoContent();
         }
@@ -233,6 +242,114 @@ public class OpportunitiesController : ControllerBase
             _logger.LogError(ex, "Error updating opportunity {OpportunityId}", id);
             return StatusCode(500, "Internal server error");
         }
+    }
+    // --- Mapping helpers ---
+    private static OpportunityDto MapToDto(Opportunity entity)
+    {
+        return new OpportunityDto
+        {
+            Id = entity.Id,
+            Name = entity.Name,
+            Stage = (int)entity.Stage,
+            Probability = entity.Probability,
+            Amount = entity.Amount,
+            Currency = entity.Currency,
+            ExpectedCloseDate = entity.ExpectedCloseDate?.ToString("o"),
+            PricingModel = (int)entity.PricingModel,
+            TermLengthMonths = entity.TermLengthMonths,
+            SolutionNotes = entity.SolutionNotes,
+            QualificationReason = (int?)entity.QualificationReason,
+            QualificationNotes = entity.QualificationNotes,
+            Region = entity.Region,
+            AccountId = entity.AccountId,
+            PrimaryContactId = entity.PrimaryContactId,
+            SalesOwnerId = entity.SalesOwnerId,
+            SalesOwnerName = entity.SalesOwner?.FullName,
+            LeadId = entity.LeadId,
+            Products = entity.Products?.Select(MapProductToDto).ToList() ?? new(),
+            CreatedAt = entity.CreatedAt.ToString("o"),
+            UpdatedAt = entity.UpdatedAt.ToString("o"),
+            IsDeleted = entity.IsDeleted,
+            RowVersion = entity.RowVersion,
+            WeightedAmount = entity.WeightedAmount,
+            IsOpen = entity.IsOpen,
+            IsWon = entity.IsWon
+        };
+    }
+
+    private static OpportunityProductDto MapProductToDto(OpportunityProduct p)
+    {
+        return new OpportunityProductDto
+        {
+            OpportunityId = p.OpportunityId,
+            ProductId = p.ProductId,
+            Quantity = p.Quantity,
+            UnitPrice = p.UnitPrice,
+            DiscountPercent = p.DiscountPercent,
+            LineTotal = p.LineTotal,
+            TotalPrice = p.TotalPrice,
+            Notes = p.Notes,
+            CreatedAt = p.CreatedAt.ToString("o"),
+            IsDeleted = p.IsDeleted
+        };
+    }
+
+    private static Opportunity MapFromCreateDto(CreateOpportunityDto dto)
+    {
+        var entity = new Opportunity
+        {
+            Name = dto.Name,
+            Stage = (OpportunityStage)dto.Stage,
+            Probability = dto.Probability,
+            Amount = dto.Amount,
+            Currency = dto.Currency,
+            ExpectedCloseDate = string.IsNullOrEmpty(dto.ExpectedCloseDate) ? null : DateTime.Parse(dto.ExpectedCloseDate),
+            PricingModel = (OpportunityPricingModel)dto.PricingModel,
+            TermLengthMonths = dto.TermLengthMonths,
+            SolutionNotes = dto.SolutionNotes,
+            QualificationReason = (QualificationReason?)dto.QualificationReason,
+            QualificationNotes = dto.QualificationNotes,
+            Region = dto.Region,
+            AccountId = dto.AccountId,
+            PrimaryContactId = dto.PrimaryContactId,
+            SalesOwnerId = dto.SalesOwnerId,
+            LeadId = dto.LeadId,
+            Products = dto.Products?.Select(MapProductFromCreateDto).ToList() ?? new List<OpportunityProduct>()
+        };
+        return entity;
+    }
+
+    private static OpportunityProduct MapProductFromCreateDto(CreateOpportunityProductDto dto)
+    {
+        return new OpportunityProduct
+        {
+            ProductId = dto.ProductId,
+            Quantity = dto.Quantity,
+            UnitPrice = dto.UnitPrice,
+            DiscountPercent = dto.DiscountPercent,
+            Notes = dto.Notes
+        };
+    }
+
+    private static void MapFromUpdateDto(UpdateOpportunityDto dto, Opportunity entity)
+    {
+        if (dto.Name != null) entity.Name = dto.Name;
+        if (dto.Stage.HasValue) entity.Stage = (OpportunityStage)dto.Stage.Value;
+        if (dto.Probability.HasValue) entity.Probability = dto.Probability.Value;
+        if (dto.Amount.HasValue) entity.Amount = dto.Amount.Value;
+        if (dto.Currency != null) entity.Currency = dto.Currency;
+        if (dto.ExpectedCloseDate != null) entity.ExpectedCloseDate = DateTime.Parse(dto.ExpectedCloseDate);
+        if (dto.PricingModel.HasValue) entity.PricingModel = (OpportunityPricingModel)dto.PricingModel.Value;
+        if (dto.TermLengthMonths.HasValue) entity.TermLengthMonths = dto.TermLengthMonths.Value;
+        if (dto.SolutionNotes != null) entity.SolutionNotes = dto.SolutionNotes;
+        if (dto.QualificationReason.HasValue) entity.QualificationReason = (QualificationReason)dto.QualificationReason.Value;
+        if (dto.QualificationNotes != null) entity.QualificationNotes = dto.QualificationNotes;
+        if (dto.Region != null) entity.Region = dto.Region;
+        if (dto.AccountId.HasValue) entity.AccountId = dto.AccountId.Value;
+        if (dto.PrimaryContactId.HasValue) entity.PrimaryContactId = dto.PrimaryContactId.Value;
+        if (dto.SalesOwnerId.HasValue) entity.SalesOwnerId = dto.SalesOwnerId.Value;
+        if (dto.LeadId.HasValue) entity.LeadId = dto.LeadId.Value;
+        // Product update logic can be added here if needed
     }
 
     /// <summary>
