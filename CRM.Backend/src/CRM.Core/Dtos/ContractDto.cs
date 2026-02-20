@@ -72,9 +72,15 @@ public class ContractDto
     public string? TerminationClause { get; set; }
     public string? TerminationReason { get; set; }
 
+    // Financial / Billing
+    public string? CurrencyCode { get; set; }
+    public string? BillingFrequency { get; set; }
+    public int RenewalNoticeDays { get; set; }
+
     // Documents
     public string? ContractFileUrl { get; set; }
     public string? ContractFileName { get; set; }
+    public long? ContractFileSize { get; set; }
     public string? SignedContractFileUrl { get; set; }
     public string? SignedContractFileName { get; set; }
 

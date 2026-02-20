@@ -211,21 +211,6 @@ public class CreateInvoiceLineItemDto
     public decimal TaxAmount { get; set; }
 }
 
-/// <summary>
-/// Invoice statistics DTO
-/// </summary>
-public class InvoiceStatistics
-{
-    public int TotalInvoices { get; set; }
-    public int PaidInvoices { get; set; }
-    public int OverdueInvoices { get; set; }
-    public int DraftInvoices { get; set; }
-    public decimal TotalInvoiced { get; set; }
-    public decimal TotalPaid { get; set; }
-    public decimal TotalOutstanding { get; set; }
-    public decimal AverageInvoiceAmount { get; set; }
-    public double AverageDaysToPayment { get; set; }
-}
 
 /// <summary>
 /// Paged result DTO

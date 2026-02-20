@@ -135,8 +135,6 @@ export interface Account extends BaseEntity {
   customFields?: string | Record<string, any>;
 
   // Metadata
-  createdAt?: string;
-  updatedAt?: string;
   rowVersion?: string;
 
   // Display
@@ -279,13 +277,13 @@ export interface AccountStatistics {
  * Account with related entities (detail view)
  */
 export interface AccountDetail extends Account {
-  contacts?: ContactSummary[];
+  contactSummaries?: ContactSummary[];
   opportunities?: OpportunitySummary[];
   quotes?: QuoteSummary[];
   orders?: OrderSummary[];
   invoices?: InvoiceSummary[];
   interactions?: InteractionSummary[];
-  notes?: NoteSummary[];
+  noteSummaries?: NoteSummary[];
   contractsCount?: number;
   subscriptionsCount?: number;
 }

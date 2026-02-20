@@ -6,6 +6,7 @@
 // See the LICENSE file in the root directory for full terms.
 
 using System.ComponentModel.DataAnnotations;
+using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -37,7 +38,7 @@ public class PaymentsController : ControllerBase
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<IEnumerable<Payment>>> GetAll(
+    public async Task<ActionResult<IEnumerable<PaymentDto>>> GetAll(
         [FromQuery] int? accountId = null,
         [FromQuery] int? invoiceId = null,
         [FromQuery] PaymentStatus? status = null,
@@ -46,7 +47,7 @@ public class PaymentsController : ControllerBase
         try
         {
             var payments = await _paymentService.GetAllAsync(accountId, invoiceId, status, cancellationToken);
-            return Ok(payments);
+            return Ok(payments.Select(MapToDto));
         }
         catch (Exception ex)
         {
@@ -60,13 +61,13 @@ public class PaymentsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<Payment>> GetById(int id, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<PaymentDto>> GetById(int id, CancellationToken cancellationToken = default)
     {
         try
         {
             var payment = await _paymentService.GetByIdAsync(id, cancellationToken);
             if (payment == null) return NotFound($"Payment {id} not found");
-            return Ok(payment);
+            return Ok(MapToDto(payment));
         }
         catch (Exception ex)
         {
@@ -80,13 +81,13 @@ public class PaymentsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<Payment>> GetByTransactionId(string transactionId, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<PaymentDto>> GetByTransactionId(string transactionId, CancellationToken cancellationToken = default)
     {
         try
         {
             var payment = await _paymentService.GetByTransactionIdAsync(transactionId, cancellationToken);
             if (payment == null) return NotFound($"Payment with transaction '{transactionId}' not found");
-            return Ok(payment);
+            return Ok(MapToDto(payment));
         }
         catch (Exception ex)
         {
@@ -100,13 +101,26 @@ public class PaymentsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<Payment>> Create([FromBody] Payment payment, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<PaymentDto>> Create([FromBody] CreatePaymentDto dto, CancellationToken cancellationToken = default)
     {
         try
         {
             if (!ModelState.IsValid) return ValidationProblem(ModelState);
+            var payment = new Payment
+            {
+                InvoiceId = dto.InvoiceId,
+                AccountId = dto.AccountId,
+                Amount = dto.Amount,
+                PaymentMethod = dto.PaymentMethod,
+                PaymentType = dto.PaymentType,
+                Status = dto.Status,
+                ScheduledDate = dto.ScheduledDate,
+                Description = dto.Description,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
             var created = await _paymentService.CreateAsync(payment, cancellationToken);
-            return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
+            return CreatedAtAction(nameof(GetById), new { id = created.Id }, MapToDto(created));
         }
         catch (Exception ex)
         {
@@ -117,14 +131,14 @@ public class PaymentsController : ControllerBase
 
     /// <summary>Updates an existing payment.</summary>
     [HttpPut("{id}")]
-    public async Task<ActionResult<Payment>> Update(int id, [FromBody] Payment payment, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<PaymentDto>> Update(int id, [FromBody] Payment payment, CancellationToken cancellationToken = default)
     {
         try
         {
             if (!ModelState.IsValid) return ValidationProblem(ModelState);
             if (id != payment.Id) return BadRequest("ID mismatch");
             var updated = await _paymentService.UpdateAsync(payment, cancellationToken);
-            return Ok(updated);
+            return Ok(MapToDto(updated));
         }
         catch (Exception ex)
         {
@@ -201,14 +215,16 @@ public class PaymentsController : ControllerBase
     /// <summary>Voids a payment.</summary>
     [HttpPost("{id}/void")]
     [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<Payment>> VoidPayment(int id, [FromBody] VoidPaymentRequest request, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<PaymentResult>> VoidPayment(int id, [FromBody] VoidPaymentRequest request, CancellationToken cancellationToken = default)
     {
         try
         {
-            var payment = await _paymentService.VoidPaymentAsync(id, request.Reason, cancellationToken);
-            return Ok(payment);
+            var result = await _paymentService.VoidPaymentAsync(id, request.Reason, cancellationToken);
+            if (!result.Success) return BadRequest(result);
+            return Ok(result);
         }
         catch (Exception ex)
         {
@@ -247,12 +263,12 @@ public class PaymentsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<Payment>> UpdateStatus(int id, [FromBody] PaymentStatusRequest request, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<PaymentDto>> UpdateStatus(int id, [FromBody] PaymentStatusRequest request, CancellationToken cancellationToken = default)
     {
         try
         {
             var payment = await _paymentService.UpdateStatusAsync(id, request.Status, cancellationToken);
-            return Ok(payment);
+            return Ok(MapToDto(payment));
         }
         catch (Exception ex)
         {
@@ -266,12 +282,12 @@ public class PaymentsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<Payment>> MarkAsCompleted(int id, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<PaymentDto>> MarkAsCompleted(int id, CancellationToken cancellationToken = default)
     {
         try
         {
             var payment = await _paymentService.MarkAsCompletedAsync(id, cancellationToken);
-            return Ok(payment);
+            return Ok(MapToDto(payment));
         }
         catch (Exception ex)
         {
@@ -285,12 +301,12 @@ public class PaymentsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<Payment>> MarkAsFailed(int id, [FromBody] FailPaymentRequest request, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<PaymentDto>> MarkAsFailed(int id, [FromBody] FailPaymentRequest request, CancellationToken cancellationToken = default)
     {
         try
         {
             var payment = await _paymentService.MarkAsFailedAsync(id, request.FailureReason, cancellationToken);
-            return Ok(payment);
+            return Ok(MapToDto(payment));
         }
         catch (Exception ex)
         {
@@ -307,7 +323,7 @@ public class PaymentsController : ControllerBase
     [HttpGet("by-date-range")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<IEnumerable<Payment>>> GetByDateRange(
+    public async Task<ActionResult<IEnumerable<PaymentDto>>> GetByDateRange(
         [FromQuery][Required] DateTime fromDate,
         [FromQuery][Required] DateTime toDate,
         CancellationToken cancellationToken = default)
@@ -315,7 +331,7 @@ public class PaymentsController : ControllerBase
         try
         {
             var payments = await _paymentService.GetPaymentsByDateRangeAsync(fromDate, toDate, cancellationToken);
-            return Ok(payments);
+            return Ok(payments.Select(MapToDto));
         }
         catch (Exception ex)
         {
@@ -328,12 +344,12 @@ public class PaymentsController : ControllerBase
     [HttpGet("pending")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<IEnumerable<Payment>>> GetPendingPayments(CancellationToken cancellationToken = default)
+    public async Task<ActionResult<IEnumerable<PaymentDto>>> GetPendingPayments(CancellationToken cancellationToken = default)
     {
         try
         {
             var payments = await _paymentService.GetPendingPaymentsAsync(cancellationToken);
-            return Ok(payments);
+            return Ok(payments.Select(MapToDto));
         }
         catch (Exception ex)
         {
@@ -346,12 +362,12 @@ public class PaymentsController : ControllerBase
     [HttpGet("failed")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<IEnumerable<Payment>>> GetFailedPayments([FromQuery] int maxRetries = 3, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<IEnumerable<PaymentDto>>> GetFailedPayments([FromQuery] int maxRetries = 3, CancellationToken cancellationToken = default)
     {
         try
         {
             var payments = await _paymentService.GetFailedPaymentsAsync(maxRetries, cancellationToken);
-            return Ok(payments);
+            return Ok(payments.Select(MapToDto));
         }
         catch (Exception ex)
         {
@@ -385,12 +401,12 @@ public class PaymentsController : ControllerBase
     [HttpGet("account/{accountId}/history")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<IEnumerable<Payment>>> GetAccountPaymentHistory(int accountId, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<IEnumerable<PaymentDto>>> GetAccountPaymentHistory(int accountId, CancellationToken cancellationToken = default)
     {
         try
         {
             var payments = await _paymentService.GetAccountPaymentHistoryAsync(accountId, cancellationToken);
-            return Ok(payments);
+            return Ok(payments.Select(MapToDto));
         }
         catch (Exception ex)
         {
@@ -405,15 +421,16 @@ public class PaymentsController : ControllerBase
 
     /// <summary>Reconciles a payment with an external reference.</summary>
     [HttpPost("{id}/reconcile")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<Payment>> ReconcilePayment(int id, [FromBody] ReconcileRequest request, CancellationToken cancellationToken = default)
+    public async Task<IActionResult> ReconcilePayment(int id, [FromBody] ReconcileRequest request, CancellationToken cancellationToken = default)
     {
         try
         {
-            var payment = await _paymentService.ReconcilePaymentAsync(id, request.ExternalReference, cancellationToken);
-            return Ok(payment);
+            var success = await _paymentService.ReconcilePaymentAsync(id, request.ExternalReference, cancellationToken);
+            if (!success) return NotFound($"Payment {id} not found");
+            return NoContent();
         }
         catch (Exception ex)
         {
@@ -426,12 +443,12 @@ public class PaymentsController : ControllerBase
     [HttpGet("unreconciled")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<IEnumerable<Payment>>> GetUnreconciledPayments(CancellationToken cancellationToken = default)
+    public async Task<ActionResult<IEnumerable<PaymentDto>>> GetUnreconciledPayments(CancellationToken cancellationToken = default)
     {
         try
         {
             var payments = await _paymentService.GetUnreconciledPaymentsAsync(cancellationToken);
-            return Ok(payments);
+            return Ok(payments.Select(MapToDto));
         }
         catch (Exception ex)
         {
@@ -493,7 +510,7 @@ public class PaymentsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<Payment>> SchedulePayment([FromBody] SchedulePaymentRequest request, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<PaymentDto>> SchedulePayment([FromBody] SchedulePaymentRequest request, CancellationToken cancellationToken = default)
     {
         try
         {
@@ -507,7 +524,7 @@ public class PaymentsController : ControllerBase
                 UpdatedAt = DateTime.UtcNow
             };
             var payment = await _paymentService.SchedulePaymentAsync(paymentEntity, request.ScheduledDate, cancellationToken);
-            return CreatedAtAction(nameof(GetById), new { id = payment.Id }, payment);
+            return CreatedAtAction(nameof(GetById), new { id = payment.Id }, MapToDto(payment));
         }
         catch (Exception ex)
         {
@@ -519,6 +536,57 @@ public class PaymentsController : ControllerBase
     #endregion
 
     #region Helpers
+
+    private static PaymentDto MapToDto(Payment payment) => new()
+    {
+        Id = payment.Id,
+        PaymentNumber = payment.PaymentNumber,
+        InvoiceId = payment.InvoiceId,
+        InvoiceNumber = payment.Invoice?.InvoiceNumber,
+        AccountId = payment.AccountId,
+        AccountName = payment.Account?.DisplayName,
+        Amount = payment.Amount,
+        RefundedAmount = payment.RefundedAmount,
+        AmountApplied = payment.AmountApplied,
+        PaymentMethod = payment.PaymentMethod,
+        PaymentType = payment.PaymentType,
+        Status = payment.Status,
+        PaymentDate = payment.PaymentDate,
+        ProcessedDate = payment.ProcessedDate,
+        RefundDate = payment.RefundDate,
+        ScheduledDate = payment.ScheduledDate,
+        TransactionId = payment.TransactionId,
+        AuthorizationCode = payment.AuthorizationCode,
+        CardLast4 = payment.CardLast4,
+        CardholderName = payment.CardholderName,
+        BankReference = payment.BankReference,
+        IsReconciled = payment.IsReconciled,
+        ReconciledDate = payment.ReconciledDate,
+        Description = payment.Description,
+        FailureReason = payment.FailureReason,
+        RetryCount = payment.RetryCount,
+        OriginalPaymentId = payment.OriginalPaymentId,
+        ExternalPaymentId = payment.ExternalPaymentId,
+        GatewayReference = payment.GatewayReference,
+        CheckNumber = payment.CheckNumber,
+        ProcessingFee = payment.ProcessingFee,
+        NetAmount = payment.NetAmount,
+        ExchangeRate = payment.ExchangeRate,
+        SettledDate = payment.SettledDate,
+        DepositDate = payment.DepositDate,
+        CardBrand = payment.CardBrand,
+        CardExpMonth = payment.CardExpMonth,
+        CardExpYear = payment.CardExpYear,
+        BankName = payment.BankName,
+        AccountLast4 = payment.AccountLast4,
+        AccountType = payment.AccountType,
+        Gateway = payment.Gateway,
+        GatewayResponseCode = payment.GatewayResponseCode,
+        GatewayResponseMessage = payment.GatewayResponseMessage,
+        OrderId = payment.OrderId,
+        SubscriptionId = payment.SubscriptionId,
+        InternalNotes = payment.InternalNotes,
+    };
 
     private ActionResult HandleServiceException(Exception ex)
     {

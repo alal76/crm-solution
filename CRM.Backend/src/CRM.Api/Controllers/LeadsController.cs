@@ -5,6 +5,7 @@
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
 
+using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Entities.Workflow;
 using CRM.Core.Interfaces;
@@ -62,7 +63,7 @@ public class LeadsController : ControllerBase
     /// Get lead by ID
     /// </summary>
     [HttpGet("{id}")]
-    [ProducesResponseType(typeof(Lead), 200)]
+    [ProducesResponseType(typeof(LeadDto), 200)]
     [ProducesResponseType(404)]
     [ProducesResponseType(500)]
     public async Task<IActionResult> GetById(int id)
@@ -215,7 +216,7 @@ public class LeadsController : ControllerBase
     /// Get leads by status
     /// </summary>
     [HttpGet("status/{status}")]
-    [ProducesResponseType(typeof(IEnumerable<Lead>), 200)]
+    [ProducesResponseType(typeof(IEnumerable<LeadSummaryDto>), 200)]
     [ProducesResponseType(400)]
     [ProducesResponseType(500)]
     public async Task<IActionResult> GetByStatus(string status)

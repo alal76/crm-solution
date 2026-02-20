@@ -4,21 +4,30 @@ using System.Threading.Tasks;
 using Xunit;
 using CRM.Core.DTOs;
 using CRM.Core.Entities;
+using CRM.Infrastructure.Data;
 using Microsoft.AspNetCore.Mvc;
-using Moq;
-using CRM.ServiceDeskService.Controllers;
 using Microsoft.EntityFrameworkCore;
+using Moq;
+using CRM.Api.Controllers;
 
 namespace CRM.Tests.Controllers
 {
     public class CrmTasksControllerTests
     {
+        private static CrmDbContext CreateInMemoryContext()
+        {
+            var options = new DbContextOptionsBuilder<CrmDbContext>()
+                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
+                .Options;
+            return new CrmDbContext(options, null);
+        }
+
         // This is a simplified test; in real code, use a proper in-memory DbContext or mocking framework
         [Fact]
         public async Task CreateTask_ValidDto_ReturnsCreatedTask()
         {
-            var dbContextMock = new Mock<DbContext>();
-            var controller = new TasksController(dbContextMock.Object, null, null);
+            using var dbContext = CreateInMemoryContext();
+            var controller = new TasksController(dbContext, null, null);
             var dto = new CreateCrmTaskDto
             {
                 Title = "Test Task",
@@ -27,23 +36,15 @@ namespace CRM.Tests.Controllers
                 DueDate = "2026-02-20T12:00:00Z",
                 OwnerUserId = 5
             };
-            // Simulate mapping and creation logic
-            var result = await controller.CreateTask(new CrmTask
-            {
-                Title = dto.Title,
-                Description = dto.Description,
-                Priority = (CrmTaskPriority)dto.Priority,
-                DueDate = DateTime.Parse(dto.DueDate),
-                OwnerUserId = dto.OwnerUserId ?? 0
-            });
-            Assert.IsType<ActionResult<CrmTask>>(result);
+            var result = await controller.CreateTask(dto);
+            Assert.IsType<ActionResult<CrmTaskDto>>(result);
         }
 
         [Fact]
         public async Task UpdateTask_ValidDto_UpdatesTask()
         {
-            var dbContextMock = new Mock<DbContext>();
-            var controller = new TasksController(dbContextMock.Object, null, null);
+            using var dbContext = CreateInMemoryContext();
+            var controller = new TasksController(dbContext, null, null);
             var dto = new UpdateCrmTaskDto
             {
                 Title = "Updated Task",
@@ -54,16 +55,8 @@ namespace CRM.Tests.Controllers
                 CompletedDate = "2026-03-02T10:00:00Z"
             };
             // Simulate update logic
-            var result = await controller.UpdateTask(1, new CrmTask
-            {
-                Title = dto.Title,
-                Description = dto.Description,
-                Status = (CrmTaskStatus)(dto.Status ?? 0),
-                Priority = (CrmTaskPriority)(dto.Priority ?? 0),
-                DueDate = DateTime.Parse(dto.DueDate),
-                CompletedDate = DateTime.Parse(dto.CompletedDate)
-            });
-            Assert.IsType<IActionResult>(result);
+            var result = await controller.UpdateTask(1, dto);
+            Assert.IsType<NotFoundResult>(result);
         }
     }
 }

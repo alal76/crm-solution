@@ -5,6 +5,7 @@
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
 
+using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using CRM.Core.Entities.Workflow;
@@ -26,30 +27,30 @@ public class LeadService : ILeadService
         _logger = logger;
     }
 
-    public async Task<(IEnumerable<object> Items, int TotalCount, int Page, int PageSize, int TotalPages)> GetAllAsync(int page = 1, int pageSize = 25)
+    public async Task<(IEnumerable<LeadSummaryDto> Items, int TotalCount, int Page, int PageSize, int TotalPages)> GetAllAsync(int page = 1, int pageSize = 25)
     {
         var query = _context.Set<Lead>().Where(l => !l.IsDeleted).OrderByDescending(l => l.CreatedAt);
         var totalCount = await query.CountAsync();
         var leads = await query
             .Skip((page - 1) * pageSize)
             .Take(pageSize)
-            .Select(l => new
+            .Select(l => new LeadSummaryDto
             {
-                l.Id,
-                l.FirstName,
-                l.LastName,
-                l.Email,
-                l.Phone,
-                l.CompanyName,
-                l.Title,
+                Id = l.Id,
+                FirstName = l.FirstName,
+                LastName = l.LastName,
+                Email = l.Email,
+                Phone = l.Phone,
+                CompanyName = l.CompanyName,
+                Title = l.Title,
                 Status = l.Status.ToString(),
                 Source = l.Source.ToString(),
-                l.Score,
-                l.FitScore,
-                l.EngagementScore,
-                l.OwnerId,
-                l.CreatedAt,
-                l.UpdatedAt
+                Score = l.Score,
+                FitScore = l.FitScore,
+                EngagementScore = l.EngagementScore,
+                OwnerId = l.OwnerId,
+                CreatedAt = l.CreatedAt,
+                UpdatedAt = l.UpdatedAt
             })
             .ToListAsync();
 
@@ -57,35 +58,37 @@ public class LeadService : ILeadService
         return (leads, totalCount, page, pageSize, totalPages);
     }
 
-    public async Task<object?> GetByIdAsync(int id)
+    public async Task<LeadDto?> GetByIdAsync(int id)
     {
         var lead = await _context.Set<Lead>()
             .Where(l => l.Id == id && !l.IsDeleted)
-            .Select(l => new
+            .Select(l => new LeadDto
             {
-                l.Id,
-                l.FirstName,
-                l.LastName,
-                l.Email,
-                l.Phone,
-                l.CompanyName,
-                l.Title,
+                Id = l.Id,
+                FirstName = l.FirstName,
+                LastName = l.LastName,
+                Email = l.Email,
+                Phone = l.Phone,
+                CompanyName = l.CompanyName,
+                Title = l.Title,
                 Status = l.Status.ToString(),
                 Source = l.Source.ToString(),
-                l.Score,
-                l.FitScore,
-                l.EngagementScore,
-                l.QualificationNotes,
-                l.Region,
-                l.Website,
-                l.OwnerId,
-                l.AccountId,
-                l.ContactId,
-                l.CampaignId,
-                l.MqlDate,
-                l.SqlDate,
-                l.CreatedAt,
-                l.UpdatedAt
+                Score = l.Score,
+                FitScore = l.FitScore,
+                EngagementScore = l.EngagementScore,
+                QualificationNotes = l.QualificationNotes,
+                Region = l.Region,
+                Website = l.Website,
+                Tags = l.Tags,
+                OwnerId = l.OwnerId,
+                AccountId = l.AccountId,
+                ContactId = l.ContactId,
+                CampaignId = l.CampaignId,
+                MqlDate = l.MqlDate,
+                SqlDate = l.SqlDate,
+                LastActivityDate = l.LastActivityDate,
+                CreatedAt = l.CreatedAt,
+                UpdatedAt = l.UpdatedAt
             })
             .FirstOrDefaultAsync();
 
@@ -165,21 +168,28 @@ public class LeadService : ILeadService
         return (opportunity.Id, lead.Id);
     }
 
-    public async Task<IEnumerable<object>> GetByStatusAsync(LeadLifecycleStatus status)
+    public async Task<IEnumerable<LeadSummaryDto>> GetByStatusAsync(LeadLifecycleStatus status)
     {
         var leads = await _context.Set<Lead>()
             .Where(l => l.Status == status && !l.IsDeleted)
             .OrderByDescending(l => l.Score)
-            .Select(l => new
+            .Select(l => new LeadSummaryDto
             {
-                l.Id,
-                l.FirstName,
-                l.LastName,
-                l.Email,
-                l.CompanyName,
+                Id = l.Id,
+                FirstName = l.FirstName,
+                LastName = l.LastName,
+                Email = l.Email,
+                Phone = l.Phone,
+                CompanyName = l.CompanyName,
+                Title = l.Title,
                 Status = l.Status.ToString(),
-                l.Score,
-                l.CreatedAt
+                Source = l.Source.ToString(),
+                Score = l.Score,
+                FitScore = l.FitScore,
+                EngagementScore = l.EngagementScore,
+                OwnerId = l.OwnerId,
+                CreatedAt = l.CreatedAt,
+                UpdatedAt = l.UpdatedAt
             })
             .ToListAsync();
 
@@ -208,7 +218,7 @@ public class LeadService : ILeadService
         };
     }
 
-    public async Task<IEnumerable<object>> SearchAsync(string searchTerm)
+    public async Task<IEnumerable<LeadSummaryDto>> SearchAsync(string searchTerm)
     {
         var q = searchTerm ?? string.Empty;
         var leads = await _context.Set<Lead>()
@@ -218,7 +228,18 @@ public class LeadService : ILeadService
                 l.Email.Contains(q) ||
                 (l.CompanyName ?? "").Contains(q)
             ))
-            .Select(l => new { l.Id, l.FirstName, l.LastName, l.Email, l.CompanyName })
+            .Select(l => new LeadSummaryDto
+            {
+                Id = l.Id,
+                FirstName = l.FirstName,
+                LastName = l.LastName,
+                Email = l.Email,
+                CompanyName = l.CompanyName,
+                Status = l.Status.ToString(),
+                Source = l.Source.ToString(),
+                Score = l.Score,
+                CreatedAt = l.CreatedAt
+            })
             .ToListAsync();
 
         return leads;

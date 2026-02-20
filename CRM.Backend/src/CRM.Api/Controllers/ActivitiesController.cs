@@ -48,19 +48,15 @@ public class ActivitiesController : ControllerBase
     {
         Id = a.Id,
         ActivityType = (int)a.ActivityType,
-        Subject = a.Title,
+        Title = a.Title,
         Description = a.Description,
-        StartDate = a.ActivityDate.ToString("o"),
-        EndDate = null, // Not present in entity
-        Status = 0, // Not present in entity
-        Priority = 0, // Not present in entity
+        ActivityDate = a.ActivityDate,
         AccountId = a.AccountId,
         ContactId = a.ContactId,
         OpportunityId = a.OpportunityId,
-        OwnerUserId = a.UserId ?? 0,
-        CreatedByUserId = a.UserId ?? 0,
-        CreatedAt = a.CreatedAt.ToString("o"),
-        UpdatedAt = a.UpdatedAt.ToString("o"),
+        UserId = a.UserId,
+        CreatedAt = a.CreatedAt,
+        UpdatedAt = a.UpdatedAt ?? a.CreatedAt,
         IsDeleted = a.IsDeleted,
         RowVersion = a.RowVersion
     };
@@ -70,13 +66,13 @@ public class ActivitiesController : ControllerBase
         return new Activity
         {
             ActivityType = (ActivityType)dto.ActivityType,
-            Title = dto.Subject ?? string.Empty,
+            Title = dto.Title ?? string.Empty,
             Description = dto.Description,
-            ActivityDate = DateTime.TryParse(dto.StartDate, out var sd) ? sd : DateTime.UtcNow,
+            ActivityDate = dto.ActivityDate ?? DateTime.UtcNow,
             AccountId = dto.AccountId,
             ContactId = dto.ContactId,
             OpportunityId = dto.OpportunityId,
-            UserId = dto.OwnerUserId,
+            UserId = dto.UserId,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
@@ -84,14 +80,13 @@ public class ActivitiesController : ControllerBase
 
     private static void UpdateEntity(Activity entity, UpdateActivityDto dto)
     {
-        entity.ActivityType = (ActivityType)dto.ActivityType;
-        entity.Title = dto.Subject ?? entity.Title;
+        entity.Title = dto.Title ?? entity.Title;
         entity.Description = dto.Description ?? entity.Description;
-        if (DateTime.TryParse(dto.StartDate, out var sd)) entity.ActivityDate = sd;
+        if (dto.ActivityDate.HasValue) entity.ActivityDate = dto.ActivityDate.Value;
         entity.AccountId = dto.AccountId ?? entity.AccountId;
         entity.ContactId = dto.ContactId ?? entity.ContactId;
         entity.OpportunityId = dto.OpportunityId ?? entity.OpportunityId;
-        entity.UserId = dto.OwnerUserId;
+        entity.UserId = dto.UserId;
         entity.UpdatedAt = DateTime.UtcNow;
     }
 
@@ -212,8 +207,8 @@ public class ActivitiesController : ControllerBase
     public async Task<ActionResult<ActivityDto>> CreateActivity([FromBody] CreateActivityDto dto)
     {
         // Validate required fields
-        if (string.IsNullOrWhiteSpace(dto.Subject) || dto.Subject.Length > 255)
-            return BadRequest("Subject is required and must be <= 255 characters.");
+        if (string.IsNullOrWhiteSpace(dto.Title) || dto.Title.Length > 255)
+            return BadRequest("Title is required and must be <= 255 characters.");
         if (dto.ActivityType < 0)
             return BadRequest("ActivityType is required.");
 

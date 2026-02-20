@@ -268,7 +268,7 @@ public class OpportunitiesController : ControllerBase
             LeadId = entity.LeadId,
             Products = entity.Products?.Select(MapProductToDto).ToList() ?? new(),
             CreatedAt = entity.CreatedAt.ToString("o"),
-            UpdatedAt = entity.UpdatedAt.ToString("o"),
+            UpdatedAt = entity.UpdatedAt?.ToString("o") ?? string.Empty,
             IsDeleted = entity.IsDeleted,
             RowVersion = entity.RowVersion,
             WeightedAmount = entity.WeightedAmount,

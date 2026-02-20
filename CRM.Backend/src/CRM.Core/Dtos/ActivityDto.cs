@@ -142,7 +142,42 @@ namespace CRM.Core.DTOs
     /// </summary>
     public class CreateActivityDto
     {
-        // ...fields matching ActivityDto, but required/optional as per creation needs...
+        [Required]
+        public int ActivityType { get; set; }
+
+        [Required, MaxLength(200)]
+        public string Title { get; set; } = string.Empty;
+
+        [MaxLength(2000)]
+        public string? Description { get; set; }
+
+        public string? Details { get; set; }
+
+        public DateTime? ActivityDate { get; set; }
+
+        public int? DurationMinutes { get; set; }
+
+        public int? UserId { get; set; }
+
+        public string? EntityType { get; set; }
+
+        public int? EntityId { get; set; }
+
+        public int? AccountId { get; set; }
+
+        public int? ContactId { get; set; }
+
+        public int? OpportunityId { get; set; }
+
+        public bool IsSystem { get; set; }
+
+        public bool IsPrivate { get; set; }
+
+        public bool IsImportant { get; set; }
+
+        public string? Tags { get; set; }
+
+        public string? Source { get; set; }
     }
 
     /// <summary>
@@ -150,6 +185,28 @@ namespace CRM.Core.DTOs
     /// </summary>
     public class UpdateActivityDto
     {
-        // ...fields matching ActivityDto, but all optional...
+        public string? Title { get; set; }
+
+        public string? Description { get; set; }
+
+        public string? Details { get; set; }
+
+        public DateTime? ActivityDate { get; set; }
+
+        public int? DurationMinutes { get; set; }
+
+        public int? UserId { get; set; }
+
+        public int? AccountId { get; set; }
+
+        public int? ContactId { get; set; }
+
+        public int? OpportunityId { get; set; }
+
+        public bool? IsPrivate { get; set; }
+
+        public bool? IsImportant { get; set; }
+
+        public string? Tags { get; set; }
     }
 }

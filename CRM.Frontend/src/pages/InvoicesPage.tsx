@@ -56,9 +56,9 @@ import logo from '../assets/logo.png';
 // ==================== ENUMS ====================
 
 enum InvoiceStatus {
-  Draft = 0, Sent = 1, Viewed = 2, PartiallyPaid = 3, Paid = 4, Overdue = 5,
-  Voided = 6, Cancelled = 7, Disputed = 8, WrittenOff = 9, PendingApproval = 10,
-  Approved = 11, Refunded = 12,
+  Draft = 0, PendingApproval = 1, Approved = 2, Sent = 3, Viewed = 4,
+  PartiallyPaid = 5, Paid = 6, Overdue = 7, Disputed = 8, Voided = 9,
+  WrittenOff = 10, Collections = 11, Refunded = 12,
 }
 
 enum PaymentMethod {
@@ -72,18 +72,18 @@ enum PaymentMethod {
 interface Invoice {
   id: number;
   invoiceNumber: string;
-  customerId: number;
-  customerName?: string;
+  accountId: number;
+  accountName?: string;
   orderId?: number;
   quoteId?: number;
   status: InvoiceStatus;
-  issueDate: string;
+  invoiceDate: string;
   dueDate: string;
   subtotal: number;
   taxAmount: number;
   discountAmount: number;
   totalAmount: number;
-  paidAmount: number;
+  amountPaid: number;
   balanceDue: number;
   notes?: string;
   createdAt: string;
@@ -129,17 +129,17 @@ type ChipColor = 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'succe
 
 const INVOICE_STATUS_OPTIONS: Array<{ value: InvoiceStatus; label: string; color: ChipColor }> = [
   { value: InvoiceStatus.Draft, label: 'Draft', color: 'default' },
+  { value: InvoiceStatus.PendingApproval, label: 'Pending Approval', color: 'warning' },
+  { value: InvoiceStatus.Approved, label: 'Approved', color: 'info' },
   { value: InvoiceStatus.Sent, label: 'Sent', color: 'info' },
   { value: InvoiceStatus.Viewed, label: 'Viewed', color: 'info' },
   { value: InvoiceStatus.PartiallyPaid, label: 'Partially Paid', color: 'warning' },
   { value: InvoiceStatus.Paid, label: 'Paid', color: 'success' },
   { value: InvoiceStatus.Overdue, label: 'Overdue', color: 'error' },
-  { value: InvoiceStatus.Voided, label: 'Voided', color: 'default' },
-  { value: InvoiceStatus.Cancelled, label: 'Cancelled', color: 'default' },
   { value: InvoiceStatus.Disputed, label: 'Disputed', color: 'error' },
+  { value: InvoiceStatus.Voided, label: 'Voided', color: 'default' },
   { value: InvoiceStatus.WrittenOff, label: 'Written Off', color: 'default' },
-  { value: InvoiceStatus.PendingApproval, label: 'Pending Approval', color: 'warning' },
-  { value: InvoiceStatus.Approved, label: 'Approved', color: 'info' },
+  { value: InvoiceStatus.Collections, label: 'Collections', color: 'warning' },
   { value: InvoiceStatus.Refunded, label: 'Refunded', color: 'secondary' },
 ];
 
@@ -155,7 +155,7 @@ const formatDate = (dateString: string) =>
   dateString ? new Date(dateString).toLocaleDateString() : '-';
 
 const isOverdue = (dueDate: string, status: InvoiceStatus): boolean => {
-  if (status === InvoiceStatus.Paid || status === InvoiceStatus.Voided || status === InvoiceStatus.Cancelled) return false;
+  if (status === InvoiceStatus.Paid || status === InvoiceStatus.Voided || status === InvoiceStatus.Refunded) return false;
   return new Date(dueDate) < new Date();
 };
 
@@ -235,9 +235,9 @@ function InvoicesPage() {
     if (invoice) {
       setEditingId(invoice.id);
       setFormData({
-        customerId: invoice.customerId,
+        customerId: invoice.accountId,
         status: invoice.status,
-        issueDate: invoice.issueDate?.split('T')[0] || '',
+        issueDate: invoice.invoiceDate?.split('T')[0] || '',
         dueDate: invoice.dueDate?.split('T')[0] || '',
         notes: invoice.notes || '',
         orderId: invoice.orderId || null,
@@ -452,14 +452,14 @@ function InvoicesPage() {
                         <TableCell>
                           <Typography fontFamily="monospace">{invoice.invoiceNumber}</Typography>
                         </TableCell>
-                        <TableCell>{invoice.customerName || '-'}</TableCell>
+                        <TableCell>{invoice.accountName || '-'}</TableCell>
                         <TableCell>
                           <Chip label={statusInfo.label} size="small" color={statusInfo.color} />
                           {overdue && invoice.status !== InvoiceStatus.Overdue && (
                             <Chip label="Overdue" size="small" color="error" sx={{ ml: 0.5 }} />
                           )}
                         </TableCell>
-                        <TableCell>{formatDate(invoice.issueDate)}</TableCell>
+                        <TableCell>{formatDate(invoice.invoiceDate)}</TableCell>
                         <TableCell>
                           <Typography color={overdue ? 'error.main' : 'text.primary'}>
                             {formatDate(invoice.dueDate)}

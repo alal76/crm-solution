@@ -31,6 +31,18 @@ public class OrderService : IOrderService
         _eventDispatcher = eventDispatcher ?? throw new ArgumentNullException(nameof(eventDispatcher));
     }
 
+
+    /// <summary>
+    /// Loads a raw Order entity (with line items) from the database.
+    /// Used internally by status management and fulfillment methods.
+    /// </summary>
+    private async Task<Order?> GetOrderEntityAsync(int id, CancellationToken cancellationToken = default)
+    {
+        return await _context.Orders
+            .Include(o => o.LineItems)
+            .FirstOrDefaultAsync(o => o.Id == id && !o.IsDeleted, cancellationToken);
+    }
+
     #region CRUD Operations
 
     /// <inheritdoc />
@@ -166,6 +178,7 @@ public class OrderService : IOrderService
 
         var order = /* ...existing logic... */ await CreateFromOpportunityInternal(opportunityId, cancellationToken);
         return MapToOrderDto(order);
+    }
 
     // --- Mapping helpers ---
     private static OrderDto MapToOrderDto(Order order)
@@ -181,7 +194,7 @@ public class OrderService : IOrderService
             Status = (int)order.Status,
             OrderType = (int)order.OrderType,
             FulfillmentMethod = (int)order.FulfillmentMethod,
-            Priority = order.Priority,
+            Priority = (int)order.Priority,
             OrderDate = order.OrderDate.ToString("o"),
             AccountId = order.AccountId,
             ContactId = order.ContactId,
@@ -208,7 +221,7 @@ public class OrderService : IOrderService
             Description = dto.Description,
             OrderType = (OrderType)dto.OrderType,
             FulfillmentMethod = (FulfillmentMethod)dto.FulfillmentMethod,
-            Priority = dto.Priority,
+            Priority = (OrderPriority)dto.Priority,
             OrderDate = DateTime.Parse(dto.OrderDate),
             // ...map other fields as needed...
             LineItems = dto.LineItems?.Select(li => new OrderLineItem
@@ -217,7 +230,7 @@ public class OrderService : IOrderService
                 Description = li.Description,
                 Quantity = li.Quantity,
                 UnitPrice = li.UnitPrice,
-                TotalAmount = li.TotalAmount
+                TotalAmount = li.Quantity * li.UnitPrice - li.DiscountAmount
             }).ToList() ?? new List<OrderLineItem>()
         };
         return order;
@@ -230,8 +243,7 @@ public class OrderService : IOrderService
         if (dto.Status.HasValue) entity.Status = (OrderStatus)dto.Status.Value;
         if (dto.OrderType.HasValue) entity.OrderType = (OrderType)dto.OrderType.Value;
         if (dto.FulfillmentMethod.HasValue) entity.FulfillmentMethod = (FulfillmentMethod)dto.FulfillmentMethod.Value;
-        if (dto.Priority.HasValue) entity.Priority = dto.Priority.Value;
-        if (dto.OrderDate != null) entity.OrderDate = DateTime.Parse(dto.OrderDate);
+        if (dto.Priority.HasValue) entity.Priority = (OrderPriority)dto.Priority.Value;
         // ...map other updatable fields as needed...
         // Optionally update line items, etc.
     }
@@ -325,7 +337,6 @@ public class OrderService : IOrderService
         _logger.LogInformation("Created order {OrderNumber} from opportunity {OpportunityId}", order.OrderNumber, opportunityId);
         return order;
     }
-    }
 
     /// <inheritdoc />
     public async Task<string> GenerateOrderNumberAsync(CancellationToken cancellationToken = default)
@@ -355,7 +366,7 @@ public class OrderService : IOrderService
     /// <inheritdoc />
     public async Task<Order> CloneOrderAsync(int orderId, CancellationToken cancellationToken = default)
     {
-        var original = await GetByIdAsync(orderId, cancellationToken);
+        var original = await GetOrderEntityAsync(orderId, cancellationToken);
         if (original == null)
         {
             throw new InvalidOperationException($"Order {orderId} not found");
@@ -409,7 +420,7 @@ public class OrderService : IOrderService
     /// <inheritdoc />
     public async Task<Order> UpdateStatusAsync(int orderId, OrderStatus status, CancellationToken cancellationToken = default)
     {
-        var order = await GetByIdAsync(orderId, cancellationToken);
+        var order = await GetOrderEntityAsync(orderId, cancellationToken);
         if (order == null)
         {
             throw new InvalidOperationException($"Order {orderId} not found");
@@ -427,7 +438,7 @@ public class OrderService : IOrderService
     /// <inheritdoc />
     public async Task<Order> SubmitForApprovalAsync(int orderId, CancellationToken cancellationToken = default)
     {
-        var order = await GetByIdAsync(orderId, cancellationToken);
+        var order = await GetOrderEntityAsync(orderId, cancellationToken);
         if (order == null)
         {
             throw new InvalidOperationException($"Order {orderId} not found");
@@ -451,7 +462,7 @@ public class OrderService : IOrderService
     /// <inheritdoc />
     public async Task<Order> ApproveAsync(int orderId, int approvedById, CancellationToken cancellationToken = default)
     {
-        var order = await GetByIdAsync(orderId, cancellationToken);
+        var order = await GetOrderEntityAsync(orderId, cancellationToken);
         if (order == null)
         {
             throw new InvalidOperationException($"Order {orderId} not found");
@@ -471,7 +482,7 @@ public class OrderService : IOrderService
     /// <inheritdoc />
     public async Task<Order> RejectAsync(int orderId, int rejectedById, string reason, CancellationToken cancellationToken = default)
     {
-        var order = await GetByIdAsync(orderId, cancellationToken);
+        var order = await GetOrderEntityAsync(orderId, cancellationToken);
         if (order == null)
         {
             throw new InvalidOperationException($"Order {orderId} not found");
@@ -490,7 +501,7 @@ public class OrderService : IOrderService
     /// <inheritdoc />
     public async Task<Order> CancelAsync(int orderId, string reason, CancellationToken cancellationToken = default)
     {
-        var order = await GetByIdAsync(orderId, cancellationToken);
+        var order = await GetOrderEntityAsync(orderId, cancellationToken);
         if (order == null)
         {
             throw new InvalidOperationException($"Order {orderId} not found");
@@ -515,7 +526,7 @@ public class OrderService : IOrderService
     /// <inheritdoc />
     public async Task<Order> PutOnHoldAsync(int orderId, string reason, CancellationToken cancellationToken = default)
     {
-        var order = await GetByIdAsync(orderId, cancellationToken);
+        var order = await GetOrderEntityAsync(orderId, cancellationToken);
         if (order == null)
         {
             throw new InvalidOperationException($"Order {orderId} not found");
@@ -535,7 +546,7 @@ public class OrderService : IOrderService
     /// <inheritdoc />
     public async Task<Order> ReleaseFromHoldAsync(int orderId, CancellationToken cancellationToken = default)
     {
-        var order = await GetByIdAsync(orderId, cancellationToken);
+        var order = await GetOrderEntityAsync(orderId, cancellationToken);
         if (order == null)
         {
             throw new InvalidOperationException($"Order {orderId} not found");
@@ -563,7 +574,7 @@ public class OrderService : IOrderService
     /// <inheritdoc />
     public async Task<Order> MarkAsFulfilledAsync(int orderId, CancellationToken cancellationToken = default)
     {
-        var order = await GetByIdAsync(orderId, cancellationToken);
+        var order = await GetOrderEntityAsync(orderId, cancellationToken);
         if (order == null)
         {
             throw new InvalidOperationException($"Order {orderId} not found");
@@ -590,7 +601,7 @@ public class OrderService : IOrderService
     /// <inheritdoc />
     public async Task<Order> MarkAsPartiallyFulfilledAsync(int orderId, IEnumerable<int> fulfilledLineItemIds, CancellationToken cancellationToken = default)
     {
-        var order = await GetByIdAsync(orderId, cancellationToken);
+        var order = await GetOrderEntityAsync(orderId, cancellationToken);
         if (order == null)
         {
             throw new InvalidOperationException($"Order {orderId} not found");
@@ -616,7 +627,7 @@ public class OrderService : IOrderService
     /// <inheritdoc />
     public async Task<Order> MarkAsDeliveredAsync(int orderId, DateTime? deliveryDate = null, CancellationToken cancellationToken = default)
     {
-        var order = await GetByIdAsync(orderId, cancellationToken);
+        var order = await GetOrderEntityAsync(orderId, cancellationToken);
         if (order == null)
         {
             throw new InvalidOperationException($"Order {orderId} not found");
@@ -635,7 +646,7 @@ public class OrderService : IOrderService
     /// <inheritdoc />
     public async Task<Order> ProcessReturnAsync(int orderId, IEnumerable<OrderReturnItem> returnItems, string reason, CancellationToken cancellationToken = default)
     {
-        var order = await GetByIdAsync(orderId, cancellationToken);
+        var order = await GetOrderEntityAsync(orderId, cancellationToken);
         if (order == null)
         {
             throw new InvalidOperationException($"Order {orderId} not found");
@@ -671,7 +682,7 @@ public class OrderService : IOrderService
     /// <inheritdoc />
     public async Task<OrderLineItem> AddLineItemAsync(int orderId, OrderLineItem lineItem, CancellationToken cancellationToken = default)
     {
-        var order = await GetByIdAsync(orderId, cancellationToken);
+        var order = await GetOrderEntityAsync(orderId, cancellationToken);
         if (order == null)
         {
             throw new InvalidOperationException($"Order {orderId} not found");
@@ -860,7 +871,7 @@ public class OrderService : IOrderService
     /// <inheritdoc />
     public async Task<Order> ApplyDiscountAsync(int orderId, decimal discountAmount, string? discountCode = null, CancellationToken cancellationToken = default)
     {
-        var order = await GetByIdAsync(orderId, cancellationToken);
+        var order = await GetOrderEntityAsync(orderId, cancellationToken);
         if (order == null)
         {
             throw new InvalidOperationException($"Order {orderId} not found");
@@ -880,7 +891,7 @@ public class OrderService : IOrderService
     /// <inheritdoc />
     public async Task<Order> ApplyCouponAsync(int orderId, string couponCode, CancellationToken cancellationToken = default)
     {
-        var order = await GetByIdAsync(orderId, cancellationToken);
+        var order = await GetOrderEntityAsync(orderId, cancellationToken);
         if (order == null)
         {
             throw new InvalidOperationException($"Order {orderId} not found");
@@ -904,7 +915,7 @@ public class OrderService : IOrderService
     /// <inheritdoc />
     public async Task<Invoice> CreateInvoiceAsync(int orderId, CancellationToken cancellationToken = default)
     {
-        var order = await GetByIdAsync(orderId, cancellationToken);
+        var order = await GetOrderEntityAsync(orderId, cancellationToken);
         if (order == null)
         {
             throw new InvalidOperationException($"Order {orderId} not found");

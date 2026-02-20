@@ -50,8 +50,8 @@ namespace CRM.Tests.Services
                         Description = dto.LineItems[0].Description,
                         Quantity = dto.LineItems[0].Quantity,
                         UnitPrice = dto.LineItems[0].UnitPrice,
-                        Discount = dto.LineItems[0].Discount,
-                        Tax = dto.LineItems[0].Tax
+                        DiscountAmount = dto.LineItems[0].Discount,
+                        TaxAmount = dto.LineItems[0].Tax
                     }
                 }
             };
@@ -67,8 +67,8 @@ namespace CRM.Tests.Services
             Assert.Equal("Desc", line.Description);
             Assert.Equal(2, line.Quantity);
             Assert.Equal(50, line.UnitPrice);
-            Assert.Equal(0, line.Discount);
-            Assert.Equal(0, line.Tax);
+            Assert.Equal(0, line.DiscountAmount);
+            Assert.Equal(0, line.TaxAmount);
         }
     }
 }

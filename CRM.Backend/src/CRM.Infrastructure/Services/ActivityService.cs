@@ -37,19 +37,27 @@ public class ActivityService : IActivityService
     {
         Id = a.Id,
         ActivityType = (int)a.ActivityType,
-        Subject = a.Title,
+        Title = a.Title,
         Description = a.Description,
-        StartDate = a.ActivityDate.ToString("o"),
-        EndDate = null,
-        Status = 0,
-        Priority = 0,
+        Details = a.Details,
+        ActivityDate = a.ActivityDate,
+        DurationMinutes = a.DurationMinutes,
+        UserId = a.UserId,
+        UserName = a.UserName,
+        UserEmail = a.UserEmail,
+        EntityType = a.EntityType,
+        EntityId = a.EntityId,
+        EntityName = a.EntityName,
         AccountId = a.AccountId,
         ContactId = a.ContactId,
         OpportunityId = a.OpportunityId,
-        OwnerUserId = a.UserId ?? 0,
-        CreatedByUserId = a.UserId ?? 0,
-        CreatedAt = a.CreatedAt.ToString("o"),
-        UpdatedAt = a.UpdatedAt.ToString("o"),
+        IsSystem = a.IsSystem,
+        IsPrivate = a.IsPrivate,
+        IsImportant = a.IsImportant,
+        Tags = a.Tags,
+        Source = a.Source,
+        CreatedAt = a.CreatedAt,
+        UpdatedAt = a.UpdatedAt ?? a.CreatedAt,
         IsDeleted = a.IsDeleted,
         RowVersion = a.RowVersion
     };
@@ -59,13 +67,22 @@ public class ActivityService : IActivityService
         return new Activity
         {
             ActivityType = (ActivityType)dto.ActivityType,
-            Title = dto.Subject ?? string.Empty,
+            Title = dto.Title,
             Description = dto.Description,
-            ActivityDate = DateTime.TryParse(dto.StartDate, out var sd) ? sd : DateTime.UtcNow,
+            Details = dto.Details,
+            ActivityDate = dto.ActivityDate ?? DateTime.UtcNow,
+            DurationMinutes = dto.DurationMinutes,
+            UserId = dto.UserId,
+            EntityType = dto.EntityType,
+            EntityId = dto.EntityId,
             AccountId = dto.AccountId,
             ContactId = dto.ContactId,
             OpportunityId = dto.OpportunityId,
-            UserId = dto.OwnerUserId,
+            IsSystem = dto.IsSystem,
+            IsPrivate = dto.IsPrivate,
+            IsImportant = dto.IsImportant,
+            Tags = dto.Tags,
+            Source = dto.Source,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
@@ -119,6 +136,18 @@ public class ActivityService : IActivityService
         await _context.SaveChangesAsync();
         _logger.LogDebug("Created activity {Id} of type {Type}", entity.Id, entity.ActivityType);
         return ToDto(entity);
+    }
+
+    public async Task<ActivityDto> CreateAsync(Activity activity)
+    {
+        if (activity.ActivityDate == default)
+            activity.ActivityDate = DateTime.UtcNow;
+        activity.CreatedAt = DateTime.UtcNow;
+        activity.UpdatedAt = DateTime.UtcNow;
+        _context.Activities.Add(activity);
+        await _context.SaveChangesAsync();
+        _logger.LogDebug("Created activity {Id} of type {Type}", activity.Id, activity.ActivityType);
+        return ToDto(activity);
     }
 
     public async Task<bool> DeleteAsync(int id)
@@ -216,162 +245,6 @@ public class ActivityService : IActivityService
         return stats;
     }
 
-    /// <inheritdoc />
-    public async Task<Activity?> GetByIdAsync(int id)
-    {
-        return await _context.Activities
-            .Include(a => a.User)
-            .Include(a => a.Account)
-            .Include(a => a.Opportunity)
-            .FirstOrDefaultAsync(a => a.Id == id);
-    }
-
-    /// <inheritdoc />
-    public async Task<Activity> CreateAsync(Activity activity)
-    {
-        // Set defaults
-        if (activity.ActivityDate == default)
-        {
-            activity.ActivityDate = DateTime.UtcNow;
-        }
-
-        activity.CreatedAt = DateTime.UtcNow;
-        activity.UpdatedAt = DateTime.UtcNow;
-
-        _context.Activities.Add(activity);
-        await _context.SaveChangesAsync();
-
-        _logger.LogDebug(
-            "Created activity {Id} of type {Type} for entity {EntityType}:{EntityId}",
-            activity.Id, activity.ActivityType, activity.EntityType, activity.EntityId);
-
-        return activity;
-    }
-
-    /// <inheritdoc />
-    public async Task<bool> DeleteAsync(int id)
-    {
-        var activity = await _context.Activities.FindAsync(id);
-        if (activity == null)
-        {
-            return false;
-        }
-
-        _context.Activities.Remove(activity);
-        await _context.SaveChangesAsync();
-
-        _logger.LogDebug("Deleted activity {Id}", id);
-        return true;
-    }
-
-    /// <inheritdoc />
-    public async Task<IEnumerable<Activity>> GetByEntityAsync(
-        string entityType,
-        int entityId,
-        int limit = 50)
-    {
-        return await _context.Activities
-            .Where(a => a.EntityType == entityType && a.EntityId == entityId)
-            .OrderByDescending(a => a.ActivityDate)
-            .Take(limit)
-            .ToListAsync();
-    }
-
-    /// <inheritdoc />
-    public async Task<IEnumerable<Activity>> GetAccountTimelineAsync(
-        int accountId,
-        int limit = 100)
-    {
-        // Get all activities related to an account
-        // This includes direct account activities, contact activities, opportunity activities, and chat messages
-        return await _context.Activities
-            .Where(a =>
-                a.AccountId == accountId ||
-                (a.EntityType == "Account" && a.EntityId == accountId))
-            .OrderByDescending(a => a.ActivityDate)
-            .Take(limit)
-            .Include(a => a.User)
-            .ToListAsync();
-    }
-
-    /// <inheritdoc />
-    public async Task<IEnumerable<Activity>> GetOpportunityTimelineAsync(
-        int opportunityId,
-        int limit = 100)
-    {
-        return await _context.Activities
-            .Where(a =>
-                a.OpportunityId == opportunityId ||
-                (a.EntityType == "Opportunity" && a.EntityId == opportunityId))
-            .OrderByDescending(a => a.ActivityDate)
-            .Take(limit)
-            .Include(a => a.User)
-            .ToListAsync();
-    }
-
-    /// <inheritdoc />
-    public async Task<IEnumerable<Activity>> GetRecentAsync(int limit = 20)
-    {
-        return await _context.Activities
-            .OrderByDescending(a => a.ActivityDate)
-            .Take(limit)
-            .Include(a => a.User)
-            .ToListAsync();
-    }
-
-    /// <inheritdoc />
-    public async Task<ActivityStats> GetStatsAsync(
-        DateTime? fromDate = null,
-        DateTime? toDate = null)
-    {
-        var query = _context.Activities.AsQueryable();
-
-        if (fromDate.HasValue)
-        {
-            query = query.Where(a => a.ActivityDate >= fromDate.Value);
-        }
-
-        if (toDate.HasValue)
-        {
-            query = query.Where(a => a.ActivityDate <= toDate.Value);
-        }
-
-        var activities = await query.ToListAsync();
-
-        var stats = new ActivityStats
-        {
-            TotalActivities = activities.Count,
-            EmailsSent = activities.Count(a => a.ActivityType == ActivityType.EmailSent),
-            CallsMade = activities.Count(a => a.ActivityType == ActivityType.CallMade),
-            MeetingsCompleted = activities.Count(a => a.ActivityType == ActivityType.MeetingCompleted),
-            OpportunitiesCreated = activities.Count(a => a.ActivityType == ActivityType.OpportunityCreated),
-            OpportunitiesWon = activities.Count(a => a.ActivityType == ActivityType.OpportunityWon),
-            OpportunitiesLost = activities.Count(a => a.ActivityType == ActivityType.OpportunityLost),
-            QuotesSent = activities.Count(a => a.ActivityType == ActivityType.QuoteSent),
-            QuotesAccepted = activities.Count(a => a.ActivityType == ActivityType.QuoteAccepted),
-            TasksCompleted = activities.Count(a => a.ActivityType == ActivityType.TaskCompleted),
-            ActivitiesByType = activities
-                .GroupBy(a => a.ActivityType)
-                .Select(g => new ActivityTypeCount
-                {
-                    Type = g.Key.ToString(),
-                    Count = g.Count()
-                })
-                .OrderByDescending(x => x.Count)
-                .ToList(),
-            ActivitiesByDay = activities
-                .GroupBy(a => a.ActivityDate.Date)
-                .Select(g => new ActivityDayCount
-                {
-                    Date = g.Key,
-                    Count = g.Count()
-                })
-                .OrderBy(x => x.Date)
-                .ToList()
-        };
-
-        return stats;
-    }
 
     /// <summary>
     /// Gets chat activities grouped by conversation for timeline display.

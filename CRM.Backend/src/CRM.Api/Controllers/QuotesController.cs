@@ -5,6 +5,7 @@
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
 
+using CRM.Core.DTOs;
 using CRM.Core.Entities;
 using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Services;
@@ -46,9 +47,9 @@ public class QuotesController : ControllerBase
     /// <response code="200">Returns the list of quotes</response>
     /// <response code="500">If there was an internal server error</response>
     [HttpGet]
-    [ProducesResponseType(typeof(IEnumerable<Quote>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(IEnumerable<QuoteDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<IEnumerable<Quote>>> GetQuotes(
+    public async Task<ActionResult<IEnumerable<QuoteDto>>> GetQuotes(
         [FromQuery] int? accountId = null,
         [FromQuery] int? opportunityId = null,
         [FromQuery] QuoteStatus? status = null,
@@ -80,7 +81,7 @@ public class QuotesController : ControllerBase
             var cf = await _normalization.GetCustomFieldsAsync("Quote", q.Id);
             if (!string.IsNullOrWhiteSpace(cf)) q.CustomFields = cf;
         }
-        return Ok(quotes);
+        return Ok(quotes.Select(MapToDto));
     }
 
     /// <summary>
@@ -92,10 +93,10 @@ public class QuotesController : ControllerBase
     /// <response code="404">If the quote is not found</response>
     /// <response code="500">If there was an internal server error</response>
     [HttpGet("{id}")]
-    [ProducesResponseType(typeof(Quote), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(QuoteDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<Quote>> GetQuote(int id)
+    public async Task<ActionResult<QuoteDto>> GetQuote(int id)
     {
         var quote = await _context.Quotes
             .Include(q => q.Account)
@@ -114,7 +115,7 @@ public class QuotesController : ControllerBase
         var cf = await _normalization.GetCustomFieldsAsync("Quote", quote.Id);
         if (!string.IsNullOrWhiteSpace(cf)) quote.CustomFields = cf;
 
-        return Ok(quote);
+        return Ok(MapToDto(quote));
     }
 
     /// <summary>
@@ -126,10 +127,10 @@ public class QuotesController : ControllerBase
     /// <response code="404">If the quote is not found</response>
     /// <response code="500">If there was an internal server error</response>
     [HttpGet("number/{quoteNumber}")]
-    [ProducesResponseType(typeof(Quote), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(QuoteDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<Quote>> GetQuoteByNumber(string quoteNumber)
+    public async Task<ActionResult<QuoteDto>> GetQuoteByNumber(string quoteNumber)
     {
         var quote = await _context.Quotes
             .Include(q => q.Account)
@@ -144,7 +145,7 @@ public class QuotesController : ControllerBase
         var cf = await _normalization.GetCustomFieldsAsync("Quote", quote.Id);
         if (!string.IsNullOrWhiteSpace(cf)) quote.CustomFields = cf;
 
-        return Ok(quote);
+        return Ok(MapToDto(quote));
     }
 
     /// <summary>
@@ -156,10 +157,10 @@ public class QuotesController : ControllerBase
     /// <response code="400">If the quote data is invalid</response>
     /// <response code="500">If there was an internal server error</response>
     [HttpPost]
-    [ProducesResponseType(typeof(Quote), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(QuoteDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<Quote>> CreateQuote(Quote quote)
+    public async Task<ActionResult<QuoteDto>> CreateQuote(Quote quote)
     {
         // Generate quote number if not provided
         if (string.IsNullOrEmpty(quote.QuoteNumber))
@@ -186,7 +187,7 @@ public class QuotesController : ControllerBase
         await _context.SaveChangesAsync();
 
         _logger.LogInformation("Quote {QuoteNumber} created for account {AccountId}", quote.QuoteNumber, quote.AccountId);
-        return CreatedAtAction(nameof(GetQuote), new { id = quote.Id }, quote);
+        return CreatedAtAction(nameof(GetQuote), new { id = quote.Id }, MapToDto(quote));
     }
 
     /// <summary>
@@ -270,7 +271,7 @@ public class QuotesController : ControllerBase
     /// <response code="404">If the quote is not found</response>
     /// <response code="500">If there was an internal server error</response>
     [HttpPost("{id}/send")]
-    [ProducesResponseType(typeof(Quote), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(QuoteDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> SendQuote(int id)
@@ -286,7 +287,7 @@ public class QuotesController : ControllerBase
         await _context.SaveChangesAsync();
 
         _logger.LogInformation("Quote {QuoteNumber} sent", quote.QuoteNumber);
-        return Ok(quote);
+        return Ok(MapToDto(quote));
     }
 
     /// <summary>
@@ -298,7 +299,7 @@ public class QuotesController : ControllerBase
     /// <response code="404">If the quote is not found</response>
     /// <response code="500">If there was an internal server error</response>
     [HttpPost("{id}/viewed")]
-    [ProducesResponseType(typeof(Quote), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(QuoteDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> MarkViewed(int id)
@@ -315,7 +316,7 @@ public class QuotesController : ControllerBase
             await _context.SaveChangesAsync();
         }
 
-        return Ok(quote);
+        return Ok(MapToDto(quote));
     }
 
     /// <summary>
@@ -328,7 +329,7 @@ public class QuotesController : ControllerBase
     /// <response code="404">If the quote is not found</response>
     /// <response code="500">If there was an internal server error</response>
     [HttpPost("{id}/accept")]
-    [ProducesResponseType(typeof(Quote), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(QuoteDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> AcceptQuote(int id, [FromBody] AcceptQuoteRequest? request = null)
@@ -351,7 +352,7 @@ public class QuotesController : ControllerBase
         await _context.SaveChangesAsync();
 
         _logger.LogInformation("Quote {QuoteNumber} accepted", quote.QuoteNumber);
-        return Ok(quote);
+        return Ok(MapToDto(quote));
     }
 
     /// <summary>
@@ -364,7 +365,7 @@ public class QuotesController : ControllerBase
     /// <response code="404">If the quote is not found</response>
     /// <response code="500">If there was an internal server error</response>
     [HttpPost("{id}/reject")]
-    [ProducesResponseType(typeof(Quote), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(QuoteDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> RejectQuote(int id, [FromBody] RejectQuoteRequest? request = null)
@@ -385,7 +386,7 @@ public class QuotesController : ControllerBase
         await _context.SaveChangesAsync();
 
         _logger.LogInformation("Quote {QuoteNumber} rejected", quote.QuoteNumber);
-        return Ok(quote);
+        return Ok(MapToDto(quote));
     }
 
     /// <summary>
@@ -397,10 +398,10 @@ public class QuotesController : ControllerBase
     /// <response code="404">If the original quote is not found</response>
     /// <response code="500">If there was an internal server error</response>
     [HttpPost("{id}/revise")]
-    [ProducesResponseType(typeof(Quote), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(QuoteDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<Quote>> CreateRevision(int id)
+    public async Task<ActionResult<QuoteDto>> CreateRevision(int id)
     {
         var originalQuote = await _context.Quotes.FindAsync(id);
         if (originalQuote == null)
@@ -461,7 +462,56 @@ public class QuotesController : ControllerBase
         await _context.SaveChangesAsync();
 
         _logger.LogInformation("Quote {QuoteNumber} revised to {NewQuoteNumber}", originalQuote.QuoteNumber, revision.QuoteNumber);
-        return CreatedAtAction(nameof(GetQuote), new { id = revision.Id }, revision);
+        return CreatedAtAction(nameof(GetQuote), new { id = revision.Id }, MapToDto(revision));
+    }
+
+    private static QuoteDto MapToDto(Quote quote)
+    {
+        return new QuoteDto
+        {
+            Id = quote.Id,
+            QuoteNumber = quote.QuoteNumber,
+            Title = quote.Name,
+            AccountId = quote.AccountId ?? 0,
+            AccountName = quote.Account?.Company
+                ?? quote.Account?.FirstName,
+            ContactId = quote.ContactId,
+            ContactName = quote.ContactName
+                ?? (quote.Contact != null
+                    ? $"{quote.Contact.FirstName} {quote.Contact.LastName}".Trim()
+                    : null),
+            Status = (int)quote.Status,
+            Currency = quote.CurrencyCode,
+            IssuedDate = quote.QuoteDate.ToString("yyyy-MM-dd"),
+            ExpirationDate = quote.ExpirationDate?.ToString("yyyy-MM-dd"),
+            Notes = quote.Notes,
+            Subtotal = quote.Subtotal,
+            DiscountTotal = quote.Discount,
+            TaxTotal = quote.Tax,
+            GrandTotal = quote.Total,
+            LineItems = quote.QuoteLineItems?
+                .Where(li => !li.IsDeleted)
+                .Select(li => new QuoteLineItemDto
+                {
+                    Id = li.Id,
+                    QuoteId = li.QuoteId,
+                    ProductId = li.ProductId ?? 0,
+                    ProductName = li.Product?.Name ?? li.Name,
+                    Description = li.Description,
+                    Quantity = li.Quantity,
+                    UnitPrice = li.UnitPrice,
+                    Discount = li.TotalDiscount,
+                    Tax = li.TaxAmount,
+                    LineTotal = li.Total,
+                })
+                .ToList(),
+            CreatedAt = quote.CreatedAt.ToString("yyyy-MM-dd"),
+            UpdatedAt = quote.UpdatedAt?.ToString("yyyy-MM-dd"),
+            IsDeleted = false,
+            RowVersion = null,
+            CreatedByUserId = quote.CreatedByUserId ?? 0,
+            UpdatedByUserId = null,
+        };
     }
 
     private void CalculateTotals(Quote quote)

@@ -6,6 +6,7 @@
 // See the LICENSE file in the root directory for full terms.
 
 using System.Text.Json;
+using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using CRM.Infrastructure.AI.SK.Plugins;
@@ -78,7 +79,7 @@ public class LeadPluginTests
     public async Task GetLeadAsync_ExistingLead_ShouldReturnSuccessResult()
     {
         // Arrange
-        var lead = new Lead { Id = 1, FirstName = "John", LastName = "Doe", Email = "john@example.com" };
+        var lead = new LeadDto { Id = 1, FirstName = "John", LastName = "Doe", Email = "john@example.com" };
         _leadServiceMock.Setup(s => s.GetByIdAsync(1))
             .ReturnsAsync(lead);
 
@@ -96,7 +97,7 @@ public class LeadPluginTests
     {
         // Arrange
         _leadServiceMock.Setup(s => s.GetByIdAsync(999))
-            .ReturnsAsync((object?)null);
+            .ReturnsAsync((LeadDto?)null);
 
         // Act
         var result = await _plugin.GetLeadAsync(999);
@@ -114,10 +115,10 @@ public class LeadPluginTests
     public async Task SearchLeadsAsync_ValidQuery_ShouldReturnResults()
     {
         // Arrange
-        var leads = new List<object>
+        var leads = new List<LeadSummaryDto>
         {
-            new Lead { Id = 1, FirstName = "John", LastName = "Doe" },
-            new Lead { Id = 2, FirstName = "Jane", LastName = "Doe" }
+            new LeadSummaryDto { Id = 1, FirstName = "John", LastName = "Doe" },
+            new LeadSummaryDto { Id = 2, FirstName = "Jane", LastName = "Doe" }
         };
         _leadServiceMock.Setup(s => s.SearchAsync(It.IsAny<string>()))
             .ReturnsAsync(leads);
@@ -139,7 +140,7 @@ public class LeadPluginTests
     public async Task GetLeadScoreAsync_ExistingLead_ShouldReturnScore()
     {
         // Arrange
-        var lead = new Lead { Id = 1, FirstName = "John", LastName = "Doe" };
+        var lead = new LeadDto { Id = 1, FirstName = "John", LastName = "Doe" };
         _leadServiceMock.Setup(s => s.GetByIdAsync(1))
             .ReturnsAsync(lead);
 
@@ -160,7 +161,7 @@ public class LeadPluginTests
     public async Task UpdateLeadScoreAsync_ValidScore_ShouldSucceed()
     {
         // Arrange
-        var lead = new Lead { Id = 1, FirstName = "John", LastName = "Doe" };
+        var lead = new LeadDto { Id = 1, FirstName = "John", LastName = "Doe" };
         _leadServiceMock.Setup(s => s.GetByIdAsync(1))
             .ReturnsAsync(lead);
         _leadServiceMock.Setup(s => s.UpdateAsync(It.IsAny<int>(), It.IsAny<Action<Lead>>()))
@@ -202,7 +203,7 @@ public class LeadPluginTests
     public async Task UpdateLeadScoreAsync_BoundaryScores_ShouldNotReturnValidationError(int score)
     {
         // Arrange
-        var lead = new Lead { Id = 1, FirstName = "Test", LastName = "Lead" };
+        var lead = new LeadDto { Id = 1, FirstName = "Test", LastName = "Lead" };
         _leadServiceMock.Setup(s => s.GetByIdAsync(1))
             .ReturnsAsync(lead);
         _leadServiceMock.Setup(s => s.UpdateAsync(It.IsAny<int>(), It.IsAny<Action<Lead>>()))
@@ -224,7 +225,7 @@ public class LeadPluginTests
     public async Task ConvertLeadAsync_ExistingLead_ShouldReturnResult()
     {
         // Arrange
-        var lead = new Lead { Id = 1, FirstName = "John", LastName = "Doe" };
+        var lead = new LeadDto { Id = 1, FirstName = "John", LastName = "Doe" };
         _leadServiceMock.Setup(s => s.GetByIdAsync(1))
             .ReturnsAsync(lead);
 

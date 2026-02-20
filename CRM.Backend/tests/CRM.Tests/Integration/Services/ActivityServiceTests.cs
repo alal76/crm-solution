@@ -77,11 +77,11 @@ public class ActivityServiceTests
         var service = new ActivityService(context, _mockLogger.Object);
 
         // Act
-        var result = await service.GetActivitiesAsync(activityType: ActivityType.ChatMessage);
+        var result = await service.GetActivitiesAsync(activityType: (int)ActivityType.ChatMessage);
 
         // Assert
         Assert.Equal(2, result.Count());
-        Assert.All(result, a => Assert.Equal(ActivityType.ChatMessage, a.ActivityType));
+        Assert.All(result, a => Assert.Equal((int)ActivityType.ChatMessage, a.ActivityType));
     }
 
     [Fact]
@@ -282,7 +282,7 @@ public class ActivityServiceTests
 
         // Assert
         Assert.Equal(2, result.Count());
-        Assert.Contains(result, a => a.ActivityType == ActivityType.ChatMessage);
+        Assert.Contains(result, a => a.ActivityType == (int)ActivityType.ChatMessage);
     }
 
     [Fact]

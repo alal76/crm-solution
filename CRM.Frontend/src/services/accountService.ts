@@ -271,4 +271,7 @@ const accountService = {
   deleteContract: (accountId: number) => apiClient.delete(`/accounts/${accountId}/contract`),
 };
 
+// Re-export Account so callers can import it from this module
+export type { Account } from '../types/accounts';
+
 export default accountService;

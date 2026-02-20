@@ -55,54 +55,48 @@ public class ActivityDtoValidationTests
     [Fact]
     public void CreateActivityDto_AllFields_ShouldMapToEntity()
     {
+        var activityDate = DateTime.UtcNow;
         var dto = new CreateActivityDto
         {
             ActivityType = 2,
-            Subject = "Test Subject",
+            Title = "Test Subject",
             Description = "Test Desc",
-            StartDate = DateTime.UtcNow.ToString("o"),
-            EndDate = DateTime.UtcNow.AddHours(1).ToString("o"),
-            Status = 1,
-            Priority = 2,
+            ActivityDate = activityDate,
             AccountId = 10,
             ContactId = 20,
             OpportunityId = 30,
-            OwnerUserId = 5
+            UserId = 5
         };
-        // Simulate mapping (manual, as no automapper in DTO)
-        Assert.Equal(dto.ActivityType, 2);
-        Assert.Equal(dto.Subject, "Test Subject");
-        Assert.Equal(dto.Description, "Test Desc");
-        Assert.Equal(dto.AccountId, 10);
-        Assert.Equal(dto.ContactId, 20);
-        Assert.Equal(dto.OpportunityId, 30);
-        Assert.Equal(dto.OwnerUserId, 5);
+        Assert.Equal(2, dto.ActivityType);
+        Assert.Equal("Test Subject", dto.Title);
+        Assert.Equal("Test Desc", dto.Description);
+        Assert.Equal(activityDate, dto.ActivityDate);
+        Assert.Equal(10, dto.AccountId);
+        Assert.Equal(20, dto.ContactId);
+        Assert.Equal(30, dto.OpportunityId);
+        Assert.Equal(5, dto.UserId);
     }
 
     [Fact]
     public void UpdateActivityDto_AllFields_ShouldMapToEntity()
     {
+        var activityDate = DateTime.UtcNow;
         var dto = new UpdateActivityDto
         {
-            ActivityType = 3,
-            Subject = "Update Subject",
+            Title = "Update Subject",
             Description = "Update Desc",
-            StartDate = DateTime.UtcNow.ToString("o"),
-            EndDate = DateTime.UtcNow.AddHours(2).ToString("o"),
-            Status = 2,
-            Priority = 1,
+            ActivityDate = activityDate,
             AccountId = 11,
             ContactId = 21,
             OpportunityId = 31,
-            OwnerUserId = 6
+            UserId = 6
         };
-        // Simulate mapping
-        Assert.Equal(dto.ActivityType, 3);
-        Assert.Equal(dto.Subject, "Update Subject");
-        Assert.Equal(dto.Description, "Update Desc");
-        Assert.Equal(dto.AccountId, 11);
-        Assert.Equal(dto.ContactId, 21);
-        Assert.Equal(dto.OpportunityId, 31);
-        Assert.Equal(dto.OwnerUserId, 6);
+        Assert.Equal("Update Subject", dto.Title);
+        Assert.Equal("Update Desc", dto.Description);
+        Assert.Equal(activityDate, dto.ActivityDate);
+        Assert.Equal(11, dto.AccountId);
+        Assert.Equal(21, dto.ContactId);
+        Assert.Equal(31, dto.OpportunityId);
+        Assert.Equal(6, dto.UserId);
     }
 }

@@ -338,4 +338,64 @@ namespace CRM.Core.DTOs
 
         public List<UpdateOrderLineItemDto>? LineItems { get; set; }
     }
+
+    /// <summary>
+    /// DTO representing an Order line item in API responses.
+    /// </summary>
+    public class OrderLineItemDto
+    {
+        public int Id { get; set; }
+        public int LineNumber { get; set; }
+        public int? ProductId { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string? Description { get; set; }
+        public string? SKU { get; set; }
+        public string? ProductCode { get; set; }
+        public decimal Quantity { get; set; }
+        public string? UnitOfMeasure { get; set; }
+        public decimal UnitPrice { get; set; }
+        public decimal DiscountAmount { get; set; }
+        public decimal DiscountPercent { get; set; }
+        public decimal ExtendedAmount { get; set; }
+        public decimal TaxAmount { get; set; }
+        public decimal TotalAmount { get; set; }
+        public string? Notes { get; set; }
+    }
+
+    /// <summary>
+    /// DTO for adding a line item to an Order.
+    /// </summary>
+    public class CreateOrderLineItemDto
+    {
+        [Required]
+        public int? ProductId { get; set; }
+        [Required]
+        public string Name { get; set; } = string.Empty;
+        public string? Description { get; set; }
+        public string? SKU { get; set; }
+        [Required]
+        public decimal Quantity { get; set; } = 1;
+        public string? UnitOfMeasure { get; set; }
+        [Required]
+        public decimal UnitPrice { get; set; }
+        public decimal DiscountAmount { get; set; }
+        public decimal DiscountPercent { get; set; }
+        public string? Notes { get; set; }
+    }
+
+    /// <summary>
+    /// DTO for updating an existing Order line item.
+    /// </summary>
+    public class UpdateOrderLineItemDto
+    {
+        [Required]
+        public int Id { get; set; }
+        public string? Name { get; set; }
+        public string? Description { get; set; }
+        public decimal? Quantity { get; set; }
+        public decimal? UnitPrice { get; set; }
+        public decimal? DiscountAmount { get; set; }
+        public decimal? DiscountPercent { get; set; }
+        public string? Notes { get; set; }
+    }
 }

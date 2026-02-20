@@ -51,15 +51,15 @@ import logo from '../assets/logo.png';
 // ==================== ENUMS ====================
 
 enum PaymentStatus {
-  Pending = 0, Processing = 1, Completed = 2, Failed = 3, Refunded = 4,
-  PartiallyRefunded = 5, Voided = 6, Declined = 7, Cancelled = 8,
-  Disputed = 9, Chargeback = 10, Expired = 11,
+  Pending = 0, Processing = 1, Completed = 2, Failed = 3, Declined = 4,
+  Cancelled = 5, Refunded = 6, PartiallyRefunded = 7, Disputed = 8,
+  Voided = 9, OnHold = 10, Expired = 11,
 }
 
 enum PaymentMethod {
-  CreditCard = 0, DebitCard = 1, BankTransfer = 2, ACH = 3, Wire = 4, Check = 5,
-  Cash = 6, PayPal = 7, Stripe = 8, ApplePay = 9, GooglePay = 10, Crypto = 11,
-  StoreCredit = 12, GiftCard = 13, FinancingPlan = 14, PurchaseOrder = 15, Other = 16,
+  CreditCard = 0, DebitCard = 1, BankTransfer = 2, WireTransfer = 3, Check = 4,
+  Cash = 5, PayPal = 6, Stripe = 7, ApplePay = 8, GooglePay = 9, Venmo = 10,
+  Crypto = 11, StoreCredit = 12, GiftCard = 13, Financing = 14, PurchaseOrder = 15, Other = 16,
 }
 
 // ==================== INTERFACES ====================
@@ -99,13 +99,13 @@ const PAYMENT_STATUS_OPTIONS: Array<{ value: PaymentStatus; label: string; color
   { value: PaymentStatus.Processing, label: 'Processing', color: 'info' },
   { value: PaymentStatus.Completed, label: 'Completed', color: 'success' },
   { value: PaymentStatus.Failed, label: 'Failed', color: 'error' },
-  { value: PaymentStatus.Refunded, label: 'Refunded', color: 'secondary' },
-  { value: PaymentStatus.PartiallyRefunded, label: 'Partially Refunded', color: 'warning' },
-  { value: PaymentStatus.Voided, label: 'Voided', color: 'default' },
   { value: PaymentStatus.Declined, label: 'Declined', color: 'error' },
   { value: PaymentStatus.Cancelled, label: 'Cancelled', color: 'default' },
+  { value: PaymentStatus.Refunded, label: 'Refunded', color: 'secondary' },
+  { value: PaymentStatus.PartiallyRefunded, label: 'Partially Refunded', color: 'warning' },
   { value: PaymentStatus.Disputed, label: 'Disputed', color: 'error' },
-  { value: PaymentStatus.Chargeback, label: 'Chargeback', color: 'error' },
+  { value: PaymentStatus.Voided, label: 'Voided', color: 'default' },
+  { value: PaymentStatus.OnHold, label: 'On Hold', color: 'warning' },
   { value: PaymentStatus.Expired, label: 'Expired', color: 'default' },
 ];
 
@@ -113,14 +113,18 @@ const PAYMENT_METHOD_OPTIONS: Array<{ value: PaymentMethod; label: string }> = [
   { value: PaymentMethod.CreditCard, label: 'Credit Card' },
   { value: PaymentMethod.DebitCard, label: 'Debit Card' },
   { value: PaymentMethod.BankTransfer, label: 'Bank Transfer' },
-  { value: PaymentMethod.ACH, label: 'ACH' },
-  { value: PaymentMethod.Wire, label: 'Wire Transfer' },
+  { value: PaymentMethod.WireTransfer, label: 'Wire Transfer' },
   { value: PaymentMethod.Check, label: 'Check' },
   { value: PaymentMethod.Cash, label: 'Cash' },
   { value: PaymentMethod.PayPal, label: 'PayPal' },
   { value: PaymentMethod.Stripe, label: 'Stripe' },
   { value: PaymentMethod.ApplePay, label: 'Apple Pay' },
   { value: PaymentMethod.GooglePay, label: 'Google Pay' },
+  { value: PaymentMethod.Venmo, label: 'Venmo' },
+  { value: PaymentMethod.Crypto, label: 'Crypto' },
+  { value: PaymentMethod.StoreCredit, label: 'Store Credit' },
+  { value: PaymentMethod.GiftCard, label: 'Gift Card' },
+  { value: PaymentMethod.Financing, label: 'Financing' },
   { value: PaymentMethod.PurchaseOrder, label: 'Purchase Order' },
   { value: PaymentMethod.Other, label: 'Other' },
 ];

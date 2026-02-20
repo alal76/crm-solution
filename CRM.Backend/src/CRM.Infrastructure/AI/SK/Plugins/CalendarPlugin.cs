@@ -10,6 +10,7 @@
 using System.ComponentModel;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
+using CRM.Core.DTOs;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using CRM.Infrastructure.AI.SK.Attributes;
@@ -76,7 +77,7 @@ public class CalendarPlugin : CrmPluginBase
                 accountId: accountId,
                 opportunityId: null,
                 userId: userId,
-                activityType: parsedType,
+                activityType: (int?)parsedType,
                 fromDate: fromDate,
                 toDate: DateTime.UtcNow,
                 limit: limit);
@@ -188,23 +189,22 @@ public class CalendarPlugin : CrmPluginBase
                 return SuccessResult(new { success = false, message = $"Invalid activity type '{activityType}'. Valid types: EmailSent, CallMade, MeetingScheduled, TaskCompleted, NoteAdded" });
             }
 
-            var activity = new Activity
+            var dto = new CreateActivityDto
             {
+                ActivityType = (int)parsedType,
                 Title = subject,
-                Details = details,
-                ActivityType = parsedType,
+                Description = details,
                 EntityType = entityType,
-                EntityId = entityId,
-                CreatedAt = DateTime.UtcNow
+                EntityId = entityId
             };
 
-            var created = await _activityService.CreateAsync(activity);
+            var created = await _activityService.CreateAsync(dto);
 
             return SuccessResult(new
             {
                 success = true,
                 activityId = created.Id,
-                type = created.ActivityType.ToString(),
+                type = ((ActivityType)created.ActivityType).ToString(),
                 subject = created.Title,
                 entityType = created.EntityType,
                 entityId = created.EntityId,

@@ -28,6 +28,8 @@ public interface IActivityService
 
     Task<ActivityDto> CreateAsync(CreateActivityDto dto);
 
+    Task<ActivityDto> CreateAsync(Activity activity);
+
     Task<bool> DeleteAsync(int id);
 
     Task<IEnumerable<ActivityDto>> GetByEntityAsync(string entityType, int entityId, int limit = 50);

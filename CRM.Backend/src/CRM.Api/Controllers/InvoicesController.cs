@@ -6,6 +6,7 @@
 // See the LICENSE file in the root directory for full terms.
 
 using System.ComponentModel.DataAnnotations;
+using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -37,7 +38,7 @@ public class InvoicesController : ControllerBase
     [HttpGet]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<IEnumerable<Invoice>>> GetAll(
+    public async Task<ActionResult<IEnumerable<InvoiceDto>>> GetAll(
         [FromQuery] int? accountId = null,
         [FromQuery] InvoiceStatus? status = null,
         CancellationToken cancellationToken = default)
@@ -45,7 +46,7 @@ public class InvoicesController : ControllerBase
         try
         {
                 var invoices = await _invoiceService.GetAllAsync(accountId, status, cancellationToken);
-            return Ok(invoices);
+            return Ok(invoices.Select(MapToDto));
         }
         catch (Exception ex)
         {
@@ -59,13 +60,13 @@ public class InvoicesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<Invoice>> GetById(int id, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<InvoiceDto>> GetById(int id, CancellationToken cancellationToken = default)
     {
         try
         {
             var invoice = await _invoiceService.GetByIdAsync(id, cancellationToken);
             if (invoice == null) return NotFound($"Invoice {id} not found");
-            return Ok(invoice);
+            return Ok(MapToDto(invoice));
         }
         catch (Exception ex)
         {
@@ -79,13 +80,13 @@ public class InvoicesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<Invoice>> GetByInvoiceNumber(string invoiceNumber, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<InvoiceDto>> GetByInvoiceNumber(string invoiceNumber, CancellationToken cancellationToken = default)
     {
         try
         {
             var invoice = await _invoiceService.GetByInvoiceNumberAsync(invoiceNumber, cancellationToken);
             if (invoice == null) return NotFound($"Invoice '{invoiceNumber}' not found");
-            return Ok(invoice);
+            return Ok(MapToDto(invoice));
         }
         catch (Exception ex)
         {
@@ -99,13 +100,38 @@ public class InvoicesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<Invoice>> Create([FromBody] Invoice invoice, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<InvoiceDto>> Create([FromBody] CreateInvoiceDto request, CancellationToken cancellationToken = default)
     {
         try
         {
             if (!ModelState.IsValid) return ValidationProblem(ModelState);
+            var invoice = new Invoice
+            {
+                AccountId = request.AccountId,
+                InvoiceDate = request.InvoiceDate ?? DateTime.UtcNow,
+                DueDate = request.DueDate ?? DateTime.UtcNow.AddDays(30),
+                Status = request.Status,
+                InvoiceType = request.InvoiceType,
+                PaymentTerms = request.PaymentTerms,
+                Subtotal = request.Subtotal,
+                DiscountAmount = request.DiscountAmount,
+                TaxAmount = request.TaxAmount,
+                ShippingAmount = request.ShippingAmount,
+                FeesAmount = request.FeesAmount,
+                CurrencyCode = request.CurrencyCode,
+                Description = request.Description,
+                Notes = request.Notes,
+                OrderId = request.OrderId,
+                InternalNotes = request.InternalNotes,
+                TermsAndConditions = request.TermsAndConditions,
+                BillingName = request.BillingName,
+                BillingStreet = request.BillingStreet,
+                BillingCity = request.BillingCity,
+                BillingState = request.BillingState,
+                BillingCountry = request.BillingCountry,
+            };
             var created = await _invoiceService.CreateAsync(invoice, cancellationToken);
-            return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
+            return CreatedAtAction(nameof(GetById), new { id = created.Id }, MapToDto(created));
         }
         catch (Exception ex)
         {
@@ -120,14 +146,14 @@ public class InvoicesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<Invoice>> Update(int id, [FromBody] Invoice invoice, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<InvoiceDto>> Update(int id, [FromBody] Invoice invoice, CancellationToken cancellationToken = default)
     {
         try
         {
             if (!ModelState.IsValid) return ValidationProblem(ModelState);
             if (id != invoice.Id) return BadRequest("ID mismatch");
             var updated = await _invoiceService.UpdateAsync(invoice, cancellationToken);
-            return Ok(updated);
+            return Ok(MapToDto(updated));
         }
         catch (Exception ex)
         {
@@ -163,12 +189,12 @@ public class InvoicesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<Invoice>> CreateFromOrder(int orderId, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<InvoiceDto>> CreateFromOrder(int orderId, CancellationToken cancellationToken = default)
     {
         try
         {
             var invoice = await _invoiceService.CreateFromOrderAsync(orderId, cancellationToken);
-            return CreatedAtAction(nameof(GetById), new { id = invoice.Id }, invoice);
+            return CreatedAtAction(nameof(GetById), new { id = invoice.Id }, MapToDto(invoice));
         }
         catch (Exception ex)
         {
@@ -183,12 +209,12 @@ public class InvoicesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<Invoice>> CreateFromQuote(int quoteId, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<InvoiceDto>> CreateFromQuote(int quoteId, CancellationToken cancellationToken = default)
     {
         try
         {
             var invoice = await _invoiceService.CreateFromQuoteAsync(quoteId, cancellationToken);
-            return CreatedAtAction(nameof(GetById), new { id = invoice.Id }, invoice);
+            return CreatedAtAction(nameof(GetById), new { id = invoice.Id }, MapToDto(invoice));
         }
         catch (Exception ex)
         {
@@ -235,12 +261,13 @@ public class InvoicesController : ControllerBase
 
     /// <summary>Marks an invoice as viewed.</summary>
     [HttpPost("{id}/viewed")]
-    public async Task<ActionResult<Invoice>> MarkAsViewed(int id, CancellationToken cancellationToken = default)
+    public async Task<IActionResult> MarkAsViewed(int id, CancellationToken cancellationToken = default)
     {
         try
         {
-            var invoice = await _invoiceService.MarkAsViewedAsync(id, cancellationToken);
-            return Ok(invoice);
+            var result = await _invoiceService.MarkAsViewedAsync(id, cancellationToken);
+            if (!result) return NotFound($"Invoice {id} not found");
+            return Ok(new { message = "Invoice marked as viewed" });
         }
         catch (Exception ex)
         {
@@ -258,12 +285,12 @@ public class InvoicesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<Invoice>> UpdateStatus(int id, [FromBody] InvoiceStatusRequest request, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<InvoiceDto>> UpdateStatus(int id, [FromBody] InvoiceStatusRequest request, CancellationToken cancellationToken = default)
     {
         try
         {
             var invoice = await _invoiceService.UpdateStatusAsync(id, request.Status, cancellationToken);
-            return Ok(invoice);
+            return Ok(MapToDto(invoice));
         }
         catch (Exception ex)
         {
@@ -277,12 +304,12 @@ public class InvoicesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<Invoice>> Approve(int id, [FromBody] ApproveRequest request, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<InvoiceDto>> Approve(int id, [FromBody] ApproveRequest request, CancellationToken cancellationToken = default)
     {
         try
         {
             var invoice = await _invoiceService.ApproveAsync(id, request.ApprovedById, cancellationToken);
-            return Ok(invoice);
+            return Ok(MapToDto(invoice));
         }
         catch (Exception ex)
         {
@@ -296,12 +323,12 @@ public class InvoicesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<Invoice>> VoidInvoice(int id, [FromBody] VoidRequest request, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<InvoiceDto>> VoidInvoice(int id, [FromBody] VoidRequest request, CancellationToken cancellationToken = default)
     {
         try
         {
             var invoice = await _invoiceService.VoidAsync(id, request.Reason, cancellationToken);
-            return Ok(invoice);
+            return Ok(MapToDto(invoice));
         }
         catch (Exception ex)
         {
@@ -315,12 +342,12 @@ public class InvoicesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<Invoice>> MarkAsPaid(int id, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<InvoiceDto>> MarkAsPaid(int id, CancellationToken cancellationToken = default)
     {
         try
         {
             var invoice = await _invoiceService.MarkAsPaidAsync(id, cancellationToken);
-            return Ok(invoice);
+            return Ok(MapToDto(invoice));
         }
         catch (Exception ex)
         {
@@ -400,12 +427,12 @@ public class InvoicesController : ControllerBase
     [HttpGet("overdue")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<IEnumerable<Invoice>>> GetOverdueInvoices([FromQuery] int? daysPastDue = null, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<IEnumerable<InvoiceDto>>> GetOverdueInvoices([FromQuery] int? daysPastDue = null, CancellationToken cancellationToken = default)
     {
         try
         {
             var invoices = await _invoiceService.GetOverdueInvoicesAsync(daysPastDue, cancellationToken);
-            return Ok(invoices);
+            return Ok(invoices.Select(MapToDto));
         }
         catch (Exception ex)
         {
@@ -416,12 +443,12 @@ public class InvoicesController : ControllerBase
 
     /// <summary>Gets invoices due within the specified date range.</summary>
     [HttpGet("due")]
-    public async Task<ActionResult<IEnumerable<Invoice>>> GetInvoicesDue([FromQuery] DateTime fromDate, [FromQuery] DateTime toDate, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<IEnumerable<InvoiceDto>>> GetInvoicesDue([FromQuery] DateTime fromDate, [FromQuery] DateTime toDate, CancellationToken cancellationToken = default)
     {
         try
         {
             var invoices = await _invoiceService.GetInvoicesDueAsync(fromDate, toDate, cancellationToken);
-            return Ok(invoices);
+            return Ok(invoices.Select(MapToDto));
         }
         catch (Exception ex)
         {
@@ -541,12 +568,12 @@ public class InvoicesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult<Invoice>> RecalculateTotals(int id, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<InvoiceDto>> RecalculateTotals(int id, CancellationToken cancellationToken = default)
     {
         try
         {
             var invoice = await _invoiceService.RecalculateTotalsAsync(id, cancellationToken);
-            return Ok(invoice);
+            return Ok(MapToDto(invoice));
         }
         catch (Exception ex)
         {
@@ -557,12 +584,12 @@ public class InvoicesController : ControllerBase
 
     /// <summary>Applies a discount to an invoice.</summary>
     [HttpPost("{id}/discount")]
-    public async Task<ActionResult<Invoice>> ApplyDiscount(int id, [FromBody] DiscountRequest request, CancellationToken cancellationToken = default)
+    public async Task<ActionResult<InvoiceDto>> ApplyDiscount(int id, [FromBody] DiscountRequest request, CancellationToken cancellationToken = default)
     {
         try
         {
             var invoice = await _invoiceService.ApplyDiscountAsync(id, request.DiscountAmount, request.Reason, cancellationToken);
-            return Ok(invoice);
+            return Ok(MapToDto(invoice));
         }
         catch (Exception ex)
         {
@@ -570,6 +597,87 @@ public class InvoicesController : ControllerBase
             return HandleServiceException(ex);
         }
     }
+
+    #endregion
+
+    #region Mapping
+
+    private static InvoiceDto MapToDto(Invoice invoice) => new()
+    {
+        Id = invoice.Id,
+        InvoiceNumber = invoice.InvoiceNumber,
+        AccountId = invoice.AccountId,
+        AccountName = invoice.Account?.Company
+            ?? invoice.Account?.FirstName
+            ?? invoice.Account?.LastName,
+        InvoiceDate = invoice.InvoiceDate,
+        DueDate = invoice.DueDate,
+        SentDate = invoice.SentDate,
+        ViewedDate = invoice.ViewedDate,
+        PaidDate = invoice.PaidDate,
+        VoidedDate = invoice.VoidedDate,
+        Status = invoice.Status,
+        InvoiceType = invoice.InvoiceType,
+        PaymentTerms = invoice.PaymentTerms,
+        Subtotal = invoice.Subtotal,
+        DiscountAmount = invoice.DiscountAmount,
+        TaxAmount = invoice.TaxAmount,
+        ShippingAmount = invoice.ShippingAmount,
+        FeesAmount = invoice.FeesAmount,
+        TotalAmount = invoice.TotalAmount,
+        AmountPaid = invoice.AmountPaid,
+        BalanceDue = invoice.BalanceDue,
+        CurrencyCode = invoice.CurrencyCode,
+        Description = invoice.Description,
+        Notes = invoice.Notes,
+        VoidReason = invoice.VoidReason,
+        OrderId = invoice.OrderId,
+        ServicePeriodStart = invoice.ServicePeriodStart,
+        ServicePeriodEnd = invoice.ServicePeriodEnd,
+        DiscountPercent = invoice.DiscountPercent,
+        AmountCredited = invoice.AmountCredited,
+        ExchangeRate = invoice.ExchangeRate,
+        EarlyPaymentDiscountPercent = invoice.EarlyPaymentDiscountPercent,
+        EarlyPaymentDiscountDays = invoice.EarlyPaymentDiscountDays,
+        EarlyPaymentDiscountAmount = invoice.EarlyPaymentDiscountAmount,
+        LateFeePercent = invoice.LateFeePercent,
+        LateFeeAmount = invoice.LateFeeAmount,
+        BillingName = invoice.BillingName,
+        BillingCompany = invoice.BillingCompany,
+        BillingStreet = invoice.BillingStreet,
+        BillingCity = invoice.BillingCity,
+        BillingState = invoice.BillingState,
+        BillingPostalCode = invoice.BillingPostalCode,
+        BillingCountry = invoice.BillingCountry,
+        BillingEmail = invoice.BillingEmail,
+        BillingPhone = invoice.BillingPhone,
+        ReminderCount = invoice.ReminderCount,
+        LastReminderDate = invoice.LastReminderDate,
+        NextReminderDate = invoice.NextReminderDate,
+        InCollections = invoice.InCollections,
+        InternalNotes = invoice.InternalNotes,
+        Footer = invoice.Footer,
+        TermsAndConditions = invoice.TermsAndConditions,
+        DisputeReason = invoice.DisputeReason,
+        PdfUrl = invoice.PdfUrl,
+        ContactId = invoice.ContactId,
+        SubscriptionId = invoice.SubscriptionId,
+        OriginalInvoiceId = invoice.OriginalInvoiceId,
+        LineItems = invoice.LineItems.Select(li => new InvoiceLineItemDto
+        {
+            Id = li.Id,
+            InvoiceId = li.InvoiceId,
+            LineNumber = li.LineNumber,
+            ProductId = li.ProductId,
+            ProductName = li.Product?.Name,
+            Description = li.Description ?? li.Name,
+            Quantity = li.Quantity,
+            UnitPrice = li.UnitPrice,
+            DiscountAmount = li.DiscountAmount,
+            TaxAmount = li.TaxAmount,
+            TotalAmount = li.TotalAmount,
+        }).ToList(),
+    };
 
     #endregion
 

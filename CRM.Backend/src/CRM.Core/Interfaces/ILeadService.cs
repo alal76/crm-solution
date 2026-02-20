@@ -5,6 +5,7 @@
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
 
+using CRM.Core.Dtos;
 using CRM.Core.Entities;
 
 namespace CRM.Core.Interfaces;
@@ -14,15 +15,15 @@ namespace CRM.Core.Interfaces;
 /// </summary>
 public interface ILeadService
 {
-    Task<(IEnumerable<object> Items, int TotalCount, int Page, int PageSize, int TotalPages)> GetAllAsync(int page = 1, int pageSize = 25);
-    Task<object?> GetByIdAsync(int id);
+    Task<(IEnumerable<LeadSummaryDto> Items, int TotalCount, int Page, int PageSize, int TotalPages)> GetAllAsync(int page = 1, int pageSize = 25);
+    Task<LeadDto?> GetByIdAsync(int id);
     Task<int> CreateAsync(Lead lead);
     Task<bool> UpdateAsync(int id, Action<Lead> applyChanges);
     Task<bool> DeleteAsync(int id);
     Task<(int OpportunityId, int LeadId)> ConvertAsync(int id, string? opportunityName, int? accountId, decimal? estimatedValue, DateTime? expectedCloseDate);
-    Task<IEnumerable<object>> GetByStatusAsync(LeadLifecycleStatus status);
+    Task<IEnumerable<LeadSummaryDto>> GetByStatusAsync(LeadLifecycleStatus status);
     Task<object> GetStatsAsync();
     // Search and assignment helpers
-    Task<IEnumerable<object>> SearchAsync(string searchTerm);
+    Task<IEnumerable<LeadSummaryDto>> SearchAsync(string searchTerm);
     Task<bool> AssignOwnerAsync(int leadId, int ownerId);
 }

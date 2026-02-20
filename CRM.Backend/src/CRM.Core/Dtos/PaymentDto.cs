@@ -161,31 +161,3 @@ public class RefundPaymentRequestDto
     public string Reason { get; set; } = string.Empty;
 }
 
-/// <summary>
-/// Payment statistics DTO
-/// </summary>
-public class PaymentStatistics
-{
-    public int TotalPayments { get; set; }
-    public int SuccessfulPayments { get; set; }
-    public int FailedPayments { get; set; }
-    public int PendingPayments { get; set; }
-    
-    public decimal TotalAmount { get; set; }
-    public decimal SuccessfulAmount { get; set; }
-    public decimal RefundedAmount { get; set; }
-    
-    public double SuccessRate { get; set; }
-    public double AveragePaymentAmount { get; set; }
-    
-    public Dictionary<PaymentMethod, int> PaymentsByMethod { get; set; } = new();
-}
-
-/// <summary>
-/// Payment allocation DTO for applying payments to multiple invoices
-/// </summary>
-public class PaymentAllocation
-{
-    public int InvoiceId { get; set; }
-    public decimal Amount { get; set; }
-}

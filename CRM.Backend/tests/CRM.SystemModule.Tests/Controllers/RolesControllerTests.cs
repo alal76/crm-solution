@@ -98,14 +98,6 @@ public class RolesControllerTests
 
     [Fact]
     public async Task CheckUserPermission_WithGrantedPermission_ReturnsTrue()
-            // Mock Users DbSet to return a user with UserRoles navigation property
-            var user = new User {
-                Id = userId,
-                IsDeleted = false,
-                UserRoles = userRoles
-            };
-            var usersMock = new List<User> { user }.CreateMockDbSet();
-            _dbContextMock.Setup(x => x.Users).Returns(usersMock.Object);
     {
         // Arrange
         var userId = 1;
@@ -146,6 +138,15 @@ public class RolesControllerTests
 
         // Link RolePermissions to Role
         ((List<RolePermission>)userRoles[0].Role!.RolePermissions).AddRange(rolePermissions);
+
+        // Mock Users DbSet to return a user with UserRoles navigation property
+        var user = new User {
+            Id = userId,
+            IsDeleted = false,
+            UserRoles = userRoles
+        };
+        var usersMock = new List<User> { user }.CreateMockDbSet();
+        _dbContextMock.Setup(x => x.Users).Returns(usersMock.Object);
 
         // Setup cache to indicate no cached permissions (force DB lookup)
         _cacheMock.Setup(x => x.IsUserPermissionsCachedAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))

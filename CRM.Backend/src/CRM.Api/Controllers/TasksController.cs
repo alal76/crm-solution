@@ -120,7 +120,7 @@ public class TasksController : ControllerBase
         task.UpdatedAt = DateTime.UtcNow;
         _context.CrmTasks.Add(task);
         await _context.SaveChangesAsync();
-        _logger.LogInformation("Task {TaskId} created: {Title}", task.Id, task.Title);
+        _logger.LogInformation("Task {TaskId} created: {Subject}", task.Id, task.Subject);
         return CreatedAtAction(nameof(GetTask), new { id = task.Id }, MapToDto(task));
     }
 
@@ -246,10 +246,10 @@ public class TasksController : ControllerBase
             Priority = (int)t.Priority,
             DueDate = t.DueDate?.ToString("o"),
             CompletedDate = t.CompletedDate?.ToString("o"),
-            OwnerUserId = t.OwnerUserId,
-            CreatedByUserId = t.CreatedByUserId,
+            OwnerUserId = t.CreatedByUserId ?? 0,
+            CreatedByUserId = t.CreatedByUserId ?? 0,
             CreatedAt = t.CreatedAt.ToString("o"),
-            UpdatedAt = t.UpdatedAt.ToString("o"),
+            UpdatedAt = t.UpdatedAt?.ToString("o") ?? string.Empty,
             IsDeleted = t.IsDeleted,
             RowVersion = t.RowVersion
         };
@@ -263,7 +263,7 @@ public class TasksController : ControllerBase
             Description = dto.Description,
             Priority = (CrmTaskPriority)dto.Priority,
             DueDate = string.IsNullOrWhiteSpace(dto.DueDate) ? null : DateTime.Parse(dto.DueDate),
-            OwnerUserId = dto.OwnerUserId ?? 0,
+            CreatedByUserId = dto.OwnerUserId,
             AccountId = dto.AccountId,
             OpportunityId = dto.OpportunityId,
             AssignedToUserId = dto.AssignedToUserId

@@ -9,7 +9,7 @@ using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using CRM.Core.Ports.Input;
 using CRM.Core.Dtos;
-using CRM.Api.Mappers;
+using CRM.Core.Mappers;
 
 namespace CRM.Infrastructure.Services;
 

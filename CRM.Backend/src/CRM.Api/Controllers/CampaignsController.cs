@@ -8,7 +8,6 @@
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using CRM.Core.Dtos;
-using CRM.Api.Mappers;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -49,8 +48,7 @@ public class CampaignsController : ControllerBase
     {
         try
         {
-            var campaigns = await _campaignService.GetAllCampaignsAsync();
-            var dtos = campaigns.Select(CampaignMapper.ToDto);
+            var dtos = await _campaignService.GetAllCampaignsAsync();
             return Ok(dtos);
         }
         catch (Exception ex)
@@ -73,8 +71,7 @@ public class CampaignsController : ControllerBase
     {
         try
         {
-            var campaigns = await _campaignService.GetActiveCampaignsAsync();
-            var dtos = campaigns.Select(CampaignMapper.ToDto);
+            var dtos = await _campaignService.GetActiveCampaignsAsync();
             return Ok(dtos);
         }
         catch (Exception ex)
@@ -105,8 +102,7 @@ public class CampaignsController : ControllerBase
             {
                 return NotFound(new { message = $"Campaign with ID {id} not found" });
             }
-            var dto = CampaignMapper.ToDto(campaign);
-            return Ok(dto);
+            return Ok(campaign);
         }
         catch (Exception ex)
         {
@@ -135,11 +131,9 @@ public class CampaignsController : ControllerBase
             {
                 return BadRequest(ModelState);
             }
-            var entity = CampaignMapper.ToEntity(dto);
-            var id = await _campaignService.CreateCampaignAsync(entity);
+            var id = await _campaignService.CreateCampaignAsync(dto);
             var created = await _campaignService.GetCampaignByIdAsync(id);
-            var result = created != null ? CampaignMapper.ToDto(created) : null;
-            return CreatedAtAction(nameof(GetById), new { id }, result);
+            return CreatedAtAction(nameof(GetById), new { id }, created);
         }
         catch (ArgumentException ex)
         {
@@ -180,8 +174,7 @@ public class CampaignsController : ControllerBase
             {
                 return NotFound(new { message = $"Campaign with ID {id} not found" });
             }
-            CampaignMapper.UpdateEntity(entity, dto);
-            await _campaignService.UpdateCampaignAsync(entity);
+            await _campaignService.UpdateCampaignAsync(id, dto);
             return NoContent();
         }
         catch (ArgumentException ex)

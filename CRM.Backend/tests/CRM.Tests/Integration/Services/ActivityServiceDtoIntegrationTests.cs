@@ -34,37 +34,34 @@ public class ActivityServiceDtoIntegrationTests
         var dto = new CreateActivityDto
         {
             ActivityType = 2,
-            Subject = "Integration Subject",
+            Title = "Integration Subject",
             Description = "Integration Desc",
-            StartDate = DateTime.UtcNow.ToString("o"),
-            EndDate = DateTime.UtcNow.AddHours(1).ToString("o"),
-            Status = 1,
-            Priority = 2,
+            ActivityDate = DateTime.UtcNow,
             AccountId = 10,
             ContactId = 20,
             OpportunityId = 30,
-            OwnerUserId = 5
+            UserId = 5
         };
         // Manual mapping (simulate controller logic)
         var entity = new Activity
         {
             ActivityType = (ActivityType)dto.ActivityType,
-            Title = dto.Subject ?? string.Empty,
+            Title = dto.Title ?? string.Empty,
             Description = dto.Description,
-            ActivityDate = DateTime.Parse(dto.StartDate ?? DateTime.UtcNow.ToString("o")),
+            ActivityDate = dto.ActivityDate ?? DateTime.UtcNow,
             AccountId = dto.AccountId,
             ContactId = dto.ContactId,
             OpportunityId = dto.OpportunityId,
-            UserId = dto.OwnerUserId
+            UserId = dto.UserId
         };
         var result = await service.CreateAsync(entity);
         Assert.NotNull(result);
-        Assert.Equal(dto.Subject, result.Title);
+        Assert.Equal(dto.Title, result.Title);
         Assert.Equal(dto.Description, result.Description);
         Assert.Equal(dto.AccountId, result.AccountId);
         Assert.Equal(dto.ContactId, result.ContactId);
         Assert.Equal(dto.OpportunityId, result.OpportunityId);
-        Assert.Equal(dto.OwnerUserId, result.UserId);
+        Assert.Equal(dto.UserId, result.UserId);
     }
 
     [Fact]
@@ -88,34 +85,29 @@ public class ActivityServiceDtoIntegrationTests
         await context.SaveChangesAsync();
         var dto = new UpdateActivityDto
         {
-            ActivityType = 3,
-            Subject = "Updated Title",
+            Title = "Updated Title",
             Description = "Updated Desc",
-            StartDate = DateTime.UtcNow.ToString("o"),
-            EndDate = DateTime.UtcNow.AddHours(2).ToString("o"),
-            Status = 2,
-            Priority = 1,
+            ActivityDate = DateTime.UtcNow,
             AccountId = 11,
             ContactId = 21,
             OpportunityId = 31,
-            OwnerUserId = 6
+            UserId = 6
         };
         // Manual mapping (simulate controller logic)
-        entity.ActivityType = (ActivityType)dto.ActivityType;
-        entity.Title = dto.Subject ?? entity.Title;
+        entity.Title = dto.Title ?? entity.Title;
         entity.Description = dto.Description ?? entity.Description;
         entity.AccountId = dto.AccountId;
         entity.ContactId = dto.ContactId;
         entity.OpportunityId = dto.OpportunityId;
-        entity.UserId = dto.OwnerUserId;
+        entity.UserId = dto.UserId;
         await context.SaveChangesAsync();
         var updated = await service.GetByIdAsync(entity.Id);
         Assert.NotNull(updated);
-        Assert.Equal(dto.Subject, updated!.Title);
+        Assert.Equal(dto.Title, updated!.Title);
         Assert.Equal(dto.Description, updated.Description);
         Assert.Equal(dto.AccountId, updated.AccountId);
         Assert.Equal(dto.ContactId, updated.ContactId);
         Assert.Equal(dto.OpportunityId, updated.OpportunityId);
-        Assert.Equal(dto.OwnerUserId, updated.UserId);
+        Assert.Equal(dto.UserId, updated.UserId);
     }
 }

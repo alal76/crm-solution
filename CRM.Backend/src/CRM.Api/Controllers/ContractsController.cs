@@ -5,6 +5,7 @@
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
 
+using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -803,65 +804,83 @@ public class ContractsController : ControllerBase
     // ========================================================================
     // Helper Methods
     // ========================================================================
-    private static object MapToDto(Contract c)
+    private static ContractDto MapToDto(Contract c)
     {
-        return new
+        return new ContractDto
         {
-            c.Id,
-            c.ContractNumber,
-            c.Name,
-            c.Description,
-            Status = c.Status.ToString(),
-            StatusValue = (int)c.Status,
-            ContractType = c.ContractType.ToString(),
-            ContractTypeValue = (int)c.ContractType,
+            // Identification
+            Id = c.Id,
+            ContractNumber = c.ContractNumber,
+            Name = c.Name,
+            Description = c.Description,
+
+            // Status & Type (enum values mapped directly)
+            Status = c.Status,
+            ContractType = c.ContractType,
+
             // Relationships
             AccountId = c.AccountId,
             AccountName = c.Account?.Company ?? c.Account?.FirstName,
-            c.ContactId,
+            ContactId = c.ContactId,
             ContactName = c.Contact != null ? $"{c.Contact.FirstName} {c.Contact.LastName}" : null,
-            c.OwnerId,
+            OwnerId = c.OwnerId,
             OwnerName = c.Owner != null ? $"{c.Owner.FirstName} {c.Owner.LastName}" : null,
-            c.ParentContractId,
-            c.OpportunityId,
-            c.QuoteId,
+            ParentContractId = c.ParentContractId,
+            OpportunityId = c.OpportunityId,
+            QuoteId = c.QuoteId,
+
             // Dates
-            c.StartDate,
-            c.EndDate,
-            c.SignedDate,
-            c.ActivatedDate,
-            c.TerminatedDate,
+            StartDate = c.StartDate,
+            EndDate = c.EndDate,
+            SignedDate = c.SignedDate,
+            ActivatedDate = c.ActivatedDate,
+            ActivatedAt = c.ActivatedDate,
+            TerminatedDate = c.TerminatedDate,
+            TerminatedAt = c.TerminatedDate,
+
             // Financial
-            c.Value,
-            c.CurrencyCode,
-            c.BillingFrequency,
+            TotalValue = c.Value,
+            CurrencyCode = c.CurrencyCode,
+            BillingFrequency = c.BillingFrequency,
+
             // Renewal
-            c.AutoRenew,
-            c.RenewalNoticeDays,
-            c.RenewalNoticeSent,
-            c.RenewalNoticeSentDate,
+            AutoRenew = c.AutoRenew,
+            RenewalNoticeDays = c.RenewalNoticeDays,
+            RenewalNoticeSent = c.RenewalNoticeSent,
+            RenewalNoticeSentDate = c.RenewalNoticeSentDate,
+            RenewalInitiatedAt = c.RenewalInitiatedAt,
+            RenewalCompletedAt = c.RenewalCompletedAt,
+
             // Terms
-            c.Terms,
-            c.SpecialConditions,
-            c.TerminationClause,
+            TermsAndConditions = c.Terms,
+            SpecialConditions = c.SpecialConditions,
+            TerminationClause = c.TerminationClause,
+            TerminationReason = c.TerminationReason,
+            PaymentTerms = c.PaymentTerms,
+
             // Documents
-            c.ContractFileUrl,
-            c.ContractFileName,
-            c.ContractFileSize,
+            ContractFileUrl = c.ContractFileUrl,
+            ContractFileName = c.ContractFileName,
+            ContractFileSize = c.ContractFileSize,
+            SignedContractFileUrl = c.SignedContractFileUrl,
+            SignedContractFileName = c.SignedContractFileName,
+
             // Approval
-            c.ApprovedByUserId,
-            c.ApprovedDate,
-            c.RejectionReason,
+            ApprovedByUserId = c.ApprovedByUserId,
+            ApprovedByName = c.ApprovedByUser != null ? $"{c.ApprovedByUser.FirstName} {c.ApprovedByUser.LastName}" : null,
+            ApprovedDate = c.ApprovedDate,
+            RejectionReason = c.RejectionReason,
+
             // Suspension
-            c.SuspensionReason,
-            c.SuspendedDate,
-            // Computed
-            c.DaysUntilExpiration,
-            c.IsExpiringSoon,
-            c.IsSigned,
+            SuspensionReason = c.SuspensionReason,
+            SuspendedDate = c.SuspendedDate,
+
+            // Computed (IsSigned computed by DTO from SignedDate; IsExpiringSoon and DaysUntilExpiry are DTO computed properties)
+            IsSigned = c.IsSigned,
+
             // Timestamps
-            c.CreatedAt,
-            c.UpdatedAt
+            CreatedAt = c.CreatedAt,
+            UpdatedAt = c.UpdatedAt ?? DateTime.UtcNow
         };
     }
 
