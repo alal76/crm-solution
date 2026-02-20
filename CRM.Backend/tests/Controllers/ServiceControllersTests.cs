@@ -11,8 +11,11 @@ using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Microsoft.FeatureManagement;
+using Microsoft.Extensions.Configuration;
+using Microsoft.EntityFrameworkCore;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
+using CRM.Core.Dtos;
 using CRM.Api.Controllers;
 using CRM.Infrastructure.Data;
 using System;
@@ -242,9 +245,9 @@ public class CampaignsControllerTests
     public async Task GetAll_ShouldReturnOkResult()
     {
         // Arrange
-        var campaigns = new List<MarketingCampaign>
+        var campaigns = new List<CampaignDto>
         {
-            new MarketingCampaign { Id = 1, Name = "Campaign A" }
+            new CampaignDto { Id = 1, Name = "Campaign A" }
         };
 
         _mockCampaignService

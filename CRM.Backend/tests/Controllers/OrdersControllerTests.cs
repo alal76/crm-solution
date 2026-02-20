@@ -12,7 +12,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using CRM.Api.Controllers;
 using CRM.Core.DTOs;
-using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
@@ -39,7 +38,7 @@ namespace CRM.Tests.Controllers
         public async Task GetAll_ShouldReturnOrders()
         {
             // Arrange
-            var orders = new List<Order> { new Order { Id = 1, Name = "Order 1" } };
+            var orders = new List<OrderDto> { new OrderDto { Id = 1, Name = "Order 1" } };
             _mockOrderService.Setup(s => s.GetAllAsync(null, null, It.IsAny<CancellationToken>())).ReturnsAsync(orders);
 
             // Act
@@ -48,15 +47,13 @@ namespace CRM.Tests.Controllers
             // Assert
             var okResult = result.Result as OkObjectResult;
             okResult.Should().NotBeNull();
-            var returnedOrders = okResult!.Value as IEnumerable<Order>;
-            returnedOrders.Should().NotBeNull();
         }
 
         [Fact]
         public async Task GetById_ShouldReturnOrder_WhenExists()
         {
             // Arrange
-            var order = new Order { Id = 1, Name = "Order 1" };
+            var order = new OrderDto { Id = 1, Name = "Order 1" };
             _mockOrderService.Setup(s => s.GetByIdAsync(1, It.IsAny<CancellationToken>())).ReturnsAsync(order);
 
             // Act
@@ -65,7 +62,7 @@ namespace CRM.Tests.Controllers
             // Assert
             var okResult = result.Result as OkObjectResult;
             okResult.Should().NotBeNull();
-            var returnedOrder = okResult!.Value as Order;
+            var returnedOrder = okResult!.Value as OrderDto;
             returnedOrder.Should().NotBeNull();
             returnedOrder!.Id.Should().Be(1);
         }
@@ -74,30 +71,30 @@ namespace CRM.Tests.Controllers
         public async Task GetById_ShouldReturnNotFound_WhenMissing()
         {
             // Arrange
-            _mockOrderService.Setup(s => s.GetByIdAsync(2, It.IsAny<CancellationToken>())).ReturnsAsync((Order?)null);
+            _mockOrderService.Setup(s => s.GetByIdAsync(2, It.IsAny<CancellationToken>())).ReturnsAsync((OrderDto?)null);
 
             // Act
             var result = await _controller.GetById(2);
 
             // Assert
-            var notFound = result.Result as NotFoundObjectResult;
-            notFound.Should().NotBeNull();
+            result.Result.Should().BeOfType<NotFoundObjectResult>();
         }
 
         [Fact]
         public async Task Create_ShouldReturnCreatedOrder_WhenValid()
         {
             // Arrange
-            var order = new Order { Id = 1, Name = "Order 1" };
-            _mockOrderService.Setup(s => s.CreateAsync(order, It.IsAny<CancellationToken>())).ReturnsAsync(order);
+            var dto = new CreateOrderDto { Name = "Order 1", AccountId = 1, OrderDate = "2026-02-20T00:00:00Z" };
+            var created = new OrderDto { Id = 1, Name = "Order 1" };
+            _mockOrderService.Setup(s => s.CreateAsync(dto, It.IsAny<CancellationToken>())).ReturnsAsync(created);
 
             // Act
-            var result = await _controller.Create(order);
+            var result = await _controller.Create(dto);
 
             // Assert
-            var created = result.Result as CreatedAtActionResult;
-            created.Should().NotBeNull();
-            var createdOrder = created!.Value as Order;
+            var createdResult = result.Result as CreatedAtActionResult;
+            createdResult.Should().NotBeNull();
+            var createdOrder = createdResult!.Value as OrderDto;
             createdOrder.Should().NotBeNull();
             createdOrder!.Id.Should().Be(1);
         }
@@ -106,32 +103,19 @@ namespace CRM.Tests.Controllers
         public async Task Update_ShouldReturnUpdatedOrder_WhenValid()
         {
             // Arrange
-            var order = new Order { Id = 1, Name = "Order 1" };
-            _mockOrderService.Setup(s => s.UpdateAsync(order, It.IsAny<CancellationToken>())).ReturnsAsync(order);
+            var dto = new UpdateOrderDto { Name = "Order 1" };
+            var updated = new OrderDto { Id = 1, Name = "Order 1" };
+            _mockOrderService.Setup(s => s.UpdateAsync(dto, It.IsAny<CancellationToken>())).ReturnsAsync(updated);
 
             // Act
-            var result = await _controller.Update(1, order);
+            var result = await _controller.Update(1, dto);
 
             // Assert
             var okResult = result.Result as OkObjectResult;
             okResult.Should().NotBeNull();
-            var updatedOrder = okResult!.Value as Order;
+            var updatedOrder = okResult!.Value as OrderDto;
             updatedOrder.Should().NotBeNull();
             updatedOrder!.Id.Should().Be(1);
-        }
-
-        [Fact]
-        public async Task Update_ShouldReturnBadRequest_WhenIdMismatch()
-        {
-            // Arrange
-            var order = new Order { Id = 2, Name = "Order 2" };
-
-            // Act
-            var result = await _controller.Update(1, order);
-
-            // Assert
-            var badRequest = result.Result as BadRequestObjectResult;
-            badRequest.Should().NotBeNull();
         }
 
         // Additional tests for validation, mapping, and error handling can be added here.

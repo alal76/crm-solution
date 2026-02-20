@@ -100,18 +100,18 @@ public class MarketingCampaignServiceTests
     public async Task CreateCampaignAsync_ShouldCreateCampaign_WhenValidDataProvided()
     {
         // Arrange
-        var campaign = new MarketingCampaign 
-        { 
+        var campaignDto = new CRM.Core.Dtos.CreateCampaignDto
+        {
             Name = "New Campaign",
             Description = "Test campaign",
-            Status = CampaignStatus.Draft
+            CampaignType = 0
         };
 
         _mockRepository.Setup(x => x.AddAsync(It.IsAny<MarketingCampaign>())).Returns(Task.CompletedTask);
         _mockRepository.Setup(x => x.SaveAsync()).Returns(Task.CompletedTask);
 
         // Act
-        var result = await _campaignService.CreateCampaignAsync(campaign);
+        var result = await _campaignService.CreateCampaignAsync(campaignDto);
 
         // Assert
         result.Should().BeGreaterThanOrEqualTo(0);
@@ -123,18 +123,15 @@ public class MarketingCampaignServiceTests
     public async Task UpdateCampaignAsync_ShouldUpdateCampaign()
     {
         // Arrange
-        var campaign = new MarketingCampaign 
-        { 
-            Id = 1,
-            Name = "Updated Campaign",
-            Status = CampaignStatus.Active
-        };
+        var existingCampaign = new MarketingCampaign { Id = 1, Name = "Old Campaign", Status = CampaignStatus.Draft };
+        var updateDto = new CRM.Core.Dtos.UpdateCampaignDto { Name = "Updated Campaign" };
 
+        _mockRepository.Setup(x => x.GetByIdAsync(1)).ReturnsAsync(existingCampaign);
         _mockRepository.Setup(x => x.UpdateAsync(It.IsAny<MarketingCampaign>())).Returns(Task.CompletedTask);
         _mockRepository.Setup(x => x.SaveAsync()).Returns(Task.CompletedTask);
 
         // Act
-        await _campaignService.UpdateCampaignAsync(campaign);
+        await _campaignService.UpdateCampaignAsync(1, updateDto);
 
         // Assert
         _mockRepository.Verify(x => x.UpdateAsync(It.Is<MarketingCampaign>(c => c.Name == "Updated Campaign")), Times.Once);
@@ -570,7 +567,7 @@ public class MarketingCampaignServiceTests
 
         // Assert
         result.Should().HaveCount(2);
-        result.Should().AllSatisfy(c => c.Status.Should().Be(CampaignStatus.Active));
+        result.Should().AllSatisfy(c => c.Status.Should().Be((int)CampaignStatus.Active));
     }
 
     [Fact]

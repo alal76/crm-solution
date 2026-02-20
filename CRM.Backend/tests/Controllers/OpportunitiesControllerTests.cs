@@ -8,6 +8,7 @@
 using CRM.Api.Controllers;
 using CRM.Api.Hubs;
 using CRM.Core.Entities;
+using CRM.Core.DTOs;
 using CRM.Core.Interfaces;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
@@ -278,10 +279,9 @@ public class OpportunitiesControllerTests
     public async Task Create_ReturnsCreatedResult_WhenSuccessful()
     {
         // Arrange
-        var opportunity = new Opportunity
+        var dto = new CreateOpportunityDto
         {
             Name = "New Opportunity",
-            Stage = OpportunityStage.Discovery,
             Amount = 25000m,
             AccountId = 1
         };
@@ -289,7 +289,7 @@ public class OpportunitiesControllerTests
             .ReturnsAsync(10);
 
         // Act
-        var result = await _controller.Create(opportunity);
+        var result = await _controller.Create(dto);
 
         // Assert
         var createdResult = result.Should().BeOfType<CreatedAtActionResult>().Subject;
@@ -301,12 +301,12 @@ public class OpportunitiesControllerTests
     public async Task Create_Returns500_OnException()
     {
         // Arrange
-        var opportunity = new Opportunity { Name = "Test" };
+        var dto = new CreateOpportunityDto { Name = "Test", AccountId = 1 };
         _mockOpportunityService.Setup(s => s.CreateOpportunityAsync(It.IsAny<Opportunity>()))
             .ThrowsAsync(new Exception("Creation failed"));
 
         // Act
-        var result = await _controller.Create(opportunity);
+        var result = await _controller.Create(dto);
 
         // Assert
         var statusResult = result.Should().BeOfType<ObjectResult>().Subject;
@@ -321,17 +321,12 @@ public class OpportunitiesControllerTests
     public async Task Update_ReturnsNoContent_WhenSuccessful()
     {
         // Arrange
-        var opportunity = new Opportunity
-        {
-            Id = 1,
-            Name = "Updated Opportunity",
-            Stage = OpportunityStage.ClosedWon
-        };
+        var dto = new UpdateOpportunityDto { Name = "Updated Opportunity" };
         _mockOpportunityService.Setup(s => s.UpdateOpportunityAsync(It.IsAny<Opportunity>()))
             .Returns(Task.CompletedTask);
 
         // Act
-        var result = await _controller.Update(1, opportunity);
+        var result = await _controller.Update(1, dto);
 
         // Assert
         result.Should().BeOfType<NoContentResult>();
@@ -341,12 +336,12 @@ public class OpportunitiesControllerTests
     public async Task Update_Returns500_OnException()
     {
         // Arrange
-        var opportunity = new Opportunity { Id = 1, Name = "Test" };
+        var dto = new UpdateOpportunityDto { Name = "Test" };
         _mockOpportunityService.Setup(s => s.UpdateOpportunityAsync(It.IsAny<Opportunity>()))
             .ThrowsAsync(new Exception("Update failed"));
 
         // Act
-        var result = await _controller.Update(1, opportunity);
+        var result = await _controller.Update(1, dto);
 
         // Assert
         var statusResult = result.Should().BeOfType<ObjectResult>().Subject;

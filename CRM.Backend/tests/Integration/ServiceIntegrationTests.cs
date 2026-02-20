@@ -155,9 +155,6 @@ public class ServiceIntegrationTests : IAsyncLifetime
         // Arrange
         var logger = _loggerFactory.CreateLogger<MarketingCampaignService>();
         var executionLogger = _loggerFactory.CreateLogger<ICampaignExecutionService>();
-                // Create plan and save
-                var createdPlan = await service.CreatePlanAsync(plan, CancellationToken.None);
-                await _context.SaveChangesAsync();
         var campaign = new MarketingCampaign
         {
             Name = "Test Campaign",

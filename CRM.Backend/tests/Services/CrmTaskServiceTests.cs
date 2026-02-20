@@ -101,7 +101,7 @@ namespace CRM.Tests.Services
                 DueDate = entity.DueDate?.ToString("o"),
                 CompletedDate = entity.CompletedDate?.ToString("o"),
                 OwnerUserId = entity.CreatedByUserId ?? 0,
-                CreatedByUserId = entity.CreatedByUserId,
+                CreatedByUserId = entity.CreatedByUserId ?? 0,
                 CreatedAt = entity.CreatedAt.ToString("o"),
                 UpdatedAt = entity.UpdatedAt?.ToString("o") ?? string.Empty,
                 IsDeleted = entity.IsDeleted,
@@ -115,7 +115,7 @@ namespace CRM.Tests.Services
             Assert.Equal(entity.DueDate?.ToString("o"), dto.DueDate);
             Assert.Equal(entity.CompletedDate?.ToString("o"), dto.CompletedDate);
             Assert.Equal(entity.CreatedByUserId ?? 0, dto.OwnerUserId);
-            Assert.Equal(entity.CreatedByUserId, dto.CreatedByUserId);
+            Assert.Equal(entity.CreatedByUserId ?? 0, dto.CreatedByUserId);
             Assert.Equal(entity.CreatedAt.ToString("o"), dto.CreatedAt);
             Assert.Equal(entity.UpdatedAt?.ToString("o") ?? string.Empty, dto.UpdatedAt);
             Assert.Equal(entity.IsDeleted, dto.IsDeleted);

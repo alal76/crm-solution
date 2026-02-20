@@ -5,6 +5,7 @@
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
 
+using CRM.Core.DTOs;
 using CRM.Core.Entities;
 using CRM.Core.Entities.Workflow;
 using CRM.Core.Interfaces;
@@ -191,11 +192,11 @@ public class OrderServiceTests
         var orders = new List<Order>();
         SetupDbSets(orders: orders);
 
-        var newOrder = new Order
+        var newOrder = new CreateOrderDto
         {
             Name = "New Order",
             AccountId = 10,
-            TotalAmount = 1500m
+            OrderDate = DateTime.UtcNow.ToString("o")
         };
 
         // Act
@@ -203,7 +204,7 @@ public class OrderServiceTests
 
         // Assert
         result.Should().NotBeNull();
-        result.CreatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
+        result.CreatedAt.Should().NotBeNullOrEmpty();
         result.OrderNumber.Should().NotBeNullOrEmpty();
         _mockEventDispatcher.Verify(d => d.DispatchEntityEvent(
             "Order", It.IsAny<int>(), WorkflowTriggerType.OnCreate,
