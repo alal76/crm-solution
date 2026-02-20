@@ -3,8 +3,9 @@ import {
   Box, Card, CardContent, Typography, Button, Table, TableBody, TableCell, TableContainer, TableHead,
   TableRow, Dialog, DialogTitle, DialogContent, DialogActions, Alert, CircularProgress,
   TextField, Container, FormControl, InputLabel, Select, MenuItem, Chip, Grid,
-  IconButton, Tooltip, Tabs, Tab, SelectChangeEvent, Divider
+  IconButton, Tooltip, Tabs, Tab, SelectChangeEvent, Divider, Accordion, AccordionSummary, AccordionDetails
 } from '@mui/material';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import {
   Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, 
   Description as QuoteIcon, Send as SendIcon, CheckCircle as AcceptIcon,
@@ -589,6 +590,7 @@ function QuotesPage() {
             <Tab label="Notes" icon={<NoteIcon fontSize="small" />} iconPosition="start" id={`quote-tab-${editingId ? 6 : 5}`} aria-controls={`quote-tabpanel-${editingId ? 6 : 5}`} />
           </Tabs>
         </Box>
+
         <DialogContent sx={{ pt: 2, minHeight: 400 }}>
           <DialogError error={dialogError} onClose={() => setDialogError(null)} />
           <TabPanel value={dialogTab} index={0}>
@@ -623,6 +625,28 @@ function QuotesPage() {
                 <TextField fullWidth label="Description" name="description" value={formData.description} onChange={handleInputChange} multiline rows={2} />
               </Grid>
             </Grid>
+            {/* Accordion for Additional Information */}
+            <Accordion sx={{ mt: 3 }}>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <Typography variant="subtitle1" fontWeight={600}>Additional Information</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Grid container spacing={2}>
+                  <Grid item xs={12}>
+                    <TextField fullWidth label="Billing Address" name="billingAddress" value={formData.billingAddress} onChange={handleInputChange} multiline rows={3} />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField fullWidth label="Shipping Address" name="shippingAddress" value={formData.shippingAddress} onChange={handleInputChange} multiline rows={3} />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField fullWidth label="Terms and Conditions" name="termsAndConditions" value={formData.termsAndConditions} onChange={handleInputChange} multiline rows={6} />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField fullWidth label="Notes" name="notes" value={formData.notes} onChange={handleInputChange} multiline rows={3} />
+                  </Grid>
+                </Grid>
+              </AccordionDetails>
+            </Accordion>
           </TabPanel>
 
           <TabPanel value={dialogTab} index={1}>
@@ -682,28 +706,6 @@ function QuotesPage() {
                   <Typography variant="h6">Total:</Typography>
                   <Typography variant="h6" fontWeight={700}>${(totals.total || 0).toFixed(2)}</Typography>
                 </Box>
-              </Grid>
-            </Grid>
-          </TabPanel>
-
-          <TabPanel value={dialogTab} index={3}>
-            <Grid container spacing={2}>
-              <Grid item xs={12}>
-                <TextField fullWidth label="Billing Address" name="billingAddress" value={formData.billingAddress} onChange={handleInputChange} multiline rows={3} />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField fullWidth label="Shipping Address" name="shippingAddress" value={formData.shippingAddress} onChange={handleInputChange} multiline rows={3} />
-              </Grid>
-            </Grid>
-          </TabPanel>
-
-          <TabPanel value={dialogTab} index={4}>
-            <Grid container spacing={2}>
-              <Grid item xs={12}>
-                <TextField fullWidth label="Terms and Conditions" name="termsAndConditions" value={formData.termsAndConditions} onChange={handleInputChange} multiline rows={6} />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField fullWidth label="Notes" name="notes" value={formData.notes} onChange={handleInputChange} multiline rows={3} />
               </Grid>
             </Grid>
           </TabPanel>

@@ -5,10 +5,22 @@
 
 import { BaseEntity } from './common';
 
+
 // ============================================================================
 // QUOTES
 // ============================================================================
 
+// Numeric enum mapping for API contract
+export enum QuoteStatusEnum {
+  Draft = 0,
+  Sent = 1,
+  Accepted = 2,
+  Rejected = 3,
+  Expired = 4,
+  ConvertedToOrder = 5
+}
+
+// String enum for UI
 export enum QuoteStatus {
   Draft = 'draft',
   Sent = 'sent',
@@ -18,6 +30,32 @@ export enum QuoteStatus {
   ConvertedToOrder = 'converted_to_order'
 }
 
+// Helper: Map numeric API value to string enum
+export function quoteStatusFromApi(val: number): QuoteStatus {
+  switch (val) {
+    case QuoteStatusEnum.Draft: return QuoteStatus.Draft;
+    case QuoteStatusEnum.Sent: return QuoteStatus.Sent;
+    case QuoteStatusEnum.Accepted: return QuoteStatus.Accepted;
+    case QuoteStatusEnum.Rejected: return QuoteStatus.Rejected;
+    case QuoteStatusEnum.Expired: return QuoteStatus.Expired;
+    case QuoteStatusEnum.ConvertedToOrder: return QuoteStatus.ConvertedToOrder;
+    default: return QuoteStatus.Draft;
+  }
+}
+
+// Helper: Map string enum to numeric API value
+export function quoteStatusToApi(val: QuoteStatus): number {
+  switch (val) {
+    case QuoteStatus.Draft: return QuoteStatusEnum.Draft;
+    case QuoteStatus.Sent: return QuoteStatusEnum.Sent;
+    case QuoteStatus.Accepted: return QuoteStatusEnum.Accepted;
+    case QuoteStatus.Rejected: return QuoteStatusEnum.Rejected;
+    case QuoteStatus.Expired: return QuoteStatusEnum.Expired;
+    case QuoteStatus.ConvertedToOrder: return QuoteStatusEnum.ConvertedToOrder;
+    default: return QuoteStatusEnum.Draft;
+  }
+}
+
 export interface Quote extends BaseEntity {
   number?: string;
   accountId: number;
@@ -25,7 +63,7 @@ export interface Quote extends BaseEntity {
   contactId?: number;
   contactName?: string;
   opportunityId?: number;
-  status: QuoteStatus;
+  status: QuoteStatus; // Use mapping helpers for API contract
   total: number;
   subtotal?: number;
   taxRate?: number;
@@ -58,6 +96,7 @@ export interface Quote extends BaseEntity {
   // Approval workflow
   requiresApproval?: boolean;
   isApproved?: boolean;
+  // ...existing code...
   approvalDate?: string;
   approvalNotes?: string;
   submittedForApprovalDate?: string;

@@ -28,7 +28,11 @@ import {
   CircularProgress,
   Tabs,
   Tab,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails
 } from '@mui/material';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import type { SelectChangeEvent } from '@mui/material';
 import {
   Add as AddIcon,
@@ -589,6 +593,81 @@ function InvoicesPage() {
                 />
               </Grid>
             </Grid>
+            {/* Accordion for Additional Information */}
+            <Accordion sx={{ mt: 3 }}>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <Typography variant="subtitle1" fontWeight={600}>Additional Information</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} md={4}>
+                    <TextField
+                      fullWidth
+                      type="number"
+                      label="Discount %"
+                      name="discountPercent"
+                      value={formData.discountPercent}
+                      onChange={handleInputChange}
+                      inputProps={{ min: 0, max: 100, step: 0.01 }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    <TextField
+                      fullWidth
+                      type="number"
+                      label="Tax Rate %"
+                      name="taxRate"
+                      value={formData.taxRate}
+                      onChange={handleInputChange}
+                      inputProps={{ min: 0, step: 0.01 }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    <TextField
+                      fullWidth
+                      label="Payment Terms"
+                      name="paymentTerms"
+                      value={formData.paymentTerms}
+                      onChange={handleInputChange}
+                      placeholder="e.g. Net 30"
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <Typography variant="subtitle2" color="text.secondary" sx={{ mt: 1, mb: 1 }}>Billing Address</Typography>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField fullWidth label="Billing Name" name="billingName" value={formData.billingName} onChange={handleInputChange} />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField fullWidth label="Street" name="billingStreet" value={formData.billingStreet} onChange={handleInputChange} />
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    <TextField fullWidth label="City" name="billingCity" value={formData.billingCity} onChange={handleInputChange} />
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    <TextField fullWidth label="State" name="billingState" value={formData.billingState} onChange={handleInputChange} />
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    <TextField fullWidth label="Postal Code" name="billingPostalCode" value={formData.billingPostalCode} onChange={handleInputChange} />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField fullWidth label="Country" name="billingCountry" value={formData.billingCountry} onChange={handleInputChange} />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      multiline
+                      rows={3}
+                      label="Internal Notes"
+                      name="internalNotes"
+                      value={formData.internalNotes}
+                      onChange={handleInputChange}
+                      placeholder="Internal notes (not visible to customer)"
+                    />
+                  </Grid>
+                </Grid>
+              </AccordionDetails>
+            </Accordion>
           </TabPanel>
 
           {/* Tab 1: Line Items (read-only when editing) */}
@@ -625,79 +704,7 @@ function InvoicesPage() {
             </TabPanel>
           )}
 
-          {/* Tab 2: Billing & Details */}
-          <TabPanel value={dialogTab} index={editingId ? 2 : 1}>
-            <Grid container spacing={2}>
-              <Grid item xs={12}>
-                <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>Pricing</Typography>
-              </Grid>
-              <Grid item xs={12} md={4}>
-                <TextField
-                  fullWidth
-                  type="number"
-                  label="Discount %"
-                  name="discountPercent"
-                  value={formData.discountPercent}
-                  onChange={handleInputChange}
-                  inputProps={{ min: 0, max: 100, step: 0.01 }}
-                />
-              </Grid>
-              <Grid item xs={12} md={4}>
-                <TextField
-                  fullWidth
-                  type="number"
-                  label="Tax Rate %"
-                  name="taxRate"
-                  value={formData.taxRate}
-                  onChange={handleInputChange}
-                  inputProps={{ min: 0, step: 0.01 }}
-                />
-              </Grid>
-              <Grid item xs={12} md={4}>
-                <TextField
-                  fullWidth
-                  label="Payment Terms"
-                  name="paymentTerms"
-                  value={formData.paymentTerms}
-                  onChange={handleInputChange}
-                  placeholder="e.g. Net 30"
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <Typography variant="subtitle2" color="text.secondary" sx={{ mt: 1, mb: 1 }}>Billing Address</Typography>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField fullWidth label="Billing Name" name="billingName" value={formData.billingName} onChange={handleInputChange} />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField fullWidth label="Street" name="billingStreet" value={formData.billingStreet} onChange={handleInputChange} />
-              </Grid>
-              <Grid item xs={12} md={4}>
-                <TextField fullWidth label="City" name="billingCity" value={formData.billingCity} onChange={handleInputChange} />
-              </Grid>
-              <Grid item xs={12} md={4}>
-                <TextField fullWidth label="State" name="billingState" value={formData.billingState} onChange={handleInputChange} />
-              </Grid>
-              <Grid item xs={12} md={4}>
-                <TextField fullWidth label="Postal Code" name="billingPostalCode" value={formData.billingPostalCode} onChange={handleInputChange} />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField fullWidth label="Country" name="billingCountry" value={formData.billingCountry} onChange={handleInputChange} />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  multiline
-                  rows={3}
-                  label="Internal Notes"
-                  name="internalNotes"
-                  value={formData.internalNotes}
-                  onChange={handleInputChange}
-                  placeholder="Internal notes (not visible to customer)"
-                />
-              </Grid>
-            </Grid>
-          </TabPanel>
+          {/* Tab 2: Billing & Details (removed, now in accordion) */}
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog}>Cancel</Button>

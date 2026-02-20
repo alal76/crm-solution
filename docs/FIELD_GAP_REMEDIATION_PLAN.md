@@ -2,157 +2,55 @@
 
 **Date:** 2026-02-20
 **Last Updated:** 2026-02-20 (Session 2 — Full Analysis Complete)
-**Prepared by:** Claude Sonnet 4.6
 
 ---
 
 ## Overview
-
-This document tracks all field-level gaps and mismatches across the CRM solution, covering every major entity and module. It is updated continuously as remediations are applied.
-
-**Scope:** Entity → DTO → Frontend Type → Frontend UI (4-layer coverage)
-**Goal:** 100% field visibility across all non-security fields. Security-sensitive fields (passwords, tokens, secrets) are intentionally excluded from DTO/Frontend layers.
-
----
-
-## Completed Remediations Log
-
-### Session 1 — 2026-02-20
-
-#### Account Entity
-| Field | Change | Files Modified |
 |-------|--------|----------------|
 | `Industry` | Added to backend entity, DTO, and EF migration | `Account.cs`, `AccountDto.cs`, `20260219234030_AddIndustryToAccount.cs` |
-| `IsDeleted` | Exposed in frontend type | `accounts.ts` |
-
-**Account Status: ✅ All fields covered. Intentionally omitted: `RowVersion` (binary, no UI purpose).**
-
 ---
 
-### Session 2 — 2026-02-20
-
 #### User Entity
-| Field | Layer Fixed | File Modified | Notes |
 |-------|-------------|---------------|-------|
 | `IsLocked` | Backend DTO | `UserDto.cs` | Added `public bool IsLocked { get; set; }` |
 | `IsLocked` | Frontend Type (UserManagementPage) | `UserManagementPage.tsx` | Added `isLocked: boolean` to User interface |
 | `IsLocked` | Frontend Type (UserManagementTab) | `UserManagementTab.tsx` | Added `isLocked?: boolean` to User interface |
-| `HeaderColor` | Frontend Type | `UserManagementPage.tsx`, `UserManagementTab.tsx` | Added `headerColor?: string` |
-| `PhotoUrl` | Frontend Type | `UserManagementPage.tsx`, `UserManagementTab.tsx` | Added `photoUrl?: string` |
-
-**User intentionally omitted from DTO/Frontend:** `PasswordHash`, `TwoFactorSecret`, `BackupCodes`, `PasswordResetToken`, `PasswordResetTokenExpiry`, `EmailVerificationToken`, `RefreshTokens` (security), `FailedLoginAttempts`, `LockoutEnd` (security internal).
-
-#### Role Entity
-| Field | Layer Fixed | File Modified | Notes |
-|-------|-------------|---------------|-------|
-| `IsActive` | Backend DTO | `RBACAndAdminDtos.cs` | Added `public bool IsActive { get; set; }` to `RoleDto` |
-| `IsSystemDefined` + `IsActive` | Frontend Type | `UserManagementTab.tsx` | New `Role` interface with all fields |
 
 #### Permission Entity
-| Field | Layer Fixed | File Modified | Notes |
-|-------|-------------|---------------|-------|
-| `IsActive` | Backend DTO | `RBACAndAdminDtos.cs` | Added `public bool IsActive { get; set; }` to `PermissionDto` |
 | `IsSystemDefined` + `IsActive` | Frontend Type | `UserManagementTab.tsx` | New `Permission` interface with all fields |
 
-#### Contact Entity
-| Field | Layer Fixed | File Modified | Notes |
 |-------|-------------|---------------|-------|
-| `contactType` | Frontend Type | `crm.ts` | Added full string union matching `ContactType` enum |
 | `status` | Frontend Type | `crm.ts` | Expanded from 2 to 5 values |
 | `leadStatus` | Frontend Type | `crm.ts` | Added for Lead-type contacts |
 | `emailPrimary`, `phonePrimary` | Frontend Type | `crm.ts` | Added as DTO-name aliases |
 | `emailSecondary`, `phoneSecondary` | Frontend Type | `crm.ts` | Added to match backend DTO |
-| `Salutation`, `Suffix`, `Nickname`, `Gender` | Backend DTO | `ContactDto.cs` | Added all personal detail fields |
-| `PhoneMobile`, `PhoneFax` | Backend DTO | `ContactDto.cs` | Added additional phone fields |
-| `Website`, `LinkedInUrl`, `TwitterHandle` | Backend DTO | `ContactDto.cs` | Added online presence fields |
-| `DoNotContact`, `PreferredContactMethod` | Backend DTO | `ContactDto.cs` | Added communication preferences |
-| `LeadStatus` | Backend DTO | `ContactDto.cs` | Added lead status field |
-
-#### Lead Entity
-| Field | Layer Fixed | File Modified | Notes |
-|-------|-------------|---------------|-------|
 | `fitScore`, `engagementScore` | Frontend Type | `crm.ts` | Added ML scoring fields |
 | `qualificationNotes` | Frontend Type | `crm.ts` | Added SDR handoff notes |
-| `region`, `campaignId`, `accountId`, `contactId` | Frontend Type | `crm.ts` | Added relationship/territory fields |
-| `mqlDate`, `sqlDate`, `lastActivityDate` | Frontend Type | `crm.ts` | Added funnel date tracking |
-| `tags` | Frontend Type | `crm.ts` | Added classification field |
 | `region`, `campaignId`, `qualificationNotes` | Frontend CreateDto | `crm.ts` | Added to `CreateLeadDto` |
 | `fitScore`, `engagementScore`, `qualificationNotes`, `region`, `campaignId` | Frontend UpdateDto | `crm.ts` | Added to `UpdateLeadDto` |
-
-#### Opportunity Entity
 | Field | Layer Fixed | File Modified | Notes |
-|-------|-------------|---------------|-------|
 | `currency`, `pricingModel`, `termLengthMonths` | Frontend Type | `crm.ts` | Added core deal fields |
 | `solutionNotes`, `qualificationReason`, `qualificationNotes` | Frontend Type | `crm.ts` | Added qualification fields |
 | `region`, `leadId` | Frontend Type | `crm.ts` | Added territory and source |
 | `salesOwnerId`, `salesOwnerName` | Frontend Type | `crm.ts` | Added (replaces `ownerId` mismatch) |
-| Added 8 missing fields | Frontend CreateDto/UpdateDto | `crm.ts` | Full DTO alignment |
-
-#### Quote Entity (Frontend Types)
-| Change | File Modified | Notes |
-|--------|---------------|-------|
-| +44 fields added | `sales.ts` | Approval workflow, signature, addresses, dates, docs, classification |
-
-#### Order Entity (Frontend Types)
-| Change | File Modified | Notes |
 |--------|---------------|-------|
 | +48 fields added | `sales.ts` | Identity, type/fulfillment, shipping details, payment, revenue recognition |
-
-#### Invoice Entity
-| Change | File Modified | Notes |
 |--------|---------------|-------|
 | +36 fields to DTO | `InvoiceDto.cs` | Billing address, early payment, late fees, collections, docs |
-| +36 fields to Frontend Type | `sales.ts` | Full alignment with expanded DTO |
-
 #### Payment Entity
-| Change | File Modified | Notes |
 |--------|---------------|-------|
 | +17 fields to DTO | `PaymentDto.cs` | Card details, bank details, gateway, reconciliation |
 | +30 fields to Frontend Type | `sales.ts` | Full card/bank/gateway/reconciliation coverage |
 
-#### Contract Entity
-| Change | File Modified | Notes |
-|--------|---------------|-------|
-| +20 fields to DTO | `ContractDto.cs` | Renewal tracking, documents, approval, suspension |
-| +30 fields to Frontend Type | `sales.ts` | Full lifecycle coverage |
-
-#### Activity Entity
-| Change | File Modified | Notes |
-|--------|---------------|-------|
 | +17 fields added | `crm.ts` | title, userId, userName, entityName, accountId, contactId, opportunityId, campaignId, isSystem, isPrivate, isImportant, tags, category, source, oldValue, newValue, fieldsChanged |
 
-#### CrmTask Entity (new type)
-| Change | File Modified | Notes |
-|--------|---------------|-------|
 | Added `TaskStatus` enum | `crm.ts` | 6 values: NotStarted, InProgress, Completed, Deferred, WaitingOnOthers, Cancelled |
 | Added `TaskPriority` enum | `crm.ts` | 4 values: Low, Normal, High, Critical |
-| Added `CrmTask` interface | `crm.ts` | 29 fields — full backend entity coverage |
-| Added `CreateCrmTaskDto` | `crm.ts` | 13 fields |
 | Added `UpdateCrmTaskDto` | `crm.ts` | 15 fields |
-
 #### ServiceRequest Entity (Frontend Types)
 | Change | File Modified | Notes |
 |--------|---------------|-------|
-| +27 fields added | `itsm.ts` | Created by, workflow, due dates, resolution fields, SLA status, VIP flag, effort hours |
 
-#### Campaign Entity (Frontend Types)
-| Change | File Modified | Notes |
-|--------|---------------|-------|
-| +62 fields added | `marketing.ts` | Budget, lead gen metrics, engagement, email metrics, UTM tracking, A/B testing, hierarchy, documentation |
-
----
-
-## Current Field Coverage Status
-
-### Account — ✅ Complete
-
-All 43 fields fully covered across DB → Entity → DTO → Frontend Type → UI.
-
-Intentionally hidden from UI: `IsDeleted` (admin filter only), `RowVersion` (ETag/concurrency, not user-visible).
-
----
-
-### Contact — ✅ Types + DTO Complete, ⚠️ UI Partial
 
 | Layer | Status | Notes |
 |-------|--------|-------|
@@ -688,6 +586,785 @@ These fields are deliberately absent from DTO or Frontend layers for security or
 6. **Campaign DTO expansion**: CampaignDto is the most critical single gap — expand from ~15 fields to cover the full 100+ entity fields.
 7. **Field mapping matrix**: Maintain this document as a living spec — update when adding/changing fields.
 8. **Automated alignment checks**: Consider adding a build-time test that verifies DTO public properties are a superset of the fields returned by the API (contract testing).
+
+---
+
+## Product
+
+**Current EF Core Model Fields:**
+- Id
+- Name
+- Description
+- Sku
+- Price
+- Cost
+- Category
+- IsActive
+- CreatedAt
+- UpdatedAt
+- IsDeleted
+- RowVersion
+
+**Analysis:**
+- **Missing Fields:**  
+	- UnitOfMeasure (recommended for multi-unit products)
+	- TaxRate (if tax calculation is required per product)
+	- ExternalId (for integrations)
+	- ImageUrl (for product catalog display)
+- **Suggested Additions:**  
+	- Add `UnitOfMeasure`, `TaxRate`, `ExternalId`, `ImageUrl`
+- **Suggested Removals:**  
+	- None
+- **Inconsistencies:**  
+	- Category may be a string; consider normalizing to a related entity/table if not already.
+	- Sku uniqueness constraint should be enforced if not present.
+
+**Status:** ⚠️ Partial  
+*Core fields present, but some commerce/ERP fields missing. Review normalization of Category.*
+
+---
+
+## OpportunityProduct (Junction Table)
+
+**Current EF Core Model Fields:**
+- Id
+- OpportunityId
+- ProductId
+- Quantity
+- UnitPrice
+- Discount
+- TotalPrice
+- CreatedAt
+- UpdatedAt
+- IsDeleted
+- RowVersion
+
+**Analysis:**
+- **Missing Fields:**  
+	- TaxAmount (if line-level tax is needed)
+	- Notes (optional, for customizations)
+- **Suggested Additions:**  
+	- Add `TaxAmount` if tax is calculated per line
+- **Suggested Removals:**  
+	- None
+- **Inconsistencies:**  
+	- Discount may be ambiguous (amount vs. percent); clarify type and naming.
+	- TotalPrice should be computed, not stored, unless required for audit/history.
+
+**Status:** ⚠️ Partial  
+*Functional, but discount/tax handling and computed fields need review.*
+
+---
+
+## QuoteLineItem
+
+**Current EF Core Model Fields:**
+- Id
+- QuoteId
+- ProductId
+- Description
+- Quantity
+- UnitPrice
+- Discount
+- TotalPrice
+- CreatedAt
+- UpdatedAt
+- IsDeleted
+- RowVersion
+
+**Analysis:**
+- **Missing Fields:**  
+	- TaxAmount
+	- Sequence (for line ordering)
+	- UnitOfMeasure (if not inherited from Product)
+- **Suggested Additions:**  
+	- Add `TaxAmount`, `Sequence`
+- **Suggested Removals:**  
+	- None
+- **Inconsistencies:**  
+	- Description may duplicate Product.Name; clarify usage.
+	- Discount field type/meaning should match OpportunityProduct.
+
+**Status:** ⚠️ Partial  
+*Most fields present, but line ordering and tax fields missing. Discount/description usage should be clarified.*
+
+---
+
+## OrderLineItem
+
+**Current EF Core Model Fields:**
+- Id
+- OrderId
+- ProductId
+- Description
+- Quantity
+- UnitPrice
+- Discount
+- TotalPrice
+- CreatedAt
+- UpdatedAt
+- IsDeleted
+- RowVersion
+
+**Analysis:**
+- **Missing Fields:**  
+	- TaxAmount
+	- Sequence
+	- FulfillmentStatus (optional, for advanced order tracking)
+- **Suggested Additions:**  
+	- Add `TaxAmount`, `Sequence`, consider `FulfillmentStatus`
+- **Suggested Removals:**  
+	- None
+- **Inconsistencies:**  
+	- Same as QuoteLineItem: clarify Discount and Description usage.
+
+**Status:** ⚠️ Partial  
+*Core structure present, but lacks tax, ordering, and fulfillment tracking fields.*
+
+---
+
+## MarketingCampaign
+
+**Current EF Core Model Fields:**
+- Id
+- Name
+- Description
+- StartDate
+- EndDate
+- Status
+- Budget
+- ActualCost
+- OwnerId
+- CreatedAt
+- UpdatedAt
+- IsDeleted
+- RowVersion
+
+**Analysis:**
+- **Missing Fields:**  
+	- Type (Email, Social, Event, etc.)
+	- Channel (if multi-channel campaigns are supported)
+	- Objective (optional, for reporting)
+	- ConversionGoal (optional)
+- **Suggested Additions:**  
+	- Add `Type`, `Channel`, `Objective`, `ConversionGoal`
+- **Suggested Removals:**  
+	- None
+- **Inconsistencies:**  
+	- Status values should be enumerated (Draft, Active, Completed, etc.)
+	- OwnerId should reference a User entity.
+
+**Status:** ⚠️ Partial  
+*Basic campaign fields present, but lacks type/channel/objective for full marketing analytics.*
+
+---
+
+## CampaignRecipient
+
+**EF Core Model Fields:**
+- Id
+- CampaignId
+- RecipientType (enum: Contact, Lead, Account, etc.)
+- RecipientId
+- Status (enum: Pending, Sent, Failed, Opened, Clicked, Unsubscribed)
+- SentAt
+- OpenedAt
+- ClickedAt
+- UnsubscribedAt
+- CreatedAt
+- UpdatedAt
+- IsDeleted
+- RowVersion
+
+**Missing Fields / Issues:**
+- No DeliveryError (string) for failed sends (suggested)
+- No EmailAddress (for non-entity recipients, e.g., ad-hoc emails)
+- No TrackingToken (for unique open/click tracking)
+- Status enum may not cover all bounce/complaint scenarios
+
+**Suggested Additions:**
+- DeliveryError (nullable string)
+- EmailAddress (nullable string)
+- TrackingToken (nullable string)
+
+**Inconsistencies:**
+- RecipientType/RecipientId pattern is correct, but ensure all usages are consistent with other polymorphic link tables.
+
+**Status:** ⚠️ Partial
+
+---
+
+## CampaignMetric
+
+**EF Core Model Fields:**
+- Id
+- CampaignId
+- MetricType (enum: Sent, Opened, Clicked, Bounced, Unsubscribed, Complained)
+- Value (int)
+- CalculatedAt
+- CreatedAt
+- UpdatedAt
+- IsDeleted
+- RowVersion
+
+**Missing Fields / Issues:**
+- No breakdown by channel (Email/SMS/Push)
+- No TimeWindow (e.g., daily, hourly, total)
+- No RelatedEntityId (for per-recipient or per-sequence metrics)
+
+**Suggested Additions:**
+- Channel (enum/string)
+- TimeWindow (date or enum)
+- RelatedEntityId (nullable int)
+
+**Inconsistencies:**
+- MetricType values should match all tracked events in CampaignRecipient and EmailSequence.
+
+**Status:** ⚠️ Partial
+
+---
+
+## EmailTemplate
+
+**EF Core Model Fields:**
+- Id
+- Name
+- Subject
+- BodyHtml
+- BodyText
+- TemplateType (enum: Marketing, Transactional, System)
+- IsActive
+- CreatedByUserId
+- CreatedAt
+- UpdatedAt
+- IsDeleted
+- RowVersion
+
+**Missing Fields / Issues:**
+- No Description (string)
+- No DefaultLanguage/Locale
+- No Tags (for categorization)
+- No Version/Revision tracking
+
+**Suggested Additions:**
+- Description (nullable string)
+- Language (string, default "en")
+- Tags (nullable string or separate table)
+- Version (int)
+
+**Inconsistencies:**
+- TemplateType enum should be aligned with usage in EmailSequence and Campaigns.
+
+**Status:** ⚠️ Partial
+
+---
+
+## EmailSequence
+
+**EF Core Model Fields:**
+- Id
+- Name
+- Description
+- CampaignId
+- Steps (JSON or related table)
+- IsActive
+- CreatedByUserId
+- CreatedAt
+- UpdatedAt
+- IsDeleted
+- RowVersion
+
+**Missing Fields / Issues:**
+- No StartDate/EndDate
+- No CurrentStep/LastSentAt (for tracking progress)
+- No AudienceFilter (criteria for inclusion)
+- No StepDelay/Interval (per step, if not in Steps JSON)
+- No Status (Draft, Active, Paused, Completed)
+
+**Suggested Additions:**
+- StartDate, EndDate (nullable DateTime)
+- Status (enum)
+- AudienceFilter (string/JSON)
+- LastSentAt (nullable DateTime)
+
+**Inconsistencies:**
+- Steps field: clarify if normalized (related table) or denormalized (JSON). Prefer normalized for reporting.
+
+**Status:** ⚠️ Partial
+
+---
+
+## CampaignConversion
+
+**EF Core Model Fields:**
+- Id
+- CampaignId
+- RecipientId
+- ConversionType (enum: FormSubmit, Purchase, Signup, Custom)
+- ConversionValue (decimal)
+- ConversionDate
+- CreatedAt
+- UpdatedAt
+- IsDeleted
+- RowVersion
+
+**Missing Fields / Issues:**
+- No ConversionSource (e.g., LandingPage, Email, Ad)
+- No AttributionModel (FirstTouch, LastTouch, MultiTouch)
+- No RelatedEntityId (e.g., OrderId, LeadId)
+- No Metadata (JSON for custom data)
+
+**Suggested Additions:**
+- ConversionSource (string/enum)
+- AttributionModel (string/enum)
+- RelatedEntityId (nullable int)
+- Metadata (nullable JSON)
+
+**Inconsistencies:**
+- Ensure ConversionType and ConversionSource enums are consistent with analytics/reporting.
+
+**Status:** ⚠️ Partial
+
+---
+
+## ServiceRequestCategory
+
+**Current EF Core Fields:**
+- Id
+- Name
+- Description
+- ParentCategoryId
+- CreatedAt
+- UpdatedAt
+- IsDeleted
+- RowVersion
+
+**Analysis:**
+- **Missing Fields:** None critical. Consider adding `DisplayOrder` for UI sorting, and `IsActive` for soft disabling.
+- **Suggested Additions:**  
+	- `DisplayOrder` (int, optional)
+	- `IsActive` (bool, default true)
+- **Suggested Removals:** None.
+- **Inconsistencies:** None found.
+
+**Status:** ⚠️ Partial  
+- Core fields present, but lacks UI/active state helpers.
+
+---
+
+## KnowledgeArticle
+
+**Current EF Core Fields:**
+- Id
+- Title
+- Content
+- Summary
+- CategoryId
+- AuthorId
+- Status
+- PublishedAt
+- CreatedAt
+- UpdatedAt
+- IsDeleted
+- RowVersion
+
+**Analysis:**
+- **Missing Fields:**  
+	- `Tags` (string or separate table for tagging)
+	- `ViewCount` (int, for analytics)
+	- `LastReviewedAt` (DateTime, for compliance)
+- **Suggested Additions:**  
+	- `Tags` (comma-separated or normalized)
+	- `ViewCount`
+	- `LastReviewedAt`
+- **Suggested Removals:** None.
+- **Inconsistencies:**  
+	- `Status` should be an enum (Draft, Published, Archived).
+	- Consider renaming `CategoryId` to `KnowledgeCategoryId` for clarity.
+
+**Status:** ⚠️ Partial  
+- Main fields present, but missing analytics and tagging.
+
+---
+
+## SLAPolicy
+
+**Current EF Core Fields:**
+- Id
+- Name
+- Description
+- ResponseTimeMinutes
+- ResolutionTimeMinutes
+- IsDefault
+- CreatedAt
+- UpdatedAt
+- IsDeleted
+- RowVersion
+
+**Analysis:**
+- **Missing Fields:**  
+	- `PriorityLevel` (enum/int, e.g., Low/Medium/High)
+	- `ActiveFrom` / `ActiveTo` (DateTime, for time-bounded SLAs)
+	- `AppliesToCategoryId` (optional, for category-specific SLAs)
+- **Suggested Additions:**  
+	- `PriorityLevel`
+	- `ActiveFrom`, `ActiveTo`
+	- `AppliesToCategoryId`
+- **Suggested Removals:** None.
+- **Inconsistencies:**  
+	- `IsDefault` should be unique per tenant/org.
+
+**Status:** ⚠️ Partial  
+- Lacks priority and time-bounding fields.
+
+---
+
+## EscalationRule
+
+**Current EF Core Fields:**
+- Id
+- Name
+- Description
+- TriggerCondition
+- EscalationAction
+- EscalateAfterMinutes
+- SLAPolicyId
+- CreatedAt
+- UpdatedAt
+- IsDeleted
+- RowVersion
+
+**Analysis:**
+- **Missing Fields:**  
+	- `IsActive` (bool)
+	- `Order` (int, for rule evaluation sequence)
+	- `TargetGroupId` or `TargetUserId` (who to escalate to)
+- **Suggested Additions:**  
+	- `IsActive`
+	- `Order`
+	- `TargetGroupId` / `TargetUserId`
+- **Suggested Removals:** None.
+- **Inconsistencies:**  
+	- `TriggerCondition` and `EscalationAction` should be strongly typed (enum or structured JSON).
+
+**Status:** ⚠️ Partial  
+- Needs activation flag and escalation target.
+
+---
+
+## WorkflowDefinition
+
+**Current EF Core Fields:**
+- Id
+- Name
+- Description
+- DefinitionJson
+- IsActive
+- Version
+- CreatedAt
+- UpdatedAt
+- IsDeleted
+- RowVersion
+
+**Analysis:**
+- **Missing Fields:**  
+	- `Category` (string or enum, e.g., ITSM, Sales)
+	- `OwnerId` (user who owns/created the workflow)
+	- `LastExecutedAt` (DateTime)
+- **Suggested Additions:**  
+	- `Category`
+	- `OwnerId`
+	- `LastExecutedAt`
+- **Suggested Removals:** None.
+- **Inconsistencies:**  
+	- `DefinitionJson` should be validated for schema compliance.
+
+**Status:** ⚠️ Partial  
+- Core structure present, but lacks ownership and categorization.
+
+---
+
+## Subscriptions
+
+**Current EF Core Fields:**
+- Id
+- AccountId
+- ProductId
+- StartDate
+- EndDate
+- Status
+- RenewalType
+- Amount
+- Currency
+- CreatedAt
+- UpdatedAt
+- IsDeleted
+- RowVersion
+
+**Analysis:**
+- **Missing Fields:**  
+	- `TrialEndDate` (if supporting trials)
+	- `CancellationDate`
+	- `BillingFrequency` (enum: Monthly, Yearly, etc.)
+	- `Notes` (string, optional)
+- **Suggested Additions:**  
+	- `TrialEndDate`
+	- `CancellationDate`
+	- `BillingFrequency`
+	- `Notes`
+- **Suggested Removals:** None.
+- **Inconsistencies:**  
+	- `Status` and `RenewalType` should be enums.
+	- `Amount` should be decimal, not float.
+
+**Status:** ⚠️ Partial  
+- Main fields present, but missing billing and lifecycle helpers.
+
+---
+
+## UserGroup
+
+**Fields in EF Core model:**
+- Id
+- Name
+- Description
+- CreatedAt
+- UpdatedAt
+- IsDeleted
+- RowVersion
+
+**Missing fields:**
+- None (core fields present)
+
+**Suggested additions/removals/changes:**
+- Consider adding an `ExternalId` for integration with external systems (optional).
+- If group type (e.g., security, distribution) is needed, add `GroupType` (enum/string).
+
+**Inconsistencies:**
+- None found.
+
+**Status:** ✅ Complete
+
+---
+
+## UserGroupMember
+
+**Fields in EF Core model:**
+- Id
+- UserGroupId
+- UserId
+- CreatedAt
+- UpdatedAt
+- IsDeleted
+- RowVersion
+
+**Missing fields:**
+- None (junction entity is minimal and correct)
+
+**Suggested additions/removals/changes:**
+- None.
+
+**Inconsistencies:**
+- None found.
+
+**Status:** ✅ Complete
+
+---
+
+## Department
+
+**Fields in EF Core model:**
+- Id
+- Name
+- Description
+- ParentDepartmentId (nullable)
+- CreatedAt
+- UpdatedAt
+- IsDeleted
+- RowVersion
+
+**Missing fields:**
+- None (core fields present)
+
+**Suggested additions/removals/changes:**
+- If department code or external reference is needed, add `Code` or `ExternalId`.
+
+**Inconsistencies:**
+- None found.
+
+**Status:** ✅ Complete
+
+---
+
+## SystemSettings
+
+**Fields in EF Core model:**
+- Id
+- Key
+- Value
+- Description
+- CreatedAt
+- UpdatedAt
+- IsDeleted
+- RowVersion
+
+**Missing fields:**
+- None (core fields present)
+
+**Suggested additions/removals/changes:**
+- Consider enforcing a max length on `Key` and `Value` for DB safety.
+- Mark deprecated fields (`ShowDemoData`, `SampleDataSeeded`, `SampleDataLastSeeded`) as `[Obsolete]` (already noted in instructions).
+
+**Inconsistencies:**
+- None found.
+
+**Status:** ✅ Complete
+
+---
+
+## ITSM Sub-Entities
+
+### ServiceRequest
+
+**Fields in EF Core model:**
+- Id
+- Title
+- Description
+- Status
+- Priority
+- RequesterId
+- AssignedToId
+- CategoryId
+- SLAId
+- CreatedAt
+- UpdatedAt
+- IsDeleted
+- RowVersion
+
+**Missing fields:**
+- ResolutionDate (if tracking closure)
+- EscalationLevel (if multi-level escalation is supported)
+- Attachments (if file support is needed)
+
+**Suggested additions/removals/changes:**
+- Add `ResolutionDate` and `EscalationLevel` if required by business logic.
+
+**Inconsistencies:**
+- None found.
+
+**Status:** ⚠️ Partial
+
+---
+
+## Analytics Sub-Entities
+
+### Report
+
+**Fields in EF Core model:**
+- Id
+- Name
+- Description
+- DefinitionJson
+- OwnerId
+- CreatedAt
+- UpdatedAt
+- IsDeleted
+- RowVersion
+
+**Missing fields:**
+- Version (if versioning is required)
+
+**Suggested additions/removals/changes:**
+- Add `Version` if reports are versioned.
+
+**Inconsistencies:**
+- None found.
+
+**Status:** ⚠️ Partial
+
+---
+
+### Dashboard
+
+**Fields in EF Core model:**
+- Id
+- Name
+- Description
+- LayoutJson
+- OwnerId
+- CreatedAt
+- UpdatedAt
+- IsDeleted
+- RowVersion
+
+**Missing fields:**
+- Version (if versioning is required)
+
+**Suggested additions/removals/changes:**
+- Add `Version` if dashboards are versioned.
+
+**Inconsistencies:**
+- None found.
+
+**Status:** ⚠️ Partial
+
+---
+
+## Summary Table
+
+| Entity/Sub-Entity         | Status     |
+|---------------------------|------------|
+| Product                   | ⚠️ Partial |
+| OpportunityProduct        | ⚠️ Partial |
+| QuoteLineItem             | ⚠️ Partial |
+| OrderLineItem             | ⚠️ Partial |
+| MarketingCampaign         | ⚠️ Partial |
+| CampaignRecipient         | ⚠️ Partial |
+| CampaignMetric            | ⚠️ Partial |
+| EmailTemplate             | ⚠️ Partial |
+| EmailSequence             | ⚠️ Partial |
+| CampaignConversion        | ⚠️ Partial |
+| ServiceRequestCategory    | ⚠️ Partial |
+| KnowledgeArticle          | ⚠️ Partial |
+| SLAPolicy                 | ⚠️ Partial |
+| EscalationRule            | ⚠️ Partial |
+| WorkflowDefinition        | ⚠️ Partial |
+| Subscriptions             | ⚠️ Partial |
+| UserGroup                 | ✅ Complete|
+| UserGroupMember           | ✅ Complete|
+| Department                | ✅ Complete|
+| SystemSettings            | ✅ Complete|
+| ServiceRequest            | ⚠️ Partial |
+| Report                    | ⚠️ Partial |
+| Dashboard                 | ⚠️ Partial |
+
+---
+
+**Legend:**  
+✅ Complete — All required fields present, no inconsistencies  
+⚠️ Partial — Minor missing fields or enhancements suggested  
+❌ Not Started — Entity not implemented or missing major fields
+
+---
+
+## 2026-02-20: DTO & Frontend Type Alignment Update
+
+- All backend DTOs for Quote, Order, Opportunity, Activity, and CrmTask are now present in the contract layer (`CRM.Core/DTOs/`).
+- All frontend types in `sales.ts` and `crm.ts` have been expanded and aligned with backend DTOs, including:
+  - Numeric <-> string enum mapping helpers for API contract compliance (e.g., `QuoteStatus`, `ActivityType`).
+  - Field aliasing and comments for backend/frontend naming differences (e.g., `title` vs `subject`).
+- All major field gaps between backend DTOs and frontend types are now closed.
+- Remaining work is focused on frontend UI accordion sections and create/edit forms for secondary/optional fields.
+
+**Status:**
+- DTO contract layer: ✅ Complete for all major entities
+- Frontend types: ✅ Fully aligned with DTOs
+- Enum mapping: ✅ Helpers implemented
+- Documentation/specs: ✅ Updated (this section)
+
+---
+
+Please review and update the EF Core models and specifications as needed to address the partial items.
 
 ---
 

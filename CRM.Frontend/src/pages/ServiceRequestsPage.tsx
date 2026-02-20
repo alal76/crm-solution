@@ -4,7 +4,6 @@
  * Licensed under the Source-Available License (see LICENSE) v3.0
  */
 
-import {
   Box,
   Container,
   Typography,
@@ -40,7 +39,11 @@ import {
   Checkbox,
   Tabs,
   Tab,
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
 } from '@mui/material';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CloseIcon from '@mui/icons-material/Close';
 import { 
   DialogError, 
@@ -1103,272 +1106,282 @@ function ServiceRequestsPage() {
         <DialogContent dividers>
           {/* Request Info Tab */}
           {dialogTab === 0 && (
-          <Grid container spacing={2}>
-            <Grid item xs={12}>
-              <TextField
-                label="Subject"
-                value={formData.subject}
-                onChange={(e) => handleFormChange('subject', e.target.value)}
-                fullWidth
-                required
-                disabled={viewMode}
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                label="Description"
-                value={formData.description || ''}
-                onChange={(e) => handleFormChange('description', e.target.value)}
-                multiline
-                rows={4}
-                fullWidth
-                disabled={viewMode}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <FormControl fullWidth required>
-                <InputLabel>Channel</InputLabel>
-                <Select
-                  value={formData.channel}
-                  onChange={(e: SelectChangeEvent<number>) =>
-                    handleFormChange('channel', e.target.value)
-                  }
-                  label="Channel"
-                  disabled={viewMode}
-                >
-                  {Object.entries(CHANNEL_LABELS).map(([key, label]) => (
-                    <MenuItem key={key} value={parseInt(key)}>
-                      {label}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <FormControl fullWidth>
-                <InputLabel>Priority</InputLabel>
-                <Select
-                  value={formData.priority}
-                  onChange={(e: SelectChangeEvent<number>) =>
-                    handleFormChange('priority', e.target.value)
-                  }
-                  label="Priority"
-                  disabled={viewMode}
-                >
-                  {Object.entries(PRIORITY_LABELS).map(([key, label]) => (
-                    <MenuItem key={key} value={parseInt(key)}>
-                      {label}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <FormControl fullWidth>
-                <InputLabel>Category</InputLabel>
-                <Select
-                  value={formData.categoryId || ''}
-                  onChange={(e: SelectChangeEvent<string | number>) => {
-                    const val = e.target.value ? Number(e.target.value) : undefined;
-                    handleFormChange('categoryId', val);
-                    handleFormChange('subcategoryId', undefined);
-                  }}
-                  label="Category"
-                  disabled={viewMode}
-                >
-                  <MenuItem value="">None</MenuItem>
-                  {categories.map((cat) => (
-                    <MenuItem key={cat.id} value={cat.id}>
-                      {cat.name}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <FormControl fullWidth disabled={!formData.categoryId || viewMode}>
-                <InputLabel>Subcategory</InputLabel>
-                <Select
-                  value={formData.subcategoryId || ''}
-                  onChange={(e: SelectChangeEvent<string | number>) =>
-                    handleFormChange('subcategoryId', e.target.value ? Number(e.target.value) : undefined)
-                  }
-                  label="Subcategory"
-                >
-                  <MenuItem value="">None</MenuItem>
-                  {filteredSubcategories.map((sub) => (
-                    <MenuItem key={sub.id} value={sub.id}>
-                      {sub.name}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <EntitySelect
-                entityType="account"
-                name="accountId"
-                value={formData.accountId || ''}
-                onChange={(e: any) => handleFormChange('accountId', e.target.value ? Number(e.target.value) : undefined)}
-                label="Account"
-                disabled={viewMode}
-                showAddNew={!viewMode}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <EntitySelect
-                entityType="contact"
-                name="contactId"
-                value={formData.contactId || ''}
-                onChange={(e: any) => handleFormChange('contactId', e.target.value ? Number(e.target.value) : undefined)}
-                label="Contact"
-                disabled={viewMode}
-                showAddNew={!viewMode}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <EntitySelect
-                entityType="user"
-                name="assignedToUserId"
-                value={formData.assignedToUserId || ''}
-                onChange={(e: any) => handleFormChange('assignedToUserId', e.target.value ? Number(e.target.value) : undefined)}
-                label="Assign to User"
-                disabled={viewMode}
-                showAddNew={false}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6}>
-              <FormControl fullWidth>
-                <InputLabel>Assign to Group</InputLabel>
-                <Select
-                  value={formData.assignedToGroupId || ''}
-                  onChange={(e: SelectChangeEvent<string | number>) =>
-                    handleFormChange('assignedToGroupId', e.target.value ? Number(e.target.value) : undefined)
-                  }
-                  label="Assign to Group"
-                  disabled={viewMode}
-                >
-                  <MenuItem value="">None</MenuItem>
-                  {groups.map((group) => (
-                    <MenuItem key={group.id} value={group.id}>
-                      {group.name}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
-            <Grid item xs={12}>
-              <FormControl fullWidth>
-                <InputLabel>Workflow</InputLabel>
-                <Select
-                  value={formData.workflowId || ''}
-                  onChange={(e: SelectChangeEvent<string | number>) =>
-                    handleFormChange('workflowId', e.target.value ? Number(e.target.value) : undefined)
-                  }
-                  label="Workflow"
-                  disabled={viewMode}
-                >
-                  <MenuItem value="">None</MenuItem>
-                  {workflows.map((wf) => (
-                    <MenuItem key={wf.id} value={wf.id}>
-                      {wf.name}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
-
-            {/* Custom Fields */}
-            {customFields.length > 0 && (
-              <>
+            <>
+              <Grid container spacing={2}>
                 <Grid item xs={12}>
-                  <Divider sx={{ my: 1 }}>
-                    <Typography variant="subtitle2" color="text.secondary">
-                      Custom Fields
-                    </Typography>
-                  </Divider>
+                  <TextField
+                    label="Subject"
+                    value={formData.subject}
+                    onChange={(e) => handleFormChange('subject', e.target.value)}
+                    fullWidth
+                    required
+                    disabled={viewMode}
+                  />
                 </Grid>
-                {customFields.map((field) => (
-                  <Grid item xs={12} sm={6} key={field.id}>
-                    {renderCustomField(field)}
-                  </Grid>
-                ))}
-              </>
-            )}
-
-            {/* View mode additional info */}
-            {viewMode && selectedRequest && (
-              <>
                 <Grid item xs={12}>
-                  <Divider sx={{ my: 1 }}>
-                    <Typography variant="subtitle2" color="text.secondary">
-                      Status Information
-                    </Typography>
-                  </Divider>
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <Typography variant="body2" color="text.secondary">
-                    Status
-                  </Typography>
-                  <Chip
-                    label={STATUS_LABELS[selectedRequest.status]}
-                    color={STATUS_COLORS[selectedRequest.status]}
-                    size="small"
+                  <TextField
+                    label="Description"
+                    value={formData.description || ''}
+                    onChange={(e) => handleFormChange('description', e.target.value)}
+                    multiline
+                    rows={4}
+                    fullWidth
+                    disabled={viewMode}
                   />
                 </Grid>
                 <Grid item xs={12} sm={6}>
-                  <Typography variant="body2" color="text.secondary">
-                    SLA Breached
-                  </Typography>
-                  <Chip
-                    label={selectedRequest.isSlaBreached ? 'Yes' : 'No'}
-                    color={selectedRequest.isSlaBreached ? 'error' : 'success'}
-                    size="small"
+                  <FormControl fullWidth required>
+                    <InputLabel>Channel</InputLabel>
+                    <Select
+                      value={formData.channel}
+                      onChange={(e: SelectChangeEvent<number>) =>
+                        handleFormChange('channel', e.target.value)
+                      }
+                      label="Channel"
+                      disabled={viewMode}
+                    >
+                      {Object.entries(CHANNEL_LABELS).map(([key, label]) => (
+                        <MenuItem key={key} value={parseInt(key)}>
+                          {label}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <FormControl fullWidth>
+                    <InputLabel>Priority</InputLabel>
+                    <Select
+                      value={formData.priority}
+                      onChange={(e: SelectChangeEvent<number>) =>
+                        handleFormChange('priority', e.target.value)
+                      }
+                      label="Priority"
+                      disabled={viewMode}
+                    >
+                      {Object.entries(PRIORITY_LABELS).map(([key, label]) => (
+                        <MenuItem key={key} value={parseInt(key)}>
+                          {label}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <FormControl fullWidth>
+                    <InputLabel>Category</InputLabel>
+                    <Select
+                      value={formData.categoryId || ''}
+                      onChange={(e: SelectChangeEvent<string | number>) => {
+                        const val = e.target.value ? Number(e.target.value) : undefined;
+                        handleFormChange('categoryId', val);
+                        handleFormChange('subcategoryId', undefined);
+                      }}
+                      label="Category"
+                      disabled={viewMode}
+                    >
+                      <MenuItem value="">None</MenuItem>
+                      {categories.map((cat) => (
+                        <MenuItem key={cat.id} value={cat.id}>
+                          {cat.name}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <EntitySelect
+                    entityType="account"
+                    name="accountId"
+                    value={formData.accountId || ''}
+                    onChange={(e: any) => handleFormChange('accountId', e.target.value ? Number(e.target.value) : undefined)}
+                    label="Account"
+                    disabled={viewMode}
+                    showAddNew={!viewMode}
                   />
                 </Grid>
-                {selectedRequest.slaResponseDueDate && (
-                  <Grid item xs={12} sm={6}>
-                    <Typography variant="body2" color="text.secondary">
-                      Response Due
-                    </Typography>
-                    <Typography>
-                      {new Date(selectedRequest.slaResponseDueDate).toLocaleString()}
-                    </Typography>
+                <Grid item xs={12} sm={6}>
+                  <EntitySelect
+                    entityType="contact"
+                    name="contactId"
+                    value={formData.contactId || ''}
+                    onChange={(e: any) => handleFormChange('contactId', e.target.value ? Number(e.target.value) : undefined)}
+                    label="Contact"
+                    disabled={viewMode}
+                    showAddNew={!viewMode}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <EntitySelect
+                    entityType="user"
+                    name="assignedToUserId"
+                    value={formData.assignedToUserId || ''}
+                    onChange={(e: any) => handleFormChange('assignedToUserId', e.target.value ? Number(e.target.value) : undefined)}
+                    label="Assign to User"
+                    disabled={viewMode}
+                    showAddNew={false}
+                  />
+                </Grid>
+                <Grid item xs={12} sm={6}>
+                  <FormControl fullWidth>
+                    <InputLabel>Assign to Group</InputLabel>
+                    <Select
+                      value={formData.assignedToGroupId || ''}
+                      onChange={(e: SelectChangeEvent<string | number>) =>
+                        handleFormChange('assignedToGroupId', e.target.value ? Number(e.target.value) : undefined)
+                      }
+                      label="Assign to Group"
+                      disabled={viewMode}
+                    >
+                      <MenuItem value="">None</MenuItem>
+                      {groups.map((group) => (
+                        <MenuItem key={group.id} value={group.id}>
+                          {group.name}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Grid>
+              </Grid>
+              {/* Accordion for Additional Information */}
+              <Accordion sx={{ mt: 3 }}>
+                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                  <Typography variant="subtitle1" fontWeight={600}>Additional Information</Typography>
+                </AccordionSummary>
+                <AccordionDetails>
+                  <Grid container spacing={2}>
+                    <Grid item xs={12} sm={6}>
+                      <FormControl fullWidth disabled={!formData.categoryId || viewMode}>
+                        <InputLabel>Subcategory</InputLabel>
+                        <Select
+                          value={formData.subcategoryId || ''}
+                          onChange={(e: SelectChangeEvent<string | number>) =>
+                            handleFormChange('subcategoryId', e.target.value ? Number(e.target.value) : undefined)
+                          }
+                          label="Subcategory"
+                        >
+                          <MenuItem value="">None</MenuItem>
+                          {filteredSubcategories.map((sub) => (
+                            <MenuItem key={sub.id} value={sub.id}>
+                              {sub.name}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    </Grid>
+                    <Grid item xs={12}>
+                      <FormControl fullWidth>
+                        <InputLabel>Workflow</InputLabel>
+                        <Select
+                          value={formData.workflowId || ''}
+                          onChange={(e: SelectChangeEvent<string | number>) =>
+                            handleFormChange('workflowId', e.target.value ? Number(e.target.value) : undefined)
+                          }
+                          label="Workflow"
+                          disabled={viewMode}
+                        >
+                          <MenuItem value="">None</MenuItem>
+                          {workflows.map((wf) => (
+                            <MenuItem key={wf.id} value={wf.id}>
+                              {wf.name}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    </Grid>
+                    {/* Custom Fields */}
+                    {customFields.length > 0 && (
+                      <>
+                        <Grid item xs={12}>
+                          <Divider sx={{ my: 1 }}>
+                            <Typography variant="subtitle2" color="text.secondary">
+                              Custom Fields
+                            </Typography>
+                          </Divider>
+                        </Grid>
+                        {customFields.map((field) => (
+                          <Grid item xs={12} sm={6} key={field.id}>
+                            {renderCustomField(field)}
+                          </Grid>
+                        ))}
+                      </>
+                    )}
+                    {/* View mode additional info */}
+                    {viewMode && selectedRequest && (
+                      <>
+                        <Grid item xs={12}>
+                          <Divider sx={{ my: 1 }}>
+                            <Typography variant="subtitle2" color="text.secondary">
+                              Status Information
+                            </Typography>
+                          </Divider>
+                        </Grid>
+                        <Grid item xs={12} sm={6}>
+                          <Typography variant="body2" color="text.secondary">
+                            Status
+                          </Typography>
+                          <Chip
+                            label={STATUS_LABELS[selectedRequest.status]}
+                            color={STATUS_COLORS[selectedRequest.status]}
+                            size="small"
+                          />
+                        </Grid>
+                        <Grid item xs={12} sm={6}>
+                          <Typography variant="body2" color="text.secondary">
+                            SLA Breached
+                          </Typography>
+                          <Chip
+                            label={selectedRequest.isSlaBreached ? 'Yes' : 'No'}
+                            color={selectedRequest.isSlaBreached ? 'error' : 'success'}
+                            size="small"
+                          />
+                        </Grid>
+                        {selectedRequest.slaResponseDueDate && (
+                          <Grid item xs={12} sm={6}>
+                            <Typography variant="body2" color="text.secondary">
+                              Response Due
+                            </Typography>
+                            <Typography>
+                              {new Date(selectedRequest.slaResponseDueDate).toLocaleString()}
+                            </Typography>
+                          </Grid>
+                        )}
+                        {selectedRequest.slaResolutionDueDate && (
+                          <Grid item xs={12} sm={6}>
+                            <Typography variant="body2" color="text.secondary">
+                              Resolution Due
+                            </Typography>
+                            <Typography>
+                              {new Date(selectedRequest.slaResolutionDueDate).toLocaleString()}
+                            </Typography>
+                          </Grid>
+                        )}
+                        {selectedRequest.resolvedDate && (
+                          <Grid item xs={12} sm={6}>
+                            <Typography variant="body2" color="text.secondary">
+                              Resolved Date
+                            </Typography>
+                            <Typography>
+                              {new Date(selectedRequest.resolvedDate).toLocaleString()}
+                            </Typography>
+                          </Grid>
+                        )}
+                        {selectedRequest.closedDate && (
+                          <Grid item xs={12} sm={6}>
+                            <Typography variant="body2" color="text.secondary">
+                              Closed Date
+                            </Typography>
+                            <Typography>
+                              {new Date(selectedRequest.closedDate).toLocaleString()}
+                            </Typography>
+                          </Grid>
+                        )}
+                      </>
+                    )}
                   </Grid>
-                )}
-                {selectedRequest.slaResolutionDueDate && (
-                  <Grid item xs={12} sm={6}>
-                    <Typography variant="body2" color="text.secondary">
-                      Resolution Due
-                    </Typography>
-                    <Typography>
-                      {new Date(selectedRequest.slaResolutionDueDate).toLocaleString()}
-                    </Typography>
-                  </Grid>
-                )}
-                {selectedRequest.resolvedDate && (
-                  <Grid item xs={12} sm={6}>
-                    <Typography variant="body2" color="text.secondary">
-                      Resolved Date
-                    </Typography>
-                    <Typography>
-                      {new Date(selectedRequest.resolvedDate).toLocaleString()}
-                    </Typography>
-                  </Grid>
-                )}
-                {selectedRequest.closedDate && (
-                  <Grid item xs={12} sm={6}>
-                    <Typography variant="body2" color="text.secondary">
-                      Closed Date
-                    </Typography>
-                    <Typography>
-                      {new Date(selectedRequest.closedDate).toLocaleString()}
-                    </Typography>
-                  </Grid>
-                )}
-              </>
-            )}
-          </Grid>
+                </AccordionDetails>
+              </Accordion>
+            </>
           )}
 
           {/* Related Entities Tab (only when editing) */}

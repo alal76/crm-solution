@@ -18,9 +18,46 @@ Copilot usage
 - after first version update change this copilot version to match what is updated into the version.json file to ensure consistency and clarity in communication about the current version of the solution. This will help in tracking which version of the codebase is currently being worked on and also in communicating with other team members about the state of the project.
 
 - Do not delete any code without a very good reason, if you think some code is not needed or can be improved, first check if it's being used anywhere in the codebase, if it's not being used and you are sure it can be removed then mark it as dead code for deletion, but if it's being used or you are not sure about its usage then it's better to keep it and maybe mark it as deprecated or add comments for future reference. This will help in maintaining the integrity of the codebase and also in avoiding any unintended consequences of deleting code that might still be needed.
----
 
 ## � Feature Specification Framework
+
+## 1.1 Field Gap Audit & Architecture Alignment (MANDATORY)
+
+**Field Gap Remediation and Audit Policy**
+
+To ensure ongoing data model and contract integrity, the following architecture and development rules are MANDATORY for all contributors:
+
+- **Field Gap Audit:**
+  - All new features, entities, DTOs, and frontend types must be checked against the latest FIELD_GAP_REMEDIATION_PLAN.md.
+  - Any new or changed fields must be reflected in the plan before merging.
+  - All layers (DB, backend entity, DTO, frontend type, UI) must be aligned for every field.
+
+- **DTO Layer Enforcement:**
+  - All API endpoints must use DTOs as the contract layer, never raw entities.
+  - DTOs must be a superset of the fields returned by the API.
+
+- **Enum Alignment:**
+  - All enums must use numeric values in API/DTO contracts.
+  - Frontend must map these to TypeScript enums or string unions.
+
+- **Date Serialization:**
+  - All date fields must use ISO 8601 strings in API responses.
+  - Frontend must handle `string | null` for all date fields.
+
+- **Field Naming Conventions:**
+  - Avoid mismatches (e.g., subject/title, estimatedMinutes/estimatedHours).
+  - Follow the DTO naming standard as defined in FIELD_GAP_REMEDIATION_PLAN.md.
+
+- **UI Accordion Strategy:**
+  - All forms must use a two-section layout: core fields in the main form, optional/secondary fields in a collapsible "Additional Information" accordion at the bottom.
+
+- **Automated Alignment Checks:**
+  - Add or maintain build-time tests that verify DTO public properties are a superset of the fields returned by the API (contract testing).
+
+- **Documentation:**
+  - Maintain FIELD_GAP_REMEDIATION_PLAN.md as a living specification. Update it with every field addition, removal, or change.
+
+**Failure to comply with these rules will result in code review rejection.**
 
 ### IMPORTANT: Service Implementation Guide
 

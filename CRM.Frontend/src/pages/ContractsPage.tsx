@@ -10,8 +10,9 @@ import {
   TableHead, TableRow, Button, Dialog, DialogTitle, DialogContent, DialogActions,
   TextField, MenuItem, Stack, Chip, IconButton, Tooltip, CircularProgress,
   Alert, Grid, Tabs, Tab, FormControl, InputLabel, Select, LinearProgress,
-  SelectChangeEvent, Paper, Divider,
+  SelectChangeEvent, Paper, Divider, Accordion, AccordionSummary, AccordionDetails
 } from '@mui/material';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import {
   Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon,
   Download as DownloadIcon, Upload as UploadIcon, Close as CloseIcon,
@@ -787,30 +788,71 @@ function ContractsPage() {
                   </Select>
                 </FormControl>
               </Grid>
-              <Grid item xs={12} md={3}>
-                <TextField
-                  fullWidth
-                  type="number"
-                  label="Renewal Notice (days)"
-                  name="renewalNoticeDays"
-                  value={formData.renewalNoticeDays}
-                  onChange={handleInputChange}
-                />
-              </Grid>
-              <Grid item xs={12} md={3}>
-                <Box display="flex" alignItems="center" height="100%">
-                  <label>
-                    <input
-                      type="checkbox"
-                      name="autoRenew"
-                      checked={formData.autoRenew}
+            </Grid>
+            {/* Accordion for Additional Information */}
+            <Accordion sx={{ mt: 3 }}>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <Typography variant="subtitle1" fontWeight={600}>Additional Information</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Grid container spacing={3}>
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      multiline
+                      rows={4}
+                      label="Special Conditions"
+                      name="specialConditions"
+                      value={formData.specialConditions}
                       onChange={handleInputChange}
                     />
-                    {' '}Auto Renew
-                  </label>
-                </Box>
-              </Grid>
-            </Grid>
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      type="number"
+                      label="Parent Contract ID"
+                      value={formData.parentContractId || ''}
+                      onChange={(e) => setFormData(prev => ({ ...prev, parentContractId: e.target.value ? parseInt(e.target.value) : null }))}
+                      helperText="Enter the ID of the parent contract if this is a sub-contract"
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      type="number"
+                      label="Related Quote ID"
+                      value={formData.quoteId || ''}
+                      onChange={(e) => setFormData(prev => ({ ...prev, quoteId: e.target.value ? parseInt(e.target.value) : null }))}
+                      helperText="Enter the ID of the related quote"
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={3}>
+                    <TextField
+                      fullWidth
+                      type="number"
+                      label="Renewal Notice (days)"
+                      name="renewalNoticeDays"
+                      value={formData.renewalNoticeDays}
+                      onChange={handleInputChange}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={3}>
+                    <Box display="flex" alignItems="center" height="100%">
+                      <label>
+                        <input
+                          type="checkbox"
+                          name="autoRenew"
+                          checked={formData.autoRenew}
+                          onChange={handleInputChange}
+                        />
+                        {' '}Auto Renew
+                      </label>
+                    </Box>
+                  </Grid>
+                </Grid>
+              </AccordionDetails>
+            </Accordion>
           </TabPanel>
 
           {/* Tab 1: Terms & Conditions */}

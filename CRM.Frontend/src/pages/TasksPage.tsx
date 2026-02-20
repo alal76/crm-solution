@@ -1,10 +1,10 @@
 import { useState, useEffect, useMemo } from 'react';
-import {
   Box, Card, CardContent, Typography, Button, Table, TableBody, TableCell, TableContainer, TableHead,
   TableRow, Dialog, DialogTitle, DialogContent, DialogActions, Alert, CircularProgress,
   TextField, Container, FormControl, InputLabel, Select, MenuItem, Chip, Grid,
-  IconButton, Tooltip, Tabs, Tab, SelectChangeEvent, Badge, Switch, FormControlLabel
+  IconButton, Tooltip, Tabs, Tab, SelectChangeEvent, Badge, Switch, FormControlLabel, Accordion, AccordionSummary, AccordionDetails
 } from '@mui/material';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import {
   Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, 
   CheckCircle as CheckIcon, Assignment as TaskIcon,
@@ -698,6 +698,104 @@ function TasksPage() {
                 <TextField fullWidth label="Tags (comma-separated)" name="tags" value={formData.tags} onChange={handleInputChange} />
               </Grid>
             </Grid>
+            {/* Accordion for Additional Information */}
+            <Accordion sx={{ mt: 3 }}>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <Typography variant="subtitle1" fontWeight={600}>Additional Information</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Grid container spacing={2}>
+                  <Grid item xs={6}>
+                    <TextField fullWidth label="Start Date" name="startDate" type="date" value={formData.startDate} onChange={handleInputChange} InputLabelProps={{ shrink: true }} />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <TextField fullWidth label="Due Date" name="dueDate" type="date" value={formData.dueDate} onChange={handleInputChange} InputLabelProps={{ shrink: true }} />
+                  </Grid>
+                  <Grid item xs={4}>
+                    <TextField fullWidth label="Estimated Hours" name="estimatedHours" type="number" value={formData.estimatedHours} onChange={handleInputChange} />
+                  </Grid>
+                  <Grid item xs={4}>
+                    <TextField fullWidth label="Actual Hours" name="actualHours" type="number" value={formData.actualHours} onChange={handleInputChange} />
+                  </Grid>
+                  <Grid item xs={4}>
+                    <TextField fullWidth label="% Complete" name="percentComplete" type="number" value={formData.percentComplete} onChange={handleInputChange} inputProps={{ min: 0, max: 100 }} />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <TextField fullWidth label="Reminder Date" name="reminderDate" type="date" value={formData.reminderDate} onChange={handleInputChange} InputLabelProps={{ shrink: true }} />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <TextField fullWidth label="Location" name="location" value={formData.location} onChange={handleInputChange} />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      label="Category"
+                      name="category"
+                      value={formData.category}
+                      onChange={handleInputChange}
+                      placeholder="e.g. Follow-up, Admin, Sales"
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      label="Recurrence End Date"
+                      name="recurrenceEndDate"
+                      type="date"
+                      value={formData.recurrenceEndDate}
+                      onChange={handleInputChange}
+                      InputLabelProps={{ shrink: true }}
+                      disabled={!formData.isRecurring}
+                    />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          name="isRecurring"
+                          checked={formData.isRecurring}
+                          onChange={(e) => setFormData(prev => ({ ...prev, isRecurring: e.target.checked }))}
+                        />
+                      }
+                      label="Recurring Task"
+                    />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          name="hasReminder"
+                          checked={formData.hasReminder}
+                          onChange={(e) => setFormData(prev => ({ ...prev, hasReminder: e.target.checked }))}
+                        />
+                      }
+                      label="Has Reminder"
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <EntitySelect
+                      entityType="contact"
+                      name="contactId"
+                      value={formData.contactId}
+                      onChange={handleSelectChange}
+                      label="Related Contact"
+                      showAddNew={false}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <EntitySelect
+                      entityType="campaign"
+                      name="campaignId"
+                      value={formData.campaignId}
+                      onChange={handleSelectChange}
+                      label="Related Campaign"
+                      showAddNew={false}
+                    />
+                  </Grid>
+                </Grid>
+              </AccordionDetails>
+            </Accordion>
+          </TabPanel>
           </TabPanel>
 
           <TabPanel value={dialogTab} index={1}>

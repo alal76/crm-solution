@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import { TabPanel, DialogHeader, RelatedEntitiesPanel, EnhancedEmptyState } from '../components/common';
-import {
   Box, Card, CardContent, Typography, Button, Table, TableBody, TableCell, TableHead,
   TableRow, Dialog, DialogTitle, DialogContent, DialogActions, Alert, CircularProgress,
   TextField, Container, FormControl, InputLabel, Select, MenuItem, Chip, Tabs, Tab,
   Grid, IconButton, Tooltip, FormControlLabel, Checkbox, LinearProgress,
-  SelectChangeEvent, Paper, Collapse, Stack
+  SelectChangeEvent, Paper, Collapse, Stack, Accordion, AccordionSummary, AccordionDetails
 } from '@mui/material';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import {
   Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, 
   Campaign as CampaignIcon, TrendingUp as TrendingUpIcon,
@@ -611,19 +611,58 @@ function CampaignsPage() {
               <Grid item xs={6}>
                 <TextField fullWidth label="End Date" name="endDate" type="date" value={formData.endDate} onChange={handleInputChange} InputLabelProps={{ shrink: true }} />
               </Grid>
-              <Grid item xs={4}>
-                <TextField fullWidth label="Budget ($)" name="budget" type="number" value={formData.budget} onChange={handleInputChange} />
-              </Grid>
-              <Grid item xs={4}>
-                <TextField fullWidth label="Actual Spend ($)" name="actualSpend" type="number" value={formData.actualSpend} onChange={handleInputChange} />
-              </Grid>
-              <Grid item xs={4}>
-                <TextField fullWidth label="Target Audience" name="targetAudience" type="number" value={formData.targetAudience} onChange={handleInputChange} />
-              </Grid>
               <Grid item xs={12}>
                 <TextField fullWidth label="Description" name="description" value={formData.description} onChange={handleInputChange} multiline rows={3} />
               </Grid>
             </Grid>
+            {/* Accordion for Additional Information */}
+            <Accordion sx={{ mt: 3 }}>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <Typography variant="subtitle1" fontWeight={600}>Additional Information</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Grid container spacing={2}>
+                  <Grid item xs={4}>
+                    <TextField fullWidth label="Budget ($)" name="budget" type="number" value={formData.budget} onChange={handleInputChange} />
+                  </Grid>
+                  <Grid item xs={4}>
+                    <TextField fullWidth label="Actual Spend ($)" name="actualSpend" type="number" value={formData.actualSpend} onChange={handleInputChange} />
+                  </Grid>
+                  <Grid item xs={4}>
+                    <TextField fullWidth label="Target Audience" name="targetAudience" type="number" value={formData.targetAudience} onChange={handleInputChange} />
+                  </Grid>
+                  <Grid item xs={4}>
+                    <TextField fullWidth label="UTM Source" name="utmSource" value={formData.utmSource} onChange={handleInputChange} placeholder="google" />
+                  </Grid>
+                  <Grid item xs={4}>
+                    <TextField fullWidth label="UTM Medium" name="utmMedium" value={formData.utmMedium} onChange={handleInputChange} placeholder="cpc" />
+                  </Grid>
+                  <Grid item xs={4}>
+                    <TextField fullWidth label="UTM Campaign" name="utmCampaign" value={formData.utmCampaign} onChange={handleInputChange} placeholder="spring_sale" />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField fullWidth label="Tags (comma-separated)" name="tags" value={formData.tags} onChange={handleInputChange} placeholder="seasonal, promotion, q1" />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <FormControlLabel
+                      control={<Checkbox name="isABTest" checked={formData.isABTest} onChange={handleInputChange} />}
+                      label="This is an A/B Test Campaign"
+                    />
+                  </Grid>
+                  {formData.isABTest && (
+                    <>
+                      <Grid item xs={6}>
+                        <TextField fullWidth label="A/B Test Variants" name="abTestVariants" value={formData.abTestVariants} onChange={handleInputChange} placeholder="Variant A, Variant B" />
+                      </Grid>
+                      <Grid item xs={6}>
+                        <TextField fullWidth label="Winning Variant" name="winningVariant" value={formData.winningVariant} onChange={handleInputChange} />
+                      </Grid>
+                    </>
+                  )}
+                </Grid>
+              </AccordionDetails>
+            </Accordion>
+          </TabPanel>
           </TabPanel>
 
           <TabPanel value={dialogTab} index={1}>

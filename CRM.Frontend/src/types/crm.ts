@@ -301,6 +301,19 @@ export interface UpdateProductDto {
 // SALES ACTIVITIES
 // ============================================================================
 
+// Numeric enum mapping for API contract
+export enum ActivityTypeEnum {
+  Call = 0,
+  Email = 1,
+  Meeting = 2,
+  Task = 3,
+  Note = 4,
+  Social = 5,
+  Campaign = 6,
+  Other = 7
+}
+
+// String enum for UI
 export enum ActivityType {
   Call = 'call',
   Email = 'email',
@@ -310,6 +323,36 @@ export enum ActivityType {
   Social = 'social',
   Campaign = 'campaign',
   Other = 'other'
+}
+
+// Helper: Map numeric API value to string enum
+export function activityTypeFromApi(val: number): ActivityType {
+  switch (val) {
+    case ActivityTypeEnum.Call: return ActivityType.Call;
+    case ActivityTypeEnum.Email: return ActivityType.Email;
+    case ActivityTypeEnum.Meeting: return ActivityType.Meeting;
+    case ActivityTypeEnum.Task: return ActivityType.Task;
+    case ActivityTypeEnum.Note: return ActivityType.Note;
+    case ActivityTypeEnum.Social: return ActivityType.Social;
+    case ActivityTypeEnum.Campaign: return ActivityType.Campaign;
+    case ActivityTypeEnum.Other: return ActivityType.Other;
+    default: return ActivityType.Other;
+  }
+}
+
+// Helper: Map string enum to numeric API value
+export function activityTypeToApi(val: ActivityType): number {
+  switch (val) {
+    case ActivityType.Call: return ActivityTypeEnum.Call;
+    case ActivityType.Email: return ActivityTypeEnum.Email;
+    case ActivityType.Meeting: return ActivityTypeEnum.Meeting;
+    case ActivityType.Task: return ActivityTypeEnum.Task;
+    case ActivityType.Note: return ActivityTypeEnum.Note;
+    case ActivityType.Social: return ActivityTypeEnum.Social;
+    case ActivityType.Campaign: return ActivityTypeEnum.Campaign;
+    case ActivityType.Other: return ActivityTypeEnum.Other;
+    default: return ActivityTypeEnum.Other;
+  }
 }
 
 export interface Activity extends BaseEntity {
@@ -379,7 +422,8 @@ export enum TaskPriority {
 }
 
 export interface CrmTask extends BaseEntity {
-  subject: string;             // Backend field name (frontend may alias as 'title')
+  // Backend field: Title (alias: subject)
+  title: string;
   description?: string;
   taskType: number;            // Enum: 0=Task, 1=Email, 2=Call, 3=Meeting, 4=Reminder, 5=Other
   status: number;              // TaskStatus enum
