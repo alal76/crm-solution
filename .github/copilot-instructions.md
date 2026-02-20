@@ -19,6 +19,10 @@ Copilot usage
 
 - Do not delete any code without a very good reason, if you think some code is not needed or can be improved, first check if it's being used anywhere in the codebase, if it's not being used and you are sure it can be removed then mark it as dead code for deletion, but if it's being used or you are not sure about its usage then it's better to keep it and maybe mark it as deprecated or add comments for future reference. This will help in maintaining the integrity of the codebase and also in avoiding any unintended consequences of deleting code that might still be needed.
 
+
+Use the below LLM API key for groq to be included in the application settings to enable groq AI in the solution settings
+
+
 ## � Feature Specification Framework
 
 ## 1.1 Field Gap Audit & Architecture Alignment (MANDATORY)

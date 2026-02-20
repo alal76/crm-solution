@@ -206,8 +206,16 @@ const UserSettingsDialog: React.FC<UserSettingsDialogProps> = ({ open, onClose, 
         onThemeChange(getSystemTheme());
       }
     };
-    mediaQuery.addEventListener('change', handleChange);
-    return () => mediaQuery.removeEventListener('change', handleChange);
+    if (mediaQuery) {
+      if (mediaQuery.addEventListener) {
+        mediaQuery.addEventListener('change', handleChange);
+        return () => mediaQuery.removeEventListener('change', handleChange);
+      } else if (mediaQuery.addListener) {
+        mediaQuery.addListener(handleChange);
+        return () => mediaQuery.removeListener(handleChange);
+      }
+    }
+    return undefined;
   }, [preferences.themePreference, onThemeChange]);
 
   const loadPreferences = async () => {
