@@ -562,7 +562,8 @@ public class EntityValidationTests
         var settings = new SystemSettings();
 
         // Assert - Core features are enabled by default for usability
-        settings.CustomersEnabled.Should().BeTrue();
+        settings.AccountsEnabled.Should().BeTrue();
+        settings.CustomersEnabled.Should().BeTrue(); // alias still returns same value
         settings.LeadsEnabled.Should().BeTrue();
     }
 

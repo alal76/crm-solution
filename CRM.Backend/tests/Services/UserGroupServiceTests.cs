@@ -111,7 +111,8 @@ public class UserGroupServiceTests
             IsDefault = false,
             IsSystemAdmin = false,
             CanAccessDashboard = true,
-            CanAccessCustomers = true,
+            CanAccessAccounts = true,
+            CanAccessCustomers = true, // alias should mirror Accounts
             CanAccessContacts = true
         };
     }
@@ -251,6 +252,7 @@ public class UserGroupServiceTests
         // Assert
         result.Should().NotBeNull();
         result.CanAccessDashboard.Should().BeTrue();
+        result.CanAccessAccounts.Should().BeFalse();
         result.CanAccessCustomers.Should().BeFalse();
         result.IsSystemAdmin.Should().BeTrue();
     }

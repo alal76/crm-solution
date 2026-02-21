@@ -26,7 +26,7 @@ namespace CRM.Backend.Tests.Integration.Controllers
                 MemberCount = 1,
                 CanAccessDashboard = true,
                 CanAccessAccounts = true,
-                CanAccessCustomers = true,
+                // Customers alias handled automatically
                 CanAccessContacts = true,
                 CanAccessLeads = true,
                 CanAccessOpportunities = true,
@@ -103,7 +103,7 @@ namespace CRM.Backend.Tests.Integration.Controllers
             item.MemberCount.Should().Be(create.MemberCount);
             item.CanAccessDashboard.Should().Be(create.CanAccessDashboard);
             item.CanAccessAccounts.Should().Be(create.CanAccessAccounts);
-            item.CanAccessCustomers.Should().Be(create.CanAccessCustomers);
+            item.CanAccessCustomers.Should().Be(item.CanAccessAccounts); // alias check
             item.CanAccessContacts.Should().Be(create.CanAccessContacts);
             item.CanAccessLeads.Should().Be(create.CanAccessLeads);
             item.CanAccessOpportunities.Should().Be(create.CanAccessOpportunities);
@@ -169,7 +169,7 @@ namespace CRM.Backend.Tests.Integration.Controllers
             item.IsSystemAdmin.Should().Be(create.IsSystemAdmin);
             item.CanAccessDashboard.Should().Be(create.CanAccessDashboard);
             item.CanAccessAccounts.Should().Be(create.CanAccessAccounts);
-            item.CanAccessCustomers.Should().Be(create.CanAccessCustomers);
+            item.CanAccessCustomers.Should().Be(item.CanAccessAccounts);
             item.CanAccessContacts.Should().Be(create.CanAccessContacts);
             item.CanAccessLeads.Should().Be(create.CanAccessLeads);
             item.CanAccessOpportunities.Should().Be(create.CanAccessOpportunities);
@@ -246,7 +246,7 @@ namespace CRM.Backend.Tests.Integration.Controllers
                 MemberCount = 1,
                 CanAccessDashboard = true,
                 CanAccessAccounts = true,
-                CanAccessCustomers = true,
+                // legacy Customers flag omitted
                 CanAccessContacts = true,
                 CanAccessLeads = true,
                 CanAccessOpportunities = true,

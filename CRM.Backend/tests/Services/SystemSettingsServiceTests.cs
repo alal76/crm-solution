@@ -48,7 +48,7 @@ public class SystemSettingsServiceTests : IDisposable
         // Arrange
         var settings = new SystemSettings
         {
-            CustomersEnabled = true,
+            AccountsEnabled = true, // alias for backward compatibility
             ContactsEnabled = true,
             LeadsEnabled = false,
             CompanyName = "Test Company",
@@ -63,6 +63,7 @@ public class SystemSettingsServiceTests : IDisposable
 
         // Assert
         result.Should().NotBeNull();
+        result.AccountsEnabled.Should().BeTrue();
         result.CustomersEnabled.Should().BeTrue();
         result.ContactsEnabled.Should().BeTrue();
         result.LeadsEnabled.Should().BeFalse();
@@ -77,7 +78,8 @@ public class SystemSettingsServiceTests : IDisposable
 
         // Assert
         result.Should().NotBeNull();
-        result.CustomersEnabled.Should().BeTrue();  // Default enabled
+        result.AccountsEnabled.Should().BeTrue();  // Default enabled
+        result.CustomersEnabled.Should().BeTrue();
         result.ContactsEnabled.Should().BeTrue();   // Default enabled
 
         // Verify settings were persisted
@@ -95,7 +97,7 @@ public class SystemSettingsServiceTests : IDisposable
         // Arrange
         var settings = new SystemSettings
         {
-            CustomersEnabled = true,
+            AccountsEnabled = true, // alias
             ContactsEnabled = true,
             LeadsEnabled = false,
             OpportunitiesEnabled = true,
@@ -117,6 +119,7 @@ public class SystemSettingsServiceTests : IDisposable
 
         // Assert
         result.Should().NotBeNull();
+        result.AccountsEnabled.Should().BeTrue();
         result.CustomersEnabled.Should().BeTrue();
         result.ContactsEnabled.Should().BeTrue();
         result.LeadsEnabled.Should().BeFalse();
@@ -134,7 +137,7 @@ public class SystemSettingsServiceTests : IDisposable
         // Arrange
         var settings = new SystemSettings
         {
-            CustomersEnabled = true,
+            AccountsEnabled = true,
             ContactsEnabled = true,
             CompanyName = "Old Company",
             MinPasswordLength = 6,
@@ -147,7 +150,7 @@ public class SystemSettingsServiceTests : IDisposable
         {
             CompanyName = "New Company",
             MinPasswordLength = 10,
-            CustomersEnabled = false
+            AccountsEnabled = false
         };
 
         // Act
@@ -156,6 +159,7 @@ public class SystemSettingsServiceTests : IDisposable
         // Assert
         result.CompanyName.Should().Be("New Company");
         result.MinPasswordLength.Should().Be(10);
+        result.AccountsEnabled.Should().BeFalse();
         result.CustomersEnabled.Should().BeFalse();
 
         // Verify persistence
@@ -170,7 +174,7 @@ public class SystemSettingsServiceTests : IDisposable
         var updateRequest = new UpdateSystemSettingsRequest
         {
             CompanyName = "New Company",
-            CustomersEnabled = true,
+            AccountsEnabled = true,
             ContactsEnabled = false
         };
 
@@ -189,7 +193,7 @@ public class SystemSettingsServiceTests : IDisposable
         // Arrange
         var settings = new SystemSettings
         {
-            CustomersEnabled = true,
+            AccountsEnabled = true,
             ContactsEnabled = true,
             CompanyName = "Original Company",
             PrimaryColor = "#6750A4",
@@ -210,7 +214,8 @@ public class SystemSettingsServiceTests : IDisposable
 
         // Assert
         result.CompanyName.Should().Be("Updated Company");
-        result.CustomersEnabled.Should().BeTrue();  // Unchanged
+        result.AccountsEnabled.Should().BeTrue();  // Unchanged
+        result.CustomersEnabled.Should().BeTrue();  // alias
         result.PrimaryColor.Should().Be("#6750A4"); // Unchanged
     }
 
@@ -294,7 +299,7 @@ public class SystemSettingsServiceTests : IDisposable
         // Arrange
         var settings = new SystemSettings
         {
-            CustomersEnabled = true,
+            AccountsEnabled = true,
             LeadsEnabled = true,
             WorkflowsEnabled = true,
             CreatedAt = DateTime.UtcNow
@@ -304,7 +309,7 @@ public class SystemSettingsServiceTests : IDisposable
 
         var updateRequest = new UpdateSystemSettingsRequest
         {
-            CustomersEnabled = false,
+            AccountsEnabled = false,
             LeadsEnabled = false,
             WorkflowsEnabled = false
         };
@@ -313,6 +318,7 @@ public class SystemSettingsServiceTests : IDisposable
         var result = await _service.UpdateSettingsAsync(updateRequest);
 
         // Assert
+        result.AccountsEnabled.Should().BeFalse();
         result.CustomersEnabled.Should().BeFalse();
         result.LeadsEnabled.Should().BeFalse();
         result.WorkflowsEnabled.Should().BeFalse();
@@ -324,7 +330,7 @@ public class SystemSettingsServiceTests : IDisposable
         // Arrange
         var settings = new SystemSettings
         {
-            CustomersEnabled = false,
+            AccountsEnabled = false,
             LeadsEnabled = false,
             CreatedAt = DateTime.UtcNow
         };
@@ -333,7 +339,7 @@ public class SystemSettingsServiceTests : IDisposable
 
         var updateRequest = new UpdateSystemSettingsRequest
         {
-            CustomersEnabled = true,
+            AccountsEnabled = true,
             LeadsEnabled = true
         };
 
@@ -341,6 +347,7 @@ public class SystemSettingsServiceTests : IDisposable
         var result = await _service.UpdateSettingsAsync(updateRequest);
 
         // Assert
+        result.AccountsEnabled.Should().BeTrue();
         result.CustomersEnabled.Should().BeTrue();
         result.LeadsEnabled.Should().BeTrue();
     }

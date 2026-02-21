@@ -662,6 +662,7 @@ public class CoreEntityTests
 
         // Assert
         settings.Id.Should().Be(0);
+        settings.AccountsEnabled.Should().BeTrue();
         settings.CustomersEnabled.Should().BeTrue();
         settings.ContactsEnabled.Should().BeTrue();
         settings.LeadsEnabled.Should().BeTrue();
@@ -674,11 +675,12 @@ public class CoreEntityTests
         // Act
         var settings = new SystemSettings
         {
-            CustomersEnabled = false,
+            AccountsEnabled = false,
             LeadsEnabled = false
         };
 
         // Assert
+        settings.AccountsEnabled.Should().BeFalse();
         settings.CustomersEnabled.Should().BeFalse();
         settings.LeadsEnabled.Should().BeFalse();
         settings.ContactsEnabled.Should().BeTrue();
