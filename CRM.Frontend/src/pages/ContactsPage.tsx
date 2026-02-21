@@ -39,6 +39,7 @@ import {
   AccordionDetails,
   Switch,
   FormControlLabel,
+  Grid,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import { useState, useEffect, useCallback, useMemo } from 'react';
@@ -172,6 +173,8 @@ interface CreateContactRequest {
   twitterHandle?: string;
   doNotContact?: boolean;
   preferredContactMethod?: string;
+  emailSecondary?: string;
+  phoneSecondary?: string;
 }
 
 const CONTACT_TYPES = ['Employee', 'Customer', 'Partner', 'Lead', 'Vendor', 'Other'];
@@ -366,6 +369,8 @@ function ContactsPage() {
       twitterHandle: contact.twitterHandle,
       doNotContact: contact.doNotContact,
       preferredContactMethod: contact.preferredContactMethod,
+      emailSecondary: contact.emailSecondary || '',
+      phoneSecondary: contact.phoneSecondary || '',
     });
     setSelectedContact(contact);
     setDialogTab(0);
@@ -1059,32 +1064,67 @@ function ContactsPage() {
                         placeholder="@username"
                       />
                     </Box>
-                    <FormControl fullWidth>
-                      <InputLabel>Preferred Contact Method</InputLabel>
-                      <Select
-                        name="preferredContactMethod"
-                        value={formData.preferredContactMethod || ''}
-                        onChange={(e: SelectChangeEvent) => setFormData(prev => ({ ...prev, preferredContactMethod: e.target.value }))}
-                        label="Preferred Contact Method"
-                      >
-                        <MenuItem value="">Not specified</MenuItem>
-                        <MenuItem value="Email">Email</MenuItem>
-                        <MenuItem value="Phone">Phone</MenuItem>
-                        <MenuItem value="SMS">SMS</MenuItem>
-                        <MenuItem value="Mail">Mail</MenuItem>
-                      </Select>
-                    </FormControl>
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          name="doNotContact"
-                          checked={formData.doNotContact || false}
-                          onChange={(e) => setFormData(prev => ({ ...prev, doNotContact: e.target.checked }))}
-                        />
-                      }
-                      label="Do Not Contact"
-                    />
                   </Stack>
+                </AccordionDetails>
+              </Accordion>
+
+              {/* Additional Contact Info accordion */}
+              <Accordion sx={{ mt: 1, boxShadow: 'none', border: '1px solid', borderColor: 'divider', borderRadius: 1 }} disableGutters>
+                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                  <Typography variant="subtitle2" fontWeight={600}>Additional Contact Info</Typography>
+                </AccordionSummary>
+                <AccordionDetails>
+                  <Grid container spacing={2}>
+                    <Grid item xs={6}>
+                      <TextField
+                        fullWidth
+                        label="Secondary Email"
+                        name="emailSecondary"
+                        type="email"
+                        value={formData.emailSecondary || ''}
+                        onChange={handleFormChange}
+                      />
+                    </Grid>
+                    <Grid item xs={6}>
+                      <TextField
+                        fullWidth
+                        label="Secondary Phone"
+                        name="phoneSecondary"
+                        value={formData.phoneSecondary || ''}
+                        onChange={handleFormChange}
+                      />
+                    </Grid>
+                    <Grid item xs={6}>
+                      <FormControl fullWidth>
+                        <InputLabel>Preferred Contact Method</InputLabel>
+                        <Select
+                          name="preferredContactMethod"
+                          value={formData.preferredContactMethod || ''}
+                          onChange={(e: SelectChangeEvent) => setFormData(prev => ({ ...prev, preferredContactMethod: e.target.value }))}
+                          label="Preferred Contact Method"
+                        >
+                          <MenuItem value="">Not specified</MenuItem>
+                          <MenuItem value="email">Email</MenuItem>
+                          <MenuItem value="phone">Phone</MenuItem>
+                          <MenuItem value="sms">SMS</MenuItem>
+                          <MenuItem value="linkedin">LinkedIn</MenuItem>
+                        </Select>
+                      </FormControl>
+                    </Grid>
+                    <Grid item xs={6} />
+                    <Grid item xs={12}>
+                      <FormControlLabel
+                        control={
+                          <Switch
+                            name="doNotContact"
+                            checked={formData.doNotContact || false}
+                            onChange={(e) => setFormData(prev => ({ ...prev, doNotContact: e.target.checked }))}
+                          />
+                        }
+                        label="Do Not Contact"
+                      />
+                    </Grid>
+                  </Grid>
                 </AccordionDetails>
               </Accordion>
             </Stack>

@@ -26,6 +26,10 @@ namespace CRM.Core.DTOs
         [Required, MaxLength(255)]
         public string Name { get; set; } = string.Empty;
         public int Stage { get; set; } // OpportunityStage enum (int)
+
+        /// <summary>Human-readable label for the current stage (e.g. "Closed Won").</summary>
+        public string? StageName { get; set; }
+
         [Range(0, 100)]
         public int Probability { get; set; }
         [Range(0, double.MaxValue)]
@@ -34,6 +38,10 @@ namespace CRM.Core.DTOs
         public string Currency { get; set; } = "USD";
         public string? ExpectedCloseDate { get; set; } // ISO 8601 string
         public int PricingModel { get; set; } // OpportunityPricingModel enum (int)
+
+        /// <summary>Human-readable label for the pricing model (e.g. "Subscription").</summary>
+        public string? PricingModelName { get; set; }
+
         [Range(1, 120)]
         public int TermLengthMonths { get; set; }
         [MaxLength(4000)]
@@ -44,7 +52,15 @@ namespace CRM.Core.DTOs
         [MaxLength(100)]
         public string? Region { get; set; }
         public int AccountId { get; set; }
+
+        /// <summary>Display name of the linked Account (populated when navigation property is loaded).</summary>
+        public string? AccountName { get; set; }
+
         public int? PrimaryContactId { get; set; }
+
+        /// <summary>Full name of the primary contact (populated when navigation property is loaded).</summary>
+        public string? PrimaryContactName { get; set; }
+
         public int? SalesOwnerId { get; set; }
         public string? SalesOwnerName { get; set; }
         public int? LeadId { get; set; }
@@ -54,6 +70,13 @@ namespace CRM.Core.DTOs
         public bool IsDeleted { get; set; }
         public byte[]? RowVersion { get; set; }
         public decimal WeightedAmount { get; set; }
+
+        /// <summary>
+        /// Probability-adjusted value (Amount * Probability / 100).
+        /// Convenience alias matching the entity computed property name.
+        /// </summary>
+        public decimal WeightedValue { get; set; }
+
         public bool IsOpen { get; set; }
         public bool IsWon { get; set; }
     }
@@ -118,6 +141,10 @@ namespace CRM.Core.DTOs
     {
         public int OpportunityId { get; set; }
         public int ProductId { get; set; }
+
+        /// <summary>Product name (populated when Product navigation property is loaded).</summary>
+        public string? ProductName { get; set; }
+
         public int Quantity { get; set; }
         public decimal? UnitPrice { get; set; }
         [Range(0, 100)]

@@ -1,4 +1,4 @@
-import { Box, Container, Typography, Card, CardContent, Table, TableBody, TableCell, TableHead, TableRow, CircularProgress, Alert, Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Select, MenuItem, FormControl, InputLabel, Chip, IconButton, Tooltip, Autocomplete } from '@mui/material';
+import { Box, Container, Typography, Card, CardContent, Table, TableBody, TableCell, TableHead, TableRow, CircularProgress, Alert, Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Select, MenuItem, FormControl, InputLabel, Chip, IconButton, Tooltip, Autocomplete, Switch, FormControlLabel } from '@mui/material';
 import { useState, useEffect } from 'react';
 import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, Lock as LockIcon, Link as LinkIcon, LinkOff as LinkOffIcon, Person as PersonIcon } from '@mui/icons-material';
 import apiClient from '../services/apiClient';
@@ -54,6 +54,9 @@ interface UserFormData {
   departmentId?: number;
   userProfileId?: number;
   contactId?: number;
+  isLocked?: boolean;
+  headerColor?: string;
+  photoUrl?: string;
 }
 
 const roleOptions = [
@@ -129,6 +132,9 @@ function UserManagementPage() {
         role: user.role,
         departmentId: user.departmentId,
         userProfileId: user.userProfileId,
+        isLocked: user.isLocked || false,
+        headerColor: user.headerColor || '',
+        photoUrl: user.photoUrl || '',
       });
     } else {
       setEditingId(null);
@@ -139,6 +145,9 @@ function UserManagementPage() {
         lastName: '',
         password: '',
         role: 2,
+        isLocked: false,
+        headerColor: '',
+        photoUrl: '',
       });
     }
     setOpenDialog(true);
@@ -540,6 +549,34 @@ function UserManagementPage() {
               fallback={[{ value: '', label: 'None' }, ...profiles.map(p => ({ value: p.id, label: p.name }))]}
             />
           </FormControl>
+          <TextField
+            fullWidth
+            label="Profile Photo URL"
+            name="photoUrl"
+            value={formData.photoUrl || ''}
+            onChange={handleInputChange}
+            margin="normal"
+            placeholder="https://example.com/photo.jpg"
+          />
+          <Box sx={{ mt: 1, mb: 1 }}>
+            <Typography variant="caption" color="textSecondary" display="block" gutterBottom>Header Color</Typography>
+            <input
+              type="color"
+              value={formData.headerColor || '#6750A4'}
+              onChange={(e) => setFormData(prev => ({ ...prev, headerColor: e.target.value }))}
+              style={{ width: 48, height: 36, cursor: 'pointer', border: 'none', borderRadius: 4, padding: 2 }}
+            />
+          </Box>
+          <FormControlLabel
+            control={
+              <Switch
+                checked={formData.isLocked || false}
+                onChange={(e) => setFormData(prev => ({ ...prev, isLocked: e.target.checked }))}
+              />
+            }
+            label="Account Locked"
+            sx={{ mt: 1 }}
+          />
           <Typography variant="caption" sx={{ mt: 2, display: 'block', color: 'textSecondary' }}>
             Note: Use the Link Contact button in the table to associate this user with a contact record.
           </Typography>

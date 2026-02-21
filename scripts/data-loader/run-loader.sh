@@ -10,7 +10,7 @@ PYTHON_SCRIPT="$SCRIPT_DIR/load_data.py"
 
 # Default values
 API_BASE="${API_BASE:-http://192.168.0.9:5000/api}"
-ADMIN_USER="${ADMIN_USER:-admin}"
+ADMIN_USER="${ADMIN_USER:-admin@crm.local}"
 ADMIN_PASS="${ADMIN_PASS:-Admin@123}"
 DATA_LEVEL="${1:-demo}"
 
@@ -46,7 +46,7 @@ if [[ "$1" == "-h" || "$1" == "--help" ]]; then
     echo ""
     echo "Environment Variables:"
     echo "  API_BASE    - API base URL (default: http://192.168.0.9:5000/api)"
-    echo "  ADMIN_USER  - Admin username (default: admin)"
+    echo "  ADMIN_USER  - Admin login (email or username) (default: admin@crm.local)"
     echo "  ADMIN_PASS  - Admin password (default: Admin@123)"
     echo ""
     echo "Examples:"

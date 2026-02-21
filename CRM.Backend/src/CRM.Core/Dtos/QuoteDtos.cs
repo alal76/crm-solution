@@ -21,26 +21,101 @@ namespace CRM.Core.DTOs
     {
         public int Id { get; set; }
         public string? QuoteNumber { get; set; }
+
+        // Identity
+        public string? ExternalQuoteId { get; set; }
+        public int Version { get; set; }
+        public string? Name { get; set; }
+        public string? Description { get; set; }
+
+        /// <summary>Title is an alias for Name, kept for API compatibility.</summary>
         public string? Title { get; set; }
+
         public int AccountId { get; set; }
         public string? AccountName { get; set; }
         public int? ContactId { get; set; }
         public string? ContactName { get; set; }
+        public int? OpportunityId { get; set; }
+        public int? AssignedToUserId { get; set; }
+        public int? CreatedByUserId { get; set; }
+        public int? ParentQuoteId { get; set; }
+        public int? RelationshipManagerId { get; set; }
+
         public int Status { get; set; } // Was QuoteStatus
         public string? Currency { get; set; }
+
+        // Dates
         public string? IssuedDate { get; set; }
         public string? ExpirationDate { get; set; }
-        public string? Notes { get; set; }
+        public string? SentDate { get; set; }
+        public string? ViewedDate { get; set; }
+        public string? AcceptedDate { get; set; }
+        public string? RejectedDate { get; set; }
+        public int? ValidityDays { get; set; }
+
+        // Pricing
         public decimal Subtotal { get; set; }
         public decimal DiscountTotal { get; set; }
+        public decimal? DiscountPercent { get; set; }
+        public string? DiscountReason { get; set; }
         public decimal TaxTotal { get; set; }
+        public decimal? TaxRate { get; set; }
+        public decimal? ShippingCost { get; set; }
         public decimal GrandTotal { get; set; }
+
+        // Terms
+        public string? PaymentTerms { get; set; }
+        public string? DeliveryTerms { get; set; }
+        public int? WarrantyMonths { get; set; }
+
+        // Billing Address
+        public string? BillingName { get; set; }
+        public string? BillingAddress { get; set; }
+        public string? BillingCity { get; set; }
+        public string? BillingState { get; set; }
+        public string? BillingZipCode { get; set; }
+        public string? BillingCountry { get; set; }
+
+        // Shipping Address
+        public string? ShippingName { get; set; }
+        public string? ShippingAddress { get; set; }
+        public string? ShippingCity { get; set; }
+        public string? ShippingState { get; set; }
+        public string? ShippingZipCode { get; set; }
+        public string? ShippingCountry { get; set; }
+
+        // Contact Details
+        public string? ContactEmail { get; set; }
+        public string? ContactPhone { get; set; }
+
+        // Approval Workflow
+        public bool RequiresApproval { get; set; }
+        public bool IsApproved { get; set; }
+        public int? ApprovedByUserId { get; set; }
+        public string? ApprovalDate { get; set; }
+        public string? ApprovalNotes { get; set; }
+        public string? SubmittedForApprovalDate { get; set; }
+
+        // Signature
+        public bool IsSigned { get; set; }
+        public string? SignedDate { get; set; }
+        public string? SignedBy { get; set; }
+        public string? SignatureUrl { get; set; }
+
+        // Documentation
+        public string? Notes { get; set; }
+        public string? InternalNotes { get; set; }
+        public string? QuotePdfUrl { get; set; }
+
+        // Classification
+        public string? Tags { get; set; }
+        public string? Category { get; set; }
+
         public List<QuoteLineItemDto>? LineItems { get; set; }
         public string? CreatedAt { get; set; }
         public string? UpdatedAt { get; set; }
         public bool IsDeleted { get; set; }
         public byte[]? RowVersion { get; set; }
-        public int CreatedByUserId { get; set; }
         public int? UpdatedByUserId { get; set; }
     }
 
@@ -50,12 +125,57 @@ namespace CRM.Core.DTOs
     public class CreateQuoteDto
     {
         public string? Title { get; set; }
+        public string? Name { get; set; }
+        public string? Description { get; set; }
+        public string? ExternalQuoteId { get; set; }
+        public int Version { get; set; } = 1;
+
         public int AccountId { get; set; }
         public int? ContactId { get; set; }
+        public int? OpportunityId { get; set; }
+        public int? AssignedToUserId { get; set; }
+        public int? ParentQuoteId { get; set; }
+        public int? RelationshipManagerId { get; set; }
+
         public string? Currency { get; set; }
         public string? IssuedDate { get; set; }
         public string? ExpirationDate { get; set; }
+        public int? ValidityDays { get; set; }
+
+        // Terms
+        public string? PaymentTerms { get; set; }
+        public string? DeliveryTerms { get; set; }
+        public int? WarrantyMonths { get; set; }
+        public string? DiscountReason { get; set; }
+
+        // Billing Address
+        public string? BillingName { get; set; }
+        public string? BillingAddress { get; set; }
+        public string? BillingCity { get; set; }
+        public string? BillingState { get; set; }
+        public string? BillingZipCode { get; set; }
+        public string? BillingCountry { get; set; }
+
+        // Shipping Address
+        public string? ShippingName { get; set; }
+        public string? ShippingAddress { get; set; }
+        public string? ShippingCity { get; set; }
+        public string? ShippingState { get; set; }
+        public string? ShippingZipCode { get; set; }
+        public string? ShippingCountry { get; set; }
+
+        // Contact Details
+        public string? ContactEmail { get; set; }
+        public string? ContactPhone { get; set; }
+
+        // Approval
+        public bool RequiresApproval { get; set; }
+
         public string? Notes { get; set; }
+        public string? InternalNotes { get; set; }
+        public string? Tags { get; set; }
+        public string? Category { get; set; }
+
         public List<CreateQuoteLineItemDto>? LineItems { get; set; }
     }
 
@@ -65,13 +185,74 @@ namespace CRM.Core.DTOs
     public class UpdateQuoteDto
     {
         public string? Title { get; set; }
+        public string? Name { get; set; }
+        public string? Description { get; set; }
+        public string? ExternalQuoteId { get; set; }
+
         public int AccountId { get; set; }
         public int? ContactId { get; set; }
+        public int? OpportunityId { get; set; }
+        public int? AssignedToUserId { get; set; }
+        public int? ParentQuoteId { get; set; }
+        public int? RelationshipManagerId { get; set; }
+
         public int Status { get; set; } // Was QuoteStatus
         public string? Currency { get; set; }
         public string? IssuedDate { get; set; }
         public string? ExpirationDate { get; set; }
+        public int? ValidityDays { get; set; }
+
+        // Terms
+        public string? PaymentTerms { get; set; }
+        public string? DeliveryTerms { get; set; }
+        public int? WarrantyMonths { get; set; }
+        public string? DiscountReason { get; set; }
+
+        // Billing Address
+        public string? BillingName { get; set; }
+        public string? BillingAddress { get; set; }
+        public string? BillingCity { get; set; }
+        public string? BillingState { get; set; }
+        public string? BillingZipCode { get; set; }
+        public string? BillingCountry { get; set; }
+
+        // Shipping Address
+        public string? ShippingName { get; set; }
+        public string? ShippingAddress { get; set; }
+        public string? ShippingCity { get; set; }
+        public string? ShippingState { get; set; }
+        public string? ShippingZipCode { get; set; }
+        public string? ShippingCountry { get; set; }
+
+        // Contact Details
+        public string? ContactEmail { get; set; }
+        public string? ContactPhone { get; set; }
+
+        // Approval Workflow
+        public bool? RequiresApproval { get; set; }
+        public bool? IsApproved { get; set; }
+        public int? ApprovedByUserId { get; set; }
+        public string? ApprovalDate { get; set; }
+        public string? ApprovalNotes { get; set; }
+        public string? SubmittedForApprovalDate { get; set; }
+
+        // Signature
+        public bool? IsSigned { get; set; }
+        public string? SignedDate { get; set; }
+        public string? SignedBy { get; set; }
+        public string? SignatureUrl { get; set; }
+
+        // Workflow dates
+        public string? SentDate { get; set; }
+        public string? ViewedDate { get; set; }
+        public string? AcceptedDate { get; set; }
+        public string? RejectedDate { get; set; }
+
         public string? Notes { get; set; }
+        public string? InternalNotes { get; set; }
+        public string? Tags { get; set; }
+        public string? Category { get; set; }
+
         public List<UpdateQuoteLineItemDto>? LineItems { get; set; }
     }
 

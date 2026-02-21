@@ -97,6 +97,32 @@
 		{ "id": 8, "accountId": 8, "contactId": 8, "type": "Email", "subject": "Order confirmation", "date": "2026-02-08", "userId": 9 },
 		{ "id": 9, "accountId": 9, "contactId": 9, "type": "Meeting", "subject": "Contract renewal", "date": "2026-02-09", "userId": 10 },
 		{ "id": 10, "accountId": 10, "contactId": 10, "type": "Call", "subject": "Product inquiry", "date": "2026-02-10", "userId": 2 }
-	]
-}
-
+        ],
+        "quotes": [
+                { "id": 1, "accountId": 1, "status": "Draft", "currency": "USD", "totalAmount": 5000,
+                  "lineItems":[{"productId": 1, "quantity":1, "unitPrice":5000}] }
+        ],
+        "orders": [
+                { "id": 1, "accountId": 1, "quoteId": 1, "status": "Processing", "currency": "USD", "totalAmount": 5000,
+                  "lineItems":[{"productId": 1, "quantity":1, "unitPrice":5000}] }
+        ],
+        "invoices": [
+                { "id": 1, "accountId": 1, "orderId": 1, "invoiceNumber": "INV-1001", "totalAmount": 5000, "currency": "USD", "dueDate": "2026-04-01" }
+        ],
+        "payments": [
+                { "id": 1, "invoiceId": 1, "amount": 5000, "paymentDate": "2026-04-05", "method": "CreditCard" }
+        ],
+        "contracts": [
+                { "id": 1, "accountId": 1, "name": "Support Agreement", "startDate": "2026-01-01", "endDate": "2026-12-31", "status": "Active", "totalValue": 12000, "currency": "USD" }
+        ],
+        "subscriptions": [
+                { "id": 1, "accountId": 1, "contractId": 1, "productId": 2, "startDate": "2026-01-01", "billingCycle": "Monthly", "status": "Active" }
+        ],
+        "campaignRecipients": [
+                { "id": 1, "campaignId": 1, "accountId": 1, "contactId": 1, "status": "Sent" }
+        ],
+        "campaignMetrics": [
+                { "id": 1, "campaignId": 1, "metricType": "OpenRate", "value": 0.45, "recordedAt": "2026-01-15" }
+        ],
+        "notes": [
+                { "id": 1, "entityType": "Opportunity", "entityId": 1, "text": "Client requested extended warranty", "createdByUserId": 2, "createdAt": "2026-02-02" }

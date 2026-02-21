@@ -3,7 +3,8 @@ import {
   Box, Card, CardContent, Typography, Button, Table, TableBody, TableCell, TableContainer, TableHead,
   TableRow, Dialog, DialogTitle, DialogContent, DialogActions, Alert, CircularProgress,
   TextField, Container, FormControl, InputLabel, Select, MenuItem, Chip, Grid,
-  IconButton, Tooltip, Tabs, Tab, SelectChangeEvent, Divider, Accordion, AccordionSummary, AccordionDetails
+  IconButton, Tooltip, Tabs, Tab, SelectChangeEvent, Divider, Accordion, AccordionSummary, AccordionDetails,
+  Switch, FormControlLabel
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import {
@@ -108,6 +109,37 @@ interface QuoteForm {
   notes: string;
   billingAddress: string;
   shippingAddress: string;
+  // Billing address group
+  billingName: string;
+  billingCity: string;
+  billingState: string;
+  billingZipCode: string;
+  billingCountry: string;
+  // Shipping address group
+  shippingName: string;
+  shippingCity: string;
+  shippingState: string;
+  shippingZipCode: string;
+  shippingCountry: string;
+  // Approval group
+  requiresApproval: boolean;
+  isApproved: boolean;
+  approvedByUserId: number | '';
+  approvalDate: string;
+  approvalNotes: string;
+  submittedForApprovalDate: string;
+  // Signature group
+  isSigned: boolean;
+  signedDate: string;
+  signedBy: string;
+  signatureUrl: string;
+  // Contact/terms group
+  contactEmail: string;
+  contactPhone: string;
+  paymentTerms: string;
+  deliveryTerms: string;
+  warrantyMonths: number | '';
+  internalNotes: string;
 }
 
 interface Customer {
@@ -146,6 +178,18 @@ function QuotesPage() {
     name: '', description: '', accountId: '', opportunityId: '', status: 0,
     subtotal: 0, taxRate: 0, discountPercent: 0, shippingCost: 0,
     expirationDate: '', termsAndConditions: '', notes: '', billingAddress: '', shippingAddress: '',
+    // Billing address group
+    billingName: '', billingCity: '', billingState: '', billingZipCode: '', billingCountry: '',
+    // Shipping address group
+    shippingName: '', shippingCity: '', shippingState: '', shippingZipCode: '', shippingCountry: '',
+    // Approval group
+    requiresApproval: false, isApproved: false, approvedByUserId: '', approvalDate: '',
+    approvalNotes: '', submittedForApprovalDate: '',
+    // Signature group
+    isSigned: false, signedDate: '', signedBy: '', signatureUrl: '',
+    // Contact/terms group
+    contactEmail: '', contactPhone: '', paymentTerms: '', deliveryTerms: '',
+    warrantyMonths: '', internalNotes: '',
   };
   const [formData, setFormData] = useState<QuoteForm>(emptyForm);
 
@@ -188,6 +232,18 @@ function QuotesPage() {
         expirationDate: quote.expirationDate?.split('T')[0] || '',
         termsAndConditions: quote.termsAndConditions || '', notes: quote.notes || '',
         billingAddress: quote.billingAddress || '', shippingAddress: quote.shippingAddress || '',
+        // Billing address group
+        billingName: '', billingCity: '', billingState: '', billingZipCode: '', billingCountry: '',
+        // Shipping address group
+        shippingName: '', shippingCity: '', shippingState: '', shippingZipCode: '', shippingCountry: '',
+        // Approval group
+        requiresApproval: false, isApproved: false,
+        approvedByUserId: '', approvalDate: '', approvalNotes: '', submittedForApprovalDate: '',
+        // Signature group
+        isSigned: false, signedDate: '', signedBy: '', signatureUrl: '',
+        // Contact/terms group
+        contactEmail: '', contactPhone: '', paymentTerms: '', deliveryTerms: '',
+        warrantyMonths: '', internalNotes: '',
       });
     } else {
       setEditingId(null);
@@ -708,6 +764,187 @@ function QuotesPage() {
                 </Box>
               </Grid>
             </Grid>
+          </TabPanel>
+
+          {/* Addresses Tab */}
+          <TabPanel value={dialogTab} index={3}>
+            <Accordion defaultExpanded>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <Typography variant="subtitle1" fontWeight={600}>Billing &amp; Shipping Address</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Grid container spacing={2}>
+                  {/* Row 1: Billing Name | Shipping Name */}
+                  <Grid item xs={6}>
+                    <TextField fullWidth label="Billing Name" name="billingName" value={formData.billingName} onChange={handleInputChange} />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <TextField fullWidth label="Shipping Name" name="shippingName" value={formData.shippingName} onChange={handleInputChange} />
+                  </Grid>
+                  {/* Row 2: Billing Address | Shipping Address */}
+                  <Grid item xs={6}>
+                    <TextField fullWidth label="Billing Address" name="billingAddress" value={formData.billingAddress} onChange={handleInputChange} />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <TextField fullWidth label="Shipping Address" name="shippingAddress" value={formData.shippingAddress} onChange={handleInputChange} />
+                  </Grid>
+                  {/* Row 3: Billing City | Billing State | Billing Zip */}
+                  <Grid item xs={4}>
+                    <TextField fullWidth label="Billing City" name="billingCity" value={formData.billingCity} onChange={handleInputChange} />
+                  </Grid>
+                  <Grid item xs={4}>
+                    <TextField fullWidth label="Billing State" name="billingState" value={formData.billingState} onChange={handleInputChange} />
+                  </Grid>
+                  <Grid item xs={4}>
+                    <TextField fullWidth label="Billing Zip Code" name="billingZipCode" value={formData.billingZipCode} onChange={handleInputChange} />
+                  </Grid>
+                  {/* Row 4: Shipping City | Shipping State | Shipping Zip */}
+                  <Grid item xs={4}>
+                    <TextField fullWidth label="Shipping City" name="shippingCity" value={formData.shippingCity} onChange={handleInputChange} />
+                  </Grid>
+                  <Grid item xs={4}>
+                    <TextField fullWidth label="Shipping State" name="shippingState" value={formData.shippingState} onChange={handleInputChange} />
+                  </Grid>
+                  <Grid item xs={4}>
+                    <TextField fullWidth label="Shipping Zip Code" name="shippingZipCode" value={formData.shippingZipCode} onChange={handleInputChange} />
+                  </Grid>
+                  {/* Row 5: Billing Country | Shipping Country */}
+                  <Grid item xs={6}>
+                    <TextField fullWidth label="Billing Country" name="billingCountry" value={formData.billingCountry} onChange={handleInputChange} />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <TextField fullWidth label="Shipping Country" name="shippingCountry" value={formData.shippingCountry} onChange={handleInputChange} />
+                  </Grid>
+                </Grid>
+              </AccordionDetails>
+            </Accordion>
+          </TabPanel>
+
+          {/* Terms / Approval & Signature Tab */}
+          <TabPanel value={dialogTab} index={4}>
+            <Accordion defaultExpanded>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <Typography variant="subtitle1" fontWeight={600}>Approval &amp; Signature</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Grid container spacing={2}>
+                  {/* Row 1: Requires Approval | Is Approved */}
+                  <Grid item xs={6}>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={formData.requiresApproval}
+                          onChange={(e) => setFormData(prev => ({ ...prev, requiresApproval: e.target.checked }))}
+                          name="requiresApproval"
+                        />
+                      }
+                      label="Requires Approval"
+                    />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={formData.isApproved}
+                          onChange={(e) => setFormData(prev => ({ ...prev, isApproved: e.target.checked }))}
+                          name="isApproved"
+                        />
+                      }
+                      label="Is Approved"
+                    />
+                  </Grid>
+                  {/* Row 2: Approved By User ID | Approval Date */}
+                  <Grid item xs={6}>
+                    <TextField
+                      fullWidth
+                      label="Approved By User ID"
+                      name="approvedByUserId"
+                      type="number"
+                      value={formData.approvedByUserId}
+                      onChange={(e) => setFormData(prev => ({ ...prev, approvedByUserId: e.target.value === '' ? '' : parseInt(e.target.value) || '' }))}
+                    />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <TextField fullWidth label="Approval Date" name="approvalDate" type="date" value={formData.approvalDate} onChange={handleInputChange} InputLabelProps={{ shrink: true }} />
+                  </Grid>
+                  {/* Row 3: Submitted For Approval Date */}
+                  <Grid item xs={6}>
+                    <TextField fullWidth label="Submitted For Approval Date" name="submittedForApprovalDate" type="date" value={formData.submittedForApprovalDate} onChange={handleInputChange} InputLabelProps={{ shrink: true }} />
+                  </Grid>
+                  <Grid item xs={6} />
+                  {/* Row 4: Approval Notes */}
+                  <Grid item xs={12}>
+                    <TextField fullWidth label="Approval Notes" name="approvalNotes" value={formData.approvalNotes} onChange={handleInputChange} multiline rows={3} />
+                  </Grid>
+                  {/* Row 5: Signature divider */}
+                  <Grid item xs={12}>
+                    <Divider sx={{ my: 1 }}>
+                      <Typography variant="caption" color="textSecondary" fontWeight={600} sx={{ textTransform: 'uppercase', letterSpacing: 1 }}>Signature</Typography>
+                    </Divider>
+                  </Grid>
+                  {/* Row 6: Is Signed | Signed Date */}
+                  <Grid item xs={6}>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={formData.isSigned}
+                          onChange={(e) => setFormData(prev => ({ ...prev, isSigned: e.target.checked }))}
+                          name="isSigned"
+                        />
+                      }
+                      label="Is Signed"
+                    />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <TextField fullWidth label="Signed Date" name="signedDate" type="date" value={formData.signedDate} onChange={handleInputChange} InputLabelProps={{ shrink: true }} />
+                  </Grid>
+                  {/* Row 7: Signed By | Signature URL */}
+                  <Grid item xs={6}>
+                    <TextField fullWidth label="Signed By" name="signedBy" value={formData.signedBy} onChange={handleInputChange} />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <TextField fullWidth label="Signature URL" name="signatureUrl" value={formData.signatureUrl} onChange={handleInputChange} />
+                  </Grid>
+                  {/* Row 8: Contact & Terms divider */}
+                  <Grid item xs={12}>
+                    <Divider sx={{ my: 1 }}>
+                      <Typography variant="caption" color="textSecondary" fontWeight={600} sx={{ textTransform: 'uppercase', letterSpacing: 1 }}>Contact &amp; Terms</Typography>
+                    </Divider>
+                  </Grid>
+                  {/* Row 9: Contact Email | Contact Phone */}
+                  <Grid item xs={6}>
+                    <TextField fullWidth label="Contact Email" name="contactEmail" type="email" value={formData.contactEmail} onChange={handleInputChange} />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <TextField fullWidth label="Contact Phone" name="contactPhone" value={formData.contactPhone} onChange={handleInputChange} />
+                  </Grid>
+                  {/* Row 10: Payment Terms | Delivery Terms */}
+                  <Grid item xs={6}>
+                    <TextField fullWidth label="Payment Terms" name="paymentTerms" value={formData.paymentTerms} onChange={handleInputChange} />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <TextField fullWidth label="Delivery Terms" name="deliveryTerms" value={formData.deliveryTerms} onChange={handleInputChange} />
+                  </Grid>
+                  {/* Row 11: Warranty Months */}
+                  <Grid item xs={6}>
+                    <TextField
+                      fullWidth
+                      label="Warranty Months"
+                      name="warrantyMonths"
+                      type="number"
+                      value={formData.warrantyMonths}
+                      onChange={(e) => setFormData(prev => ({ ...prev, warrantyMonths: e.target.value === '' ? '' : parseInt(e.target.value) || '' }))}
+                      inputProps={{ min: 0 }}
+                    />
+                  </Grid>
+                  <Grid item xs={6} />
+                  {/* Row 12: Internal Notes */}
+                  <Grid item xs={12}>
+                    <TextField fullWidth label="Internal Notes" name="internalNotes" value={formData.internalNotes} onChange={handleInputChange} multiline rows={2} />
+                  </Grid>
+                </Grid>
+              </AccordionDetails>
+            </Accordion>
           </TabPanel>
 
           {/* Related Entities Tab (only when editing) */}

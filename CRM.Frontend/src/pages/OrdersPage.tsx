@@ -108,6 +108,34 @@ interface OrderForm {
   notes: string;
   opportunityId: number | null;
   quoteId: number | null;
+  // Shipping & Fulfillment
+  shippingName: string;
+  shippingCity: string;
+  shippingState: string;
+  shippingZipCode: string;
+  shippingCountry: string;
+  shippingMethod: string;
+  shippingCarrier: string;
+  trackingNumber: string;
+  trackingUrl: string;
+  shippedDate: string;
+  deliveredDate: string;
+  estimatedDeliveryDate: string;
+  // Billing
+  billingName: string;
+  billingCity: string;
+  billingState: string;
+  billingZipCode: string;
+  billingCountry: string;
+  // Payment
+  paymentMethod: string;
+  paymentTerms: string;
+  paymentReference: string;
+  paymentDate: string;
+  // Revenue Recognition
+  revenueRecognitionMethod: string;
+  revenueStartDate: string;
+  revenueEndDate: string;
 }
 
 // ==================== CONSTANTS ====================
@@ -164,6 +192,34 @@ function OrdersPage() {
     notes: '',
     opportunityId: null,
     quoteId: null,
+    // Shipping & Fulfillment
+    shippingName: '',
+    shippingCity: '',
+    shippingState: '',
+    shippingZipCode: '',
+    shippingCountry: '',
+    shippingMethod: '',
+    shippingCarrier: '',
+    trackingNumber: '',
+    trackingUrl: '',
+    shippedDate: '',
+    deliveredDate: '',
+    estimatedDeliveryDate: '',
+    // Billing
+    billingName: '',
+    billingCity: '',
+    billingState: '',
+    billingZipCode: '',
+    billingCountry: '',
+    // Payment
+    paymentMethod: '',
+    paymentTerms: '',
+    paymentReference: '',
+    paymentDate: '',
+    // Revenue Recognition
+    revenueRecognitionMethod: '',
+    revenueStartDate: '',
+    revenueEndDate: '',
   };
   const [formData, setFormData] = useState<OrderForm>(emptyForm);
 
@@ -218,6 +274,34 @@ function OrdersPage() {
         notes: order.notes || '',
         opportunityId: order.opportunityId || null,
         quoteId: order.quoteId || null,
+        // Shipping & Fulfillment
+        shippingName: '',
+        shippingCity: '',
+        shippingState: '',
+        shippingZipCode: '',
+        shippingCountry: '',
+        shippingMethod: '',
+        shippingCarrier: '',
+        trackingNumber: '',
+        trackingUrl: '',
+        shippedDate: '',
+        deliveredDate: '',
+        estimatedDeliveryDate: '',
+        // Billing
+        billingName: '',
+        billingCity: '',
+        billingState: '',
+        billingZipCode: '',
+        billingCountry: '',
+        // Payment
+        paymentMethod: '',
+        paymentTerms: '',
+        paymentReference: '',
+        paymentDate: '',
+        // Revenue Recognition
+        revenueRecognitionMethod: '',
+        revenueStartDate: '',
+        revenueEndDate: '',
       });
       fetchLineItems(order.id);
     } else {
@@ -603,6 +687,322 @@ function OrdersPage() {
                       name="billingAddress"
                       value={formData.billingAddress}
                       onChange={handleInputChange}
+                    />
+                  </Grid>
+                </Grid>
+              </AccordionDetails>
+            </Accordion>
+
+            {/* Accordion: Shipping & Fulfillment */}
+            <Accordion sx={{ mt: 2 }}>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <Typography variant="subtitle1" fontWeight={600}>Shipping &amp; Fulfillment</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Grid container spacing={2}>
+                  {/* Row 1: Shipping Name | Shipping Method */}
+                  <Grid item xs={6}>
+                    <TextField
+                      fullWidth
+                      label="Shipping Name"
+                      name="shippingName"
+                      value={formData.shippingName}
+                      onChange={handleInputChange}
+                    />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <TextField
+                      fullWidth
+                      label="Shipping Method"
+                      name="shippingMethod"
+                      value={formData.shippingMethod}
+                      onChange={handleInputChange}
+                    />
+                  </Grid>
+                  {/* Row 2: Shipping Address */}
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      label="Shipping Street Address"
+                      name="shippingAddress"
+                      value={formData.shippingAddress}
+                      onChange={handleInputChange}
+                    />
+                  </Grid>
+                  {/* Row 3: City | State | Zip */}
+                  <Grid item xs={4}>
+                    <TextField
+                      fullWidth
+                      label="City"
+                      name="shippingCity"
+                      value={formData.shippingCity}
+                      onChange={handleInputChange}
+                    />
+                  </Grid>
+                  <Grid item xs={4}>
+                    <TextField
+                      fullWidth
+                      label="State"
+                      name="shippingState"
+                      value={formData.shippingState}
+                      onChange={handleInputChange}
+                    />
+                  </Grid>
+                  <Grid item xs={4}>
+                    <TextField
+                      fullWidth
+                      label="Zip Code"
+                      name="shippingZipCode"
+                      value={formData.shippingZipCode}
+                      onChange={handleInputChange}
+                    />
+                  </Grid>
+                  {/* Row 4: Country | Carrier */}
+                  <Grid item xs={6}>
+                    <TextField
+                      fullWidth
+                      label="Country"
+                      name="shippingCountry"
+                      value={formData.shippingCountry}
+                      onChange={handleInputChange}
+                    />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <TextField
+                      fullWidth
+                      label="Carrier"
+                      name="shippingCarrier"
+                      value={formData.shippingCarrier}
+                      onChange={handleInputChange}
+                    />
+                  </Grid>
+                  {/* Row 5: Tracking Number | Tracking URL */}
+                  <Grid item xs={6}>
+                    <TextField
+                      fullWidth
+                      label="Tracking Number"
+                      name="trackingNumber"
+                      value={formData.trackingNumber}
+                      onChange={handleInputChange}
+                    />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <TextField
+                      fullWidth
+                      label="Tracking URL"
+                      name="trackingUrl"
+                      value={formData.trackingUrl}
+                      onChange={handleInputChange}
+                    />
+                  </Grid>
+                  {/* Row 6: Shipped Date | Estimated Delivery Date | Delivered Date */}
+                  <Grid item xs={4}>
+                    <TextField
+                      fullWidth
+                      type="date"
+                      label="Shipped Date"
+                      name="shippedDate"
+                      value={formData.shippedDate}
+                      onChange={handleInputChange}
+                      InputLabelProps={{ shrink: true }}
+                    />
+                  </Grid>
+                  <Grid item xs={4}>
+                    <TextField
+                      fullWidth
+                      type="date"
+                      label="Estimated Delivery Date"
+                      name="estimatedDeliveryDate"
+                      value={formData.estimatedDeliveryDate}
+                      onChange={handleInputChange}
+                      InputLabelProps={{ shrink: true }}
+                    />
+                  </Grid>
+                  <Grid item xs={4}>
+                    <TextField
+                      fullWidth
+                      type="date"
+                      label="Delivered Date"
+                      name="deliveredDate"
+                      value={formData.deliveredDate}
+                      onChange={handleInputChange}
+                      InputLabelProps={{ shrink: true }}
+                    />
+                  </Grid>
+                </Grid>
+              </AccordionDetails>
+            </Accordion>
+
+            {/* Accordion: Billing, Payment & Revenue */}
+            <Accordion sx={{ mt: 2 }}>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <Typography variant="subtitle1" fontWeight={600}>Billing, Payment &amp; Revenue</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Grid container spacing={2}>
+                  {/* Section label: Billing Address */}
+                  <Grid item xs={12}>
+                    <Typography variant="body2" fontWeight={600} color="text.secondary" sx={{ mt: 1 }}>
+                      Billing Address
+                    </Typography>
+                  </Grid>
+                  {/* Row 2: Billing Name | Billing Address */}
+                  <Grid item xs={6}>
+                    <TextField
+                      fullWidth
+                      label="Billing Name"
+                      name="billingName"
+                      value={formData.billingName}
+                      onChange={handleInputChange}
+                    />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <TextField
+                      fullWidth
+                      label="Billing Street Address"
+                      name="billingAddress"
+                      value={formData.billingAddress}
+                      onChange={handleInputChange}
+                    />
+                  </Grid>
+                  {/* Row 3: City | State | Zip */}
+                  <Grid item xs={4}>
+                    <TextField
+                      fullWidth
+                      label="City"
+                      name="billingCity"
+                      value={formData.billingCity}
+                      onChange={handleInputChange}
+                    />
+                  </Grid>
+                  <Grid item xs={4}>
+                    <TextField
+                      fullWidth
+                      label="State"
+                      name="billingState"
+                      value={formData.billingState}
+                      onChange={handleInputChange}
+                    />
+                  </Grid>
+                  <Grid item xs={4}>
+                    <TextField
+                      fullWidth
+                      label="Zip Code"
+                      name="billingZipCode"
+                      value={formData.billingZipCode}
+                      onChange={handleInputChange}
+                    />
+                  </Grid>
+                  {/* Row 4: Billing Country */}
+                  <Grid item xs={6}>
+                    <TextField
+                      fullWidth
+                      label="Billing Country"
+                      name="billingCountry"
+                      value={formData.billingCountry}
+                      onChange={handleInputChange}
+                    />
+                  </Grid>
+                  {/* Section label: Payment */}
+                  <Grid item xs={12}>
+                    <Typography variant="body2" fontWeight={600} color="text.secondary" sx={{ mt: 1 }}>
+                      Payment
+                    </Typography>
+                  </Grid>
+                  {/* Row 6: Payment Method (Select) | Payment Terms */}
+                  <Grid item xs={6}>
+                    <FormControl fullWidth>
+                      <InputLabel>Payment Method</InputLabel>
+                      <Select
+                        name="paymentMethod"
+                        value={formData.paymentMethod}
+                        onChange={handleSelectChange}
+                        label="Payment Method"
+                      >
+                        <MenuItem value="">— None —</MenuItem>
+                        <MenuItem value="bank_transfer">Bank Transfer</MenuItem>
+                        <MenuItem value="credit_card">Credit Card</MenuItem>
+                        <MenuItem value="check">Check</MenuItem>
+                        <MenuItem value="cash">Cash</MenuItem>
+                        <MenuItem value="other">Other</MenuItem>
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <TextField
+                      fullWidth
+                      label="Payment Terms"
+                      name="paymentTerms"
+                      value={formData.paymentTerms}
+                      onChange={handleInputChange}
+                    />
+                  </Grid>
+                  {/* Row 7: Payment Reference | Payment Date */}
+                  <Grid item xs={6}>
+                    <TextField
+                      fullWidth
+                      label="Payment Reference"
+                      name="paymentReference"
+                      value={formData.paymentReference}
+                      onChange={handleInputChange}
+                    />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <TextField
+                      fullWidth
+                      type="date"
+                      label="Payment Date"
+                      name="paymentDate"
+                      value={formData.paymentDate}
+                      onChange={handleInputChange}
+                      InputLabelProps={{ shrink: true }}
+                    />
+                  </Grid>
+                  {/* Section label: Revenue Recognition */}
+                  <Grid item xs={12}>
+                    <Typography variant="body2" fontWeight={600} color="text.secondary" sx={{ mt: 1 }}>
+                      Revenue Recognition
+                    </Typography>
+                  </Grid>
+                  {/* Row 9: Recognition Method (Select) | Revenue Start Date */}
+                  <Grid item xs={6}>
+                    <FormControl fullWidth>
+                      <InputLabel>Recognition Method</InputLabel>
+                      <Select
+                        name="revenueRecognitionMethod"
+                        value={formData.revenueRecognitionMethod}
+                        onChange={handleSelectChange}
+                        label="Recognition Method"
+                      >
+                        <MenuItem value="">— None —</MenuItem>
+                        <MenuItem value="immediate">Immediate</MenuItem>
+                        <MenuItem value="straight_line">Straight Line</MenuItem>
+                        <MenuItem value="milestone">Milestone</MenuItem>
+                        <MenuItem value="usage">Usage</MenuItem>
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <TextField
+                      fullWidth
+                      type="date"
+                      label="Revenue Start Date"
+                      name="revenueStartDate"
+                      value={formData.revenueStartDate}
+                      onChange={handleInputChange}
+                      InputLabelProps={{ shrink: true }}
+                    />
+                  </Grid>
+                  {/* Row 10: Revenue End Date */}
+                  <Grid item xs={6}>
+                    <TextField
+                      fullWidth
+                      type="date"
+                      label="Revenue End Date"
+                      name="revenueEndDate"
+                      value={formData.revenueEndDate}
+                      onChange={handleInputChange}
+                      InputLabelProps={{ shrink: true }}
                     />
                   </Grid>
                 </Grid>

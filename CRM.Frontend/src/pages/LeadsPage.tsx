@@ -47,7 +47,14 @@ import {
   TrendingUp as TrendingUpIcon,
   Psychology as PsychologyIcon,
   Refresh as RefreshIcon,
+  ExpandMore as ExpandMoreIcon,
 } from '@mui/icons-material';
+import {
+  Accordion,
+  AccordionSummary,
+  AccordionDetails,
+  Grid,
+} from '@mui/material';
 import apiClient from '../services/apiClient';
 import logger from '../services/logger';
 import logo from '../assets/logo.png';
@@ -152,6 +159,13 @@ interface LeadFormData {
   phoneSecondary: string;
   doNotContact: boolean;
   preferredContactMethod: string;
+  // Qualification & Scoring fields
+  region: string;
+  qualificationNotes: string;
+  campaignId: string;
+  mqlDate: string;
+  sqlDate: string;
+  tags: string;
 }
 
 // Search fields for leads
@@ -189,6 +203,12 @@ function LeadsPage() {
     phoneSecondary: '',
     doNotContact: false,
     preferredContactMethod: '',
+    region: '',
+    qualificationNotes: '',
+    campaignId: '',
+    mqlDate: '',
+    sqlDate: '',
+    tags: '',
   });
   
   // Search and filter state
@@ -319,6 +339,12 @@ function LeadsPage() {
         phoneSecondary: lead.phoneSecondary || '',
         doNotContact: lead.doNotContact || false,
         preferredContactMethod: lead.preferredContactMethod || '',
+        region: '',
+        qualificationNotes: '',
+        campaignId: '',
+        mqlDate: '',
+        sqlDate: '',
+        tags: '',
       });
     } else {
       setEditingId(null);
@@ -338,6 +364,12 @@ function LeadsPage() {
         phoneSecondary: '',
         doNotContact: false,
         preferredContactMethod: '',
+        region: '',
+        qualificationNotes: '',
+        campaignId: '',
+        mqlDate: '',
+        sqlDate: '',
+        tags: '',
       });
     }
     setDialogTab(0);
@@ -1160,6 +1192,82 @@ function LeadsPage() {
                   }
                   label="Do Not Contact"
                 />
+
+                {/* Qualification & Scoring Accordion */}
+                <Accordion variant="outlined" sx={{ mt: 1, borderRadius: 1, '&:before': { display: 'none' } }}>
+                  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                    <Typography variant="subtitle2" fontWeight={600}>
+                      Qualification &amp; Scoring
+                    </Typography>
+                  </AccordionSummary>
+                  <AccordionDetails>
+                    <Grid container spacing={2}>
+                      <Grid item xs={6}>
+                        <TextField
+                          fullWidth
+                          label="Region"
+                          name="region"
+                          value={formData.region}
+                          onChange={handleInputChange}
+                        />
+                      </Grid>
+                      <Grid item xs={6}>
+                        <TextField
+                          fullWidth
+                          label="Campaign ID"
+                          name="campaignId"
+                          type="number"
+                          value={formData.campaignId}
+                          onChange={handleInputChange}
+                          inputProps={{ min: 0 }}
+                        />
+                      </Grid>
+                      <Grid item xs={6}>
+                        <TextField
+                          fullWidth
+                          label="MQL Date"
+                          name="mqlDate"
+                          type="date"
+                          value={formData.mqlDate}
+                          onChange={handleInputChange}
+                          InputLabelProps={{ shrink: true }}
+                        />
+                      </Grid>
+                      <Grid item xs={6}>
+                        <TextField
+                          fullWidth
+                          label="SQL Date"
+                          name="sqlDate"
+                          type="date"
+                          value={formData.sqlDate}
+                          onChange={handleInputChange}
+                          InputLabelProps={{ shrink: true }}
+                        />
+                      </Grid>
+                      <Grid item xs={12}>
+                        <TextField
+                          fullWidth
+                          label="Qualification Notes"
+                          name="qualificationNotes"
+                          value={formData.qualificationNotes}
+                          onChange={handleInputChange}
+                          multiline
+                          rows={3}
+                        />
+                      </Grid>
+                      <Grid item xs={12}>
+                        <TextField
+                          fullWidth
+                          label="Tags"
+                          name="tags"
+                          value={formData.tags}
+                          onChange={handleInputChange}
+                          placeholder="comma-separated"
+                        />
+                      </Grid>
+                    </Grid>
+                  </AccordionDetails>
+                </Accordion>
               </Stack>
             </Box>
           )}

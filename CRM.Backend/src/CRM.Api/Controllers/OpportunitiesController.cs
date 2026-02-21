@@ -251,18 +251,24 @@ public class OpportunitiesController : ControllerBase
             Id = entity.Id,
             Name = entity.Name,
             Stage = (int)entity.Stage,
+            StageName = entity.Stage.ToString(),
             Probability = entity.Probability,
             Amount = entity.Amount,
             Currency = entity.Currency,
             ExpectedCloseDate = entity.ExpectedCloseDate?.ToString("o"),
             PricingModel = (int)entity.PricingModel,
+            PricingModelName = entity.PricingModel.ToString(),
             TermLengthMonths = entity.TermLengthMonths,
             SolutionNotes = entity.SolutionNotes,
             QualificationReason = (int?)entity.QualificationReason,
             QualificationNotes = entity.QualificationNotes,
             Region = entity.Region,
             AccountId = entity.AccountId,
+            AccountName = entity.Account?.DisplayName,
             PrimaryContactId = entity.PrimaryContactId,
+            PrimaryContactName = entity.PrimaryContact != null
+                ? $"{entity.PrimaryContact.FirstName} {entity.PrimaryContact.LastName}".Trim()
+                : null,
             SalesOwnerId = entity.SalesOwnerId,
             SalesOwnerName = entity.SalesOwner?.FullName,
             LeadId = entity.LeadId,
@@ -272,6 +278,7 @@ public class OpportunitiesController : ControllerBase
             IsDeleted = entity.IsDeleted,
             RowVersion = entity.RowVersion,
             WeightedAmount = entity.WeightedAmount,
+            WeightedValue = entity.WeightedAmount,
             IsOpen = entity.IsOpen,
             IsWon = entity.IsWon
         };
@@ -283,6 +290,7 @@ public class OpportunitiesController : ControllerBase
         {
             OpportunityId = p.OpportunityId,
             ProductId = p.ProductId,
+            ProductName = p.Product?.Name,
             Quantity = p.Quantity,
             UnitPrice = p.UnitPrice,
             DiscountPercent = p.DiscountPercent,

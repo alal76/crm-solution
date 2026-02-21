@@ -108,6 +108,18 @@ interface CampaignForm {
   utmMedium: string;
   utmCampaign: string;
   tags: string;
+  // Budget & Performance Metrics
+  dailyBudget: number;
+  monthlyBudget: number;
+  expectedRevenue: number;
+  costPerLead: number;
+  costPerAcquisition: number;
+  mqlsGenerated: number;
+  sqlsGenerated: number;
+  opportunitiesCreated: number;
+  dealsWon: number;
+  utmContent: string;
+  utmTerm: string;
 }
 
 function CampaignsPage() {
@@ -141,6 +153,9 @@ function CampaignsPage() {
     socialReach: 0, socialEngagement: 0, socialShares: 0,
     isABTest: false, abTestVariants: '', winningVariant: '',
     utmSource: '', utmMedium: '', utmCampaign: '', tags: '',
+    dailyBudget: 0, monthlyBudget: 0, expectedRevenue: 0, costPerLead: 0, costPerAcquisition: 0,
+    mqlsGenerated: 0, sqlsGenerated: 0, opportunitiesCreated: 0, dealsWon: 0,
+    utmContent: '', utmTerm: '',
   };
   const [formData, setFormData] = useState<CampaignForm>(emptyForm);
 
@@ -177,6 +192,9 @@ function CampaignsPage() {
         abTestVariants: campaign.abTestVariants || '', winningVariant: campaign.winningVariant || '',
         utmSource: campaign.utmSource || '', utmMedium: campaign.utmMedium || '',
         utmCampaign: campaign.utmCampaign || '', tags: campaign.tags || '',
+        dailyBudget: 0, monthlyBudget: 0, expectedRevenue: 0, costPerLead: 0, costPerAcquisition: 0,
+        mqlsGenerated: 0, sqlsGenerated: 0, opportunitiesCreated: 0, dealsWon: 0,
+        utmContent: '', utmTerm: '',
       });
     } else {
       setEditingId(null);
@@ -660,6 +678,65 @@ function CampaignsPage() {
                       </Grid>
                     </>
                   )}
+                </Grid>
+              </AccordionDetails>
+            </Accordion>
+            {/* Accordion for Budget & Performance Metrics */}
+            <Accordion sx={{ mt: 3 }}>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <Typography variant="subtitle1" fontWeight={600}>Budget & Performance Metrics</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Grid container spacing={2}>
+                  {/* Row 1: Daily Budget | Monthly Budget */}
+                  <Grid item xs={6}>
+                    <TextField fullWidth label="Daily Budget ($)" name="dailyBudget" type="number" value={formData.dailyBudget} onChange={handleInputChange} inputProps={{ min: 0 }} />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <TextField fullWidth label="Monthly Budget ($)" name="monthlyBudget" type="number" value={formData.monthlyBudget} onChange={handleInputChange} inputProps={{ min: 0 }} />
+                  </Grid>
+                  {/* Row 2: Expected Revenue | Cost Per Lead */}
+                  <Grid item xs={6}>
+                    <TextField fullWidth label="Expected Revenue ($)" name="expectedRevenue" type="number" value={formData.expectedRevenue} onChange={handleInputChange} inputProps={{ min: 0 }} />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <TextField fullWidth label="Cost Per Lead ($)" name="costPerLead" type="number" value={formData.costPerLead} onChange={handleInputChange} inputProps={{ min: 0 }} />
+                  </Grid>
+                  {/* Row 3: Cost Per Acquisition | Impressions */}
+                  <Grid item xs={6}>
+                    <TextField fullWidth label="Cost Per Acquisition ($)" name="costPerAcquisition" type="number" value={formData.costPerAcquisition} onChange={handleInputChange} inputProps={{ min: 0 }} />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <TextField fullWidth label="Impressions" name="impressions" type="number" value={formData.impressions} onChange={handleInputChange} inputProps={{ min: 0 }} />
+                  </Grid>
+                  {/* Row 4: MQLs Generated | SQLs Generated (read-only, system metrics) */}
+                  <Grid item xs={6}>
+                    <TextField fullWidth label="MQLs Generated" name="mqlsGenerated" type="number" value={formData.mqlsGenerated} onChange={handleInputChange} disabled helperText="Set by the system" />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <TextField fullWidth label="SQLs Generated" name="sqlsGenerated" type="number" value={formData.sqlsGenerated} onChange={handleInputChange} disabled helperText="Set by the system" />
+                  </Grid>
+                  {/* Row 5: Opportunities Created | Deals Won (read-only, system metrics) */}
+                  <Grid item xs={6}>
+                    <TextField fullWidth label="Opportunities Created" name="opportunitiesCreated" type="number" value={formData.opportunitiesCreated} onChange={handleInputChange} disabled helperText="Set by the system" />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <TextField fullWidth label="Deals Won" name="dealsWon" type="number" value={formData.dealsWon} onChange={handleInputChange} disabled helperText="Set by the system" />
+                  </Grid>
+                  {/* Row 6: UTM Source | UTM Medium */}
+                  <Grid item xs={6}>
+                    <TextField fullWidth label="UTM Source" name="utmSource" value={formData.utmSource} onChange={handleInputChange} placeholder="google" />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <TextField fullWidth label="UTM Medium" name="utmMedium" value={formData.utmMedium} onChange={handleInputChange} placeholder="cpc" />
+                  </Grid>
+                  {/* Row 7: UTM Content | UTM Term */}
+                  <Grid item xs={6}>
+                    <TextField fullWidth label="UTM Content" name="utmContent" value={formData.utmContent} onChange={handleInputChange} placeholder="banner_ad" />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <TextField fullWidth label="UTM Term" name="utmTerm" value={formData.utmTerm} onChange={handleInputChange} placeholder="running+shoes" />
+                  </Grid>
                 </Grid>
               </AccordionDetails>
             </Accordion>

@@ -80,12 +80,15 @@ class APIClient:
         return self._request("DELETE", endpoint)
     
     def login(self, username: str, password: str) -> bool:
-        """Authenticate and store token"""
+        """Authenticate and store token (accepts username or email)"""
         try:
-            response = self.post("/auth/login", {
-                "username": username,
-                "password": password
-            })
+            # API login endpoint expects either 'email' or 'username' field depending on configuration.
+            payload = {"password": password}
+            if "@" in username:
+                payload["email"] = username
+            else:
+                payload["username"] = username
+            response = self.post("/auth/login", payload)
             self.token = response.get("token") or response.get("accessToken")
             return bool(self.token)
         except Exception as e:
@@ -325,109 +328,173 @@ def load_basic_data(api: APIClient):
         except:
             print(f"  ⚠️ User {user['username']} may already exist")
     
-    # Create sample customers (3 types)
-    print("\n👤 Creating sample customers...")
-    customers = [
-        # Individual customer
+    # Create sample accounts (customers) using current CreateAccountDto
+    print("\n👤 Creating sample accounts...")
+    # Category enum: 0=Individual, 1=Organization
+    accounts = [
+        # Individual
         {
-            "category": 0, "firstName": "Alice", "lastName": "Brown",
-            "email": "alice.brown@email.com", "phone": "+1-555-0101",
-            "customerType": 0, "lifecycleStage": 3, "priority": 1,
-            **DataGenerator.address()
+            "category": 0,
+            "firstName": "Alice",
+            "lastName": "Brown",
+            "email": "alice.brown@email.com",
+            "phone": "+1-555-0101",
+            "address": DataGenerator.address()["address"],
+            "city": DataGenerator.address()["city"],
+            "state": DataGenerator.address()["state"],
+            "zipCode": DataGenerator.address()["postalCode"],
+            "country": DataGenerator.address()["country"],
+            "lifecycleStage": 2,    # Customer enum value maybe
+            "priority": 1           # Medium
         },
-        # Small Business
+        # Organization (small business)
         {
-            "category": 1, "company": "Acme Solutions LLC", "legalName": "Acme Solutions Limited Liability Company",
-            "email": "info@acmesolutions.com", "phone": "+1-555-0102",
-            "customerType": 1, "lifecycleStage": 3, "priority": 2,
-            "industry": "Technology", "website": "https://acmesolutions.com",
-            "annualRevenue": 1500000, **DataGenerator.address()
+            "category": 1,
+            "company": "Acme Solutions LLC",
+            "legalName": "Acme Solutions Limited Liability Company",
+            "email": "info@acmesolutions.com",
+            "phone": "+1-555-0102",
+            "industry": "Technology",
+            "website": "https://acmesolutions.com",
+            "annualRevenue": 1500000,
+            "lifecycleStage": 2,
+            "priority": 1,
+            "address": DataGenerator.address()["address"],
+            "city": DataGenerator.address()["city"],
+            "state": DataGenerator.address()["state"],
+            "zipCode": DataGenerator.address()["postalCode"],
+            "country": DataGenerator.address()["country"]
         },
-        # Enterprise
+        # Organization (enterprise)
         {
-            "category": 1, "company": "Global Industries Inc", "legalName": "Global Industries Incorporated",
-            "email": "contact@globalindustries.com", "phone": "+1-555-0103",
-            "customerType": 3, "lifecycleStage": 3, "priority": 3,
-            "industry": "Manufacturing", "website": "https://globalindustries.com",
-            "annualRevenue": 50000000, **DataGenerator.address()
+            "category": 1,
+            "company": "Global Industries Inc",
+            "legalName": "Global Industries Incorporated",
+            "email": "contact@globalindustries.com",
+            "phone": "+1-555-0103",
+            "industry": "Manufacturing",
+            "website": "https://globalindustries.com",
+            "annualRevenue": 50000000,
+            "lifecycleStage": 2,
+            "priority": 2,
+            "address": DataGenerator.address()["address"],
+            "city": DataGenerator.address()["city"],
+            "state": DataGenerator.address()["state"],
+            "zipCode": DataGenerator.address()["postalCode"],
+            "country": DataGenerator.address()["country"]
         },
     ]
     
-    for customer in customers:
-        try:
-            result = api.post("/customers", customer)
-            api.track_created("customer", result.get("id", 0))
-            name = customer.get("company") or f"{customer['firstName']} {customer['lastName']}"
-            print(f"  ✓ Created customer: {name}")
-        except Exception as e:
-            print(f"  ❌ Failed to create customer: {e}")
-    
-    # Create sample products (3 types: one-time, subscription, usage-based)
+    # Create sample products using Product entity structure (needed for later financial records)
     print("\n📦 Creating sample products...")
     products = [
-        # One-time purchase product
-        {
-            "name": "CRM Professional License", "sku": "CRM-PRO-001",
-            "description": "One-time license for CRM Professional Edition",
-            "price": 999.00, "cost": 200.00, "category": "Software",
-            "productType": 0, "isActive": True, "isTaxable": True
-        },
-        # Subscription product
-        {
-            "name": "CRM Cloud - Monthly", "sku": "CRM-CLOUD-M",
-            "description": "Monthly subscription for CRM Cloud service",
-            "price": 99.00, "cost": 15.00, "category": "Subscription",
-            "productType": 1, "billingFrequency": "Monthly",
-            "isActive": True, "isTaxable": True
-        },
-        # Usage-based product
-        {
-            "name": "API Calls Package", "sku": "API-1000",
-            "description": "1000 API calls per month",
-            "price": 49.00, "cost": 5.00, "category": "Usage",
-            "productType": 2, "isActive": True, "isTaxable": True
-        },
-        # Service
-        {
-            "name": "Implementation Services", "sku": "SVC-IMPL",
-            "description": "Professional implementation and setup services",
-            "price": 2500.00, "cost": 1000.00, "category": "Services",
-            "productType": 0, "isActive": True, "isTaxable": False
-        },
+        {"name": "CRM Professional License", "category": "Software", "unitPrice": 999.00, "sku": "CRM-PRO-001"},
+        {"name": "CRM Cloud - Monthly", "category": "Subscription", "unitPrice": 99.00, "sku": "CRM-CLOUD-M"},
+        {"name": "API Calls Package", "category": "Usage", "unitPrice": 49.00, "sku": "API-1000"},
+        {"name": "Implementation Services", "category": "Services", "unitPrice": 2500.00, "sku": "SVC-IMPL"},
     ]
-    
+    product_ids = []
+    # fetch existing products to avoid duplicates
+    try:
+        existing_raw = api.get("/products")
+        print(f"  ℹ️ Existing products raw response: {existing_raw}")
+        if isinstance(existing_raw, dict) and "items" in existing_raw:
+            existing = existing_raw.get("items", [])
+        elif isinstance(existing_raw, list):
+            existing = existing_raw
+        else:
+            existing = []
+    except Exception:
+        existing = []
+    existing_by_sku = {p.get("sku"): p.get("id") for p in existing}
     for product in products:
+        sku = product.get("sku")
+        if sku in existing_by_sku and existing_by_sku[sku]:
+            pid = existing_by_sku[sku]
+            product_ids.append(pid)
+            api.track_created("product", pid)
+            print(f"  ℹ️ Skipping existing product {sku} (ID {pid})")
+            continue
         try:
             result = api.post("/products", product)
-            api.track_created("product", result.get("id", 0))
+            pid = result.get("id", 0)
+            api.track_created("product", pid)
+            product_ids.append(pid)
             print(f"  ✓ Created product: {product['name']}")
         except Exception as e:
-            print(f"  ❌ Failed to create product: {e}")
+            print(f"  ❌ Failed to create product {product['name']}: {e}")
+
+    # Create sample accounts (customers) using current CreateAccountDto
+    print("\n👤 Creating sample accounts...")
+    # Category enum: 0=Individual, 1=Organization
     
-    # Create sample leads (3 different stages)
+    for acct in accounts:
+        try:
+            result = api.post("/accounts", acct)
+            acct_id = result.get("id", 0)
+            api.track_created("account", acct_id)
+            name = acct.get("company") or f"{acct.get('firstName','')} {acct.get('lastName','')}"
+            print(f"  ✓ Created account: {name}")
+        except Exception as e:
+            print(f"  ❌ Failed to create account: {e}")
+            acct_id = None
+
+        # create a series of related financial/doc records for the account
+        if acct_id:
+            prod_id = random.choice(product_ids) if product_ids else api.get_random_id("product")
+            if not prod_id:
+                print("    ⚠️ No product available to create financial records")
+            else:
+                try:
+                    # create a quote with at least one line item so validation passes
+                    # generate a unique quote number (server requires it due to [Required] attribute)
+                    def gen_quote_number():
+                        year = datetime.now().year
+                        return f"Q-{year}-{random.randint(1,99999):05d}"
+
+                    quote = {"accountId": acct_id,
+                             "quoteNumber": gen_quote_number(),
+                             "name": "Initial Quote",
+                             "currency": "USD",
+                             "quoteLineItems": [{"productId": prod_id, "quantity": 1, "unitPrice": 5000}]}
+                    qres = api.post("/quotes", quote)
+                    api.track_created("quote", qres.get("id", 0))
+                    print(f"    ✓ Created quote {qres.get('id')}")
+
+                    order = {"accountId": acct_id, "quoteId": qres.get("id", 0), "status": "Processing", "currency": "USD", "totalAmount": 5000,
+                             "orderDate": datetime.now().strftime("%Y-%m-%d")}
+                    ores = api.post("/orders", order)
+                    api.track_created("order", ores.get("id", 0))
+                    print(f"    ✓ Created order {ores.get('id')}")
+
+                    invoice = {"accountId": acct_id, "orderId": ores.get("id", 0), "invoiceNumber": f"INV-{random.randint(1000,9999)}", "totalAmount": 5000, "currency": "USD", "dueDate": DataGenerator.date_in_future(30)}
+                    ires = api.post("/invoices", invoice)
+                    api.track_created("invoice", ires.get("id", 0))
+                    print(f"    ✓ Created invoice {ires.get('id')}")
+
+                    payment = {"invoiceId": ires.get("id", 0), "accountId": acct_id, "amount": ires.get("totalAmount", 0), "paymentDate": DataGenerator.date_in_past(10), "method": "CreditCard"}
+                    pres = api.post("/payments", payment)
+                    api.track_created("payment", pres.get("id", 0))
+                    print(f"    ✓ Created payment for invoice {ires.get('id')}")
+
+                    contract = {"accountId": acct_id, "name": "Support Contract", "startDate": DataGenerator.date_in_past(30), "endDate": DataGenerator.date_in_future(365), "status": "Active", "totalValue": 12000, "currency": "USD"}
+                    cres = api.post("/contracts", contract)
+                    api.track_created("contract", cres.get("id", 0))
+                    print(f"    ✓ Created contract {cres.get('id')}")
+
+                    subscription = {"accountId": acct_id, "contractId": cres.get("id", 0), "productId": prod_id, "startDate": DataGenerator.date_in_past(30), "billingCycle": "Monthly", "status": "Active"}
+                    sres = api.post("/subscriptions", subscription)
+                    api.track_created("subscription", sres.get("id", 0))
+                    print(f"    ✓ Created subscription {sres.get('id')}")
+                except Exception as e:
+                    print(f"    ⚠️ Related financial record failed: {e}")
+    
+    # Create sample leads (basic CreateLeadDto)
     print("\n🎯 Creating sample leads...")
     leads = [
-        # New lead - just captured
-        {
-            "firstName": "David", "lastName": "Lee", "email": "david.lee@prospect.com",
-            "phone": "+1-555-0201", "companyName": "Tech Startup Inc",
-            "status": 0, "source": 0, "score": 45,
-            "title": "CTO", **DataGenerator.address()
-        },
-        # Qualified lead - ready for sales
-        {
-            "firstName": "Sarah", "lastName": "Chen", "email": "sarah.chen@bigcorp.com",
-            "phone": "+1-555-0202", "companyName": "BigCorp International",
-            "status": 2, "source": 1, "score": 78,
-            "title": "VP of Operations", **DataGenerator.address()
-        },
-        # Hot lead - high intent
-        {
-            "firstName": "Michael", "lastName": "Garcia", "email": "m.garcia@enterprise.com",
-            "phone": "+1-555-0203", "companyName": "Enterprise Solutions",
-            "status": 3, "source": 2, "score": 92,
-            "title": "Director of IT", **DataGenerator.address()
-        },
+        {"firstName": "David", "lastName": "Lee", "companyName": "Tech Startup Inc", "email": "david.lee@prospect.com", "phone": "+1-555-0201"},
+        {"firstName": "Sarah", "lastName": "Chen", "companyName": "BigCorp International", "email": "sarah.chen@bigcorp.com", "phone": "+1-555-0202"},
+        {"firstName": "Michael", "lastName": "Garcia", "companyName": "Enterprise Solutions", "email": "m.garcia@enterprise.com", "phone": "+1-555-0203"},
     ]
     
     for lead in leads:
@@ -441,7 +508,7 @@ def load_basic_data(api: APIClient):
     # Create sample opportunities (3 stages)
     print("\n💰 Creating sample opportunities...")
     
-    customer_id = api.get_random_id("customer")
+    customer_id = api.get_random_id("account")
     if customer_id:
         opportunities = [
             # Discovery stage
@@ -449,21 +516,21 @@ def load_basic_data(api: APIClient):
                 "name": "CRM Implementation - Acme", "stage": 0, "probability": 10,
                 "amount": 25000, "currency": "USD",
                 "expectedCloseDate": DataGenerator.date_in_future(90),
-                "customerId": customer_id
+                "accountId": customer_id
             },
             # Proposal stage
             {
                 "name": "Cloud Migration - Global", "stage": 2, "probability": 50,
                 "amount": 75000, "currency": "USD",
                 "expectedCloseDate": DataGenerator.date_in_future(60),
-                "customerId": customer_id
+                "accountId": customer_id
             },
             # Negotiation stage
             {
                 "name": "Enterprise License Deal", "stage": 3, "probability": 75,
                 "amount": 150000, "currency": "USD",
                 "expectedCloseDate": DataGenerator.date_in_future(30),
-                "customerId": customer_id
+                "accountId": customer_id
             },
         ]
         
@@ -475,42 +542,48 @@ def load_basic_data(api: APIClient):
             except Exception as e:
                 print(f"  ❌ Failed to create opportunity: {e}")
     
-    # Create sample campaigns (3 types)
+    # Create sample lookups, departments and groups
+    print("\n🔧 Creating configuration data (lookup, department, user group)")
+    try:
+        lres = api.post("/lookups", {"category":"Currency","code":"USD","value":"US Dollar","displayOrder":1,"isActive":True})
+        api.track_created("lookup", lres.get("id",0))
+        print("  ✓ Created lookup USD")
+    except Exception as e:
+        print(f"  ❌ Lookup error: {e}")
+    try:
+        dres = api.post("/departments", {"name":"Sales","code":"SALES","isActive":True})
+        api.track_created("department", dres.get("id",0))
+        print("  ✓ Created department Sales")
+    except Exception as e:
+        print(f"  ❌ Department error: {e}")
+    try:
+        gres = api.post("/usergroups", {"name":"Sales Team","description":"All sales users"})
+        api.track_created("usergroup", gres.get("id",0))
+        print("  ✓ Created user group Sales Team")
+    except Exception as e:
+        print(f"  ❌ User group error: {e}")
+
+    # Create sample campaigns (3 types) using minimal CreateCampaignDto
     print("\n📣 Creating sample campaigns...")
     campaigns = [
-        # Email campaign
-        {
-            "name": "Q1 Newsletter Campaign", "type": 0,
-            "status": 1, "description": "Quarterly newsletter to all customers",
-            "startDate": DataGenerator.date_in_past(30),
-            "endDate": DataGenerator.date_in_future(30),
-            "budget": 5000, "actualCost": 2500
-        },
-        # Event campaign
-        {
-            "name": "Annual User Conference", "type": 1,
-            "status": 0, "description": "Annual customer conference and networking event",
-            "startDate": DataGenerator.date_in_future(60),
-            "endDate": DataGenerator.date_in_future(62),
-            "budget": 50000, "expectedRevenue": 100000
-        },
-        # Webinar campaign
-        {
-            "name": "Product Demo Webinar Series", "type": 2,
-            "status": 1, "description": "Weekly product demonstration webinars",
-            "startDate": DataGenerator.date_in_past(7),
-            "endDate": DataGenerator.date_in_future(90),
-            "budget": 2000, "expectedLeads": 100
-        },
+        {"name": "Q1 Newsletter Campaign", "campaignType": 0, "budget": 5000, "targetRoi": 1.2},
+        {"name": "Annual User Conference", "campaignType": 1, "budget": 50000, "targetRoi": 2.0},
+        {"name": "Product Demo Webinar Series", "campaignType": 2, "budget": 2000, "targetRoi": 0.5},
     ]
-    
+
     for campaign in campaigns:
         try:
             result = api.post("/campaigns", campaign)
             api.track_created("campaign", result.get("id", 0))
             print(f"  ✓ Created campaign: {campaign['name']}")
+            # add a recipient and metric to each
+            rid = api.post(f"/campaigns/{result.get('id')}/recipients", {"accountId": api.get_random_id("account"), "contactId": api.get_random_id("contact")}).get("id",0)
+            api.track_created("campaignrecipient", rid)
+            m = api.post(f"/campaigns/{result.get('id')}/metrics", {"metricType":"OpenRate","value":0.5})
+            api.track_created("campaignmetric", m.get("id",0))
         except Exception as e:
             print(f"  ❌ Failed to create campaign: {e}")
+    
     
     print("\n✅ Basic data loaded successfully!")
     return True
@@ -526,57 +599,141 @@ def load_demo_data(api: APIClient):
     print("🎭 LOADING DEMO DATA")
     print("="*60)
     
-    # Create 20+ customers with variety
-    print("\n👤 Creating demo customers (20+)...")
+    # Create 20+ demo accounts with variety
+    print("\n👤 Creating demo accounts (20+)...")
     
     for i in range(20):
-        # Mix of individual and organization
-        is_org = i % 3 != 0  # 2/3 organizations, 1/3 individuals
-        
+        is_org = i % 3 != 0
         if is_org:
             company = DataGenerator.company()
-            customer = {
+            acct = {
                 "category": 1,
                 "company": company,
                 "legalName": f"{company} LLC",
                 "email": f"info@{company.lower().replace(' ', '')}.com",
                 "phone": DataGenerator.phone(),
-                "customerType": random.choice([1, 2, 3]),  # Small, Mid, Enterprise
-                "lifecycleStage": random.choice([1, 2, 3, 4]),
-                "priority": random.choice([0, 1, 2, 3]),
+                "lifecycleStage": 2,
+                "priority": random.choice([0,1,2,3]),
                 "industry": DataGenerator.industry(),
                 "website": DataGenerator.website(company),
-                "annualRevenue": random.randint(100000, 10000000),
+                "annualRevenue": random.randint(100000,10000000),
                 **DataGenerator.address()
             }
         else:
             first, last = DataGenerator.name()
-            customer = {
+            acct = {
                 "category": 0,
                 "firstName": first,
                 "lastName": last,
                 "email": DataGenerator.email(first, last),
                 "phone": DataGenerator.phone(),
-                "customerType": 0,
-                "lifecycleStage": random.choice([1, 2, 3]),
-                "priority": random.choice([0, 1, 2]),
+                "lifecycleStage": random.choice([1,2,3]),
+                "priority": random.choice([0,1,2]),
                 **DataGenerator.address()
             }
-        
         try:
-            result = api.post("/customers", customer)
-            api.track_created("customer", result.get("id", 0))
+            result = api.post("/accounts", acct)
+            api.track_created("account", result.get("id", 0))
+            # also attach a phone and email record
+            aid = result.get("id",0)
+            # link a new phone number using proper DTO
+            api.post("/contactinfo/phones/link", {"entityType":"Account","entityId":aid,
+                      "newPhone": {"number": DataGenerator.phone(), "countryCode": "+1"}})
+            # link a new email address using proper DTO
+            api.post("/contactinfo/emails/link", {"entityType":"Account","entityId":aid,
+                      "newEmail": {"email": DataGenerator.email(first if not is_org else company,'','info')}})
         except:
             pass
     
-    print(f"  ✓ Created {len(api.created_ids.get('customer', []))} customers")
+    print(f"  ✓ Created {len(api.created_ids.get('account', []))} accounts")
+    # demo quotes/orders/invoices/payments/contract/subscription
+    for acct in api.created_ids.get("account", [])[:5]:
+        prod = api.get_random_id("product")
+        quote_id = None
+        if not prod:
+            print(f"  ⚠️ No product available for quote creation on acct {acct}")
+            continue
+        # payload must match CreateQuoteDto and include quoteNumber
+        def gen_quote_number():
+            year = datetime.now().year
+            return f"Q-{year}-{random.randint(1,99999):05d}"
+
+        quote = {"accountId": acct,
+                 "quoteNumber": gen_quote_number(),
+                 "name": "Demo Quote",
+                 "currency": "USD",
+                 "quoteLineItems": [{"productId": prod, "quantity":1, "unitPrice":5000}]}
+        print(f"    Debug quote payload for acct {acct}: {quote}")
+        try:
+            q = api.post("/quotes", quote)
+            quote_id = q.get("id",0)
+            api.track_created("quote", quote_id)
+        except Exception as e:
+            print(f"  ❌ Failed to create quote for acct {acct}: {e}")
+        if quote_id:
+            # create order
+            try:
+                order = {
+                    "accountId": acct,
+                    "quoteId": quote_id,
+                    "name": quote.get("name", "Order from Quote"),
+                    "orderDate": DataGenerator.date_in_past(30),
+                    "status": "Processing",
+                    "totalAmount": 5000,
+                    "currency": "USD",
+                }
+                print(f"    ➤ Order payload: {order}")
+                o = api.post("/orders", order)
+                api.track_created("order", o.get("id",0))
+                print(f"    ✓ Order created (id={o.get('id')})")
+            except Exception as e:
+                print(f"    ❌ Order creation failed: {e}")
+                return
+            # create invoice
+            try:
+                inv = {"accountId":acct,"orderId":o.get("id",0),"invoiceNumber":"INV-"+str(o.get("id",0)),"totalAmount":5000,"currency":"USD","dueDate":DataGenerator.date_in_future(30)}
+                print(f"    ➤ Invoice payload: {inv}")
+                i = api.post("/invoices", inv); api.track_created("invoice", i.get("id",0))
+                print(f"    ✓ Invoice created (id={i.get('id')})")
+            except Exception as e:
+                print(f"    ❌ Invoice creation failed: {e}")
+                return
+            # create payment
+            try:
+                pay = {"invoiceId":i.get("id",0),"accountId":acct,"amount":5000,"paymentDate":DataGenerator.date_in_future(35),"method":"CreditCard"}
+                print(f"    ➤ Payment payload: {pay}")
+                api.post("/payments", pay)
+                print(f"    ✓ Payment recorded")
+            except Exception as e:
+                print(f"    ❌ Payment creation failed: {e}")
+                return
+            # create contract
+            try:
+                con = {"accountId":acct,"name":"Demo Contract","startDate":DataGenerator.date_in_past(60),"endDate":DataGenerator.date_in_future(300),"status":"Active","totalValue":12000,"currency":"USD"}
+                print(f"    ➤ Contract payload: {con}")
+                c = api.post("/contracts", con); api.track_created("contract", c.get("id",0))
+                print(f"    ✓ Contract created (id={c.get('id')})")
+            except Exception as e:
+                print(f"    ❌ Contract creation failed: {e}")
+                return
+            # create subscription
+            try:
+                sub = {"accountId":acct,"contractId":c.get("id",0),"productId":prod,"startDate":DataGenerator.date_in_past(60),"billingCycle":"Monthly","status":"Active"}
+                print(f"    ➤ Subscription payload: {sub}")
+                api.post("/subscriptions", sub)
+                print(f"    ✓ Subscription created")
+            except Exception as e:
+                print(f"    ❌ Subscription creation failed: {e}")
+                return
+    # debug output of account IDs
+    print(f"    Account IDs: {api.created_ids.get('account', [])}")
     
     # Create contacts for each organization customer
     print("\n📇 Creating demo contacts...")
     contact_count = 0
     
-    for customer_id in api.created_ids.get("customer", []):
-        # Create 1-3 contacts per customer
+    for account_id in api.created_ids.get("account", []):
+        # Create 1-3 contacts per account
         for _ in range(random.randint(1, 3)):
             first, last = DataGenerator.name()
             contact = {
@@ -585,7 +742,7 @@ def load_demo_data(api: APIClient):
                 "email": DataGenerator.email(first, last),
                 "phone": DataGenerator.phone(),
                 "title": random.choice(["CEO", "CTO", "VP Sales", "Director", "Manager", "Engineer"]),
-                "customerId": customer_id,
+                "accountId": account_id,
                 "isPrimary": contact_count == 0
             }
             try:
@@ -600,22 +757,14 @@ def load_demo_data(api: APIClient):
     # Create 15+ leads with variety
     print("\n🎯 Creating demo leads (15+)...")
     
-    lead_statuses = [0, 1, 2, 3, 4]  # New, Contacted, Qualified, Nurturing, Converted
-    lead_sources = [0, 1, 2, 3, 4, 5]  # Web, Referral, Trade, Ad, Social, Email
-    
     for i in range(15):
         first, last = DataGenerator.name()
         lead = {
             "firstName": first,
             "lastName": last,
-            "email": DataGenerator.email(first, last, "prospect"),
-            "phone": DataGenerator.phone(),
             "companyName": DataGenerator.company(),
-            "status": random.choice(lead_statuses),
-            "source": random.choice(lead_sources),
-            "score": random.randint(10, 100),
-            "title": random.choice(["CEO", "CTO", "VP", "Director", "Manager"]),
-            **DataGenerator.address()
+            "email": DataGenerator.email(first, last, "prospect"),
+            "phone": DataGenerator.phone()
         }
         try:
             result = api.post("/leads", lead)
@@ -632,7 +781,7 @@ def load_demo_data(api: APIClient):
     probabilities = {0: 10, 1: 25, 2: 50, 3: 75, 4: 100, 5: 0}
     
     for i in range(10):
-        customer_id = api.get_random_id("customer")
+        customer_id = api.get_random_id("account")
         if not customer_id:
             continue
             
@@ -644,10 +793,11 @@ def load_demo_data(api: APIClient):
             "amount": random.randint(10000, 500000),
             "currency": random.choice(["USD", "EUR", "GBP"]),
             "expectedCloseDate": DataGenerator.date_in_future(random.randint(30, 180)),
-            "customerId": customer_id,
+            "accountId": customer_id,
             "pricingModel": random.choice([0, 1, 2, 3]),
             "termLengthMonths": random.choice([12, 24, 36])
         }
+        print(f"    Attempting opportunity for account_id={customer_id}")
         try:
             result = api.post("/opportunities", opp)
             api.track_created("opportunity", result.get("id", 0))
@@ -663,7 +813,7 @@ def load_demo_data(api: APIClient):
     statuses = [0, 1, 2, 3, 4]  # New, Open, InProgress, Resolved, Closed
     
     for i in range(10):
-        customer_id = api.get_random_id("customer")
+        customer_id = api.get_random_id("account")
         if not customer_id:
             continue
             
@@ -680,7 +830,8 @@ def load_demo_data(api: APIClient):
             "category": random.choice(["Technical", "Billing", "General", "Feature Request"])
         }
         try:
-            result = api.post("/service-requests", sr)
+            # endpoint is 'servicerequests' (no hyphen)
+            result = api.post("/servicerequests", sr)
             api.track_created("servicerequest", result.get("id", 0))
         except:
             pass
@@ -707,7 +858,7 @@ def load_demo_data(api: APIClient):
             "priority": random.choice([0, 1, 2]),
             "status": random.choice([0, 1, 2]),  # Not Started, In Progress, Completed
             "taskType": random.choice(task_types),
-            "customerId": customer_id
+            "accountId": customer_id
         }
         try:
             result = api.post("/tasks", task)
@@ -718,6 +869,29 @@ def load_demo_data(api: APIClient):
     print(f"  ✓ Created {len(api.created_ids.get('task', []))} tasks")
     
     print("\n✅ Demo data loaded successfully!")
+    # apply some updates
+    print("\n🔁 Applying update examples to created records...")
+    accs = api.created_ids.get("account", [])
+    if accs:
+        try:
+            api.put(f"/accounts/{accs[0]}", {"company":"Updated Co.","phone":DataGenerator.phone()})
+            print(f"  ✓ Updated account {accs[0]}")
+        except Exception as e:
+            print(f"  ❌ Failed to update account: {e}")
+    prods = api.created_ids.get("product", [])
+    if prods:
+        try:
+            api.put(f"/products/{prods[0]}", {"price": prods[0] * 10 + 1})
+            print(f"  ✓ Updated product {prods[0]}")
+        except Exception as e:
+            print(f"  ❌ Failed to update product: {e}")
+    opps = api.created_ids.get("opportunity", [])
+    if opps:
+        try:
+            api.put(f"/opportunities/{opps[0]}", {"stage": 4})
+            print(f"  ✓ Updated opportunity {opps[0]} to ClosedWon")
+        except Exception as e:
+            print(f"  ❌ Failed to update opportunity: {e}")
     return True
 
 

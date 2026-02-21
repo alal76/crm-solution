@@ -6,6 +6,7 @@
 // See the LICENSE file in the root directory for full terms.
 
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace CRM.Core.Dtos;
 
@@ -60,6 +61,7 @@ public class CampaignDto
     public string? CurrencyCode { get; set; }
 
     // ── Legacy computed aliases (preserved for backward compatibility) ─────────
+    [JsonIgnore]
     public decimal Roi { get; set; }
     public decimal Cpl { get; set; }
     public decimal Cpa { get; set; }
@@ -173,6 +175,9 @@ public class CampaignDto
     public double? EventSatisfactionScore { get; set; }
 
     // ── ROI & Performance ─────────────────────────────────────────────────────
+    // ROI value is calculated server-side and is returned via analytics endpoints; omit
+    // from the primary CampaignDto to avoid JSON naming collisions with TargetRoi.
+    [JsonIgnore]
     public double ROI { get; set; }
     public double? TargetRoi { get; set; }
     public int? TargetLeads { get; set; }

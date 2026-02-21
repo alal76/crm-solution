@@ -183,31 +183,162 @@ public class OrderService : IOrderService
     // --- Mapping helpers ---
     private static OrderDto MapToOrderDto(Order order)
     {
-        // TODO: Implement full mapping from Order entity to OrderDto (including line items)
-        // For brevity, only a subset is shown here
         return new OrderDto
         {
+            // Identification
             Id = order.Id,
             OrderNumber = order.OrderNumber,
+            ExternalOrderId = order.ExternalOrderId,
+            CustomerPONumber = order.CustomerPONumber,
+            ReferenceNumber = order.ReferenceNumber,
+
+            // Order Details
             Name = order.Name,
             Description = order.Description,
             Status = (int)order.Status,
             OrderType = (int)order.OrderType,
             FulfillmentMethod = (int)order.FulfillmentMethod,
             Priority = (int)order.Priority,
+
+            // Dates
             OrderDate = order.OrderDate.ToString("o"),
+            ApprovedDate = order.ApprovedDate?.ToString("o"),
+            RequestedDeliveryDate = order.RequestedDeliveryDate?.ToString("o"),
+            PromisedDeliveryDate = order.PromisedDeliveryDate?.ToString("o"),
+            ShippedDate = order.ShippedDate?.ToString("o"),
+            DeliveredDate = order.DeliveredDate?.ToString("o"),
+            CompletedDate = order.CompletedDate?.ToString("o"),
+            CancelledDate = order.CancelledDate?.ToString("o"),
+            ContractStartDate = order.ContractStartDate?.ToString("o"),
+            ContractEndDate = order.ContractEndDate?.ToString("o"),
+
+            // Pricing
+            Subtotal = order.Subtotal,
+            DiscountAmount = order.DiscountAmount,
+            DiscountPercent = order.DiscountPercent,
+            DiscountReason = order.DiscountReason,
+            TaxAmount = order.TaxAmount,
+            TaxRate = order.TaxRate,
+            ShippingAmount = order.ShippingAmount,
+            HandlingAmount = order.HandlingAmount,
+            TotalAmount = order.TotalAmount,
+            CurrencyCode = order.CurrencyCode,
+            ExchangeRate = order.ExchangeRate,
+            BaseCurrencyAmount = order.BaseCurrencyAmount,
+
+            // Revenue Recognition
+            MRR = order.MRR,
+            ARR = order.ARR,
+            TCV = order.TCV,
+            ACV = order.ACV,
+            OneTimeRevenue = order.OneTimeRevenue,
+            RecurringRevenue = order.RecurringRevenue,
+
+            // Billing Address
+            BillingName = order.BillingName,
+            BillingCompany = order.BillingCompany,
+            BillingStreet = order.BillingStreet,
+            BillingCity = order.BillingCity,
+            BillingState = order.BillingState,
+            BillingPostalCode = order.BillingPostalCode,
+            BillingCountry = order.BillingCountry,
+            BillingPhone = order.BillingPhone,
+            BillingEmail = order.BillingEmail,
+
+            // Shipping Address
+            ShippingName = order.ShippingName,
+            ShippingCompany = order.ShippingCompany,
+            ShippingStreet = order.ShippingStreet,
+            ShippingCity = order.ShippingCity,
+            ShippingState = order.ShippingState,
+            ShippingPostalCode = order.ShippingPostalCode,
+            ShippingCountry = order.ShippingCountry,
+            ShippingPhone = order.ShippingPhone,
+            ShippingEmail = order.ShippingEmail,
+            ShippingInstructions = order.ShippingInstructions,
+
+            // Shipping Details
+            ShippingMethod = order.ShippingMethod,
+            TrackingNumber = order.TrackingNumber,
+            TrackingUrl = order.TrackingUrl,
+            ShippingWeight = order.ShippingWeight,
+            PackageCount = order.PackageCount,
+
+            // Payment
+            PaymentTerms = order.PaymentTerms,
+            PaymentMethod = order.PaymentMethod,
+            AmountInvoiced = order.AmountInvoiced,
+            AmountPaid = order.AmountPaid,
+            BalanceDue = order.BalanceDue,
+            IsPaid = order.IsPaid,
+
+            // Relationships
+            QuoteId = order.QuoteId,
             AccountId = order.AccountId,
             ContactId = order.ContactId,
-            // ...map other fields as needed...
-            LineItems = order.LineItems?.Select(li => new OrderLineItemDto
+            OpportunityId = order.OpportunityId,
+            OwnerId = order.OwnerId,
+            ApprovedById = order.ApprovedById,
+            ParentOrderId = order.ParentOrderId,
+
+            // Notes & Attachments
+            InternalNotes = order.InternalNotes,
+            SpecialInstructions = order.SpecialInstructions,
+            CancellationReason = order.CancellationReason,
+            TermsAndConditions = order.TermsAndConditions,
+
+            // Workflow Dates
+            SubmittedDate = order.SubmittedDate?.ToString("o"),
+            FulfilledDate = order.FulfilledDate?.ToString("o"),
+
+            // Hold Status
+            HoldReason = order.HoldReason,
+            HoldDate = order.HoldDate?.ToString("o"),
+
+            // Rejection
+            RejectionReason = order.RejectionReason,
+
+            // Return Information
+            ReturnReason = order.ReturnReason,
+
+            // Discount Codes
+            DiscountCode = order.DiscountCode,
+            CouponCode = order.CouponCode,
+
+            // Audit Fields
+            Source = order.Source,
+            SourceIpAddress = order.SourceIpAddress,
+
+            // Audit
+            CreatedAt = order.CreatedAt.ToString("o"),
+            UpdatedAt = order.UpdatedAt?.ToString("o") ?? string.Empty,
+            IsDeleted = order.IsDeleted,
+            RowVersion = order.RowVersion ?? Array.Empty<byte>(),
+
+            // Line Items
+            LineItems = order.LineItems?.Where(li => !li.IsDeleted).Select(li => new OrderLineItemDto
             {
                 Id = li.Id,
+                LineNumber = li.LineNumber,
                 ProductId = li.ProductId,
+                Name = li.Name,
                 Description = li.Description,
+                SKU = li.SKU,
+                ProductCode = li.ProductCode,
                 Quantity = li.Quantity,
+                UnitOfMeasure = li.UnitOfMeasure,
                 UnitPrice = li.UnitPrice,
-                TotalAmount = li.TotalAmount
-            }).ToList() ?? new List<OrderLineItemDto>()
+                DiscountAmount = li.DiscountAmount,
+                DiscountPercent = li.DiscountPercent,
+                ExtendedAmount = li.ExtendedAmount,
+                TaxAmount = li.TaxAmount,
+                TotalAmount = li.TotalAmount,
+                Notes = li.Notes
+            }).ToList() ?? new List<OrderLineItemDto>(),
+
+            // Invoice and Subscription IDs
+            InvoiceIds = order.Invoices?.Where(i => !i.IsDeleted).Select(i => i.Id).ToList() ?? new List<int>(),
+            SubscriptionIds = order.Subscriptions?.Where(s => !s.IsDeleted).Select(s => s.Id).ToList() ?? new List<int>()
         };
     }
 

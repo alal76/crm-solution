@@ -123,6 +123,7 @@ interface TaskForm {
   actualHours: number;
   percentComplete: number;
   assignedToUserId: number | '';
+  assignedToGroupId: number | '';
   accountId: number | '';
   opportunityId: number | '';
   location: string;
@@ -161,7 +162,7 @@ function TasksPage() {
   const emptyForm: TaskForm = {
     title: '', description: '', taskType: 10, status: 0, priority: 1,
     dueDate: '', startDate: '', estimatedHours: 0, actualHours: 0,
-    percentComplete: 0, assignedToUserId: '', accountId: '', opportunityId: '',
+    percentComplete: 0, assignedToUserId: '', assignedToGroupId: '', accountId: '', opportunityId: '',
     location: '', reminderDate: '', tags: '',
     category: '', isRecurring: false, hasReminder: false, recurrenceEndDate: '', contactId: '', campaignId: '',
   };
@@ -229,6 +230,7 @@ function TasksPage() {
         estimatedHours: task.estimatedMinutes ? task.estimatedMinutes / 60 : 0,
         actualHours: task.actualMinutes ? task.actualMinutes / 60 : 0,
         percentComplete: task.percentComplete, assignedToUserId: task.assignedToUserId || '',
+        assignedToGroupId: task.assignedToGroupId || '',
         accountId: task.accountId || '', opportunityId: task.opportunityId || '',
         location: '', reminderDate: task.reminderDate?.split('T')[0] || '',
         tags: task.tags || '',
@@ -271,6 +273,7 @@ function TasksPage() {
     const payload = {
       ...formData,
       assignedToUserId: formData.assignedToUserId || null,
+      assignedToGroupId: formData.assignedToGroupId || null,
       accountId: formData.accountId || null,
       opportunityId: formData.opportunityId || null,
     };
@@ -592,6 +595,7 @@ function TasksPage() {
                               actualHours: task.actualMinutes ? task.actualMinutes / 60 : 0,
                               percentComplete: task.percentComplete || 0,
                               assignedToUserId: task.assignedToUserId || '',
+                              assignedToGroupId: task.assignedToGroupId || '',
                               accountId: task.accountId || '',
                               opportunityId: task.opportunityId || '',
                               location: '',
@@ -885,6 +889,22 @@ function TasksPage() {
                   label="Related Contact"
                   showAddNew={false}
                 />
+              </Grid>
+              <Grid item xs={12}>
+                <FormControl fullWidth>
+                  <InputLabel>Assigned Group</InputLabel>
+                  <Select
+                    name="assignedToGroupId"
+                    value={formData.assignedToGroupId}
+                    label="Assigned Group"
+                    onChange={handleSelectChange}
+                  >
+                    <MenuItem value="">None</MenuItem>
+                    {userGroups.map(g => (
+                      <MenuItem key={g.id} value={g.id}>{g.name}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
               </Grid>
             </Grid>
           </TabPanel>

@@ -43,6 +43,8 @@ import {
   Accordion,
   AccordionSummary,
   AccordionDetails,
+  Switch,
+  FormControlLabel,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import CloseIcon from '@mui/icons-material/Close';
@@ -216,6 +218,28 @@ const SEARCH_FIELDS: SearchField[] = [
 
 const SEARCHABLE_FIELDS = ['subject', 'description', 'ticketNumber'];
 
+interface ResolutionSlaFields {
+  resolutionSummary: string;
+  resolutionCode: string;
+  rootCause: string;
+  slaStatus: string;
+  isVipAccount: boolean;
+  estimatedEffortHours: number | '';
+  actualEffortHours: number | '';
+  internalNotes: string;
+}
+
+const DEFAULT_RESOLUTION_SLA: ResolutionSlaFields = {
+  resolutionSummary: '',
+  resolutionCode: '',
+  rootCause: '',
+  slaStatus: '',
+  isVipAccount: false,
+  estimatedEffortHours: '',
+  actualEffortHours: '',
+  internalNotes: '',
+};
+
 function ServiceRequestsPage() {
   const [requests, setRequests] = useState<ServiceRequest[]>([]);
   const [loading, setLoading] = useState(true);
@@ -259,6 +283,7 @@ function ServiceRequestsPage() {
     customFieldValues: [],
   });
   const [customFieldValues, setCustomFieldValues] = useState<{ [key: number]: string }>({});
+  const [resolutionSlaData, setResolutionSlaData] = useState<ResolutionSlaFields>(DEFAULT_RESOLUTION_SLA);
 
   // Action dialogs
   const [resolveDialogOpen, setResolveDialogOpen] = useState(false);
@@ -393,6 +418,7 @@ function ServiceRequestsPage() {
       customFieldValues: [],
     });
     setCustomFieldValues({});
+    setResolutionSlaData(DEFAULT_RESOLUTION_SLA);
     setSelectedRequest(null);
     setViewMode(false);
     setOpenDialog(true);
@@ -429,6 +455,16 @@ function ServiceRequestsPage() {
       values[v.fieldDefinitionId] = v.value || '';
     });
     setCustomFieldValues(values);
+    setResolutionSlaData({
+      resolutionSummary: (request as any).resolutionSummary || '',
+      resolutionCode: (request as any).resolutionCode || '',
+      rootCause: (request as any).rootCause || '',
+      slaStatus: (request as any).slaStatus || '',
+      isVipAccount: (request as any).isVipAccount ?? false,
+      estimatedEffortHours: (request as any).estimatedEffortHours ?? '',
+      actualEffortHours: (request as any).actualEffortHours ?? '',
+      internalNotes: (request as any).internalNotes || '',
+    });
     setSelectedRequest(request);
     setViewMode(false);
     setOpenDialog(true);
@@ -1379,6 +1415,133 @@ function ServiceRequestsPage() {
                         )}
                       </>
                     )}
+                  </Grid>
+                </AccordionDetails>
+              </Accordion>
+              {/* Accordion for Resolution & SLA */}
+              <Accordion sx={{ mt: 3 }}>
+                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                  <Typography variant="subtitle1" fontWeight={600}>Resolution & SLA</Typography>
+                </AccordionSummary>
+                <AccordionDetails>
+                  <Grid container spacing={2}>
+                    {/* Row 1: SLA Status | Is VIP Account */}
+                    <Grid item xs={6}>
+                      <FormControl fullWidth>
+                        <InputLabel>SLA Status</InputLabel>
+                        <Select
+                          value={resolutionSlaData.slaStatus}
+                          onChange={(e: SelectChangeEvent<string>) =>
+                            setResolutionSlaData((prev) => ({ ...prev, slaStatus: e.target.value }))
+                          }
+                          label="SLA Status"
+                          disabled={viewMode}
+                        >
+                          <MenuItem value="">None</MenuItem>
+                          <MenuItem value="on_track">On Track</MenuItem>
+                          <MenuItem value="at_risk">At Risk</MenuItem>
+                          <MenuItem value="breached">Breached</MenuItem>
+                        </Select>
+                      </FormControl>
+                    </Grid>
+                    <Grid item xs={6}>
+                      <FormControlLabel
+                        control={
+                          <Switch
+                            checked={resolutionSlaData.isVipAccount}
+                            onChange={(e) =>
+                              setResolutionSlaData((prev) => ({ ...prev, isVipAccount: e.target.checked }))
+                            }
+                            disabled={viewMode}
+                          />
+                        }
+                        label="Is VIP Account"
+                      />
+                    </Grid>
+                    {/* Row 2: Estimated Effort Hours | Actual Effort Hours */}
+                    <Grid item xs={6}>
+                      <TextField
+                        label="Estimated Effort Hours"
+                        type="number"
+                        value={resolutionSlaData.estimatedEffortHours}
+                        onChange={(e) =>
+                          setResolutionSlaData((prev) => ({
+                            ...prev,
+                            estimatedEffortHours: e.target.value === '' ? '' : Number(e.target.value),
+                          }))
+                        }
+                        fullWidth
+                        disabled={viewMode}
+                        inputProps={{ min: 0, step: 0.5 }}
+                      />
+                    </Grid>
+                    <Grid item xs={6}>
+                      <TextField
+                        label="Actual Effort Hours"
+                        type="number"
+                        value={resolutionSlaData.actualEffortHours}
+                        onChange={(e) =>
+                          setResolutionSlaData((prev) => ({
+                            ...prev,
+                            actualEffortHours: e.target.value === '' ? '' : Number(e.target.value),
+                          }))
+                        }
+                        fullWidth
+                        disabled={viewMode}
+                        inputProps={{ min: 0, step: 0.5 }}
+                      />
+                    </Grid>
+                    {/* Row 3: Resolution Code | Root Cause */}
+                    <Grid item xs={6}>
+                      <TextField
+                        label="Resolution Code"
+                        value={resolutionSlaData.resolutionCode}
+                        onChange={(e) =>
+                          setResolutionSlaData((prev) => ({ ...prev, resolutionCode: e.target.value }))
+                        }
+                        fullWidth
+                        disabled={viewMode}
+                      />
+                    </Grid>
+                    <Grid item xs={6}>
+                      <TextField
+                        label="Root Cause"
+                        value={resolutionSlaData.rootCause}
+                        onChange={(e) =>
+                          setResolutionSlaData((prev) => ({ ...prev, rootCause: e.target.value }))
+                        }
+                        fullWidth
+                        disabled={viewMode}
+                      />
+                    </Grid>
+                    {/* Row 4: Resolution Summary */}
+                    <Grid item xs={12}>
+                      <TextField
+                        label="Resolution Summary"
+                        value={resolutionSlaData.resolutionSummary}
+                        onChange={(e) =>
+                          setResolutionSlaData((prev) => ({ ...prev, resolutionSummary: e.target.value }))
+                        }
+                        multiline
+                        rows={3}
+                        fullWidth
+                        disabled={viewMode}
+                      />
+                    </Grid>
+                    {/* Row 5: Internal Notes */}
+                    <Grid item xs={12}>
+                      <TextField
+                        label="Internal Notes"
+                        value={resolutionSlaData.internalNotes}
+                        onChange={(e) =>
+                          setResolutionSlaData((prev) => ({ ...prev, internalNotes: e.target.value }))
+                        }
+                        multiline
+                        rows={2}
+                        fullWidth
+                        disabled={viewMode}
+                      />
+                    </Grid>
                   </Grid>
                 </AccordionDetails>
               </Accordion>
