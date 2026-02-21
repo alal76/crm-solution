@@ -299,13 +299,24 @@ public class UserServiceTests
             CreatedAt = DateTime.UtcNow
         };
         _users.Add(user);
-        SetupMockDbSet();
+
+        // instrument the mock to capture removal
+        var removalCalled = false;
+        var mockSet = MockDbSetFactory.CreateMockDbSet(_users);
+        mockSet.Setup(m => m.Remove(It.IsAny<User>()))
+               .Callback<User>(e =>
+               {
+                   removalCalled = true;
+                   _users.Remove(e);
+               });
+        _mockContext.Setup(c => c.Users).Returns(mockSet.Object);
         _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
         // Act
         await _service.DeleteUserAsync(1);
 
         // Assert
+        removalCalled.Should().BeTrue("Remove should be invoked on the DbSet");
         _users.Should().NotContain(user);
     }
 
