@@ -64,7 +64,7 @@ public class ReportServiceTests
         _mockContext.Setup(c => c.ReportExecutions).Returns(mockReportExecutions.Object);
 
         var mockAccounts = MockDbSetFactory.CreateMockDbSet(accounts);
-        _mockContext.Setup(c => c.Customers).Returns(mockAccounts.Object);
+        _mockContext.Setup(c => c.Accounts).Returns(mockAccounts.Object);
 
         _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
     }

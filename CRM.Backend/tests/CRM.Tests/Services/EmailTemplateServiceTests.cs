@@ -27,7 +27,7 @@ public class EmailTemplateServiceTests
 
     private readonly List<EmailTemplate> _templates;
     private readonly List<EmailTemplateVersion> _versions;
-    private readonly List<Account> _customers;
+    private readonly List<Account> _accounts;
     private readonly List<ContactModel> _contacts;
     private readonly List<Opportunity> _opportunities;
 
@@ -38,13 +38,13 @@ public class EmailTemplateServiceTests
 
         _templates = new List<EmailTemplate>();
         _versions = new List<EmailTemplateVersion>();
-        _customers = new List<Account>();
+        _accounts = new List<Account>();
         _contacts = new List<ContactModel>();
         _opportunities = new List<Opportunity>();
 
         var mockTemplates = MockDbSetFactory.CreateMockDbSet(_templates);
         var mockVersions = MockDbSetFactory.CreateMockDbSet(_versions);
-        var mockCustomers = MockDbSetFactory.CreateMockDbSet(_customers);
+        var mockAccounts = MockDbSetFactory.CreateMockDbSet(_accounts);
         var mockContacts = MockDbSetFactory.CreateMockDbSet(_contacts);
         var mockOpportunities = MockDbSetFactory.CreateMockDbSet(_opportunities);
 
@@ -60,7 +60,7 @@ public class EmailTemplateServiceTests
 
         _mockContext.Setup(c => c.EmailTemplates).Returns(mockTemplates.Object);
         _mockContext.Setup(c => c.EmailTemplateVersions).Returns(mockVersions.Object);
-        _mockContext.Setup(c => c.Customers).Returns(mockCustomers.Object);
+        _mockContext.Setup(c => c.Accounts).Returns(mockAccounts.Object);
         _mockContext.Setup(c => c.Contacts).Returns(mockContacts.Object);
         _mockContext.Setup(c => c.Opportunities).Returns(mockOpportunities.Object);
         _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);

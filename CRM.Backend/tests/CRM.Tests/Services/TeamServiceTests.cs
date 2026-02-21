@@ -27,7 +27,7 @@ public class TeamServiceTests
     private readonly List<Team> _teams;
     private readonly List<TeamMember> _teamMembers;
     private readonly List<AccountTerritory> _territories;
-    private readonly List<Account> _customers;
+    private readonly List<Account> _accounts;
     private readonly List<Opportunity> _opportunities;
     private readonly List<User> _users;
 
@@ -39,14 +39,14 @@ public class TeamServiceTests
         _teams = new List<Team>();
         _teamMembers = new List<TeamMember>();
         _territories = new List<AccountTerritory>();
-        _customers = new List<Account>();
+        _accounts = new List<Account>();
         _opportunities = new List<Opportunity>();
         _users = new List<User>();
 
         var mockTeams = MockDbSetFactory.CreateMockDbSet(_teams);
         var mockTeamMembers = MockDbSetFactory.CreateMockDbSet(_teamMembers);
         var mockTerritories = MockDbSetFactory.CreateMockDbSet(_territories);
-        var mockCustomers = MockDbSetFactory.CreateMockDbSet(_customers);
+        var mockAccounts = MockDbSetFactory.CreateMockDbSet(_accounts);
         var mockOpportunities = MockDbSetFactory.CreateMockDbSet(_opportunities);
         var mockUsers = MockDbSetFactory.CreateMockDbSet(_users);
 
@@ -63,7 +63,7 @@ public class TeamServiceTests
         _mockContext.Setup(c => c.Teams).Returns(mockTeams.Object);
         _mockContext.Setup(c => c.TeamMembers).Returns(mockTeamMembers.Object);
         _mockContext.Setup(c => c.AccountTerritories).Returns(mockTerritories.Object);
-        _mockContext.Setup(c => c.Customers).Returns(mockCustomers.Object);
+        _mockContext.Setup(c => c.Accounts).Returns(mockAccounts.Object);
         _mockContext.Setup(c => c.Opportunities).Returns(mockOpportunities.Object);
         _mockContext.Setup(c => c.Users).Returns(mockUsers.Object);
         _mockContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);

@@ -192,13 +192,13 @@ public class ReportBuilderServiceTests
     public async Task ExecuteReportAsync_ShouldReturnResults_ForAccountsSource()
     {
         // Arrange
-        var customers = new List<Account>
-        {
-            new() { Id = 1, Company = "Acme Corp", Email = "acme@test.com", Industry = "Tech", LifecycleStage = AccountLifecycleStage.Active, IsDeleted = false },
-            new() { Id = 2, Company = "Beta Inc", Email = "beta@test.com", Industry = "Finance", LifecycleStage = AccountLifecycleStage.Active, IsDeleted = false }
-        };
-        var mockSet = MockDbSetFactory.CreateMockDbSet(customers);
-        _mockContext.Setup(c => c.Customers).Returns(mockSet.Object);
+var accounts = new List<Account>
+            {
+                new() { Id = 1, Company = "Acme Corp", Email = "acme@test.com", Industry = "Tech", LifecycleStage = AccountLifecycleStage.Active, IsDeleted = false },
+                new() { Id = 2, Company = "Beta Inc", Email = "beta@test.com", Industry = "Finance", LifecycleStage = AccountLifecycleStage.Active, IsDeleted = false }
+            };
+            var mockSet = MockDbSetFactory.CreateMockDbSet(accounts);
+            _mockContext.Setup(c => c.Accounts).Returns(mockSet.Object);
 
         var report = await _service.CreateReportAsync(new ReportDefinition
         {
@@ -322,12 +322,12 @@ public class ReportBuilderServiceTests
     public async Task ExportToCsvAsync_ShouldReturnCsvString()
     {
         // Arrange
-        var customers = new List<Account>
+        var accounts = new List<Account>
         {
             new() { Id = 1, Company = "Acme Corp", Email = "acme@test.com", Industry = "Tech", LifecycleStage = AccountLifecycleStage.Active, IsDeleted = false }
         };
-        var mockSet = MockDbSetFactory.CreateMockDbSet(customers);
-        _mockContext.Setup(c => c.Customers).Returns(mockSet.Object);
+        var mockSet = MockDbSetFactory.CreateMockDbSet(accounts);
+        _mockContext.Setup(c => c.Accounts).Returns(mockSet.Object);
 
         var report = await _service.CreateReportAsync(new ReportDefinition
         {
@@ -362,12 +362,12 @@ public class ReportBuilderServiceTests
     public async Task ExportToCsvAsync_ShouldEscapeCommasInValues()
     {
         // Arrange
-        var customers = new List<Account>
+        var accounts = new List<Account>
         {
             new() { Id = 1, Company = "Acme, Inc.", Email = "acme@test.com", Industry = "Tech", LifecycleStage = AccountLifecycleStage.Active, IsDeleted = false }
         };
-        var mockSet = MockDbSetFactory.CreateMockDbSet(customers);
-        _mockContext.Setup(c => c.Customers).Returns(mockSet.Object);
+        var mockSet = MockDbSetFactory.CreateMockDbSet(accounts);
+        _mockContext.Setup(c => c.Accounts).Returns(mockSet.Object);
 
         var report = await _service.CreateReportAsync(new ReportDefinition
         {
