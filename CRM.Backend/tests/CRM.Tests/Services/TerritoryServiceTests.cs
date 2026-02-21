@@ -10,6 +10,7 @@ using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Services;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
+using CRM.Core.Dtos;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
@@ -35,6 +36,13 @@ public class TerritoryServiceTests : IDisposable
         _dbContext = new CrmDbContext(options, null);
         _loggerMock = new Mock<ILogger<TerritoryService>>();
         _contactInfoServiceMock = new Mock<IContactInfoService>();
+
+        // default behavior for contact info service: return an empty list instead of null.
+        // this prevents the service from throwing when tests do not explicitly configure the mock.
+        _contactInfoServiceMock
+            .Setup(x => x.GetAddressesAsync(It.IsAny<EntityType>(), It.IsAny<int>()))
+            .Returns(Task.FromResult(new List<LinkedAddressDto>()));
+
         _service = new TerritoryService(_dbContext, _contactInfoServiceMock.Object, _loggerMock.Object);
     }
 
@@ -578,6 +586,61 @@ public class TerritoryServiceTests : IDisposable
     #endregion
 
     #region Territory Matching Tests
+
+    [Fact]
+    public async Task IsAccountInTerritoryAsync_HandlesNullAddressList_FromContactService()
+    {
+        // Arrange: make the contact service return null explicitly, simulating a misbehaving provider
+        _contactInfoServiceMock
+            .Setup(x => x.GetAddressesAsync(It.IsAny<EntityType>(), It.IsAny<int>()))
+            .Returns(Task.FromResult<List<LinkedAddressDto>?>(null));
+
+        var territory = new AccountTerritory { TerritoryName = "Test", IsActive = true };
+        var account = new Account { Company = "Test Company", Email = "test@test.com" };
+        _dbContext.AccountTerritories.Add(territory);
+        _dbContext.Accounts.Add(account);
+        await _dbContext.SaveChangesAsync();
+
+        await _service.AssignAccountAsync(account.Id, territory.Id);
+
+        // Act
+        var result = await _service.IsAccountInTerritoryAsync(account.Id, territory.Id);
+
+        // Assert: should not throw and should evaluate to true as basic assignment bypasses criteria
+        result.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task FindMatchingTerritoriesAsync_ByAccount_DoesNotThrow_WhenNoAddresses()
+    {
+        // Arrange: contact service returns empty list (default) to simulate account without any addresses
+        var territory = new AccountTerritory
+        {
+            TerritoryName = "US East",
+            Countries = "[\"US\"]",
+            Regions = "[\"East\"]",
+            IsActive = true
+        };
+        var account = new Account
+        {
+            Company = "Test Company",
+            Email = "test@test.com",
+            Region = "East",
+            Industry = "Technology",
+            AccountType = AccountType.SmallBusiness,
+            AnnualRevenue = 10000m
+        };
+        _dbContext.AccountTerritories.Add(territory);
+        _dbContext.Accounts.Add(account);
+        await _dbContext.SaveChangesAsync();
+
+        // Act
+        var result = await _service.FindMatchingTerritoriesAsync(account.Id);
+
+        // Assert
+        result.Should().Contain(territory);
+    }
+
 
     [Fact]
     public async Task FindMatchingTerritoriesAsync_FindsMatchingTerritories()

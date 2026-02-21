@@ -23,7 +23,7 @@ export enum OrderStatus {
 export interface Order {
   id: number;
   orderNumber?: string;
-  customerId?: number;
+  accountId?: number;
   quoteId?: number;
   opportunityId?: number;
   status: OrderStatus;
@@ -115,9 +115,9 @@ export const getOrderStatusColor = (status: OrderStatus): string => {
 
 const orderService = {
   // CRUD
-  getAll: (customerId?: number, status?: OrderStatus) => {
+  getAll: (accountId?: number, status?: OrderStatus) => {
     const params = new URLSearchParams();
-    if (customerId !== undefined) params.append('customerId', customerId.toString());
+    if (accountId !== undefined) params.append('accountId', accountId.toString());
     if (status !== undefined) params.append('status', status.toString());
     const query = params.toString();
     return apiClient.get<Order[]>(`/api/orders${query ? `?${query}` : ''}`);

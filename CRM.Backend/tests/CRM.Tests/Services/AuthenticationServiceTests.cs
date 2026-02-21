@@ -29,7 +29,7 @@ public class AuthenticationServiceTests
 {
     private readonly Mock<IRepository<User>> _mockUserRepository;
     private readonly Mock<IRepository<OAuthToken>> _mockOAuthTokenRepository;
-    private readonly Mock<CrmDbContext> _mockDbContext;
+    private readonly CrmDbContext _dbContext;
     private readonly Mock<IJwtTokenService> _mockJwtTokenService;
     private readonly Mock<CRM.Core.Interfaces.ITotpService> _mockTotpService;
     private readonly Mock<IMemoryCache> _mockMemoryCache;
@@ -45,10 +45,11 @@ public class AuthenticationServiceTests
         _mockOAuthTokenRepository = new Mock<IRepository<OAuthToken>>();
 
         // CrmDbContext requires constructor args; use InMemory options to enable mocking
+        // create in-memory database context for testing
         var dbOptions = new DbContextOptionsBuilder<CrmDbContext>()
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
-        _mockDbContext = new Mock<CrmDbContext>(dbOptions, new Mock<IConfiguration>().Object) { CallBase = false };
+        _dbContext = new CrmDbContext(dbOptions, new Mock<IConfiguration>().Object);
 
         _mockJwtTokenService = new Mock<IJwtTokenService>();
         _mockTotpService = new Mock<CRM.Core.Interfaces.ITotpService>();
@@ -61,7 +62,7 @@ public class AuthenticationServiceTests
         _service = new AuthenticationService(
             _mockUserRepository.Object,
             _mockOAuthTokenRepository.Object,
-            _mockDbContext.Object,
+            _dbContext,
             _mockJwtTokenService.Object,
             _mockTotpService.Object,
             _mockMemoryCache.Object,
@@ -93,10 +94,12 @@ public class AuthenticationServiceTests
             new() { RequireApprovalForNewUsers = false }
         });
 
-        _mockDbContext.Setup(c => c.Users).Returns(mockUserSet.Object);
-        _mockDbContext.Setup(c => c.UserApprovalRequests).Returns(mockApprovalSet.Object);
-        _mockDbContext.Setup(c => c.SystemSettings).Returns(mockSettingsSet.Object);
-        _mockDbContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        // other tests will configure Users/RefreshTokens via interface as needed
+        // seed the in-memory context directly
+        _dbContext.Users.AddRange(mockUserSet.Object);
+        _dbContext.UserApprovalRequests.AddRange(mockApprovalSet.Object);
+        _dbContext.SystemSettings.AddRange(mockSettingsSet.Object);
+        await _dbContext.SaveChangesAsync();
         _mockJwtTokenService.Setup(j => j.GenerateAccessToken(It.IsAny<User>()))
             .Returns("valid_access_token");
         _mockJwtTokenService.Setup(j => j.GenerateRefreshToken())
@@ -173,12 +176,10 @@ public class AuthenticationServiceTests
 
         var request = new LoginRequest { Email = "test@example.com", Password = password };
 
-        var mockUserSet = MockDbSetFactory.CreateMockDbSet(new List<User> { user });
-        var mockRefreshTokenSet = MockDbSetFactory.CreateMockDbSet(new List<RefreshToken>());
-
-        _mockDbContext.Setup(c => c.Users).Returns(mockUserSet.Object);
-        _mockDbContext.Setup(c => c.RefreshTokens).Returns(mockRefreshTokenSet.Object);
-        _mockDbContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        // seed in-memory context directly
+        _dbContext.Users.Add(user);
+        _dbContext.RefreshTokens.AddRange(new List<RefreshToken>());
+        await _dbContext.SaveChangesAsync();
         _mockJwtTokenService.Setup(j => j.GenerateAccessToken(It.IsAny<User>()))
             .Returns("valid_access_token");
         _mockJwtTokenService.Setup(j => j.GenerateRefreshToken())
@@ -200,8 +201,8 @@ public class AuthenticationServiceTests
         // Arrange
         var request = new LoginRequest { Email = "nonexistent@example.com", Password = "AnyPassword" };
 
-        var mockUserSet = MockDbSetFactory.CreateMockDbSet(new List<User>());
-        _mockDbContext.Setup(c => c.Users).Returns(mockUserSet.Object);
+        // no users in database
+        await _dbContext.SaveChangesAsync();
 
         // Act & Assert
         await Assert.ThrowsAsync<UnauthorizedAccessException>(
@@ -230,8 +231,8 @@ public class AuthenticationServiceTests
 
         var request = new LoginRequest { Email = "test@example.com", Password = "WrongPassword" };
 
-        var mockUserSet = MockDbSetFactory.CreateMockDbSet(new List<User> { user });
-        _mockDbContext.Setup(c => c.Users).Returns(mockUserSet.Object);
+        _dbContext.Users.Add(user);
+        await _dbContext.SaveChangesAsync();
 
         // Act & Assert
         await Assert.ThrowsAsync<UnauthorizedAccessException>(
@@ -260,8 +261,8 @@ public class AuthenticationServiceTests
 
         var request = new LoginRequest { Email = "test@example.com", Password = password };
 
-        var mockUserSet = MockDbSetFactory.CreateMockDbSet(new List<User> { user });
-        _mockDbContext.Setup(c => c.Users).Returns(mockUserSet.Object);
+        _dbContext.Users.Add(user);
+        await _dbContext.SaveChangesAsync();
 
         // Act & Assert
         await Assert.ThrowsAsync<UnauthorizedAccessException>(
@@ -286,9 +287,8 @@ public class AuthenticationServiceTests
             RevokedAt = null
         };
 
-        var mockRefreshTokenSet = MockDbSetFactory.CreateMockDbSet(new List<RefreshToken> { refreshToken });
-        _mockDbContext.Setup(c => c.RefreshTokens).Returns(mockRefreshTokenSet.Object);
-        _mockDbContext.Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
+        _dbContext.RefreshTokens.Add(refreshToken);
+        await _dbContext.SaveChangesAsync();
 
         // Act
         await _service.LogoutAsync(userId);
@@ -328,13 +328,13 @@ public class AuthenticationServiceTests
             RevokedAt = null
         };
 
-        var mockUserSet = MockDbSetFactory.CreateMockDbSet(new List<User> { user });
-        var mockRefreshTokenSet = MockDbSetFactory.CreateMockDbSet(new List<RefreshToken> { refreshToken });
-
-        _mockDbContext.Setup(c => c.Users).Returns(mockUserSet.Object);
-        _mockDbContext.Setup(c => c.RefreshTokens).Returns(mockRefreshTokenSet.Object);
+        _dbContext.Users.Add(user);
+        _dbContext.RefreshTokens.Add(refreshToken);
+        await _dbContext.SaveChangesAsync();
         _mockJwtTokenService.Setup(j => j.GenerateAccessToken(It.IsAny<User>()))
             .Returns("new_access_token");
+        _mockJwtTokenService.Setup(j => j.GenerateRefreshToken())
+            .Returns("rotated_refresh_token");
 
         // Act
         var result = await _service.RefreshAccessTokenAsync("valid_refresh_token");
@@ -357,8 +357,8 @@ public class AuthenticationServiceTests
             RevokedAt = null
         };
 
-        var mockRefreshTokenSet = MockDbSetFactory.CreateMockDbSet(new List<RefreshToken> { refreshToken });
-        _mockDbContext.Setup(c => c.RefreshTokens).Returns(mockRefreshTokenSet.Object);
+        _dbContext.RefreshTokens.Add(refreshToken);
+        await _dbContext.SaveChangesAsync();
 
         // Act & Assert
         await Assert.ThrowsAsync<UnauthorizedAccessException>(

@@ -78,7 +78,7 @@ enum OrderStatus {
 interface Order {
   id: number;
   orderNumber: string;
-  accountId: number;   // Renamed from customerId to match DTO AccountId
+  accountId: number;   // primary account reference (API uses accountId)
   accountName?: string;
   opportunityId?: number;
   quoteId?: number;
@@ -110,7 +110,7 @@ interface OrderLineItem {
 }
 
 interface OrderForm {
-  customerId: number | null;
+  accountId: number | null;
   status: OrderStatus;
   orderDate: string;
   requestedDate: string;
@@ -194,7 +194,7 @@ function OrdersPage() {
   const [lineItems, setLineItems] = useState<OrderLineItem[]>([]);
 
   const emptyForm: OrderForm = {
-    customerId: null,
+    accountId: null,
     status: OrderStatus.Draft,
     orderDate: new Date().toISOString().split('T')[0],
     requestedDate: '',
@@ -276,7 +276,7 @@ function OrdersPage() {
     if (order) {
       setEditingId(order.id);
       setFormData({
-        customerId: order.customerId,
+        accountId: order.accountId,
         status: order.status,
         orderDate: order.orderDate?.split('T')[0] || '',
         requestedDate: order.requestedDate?.split('T')[0] || '',
@@ -345,7 +345,7 @@ function OrdersPage() {
   // ==================== SAVE OPERATIONS ====================
 
   const handleSaveOrder = async () => {
-    if (!formData.customerId) {
+    if (!formData.accountId) {
       dialogApi.setError('Account is required');
       return;
     }
@@ -514,7 +514,7 @@ function OrdersPage() {
                         <TableCell>
                           <Typography fontFamily="monospace">{order.orderNumber}</Typography>
                         </TableCell>
-                        <TableCell>{order.customerName || '-'}</TableCell>
+                        <TableCell>{order.accountName || '-'}</TableCell>
                         <TableCell>
                           <Chip label={statusInfo.label} size="small" color={statusInfo.color} />
                         </TableCell>
@@ -579,7 +579,7 @@ function OrdersPage() {
             formData.status === OrderStatus.Delivered ? 'success' :
             formData.status === OrderStatus.Fulfilled ? 'success' :
             formData.status === OrderStatus.Cancelled ? 'default' :
-            formData.status === OrderStatus.Rejected ? 'error' :
+            formData.status === OrderStatus.ActionRequired ? 'error' :
             formData.status === OrderStatus.PendingApproval ? 'warning' : 'info'
           ) : undefined}
         />
@@ -596,11 +596,11 @@ function OrdersPage() {
             <Grid container spacing={3}>
               <Grid item xs={12} md={6}>
                 <EntitySelect
-                  name="customerId"
+                  name="accountId"
                   label="Account *"
                   entityType="account"
-                  value={formData.customerId ?? ''}
-                  onChange={(val) => setFormData(prev => ({ ...prev, customerId: val as number | null }))}
+                  value={formData.accountId ?? ''}
+                  onChange={(val) => setFormData(prev => ({ ...prev, accountId: val as number | null }))}
                 />
               </Grid>
               <Grid item xs={12} md={6}>

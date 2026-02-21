@@ -92,6 +92,15 @@ internal static class MockDbSetFactory
         mockSet.Setup(m => m.AddAsync(It.IsAny<T>(), It.IsAny<CancellationToken>()))
             .Callback<T, CancellationToken>((e, _) => data.Add(e))
             .ReturnsAsync((T e, CancellationToken _) => (Microsoft.EntityFrameworkCore.ChangeTracking.EntityEntry<T>)null!);
+        
+        // Remove / RemoveRange
+        mockSet.Setup(m => m.Remove(It.IsAny<T>())).Callback<T>(e => data.Remove(e));
+        mockSet.Setup(m => m.RemoveRange(It.IsAny<IEnumerable<T>>()))
+            .Callback<IEnumerable<T>>(entities =>
+            {
+                foreach (var ent in entities.ToList())
+                    data.Remove(ent);
+            });
 
         return mockSet;
     }

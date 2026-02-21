@@ -502,7 +502,14 @@ public class TerritoryService : ITerritoryService
 
     private async Task<LinkedAddressDto?> GetPrimaryAddressAsync(int accountId)
     {
-        var addresses = await _contactInfoService.GetAddressesAsync(EntityType.Account, accountId);
+        // make the contract defensive: the contact info service is allowed to return null
+        // (especially in unit tests where the mock may not be configured).  Treat null
+        // as empty list so that callers don't experience a NullReference/ArgumentNullException.
+        var addresses = await _contactInfoService.GetAddressesAsync(EntityType.Account, accountId)
+                        ?? new List<LinkedAddressDto>();
+
+        // pick the best candidate using the previous priority rules; if our list is empty
+        // the result will be null and the null-propagation in callers handles it.
         var billing = addresses.FirstOrDefault(a => a.AddressType.Equals("Billing", StringComparison.OrdinalIgnoreCase) && a.IsPrimary)
                       ?? addresses.FirstOrDefault(a => a.AddressType.Equals("Billing", StringComparison.OrdinalIgnoreCase))
                       ?? addresses.FirstOrDefault(a => a.AddressType.Equals("Primary", StringComparison.OrdinalIgnoreCase) && a.IsPrimary)

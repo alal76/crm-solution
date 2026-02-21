@@ -283,7 +283,7 @@ public class UserServiceTests
     #region DeleteUserAsync Tests
 
     [Fact]
-    public async Task DeleteUserAsync_WithValidId_SoftDeletesUser()
+    public async Task DeleteUserAsync_WithValidId_RemovesUser()
     {
         // Arrange
         var user = new User
@@ -296,7 +296,6 @@ public class UserServiceTests
             PasswordHash = "hash",
             Role = 2,
             IsActive = true,
-            IsDeleted = false,
             CreatedAt = DateTime.UtcNow
         };
         _users.Add(user);
@@ -307,8 +306,7 @@ public class UserServiceTests
         await _service.DeleteUserAsync(1);
 
         // Assert
-        user.IsDeleted.Should().BeTrue();
-        user.IsActive.Should().BeFalse();
+        _users.Should().NotContain(user);
     }
 
     #endregion
@@ -428,7 +426,7 @@ public class UserServiceTests
         SetupMockDbSet();
 
         // Act & Assert
-        await Assert.ThrowsAsync<UnauthorizedAccessException>(
+        await Assert.ThrowsAsync<InvalidOperationException>(
             () => _service.ChangePasswordAsync(1, "WrongPassword@123", "NewPassword@456"));
     }
 

@@ -734,7 +734,7 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
             };
         }
 
-        return new AuthResponse
+        var response = new AuthResponse
         {
             UserId = user.Id,
             Username = user.Username,
@@ -758,6 +758,23 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
             PhotoUrl = user.PhotoUrl,
             ThemePreference = user.ThemePreference ?? "system"
         };
+
+        // include full user DTO for client profile display
+        response.User = new UserDto
+        {
+            Id = user.Id,
+            Email = user.Email,
+            Username = user.Username,
+            FirstName = user.FirstName,
+            LastName = user.LastName,
+            Role = Enum.GetName(typeof(CRM.Core.Entities.UserRole), user.Role) ?? string.Empty,
+            DepartmentId = user.DepartmentId,
+            DepartmentName = user.Department?.Name,
+            UserProfileId = user.UserProfileId,
+            UserProfileName = user.UserProfile?.Name
+        };
+
+        return response;
     }
 
     private string ExtractUserIdFromToken(string token, string provider)
