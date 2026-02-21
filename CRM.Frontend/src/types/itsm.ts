@@ -65,6 +65,29 @@ export interface Incident extends BaseEntity {
   attachments?: string[];
   relatedIncidents?: number[];
   keywords?: string[];
+
+  // ServiceRequest-specific fields (DTO uses "Subject"; frontend property is `title` above)
+  ticketNumber?: string;
+  categoryId?: number;
+  subcategoryId?: number;
+  requesterName?: string;
+  requesterEmail?: string;
+  requesterPhone?: string;
+  assignedToGroupId?: number;
+  createdByUserId?: number;
+  lastModifiedByUserId?: number;
+  responseDueDate?: string;
+  resolutionDueDate?: string;
+  statusCode?: string;
+  responseSlaBreached?: boolean;
+  resolutionSlaBreached?: boolean;
+  sourcePhoneNumber?: string;
+  conversationId?: string;
+  relatedOpportunityId?: number;
+  relatedProductId?: number;
+  parentServiceRequestId?: number;
+  sourceInteractionId?: number;
+  customFieldValues?: Record<string, any>;
 }
 
 export interface CreateIncidentDto {

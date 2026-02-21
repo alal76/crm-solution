@@ -12,33 +12,54 @@ import { BaseEntity } from './common';
 
 // Numeric enum mapping for API contract
 export enum QuoteStatusEnum {
-  Draft = 0,
-  Sent = 1,
-  Accepted = 2,
-  Rejected = 3,
-  Expired = 4,
-  ConvertedToOrder = 5
+  New = 0,
+  Draft = 1,
+  UnderApproval = 2,
+  Approved = 3,
+  Shared = 4,
+  Viewed = 5,
+  Accepted = 6,
+  Rejected = 7,
+  Expired = 8,
+  Revised = 9,
+  Cancelled = 10,
+  Converted = 11,
+  EndOfLife = 12
 }
 
 // String enum for UI
 export enum QuoteStatus {
+  New = 'new',
   Draft = 'draft',
-  Sent = 'sent',
+  UnderApproval = 'under_approval',
+  Approved = 'approved',
+  Shared = 'shared',
+  Viewed = 'viewed',
   Accepted = 'accepted',
   Rejected = 'rejected',
   Expired = 'expired',
-  ConvertedToOrder = 'converted_to_order'
+  Revised = 'revised',
+  Cancelled = 'cancelled',
+  Converted = 'converted',
+  EndOfLife = 'end_of_life'
 }
 
 // Helper: Map numeric API value to string enum
 export function quoteStatusFromApi(val: number): QuoteStatus {
   switch (val) {
+    case QuoteStatusEnum.New: return QuoteStatus.New;
     case QuoteStatusEnum.Draft: return QuoteStatus.Draft;
-    case QuoteStatusEnum.Sent: return QuoteStatus.Sent;
+    case QuoteStatusEnum.UnderApproval: return QuoteStatus.UnderApproval;
+    case QuoteStatusEnum.Approved: return QuoteStatus.Approved;
+    case QuoteStatusEnum.Shared: return QuoteStatus.Shared;
+    case QuoteStatusEnum.Viewed: return QuoteStatus.Viewed;
     case QuoteStatusEnum.Accepted: return QuoteStatus.Accepted;
     case QuoteStatusEnum.Rejected: return QuoteStatus.Rejected;
     case QuoteStatusEnum.Expired: return QuoteStatus.Expired;
-    case QuoteStatusEnum.ConvertedToOrder: return QuoteStatus.ConvertedToOrder;
+    case QuoteStatusEnum.Revised: return QuoteStatus.Revised;
+    case QuoteStatusEnum.Cancelled: return QuoteStatus.Cancelled;
+    case QuoteStatusEnum.Converted: return QuoteStatus.Converted;
+    case QuoteStatusEnum.EndOfLife: return QuoteStatus.EndOfLife;
     default: return QuoteStatus.Draft;
   }
 }
@@ -46,12 +67,19 @@ export function quoteStatusFromApi(val: number): QuoteStatus {
 // Helper: Map string enum to numeric API value
 export function quoteStatusToApi(val: QuoteStatus): number {
   switch (val) {
+    case QuoteStatus.New: return QuoteStatusEnum.New;
     case QuoteStatus.Draft: return QuoteStatusEnum.Draft;
-    case QuoteStatus.Sent: return QuoteStatusEnum.Sent;
+    case QuoteStatus.UnderApproval: return QuoteStatusEnum.UnderApproval;
+    case QuoteStatus.Approved: return QuoteStatusEnum.Approved;
+    case QuoteStatus.Shared: return QuoteStatusEnum.Shared;
+    case QuoteStatus.Viewed: return QuoteStatusEnum.Viewed;
     case QuoteStatus.Accepted: return QuoteStatusEnum.Accepted;
     case QuoteStatus.Rejected: return QuoteStatusEnum.Rejected;
     case QuoteStatus.Expired: return QuoteStatusEnum.Expired;
-    case QuoteStatus.ConvertedToOrder: return QuoteStatusEnum.ConvertedToOrder;
+    case QuoteStatus.Revised: return QuoteStatusEnum.Revised;
+    case QuoteStatus.Cancelled: return QuoteStatusEnum.Cancelled;
+    case QuoteStatus.Converted: return QuoteStatusEnum.Converted;
+    case QuoteStatus.EndOfLife: return QuoteStatusEnum.EndOfLife;
     default: return QuoteStatusEnum.Draft;
   }
 }
@@ -203,20 +231,24 @@ export interface UpdateQuoteDto {
 // ============================================================================
 
 export enum OrderStatus {
-  Draft = 'draft',
-  Quote = 'quote',
-  Order = 'order',
-  Confirmed = 'confirmed',
-  Processing = 'processing',
-  Shipped = 'shipped',
-  Delivered = 'delivered',
-  Cancelled = 'cancelled',
-  OnHold = 'on_hold'
+  Draft = 0,
+  Submitted = 1,
+  Pending = 2,
+  Processing = 3,
+  Approved = 4,
+  OnHold = 5,
+  Shipped = 6,
+  Delivered = 7,
+  Completed = 8,
+  Cancelled = 9,
+  Refunded = 10,
+  Returned = 11,
+  ActionRequired = 12
 }
 
 export interface Order extends BaseEntity {
   number?: string;
-  accountId: number;            // Primary account reference (DTO uses AccountId)
+  accountId: number;
   accountName?: string;
   contactId?: number;
   contactName?: string;
@@ -239,21 +271,15 @@ export interface Order extends BaseEntity {
   currency?: string;
   currencyCode?: string;
   createdById?: number;
-
-  // Identity
   name?: string;
   description?: string;
   orderNumber?: string;
   externalOrderId?: string;
   customerPONumber?: string;
   referenceNumber?: string;
-
-  // Type & fulfillment
-  orderType?: number;          // 0=Standard, 1=Subscription, 2=Service, 3=Renewal
-  fulfillmentMethod?: number;  // 0=Delivery, 1=Pickup, 2=Digital, 3=Service
-  priority?: number;           // 0=Normal, 1=High, 2=Urgent
-
-  // Dates
+  orderType?: number;
+  fulfillmentMethod?: number;
+  priority?: number;
   approvedDate?: string;
   promisedDeliveryDate?: string;
   deliveredDate?: string;
@@ -263,13 +289,9 @@ export interface Order extends BaseEntity {
   contractEndDate?: string;
   fulfilledDate?: string;
   submittedDate?: string;
-
-  // Pricing additions
   handlingAmount?: number;
   exchangeRate?: number;
   discountReason?: string;
-
-  // Billing address
   billingName?: string;
   billingCompany?: string;
   billingStreet?: string;
@@ -277,8 +299,7 @@ export interface Order extends BaseEntity {
   billingState?: string;
   billingPostalCode?: string;
   billingCountry?: string;
-
-  // Shipping address
+  billingAddress2?: string;
   shippingName?: string;
   shippingCompany?: string;
   shippingStreet?: string;
@@ -286,50 +307,61 @@ export interface Order extends BaseEntity {
   shippingState?: string;
   shippingPostalCode?: string;
   shippingCountry?: string;
-
-  // Legacy flat address fields
+  shippingAddress2?: string;
   shippingAddress?: string;
   billingAddress?: string;
-
-  // Shipping details
   shippingMethod?: string;
   trackingNumber?: string;
   trackingUrl?: string;
   shippingWeight?: number;
   packageCount?: number;
-
-  // Payment details
   paymentMethod?: string;
   amountInvoiced?: number;
   amountPaid?: number;
   balanceDue?: number;
   isPaid?: boolean;
-
-  // Relationships
   quoteId?: number;
   ownerId?: number;
   approvedById?: number;
   parentOrderId?: number;
-
-  // Notes
   internalNotes?: string;
   specialInstructions?: string;
   cancellationReason?: string;
   termsAndConditions?: string;
-
-  // Workflow
   holdReason?: string;
   rejectionReason?: string;
   returnReason?: string;
   discountCode?: string;
   couponCode?: string;
-
-  // Revenue recognition (SaaS/subscription)
-  mrr?: number;                // Monthly Recurring Revenue
-  arr?: number;                // Annual Recurring Revenue
-  tcv?: number;                // Total Contract Value
-  acv?: number;                // Annual Contract Value
-  baseCurrencyAmount?: number; // Amount in base currency (when multi-currency)
+  mrr?: number;
+  arr?: number;
+  tcv?: number;
+  acv?: number;
+  baseCurrencyAmount?: number;
+  // UI gap fields
+  totalPurchases?: number;
+  accountBalance?: number;
+  creditLimit?: number;
+  preferredPaymentMethod?: string;
+  billingCycle?: string;
+  leadScore?: number;
+  npsScore?: number;
+  satisfactionRating?: number;
+  preferredContactTime?: string;
+  optInEmail?: boolean;
+  optInSms?: boolean;
+  optInPhone?: boolean;
+  preferredContactMethod?: string;
+  timezone?: string;
+  preferredLanguage?: string;
+  accountManagerId?: number;
+  territory?: string;
+  region?: string;
+  segment?: string;
+  referralSource?: string;
+  referredByAccountId?: number;
+  parentAccountId?: number;
+  customFields?: string;
   oneTimeRevenue?: number;     // One-time revenue component
   recurringRevenue?: number;   // Recurring revenue component
 
