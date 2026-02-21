@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using System.Diagnostics;
 using System.Net.Http;
 using System.Text.Json;
@@ -103,18 +102,30 @@ public class CloudDeploymentService : ICloudDeploymentService
             await UnsetDefaultProvidersAsync();
         }
 
-        if (!string.IsNullOrEmpty(request.Name)) provider.Name = request.Name;
-        if (request.Description != null) provider.Description = request.Description;
-        if (!string.IsNullOrEmpty(request.AccessKeyId)) provider.AccessKeyId = request.AccessKeyId;
-        if (!string.IsNullOrEmpty(request.SecretAccessKey)) provider.SecretAccessKey = request.SecretAccessKey;
-        if (!string.IsNullOrEmpty(request.TenantId)) provider.TenantId = request.TenantId;
-        if (!string.IsNullOrEmpty(request.SubscriptionId)) provider.SubscriptionId = request.SubscriptionId;
-        if (!string.IsNullOrEmpty(request.ProjectId)) provider.ProjectId = request.ProjectId;
-        if (!string.IsNullOrEmpty(request.Region)) provider.Region = request.Region;
-        if (!string.IsNullOrEmpty(request.Endpoint)) provider.Endpoint = request.Endpoint;
-        if (request.Configuration != null) provider.Configuration = JsonSerializer.Serialize(request.Configuration);
-        if (request.IsActive.HasValue) provider.IsActive = request.IsActive.Value;
-        if (request.IsDefault.HasValue) provider.IsDefault = request.IsDefault.Value;
+        if (!string.IsNullOrEmpty(request.Name))
+            provider.Name = request.Name;
+        if (request.Description != null)
+            provider.Description = request.Description;
+        if (!string.IsNullOrEmpty(request.AccessKeyId))
+            provider.AccessKeyId = request.AccessKeyId;
+        if (!string.IsNullOrEmpty(request.SecretAccessKey))
+            provider.SecretAccessKey = request.SecretAccessKey;
+        if (!string.IsNullOrEmpty(request.TenantId))
+            provider.TenantId = request.TenantId;
+        if (!string.IsNullOrEmpty(request.SubscriptionId))
+            provider.SubscriptionId = request.SubscriptionId;
+        if (!string.IsNullOrEmpty(request.ProjectId))
+            provider.ProjectId = request.ProjectId;
+        if (!string.IsNullOrEmpty(request.Region))
+            provider.Region = request.Region;
+        if (!string.IsNullOrEmpty(request.Endpoint))
+            provider.Endpoint = request.Endpoint;
+        if (request.Configuration != null)
+            provider.Configuration = JsonSerializer.Serialize(request.Configuration);
+        if (request.IsActive.HasValue)
+            provider.IsActive = request.IsActive.Value;
+        if (request.IsDefault.HasValue)
+            provider.IsDefault = request.IsDefault.Value;
 
         await _context.SaveChangesAsync();
 
@@ -128,7 +139,8 @@ public class CloudDeploymentService : ICloudDeploymentService
         var provider = await _context.CloudProviders
             .FirstOrDefaultAsync(p => p.Id == id && !p.IsDeleted);
 
-        if (provider == null) return false;
+        if (provider == null)
+            return false;
 
         provider.IsDeleted = true;
         await _context.SaveChangesAsync();
@@ -405,7 +417,8 @@ public class CloudDeploymentService : ICloudDeploymentService
         var provider = await _context.CloudProviders
             .FirstOrDefaultAsync(p => p.Id == providerId && !p.IsDeleted);
 
-        if (provider == null) return Enumerable.Empty<ResourceOption>();
+        if (provider == null)
+            return Enumerable.Empty<ResourceOption>();
 
         // Return available resources based on provider type and resource type
         return provider.ProviderType switch
@@ -503,15 +516,24 @@ public class CloudDeploymentService : ICloudDeploymentService
             .FirstOrDefaultAsync(d => d.Id == id && !d.IsDeleted)
             ?? throw new KeyNotFoundException($"Deployment {id} not found");
 
-        if (!string.IsNullOrEmpty(request.Name)) deployment.Name = request.Name;
-        if (request.Description != null) deployment.Description = request.Description;
-        if (!string.IsNullOrEmpty(request.ClusterName)) deployment.ClusterName = request.ClusterName;
-        if (!string.IsNullOrEmpty(request.Namespace)) deployment.Namespace = request.Namespace;
-        if (!string.IsNullOrEmpty(request.DomainName)) deployment.DomainName = request.DomainName;
-        if (request.SslEnabled.HasValue) deployment.SslEnabled = request.SslEnabled.Value;
-        if (request.CpuUnits.HasValue) deployment.CpuUnits = request.CpuUnits.Value;
-        if (request.MemoryMb.HasValue) deployment.MemoryMb = request.MemoryMb.Value;
-        if (request.Replicas.HasValue) deployment.Replicas = request.Replicas.Value;
+        if (!string.IsNullOrEmpty(request.Name))
+            deployment.Name = request.Name;
+        if (request.Description != null)
+            deployment.Description = request.Description;
+        if (!string.IsNullOrEmpty(request.ClusterName))
+            deployment.ClusterName = request.ClusterName;
+        if (!string.IsNullOrEmpty(request.Namespace))
+            deployment.Namespace = request.Namespace;
+        if (!string.IsNullOrEmpty(request.DomainName))
+            deployment.DomainName = request.DomainName;
+        if (request.SslEnabled.HasValue)
+            deployment.SslEnabled = request.SslEnabled.Value;
+        if (request.CpuUnits.HasValue)
+            deployment.CpuUnits = request.CpuUnits.Value;
+        if (request.MemoryMb.HasValue)
+            deployment.MemoryMb = request.MemoryMb.Value;
+        if (request.Replicas.HasValue)
+            deployment.Replicas = request.Replicas.Value;
         if (request.EnvironmentVariables != null)
             deployment.EnvironmentVariables = JsonSerializer.Serialize(request.EnvironmentVariables);
 
@@ -527,7 +549,8 @@ public class CloudDeploymentService : ICloudDeploymentService
         var deployment = await _context.CloudDeployments
             .FirstOrDefaultAsync(d => d.Id == id && !d.IsDeleted);
 
-        if (deployment == null) return false;
+        if (deployment == null)
+            return false;
 
         deployment.IsDeleted = true;
         await _context.SaveChangesAsync();
@@ -763,7 +786,8 @@ public class CloudDeploymentService : ICloudDeploymentService
         var attempt = await _context.DeploymentAttempts
             .FirstOrDefaultAsync(a => a.Id == attemptId);
 
-        if (attempt == null) return "Attempt not found";
+        if (attempt == null)
+            return "Attempt not found";
 
         var logs = new System.Text.StringBuilder();
 

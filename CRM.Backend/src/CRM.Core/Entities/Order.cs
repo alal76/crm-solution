@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using CRM.Core.Models;
@@ -398,8 +397,8 @@ public class Order : BaseEntity
 
     /// <summary>Alias for OwnerId - User ID who owns this order</summary>
     [NotMapped]
-    public int? UserId 
-    { 
+    public int? UserId
+    {
         get => OwnerId;
         set => OwnerId = value;
     }

@@ -1,15 +1,14 @@
-using Microsoft.AspNetCore.Http;
 // CRM Solution - Customer Relationship Management System
 // Copyright (C) 2024-2026 Abhishek Lal
 //
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using CRM.Api.Controllers;
 using CRM.Core.Dtos;
 using CRM.Core.Interfaces;
 using FluentAssertions;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -197,7 +196,7 @@ public class AuthControllerTests
         var result = await _controller.Logout();
 
         // Assert
-            var objectResult = result.Should().BeOfType<OkObjectResult>().Subject;
+        var objectResult = result.Should().BeOfType<OkObjectResult>().Subject;
         objectResult.StatusCode.Should().Be(200);
     }
 
@@ -282,7 +281,7 @@ public class AuthControllerTests
         var result = await _controller.ChangePassword(request);
 
         // Assert
-            var objectResult = result.Should().BeOfType<OkObjectResult>().Subject;
+        var objectResult = result.Should().BeOfType<OkObjectResult>().Subject;
         objectResult.StatusCode.Should().Be(200);
     }
 
@@ -311,7 +310,7 @@ public class AuthControllerTests
         var result = await _controller.ChangePassword(request);
 
         // Assert
-            var objectResult = result.Should().BeOfType<UnauthorizedObjectResult>().Subject;
+        var objectResult = result.Should().BeOfType<UnauthorizedObjectResult>().Subject;
         objectResult.StatusCode.Should().Be(401);
     }
 

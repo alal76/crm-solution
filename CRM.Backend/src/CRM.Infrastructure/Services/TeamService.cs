@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using CRM.Infrastructure.Data;
@@ -103,7 +102,8 @@ public class TeamService : ITeamService
     public async Task<bool> DeleteAsync(int id, CancellationToken cancellationToken = default)
     {
         var team = await _context.Teams.FindAsync(new object[] { id }, cancellationToken);
-        if (team == null) return false;
+        if (team == null)
+            return false;
 
         team.IsDeleted = true;
         team.UpdatedAt = DateTime.UtcNow;
@@ -156,7 +156,8 @@ public class TeamService : ITeamService
         var member = await _context.TeamMembers
             .FirstOrDefaultAsync(m => m.TeamId == teamId && m.UserId == userId && !m.IsDeleted, cancellationToken);
 
-        if (member == null) return false;
+        if (member == null)
+            return false;
 
         member.IsDeleted = true;
         member.EndDate = DateTime.UtcNow;
@@ -278,7 +279,8 @@ public class TeamService : ITeamService
         var territory = await _context.AccountTerritories
             .FirstOrDefaultAsync(t => t.Id == territoryId && t.TeamId == teamId, cancellationToken);
 
-        if (territory == null) return false;
+        if (territory == null)
+            return false;
 
         territory.TeamId = null;
         territory.UpdatedAt = DateTime.UtcNow;
@@ -301,7 +303,8 @@ public class TeamService : ITeamService
         var territory = await _context.AccountTerritories
             .FirstOrDefaultAsync(t => t.Id == territoryId, cancellationToken);
 
-        if (territory?.TeamId == null) return null;
+        if (territory?.TeamId == null)
+            return null;
 
         return await GetByIdAsync(territory.TeamId.Value, cancellationToken);
     }
@@ -597,7 +600,8 @@ public class TeamService : ITeamService
     public async Task<Team?> GetParentTeamAsync(int teamId, CancellationToken cancellationToken = default)
     {
         var team = await GetByIdAsync(teamId, cancellationToken);
-        if (team?.ParentTeamId == null) return null;
+        if (team?.ParentTeamId == null)
+            return null;
 
         return await GetByIdAsync(team.ParentTeamId.Value, cancellationToken);
     }

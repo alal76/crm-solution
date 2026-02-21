@@ -4,14 +4,13 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
-using Xunit;
-using FluentAssertions;
-using CRM.Core.Entities;
-using CRM.Core.Dtos;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using CRM.Core.Dtos;
+using CRM.Core.Entities;
+using FluentAssertions;
+using Xunit;
 
 namespace CRM.Tests.Services;
 
@@ -491,7 +490,7 @@ public class CustomerServiceTests
 
         // Assert - All should be valid formats
         validPhones.Should().NotBeEmpty();
-        validPhones.Should().AllSatisfy(phone => 
+        validPhones.Should().AllSatisfy(phone =>
             phone.Should().NotBeNullOrEmpty("phone {0} should be valid", phone));
     }
 

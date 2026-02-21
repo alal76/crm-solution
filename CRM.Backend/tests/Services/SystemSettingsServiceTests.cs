@@ -4,18 +4,17 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
-using Xunit;
-using FluentAssertions;
-using Moq;
+using System;
+using System.Threading.Tasks;
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Services;
+using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Threading.Tasks;
+using Moq;
+using Xunit;
 
 namespace CRM.Tests.Services;
 

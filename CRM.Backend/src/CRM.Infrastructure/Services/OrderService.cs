@@ -4,11 +4,10 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
+using CRM.Core.DTOs;
 using CRM.Core.Entities;
 using CRM.Core.Entities.Workflow;
 using CRM.Core.Interfaces;
-using CRM.Core.DTOs;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -369,12 +368,18 @@ public class OrderService : IOrderService
 
     private static void MapUpdateOrderDtoToEntity(UpdateOrderDto dto, Order entity)
     {
-        if (dto.Name != null) entity.Name = dto.Name;
-        if (dto.Description != null) entity.Description = dto.Description;
-        if (dto.Status.HasValue) entity.Status = (OrderStatus)dto.Status.Value;
-        if (dto.OrderType.HasValue) entity.OrderType = (OrderType)dto.OrderType.Value;
-        if (dto.FulfillmentMethod.HasValue) entity.FulfillmentMethod = (FulfillmentMethod)dto.FulfillmentMethod.Value;
-        if (dto.Priority.HasValue) entity.Priority = (OrderPriority)dto.Priority.Value;
+        if (dto.Name != null)
+            entity.Name = dto.Name;
+        if (dto.Description != null)
+            entity.Description = dto.Description;
+        if (dto.Status.HasValue)
+            entity.Status = (OrderStatus)dto.Status.Value;
+        if (dto.OrderType.HasValue)
+            entity.OrderType = (OrderType)dto.OrderType.Value;
+        if (dto.FulfillmentMethod.HasValue)
+            entity.FulfillmentMethod = (FulfillmentMethod)dto.FulfillmentMethod.Value;
+        if (dto.Priority.HasValue)
+            entity.Priority = (OrderPriority)dto.Priority.Value;
         // ...map other updatable fields as needed...
         // Optionally update line items, etc.
     }

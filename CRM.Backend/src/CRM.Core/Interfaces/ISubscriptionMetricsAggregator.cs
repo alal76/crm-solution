@@ -4,14 +4,13 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using CRM.Core.Dtos;
 
 namespace CRM.Core.Interfaces;
 
 /// <summary>
 /// Subscription Metrics Aggregator - Calculates key SaaS metrics for analytics and reporting.
-/// 
+///
 /// Metrics:
 /// - MRR: Monthly Recurring Revenue (sum of active subscriptions)
 /// - ARR: Annual Recurring Revenue (MRR × 12)
@@ -19,9 +18,9 @@ namespace CRM.Core.Interfaces;
 /// - LTV: Customer Lifetime Value (ARPU × 1/churn rate)
 /// - CAC: Customer Acquisition Cost (sales/marketing spend / new customers)
 /// - NRR: Net Revenue Retention (includes upsells and downgrades)
-/// 
+///
 /// Results cached in Redis with configurable TTL (default 1 hour).
-/// 
+///
 /// SPEC: PHASE 6 - Subscription Billing Services (25 hours)
 /// </summary>
 public interface ISubscriptionMetricsAggregator

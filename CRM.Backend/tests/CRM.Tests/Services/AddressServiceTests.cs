@@ -1,3 +1,9 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This software is source-available. Non-commercial use is permitted under
+// the terms of the LICENSE file. Commercial use requires a separate license.
+// See the LICENSE file in the root directory for full terms.
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -6,18 +12,18 @@ using System.Threading.Tasks;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using CRM.Infrastructure.Services;
+using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
-using FluentAssertions;
 
 namespace CRM.Tests.Services;
 
 /// <summary>
 /// Unit tests for AddressService covering address management operations.
 /// Tests cover: CRUD operations, validation, primary address logic, and soft deletes.
-/// 
+///
 /// FUNCTIONAL VIEW:
 /// - Tests address creation with valid and invalid data
 /// - Tests address updates with field validation
@@ -36,7 +42,7 @@ public class AddressServiceTests
     private readonly Mock<ICrmDbContext> _mockContext;
     private readonly Mock<ILogger<AddressService>> _mockLogger;
     private readonly AddressService _service;
-    
+
     // Test data
     private readonly Account _testAccount;
     private readonly Address _testAddress;
@@ -121,7 +127,7 @@ public class AddressServiceTests
         result.CreatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
         result.UpdatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
         result.IsDeleted.Should().BeFalse();
-        
+
         _mockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -141,7 +147,7 @@ public class AddressServiceTests
         // Act & Assert
         var exception = await Assert.ThrowsAsync<ArgumentException>(
             () => _service.CreateAddressAsync(999, newAddress, CancellationToken.None));
-        
+
         exception.Message.Should().Contain("Account with ID 999 not found");
     }
 
@@ -161,7 +167,7 @@ public class AddressServiceTests
         // Act & Assert
         var exception = await Assert.ThrowsAsync<ArgumentException>(
             () => _service.CreateAddressAsync(1, newAddress, CancellationToken.None));
-        
+
         exception.Message.Should().Contain("Address Line1");
     }
 
@@ -181,7 +187,7 @@ public class AddressServiceTests
         // Act & Assert
         var exception = await Assert.ThrowsAsync<ArgumentException>(
             () => _service.CreateAddressAsync(1, newAddress, CancellationToken.None));
-        
+
         exception.Message.Should().Contain("Address City");
     }
 
@@ -201,7 +207,7 @@ public class AddressServiceTests
         // Act & Assert
         var exception = await Assert.ThrowsAsync<ArgumentException>(
             () => _service.CreateAddressAsync(1, newAddress, CancellationToken.None));
-        
+
         exception.Message.Should().Contain("Address Country");
     }
 
@@ -252,8 +258,8 @@ public class AddressServiceTests
             Country = "United States"
         };
 
-        SetupMockDbContextForUpdate(new List<Account> { _testAccount }, 
-            new List<Address> { _testAddress }, 
+        SetupMockDbContextForUpdate(new List<Account> { _testAccount },
+            new List<Address> { _testAddress },
             new List<EntityAddressLink> { existingLink });
 
         // Act
@@ -264,7 +270,7 @@ public class AddressServiceTests
         result.Line1.Should().Be("456 New Street");
         result.City.Should().Be("Boston");
         result.UpdatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(1));
-        
+
         _mockContext.Verify(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -279,14 +285,14 @@ public class AddressServiceTests
             Country = "United States"
         };
 
-        SetupMockDbContextForUpdate(new List<Account> { _testAccount }, 
-            new List<Address>(), 
+        SetupMockDbContextForUpdate(new List<Account> { _testAccount },
+            new List<Address>(),
             new List<EntityAddressLink>());
 
         // Act & Assert - Service throws ArgumentException when address not found
         var exception = await Assert.ThrowsAsync<ArgumentException>(
             () => _service.UpdateAddressAsync(1, 999, updatedAddress, CancellationToken.None));
-        
+
         exception.Message.Should().Contain("999");
     }
 
@@ -310,14 +316,14 @@ public class AddressServiceTests
             Country = "United States"
         };
 
-        SetupMockDbContextForUpdate(new List<Account> { _testAccount }, 
-            new List<Address> { _testAddress }, 
+        SetupMockDbContextForUpdate(new List<Account> { _testAccount },
+            new List<Address> { _testAddress },
             new List<EntityAddressLink> { existingLink });
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<ArgumentException>(
             () => _service.UpdateAddressAsync(1, 1, invalidAddress, CancellationToken.None));
-        
+
         exception.Message.Should().Contain("Address Line1");
     }
 
@@ -338,8 +344,8 @@ public class AddressServiceTests
             IsDeleted = false
         };
 
-        SetupMockDbContextForDelete(new List<Account> { _testAccount }, 
-            new List<Address> { _testAddress }, 
+        SetupMockDbContextForDelete(new List<Account> { _testAccount },
+            new List<Address> { _testAddress },
             new List<EntityAddressLink> { existingLink });
 
         // Act
@@ -354,8 +360,8 @@ public class AddressServiceTests
     public async Task DeleteAddressAsync_ShouldReturnFalse_WhenAddressNotFound()
     {
         // Arrange
-        SetupMockDbContextForDelete(new List<Account> { _testAccount }, 
-            new List<Address>(), 
+        SetupMockDbContextForDelete(new List<Account> { _testAccount },
+            new List<Address>(),
             new List<EntityAddressLink>());
 
         // Act
@@ -369,8 +375,8 @@ public class AddressServiceTests
     public async Task DeleteAddressAsync_ShouldReturnFalse_WhenAddressNotLinkedToAccount()
     {
         // Arrange
-        SetupMockDbContextForDelete(new List<Account> { _testAccount }, 
-            new List<Address> { _testAddress }, 
+        SetupMockDbContextForDelete(new List<Account> { _testAccount },
+            new List<Address> { _testAddress },
             new List<EntityAddressLink>());  // No link
 
         // Act
@@ -384,14 +390,14 @@ public class AddressServiceTests
     public async Task DeleteAddressAsync_ShouldThrowException_WhenAccountNotFound()
     {
         // Arrange
-        SetupMockDbContextForDelete(new List<Account>(), 
-            new List<Address> { _testAddress }, 
+        SetupMockDbContextForDelete(new List<Account>(),
+            new List<Address> { _testAddress },
             new List<EntityAddressLink>());
 
         // Act & Assert
         var exception = await Assert.ThrowsAsync<ArgumentException>(
             () => _service.DeleteAddressAsync(999, 1, CancellationToken.None));
-        
+
         exception.Message.Should().Contain("Account with ID 999 not found");
     }
 
@@ -408,7 +414,7 @@ public class AddressServiceTests
             new() { AddressId = 1, EntityId = 1, EntityType = EntityType.Account, IsDeleted = false },
             new() { AddressId = 2, EntityId = 1, EntityType = EntityType.Account, IsDeleted = false }
         };
-        
+
         SetupMockDbContextForGetAddresses(
             new List<Address> { _testAddress, _testAddress2 },
             links);
@@ -440,7 +446,7 @@ public class AddressServiceTests
             new() { AddressId = 1, EntityId = 1, EntityType = EntityType.Account, IsDeleted = false },
             new() { AddressId = 3, EntityId = 1, EntityType = EntityType.Account, IsDeleted = false }
         };
-        
+
         SetupMockDbContextForGetAddresses(
             new List<Address> { _testAddress, deletedAddress },
             links);

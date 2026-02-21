@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
@@ -164,7 +163,8 @@ public class DuplicateDetectionService : IDuplicateDetectionService
     public async Task<bool> DeleteRuleAsync(int ruleId)
     {
         var rule = await _context.Set<DuplicateRule>().FindAsync(ruleId);
-        if (rule == null) return false;
+        if (rule == null)
+            return false;
 
         rule.IsDeleted = true;
         await _context.SaveChangesAsync();
@@ -394,12 +394,14 @@ public class DuplicateDetectionService : IDuplicateDetectionService
         string? notes = null)
     {
         var candidate = await _context.Set<DuplicateCandidate>().FindAsync(candidateId);
-        if (candidate == null) return null;
+        if (candidate == null)
+            return null;
 
         candidate.Status = status;
         candidate.ReviewedById = userId;
         candidate.ReviewedAt = DateTime.UtcNow;
-        if (notes != null) candidate.Notes = notes;
+        if (notes != null)
+            candidate.Notes = notes;
 
         await _context.SaveChangesAsync();
         return candidate;
@@ -665,7 +667,8 @@ public class DuplicateDetectionService : IDuplicateDetectionService
 
     private string ApplyTransform(string value, string? transform)
     {
-        if (string.IsNullOrEmpty(transform)) return value;
+        if (string.IsNullOrEmpty(transform))
+            return value;
 
         var result = value;
         foreach (var t in transform.Split(','))
@@ -703,8 +706,10 @@ public class DuplicateDetectionService : IDuplicateDetectionService
         var n = s2.Length;
         var d = new int[m + 1, n + 1];
 
-        for (var i = 0; i <= m; i++) d[i, 0] = i;
-        for (var j = 0; j <= n; j++) d[0, j] = j;
+        for (var i = 0; i <= m; i++)
+            d[i, 0] = i;
+        for (var j = 0; j <= n; j++)
+            d[0, j] = j;
 
         for (var j = 1; j <= n; j++)
         {
@@ -729,7 +734,8 @@ public class DuplicateDetectionService : IDuplicateDetectionService
 
     private string GetSoundex(string input)
     {
-        if (string.IsNullOrEmpty(input)) return "0000";
+        if (string.IsNullOrEmpty(input))
+            return "0000";
 
         var soundex = new StringBuilder();
         soundex.Append(char.ToUpper(input[0]));
@@ -745,7 +751,8 @@ public class DuplicateDetectionService : IDuplicateDetectionService
             prevCode = code;
         }
 
-        while (soundex.Length < 4) soundex.Append('0');
+        while (soundex.Length < 4)
+            soundex.Append('0');
         return soundex.ToString();
     }
 

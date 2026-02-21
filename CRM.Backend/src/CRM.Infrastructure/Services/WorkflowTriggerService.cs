@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using System.Text.Json;
 using CRM.Core.DTOs.Workflow;
 using CRM.Core.Entities.Workflow;
@@ -152,21 +151,36 @@ public class WorkflowTriggerService : IWorkflowTriggerService
             throw new KeyNotFoundException($"Workflow trigger {dto.Id} not found.");
 
         // Update fields
-        if (dto.Name != null) trigger.Name = dto.Name;
-        if (dto.TriggerType.HasValue) trigger.TriggerType = dto.TriggerType.Value;
-        if (dto.EntityType != null) trigger.EntityType = dto.EntityType;
-        if (dto.EventName != null) trigger.EventName = dto.EventName;
-        if (dto.CronExpression != null) trigger.CronExpression = dto.CronExpression;
-        if (dto.FilterConditions != null) trigger.FilterConditions = dto.FilterConditions;
-        if (dto.WatchedField != null) trigger.WatchedField = dto.WatchedField;
-        if (dto.OldValue != null) trigger.OldValue = dto.OldValue;
-        if (dto.NewValue != null) trigger.NewValue = dto.NewValue;
-        if (dto.IsActive.HasValue) trigger.IsActive = dto.IsActive.Value;
-        if (dto.Priority.HasValue) trigger.Priority = dto.Priority.Value;
-        if (dto.Description != null) trigger.Description = dto.Description;
-        if (dto.DelaySeconds.HasValue) trigger.DelaySeconds = dto.DelaySeconds.Value;
-        if (dto.RunAsync.HasValue) trigger.RunAsync = dto.RunAsync.Value;
-        if (dto.MaxRetries.HasValue) trigger.MaxRetries = dto.MaxRetries.Value;
+        if (dto.Name != null)
+            trigger.Name = dto.Name;
+        if (dto.TriggerType.HasValue)
+            trigger.TriggerType = dto.TriggerType.Value;
+        if (dto.EntityType != null)
+            trigger.EntityType = dto.EntityType;
+        if (dto.EventName != null)
+            trigger.EventName = dto.EventName;
+        if (dto.CronExpression != null)
+            trigger.CronExpression = dto.CronExpression;
+        if (dto.FilterConditions != null)
+            trigger.FilterConditions = dto.FilterConditions;
+        if (dto.WatchedField != null)
+            trigger.WatchedField = dto.WatchedField;
+        if (dto.OldValue != null)
+            trigger.OldValue = dto.OldValue;
+        if (dto.NewValue != null)
+            trigger.NewValue = dto.NewValue;
+        if (dto.IsActive.HasValue)
+            trigger.IsActive = dto.IsActive.Value;
+        if (dto.Priority.HasValue)
+            trigger.Priority = dto.Priority.Value;
+        if (dto.Description != null)
+            trigger.Description = dto.Description;
+        if (dto.DelaySeconds.HasValue)
+            trigger.DelaySeconds = dto.DelaySeconds.Value;
+        if (dto.RunAsync.HasValue)
+            trigger.RunAsync = dto.RunAsync.Value;
+        if (dto.MaxRetries.HasValue)
+            trigger.MaxRetries = dto.MaxRetries.Value;
 
         trigger.UpdatedAt = DateTime.UtcNow;
 
@@ -892,13 +906,15 @@ public class WorkflowTriggerService : IWorkflowTriggerService
                 return !string.IsNullOrEmpty(actual);
 
             case "in":
-                if (string.IsNullOrEmpty(expected)) return false;
+                if (string.IsNullOrEmpty(expected))
+                    return false;
                 var inValues = expected.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
                 return inValues.Any(v => string.Equals(v, actual, StringComparison.OrdinalIgnoreCase));
 
             case "notin":
             case "not_in":
-                if (string.IsNullOrEmpty(expected)) return true;
+                if (string.IsNullOrEmpty(expected))
+                    return true;
                 var notInValues = expected.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
                 return !notInValues.Any(v => string.Equals(v, actual, StringComparison.OrdinalIgnoreCase));
 
@@ -906,7 +922,8 @@ public class WorkflowTriggerService : IWorkflowTriggerService
                 return EvaluateBetween(actual, expected, expected2);
 
             case "regex":
-                if (string.IsNullOrEmpty(expected)) return true;
+                if (string.IsNullOrEmpty(expected))
+                    return true;
                 try
                 {
                     return System.Text.RegularExpressions.Regex.IsMatch(actual ?? "", expected, System.Text.RegularExpressions.RegexOptions.IgnoreCase);

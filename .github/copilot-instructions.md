@@ -18,6 +18,7 @@ Copilot usage
 - after first version update change this copilot version to match what is updated into the version.json file to ensure consistency and clarity in communication about the current version of the solution. This will help in tracking which version of the codebase is currently being worked on and also in communicating with other team members about the state of the project.
 
 - Do not delete any code without a very good reason, if you think some code is not needed or can be improved, first check if it's being used anywhere in the codebase, if it's not being used and you are sure it can be removed then mark it as dead code for deletion, but if it's being used or you are not sure about its usage then it's better to keep it and maybe mark it as deprecated or add comments for future reference. This will help in maintaining the integrity of the codebase and also in avoiding any unintended consequences of deleting code that might still be needed.
+- Clean up stylecop and sonarqube warnings where possible, but if there are warnings that require significant refactoring or changes to the codebase, it's better to create a separate task for them and prioritize them accordingly rather than trying to fix them in the middle of implementing a new feature or change. This will help in maintaining focus on the current task and also in ensuring that any refactoring or changes are done in a controlled and deliberate manner.
 
 
 

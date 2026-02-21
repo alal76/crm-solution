@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -34,7 +33,7 @@ public enum BillingEventType
 /// Billing History Entity - Audit trail for all subscription billing events.
 /// Tracks: invoice generation, payment collection, plan changes, prorations, renewals.
 /// Each record documents WHEN (date), WHAT (event type), HOW MUCH (amount), and WHO (user).
-/// 
+///
 /// FINANCIAL PRECISION: Uses DECIMAL(18,4) for all monetary amounts to prevent
 /// accumulated floating-point rounding errors in financial calculations.
 /// </summary>
@@ -99,7 +98,7 @@ public class BillingHistory : BaseEntity
     public DateTime EventDate { get; set; } = DateTime.UtcNow;
 
     /// <summary>
-    /// Billing status: Pending (draft), Billed (invoice sent), Paid (payment received), 
+    /// Billing status: Pending (draft), Billed (invoice sent), Paid (payment received),
     /// Failed (payment failed), WrittenOff (bad debt).
     /// </summary>
     [MaxLength(50)]

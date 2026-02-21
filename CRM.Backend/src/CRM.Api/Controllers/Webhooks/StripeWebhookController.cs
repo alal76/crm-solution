@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -367,8 +366,10 @@ public class StripeWebhookController : ControllerBase
             // Update card details from the charge
             var cardBrand = GetObjectStringProperty(stripeEvent, "payment_method_details", "card", "brand");
             var cardLast4 = GetObjectStringProperty(stripeEvent, "payment_method_details", "card", "last4");
-            if (!string.IsNullOrEmpty(cardBrand)) payment.CardBrand = cardBrand;
-            if (!string.IsNullOrEmpty(cardLast4)) payment.CardLast4 = cardLast4;
+            if (!string.IsNullOrEmpty(cardBrand))
+                payment.CardBrand = cardBrand;
+            if (!string.IsNullOrEmpty(cardLast4))
+                payment.CardLast4 = cardLast4;
             payment.GatewayReference = chargeId;
             await _paymentService.UpdateAsync(payment, cancellationToken);
         }

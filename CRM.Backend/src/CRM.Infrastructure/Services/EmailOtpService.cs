@@ -1,3 +1,9 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This software is source-available. Non-commercial use is permitted under
+// the terms of the LICENSE file. Commercial use requires a separate license.
+// See the LICENSE file in the root directory for full terms.
 using System.Security.Cryptography;
 using System.Text;
 using CRM.Core.Interfaces;
@@ -388,7 +394,8 @@ public class EmailOtpService : IEmailOtpService
     private static readonly Dictionary<string, (string hash, DateTime expiresAt, int attempts)> _otp_records = new();
     private static readonly Dictionary<string, DateTime> _otp_rate_limits = new();
 
-    private enum RateLimitType { Email, Sms }
+    private enum RateLimitType { Email,
+        Sms }
 
     #endregion
 }

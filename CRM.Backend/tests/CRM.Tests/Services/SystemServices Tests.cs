@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
@@ -46,7 +45,7 @@ public class FeatureFlagManagementServiceTests
                 mockSection.Setup(s => s.Value).Returns("BuiltIn");
                 return mockSection.Object;
             });
-        
+
         // Return null for all other sections (rollout percentages, targeted users, etc.)
         _mockConfiguration.Setup(c => c.GetSection(It.Is<string>(k => !k.StartsWith("Providers:") || !k.EndsWith(":Type"))))
             .Returns(() =>
@@ -55,7 +54,7 @@ public class FeatureFlagManagementServiceTests
                 mockSection.Setup(s => s.Value).Returns((string?)null);
                 return mockSection.Object;
             });
-        
+
         _service = new FeatureFlagManagementService(
             _mockDbContext.Object,
             _mockFeatureManager.Object,
@@ -76,8 +75,8 @@ public class FeatureFlagManagementServiceTests
         // Assert
         Assert.NotNull(result);
         Assert.NotEmpty(result);
-        Assert.True(result.Any(f => f.Name == "EnableITSM"));
-        Assert.True(result.Any(f => f.Name == "UseExternalAI"));
+        Assert.Contains(result, f => f.Name == "EnableITSM");
+        Assert.Contains(result, f => f.Name == "UseExternalAI");
     }
 
     [Fact]
@@ -236,7 +235,7 @@ public class UserInterfaceServiceTests
     {
         _mockDbContext = new Mock<ICrmDbContext>();
         _mockLogger = new Mock<ILogger<UserInterfaceService>>();
-        
+
         _service = new UserInterfaceService(_mockDbContext.Object, _mockLogger.Object);
     }
 
@@ -285,9 +284,9 @@ public class UserInterfaceServiceTests
         _mockDbContext.Setup(d => d.SaveChangesAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(1);
 
-        var dto = new CreateUpdateUICustomizationDto 
-        { 
-            ModuleName = "Accounts", 
+        var dto = new CreateUpdateUICustomizationDto
+        {
+            ModuleName = "Accounts",
             PageName = "ListView",
             VisibleColumns = new[] { "Name", "Email" }
         };
@@ -357,7 +356,7 @@ public class PerformanceOptimizationServiceTests
         _mockDbContext = new Mock<ICrmDbContext>();
         _mockLogger = new Mock<ILogger<PerformanceOptimizationService>>();
         _mockCache = new Mock<IDistributedCache>();
-        
+
         _service = new PerformanceOptimizationService(
             _mockDbContext.Object,
             _mockLogger.Object,

@@ -4,9 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
-// This file extends the existing Dashboard entities with report-specific functionality
-// The main Dashboard and DashboardWidget entities are in CRM.Core.Entities namespace
 namespace CRM.Core.Entities.Reports;
 
 // Note: Dashboard and DashboardWidget already exist in CRM.Core.Entities

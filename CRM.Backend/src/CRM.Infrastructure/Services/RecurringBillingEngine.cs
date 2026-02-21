@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using CRM.Infrastructure.Data;
@@ -15,14 +14,14 @@ namespace CRM.Infrastructure.Services;
 
 /// <summary>
 /// Recurring Billing Engine - Background job for subscription invoice generation and payment processing.
-/// 
+///
 /// Processes:
 /// - Generate renewal invoices for subscriptions due for billing
 /// - Process automatic payments via stored payment methods
 /// - Retry failed payments with exponential backoff
-/// 
+///
 /// Designed to run hourly via background job processor (Hangfire).
-/// 
+///
 /// PHASE 6: Subscription Billing Services (25 hours)
 /// SPEC: SPEC-SALES-006
 /// </summary>
@@ -269,7 +268,7 @@ public class RecurringBillingEngine : IRecurringBillingEngine
             1 => 3,    // First retry: 3 days
             2 => 7,    // Second retry: 7 days
             3 => 14,   // Third retry: 14 days
-            _ => 30    // After third: 30 days
+            _ => 30 // After third: 30 days
         };
 
         var nextRetryDate = DateTime.UtcNow.AddDays(backoffDays);

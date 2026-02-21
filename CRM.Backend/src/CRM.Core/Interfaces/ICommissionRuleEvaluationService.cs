@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using CRM.Core.Dtos;
 
 namespace CRM.Core.Interfaces;
@@ -12,14 +11,14 @@ namespace CRM.Core.Interfaces;
 /// <summary>
 /// Commission Rule Evaluation Service - Advanced commission calculations with tiers, caps,
 /// minimums, clawback, split commissions, and trigger-based rules.
-/// 
+///
 /// Features:
 /// - Tiered commission rates based on deal amount
 /// - Commission caps and minimums per deal
 /// - Clawback on deal churn
 /// - Split commissions across multiple sales reps
 /// - Trigger-based rules (deal close, payment received, subscription renewal)
-/// 
+///
 /// SPEC: PHASE 5 - Commission Rules Advanced (20 hours)
 /// </summary>
 public interface ICommissionRuleEvaluationService

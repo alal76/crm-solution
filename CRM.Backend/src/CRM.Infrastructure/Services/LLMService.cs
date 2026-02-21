@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
@@ -498,7 +497,8 @@ public class LLMService : ILLMService
                 lastException = ex;
                 _logger.LogWarning(ex, "LLM call to {Provider} failed, trying fallback", provider);
 
-                if (!_options.EnableFallback) break;
+                if (!_options.EnableFallback)
+                    break;
             }
         }
 
@@ -530,7 +530,8 @@ public class LLMService : ILLMService
 
     private string InterpolateVariables(string template, Dictionary<string, object>? variables)
     {
-        if (variables == null || variables.Count == 0) return template;
+        if (variables == null || variables.Count == 0)
+            return template;
 
         var result = template;
         foreach (var kvp in variables)

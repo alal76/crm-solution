@@ -1,3 +1,9 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This software is source-available. Non-commercial use is permitted under
+// the terms of the LICENSE file. Commercial use requires a separate license.
+// See the LICENSE file in the root directory for full terms.
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -36,8 +42,7 @@ public class AccountAddressService : IAccountAddressService
                 _context.Addresses.Where(a => !a.IsDeleted),
                 l => l.AddressId,
                 a => a.Id,
-                (link, address) => new { link, address }
-            );
+                (link, address) => new { link, address });
 
         if (type.HasValue)
         {
@@ -59,8 +64,7 @@ public class AccountAddressService : IAccountAddressService
                 _context.Addresses.Where(a => !a.IsDeleted),
                 l => l.AddressId,
                 a => a.Id,
-                (link, address) => address
-            )
+                (link, address) => address)
             .FirstOrDefaultAsync(cancellationToken);
 
         return result;

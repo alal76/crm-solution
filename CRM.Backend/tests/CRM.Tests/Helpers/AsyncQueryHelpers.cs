@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
@@ -161,7 +160,8 @@ internal static class MockDbSetFactory
 
         T? FindEntity(object? key)
         {
-            if (key == null) return default;
+            if (key == null)
+                return default;
 
             var typeName = typeof(T).Name;
             var allIdProps = typeof(T).GetProperties()
@@ -175,7 +175,8 @@ internal static class MockDbSetFactory
 
             return data.FirstOrDefault(e =>
             {
-                if (idProp == null) return false;
+                if (idProp == null)
+                    return false;
                 var val = idProp.GetValue(e);
                 return val != null && Equals(val, Convert.ToInt32(key));
             });

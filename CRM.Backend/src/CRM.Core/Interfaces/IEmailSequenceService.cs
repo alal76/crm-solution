@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,7 +14,7 @@ namespace CRM.Core.Interfaces
 {
     /// <summary>
     /// Email Sequence Service - Drip campaign automation with conditional branching.
-    /// 
+    ///
     /// Features:
     /// - Create sequences with multiple steps (3-10 emails)
     /// - Each step can have delay + condition + next email
@@ -23,7 +22,7 @@ namespace CRM.Core.Interfaces
     /// - Track recipient progress through sequence
     /// - Record opens/clicks for engagement metrics
     /// - Conditional branching (IF opened THEN send X ELSE send Y)
-    /// 
+    ///
     /// SPEC: PHASE 7 - Email Sequence Service (20 hours)
     /// </summary>
     public interface IEmailSequenceService

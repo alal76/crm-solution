@@ -1,3 +1,9 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This software is source-available. Non-commercial use is permitted under
+// the terms of the LICENSE file. Commercial use requires a separate license.
+// See the LICENSE file in the root directory for full terms.
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
@@ -173,7 +179,8 @@ public class GoogleOAuthProvider : IGoogleOAuthProvider
         bool first = true;
         foreach (var param in parameters)
         {
-            if (!first) sb.Append("&");
+            if (!first)
+                sb.Append("&");
             sb.Append(Uri.EscapeDataString(param.Key)).Append("=").Append(Uri.EscapeDataString(param.Value));
             first = false;
         }
@@ -349,7 +356,8 @@ public class MicrosoftOAuthProvider : IMicrosoftOAuthProvider
         bool first = true;
         foreach (var param in parameters)
         {
-            if (!first) sb.Append("&");
+            if (!first)
+                sb.Append("&");
             sb.Append(Uri.EscapeDataString(param.Key)).Append("=").Append(Uri.EscapeDataString(param.Value));
             first = false;
         }
@@ -397,7 +405,8 @@ public class GitHubOAuthProvider : IGitHubOAuthProvider
         bool first = true;
         foreach (var param in parameters)
         {
-            if (!first) sb.Append("&");
+            if (!first)
+                sb.Append("&");
             sb.Append(Uri.EscapeDataString(param.Key)).Append("=").Append(Uri.EscapeDataString(param.Value));
             first = false;
         }

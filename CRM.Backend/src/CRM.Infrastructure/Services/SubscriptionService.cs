@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using CRM.Infrastructure.Data;
@@ -112,7 +111,8 @@ public class SubscriptionService : ISubscriptionService
     public async Task<bool> DeleteAsync(int id, CancellationToken cancellationToken = default)
     {
         var subscription = await _context.Subscriptions.FindAsync(new object[] { id }, cancellationToken);
-        if (subscription == null) return false;
+        if (subscription == null)
+            return false;
 
         subscription.IsDeleted = true;
         subscription.UpdatedAt = DateTime.UtcNow;
@@ -784,7 +784,8 @@ public class SubscriptionService : ISubscriptionService
         var startCount = await _context.Subscriptions
             .CountAsync(s => !s.IsDeleted && s.CreatedAt < fromDate && s.SubscriptionStatus == SubscriptionStatus.Active, cancellationToken);
 
-        if (startCount == 0) return 0;
+        if (startCount == 0)
+            return 0;
 
         var churned = await _context.Subscriptions
             .CountAsync(s => !s.IsDeleted && s.SubscriptionStatus == SubscriptionStatus.Cancelled && s.UpdatedAt >= fromDate && s.UpdatedAt <= toDate, cancellationToken);
@@ -798,7 +799,8 @@ public class SubscriptionService : ISubscriptionService
 
     private static string NormalizeBillingCycle(string? billingCycle)
     {
-        if (string.IsNullOrWhiteSpace(billingCycle)) return "Monthly";
+        if (string.IsNullOrWhiteSpace(billingCycle))
+            return "Monthly";
 
         var normalized = billingCycle.Trim().ToLowerInvariant();
         if (!AllowedBillingCycles.Contains(normalized))

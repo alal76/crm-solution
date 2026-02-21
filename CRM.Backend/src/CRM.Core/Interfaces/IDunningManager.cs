@@ -4,23 +4,22 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using CRM.Core.Dtos;
 
 namespace CRM.Core.Interfaces;
 
 /// <summary>
 /// Dunning Manager - Payment failure recovery workflow with intelligent retry escalation.
-/// 
+///
 /// Dunning Process (3-retry escalation):
 /// - Retry 1 (Day 3): Soft decline, request payment
 /// - Retry 2 (Day 7): Escalate, account warning
 /// - Retry 3 (Day 10): Final notice, subscription paused
 /// - Retry >3: Cancel subscription, archive customer
-/// 
+///
 /// Automatically handles payment retries, customer notifications, and subscription lifecycle.
 /// Designed to maximize revenue recovery while preventing payment churn.
-/// 
+///
 /// SPEC: PHASE 6 - Subscription Billing Services (25 hours)
 /// </summary>
 public interface IDunningManager
@@ -204,5 +203,5 @@ public enum DunningEscalationLevel
     Soft = 0,        // Day 3: Soft request
     Escalated = 1,   // Day 7: Warning
     Final = 2,       // Day 10: Final notice
-    Exhausted = 3    // Day >10: Cancel
+    Exhausted = 3 // Day >10: Cancel
 }

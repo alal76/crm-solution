@@ -4,17 +4,16 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using CRM.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace CRM.Infrastructure.Services
 {
@@ -63,7 +62,8 @@ namespace CRM.Infrastructure.Services
         public async Task<bool> DeleteBundleAsync(int id, CancellationToken cancellationToken = default)
         {
             var entity = await _context.ProductBundles.FirstOrDefaultAsync(b => b.Id == id && !b.IsDeleted, cancellationToken);
-            if (entity == null) return false;
+            if (entity == null)
+                return false;
             entity.IsDeleted = true;
             entity.UpdatedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync(cancellationToken);

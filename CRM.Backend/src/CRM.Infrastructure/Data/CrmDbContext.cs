@@ -4,7 +4,7 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
+using System.Linq.Expressions;
 using CRM.Core.Entities;
 using CRM.Core.Entities.AI;
 using CRM.Core.Entities.Integration;
@@ -17,7 +17,6 @@ using CRM.Core.Models;
 using CRM.Infrastructure.Data.Providers;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
-using System.Linq.Expressions;
 using ITSM = CRM.Core.Entities.ITSM; // Alias for ITSM entities to avoid conflicts
 
 namespace CRM.Infrastructure.Data;
@@ -57,16 +56,16 @@ public class CrmDbContext : DbContext, ICrmDbContext
     public DbSet<UserGroup> UserGroups { get; set; }
     public DbSet<UserGroupMember> UserGroupMembers { get; set; }
     public DbSet<UserApprovalRequest> UserApprovalRequests { get; set; }
-    
+
     // RBAC - Role-Based Access Control (SYS-012)
     public DbSet<Role> Roles { get; set; }
     public DbSet<Permission> Permissions { get; set; }
     public DbSet<RolePermission> RolePermissions { get; set; }
     public DbSet<UserRoleAssignment> UserRoleAssignments { get; set; }
-    
+
     /// <summary>Alias for UserRoleAssignments for backward compatibility</summary>
     public DbSet<UserRoleAssignment> UserRoles => UserRoleAssignments;
-    
+
     public DbSet<DatabaseBackup> DatabaseBackups { get; set; }
     public DbSet<BackupSchedule> BackupSchedules { get; set; }
 
@@ -142,9 +141,9 @@ public class CrmDbContext : DbContext, ICrmDbContext
     public DbSet<LLMProviderSetting> LLMProviderSettings { get; set; }
 
     // Module field configurations
-        public DbSet<ModuleFieldConfiguration> ModuleFieldConfigurations { get; set; }
-        public DbSet<ModuleUIConfig> ModuleUIConfigs { get; set; }
-        public DbSet<FieldMasterDataLink> FieldMasterDataLinks { get; set; }
+    public DbSet<ModuleFieldConfiguration> ModuleFieldConfigurations { get; set; }
+    public DbSet<ModuleUIConfig> ModuleUIConfigs { get; set; }
+    public DbSet<FieldMasterDataLink> FieldMasterDataLinks { get; set; }
 
     // UI Preferences and Customizations
     public DbSet<UIPreference> UIPreferences { get; set; }
@@ -450,45 +449,45 @@ public class CrmDbContext : DbContext, ICrmDbContext
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
-            if (!optionsBuilder.IsConfigured && _configuration != null)
+        if (!optionsBuilder.IsConfigured && _configuration != null)
+        {
+            var databaseProvider = _configuration["DatabaseProvider"] ?? "mariadb";
+            var connectionString = _configuration.GetConnectionString("DefaultConnection");
+
+            if (string.IsNullOrWhiteSpace(connectionString) && (databaseProvider.ToLower() == "mysql" || databaseProvider.ToLower() == "mariadb"))
             {
-                var databaseProvider = _configuration["DatabaseProvider"] ?? "mariadb";
-                var connectionString = _configuration.GetConnectionString("DefaultConnection");
-
-                if (string.IsNullOrWhiteSpace(connectionString) && (databaseProvider.ToLower() == "mysql" || databaseProvider.ToLower() == "mariadb"))
-                {
-                    var dbHost = _configuration["DB_HOST"] ?? _configuration["DbHost"] ?? "mariadb";
-                    var dbPort = _configuration["DB_PORT"] ?? "3306";
-                    var dbName = _configuration["DB_NAME"] ?? "crm_db";
-                    var dbUser = _configuration["DB_USER"] ?? "crm_user";
-                    var dbPass = _configuration["DB_PASSWORD"] ?? _configuration["DB_PASS"] ?? "crm_pass";
-                    connectionString = $"Server={dbHost};Port={dbPort};Database={dbName};Uid={dbUser};Pwd={dbPass};";
-                }
-
-                switch (databaseProvider.ToLower())
-                {
-                    case "postgresql":
-                        optionsBuilder.UseNpgsql(connectionString);
-                        break;
-                    case "oracle":
-                        optionsBuilder.UseOracle(connectionString);
-                        break;
-                    case "mysql":
-                    case "mariadb":
-                        optionsBuilder.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
-                        break;
-                    case "inmemory":
-                        optionsBuilder.UseInMemoryDatabase("crm_test");
-                        break;
-                    case "sqlite":
-                        optionsBuilder.UseSqlite(connectionString ?? "Data Source=crm.db");
-                        break;
-                    case "sqlserver":
-                    default:
-                        optionsBuilder.UseSqlite(connectionString ?? "Data Source=crm.db");
-                        break;
-                }
+                var dbHost = _configuration["DB_HOST"] ?? _configuration["DbHost"] ?? "mariadb";
+                var dbPort = _configuration["DB_PORT"] ?? "3306";
+                var dbName = _configuration["DB_NAME"] ?? "crm_db";
+                var dbUser = _configuration["DB_USER"] ?? "crm_user";
+                var dbPass = _configuration["DB_PASSWORD"] ?? _configuration["DB_PASS"] ?? "crm_pass";
+                connectionString = $"Server={dbHost};Port={dbPort};Database={dbName};Uid={dbUser};Pwd={dbPass};";
             }
+
+            switch (databaseProvider.ToLower())
+            {
+                case "postgresql":
+                    optionsBuilder.UseNpgsql(connectionString);
+                    break;
+                case "oracle":
+                    optionsBuilder.UseOracle(connectionString);
+                    break;
+                case "mysql":
+                case "mariadb":
+                    optionsBuilder.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString));
+                    break;
+                case "inmemory":
+                    optionsBuilder.UseInMemoryDatabase("crm_test");
+                    break;
+                case "sqlite":
+                    optionsBuilder.UseSqlite(connectionString ?? "Data Source=crm.db");
+                    break;
+                case "sqlserver":
+                default:
+                    optionsBuilder.UseSqlite(connectionString ?? "Data Source=crm.db");
+                    break;
+            }
+        }
     }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -683,15 +682,15 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.Property(e => e.Timezone).HasMaxLength(100);
 
             entity.HasIndex(e => new
-                {
-                    e.OptInEmail,
-                    e.OptInSms,
-                    e.OptInPhone,
-                    e.OptInPostal,
-                    e.PreferredContactMethod,
-                    e.PreferredLanguage,
-                    e.Timezone
-                })
+            {
+                e.OptInEmail,
+                e.OptInSms,
+                e.OptInPhone,
+                e.OptInPostal,
+                e.PreferredContactMethod,
+                e.PreferredLanguage,
+                e.Timezone
+            })
                 .IsUnique();
         });
 
@@ -1146,7 +1145,7 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.Property(e => e.HierarchyLevel).IsRequired().HasDefaultValue(3); // Default to User level
             entity.Property(e => e.IsSystemDefined).IsRequired().HasDefaultValue(false);
             entity.Property(e => e.IsActive).IsRequired().HasDefaultValue(true);
-            
+
             // Indexes for common queries
             entity.HasIndex(e => e.HierarchyLevel);
             entity.HasIndex(e => e.IsActive);
@@ -1165,7 +1164,7 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.Property(e => e.Description).HasMaxLength(500);
             entity.Property(e => e.IsSystemDefined).IsRequired().HasDefaultValue(false);
             entity.Property(e => e.IsActive).IsRequired().HasDefaultValue(true);
-            
+
             // Indexes for common queries
             entity.HasIndex(e => e.Module);
             entity.HasIndex(e => e.Category);
@@ -1178,22 +1177,22 @@ public class CrmDbContext : DbContext, ICrmDbContext
         modelBuilder.Entity<RolePermission>(entity =>
         {
             entity.HasKey(e => e.Id);
-            
+
             // Unique constraint: role can only have permission once
             entity.HasIndex(e => new { e.RoleId, e.PermissionId }).IsUnique();
-            
+
             entity.HasOne(e => e.Role)
                 .WithMany(r => r.RolePermissions)
                 .HasForeignKey(e => e.RoleId)
                 .OnDelete(DeleteBehavior.Cascade);
-            
+
             entity.HasOne(e => e.Permission)
                 .WithMany(p => p.RolePermissions)
                 .HasForeignKey(e => e.PermissionId)
                 .OnDelete(DeleteBehavior.Cascade);
-            
+
             entity.Property(e => e.AssignedAt).IsRequired().HasDefaultValueSql(providerStrategy.GetUtcNowSql());
-            
+
             // Indexes for common queries
             entity.HasIndex(e => e.RoleId);
             entity.HasIndex(e => e.PermissionId);
@@ -1203,26 +1202,26 @@ public class CrmDbContext : DbContext, ICrmDbContext
         modelBuilder.Entity<UserRoleAssignment>(entity =>
         {
             entity.HasKey(e => e.Id);
-            
+
             // Unique constraint: user can only have a role once (active roles)
             // Multiple entries allowed with different EffectiveFrom/EffectiveTo for history
             entity.HasIndex(e => new { e.UserId, e.RoleId, e.EffectiveFrom });
-            
+
             entity.HasOne(e => e.User)
                 .WithMany(u => u.RoleAssignments)
                 .HasForeignKey(e => e.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
-            
+
             entity.HasOne(e => e.Role)
                 .WithMany(r => r.UserRoles)
                 .HasForeignKey(e => e.RoleId)
                 .OnDelete(DeleteBehavior.Cascade);
-            
+
             entity.Property(e => e.EffectiveFrom).IsRequired().HasDefaultValueSql(providerStrategy.GetUtcNowSql());
             entity.Property(e => e.EffectiveTo).IsRequired(false);
             entity.Property(e => e.AssignedAt).IsRequired().HasDefaultValueSql(providerStrategy.GetUtcNowSql());
             entity.Property(e => e.Notes).HasMaxLength(500);
-            
+
             // Indexes for common queries
             entity.HasIndex(e => e.UserId);
             entity.HasIndex(e => e.RoleId);
@@ -1787,167 +1786,167 @@ public class CrmDbContext : DbContext, ICrmDbContext
                 .HasForeignKey(e => e.AssignedToGroupId)
                 .OnDelete(DeleteBehavior.SetNull);
 
-        // Configure Tags
-        modelBuilder.Entity<CRM.Core.Entities.Tag>(entity =>
-        {
-            entity.HasKey(e => e.Id);
-            entity.Property(e => e.Name).IsRequired().HasMaxLength(200);
-            entity.Property(e => e.Color).HasMaxLength(20);
-            entity.Property(e => e.Description).HasMaxLength(500);
-            entity.HasIndex(e => e.Name).IsUnique();
-            entity.HasIndex(e => e.IsDeleted);
-        });
+            // Configure Tags
+            modelBuilder.Entity<CRM.Core.Entities.Tag>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Name).IsRequired().HasMaxLength(200);
+                entity.Property(e => e.Color).HasMaxLength(20);
+                entity.Property(e => e.Description).HasMaxLength(500);
+                entity.HasIndex(e => e.Name).IsUnique();
+                entity.HasIndex(e => e.IsDeleted);
+            });
 
-        modelBuilder.Entity<CRM.Core.Entities.EntityTag>(entity =>
-        {
-            entity.HasKey(e => e.Id);
-            entity.Property(e => e.EntityType).IsRequired().HasMaxLength(100);
-            entity.Property(e => e.TagName).HasMaxLength(200);
+            modelBuilder.Entity<CRM.Core.Entities.EntityTag>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.EntityType).IsRequired().HasMaxLength(100);
+                entity.Property(e => e.TagName).HasMaxLength(200);
 
-            // Unique constraint: same tag can only be assigned once per entity
-            entity.HasIndex(e => new { e.EntityType, e.EntityId, e.TagId }).IsUnique();
-            entity.HasIndex(e => new { e.EntityType, e.EntityId });
-            entity.HasIndex(e => e.TagId);
+                // Unique constraint: same tag can only be assigned once per entity
+                entity.HasIndex(e => new { e.EntityType, e.EntityId, e.TagId }).IsUnique();
+                entity.HasIndex(e => new { e.EntityType, e.EntityId });
+                entity.HasIndex(e => e.TagId);
 
-            // Navigation to Tag with cascade delete
-            entity.HasOne(e => e.Tag)
-                .WithMany(t => t.EntityTags)
-                .HasForeignKey(e => e.TagId)
-                .OnDelete(DeleteBehavior.Cascade);
-        });
+                // Navigation to Tag with cascade delete
+                entity.HasOne(e => e.Tag)
+                    .WithMany(t => t.EntityTags)
+                    .HasForeignKey(e => e.TagId)
+                    .OnDelete(DeleteBehavior.Cascade);
+            });
 
-        modelBuilder.Entity<CRM.Core.Entities.CustomField>(entity =>
-        {
-            entity.HasKey(e => e.Id);
-            entity.Property(e => e.EntityType).IsRequired().HasMaxLength(100);
-            entity.Property(e => e.Key).HasMaxLength(200);
-            entity.Property(e => e.Value).HasColumnType("TEXT");
-            entity.HasIndex(e => new { e.EntityType, e.EntityId });
-        });
+            modelBuilder.Entity<CRM.Core.Entities.CustomField>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.EntityType).IsRequired().HasMaxLength(100);
+                entity.Property(e => e.Key).HasMaxLength(200);
+                entity.Property(e => e.Value).HasColumnType("TEXT");
+                entity.HasIndex(e => new { e.EntityType, e.EntityId });
+            });
 
-        // Configure Conversation
-        modelBuilder.Entity<Conversation>(entity =>
-        {
-            entity.HasKey(e => e.Id);
-            entity.Property(e => e.ConversationId).HasMaxLength(100);
-            entity.Property(e => e.Subject).HasMaxLength(500);
-            entity.Property(e => e.LastMessagePreview).HasMaxLength(500);
-            entity.Property(e => e.ParticipantAddress).HasMaxLength(500);
-            entity.Property(e => e.ParticipantName).HasMaxLength(200);
-            entity.HasIndex(e => e.ConversationId).IsUnique();
-            entity.HasIndex(e => e.Status);
+            // Configure Conversation
+            modelBuilder.Entity<Conversation>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.ConversationId).HasMaxLength(100);
+                entity.Property(e => e.Subject).HasMaxLength(500);
+                entity.Property(e => e.LastMessagePreview).HasMaxLength(500);
+                entity.Property(e => e.ParticipantAddress).HasMaxLength(500);
+                entity.Property(e => e.ParticipantName).HasMaxLength(200);
+                entity.HasIndex(e => e.ConversationId).IsUnique();
+                entity.HasIndex(e => e.Status);
 
-            // Ignore Messages navigation - relationship is via string ConversationId, not FK
-            // This prevents EF from creating shadow FK ConversationId1 on CommunicationMessage
-            entity.Ignore(e => e.Messages);
-        });
+                // Ignore Messages navigation - relationship is via string ConversationId, not FK
+                // This prevents EF from creating shadow FK ConversationId1 on CommunicationMessage
+                entity.Ignore(e => e.Messages);
+            });
 
-        // Configure CommunicationMessage
-        modelBuilder.Entity<CommunicationMessage>(entity =>
-        {
-            entity.HasKey(e => e.Id);
-            entity.Property(e => e.Subject).HasMaxLength(1000);
-            entity.Property(e => e.FromAddress).HasMaxLength(500);
-            entity.Property(e => e.FromName).HasMaxLength(200);
-            entity.Property(e => e.ToAddress).HasMaxLength(500);
-            entity.Property(e => e.ToName).HasMaxLength(200);
-            entity.Property(e => e.ConversationId).HasMaxLength(100);
-            entity.Property(e => e.ExternalMessageId).HasMaxLength(500);
+            // Configure CommunicationMessage
+            modelBuilder.Entity<CommunicationMessage>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Subject).HasMaxLength(1000);
+                entity.Property(e => e.FromAddress).HasMaxLength(500);
+                entity.Property(e => e.FromName).HasMaxLength(200);
+                entity.Property(e => e.ToAddress).HasMaxLength(500);
+                entity.Property(e => e.ToName).HasMaxLength(200);
+                entity.Property(e => e.ConversationId).HasMaxLength(100);
+                entity.Property(e => e.ExternalMessageId).HasMaxLength(500);
 
-            // CommunicationMessage -> Channel (with inverse navigation on CommunicationChannel)
-            // Using .WithMany(c => c.Messages) prevents EF from treating
-            // CommunicationChannel.Messages as a separate relationship with shadow FK.
-            entity.HasOne(e => e.Channel)
-                .WithMany(c => c.Messages)
-                .HasForeignKey(e => e.ChannelId)
-                .OnDelete(DeleteBehavior.Restrict);
+                // CommunicationMessage -> Channel (with inverse navigation on CommunicationChannel)
+                // Using .WithMany(c => c.Messages) prevents EF from treating
+                // CommunicationChannel.Messages as a separate relationship with shadow FK.
+                entity.HasOne(e => e.Channel)
+                    .WithMany(c => c.Messages)
+                    .HasForeignKey(e => e.ChannelId)
+                    .OnDelete(DeleteBehavior.Restrict);
 
-            // CommunicationMessage -> ParentMessage (self-referencing for threading)
-            entity.HasOne(e => e.ParentMessage)
-                .WithMany(m => m.Replies)
-                .HasForeignKey(e => e.ParentMessageId)
-                .OnDelete(DeleteBehavior.SetNull);
+                // CommunicationMessage -> ParentMessage (self-referencing for threading)
+                entity.HasOne(e => e.ParentMessage)
+                    .WithMany(m => m.Replies)
+                    .HasForeignKey(e => e.ParentMessageId)
+                    .OnDelete(DeleteBehavior.SetNull);
 
-            // Ignore navigation to Conversation by string ID - handled via ConversationId string field
-            // This prevents EF from creating shadow FK ConversationId1
-            entity.HasIndex(e => e.Status);
-            entity.HasIndex(e => e.Direction);
-            entity.HasIndex(e => e.SentAt);
-            entity.HasIndex(e => e.ConversationId);
-        });
+                // Ignore navigation to Conversation by string ID - handled via ConversationId string field
+                // This prevents EF from creating shadow FK ConversationId1
+                entity.HasIndex(e => e.Status);
+                entity.HasIndex(e => e.Direction);
+                entity.HasIndex(e => e.SentAt);
+                entity.HasIndex(e => e.ConversationId);
+            });
 
-        // Configure ZipCodes (Master Data)
-        modelBuilder.Entity<ZipCode>(entity =>
-        {
-            entity.HasKey(e => e.Id);
-            entity.Property(e => e.Country).IsRequired().HasMaxLength(100);
-            entity.Property(e => e.CountryCode).IsRequired().HasMaxLength(10);
-            entity.Property(e => e.PostalCode).IsRequired().HasMaxLength(20);
-            entity.Property(e => e.City).IsRequired().HasMaxLength(200);
-            entity.Property(e => e.State).HasMaxLength(100);
-            entity.Property(e => e.StateCode).HasMaxLength(10);
-            entity.Property(e => e.County).HasMaxLength(100);
-            entity.Property(e => e.CountyCode).HasMaxLength(20);
-            entity.Property(e => e.Community).HasMaxLength(100);
-            entity.Property(e => e.CommunityCode).HasMaxLength(20);
-            entity.Property(e => e.Latitude).HasPrecision(10, 6);
-            entity.Property(e => e.Longitude).HasPrecision(10, 6);
-            entity.HasIndex(e => e.PostalCode);
-            entity.HasIndex(e => e.CountryCode);
-            entity.HasIndex(e => new { e.CountryCode, e.PostalCode });
-            entity.HasIndex(e => e.City);
-            entity.HasIndex(e => e.State);
+            // Configure ZipCodes (Master Data)
+            modelBuilder.Entity<ZipCode>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Country).IsRequired().HasMaxLength(100);
+                entity.Property(e => e.CountryCode).IsRequired().HasMaxLength(10);
+                entity.Property(e => e.PostalCode).IsRequired().HasMaxLength(20);
+                entity.Property(e => e.City).IsRequired().HasMaxLength(200);
+                entity.Property(e => e.State).HasMaxLength(100);
+                entity.Property(e => e.StateCode).HasMaxLength(10);
+                entity.Property(e => e.County).HasMaxLength(100);
+                entity.Property(e => e.CountyCode).HasMaxLength(20);
+                entity.Property(e => e.Community).HasMaxLength(100);
+                entity.Property(e => e.CommunityCode).HasMaxLength(20);
+                entity.Property(e => e.Latitude).HasPrecision(10, 6);
+                entity.Property(e => e.Longitude).HasPrecision(10, 6);
+                entity.HasIndex(e => e.PostalCode);
+                entity.HasIndex(e => e.CountryCode);
+                entity.HasIndex(e => new { e.CountryCode, e.PostalCode });
+                entity.HasIndex(e => e.City);
+                entity.HasIndex(e => e.State);
 
-            // Navigation to Localities
-            entity.HasMany(e => e.Localities)
-                .WithOne(l => l.ZipCode)
-                .HasForeignKey(l => l.ZipCodeId)
-                .OnDelete(DeleteBehavior.SetNull);
+                // Navigation to Localities
+                entity.HasMany(e => e.Localities)
+                    .WithOne(l => l.ZipCode)
+                    .HasForeignKey(l => l.ZipCodeId)
+                    .OnDelete(DeleteBehavior.SetNull);
 
-            // Navigation to Addresses
-            entity.HasMany(e => e.Addresses)
-                .WithOne(a => a.ZipCodeData)
-                .HasForeignKey(a => a.ZipCodeId)
-                .OnDelete(DeleteBehavior.SetNull);
-        });
+                // Navigation to Addresses
+                entity.HasMany(e => e.Addresses)
+                    .WithOne(a => a.ZipCodeData)
+                    .HasForeignKey(a => a.ZipCodeId)
+                    .OnDelete(DeleteBehavior.SetNull);
+            });
 
-        // Configure Localities
-        modelBuilder.Entity<Locality>(entity =>
-        {
-            entity.HasKey(e => e.Id);
-            entity.Property(e => e.Name).IsRequired().HasMaxLength(200);
-            entity.Property(e => e.AlternateName).HasMaxLength(200);
-            entity.Property(e => e.City).IsRequired().HasMaxLength(200);
-            entity.Property(e => e.StateCode).HasMaxLength(10);
-            entity.Property(e => e.CountryCode).IsRequired().HasMaxLength(10);
-            entity.Property(e => e.Latitude).HasPrecision(10, 6);
-            entity.Property(e => e.Longitude).HasPrecision(10, 6);
-            entity.HasIndex(e => new { e.City, e.CountryCode });
-            entity.HasIndex(e => new { e.ZipCodeId });
-            entity.HasIndex(e => e.Name);
-        });
+            // Configure Localities
+            modelBuilder.Entity<Locality>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.Name).IsRequired().HasMaxLength(200);
+                entity.Property(e => e.AlternateName).HasMaxLength(200);
+                entity.Property(e => e.City).IsRequired().HasMaxLength(200);
+                entity.Property(e => e.StateCode).HasMaxLength(10);
+                entity.Property(e => e.CountryCode).IsRequired().HasMaxLength(10);
+                entity.Property(e => e.Latitude).HasPrecision(10, 6);
+                entity.Property(e => e.Longitude).HasPrecision(10, 6);
+                entity.HasIndex(e => new { e.City, e.CountryCode });
+                entity.HasIndex(e => new { e.ZipCodeId });
+                entity.HasIndex(e => e.Name);
+            });
 
-        // Configure SocialMediaFollow
-        modelBuilder.Entity<SocialMediaFollow>(entity =>
-        {
-            entity.HasKey(e => e.Id);
-            entity.Property(e => e.EntityType).IsRequired().HasMaxLength(50);
-            entity.Property(e => e.Notes).HasMaxLength(500);
+            // Configure SocialMediaFollow
+            modelBuilder.Entity<SocialMediaFollow>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+                entity.Property(e => e.EntityType).IsRequired().HasMaxLength(50);
+                entity.Property(e => e.Notes).HasMaxLength(500);
 
-            entity.HasOne(e => e.SocialMediaAccount)
-                .WithMany(s => s.Followers)
-                .HasForeignKey(e => e.SocialMediaAccountId)
-                .OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(e => e.SocialMediaAccount)
+                    .WithMany(s => s.Followers)
+                    .HasForeignKey(e => e.SocialMediaAccountId)
+                    .OnDelete(DeleteBehavior.Cascade);
 
-            entity.HasOne(e => e.FollowedByUser)
-                .WithMany()
-                .HasForeignKey(e => e.FollowedByUserId)
-                .OnDelete(DeleteBehavior.Cascade);
+                entity.HasOne(e => e.FollowedByUser)
+                    .WithMany()
+                    .HasForeignKey(e => e.FollowedByUserId)
+                    .OnDelete(DeleteBehavior.Cascade);
 
-            entity.HasIndex(e => new { e.SocialMediaAccountId, e.FollowedByUserId }).IsUnique();
-            entity.HasIndex(e => e.FollowedByUserId);
-            entity.HasIndex(e => new { e.EntityType, e.EntityId });
-        });
+                entity.HasIndex(e => new { e.SocialMediaAccountId, e.FollowedByUserId }).IsUnique();
+                entity.HasIndex(e => e.FollowedByUserId);
+                entity.HasIndex(e => new { e.EntityType, e.EntityId });
+            });
 
             entity.HasOne(e => e.CreatedByUser)
                 .WithMany()
@@ -3569,7 +3568,7 @@ public class CrmDbContext : DbContext, ICrmDbContext
         // =============================================================================
         // Web Tracking Entity Configurations (Analytics & Performance)
         // =============================================================================
-        
+
         // WebVisitor configuration - Track anonymous web visitors
         modelBuilder.Entity<WebVisitor>(entity =>
         {
@@ -3584,30 +3583,30 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.Property(e => e.BrowserVersion).HasMaxLength(50);
             entity.Property(e => e.DeviceType).HasMaxLength(50);
             entity.Property(e => e.OperatingSystem).HasMaxLength(100);
-            
+
             // Relationships
             entity.HasOne(e => e.Contact)
                 .WithMany()
                 .HasForeignKey(e => e.ContactId)
                 .OnDelete(DeleteBehavior.SetNull);
-            
+
             entity.HasOne(e => e.Lead)
                 .WithMany()
                 .HasForeignKey(e => e.LeadId)
                 .OnDelete(DeleteBehavior.SetNull);
-            
+
             // WebVisitor -> WebSession (one-to-many)
             entity.HasMany(e => e.Sessions)
                 .WithOne(s => s.WebVisitor)
                 .HasForeignKey(s => s.WebVisitorId)
                 .OnDelete(DeleteBehavior.Cascade);
-            
+
             // WebVisitor -> WebPageView (one-to-many)
             entity.HasMany(e => e.PageViews)
                 .WithOne(p => p.WebVisitor)
                 .HasForeignKey(p => p.WebVisitorId)
                 .OnDelete(DeleteBehavior.Cascade);
-            
+
             // Indexes for performance
             entity.HasIndex(e => e.VisitorId).HasDatabaseName("IX_WebVisitors_VisitorId");
             entity.HasIndex(e => e.ContactId).HasDatabaseName("IX_WebVisitors_ContactId");
@@ -3626,19 +3625,19 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.Property(e => e.ExitPage).HasMaxLength(2000);
             entity.Property(e => e.IpAddress).HasMaxLength(100);
             entity.Property(e => e.UtmParameters).HasColumnType("TEXT");
-            
+
             // Relationship: WebSession -> WebVisitor (many-to-one)
             entity.HasOne(e => e.WebVisitor)
                 .WithMany(v => v.Sessions)
                 .HasForeignKey(e => e.WebVisitorId)
                 .OnDelete(DeleteBehavior.Cascade);
-            
+
             // WebSession -> WebPageView (one-to-many)
             entity.HasMany(e => e.PageViews)
                 .WithOne(p => p.WebSession)
                 .HasForeignKey(p => p.WebSessionId)
                 .OnDelete(DeleteBehavior.Cascade);
-            
+
             // Indexes for performance
             entity.HasIndex(e => e.SessionId).HasDatabaseName("IX_WebSessions_SessionId");
             entity.HasIndex(e => e.WebVisitorId).HasDatabaseName("IX_WebSessions_WebVisitorId");
@@ -3657,18 +3656,18 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.Property(e => e.WebSessionId);
             entity.Property(e => e.Referrer).HasMaxLength(2000);
             entity.Property(e => e.QueryParameters).HasColumnType("TEXT");
-            
+
             // Relationships
             entity.HasOne(e => e.WebVisitor)
                 .WithMany(v => v.PageViews)
                 .HasForeignKey(e => e.WebVisitorId)
                 .OnDelete(DeleteBehavior.Cascade);
-            
+
             entity.HasOne(e => e.WebSession)
                 .WithMany(s => s.PageViews)
                 .HasForeignKey(e => e.WebSessionId)
                 .OnDelete(DeleteBehavior.SetNull);
-            
+
             // Indexes for performance
             entity.HasIndex(e => e.WebVisitorId).HasDatabaseName("IX_WebPageViews_WebVisitorId");
             entity.HasIndex(e => e.WebSessionId).HasDatabaseName("IX_WebPageViews_WebSessionId");
@@ -3679,19 +3678,19 @@ public class CrmDbContext : DbContext, ICrmDbContext
         // =============================================================================
         // ITSM Relationship Configurations (Complete Missing Relationships)
         // =============================================================================
-        
+
         // Problem ↔ Incident many-to-many relationship
         modelBuilder.Entity<ITSM.ProblemIncident>(entity =>
         {
             entity.HasKey(e => e.ProblemIncidentId);
             entity.HasIndex(e => new { e.ProblemId, e.IncidentId }).IsUnique().HasDatabaseName("IX_ProblemIncidents_ProblemId_IncidentId");
-            
+
             // ProblemIncident -> Problem (many-to-one)
             entity.HasOne(e => e.Problem)
                 .WithMany(p => p.ProblemIncidents)
                 .HasForeignKey(e => e.ProblemId)
                 .OnDelete(DeleteBehavior.Cascade);
-            
+
             // ProblemIncident -> Incident (many-to-one)
             entity.HasOne(e => e.Incident)
                 .WithMany(i => i.ProblemIncidents)
@@ -3707,31 +3706,31 @@ public class CrmDbContext : DbContext, ICrmDbContext
                 .WithOne(a => a.Change)
                 .HasForeignKey(a => a.ChangeId)
                 .OnDelete(DeleteBehavior.Cascade);
-            
+
             // Change -> ChangeBlackout (one-to-many)
             entity.HasMany(e => e.Blackouts)
                 .WithOne(b => b.Change)
                 .HasForeignKey(b => b.ChangeId)
                 .OnDelete(DeleteBehavior.Cascade);
-            
+
             // Change -> ChangeImpactedCI (one-to-many)
             entity.HasMany(e => e.ImpactedCIs)
                 .WithOne(ic => ic.Change)
                 .HasForeignKey(ic => ic.ChangeId)
                 .OnDelete(DeleteBehavior.Cascade);
-            
+
             // Change -> ChangeTask (one-to-many)
             entity.HasMany(e => e.Tasks)
                 .WithOne(t => t.Change)
                 .HasForeignKey(t => t.ChangeId)
                 .OnDelete(DeleteBehavior.Cascade);
-            
+
             // Change -> ChangeComment (one-to-many)
             entity.HasMany(e => e.Comments)
                 .WithOne(c => c.Change)
                 .HasForeignKey(c => c.ChangeId)
                 .OnDelete(DeleteBehavior.Cascade);
-            
+
             // Change -> ChangeAttachment (one-to-many)
             entity.HasMany(e => e.Attachments)
                 .WithOne(a => a.Change)
@@ -3747,13 +3746,13 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.HasIndex(e => e.ApproverId).HasDatabaseName("IX_ChangeApprovals_ApproverId");
             entity.HasIndex(e => e.ApprovalStatus).HasDatabaseName("IX_ChangeApprovals_ApprovalStatus");
             entity.HasIndex(e => new { e.ChangeId, e.ApprovalRole }).IsUnique().HasDatabaseName("IX_ChangeApprovals_ChangeId_ApprovalRole");
-            
+
             // ChangeApproval -> Change (many-to-one)
             entity.HasOne(e => e.Change)
                 .WithMany(c => c.Approvals)
                 .HasForeignKey(e => e.ChangeId)
                 .OnDelete(DeleteBehavior.Cascade);
-            
+
             // ChangeApproval -> User (Approver)
             entity.HasOne(e => e.Approver)
                 .WithMany()
@@ -3769,13 +3768,13 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.HasIndex(e => e.CIId).HasDatabaseName("IX_ChangeImpactedCIs_CIId");
             entity.HasIndex(e => e.Impact).HasDatabaseName("IX_ChangeImpactedCIs_ImpactLevel");
             entity.HasIndex(e => new { e.ChangeId, e.CIId }).IsUnique().HasDatabaseName("IX_ChangeImpactedCIs_ChangeId_CIId");
-            
+
             // ChangeImpactedCI -> Change (many-to-one)
             entity.HasOne(e => e.Change)
                 .WithMany(c => c.ImpactedCIs)
                 .HasForeignKey(e => e.ChangeId)
                 .OnDelete(DeleteBehavior.Cascade);
-            
+
             // ChangeImpactedCI -> ConfigurationItem (many-to-one)
             entity.HasOne(e => e.ConfigurationItem)
                 .WithMany()
@@ -3799,13 +3798,13 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.HasIndex(e => e.ServiceId).HasDatabaseName("IX_ServiceCIs_ServiceId");
             entity.HasIndex(e => e.CIId).HasDatabaseName("IX_ServiceCIs_CIId");
             entity.HasIndex(e => new { e.ServiceId, e.CIId }).IsUnique().HasDatabaseName("IX_ServiceCIs_ServiceId_CIId");
-            
+
             // ServiceCI -> Service (many-to-one)
             entity.HasOne(e => e.Service)
                 .WithMany(s => s.ConfigurationItems)
                 .HasForeignKey(e => e.ServiceId)
                 .OnDelete(DeleteBehavior.Cascade);
-            
+
             // ServiceCI -> ConfigurationItem (many-to-one)
             entity.HasOne(e => e.ConfigurationItem)
                 .WithMany()
@@ -3820,36 +3819,36 @@ public class CrmDbContext : DbContext, ICrmDbContext
         {
             entity.ToTable("WebhookSubscriptions");
             entity.HasKey(e => e.WebhookSubscriptionId);
-            
+
             entity.Property(e => e.Name)
                 .IsRequired()
                 .HasMaxLength(255);
-            
+
             entity.Property(e => e.TargetUrl)
                 .IsRequired()
                 .HasMaxLength(500);
-            
+
             entity.Property(e => e.EventTypes)
                 .HasDefaultValue("[]");
-            
+
             entity.Property(e => e.Headers)
                 .HasDefaultValue("{}");
-            
+
             entity.Property(e => e.IsActive)
                 .HasDefaultValue(true);
-            
+
             entity.Property(e => e.RetryCount)
                 .HasDefaultValue(3);
-            
+
             entity.Property(e => e.TimeoutSeconds)
                 .HasDefaultValue(30);
-            
+
             entity.HasIndex(e => e.IsActive)
                 .HasDatabaseName("IX_WebhookSubscriptions_IsActive");
-            
+
             entity.HasIndex(e => e.LastTriggeredAt)
                 .HasDatabaseName("IX_WebhookSubscriptions_LastTriggeredAt");
-            
+
             entity.HasIndex(e => e.CreatedByUserId)
                 .HasDatabaseName("IX_WebhookSubscriptions_CreatedByUserId");
         });
@@ -3858,32 +3857,32 @@ public class CrmDbContext : DbContext, ICrmDbContext
         {
             entity.ToTable("WebhookDeliveries");
             entity.HasKey(e => e.WebhookDeliveryId);
-            
+
             entity.Property(e => e.EventType)
                 .IsRequired()
                 .HasMaxLength(100);
-            
+
             entity.Property(e => e.TargetUrl)
                 .IsRequired()
                 .HasMaxLength(500);
-            
+
             entity.Property(e => e.Success)
                 .HasDefaultValue(false);
-            
+
             entity.Property(e => e.AttemptNumber)
                 .HasDefaultValue(1);
-            
+
             entity.HasOne<ITSM.WebhookSubscription>(e => e.Subscription)
                 .WithMany(s => s.Deliveries)
                 .HasForeignKey(e => e.WebhookSubscriptionId)
                 .OnDelete(DeleteBehavior.Cascade);
-            
+
             entity.HasIndex(e => e.WebhookSubscriptionId)
                 .HasDatabaseName("IX_WebhookDeliveries_WebhookSubscriptionId");
-            
+
             entity.HasIndex(new[] { "WebhookSubscriptionId", "Success" })
                 .HasDatabaseName("IX_WebhookDeliveries_WebhookSubscriptionId_Success");
-            
+
             entity.HasIndex(new[] { "Success", "CreatedAt" })
                 .HasDatabaseName("IX_WebhookDeliveries_Success_CreatedAt");
         });

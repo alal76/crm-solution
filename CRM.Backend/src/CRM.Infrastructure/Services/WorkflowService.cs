@@ -4,13 +4,12 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
+using System.Text.Json;
 using CRM.Core.Entities.Workflow;
 using CRM.Core.Interfaces;
 using CRM.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System.Text.Json;
 
 namespace CRM.Infrastructure.Services;
 
@@ -120,7 +119,8 @@ public class WorkflowService : IWorkflowService
     public async Task<WorkflowDefinition?> UpdateWorkflowDefinitionAsync(int id, WorkflowDefinition updates)
     {
         var workflow = await _context.WorkflowDefinitions.FindAsync(id);
-        if (workflow == null || workflow.IsDeleted) return null;
+        if (workflow == null || workflow.IsDeleted)
+            return null;
 
         workflow.Name = updates.Name;
         workflow.Description = updates.Description;
@@ -146,7 +146,8 @@ public class WorkflowService : IWorkflowService
     public async Task<bool> DeleteWorkflowDefinitionAsync(int id)
     {
         var workflow = await _context.WorkflowDefinitions.FindAsync(id);
-        if (workflow == null || workflow.IsSystem) return false;
+        if (workflow == null || workflow.IsSystem)
+            return false;
 
         workflow.IsDeleted = true;
         workflow.UpdatedAt = DateTime.UtcNow;
@@ -164,7 +165,8 @@ public class WorkflowService : IWorkflowService
         var workflow = await _context.WorkflowDefinitions.FindAsync(id);
         var version = await _context.WorkflowVersions.FindAsync(versionId);
 
-        if (workflow == null || version == null || version.WorkflowDefinitionId != id) return false;
+        if (workflow == null || version == null || version.WorkflowDefinitionId != id)
+            return false;
 
         // Deactivate any currently active version
         var activeVersions = await _context.WorkflowVersions
@@ -196,7 +198,8 @@ public class WorkflowService : IWorkflowService
     public async Task<bool> PauseWorkflowAsync(int id)
     {
         var workflow = await _context.WorkflowDefinitions.FindAsync(id);
-        if (workflow == null) return false;
+        if (workflow == null)
+            return false;
 
         workflow.Status = WorkflowStatus.Paused;
         workflow.UpdatedAt = DateTime.UtcNow;
@@ -251,7 +254,8 @@ public class WorkflowService : IWorkflowService
     public async Task<WorkflowVersion> CreateNewVersionAsync(int workflowId, int? sourceVersionId = null)
     {
         var workflow = await _context.WorkflowDefinitions.FindAsync(workflowId);
-        if (workflow == null) throw new ArgumentException("Workflow not found");
+        if (workflow == null)
+            throw new ArgumentException("Workflow not found");
 
         // Get next version number
         var maxVersion = await _context.WorkflowVersions
@@ -357,7 +361,8 @@ public class WorkflowService : IWorkflowService
     public async Task<bool> SaveCanvasLayoutAsync(int versionId, string canvasLayout)
     {
         var version = await _context.WorkflowVersions.FindAsync(versionId);
-        if (version == null || version.Status != WorkflowVersionStatus.Draft) return false;
+        if (version == null || version.Status != WorkflowVersionStatus.Draft)
+            return false;
 
         version.CanvasLayout = canvasLayout;
         version.UpdatedAt = DateTime.UtcNow;
@@ -386,8 +391,10 @@ public class WorkflowService : IWorkflowService
         if (version == null || version.IsDeleted || version.Status != WorkflowVersionStatus.Draft)
             return null;
 
-        if (label != null) version.Label = label;
-        if (changeLog != null) version.ChangeLog = changeLog;
+        if (label != null)
+            version.Label = label;
+        if (changeLog != null)
+            version.ChangeLog = changeLog;
         version.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
 
@@ -403,7 +410,8 @@ public class WorkflowService : IWorkflowService
         var version = await _context.WorkflowVersions
             .Include(v => v.WorkflowDefinition)
             .FirstOrDefaultAsync(v => v.Id == versionId && !v.IsDeleted);
-        if (version == null || version.Status != WorkflowVersionStatus.Draft) return false;
+        if (version == null || version.Status != WorkflowVersionStatus.Draft)
+            return false;
 
         var workflowId = version.WorkflowDefinitionId;
 
@@ -505,12 +513,16 @@ public class WorkflowService : IWorkflowService
 
         result.AddedNodes = addedKeys.Select(k => new NodeDiffItem
         {
-            NodeKey = k, Name = v2Nodes[k].Name, NodeType = v2Nodes[k].NodeType.ToString()
+            NodeKey = k,
+            Name = v2Nodes[k].Name,
+            NodeType = v2Nodes[k].NodeType.ToString()
         }).ToList();
 
         result.RemovedNodes = removedKeys.Select(k => new NodeDiffItem
         {
-            NodeKey = k, Name = v1Nodes[k].Name, NodeType = v1Nodes[k].NodeType.ToString()
+            NodeKey = k,
+            Name = v1Nodes[k].Name,
+            NodeType = v1Nodes[k].NodeType.ToString()
         }).ToList();
 
         foreach (var key in commonKeys)
@@ -518,18 +530,26 @@ public class WorkflowService : IWorkflowService
             var n1 = v1Nodes[key];
             var n2 = v2Nodes[key];
             var changes = new List<string>();
-            if (n1.Name != n2.Name) changes.Add($"Name: '{n1.Name}' -> '{n2.Name}'");
-            if (n1.NodeType != n2.NodeType) changes.Add($"Type: {n1.NodeType} -> {n2.NodeType}");
-            if (n1.Configuration != n2.Configuration) changes.Add("Configuration changed");
-            if (n1.IsStartNode != n2.IsStartNode) changes.Add($"IsStartNode: {n1.IsStartNode} -> {n2.IsStartNode}");
-            if (n1.IsEndNode != n2.IsEndNode) changes.Add($"IsEndNode: {n1.IsEndNode} -> {n2.IsEndNode}");
+            if (n1.Name != n2.Name)
+                changes.Add($"Name: '{n1.Name}' -> '{n2.Name}'");
+            if (n1.NodeType != n2.NodeType)
+                changes.Add($"Type: {n1.NodeType} -> {n2.NodeType}");
+            if (n1.Configuration != n2.Configuration)
+                changes.Add("Configuration changed");
+            if (n1.IsStartNode != n2.IsStartNode)
+                changes.Add($"IsStartNode: {n1.IsStartNode} -> {n2.IsStartNode}");
+            if (n1.IsEndNode != n2.IsEndNode)
+                changes.Add($"IsEndNode: {n1.IsEndNode} -> {n2.IsEndNode}");
             if (System.Math.Abs(n1.PositionX - n2.PositionX) > 0.1 || System.Math.Abs(n1.PositionY - n2.PositionY) > 0.1)
                 changes.Add("Position changed");
             if (changes.Count > 0)
             {
                 result.ModifiedNodes.Add(new NodeDiffItem
                 {
-                    NodeKey = key, Name = n2.Name, NodeType = n2.NodeType.ToString(), Changes = changes
+                    NodeKey = key,
+                    Name = n2.Name,
+                    NodeType = n2.NodeType.ToString(),
+                    Changes = changes
                 });
             }
         }
@@ -589,7 +609,8 @@ public class WorkflowService : IWorkflowService
             .Include(n => n.WorkflowVersion)
             .FirstOrDefaultAsync(n => n.Id == nodeId);
 
-        if (node == null) return null;
+        if (node == null)
+            return null;
         if (node.WorkflowVersion.Status != WorkflowVersionStatus.Draft)
             throw new InvalidOperationException("Can only update nodes in draft versions");
 
@@ -626,7 +647,8 @@ public class WorkflowService : IWorkflowService
             .Include(n => n.WorkflowVersion)
             .FirstOrDefaultAsync(n => n.Id == nodeId);
 
-        if (node == null) return false;
+        if (node == null)
+            return false;
         if (node.WorkflowVersion.Status != WorkflowVersionStatus.Draft)
             throw new InvalidOperationException("Can only delete nodes from draft versions");
 
@@ -692,7 +714,8 @@ public class WorkflowService : IWorkflowService
             .Include(t => t.WorkflowVersion)
             .FirstOrDefaultAsync(t => t.Id == transitionId);
 
-        if (transition == null) return null;
+        if (transition == null)
+            return null;
         if (transition.WorkflowVersion.Status != WorkflowVersionStatus.Draft)
             throw new InvalidOperationException("Can only update transitions in draft versions");
 
@@ -722,7 +745,8 @@ public class WorkflowService : IWorkflowService
             .Include(t => t.WorkflowVersion)
             .FirstOrDefaultAsync(t => t.Id == transitionId);
 
-        if (transition == null) return false;
+        if (transition == null)
+            return false;
         if (transition.WorkflowVersion.Status != WorkflowVersionStatus.Draft)
             throw new InvalidOperationException("Can only delete transitions from draft versions");
 

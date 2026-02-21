@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -52,7 +51,8 @@ public static class TestResultLogger
     /// </summary>
     public static void InitializeSession()
     {
-        if (_initialized) return;
+        if (_initialized)
+            return;
 
         _sessionId = $"test-run-{DateTime.UtcNow:yyyyMMdd-HHmmss}";
         _sessionStart = DateTime.UtcNow;
@@ -223,7 +223,8 @@ public static class TestResultLogger
     /// </summary>
     public static void Clear()
     {
-        while (_results.TryTake(out _)) { }
+        while (_results.TryTake(out _))
+        { }
         _initialized = false;
         _sessionId = null;
     }

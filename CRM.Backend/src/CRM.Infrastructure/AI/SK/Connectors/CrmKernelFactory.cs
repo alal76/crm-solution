@@ -4,15 +4,14 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
+using CRM.Core.Entities.AI;
+using CRM.Infrastructure.AI.SK.Configuration;
+using CRM.Infrastructure.AI.SK.Filters;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
-using CRM.Core.Entities.AI;
-using CRM.Infrastructure.AI.SK.Configuration;
-using CRM.Infrastructure.AI.SK.Filters;
 
 namespace CRM.Infrastructure.AI.SK.Connectors;
 
@@ -198,7 +197,8 @@ public class CrmKernelFactory
             .Where(a => !a.IsDynamic)
             .SelectMany(a =>
             {
-                try { return a.GetTypes(); }
+                try
+                { return a.GetTypes(); }
                 catch { return Array.Empty<Type>(); }
             })
             .FirstOrDefault(t => t.Name == expectedTypeName

@@ -4,18 +4,23 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
+using System.IO;
+using System.Linq;
+using System.Security.Cryptography.X509Certificates;
+using System.Text;
+using System.Threading.RateLimiting;
+using CRM.Api.Middleware;
 using CRM.Core.Interfaces;
 using CRM.Core.Interfaces.AI;
 using CRM.Core.Options;
 using CRM.Core.Ports.Input;
 using CRM.Infrastructure.Data;
+using CRM.Infrastructure.DependencyInjection;
 using CRM.Infrastructure.Repositories;
 using CRM.Infrastructure.Services;
 using CRM.Infrastructure.Services.AI;
 using CRM.Infrastructure.Services.Authentication;
 using CRM.Infrastructure.Services.Authentication.OAuth;
-using CRM.Api.Middleware;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.StaticFiles;
@@ -23,16 +28,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Hybrid;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.FileProviders;
-using Microsoft.IdentityModel.Tokens;
 using Microsoft.FeatureManagement;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
-using CRM.Infrastructure.DependencyInjection;
 using Serilog;
-using System.Text;
-using System.IO;
-using System.Linq;
-using System.Security.Cryptography.X509Certificates;
-using System.Threading.RateLimiting;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -136,14 +135,14 @@ if (redisEnabled && !string.IsNullOrEmpty(redisConnectionString))
         options.Configuration = redisConnectionString;
         options.InstanceName = redisInstanceName;
     });
-    
+
     // Register IConnectionMultiplexer for services that require direct Redis access (like RBACService)
     builder.Services.AddSingleton<StackExchange.Redis.IConnectionMultiplexer>(sp =>
     {
         var configOptions = StackExchange.Redis.ConfigurationOptions.Parse(redisConnectionString);
         return StackExchange.Redis.ConnectionMultiplexer.Connect(configOptions);
     });
-    
+
     builder.Services.AddSingleton<IRedisCacheService, RedisCacheService>();
 }
 else
@@ -496,7 +495,7 @@ builder.Services.AddScoped<IColorPaletteService, ColorPaletteService>();
 // SYS-004: Feature Flag Management Service
 builder.Services.AddScoped<IFeatureFlagManagementService, FeatureFlagManagementService>();
 
-// SYS-010: User Interface Service  
+// SYS-010: User Interface Service
 builder.Services.AddScoped<IUserInterfaceService, UserInterfaceService>();
 
 // SYS-011: Performance Optimization Service
@@ -543,24 +542,24 @@ builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.ICMDBService, CRM.Infrastruc
 builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IChangeManagementService, CRM.Infrastructure.Services.ITSM.ChangeManagementService>();
 builder.Services.AddScoped<CRM.Core.Interfaces.IChangeService, CRM.Infrastructure.Services.ChangeService>();
 builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IKnowledgeManagementService, CRM.Infrastructure.Services.ITSM.KnowledgeManagementService>();
-//builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IServiceCatalogService, CRM.Infrastructure.Services.ITSM.ServiceCatalogService>();
+// builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IServiceCatalogService, CRM.Infrastructure.Services.ITSM.ServiceCatalogService>();
 // builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IEscalationRuleService, CRM.Infrastructure.Services.ITSM.EscalationRuleService>(); // DISABLED for System Module isolation
 builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IEscalationPolicyService, CRM.Infrastructure.Services.ITSM.EscalationPolicyService>();
 // ITSM Phase 4 - Advanced Automation & Integration Services - DISABLED
-//builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IWebhookNotificationService, CRM.Infrastructure.Services.ITSM.WebhookNotificationService>();
-//builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IEmailToTicketService, CRM.Infrastructure.Services.ITSM.EmailToTicketService>();
+// builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IWebhookNotificationService, CRM.Infrastructure.Services.ITSM.WebhookNotificationService>();
+// builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IEmailToTicketService, CRM.Infrastructure.Services.ITSM.EmailToTicketService>();
 builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IITSMDashboardService, CRM.Infrastructure.Services.ITSM.ITSMDashboardService>();
-//builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IMonitoringIntegrationService, CRM.Infrastructure.Services.ITSM.MonitoringIntegrationService>();
-//builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.ICICDIntegrationService, CRM.Infrastructure.Services.ITSM.CICDIntegrationService>();
-//builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.ISelfServiceChatbotService, CRM.Infrastructure.Services.ITSM.SelfServiceChatbotService>();
-//#if ITSM_ADVANCED
+// builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IMonitoringIntegrationService, CRM.Infrastructure.Services.ITSM.MonitoringIntegrationService>();
+// builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.ICICDIntegrationService, CRM.Infrastructure.Services.ITSM.CICDIntegrationService>();
+// builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.ISelfServiceChatbotService, CRM.Infrastructure.Services.ITSM.SelfServiceChatbotService>();
+// #if ITSM_ADVANCED
 // SLA Enforcement Background Service - runs continuously to monitor and enforce SLAs
 // builder.Services.AddHostedService<CRM.Infrastructure.Services.ITSM.SLAEnforcementHostedService>(); // DISABLED for System Module isolation
 // Auto-close resolved items background service (auto-closes incidents, service requests, changes, problems)
 // builder.Services.AddHostedService<CRM.Infrastructure.Services.ITSM.AutoCloseHostedService>(); // DISABLED for System Module isolation
 // Escalation background service (auto-escalates incidents/service requests based on SLA thresholds)
 // builder.Services.AddHostedService<CRM.Infrastructure.Services.ITSM.EscalationHostedService>(); // DISABLED for System Module isolation
-//#endif
+// #endif
 builder.Services.AddHttpClient<IColorPaletteService, ColorPaletteService>();
 builder.Services.AddScoped<ModuleFieldConfigurationService>();
 builder.Services.AddScoped<ModuleUIConfigService>();
@@ -704,11 +703,11 @@ builder.Services.AddHttpClient();
 // var hangfireEnabled = builder.Configuration.GetValue<bool>("Hangfire:Enabled", true);
 // if (hangfireEnabled)
 // {
-//     var hangfireConnectionString = builder.Configuration.GetConnectionString("HangfireConnection") 
+//     var hangfireConnectionString = builder.Configuration.GetConnectionString("HangfireConnection")
 //         ?? connectionString; // Fall back to main connection string
-//     
+//
 //     Log.Information("Configuring Hangfire for background job processing");
-//     
+//
 //     builder.Services.AddHangfire(config =>
 //     {
 //         // Use the same database provider as main app for consistency
@@ -733,11 +732,11 @@ builder.Services.AddHttpClient();
 //                 Log.Warning("Using in-memory Hangfire storage for {Provider} - jobs will be lost on restart", databaseProvider);
 //                 break;
 //         }
-//         
+//
 //         config.SetDataCompatibilityLevel(CompatibilityLevel.Version_180);
 //         config.UseSerializerSettings(new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 //     });
-//     
+//
 //     // Hangfire server - processes background jobs
 //     builder.Services.AddHangfireServer(options =>
 //     {
@@ -925,7 +924,7 @@ var app = builder.Build();
 // if (hangfireEnabled)
 // {
 //     Log.Information("Configuring Hangfire background job scheduling");
-//     
+//
 //     // Hangfire Dashboard (admin-only, requires authentication)
 //     app.UseHangfireDashboard("/hangfire", new DashboardOptions
 //     {
@@ -933,12 +932,12 @@ var app = builder.Build();
 //         IgnoreAntiforgeryToken = true, // SignalR/CORS friendly
 //         DashboardTitle = "CRM Subscription Billing Dashboard"
 //     });
-//     
+//
 //     // Schedule recurring background jobs
 //     using (var scope = app.Services.CreateScope())
 //     {
 //         var recurringJobManager = scope.ServiceProvider.GetRequiredService<IRecurringJobManager>();
-//         
+//
 //         // Recurring Billing Engine - process subscriptions due for billing
 //         // Runs every hour at :00 (12 times per day)
 //         recurringJobManager.AddOrUpdate(
@@ -948,7 +947,7 @@ var app = builder.Build();
 //             Cron.Hourly(0), // Every hour at :00
 //             new RecurringJobOptions { TimeZone = TimeZoneInfo.Utc }
 //         );
-//         
+//
 //         // Dunning Manager - retry failed payments
 //         // Runs twice daily at 2 AM and 2 PM UTC
 //         recurringJobManager.AddOrUpdate(
@@ -958,7 +957,7 @@ var app = builder.Build();
 //             Cron.Daily(2, 14), // 2 AM and 2 PM UTC
 //             new RecurringJobOptions { TimeZone = TimeZoneInfo.Utc }
 //         );
-//         
+//
 //         Log.Information("Hangfire background jobs scheduled successfully");
 //     }
 // }
@@ -1023,7 +1022,8 @@ using (var scope = app.Services.CreateScope())
             foreach (var tableName in requiredTables)
             {
                 var conn = db.Database.GetDbConnection();
-                if (conn.State != System.Data.ConnectionState.Open) await conn.OpenAsync();
+                if (conn.State != System.Data.ConnectionState.Open)
+                    await conn.OpenAsync();
                 using var cmd = conn.CreateCommand();
                 cmd.CommandText = "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = @tableName";
                 var param = cmd.CreateParameter();
@@ -1032,7 +1032,8 @@ using (var scope = app.Services.CreateScope())
                 cmd.Parameters.Add(param);
                 var result = await cmd.ExecuteScalarAsync();
                 var exists = Convert.ToInt32(result) > 0;
-                if (!exists) missingTables.Add(tableName);
+                if (!exists)
+                    missingTables.Add(tableName);
             }
             if (missingTables.Count > 0)
             {

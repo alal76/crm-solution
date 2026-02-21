@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using CRM.Core.DTOs;
 using CRM.Core.Entities;
 using CRM.Infrastructure.Data;
@@ -77,9 +76,11 @@ public class QuotesController : ControllerBase
         foreach (var q in quotes)
         {
             var nt = await _normalization.GetTagsAsync("Quote", q.Id);
-            if (!string.IsNullOrWhiteSpace(nt)) q.Tags = nt;
+            if (!string.IsNullOrWhiteSpace(nt))
+                q.Tags = nt;
             var cf = await _normalization.GetCustomFieldsAsync("Quote", q.Id);
-            if (!string.IsNullOrWhiteSpace(cf)) q.CustomFields = cf;
+            if (!string.IsNullOrWhiteSpace(cf))
+                q.CustomFields = cf;
         }
         return Ok(quotes.Select(MapToDto));
     }
@@ -111,9 +112,11 @@ public class QuotesController : ControllerBase
             return NotFound();
 
         var nt = await _normalization.GetTagsAsync("Quote", quote.Id);
-        if (!string.IsNullOrWhiteSpace(nt)) quote.Tags = nt;
+        if (!string.IsNullOrWhiteSpace(nt))
+            quote.Tags = nt;
         var cf = await _normalization.GetCustomFieldsAsync("Quote", quote.Id);
-        if (!string.IsNullOrWhiteSpace(cf)) quote.CustomFields = cf;
+        if (!string.IsNullOrWhiteSpace(cf))
+            quote.CustomFields = cf;
 
         return Ok(MapToDto(quote));
     }
@@ -141,9 +144,11 @@ public class QuotesController : ControllerBase
             return NotFound();
 
         var nt = await _normalization.GetTagsAsync("Quote", quote.Id);
-        if (!string.IsNullOrWhiteSpace(nt)) quote.Tags = nt;
+        if (!string.IsNullOrWhiteSpace(nt))
+            quote.Tags = nt;
         var cf = await _normalization.GetCustomFieldsAsync("Quote", quote.Id);
-        if (!string.IsNullOrWhiteSpace(cf)) quote.CustomFields = cf;
+        if (!string.IsNullOrWhiteSpace(cf))
+            quote.CustomFields = cf;
 
         return Ok(MapToDto(quote));
     }

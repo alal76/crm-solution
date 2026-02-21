@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 namespace CRM.Core.Entities;
 
 /// <summary>
@@ -40,20 +39,20 @@ public class DiscountRule : BaseEntity
     public DiscountRuleType Type { get; set; }
 
     /// <summary>Backward compatibility alias for Type</summary>
-    public DiscountRuleType DiscountType 
-    { 
-        get => Type; 
-        set => Type = value; 
+    public DiscountRuleType DiscountType
+    {
+        get => Type;
+        set => Type = value;
     }
 
     /// <summary>Discount value (percentage or fixed amount)</summary>
     public decimal Value { get; set; }
 
     /// <summary>Backward compatibility alias for Value</summary>
-    public decimal DiscountValue 
-    { 
-        get => Value; 
-        set => Value = value; 
+    public decimal DiscountValue
+    {
+        get => Value;
+        set => Value = value;
     }
 
     /// <summary>Minimum order amount to qualify for discount</summary>
@@ -63,10 +62,10 @@ public class DiscountRule : BaseEntity
     public int? MinQuantity { get; set; }
 
     /// <summary>Backward compatibility alias for MinQuantity</summary>
-    public int? MaxQuantity 
-    { 
-        get => MinQuantity; 
-        set => MinQuantity = value; 
+    public int? MaxQuantity
+    {
+        get => MinQuantity;
+        set => MinQuantity = value;
     }
 
     /// <summary>Promotional code for this discount</summary>
@@ -82,30 +81,30 @@ public class DiscountRule : BaseEntity
     public decimal? MaxDiscount { get; set; }
 
     /// <summary>Backward compatibility alias for MaxDiscount</summary>
-    public decimal? MaxDiscountValue 
-    { 
-        get => MaxDiscount; 
-        set => MaxDiscount = value; 
+    public decimal? MaxDiscountValue
+    {
+        get => MaxDiscount;
+        set => MaxDiscount = value;
     }
 
     /// <summary>Date the rule becomes effective</summary>
     public DateTime EffectiveDate { get; set; } = DateTime.UtcNow;
 
     /// <summary>Backward compatibility alias for EffectiveDate</summary>
-    public DateTime ValidFrom 
-    { 
-        get => EffectiveDate; 
-        set => EffectiveDate = value; 
+    public DateTime ValidFrom
+    {
+        get => EffectiveDate;
+        set => EffectiveDate = value;
     }
 
     /// <summary>Date the rule expires (null = no expiration)</summary>
     public DateTime? ExpiryDate { get; set; }
 
     /// <summary>Backward compatibility alias for ExpiryDate</summary>
-    public DateTime? ValidUntil 
-    { 
-        get => ExpiryDate; 
-        set => ExpiryDate = value; 
+    public DateTime? ValidUntil
+    {
+        get => ExpiryDate;
+        set => ExpiryDate = value;
     }
 
     /// <summary>Whether this rule is currently active</summary>
@@ -115,10 +114,10 @@ public class DiscountRule : BaseEntity
     public bool IsCumulative { get; set; } = false;
 
     /// <summary>Backward compatibility alias for IsCumulative</summary>
-    public bool CumulativeWithOther 
-    { 
-        get => IsCumulative; 
-        set => IsCumulative = value; 
+    public bool CumulativeWithOther
+    {
+        get => IsCumulative;
+        set => IsCumulative = value;
     }
 
     /// <summary>JSON array of product IDs this rule applies to</summary>

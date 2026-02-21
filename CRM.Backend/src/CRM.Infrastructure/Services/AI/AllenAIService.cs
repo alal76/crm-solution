@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
@@ -225,11 +224,16 @@ public class AllenAIService : IAllenAIService
     {
         var score = 50m;
 
-        if (!string.IsNullOrEmpty(lead.CompanyName)) score += 10;
-        if (!string.IsNullOrEmpty(lead.Title)) score += 10;
-        if (!string.IsNullOrEmpty(lead.Region)) score += 10;
-        if (!string.IsNullOrEmpty(lead.Email)) score += 10;
-        if (!string.IsNullOrEmpty(lead.Phone)) score += 10;
+        if (!string.IsNullOrEmpty(lead.CompanyName))
+            score += 10;
+        if (!string.IsNullOrEmpty(lead.Title))
+            score += 10;
+        if (!string.IsNullOrEmpty(lead.Region))
+            score += 10;
+        if (!string.IsNullOrEmpty(lead.Email))
+            score += 10;
+        if (!string.IsNullOrEmpty(lead.Phone))
+            score += 10;
 
         return Math.Min(100, score);
     }
@@ -247,7 +251,8 @@ public class AllenAIService : IAllenAIService
 
         var score = 40m;
         score += productInterestCount * 15;
-        if (hasScore) score += 20;
+        if (hasScore)
+            score += 20;
 
         return Math.Min(100, score);
     }
@@ -256,11 +261,15 @@ public class AllenAIService : IAllenAIService
     {
         var score = 30m;
 
-        if (lead.Status == LeadLifecycleStatus.Qualified) score += 30;
-        else if (lead.Status == LeadLifecycleStatus.Working) score += 20;
-        else if (lead.Status == LeadLifecycleStatus.Nurturing) score += 10;
+        if (lead.Status == LeadLifecycleStatus.Qualified)
+            score += 30;
+        else if (lead.Status == LeadLifecycleStatus.Working)
+            score += 20;
+        else if (lead.Status == LeadLifecycleStatus.Nurturing)
+            score += 10;
 
-        if (lead.ProductInterests?.Any() == true) score += 20;
+        if (lead.ProductInterests?.Any() == true)
+            score += 20;
 
         return Math.Min(100, score);
     }
@@ -352,7 +361,8 @@ public class AllenAIService : IAllenAIService
         var opportunity = await _context.Opportunities
             .FirstOrDefaultAsync(o => o.Id == opportunityId, cancellationToken);
 
-        if (opportunity == null) return 0;
+        if (opportunity == null)
+            return 0;
 
         return CalculateWinProbability(opportunity);
     }
@@ -395,19 +405,25 @@ public class AllenAIService : IAllenAIService
         var score = 50m;
 
         // Stage progress
-        if (opportunity.Stage >= OpportunityStage.Proposal) score += 20;
-        else if (opportunity.Stage >= OpportunityStage.Qualification) score += 10;
+        if (opportunity.Stage >= OpportunityStage.Proposal)
+            score += 20;
+        else if (opportunity.Stage >= OpportunityStage.Qualification)
+            score += 10;
 
         // Has expected close date
-        if (opportunity.ExpectedCloseDate.HasValue) score += 10;
+        if (opportunity.ExpectedCloseDate.HasValue)
+            score += 10;
 
         // Amount specified
-        if (opportunity.Amount > 0) score += 10;
+        if (opportunity.Amount > 0)
+            score += 10;
 
         // Time factor - deduct if too long
         var daysSinceCreation = (DateTime.UtcNow - opportunity.CreatedAt).Days;
-        if (daysSinceCreation > 90) score -= 20;
-        else if (daysSinceCreation > 60) score -= 10;
+        if (daysSinceCreation > 90)
+            score -= 20;
+        else if (daysSinceCreation > 60)
+            score -= 10;
 
         return Math.Max(0, Math.Min(100, score));
     }
@@ -417,7 +433,8 @@ public class AllenAIService : IAllenAIService
         var daysSinceCreation = (DateTime.UtcNow - opportunity.CreatedAt).Days;
         var stageProgress = (int)opportunity.Stage / 5.0m * 100;
 
-        if (daysSinceCreation == 0) return 100;
+        if (daysSinceCreation == 0)
+            return 100;
 
         // Expected: move ~1 stage per 2 weeks
         var expectedProgress = (daysSinceCreation / 14.0m) * 20m;
@@ -446,9 +463,12 @@ public class AllenAIService : IAllenAIService
 
     private OpportunityActionType GetRecommendedAction(decimal healthScore, decimal winProbability)
     {
-        if (healthScore < 40) return OpportunityActionType.RiskMitigation;
-        if (winProbability >= 0.8m) return OpportunityActionType.FastTrackClose;
-        if (winProbability >= 0.6m) return OpportunityActionType.ProposalReview;
+        if (healthScore < 40)
+            return OpportunityActionType.RiskMitigation;
+        if (winProbability >= 0.8m)
+            return OpportunityActionType.FastTrackClose;
+        if (winProbability >= 0.6m)
+            return OpportunityActionType.ProposalReview;
         return OpportunityActionType.TechnicalDemo;
     }
 
@@ -518,18 +538,24 @@ public class AllenAIService : IAllenAIService
 
         // Account age - newer customers have higher churn risk
         var monthsSinceCreation = (DateTime.UtcNow - customer.CreatedAt).Days / 30.0m;
-        if (monthsSinceCreation < 3) risk += 0.2m;
-        else if (monthsSinceCreation < 6) risk += 0.1m;
+        if (monthsSinceCreation < 3)
+            risk += 0.2m;
+        else if (monthsSinceCreation < 6)
+            risk += 0.1m;
 
         // Lifecycle stage factors
-        if (customer.LifecycleStage == AccountLifecycleStage.Churned) risk = 1.0m;
-        else if (customer.LifecycleStage == AccountLifecycleStage.AtRisk) risk += 0.3m;
-        else if (customer.LifecycleStage == AccountLifecycleStage.Active) risk -= 0.1m;
+        if (customer.LifecycleStage == AccountLifecycleStage.Churned)
+            risk = 1.0m;
+        else if (customer.LifecycleStage == AccountLifecycleStage.AtRisk)
+            risk += 0.3m;
+        else if (customer.LifecycleStage == AccountLifecycleStage.Active)
+            risk -= 0.1m;
 
         // Opportunities - active opportunities indicate engagement
         var activeOpportunities = customer.Opportunities?.Count(o =>
             o.Stage != OpportunityStage.ClosedWon && o.Stage != OpportunityStage.ClosedLost) ?? 0;
-        if (activeOpportunities > 0) risk -= 0.15m;
+        if (activeOpportunities > 0)
+            risk -= 0.15m;
 
         return Math.Max(0, Math.Min(1, risk));
     }
@@ -543,12 +569,16 @@ public class AllenAIService : IAllenAIService
             // Calculate if not set
             score = 50;
 
-            if (customer.LifecycleStage == AccountLifecycleStage.Active) score += 20;
-            if (customer.LifecycleStage == AccountLifecycleStage.AtRisk) score -= 20;
+            if (customer.LifecycleStage == AccountLifecycleStage.Active)
+                score += 20;
+            if (customer.LifecycleStage == AccountLifecycleStage.AtRisk)
+                score -= 20;
 
             var monthsSinceCreation = (DateTime.UtcNow - customer.CreatedAt).Days / 30.0;
-            if (monthsSinceCreation >= 12) score += 15; // Loyal customer
-            if (monthsSinceCreation >= 24) score += 10;
+            if (monthsSinceCreation >= 12)
+                score += 15; // Loyal customer
+            if (monthsSinceCreation >= 24)
+                score += 10;
         }
 
         return Math.Max(0, Math.Min(100, score));
@@ -574,9 +604,12 @@ public class AllenAIService : IAllenAIService
 
     private RetentionActionType GetRetentionAction(decimal churnProbability)
     {
-        if (churnProbability >= 0.8m) return RetentionActionType.Escalate;
-        if (churnProbability >= 0.6m) return RetentionActionType.ExecutiveReview;
-        if (churnProbability >= 0.4m) return RetentionActionType.SuccessPlan;
+        if (churnProbability >= 0.8m)
+            return RetentionActionType.Escalate;
+        if (churnProbability >= 0.6m)
+            return RetentionActionType.ExecutiveReview;
+        if (churnProbability >= 0.4m)
+            return RetentionActionType.SuccessPlan;
         return RetentionActionType.ProductTraining;
     }
 
@@ -600,7 +633,8 @@ public class AllenAIService : IAllenAIService
             .Take(maxActions)
             .ToListAsync(cancellationToken);
 
-        if (existing.Count > 0) return existing;
+        if (existing.Count > 0)
+            return existing;
 
         // Generate new recommendations
         var recommendations = await GenerateRecommendationsAsync(targetType, entityId, maxActions, cancellationToken);
@@ -868,33 +902,48 @@ public class AllenAIService : IAllenAIService
     private EmailSentiment ExtractSentiment(string response)
     {
         var lower = response.ToLower();
-        if (lower.Contains("very positive")) return EmailSentiment.VeryPositive;
-        if (lower.Contains("very negative")) return EmailSentiment.VeryNegative;
-        if (lower.Contains("positive")) return EmailSentiment.Positive;
-        if (lower.Contains("negative")) return EmailSentiment.Negative;
+        if (lower.Contains("very positive"))
+            return EmailSentiment.VeryPositive;
+        if (lower.Contains("very negative"))
+            return EmailSentiment.VeryNegative;
+        if (lower.Contains("positive"))
+            return EmailSentiment.Positive;
+        if (lower.Contains("negative"))
+            return EmailSentiment.Negative;
         return EmailSentiment.Neutral;
     }
 
     private EmailIntent ExtractIntent(string response)
     {
         var lower = response.ToLower();
-        if (lower.Contains("purchase") || lower.Contains("buy")) return EmailIntent.PurchaseIntent;
-        if (lower.Contains("support") || lower.Contains("help")) return EmailIntent.SupportRequest;
-        if (lower.Contains("complaint") || lower.Contains("unhappy")) return EmailIntent.Complaint;
-        if (lower.Contains("meeting") || lower.Contains("schedule")) return EmailIntent.MeetingRequest;
-        if (lower.Contains("question") || lower.Contains("inquiry")) return EmailIntent.Inquiry;
-        if (lower.Contains("feedback")) return EmailIntent.Feedback;
-        if (lower.Contains("follow")) return EmailIntent.FollowUp;
+        if (lower.Contains("purchase") || lower.Contains("buy"))
+            return EmailIntent.PurchaseIntent;
+        if (lower.Contains("support") || lower.Contains("help"))
+            return EmailIntent.SupportRequest;
+        if (lower.Contains("complaint") || lower.Contains("unhappy"))
+            return EmailIntent.Complaint;
+        if (lower.Contains("meeting") || lower.Contains("schedule"))
+            return EmailIntent.MeetingRequest;
+        if (lower.Contains("question") || lower.Contains("inquiry"))
+            return EmailIntent.Inquiry;
+        if (lower.Contains("feedback"))
+            return EmailIntent.Feedback;
+        if (lower.Contains("follow"))
+            return EmailIntent.FollowUp;
         return EmailIntent.Other;
     }
 
     private ResponseUrgency ExtractUrgency(string response)
     {
         var lower = response.ToLower();
-        if (lower.Contains("immediate") || lower.Contains("urgent")) return ResponseUrgency.Immediate;
-        if (lower.Contains("high")) return ResponseUrgency.High;
-        if (lower.Contains("low")) return ResponseUrgency.Low;
-        if (lower.Contains("no response")) return ResponseUrgency.NoResponse;
+        if (lower.Contains("immediate") || lower.Contains("urgent"))
+            return ResponseUrgency.Immediate;
+        if (lower.Contains("high"))
+            return ResponseUrgency.High;
+        if (lower.Contains("low"))
+            return ResponseUrgency.Low;
+        if (lower.Contains("no response"))
+            return ResponseUrgency.NoResponse;
         return ResponseUrgency.Normal;
     }
 
@@ -981,7 +1030,8 @@ public class AllenAIService : IAllenAIService
                 _ => null
             };
 
-            if (string.IsNullOrEmpty(endpoint)) return false;
+            if (string.IsNullOrEmpty(endpoint))
+                return false;
 
             using var client = _httpClientFactory.CreateClient("AllenAI");
             var response = await client.GetAsync(endpoint, cancellationToken);
@@ -1101,10 +1151,12 @@ public class AllenAIService : IAllenAIService
         try
         {
             var startIndex = text.IndexOf(start, StringComparison.OrdinalIgnoreCase);
-            if (startIndex < 0) return null;
+            if (startIndex < 0)
+                return null;
 
             var endIndex = text.IndexOf(end, startIndex + start.Length, StringComparison.OrdinalIgnoreCase);
-            if (endIndex < 0) endIndex = text.Length;
+            if (endIndex < 0)
+                endIndex = text.Length;
 
             return text[(startIndex + start.Length)..endIndex].Trim().Trim(':', '"', ' ');
         }

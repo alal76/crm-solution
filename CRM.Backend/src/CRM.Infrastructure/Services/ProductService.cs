@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using CRM.Core.Ports.Input;
@@ -40,13 +39,16 @@ public class ProductService : IProductService, IProductInputPort
     public async Task<Product?> GetProductByIdAsync(int id)
     {
         var product = await _repository.GetByIdAsync(id);
-        if (product == null) return null;
+        if (product == null)
+            return null;
 
         var tags = await _normalizationService.GetTagsAsync("Product", product.Id);
-        if (!string.IsNullOrWhiteSpace(tags)) product.Tags = tags;
+        if (!string.IsNullOrWhiteSpace(tags))
+            product.Tags = tags;
 
         var cfs = await _normalizationService.GetCustomFieldsAsync("Product", product.Id);
-        if (!string.IsNullOrWhiteSpace(cfs)) product.CustomFields = cfs;
+        if (!string.IsNullOrWhiteSpace(cfs))
+            product.CustomFields = cfs;
 
         return product;
     }
@@ -57,10 +59,12 @@ public class ProductService : IProductService, IProductInputPort
         foreach (var product in products)
         {
             var tags = await _normalizationService.GetTagsAsync("Product", product.Id);
-            if (!string.IsNullOrWhiteSpace(tags)) product.Tags = tags;
+            if (!string.IsNullOrWhiteSpace(tags))
+                product.Tags = tags;
 
             var cfs = await _normalizationService.GetCustomFieldsAsync("Product", product.Id);
-            if (!string.IsNullOrWhiteSpace(cfs)) product.CustomFields = cfs;
+            if (!string.IsNullOrWhiteSpace(cfs))
+                product.CustomFields = cfs;
         }
         return products;
     }
@@ -76,10 +80,12 @@ public class ProductService : IProductService, IProductInputPort
         foreach (var product in products)
         {
             var tags = await _normalizationService.GetTagsAsync("Product", product.Id);
-            if (!string.IsNullOrWhiteSpace(tags)) product.Tags = tags;
+            if (!string.IsNullOrWhiteSpace(tags))
+                product.Tags = tags;
 
             var cfs = await _normalizationService.GetCustomFieldsAsync("Product", product.Id);
-            if (!string.IsNullOrWhiteSpace(cfs)) product.CustomFields = cfs;
+            if (!string.IsNullOrWhiteSpace(cfs))
+                product.CustomFields = cfs;
         }
         return products;
     }

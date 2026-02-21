@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 /**
  * CRM Solution - Customer Relationship Management System
  * Copyright (C) 2024-2026 Abhishek Lal
@@ -262,7 +261,8 @@ public class LLMSettingsService : ILLMSettingsService
             existing.ValueType = valueType;
             existing.Category = category;
             existing.UpdatedAt = DateTime.UtcNow;
-            if (description != null) existing.Description = description;
+            if (description != null)
+                existing.Description = description;
         }
         else
         {
@@ -287,7 +287,8 @@ public class LLMSettingsService : ILLMSettingsService
         try
         {
             var existingSettings = await _context.LLMProviderSettings.AnyAsync();
-            if (existingSettings) return;
+            if (existingSettings)
+                return;
 
             var defaults = new List<LLMProviderSetting>
             {

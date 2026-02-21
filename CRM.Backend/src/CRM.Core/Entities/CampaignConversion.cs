@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using CRM.Core.Models;
@@ -62,10 +61,10 @@ public class CampaignConversion : BaseEntity
     /// </summary>
     public int? ContactId { get; set; }
 
-        /// <summary>
-        /// The account if applicable
-        /// </summary>
-        [Column("AccountId")]
+    /// <summary>
+    /// The account if applicable
+    /// </summary>
+    [Column("AccountId")]
     public int? AccountId { get; set; }
 
     /// <summary>

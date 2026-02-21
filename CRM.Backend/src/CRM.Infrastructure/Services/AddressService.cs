@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -53,7 +52,7 @@ public class AddressService : IAddressService
         // Verify account exists and is not deleted
         var account = await _context.Accounts
             .FirstOrDefaultAsync(a => a.Id == accountId && !a.IsDeleted, cancellationToken);
-        
+
         if (account == null)
         {
             throw new ArgumentException($"Account with ID {accountId} not found or is deleted.", nameof(accountId));
@@ -123,7 +122,7 @@ public class AddressService : IAddressService
         // Verify account exists and is not deleted
         var account = await _context.Accounts
             .FirstOrDefaultAsync(a => a.Id == accountId && !a.IsDeleted, cancellationToken);
-        
+
         if (account == null)
         {
             throw new ArgumentException($"Account with ID {accountId} not found or is deleted.", nameof(accountId));
@@ -132,7 +131,7 @@ public class AddressService : IAddressService
         // Get existing address
         var existingAddress = await _context.Addresses
             .FirstOrDefaultAsync(a => a.Id == addressId && !a.IsDeleted, cancellationToken);
-        
+
         if (existingAddress == null)
         {
             throw new ArgumentException($"Address with ID {addressId} not found or is deleted.", nameof(addressId));
@@ -141,7 +140,7 @@ public class AddressService : IAddressService
         // Verify address is linked to the account
         var addressLink = await _context.EntityAddressLinks
             .FirstOrDefaultAsync(l => l.AddressId == addressId && l.EntityType == EntityType.Account && l.EntityId == accountId && !l.IsDeleted, cancellationToken);
-        
+
         if (addressLink == null)
         {
             throw new InvalidOperationException(
@@ -207,7 +206,7 @@ public class AddressService : IAddressService
         // Verify account exists and is not deleted
         var account = await _context.Accounts
             .FirstOrDefaultAsync(a => a.Id == accountId && !a.IsDeleted, cancellationToken);
-        
+
         if (account == null)
         {
             throw new ArgumentException($"Account with ID {accountId} not found or is deleted.", nameof(accountId));
@@ -216,7 +215,7 @@ public class AddressService : IAddressService
         // Get existing address
         var existingAddress = await _context.Addresses
             .FirstOrDefaultAsync(a => a.Id == addressId && !a.IsDeleted, cancellationToken);
-        
+
         if (existingAddress == null)
         {
             return false;
@@ -225,7 +224,7 @@ public class AddressService : IAddressService
         // Verify address is linked to the account
         var addressLink = await _context.EntityAddressLinks
             .FirstOrDefaultAsync(l => l.AddressId == addressId && l.EntityType == EntityType.Account && l.EntityId == accountId && !l.IsDeleted, cancellationToken);
-        
+
         if (addressLink == null)
         {
             return false;
@@ -253,8 +252,7 @@ public class AddressService : IAddressService
                 _context.Addresses.Where(a => !a.IsDeleted),
                 link => link.AddressId,
                 address => address.Id,
-                (link, address) => address
-            )
+                (link, address) => address)
             .OrderBy(a => a.IsPrimary ? 0 : 1)
             .ThenBy(a => a.Label)
             .ToListAsync(cancellationToken);
@@ -269,7 +267,7 @@ public class AddressService : IAddressService
     {
         var address = await _context.Addresses
             .FirstOrDefaultAsync(a => a.Id == addressId && !a.IsDeleted, cancellationToken);
-        
+
         return address;
     }
 
@@ -279,17 +277,16 @@ public class AddressService : IAddressService
     public async Task<Address?> GetPrimaryBillingAddressAsync(int accountId, CancellationToken cancellationToken = default)
     {
         var address = await _context.EntityAddressLinks
-            .Where(l => l.EntityType == EntityType.Account 
-                && l.EntityId == accountId 
-                && !l.IsDeleted 
+            .Where(l => l.EntityType == EntityType.Account
+                && l.EntityId == accountId
+                && !l.IsDeleted
                 && (l.AddressType == AddressType.Billing || l.AddressType == AddressType.Primary)
                 && l.IsPrimary)
             .Join(
                 _context.Addresses.Where(a => !a.IsDeleted),
                 link => link.AddressId,
                 address => address.Id,
-                (link, address) => address
-            )
+                (link, address) => address)
             .FirstOrDefaultAsync(cancellationToken);
 
         return address;
@@ -301,17 +298,16 @@ public class AddressService : IAddressService
     public async Task<Address?> GetPrimaryShippingAddressAsync(int accountId, CancellationToken cancellationToken = default)
     {
         var address = await _context.EntityAddressLinks
-            .Where(l => l.EntityType == EntityType.Account 
-                && l.EntityId == accountId 
-                && !l.IsDeleted 
+            .Where(l => l.EntityType == EntityType.Account
+                && l.EntityId == accountId
+                && !l.IsDeleted
                 && l.AddressType == AddressType.Shipping
                 && l.IsPrimary)
             .Join(
                 _context.Addresses.Where(a => !a.IsDeleted),
                 link => link.AddressId,
                 address => address.Id,
-                (link, address) => address
-            )
+                (link, address) => address)
             .FirstOrDefaultAsync(cancellationToken);
 
         return address;
@@ -325,7 +321,7 @@ public class AddressService : IAddressService
         // Verify account exists
         var account = await _context.Accounts
             .FirstOrDefaultAsync(a => a.Id == accountId && !a.IsDeleted, cancellationToken);
-        
+
         if (account == null)
         {
             throw new ArgumentException($"Account with ID {accountId} not found or is deleted.", nameof(accountId));
@@ -334,7 +330,7 @@ public class AddressService : IAddressService
         // Verify address exists
         var address = await _context.Addresses
             .FirstOrDefaultAsync(a => a.Id == addressId && !a.IsDeleted, cancellationToken);
-        
+
         if (address == null)
         {
             return false;
@@ -342,11 +338,11 @@ public class AddressService : IAddressService
 
         // Find the link for this address to the account
         var addressLink = await _context.EntityAddressLinks
-            .FirstOrDefaultAsync(l => l.AddressId == addressId 
-                && l.EntityType == EntityType.Account 
-                && l.EntityId == accountId 
+            .FirstOrDefaultAsync(l => l.AddressId == addressId
+                && l.EntityType == EntityType.Account
+                && l.EntityId == accountId
                 && !l.IsDeleted, cancellationToken);
-        
+
         if (addressLink == null)
         {
             return false;
@@ -354,9 +350,9 @@ public class AddressService : IAddressService
 
         // Remove primary flag from other billing/primary addresses
         var otherPrimaryBillingAddresses = await _context.EntityAddressLinks
-            .Where(l => l.EntityType == EntityType.Account 
-                && l.EntityId == accountId 
-                && !l.IsDeleted 
+            .Where(l => l.EntityType == EntityType.Account
+                && l.EntityId == accountId
+                && !l.IsDeleted
                 && (l.AddressType == AddressType.Billing || l.AddressType == AddressType.Primary)
                 && l.IsPrimary
                 && l.Id != addressLink.Id)
@@ -389,7 +385,7 @@ public class AddressService : IAddressService
         // Verify account exists
         var account = await _context.Accounts
             .FirstOrDefaultAsync(a => a.Id == accountId && !a.IsDeleted, cancellationToken);
-        
+
         if (account == null)
         {
             throw new ArgumentException($"Account with ID {accountId} not found or is deleted.", nameof(accountId));
@@ -398,7 +394,7 @@ public class AddressService : IAddressService
         // Verify address exists
         var address = await _context.Addresses
             .FirstOrDefaultAsync(a => a.Id == addressId && !a.IsDeleted, cancellationToken);
-        
+
         if (address == null)
         {
             return false;
@@ -406,11 +402,11 @@ public class AddressService : IAddressService
 
         // Find the link for this address to the account
         var addressLink = await _context.EntityAddressLinks
-            .FirstOrDefaultAsync(l => l.AddressId == addressId 
-                && l.EntityType == EntityType.Account 
-                && l.EntityId == accountId 
+            .FirstOrDefaultAsync(l => l.AddressId == addressId
+                && l.EntityType == EntityType.Account
+                && l.EntityId == accountId
                 && !l.IsDeleted, cancellationToken);
-        
+
         if (addressLink == null)
         {
             return false;
@@ -418,9 +414,9 @@ public class AddressService : IAddressService
 
         // Remove primary flag from other shipping addresses
         var otherPrimaryShippingAddresses = await _context.EntityAddressLinks
-            .Where(l => l.EntityType == EntityType.Account 
-                && l.EntityId == accountId 
-                && !l.IsDeleted 
+            .Where(l => l.EntityType == EntityType.Account
+                && l.EntityId == accountId
+                && !l.IsDeleted
                 && l.AddressType == AddressType.Shipping
                 && l.IsPrimary
                 && l.Id != addressLink.Id)

@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 namespace CRM.Core.Dtos;
 
 /// <summary>
@@ -26,7 +25,7 @@ public class UserGroupDto
     // Menu Permissions
     public bool CanAccessDashboard { get; set; }
     public bool CanAccessAccounts { get; set; }
-    public bool CanAccessCustomers { get; set; }  // Alias for CanAccessAccounts for backward compatibility
+    public bool CanAccessCustomers { get; set; } // Alias for CanAccessAccounts for backward compatibility
     public bool CanAccessContacts { get; set; }
     public bool CanAccessLeads { get; set; }
     public bool CanAccessOpportunities { get; set; }
@@ -189,18 +188,18 @@ public class CreateUserGroupRequest
 /// </summary>
 public class UserGroupMemberDto
 {
-    public int Id { get; set; }  // Member entry ID
+    public int Id { get; set; } // Member entry ID
     public int UserId { get; set; }
     public string Email { get; set; } = string.Empty;
     public string FullName { get; set; } = string.Empty;
-    
+
     /// <summary>User email alias for backward compatibility</summary>
     public string? UserEmail
     {
         get => Email;
         set => Email = value ?? string.Empty;
     }
-    
+
     public int GroupId { get; set; }
     public DateTime AddedAt { get; set; }
 }

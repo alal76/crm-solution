@@ -4,11 +4,9 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using System.Collections.Concurrent;
-using Microsoft.Extensions.Logging;
 using CRM.Core.Ports.Output.Providers;
-
+using Microsoft.Extensions.Logging;
 // Resolve naming conflict: SignerStatus class from Ports vs SignerStatus enum from Entities
 using PortSignerStatus = CRM.Core.Ports.Output.Providers.SignerStatus;
 

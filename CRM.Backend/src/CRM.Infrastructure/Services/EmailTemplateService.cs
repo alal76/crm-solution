@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using CRM.Core.Entities;
@@ -106,7 +105,8 @@ public class EmailTemplateService : IEmailTemplateService
     public async Task<bool> DeleteAsync(int id, CancellationToken cancellationToken = default)
     {
         var template = await _context.EmailTemplates.FindAsync(new object[] { id }, cancellationToken);
-        if (template == null) return false;
+        if (template == null)
+            return false;
 
         if (template.IsSystem)
         {
@@ -652,7 +652,8 @@ public class EmailTemplateService : IEmailTemplateService
     public async Task RecordUsageAsync(int templateId, int? userId = null, string? context = null, CancellationToken cancellationToken = default)
     {
         var template = await _context.EmailTemplates.FindAsync(new object[] { templateId }, cancellationToken);
-        if (template == null) return;
+        if (template == null)
+            return;
 
         template.UsageCount = template.UsageCount + 1;
         template.LastUsedAt = DateTime.UtcNow;

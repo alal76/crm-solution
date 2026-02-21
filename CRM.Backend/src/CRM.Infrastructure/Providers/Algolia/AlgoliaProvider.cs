@@ -4,14 +4,13 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using System.Diagnostics;
 using System.Text.Json;
+using Algolia.Search.Clients;
 using CRM.Core.Entities;
 using CRM.Core.Entities.KnowledgeBase;
 using CRM.Core.Models;
 using CRM.Core.Ports.Output.Providers;
-using Algolia.Search.Clients;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -232,7 +231,8 @@ public class AlgoliaProvider : ISearchPort
         string id,
         CancellationToken cancellationToken = default) where T : class
     {
-        if (_client == null || document == null) return;
+        if (_client == null || document == null)
+            return;
 
         try
         {
@@ -260,10 +260,12 @@ public class AlgoliaProvider : ISearchPort
         Func<T, string> idSelector,
         CancellationToken cancellationToken = default) where T : class
     {
-        if (_client == null || documents == null) return;
+        if (_client == null || documents == null)
+            return;
 
         var docList = documents.ToList();
-        if (!docList.Any()) return;
+        if (!docList.Any())
+            return;
 
         try
         {
@@ -300,7 +302,8 @@ public class AlgoliaProvider : ISearchPort
         string id,
         CancellationToken cancellationToken = default) where T : class
     {
-        if (_client == null || string.IsNullOrEmpty(id)) return;
+        if (_client == null || string.IsNullOrEmpty(id))
+            return;
 
         try
         {
@@ -366,7 +369,8 @@ public class AlgoliaProvider : ISearchPort
     /// <inheritdoc />
     public async Task ClearIndexAsync<T>(CancellationToken cancellationToken = default) where T : class
     {
-        if (_client == null) return;
+        if (_client == null)
+            return;
 
         try
         {
@@ -390,7 +394,8 @@ public class AlgoliaProvider : ISearchPort
         Func<T, string> idSelector,
         CancellationToken cancellationToken = default) where T : class
     {
-        if (_client == null || documents == null) return;
+        if (_client == null || documents == null)
+            return;
 
         var docList = documents.ToList();
 

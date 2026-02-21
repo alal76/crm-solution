@@ -4,15 +4,14 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
-using Xunit;
-using FluentAssertions;
+using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
-using System.Collections.Generic;
-using System;
+using FluentAssertions;
+using Xunit;
 
 namespace CRM.Tests.Functional;
 

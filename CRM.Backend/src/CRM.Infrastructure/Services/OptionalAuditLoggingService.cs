@@ -1,6 +1,9 @@
 // CRM Solution - Customer Relationship Management System
 // Copyright (C) 2024-2026 Abhishek Lal
-
+//
+// This software is source-available. Non-commercial use is permitted under
+// the terms of the LICENSE file. Commercial use requires a separate license.
+// See the LICENSE file in the root directory for full terms.
 using CRM.Core.Dtos;
 using CRM.Core.Interfaces;
 using Microsoft.Extensions.Logging;
@@ -10,10 +13,10 @@ namespace CRM.Infrastructure.Services;
 
 /// <summary>
 /// OPTIONAL Service for audit logging (feature-flagged).
-/// 
+///
 /// This service is completely optional and controlled bythe UseOptionalAuditLogging feature flag (default: false).
 /// When disabled, it adds ZERO overhead as it's not even registered in the DI container.
-/// 
+///
 /// When enabled:
 /// - Logs user actions (Create, Update, Delete, Export, etc.)
 /// - Provides audit trail querying

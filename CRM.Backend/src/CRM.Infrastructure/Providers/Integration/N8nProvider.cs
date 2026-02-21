@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
@@ -420,14 +419,16 @@ public class N8nProvider : IIntegrationPort
 
     private static string DetermineTriggerType(List<N8nNode>? nodes)
     {
-        if (nodes == null || !nodes.Any()) return "manual";
+        if (nodes == null || !nodes.Any())
+            return "manual";
 
         var triggerNode = nodes.FirstOrDefault(n =>
             n.Type?.Contains("trigger", StringComparison.OrdinalIgnoreCase) == true ||
             n.Type?.Contains("webhook", StringComparison.OrdinalIgnoreCase) == true ||
             n.Type?.Contains("schedule", StringComparison.OrdinalIgnoreCase) == true);
 
-        if (triggerNode == null) return "manual";
+        if (triggerNode == null)
+            return "manual";
 
         if (triggerNode.Type?.Contains("webhook", StringComparison.OrdinalIgnoreCase) == true)
             return "webhook";

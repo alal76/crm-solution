@@ -4,14 +4,13 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
+using System.Text.Json;
 using CRM.Core.DTOs.Workflow;
 using CRM.Core.Entities.Workflow;
 using CRM.Core.Interfaces;
 using CRM.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System.Text.Json;
 
 namespace CRM.Infrastructure.Services;
 
@@ -253,7 +252,8 @@ public class WorkflowInstanceService : IWorkflowInstanceService
     public async Task<bool> CancelInstanceAsync(int instanceId, string reason, int? userId = null)
     {
         var instance = await _context.WorkflowInstances.FindAsync(instanceId);
-        if (instance == null) return false;
+        if (instance == null)
+            return false;
 
         if (instance.Status == WorkflowInstanceStatus.Completed ||
             instance.Status == WorkflowInstanceStatus.Cancelled)
@@ -291,7 +291,8 @@ public class WorkflowInstanceService : IWorkflowInstanceService
     public async Task<bool> PauseInstanceAsync(int instanceId, int? userId = null)
     {
         var instance = await _context.WorkflowInstances.FindAsync(instanceId);
-        if (instance == null || instance.Status != WorkflowInstanceStatus.Running) return false;
+        if (instance == null || instance.Status != WorkflowInstanceStatus.Running)
+            return false;
 
         instance.Status = WorkflowInstanceStatus.Paused;
         instance.UpdatedAt = DateTime.UtcNow;
@@ -307,7 +308,8 @@ public class WorkflowInstanceService : IWorkflowInstanceService
     public async Task<bool> ResumeInstanceAsync(int instanceId, int? userId = null)
     {
         var instance = await _context.WorkflowInstances.FindAsync(instanceId);
-        if (instance == null || instance.Status != WorkflowInstanceStatus.Paused) return false;
+        if (instance == null || instance.Status != WorkflowInstanceStatus.Paused)
+            return false;
 
         instance.Status = WorkflowInstanceStatus.Running;
         instance.UpdatedAt = DateTime.UtcNow;
@@ -323,7 +325,8 @@ public class WorkflowInstanceService : IWorkflowInstanceService
     public async Task<bool> RetryInstanceAsync(int instanceId, int? userId = null)
     {
         var instance = await _context.WorkflowInstances.FindAsync(instanceId);
-        if (instance == null || instance.Status != WorkflowInstanceStatus.Failed) return false;
+        if (instance == null || instance.Status != WorkflowInstanceStatus.Failed)
+            return false;
 
         instance.Status = WorkflowInstanceStatus.Running;
         instance.RetryCount++;
@@ -357,7 +360,8 @@ public class WorkflowInstanceService : IWorkflowInstanceService
     public async Task<WorkflowNodeInstance> StartNodeExecutionAsync(int instanceId, int nodeId, string? workerId = null)
     {
         var instance = await _context.WorkflowInstances.FindAsync(instanceId);
-        if (instance == null) throw new ArgumentException("Instance not found");
+        if (instance == null)
+            throw new ArgumentException("Instance not found");
 
         var sequence = await _context.WorkflowNodeInstances
             .Where(ni => ni.WorkflowInstanceId == instanceId)
@@ -397,7 +401,8 @@ public class WorkflowInstanceService : IWorkflowInstanceService
             .Include(ni => ni.WorkflowNode)
             .FirstOrDefaultAsync(ni => ni.Id == nodeInstanceId);
 
-        if (nodeInstance == null) return null;
+        if (nodeInstance == null)
+            return null;
 
         nodeInstance.Status = WorkflowNodeInstanceStatus.Completed;
         nodeInstance.CompletedAt = DateTime.UtcNow;
@@ -427,7 +432,8 @@ public class WorkflowInstanceService : IWorkflowInstanceService
             .Include(ni => ni.WorkflowNode)
             .FirstOrDefaultAsync(ni => ni.Id == nodeInstanceId);
 
-        if (nodeInstance == null) return null;
+        if (nodeInstance == null)
+            return null;
 
         nodeInstance.Status = WorkflowNodeInstanceStatus.Failed;
         nodeInstance.CompletedAt = DateTime.UtcNow;
@@ -476,7 +482,8 @@ public class WorkflowInstanceService : IWorkflowInstanceService
     public async Task<bool> SkipNodeAsync(int instanceId, int nodeId, string reason, int? userId = null)
     {
         var instance = await _context.WorkflowInstances.FindAsync(instanceId);
-        if (instance == null) return false;
+        if (instance == null)
+            return false;
 
         var nodeInstance = await _context.WorkflowNodeInstances
             .FirstOrDefaultAsync(ni => ni.WorkflowInstanceId == instanceId &&
@@ -607,7 +614,8 @@ public class WorkflowInstanceService : IWorkflowInstanceService
     public async Task<bool> LockTaskAsync(int taskId, string workerId, TimeSpan lockDuration)
     {
         var task = await _context.WorkflowTasks.FindAsync(taskId);
-        if (task == null) return false;
+        if (task == null)
+            return false;
 
         // Check if already locked
         if (task.Status == WorkflowTaskStatus.Locked &&
@@ -637,7 +645,8 @@ public class WorkflowInstanceService : IWorkflowInstanceService
     public async Task<bool> CompleteTaskAsync(int taskId, object? outputData = null)
     {
         var task = await _context.WorkflowTasks.FindAsync(taskId);
-        if (task == null) return false;
+        if (task == null)
+            return false;
 
         task.Status = WorkflowTaskStatus.Completed;
         task.CompletedAt = DateTime.UtcNow;
@@ -656,7 +665,8 @@ public class WorkflowInstanceService : IWorkflowInstanceService
         var task = await _context.WorkflowTasks
             .Include(t => t.WorkflowNode)
             .FirstOrDefaultAsync(t => t.Id == taskId);
-        if (task == null) return false;
+        if (task == null)
+            return false;
 
         task.ErrorMessage = errorMessage;
         task.ErrorStackTrace = stackTrace;
@@ -819,8 +829,10 @@ public class WorkflowInstanceService : IWorkflowInstanceService
     public async Task<bool> ClaimTaskAsync(int taskId, int userId)
     {
         var task = await _context.WorkflowTasks.FindAsync(taskId);
-        if (task == null) return false;
-        if (task.AssignedToId != null) return false;
+        if (task == null)
+            return false;
+        if (task.AssignedToId != null)
+            return false;
 
         task.AssignedToId = userId;
         task.UpdatedAt = DateTime.UtcNow;
@@ -836,8 +848,10 @@ public class WorkflowInstanceService : IWorkflowInstanceService
     public async Task<bool> CompleteHumanTaskAsync(int taskId, int userId, string? formData, string? outputData)
     {
         var task = await _context.WorkflowTasks.FindAsync(taskId);
-        if (task == null) return false;
-        if (task.AssignedToId != userId) return false;
+        if (task == null)
+            return false;
+        if (task.AssignedToId != userId)
+            return false;
 
         task.FormData = formData;
         task.OutputData = outputData;
@@ -1326,7 +1340,8 @@ public class WorkflowInstanceService : IWorkflowInstanceService
             var targetNode = instance.WorkflowVersion.Nodes
                 .FirstOrDefault(n => n.Id == transition.TargetNodeId && !n.IsDeleted);
 
-            if (targetNode == null) continue;
+            if (targetNode == null)
+                continue;
 
             var ni = await StartNodeExecutionAsync(instanceId, targetNode.Id);
             ni.InputData = inputData;
@@ -1465,7 +1480,8 @@ public class WorkflowInstanceService : IWorkflowInstanceService
         var child = await _context.WorkflowInstances
             .FirstOrDefaultAsync(i => i.Id == childInstanceId);
 
-        if (child?.ParentInstanceId == null) return;
+        if (child?.ParentInstanceId == null)
+            return;
 
         var parentInstanceId = child.ParentInstanceId.Value;
 
@@ -1677,7 +1693,8 @@ public class WorkflowInstanceService : IWorkflowInstanceService
 
         foreach (var instance in timedOutInstances)
         {
-            if (cancellationToken.IsCancellationRequested) break;
+            if (cancellationToken.IsCancellationRequested)
+                break;
 
             try
             {
@@ -1710,7 +1727,8 @@ public class WorkflowInstanceService : IWorkflowInstanceService
 
         foreach (var nodeInstance in timedOutNodes)
         {
-            if (cancellationToken.IsCancellationRequested) break;
+            if (cancellationToken.IsCancellationRequested)
+                break;
 
             try
             {
@@ -1817,7 +1835,8 @@ public class WorkflowInstanceService : IWorkflowInstanceService
             config.Name ??= node.Name;
 
             var nodeInstance = await _context.WorkflowNodeInstances.FindAsync(nodeInstanceId);
-            if (nodeInstance == null) return;
+            if (nodeInstance == null)
+                return;
 
             _logger.LogInformation(
                 "Executing HTTP callout for node instance {NodeInstanceId}: {Method} {Url}",

@@ -4,13 +4,12 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
 using CRM.Core.Features;
 using CRM.Core.Interfaces;
 using CRM.Core.Ports.Output.Providers;
 using CRM.Infrastructure.Factories;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace CRM.Api.Controllers;
 

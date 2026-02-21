@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -64,7 +63,8 @@ namespace CRM.Api.Controllers
             try
             {
                 var sequence = await _service.GetByIdAsync(id, ct);
-                if (sequence == null) return NotFound(new { message = $"Email sequence {id} not found" });
+                if (sequence == null)
+                    return NotFound(new { message = $"Email sequence {id} not found" });
                 return Ok(MapToDto(sequence));
             }
             catch (Exception ex)
@@ -80,7 +80,8 @@ namespace CRM.Api.Controllers
         [ProducesResponseType(500)]
         public async Task<IActionResult> Create([FromBody] EmailSequence sequence, CancellationToken ct)
         {
-            if (sequence == null) return BadRequest("Sequence payload required");
+            if (sequence == null)
+                return BadRequest("Sequence payload required");
             var created = await _service.CreateSequenceAsync(sequence, ct);
             return CreatedAtAction(nameof(GetById), new { id = created.Id }, MapToDto(created));
         }
@@ -95,7 +96,8 @@ namespace CRM.Api.Controllers
         [ProducesResponseType(500)]
         public async Task<IActionResult> Update(int id, [FromBody] EmailSequence sequence, CancellationToken ct)
         {
-            if (sequence == null) return BadRequest("Sequence payload required");
+            if (sequence == null)
+                return BadRequest("Sequence payload required");
             sequence.Id = id;
             try
             {
@@ -125,7 +127,8 @@ namespace CRM.Api.Controllers
             try
             {
                 var deleted = await _service.DeleteAsync(id, ct);
-                if (!deleted) return NotFound(new { message = $"Email sequence {id} not found" });
+                if (!deleted)
+                    return NotFound(new { message = $"Email sequence {id} not found" });
                 return NoContent();
             }
             catch (Exception ex)
@@ -142,7 +145,8 @@ namespace CRM.Api.Controllers
         [ProducesResponseType(500)]
         public async Task<IActionResult> Enroll(int id, [FromQuery] int contactId, [FromQuery] int? enrolledById, CancellationToken ct)
         {
-            if (contactId <= 0) return BadRequest("contactId is required");
+            if (contactId <= 0)
+                return BadRequest("contactId is required");
             var enrollment = await _service.EnrollContactAsync(id, contactId, enrolledById, ct);
             return Ok(enrollment);
         }
@@ -154,7 +158,8 @@ namespace CRM.Api.Controllers
         public async Task<IActionResult> Start(int id, CancellationToken ct)
         {
             var ok = await _service.StartSequenceAsync(id, ct);
-            if (!ok) return NotFound();
+            if (!ok)
+                return NotFound();
             return NoContent();
         }
 
@@ -165,7 +170,8 @@ namespace CRM.Api.Controllers
         public async Task<IActionResult> Stop(int id, CancellationToken ct)
         {
             var ok = await _service.StopSequenceAsync(id, ct);
-            if (!ok) return NotFound();
+            if (!ok)
+                return NotFound();
             return NoContent();
         }
 

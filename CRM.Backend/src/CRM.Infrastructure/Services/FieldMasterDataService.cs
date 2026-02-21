@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using CRM.Core.Dtos;
@@ -348,7 +347,7 @@ public class FieldMasterDataService : IFieldMasterDataService
             case "Customers":
                 results = await GetCustomerDataAsync(link, searchTerm, limit);
                 break;
-            // Add more table handlers as needed
+                // Add more table handlers as needed
         }
 
         return results;

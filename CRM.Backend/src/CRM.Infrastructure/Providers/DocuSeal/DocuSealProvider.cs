@@ -4,20 +4,18 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using System.Net.Http.Json;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using CRM.Core.Ports.Output.Providers;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using CRM.Core.Ports.Output.Providers;
-
-// Resolve naming conflict: SignerStatus class from Ports vs SignerStatus enum from Entities
-using PortSignerStatus = CRM.Core.Ports.Output.Providers.SignerStatus;
 // Resolve naming conflict: SignerRole class from Ports vs SignerRole entity from Entities
 using PortSignerRole = CRM.Core.Ports.Output.Providers.SignerRole;
+// Resolve naming conflict: SignerStatus class from Ports vs SignerStatus enum from Entities
+using PortSignerStatus = CRM.Core.Ports.Output.Providers.SignerStatus;
 
 namespace CRM.Infrastructure.Providers.DocuSeal;
 
@@ -841,7 +839,8 @@ public class DocuSealProvider : ISignaturePort
             _ => null
         };
 
-        if (activityType == null) return null;
+        if (activityType == null)
+            return null;
 
         return new SignatureActivityMapping
         {

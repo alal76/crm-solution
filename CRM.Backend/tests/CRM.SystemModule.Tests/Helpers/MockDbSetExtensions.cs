@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using System.Linq.Expressions;
 using CRM.Core.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -73,7 +72,8 @@ public static class MockDbSetExtensions
 
     private static T? FindEntityByKey<T>(List<T> items, object? key) where T : class
     {
-        if (key == null) return default;
+        if (key == null)
+            return default;
 
         var idProp = typeof(T).GetProperty("Id");
         return idProp == null

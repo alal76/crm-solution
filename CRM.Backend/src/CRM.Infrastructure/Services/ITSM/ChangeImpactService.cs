@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 #if ITSM_ADVANCED
 // This file is part of the CRM Solution.
 // Copyright (c) 2025 CRM Solution Contributors
@@ -525,7 +524,8 @@ public class ChangeImpactService : IChangeImpactService
             .Include(c => c.AssignedTo)
             .FirstOrDefaultAsync(c => c.ChangeId == changeRequestId);
 
-        if (change == null) return notifications;
+        if (change == null)
+            return notifications;
 
         // Notify change requestor
         if (change.Requestor != null)

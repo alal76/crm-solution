@@ -4,10 +4,9 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
-using Microsoft.Extensions.Logging;
-using CRM.Core.Ports.Output.Providers;
 using System.Collections.Concurrent;
+using CRM.Core.Ports.Output.Providers;
+using Microsoft.Extensions.Logging;
 
 namespace CRM.Infrastructure.Providers.BuiltIn;
 
@@ -63,7 +62,8 @@ public class BuiltInChatProvider : IChatPort
         ChatContactCreateRequest request,
         CancellationToken cancellationToken = default)
     {
-        if (request == null) throw new ArgumentNullException(nameof(request));
+        if (request == null)
+            throw new ArgumentNullException(nameof(request));
 
         var contactId = $"builtin_contact_{Interlocked.Increment(ref _contactIdCounter)}";
 
@@ -140,9 +140,12 @@ public class BuiltInChatProvider : IChatPort
 
         if (_contacts.TryGetValue(externalId, out var contact))
         {
-            if (request.Email != null) contact.Email = request.Email;
-            if (request.Phone != null) contact.Phone = request.Phone;
-            if (request.Name != null) contact.Name = request.Name;
+            if (request.Email != null)
+                contact.Email = request.Email;
+            if (request.Phone != null)
+                contact.Phone = request.Phone;
+            if (request.Name != null)
+                contact.Name = request.Name;
             if (request.CustomAttributes != null)
             {
                 contact.CustomAttributes = request.CustomAttributes;
@@ -168,7 +171,8 @@ public class BuiltInChatProvider : IChatPort
         ChatConversationCreateRequest request,
         CancellationToken cancellationToken = default)
     {
-        if (request == null) throw new ArgumentNullException(nameof(request));
+        if (request == null)
+            throw new ArgumentNullException(nameof(request));
         if (string.IsNullOrWhiteSpace(request.ContactExternalId))
             throw new ArgumentException("Contact external ID is required", nameof(request));
 
@@ -484,7 +488,8 @@ public class BuiltInChatProvider : IChatPort
 
     private static string? NormalizePhone(string? phone)
     {
-        if (string.IsNullOrWhiteSpace(phone)) return null;
+        if (string.IsNullOrWhiteSpace(phone))
+            return null;
         return new string(phone.Where(char.IsDigit).ToArray());
     }
 

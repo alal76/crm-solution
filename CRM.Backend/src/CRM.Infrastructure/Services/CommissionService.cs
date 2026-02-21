@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using CRM.Infrastructure.Data;
@@ -95,7 +94,8 @@ public class CommissionService : ICommissionService
     public async Task<bool> DeleteAsync(int id, CancellationToken cancellationToken = default)
     {
         var commission = await _context.Commissions.FindAsync(new object[] { id }, cancellationToken);
-        if (commission == null) return false;
+        if (commission == null)
+            return false;
 
         commission.IsDeleted = true;
         commission.UpdatedAt = DateTime.UtcNow;
@@ -294,7 +294,8 @@ public class CommissionService : ICommissionService
     public async Task<bool> DeletePlanAsync(int planId, CancellationToken cancellationToken = default)
     {
         var plan = await _context.CommissionPlans.FindAsync(new object[] { planId }, cancellationToken);
-        if (plan == null) return false;
+        if (plan == null)
+            return false;
 
         plan.IsDeleted = true;
         plan.UpdatedAt = DateTime.UtcNow;
@@ -614,7 +615,8 @@ public class CommissionService : ICommissionService
 
         var leaderboard = commissions
             .GroupBy(c => c.UserId)
-            .Select(g => {
+            .Select(g =>
+            {
                 var first = g.First();
                 var user = first.User;
                 return new CommissionLeaderboard
@@ -733,7 +735,8 @@ public class CommissionService : ICommissionService
     public async Task<bool> RemoveTierAsync(int tierId, CancellationToken cancellationToken = default)
     {
         var tier = await _context.CommissionTiers.FindAsync(new object[] { tierId }, cancellationToken);
-        if (tier == null) return false;
+        if (tier == null)
+            return false;
 
         tier.IsDeleted = true;
         tier.UpdatedAt = DateTime.UtcNow;

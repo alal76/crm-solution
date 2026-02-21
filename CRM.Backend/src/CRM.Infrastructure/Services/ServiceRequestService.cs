@@ -4,14 +4,13 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using System.Text.Json;
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
+using CRM.Core.Ports.Input;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using CRM.Core.Ports.Input;
 
 namespace CRM.Infrastructure.Services;
 
@@ -166,8 +165,8 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
             RelatedProductName = entity.RelatedProduct?.Name,
             ParentServiceRequestId = entity.ParentServiceRequestId,
             ParentTicketNumber = entity.ParentServiceRequest?.TicketNumber,
-                 // Prefer normalized tags stored in EntityTags when available
-                 Tags = await _normalizationService.GetTagsAsync("ServiceRequest", entity.Id) ?? entity.Tags,
+            // Prefer normalized tags stored in EntityTags when available
+            Tags = await _normalizationService.GetTagsAsync("ServiceRequest", entity.Id) ?? entity.Tags,
             InternalNotes = entity.InternalNotes,
             EscalationLevel = entity.EscalationLevel,
             ReopenCount = entity.ReopenCount,
@@ -551,7 +550,8 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
     public async Task<bool> DeleteServiceRequestAsync(int id)
     {
         var entity = await _context.ServiceRequests.FindAsync(id);
-        if (entity == null) return false;
+        if (entity == null)
+            return false;
 
         entity.IsDeleted = true;
         entity.UpdatedAt = DateTime.UtcNow;
@@ -882,7 +882,8 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
 
     private static object? GetDisplayValue(ServiceRequestCustomFieldValue value)
     {
-        if (value.CustomFieldDefinition == null) return value.TextValue;
+        if (value.CustomFieldDefinition == null)
+            return value.TextValue;
 
         return value.CustomFieldDefinition.FieldType switch
         {

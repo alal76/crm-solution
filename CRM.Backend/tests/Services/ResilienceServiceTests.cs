@@ -4,18 +4,17 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
-using Xunit;
-using Moq;
-using FluentAssertions;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
-using CRM.Infrastructure.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
+using CRM.Infrastructure.Services;
+using FluentAssertions;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Moq;
+using Xunit;
 
 namespace CRM.Tests.Services;
 
@@ -118,7 +117,8 @@ public class ResilienceServiceTests
         // Trip the circuit breaker
         for (var i = 0; i < 2; i++)
         {
-            try { await svc.ExecuteAsync<string>("cb-svc", ct => throw new HttpRequestException("fail")); }
+            try
+            { await svc.ExecuteAsync<string>("cb-svc", ct => throw new HttpRequestException("fail")); }
             catch { }
         }
 
@@ -147,7 +147,8 @@ public class ResilienceServiceTests
         var opts = CreateCircuitBreakerOptions(threshold: 10);
         var svc = CreateService(opts);
 
-        try { await svc.ExecuteAsync<string>("fail-svc", ct => throw new HttpRequestException("err")); }
+        try
+        { await svc.ExecuteAsync<string>("fail-svc", ct => throw new HttpRequestException("err")); }
         catch { }
 
         var states = svc.GetCircuitBreakerStates();
@@ -165,7 +166,8 @@ public class ResilienceServiceTests
         // Trip circuit for svc-a
         for (var i = 0; i < 2; i++)
         {
-            try { await svc.ExecuteAsync<string>("svc-a", ct => throw new HttpRequestException("fail")); }
+            try
+            { await svc.ExecuteAsync<string>("svc-a", ct => throw new HttpRequestException("fail")); }
             catch { }
         }
 
@@ -228,7 +230,8 @@ public class ResilienceServiceTests
         // Trip the circuit
         for (var i = 0; i < 2; i++)
         {
-            try { await svc.ExecuteAsync<string>("cb-fb-svc", ct => throw new HttpRequestException("fail")); }
+            try
+            { await svc.ExecuteAsync<string>("cb-fb-svc", ct => throw new HttpRequestException("fail")); }
             catch { }
         }
 
@@ -293,7 +296,8 @@ public class ResilienceServiceTests
 
         for (var i = 0; i < 2; i++)
         {
-            try { await svc.ExecuteAsync<string>("open-svc", ct => throw new HttpRequestException("fail")); }
+            try
+            { await svc.ExecuteAsync<string>("open-svc", ct => throw new HttpRequestException("fail")); }
             catch { }
         }
 
@@ -313,7 +317,8 @@ public class ResilienceServiceTests
         // Trip the circuit
         for (var i = 0; i < 2; i++)
         {
-            try { await svc.ExecuteAsync<string>("reset-svc", ct => throw new HttpRequestException("fail")); }
+            try
+            { await svc.ExecuteAsync<string>("reset-svc", ct => throw new HttpRequestException("fail")); }
             catch { }
         }
         svc.IsCircuitOpen("reset-svc").Should().BeTrue();
@@ -343,7 +348,8 @@ public class ResilienceServiceTests
 
         for (var i = 0; i < 2; i++)
         {
-            try { await svc.ExecuteAsync<string>("rst-svc", ct => throw new HttpRequestException("fail")); }
+            try
+            { await svc.ExecuteAsync<string>("rst-svc", ct => throw new HttpRequestException("fail")); }
             catch { }
         }
 

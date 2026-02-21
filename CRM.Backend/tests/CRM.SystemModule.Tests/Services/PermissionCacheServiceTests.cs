@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using CRM.Infrastructure.Services;
@@ -33,7 +32,7 @@ public class PermissionCacheServiceTests
         _redisMock = new Mock<IConnectionMultiplexer>();
         _dbMock = new Mock<IDatabase>();
         _loggerMock = new Mock<ILogger<PermissionCacheService>>();
-        
+
         _redisMock.Setup(x => x.GetDatabase(It.IsAny<int>(), It.IsAny<object>()))
             .Returns(_dbMock.Object);
 
@@ -64,9 +63,9 @@ public class PermissionCacheServiceTests
         var permissions = new HashSet<string> { "View.Accounts", "Edit.Accounts" };
 
         _dbMock.Setup(x => x.StringSetAsync(
-            It.IsAny<RedisKey>(), 
-            It.IsAny<RedisValue>(), 
-            It.IsAny<TimeSpan?>(), 
+            It.IsAny<RedisKey>(),
+            It.IsAny<RedisValue>(),
+            It.IsAny<TimeSpan?>(),
             It.IsAny<bool>(),
             It.IsAny<When>(),
             It.IsAny<CommandFlags>()))
@@ -77,9 +76,9 @@ public class PermissionCacheServiceTests
 
         // Assert
         _dbMock.Verify(x => x.StringSetAsync(
-            It.IsAny<RedisKey>(), 
-            It.IsAny<RedisValue>(), 
-            It.IsAny<TimeSpan?>(), 
+            It.IsAny<RedisKey>(),
+            It.IsAny<RedisValue>(),
+            It.IsAny<TimeSpan?>(),
             It.IsAny<bool>(),
             It.IsAny<When>(),
             It.IsAny<CommandFlags>()), Times.AtLeastOnce);

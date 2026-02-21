@@ -4,15 +4,14 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using CRM.Core.Entities;
+using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using CRM.Core.Entities;
-using CRM.Core.Interfaces;
 
 namespace CRM.Api.Controllers
 {
@@ -43,7 +42,8 @@ namespace CRM.Api.Controllers
         public async Task<IActionResult> GetById(int id, CancellationToken cancellationToken)
         {
             var item = await _pricingService.GetPriceBookByIdAsync(id, cancellationToken);
-            if (item == null) return NotFound();
+            if (item == null)
+                return NotFound();
             return Ok(item);
         }
 
@@ -61,7 +61,8 @@ namespace CRM.Api.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Update(int id, [FromBody] PriceBook model, CancellationToken cancellationToken)
         {
-            if (id != model.Id) return BadRequest();
+            if (id != model.Id)
+                return BadRequest();
             var updated = await _pricingService.UpdatePriceBookAsync(model, cancellationToken);
             return Ok(updated);
         }
@@ -72,7 +73,8 @@ namespace CRM.Api.Controllers
         public async Task<IActionResult> Delete(int id, CancellationToken cancellationToken)
         {
             var ok = await _pricingService.DeletePriceBookAsync(id, cancellationToken);
-            if (!ok) return NotFound();
+            if (!ok)
+                return NotFound();
             return NoContent();
         }
 

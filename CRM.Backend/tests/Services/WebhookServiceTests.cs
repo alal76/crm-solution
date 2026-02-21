@@ -4,23 +4,22 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
-using Xunit;
-using Moq;
-using FluentAssertions;
-using CRM.Core.Entities;
-using CRM.Core.Interfaces;
-using CRM.Core.Models;
-using CRM.Infrastructure.Services;
-using CRM.Infrastructure.Data;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using CRM.Core.Entities;
+using CRM.Core.Interfaces;
+using CRM.Core.Models;
+using CRM.Infrastructure.Data;
+using CRM.Infrastructure.Services;
+using FluentAssertions;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using Moq;
+using Xunit;
 
 namespace CRM.Tests.Services;
 
@@ -49,8 +48,8 @@ public class WebhookServiceTests
     public async Task ProcessWebFormAsync_ShouldProcessWebFormSubmission()
     {
         // Arrange
-        var submission = new WebFormSubmission 
-        { 
+        var submission = new WebFormSubmission
+        {
             FormId = 1,
             Email = "contact@example.com",
             FirstName = "John",
@@ -87,8 +86,8 @@ public class WebhookServiceTests
     public async Task ProcessInboundEmailAsync_ShouldProcessEmail()
     {
         // Arrange
-        var email = new InboundEmail 
-        { 
+        var email = new InboundEmail
+        {
             From = "sender@example.com",
             To = "support@crm.local",
             Subject = "Support Request",
@@ -245,8 +244,8 @@ public class WebhookServiceTests
     public async Task ProcessWebFormAsync_ShouldHandleEmptyEmail_Gracefully()
     {
         // Arrange
-        var submission = new WebFormSubmission 
-        { 
+        var submission = new WebFormSubmission
+        {
             FormId = 1,
             Email = "",
             FirstName = "John"
@@ -271,8 +270,8 @@ public class WebhookServiceTests
     public async Task ProcessInboundEmailAsync_ShouldHandleMissingData()
     {
         // Arrange
-        var email = new InboundEmail 
-        { 
+        var email = new InboundEmail
+        {
             From = "",
             To = "",
             Subject = ""
@@ -313,8 +312,8 @@ public class WebhookServiceTests
     public void WebhookIngestResult_Success_ShouldHaveCorrectProperties()
     {
         // Arrange & Act
-        var result = new WebhookIngestResult 
-        { 
+        var result = new WebhookIngestResult
+        {
             IsSuccess = true,
             Message = "Processed successfully",
             ContactId = 1,
@@ -331,8 +330,8 @@ public class WebhookServiceTests
     public void WebhookIngestResult_Failure_ShouldHaveErrorMessage()
     {
         // Arrange & Act
-        var result = new WebhookIngestResult 
-        { 
+        var result = new WebhookIngestResult
+        {
             IsSuccess = false,
             Message = "Invalid email format"
         };
@@ -383,8 +382,8 @@ public class WebhookServiceTests
     {
         // Arrange
         var largeBody = new string('x', 10000); // 10KB body
-        var email = new InboundEmail 
-        { 
+        var email = new InboundEmail
+        {
             From = "sender@example.com",
             Body = largeBody
         };
@@ -433,8 +432,8 @@ public class WebhookServiceTests
         _mockContext.Setup(x => x.Contacts).Returns(mockContactDbSet.Object);
         _mockContext.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
-        var submission = new WebFormSubmission 
-        { 
+        var submission = new WebFormSubmission
+        {
             Email = "user+tag@example.com",
             FirstName = "José",
             Message = "I need café ☕"
@@ -460,8 +459,8 @@ public class WebhookServiceTests
         _mockContext.Setup(x => x.Contacts).Returns(mockContactDbSet.Object);
         _mockContext.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(1);
 
-        var submission = new WebFormSubmission 
-        { 
+        var submission = new WebFormSubmission
+        {
             FormId = null,
             Email = null,
             FirstName = null

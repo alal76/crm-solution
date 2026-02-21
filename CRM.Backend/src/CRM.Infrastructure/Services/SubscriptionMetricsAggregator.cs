@@ -4,13 +4,12 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using CRM.Core.Entities;
 using CRM.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using SubscriptionMetricsDto = CRM.Core.Dtos.SubscriptionMetricsDto;
 using SubscriptionAnalyticsDto = CRM.Core.Dtos.SubscriptionAnalyticsDto;
+using SubscriptionMetricsDto = CRM.Core.Dtos.SubscriptionMetricsDto;
 
 namespace CRM.Infrastructure.Services;
 
@@ -59,34 +58,34 @@ public interface ISubscriptionMetricsAggregator
 
 /// <summary>
 /// Implementation of ISubscriptionMetricsAggregator.
-/// 
+///
 /// KEY METRICS (SaaS Standard):
-/// 
+///
 /// 1. MRR (Monthly Recurring Revenue)
 ///    - Sum of all active subscriptions normalized to monthly
 ///    - Includes paused subscriptions (no active = no MRR)
 ///    - Formula: SUM(Amount) for Monthly + SUM(Amount/3) for Quarterly + SUM(Amount/12) for Yearly
-/// 
+///
 /// 2. ARR (Annual Recurring Revenue)
 ///    - ARR = MRR * 12
 ///    - Total expected annual revenue from subscriptions
-/// 
+///
 /// 3. Churn Rate
 ///    - Percentage of subscriptions cancelled in a period
 ///    - Formula: (Cancelled Count This Month / Active at Month Start) * 100
 ///    - Negative metric - lower is better
-/// 
+///
 /// 4. Net Revenue Retention (NRR)
 ///    - Measures net growth including expansion, contraction, churn
 ///    - Formula: (Current MRR + Expansion - Contraction - Churn) / Previous MRR
 ///    - > 100% indicates net growth even with churn
 ///    - Key metric for valuation (SaaS companies valued on NRR)
-/// 
+///
 /// 5. Customer Lifetime Value (LTV)
 ///    - Average revenue per customer over lifetime
 ///    - Formula: (ARPU * Gross Margin) / Monthly Churn Rate
 ///    - ARPU = Average Revenue Per User = MRR / Active Customers
-/// 
+///
 /// PRECISION:
 /// - All calculations use DECIMAL(18,4) to prevent rounding errors
 /// - Final results rounded to 2 decimal places for currency
@@ -212,8 +211,8 @@ public class SubscriptionMetricsAggregator : ISubscriptionMetricsAggregator
     {
         var subscriptions = await _context.Subscriptions
             .AsNoTracking()
-            .Where(s => !s.IsDeleted && 
-                       (s.SubscriptionStatus == SubscriptionStatus.Active || 
+            .Where(s => !s.IsDeleted &&
+                       (s.SubscriptionStatus == SubscriptionStatus.Active ||
                         s.SubscriptionStatus == SubscriptionStatus.Paused))
             .ToListAsync(cancellationToken);
 
@@ -251,7 +250,7 @@ public class SubscriptionMetricsAggregator : ISubscriptionMetricsAggregator
             .AsNoTracking()
             .CountAsync(s => !s.IsDeleted &&
                             s.SubscriptionStatus == SubscriptionStatus.Active &&
-                            (s.StartDate.HasValue && s.StartDate.Value <= monthStart ||
+                            ((s.StartDate.HasValue && s.StartDate.Value <= monthStart) ||
                              !s.StartDate.HasValue), // Include subscriptions without explicit start date
                              cancellationToken);
 
@@ -279,13 +278,13 @@ public class SubscriptionMetricsAggregator : ISubscriptionMetricsAggregator
     public async Task<decimal> CalculateNRRAsync(CancellationToken cancellationToken)
     {
         var currentMrr = await CalculateMRRAsync(cancellationToken);
-        
+
         // Previous month MRR (approximated from month-ago active subscriptions)
         var oneMonthAgo = DateTime.UtcNow.AddMonths(-1);
         var subscriptionsOneMonthAgo = await _context.Subscriptions
             .AsNoTracking()
             .Where(s => !s.IsDeleted &&
-                       (s.SubscriptionStatus == SubscriptionStatus.Active || 
+                       (s.SubscriptionStatus == SubscriptionStatus.Active ||
                         s.SubscriptionStatus == SubscriptionStatus.Paused))
             .ToListAsync(cancellationToken);
 

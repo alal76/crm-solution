@@ -4,22 +4,21 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
-using Xunit;
-using Moq;
-using FluentAssertions;
-using CRM.Core.Entities;
-using CRM.Core.Interfaces;
-using CRM.Infrastructure.Services;
-using CRM.Infrastructure.Data;
-using CRM.Tests.Helpers;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using CRM.Core.Entities;
+using CRM.Core.Interfaces;
+using CRM.Infrastructure.Data;
+using CRM.Infrastructure.Services;
+using CRM.Tests.Helpers;
+using FluentAssertions;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Moq;
+using Xunit;
 
 namespace CRM.Tests.Services;
 
@@ -44,12 +43,12 @@ public class MarketingCampaignServiceTests
         _mockEntityTagRepository = new Mock<IRepository<EntityTag>>();
         _mockCustomFieldRepository = new Mock<IRepository<CustomField>>();
         _mockContext = new Mock<ICrmDbContext>();
-        
+
         // NormalizationService requires ICrmDbContext, so we create a real instance with mock context
         var normalizationService = new NormalizationService(_mockContext.Object);
-        
+
         _campaignService = new MarketingCampaignService(
-            _mockRepository.Object, 
+            _mockRepository.Object,
             _mockMetricRepository.Object,
             _mockEntityTagRepository.Object,
             _mockCustomFieldRepository.Object,
@@ -361,8 +360,8 @@ public class MarketingCampaignServiceTests
     public async Task AddCampaignMetricAsync_ShouldAddMetric()
     {
         // Arrange
-        var metric = new CampaignMetric 
-        { 
+        var metric = new CampaignMetric
+        {
             CampaignId = 1,
             TotalSent = 1000,
             TotalDelivered = 950,
@@ -385,8 +384,8 @@ public class MarketingCampaignServiceTests
     public async Task CampaignMetric_OpenRateCalculation_ShouldBeCorrect()
     {
         // Arrange
-        var metrics = new CampaignMetric 
-        { 
+        var metrics = new CampaignMetric
+        {
             Id = 1,
             CampaignId = 1,
             TotalSent = 1000,
@@ -410,8 +409,8 @@ public class MarketingCampaignServiceTests
     {
         // Arrange
         var campaignId = 1;
-        var metrics = new CampaignMetric 
-        { 
+        var metrics = new CampaignMetric
+        {
             TotalSent = 1000,
             TotalDelivered = 950,
             TotalOpened = 500,
@@ -502,8 +501,8 @@ public class MarketingCampaignServiceTests
     {
         // Arrange
         var recipientId = 1;
-        var conversion = new CampaignConversion 
-        { 
+        var conversion = new CampaignConversion
+        {
             CampaignRecipientId = recipientId,
             ConversionType = "Purchase",
             ConversionValue = 99.99m,

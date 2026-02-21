@@ -4,14 +4,13 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using CRM.Core.Ports.Output.Providers;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using CRM.Core.Ports.Output.Providers;
 
 namespace CRM.Infrastructure.Providers.AI;
 
@@ -552,10 +551,12 @@ public class AzureOpenAIProvider : IAIPort
         while (!reader.EndOfStream)
         {
             var line = await reader.ReadLineAsync(cancellationToken);
-            if (string.IsNullOrWhiteSpace(line) || !line.StartsWith("data: ")) continue;
+            if (string.IsNullOrWhiteSpace(line) || !line.StartsWith("data: "))
+                continue;
 
             var data = line.Substring(6);
-            if (data == "[DONE]") break;
+            if (data == "[DONE]")
+                break;
 
             try
             {
@@ -920,7 +921,8 @@ Only return the JSON array.";
     /// <inheritdoc />
     public int EstimateTokens(string text)
     {
-        if (string.IsNullOrEmpty(text)) return 0;
+        if (string.IsNullOrEmpty(text))
+            return 0;
         // GPT tokenization: roughly 4 characters per token for English
         // More accurate would use tiktoken, but this is a reasonable estimate
         return (int)Math.Ceiling(text.Length / 4.0);

@@ -4,14 +4,13 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
+using System.Text;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using CRM.Core.Ports.Output.Providers;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using System.Text;
 
 namespace CRM.Api.Controllers.Webhooks;
 

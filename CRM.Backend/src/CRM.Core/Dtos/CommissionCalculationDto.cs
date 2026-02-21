@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using System.ComponentModel.DataAnnotations;
 
 namespace CRM.Core.Dtos;
@@ -210,10 +209,10 @@ public class CommissionPeriodCalculationDto
 {
     [Required]
     public int UserId { get; set; }
-    
+
     [Required]
     public DateTime StartDate { get; set; }
-    
+
     [Required]
     public DateTime EndDate { get; set; }
 }
@@ -239,11 +238,11 @@ public class CommissionCalculationValidationDto
 {
     [Required]
     public int RuleId { get; set; }
-    
+
     [Required]
     [Range(0, 999999999.99999)]
     public decimal DealAmount { get; set; }
-    
+
     [Required]
     public int UserId { get; set; }
 }
@@ -285,4 +284,3 @@ public class CommissionReconciliationDto
     public DateTime ReconciliationDate { get; set; }
     public string? Notes { get; set; }
 }
-

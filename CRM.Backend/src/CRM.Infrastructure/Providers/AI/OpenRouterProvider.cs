@@ -4,16 +4,15 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 #pragma warning disable SA1011 // Closing square bracket should be followed by a space
 
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using CRM.Core.Ports.Output.Providers;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using CRM.Core.Ports.Output.Providers;
 
 namespace CRM.Infrastructure.Providers.AI;
 
@@ -521,11 +520,14 @@ public class OpenRouterProvider : IAIPort
         while (!reader.EndOfStream)
         {
             var line = await reader.ReadLineAsync(cancellationToken);
-            if (string.IsNullOrWhiteSpace(line)) continue;
-            if (!line.StartsWith("data: ")) continue;
+            if (string.IsNullOrWhiteSpace(line))
+                continue;
+            if (!line.StartsWith("data: "))
+                continue;
 
             var data = line.Substring(6);
-            if (data == "[DONE]") break;
+            if (data == "[DONE]")
+                break;
 
             try
             {
@@ -903,7 +905,8 @@ Return JSON format:
     /// <inheritdoc />
     public int EstimateTokens(string text)
     {
-        if (string.IsNullOrEmpty(text)) return 0;
+        if (string.IsNullOrEmpty(text))
+            return 0;
         // Rough estimation: ~4 characters per token for English
         return (int)Math.Ceiling(text.Length / 4.0);
     }
@@ -1002,7 +1005,8 @@ Return JSON format:
                         "application/json");
 
                     response = await _httpClient.PostAsync("/chat/completions", content, cancellationToken);
-                    if (response.IsSuccessStatusCode) break;
+                    if (response.IsSuccessStatusCode)
+                        break;
                 }
             }
 
@@ -1033,7 +1037,8 @@ Return JSON format:
 
     private decimal? ParseCost(string? costString)
     {
-        if (string.IsNullOrEmpty(costString)) return null;
+        if (string.IsNullOrEmpty(costString))
+            return null;
         if (decimal.TryParse(costString, out var cost))
         {
             // OpenRouter reports cost per token, multiply by 1000 for per-1K

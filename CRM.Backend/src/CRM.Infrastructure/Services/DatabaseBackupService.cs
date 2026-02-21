@@ -4,7 +4,8 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
+using System.Text;
+using System.Text.RegularExpressions;
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
@@ -12,8 +13,6 @@ using CRM.Core.Ports.Input;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using System.Text;
-using System.Text.RegularExpressions;
 
 namespace CRM.Infrastructure.Services;
 
@@ -1003,7 +1002,8 @@ public class DatabaseBackupService : IDatabaseBackupService, IDatabaseBackupInpu
     {
         // Simple cron description generator
         var parts = cronExpression.Split(' ');
-        if (parts.Length < 5) return cronExpression;
+        if (parts.Length < 5)
+            return cronExpression;
 
         var minute = parts[0];
         var hour = parts[1];
@@ -1029,7 +1029,8 @@ public class DatabaseBackupService : IDatabaseBackupService, IDatabaseBackupInpu
         try
         {
             var parts = cronExpression.Split(' ');
-            if (parts.Length < 5) return null;
+            if (parts.Length < 5)
+                return null;
 
             var minute = ParseCronField(parts[0], 0, 59);
             var hour = ParseCronField(parts[1], 0, 23);
@@ -1050,7 +1051,8 @@ public class DatabaseBackupService : IDatabaseBackupService, IDatabaseBackupInpu
 
     private static int ParseCronField(string field, int min, int max)
     {
-        if (field == "*") return min;
+        if (field == "*")
+            return min;
         if (int.TryParse(field, out var value) && value >= min && value <= max)
             return value;
         return min;

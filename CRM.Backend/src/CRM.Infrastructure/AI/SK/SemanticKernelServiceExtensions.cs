@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 #nullable enable
 
 using CRM.Infrastructure.AI.SK.Agents;
@@ -36,23 +35,18 @@ public static class SemanticKernelServiceExtensions
         this IServiceCollection services,
         IConfiguration configuration)
     {
-        #region Configuration
 
         // Bind SemanticKernel configuration section to options
         services.Configure<SemanticKernelOptions>(configuration.GetSection("SemanticKernel"));
 
-        #endregion
 
-        #region Connectors
 
         // Register kernel factory and LLM connectors
         services.AddScoped<CrmKernelFactory>();
         services.AddScoped<CrmChatCompletionConnector>();
         services.AddScoped<CrmEmbeddingConnector>();
 
-        #endregion
 
-        #region Plugins
 
         // Register all 12 CRM domain plugins
         services.AddScoped<AccountPlugin>();
@@ -68,9 +62,7 @@ public static class SemanticKernelServiceExtensions
         services.AddScoped<QuotePlugin>();
         services.AddScoped<ContractPlugin>();
 
-        #endregion
 
-        #region Agents
 
         // Register all 12 specialized CRM agents as CrmAgentBase for orchestrator resolution
         services.AddScoped<CrmAgentBase, GeneralAssistantAgent>();
@@ -86,24 +78,19 @@ public static class SemanticKernelServiceExtensions
         services.AddScoped<CrmAgentBase, ContractAnalystAgent>();
         services.AddScoped<CrmAgentBase, KnowledgeExpertAgent>();
 
-        #endregion
 
-        #region Orchestration & Execution Services
 
         // Register orchestrator for multi-agent routing and execution
         services.AddScoped<AgentOrchestrator>();
         services.AddScoped<AgentExecutionService>();
 
-        #endregion
 
-        #region Filters
 
         // Register SK execution filters for cross-cutting concerns
         services.AddScoped<AuditLoggingFilter>();
         services.AddScoped<HumanApprovalFilter>();
         services.AddScoped<CostTrackingFilter>();
 
-        #endregion
 
         return services;
     }

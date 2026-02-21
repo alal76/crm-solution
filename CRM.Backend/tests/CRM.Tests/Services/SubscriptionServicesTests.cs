@@ -4,26 +4,25 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
-using CRM.Infrastructure.Services;
 using CRM.Infrastructure.Data;
+using CRM.Infrastructure.Services;
 using Microsoft.Extensions.Logging;
-using Xunit;
 using Moq;
+using Xunit;
 
 namespace CRM.Tests.Services;
 
 /// <summary>
 /// Comprehensive Unit Tests for ProrateCalculator.
-/// 
+///
 /// Tests all 4 proration algorithms with edge cases:
 /// - Pro-Rata: Time-based calculation
 /// - Full Price: No adjustment
 /// - One Month: Full month always
 /// - None: Difference only
-/// 
+///
 /// Edge cases covered:
 /// - Leap year (29 Feb)
 /// - Month-end transitions
@@ -324,7 +323,7 @@ public class ProrateCalculatorTests
 
 /// <summary>
 /// Comprehensive Unit Tests for SubscriptionMetricsAggregator.
-/// 
+///
 /// Tests calculations for:
 /// - MRR (Monthly Recurring Revenue)
 /// - ARR (Annual Recurring Revenue)
@@ -354,7 +353,7 @@ public class SubscriptionMetricsAggregatorTests
         var amount = 100m;
 
         // Act: Reflect and invoke private method
-        var method = typeof(SubscriptionMetricsAggregator).GetMethod("NormalizeToMonthly", 
+        var method = typeof(SubscriptionMetricsAggregator).GetMethod("NormalizeToMonthly",
             System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
         var result = (decimal)method.Invoke(null, new object[] { amount, "Monthly" });
 
@@ -431,7 +430,7 @@ public class SubscriptionMetricsAggregatorTests
         var logger = new Mock<ILogger<SubscriptionMetricsAggregator>>();
 
         // Act & Assert
-        Assert.Throws<ArgumentNullException>(() => 
+        Assert.Throws<ArgumentNullException>(() =>
             new SubscriptionMetricsAggregator(null!, logger.Object));
     }
 

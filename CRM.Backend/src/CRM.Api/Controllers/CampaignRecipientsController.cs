@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
@@ -271,7 +270,7 @@ public class CampaignRecipientsController : ControllerBase
             _context.CampaignRecipients.Add(recipient);
             await _context.SaveChangesAsync(cancellationToken);
 
-            _logger.LogInformation("Created campaign recipient {Id} for campaign {CampaignId}", 
+            _logger.LogInformation("Created campaign recipient {Id} for campaign {CampaignId}",
                 recipient.Id, recipient.CampaignId);
 
             return CreatedAtAction(nameof(GetById), new { id = recipient.Id }, MapToDto(recipient));

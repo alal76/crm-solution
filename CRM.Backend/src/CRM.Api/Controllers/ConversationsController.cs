@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using System.ComponentModel.DataAnnotations;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
@@ -66,7 +65,8 @@ public class ConversationsController : ControllerBase
         try
         {
             var conversation = await _service.GetByIdAsync(id, cancellationToken);
-            if (conversation == null) return NotFound($"Conversation {id} not found");
+            if (conversation == null)
+                return NotFound($"Conversation {id} not found");
             return Ok(conversation);
         }
         catch (Exception ex)
@@ -86,7 +86,8 @@ public class ConversationsController : ControllerBase
         try
         {
             var conversation = await _service.GetByConversationIdAsync(conversationId, cancellationToken);
-            if (conversation == null) return NotFound($"Conversation '{conversationId}' not found");
+            if (conversation == null)
+                return NotFound($"Conversation '{conversationId}' not found");
             return Ok(conversation);
         }
         catch (Exception ex)
@@ -105,7 +106,8 @@ public class ConversationsController : ControllerBase
     {
         try
         {
-            if (!ModelState.IsValid) return ValidationProblem(ModelState);
+            if (!ModelState.IsValid)
+                return ValidationProblem(ModelState);
             var created = await _service.CreateAsync(conversation, cancellationToken);
             return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
         }
@@ -126,9 +128,11 @@ public class ConversationsController : ControllerBase
     {
         try
         {
-            if (!ModelState.IsValid) return ValidationProblem(ModelState);
+            if (!ModelState.IsValid)
+                return ValidationProblem(ModelState);
             var updated = await _service.UpdateAsync(id, conversation, cancellationToken);
-            if (!updated) return NotFound($"Conversation {id} not found");
+            if (!updated)
+                return NotFound($"Conversation {id} not found");
             return Ok();
         }
         catch (Exception ex)
@@ -148,7 +152,8 @@ public class ConversationsController : ControllerBase
         try
         {
             var deleted = await _service.DeleteAsync(id, cancellationToken);
-            if (!deleted) return NotFound($"Conversation {id} not found");
+            if (!deleted)
+                return NotFound($"Conversation {id} not found");
             return NoContent();
         }
         catch (Exception ex)
@@ -172,9 +177,11 @@ public class ConversationsController : ControllerBase
     {
         try
         {
-            if (!ModelState.IsValid) return ValidationProblem(ModelState);
+            if (!ModelState.IsValid)
+                return ValidationProblem(ModelState);
             var updated = await _service.UpdateStatusAsync(id, request.Status, cancellationToken);
-            if (!updated) return NotFound($"Conversation {id} not found");
+            if (!updated)
+                return NotFound($"Conversation {id} not found");
             return Ok();
         }
         catch (Exception ex)
@@ -194,9 +201,11 @@ public class ConversationsController : ControllerBase
     {
         try
         {
-            if (!ModelState.IsValid) return ValidationProblem(ModelState);
+            if (!ModelState.IsValid)
+                return ValidationProblem(ModelState);
             var assigned = await _service.AssignAsync(id, request.UserId, cancellationToken);
-            if (!assigned) return NotFound($"Conversation {id} not found");
+            if (!assigned)
+                return NotFound($"Conversation {id} not found");
             return Ok();
         }
         catch (Exception ex)

@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using CRM.Core.Interfaces.ITSM;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -75,10 +74,19 @@ public class ITSMDashboardController : ControllerBase
             _logger.LogError(ex, "Failed to fetch ITSM dashboard metrics from services");
             return Ok(new
             {
-                totalIncidents = 0, openIncidents = 0, resolvedIncidents = 0, closedIncidents = 0,
-                totalProblems = 0, openProblems = 0, totalChanges = 0, pendingChanges = 0,
-                averageResolutionTimeHours = 0.0, slaCompliancePercent = 0.0, mttr = 0.0,
-                customerSatisfaction = 0.0, timestamp = DateTime.UtcNow,
+                totalIncidents = 0,
+                openIncidents = 0,
+                resolvedIncidents = 0,
+                closedIncidents = 0,
+                totalProblems = 0,
+                openProblems = 0,
+                totalChanges = 0,
+                pendingChanges = 0,
+                averageResolutionTimeHours = 0.0,
+                slaCompliancePercent = 0.0,
+                mttr = 0.0,
+                customerSatisfaction = 0.0,
+                timestamp = DateTime.UtcNow,
                 errors = new[] { new { endpoint = "metrics", message = ex.Message } }
             });
         }
@@ -247,8 +255,10 @@ public class ITSMDashboardController : ControllerBase
                 incidentSummary = new { total = 0, open = 0, resolved = 0, critical = 0 },
                 problemSummary = new { total = 0, open = 0, resolved = 0 },
                 changeSummary = new { total = 0, pending = 0, approved = 0, implemented = 0 },
-                slaCompliance = 0.0, customerSatisfaction = 0.0,
-                topCategories = new List<object>(), highlights = new List<string>(),
+                slaCompliance = 0.0,
+                customerSatisfaction = 0.0,
+                topCategories = new List<object>(),
+                highlights = new List<string>(),
                 errors = new[] { new { endpoint = "executive-summary", message = ex.Message } }
             });
         }

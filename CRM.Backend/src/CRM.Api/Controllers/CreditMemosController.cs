@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -50,7 +49,8 @@ public class CreditMemosController : ControllerBase
         try
         {
             var item = await _service.GetByIdAsync(id, ct);
-            if (item == null) return NotFound();
+            if (item == null)
+                return NotFound();
             return Ok(item);
         }
         catch (Exception ex)
@@ -67,7 +67,8 @@ public class CreditMemosController : ControllerBase
         try
         {
             var item = await _service.GetByCreditMemoNumberAsync(number, ct);
-            if (item == null) return NotFound();
+            if (item == null)
+                return NotFound();
             return Ok(item);
         }
         catch (Exception ex)
@@ -81,7 +82,8 @@ public class CreditMemosController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<CreditMemo>> Create([FromBody] CreditMemo model, CancellationToken ct = default)
     {
-        if (!ModelState.IsValid) return BadRequest(ModelState);
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
         try
         {
             var created = await _service.CreateAsync(model, ct);
@@ -99,8 +101,10 @@ public class CreditMemosController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<CreditMemo>> Update(int id, [FromBody] CreditMemo model, CancellationToken ct = default)
     {
-        if (!ModelState.IsValid) return BadRequest(ModelState);
-        if (id != model.Id) return BadRequest("Id mismatch");
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+        if (id != model.Id)
+            return BadRequest("Id mismatch");
         try
         {
             var updated = await _service.UpdateAsync(model, ct);
@@ -120,7 +124,8 @@ public class CreditMemosController : ControllerBase
         try
         {
             var deleted = await _service.DeleteAsync(id, ct);
-            if (!deleted) return NotFound();
+            if (!deleted)
+                return NotFound();
             return NoContent();
         }
         catch (Exception ex)
@@ -134,7 +139,8 @@ public class CreditMemosController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<CreditMemo>> Apply(int id, [FromBody] ApplyCreditMemoRequest req, CancellationToken ct = default)
     {
-        if (!ModelState.IsValid) return BadRequest(ModelState);
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
         try
         {
             var cm = await _service.ApplyAsync(id, req.InvoiceId, ct);
@@ -196,7 +202,8 @@ public class CreditMemosController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<ActionResult<CreditMemoLineItem>> AddLineItem(int id, [FromBody] CreditMemoLineItem model, CancellationToken ct = default)
     {
-        if (!ModelState.IsValid) return BadRequest(ModelState);
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
         try
         {
             var li = await _service.AddLineItemAsync(id, model, ct);
@@ -214,8 +221,10 @@ public class CreditMemosController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<CreditMemoLineItem>> UpdateLineItem(int lineItemId, [FromBody] CreditMemoLineItem model, CancellationToken ct = default)
     {
-        if (!ModelState.IsValid) return BadRequest(ModelState);
-        if (lineItemId != model.Id) return BadRequest("Id mismatch");
+        if (!ModelState.IsValid)
+            return BadRequest(ModelState);
+        if (lineItemId != model.Id)
+            return BadRequest("Id mismatch");
         try
         {
             var updated = await _service.UpdateLineItemAsync(model, ct);
@@ -235,7 +244,8 @@ public class CreditMemosController : ControllerBase
         try
         {
             var deleted = await _service.RemoveLineItemAsync(lineItemId, ct);
-            if (!deleted) return NotFound();
+            if (!deleted)
+                return NotFound();
             return NoContent();
         }
         catch (Exception ex)
@@ -247,8 +257,10 @@ public class CreditMemosController : ControllerBase
     private ActionResult HandleServiceException(Exception ex)
     {
         _logger.LogError(ex, "Service error");
-        if (ex is InvalidOperationException) return NotFound(new { error = ex.Message });
-        if (ex is ArgumentException) return BadRequest(new { error = ex.Message });
+        if (ex is InvalidOperationException)
+            return NotFound(new { error = ex.Message });
+        if (ex is ArgumentException)
+            return BadRequest(new { error = ex.Message });
         return Problem(detail: ex.Message, statusCode: 500);
     }
 

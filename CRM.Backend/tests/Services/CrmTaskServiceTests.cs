@@ -1,11 +1,17 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This software is source-available. Non-commercial use is permitted under
+// the terms of the LICENSE file. Commercial use requires a separate license.
+// See the LICENSE file in the root directory for full terms.
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Xunit;
 using CRM.Core.DTOs;
 using CRM.Core.Entities;
 using CRM.Infrastructure.Services;
 using Moq;
+using Xunit;
 
 namespace CRM.Tests.Services
 {
@@ -57,13 +63,20 @@ namespace CRM.Tests.Services
                 AssignedToUserId = 8
             };
             var entity = new CrmTask();
-            if (dto.Title != null) entity.Subject = dto.Title;
-            if (dto.Description != null) entity.Description = dto.Description;
-            if (dto.Status.HasValue) entity.Status = (CrmTaskStatus)dto.Status.Value;
-            if (dto.Priority.HasValue) entity.Priority = (CrmTaskPriority)dto.Priority.Value;
-            if (dto.DueDate != null) entity.DueDate = DateTime.Parse(dto.DueDate);
-            if (dto.CompletedDate != null) entity.CompletedDate = DateTime.Parse(dto.CompletedDate);
-            if (dto.AssignedToUserId.HasValue) entity.AssignedToUserId = dto.AssignedToUserId.Value;
+            if (dto.Title != null)
+                entity.Subject = dto.Title;
+            if (dto.Description != null)
+                entity.Description = dto.Description;
+            if (dto.Status.HasValue)
+                entity.Status = (CrmTaskStatus)dto.Status.Value;
+            if (dto.Priority.HasValue)
+                entity.Priority = (CrmTaskPriority)dto.Priority.Value;
+            if (dto.DueDate != null)
+                entity.DueDate = DateTime.Parse(dto.DueDate);
+            if (dto.CompletedDate != null)
+                entity.CompletedDate = DateTime.Parse(dto.CompletedDate);
+            if (dto.AssignedToUserId.HasValue)
+                entity.AssignedToUserId = dto.AssignedToUserId.Value;
             Assert.Equal(dto.Title, entity.Subject);
             Assert.Equal(dto.Description, entity.Description);
             Assert.Equal(dto.Status, (int)entity.Status);

@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using CRM.Infrastructure.Services;
@@ -53,7 +52,8 @@ public class SubscriptionServiceTests
             .Returns<object[], CancellationToken>((keys, _) =>
             {
                 var id = keys.FirstOrDefault();
-                if (id == null) return ValueTask.FromResult<Subscription?>(default);
+                if (id == null)
+                    return ValueTask.FromResult<Subscription?>(default);
                 return ValueTask.FromResult(_subscriptions.FirstOrDefault(e => e.Id == Convert.ToInt32(id)));
             });
 
@@ -252,7 +252,10 @@ public class SubscriptionServiceTests
         // Arrange
         _subscriptions.Add(new Subscription
         {
-            Id = 1, AccountId = 1, SubscriptionStatus = SubscriptionStatus.Trial, IsDeleted = false
+            Id = 1,
+            AccountId = 1,
+            SubscriptionStatus = SubscriptionStatus.Trial,
+            IsDeleted = false
         });
 
         // Act
@@ -269,7 +272,10 @@ public class SubscriptionServiceTests
         // Arrange
         _subscriptions.Add(new Subscription
         {
-            Id = 1, AccountId = 1, SubscriptionStatus = SubscriptionStatus.Active, IsDeleted = false
+            Id = 1,
+            AccountId = 1,
+            SubscriptionStatus = SubscriptionStatus.Active,
+            IsDeleted = false
         });
 
         // Act
@@ -286,7 +292,10 @@ public class SubscriptionServiceTests
         // Arrange
         _subscriptions.Add(new Subscription
         {
-            Id = 1, AccountId = 1, SubscriptionStatus = SubscriptionStatus.Active, IsDeleted = false
+            Id = 1,
+            AccountId = 1,
+            SubscriptionStatus = SubscriptionStatus.Active,
+            IsDeleted = false
         });
 
         // Act
@@ -303,7 +312,10 @@ public class SubscriptionServiceTests
         // Arrange
         _subscriptions.Add(new Subscription
         {
-            Id = 1, AccountId = 1, SubscriptionStatus = SubscriptionStatus.Paused, IsDeleted = false
+            Id = 1,
+            AccountId = 1,
+            SubscriptionStatus = SubscriptionStatus.Paused,
+            IsDeleted = false
         });
 
         // Act
@@ -320,7 +332,10 @@ public class SubscriptionServiceTests
         // Arrange
         _subscriptions.Add(new Subscription
         {
-            Id = 1, AccountId = 1, SubscriptionStatus = SubscriptionStatus.Active, IsDeleted = false
+            Id = 1,
+            AccountId = 1,
+            SubscriptionStatus = SubscriptionStatus.Active,
+            IsDeleted = false
         });
 
         // Act
@@ -337,7 +352,10 @@ public class SubscriptionServiceTests
         // Arrange
         _subscriptions.Add(new Subscription
         {
-            Id = 1, AccountId = 1, SubscriptionStatus = SubscriptionStatus.Active, IsDeleted = false
+            Id = 1,
+            AccountId = 1,
+            SubscriptionStatus = SubscriptionStatus.Active,
+            IsDeleted = false
         });
 
         // Act

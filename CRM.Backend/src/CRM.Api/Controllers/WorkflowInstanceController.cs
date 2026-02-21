@@ -4,14 +4,13 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
-using CRM.Core.Entities.Workflow;
+using System.Security.Claims;
 using CRM.Core.DTOs.Workflow;
+using CRM.Core.Entities.Workflow;
 using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 
 namespace CRM.Api.Controllers;
 
@@ -113,7 +112,8 @@ public class WorkflowInstanceController : ControllerBase
         try
         {
             var instance = await _instanceService.GetInstanceAsync(id);
-            if (instance == null) return NotFound(new { message = $"Workflow instance {id} not found" });
+            if (instance == null)
+                return NotFound(new { message = $"Workflow instance {id} not found" });
 
             var result = new WorkflowInstanceDetailDto
             {
@@ -333,7 +333,8 @@ public class WorkflowInstanceController : ControllerBase
         try
         {
             var success = await _instanceService.CancelInstanceAsync(id, dto.Reason ?? string.Empty, GetCurrentUserId());
-            if (!success) return BadRequest(new { message = "Cannot cancel this instance" });
+            if (!success)
+                return BadRequest(new { message = "Cannot cancel this instance" });
             return Ok(new { message = "Instance cancelled successfully" });
         }
         catch (Exception ex)
@@ -354,7 +355,8 @@ public class WorkflowInstanceController : ControllerBase
         try
         {
             var success = await _instanceService.PauseInstanceAsync(id, GetCurrentUserId());
-            if (!success) return BadRequest(new { message = "Cannot pause this instance" });
+            if (!success)
+                return BadRequest(new { message = "Cannot pause this instance" });
             return Ok(new { message = "Instance paused successfully" });
         }
         catch (Exception ex)
@@ -375,7 +377,8 @@ public class WorkflowInstanceController : ControllerBase
         try
         {
             var success = await _instanceService.ResumeInstanceAsync(id, GetCurrentUserId());
-            if (!success) return BadRequest(new { message = "Cannot resume this instance" });
+            if (!success)
+                return BadRequest(new { message = "Cannot resume this instance" });
             return Ok(new { message = "Instance resumed successfully" });
         }
         catch (Exception ex)
@@ -396,7 +399,8 @@ public class WorkflowInstanceController : ControllerBase
         try
         {
             var success = await _instanceService.RetryInstanceAsync(id, GetCurrentUserId());
-            if (!success) return BadRequest(new { message = "Cannot retry this instance" });
+            if (!success)
+                return BadRequest(new { message = "Cannot retry this instance" });
             return Ok(new { message = "Instance retry scheduled" });
         }
         catch (Exception ex)
@@ -418,7 +422,8 @@ public class WorkflowInstanceController : ControllerBase
         try
         {
             var success = await _instanceService.SkipNodeAsync(id, nodeId, dto.Reason ?? string.Empty, GetCurrentUserId());
-            if (!success) return BadRequest(new { message = "Cannot skip this node" });
+            if (!success)
+                return BadRequest(new { message = "Cannot skip this node" });
             return Ok(new { message = "Node skipped successfully" });
         }
         catch (Exception ex)
@@ -484,7 +489,8 @@ public class WorkflowInstanceController : ControllerBase
         {
             var userId = GetCurrentUserId();
             var success = await _instanceService.ClaimTaskAsync(taskId, userId);
-            if (!success) return BadRequest(new { message = "Cannot claim this task. It may not exist or is already assigned." });
+            if (!success)
+                return BadRequest(new { message = "Cannot claim this task. It may not exist or is already assigned." });
             return Ok(new { message = "Task claimed successfully" });
         }
         catch (Exception ex)
@@ -506,7 +512,8 @@ public class WorkflowInstanceController : ControllerBase
         {
             var userId = GetCurrentUserId();
             var success = await _instanceService.CompleteHumanTaskAsync(taskId, userId, dto.FormData, dto.OutputData);
-            if (!success) return BadRequest(new { message = "Cannot complete this task. It may not exist or is not assigned to you." });
+            if (!success)
+                return BadRequest(new { message = "Cannot complete this task. It may not exist or is not assigned to you." });
             return Ok(new { message = "Task completed successfully" });
         }
         catch (Exception ex)
@@ -528,7 +535,8 @@ public class WorkflowInstanceController : ControllerBase
         try
         {
             var success = await _instanceService.ClaimTaskAsync(taskId, assignToUserId);
-            if (!success) return BadRequest(new { message = "Cannot reassign this task" });
+            if (!success)
+                return BadRequest(new { message = "Cannot reassign this task" });
             return Ok(new { message = "Task reassigned successfully" });
         }
         catch (Exception ex)

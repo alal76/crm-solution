@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using CRM.Core.Ports.Output.Providers;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -571,7 +570,8 @@ public class TwilioProvider : INotificationPort
     private static Dictionary<string, string> ParseFormUrlEncoded(string data)
     {
         var result = new Dictionary<string, string>();
-        if (string.IsNullOrEmpty(data)) return result;
+        if (string.IsNullOrEmpty(data))
+            return result;
 
         var pairs = data.Split('&');
         foreach (var pair in pairs)
@@ -683,7 +683,8 @@ public class TwilioProvider : INotificationPort
 
     private static string TruncateForLog(string? text, int maxLength = 50)
     {
-        if (string.IsNullOrEmpty(text)) return "";
+        if (string.IsNullOrEmpty(text))
+            return "";
         return text.Length <= maxLength ? text : text[..maxLength] + "...";
     }
 

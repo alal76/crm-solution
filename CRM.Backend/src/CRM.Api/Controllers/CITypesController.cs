@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using CRM.Core.Dtos.ITSM;
 using CRM.Core.Interfaces.ITSM;
 using Microsoft.AspNetCore.Authorization;
@@ -17,7 +16,7 @@ namespace CRM.Api.Controllers;
 /// </summary>
 /// <remarks>
 /// CI Types categorize Configuration Items (CIs) in the Configuration Management Database.
-/// Examples include Hardware (Server, Workstation), Software (Application, Database), 
+/// Examples include Hardware (Server, Workstation), Software (Application, Database),
 /// Services (Business Service, IT Service), and Facilities (Data Center, Rack).
 /// </remarks>
 [ApiController]

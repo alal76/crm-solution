@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using System.Diagnostics;
 using System.Security.Cryptography;
 using System.Text;
@@ -12,13 +11,13 @@ using System.Text.Json;
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
+using CRM.Core.Ports.Input;
+using CRM.Core.Ports.Output.Providers;
 using CRM.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using CRM.Core.Ports.Input;
-using CRM.Core.Ports.Output.Providers;
 
 namespace CRM.Infrastructure.Services;
 
@@ -625,17 +624,46 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
                 CanAccessSettings = true,
                 CanAccessUserManagement = true,
                 // All CRUD permissions
-                CanCreateAccounts = true, CanEditAccounts = true, CanDeleteAccounts = true, CanViewAllAccounts = true,
-                CanCreateContacts = true, CanEditContacts = true, CanDeleteContacts = true,
-                CanCreateLeads = true, CanEditLeads = true, CanDeleteLeads = true, CanConvertLeads = true,
-                CanCreateOpportunities = true, CanEditOpportunities = true, CanDeleteOpportunities = true, CanCloseOpportunities = true,
-                CanCreateProducts = true, CanEditProducts = true, CanDeleteProducts = true, CanManagePricing = true,
-                CanCreateCampaigns = true, CanEditCampaigns = true, CanDeleteCampaigns = true, CanLaunchCampaigns = true,
-                CanCreateQuotes = true, CanEditQuotes = true, CanDeleteQuotes = true, CanApproveQuotes = true,
-                CanCreateTasks = true, CanEditTasks = true, CanDeleteTasks = true, CanAssignTasks = true,
-                CanCreateWorkflows = true, CanEditWorkflows = true, CanDeleteWorkflows = true, CanActivateWorkflows = true,
+                CanCreateAccounts = true,
+                CanEditAccounts = true,
+                CanDeleteAccounts = true,
+                CanViewAllAccounts = true,
+                CanCreateContacts = true,
+                CanEditContacts = true,
+                CanDeleteContacts = true,
+                CanCreateLeads = true,
+                CanEditLeads = true,
+                CanDeleteLeads = true,
+                CanConvertLeads = true,
+                CanCreateOpportunities = true,
+                CanEditOpportunities = true,
+                CanDeleteOpportunities = true,
+                CanCloseOpportunities = true,
+                CanCreateProducts = true,
+                CanEditProducts = true,
+                CanDeleteProducts = true,
+                CanManagePricing = true,
+                CanCreateCampaigns = true,
+                CanEditCampaigns = true,
+                CanDeleteCampaigns = true,
+                CanLaunchCampaigns = true,
+                CanCreateQuotes = true,
+                CanEditQuotes = true,
+                CanDeleteQuotes = true,
+                CanApproveQuotes = true,
+                CanCreateTasks = true,
+                CanEditTasks = true,
+                CanDeleteTasks = true,
+                CanAssignTasks = true,
+                CanCreateWorkflows = true,
+                CanEditWorkflows = true,
+                CanDeleteWorkflows = true,
+                CanActivateWorkflows = true,
                 DataAccessScope = "all",
-                CanExportData = true, CanImportData = true, CanBulkEdit = true, CanBulkDelete = true
+                CanExportData = true,
+                CanImportData = true,
+                CanBulkEdit = true,
+                CanBulkDelete = true
             };
         }
         else if (user.PrimaryGroup != null)
@@ -1163,12 +1191,12 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
 
         // Generate new auth response
         var response = GenerateAuthResponse(user);
-        
+
         // Revoke all existing refresh tokens (force re-login on other devices)
         var oldTokens = await _dbContext.RefreshTokens
             .Where(rt => rt.UserId == userId && rt.RevokedAt == null)
             .ToListAsync(cancellationToken);
-        
+
         foreach (var token in oldTokens)
         {
             token.RevokedAt = DateTime.UtcNow;
@@ -1177,7 +1205,7 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
 
         await _dbContext.SaveChangesAsync(cancellationToken);
         _logger.LogInformation($"User {userId} changed password successfully");
-        
+
         return response;
     }
 

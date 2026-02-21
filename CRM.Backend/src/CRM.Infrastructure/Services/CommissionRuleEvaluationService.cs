@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using CRM.Core.Interfaces;
 using CRM.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -15,7 +14,7 @@ namespace CRM.Infrastructure.Services;
 /// <summary>
 /// Commission Rule Evaluation Service - Advanced commission calculations with tiers, caps,
 /// minimums, clawback, split commissions, and trigger-based rules.
-/// 
+///
 /// PHASE 5: Commission Rules Advanced (20 hours)
 /// SPEC: SPEC-SALES-005
 /// </summary>
@@ -283,8 +282,8 @@ public class CommissionRuleEvaluationService : ICommissionRuleEvaluationService
 
         var commissions = await _context.Commissions
             .AsNoTracking()
-            .Where(c => c.SalesRepUserId == salesRepId 
-                && c.CreatedAt >= startDate 
+            .Where(c => c.SalesRepUserId == salesRepId
+                && c.CreatedAt >= startDate
                 && c.CreatedAt <= endDate
                 && !c.IsDeleted)
             .OrderByDescending(c => c.CreatedAt)
@@ -323,8 +322,8 @@ public class CommissionRuleEvaluationService : ICommissionRuleEvaluationService
 
         var commissions = await _context.Commissions
             .AsNoTracking()
-            .Where(c => c.SalesRepUserId == salesRepId 
-                && c.CreatedAt >= periodStart 
+            .Where(c => c.SalesRepUserId == salesRepId
+                && c.CreatedAt >= periodStart
                 && c.CreatedAt <= periodEnd
                 && !c.IsDeleted)
             .ToListAsync(cancellationToken);

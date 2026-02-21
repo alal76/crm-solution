@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 namespace CRM.Core.Entities;
 
 /// <summary>
@@ -33,11 +32,12 @@ public class CampaignMetric : BaseEntity
     public int TotalConverted { get; set; } = 0;
 
     /// <summary>Open rate percentage (calculated)</summary>
-    public decimal? OpenRate 
-    { 
+    public decimal? OpenRate
+    {
         get
         {
-            if (TotalDelivered == 0) return 0;
+            if (TotalDelivered == 0)
+                return 0;
             return (decimal)TotalOpened / TotalDelivered;
         }
     }

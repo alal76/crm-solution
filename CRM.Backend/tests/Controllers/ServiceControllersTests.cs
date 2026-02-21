@@ -4,25 +4,24 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
-using Xunit;
-using Moq;
-using FluentAssertions;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
-using Microsoft.FeatureManagement;
-using Microsoft.Extensions.Configuration;
-using Microsoft.EntityFrameworkCore;
-using CRM.Core.Entities;
-using CRM.Core.Interfaces;
-using CRM.Core.Dtos;
-using CRM.Api.Controllers;
-using CRM.Infrastructure.Data;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using CRM.Api.Controllers;
+using CRM.Core.Dtos;
+using CRM.Core.Entities;
+using CRM.Core.Interfaces;
+using CRM.Infrastructure.Data;
+using FluentAssertions;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using Microsoft.FeatureManagement;
+using Moq;
+using Xunit;
 
 namespace CRM.Tests.Controllers;
 
@@ -111,9 +110,9 @@ public class CommissionsControllerTests
     public async Task Create_ShouldReturnCreatedAtResult_WhenValidDataProvided()
     {
         // Arrange
-        var dto = new CommissionCreateRequest 
-        { 
-            UserId = 1, 
+        var dto = new CommissionCreateRequest
+        {
+            UserId = 1,
             DealAmount = 5000m,
             CommissionRate = 0.1m,
             CommissionAmount = 500m
@@ -262,38 +261,38 @@ public class CampaignsControllerTests
     }
 
     // Note: Launch and Pause methods removed as they don't exist on CampaignsController
-    //[Fact]
-    //public async Task Launch_ShouldReturnOkResult()
-    //{
+    // [Fact]
+    // public async Task Launch_ShouldReturnOkResult()
+    // {
     //    // Arrange
     //    var campaign = new MarketingCampaign { Id = 1, Status = "Active" };
     //    _mockCampaignService
     //        .Setup(x => x.LaunchAsync(1, It.IsAny<CancellationToken>()))
     //        .ReturnsAsync(campaign);
 
-    //    // Act
+    // // Act
     //    var result = await _controller.Launch(1, CancellationToken.None);
 
-    //    // Assert
+    // // Assert
     //    var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
     //    okResult.Value.As<MarketingCampaign>().Status.Should().Be("Active");
-    //}
+    // }
 
-    //[Fact]
-    //public async Task Pause_ShouldReturnOkResult()
-    //{
+    // [Fact]
+    // public async Task Pause_ShouldReturnOkResult()
+    // {
     //    // Arrange
     //    var campaign = new MarketingCampaign { Id = 1, Status = "Paused" };
     //    _mockCampaignService
     //        .Setup(x => x.PauseAsync(1, It.IsAny<CancellationToken>()))
     //        .ReturnsAsync(campaign);
 
-    //    // Act
+    // // Act
     //    var result = await _controller.Pause(1, CancellationToken.None);
 
-    //    // Assert
+    // // Assert
     //    result.Should().BeOfType<OkObjectResult>();
-    //}
+    // }
 }
 
 /// <summary>

@@ -1,6 +1,9 @@
 // CRM Solution - Customer Relationship Management System
 // Copyright (C) 2024-2026 Abhishek Lal
-
+//
+// This software is source-available. Non-commercial use is permitted under
+// the terms of the LICENSE file. Commercial use requires a separate license.
+// See the LICENSE file in the root directory for full terms.
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
@@ -149,7 +152,7 @@ public class AdminDashboardService : IAdminDashboardService
                         .Where(a => !a.IsDeleted && a.CreatedAt >= dateStart && a.CreatedAt < dateEnd)
                         .CountAsync(cancellationToken),
                     LoginCount = await _context.Users
-                        .Where(u => !u.IsDeleted && u.LastLoginAt != null && 
+                        .Where(u => !u.IsDeleted && u.LastLoginAt != null &&
                             u.LastLoginAt >= dateStart && u.LastLoginAt < dateEnd)
                         .CountAsync(cancellationToken)
                 };
@@ -238,8 +241,8 @@ public class AdminDashboardService : IAdminDashboardService
         try
         {
             var allModules = await GetAllModuleStatusAsync(cancellationToken);
-            return allModules.TryGetValue(moduleName, out var module) 
-                ? module 
+            return allModules.TryGetValue(moduleName, out var module)
+                ? module
                 : new ModuleStatusDto { ModuleName = moduleName, Status = "Unknown" };
         }
         catch (Exception ex)

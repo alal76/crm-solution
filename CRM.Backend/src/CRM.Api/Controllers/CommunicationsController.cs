@@ -4,7 +4,7 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
+using System.Text.Json;
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Infrastructure.Data;
@@ -12,7 +12,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Text.Json;
 
 namespace CRM.Api.Controllers;
 
@@ -252,14 +251,22 @@ public class CommunicationsController : ControllerBase
             channel.UpdatedAt = DateTime.UtcNow;
 
             // Only update credentials if provided (non-null)
-            if (!string.IsNullOrEmpty(dto.ApiKey)) channel.ApiKey = dto.ApiKey;
-            if (!string.IsNullOrEmpty(dto.ApiSecret)) channel.ApiSecret = dto.ApiSecret;
-            if (!string.IsNullOrEmpty(dto.ClientId)) channel.ClientId = dto.ClientId;
-            if (!string.IsNullOrEmpty(dto.ClientSecret)) channel.ClientSecret = dto.ClientSecret;
-            if (!string.IsNullOrEmpty(dto.AccessToken)) channel.AccessToken = dto.AccessToken;
-            if (!string.IsNullOrEmpty(dto.RefreshToken)) channel.RefreshToken = dto.RefreshToken;
-            if (!string.IsNullOrEmpty(dto.SmtpPassword)) channel.SmtpPassword = dto.SmtpPassword;
-            if (!string.IsNullOrEmpty(dto.PageAccessToken)) channel.PageAccessToken = dto.PageAccessToken;
+            if (!string.IsNullOrEmpty(dto.ApiKey))
+                channel.ApiKey = dto.ApiKey;
+            if (!string.IsNullOrEmpty(dto.ApiSecret))
+                channel.ApiSecret = dto.ApiSecret;
+            if (!string.IsNullOrEmpty(dto.ClientId))
+                channel.ClientId = dto.ClientId;
+            if (!string.IsNullOrEmpty(dto.ClientSecret))
+                channel.ClientSecret = dto.ClientSecret;
+            if (!string.IsNullOrEmpty(dto.AccessToken))
+                channel.AccessToken = dto.AccessToken;
+            if (!string.IsNullOrEmpty(dto.RefreshToken))
+                channel.RefreshToken = dto.RefreshToken;
+            if (!string.IsNullOrEmpty(dto.SmtpPassword))
+                channel.SmtpPassword = dto.SmtpPassword;
+            if (!string.IsNullOrEmpty(dto.PageAccessToken))
+                channel.PageAccessToken = dto.PageAccessToken;
 
             await _context.SaveChangesAsync();
 

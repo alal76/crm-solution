@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Features;
@@ -140,7 +139,7 @@ public class FeatureFlagManagementService : IFeatureFlagManagementService
         try
         {
             var oldValue = (await _featureManager.IsEnabledAsync(flagName)).ToString();
-            
+
             // Log to audit trail
             var auditLog = new FeatureFlagAuditLog
             {
@@ -162,7 +161,7 @@ public class FeatureFlagManagementService : IFeatureFlagManagementService
             _dbContext.FeatureFlagAuditLogs.Add(auditLog);
             await _dbContext.SaveChangesAsync(cancellationToken);
 
-            _logger.LogInformation("Feature flag {FlagName} updated by user {UserId}: {OldValue} → {NewValue}", 
+            _logger.LogInformation("Feature flag {FlagName} updated by user {UserId}: {OldValue} → {NewValue}",
                 flagName, updatedById, oldValue, dto.Enabled);
 
             return true;

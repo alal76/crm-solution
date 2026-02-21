@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using CRM.Core.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
@@ -77,7 +76,8 @@ public class BackupSchedulerHostedService : BackgroundService
 
         foreach (var schedule in dueSchedules)
         {
-            if (stoppingToken.IsCancellationRequested) break;
+            if (stoppingToken.IsCancellationRequested)
+                break;
 
             _logger.LogInformation("Running due scheduled backup: {ScheduleName} (ID: {ScheduleId})", schedule.Name, schedule.Id);
 

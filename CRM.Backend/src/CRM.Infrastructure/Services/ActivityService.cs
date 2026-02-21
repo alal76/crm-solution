@@ -4,10 +4,9 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
+using CRM.Core.DTOs;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
-using CRM.Core.DTOs;
 using CRM.Core.Ports.Output.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -18,7 +17,6 @@ namespace CRM.Infrastructure.Services;
 /// Service for managing activities and timeline operations.
 /// Supports all activity types including ChatMessage for chat provider integration.
 /// </summary>
-
 public class ActivityService : IActivityService
 {
     private readonly ICrmDbContext _context;
@@ -284,7 +282,8 @@ public class ActivityService : IActivityService
 
     private static string? ExtractConversationId(string? details)
     {
-        if (string.IsNullOrEmpty(details)) return null;
+        if (string.IsNullOrEmpty(details))
+            return null;
         try
         {
             using var doc = System.Text.Json.JsonDocument.Parse(details);
@@ -302,7 +301,8 @@ public class ActivityService : IActivityService
 
     private static string? ExtractChannel(string? details)
     {
-        if (string.IsNullOrEmpty(details)) return null;
+        if (string.IsNullOrEmpty(details))
+            return null;
         try
         {
             using var doc = System.Text.Json.JsonDocument.Parse(details);
@@ -320,7 +320,8 @@ public class ActivityService : IActivityService
 
     private static string? ExtractStatus(string? details)
     {
-        if (string.IsNullOrEmpty(details)) return null;
+        if (string.IsNullOrEmpty(details))
+            return null;
         try
         {
             using var doc = System.Text.Json.JsonDocument.Parse(details);

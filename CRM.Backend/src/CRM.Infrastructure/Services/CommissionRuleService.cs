@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
@@ -152,7 +151,8 @@ public class CommissionRuleService : ICommissionRuleService
         foreach (var ruleDto in applicableRules)
         {
             var rule = await _ruleRepository.GetByIdAsync(ruleDto.Id);
-            if (rule == null) continue;
+            if (rule == null)
+                continue;
 
             if (rule.RuleType == CommissionRuleType.Tiered)
             {

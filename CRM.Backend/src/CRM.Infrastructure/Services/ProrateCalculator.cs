@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using CRM.Core.Entities;
 using CRM.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -15,10 +14,10 @@ namespace CRM.Infrastructure.Services;
 
 /// <summary>
 /// Proration Calculator Service - Handles 4 different proration algorithms.
-/// 
+///
 /// FINANCIAL CRITICAL: All calculations use DECIMAL(18,4) for intermediate steps,
 /// rounded to DECIMAL(18,2) for storage to prevent floating-point errors.
-/// 
+///
 /// Algorithms:
 /// 1. ProRata (Time-Based): Amount * (DaysUsed / DaysInCycle)
 /// 2. FullPrice: No adjustment, charge full amount
@@ -111,7 +110,7 @@ public class ProrateCalculator : IProrateCalculator
     /// <summary>
     /// ProRata Algorithm - Most common, fairest method.
     /// Amount = (FullCycleAmount) * (DaysUsed / DaysInCycle)
-    /// 
+    ///
     /// Example: $100/month, cycle = 30 days, change on day 10 = $100 * (10/30) = $33.33
     /// </summary>
     public decimal CalculateProRata(decimal fullCycleAmount, DateTime cycleStart, DateTime cycleEnd, DateTime changeDate)

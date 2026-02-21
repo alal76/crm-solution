@@ -1,11 +1,17 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This software is source-available. Non-commercial use is permitted under
+// the terms of the LICENSE file. Commercial use requires a separate license.
+// See the LICENSE file in the root directory for full terms.
 using System.IdentityModel.Tokens.Jwt;
 using System.Net.Http.Json;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json.Serialization;
-using Microsoft.IdentityModel.Tokens;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.IdentityModel.Tokens;
 
 namespace CRM.Infrastructure.Services;
 
@@ -92,14 +98,14 @@ public class AppleOAuthProvider
 
             var profile = new AppleUserProfile
             {
-                user = token.Claims.FirstOrDefault(c => c.Type == "sub")?.Value,
+                User = token.Claims.FirstOrDefault(c => c.Type == "sub")?.Value,
                 Email = token.Claims.FirstOrDefault(c => c.Type == "email")?.Value,
                 IsPrivateEmail = bool.TryParse(
                     token.Claims.FirstOrDefault(c => c.Type == "email_verified")?.Value,
                     out var verified) && verified
             };
 
-            _logger.LogInformation($"Successfully decoded Apple ID token for user {profile.user}");
+            _logger.LogInformation($"Successfully decoded Apple ID token for user {profile.User}");
             return profile;
         }
         catch (Exception ex)
@@ -122,7 +128,7 @@ public class AppleOAuthProvider
             if (!string.IsNullOrEmpty(userJson))
             {
                 var userObj = System.Text.Json.JsonDocument.Parse(userJson).RootElement;
-                profile.user = userObj.GetProperty("sub").GetString();
+                profile.User = userObj.GetProperty("sub").GetString();
 
                 var nameObj = userObj.GetProperty("name");
                 profile.FirstName = nameObj.GetProperty("firstName").GetString();
@@ -282,19 +288,19 @@ public class AppleOAuthOptions
 public class AppleTokenResponse
 {
     [JsonPropertyName("access_token")]
-    public string? access_token { get; set; }
+    public string? Access_token { get; set; }
 
     [JsonPropertyName("expires_in")]
-    public int expires_in { get; set; }
+    public int Expires_in { get; set; }
 
     [JsonPropertyName("refresh_token")]
-    public string? refresh_token { get; set; }
+    public string? Refresh_token { get; set; }
 
     [JsonPropertyName("id_token")]
-    public string? id_token { get; set; }
+    public string? Id_token { get; set; }
 
     [JsonPropertyName("token_type")]
-    public string? token_type { get; set; }
+    public string? Token_type { get; set; }
 }
 
 /// <summary>
@@ -305,7 +311,7 @@ public class AppleUserProfile
     /// <summary>
     /// Unique Apple user identifier (sub claim).
     /// </summary>
-    public string? user { get; set; }
+    public string? User { get; set; }
 
     /// <summary>
     /// User email address (may be private relay).

@@ -4,10 +4,11 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
-using CRM.Core.Entities.Workflow;
+using System.Security.Claims;
+using System.Text.Json;
 using CRM.Core.DTOs.Workflow;
 using CRM.Core.Entities;
+using CRM.Core.Entities.Workflow;
 using CRM.Core.Interfaces;
 using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Services;
@@ -16,8 +17,6 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
-using System.Text.Json;
 
 namespace CRM.Api.Controllers;
 
@@ -123,7 +122,8 @@ public class WorkflowController : ControllerBase
         try
         {
             var workflow = await _workflowService.GetWorkflowDefinitionAsync(id);
-            if (workflow == null) return NotFound(new { message = "Workflow not found" });
+            if (workflow == null)
+                return NotFound(new { message = "Workflow not found" });
 
             var result = new WorkflowDefinitionDetailDto
             {
@@ -239,8 +239,10 @@ public class WorkflowController : ControllerBase
         try
         {
             var workflow = await _context.WorkflowDefinitions.FindAsync(id);
-            if (workflow == null) return NotFound(new { message = "Workflow not found" });
-            if (workflow.IsSystem) return BadRequest(new { message = "Cannot modify system workflows" });
+            if (workflow == null)
+                return NotFound(new { message = "Workflow not found" });
+            if (workflow.IsSystem)
+                return BadRequest(new { message = "Cannot modify system workflows" });
 
             workflow.Name = dto.Name ?? workflow.Name;
             workflow.Description = dto.Description;
@@ -276,7 +278,8 @@ public class WorkflowController : ControllerBase
         try
         {
             var success = await _workflowService.DeleteWorkflowDefinitionAsync(id);
-            if (!success) return BadRequest(new { message = "Cannot delete this workflow" });
+            if (!success)
+                return BadRequest(new { message = "Cannot delete this workflow" });
             return Ok(new { message = "Workflow deleted successfully" });
         }
         catch (Exception ex)
@@ -298,7 +301,8 @@ public class WorkflowController : ControllerBase
         try
         {
             var success = await _workflowService.ActivateWorkflowAsync(id, versionId);
-            if (!success) return BadRequest(new { message = "Cannot activate this workflow version" });
+            if (!success)
+                return BadRequest(new { message = "Cannot activate this workflow version" });
             return Ok(new { message = "Workflow activated successfully" });
         }
         catch (Exception ex)
@@ -320,7 +324,8 @@ public class WorkflowController : ControllerBase
         try
         {
             var success = await _workflowService.PauseWorkflowAsync(id);
-            if (!success) return BadRequest(new { message = "Cannot pause this workflow" });
+            if (!success)
+                return BadRequest(new { message = "Cannot pause this workflow" });
             return Ok(new { message = "Workflow paused successfully" });
         }
         catch (Exception ex)
@@ -345,7 +350,8 @@ public class WorkflowController : ControllerBase
         try
         {
             var version = await _workflowService.GetWorkflowVersionAsync(versionId);
-            if (version == null) return NotFound(new { message = "Version not found" });
+            if (version == null)
+                return NotFound(new { message = "Version not found" });
 
             var result = new WorkflowVersionDetailDto
             {
@@ -450,7 +456,8 @@ public class WorkflowController : ControllerBase
         try
         {
             var success = await _workflowService.SaveCanvasLayoutAsync(versionId, dto.CanvasLayout);
-            if (!success) return BadRequest(new { message = "Cannot update layout for this version" });
+            if (!success)
+                return BadRequest(new { message = "Cannot update layout for this version" });
             return Ok(new { message = "Layout saved successfully" });
         }
         catch (Exception ex)
@@ -684,7 +691,8 @@ public class WorkflowController : ControllerBase
         try
         {
             var node = await _context.WorkflowNodes.FindAsync(nodeId);
-            if (node == null) return NotFound(new { message = "Node not found" });
+            if (node == null)
+                return NotFound(new { message = "Node not found" });
 
             if (!string.IsNullOrEmpty(dto.NodeType) && Enum.TryParse<WorkflowNodeType>(dto.NodeType, out var nodeType))
                 node.NodeType = nodeType;
@@ -733,7 +741,8 @@ public class WorkflowController : ControllerBase
         try
         {
             var success = await _workflowService.DeleteNodeAsync(nodeId);
-            if (!success) return BadRequest(new { message = "Cannot delete this node" });
+            if (!success)
+                return BadRequest(new { message = "Cannot delete this node" });
             return Ok(new { message = "Node deleted successfully" });
         }
         catch (InvalidOperationException ex)
@@ -835,7 +844,8 @@ public class WorkflowController : ControllerBase
         try
         {
             var transition = await _context.WorkflowTransitions.FindAsync(transitionId);
-            if (transition == null) return NotFound(new { message = "Transition not found" });
+            if (transition == null)
+                return NotFound(new { message = "Transition not found" });
 
             if (!string.IsNullOrEmpty(dto.ConditionType) &&
                 Enum.TryParse<TransitionConditionType>(dto.ConditionType, out var conditionType))
@@ -878,7 +888,8 @@ public class WorkflowController : ControllerBase
         try
         {
             var success = await _workflowService.DeleteTransitionAsync(transitionId);
-            if (!success) return BadRequest(new { message = "Cannot delete this transition" });
+            if (!success)
+                return BadRequest(new { message = "Cannot delete this transition" });
             return Ok(new { message = "Transition deleted successfully" });
         }
         catch (InvalidOperationException ex)

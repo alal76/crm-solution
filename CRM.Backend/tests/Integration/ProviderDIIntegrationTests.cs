@@ -4,20 +4,19 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Xunit;
+using CRM.Core.Features;
+using CRM.Core.Interfaces;
+using CRM.Core.Ports.Output.Providers;
+using CRM.Infrastructure.DependencyInjection;
+using CRM.Infrastructure.Factories;
 using FluentAssertions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.FeatureManagement;
-using CRM.Core.Features;
-using CRM.Core.Interfaces;
-using CRM.Core.Ports.Output.Providers;
-using CRM.Infrastructure.Factories;
-using CRM.Infrastructure.DependencyInjection;
+using Xunit;
 
 namespace CRM.Tests.Integration;
 

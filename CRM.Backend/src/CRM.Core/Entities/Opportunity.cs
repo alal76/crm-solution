@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using ContactModel = CRM.Core.Models.Contact;
@@ -168,8 +167,8 @@ public class Opportunity : BaseEntity
 
     /// <summary>Alias for SalesOwnerId - User ID owning this opportunity</summary>
     [NotMapped]
-    public int? UserId 
-    { 
+    public int? UserId
+    {
         get => SalesOwnerId;
         set => SalesOwnerId = value;
     }

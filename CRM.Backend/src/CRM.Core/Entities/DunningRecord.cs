@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -33,13 +32,13 @@ public enum DunningStatus
 
 /// <summary>
 /// Dunning Record Entity - Payment failure recovery and retry tracking.
-/// 
+///
 /// Implements the Dunning strategy:
 /// - Attempt 1: +3 days after initial failure
 /// - Attempt 2: +6 days after Attempt 1
 /// - Attempt 3: +9 days after Attempt 2
 /// - After 3 failures: Auto-cancel OR manual collection
-/// 
+///
 /// BUSINESS LOGIC:
 /// When an invoice payment fails, a DunningRecord is created with RetryAttempt=0.
 /// A background job (Hangfire) checks daily for NextRetryDate <= Today.
@@ -47,7 +46,7 @@ public enum DunningStatus
 /// If success: mark Resolved, resume billing.
 /// If failure: increment RetryAttempt, extend NextRetryDate, send escalation email.
 /// If RetryAttempt > 3: mark Exhausted, flag subscription for cancellation.
-/// 
+///
 /// FINANCIAL IMPACT:
 /// - Dunning extends invoice lifecycle by up to 27 days
 /// - May trigger grace period (3 additional days without charge)

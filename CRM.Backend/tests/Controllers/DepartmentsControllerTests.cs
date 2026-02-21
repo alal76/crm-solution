@@ -4,18 +4,17 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
-using Xunit;
-using Moq;
-using FluentAssertions;
+using System.Collections.Generic;
+using System.Linq.Expressions;
+using System.Threading.Tasks;
 using CRM.Api.Controllers;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
+using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using System.Linq.Expressions;
+using Moq;
+using Xunit;
 
 namespace CRM.Tests.Controllers
 {

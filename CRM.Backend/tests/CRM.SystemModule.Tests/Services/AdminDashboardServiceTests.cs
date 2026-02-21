@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
@@ -35,11 +34,11 @@ public class AdminDashboardServiceTests
         _systemSettingsServiceMock = new Mock<ISystemSettingsService>();
         _loggerMock = new Mock<ILogger<AdminDashboardService>>();
         _service = new AdminDashboardService(
-            _dbContextMock.Object, 
+            _dbContextMock.Object,
             _providerHealthServiceMock.Object,
             _systemSettingsServiceMock.Object,
             _loggerMock.Object);
-        
+
         // Setup common mocks
         SetupCommonMocks();
     }
@@ -72,9 +71,9 @@ public class AdminDashboardServiceTests
         // Arrange
         var users = new List<User>
         {
-            new User 
-            { 
-                Id = 1, 
+            new User
+            {
+                Id = 1,
                 Email = "test@example.com",
                 Username = "testuser",
                 FirstName = "Test",

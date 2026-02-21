@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using CRM.Core.Features;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
@@ -85,16 +84,14 @@ public class AuthDiagnosticsController : ControllerBase
             "Diagnostics endpoint scope",
             "info",
             "Auth diagnostics endpoints are disabled in production.",
-            "Use these endpoints only in development or staging environments."
-        );
+            "Use these endpoints only in development or staging environments.");
 
         AddIssue(
             "FRONTEND-BASEURL-SAME-ORIGIN",
             "Frontend API base URL on private networks",
             "info",
             "In non-production, the frontend should use same-origin API requests to avoid private-network port timeouts.",
-            "Ensure the frontend resolves API base URL to same-origin when not running on localhost:3000."
-        );
+            "Ensure the frontend resolves API base URL to same-origin when not running on localhost:3000.");
 
         var useExternalNotifications = await _featureManager.IsEnabledAsync(FeatureFlags.UseExternalNotifications);
         if (useExternalNotifications)
@@ -111,8 +108,7 @@ public class AuthDiagnosticsController : ControllerBase
                     "External notifications enabled without provider config",
                     "warning",
                     $"UseExternalNotifications is true, but provider config is missing (Type={notificationsType}).",
-                    "Set Providers:Notifications:Type and corresponding provider credentials (Novu/SendGrid/Twilio), or disable UseExternalNotifications."
-                );
+                    "Set Providers:Notifications:Type and corresponding provider credentials (Novu/SendGrid/Twilio), or disable UseExternalNotifications.");
             }
             else if (notificationsType == "novu" && string.IsNullOrWhiteSpace(novuApiKey))
             {
@@ -121,8 +117,7 @@ public class AuthDiagnosticsController : ControllerBase
                     "Novu selected but ApiKey missing",
                     "warning",
                     "Providers:Notifications:Type is Novu, but ApiKey is empty.",
-                    "Set Providers:Notifications:Novu:ApiKey or switch provider type."
-                );
+                    "Set Providers:Notifications:Novu:ApiKey or switch provider type.");
             }
             else if (notificationsType == "sendgrid" && string.IsNullOrWhiteSpace(sendGridApiKey))
             {
@@ -131,8 +126,7 @@ public class AuthDiagnosticsController : ControllerBase
                     "SendGrid selected but ApiKey missing",
                     "warning",
                     "Providers:Notifications:Type is SendGrid, but ApiKey is empty.",
-                    "Set Providers:Notifications:SendGrid:ApiKey or switch provider type."
-                );
+                    "Set Providers:Notifications:SendGrid:ApiKey or switch provider type.");
             }
             else if (notificationsType == "twilio" && string.IsNullOrWhiteSpace(twilioSid))
             {
@@ -141,8 +135,7 @@ public class AuthDiagnosticsController : ControllerBase
                     "Twilio selected but AccountSid missing",
                     "warning",
                     "Providers:Notifications:Type is Twilio, but AccountSid is empty.",
-                    "Set Providers:Notifications:Twilio:AccountSid or switch provider type."
-                );
+                    "Set Providers:Notifications:Twilio:AccountSid or switch provider type.");
             }
         }
 
@@ -160,8 +153,7 @@ public class AuthDiagnosticsController : ControllerBase
                     "Meilisearch selected but Url missing",
                     "warning",
                     "Providers:Search:Type is Meilisearch, but Url is empty.",
-                    "Set Providers:Search:Meilisearch:Url or switch provider type."
-                );
+                    "Set Providers:Search:Meilisearch:Url or switch provider type.");
             }
             else if (searchType == "algolia" && string.IsNullOrWhiteSpace(algoliaAppId))
             {
@@ -170,8 +162,7 @@ public class AuthDiagnosticsController : ControllerBase
                     "Algolia selected but ApplicationId missing",
                     "warning",
                     "Providers:Search:Type is Algolia, but ApplicationId is empty.",
-                    "Set Providers:Search:Algolia:ApplicationId or switch provider type."
-                );
+                    "Set Providers:Search:Algolia:ApplicationId or switch provider type.");
             }
         }
 
@@ -189,8 +180,7 @@ public class AuthDiagnosticsController : ControllerBase
                     "Chatwoot selected but BaseUrl missing",
                     "warning",
                     "Providers:Chat:Type is Chatwoot, but BaseUrl is empty.",
-                    "Set Providers:Chat:Chatwoot:BaseUrl or switch provider type."
-                );
+                    "Set Providers:Chat:Chatwoot:BaseUrl or switch provider type.");
             }
             else if (chatType == "intercom" && string.IsNullOrWhiteSpace(intercomAppId))
             {
@@ -199,8 +189,7 @@ public class AuthDiagnosticsController : ControllerBase
                     "Intercom selected but AppId missing",
                     "warning",
                     "Providers:Chat:Type is Intercom, but AppId is empty.",
-                    "Set Providers:Chat:Intercom:AppId or switch provider type."
-                );
+                    "Set Providers:Chat:Intercom:AppId or switch provider type.");
             }
         }
 
@@ -218,8 +207,7 @@ public class AuthDiagnosticsController : ControllerBase
                     "Superset selected but BaseUrl missing",
                     "warning",
                     "Providers:Analytics:Type is Superset, but BaseUrl is empty.",
-                    "Set Providers:Analytics:Superset:BaseUrl or switch provider type."
-                );
+                    "Set Providers:Analytics:Superset:BaseUrl or switch provider type.");
             }
             else if (analyticsType == "powerbi" && string.IsNullOrWhiteSpace(powerBiTenant))
             {
@@ -228,8 +216,7 @@ public class AuthDiagnosticsController : ControllerBase
                     "Power BI selected but TenantId missing",
                     "warning",
                     "Providers:Analytics:Type is PowerBI, but TenantId is empty.",
-                    "Set Providers:Analytics:PowerBI:TenantId or switch provider type."
-                );
+                    "Set Providers:Analytics:PowerBI:TenantId or switch provider type.");
             }
         }
 
@@ -247,8 +234,7 @@ public class AuthDiagnosticsController : ControllerBase
                     "DocuSeal selected but Url missing",
                     "warning",
                     "Providers:Signatures:Type is DocuSeal, but Url is empty.",
-                    "Set Providers:Signatures:DocuSeal:Url or switch provider type."
-                );
+                    "Set Providers:Signatures:DocuSeal:Url or switch provider type.");
             }
             else if (signatureType == "docusign" && string.IsNullOrWhiteSpace(docusignAccount))
             {
@@ -257,8 +243,7 @@ public class AuthDiagnosticsController : ControllerBase
                     "DocuSign selected but AccountId missing",
                     "warning",
                     "Providers:Signatures:Type is DocuSign, but AccountId is empty.",
-                    "Set Providers:Signatures:DocuSign:AccountId or switch provider type."
-                );
+                    "Set Providers:Signatures:DocuSign:AccountId or switch provider type.");
             }
         }
 
@@ -280,8 +265,7 @@ public class AuthDiagnosticsController : ControllerBase
                     "OpenAI selected but ApiKey missing",
                     "warning",
                     "Providers:AI:Type is OpenAI, but ApiKey is empty.",
-                    "Set Providers:AI:OpenAI:ApiKey or switch provider type."
-                );
+                    "Set Providers:AI:OpenAI:ApiKey or switch provider type.");
             }
             else if (aiType == "azureopenai" && (string.IsNullOrWhiteSpace(azureKey) || string.IsNullOrWhiteSpace(azureEndpoint)))
             {
@@ -290,8 +274,7 @@ public class AuthDiagnosticsController : ControllerBase
                     "Azure OpenAI selected but ApiKey/Endpoint missing",
                     "warning",
                     "Providers:AI:Type is AzureOpenAI, but ApiKey or Endpoint is empty.",
-                    "Set Providers:AI:AzureOpenAI:ApiKey and Providers:AI:AzureOpenAI:Endpoint or switch provider type."
-                );
+                    "Set Providers:AI:AzureOpenAI:ApiKey and Providers:AI:AzureOpenAI:Endpoint or switch provider type.");
             }
             else if (aiType == "ollama" && string.IsNullOrWhiteSpace(ollamaUrl))
             {
@@ -300,8 +283,7 @@ public class AuthDiagnosticsController : ControllerBase
                     "Ollama selected but Url missing",
                     "warning",
                     "Providers:AI:Type is Ollama, but Url is empty.",
-                    "Set Providers:AI:Ollama:Url or switch provider type."
-                );
+                    "Set Providers:AI:Ollama:Url or switch provider type.");
             }
             else if (aiType == "anthropic" && string.IsNullOrWhiteSpace(anthropicKey))
             {
@@ -310,8 +292,7 @@ public class AuthDiagnosticsController : ControllerBase
                     "Anthropic selected but ApiKey missing",
                     "warning",
                     "Providers:AI:Type is Anthropic, but ApiKey is empty.",
-                    "Set Providers:AI:Anthropic:ApiKey or switch provider type."
-                );
+                    "Set Providers:AI:Anthropic:ApiKey or switch provider type.");
             }
             else if (aiType == "openrouter" && string.IsNullOrWhiteSpace(openRouterKey))
             {
@@ -320,8 +301,7 @@ public class AuthDiagnosticsController : ControllerBase
                     "OpenRouter selected but ApiKey missing",
                     "warning",
                     "Providers:AI:Type is OpenRouter, but ApiKey is empty.",
-                    "Set Providers:AI:OpenRouter:ApiKey or switch provider type."
-                );
+                    "Set Providers:AI:OpenRouter:ApiKey or switch provider type.");
             }
         }
 

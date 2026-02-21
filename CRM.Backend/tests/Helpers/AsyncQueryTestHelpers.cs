@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
@@ -47,7 +46,8 @@ internal static class MockDbSetFactory
 
         T? FindEntity(object? key)
         {
-            if (key == null) return default;
+            if (key == null)
+                return default;
 
             // Find the primary key property using EF Core conventions:
             // 1. Property named "Id"
@@ -65,7 +65,8 @@ internal static class MockDbSetFactory
 
             return data.FirstOrDefault(e =>
             {
-                if (idProp == null) return false;
+                if (idProp == null)
+                    return false;
                 var val = idProp.GetValue(e);
                 return val != null && Equals(val, Convert.ToInt32(key));
             });

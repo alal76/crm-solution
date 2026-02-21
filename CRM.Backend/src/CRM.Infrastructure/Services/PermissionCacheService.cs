@@ -1,11 +1,14 @@
 // CRM Solution - Customer Relationship Management System
 // Copyright (C) 2024-2026 Abhishek Lal
-
+//
+// This software is source-available. Non-commercial use is permitted under
+// the terms of the LICENSE file. Commercial use requires a separate license.
+// See the LICENSE file in the root directory for full terms.
+using System.Text.Json;
 using CRM.Core.Dtos;
 using CRM.Core.Interfaces;
 using Microsoft.Extensions.Logging;
 using StackExchange.Redis;
-using System.Text.Json;
 
 namespace CRM.Infrastructure.Services;
 
@@ -58,10 +61,10 @@ public class PermissionCacheService : IPermissionCacheService
             if (cachedValue.HasValue)
             {
                 var permissions = JsonSerializer.Deserialize<HashSet<string>>(cachedValue.ToString()) ?? new HashSet<string>();
-                
+
                 // Increment hit count in metadata
                 await IncrementCacheHitAsync(db, userId);
-                
+
                 _logger.LogDebug($"Cache hit for user {userId}: {permissions.Count} permissions");
                 return permissions;
             }
@@ -100,7 +103,7 @@ public class PermissionCacheService : IPermissionCacheService
                 ExpiresAt = DateTime.UtcNow.AddSeconds(ttl),
                 PermissionCount = permissions.Count
             };
-            
+
             var metadataKey = GetMetadataKey(userId);
             var metadataJson = JsonSerializer.Serialize(metadata);
             await db.StringSetAsync(metadataKey, metadataJson, expiry);
@@ -138,8 +141,7 @@ public class PermissionCacheService : IPermissionCacheService
 
             await Task.WhenAll(
                 db.KeyDeleteAsync(key),
-                db.KeyDeleteAsync(metadataKey)
-            );
+                db.KeyDeleteAsync(metadataKey));
 
             _logger.LogInformation($"Invalidated cache for user {userId}");
         }
@@ -244,7 +246,7 @@ public class PermissionCacheService : IPermissionCacheService
 
             if (statsJson.HasValue)
             {
-                return JsonSerializer.Deserialize<PermissionCacheStatisticsDto>(statsJson.ToString()) 
+                return JsonSerializer.Deserialize<PermissionCacheStatisticsDto>(statsJson.ToString())
                     ?? new PermissionCacheStatisticsDto();
             }
 
@@ -283,8 +285,8 @@ public class PermissionCacheService : IPermissionCacheService
         try
         {
             var statsJson = await db.StringGetAsync(STATS_KEY);
-            var stats = statsJson.HasValue 
-                ? JsonSerializer.Deserialize<PermissionCacheStatisticsDto>(statsJson.ToString()) 
+            var stats = statsJson.HasValue
+                ? JsonSerializer.Deserialize<PermissionCacheStatisticsDto>(statsJson.ToString())
                 : new PermissionCacheStatisticsDto();
 
             if (stats != null)
@@ -305,8 +307,8 @@ public class PermissionCacheService : IPermissionCacheService
         try
         {
             var statsJson = await db.StringGetAsync(STATS_KEY);
-            var stats = statsJson.HasValue 
-                ? JsonSerializer.Deserialize<PermissionCacheStatisticsDto>(statsJson.ToString()) 
+            var stats = statsJson.HasValue
+                ? JsonSerializer.Deserialize<PermissionCacheStatisticsDto>(statsJson.ToString())
                 : new PermissionCacheStatisticsDto();
 
             if (stats != null)

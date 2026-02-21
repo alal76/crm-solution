@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using CRM.Core.Entities;
 
 namespace CRM.Core.Dtos;
@@ -109,17 +108,17 @@ public class CreateInvoiceDto
     public InvoiceStatus Status { get; set; } = InvoiceStatus.Draft;
     public InvoiceType InvoiceType { get; set; } = InvoiceType.Standard;
     public PaymentTerms PaymentTerms { get; set; } = PaymentTerms.Net30;
-    
+
     public decimal Subtotal { get; set; }
     public decimal DiscountAmount { get; set; }
     public decimal TaxAmount { get; set; }
     public decimal ShippingAmount { get; set; }
     public decimal FeesAmount { get; set; }
-    
+
     public string CurrencyCode { get; set; } = "USD";
     public string? Description { get; set; }
     public string? Notes { get; set; }
-    
+
     public int? OrderId { get; set; }
     public int? QuoteId { get; set; }
 
@@ -145,11 +144,11 @@ public class UpdateInvoiceDto
     public InvoiceStatus? Status { get; set; }
     public InvoiceType? InvoiceType { get; set; }
     public PaymentTerms? PaymentTerms { get; set; }
-    
+
     public decimal? DiscountAmount { get; set; }
     public decimal? ShippingAmount { get; set; }
     public decimal? FeesAmount { get; set; }
-    
+
     public string? Description { get; set; }
     public string? Notes { get; set; }
 

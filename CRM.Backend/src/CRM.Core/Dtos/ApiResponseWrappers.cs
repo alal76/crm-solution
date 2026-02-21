@@ -1,3 +1,9 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This software is source-available. Non-commercial use is permitted under
+// the terms of the LICENSE file. Commercial use requires a separate license.
+// See the LICENSE file in the root directory for full terms.
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -123,7 +129,7 @@ public class ApiResponse<T>
     /// <param name="message">Optional message (default "Validation failed.").</param>
     /// <returns>A validation error ApiResponse with 400 Bad Request status.</returns>
     public static ApiResponse<T> ValidationErrorResponse(
-        Dictionary<string, string[]> errors, 
+        Dictionary<string, string[]> errors,
         string? message = null)
     {
         return new ApiResponse<T>
@@ -145,8 +151,8 @@ public class ApiResponse<T>
     /// <param name="message">Optional message (default "Validation failed.").</param>
     /// <returns>A validation error ApiResponse with 400 Bad Request status.</returns>
     public static ApiResponse<T> SingleFieldValidationError(
-        string fieldName, 
-        string errorMessage, 
+        string fieldName,
+        string errorMessage,
         string? message = null)
     {
         var errors = new Dictionary<string, string[]>
@@ -228,7 +234,7 @@ public class ApiResponse : ApiResponse<object>
     /// <param name="message">Optional success message.</param>
     /// <param name="statusCode">HTTP status code (default 200 OK).</param>
     /// <returns>A successful ApiResponse.</returns>
-    public new static ApiResponse SuccessResponse(string? message = null, int statusCode = 200)
+    public static new ApiResponse SuccessResponse(string? message = null, int statusCode = 200)
     {
         return new ApiResponse
         {
@@ -246,7 +252,7 @@ public class ApiResponse : ApiResponse<object>
     /// </summary>
     /// <param name="message">Optional message (default "Resource created successfully.").</param>
     /// <returns>A successful ApiResponse with 201 Created status.</returns>
-    public new static ApiResponse CreatedResponse(string? message = null)
+    public static new ApiResponse CreatedResponse(string? message = null)
     {
         return SuccessResponse(message ?? "Resource created successfully.", 201);
     }
@@ -257,7 +263,7 @@ public class ApiResponse : ApiResponse<object>
     /// <param name="message">Error message describing what failed.</param>
     /// <param name="statusCode">HTTP status code (default 400 Bad Request).</param>
     /// <returns>A failed ApiResponse.</returns>
-    public new static ApiResponse ErrorResponse(string message, int statusCode = 400)
+    public static new ApiResponse ErrorResponse(string message, int statusCode = 400)
     {
         return new ApiResponse
         {
@@ -276,8 +282,8 @@ public class ApiResponse : ApiResponse<object>
     /// <param name="errors">Dictionary mapping field names to error message arrays.</param>
     /// <param name="message">Optional message (default "Validation failed.").</param>
     /// <returns>A validation error ApiResponse with 400 Bad Request status.</returns>
-    public new static ApiResponse ValidationErrorResponse(
-        Dictionary<string, string[]> errors, 
+    public static new ApiResponse ValidationErrorResponse(
+        Dictionary<string, string[]> errors,
         string? message = null)
     {
         return new ApiResponse
@@ -309,9 +315,9 @@ public class PaginatedResponse<T> : ApiResponse<PaginatedList<T>>
     /// <param name="message">Optional message (default "Items retrieved successfully.").</param>
     /// <returns>A successful paginated ApiResponse.</returns>
     public static PaginatedResponse<T> SuccessResponse(
-        List<T> items, 
-        int totalCount, 
-        int page, 
+        List<T> items,
+        int totalCount,
+        int page,
         int pageSize,
         string? message = null)
     {

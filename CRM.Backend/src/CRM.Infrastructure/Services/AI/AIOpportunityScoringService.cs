@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using CRM.Core.Entities;
 using CRM.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -359,14 +358,20 @@ public class AIOpportunityScoringService : IAIOpportunityScoringService
     {
         var score = 0.0;
 
-        if (opp.Amount > 0) score += 25;
-        else result.RiskFactors.Add("Missing deal amount");
+        if (opp.Amount > 0)
+            score += 25;
+        else
+            result.RiskFactors.Add("Missing deal amount");
 
-        if (opp.ExpectedCloseDate.HasValue) score += 20;
-        else result.RiskFactors.Add("Missing expected close date");
+        if (opp.ExpectedCloseDate.HasValue)
+            score += 20;
+        else
+            result.RiskFactors.Add("Missing expected close date");
 
-        if (opp.AccountId > 0) score += 20;
-        else result.RiskFactors.Add("No account linked");
+        if (opp.AccountId > 0)
+            score += 20;
+        else
+            result.RiskFactors.Add("No account linked");
 
         if (opp.SalesOwnerId.HasValue && opp.SalesOwnerId > 0)
         {
@@ -374,8 +379,10 @@ public class AIOpportunityScoringService : IAIOpportunityScoringService
             result.PositiveSignals.Add("Sales owner assigned");
         }
 
-        if (!string.IsNullOrWhiteSpace(opp.SolutionNotes)) score += 10;
-        if (opp.PrimaryContactId.HasValue && opp.PrimaryContactId > 0) score += 10;
+        if (!string.IsNullOrWhiteSpace(opp.SolutionNotes))
+            score += 10;
+        if (opp.PrimaryContactId.HasValue && opp.PrimaryContactId > 0)
+            score += 10;
 
         return Math.Min(score, 100);
     }

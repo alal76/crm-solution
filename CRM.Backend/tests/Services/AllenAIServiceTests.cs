@@ -4,15 +4,14 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
-using Xunit;
-using FluentAssertions;
-using CRM.Core.Entities;
-using CRM.Core.Entities.AI;
-using CRM.Core.Interfaces.AI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using CRM.Core.Entities;
+using CRM.Core.Entities.AI;
+using CRM.Core.Interfaces.AI;
+using FluentAssertions;
+using Xunit;
 
 namespace CRM.Tests.Services;
 
@@ -385,9 +384,12 @@ public class AllenAIServiceTests
         // Arrange & Act
         RetentionActionType GetRetentionAction(decimal churnProbability)
         {
-            if (churnProbability >= 0.8m) return RetentionActionType.Escalate;
-            if (churnProbability >= 0.6m) return RetentionActionType.ExecutiveReview;
-            if (churnProbability >= 0.4m) return RetentionActionType.SuccessPlan;
+            if (churnProbability >= 0.8m)
+                return RetentionActionType.Escalate;
+            if (churnProbability >= 0.6m)
+                return RetentionActionType.ExecutiveReview;
+            if (churnProbability >= 0.4m)
+                return RetentionActionType.SuccessPlan;
             return RetentionActionType.ProductTraining;
         }
 

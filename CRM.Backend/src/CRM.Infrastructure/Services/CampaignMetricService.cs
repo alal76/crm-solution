@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
@@ -224,7 +223,7 @@ public class CampaignMetricService : ICampaignMetricService
             }
 
             await _context.SaveChangesAsync(cancellationToken);
-            _logger.LogInformation("Duplicated {Count} metrics from campaign {SourceId} to {TargetId}", 
+            _logger.LogInformation("Duplicated {Count} metrics from campaign {SourceId} to {TargetId}",
                 sourceMetrics.Count, dto.SourceCampaignId, dto.TargetCampaignId);
         }
 
@@ -264,9 +263,9 @@ public class CampaignMetricService : ICampaignMetricService
         // Apply criteria filter if provided
         if (!string.IsNullOrWhiteSpace(dto.Criteria))
         {
-            query = query.Where(r => 
-                r.Email.Contains(dto.Criteria) || 
-                r.FirstName.Contains(dto.Criteria) || 
+            query = query.Where(r =>
+                r.Email.Contains(dto.Criteria) ||
+                r.FirstName.Contains(dto.Criteria) ||
                 r.LastName.Contains(dto.Criteria));
         }
 
@@ -288,7 +287,7 @@ public class CampaignMetricService : ICampaignMetricService
             await _context.SaveChangesAsync(cancellationToken);
         }
 
-        _logger.LogInformation("Retargeted {Count} recipients for campaign {CampaignId}", 
+        _logger.LogInformation("Retargeted {Count} recipients for campaign {CampaignId}",
             result.NewRecipientsCount, dto.CampaignId);
 
         return result;

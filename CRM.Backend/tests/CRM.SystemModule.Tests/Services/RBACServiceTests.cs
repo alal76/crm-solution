@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using CRM.Infrastructure.Services;
@@ -68,9 +67,9 @@ public class RBACServiceTests
         // Setup Users mock for database fallback
         var users = new List<User>
         {
-            new User 
-            { 
-                Id = userId, 
+            new User
+            {
+                Id = userId,
                 Email = "test@example.com",
                 Username = "testuser",
                 FirstName = "Test",

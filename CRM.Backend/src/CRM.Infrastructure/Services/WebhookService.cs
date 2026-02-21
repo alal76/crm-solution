@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -254,12 +253,15 @@ public class WebhookService : IWebhookService
 
             foreach (var entry in entries.EnumerateArray())
             {
-                if (!entry.TryGetProperty("changes", out var changes)) continue;
+                if (!entry.TryGetProperty("changes", out var changes))
+                    continue;
 
                 foreach (var change in changes.EnumerateArray())
                 {
-                    if (!change.TryGetProperty("value", out var value)) continue;
-                    if (!value.TryGetProperty("messages", out var messages)) continue;
+                    if (!change.TryGetProperty("value", out var value))
+                        continue;
+                    if (!value.TryGetProperty("messages", out var messages))
+                        continue;
 
                     foreach (var msg in messages.EnumerateArray())
                     {
@@ -343,7 +345,8 @@ public class WebhookService : IWebhookService
 
             foreach (var entry in entries.EnumerateArray())
             {
-                if (!entry.TryGetProperty("messaging", out var messagingEvents)) continue;
+                if (!entry.TryGetProperty("messaging", out var messagingEvents))
+                    continue;
 
                 foreach (var messagingEvent in messagingEvents.EnumerateArray())
                 {
@@ -487,14 +490,16 @@ public class WebhookService : IWebhookService
 
     private static string GetFirstName(string? fullName)
     {
-        if (string.IsNullOrWhiteSpace(fullName)) return "Unknown";
+        if (string.IsNullOrWhiteSpace(fullName))
+            return "Unknown";
         var parts = fullName.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
         return parts.Length > 0 ? parts[0] : "Unknown";
     }
 
     private static string GetLastName(string? fullName)
     {
-        if (string.IsNullOrWhiteSpace(fullName)) return "Unknown";
+        if (string.IsNullOrWhiteSpace(fullName))
+            return "Unknown";
         var parts = fullName.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
         return parts.Length > 1 ? string.Join(" ", parts.Skip(1)) : "Unknown";
     }

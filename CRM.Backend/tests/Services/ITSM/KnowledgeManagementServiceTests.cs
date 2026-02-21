@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using CRM.Core.DTOs.ITSM;
 using CRM.Core.Entities.ITSM;
 using CRM.Core.Interfaces;
@@ -170,9 +169,13 @@ public class KnowledgeManagementServiceTests
         // Arrange
         var article = new KnowledgeArticle
         {
-            ArticleId = 1, Number = "KB0001", Title = "Old title",
-            ArticleBody = "Old body", ArticleType = ArticleType.HowTo,
-            PublishingState = PublishingState.Draft, AuthorId = 1,
+            ArticleId = 1,
+            Number = "KB0001",
+            Title = "Old title",
+            ArticleBody = "Old body",
+            ArticleType = ArticleType.HowTo,
+            PublishingState = PublishingState.Draft,
+            AuthorId = 1,
             CreatedAt = DateTime.UtcNow
         };
         _mockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(MockDbSetFactory.CreateMockDbSet(new List<KnowledgeArticle> { article }).Object);
@@ -203,9 +206,13 @@ public class KnowledgeManagementServiceTests
         // Arrange
         var article = new KnowledgeArticle
         {
-            ArticleId = 1, Number = "KB0001", Title = "Ready to publish",
-            ArticleBody = "Content", ArticleType = ArticleType.HowTo,
-            PublishingState = PublishingState.Draft, AuthorId = 1,
+            ArticleId = 1,
+            Number = "KB0001",
+            Title = "Ready to publish",
+            ArticleBody = "Content",
+            ArticleType = ArticleType.HowTo,
+            PublishingState = PublishingState.Draft,
+            AuthorId = 1,
             CreatedAt = DateTime.UtcNow
         };
         _mockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(MockDbSetFactory.CreateMockDbSet(new List<KnowledgeArticle> { article }).Object);
@@ -225,9 +232,13 @@ public class KnowledgeManagementServiceTests
         // Arrange
         var article = new KnowledgeArticle
         {
-            ArticleId = 1, Number = "KB0001", Title = "Outdated article",
-            ArticleBody = "Content", ArticleType = ArticleType.HowTo,
-            PublishingState = PublishingState.Published, AuthorId = 1,
+            ArticleId = 1,
+            Number = "KB0001",
+            Title = "Outdated article",
+            ArticleBody = "Content",
+            ArticleType = ArticleType.HowTo,
+            PublishingState = PublishingState.Published,
+            AuthorId = 1,
             CreatedAt = DateTime.UtcNow
         };
         _mockContext.Setup(c => c.ITSMKnowledgeArticles).Returns(MockDbSetFactory.CreateMockDbSet(new List<KnowledgeArticle> { article }).Object);
@@ -251,10 +262,15 @@ public class KnowledgeManagementServiceTests
         // Arrange
         var article = new KnowledgeArticle
         {
-            ArticleId = 1, Number = "KB0001", Title = "Feedback test",
-            ArticleBody = "Content", ArticleType = ArticleType.FAQ,
-            PublishingState = PublishingState.Published, AuthorId = 1,
-            HelpfulCount = 5, NotHelpfulCount = 2,
+            ArticleId = 1,
+            Number = "KB0001",
+            Title = "Feedback test",
+            ArticleBody = "Content",
+            ArticleType = ArticleType.FAQ,
+            PublishingState = PublishingState.Published,
+            AuthorId = 1,
+            HelpfulCount = 5,
+            NotHelpfulCount = 2,
             CreatedAt = DateTime.UtcNow
         };
         var feedbacks = new List<ArticleFeedback>();

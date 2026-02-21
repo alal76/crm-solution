@@ -1,3 +1,10 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This software is source-available. Non-commercial use is permitted under
+// the terms of the LICENSE file. Commercial use requires a separate license.
+// See the LICENSE file in the root directory for full terms.
+using System.Text.RegularExpressions;
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
@@ -5,7 +12,6 @@ using CRM.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using SixLabors.ImageSharp;
-using System.Text.RegularExpressions;
 
 namespace CRM.Infrastructure.Services;
 
@@ -107,7 +113,7 @@ public class BrandingConfigService : IBrandingConfigService
 
             var config = await GetOrCreateBrandingConfigAsync(cancellationToken);
             var oldValue = config.SolutionName;
-            
+
             var normalizedSolutionName = solutionName.Trim();
             if (!SolutionNameRegex.IsMatch(normalizedSolutionName))
                 throw new ArgumentException("Solution name can only contain letters, numbers, and spaces", nameof(solutionName));
@@ -168,7 +174,7 @@ public class BrandingConfigService : IBrandingConfigService
 
             // Update configuration
             var config = await GetOrCreateBrandingConfigAsync(cancellationToken);
-            
+
             // Delete old logo if exists
             if (!string.IsNullOrEmpty(config.CustomLogoPath))
             {
@@ -244,7 +250,7 @@ public class BrandingConfigService : IBrandingConfigService
 
             // Update configuration
             var config = await GetOrCreateBrandingConfigAsync(cancellationToken);
-            
+
             // Delete old favicon if exists
             if (!string.IsNullOrEmpty(config.FaviconPath))
             {

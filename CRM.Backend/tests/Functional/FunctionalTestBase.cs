@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using System.Net.Http;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
@@ -93,7 +92,8 @@ public abstract class FunctionalTestBase : IAsyncLifetime
     /// </summary>
     protected async Task<bool> AuthenticateAsync(string email = "admin@crm.local", string password = "Admin@123")
     {
-        if (!ApiAvailable) return false;
+        if (!ApiAvailable)
+            return false;
 
         try
         {
@@ -136,7 +136,8 @@ public abstract class FunctionalTestBase : IAsyncLifetime
     /// </summary>
     protected void AssertSuccess(HttpResponseMessage response)
     {
-        if (!ApiAvailable) return;
+        if (!ApiAvailable)
+            return;
         Assert.True(response.IsSuccessStatusCode,
             $"Expected success but got {response.StatusCode}: {response.ReasonPhrase}");
     }
@@ -147,7 +148,8 @@ public abstract class FunctionalTestBase : IAsyncLifetime
     /// </summary>
     protected void AssertStatusCode(HttpResponseMessage response, System.Net.HttpStatusCode expected)
     {
-        if (!ApiAvailable) return;
+        if (!ApiAvailable)
+            return;
         Assert.Equal(expected, response.StatusCode);
     }
 

@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using System.Diagnostics;
 using CRM.Core.Entities;
 using CRM.Core.Entities.ITSM;
@@ -577,7 +576,8 @@ public class BuiltInSearchProvider : ISearchPort
 
         foreach (var field in fields)
         {
-            if (string.IsNullOrEmpty(field)) continue;
+            if (string.IsNullOrEmpty(field))
+                continue;
 
             var lowerField = field.ToLowerInvariant();
 
@@ -609,7 +609,8 @@ public class BuiltInSearchProvider : ISearchPort
         for (int i = 0; i < fields.Length; i++)
         {
             var field = fields[i];
-            if (string.IsNullOrEmpty(field)) continue;
+            if (string.IsNullOrEmpty(field))
+                continue;
 
             var lowerField = field.ToLowerInvariant();
             if (lowerField.Contains(lowerQuery))

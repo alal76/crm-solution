@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using System.Globalization;
 using System.Text;
 using System.Text.Json;
@@ -328,7 +327,8 @@ public class ImportExportService : IImportExportService
     private async Task<ImportResult> ImportAccountsFromCsvAsync(string csv)
     {
         var lines = csv.Split('\n', StringSplitOptions.RemoveEmptyEntries);
-        if (lines.Length < 2) return new ImportResult { Success = true, TotalRecords = 0, ImportedRecords = 0 };
+        if (lines.Length < 2)
+            return new ImportResult { Success = true, TotalRecords = 0, ImportedRecords = 0 };
 
         var records = new List<AccountImportDto>();
         var errors = new List<ImportError>();
@@ -422,7 +422,8 @@ public class ImportExportService : IImportExportService
     private async Task<ImportResult> ImportContactsFromCsvAsync(string csv)
     {
         var lines = csv.Split('\n', StringSplitOptions.RemoveEmptyEntries);
-        if (lines.Length < 2) return new ImportResult { Success = true, TotalRecords = 0, ImportedRecords = 0 };
+        if (lines.Length < 2)
+            return new ImportResult { Success = true, TotalRecords = 0, ImportedRecords = 0 };
 
         var records = new List<ContactImportDto>();
 
@@ -501,7 +502,8 @@ public class ImportExportService : IImportExportService
     private async Task<ImportResult> ImportLeadsFromCsvAsync(string csv)
     {
         var lines = csv.Split('\n', StringSplitOptions.RemoveEmptyEntries);
-        if (lines.Length < 2) return new ImportResult { Success = true, TotalRecords = 0, ImportedRecords = 0 };
+        if (lines.Length < 2)
+            return new ImportResult { Success = true, TotalRecords = 0, ImportedRecords = 0 };
 
         var records = new List<LeadImportDto>();
 
@@ -582,7 +584,8 @@ public class ImportExportService : IImportExportService
     private async Task<ImportResult> ImportOpportunitiesFromCsvAsync(string csv)
     {
         var lines = csv.Split('\n', StringSplitOptions.RemoveEmptyEntries);
-        if (lines.Length < 2) return new ImportResult { Success = true, TotalRecords = 0, ImportedRecords = 0 };
+        if (lines.Length < 2)
+            return new ImportResult { Success = true, TotalRecords = 0, ImportedRecords = 0 };
 
         var records = new List<OpportunityImportDto>();
 
@@ -659,7 +662,8 @@ public class ImportExportService : IImportExportService
     private async Task<ImportResult> ImportProductsFromCsvAsync(string csv)
     {
         var lines = csv.Split('\n', StringSplitOptions.RemoveEmptyEntries);
-        if (lines.Length < 2) return new ImportResult { Success = true, TotalRecords = 0, ImportedRecords = 0 };
+        if (lines.Length < 2)
+            return new ImportResult { Success = true, TotalRecords = 0, ImportedRecords = 0 };
 
         var records = new List<ProductImportDto>();
 
@@ -737,7 +741,8 @@ public class ImportExportService : IImportExportService
 
     private static string EscapeCsv(string? value)
     {
-        if (string.IsNullOrEmpty(value)) return string.Empty;
+        if (string.IsNullOrEmpty(value))
+            return string.Empty;
 
         if (value.Contains(',') || value.Contains('"') || value.Contains('\n'))
         {

@@ -4,9 +4,8 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
-using CRM.Core.Interfaces;
 using CRM.Core.Entities;
+using CRM.Core.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace CRM.Infrastructure.Services;
@@ -27,7 +26,8 @@ public class NormalizationService : INormalizationService
             .Select(t => t.TagName ?? t.Tag!.Name)
             .ToListAsync();
 
-        if (tags == null || !tags.Any()) return null;
+        if (tags == null || !tags.Any())
+            return null;
         return string.Join(",", tags.Where(s => !string.IsNullOrWhiteSpace(s)));
     }
 
@@ -37,7 +37,8 @@ public class NormalizationService : INormalizationService
             .Where(cf => cf.EntityType == entityType && cf.EntityId == entityId && !cf.IsDeleted)
             .ToListAsync();
 
-        if (fields == null || !fields.Any()) return null;
+        if (fields == null || !fields.Any())
+            return null;
         return string.Join(";", fields.Select(cf => $"{cf.Key}={cf.Value}"));
     }
 
@@ -49,8 +50,10 @@ public class NormalizationService : INormalizationService
             .OrderByDescending(l => l.IsPrimaryForOwner)
             .FirstOrDefaultAsync();
 
-        if (link == null || link.ContactDetail == null) return null;
-        if (link.ContactDetail.DetailType != detailType) return null;
+        if (link == null || link.ContactDetail == null)
+            return null;
+        if (link.ContactDetail.DetailType != detailType)
+            return null;
         return string.IsNullOrWhiteSpace(link.ContactDetail.Value) ? null : link.ContactDetail.Value;
     }
 
@@ -82,8 +85,10 @@ public class NormalizationService : INormalizationService
             .OrderByDescending(l => l.IsPrimaryForOwner)
             .FirstOrDefaultAsync();
 
-        if (link == null || link.SocialAccount == null) return null;
-        if (link.SocialAccount.Network != network) return null;
+        if (link == null || link.SocialAccount == null)
+            return null;
+        if (link.SocialAccount.Network != network)
+            return null;
         return string.IsNullOrWhiteSpace(link.SocialAccount.HandleOrUrl) ? null : link.SocialAccount.HandleOrUrl;
     }
 }

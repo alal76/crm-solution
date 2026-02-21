@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
@@ -79,16 +78,26 @@ public class ModuleFieldConfigurationService
         if (entity == null)
             return null;
 
-        if (dto.FieldLabel != null) entity.FieldLabel = dto.FieldLabel;
-        if (dto.TabIndex.HasValue) entity.TabIndex = dto.TabIndex.Value;
-        if (dto.TabName != null) entity.TabName = dto.TabName;
-        if (dto.DisplayOrder.HasValue) entity.DisplayOrder = dto.DisplayOrder.Value;
-        if (dto.IsEnabled.HasValue) entity.IsEnabled = dto.IsEnabled.Value;
-        if (dto.IsRequired.HasValue) entity.IsRequired = dto.IsRequired.Value;
-        if (dto.GridSize.HasValue) entity.GridSize = dto.GridSize.Value;
-        if (dto.Placeholder != null) entity.Placeholder = dto.Placeholder;
-        if (dto.HelpText != null) entity.HelpText = dto.HelpText;
-        if (dto.Options != null) entity.Options = dto.Options;
+        if (dto.FieldLabel != null)
+            entity.FieldLabel = dto.FieldLabel;
+        if (dto.TabIndex.HasValue)
+            entity.TabIndex = dto.TabIndex.Value;
+        if (dto.TabName != null)
+            entity.TabName = dto.TabName;
+        if (dto.DisplayOrder.HasValue)
+            entity.DisplayOrder = dto.DisplayOrder.Value;
+        if (dto.IsEnabled.HasValue)
+            entity.IsEnabled = dto.IsEnabled.Value;
+        if (dto.IsRequired.HasValue)
+            entity.IsRequired = dto.IsRequired.Value;
+        if (dto.GridSize.HasValue)
+            entity.GridSize = dto.GridSize.Value;
+        if (dto.Placeholder != null)
+            entity.Placeholder = dto.Placeholder;
+        if (dto.HelpText != null)
+            entity.HelpText = dto.HelpText;
+        if (dto.Options != null)
+            entity.Options = dto.Options;
 
         entity.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
@@ -444,5 +453,4 @@ public class ModuleFieldConfigurationService
             new() { ModuleName = "Products", FieldName = "features", FieldLabel = "Features", FieldType = "textarea", TabIndex = 2, TabName = "Details", DisplayOrder = 1, IsEnabled = true, IsRequired = false, GridSize = 12, CreatedAt = now },
         };
     }
-
 }

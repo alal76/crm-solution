@@ -4,7 +4,7 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
+using System.Text.Json;
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Entities.Workflow;
@@ -12,7 +12,6 @@ using CRM.Core.Interfaces;
 using CRM.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System.Text.Json;
 
 namespace CRM.Infrastructure.Services;
 
@@ -363,12 +362,14 @@ public class CampaignExecutionService : CRM.Core.Interfaces.ICampaignExecutionSe
     /// </summary>
     private bool EvaluateTriggerConditions(string conditions, Dictionary<string, object>? eventData)
     {
-        if (eventData == null) return false;
+        if (eventData == null)
+            return false;
 
         try
         {
             var conditionObj = JsonSerializer.Deserialize<Dictionary<string, object>>(conditions);
-            if (conditionObj == null) return true;
+            if (conditionObj == null)
+                return true;
 
             foreach (var condition in conditionObj)
             {
@@ -443,7 +444,8 @@ public class CampaignExecutionService : CRM.Core.Interfaces.ICampaignExecutionSe
     public async Task RecordEmailOpenAsync(int recipientId, string? ipAddress = null, string? userAgent = null)
     {
         var recipient = await _context.CampaignRecipients.FindAsync(recipientId);
-        if (recipient == null || recipient.IsDeleted) return;
+        if (recipient == null || recipient.IsDeleted)
+            return;
 
         recipient.OpenCount++;
         recipient.LastOpenedAt = DateTime.UtcNow;
@@ -749,13 +751,13 @@ public class CampaignExecutionService : CRM.Core.Interfaces.ICampaignExecutionSe
     public async Task<CampaignExecutionResultDto> ExecuteAsync(int campaignId, CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Executing campaign: campaignId={CampaignId}", campaignId);
-        
+
         var campaign = await _context.MarketingCampaigns
             .FirstOrDefaultAsync(c => c.Id == campaignId && !c.IsDeleted, cancellationToken);
-        
+
         if (campaign == null)
             throw new InvalidOperationException($"Campaign {campaignId} not found");
-        
+
         // Stub implementation - returns basic success result
         return new CampaignExecutionResultDto
         {
@@ -777,17 +779,17 @@ public class CampaignExecutionService : CRM.Core.Interfaces.ICampaignExecutionSe
     public async Task<bool> PauseAsync(int campaignId, CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Pausing campaign: campaignId={CampaignId}", campaignId);
-        
+
         var campaign = await _context.MarketingCampaigns
             .FirstOrDefaultAsync(c => c.Id == campaignId && !c.IsDeleted, cancellationToken);
-        
+
         if (campaign == null)
             return false;
-        
+
         campaign.UpdatedAt = DateTime.UtcNow;
         _context.MarketingCampaigns.Update(campaign);
         await _context.SaveChangesAsync(cancellationToken);
-        
+
         return true;
     }
 
@@ -797,17 +799,17 @@ public class CampaignExecutionService : CRM.Core.Interfaces.ICampaignExecutionSe
     public async Task<bool> ResumeAsync(int campaignId, CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Resuming campaign: campaignId={CampaignId}", campaignId);
-        
+
         var campaign = await _context.MarketingCampaigns
             .FirstOrDefaultAsync(c => c.Id == campaignId && !c.IsDeleted, cancellationToken);
-        
+
         if (campaign == null)
             return false;
-        
+
         campaign.UpdatedAt = DateTime.UtcNow;
         _context.MarketingCampaigns.Update(campaign);
         await _context.SaveChangesAsync(cancellationToken);
-        
+
         return true;
     }
 
@@ -817,17 +819,17 @@ public class CampaignExecutionService : CRM.Core.Interfaces.ICampaignExecutionSe
     public async Task<bool> ScheduleAsync(int campaignId, DateTime scheduledDate, CancellationToken cancellationToken = default)
     {
         _logger.LogInformation("Scheduling campaign: campaignId={CampaignId}, scheduledDate={ScheduledDate}", campaignId, scheduledDate);
-        
+
         var campaign = await _context.MarketingCampaigns
             .FirstOrDefaultAsync(c => c.Id == campaignId && !c.IsDeleted, cancellationToken);
-        
+
         if (campaign == null)
             return false;
-        
+
         campaign.UpdatedAt = DateTime.UtcNow;
         _context.MarketingCampaigns.Update(campaign);
         await _context.SaveChangesAsync(cancellationToken);
-        
+
         return true;
     }
 

@@ -4,15 +4,14 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
-using Xunit;
-using FluentAssertions;
-using CRM.Infrastructure.Services;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using CRM.Infrastructure.Services;
+using FluentAssertions;
+using Xunit;
 
 namespace CRM.Tests.Services;
 

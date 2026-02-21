@@ -4,12 +4,11 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
+using System.Security.Claims;
 using CRM.Infrastructure.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 
 namespace CRM.Api.Controllers;
 
@@ -482,7 +481,8 @@ public class CampaignExecutionController : ControllerBase
 
     private static string GetDeviceType(string userAgent)
     {
-        if (string.IsNullOrEmpty(userAgent)) return "unknown";
+        if (string.IsNullOrEmpty(userAgent))
+            return "unknown";
 
         var ua = userAgent.ToLower();
         if (ua.Contains("mobile") || ua.Contains("android") || ua.Contains("iphone"))
@@ -494,14 +494,20 @@ public class CampaignExecutionController : ControllerBase
 
     private static string GetBrowser(string userAgent)
     {
-        if (string.IsNullOrEmpty(userAgent)) return "unknown";
+        if (string.IsNullOrEmpty(userAgent))
+            return "unknown";
 
         var ua = userAgent.ToLower();
-        if (ua.Contains("chrome")) return "Chrome";
-        if (ua.Contains("firefox")) return "Firefox";
-        if (ua.Contains("safari")) return "Safari";
-        if (ua.Contains("edge")) return "Edge";
-        if (ua.Contains("opera")) return "Opera";
+        if (ua.Contains("chrome"))
+            return "Chrome";
+        if (ua.Contains("firefox"))
+            return "Firefox";
+        if (ua.Contains("safari"))
+            return "Safari";
+        if (ua.Contains("edge"))
+            return "Edge";
+        if (ua.Contains("opera"))
+            return "Opera";
         return "Other";
     }
 

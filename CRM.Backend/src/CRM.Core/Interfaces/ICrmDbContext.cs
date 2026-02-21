@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using CRM.Core.Entities;
 using CRM.Core.Entities.Integration;
 using CRM.Core.Entities.KnowledgeBase;
@@ -22,7 +21,7 @@ namespace CRM.Core.Interfaces;
 public interface ICrmDbContext
 {
     DbSet<Account> Accounts { get; }
-    
+
     /// <summary>
     /// Customers alias for Accounts (for backward compatibility)
     /// </summary>
@@ -55,16 +54,16 @@ public interface ICrmDbContext
     DbSet<UserGroup> UserGroups { get; }
     DbSet<UserGroupMember> UserGroupMembers { get; }
     DbSet<UserApprovalRequest> UserApprovalRequests { get; }
-    
+
     // RBAC - Role-Based Access Control (SYS-012)
     DbSet<Role> Roles { get; }
     DbSet<Permission> Permissions { get; }
     DbSet<RolePermission> RolePermissions { get; }
     DbSet<UserRoleAssignment> UserRoleAssignments { get; }
-    
+
     /// <summary>Alias for UserRoleAssignments</summary>
     DbSet<UserRoleAssignment> UserRoles { get; }
-    
+
     DbSet<DatabaseBackup> DatabaseBackups { get; }
     DbSet<BackupSchedule> BackupSchedules { get; }
     DbSet<SystemSettings> SystemSettings { get; }
@@ -193,14 +192,14 @@ public interface ICrmDbContext
     DbSet<CRM.Core.Entities.ITSM.ProblemTask> ProblemTasks { get; }
     DbSet<CRM.Core.Entities.ITSM.ProblemComment> ProblemComments { get; }
     DbSet<CRM.Core.Entities.ITSM.ProblemAttachment> ProblemAttachments { get; }
-    
+
     // SLA (Service Level Agreement) - Non-ITSM versions
     DbSet<CRM.Core.Entities.SLAPolicy> SLAPolicies { get; }
     DbSet<CRM.Core.Entities.KnowledgeBase.SLAInstance> SLAInstances { get; }
     // DISABLED: Conflicts with ITSM.EscalationRule - both trying to use "EscalationRule" table
     // DbSet<CRM.Core.Entities.EscalationRule> EscalationRules { get; }
     DbSet<CRM.Core.Entities.ITSM.ServiceQueue> ServiceQueues { get; }
-    
+
     // ITSM SLA entities
     DbSet<CRM.Core.Entities.ITSM.SLAPolicy> ITSMSLAPolicies { get; }
     DbSet<CRM.Core.Entities.ITSM.SLAInstance> ITSMSLAInstances { get; }

@@ -4,21 +4,20 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Net.Http.Json;
 using System.Text.Json;
+using CRM.Tests.Infrastructure.TestLogging;
 using Xunit;
 using Xunit.Abstractions;
-using CRM.Tests.Infrastructure.TestLogging;
 
 namespace CRM.Tests.Functional.Examples;
 
 /// <summary>
 /// EXAMPLE: Service Tests with Try-Catch Logging Framework
-/// 
+///
 /// This file demonstrates best practices for using the new test logging framework:
 /// 1. Inherit from LoggedTestBase
 /// 2. Use RunTest() / RunTestAsync() helpers
@@ -96,7 +95,7 @@ public class ServiceTestsWithLoggingExample : LoggedTestBase
         {
             // This code won't execute when shouldSkip=true
             // The test will be marked as "Skipped" in results
-            Assert.True(false, "This should not run");
+            Assert.Fail("This should not run");
         });
     }
 
@@ -291,7 +290,7 @@ public class ServiceTestsWithLoggingExample : LoggedTestBase
             // Summary includes:
             // - SessionId: Unique test run ID
             // - Total/Passed/Failed/Skipped counts
-            // - Pass rate percentage  
+            // - Pass rate percentage
             // - All individual test results with timing
 
             _output.WriteLine($"Session: {summary.SessionId}");

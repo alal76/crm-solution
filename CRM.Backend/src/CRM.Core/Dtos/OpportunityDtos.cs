@@ -1,29 +1,26 @@
-
-// ------------------------------------------------------------------------------
-// <summary>
-//   Data Transfer Objects (DTOs) for Opportunities in CRM Solution.
-//   Copyright (c) 2026 CRM Solution Contributors. All rights reserved.
-//   Licensed under the MIT License. See LICENSE in the project root for license information.
-// </summary>
-// ------------------------------------------------------------------------------
-
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This software is source-available. Non-commercial use is permitted under
+// the terms of the LICENSE file. Commercial use requires a separate license.
+// See the LICENSE file in the root directory for full terms.
+using System;
 using System;
 using System.Collections.Generic;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations;
 
 namespace CRM.Core.DTOs
 {
-    using System;
-    using System.Collections.Generic;
-    using System.ComponentModel.DataAnnotations;
-
     /// <summary>
     /// Data Transfer Object for Opportunity.
     /// </summary>
     public class OpportunityDto
     {
         public int Id { get; set; }
-        [Required, MaxLength(255)]
+        [Required]
+        [MaxLength(255)]
         public string Name { get; set; } = string.Empty;
         public int Stage { get; set; } // OpportunityStage enum (int)
 
@@ -34,7 +31,8 @@ namespace CRM.Core.DTOs
         public int Probability { get; set; }
         [Range(0, double.MaxValue)]
         public decimal Amount { get; set; }
-        [Required, MaxLength(3)]
+        [Required]
+        [MaxLength(3)]
         public string Currency { get; set; } = "USD";
         public string? ExpectedCloseDate { get; set; } // ISO 8601 string
         public int PricingModel { get; set; } // OpportunityPricingModel enum (int)
@@ -84,14 +82,16 @@ namespace CRM.Core.DTOs
 
     public class CreateOpportunityDto
     {
-        [Required, MaxLength(255)]
+        [Required]
+        [MaxLength(255)]
         public string Name { get; set; } = string.Empty;
         public int Stage { get; set; }
         [Range(0, 100)]
         public int Probability { get; set; }
         [Range(0, double.MaxValue)]
         public decimal Amount { get; set; }
-        [Required, MaxLength(3)]
+        [Required]
+        [MaxLength(3)]
         public string Currency { get; set; } = "USD";
         public string? ExpectedCloseDate { get; set; }
         public int PricingModel { get; set; }

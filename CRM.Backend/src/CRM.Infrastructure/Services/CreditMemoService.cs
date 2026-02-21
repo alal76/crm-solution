@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -33,8 +32,10 @@ public class CreditMemoService : ICreditMemoService
             .Include(c => c.LineItems)
             .Where(c => !c.IsDeleted);
 
-        if (accountId.HasValue) query = query.Where(c => c.AccountId == accountId.Value);
-        if (status.HasValue) query = query.Where(c => c.Status == status.Value);
+        if (accountId.HasValue)
+            query = query.Where(c => c.AccountId == accountId.Value);
+        if (status.HasValue)
+            query = query.Where(c => c.Status == status.Value);
 
         return await query.OrderByDescending(c => c.CreditMemoDate).ToListAsync(cancellationToken);
     }
@@ -89,7 +90,8 @@ public class CreditMemoService : ICreditMemoService
     public async Task<bool> DeleteAsync(int id, CancellationToken cancellationToken = default)
     {
         var cm = await _context.CreditMemos.FindAsync(new object[] { id }, cancellationToken);
-        if (cm == null || cm.IsDeleted) return false;
+        if (cm == null || cm.IsDeleted)
+            return false;
 
         cm.IsDeleted = true;
         cm.UpdatedAt = DateTime.UtcNow;
@@ -155,18 +157,22 @@ public class CreditMemoService : ICreditMemoService
     public async Task<CreditMemo> ApplyAsync(int creditMemoId, int invoiceId, CancellationToken cancellationToken = default)
     {
         var cm = await _context.CreditMemos.FindAsync(new object[] { creditMemoId }, cancellationToken);
-        if (cm == null || cm.IsDeleted) throw new InvalidOperationException($"Credit memo {creditMemoId} not found");
+        if (cm == null || cm.IsDeleted)
+            throw new InvalidOperationException($"Credit memo {creditMemoId} not found");
 
         var invoice = await _context.Invoices.FindAsync(new object[] { invoiceId }, cancellationToken);
-        if (invoice == null || invoice.IsDeleted) throw new InvalidOperationException($"Invoice {invoiceId} not found");
+        if (invoice == null || invoice.IsDeleted)
+            throw new InvalidOperationException($"Invoice {invoiceId} not found");
 
         // simplistic application: reduce invoice balance and mark credit memo applied
         var applyAmount = Math.Min(Math.Abs(cm.BalanceRemaining), invoice.TotalAmount - (invoice.Payments?.Sum(p => p.Amount) ?? 0));
-        if (applyAmount <= 0) throw new InvalidOperationException("Nothing to apply");
+        if (applyAmount <= 0)
+            throw new InvalidOperationException("Nothing to apply");
 
         cm.AmountApplied += applyAmount;
         cm.Status = CreditMemoStatus.PartiallyApplied;
-        if (Math.Abs(cm.BalanceRemaining) < 0.01m) cm.Status = CreditMemoStatus.Applied;
+        if (Math.Abs(cm.BalanceRemaining) < 0.01m)
+            cm.Status = CreditMemoStatus.Applied;
         cm.AppliedDate = DateTime.UtcNow;
 
         invoice.UpdatedAt = DateTime.UtcNow;
@@ -181,7 +187,8 @@ public class CreditMemoService : ICreditMemoService
     public async Task<CreditMemo> UnapplyAsync(int creditMemoId, CancellationToken cancellationToken = default)
     {
         var cm = await _context.CreditMemos.FindAsync(new object[] { creditMemoId }, cancellationToken);
-        if (cm == null || cm.IsDeleted) throw new InvalidOperationException($"Credit memo {creditMemoId} not found");
+        if (cm == null || cm.IsDeleted)
+            throw new InvalidOperationException($"Credit memo {creditMemoId} not found");
 
         cm.AmountApplied = 0m;
         cm.Status = CreditMemoStatus.Approved;
@@ -197,7 +204,8 @@ public class CreditMemoService : ICreditMemoService
     public async Task<CreditMemo> RefundAsync(int creditMemoId, CancellationToken cancellationToken = default)
     {
         var cm = await _context.CreditMemos.FindAsync(new object[] { creditMemoId }, cancellationToken);
-        if (cm == null || cm.IsDeleted) throw new InvalidOperationException($"Credit memo {creditMemoId} not found");
+        if (cm == null || cm.IsDeleted)
+            throw new InvalidOperationException($"Credit memo {creditMemoId} not found");
 
         cm.Status = CreditMemoStatus.Refunded;
         cm.RefundedDate = DateTime.UtcNow;
@@ -213,7 +221,8 @@ public class CreditMemoService : ICreditMemoService
     public async Task<CreditMemoLineItem> AddLineItemAsync(int creditMemoId, CreditMemoLineItem lineItem, CancellationToken cancellationToken = default)
     {
         var cm = await _context.CreditMemos.FindAsync(new object[] { creditMemoId }, cancellationToken);
-        if (cm == null || cm.IsDeleted) throw new InvalidOperationException($"Credit memo {creditMemoId} not found");
+        if (cm == null || cm.IsDeleted)
+            throw new InvalidOperationException($"Credit memo {creditMemoId} not found");
 
         lineItem.CreatedAt = DateTime.UtcNow;
         lineItem.UpdatedAt = DateTime.UtcNow;
@@ -228,7 +237,8 @@ public class CreditMemoService : ICreditMemoService
     public async Task<CreditMemoLineItem> UpdateLineItemAsync(CreditMemoLineItem lineItem, CancellationToken cancellationToken = default)
     {
         var existing = await _context.CreditMemoLineItems.FindAsync(new object[] { lineItem.Id }, cancellationToken);
-        if (existing == null || existing.IsDeleted) throw new InvalidOperationException($"Credit memo line item {lineItem.Id} not found");
+        if (existing == null || existing.IsDeleted)
+            throw new InvalidOperationException($"Credit memo line item {lineItem.Id} not found");
 
         lineItem.UpdatedAt = DateTime.UtcNow;
         _context.CreditMemoLineItems.Update(lineItem);
@@ -240,7 +250,8 @@ public class CreditMemoService : ICreditMemoService
     public async Task<bool> RemoveLineItemAsync(int lineItemId, CancellationToken cancellationToken = default)
     {
         var li = await _context.CreditMemoLineItems.FindAsync(new object[] { lineItemId }, cancellationToken);
-        if (li == null || li.IsDeleted) return false;
+        if (li == null || li.IsDeleted)
+            return false;
 
         li.IsDeleted = true;
         li.UpdatedAt = DateTime.UtcNow;

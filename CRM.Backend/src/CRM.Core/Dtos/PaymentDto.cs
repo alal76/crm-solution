@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using CRM.Core.Entities;
 
 namespace CRM.Core.Dtos;
@@ -20,33 +19,33 @@ public class PaymentDto
     public string? InvoiceNumber { get; set; }
     public int AccountId { get; set; }
     public string? AccountName { get; set; }
-    
+
     public decimal Amount { get; set; }
     public decimal RefundedAmount { get; set; }
     public decimal AmountApplied { get; set; }
-    
+
     public PaymentMethod PaymentMethod { get; set; }
     public PaymentType PaymentType { get; set; }
     public Entities.PaymentStatus Status { get; set; }
-    
+
     public DateTime PaymentDate { get; set; }
     public DateTime? ProcessedDate { get; set; }
     public DateTime? RefundDate { get; set; }
     public DateTime? ScheduledDate { get; set; }
-    
+
     public string? TransactionId { get; set; }
     public string? AuthorizationCode { get; set; }
     public string? CardLast4 { get; set; }
     public string? CardholderName { get; set; }
     public string? BankReference { get; set; }
-    
+
     public bool IsReconciled { get; set; }
     public DateTime? ReconciledDate { get; set; }
-    
+
     public string? Description { get; set; }
     public string? FailureReason { get; set; }
     public int RetryCount { get; set; }
-    
+
     public int? OriginalPaymentId { get; set; }
     public bool IsRefund => PaymentType == PaymentType.Refund;
 
@@ -94,16 +93,16 @@ public class CreatePaymentDto
 {
     public int? InvoiceId { get; set; }
     public int AccountId { get; set; }
-    
+
     public decimal Amount { get; set; }
     public PaymentMethod PaymentMethod { get; set; } = PaymentMethod.CreditCard;
     public PaymentType PaymentType { get; set; } = PaymentType.Payment;
     public Entities.PaymentStatus Status { get; set; } = Entities.PaymentStatus.Pending;
-    
+
     public DateTime? ScheduledDate { get; set; }
-    
+
     public string? Description { get; set; }
-    
+
     // For card payments - use tokenized card ID, never raw card data
     public string? TokenizedCardId { get; set; }
 }
@@ -142,12 +141,12 @@ public class ProcessPaymentRequestDto
 {
     public decimal Amount { get; set; }
     public PaymentMethod PaymentMethod { get; set; } = PaymentMethod.CreditCard;
-    
+
     /// <summary>
     /// Tokenized card ID - never raw card data
     /// </summary>
     public string? TokenizedCardId { get; set; }
-    
+
     public string? AuthorizationCode { get; set; }
     public string? Description { get; set; }
 }
@@ -160,4 +159,3 @@ public class RefundPaymentRequestDto
     public decimal? RefundAmount { get; set; }
     public string Reason { get; set; } = string.Empty;
 }
-

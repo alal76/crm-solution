@@ -4,12 +4,11 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using System.Net;
 using System.Net.Mail;
+using CRM.Core.Ports.Output.Providers;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using CRM.Core.Ports.Output.Providers;
 
 namespace CRM.Infrastructure.Providers.BuiltIn;
 
@@ -57,9 +56,12 @@ public class BuiltInNotificationProvider : INotificationPort
         EmailNotificationRequest request,
         CancellationToken cancellationToken = default)
     {
-        if (request == null) throw new ArgumentNullException(nameof(request));
-        if (string.IsNullOrWhiteSpace(request.To)) throw new ArgumentException("Recipient email is required", nameof(request));
-        if (string.IsNullOrWhiteSpace(request.Subject)) throw new ArgumentException("Subject is required", nameof(request));
+        if (request == null)
+            throw new ArgumentNullException(nameof(request));
+        if (string.IsNullOrWhiteSpace(request.To))
+            throw new ArgumentException("Recipient email is required", nameof(request));
+        if (string.IsNullOrWhiteSpace(request.Subject))
+            throw new ArgumentException("Subject is required", nameof(request));
 
         try
         {
@@ -210,7 +212,8 @@ public class BuiltInNotificationProvider : INotificationPort
         MultiChannelNotificationRequest request,
         CancellationToken cancellationToken = default)
     {
-        if (request == null) throw new ArgumentNullException(nameof(request));
+        if (request == null)
+            throw new ArgumentNullException(nameof(request));
 
         var result = new MultiChannelNotificationResult
         {
@@ -273,7 +276,8 @@ public class BuiltInNotificationProvider : INotificationPort
         IEnumerable<EmailNotificationRequest> requests,
         CancellationToken cancellationToken = default)
     {
-        if (requests == null) throw new ArgumentNullException(nameof(requests));
+        if (requests == null)
+            throw new ArgumentNullException(nameof(requests));
 
         var requestList = requests.ToList();
         var result = new BulkNotificationResult

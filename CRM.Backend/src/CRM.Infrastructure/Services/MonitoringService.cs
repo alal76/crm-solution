@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 /**
  * CRM Solution - Customer Relationship Management System
  * Copyright (C) 2024-2026 Abhishek Lal
@@ -1194,7 +1193,8 @@ public class MonitoringService : IMonitoringService
             };
 
             using var process = Process.Start(psi);
-            if (process == null) return containers;
+            if (process == null)
+                return containers;
 
             var output = await process.StandardOutput.ReadToEndAsync(ct);
             await process.WaitForExitAsync(ct);
@@ -1269,7 +1269,8 @@ public class MonitoringService : IMonitoringService
             };
 
             using var process = Process.Start(psi);
-            if (process == null) return pods;
+            if (process == null)
+                return pods;
 
             var output = await process.StandardOutput.ReadToEndAsync(ct);
             await process.WaitForExitAsync(ct);
@@ -1325,7 +1326,8 @@ public class MonitoringService : IMonitoringService
         var cacheKey = "monitoring:all";
 
         var cached = await _cache.GetAsync<MonitoringData>(cacheKey, ct);
-        if (cached != null) return cached;
+        if (cached != null)
+            return cached;
 
         var data = new MonitoringData
         {

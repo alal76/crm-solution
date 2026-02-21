@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using CRM.Infrastructure.Services;
@@ -56,7 +55,8 @@ public class TeamServiceTests
             .Returns<object[], CancellationToken>((keys, _) =>
             {
                 var id = keys.FirstOrDefault();
-                if (id == null) return ValueTask.FromResult<Team?>(default);
+                if (id == null)
+                    return ValueTask.FromResult<Team?>(default);
                 return ValueTask.FromResult(_teams.FirstOrDefault(e => e.Id == Convert.ToInt32(id)));
             });
 
@@ -139,7 +139,9 @@ public class TeamServiceTests
         // Arrange
         _teams.Add(new Team
         {
-            Id = 1, Name = "Sales Team", IsDeleted = false,
+            Id = 1,
+            Name = "Sales Team",
+            IsDeleted = false,
             Members = new List<TeamMember>()
         });
 

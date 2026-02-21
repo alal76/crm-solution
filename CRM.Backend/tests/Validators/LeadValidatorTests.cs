@@ -4,16 +4,15 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
-using Xunit;
-using Moq;
-using FluentAssertions;
-using CRM.Core.DTOs;
-using CRM.Core.Interfaces;
-using CRM.Core.Entities;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using System;
+using CRM.Core.DTOs;
+using CRM.Core.Entities;
+using CRM.Core.Interfaces;
+using FluentAssertions;
+using Moq;
+using Xunit;
 
 namespace CRM.Tests.Validators.LeadValidation;
 
@@ -201,8 +200,10 @@ public class LeadValidatorTests
         dto.Status = status;
 
         // Provide required fields for terminal statuses
-        if (status == "Converted") dto.ConvertedDate = DateTime.UtcNow;
-        if (status == "Disqualified") dto.DisqualificationReason = "Not a good fit";
+        if (status == "Converted")
+            dto.ConvertedDate = DateTime.UtcNow;
+        if (status == "Disqualified")
+            dto.DisqualificationReason = "Not a good fit";
 
         // Act
         var result = await _validator.ValidateAsync(dto);

@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -58,7 +57,8 @@ public class PowerBIProvider : IAnalyticsPort
     public async Task<bool> IsAvailableAsync(CancellationToken cancellationToken = default)
     {
         var (isValid, _) = _config.Validate();
-        if (!isValid) return false;
+        if (!isValid)
+            return false;
 
         try
         {
@@ -116,10 +116,12 @@ public class PowerBIProvider : IAnalyticsPort
         try
         {
             var response = await _httpClient.GetAsync(url, cancellationToken);
-            if (!response.IsSuccessStatusCode) return null;
+            if (!response.IsSuccessStatusCode)
+                return null;
 
             var dashboard = await response.Content.ReadFromJsonAsync<PowerBIDashboard>(JsonOptions, cancellationToken);
-            if (dashboard == null) return null;
+            if (dashboard == null)
+                return null;
 
             return new DashboardInfo
             {
@@ -365,7 +367,8 @@ public class PowerBIProvider : IAnalyticsPort
         try
         {
             var response = await _httpClient.GetAsync(url, cancellationToken);
-            if (!response.IsSuccessStatusCode) return Enumerable.Empty<ChartInfo>();
+            if (!response.IsSuccessStatusCode)
+                return Enumerable.Empty<ChartInfo>();
 
             var result = await response.Content.ReadFromJsonAsync<PowerBITileListResponse>(JsonOptions, cancellationToken);
 

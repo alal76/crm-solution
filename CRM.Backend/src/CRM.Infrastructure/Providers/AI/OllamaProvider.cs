@@ -4,14 +4,13 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using CRM.Core.Ports.Output.Providers;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using CRM.Core.Ports.Output.Providers;
 
 namespace CRM.Infrastructure.Providers.AI;
 
@@ -482,7 +481,8 @@ public class OllamaProvider : IAIPort
         while (!reader.EndOfStream)
         {
             var line = await reader.ReadLineAsync(cancellationToken);
-            if (string.IsNullOrWhiteSpace(line)) continue;
+            if (string.IsNullOrWhiteSpace(line))
+                continue;
 
             try
             {
@@ -828,7 +828,8 @@ Return JSON format:
     /// <inheritdoc />
     public int EstimateTokens(string text)
     {
-        if (string.IsNullOrEmpty(text)) return 0;
+        if (string.IsNullOrEmpty(text))
+            return 0;
         // Rough estimation: ~4 characters per token for English
         return (int)Math.Ceiling(text.Length / 4.0);
     }
@@ -934,13 +935,20 @@ Return JSON format:
         var lowerName = modelName.ToLowerInvariant();
 
         // Rough estimates based on common models
-        if (lowerName.Contains("llama3")) return 8192;
-        if (lowerName.Contains("llama2")) return 4096;
-        if (lowerName.Contains("mistral")) return 32768;
-        if (lowerName.Contains("mixtral")) return 32768;
-        if (lowerName.Contains("qwen")) return 32768;
-        if (lowerName.Contains("phi")) return 2048;
-        if (lowerName.Contains("gemma")) return 8192;
+        if (lowerName.Contains("llama3"))
+            return 8192;
+        if (lowerName.Contains("llama2"))
+            return 4096;
+        if (lowerName.Contains("mistral"))
+            return 32768;
+        if (lowerName.Contains("mixtral"))
+            return 32768;
+        if (lowerName.Contains("qwen"))
+            return 32768;
+        if (lowerName.Contains("phi"))
+            return 2048;
+        if (lowerName.Contains("gemma"))
+            return 8192;
 
         return 4096; // Default
     }

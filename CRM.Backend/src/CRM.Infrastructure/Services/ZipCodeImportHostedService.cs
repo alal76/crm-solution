@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -171,7 +170,8 @@ public class ZipCodeImportHostedService : BackgroundService
 
         // Parse simple cron expression (minute hour dayOfMonth month dayOfWeek)
         var parts = _options.CronExpression.Split(' ');
-        if (parts.Length < 5) return false;
+        if (parts.Length < 5)
+            return false;
 
         // Check day of month
         if (parts[2] != "*" && !parts[2].Split(',').Contains(now.Day.ToString()))
@@ -219,7 +219,8 @@ public class ZipCodeImportHostedService : BackgroundService
 
             foreach (var countryCode in _options.CountryCodes)
             {
-                if (cancellationToken.IsCancellationRequested) break;
+                if (cancellationToken.IsCancellationRequested)
+                    break;
 
                 var countryResult = await importService.ImportCountryFromGeoNamesAsync(countryCode, cancellationToken);
                 totalImported += countryResult.RecordsImported;

@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
@@ -472,7 +471,8 @@ public class ContactInfoService : IContactInfoService
     private static string FormatPhoneNumber(PhoneNumber phone)
     {
         var parts = new List<string> { phone.CountryCode };
-        if (!string.IsNullOrEmpty(phone.AreaCode)) parts.Add(phone.AreaCode);
+        if (!string.IsNullOrEmpty(phone.AreaCode))
+            parts.Add(phone.AreaCode);
         parts.Add(phone.Number);
         var formatted = string.Join(" ", parts);
         if (!string.IsNullOrEmpty(phone.Extension))

@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
@@ -52,17 +51,28 @@ public class UserInterfaceService : IUserInterfaceService
         }
 
         // Update only provided properties
-        if (dto.Theme != null) preference.Theme = dto.Theme;
-        if (dto.SidebarPosition != null) preference.SidebarPosition = dto.SidebarPosition;
-        if (dto.SidebarWidth.HasValue) preference.SidebarWidth = dto.SidebarWidth.Value;
-        if (dto.FontSize != null) preference.FontSize = dto.FontSize;
-        if (dto.ShowBreadcrumbs.HasValue) preference.ShowBreadcrumbs = dto.ShowBreadcrumbs.Value;
-        if (dto.ShowStatusBar.HasValue) preference.ShowStatusBar = dto.ShowStatusBar.Value;
-        if (dto.ShowTopNavigation.HasValue) preference.ShowTopNavigation = dto.ShowTopNavigation.Value;
-        if (dto.DefaultPageSize.HasValue) preference.DefaultPageSize = dto.DefaultPageSize.Value;
-        if (dto.DateFormat != null) preference.DateFormat = dto.DateFormat;
-        if (dto.TimeFormat != null) preference.TimeFormat = dto.TimeFormat;
-        if (dto.CustomColorScheme != null) preference.CustomColorScheme = dto.CustomColorScheme;
+        if (dto.Theme != null)
+            preference.Theme = dto.Theme;
+        if (dto.SidebarPosition != null)
+            preference.SidebarPosition = dto.SidebarPosition;
+        if (dto.SidebarWidth.HasValue)
+            preference.SidebarWidth = dto.SidebarWidth.Value;
+        if (dto.FontSize != null)
+            preference.FontSize = dto.FontSize;
+        if (dto.ShowBreadcrumbs.HasValue)
+            preference.ShowBreadcrumbs = dto.ShowBreadcrumbs.Value;
+        if (dto.ShowStatusBar.HasValue)
+            preference.ShowStatusBar = dto.ShowStatusBar.Value;
+        if (dto.ShowTopNavigation.HasValue)
+            preference.ShowTopNavigation = dto.ShowTopNavigation.Value;
+        if (dto.DefaultPageSize.HasValue)
+            preference.DefaultPageSize = dto.DefaultPageSize.Value;
+        if (dto.DateFormat != null)
+            preference.DateFormat = dto.DateFormat;
+        if (dto.TimeFormat != null)
+            preference.TimeFormat = dto.TimeFormat;
+        if (dto.CustomColorScheme != null)
+            preference.CustomColorScheme = dto.CustomColorScheme;
 
         preference.UpdatedAt = DateTime.UtcNow;
         preference.LastPreferenceUpdate = DateTime.UtcNow;

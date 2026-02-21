@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Entities.Workflow;
@@ -352,68 +351,129 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
         }
 
         // Update fields if provided
-        if (dto.Category.HasValue) account.Category = dto.Category.Value;
-        if (dto.FirstName != null) account.FirstName = dto.FirstName;
-        if (dto.LastName != null) account.LastName = dto.LastName;
-        if (dto.Salutation != null) account.Salutation = dto.Salutation;
-        if (dto.Suffix != null) account.Suffix = dto.Suffix;
-        if (dto.DateOfBirth.HasValue) account.DateOfBirth = dto.DateOfBirth;
-        if (dto.Gender != null) account.Gender = dto.Gender;
-        if (dto.LinkedContactId.HasValue) account.LinkedContactId = dto.LinkedContactId;
-        if (dto.Company != null) account.Company = dto.Company;
-        if (dto.LegalName != null) account.LegalName = dto.LegalName;
-        if (dto.DbaName != null) account.DbaName = dto.DbaName;
-        if (dto.TaxId != null) account.TaxId = dto.TaxId;
-        if (dto.RegistrationNumber != null) account.RegistrationNumber = dto.RegistrationNumber;
-        if (dto.YearFounded.HasValue) account.YearFounded = dto.YearFounded;
-        if (dto.PrimaryContactId.HasValue) account.PrimaryContactId = dto.PrimaryContactId;
-        if (dto.Email != null) account.Email = dto.Email;
-        if (dto.SecondaryEmail != null) account.SecondaryEmail = dto.SecondaryEmail;
-        if (dto.Phone != null) account.Phone = dto.Phone;
-        if (dto.MobilePhone != null) account.MobilePhone = dto.MobilePhone;
-        if (dto.FaxNumber != null) account.FaxNumber = dto.FaxNumber;
-        if (dto.JobTitle != null) account.JobTitle = dto.JobTitle;
-        if (dto.Website != null) account.Website = dto.Website;
-        if (dto.Industry != null) account.Industry = dto.Industry;
-        if (dto.SubIndustry != null) account.SubIndustry = dto.SubIndustry;
-        if (dto.NumberOfEmployees.HasValue) account.NumberOfEmployees = dto.NumberOfEmployees;
-        if (dto.EmployeeRange != null) account.EmployeeRange = dto.EmployeeRange;
-        if (dto.AnnualRevenue.HasValue) account.AnnualRevenue = dto.AnnualRevenue.Value;
-        if (dto.RevenueRange != null) account.RevenueRange = dto.RevenueRange;
-        if (dto.AccountType.HasValue) account.AccountType = dto.AccountType.Value;
-        if (dto.Priority.HasValue) account.Priority = dto.Priority.Value;
-        if (dto.StockSymbol != null) account.StockSymbol = dto.StockSymbol;
-        if (dto.Ownership != null) account.Ownership = dto.Ownership;
-        if (dto.LifecycleStage.HasValue) account.LifecycleStage = dto.LifecycleStage.Value;
-        if (dto.LeadSource != null) account.LeadSource = dto.LeadSource;
-        if (dto.NextFollowUpDate.HasValue) account.NextFollowUpDate = dto.NextFollowUpDate;
-        if (dto.CreditLimit.HasValue) account.CreditLimit = dto.CreditLimit.Value;
-        if (dto.PaymentTerms != null) account.PaymentTerms = dto.PaymentTerms;
-        if (dto.PreferredPaymentMethod != null) account.PreferredPaymentMethod = dto.PreferredPaymentMethod;
-        if (dto.Currency != null) account.Currency = dto.Currency;
-        if (dto.BillingCycle != null) account.BillingCycle = dto.BillingCycle;
-        if (dto.LeadScore.HasValue) account.LeadScore = dto.LeadScore.Value;
-        if (dto.AccountHealthScore.HasValue) account.AccountHealthScore = dto.AccountHealthScore.Value;
-        if (dto.NpsScore.HasValue) account.NpsScore = dto.NpsScore.Value;
-        if (dto.SatisfactionRating.HasValue) account.SatisfactionRating = dto.SatisfactionRating.Value;
-        if (dto.AssignedToUserId.HasValue) account.AssignedToUserId = dto.AssignedToUserId;
-        if (dto.AccountManagerId.HasValue) account.AccountManagerId = dto.AccountManagerId;
-        if (dto.Territory != null) account.Territory = dto.Territory;
-        if (dto.Region != null) account.Region = dto.Region;
-        if (dto.Tags != null) account.Tags = dto.Tags;
-        if (dto.Segment != null) account.Segment = dto.Segment;
-        if (dto.ReferralSource != null) account.ReferralSource = dto.ReferralSource;
-        if (dto.ReferredByAccountId.HasValue) account.ReferredByAccountId = dto.ReferredByAccountId;
-        if (dto.ParentAccountId.HasValue) account.ParentAccountId = dto.ParentAccountId;
-        if (dto.Notes != null) account.Notes = dto.Notes;
-        if (dto.InternalNotes != null) account.InternalNotes = dto.InternalNotes;
-        if (dto.Description != null) account.Description = dto.Description;
-        if (dto.CustomFields != null) account.CustomFields = dto.CustomFields;
+        if (dto.Category.HasValue)
+            account.Category = dto.Category.Value;
+        if (dto.FirstName != null)
+            account.FirstName = dto.FirstName;
+        if (dto.LastName != null)
+            account.LastName = dto.LastName;
+        if (dto.Salutation != null)
+            account.Salutation = dto.Salutation;
+        if (dto.Suffix != null)
+            account.Suffix = dto.Suffix;
+        if (dto.DateOfBirth.HasValue)
+            account.DateOfBirth = dto.DateOfBirth;
+        if (dto.Gender != null)
+            account.Gender = dto.Gender;
+        if (dto.LinkedContactId.HasValue)
+            account.LinkedContactId = dto.LinkedContactId;
+        if (dto.Company != null)
+            account.Company = dto.Company;
+        if (dto.LegalName != null)
+            account.LegalName = dto.LegalName;
+        if (dto.DbaName != null)
+            account.DbaName = dto.DbaName;
+        if (dto.TaxId != null)
+            account.TaxId = dto.TaxId;
+        if (dto.RegistrationNumber != null)
+            account.RegistrationNumber = dto.RegistrationNumber;
+        if (dto.YearFounded.HasValue)
+            account.YearFounded = dto.YearFounded;
+        if (dto.PrimaryContactId.HasValue)
+            account.PrimaryContactId = dto.PrimaryContactId;
+        if (dto.Email != null)
+            account.Email = dto.Email;
+        if (dto.SecondaryEmail != null)
+            account.SecondaryEmail = dto.SecondaryEmail;
+        if (dto.Phone != null)
+            account.Phone = dto.Phone;
+        if (dto.MobilePhone != null)
+            account.MobilePhone = dto.MobilePhone;
+        if (dto.FaxNumber != null)
+            account.FaxNumber = dto.FaxNumber;
+        if (dto.JobTitle != null)
+            account.JobTitle = dto.JobTitle;
+        if (dto.Website != null)
+            account.Website = dto.Website;
+        if (dto.Industry != null)
+            account.Industry = dto.Industry;
+        if (dto.SubIndustry != null)
+            account.SubIndustry = dto.SubIndustry;
+        if (dto.NumberOfEmployees.HasValue)
+            account.NumberOfEmployees = dto.NumberOfEmployees;
+        if (dto.EmployeeRange != null)
+            account.EmployeeRange = dto.EmployeeRange;
+        if (dto.AnnualRevenue.HasValue)
+            account.AnnualRevenue = dto.AnnualRevenue.Value;
+        if (dto.RevenueRange != null)
+            account.RevenueRange = dto.RevenueRange;
+        if (dto.AccountType.HasValue)
+            account.AccountType = dto.AccountType.Value;
+        if (dto.Priority.HasValue)
+            account.Priority = dto.Priority.Value;
+        if (dto.StockSymbol != null)
+            account.StockSymbol = dto.StockSymbol;
+        if (dto.Ownership != null)
+            account.Ownership = dto.Ownership;
+        if (dto.LifecycleStage.HasValue)
+            account.LifecycleStage = dto.LifecycleStage.Value;
+        if (dto.LeadSource != null)
+            account.LeadSource = dto.LeadSource;
+        if (dto.NextFollowUpDate.HasValue)
+            account.NextFollowUpDate = dto.NextFollowUpDate;
+        if (dto.CreditLimit.HasValue)
+            account.CreditLimit = dto.CreditLimit.Value;
+        if (dto.PaymentTerms != null)
+            account.PaymentTerms = dto.PaymentTerms;
+        if (dto.PreferredPaymentMethod != null)
+            account.PreferredPaymentMethod = dto.PreferredPaymentMethod;
+        if (dto.Currency != null)
+            account.Currency = dto.Currency;
+        if (dto.BillingCycle != null)
+            account.BillingCycle = dto.BillingCycle;
+        if (dto.LeadScore.HasValue)
+            account.LeadScore = dto.LeadScore.Value;
+        if (dto.AccountHealthScore.HasValue)
+            account.AccountHealthScore = dto.AccountHealthScore.Value;
+        if (dto.NpsScore.HasValue)
+            account.NpsScore = dto.NpsScore.Value;
+        if (dto.SatisfactionRating.HasValue)
+            account.SatisfactionRating = dto.SatisfactionRating.Value;
+        if (dto.AssignedToUserId.HasValue)
+            account.AssignedToUserId = dto.AssignedToUserId;
+        if (dto.AccountManagerId.HasValue)
+            account.AccountManagerId = dto.AccountManagerId;
+        if (dto.Territory != null)
+            account.Territory = dto.Territory;
+        if (dto.Region != null)
+            account.Region = dto.Region;
+        if (dto.Tags != null)
+            account.Tags = dto.Tags;
+        if (dto.Segment != null)
+            account.Segment = dto.Segment;
+        if (dto.ReferralSource != null)
+            account.ReferralSource = dto.ReferralSource;
+        if (dto.ReferredByAccountId.HasValue)
+            account.ReferredByAccountId = dto.ReferredByAccountId;
+        if (dto.ParentAccountId.HasValue)
+            account.ParentAccountId = dto.ParentAccountId;
+        if (dto.Notes != null)
+            account.Notes = dto.Notes;
+        if (dto.InternalNotes != null)
+            account.InternalNotes = dto.InternalNotes;
+        if (dto.Description != null)
+            account.Description = dto.Description;
+        if (dto.CustomFields != null)
+            account.CustomFields = dto.CustomFields;
 
-        if (dto.PreferredContactTime != null) account.PreferredContactTime = dto.PreferredContactTime;
-        if (dto.LinkedInUrl != null) account.LinkedInUrl = dto.LinkedInUrl;
-        if (dto.TwitterHandle != null) account.TwitterHandle = dto.TwitterHandle;
-        if (dto.FacebookUrl != null) account.FacebookUrl = dto.FacebookUrl;
+        if (dto.PreferredContactTime != null)
+            account.PreferredContactTime = dto.PreferredContactTime;
+        if (dto.LinkedInUrl != null)
+            account.LinkedInUrl = dto.LinkedInUrl;
+        if (dto.TwitterHandle != null)
+            account.TwitterHandle = dto.TwitterHandle;
+        if (dto.FacebookUrl != null)
+            account.FacebookUrl = dto.FacebookUrl;
 
         account.UpdatedAt = DateTime.UtcNow;
         account.LastActivityDate = DateTime.UtcNow;
@@ -677,15 +737,24 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
         if (link == null)
             return null;
 
-        if (dto.Role.HasValue) link.Role = dto.Role.Value;
-        if (dto.IsDecisionMaker.HasValue) link.IsDecisionMaker = dto.IsDecisionMaker.Value;
-        if (dto.ReceivesBillingNotifications.HasValue) link.ReceivesBillingNotifications = dto.ReceivesBillingNotifications.Value;
-        if (dto.ReceivesMarketingEmails.HasValue) link.ReceivesMarketingEmails = dto.ReceivesMarketingEmails.Value;
-        if (dto.ReceivesTechnicalUpdates.HasValue) link.ReceivesTechnicalUpdates = dto.ReceivesTechnicalUpdates.Value;
-        if (dto.PositionAtAccount != null) link.PositionAtAccount = dto.PositionAtAccount;
-        if (dto.DepartmentAtAccount != null) link.DepartmentAtAccount = dto.DepartmentAtAccount;
-        if (dto.RelationshipEndDate.HasValue) link.RelationshipEndDate = dto.RelationshipEndDate;
-        if (dto.Notes != null) link.Notes = dto.Notes;
+        if (dto.Role.HasValue)
+            link.Role = dto.Role.Value;
+        if (dto.IsDecisionMaker.HasValue)
+            link.IsDecisionMaker = dto.IsDecisionMaker.Value;
+        if (dto.ReceivesBillingNotifications.HasValue)
+            link.ReceivesBillingNotifications = dto.ReceivesBillingNotifications.Value;
+        if (dto.ReceivesMarketingEmails.HasValue)
+            link.ReceivesMarketingEmails = dto.ReceivesMarketingEmails.Value;
+        if (dto.ReceivesTechnicalUpdates.HasValue)
+            link.ReceivesTechnicalUpdates = dto.ReceivesTechnicalUpdates.Value;
+        if (dto.PositionAtAccount != null)
+            link.PositionAtAccount = dto.PositionAtAccount;
+        if (dto.DepartmentAtAccount != null)
+            link.DepartmentAtAccount = dto.DepartmentAtAccount;
+        if (dto.RelationshipEndDate.HasValue)
+            link.RelationshipEndDate = dto.RelationshipEndDate;
+        if (dto.Notes != null)
+            link.Notes = dto.Notes;
 
         // Handle primary contact change
         if (dto.IsPrimaryContact.HasValue)
@@ -919,38 +988,38 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
             }
         }
 
-            // Prefer normalized contact-info, tags and custom fields when available (use NormalizationService)
-            var primaryEmail = await _normalizationService.GetPrimaryEmailAsync(ContactInfoOwnerType.Account, account.Id) ?? account.Email;
-            var primaryPhone = await _normalizationService.GetPrimaryPhoneAsync(ContactInfoOwnerType.Account, account.Id) ?? account.Phone;
-            var primaryFax = await _normalizationService.GetPrimaryFaxAsync(ContactInfoOwnerType.Account, account.Id) ?? account.FaxNumber;
-            var addressLinks = await _contactInfoService.GetAddressesAsync(EntityType.Account, account.Id);
-            var billingAddress = FindPrimaryAddress(addressLinks, "Billing", "Primary");
-            var shippingAddress = FindPrimaryAddress(addressLinks, "Shipping");
-            var shippingSameAsBilling = false;
-            if (shippingAddress == null && billingAddress != null)
-            {
-                shippingAddress = billingAddress;
-                shippingSameAsBilling = true;
-            }
-            else if (shippingAddress != null && billingAddress != null)
-            {
-                shippingSameAsBilling = AreSameAddress(shippingAddress, billingAddress);
-            }
+        // Prefer normalized contact-info, tags and custom fields when available (use NormalizationService)
+        var primaryEmail = await _normalizationService.GetPrimaryEmailAsync(ContactInfoOwnerType.Account, account.Id) ?? account.Email;
+        var primaryPhone = await _normalizationService.GetPrimaryPhoneAsync(ContactInfoOwnerType.Account, account.Id) ?? account.Phone;
+        var primaryFax = await _normalizationService.GetPrimaryFaxAsync(ContactInfoOwnerType.Account, account.Id) ?? account.FaxNumber;
+        var addressLinks = await _contactInfoService.GetAddressesAsync(EntityType.Account, account.Id);
+        var billingAddress = FindPrimaryAddress(addressLinks, "Billing", "Primary");
+        var shippingAddress = FindPrimaryAddress(addressLinks, "Shipping");
+        var shippingSameAsBilling = false;
+        if (shippingAddress == null && billingAddress != null)
+        {
+            shippingAddress = billingAddress;
+            shippingSameAsBilling = true;
+        }
+        else if (shippingAddress != null && billingAddress != null)
+        {
+            shippingSameAsBilling = AreSameAddress(shippingAddress, billingAddress);
+        }
 
-            var addrLine1 = billingAddress?.Line1 ?? string.Empty;
-            var addrLine2 = billingAddress?.Line2;
-            var addrCity = billingAddress?.City ?? string.Empty;
-            var addrState = billingAddress?.State;
-            var addrPostal = billingAddress?.PostalCode;
-            var addrCountry = billingAddress?.Country ?? string.Empty;
+        var addrLine1 = billingAddress?.Line1 ?? string.Empty;
+        var addrLine2 = billingAddress?.Line2;
+        var addrCity = billingAddress?.City ?? string.Empty;
+        var addrState = billingAddress?.State;
+        var addrPostal = billingAddress?.PostalCode;
+        var addrCountry = billingAddress?.Country ?? string.Empty;
 
-            var tagsValue = await _normalizationService.GetTagsAsync("Account", account.Id) ?? account.Tags;
-            var customFieldsValue = await _normalizationService.GetCustomFieldsAsync("Account", account.Id) ?? account.CustomFields;
+        var tagsValue = await _normalizationService.GetTagsAsync("Account", account.Id) ?? account.Tags;
+        var customFieldsValue = await _normalizationService.GetCustomFieldsAsync("Account", account.Id) ?? account.CustomFields;
 
-            // Prefer normalized social accounts when available
-            var linkedInUrl = await _normalizationService.GetPrimarySocialAccountAsync(ContactInfoOwnerType.Account, account.Id, SocialNetwork.LinkedIn) ?? account.LinkedInUrl;
-            var twitterHandle = await _normalizationService.GetPrimarySocialAccountAsync(ContactInfoOwnerType.Account, account.Id, SocialNetwork.Twitter) ?? account.TwitterHandle;
-            var facebookUrl = await _normalizationService.GetPrimarySocialAccountAsync(ContactInfoOwnerType.Account, account.Id, SocialNetwork.Facebook) ?? account.FacebookUrl;
+        // Prefer normalized social accounts when available
+        var linkedInUrl = await _normalizationService.GetPrimarySocialAccountAsync(ContactInfoOwnerType.Account, account.Id, SocialNetwork.LinkedIn) ?? account.LinkedInUrl;
+        var twitterHandle = await _normalizationService.GetPrimarySocialAccountAsync(ContactInfoOwnerType.Account, account.Id, SocialNetwork.Twitter) ?? account.TwitterHandle;
+        var facebookUrl = await _normalizationService.GetPrimarySocialAccountAsync(ContactInfoOwnerType.Account, account.Id, SocialNetwork.Facebook) ?? account.FacebookUrl;
 
         var preferences = await _preferencesService.GetAccountDefaultsAsync(account.Id);
 
@@ -1284,7 +1353,7 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
     {
         if (string.IsNullOrWhiteSpace(phoneNumber))
             return true;
-        
+
         var phoneRegex = new System.Text.RegularExpressions.Regex(@"^\+?[0-9\s\-\(\)]+$");
         return phoneRegex.IsMatch(phoneNumber);
     }

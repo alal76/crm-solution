@@ -1,9 +1,9 @@
 // CRM Solution - Customer Relationship Management System
 // Copyright (C) 2024-2026 Abhishek Lal
 //
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the Source-Available License (see LICENSE) as published by
-
+// This software is source-available. Non-commercial use is permitted under
+// the terms of the LICENSE file. Commercial use requires a separate license.
+// See the LICENSE file in the root directory for full terms.
 #pragma warning disable CS0535  // Does not implement interface member (TD-001 technical debt)
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
@@ -32,7 +32,7 @@ namespace CRM.Infrastructure.Services;
 /// Implementation of ICommissionCalculationService for complex commission calculations.
 /// Handles tier-based calculations, accelerators, and split commissions.
 /// </summary>
-[System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CS0535:Does not implement interface member", 
+[System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CS0535:Does not implement interface member",
     Justification = "DTOs are defined locally and in CRM.Core. Duplicate definitions are documented technical debt (TD-001). " +
     "Local definitions kept for service autonomy. Refactoring planned for next maintenance sprint.")]
 #pragma warning disable CS0535
@@ -213,7 +213,7 @@ public class CommissionCalculationService : ICommissionCalculationService, IComm
             // Verify final amount is greater than or equal to base amount
             if (calculation.FinalCommissionAmount < calculation.BaseCommissionAmount)
             {
-                _logger.LogWarning("ValidateAsync: Final amount {Final} less than base {Base}", 
+                _logger.LogWarning("ValidateAsync: Final amount {Final} less than base {Base}",
                     calculation.FinalCommissionAmount, calculation.BaseCommissionAmount);
                 return false;
             }

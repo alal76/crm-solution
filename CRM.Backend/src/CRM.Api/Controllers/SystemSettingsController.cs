@@ -4,18 +4,17 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
+using System.Security.Claims;
+using System.Security.Cryptography.X509Certificates;
+using System.Text.Json;
 using CRM.Core.Dtos;
 using CRM.Core.Interfaces;
 using CRM.Core.Validation;
 using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Services;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
-using System.Security.Cryptography.X509Certificates;
-using System.Text.Json;
 
 namespace CRM.API.Controllers;
 
@@ -130,20 +129,48 @@ public class SystemSettingsController : ControllerBase
 
             switch (moduleName.ToLower())
             {
-                case "accounts": request.AccountsEnabled = enabled; break;
-                case "contacts": request.ContactsEnabled = enabled; break;
-                case "leads": request.LeadsEnabled = enabled; break;
-                case "opportunities": request.OpportunitiesEnabled = enabled; break;
-                case "products": request.ProductsEnabled = enabled; break;
-                case "services": request.ServicesEnabled = enabled; break;
-                case "campaigns": request.CampaignsEnabled = enabled; break;
-                case "quotes": request.QuotesEnabled = enabled; break;
-                case "tasks": request.TasksEnabled = enabled; break;
-                case "activities": request.ActivitiesEnabled = enabled; break;
-                case "notes": request.NotesEnabled = enabled; break;
-                case "workflows": request.WorkflowsEnabled = enabled; break;
-                case "reports": request.ReportsEnabled = enabled; break;
-                case "dashboard": request.DashboardEnabled = enabled; break;
+                case "accounts":
+                    request.AccountsEnabled = enabled;
+                    break;
+                case "contacts":
+                    request.ContactsEnabled = enabled;
+                    break;
+                case "leads":
+                    request.LeadsEnabled = enabled;
+                    break;
+                case "opportunities":
+                    request.OpportunitiesEnabled = enabled;
+                    break;
+                case "products":
+                    request.ProductsEnabled = enabled;
+                    break;
+                case "services":
+                    request.ServicesEnabled = enabled;
+                    break;
+                case "campaigns":
+                    request.CampaignsEnabled = enabled;
+                    break;
+                case "quotes":
+                    request.QuotesEnabled = enabled;
+                    break;
+                case "tasks":
+                    request.TasksEnabled = enabled;
+                    break;
+                case "activities":
+                    request.ActivitiesEnabled = enabled;
+                    break;
+                case "notes":
+                    request.NotesEnabled = enabled;
+                    break;
+                case "workflows":
+                    request.WorkflowsEnabled = enabled;
+                    break;
+                case "reports":
+                    request.ReportsEnabled = enabled;
+                    break;
+                case "dashboard":
+                    request.DashboardEnabled = enabled;
+                    break;
                 default:
                     return BadRequest($"Unknown module: {moduleName}");
             }

@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
@@ -126,8 +125,8 @@ public class CampaignRecipientService : ICampaignRecipientService, ICampaignReci
         var recipients = await _context.CampaignRecipients
             .Where(r => r.CampaignId == campaignId && !r.IsDeleted)
             .Include(r => r.Contact)
-            .Where(r => r.Contact.FirstName.Contains(criteria) || 
-                       r.Contact.LastName.Contains(criteria) || 
+            .Where(r => r.Contact.FirstName.Contains(criteria) ||
+                       r.Contact.LastName.Contains(criteria) ||
                        r.Contact.Email.Contains(criteria))
             .ToListAsync(cancellationToken);
 
@@ -157,7 +156,7 @@ public class CampaignRecipientService : ICampaignRecipientService, ICampaignReci
             Impressions = 0, // OpenCount not available on entity
             Clicks = 0,      // ClickCount not available on entity
             Conversions = 0, // ConvertedAt not available on entity
-            Money = 0        // ConversionValue not available on entity
+            Money = 0 // ConversionValue not available on entity
         };
     }
 }

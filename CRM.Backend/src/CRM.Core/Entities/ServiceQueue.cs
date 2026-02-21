@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -46,8 +45,8 @@ public class ServiceQueue : BaseEntity
     /// </summary>
     [Column(TypeName = "longtext")]
     public string AssignedGroupIds { get; set; } = string.Empty;
-    /// JSON array of required skills.
-    /// </summary>
+    // JSON array of required skills.
+    // </summary>
     [Column(TypeName = "longtext")]
     public string SkillRequirements { get; set; } = string.Empty;
 

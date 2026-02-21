@@ -4,14 +4,13 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
+using System.Text.Json;
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using CRM.Core.Validation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System.Text.Json;
 
 namespace CRM.Infrastructure.Services;
 
@@ -179,18 +178,30 @@ public class ModuleUIConfigService
         if (entity == null)
             return null;
 
-        if (dto.IsEnabled.HasValue) entity.IsEnabled = dto.IsEnabled.Value;
-        if (dto.DisplayName != null) entity.DisplayName = dto.DisplayName;
-        if (dto.Description != null) entity.Description = dto.Description;
-        if (dto.IconName != null) entity.IconName = dto.IconName;
-        if (dto.DisplayOrder.HasValue) entity.DisplayOrder = dto.DisplayOrder.Value;
-        if (dto.TabsConfig != null) entity.TabsConfig = dto.TabsConfig;
-        if (dto.LinkedEntitiesConfig != null) entity.LinkedEntitiesConfig = dto.LinkedEntitiesConfig;
-        if (dto.ListViewConfig != null) entity.ListViewConfig = dto.ListViewConfig;
-        if (dto.DetailViewConfig != null) entity.DetailViewConfig = dto.DetailViewConfig;
-        if (dto.QuickCreateConfig != null) entity.QuickCreateConfig = dto.QuickCreateConfig;
-        if (dto.SearchFilterConfig != null) entity.SearchFilterConfig = dto.SearchFilterConfig;
-        if (dto.ModuleSettings != null) entity.ModuleSettings = dto.ModuleSettings;
+        if (dto.IsEnabled.HasValue)
+            entity.IsEnabled = dto.IsEnabled.Value;
+        if (dto.DisplayName != null)
+            entity.DisplayName = dto.DisplayName;
+        if (dto.Description != null)
+            entity.Description = dto.Description;
+        if (dto.IconName != null)
+            entity.IconName = dto.IconName;
+        if (dto.DisplayOrder.HasValue)
+            entity.DisplayOrder = dto.DisplayOrder.Value;
+        if (dto.TabsConfig != null)
+            entity.TabsConfig = dto.TabsConfig;
+        if (dto.LinkedEntitiesConfig != null)
+            entity.LinkedEntitiesConfig = dto.LinkedEntitiesConfig;
+        if (dto.ListViewConfig != null)
+            entity.ListViewConfig = dto.ListViewConfig;
+        if (dto.DetailViewConfig != null)
+            entity.DetailViewConfig = dto.DetailViewConfig;
+        if (dto.QuickCreateConfig != null)
+            entity.QuickCreateConfig = dto.QuickCreateConfig;
+        if (dto.SearchFilterConfig != null)
+            entity.SearchFilterConfig = dto.SearchFilterConfig;
+        if (dto.ModuleSettings != null)
+            entity.ModuleSettings = dto.ModuleSettings;
 
         entity.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
@@ -218,8 +229,10 @@ public class ModuleUIConfigService
             var update = dto.Modules.FirstOrDefault(m => m.ModuleName == config.ModuleName);
             if (update != null)
             {
-                if (update.IsEnabled.HasValue) config.IsEnabled = update.IsEnabled.Value;
-                if (update.DisplayOrder.HasValue) config.DisplayOrder = update.DisplayOrder.Value;
+                if (update.IsEnabled.HasValue)
+                    config.IsEnabled = update.IsEnabled.Value;
+                if (update.DisplayOrder.HasValue)
+                    config.DisplayOrder = update.DisplayOrder.Value;
                 config.UpdatedAt = DateTime.UtcNow;
             }
         }

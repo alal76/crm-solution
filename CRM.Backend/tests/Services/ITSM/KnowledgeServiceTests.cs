@@ -4,12 +4,11 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
-using Xunit;
-using FluentAssertions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using FluentAssertions;
+using Xunit;
 
 namespace CRM.Tests.Services.ITSM;
 
@@ -302,7 +301,8 @@ public class KnowledgeServiceTests
     private static double CalculateHelpfulnessRatio(KnowledgeArticle article)
     {
         var total = article.HelpfulCount + article.NotHelpfulCount;
-        if (total == 0) return 1.0;
+        if (total == 0)
+            return 1.0;
         return (double)article.HelpfulCount / total;
     }
 

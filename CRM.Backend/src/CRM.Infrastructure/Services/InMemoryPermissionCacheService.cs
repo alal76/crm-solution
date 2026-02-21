@@ -1,9 +1,12 @@
 // CRM Solution - Customer Relationship Management System
 // Copyright (C) 2024-2026 Abhishek Lal
-
+//
+// This software is source-available. Non-commercial use is permitted under
+// the terms of the LICENSE file. Commercial use requires a separate license.
+// See the LICENSE file in the root directory for full terms.
+using System.Collections.Concurrent;
 using CRM.Core.Dtos;
 using CRM.Core.Interfaces;
-using System.Collections.Concurrent;
 
 namespace CRM.Infrastructure.Services;
 
@@ -27,7 +30,7 @@ public class InMemoryPermissionCacheService : IPermissionCacheService
     // Simple in-memory cache: userId -> (permissions, timestamp)
     private static readonly ConcurrentDictionary<int, CacheEntry> _cache = new();
     private const int DEFAULT_TTL_SECONDS = 3600; // 1 hour
-    
+
     private class CacheEntry
     {
         public ISet<string> Permissions { get; set; } = new HashSet<string>();
@@ -51,7 +54,7 @@ public class InMemoryPermissionCacheService : IPermissionCacheService
                 _cache.TryRemove(userId, out _);
             }
         }
-        
+
         return Task.FromResult<ISet<string>>(new HashSet<string>());
     }
 
@@ -63,7 +66,7 @@ public class InMemoryPermissionCacheService : IPermissionCacheService
             Permissions = new HashSet<string>(permissions),
             ExpirationTime = expirationTime
         };
-        
+
         _cache.AddOrUpdate(userId, entry, (_, _) => entry);
         return Task.CompletedTask;
     }
@@ -81,7 +84,7 @@ public class InMemoryPermissionCacheService : IPermissionCacheService
                 _cache.TryRemove(userId, out _);
             }
         }
-        
+
         return Task.FromResult(false);
     }
 
@@ -97,7 +100,7 @@ public class InMemoryPermissionCacheService : IPermissionCacheService
         {
             _cache.TryRemove(userId, out _);
         }
-        
+
         return Task.CompletedTask;
     }
 
@@ -149,7 +152,7 @@ public class InMemoryPermissionCacheService : IPermissionCacheService
                 _cache.TryRemove(userId, out _);
             }
         }
-        
+
         var stats = new PermissionCacheStatisticsDto
         {
             CachedUserCount = _cache.Count,
@@ -159,7 +162,7 @@ public class InMemoryPermissionCacheService : IPermissionCacheService
             ApproximateMemoryUsageBytes = _cache.Sum(kvp => kvp.Value.Permissions.Sum(p => p.Length)),
             LastResetAt = null
         };
-        
+
         return Task.FromResult(stats);
     }
 

@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Net.Http.Headers;
@@ -137,7 +136,8 @@ public class PerformanceTestHarness
 
         cts.Cancel();
 
-        try { await Task.WhenAll(userTasks); }
+        try
+        { await Task.WhenAll(userTasks); }
         catch (OperationCanceledException) { }
 
         stopwatch.Stop();
@@ -171,7 +171,8 @@ public class PerformanceTestHarness
             }))
             .ToArray();
 
-        try { await Task.WhenAll(tasks); }
+        try
+        { await Task.WhenAll(tasks); }
         catch (OperationCanceledException) { }
 
         stopwatch.Stop();
@@ -369,7 +370,8 @@ public class PerformanceTestHarness
     {
         var results = new List<PerformanceTestResult>();
 
-        if (!await AuthenticateAsync()) return results;
+        if (!await AuthenticateAsync())
+            return results;
 
         // API Health Check
         results.Add(await RunLoadTestAsync(

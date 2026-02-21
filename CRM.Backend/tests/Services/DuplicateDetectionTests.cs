@@ -4,16 +4,15 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
-using Xunit;
-using FluentAssertions;
-using CRM.Core.Entities;
-using CRM.Core.Interfaces;
-using CRM.Core.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using CRM.Core.Entities;
+using CRM.Core.Interfaces;
+using CRM.Core.Models;
+using FluentAssertions;
+using Xunit;
 using MatchTypeEntity = CRM.Core.Entities.MatchType;
 
 namespace CRM.Tests.Services;

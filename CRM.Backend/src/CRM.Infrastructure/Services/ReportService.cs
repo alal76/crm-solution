@@ -4,26 +4,24 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using System.Collections.Concurrent;
+using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
-using CRM.Core.Entities;
-using CRM.Core.Models;
-using System.Security.Claims;
 using CRM.Core.Dtos.Reports;
+using CRM.Core.Entities;
 using CRM.Core.Entities.Reports;
 using CRM.Core.Interfaces;
+using CRM.Core.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-
 // Type aliases to disambiguate from ReportBuilderService.ReportDefinition
 using ReportDefinitionEntity = CRM.Core.Entities.Reports.ReportDefinition;
+using ReportEntityDataSource = CRM.Core.Entities.Reports.ReportDataSource;
+using ReportExecutionEntity = CRM.Core.Entities.Reports.ReportExecution;
 using ReportFolderEntity = CRM.Core.Entities.Reports.ReportFolder;
 using ReportScheduleEntity = CRM.Core.Entities.Reports.ReportSchedule;
-using ReportExecutionEntity = CRM.Core.Entities.Reports.ReportExecution;
-using ReportEntityDataSource = CRM.Core.Entities.Reports.ReportDataSource;
 
 namespace CRM.Infrastructure.Services;
 

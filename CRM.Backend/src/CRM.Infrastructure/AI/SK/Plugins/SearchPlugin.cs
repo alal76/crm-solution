@@ -4,13 +4,12 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 #nullable enable
 
 using System.ComponentModel;
+using CRM.Core.Ports.Output.Providers;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
-using CRM.Core.Ports.Output.Providers;
 
 namespace CRM.Infrastructure.AI.SK.Plugins;
 

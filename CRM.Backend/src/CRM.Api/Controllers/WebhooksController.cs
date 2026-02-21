@@ -4,14 +4,13 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
+using System.Text.Json;
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Infrastructure.Data;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Text.Json;
 
 namespace CRM.Api.Controllers;
 
@@ -629,11 +628,16 @@ public class WebhooksController : ControllerBase
     private string BuildWebFormDescription(WebFormSubmissionDto dto)
     {
         var lines = new List<string>();
-        if (!string.IsNullOrEmpty(dto.Name)) lines.Add($"Name: {dto.Name}");
-        if (!string.IsNullOrEmpty(dto.Email)) lines.Add($"Email: {dto.Email}");
-        if (!string.IsNullOrEmpty(dto.Phone)) lines.Add($"Phone: {dto.Phone}");
-        if (!string.IsNullOrEmpty(dto.Company)) lines.Add($"Company: {dto.Company}");
-        if (!string.IsNullOrEmpty(dto.Message)) lines.Add($"\nMessage:\n{dto.Message}");
+        if (!string.IsNullOrEmpty(dto.Name))
+            lines.Add($"Name: {dto.Name}");
+        if (!string.IsNullOrEmpty(dto.Email))
+            lines.Add($"Email: {dto.Email}");
+        if (!string.IsNullOrEmpty(dto.Phone))
+            lines.Add($"Phone: {dto.Phone}");
+        if (!string.IsNullOrEmpty(dto.Company))
+            lines.Add($"Company: {dto.Company}");
+        if (!string.IsNullOrEmpty(dto.Message))
+            lines.Add($"\nMessage:\n{dto.Message}");
         if (dto.FormFields != null)
         {
             lines.Add("\nAdditional Fields:");
@@ -652,7 +656,8 @@ public class WebhooksController : ControllerBase
 
     private string TruncateText(string? text, int maxLength)
     {
-        if (string.IsNullOrEmpty(text)) return "";
+        if (string.IsNullOrEmpty(text))
+            return "";
         return text.Length <= maxLength ? text : text.Substring(0, maxLength) + "...";
     }
 

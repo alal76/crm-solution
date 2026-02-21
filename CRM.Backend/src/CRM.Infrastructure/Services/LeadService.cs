@@ -4,11 +4,10 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
-using CRM.Core.Interfaces;
 using CRM.Core.Entities.Workflow;
+using CRM.Core.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -111,7 +110,8 @@ public class LeadService : ILeadService
     public async Task<bool> UpdateAsync(int id, Action<Lead> applyChanges)
     {
         var lead = await _context.Set<Lead>().FirstOrDefaultAsync(l => l.Id == id && !l.IsDeleted);
-        if (lead == null) return false;
+        if (lead == null)
+            return false;
 
         applyChanges(lead);
         lead.UpdatedAt = DateTime.UtcNow;
@@ -124,7 +124,8 @@ public class LeadService : ILeadService
     public async Task<bool> DeleteAsync(int id)
     {
         var lead = await _context.Set<Lead>().FirstOrDefaultAsync(l => l.Id == id && !l.IsDeleted);
-        if (lead == null) return false;
+        if (lead == null)
+            return false;
 
         lead.IsDeleted = true;
         lead.UpdatedAt = DateTime.UtcNow;
@@ -137,8 +138,10 @@ public class LeadService : ILeadService
     public async Task<(int OpportunityId, int LeadId)> ConvertAsync(int id, string? opportunityName, int? accountId, decimal? estimatedValue, DateTime? expectedCloseDate)
     {
         var lead = await _context.Set<Lead>().FirstOrDefaultAsync(l => l.Id == id && !l.IsDeleted);
-        if (lead == null) throw new InvalidOperationException($"Lead with ID {id} not found");
-        if (lead.Status == LeadLifecycleStatus.Converted) throw new InvalidOperationException("Lead has already been converted");
+        if (lead == null)
+            throw new InvalidOperationException($"Lead with ID {id} not found");
+        if (lead.Status == LeadLifecycleStatus.Converted)
+            throw new InvalidOperationException("Lead has already been converted");
 
         var opportunity = new Opportunity
         {
@@ -248,7 +251,8 @@ public class LeadService : ILeadService
     public async Task<bool> AssignOwnerAsync(int leadId, int ownerId)
     {
         var lead = await _context.Set<Lead>().FirstOrDefaultAsync(l => l.Id == leadId && !l.IsDeleted);
-        if (lead == null) return false;
+        if (lead == null)
+            return false;
 
         lead.OwnerId = ownerId;
         lead.UpdatedAt = DateTime.UtcNow;

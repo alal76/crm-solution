@@ -4,13 +4,12 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using CRM.Core.Ports.Output.Providers;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using CRM.Core.Ports.Output.Providers;
 
 namespace CRM.Infrastructure.Providers.AI;
 
@@ -531,15 +530,18 @@ public class BedrockProvider : IAIPort
         while (!reader.EndOfStream)
         {
             var line = await reader.ReadLineAsync(cancellationToken);
-            if (string.IsNullOrWhiteSpace(line)) continue;
+            if (string.IsNullOrWhiteSpace(line))
+                continue;
 
             try
             {
                 // Bedrock streaming uses event-stream format
-                if (line.StartsWith(":") || !line.Contains("{")) continue;
+                if (line.StartsWith(":") || !line.Contains("{"))
+                    continue;
 
                 var eventStart = line.IndexOf('{');
-                if (eventStart < 0) continue;
+                if (eventStart < 0)
+                    continue;
 
                 var jsonData = line.Substring(eventStart);
                 var streamEvent = JsonSerializer.Deserialize<BedrockStreamEvent>(jsonData, JsonOptions);
@@ -914,7 +916,8 @@ Return only the JSON array.";
     /// <inheritdoc />
     public int EstimateTokens(string text)
     {
-        if (string.IsNullOrEmpty(text)) return 0;
+        if (string.IsNullOrEmpty(text))
+            return 0;
         // Claude tokenization is similar to GPT: roughly 4 characters per token
         return (int)Math.Ceiling(text.Length / 4.0);
     }

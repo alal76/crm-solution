@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using CRM.Core.Entities;
 using FluentAssertions;
 using Xunit;
@@ -326,11 +325,16 @@ public class UserEntityTests
             var user = new User();
 
             // Act & Assert - Valid roles
-            user.Role = 0; user.Role.Should().Be(0);
-            user.Role = 1; user.Role.Should().Be(1);
-            user.Role = 2; user.Role.Should().Be(2);
-            user.Role = 3; user.Role.Should().Be(3);
-            user.Role = 4; user.Role.Should().Be(4);
+            user.Role = 0;
+            user.Role.Should().Be(0);
+            user.Role = 1;
+            user.Role.Should().Be(1);
+            user.Role = 2;
+            user.Role.Should().Be(2);
+            user.Role = 3;
+            user.Role.Should().Be(3);
+            user.Role = 4;
+            user.Role.Should().Be(4);
         }
     }
 

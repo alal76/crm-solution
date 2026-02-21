@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using System.Collections.Concurrent;
 using System.Reflection;
 
@@ -21,8 +20,10 @@ internal static class ProviderResolution
     public static TPort? ResolveByTypeName<TPort>(IServiceProvider serviceProvider, string providerTypeName)
         where TPort : class
     {
-        if (serviceProvider == null) throw new ArgumentNullException(nameof(serviceProvider));
-        if (string.IsNullOrWhiteSpace(providerTypeName)) return null;
+        if (serviceProvider == null)
+            throw new ArgumentNullException(nameof(serviceProvider));
+        if (string.IsNullOrWhiteSpace(providerTypeName))
+            return null;
 
         var key = (typeof(TPort), providerTypeName);
         var providerType = ProviderTypeCache.GetOrAdd(key, static k => FindProviderType(k.PortType, k.ProviderTypeName));

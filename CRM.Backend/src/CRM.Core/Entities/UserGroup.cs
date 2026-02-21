@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 namespace CRM.Core.Entities;
 
 /// <summary>
@@ -115,7 +114,7 @@ public class UserGroup : BaseEntity
     /// <summary>
     /// FUNCTIONAL: Whether members can see Customers
     /// </summary>
-        public bool CanAccessAccounts { get; set; } = false;
+    public bool CanAccessAccounts { get; set; } = false;
 
     /// <summary>
     /// FUNCTIONAL: Whether members can see Contacts
@@ -202,10 +201,10 @@ public class UserGroup : BaseEntity
     #region Entity CRUD Permissions
 
     // Customer Permissions
-        public bool CanCreateAccounts { get; set; } = false;
-        public bool CanEditAccounts { get; set; } = false;
-        public bool CanDeleteAccounts { get; set; } = false;
-        public bool CanViewAllAccounts { get; set; } = false; // vs. only assigned
+    public bool CanCreateAccounts { get; set; } = false;
+    public bool CanEditAccounts { get; set; } = false;
+    public bool CanDeleteAccounts { get; set; } = false;
+    public bool CanViewAllAccounts { get; set; } = false; // vs. only assigned
 
     // Contact Permissions
     public bool CanCreateContacts { get; set; } = false;

@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using System.ComponentModel.DataAnnotations;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
@@ -66,7 +65,8 @@ public class SalesQuotasController : ControllerBase
         try
         {
             var quota = await _service.GetByIdAsync(id, cancellationToken);
-            if (quota == null) return NotFound($"Sales quota {id} not found");
+            if (quota == null)
+                return NotFound($"Sales quota {id} not found");
             return Ok(quota);
         }
         catch (Exception ex)
@@ -85,7 +85,8 @@ public class SalesQuotasController : ControllerBase
     {
         try
         {
-            if (!ModelState.IsValid) return ValidationProblem(ModelState);
+            if (!ModelState.IsValid)
+                return ValidationProblem(ModelState);
             var created = await _service.CreateAsync(quota, cancellationToken);
             return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
         }
@@ -106,9 +107,11 @@ public class SalesQuotasController : ControllerBase
     {
         try
         {
-            if (!ModelState.IsValid) return ValidationProblem(ModelState);
+            if (!ModelState.IsValid)
+                return ValidationProblem(ModelState);
             var updated = await _service.UpdateAsync(id, quota, cancellationToken);
-            if (!updated) return NotFound($"Sales quota {id} not found");
+            if (!updated)
+                return NotFound($"Sales quota {id} not found");
             return Ok();
         }
         catch (Exception ex)
@@ -128,7 +131,8 @@ public class SalesQuotasController : ControllerBase
         try
         {
             var deleted = await _service.DeleteAsync(id, cancellationToken);
-            if (!deleted) return NotFound($"Sales quota {id} not found");
+            if (!deleted)
+                return NotFound($"Sales quota {id} not found");
             return NoContent();
         }
         catch (Exception ex)
@@ -188,9 +192,11 @@ public class SalesQuotasController : ControllerBase
     {
         try
         {
-            if (!ModelState.IsValid) return ValidationProblem(ModelState);
+            if (!ModelState.IsValid)
+                return ValidationProblem(ModelState);
             var updated = await _service.UpdateAttainmentAsync(id, request.ActualAmount, cancellationToken);
-            if (!updated) return NotFound($"Sales quota {id} not found");
+            if (!updated)
+                return NotFound($"Sales quota {id} not found");
             return Ok();
         }
         catch (Exception ex)

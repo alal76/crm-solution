@@ -4,17 +4,16 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
-using Xunit;
-using FluentAssertions;
-using CRM.Core.Entities;
-using CRM.Core.Entities.AI;
-using CRM.Core.Entities.Reports;
-using CRM.Core.Entities.KnowledgeBase;
-using CRM.Core.Interfaces.AI;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using CRM.Core.Entities;
+using CRM.Core.Entities.AI;
+using CRM.Core.Entities.KnowledgeBase;
+using CRM.Core.Entities.Reports;
+using CRM.Core.Interfaces.AI;
+using FluentAssertions;
+using Xunit;
 
 namespace CRM.Tests.BVT;
 
@@ -492,7 +491,7 @@ public class AIFeaturesBVTTests
     }
 
     // TODO: BVT_KB_010_EscalationRule_Creation test disabled - CRM.Core.Entities.KnowledgeBase.EscalationRule
-    // does not exist. The available EscalationRule entities (CRM.Core.Entities.EscalationRule and 
+    // does not exist. The available EscalationRule entities (CRM.Core.Entities.EscalationRule and
     // CRM.Core.Entities.ITSM.EscalationRule) have different property sets and do not include
     // TriggerAtPercent, TriggerMetric (SLAMetricType), or EscalationType properties.
     // Re-enable this test when a KnowledgeBase-specific EscalationRule entity is implemented.

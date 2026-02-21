@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using CRM.Core.Dtos;
 
 namespace CRM.Core.Interfaces;
@@ -12,13 +11,13 @@ namespace CRM.Core.Interfaces;
 /// <summary>
 /// Proration Calculator - Calculates partial-month charges when subscriptions
 /// are added/removed mid-cycle or plans are changed.
-/// 
+///
 /// Supports 4 proration algorithms:
 /// 1. ProrateCreditMethod: Full month credit applied to next cycle
 /// 2. ProrateDaysMethod: Days used / total days in month
 /// 3. ProrateCycleMethod: Billing cycle percentage
 /// 4. ProrateIntervalMethod: Specific intervals (hourly, weekly, etc)
-/// 
+///
 /// SPEC: PHASE 6 - Subscription Billing Services (25 hours)
 /// </summary>
 public interface IProrateCalculator
@@ -153,5 +152,5 @@ public enum ProrateInterval
     Hourly = 3,     // Hourly interval
     Daily = 4,      // Daily interval
     Weekly = 5,     // Weekly interval
-    None = 6        // No proration (full month charge)
+    None = 6 // No proration (full month charge)
 }

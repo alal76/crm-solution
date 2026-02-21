@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using System.ComponentModel.DataAnnotations;
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
@@ -45,7 +44,7 @@ public class InvoicesController : ControllerBase
     {
         try
         {
-                var invoices = await _invoiceService.GetAllAsync(accountId, status, cancellationToken);
+            var invoices = await _invoiceService.GetAllAsync(accountId, status, cancellationToken);
             return Ok(invoices.Select(MapToDto));
         }
         catch (Exception ex)
@@ -65,7 +64,8 @@ public class InvoicesController : ControllerBase
         try
         {
             var invoice = await _invoiceService.GetByIdAsync(id, cancellationToken);
-            if (invoice == null) return NotFound($"Invoice {id} not found");
+            if (invoice == null)
+                return NotFound($"Invoice {id} not found");
             return Ok(MapToDto(invoice));
         }
         catch (Exception ex)
@@ -85,7 +85,8 @@ public class InvoicesController : ControllerBase
         try
         {
             var invoice = await _invoiceService.GetByInvoiceNumberAsync(invoiceNumber, cancellationToken);
-            if (invoice == null) return NotFound($"Invoice '{invoiceNumber}' not found");
+            if (invoice == null)
+                return NotFound($"Invoice '{invoiceNumber}' not found");
             return Ok(MapToDto(invoice));
         }
         catch (Exception ex)
@@ -104,7 +105,8 @@ public class InvoicesController : ControllerBase
     {
         try
         {
-            if (!ModelState.IsValid) return ValidationProblem(ModelState);
+            if (!ModelState.IsValid)
+                return ValidationProblem(ModelState);
             var invoice = new Invoice
             {
                 AccountId = request.AccountId,
@@ -150,8 +152,10 @@ public class InvoicesController : ControllerBase
     {
         try
         {
-            if (!ModelState.IsValid) return ValidationProblem(ModelState);
-            if (id != invoice.Id) return BadRequest("ID mismatch");
+            if (!ModelState.IsValid)
+                return ValidationProblem(ModelState);
+            if (id != invoice.Id)
+                return BadRequest("ID mismatch");
             var updated = await _invoiceService.UpdateAsync(invoice, cancellationToken);
             return Ok(MapToDto(updated));
         }
@@ -169,7 +173,8 @@ public class InvoicesController : ControllerBase
         try
         {
             var result = await _invoiceService.DeleteAsync(id, cancellationToken);
-            if (!result) return NotFound($"Invoice {id} not found");
+            if (!result)
+                return NotFound($"Invoice {id} not found");
             return NoContent();
         }
         catch (Exception ex)
@@ -249,7 +254,8 @@ public class InvoicesController : ControllerBase
         try
         {
             var result = await _invoiceService.SendInvoiceAsync(id, cancellationToken);
-            if (!result) return NotFound($"Invoice {id} not found");
+            if (!result)
+                return NotFound($"Invoice {id} not found");
             return Ok(new { message = "Invoice sent successfully" });
         }
         catch (Exception ex)
@@ -266,7 +272,8 @@ public class InvoicesController : ControllerBase
         try
         {
             var result = await _invoiceService.MarkAsViewedAsync(id, cancellationToken);
-            if (!result) return NotFound($"Invoice {id} not found");
+            if (!result)
+                return NotFound($"Invoice {id} not found");
             return Ok(new { message = "Invoice marked as viewed" });
         }
         catch (Exception ex)
@@ -370,7 +377,8 @@ public class InvoicesController : ControllerBase
     {
         try
         {
-            if (!ModelState.IsValid) return ValidationProblem(ModelState);
+            if (!ModelState.IsValid)
+                return ValidationProblem(ModelState);
             var payment = await _invoiceService.RecordPaymentAsync(id, request.Amount, request.Method, cancellationToken);
             return Ok(payment);
         }
@@ -487,7 +495,8 @@ public class InvoicesController : ControllerBase
     {
         try
         {
-            if (!ModelState.IsValid) return ValidationProblem(ModelState);
+            if (!ModelState.IsValid)
+                return ValidationProblem(ModelState);
             var created = await _invoiceService.AddLineItemAsync(id, lineItem, cancellationToken);
             return Ok(created);
         }
@@ -508,8 +517,10 @@ public class InvoicesController : ControllerBase
     {
         try
         {
-            if (!ModelState.IsValid) return ValidationProblem(ModelState);
-            if (lineItemId != lineItem.Id) return BadRequest("ID mismatch");
+            if (!ModelState.IsValid)
+                return ValidationProblem(ModelState);
+            if (lineItemId != lineItem.Id)
+                return BadRequest("ID mismatch");
             var updated = await _invoiceService.UpdateLineItemAsync(lineItem, cancellationToken);
             return Ok(updated);
         }
@@ -530,7 +541,8 @@ public class InvoicesController : ControllerBase
         try
         {
             var result = await _invoiceService.RemoveLineItemAsync(lineItemId, cancellationToken);
-            if (!result) return NotFound($"Line item {lineItemId} not found");
+            if (!result)
+                return NotFound($"Line item {lineItemId} not found");
             return NoContent();
         }
         catch (Exception ex)

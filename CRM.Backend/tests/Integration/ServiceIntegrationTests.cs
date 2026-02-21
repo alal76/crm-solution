@@ -4,20 +4,19 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
-using Xunit;
-using FluentAssertions;
-using CRM.Core.Entities;
-using CRM.Core.Interfaces;
-using CRM.Infrastructure.Services;
-using CRM.Infrastructure.Data;
-using CRM.Tests.Helpers;
-using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using CRM.Core.Entities;
+using CRM.Core.Interfaces;
+using CRM.Infrastructure.Data;
+using CRM.Infrastructure.Services;
+using CRM.Tests.Helpers;
+using FluentAssertions;
+using Microsoft.Extensions.Logging;
+using Xunit;
 
 namespace CRM.Tests.Integration;
 
@@ -179,8 +178,8 @@ public class ServiceIntegrationTests : IAsyncLifetime
     public async Task CampaignService_AddRecipients_ShouldCreateCampaignRecipients()
     {
         // Arrange
-        var campaign = new MarketingCampaign 
-        { 
+        var campaign = new MarketingCampaign
+        {
             Name = "Email Campaign",
             Status = CampaignStatus.Active,
             CreatedAt = DateTime.UtcNow
@@ -191,15 +190,15 @@ public class ServiceIntegrationTests : IAsyncLifetime
 
         var recipients = new List<CampaignRecipient>
         {
-            new CampaignRecipient 
-            { 
-                CampaignId = campaign.Id, 
+            new CampaignRecipient
+            {
+                CampaignId = campaign.Id,
                 Email = "user1@example.com",
                 Status = "Pending"
             },
-            new CampaignRecipient 
-            { 
-                CampaignId = campaign.Id, 
+            new CampaignRecipient
+            {
+                CampaignId = campaign.Id,
                 Email = "user2@example.com",
                 Status = "Pending"
             }
@@ -213,7 +212,7 @@ public class ServiceIntegrationTests : IAsyncLifetime
         var retrievedRecipients = _context.CampaignRecipients
             .Where(r => r.CampaignId == campaign.Id)
             .ToList();
-        
+
         retrievedRecipients.Should().HaveCount(2);
     }
 
@@ -448,8 +447,8 @@ public class ServiceIntegrationTests : IAsyncLifetime
     public async Task FullCommissionWorkflow_EndToEnd_ShouldProcessSuccessfully()
     {
         // Arrange: Create commission plan
-        var plan = new CommissionPlan 
-        { 
+        var plan = new CommissionPlan
+        {
             Name = "Sales Plan",
             Rate = 0.05m,
             CommissionType = CommissionType.FlatPercentage,
@@ -514,7 +513,7 @@ public class ServiceIntegrationTests : IAsyncLifetime
         // Assert
         var final = await _context.MarketingCampaigns.FindAsync(campaign.Id);
         final.Status.Should().Be(CampaignStatus.Active);
-        
+
         var finalRecipients = _context.CampaignRecipients
             .Where(r => r.CampaignId == campaign.Id)
             .Count();

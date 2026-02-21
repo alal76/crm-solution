@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using System.Net;
 using System.Net.Http.Json;
 using System.Text.Json;
@@ -46,7 +45,8 @@ public class RelationshipCampaignFunctionalTests : FunctionalTestBase
     [Trait("TestId", "FT-100")]
     public async Task FT100_GetRelationshipTypes_Should_Return_List()
     {
-        if (!ApiAvailable) { _output.WriteLine("FT-100 SKIPPED: API not available"); return; }
+        if (!ApiAvailable)
+        { _output.WriteLine("FT-100 SKIPPED: API not available"); return; }
 
         await AuthenticateAsync();
         var response = await Client.GetAsync("/api/relationships/types");
@@ -61,7 +61,8 @@ public class RelationshipCampaignFunctionalTests : FunctionalTestBase
     [Trait("TestId", "FT-101")]
     public async Task FT101_CreateRelationshipType_Should_Succeed()
     {
-        if (!ApiAvailable) { _output.WriteLine("FT-101 SKIPPED: API not available"); return; }
+        if (!ApiAvailable)
+        { _output.WriteLine("FT-101 SKIPPED: API not available"); return; }
 
         await AuthenticateAsync();
         var response = await Client.PostAsJsonAsync("/api/relationships/types", new
@@ -89,7 +90,8 @@ public class RelationshipCampaignFunctionalTests : FunctionalTestBase
     [Trait("TestId", "FT-102")]
     public async Task FT102_GetRelationshipType_ById_Should_Return_Type()
     {
-        if (!ApiAvailable) { _output.WriteLine("FT-102 SKIPPED: API not available"); return; }
+        if (!ApiAvailable)
+        { _output.WriteLine("FT-102 SKIPPED: API not available"); return; }
 
         await AuthenticateAsync();
 
@@ -123,7 +125,8 @@ public class RelationshipCampaignFunctionalTests : FunctionalTestBase
     [Trait("TestId", "FT-111")]
     public async Task FT111_GetAccountRelationships_Should_Return_List()
     {
-        if (!ApiAvailable) { _output.WriteLine("FT-111 SKIPPED: API not available"); return; }
+        if (!ApiAvailable)
+        { _output.WriteLine("FT-111 SKIPPED: API not available"); return; }
 
         await AuthenticateAsync();
         var response = await Client.GetAsync("/api/relationships");
@@ -138,7 +141,8 @@ public class RelationshipCampaignFunctionalTests : FunctionalTestBase
     [Trait("TestId", "FT-112")]
     public async Task FT112_CreateAccountRelationship_Should_Succeed()
     {
-        if (!ApiAvailable) { _output.WriteLine("FT-112 SKIPPED: API not available"); return; }
+        if (!ApiAvailable)
+        { _output.WriteLine("FT-112 SKIPPED: API not available"); return; }
 
         await AuthenticateAsync();
 
@@ -193,7 +197,8 @@ public class RelationshipCampaignFunctionalTests : FunctionalTestBase
     [Trait("TestId", "FT-113")]
     public async Task FT113_GetAccountRelationship_ByAccountId_Should_Filter()
     {
-        if (!ApiAvailable) { _output.WriteLine("FT-113 SKIPPED: API not available"); return; }
+        if (!ApiAvailable)
+        { _output.WriteLine("FT-113 SKIPPED: API not available"); return; }
 
         await AuthenticateAsync();
 
@@ -221,7 +226,8 @@ public class RelationshipCampaignFunctionalTests : FunctionalTestBase
     [Trait("TestId", "FT-121")]
     public async Task FT121_GetRelationshipInteractions_Should_Return_List()
     {
-        if (!ApiAvailable) { _output.WriteLine("FT-121 SKIPPED: API not available"); return; }
+        if (!ApiAvailable)
+        { _output.WriteLine("FT-121 SKIPPED: API not available"); return; }
 
         await AuthenticateAsync();
 
@@ -245,7 +251,8 @@ public class RelationshipCampaignFunctionalTests : FunctionalTestBase
     [Trait("TestId", "FT-122")]
     public async Task FT122_CreateRelationshipInteraction_Should_Succeed()
     {
-        if (!ApiAvailable) { _output.WriteLine("FT-122 SKIPPED: API not available"); return; }
+        if (!ApiAvailable)
+        { _output.WriteLine("FT-122 SKIPPED: API not available"); return; }
 
         await AuthenticateAsync();
 
@@ -287,7 +294,8 @@ public class RelationshipCampaignFunctionalTests : FunctionalTestBase
     [Trait("TestId", "FT-131")]
     public async Task FT131_GetRelationshipMap_Should_Return_Visualization()
     {
-        if (!ApiAvailable) { _output.WriteLine("FT-131 SKIPPED: API not available"); return; }
+        if (!ApiAvailable)
+        { _output.WriteLine("FT-131 SKIPPED: API not available"); return; }
 
         await AuthenticateAsync();
 
@@ -319,7 +327,8 @@ public class RelationshipCampaignFunctionalTests : FunctionalTestBase
     [Trait("TestId", "FT-132")]
     public async Task FT132_GetHealthSnapshots_Should_Return_List()
     {
-        if (!ApiAvailable) { _output.WriteLine("FT-132 SKIPPED: API not available"); return; }
+        if (!ApiAvailable)
+        { _output.WriteLine("FT-132 SKIPPED: API not available"); return; }
 
         await AuthenticateAsync();
 
@@ -342,7 +351,8 @@ public class RelationshipCampaignFunctionalTests : FunctionalTestBase
     [Trait("TestId", "FT-133")]
     public async Task FT133_CreateHealthSnapshot_Should_Succeed()
     {
-        if (!ApiAvailable) { _output.WriteLine("FT-133 SKIPPED: API not available"); return; }
+        if (!ApiAvailable)
+        { _output.WriteLine("FT-133 SKIPPED: API not available"); return; }
 
         await AuthenticateAsync();
 
@@ -375,7 +385,8 @@ public class RelationshipCampaignFunctionalTests : FunctionalTestBase
     [Trait("TestId", "FT-141")]
     public async Task FT141_GetCampaignWorkflows_Should_Return_List()
     {
-        if (!ApiAvailable) { _output.WriteLine("FT-141 SKIPPED: API not available"); return; }
+        if (!ApiAvailable)
+        { _output.WriteLine("FT-141 SKIPPED: API not available"); return; }
 
         await AuthenticateAsync();
 
@@ -398,7 +409,8 @@ public class RelationshipCampaignFunctionalTests : FunctionalTestBase
     [Trait("TestId", "FT-142")]
     public async Task FT142_LinkCampaignWorkflow_Should_Succeed()
     {
-        if (!ApiAvailable) { _output.WriteLine("FT-142 SKIPPED: API not available"); return; }
+        if (!ApiAvailable)
+        { _output.WriteLine("FT-142 SKIPPED: API not available"); return; }
 
         await AuthenticateAsync();
 
@@ -456,7 +468,8 @@ public class RelationshipCampaignFunctionalTests : FunctionalTestBase
     [Trait("TestId", "FT-151")]
     public async Task FT151_GetCampaignRecipients_Should_Return_List()
     {
-        if (!ApiAvailable) { _output.WriteLine("FT-151 SKIPPED: API not available"); return; }
+        if (!ApiAvailable)
+        { _output.WriteLine("FT-151 SKIPPED: API not available"); return; }
 
         await AuthenticateAsync();
 
@@ -479,7 +492,8 @@ public class RelationshipCampaignFunctionalTests : FunctionalTestBase
     [Trait("TestId", "FT-152")]
     public async Task FT152_AddCampaignRecipients_Should_Succeed()
     {
-        if (!ApiAvailable) { _output.WriteLine("FT-152 SKIPPED: API not available"); return; }
+        if (!ApiAvailable)
+        { _output.WriteLine("FT-152 SKIPPED: API not available"); return; }
 
         await AuthenticateAsync();
 
@@ -516,7 +530,8 @@ public class RelationshipCampaignFunctionalTests : FunctionalTestBase
     [Trait("TestId", "FT-161")]
     public async Task FT161_GetCampaignABTests_Should_Return_List()
     {
-        if (!ApiAvailable) { _output.WriteLine("FT-161 SKIPPED: API not available"); return; }
+        if (!ApiAvailable)
+        { _output.WriteLine("FT-161 SKIPPED: API not available"); return; }
 
         await AuthenticateAsync();
 
@@ -539,7 +554,8 @@ public class RelationshipCampaignFunctionalTests : FunctionalTestBase
     [Trait("TestId", "FT-162")]
     public async Task FT162_CreateABTest_Should_Succeed()
     {
-        if (!ApiAvailable) { _output.WriteLine("FT-162 SKIPPED: API not available"); return; }
+        if (!ApiAvailable)
+        { _output.WriteLine("FT-162 SKIPPED: API not available"); return; }
 
         await AuthenticateAsync();
 
@@ -582,7 +598,8 @@ public class RelationshipCampaignFunctionalTests : FunctionalTestBase
     [Trait("TestId", "FT-171")]
     public async Task FT171_GetCampaignConversions_Should_Return_List()
     {
-        if (!ApiAvailable) { _output.WriteLine("FT-171 SKIPPED: API not available"); return; }
+        if (!ApiAvailable)
+        { _output.WriteLine("FT-171 SKIPPED: API not available"); return; }
 
         await AuthenticateAsync();
 
@@ -605,7 +622,8 @@ public class RelationshipCampaignFunctionalTests : FunctionalTestBase
     [Trait("TestId", "FT-172")]
     public async Task FT172_GetCampaignAnalytics_Should_Return_Data()
     {
-        if (!ApiAvailable) { _output.WriteLine("FT-172 SKIPPED: API not available"); return; }
+        if (!ApiAvailable)
+        { _output.WriteLine("FT-172 SKIPPED: API not available"); return; }
 
         await AuthenticateAsync();
 
@@ -635,7 +653,8 @@ public class RelationshipCampaignFunctionalTests : FunctionalTestBase
     [Trait("TestId", "FT-173")]
     public async Task FT173_RecordConversion_Should_Succeed()
     {
-        if (!ApiAvailable) { _output.WriteLine("FT-173 SKIPPED: API not available"); return; }
+        if (!ApiAvailable)
+        { _output.WriteLine("FT-173 SKIPPED: API not available"); return; }
 
         await AuthenticateAsync();
 

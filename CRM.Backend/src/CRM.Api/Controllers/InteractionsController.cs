@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using CRM.Core.Entities;
 using CRM.Core.Models;
 using CRM.Infrastructure.Data;
@@ -92,9 +91,11 @@ public class InteractionsController : ControllerBase
         foreach (var it in interactions)
         {
             var nt = await _normalization.GetTagsAsync("Interaction", it.Id);
-            if (!string.IsNullOrWhiteSpace(nt)) it.Tags = nt;
+            if (!string.IsNullOrWhiteSpace(nt))
+                it.Tags = nt;
             var cf = await _normalization.GetCustomFieldsAsync("Interaction", it.Id);
-            if (!string.IsNullOrWhiteSpace(cf)) it.CustomFields = cf;
+            if (!string.IsNullOrWhiteSpace(cf))
+                it.CustomFields = cf;
         }
 
         return Ok(interactions);
@@ -127,9 +128,11 @@ public class InteractionsController : ControllerBase
             return NotFound();
 
         var nt = await _normalization.GetTagsAsync("Interaction", interaction.Id);
-        if (!string.IsNullOrWhiteSpace(nt)) interaction.Tags = nt;
+        if (!string.IsNullOrWhiteSpace(nt))
+            interaction.Tags = nt;
         var cf = await _normalization.GetCustomFieldsAsync("Interaction", interaction.Id);
-        if (!string.IsNullOrWhiteSpace(cf)) interaction.CustomFields = cf;
+        if (!string.IsNullOrWhiteSpace(cf))
+            interaction.CustomFields = cf;
 
         return Ok(interaction);
     }
@@ -347,9 +350,11 @@ public class InteractionsController : ControllerBase
         foreach (var it in interactions)
         {
             var nt = await _normalization.GetTagsAsync("Interaction", it.Id);
-            if (!string.IsNullOrWhiteSpace(nt)) it.Tags = nt;
+            if (!string.IsNullOrWhiteSpace(nt))
+                it.Tags = nt;
             var cf = await _normalization.GetCustomFieldsAsync("Interaction", it.Id);
-            if (!string.IsNullOrWhiteSpace(cf)) it.CustomFields = cf;
+            if (!string.IsNullOrWhiteSpace(cf))
+                it.CustomFields = cf;
         }
 
         return Ok(interactions);
@@ -383,9 +388,11 @@ public class InteractionsController : ControllerBase
         foreach (var it in interactions)
         {
             var nt = await _normalization.GetTagsAsync("Interaction", it.Id);
-            if (!string.IsNullOrWhiteSpace(nt)) it.Tags = nt;
+            if (!string.IsNullOrWhiteSpace(nt))
+                it.Tags = nt;
             var cf = await _normalization.GetCustomFieldsAsync("Interaction", it.Id);
-            if (!string.IsNullOrWhiteSpace(cf)) it.CustomFields = cf;
+            if (!string.IsNullOrWhiteSpace(cf))
+                it.CustomFields = cf;
         }
 
         return Ok(interactions);

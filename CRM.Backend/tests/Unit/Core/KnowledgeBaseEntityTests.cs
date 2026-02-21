@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using CRM.Core.Entities;
 using CRM.Core.Entities.KnowledgeBase;
 using FluentAssertions;
@@ -534,7 +533,7 @@ public class KnowledgeBaseEntityTests
     #endregion
 
     #region EscalationRule Entity Tests
-    
+
     // Note: These tests are disabled because they reference properties that don't exist on the current
     // EscalationRule entity implementation. The entity has been redesigned with different properties.
     // TODO: Update tests to match actual EscalationRule entity structure (Name, Priority, Category, Queue, AgeInMinutes, TargetType, etc.)

@@ -4,7 +4,8 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
+using System.Security.Cryptography;
+using System.Text;
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Entities.ITSM;
@@ -13,8 +14,6 @@ using CRM.Core.Ports.Input;
 using CRM.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System.Security.Cryptography;
-using System.Text;
 
 namespace CRM.Infrastructure.Services;
 

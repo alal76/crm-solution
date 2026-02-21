@@ -4,17 +4,16 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using System.Text.Json;
 using CRM.Core.Ports.Output.Providers;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using global::SendGrid;
 using global::SendGrid.Helpers.Mail;
-using SendGridClient = global::SendGrid.SendGridClient;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using ISendGridClient = global::SendGrid.ISendGridClient;
-using SendGridMessage = global::SendGrid.Helpers.Mail.SendGridMessage;
+using SendGridClient = global::SendGrid.SendGridClient;
 using SendGridEmailAddress = global::SendGrid.Helpers.Mail.EmailAddress;
+using SendGridMessage = global::SendGrid.Helpers.Mail.SendGridMessage;
 
 namespace CRM.Infrastructure.Providers.SendGrid;
 
@@ -259,7 +258,8 @@ public class SendGridProvider : INotificationPort
 
         foreach (var batch in batches)
         {
-            if (cancellationToken.IsCancellationRequested) break;
+            if (cancellationToken.IsCancellationRequested)
+                break;
 
             // For bulk, send individually but in parallel with rate limiting
             var tasks = batch.Select(async request =>
@@ -273,8 +273,10 @@ public class SendGridProvider : INotificationPort
             foreach (var result in batchResults)
             {
                 results.Add(result);
-                if (result.Success) successCount++;
-                else failureCount++;
+                if (result.Success)
+                    successCount++;
+                else
+                    failureCount++;
             }
 
             // Respect rate limiting between batches
@@ -514,7 +516,8 @@ public class SendGridProvider : INotificationPort
                 }, cancellationToken);
 
                 channelResults["email"] = result;
-                if (result.Success) overallSuccess = true;
+                if (result.Success)
+                    overallSuccess = true;
             }
             else
             {

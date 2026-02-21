@@ -4,12 +4,11 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 #nullable enable
 
+using CRM.Core.Entities.AI;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
-using CRM.Core.Entities.AI;
 
 namespace CRM.Infrastructure.AI.SK.Agents;
 

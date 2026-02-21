@@ -4,12 +4,11 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
-using Xunit;
-using FluentAssertions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using FluentAssertions;
+using Xunit;
 
 namespace CRM.Tests.Services.ITSM;
 
@@ -264,8 +263,10 @@ public class ChangeServiceTests
 
     private static bool RequiresCABApproval(ITSMChange change)
     {
-        if (change.ChangeType == ChangeType.Standard) return false;
-        if (change.ChangeType == ChangeType.Major) return true;
+        if (change.ChangeType == ChangeType.Standard)
+            return false;
+        if (change.ChangeType == ChangeType.Major)
+            return true;
         return change.RiskLevel == RiskLevel.High;
     }
 
@@ -451,7 +452,8 @@ public class ChangeServiceTests
             .Intersect(newChange.AffectedCIIds)
             .Any();
 
-        if (!ciOverlap) return false;
+        if (!ciOverlap)
+            return false;
 
         // Check if times overlap
         var timeOverlap = existing.ScheduledStartAt < newChange.ScheduledEndAt &&

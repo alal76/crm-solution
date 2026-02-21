@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using CRM.Core.DTOs.ITSM;
 using CRM.Core.Entities.ITSM;
 using CRM.Core.Interfaces;
@@ -183,9 +182,14 @@ public class ChangeManagementServiceTests
         // Arrange
         var change = new Change
         {
-            ChangeId = 1, Number = "CHG0001", ShortDescription = "Old",
-            State = ChangeState.New, Type = ChangeType.Normal,
-            Risk = ChangeRisk.Low, Impact = ChangeImpact.Low, RequestorId = 1,
+            ChangeId = 1,
+            Number = "CHG0001",
+            ShortDescription = "Old",
+            State = ChangeState.New,
+            Type = ChangeType.Normal,
+            Risk = ChangeRisk.Low,
+            Impact = ChangeImpact.Low,
+            RequestorId = 1,
             CreatedAt = DateTime.UtcNow
         };
         _mockContext.Setup(c => c.Changes).Returns(MockDbSetFactory.CreateMockDbSet(new List<Change> { change }).Object);
@@ -219,9 +223,14 @@ public class ChangeManagementServiceTests
         // Arrange
         var change = new Change
         {
-            ChangeId = 1, Number = "CHG0001", ShortDescription = "Needs approval",
-            State = ChangeState.New, Type = ChangeType.Normal,
-            Risk = ChangeRisk.Medium, Impact = ChangeImpact.Medium, RequestorId = 1,
+            ChangeId = 1,
+            Number = "CHG0001",
+            ShortDescription = "Needs approval",
+            State = ChangeState.New,
+            Type = ChangeType.Normal,
+            Risk = ChangeRisk.Medium,
+            Impact = ChangeImpact.Medium,
+            RequestorId = 1,
             CreatedAt = DateTime.UtcNow
         };
         _mockContext.Setup(c => c.Changes).Returns(MockDbSetFactory.CreateMockDbSet(new List<Change> { change }).Object);
@@ -240,10 +249,16 @@ public class ChangeManagementServiceTests
         // Arrange
         var change = new Change
         {
-            ChangeId = 1, Number = "CHG0001", ShortDescription = "Approve me",
-            State = ChangeState.Assess, ApprovalStatus = ApprovalStatus.Requested,
-            Type = ChangeType.Normal, Risk = ChangeRisk.Low, Impact = ChangeImpact.Low,
-            RequestorId = 1, CreatedAt = DateTime.UtcNow
+            ChangeId = 1,
+            Number = "CHG0001",
+            ShortDescription = "Approve me",
+            State = ChangeState.Assess,
+            ApprovalStatus = ApprovalStatus.Requested,
+            Type = ChangeType.Normal,
+            Risk = ChangeRisk.Low,
+            Impact = ChangeImpact.Low,
+            RequestorId = 1,
+            CreatedAt = DateTime.UtcNow
         };
         var approvals = new List<ChangeApproval>();
         var mockApprovalSet = MockDbSetFactory.CreateMockDbSet(approvals);
@@ -266,10 +281,16 @@ public class ChangeManagementServiceTests
         // Arrange
         var change = new Change
         {
-            ChangeId = 1, Number = "CHG0001", ShortDescription = "Reject me",
-            State = ChangeState.Assess, ApprovalStatus = ApprovalStatus.Requested,
-            Type = ChangeType.Normal, Risk = ChangeRisk.High, Impact = ChangeImpact.High,
-            RequestorId = 1, CreatedAt = DateTime.UtcNow
+            ChangeId = 1,
+            Number = "CHG0001",
+            ShortDescription = "Reject me",
+            State = ChangeState.Assess,
+            ApprovalStatus = ApprovalStatus.Requested,
+            Type = ChangeType.Normal,
+            Risk = ChangeRisk.High,
+            Impact = ChangeImpact.High,
+            RequestorId = 1,
+            CreatedAt = DateTime.UtcNow
         };
         _mockContext.Setup(c => c.Changes).Returns(MockDbSetFactory.CreateMockDbSet(new List<Change> { change }).Object);
         _mockContext.Setup(c => c.ChangeApprovals).Returns(MockDbSetFactory.CreateMockDbSet(new List<ChangeApproval>()).Object);
@@ -292,10 +313,16 @@ public class ChangeManagementServiceTests
         // Arrange
         var change = new Change
         {
-            ChangeId = 1, Number = "CHG0001", ShortDescription = "Schedule me",
-            State = ChangeState.Authorize, ApprovalStatus = ApprovalStatus.Approved,
-            Type = ChangeType.Normal, Risk = ChangeRisk.Low, Impact = ChangeImpact.Low,
-            RequestorId = 1, CreatedAt = DateTime.UtcNow
+            ChangeId = 1,
+            Number = "CHG0001",
+            ShortDescription = "Schedule me",
+            State = ChangeState.Authorize,
+            ApprovalStatus = ApprovalStatus.Approved,
+            Type = ChangeType.Normal,
+            Risk = ChangeRisk.Low,
+            Impact = ChangeImpact.Low,
+            RequestorId = 1,
+            CreatedAt = DateTime.UtcNow
         };
         _mockContext.Setup(c => c.Changes).Returns(MockDbSetFactory.CreateMockDbSet(new List<Change> { change }).Object);
         _mockContext.Setup(c => c.ChangeBlackouts).Returns(MockDbSetFactory.CreateMockDbSet(new List<ChangeBlackout>()).Object);
@@ -348,9 +375,14 @@ public class ChangeManagementServiceTests
         // Arrange
         var change = new Change
         {
-            ChangeId = 1, Number = "CHG0001", ShortDescription = "Test",
-            State = ChangeState.New, Type = ChangeType.Normal,
-            Risk = ChangeRisk.Low, Impact = ChangeImpact.Low, RequestorId = 1,
+            ChangeId = 1,
+            Number = "CHG0001",
+            ShortDescription = "Test",
+            State = ChangeState.New,
+            Type = ChangeType.Normal,
+            Risk = ChangeRisk.Low,
+            Impact = ChangeImpact.Low,
+            RequestorId = 1,
             CreatedAt = DateTime.UtcNow
         };
         var impactedCIs = new List<ChangeImpactedCI>();

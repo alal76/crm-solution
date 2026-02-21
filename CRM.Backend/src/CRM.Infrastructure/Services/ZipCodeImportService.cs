@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using System.IO.Compression;
 using System.Text.Json;
 using CRM.Core.Entities;
@@ -387,10 +386,12 @@ public class ZipCodeImportService : IZipCodeImportService
             string? line;
             while ((line = await reader.ReadLineAsync(cancellationToken)) != null)
             {
-                if (cancellationToken.IsCancellationRequested) break;
+                if (cancellationToken.IsCancellationRequested)
+                    break;
 
                 var parts = line.Split('\t');
-                if (parts.Length < 10) continue;
+                if (parts.Length < 10)
+                    continue;
 
                 var countryCode = parts[0];
                 var postalCode = parts[1];
@@ -457,7 +458,8 @@ public class ZipCodeImportService : IZipCodeImportService
             // Batch insert
             for (int i = 0; i < newRecords.Count; i += batchSize)
             {
-                if (cancellationToken.IsCancellationRequested) break;
+                if (cancellationToken.IsCancellationRequested)
+                    break;
 
                 var batch = newRecords.Skip(i).Take(batchSize).ToList();
                 _context.ZipCodes.AddRange(batch);
@@ -500,7 +502,8 @@ public class ZipCodeImportService : IZipCodeImportService
 
     private static string GetCountryName(string? countryCode)
     {
-        if (string.IsNullOrEmpty(countryCode)) return "Unknown";
+        if (string.IsNullOrEmpty(countryCode))
+            return "Unknown";
         return CountryNames.TryGetValue(countryCode.ToUpperInvariant(), out var name)
             ? name
             : countryCode;

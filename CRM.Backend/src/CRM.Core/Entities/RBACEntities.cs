@@ -1,6 +1,9 @@
 // CRM Solution - Customer Relationship Management System
 // Copyright (C) 2024-2026 Abhishek Lal
-
+//
+// This software is source-available. Non-commercial use is permitted under
+// the terms of the LICENSE file. Commercial use requires a separate license.
+// See the LICENSE file in the root directory for full terms.
 namespace CRM.Core.Entities;
 
 /// <summary>
@@ -141,10 +144,10 @@ public class RolePermission : BaseEntity
 /// <summary>
 /// Junction table for User-Role many-to-many relationship.
 /// Tracks which roles are assigned to which users with temporal validity.
-/// 
+///
 /// A user can have multiple roles, each with optional effective date ranges.
 /// Example: User is "Manager" from 2026-02-01 to 2026-06-30, then becomes "User".
-/// 
+///
 /// NAMING NOTE: Class is renamed from "UserRole" to "UserRoleAssignment" to avoid
 /// ambiguity with the UserRole enum in User.cs. Both are valid RBAC concepts:
 /// - UserRole (enum): predefined role types (Admin, Manager, Sales, etc.)

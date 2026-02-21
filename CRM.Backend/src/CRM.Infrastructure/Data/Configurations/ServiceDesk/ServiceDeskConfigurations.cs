@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using CRM.Core.Entities;
 using CRM.Core.Entities.ITSM;
 using Microsoft.EntityFrameworkCore;
@@ -86,23 +85,23 @@ public class ChangeBlackoutConfiguration : IEntityTypeConfiguration<ChangeBlacko
     public void Configure(EntityTypeBuilder<ChangeBlackout> builder)
     {
         builder.HasKey(e => e.BlackoutId);
-        
+
         builder.Property(e => e.Name).IsRequired().HasMaxLength(200);
         builder.Property(e => e.Description).HasMaxLength(500);
         builder.Property(e => e.Reason).HasMaxLength(500);
-        
+
         // Relationship: ChangeBlackout -> Change
         builder.HasOne(e => e.Change)
             .WithMany(c => c.Blackouts)
             .HasForeignKey(e => e.ChangeId)
             .OnDelete(DeleteBehavior.Cascade);
-        
+
         // Relationship: ChangeBlackout -> User (CreatedBy)
         builder.HasOne(e => e.CreatedBy)
             .WithMany()
             .HasForeignKey(e => e.CreatedById)
             .OnDelete(DeleteBehavior.SetNull);
-        
+
         // Soft delete index
         builder.HasIndex(e => e.IsDeleted);
         // Date range index for blackout period queries
@@ -111,4 +110,3 @@ public class ChangeBlackoutConfiguration : IEntityTypeConfiguration<ChangeBlacko
         builder.HasIndex(e => e.ChangeId).HasName("IX_ChangeBlackout_ChangeId");
     }
 }
-

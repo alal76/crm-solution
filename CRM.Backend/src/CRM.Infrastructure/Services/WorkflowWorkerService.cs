@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 /**
  * CRM Solution - Customer Relationship Management System
  * Copyright (C) 2024-2026 Abhishek Lal
@@ -355,7 +354,8 @@ public class WorkflowWorkerService : BackgroundService
     /// </summary>
     private async Task AdvanceWorkflowAsync(CrmDbContext dbContext, WorkflowTask task, TaskResult result, CancellationToken cancellationToken)
     {
-        if (task.WorkflowInstanceId == 0) return;
+        if (task.WorkflowInstanceId == 0)
+            return;
 
         var instance = await dbContext.WorkflowInstances
             .Include(i => i.WorkflowVersion)
@@ -363,13 +363,15 @@ public class WorkflowWorkerService : BackgroundService
             .ThenInclude(n => n.OutgoingTransitions)
             .FirstOrDefaultAsync(i => i.Id == task.WorkflowInstanceId, cancellationToken);
 
-        if (instance == null || instance.Status != WorkflowInstanceStatus.Running) return;
+        if (instance == null || instance.Status != WorkflowInstanceStatus.Running)
+            return;
 
         // Find the current node
         var currentNode = instance.WorkflowVersion?.Nodes
             .FirstOrDefault(n => n.Id == instance.CurrentNodeId);
 
-        if (currentNode == null) return;
+        if (currentNode == null)
+            return;
 
         // Evaluate transitions and find the next node
         var nextTransition = await EvaluateTransitionsAsync(dbContext, currentNode, instance, result, cancellationToken);
@@ -423,7 +425,8 @@ public class WorkflowWorkerService : BackgroundService
             .OrderBy(t => t.Priority)
             .ToList();
 
-        if (!transitions.Any()) return Task.FromResult<WorkflowTransition?>(null);
+        if (!transitions.Any())
+            return Task.FromResult<WorkflowTransition?>(null);
 
         // Parse current state data
         var stateData = new Dictionary<string, object>();
@@ -484,7 +487,8 @@ public class WorkflowWorkerService : BackgroundService
 
     private bool EvaluateExpression(string? expression, Dictionary<string, object> data)
     {
-        if (string.IsNullOrEmpty(expression)) return true;
+        if (string.IsNullOrEmpty(expression))
+            return true;
 
         // Simple expression evaluation (field == value, field > value, etc.)
         // In production, use a proper expression evaluator like NCalc
@@ -500,15 +504,21 @@ public class WorkflowWorkerService : BackgroundService
                 {
                     var fieldStr = fieldValue?.ToString() ?? "";
 
-                    if (expression.Contains("==")) return fieldStr.Equals(value, StringComparison.OrdinalIgnoreCase);
-                    if (expression.Contains("!=")) return !fieldStr.Equals(value, StringComparison.OrdinalIgnoreCase);
+                    if (expression.Contains("=="))
+                        return fieldStr.Equals(value, StringComparison.OrdinalIgnoreCase);
+                    if (expression.Contains("!="))
+                        return !fieldStr.Equals(value, StringComparison.OrdinalIgnoreCase);
 
                     if (double.TryParse(fieldStr, out var numField) && double.TryParse(value, out var numValue))
                     {
-                        if (expression.Contains(">=")) return numField >= numValue;
-                        if (expression.Contains("<=")) return numField <= numValue;
-                        if (expression.Contains(">")) return numField > numValue;
-                        if (expression.Contains("<")) return numField < numValue;
+                        if (expression.Contains(">="))
+                            return numField >= numValue;
+                        if (expression.Contains("<="))
+                            return numField <= numValue;
+                        if (expression.Contains(">"))
+                            return numField > numValue;
+                        if (expression.Contains("<"))
+                            return numField < numValue;
                     }
                 }
             }
@@ -523,12 +533,14 @@ public class WorkflowWorkerService : BackgroundService
 
     private bool EvaluateFieldMatch(string? expression, Dictionary<string, object> data)
     {
-        if (string.IsNullOrEmpty(expression)) return true;
+        if (string.IsNullOrEmpty(expression))
+            return true;
 
         try
         {
             var conditions = JsonSerializer.Deserialize<Dictionary<string, string>>(expression);
-            if (conditions == null) return true;
+            if (conditions == null)
+                return true;
 
             foreach (var condition in conditions)
             {
@@ -549,7 +561,8 @@ public class WorkflowWorkerService : BackgroundService
 
     private bool EvaluateUserChoice(string? expression, TaskResult result)
     {
-        if (string.IsNullOrEmpty(expression) || string.IsNullOrEmpty(result.ResultData)) return false;
+        if (string.IsNullOrEmpty(expression) || string.IsNullOrEmpty(result.ResultData))
+            return false;
 
         try
         {

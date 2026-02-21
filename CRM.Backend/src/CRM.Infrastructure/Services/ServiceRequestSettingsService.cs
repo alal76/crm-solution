@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 /**
  * CRM Solution - Customer Relationship Management System
  * Copyright (C) 2024-2026 Abhishek Lal
@@ -88,7 +87,8 @@ public class ServiceRequestCategoryService : IServiceRequestCategoryService
             .Include(c => c.ServiceRequests)
             .FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted);
 
-        if (category == null) return null;
+        if (category == null)
+            return null;
 
         return new ServiceRequestCategoryDto
         {
@@ -156,7 +156,8 @@ public class ServiceRequestCategoryService : IServiceRequestCategoryService
     public async Task<bool> DeleteCategoryAsync(int id)
     {
         var category = await _context.ServiceRequestCategories.FindAsync(id);
-        if (category == null) return false;
+        if (category == null)
+            return false;
 
         category.IsDeleted = true;
         category.UpdatedAt = DateTime.UtcNow;
@@ -296,7 +297,8 @@ public class ServiceRequestSubcategoryService : IServiceRequestSubcategoryServic
     public async Task<bool> DeleteSubcategoryAsync(int id)
     {
         var subcategory = await _context.ServiceRequestSubcategories.FindAsync(id);
-        if (subcategory == null) return false;
+        if (subcategory == null)
+            return false;
 
         subcategory.IsDeleted = true;
         subcategory.UpdatedAt = DateTime.UtcNow;
@@ -481,7 +483,8 @@ public class ServiceRequestCustomFieldService : IServiceRequestCustomFieldServic
     public async Task<bool> DeleteFieldDefinitionAsync(int id)
     {
         var field = await _context.ServiceRequestCustomFieldDefinitions.FindAsync(id);
-        if (field == null) return false;
+        if (field == null)
+            return false;
 
         field.IsDeleted = true;
         field.UpdatedAt = DateTime.UtcNow;
@@ -731,7 +734,8 @@ public class ServiceRequestTypeService : IServiceRequestTypeService
     public async Task<bool> DeleteTypeAsync(int id)
     {
         var type = await _context.ServiceRequestTypes.FindAsync(id);
-        if (type == null) return false;
+        if (type == null)
+            return false;
 
         type.IsDeleted = true;
         type.UpdatedAt = DateTime.UtcNow;

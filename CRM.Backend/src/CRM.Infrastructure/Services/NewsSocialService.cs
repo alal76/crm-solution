@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 /**
  * CRM Solution - Customer Relationship Management System
  * Copyright (C) 2024-2026 Abhishek Lal
@@ -18,11 +17,11 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Web;
+using CRM.Core.Dtos;
+using CRM.Core.Interfaces;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using CRM.Core.Dtos;
-using CRM.Core.Interfaces;
 
 namespace CRM.Infrastructure.Services;
 
@@ -487,8 +486,10 @@ Return format: [""positive"", ""neutral"", ""negative"", ...]";
             if (response.Success && !string.IsNullOrEmpty(response.Content))
             {
                 var sentiment = response.Content.Trim().ToLower();
-                if (sentiment.Contains("positive")) return "positive";
-                if (sentiment.Contains("negative")) return "negative";
+                if (sentiment.Contains("positive"))
+                    return "positive";
+                if (sentiment.Contains("negative"))
+                    return "negative";
             }
         }
         catch (Exception ex)

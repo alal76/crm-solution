@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using Xunit;
@@ -96,7 +95,7 @@ public class EmailSequenceDtoTests
             Email = "invalid-email"
         };
 
-        // Assert  
+        // Assert
         Assert.NotEmpty(enrollment.Email);
     }
 
@@ -248,7 +247,7 @@ public class WebhookManagementDtoTests
 
         // Assert
         Assert.NotNull(dto);
-        Assert.True(dto.Url.StartsWith("https://"));
+        Assert.StartsWith("https://", dto.Url);
         Assert.NotEmpty(dto.EventTypes);
     }
 
@@ -447,7 +446,7 @@ public class CommissionManagementDtoTests
     [Fact]
     public void ApproveCommissionDto_WithApprover_ShouldPass()
     {
-        // Arrange & Act  
+        // Arrange & Act
         var approve = new ApproveCommissionDto
         {
             ApprovedById = 5,

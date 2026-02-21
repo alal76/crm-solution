@@ -1,6 +1,9 @@
 // CRM Solution - Customer Relationship Management System
 // Copyright (C) 2024-2026 Abhishek Lal
-
+//
+// This software is source-available. Non-commercial use is permitted under
+// the terms of the LICENSE file. Commercial use requires a separate license.
+// See the LICENSE file in the root directory for full terms.
 using CRM.Core.Dtos;
 
 namespace CRM.Core.Interfaces;
@@ -22,7 +25,7 @@ namespace CRM.Core.Interfaces;
 public interface IPermissionCacheService
 {
     #region Cache Operations
-    
+
     /// <summary>
     /// Get cached permissions for a user.
     /// </summary>
@@ -30,7 +33,7 @@ public interface IPermissionCacheService
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Set of permission names, or empty if not cached</returns>
     Task<ISet<string>> GetUserPermissionsFromCacheAsync(int userId, CancellationToken cancellationToken = default);
-    
+
     /// <summary>
     /// Set permissions in cache for a user.
     /// </summary>
@@ -40,7 +43,7 @@ public interface IPermissionCacheService
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Task completion</returns>
     Task SetUserPermissionsInCacheAsync(int userId, ISet<string> permissions, int? ttlSeconds = null, CancellationToken cancellationToken = default);
-    
+
     /// <summary>
     /// Check if a user's permissions are cached.
     /// </summary>
@@ -48,7 +51,7 @@ public interface IPermissionCacheService
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>True if permissions are cached</returns>
     Task<bool> IsUserPermissionsCachedAsync(int userId, CancellationToken cancellationToken = default);
-    
+
     /// <summary>
     /// Invalidate cache for a specific user.
     /// </summary>
@@ -56,7 +59,7 @@ public interface IPermissionCacheService
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Task completion</returns>
     Task InvalidateUserCacheAsync(int userId, CancellationToken cancellationToken = default);
-    
+
     /// <summary>
     /// Invalidate cache for multiple users.
     /// </summary>
@@ -64,18 +67,18 @@ public interface IPermissionCacheService
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Task completion</returns>
     Task InvalidateMultipleUsersAsync(IEnumerable<int> userIds, CancellationToken cancellationToken = default);
-    
+
     /// <summary>
     /// Invalidate all permission caches.
     /// </summary>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Task completion</returns>
     Task InvalidateAllAsync(CancellationToken cancellationToken = default);
-    
+
     #endregion
 
     #region Cache Warming
-    
+
     /// <summary>
     /// Warm up cache for a user by loading permissions from database.
     /// </summary>
@@ -83,7 +86,7 @@ public interface IPermissionCacheService
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Set of warmed permissions</returns>
     Task<ISet<string>> WarmUserCacheAsync(int userId, CancellationToken cancellationToken = default);
-    
+
     /// <summary>
     /// Warm up cache for multiple users.
     /// </summary>
@@ -91,36 +94,36 @@ public interface IPermissionCacheService
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Task completion</returns>
     Task WarmMultipleUsersAsync(IEnumerable<int> userIds, CancellationToken cancellationToken = default);
-    
+
     #endregion
 
     #region Configuration & Statistics
-    
+
     /// <summary>
     /// Get cache TTL configuration in seconds.
     /// </summary>
     /// <returns>TTL in seconds</returns>
     int GetCacheTtlSeconds();
-    
+
     /// <summary>
     /// Set cache TTL configuration in seconds.
     /// </summary>
     /// <param name="ttlSeconds">TTL in seconds</param>
     void SetCacheTtlSeconds(int ttlSeconds);
-    
+
     /// <summary>
     /// Get cache statistics for monitoring.
     /// </summary>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Cache statistics DTO</returns>
     Task<PermissionCacheStatisticsDto> GetCacheStatisticsAsync(CancellationToken cancellationToken = default);
-    
+
     /// <summary>
     /// Reset cache statistics.
     /// </summary>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Task completion</returns>
     Task ResetStatisticsAsync(CancellationToken cancellationToken = default);
-    
+
     #endregion
 }

@@ -4,7 +4,7 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
+using System.Linq;
 using CRM.Core.Interfaces;
 using CRM.Core.Interfaces.ITSM;
 using CRM.Infrastructure.Data;
@@ -12,7 +12,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using System.Linq;
 
 namespace CRM.Infrastructure.Services.ITSM;
 
@@ -81,7 +80,7 @@ public class SLAEnforcementHostedService : BackgroundService
         {
             // Find all active SLA instances that have not been marked as breached
             var breachedSlAs = await dbContext.SLAInstances
-                .Where(si => !si.IsDeleted && 
+                .Where(si => !si.IsDeleted &&
                         si.Status != CRM.Core.Entities.KnowledgeBase.SLAStatus.Breached &&
                         si.Status != CRM.Core.Entities.KnowledgeBase.SLAStatus.Met &&
                         (si.DueAt < DateTime.UtcNow || si.WarningAt < DateTime.UtcNow))

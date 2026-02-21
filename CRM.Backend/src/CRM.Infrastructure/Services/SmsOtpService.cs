@@ -1,3 +1,9 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This software is source-available. Non-commercial use is permitted under
+// the terms of the LICENSE file. Commercial use requires a separate license.
+// See the LICENSE file in the root directory for full terms.
 using System.Security.Cryptography;
 using System.Text;
 using CRM.Core.Interfaces;
@@ -62,8 +68,7 @@ public class SmsOtpService : ISmsOtpService
             var message = await MessageResource.CreateAsync(
                 body: $"Your CRM verification code is: {otp}. This code expires in {_settings.OtpExpirationSeconds / 60} minutes.",
                 from: new Twilio.Types.PhoneNumber(_settings.FromPhoneNumber),
-                to: new Twilio.Types.PhoneNumber(normalizedPhone)
-            );
+                to: new Twilio.Types.PhoneNumber(normalizedPhone));
 
             _logger.LogInformation($"SMS OTP sent to {MaskPhoneNumber(normalizedPhone)} for user {userId}. SID: {message.Sid}");
 
@@ -342,7 +347,8 @@ public class SmsOtpService : ISmsOtpService
     private static readonly Dictionary<string, (string hash, DateTime expiresAt, int attempts)> _otp_records = new();
     private static readonly Dictionary<string, DateTime> _otp_rate_limits = new();
 
-    private enum RateLimitType { Sms, Email }
+    private enum RateLimitType { Sms,
+        Email }
 
     #endregion
 }

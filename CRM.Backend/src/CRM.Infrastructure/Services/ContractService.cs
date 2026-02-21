@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using CRM.Infrastructure.Data;
@@ -101,7 +100,8 @@ public class ContractService : IContractService
     public async Task<bool> DeleteAsync(int id, CancellationToken cancellationToken = default)
     {
         var contract = await _context.Contracts.FindAsync(new object[] { id }, cancellationToken);
-        if (contract == null) return false;
+        if (contract == null)
+            return false;
 
         contract.IsDeleted = true;
         contract.UpdatedAt = DateTime.UtcNow;
@@ -582,7 +582,8 @@ public class ContractService : IContractService
 
     private double CalculateAverageContractLength(List<Contract> contracts)
     {
-        if (!contracts.Any()) return 0;
+        if (!contracts.Any())
+            return 0;
 
         var totalDays = contracts.Sum(c => (c.EndDate - c.StartDate).TotalDays);
         return totalDays / contracts.Count;
@@ -775,17 +776,27 @@ public class ContractService : IContractService
     /// </summary>
     private static string EscapePdfString(string text)
     {
-        if (string.IsNullOrEmpty(text)) return "";
+        if (string.IsNullOrEmpty(text))
+            return "";
         var sb = new System.Text.StringBuilder(text.Length);
         foreach (var c in text)
         {
             switch (c)
             {
-                case '\\': sb.Append("\\\\"); break;
-                case '(': sb.Append("\\("); break;
-                case ')': sb.Append("\\)"); break;
-                case '\r': break;
-                case '\n': sb.Append(' '); break;
+                case '\\':
+                    sb.Append("\\\\");
+                    break;
+                case '(':
+                    sb.Append("\\(");
+                    break;
+                case ')':
+                    sb.Append("\\)");
+                    break;
+                case '\r':
+                    break;
+                case '\n':
+                    sb.Append(' ');
+                    break;
                 default:
                     // Only include printable ASCII; replace others with '?'
                     sb.Append(c >= 32 && c <= 126 ? c : '?');

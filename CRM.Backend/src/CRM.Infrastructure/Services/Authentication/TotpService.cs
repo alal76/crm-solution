@@ -1,3 +1,9 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This software is source-available. Non-commercial use is permitted under
+// the terms of the LICENSE file. Commercial use requires a separate license.
+// See the LICENSE file in the root directory for full terms.
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -119,7 +125,7 @@ namespace CRM.Infrastructure.Services.Authentication
                 // Generate backup codes
                 var backupCodes = GenerateBackupCodes(_options.Value.BackupCodeCount);
 
-                _logger.LogInformation("TOTP setup completed for user {UserId} with {BackupCodeCount} backup codes", 
+                _logger.LogInformation("TOTP setup completed for user {UserId} with {BackupCodeCount} backup codes",
                     userId, backupCodes.Count);
 
                 return new BackupCodesDto
@@ -154,7 +160,7 @@ namespace CRM.Infrastructure.Services.Authentication
                 // byte[] secretBytes = await GetUserTotpSecretAsync(userId);
 
                 long currentTimeCounter = GetTimeCounter();
-                
+
                 // Verify with current time window and ±1 windows for clock drift
                 for (int i = -1; i <= 1; i++)
                 {

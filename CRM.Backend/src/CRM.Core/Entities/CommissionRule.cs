@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 namespace CRM.Core.Entities;
 
 /// <summary>
@@ -40,20 +39,20 @@ public class CommissionRule : BaseEntity
     public CommissionRuleType RuleType { get; set; }
 
     /// <summary>Alias for RuleType for backward compatibility</summary>
-    public CommissionRuleType Type 
-    { 
-        get => RuleType; 
-        set => RuleType = value; 
+    public CommissionRuleType Type
+    {
+        get => RuleType;
+        set => RuleType = value;
     }
 
     /// <summary>For Percentage and Flat rules: the commission rate/amount</summary>
     public decimal Rate { get; set; }
 
     /// <summary>Alias for Rate for backward compatibility</summary>
-    public decimal BaseRate 
-    { 
-        get => Rate; 
-        set => Rate = value; 
+    public decimal BaseRate
+    {
+        get => Rate;
+        set => Rate = value;
     }
 
     /// <summary>For Tiered rules: minimum sales amount for this tier</summary>

@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
@@ -194,27 +193,48 @@ public class ContractsController : ControllerBase
                 return NotFound(new { message = $"Contract {id} not found" });
 
             // Field-by-field patching
-            if (request.Name != null) contract.Name = request.Name;
-            if (request.Description != null) contract.Description = request.Description;
-            if (request.Status.HasValue) contract.Status = request.Status.Value;
-            if (request.ContractType.HasValue) contract.ContractType = request.ContractType.Value;
-            if (request.AccountId.HasValue) contract.AccountId = request.AccountId.Value;
-            if (request.ContactId.HasValue) contract.ContactId = request.ContactId;
-            if (request.OwnerId.HasValue) contract.OwnerId = request.OwnerId;
-            if (request.ParentContractId.HasValue) contract.ParentContractId = request.ParentContractId;
-            if (request.OpportunityId.HasValue) contract.OpportunityId = request.OpportunityId;
-            if (request.QuoteId.HasValue) contract.QuoteId = request.QuoteId;
-            if (request.StartDate.HasValue) contract.StartDate = request.StartDate.Value;
-            if (request.EndDate.HasValue) contract.EndDate = request.EndDate.Value;
-            if (request.SignedDate.HasValue) contract.SignedDate = request.SignedDate;
-            if (request.Value.HasValue) contract.Value = request.Value.Value;
-            if (request.CurrencyCode != null) contract.CurrencyCode = request.CurrencyCode;
-            if (request.BillingFrequency != null) contract.BillingFrequency = request.BillingFrequency;
-            if (request.AutoRenew.HasValue) contract.AutoRenew = request.AutoRenew.Value;
-            if (request.RenewalNoticeDays.HasValue) contract.RenewalNoticeDays = request.RenewalNoticeDays.Value;
-            if (request.Terms != null) contract.Terms = request.Terms;
-            if (request.SpecialConditions != null) contract.SpecialConditions = request.SpecialConditions;
-            if (request.TerminationClause != null) contract.TerminationClause = request.TerminationClause;
+            if (request.Name != null)
+                contract.Name = request.Name;
+            if (request.Description != null)
+                contract.Description = request.Description;
+            if (request.Status.HasValue)
+                contract.Status = request.Status.Value;
+            if (request.ContractType.HasValue)
+                contract.ContractType = request.ContractType.Value;
+            if (request.AccountId.HasValue)
+                contract.AccountId = request.AccountId.Value;
+            if (request.ContactId.HasValue)
+                contract.ContactId = request.ContactId;
+            if (request.OwnerId.HasValue)
+                contract.OwnerId = request.OwnerId;
+            if (request.ParentContractId.HasValue)
+                contract.ParentContractId = request.ParentContractId;
+            if (request.OpportunityId.HasValue)
+                contract.OpportunityId = request.OpportunityId;
+            if (request.QuoteId.HasValue)
+                contract.QuoteId = request.QuoteId;
+            if (request.StartDate.HasValue)
+                contract.StartDate = request.StartDate.Value;
+            if (request.EndDate.HasValue)
+                contract.EndDate = request.EndDate.Value;
+            if (request.SignedDate.HasValue)
+                contract.SignedDate = request.SignedDate;
+            if (request.Value.HasValue)
+                contract.Value = request.Value.Value;
+            if (request.CurrencyCode != null)
+                contract.CurrencyCode = request.CurrencyCode;
+            if (request.BillingFrequency != null)
+                contract.BillingFrequency = request.BillingFrequency;
+            if (request.AutoRenew.HasValue)
+                contract.AutoRenew = request.AutoRenew.Value;
+            if (request.RenewalNoticeDays.HasValue)
+                contract.RenewalNoticeDays = request.RenewalNoticeDays.Value;
+            if (request.Terms != null)
+                contract.Terms = request.Terms;
+            if (request.SpecialConditions != null)
+                contract.SpecialConditions = request.SpecialConditions;
+            if (request.TerminationClause != null)
+                contract.TerminationClause = request.TerminationClause;
             contract.UpdatedAt = DateTime.UtcNow;
 
             var updated = await _contractService.UpdateAsync(contract, cancellationToken);

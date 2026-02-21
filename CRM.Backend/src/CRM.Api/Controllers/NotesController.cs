@@ -4,7 +4,7 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
+using System.Security.Claims;
 using CRM.Core.Entities;
 using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Services;
@@ -12,7 +12,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Security.Claims;
 
 namespace CRM.Api.Controllers;
 
@@ -131,13 +130,15 @@ public class NotesController : ControllerBase
 
     private async Task<bool> HasAdminRole(int userId)
     {
-        if (userId == 0) return false;
+        if (userId == 0)
+            return false;
 
         var user = await _context.Users
             .Include(u => u.PrimaryGroup)
             .FirstOrDefaultAsync(u => u.Id == userId);
 
-        if (user == null) return false;
+        if (user == null)
+            return false;
 
         // Check user group name
         var groupName = user.PrimaryGroup?.Name ?? "";
@@ -288,9 +289,11 @@ public class NotesController : ControllerBase
         foreach (var note in notes)
         {
             var nt = await _normalization.GetTagsAsync("Note", note.Id);
-            if (!string.IsNullOrWhiteSpace(nt)) note.Tags = nt;
+            if (!string.IsNullOrWhiteSpace(nt))
+                note.Tags = nt;
             var cf = await _normalization.GetCustomFieldsAsync("Note", note.Id);
-            if (!string.IsNullOrWhiteSpace(cf)) note.CustomFields = cf;
+            if (!string.IsNullOrWhiteSpace(cf))
+                note.CustomFields = cf;
 
             results.Add(await MapToResponseDto(note, currentUserId));
         }
@@ -325,9 +328,11 @@ public class NotesController : ControllerBase
             return NotFound();
 
         var nt = await _normalization.GetTagsAsync("Note", note.Id);
-        if (!string.IsNullOrWhiteSpace(nt)) note.Tags = nt;
+        if (!string.IsNullOrWhiteSpace(nt))
+            note.Tags = nt;
         var cf = await _normalization.GetCustomFieldsAsync("Note", note.Id);
-        if (!string.IsNullOrWhiteSpace(cf)) note.CustomFields = cf;
+        if (!string.IsNullOrWhiteSpace(cf))
+            note.CustomFields = cf;
 
         return Ok(await MapToResponseDto(note, currentUserId));
     }
@@ -383,14 +388,30 @@ public class NotesController : ControllerBase
         {
             switch (dto.EntityType.ToLower())
             {
-                case "account": note.AccountId = dto.EntityId; break;
-                case "contact": note.ContactId = dto.EntityId; break;
-                case "opportunity": note.OpportunityId = dto.EntityId; break;
-                case "lead": note.LeadId = dto.EntityId; break;
-                case "campaign": note.CampaignId = dto.EntityId; break;
-                case "quote": note.QuoteId = dto.EntityId; break;
-                case "servicerequest": note.ServiceRequestId = dto.EntityId; break;
-                case "product": note.ProductId = dto.EntityId; break;
+                case "account":
+                    note.AccountId = dto.EntityId;
+                    break;
+                case "contact":
+                    note.ContactId = dto.EntityId;
+                    break;
+                case "opportunity":
+                    note.OpportunityId = dto.EntityId;
+                    break;
+                case "lead":
+                    note.LeadId = dto.EntityId;
+                    break;
+                case "campaign":
+                    note.CampaignId = dto.EntityId;
+                    break;
+                case "quote":
+                    note.QuoteId = dto.EntityId;
+                    break;
+                case "servicerequest":
+                    note.ServiceRequestId = dto.EntityId;
+                    break;
+                case "product":
+                    note.ProductId = dto.EntityId;
+                    break;
             }
         }
 
@@ -629,9 +650,11 @@ public class NotesController : ControllerBase
         foreach (var note in notes)
         {
             var nt = await _normalization.GetTagsAsync("Note", note.Id);
-            if (!string.IsNullOrWhiteSpace(nt)) note.Tags = nt;
+            if (!string.IsNullOrWhiteSpace(nt))
+                note.Tags = nt;
             var cf = await _normalization.GetCustomFieldsAsync("Note", note.Id);
-            if (!string.IsNullOrWhiteSpace(cf)) note.CustomFields = cf;
+            if (!string.IsNullOrWhiteSpace(cf))
+                note.CustomFields = cf;
 
             results.Add(await MapToResponseDto(note, currentUserId));
         }
@@ -715,14 +738,30 @@ public class NotesController : ControllerBase
         {
             switch (dto.EntityType.ToLower())
             {
-                case "account": note.AccountId = dto.EntityId; break;
-                case "contact": note.ContactId = dto.EntityId; break;
-                case "opportunity": note.OpportunityId = dto.EntityId; break;
-                case "lead": note.LeadId = dto.EntityId; break;
-                case "campaign": note.CampaignId = dto.EntityId; break;
-                case "quote": note.QuoteId = dto.EntityId; break;
-                case "servicerequest": note.ServiceRequestId = dto.EntityId; break;
-                case "product": note.ProductId = dto.EntityId; break;
+                case "account":
+                    note.AccountId = dto.EntityId;
+                    break;
+                case "contact":
+                    note.ContactId = dto.EntityId;
+                    break;
+                case "opportunity":
+                    note.OpportunityId = dto.EntityId;
+                    break;
+                case "lead":
+                    note.LeadId = dto.EntityId;
+                    break;
+                case "campaign":
+                    note.CampaignId = dto.EntityId;
+                    break;
+                case "quote":
+                    note.QuoteId = dto.EntityId;
+                    break;
+                case "servicerequest":
+                    note.ServiceRequestId = dto.EntityId;
+                    break;
+                case "product":
+                    note.ProductId = dto.EntityId;
+                    break;
             }
         }
 

@@ -4,12 +4,11 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
+using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
-using CRM.Core.Ports.Input;
-using CRM.Core.Dtos;
 using CRM.Core.Mappers;
+using CRM.Core.Ports.Input;
 
 namespace CRM.Infrastructure.Services;
 
@@ -44,11 +43,14 @@ public class MarketingCampaignService : IMarketingCampaignService, ICampaignInpu
     public async Task<CampaignDto?> GetCampaignByIdAsync(int id)
     {
         var c = await _repository.GetByIdAsync(id);
-        if (c == null) return null;
+        if (c == null)
+            return null;
         var tags = await _normalizationService.GetTagsAsync("MarketingCampaign", c.Id);
-        if (!string.IsNullOrWhiteSpace(tags)) c.Tags = tags;
+        if (!string.IsNullOrWhiteSpace(tags))
+            c.Tags = tags;
         var cfs = await _normalizationService.GetCustomFieldsAsync("MarketingCampaign", c.Id);
-        if (!string.IsNullOrWhiteSpace(cfs)) c.CustomFields = cfs;
+        if (!string.IsNullOrWhiteSpace(cfs))
+            c.CustomFields = cfs;
         return CampaignMapper.ToDto(c);
     }
 
@@ -58,9 +60,11 @@ public class MarketingCampaignService : IMarketingCampaignService, ICampaignInpu
         foreach (var c in items)
         {
             var tags = await _normalizationService.GetTagsAsync("MarketingCampaign", c.Id);
-            if (!string.IsNullOrWhiteSpace(tags)) c.Tags = tags;
+            if (!string.IsNullOrWhiteSpace(tags))
+                c.Tags = tags;
             var cfs = await _normalizationService.GetCustomFieldsAsync("MarketingCampaign", c.Id);
-            if (!string.IsNullOrWhiteSpace(cfs)) c.CustomFields = cfs;
+            if (!string.IsNullOrWhiteSpace(cfs))
+                c.CustomFields = cfs;
         }
         return items.Select(CampaignMapper.ToDto);
     }
@@ -71,9 +75,11 @@ public class MarketingCampaignService : IMarketingCampaignService, ICampaignInpu
         foreach (var c in items)
         {
             var tags = await _normalizationService.GetTagsAsync("MarketingCampaign", c.Id);
-            if (!string.IsNullOrWhiteSpace(tags)) c.Tags = tags;
+            if (!string.IsNullOrWhiteSpace(tags))
+                c.Tags = tags;
             var cfs = await _normalizationService.GetCustomFieldsAsync("MarketingCampaign", c.Id);
-            if (!string.IsNullOrWhiteSpace(cfs)) c.CustomFields = cfs;
+            if (!string.IsNullOrWhiteSpace(cfs))
+                c.CustomFields = cfs;
         }
         return items.Select(CampaignMapper.ToDto);
     }

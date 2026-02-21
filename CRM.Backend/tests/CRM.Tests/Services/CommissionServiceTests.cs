@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using CRM.Infrastructure.Services;
@@ -59,21 +58,24 @@ public class CommissionServiceTests
             .Returns<object[], CancellationToken>((keys, _) =>
             {
                 var id = keys.FirstOrDefault();
-                if (id == null) return ValueTask.FromResult<Commission?>(default);
+                if (id == null)
+                    return ValueTask.FromResult<Commission?>(default);
                 return ValueTask.FromResult(_commissions.FirstOrDefault(e => e.Id == Convert.ToInt32(id)));
             });
         mockPlans.Setup(m => m.FindAsync(It.IsAny<object[]>(), It.IsAny<CancellationToken>()))
             .Returns<object[], CancellationToken>((keys, _) =>
             {
                 var id = keys.FirstOrDefault();
-                if (id == null) return ValueTask.FromResult<CommissionPlan?>(default);
+                if (id == null)
+                    return ValueTask.FromResult<CommissionPlan?>(default);
                 return ValueTask.FromResult(_plans.FirstOrDefault(e => e.Id == Convert.ToInt32(id)));
             });
         mockTiers.Setup(m => m.FindAsync(It.IsAny<object[]>(), It.IsAny<CancellationToken>()))
             .Returns<object[], CancellationToken>((keys, _) =>
             {
                 var id = keys.FirstOrDefault();
-                if (id == null) return ValueTask.FromResult<CommissionTier?>(default);
+                if (id == null)
+                    return ValueTask.FromResult<CommissionTier?>(default);
                 return ValueTask.FromResult(_tiers.FirstOrDefault(e => e.Id == Convert.ToInt32(id)));
             });
 
@@ -385,7 +387,10 @@ public class CommissionServiceTests
         // Arrange
         _statements.Add(new CommissionStatement
         {
-            Id = 1, UserId = 1, Status = CommissionStatementStatus.Draft, IsDeleted = false
+            Id = 1,
+            UserId = 1,
+            Status = CommissionStatementStatus.Draft,
+            IsDeleted = false
         });
 
         // Act

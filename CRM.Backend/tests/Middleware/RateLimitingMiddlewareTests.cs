@@ -4,18 +4,17 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
-using Xunit;
-using Moq;
+using System;
+using System.Collections.Generic;
+using System.Net;
+using System.Threading.Tasks;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Microsoft.Extensions.Caching.Memory;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using System;
-using System.Net;
+using Moq;
+using Xunit;
 
 namespace CRM.Tests.Middleware;
 

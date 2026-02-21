@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
@@ -44,13 +43,13 @@ public class AuthenticationServiceTests
     {
         _mockUserRepository = new Mock<IRepository<User>>();
         _mockOAuthTokenRepository = new Mock<IRepository<OAuthToken>>();
-        
+
         // CrmDbContext requires constructor args; use InMemory options to enable mocking
         var dbOptions = new DbContextOptionsBuilder<CrmDbContext>()
             .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
             .Options;
         _mockDbContext = new Mock<CrmDbContext>(dbOptions, new Mock<IConfiguration>().Object) { CallBase = false };
-        
+
         _mockJwtTokenService = new Mock<IJwtTokenService>();
         _mockTotpService = new Mock<CRM.Core.Interfaces.ITotpService>();
         _mockMemoryCache = new Mock<IMemoryCache>();

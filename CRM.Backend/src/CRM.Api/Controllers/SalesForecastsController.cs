@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -65,7 +64,8 @@ public class SalesForecastsController : ControllerBase
         try
         {
             var forecast = await _service.GetByIdAsync(id, cancellationToken);
-            if (forecast == null) return NotFound($"Sales forecast {id} not found");
+            if (forecast == null)
+                return NotFound($"Sales forecast {id} not found");
             return Ok(forecast);
         }
         catch (Exception ex)
@@ -84,7 +84,8 @@ public class SalesForecastsController : ControllerBase
     {
         try
         {
-            if (!ModelState.IsValid) return ValidationProblem(ModelState);
+            if (!ModelState.IsValid)
+                return ValidationProblem(ModelState);
             var created = await _service.CreateAsync(forecast, cancellationToken);
             return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
         }
@@ -105,9 +106,11 @@ public class SalesForecastsController : ControllerBase
     {
         try
         {
-            if (!ModelState.IsValid) return ValidationProblem(ModelState);
+            if (!ModelState.IsValid)
+                return ValidationProblem(ModelState);
             var updated = await _service.UpdateAsync(id, forecast, cancellationToken);
-            if (!updated) return NotFound($"Sales forecast {id} not found");
+            if (!updated)
+                return NotFound($"Sales forecast {id} not found");
             return Ok();
         }
         catch (Exception ex)
@@ -127,7 +130,8 @@ public class SalesForecastsController : ControllerBase
         try
         {
             var deleted = await _service.DeleteAsync(id, cancellationToken);
-            if (!deleted) return NotFound($"Sales forecast {id} not found");
+            if (!deleted)
+                return NotFound($"Sales forecast {id} not found");
             return NoContent();
         }
         catch (Exception ex)
@@ -151,7 +155,8 @@ public class SalesForecastsController : ControllerBase
         try
         {
             var result = await _service.SubmitAsync(id, cancellationToken);
-            if (!result) return NotFound($"Sales forecast {id} not found");
+            if (!result)
+                return NotFound($"Sales forecast {id} not found");
             return Ok();
         }
         catch (Exception ex)

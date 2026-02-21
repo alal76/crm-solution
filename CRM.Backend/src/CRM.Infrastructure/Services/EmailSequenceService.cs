@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -48,10 +47,12 @@ namespace CRM.Infrastructure.Services
 
         public async Task<EmailSequence> UpdateAsync(EmailSequence sequence, CancellationToken cancellationToken = default)
         {
-            if (sequence == null) throw new ArgumentNullException(nameof(sequence));
+            if (sequence == null)
+                throw new ArgumentNullException(nameof(sequence));
             var existing = await _context.EmailSequences
                 .FirstOrDefaultAsync(s => s.Id == sequence.Id && !s.IsDeleted, cancellationToken);
-            if (existing == null) throw new InvalidOperationException($"Sequence {sequence.Id} not found");
+            if (existing == null)
+                throw new InvalidOperationException($"Sequence {sequence.Id} not found");
 
             existing.Name = sequence.Name;
             existing.Description = sequence.Description;
@@ -80,7 +81,8 @@ namespace CRM.Infrastructure.Services
         {
             var sequence = await _context.EmailSequences
                 .FirstOrDefaultAsync(s => s.Id == id && !s.IsDeleted, cancellationToken);
-            if (sequence == null) return false;
+            if (sequence == null)
+                return false;
 
             sequence.IsDeleted = true;
             sequence.UpdatedAt = DateTime.UtcNow;
@@ -91,7 +93,8 @@ namespace CRM.Infrastructure.Services
 
         public async Task<EmailSequence> CreateSequenceAsync(EmailSequence sequence, CancellationToken cancellationToken = default)
         {
-            if (sequence == null) throw new ArgumentNullException(nameof(sequence));
+            if (sequence == null)
+                throw new ArgumentNullException(nameof(sequence));
             sequence.CreatedAt = DateTime.UtcNow;
             sequence.UpdatedAt = DateTime.UtcNow;
             _context.EmailSequences.Add(sequence);
@@ -105,7 +108,8 @@ namespace CRM.Infrastructure.Services
                 .Include(s => s.Enrollments)
                 .FirstOrDefaultAsync(s => s.Id == sequenceId && !s.IsDeleted, cancellationToken);
 
-            if (sequence == null) throw new InvalidOperationException("Sequence not found");
+            if (sequence == null)
+                throw new InvalidOperationException("Sequence not found");
 
             // prevent duplicate enrollment for same contact
             var exists = await _context.EmailSequenceEnrollments
@@ -138,7 +142,8 @@ namespace CRM.Infrastructure.Services
         public async Task<bool> StartSequenceAsync(int sequenceId, CancellationToken cancellationToken = default)
         {
             var sequence = await _context.EmailSequences.FirstOrDefaultAsync(s => s.Id == sequenceId && !s.IsDeleted, cancellationToken);
-            if (sequence == null) return false;
+            if (sequence == null)
+                return false;
             sequence.Status = EmailSequenceStatus.Active;
             sequence.UpdatedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync(cancellationToken);
@@ -149,7 +154,8 @@ namespace CRM.Infrastructure.Services
         public async Task<bool> StopSequenceAsync(int sequenceId, CancellationToken cancellationToken = default)
         {
             var sequence = await _context.EmailSequences.FirstOrDefaultAsync(s => s.Id == sequenceId && !s.IsDeleted, cancellationToken);
-            if (sequence == null) return false;
+            if (sequence == null)
+                return false;
             sequence.Status = EmailSequenceStatus.Paused;
             sequence.UpdatedAt = DateTime.UtcNow;
             await _context.SaveChangesAsync(cancellationToken);
@@ -163,7 +169,8 @@ namespace CRM.Infrastructure.Services
                 .AsNoTracking()
                 .FirstOrDefaultAsync(s => s.Id == sequenceId && !s.IsDeleted, cancellationToken);
 
-            if (sequence == null) throw new InvalidOperationException("Sequence not found");
+            if (sequence == null)
+                throw new InvalidOperationException("Sequence not found");
 
             var dto = new SequenceStatusDto
             {
@@ -183,7 +190,8 @@ namespace CRM.Infrastructure.Services
         {
             var sequence = await _context.EmailSequences
                 .FirstOrDefaultAsync(s => s.Id == sequenceId && !s.IsDeleted, cancellationToken);
-            if (sequence == null) return false;
+            if (sequence == null)
+                return false;
 
             sequence.Status = EmailSequenceStatus.Active;
             sequence.UpdatedAt = DateTime.UtcNow;
@@ -196,7 +204,8 @@ namespace CRM.Infrastructure.Services
         {
             var sequence = await _context.EmailSequences
                 .FirstOrDefaultAsync(s => s.Id == sequenceId && !s.IsDeleted, cancellationToken);
-            if (sequence == null) return false;
+            if (sequence == null)
+                return false;
 
             sequence.Status = EmailSequenceStatus.Paused;
             sequence.UpdatedAt = DateTime.UtcNow;
@@ -209,7 +218,8 @@ namespace CRM.Infrastructure.Services
         {
             var sequence = await _context.EmailSequences
                 .FirstOrDefaultAsync(s => s.Id == sequenceId && !s.IsDeleted, cancellationToken);
-            if (sequence == null) return false;
+            if (sequence == null)
+                return false;
 
             sequence.Status = EmailSequenceStatus.Archived;
             sequence.IsActive = false;
@@ -221,7 +231,8 @@ namespace CRM.Infrastructure.Services
 
         public async Task<int> EnrollContactsAsync(int sequenceId, List<int> contactIds, int? enrolledById = null, CancellationToken cancellationToken = default)
         {
-            if (contactIds == null || contactIds.Count == 0) return 0;
+            if (contactIds == null || contactIds.Count == 0)
+                return 0;
 
             var successCount = 0;
             foreach (var contactId in contactIds.Distinct())
@@ -237,7 +248,8 @@ namespace CRM.Infrastructure.Services
         {
             var enrollment = await _context.EmailSequenceEnrollments
                 .FirstOrDefaultAsync(e => e.EmailSequenceId == sequenceId && e.ContactId == contactId && !e.IsDeleted, cancellationToken);
-            if (enrollment == null) return false;
+            if (enrollment == null)
+                return false;
 
             enrollment.Status = EnrollmentStatus.Removed;
             enrollment.CompletedAt = DateTime.UtcNow;
@@ -262,11 +274,13 @@ namespace CRM.Infrastructure.Services
         {
             var step = await _context.EmailSequenceSteps
                 .FirstOrDefaultAsync(s => s.Id == stepId && !s.IsDeleted, cancellationToken);
-            if (step == null) throw new InvalidOperationException("Step not found");
+            if (step == null)
+                throw new InvalidOperationException("Step not found");
 
             var enrollment = await _context.EmailSequenceEnrollments
                 .FirstOrDefaultAsync(e => e.Id == enrollmentId && !e.IsDeleted, cancellationToken);
-            if (enrollment == null) throw new InvalidOperationException("Enrollment not found");
+            if (enrollment == null)
+                throw new InvalidOperationException("Enrollment not found");
 
             var execution = new EmailSequenceStepExecution
             {
@@ -299,7 +313,8 @@ namespace CRM.Infrastructure.Services
         {
             var enrollment = await _context.EmailSequenceEnrollments
                 .FirstOrDefaultAsync(e => e.Id == enrollmentId && !e.IsDeleted, cancellationToken);
-            if (enrollment == null) return false;
+            if (enrollment == null)
+                return false;
 
             enrollment.CurrentStepId = stepId;
             enrollment.LastStepExecutedAt = DateTime.UtcNow;
@@ -408,7 +423,8 @@ namespace CRM.Infrastructure.Services
                 .AsNoTracking()
                 .FirstOrDefaultAsync(s => s.Id == sequenceId && !s.IsDeleted, cancellationToken);
 
-            if (sequence == null) throw new InvalidOperationException("Sequence not found");
+            if (sequence == null)
+                throw new InvalidOperationException("Sequence not found");
 
             var totalEnrolled = sequence.TotalEnrolled == 0 ? 1 : sequence.TotalEnrolled;
             return new SequenceAnalyticsDto
@@ -429,7 +445,8 @@ namespace CRM.Infrastructure.Services
                 .AsNoTracking()
                 .FirstOrDefaultAsync(e => e.Id == enrollmentId && !e.IsDeleted, cancellationToken);
 
-            if (enrollment == null) throw new InvalidOperationException("Enrollment not found");
+            if (enrollment == null)
+                throw new InvalidOperationException("Enrollment not found");
 
             return new EnrollmentProgressDto
             {

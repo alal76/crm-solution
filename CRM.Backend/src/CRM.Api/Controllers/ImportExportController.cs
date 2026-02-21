@@ -4,16 +4,15 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
+using System.Text;
+using System.Text.Json;
+using CRM.Core.Entities;
+using CRM.Core.Models;
+using CRM.Infrastructure.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using CRM.Infrastructure.Data;
-using CRM.Core.Entities;
-using CRM.Core.Models;
-using System.Text;
-using System.Text.Json;
 
 namespace CRM.Api.Controllers;
 
@@ -189,141 +188,141 @@ public class ImportExportController : ControllerBase
             switch (normalizedType)
             {
                 case "contacts":
-                {
-                    var items = JsonSerializer.Deserialize<List<Contact>>(content, jsonOptions);
-                    if (items == null || items.Count == 0)
-                        return BadRequest(new { message = "File contains no valid records." });
-
-                    foreach (var item in items)
                     {
-                        try
+                        var items = JsonSerializer.Deserialize<List<Contact>>(content, jsonOptions);
+                        if (items == null || items.Count == 0)
+                            return BadRequest(new { message = "File contains no valid records." });
+
+                        foreach (var item in items)
                         {
-                            item.Id = 0;
-                            _context.Contacts.Add(item);
-                            importedCount++;
+                            try
+                            {
+                                item.Id = 0;
+                                _context.Contacts.Add(item);
+                                importedCount++;
+                            }
+                            catch (Exception ex)
+                            {
+                                errors.Add(new { row = importedCount + errors.Count + 1, message = ex.Message });
+                            }
                         }
-                        catch (Exception ex)
-                        {
-                            errors.Add(new { row = importedCount + errors.Count + 1, message = ex.Message });
-                        }
+                        break;
                     }
-                    break;
-                }
                 case "accounts":
-                {
-                    var items = JsonSerializer.Deserialize<List<Account>>(content, jsonOptions);
-                    if (items == null || items.Count == 0)
-                        return BadRequest(new { message = "File contains no valid records." });
-
-                    foreach (var item in items)
                     {
-                        try
+                        var items = JsonSerializer.Deserialize<List<Account>>(content, jsonOptions);
+                        if (items == null || items.Count == 0)
+                            return BadRequest(new { message = "File contains no valid records." });
+
+                        foreach (var item in items)
                         {
-                            item.Id = 0;
-                            item.CreatedAt = DateTime.UtcNow;
-                            item.UpdatedAt = DateTime.UtcNow;
-                            _context.Accounts.Add(item);
-                            importedCount++;
+                            try
+                            {
+                                item.Id = 0;
+                                item.CreatedAt = DateTime.UtcNow;
+                                item.UpdatedAt = DateTime.UtcNow;
+                                _context.Accounts.Add(item);
+                                importedCount++;
+                            }
+                            catch (Exception ex)
+                            {
+                                errors.Add(new { row = importedCount + errors.Count + 1, message = ex.Message });
+                            }
                         }
-                        catch (Exception ex)
-                        {
-                            errors.Add(new { row = importedCount + errors.Count + 1, message = ex.Message });
-                        }
+                        break;
                     }
-                    break;
-                }
                 case "opportunities":
-                {
-                    var items = JsonSerializer.Deserialize<List<Opportunity>>(content, jsonOptions);
-                    if (items == null || items.Count == 0)
-                        return BadRequest(new { message = "File contains no valid records." });
-
-                    foreach (var item in items)
                     {
-                        try
+                        var items = JsonSerializer.Deserialize<List<Opportunity>>(content, jsonOptions);
+                        if (items == null || items.Count == 0)
+                            return BadRequest(new { message = "File contains no valid records." });
+
+                        foreach (var item in items)
                         {
-                            item.Id = 0;
-                            item.CreatedAt = DateTime.UtcNow;
-                            item.UpdatedAt = DateTime.UtcNow;
-                            _context.Opportunities.Add(item);
-                            importedCount++;
+                            try
+                            {
+                                item.Id = 0;
+                                item.CreatedAt = DateTime.UtcNow;
+                                item.UpdatedAt = DateTime.UtcNow;
+                                _context.Opportunities.Add(item);
+                                importedCount++;
+                            }
+                            catch (Exception ex)
+                            {
+                                errors.Add(new { row = importedCount + errors.Count + 1, message = ex.Message });
+                            }
                         }
-                        catch (Exception ex)
-                        {
-                            errors.Add(new { row = importedCount + errors.Count + 1, message = ex.Message });
-                        }
+                        break;
                     }
-                    break;
-                }
                 case "products":
-                {
-                    var items = JsonSerializer.Deserialize<List<Product>>(content, jsonOptions);
-                    if (items == null || items.Count == 0)
-                        return BadRequest(new { message = "File contains no valid records." });
-
-                    foreach (var item in items)
                     {
-                        try
+                        var items = JsonSerializer.Deserialize<List<Product>>(content, jsonOptions);
+                        if (items == null || items.Count == 0)
+                            return BadRequest(new { message = "File contains no valid records." });
+
+                        foreach (var item in items)
                         {
-                            item.Id = 0;
-                            item.CreatedAt = DateTime.UtcNow;
-                            item.UpdatedAt = DateTime.UtcNow;
-                            _context.Products.Add(item);
-                            importedCount++;
+                            try
+                            {
+                                item.Id = 0;
+                                item.CreatedAt = DateTime.UtcNow;
+                                item.UpdatedAt = DateTime.UtcNow;
+                                _context.Products.Add(item);
+                                importedCount++;
+                            }
+                            catch (Exception ex)
+                            {
+                                errors.Add(new { row = importedCount + errors.Count + 1, message = ex.Message });
+                            }
                         }
-                        catch (Exception ex)
-                        {
-                            errors.Add(new { row = importedCount + errors.Count + 1, message = ex.Message });
-                        }
+                        break;
                     }
-                    break;
-                }
                 case "tasks":
-                {
-                    var items = JsonSerializer.Deserialize<List<CrmTask>>(content, jsonOptions);
-                    if (items == null || items.Count == 0)
-                        return BadRequest(new { message = "File contains no valid records." });
-
-                    foreach (var item in items)
                     {
-                        try
+                        var items = JsonSerializer.Deserialize<List<CrmTask>>(content, jsonOptions);
+                        if (items == null || items.Count == 0)
+                            return BadRequest(new { message = "File contains no valid records." });
+
+                        foreach (var item in items)
                         {
-                            item.Id = 0;
-                            item.CreatedAt = DateTime.UtcNow;
-                            item.UpdatedAt = DateTime.UtcNow;
-                            _context.CrmTasks.Add(item);
-                            importedCount++;
+                            try
+                            {
+                                item.Id = 0;
+                                item.CreatedAt = DateTime.UtcNow;
+                                item.UpdatedAt = DateTime.UtcNow;
+                                _context.CrmTasks.Add(item);
+                                importedCount++;
+                            }
+                            catch (Exception ex)
+                            {
+                                errors.Add(new { row = importedCount + errors.Count + 1, message = ex.Message });
+                            }
                         }
-                        catch (Exception ex)
-                        {
-                            errors.Add(new { row = importedCount + errors.Count + 1, message = ex.Message });
-                        }
+                        break;
                     }
-                    break;
-                }
                 case "leads":
-                {
-                    var items = JsonSerializer.Deserialize<List<Lead>>(content, jsonOptions);
-                    if (items == null || items.Count == 0)
-                        return BadRequest(new { message = "File contains no valid records." });
-
-                    foreach (var item in items)
                     {
-                        try
+                        var items = JsonSerializer.Deserialize<List<Lead>>(content, jsonOptions);
+                        if (items == null || items.Count == 0)
+                            return BadRequest(new { message = "File contains no valid records." });
+
+                        foreach (var item in items)
                         {
-                            item.Id = 0;
-                            item.CreatedAt = DateTime.UtcNow;
-                            item.UpdatedAt = DateTime.UtcNow;
-                            _context.Leads.Add(item);
-                            importedCount++;
+                            try
+                            {
+                                item.Id = 0;
+                                item.CreatedAt = DateTime.UtcNow;
+                                item.UpdatedAt = DateTime.UtcNow;
+                                _context.Leads.Add(item);
+                                importedCount++;
+                            }
+                            catch (Exception ex)
+                            {
+                                errors.Add(new { row = importedCount + errors.Count + 1, message = ex.Message });
+                            }
                         }
-                        catch (Exception ex)
-                        {
-                            errors.Add(new { row = importedCount + errors.Count + 1, message = ex.Message });
-                        }
+                        break;
                     }
-                    break;
-                }
             }
 
             await _context.SaveChangesAsync();
@@ -409,7 +408,8 @@ public class ImportExportController : ControllerBase
     {
         var sb = new StringBuilder();
         var list = data as System.Collections.IEnumerable;
-        if (list == null) return "";
+        if (list == null)
+            return "";
 
         bool headerWritten = false;
 

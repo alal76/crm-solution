@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using CRM.Core.Entities.ITSM;
 using CRM.Core.Interfaces;
 using CRM.Infrastructure.Data;
@@ -181,7 +180,8 @@ public class BusinessHoursCalculator : IBusinessHoursCalculator
 
     public async Task<int> GetElapsedBusinessMinutesAsync(DateTime startTime, DateTime endTime, int? scheduleId = null)
     {
-        if (endTime <= startTime) return 0;
+        if (endTime <= startTime)
+            return 0;
 
         var schedule = await GetScheduleAsync(scheduleId);
         var tz = GetTimeZone(schedule.TimeZoneId);

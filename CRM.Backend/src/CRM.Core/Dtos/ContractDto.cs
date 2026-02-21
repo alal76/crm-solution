@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using CRM.Core.Entities;
 
 namespace CRM.Core.Dtos;
@@ -105,24 +104,24 @@ public class CreateContractDto
 {
     public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
-    
+
     public int AccountId { get; set; }
     public int? ContactId { get; set; }
     public int? OwnerId { get; set; }
-    
+
     public ContractType ContractType { get; set; } = ContractType.Service;
-    
+
     public DateTime StartDate { get; set; }
     public DateTime EndDate { get; set; }
     public decimal TotalValue { get; set; }
     public decimal? AnnualValue { get; set; }
-    
+
     public bool AutoRenew { get; set; }
     public int RenewalTermMonths { get; set; } = 12;
-    
+
     public string? PaymentTerms { get; set; }
     public string? TermsAndConditions { get; set; }
-    
+
     public int? OpportunityId { get; set; }
 }
 
@@ -133,19 +132,19 @@ public class UpdateContractDto
 {
     public string? Name { get; set; }
     public string? Description { get; set; }
-    
+
     public int? ContactId { get; set; }
     public int? OwnerId { get; set; }
-    
+
     public ContractType? ContractType { get; set; }
-    
+
     public DateTime? EndDate { get; set; }
     public decimal? TotalValue { get; set; }
     public decimal? AnnualValue { get; set; }
-    
+
     public bool? AutoRenew { get; set; }
     public int? RenewalTermMonths { get; set; }
-    
+
     public string? PaymentTerms { get; set; }
     public string? TermsAndConditions { get; set; }
 }
@@ -215,13 +214,13 @@ public class ContractStatistics
     public int ExpiringContracts { get; set; }
     public int ExpiredContracts { get; set; }
     public int PendingRenewals { get; set; }
-    
+
     public decimal TotalContractValue { get; set; }
     public decimal ActiveContractValue { get; set; }
-    
+
     public double RenewalRate { get; set; }
     public double AverageContractLength { get; set; }
-    
+
     public Dictionary<ContractType, int> ContractsByType { get; set; } = new();
 }
 

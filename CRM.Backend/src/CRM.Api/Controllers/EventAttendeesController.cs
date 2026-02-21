@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using System.ComponentModel.DataAnnotations;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
@@ -65,7 +64,8 @@ public class EventAttendeesController : ControllerBase
         try
         {
             var attendee = await _service.GetByIdAsync(id, cancellationToken);
-            if (attendee == null) return NotFound($"Event attendee {id} not found");
+            if (attendee == null)
+                return NotFound($"Event attendee {id} not found");
             return Ok(attendee);
         }
         catch (Exception ex)
@@ -84,7 +84,8 @@ public class EventAttendeesController : ControllerBase
     {
         try
         {
-            if (!ModelState.IsValid) return ValidationProblem(ModelState);
+            if (!ModelState.IsValid)
+                return ValidationProblem(ModelState);
             var created = await _service.CreateAsync(attendee, cancellationToken);
             return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
         }
@@ -105,9 +106,11 @@ public class EventAttendeesController : ControllerBase
     {
         try
         {
-            if (!ModelState.IsValid) return ValidationProblem(ModelState);
+            if (!ModelState.IsValid)
+                return ValidationProblem(ModelState);
             var updated = await _service.UpdateAsync(id, attendee, cancellationToken);
-            if (!updated) return NotFound($"Event attendee {id} not found");
+            if (!updated)
+                return NotFound($"Event attendee {id} not found");
             return Ok();
         }
         catch (Exception ex)
@@ -127,7 +130,8 @@ public class EventAttendeesController : ControllerBase
         try
         {
             var deleted = await _service.DeleteAsync(id, cancellationToken);
-            if (!deleted) return NotFound($"Event attendee {id} not found");
+            if (!deleted)
+                return NotFound($"Event attendee {id} not found");
             return NoContent();
         }
         catch (Exception ex)
@@ -169,9 +173,11 @@ public class EventAttendeesController : ControllerBase
     {
         try
         {
-            if (!ModelState.IsValid) return ValidationProblem(ModelState);
+            if (!ModelState.IsValid)
+                return ValidationProblem(ModelState);
             var updated = await _service.UpdateResponseAsync(id, request.Status, request.Comment, cancellationToken);
-            if (!updated) return NotFound($"Event attendee {id} not found");
+            if (!updated)
+                return NotFound($"Event attendee {id} not found");
             return Ok();
         }
         catch (Exception ex)
@@ -191,9 +197,11 @@ public class EventAttendeesController : ControllerBase
     {
         try
         {
-            if (!ModelState.IsValid) return ValidationProblem(ModelState);
+            if (!ModelState.IsValid)
+                return ValidationProblem(ModelState);
             var recorded = await _service.RecordAttendanceAsync(id, request.DidAttend, request.DurationMinutes, request.Notes, cancellationToken);
-            if (!recorded) return NotFound($"Event attendee {id} not found");
+            if (!recorded)
+                return NotFound($"Event attendee {id} not found");
             return Ok();
         }
         catch (Exception ex)

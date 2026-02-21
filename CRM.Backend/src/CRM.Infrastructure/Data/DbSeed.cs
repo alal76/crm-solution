@@ -4,10 +4,9 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
+using BCrypt.Net;
 using CRM.Core.Entities;
 using Microsoft.EntityFrameworkCore;
-using BCrypt.Net;
 
 namespace CRM.Infrastructure.Data;
 

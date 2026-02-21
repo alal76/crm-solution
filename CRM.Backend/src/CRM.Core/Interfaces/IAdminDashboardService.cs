@@ -1,6 +1,9 @@
 // CRM Solution - Customer Relationship Management System
 // Copyright (C) 2024-2026 Abhishek Lal
-
+//
+// This software is source-available. Non-commercial use is permitted under
+// the terms of the LICENSE file. Commercial use requires a separate license.
+// See the LICENSE file in the root directory for full terms.
 using CRM.Core.Dtos;
 
 namespace CRM.Core.Interfaces;
@@ -24,7 +27,7 @@ namespace CRM.Core.Interfaces;
 public interface IAdminDashboardService
 {
     #region Complete Dashboard
-    
+
     /// <summary>
     /// Get complete admin dashboard data.
     /// Includes all sections: stats, module status, provider health, metrics, alerts.
@@ -33,11 +36,11 @@ public interface IAdminDashboardService
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Complete admin dashboard DTO</returns>
     Task<AdminDashboardDto> GetCompleteAdminDashboardAsync(int timeRangeHours = 24, CancellationToken cancellationToken = default);
-    
+
     #endregion
 
     #region System Statistics
-    
+
     /// <summary>
     /// Get system-wide statistics.
     /// Includes user count, account count, recent activity, etc.
@@ -45,7 +48,7 @@ public interface IAdminDashboardService
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>System statistics DTO</returns>
     Task<SystemStatisticsDto> GetSystemStatisticsAsync(CancellationToken cancellationToken = default);
-    
+
     /// <summary>
     /// Get detailed system statistics with trends.
     /// </summary>
@@ -53,18 +56,18 @@ public interface IAdminDashboardService
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Detailed statistics DTO</returns>
     Task<DetailedSystemStatisticsDto> GetDetailedSystemStatisticsAsync(int daysBack = 30, CancellationToken cancellationToken = default);
-    
+
     #endregion
 
     #region Module Status
-    
+
     /// <summary>
     /// Get operational status of all modules.
     /// </summary>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Dictionary of module name to status</returns>
     Task<IDictionary<string, ModuleStatusDto>> GetAllModuleStatusAsync(CancellationToken cancellationToken = default);
-    
+
     /// <summary>
     /// Check if a specific module is operational.
     /// </summary>
@@ -72,18 +75,18 @@ public interface IAdminDashboardService
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Module status DTO</returns>
     Task<ModuleStatusDto> GetModuleStatusAsync(string moduleName, CancellationToken cancellationToken = default);
-    
+
     /// <summary>
     /// Get system health summary (all modules operational?).
     /// </summary>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>True if all modules operational</returns>
     Task<bool> IsSystemHealthyAsync(CancellationToken cancellationToken = default);
-    
+
     #endregion
 
     #region Provider Health (Summary)
-    
+
     /// <summary>
     /// Get provider health summary from cached data.
     /// Note: Detailed checks use IProviderHealthService directly.
@@ -91,11 +94,11 @@ public interface IAdminDashboardService
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Provider health dashboard DTO</returns>
     Task<ProviderHealthDashboardDto> GetProviderHealthSummaryAsync(CancellationToken cancellationToken = default);
-    
+
     #endregion
 
     #region Performance Metrics
-    
+
     /// <summary>
     /// Get system performance metrics.
     /// </summary>
@@ -103,7 +106,7 @@ public interface IAdminDashboardService
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Performance metrics DTO</returns>
     Task<SystemPerformanceMetricsDto> GetSystemPerformanceMetricsAsync(int hoursBack = 24, CancellationToken cancellationToken = default);
-    
+
     /// <summary>
     /// Get API endpoint performance metrics.
     /// </summary>
@@ -112,7 +115,7 @@ public interface IAdminDashboardService
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>List of endpoint metrics</returns>
     Task<IEnumerable<EndpointPerformanceMetricsDto>> GetEndpointPerformanceMetricsAsync(int hoursBack = 24, int topCount = 10, CancellationToken cancellationToken = default);
-    
+
     /// <summary>
     /// Get database performance metrics.
     /// </summary>
@@ -120,11 +123,11 @@ public interface IAdminDashboardService
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Database metrics DTO</returns>
     Task<DatabasePerformanceMetricsDto> GetDatabasePerformanceMetricsAsync(int hoursBack = 24, CancellationToken cancellationToken = default);
-    
+
     #endregion
 
     #region Alerts & Health Checks
-    
+
     /// <summary>
     /// Get recent alerts/notifications for admins.
     /// Includes provider issues, performance warnings, system alerts.
@@ -133,18 +136,18 @@ public interface IAdminDashboardService
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>List of alert DTOs</returns>
     Task<IEnumerable<AdminAlertDto>> GetRecentAlertsAsync(int hoursBack = 24, CancellationToken cancellationToken = default);
-    
+
     /// <summary>
     /// Get critical-level alerts only.
     /// </summary>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>List of critical alert DTOs</returns>
     Task<IEnumerable<AdminAlertDto>> GetCriticalAlertsAsync(CancellationToken cancellationToken = default);
-    
+
     #endregion
 
     #region Quick Actions Summary
-    
+
     /// <summary>
     /// Get summary for quick admin actions.
     /// Includes pending approvals, failed jobs, etc.
@@ -152,17 +155,17 @@ public interface IAdminDashboardService
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Quick actions summary DTO</returns>
     Task<QuickActionsSummaryDto> GetQuickActionsSummaryAsync(CancellationToken cancellationToken = default);
-    
+
     #endregion
 
     #region Cache & Refresh
-    
+
     /// <summary>
     /// Refresh dashboard cache.
     /// </summary>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Task completion</returns>
     Task RefreshDashboardCacheAsync(CancellationToken cancellationToken = default);
-    
+
     #endregion
 }

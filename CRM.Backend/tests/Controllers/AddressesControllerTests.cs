@@ -1,3 +1,9 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This software is source-available. Non-commercial use is permitted under
+// the terms of the LICENSE file. Commercial use requires a separate license.
+// See the LICENSE file in the root directory for full terms.
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -6,12 +12,12 @@ using CRM.Api.Controllers;
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
+using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
-using FluentAssertions;
 
 namespace CRM.Tests.Controllers;
 
@@ -135,7 +141,7 @@ public class AddressesControllerTests
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
         okResult.StatusCode.Should().Be(200);
-        
+
         var returnedAddresses = okResult.Value.Should().BeAssignableTo<IEnumerable<AddressDto>>().Subject;
         returnedAddresses.Should().HaveCount(2);
     }
@@ -217,7 +223,7 @@ public class AddressesControllerTests
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
         okResult.StatusCode.Should().Be(200);
-        
+
         var returnedAddress = okResult.Value.Should().BeOfType<AddressDto>().Subject;
         returnedAddress.Id.Should().Be(1);
         returnedAddress.Line1.Should().Be("123 Main Street");
@@ -295,7 +301,7 @@ public class AddressesControllerTests
         // Assert
         var createdResult = result.Should().BeOfType<CreatedAtActionResult>().Subject;
         createdResult.StatusCode.Should().Be(201);
-        
+
         var returnedAddress = createdResult.Value.Should().BeOfType<AddressDto>().Subject;
         returnedAddress.Line1.Should().Be("123 Main Street");
     }
@@ -341,7 +347,7 @@ public class AddressesControllerTests
         // Arrange
         var accountId = 1;
         var addressId = 1;
-        
+
         var dto = new UpdateAddressDto
         {
             Label = "Updated Office",
@@ -376,7 +382,7 @@ public class AddressesControllerTests
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
         okResult.StatusCode.Should().Be(200);
-        
+
         var returnedAddress = okResult.Value.Should().BeOfType<AddressDto>().Subject;
         returnedAddress.City.Should().Be("Boston");
     }
@@ -387,7 +393,7 @@ public class AddressesControllerTests
         // Arrange
         var accountId = 1;
         var addressId = 999;
-        
+
         var dto = new UpdateAddressDto
         {
             Line1 = "456 New Street",

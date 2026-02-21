@@ -1,3 +1,9 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This software is source-available. Non-commercial use is permitted under
+// the terms of the LICENSE file. Commercial use requires a separate license.
+// See the LICENSE file in the root directory for full terms.
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -377,7 +383,7 @@ public class AddressTestFixture
         {
             var city = cities[i % cities.Length];
             var state = states[i % states.Length];
-            
+
             addresses.Add(CreateAddress()
                 .WithId(i + 1)
                 .WithLabel($"Address {i + 1}")
@@ -394,7 +400,7 @@ public class AddressTestFixture
     /// <summary>
     /// Create a complete test dataset with accounts and addresses.
     /// </summary>
-    public static (List<Account> Accounts, List<Address> Addresses, List<EntityAddressLink> Links) 
+    public static (List<Account> Accounts, List<Address> Addresses, List<EntityAddressLink> Links)
         CreateTestDataset()
     {
         var accounts = new List<Account>();
@@ -404,7 +410,7 @@ public class AddressTestFixture
         // Create account 1 with 2 addresses
         var addr1 = CreateAddress().WithId(1).WithLine1("123 Main St").WithCity("New York").Build();
         var addr2 = CreateAddress().WithId(2).WithLine1("456 Oak Ave").WithCity("New York").Build();
-        
+
         var account1 = CreateAccount()
             .WithId(1)
             .WithEmail("acme@example.com")

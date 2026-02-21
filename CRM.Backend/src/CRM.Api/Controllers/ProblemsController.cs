@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using System.ComponentModel.DataAnnotations;
 using CRM.Core.DTOs.ITSM;
 using CRM.Core.Entities.ITSM;
@@ -16,7 +15,7 @@ namespace CRM.Api.Controllers;
 
 /// <summary>
 /// API controller for problem management in ITSM module.
-/// 
+///
 /// Provides endpoints for:
 /// - Creating, reading, updating, and deleting problems
 /// - Linking incidents to problems
@@ -439,7 +438,7 @@ public class LegacyProblemsController : ControllerBase
             var userId = GetCurrentUserId();
             var result = await _problemService.UpdateRootCauseAnalysisAsync(
                 id, request.RootCause, request.Workaround, userId);
-            
+
             if (!result)
             {
                 return BadRequest(new { error = "Failed to update root cause analysis" });

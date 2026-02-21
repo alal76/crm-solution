@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Entities.Workflow;
@@ -133,22 +132,34 @@ public class LeadsController : ControllerBase
         {
             var updated = await _leadService.UpdateAsync(id, lead =>
             {
-                if (!string.IsNullOrEmpty(request.FirstName)) lead.FirstName = request.FirstName;
-                if (!string.IsNullOrEmpty(request.LastName)) lead.LastName = request.LastName;
-                if (!string.IsNullOrEmpty(request.Email)) lead.Email = request.Email;
-                if (!string.IsNullOrEmpty(request.Phone)) lead.Phone = request.Phone;
-                if (!string.IsNullOrEmpty(request.CompanyName)) lead.CompanyName = request.CompanyName;
-                if (!string.IsNullOrEmpty(request.Title)) lead.Title = request.Title;
+                if (!string.IsNullOrEmpty(request.FirstName))
+                    lead.FirstName = request.FirstName;
+                if (!string.IsNullOrEmpty(request.LastName))
+                    lead.LastName = request.LastName;
+                if (!string.IsNullOrEmpty(request.Email))
+                    lead.Email = request.Email;
+                if (!string.IsNullOrEmpty(request.Phone))
+                    lead.Phone = request.Phone;
+                if (!string.IsNullOrEmpty(request.CompanyName))
+                    lead.CompanyName = request.CompanyName;
+                if (!string.IsNullOrEmpty(request.Title))
+                    lead.Title = request.Title;
                 if (!string.IsNullOrEmpty(request.Status) && Enum.TryParse<LeadLifecycleStatus>(request.Status, out var status))
                     lead.Status = status;
                 if (!string.IsNullOrEmpty(request.Source) && Enum.TryParse<LeadSource>(request.Source, out var src))
                     lead.Source = src;
-                if (!string.IsNullOrEmpty(request.Region)) lead.Region = request.Region;
-                if (!string.IsNullOrEmpty(request.Website)) lead.Website = request.Website;
-                if (!string.IsNullOrEmpty(request.Notes)) lead.QualificationNotes = request.Notes;
-                if (request.Score.HasValue) lead.Score = request.Score.Value;
-                if (request.OwnerId.HasValue) lead.OwnerId = request.OwnerId.Value;
-                if (request.CampaignId.HasValue) lead.CampaignId = request.CampaignId.Value;
+                if (!string.IsNullOrEmpty(request.Region))
+                    lead.Region = request.Region;
+                if (!string.IsNullOrEmpty(request.Website))
+                    lead.Website = request.Website;
+                if (!string.IsNullOrEmpty(request.Notes))
+                    lead.QualificationNotes = request.Notes;
+                if (request.Score.HasValue)
+                    lead.Score = request.Score.Value;
+                if (request.OwnerId.HasValue)
+                    lead.OwnerId = request.OwnerId.Value;
+                if (request.CampaignId.HasValue)
+                    lead.CampaignId = request.CampaignId.Value;
             });
 
             if (!updated)

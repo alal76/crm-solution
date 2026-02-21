@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using CRM.Core.DTOs.ITSM;
 using CRM.Core.Entities.ITSM;
 using CRM.Core.Interfaces;
@@ -208,8 +207,11 @@ public class CMDBServiceTests
         // Arrange
         var ci = new ConfigurationItem
         {
-            CIId = 1, CIName = "Old Name", CINumber = "CI0001",
-            CIType = CIType.Server, OperationalStatus = OperationalStatus.Operational,
+            CIId = 1,
+            CIName = "Old Name",
+            CINumber = "CI0001",
+            CIType = CIType.Server,
+            OperationalStatus = OperationalStatus.Operational,
             CreatedAt = DateTime.UtcNow
         };
         _mockContext.Setup(c => c.ConfigurationItems).Returns(MockDbSetFactory.CreateMockDbSet(new List<ConfigurationItem> { ci }).Object);

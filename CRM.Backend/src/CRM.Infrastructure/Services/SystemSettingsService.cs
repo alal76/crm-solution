@@ -4,14 +4,13 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using CRM.Core.Ports.Input;
+using CRM.Infrastructure.Validation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using CRM.Infrastructure.Validation;
 
 namespace CRM.Infrastructure.Services;
 
@@ -68,7 +67,7 @@ public class SystemSettingsService : ISystemSettingsService, ISystemSettingsInpu
         try
         {
             var settings = await _context.SystemSettings.FirstOrDefaultAsync();
-            
+
             // Determine if all critical modules are enabled and operational
             var allEnabled = (settings?.AccountsEnabled ?? true) &&
                             (settings?.ContactsEnabled ?? true) &&
@@ -108,27 +107,47 @@ public class SystemSettingsService : ISystemSettingsService, ISystemSettingsInpu
             }
 
             // Apply updates (only update non-null values)
-            if (request.AccountsEnabled.HasValue) settings.AccountsEnabled = request.AccountsEnabled.Value;
-            if (request.ContactsEnabled.HasValue) settings.ContactsEnabled = request.ContactsEnabled.Value;
-            if (request.LeadsEnabled.HasValue) settings.LeadsEnabled = request.LeadsEnabled.Value;
-            if (request.OpportunitiesEnabled.HasValue) settings.OpportunitiesEnabled = request.OpportunitiesEnabled.Value;
-            if (request.ProductsEnabled.HasValue) settings.ProductsEnabled = request.ProductsEnabled.Value;
-            if (request.ServicesEnabled.HasValue) settings.ServicesEnabled = request.ServicesEnabled.Value;
-            if (request.CampaignsEnabled.HasValue) settings.CampaignsEnabled = request.CampaignsEnabled.Value;
-            if (request.QuotesEnabled.HasValue) settings.QuotesEnabled = request.QuotesEnabled.Value;
-            if (request.TasksEnabled.HasValue) settings.TasksEnabled = request.TasksEnabled.Value;
-            if (request.ActivitiesEnabled.HasValue) settings.ActivitiesEnabled = request.ActivitiesEnabled.Value;
-            if (request.NotesEnabled.HasValue) settings.NotesEnabled = request.NotesEnabled.Value;
-            if (request.WorkflowsEnabled.HasValue) settings.WorkflowsEnabled = request.WorkflowsEnabled.Value;
-            if (request.ReportsEnabled.HasValue) settings.ReportsEnabled = request.ReportsEnabled.Value;
-            if (request.DashboardEnabled.HasValue) settings.DashboardEnabled = request.DashboardEnabled.Value;
-            if (request.EmailEnabled.HasValue) settings.EmailEnabled = request.EmailEnabled.Value;
-            if (request.WhatsAppEnabled.HasValue) settings.WhatsAppEnabled = request.WhatsAppEnabled.Value;
-            if (request.SocialMediaEnabled.HasValue) settings.SocialMediaEnabled = request.SocialMediaEnabled.Value;
+            if (request.AccountsEnabled.HasValue)
+                settings.AccountsEnabled = request.AccountsEnabled.Value;
+            if (request.ContactsEnabled.HasValue)
+                settings.ContactsEnabled = request.ContactsEnabled.Value;
+            if (request.LeadsEnabled.HasValue)
+                settings.LeadsEnabled = request.LeadsEnabled.Value;
+            if (request.OpportunitiesEnabled.HasValue)
+                settings.OpportunitiesEnabled = request.OpportunitiesEnabled.Value;
+            if (request.ProductsEnabled.HasValue)
+                settings.ProductsEnabled = request.ProductsEnabled.Value;
+            if (request.ServicesEnabled.HasValue)
+                settings.ServicesEnabled = request.ServicesEnabled.Value;
+            if (request.CampaignsEnabled.HasValue)
+                settings.CampaignsEnabled = request.CampaignsEnabled.Value;
+            if (request.QuotesEnabled.HasValue)
+                settings.QuotesEnabled = request.QuotesEnabled.Value;
+            if (request.TasksEnabled.HasValue)
+                settings.TasksEnabled = request.TasksEnabled.Value;
+            if (request.ActivitiesEnabled.HasValue)
+                settings.ActivitiesEnabled = request.ActivitiesEnabled.Value;
+            if (request.NotesEnabled.HasValue)
+                settings.NotesEnabled = request.NotesEnabled.Value;
+            if (request.WorkflowsEnabled.HasValue)
+                settings.WorkflowsEnabled = request.WorkflowsEnabled.Value;
+            if (request.ReportsEnabled.HasValue)
+                settings.ReportsEnabled = request.ReportsEnabled.Value;
+            if (request.DashboardEnabled.HasValue)
+                settings.DashboardEnabled = request.DashboardEnabled.Value;
+            if (request.EmailEnabled.HasValue)
+                settings.EmailEnabled = request.EmailEnabled.Value;
+            if (request.WhatsAppEnabled.HasValue)
+                settings.WhatsAppEnabled = request.WhatsAppEnabled.Value;
+            if (request.SocialMediaEnabled.HasValue)
+                settings.SocialMediaEnabled = request.SocialMediaEnabled.Value;
 
-            if (!string.IsNullOrEmpty(request.CompanyName)) settings.CompanyName = request.CompanyName;
-            if (request.CompanyLogoUrl != null) settings.CompanyLogoUrl = request.CompanyLogoUrl;
-            if (request.CompanyLoginLogoUrl != null) settings.CompanyLoginLogoUrl = request.CompanyLoginLogoUrl;
+            if (!string.IsNullOrEmpty(request.CompanyName))
+                settings.CompanyName = request.CompanyName;
+            if (request.CompanyLogoUrl != null)
+                settings.CompanyLogoUrl = request.CompanyLogoUrl;
+            if (request.CompanyLoginLogoUrl != null)
+                settings.CompanyLoginLogoUrl = request.CompanyLoginLogoUrl;
             if (!string.IsNullOrEmpty(request.PrimaryColor))
             {
                 ThemeColorValidator.ValidateHexColor(request.PrimaryColor, nameof(request.PrimaryColor));
@@ -154,7 +173,8 @@ public class SystemSettingsService : ISystemSettingsService, ISystemSettingsInpu
                 ThemeColorValidator.ValidateHexColor(request.BackgroundColor, nameof(request.BackgroundColor));
                 settings.BackgroundColor = request.BackgroundColor;
             }
-            if (request.UseGroupHeaderColor.HasValue) settings.UseGroupHeaderColor = request.UseGroupHeaderColor.Value;
+            if (request.UseGroupHeaderColor.HasValue)
+                settings.UseGroupHeaderColor = request.UseGroupHeaderColor.Value;
             if (request.SelectedPaletteId.HasValue)
             {
                 var paletteExists = await _context.ColorPalettes
@@ -167,18 +187,28 @@ public class SystemSettingsService : ISystemSettingsService, ISystemSettingsInpu
 
                 settings.SelectedPaletteId = request.SelectedPaletteId.Value;
             }
-            if (request.SelectedPaletteName != null) settings.SelectedPaletteName = request.SelectedPaletteName;
+            if (request.SelectedPaletteName != null)
+                settings.SelectedPaletteName = request.SelectedPaletteName;
 
-            if (request.RequireTwoFactor.HasValue) settings.RequireTwoFactor = request.RequireTwoFactor.Value;
-            if (request.MinPasswordLength.HasValue) settings.MinPasswordLength = request.MinPasswordLength.Value;
-            if (request.SessionTimeoutMinutes.HasValue) settings.SessionTimeoutMinutes = request.SessionTimeoutMinutes.Value;
-            if (request.AllowUserRegistration.HasValue) settings.AllowUserRegistration = request.AllowUserRegistration.Value;
-            if (request.RequireApprovalForNewUsers.HasValue) settings.RequireApprovalForNewUsers = request.RequireApprovalForNewUsers.Value;
-            if (request.QuickAdminLoginEnabled.HasValue) settings.QuickAdminLoginEnabled = request.QuickAdminLoginEnabled.Value;
+            if (request.RequireTwoFactor.HasValue)
+                settings.RequireTwoFactor = request.RequireTwoFactor.Value;
+            if (request.MinPasswordLength.HasValue)
+                settings.MinPasswordLength = request.MinPasswordLength.Value;
+            if (request.SessionTimeoutMinutes.HasValue)
+                settings.SessionTimeoutMinutes = request.SessionTimeoutMinutes.Value;
+            if (request.AllowUserRegistration.HasValue)
+                settings.AllowUserRegistration = request.AllowUserRegistration.Value;
+            if (request.RequireApprovalForNewUsers.HasValue)
+                settings.RequireApprovalForNewUsers = request.RequireApprovalForNewUsers.Value;
+            if (request.QuickAdminLoginEnabled.HasValue)
+                settings.QuickAdminLoginEnabled = request.QuickAdminLoginEnabled.Value;
 
-            if (request.ApiAccessEnabled.HasValue) settings.ApiAccessEnabled = request.ApiAccessEnabled.Value;
-            if (request.EmailNotificationsEnabled.HasValue) settings.EmailNotificationsEnabled = request.EmailNotificationsEnabled.Value;
-            if (request.AuditLoggingEnabled.HasValue) settings.AuditLoggingEnabled = request.AuditLoggingEnabled.Value;
+            if (request.ApiAccessEnabled.HasValue)
+                settings.ApiAccessEnabled = request.ApiAccessEnabled.Value;
+            if (request.EmailNotificationsEnabled.HasValue)
+                settings.EmailNotificationsEnabled = request.EmailNotificationsEnabled.Value;
+            if (request.AuditLoggingEnabled.HasValue)
+                settings.AuditLoggingEnabled = request.AuditLoggingEnabled.Value;
 
             if (request.WorkerMaxInstances.HasValue)
             {
@@ -208,31 +238,50 @@ public class SystemSettingsService : ISystemSettingsService, ISystemSettingsInpu
             }
 
             // Navigation settings
-            if (request.NavOrderConfig != null) settings.NavOrderConfig = request.NavOrderConfig;
+            if (request.NavOrderConfig != null)
+                settings.NavOrderConfig = request.NavOrderConfig;
 
             // SSL/TLS settings
-            if (request.HttpsEnabled.HasValue) settings.HttpsEnabled = request.HttpsEnabled.Value;
-            if (request.SslCertificatePath != null) settings.SslCertificatePath = request.SslCertificatePath;
-            if (request.SslPrivateKeyPath != null) settings.SslPrivateKeyPath = request.SslPrivateKeyPath;
-            if (request.SslCertificateExpiry.HasValue) settings.SslCertificateExpiry = request.SslCertificateExpiry.Value;
-            if (request.SslCertificateSubject != null) settings.SslCertificateSubject = request.SslCertificateSubject;
-            if (request.ForceHttpsRedirect.HasValue) settings.ForceHttpsRedirect = request.ForceHttpsRedirect.Value;
+            if (request.HttpsEnabled.HasValue)
+                settings.HttpsEnabled = request.HttpsEnabled.Value;
+            if (request.SslCertificatePath != null)
+                settings.SslCertificatePath = request.SslCertificatePath;
+            if (request.SslPrivateKeyPath != null)
+                settings.SslPrivateKeyPath = request.SslPrivateKeyPath;
+            if (request.SslCertificateExpiry.HasValue)
+                settings.SslCertificateExpiry = request.SslCertificateExpiry.Value;
+            if (request.SslCertificateSubject != null)
+                settings.SslCertificateSubject = request.SslCertificateSubject;
+            if (request.ForceHttpsRedirect.HasValue)
+                settings.ForceHttpsRedirect = request.ForceHttpsRedirect.Value;
 
             // Sample data settings
-            if (request.SampleDataSeeded.HasValue) settings.SampleDataSeeded = request.SampleDataSeeded.Value;
-            if (request.SampleDataLastSeeded.HasValue) settings.SampleDataLastSeeded = request.SampleDataLastSeeded.Value;
+            if (request.SampleDataSeeded.HasValue)
+                settings.SampleDataSeeded = request.SampleDataSeeded.Value;
+            if (request.SampleDataLastSeeded.HasValue)
+                settings.SampleDataLastSeeded = request.SampleDataLastSeeded.Value;
 
-            if (!string.IsNullOrEmpty(request.DateFormat)) settings.DateFormat = request.DateFormat;
-            if (!string.IsNullOrEmpty(request.TimeFormat)) settings.TimeFormat = request.TimeFormat;
-            if (!string.IsNullOrEmpty(request.DefaultCurrency)) settings.DefaultCurrency = request.DefaultCurrency;
-            if (!string.IsNullOrEmpty(request.DefaultTimezone)) settings.DefaultTimezone = request.DefaultTimezone;
-            if (!string.IsNullOrEmpty(request.DefaultLanguage)) settings.DefaultLanguage = request.DefaultLanguage;
+            if (!string.IsNullOrEmpty(request.DateFormat))
+                settings.DateFormat = request.DateFormat;
+            if (!string.IsNullOrEmpty(request.TimeFormat))
+                settings.TimeFormat = request.TimeFormat;
+            if (!string.IsNullOrEmpty(request.DefaultCurrency))
+                settings.DefaultCurrency = request.DefaultCurrency;
+            if (!string.IsNullOrEmpty(request.DefaultTimezone))
+                settings.DefaultTimezone = request.DefaultTimezone;
+            if (!string.IsNullOrEmpty(request.DefaultLanguage))
+                settings.DefaultLanguage = request.DefaultLanguage;
 
-            if (!string.IsNullOrEmpty(request.DateFormat)) settings.DateFormat = request.DateFormat;
-            if (!string.IsNullOrEmpty(request.TimeFormat)) settings.TimeFormat = request.TimeFormat;
-            if (!string.IsNullOrEmpty(request.DefaultCurrency)) settings.DefaultCurrency = request.DefaultCurrency;
-            if (!string.IsNullOrEmpty(request.DefaultTimezone)) settings.DefaultTimezone = request.DefaultTimezone;
-            if (!string.IsNullOrEmpty(request.DefaultLanguage)) settings.DefaultLanguage = request.DefaultLanguage;
+            if (!string.IsNullOrEmpty(request.DateFormat))
+                settings.DateFormat = request.DateFormat;
+            if (!string.IsNullOrEmpty(request.TimeFormat))
+                settings.TimeFormat = request.TimeFormat;
+            if (!string.IsNullOrEmpty(request.DefaultCurrency))
+                settings.DefaultCurrency = request.DefaultCurrency;
+            if (!string.IsNullOrEmpty(request.DefaultTimezone))
+                settings.DefaultTimezone = request.DefaultTimezone;
+            if (!string.IsNullOrEmpty(request.DefaultLanguage))
+                settings.DefaultLanguage = request.DefaultLanguage;
 
             settings.LastModified = DateTime.UtcNow;
             settings.ModifiedByUserId = modifiedByUserId;

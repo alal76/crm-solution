@@ -4,17 +4,16 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
+using CRM.Core.Features;
+using CRM.Core.Interfaces;
+using CRM.Core.Ports.Output.Providers;
+using CRM.Infrastructure.Providers.Novu;
+using CRM.Infrastructure.Providers.SendGrid;
+using CRM.Infrastructure.Providers.Twilio;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.FeatureManagement;
-using CRM.Core.Ports.Output.Providers;
-using CRM.Core.Features;
-using CRM.Core.Interfaces;
-using CRM.Infrastructure.Providers.Novu;
-using CRM.Infrastructure.Providers.Twilio;
-using CRM.Infrastructure.Providers.SendGrid;
 
 namespace CRM.Infrastructure.Factories;
 

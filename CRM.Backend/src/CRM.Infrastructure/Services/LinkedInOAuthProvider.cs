@@ -1,3 +1,9 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This software is source-available. Non-commercial use is permitted under
+// the terms of the LICENSE file. Commercial use requires a separate license.
+// See the LICENSE file in the root directory for full terms.
 using System.Net.Http.Json;
 using System.Text.Json.Serialization;
 using Microsoft.Extensions.Logging;
@@ -51,11 +57,11 @@ public class LinkedInOAuthProvider
         {
             var request = new LinkedInTokenRequest
             {
-                grant_type = "authorization_code",
-                code = code,
-                redirect_uri = redirectUri,
-                client_id = _options.ClientId,
-                client_secret = _options.ClientSecret
+                Grant_type = "authorization_code",
+                Code = code,
+                Redirect_uri = redirectUri,
+                Client_id = _options.ClientId,
+                Client_secret = _options.ClientSecret
             };
 
             var response = await _httpClient.PostAsJsonAsync(TokenUrl, request, cancellationToken);
@@ -100,7 +106,7 @@ public class LinkedInOAuthProvider
                 if (emailResponse.IsSuccessStatusCode)
                 {
                     var emailData = await emailResponse.Content.ReadFromJsonAsync<LinkedInEmailResponse>(cancellationToken);
-                    profile.Email = emailData?.elements?.FirstOrDefault()?.handle?.emailAddress;
+                    profile.Email = emailData?.Elements?.FirstOrDefault()?.Handle?.EmailAddress;
                 }
             }
             catch (Exception ex)
@@ -108,7 +114,7 @@ public class LinkedInOAuthProvider
                 _logger.LogWarning(ex, "Failed to retrieve email from LinkedIn profile");
             }
 
-            _logger.LogInformation($"Successfully retrieved LinkedIn profile for user {profile.id}");
+            _logger.LogInformation($"Successfully retrieved LinkedIn profile for user {profile.Id}");
             return profile;
         }
         catch (Exception ex)
@@ -129,10 +135,10 @@ public class LinkedInOAuthProvider
         {
             var request = new LinkedInRefreshRequest
             {
-                grant_type = "refresh_token",
-                refresh_token = refreshToken,
-                client_id = _options.ClientId,
-                client_secret = _options.ClientSecret
+                Grant_type = "refresh_token",
+                Refresh_token = refreshToken,
+                Client_id = _options.ClientId,
+                Client_secret = _options.ClientSecret
             };
 
             var response = await _httpClient.PostAsJsonAsync(TokenUrl, request, cancellationToken);
@@ -174,16 +180,16 @@ public class LinkedInOAuthOptions
 public class LinkedInTokenResponse
 {
     [JsonPropertyName("access_token")]
-    public string access_token { get; set; } = string.Empty;
+    public string Access_token { get; set; } = string.Empty;
 
     [JsonPropertyName("expires_in")]
-    public int expires_in { get; set; }
+    public int Expires_in { get; set; }
 
     [JsonPropertyName("refresh_token")]
-    public string? refresh_token { get; set; }
+    public string? Refresh_token { get; set; }
 
     [JsonPropertyName("refresh_token_expires_in")]
-    public int? refresh_token_expires_in { get; set; }
+    public int? Refresh_token_expires_in { get; set; }
 }
 
 /// <summary>
@@ -192,19 +198,19 @@ public class LinkedInTokenResponse
 public class LinkedInTokenRequest
 {
     [JsonPropertyName("grant_type")]
-    public string grant_type { get; set; } = "authorization_code";
+    public string Grant_type { get; set; } = "authorization_code";
 
     [JsonPropertyName("code")]
-    public string code { get; set; } = string.Empty;
+    public string Code { get; set; } = string.Empty;
 
     [JsonPropertyName("redirect_uri")]
-    public string redirect_uri { get; set; } = string.Empty;
+    public string Redirect_uri { get; set; } = string.Empty;
 
     [JsonPropertyName("client_id")]
-    public string client_id { get; set; } = string.Empty;
+    public string Client_id { get; set; } = string.Empty;
 
     [JsonPropertyName("client_secret")]
-    public string client_secret { get; set; } = string.Empty;
+    public string Client_secret { get; set; } = string.Empty;
 }
 
 /// <summary>
@@ -213,16 +219,16 @@ public class LinkedInTokenRequest
 public class LinkedInRefreshRequest
 {
     [JsonPropertyName("grant_type")]
-    public string grant_type { get; set; } = "refresh_token";
+    public string Grant_type { get; set; } = "refresh_token";
 
     [JsonPropertyName("refresh_token")]
-    public string refresh_token { get; set; } = string.Empty;
+    public string Refresh_token { get; set; } = string.Empty;
 
     [JsonPropertyName("client_id")]
-    public string client_id { get; set; } = string.Empty;
+    public string Client_id { get; set; } = string.Empty;
 
     [JsonPropertyName("client_secret")]
-    public string client_secret { get; set; } = string.Empty;
+    public string Client_secret { get; set; } = string.Empty;
 }
 
 /// <summary>
@@ -231,7 +237,7 @@ public class LinkedInRefreshRequest
 public class LinkedInUserProfile
 {
     [JsonPropertyName("id")]
-    public string id { get; set; } = string.Empty;
+    public string Id { get; set; } = string.Empty;
 
     [JsonPropertyName("localizedFirstName")]
     public string? FirstName { get; set; }
@@ -260,7 +266,7 @@ public class LinkedInProfilePicture
 public class LinkedInEmailResponse
 {
     [JsonPropertyName("elements")]
-    public LinkedInEmailElement[]? elements { get; set; }
+    public LinkedInEmailElement[]? Elements { get; set; }
 }
 
 /// <summary>
@@ -269,7 +275,7 @@ public class LinkedInEmailResponse
 public class LinkedInEmailElement
 {
     [JsonPropertyName("handle~")]
-    public LinkedInEmailHandle? handle { get; set; }
+    public LinkedInEmailHandle? Handle { get; set; }
 }
 
 /// <summary>
@@ -278,5 +284,5 @@ public class LinkedInEmailElement
 public class LinkedInEmailHandle
 {
     [JsonPropertyName("emailAddress")]
-    public string? emailAddress { get; set; }
+    public string? EmailAddress { get; set; }
 }

@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
@@ -153,7 +152,8 @@ public class IntercomWebhookController : ControllerBase
         ChatWebhookResult result,
         CancellationToken cancellationToken)
     {
-        if (result.ActivityMapping == null) return;
+        if (result.ActivityMapping == null)
+            return;
 
         var mapping = result.ActivityMapping;
 

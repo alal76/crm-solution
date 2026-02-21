@@ -4,13 +4,12 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
+using System.Text.Json;
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using System.Text.Json;
 
 namespace CRM.Infrastructure.Services;
 
@@ -91,7 +90,8 @@ public class RelationshipService
     public async Task<RelationshipTypeDto?> UpdateRelationshipTypeAsync(int id, RelationshipTypeCreateDto dto)
     {
         var type = await _context.RelationshipTypes.FirstOrDefaultAsync(t => t.Id == id && !t.IsDeleted);
-        if (type == null) return null;
+        if (type == null)
+            return null;
 
         if (type.IsSystem)
         {
@@ -120,7 +120,8 @@ public class RelationshipService
     public async Task<bool> DeleteRelationshipTypeAsync(int id)
     {
         var type = await _context.RelationshipTypes.FirstOrDefaultAsync(t => t.Id == id && !t.IsDeleted);
-        if (type == null) return false;
+        if (type == null)
+            return false;
 
         if (type.IsSystem)
         {
@@ -318,7 +319,8 @@ public class RelationshipService
     public async Task<AccountRelationshipDto?> UpdateRelationshipAsync(int id, AccountRelationshipCreateDto dto, int? userId = null)
     {
         var relationship = await _context.AccountRelationships.FirstOrDefaultAsync(r => r.Id == id && !r.IsDeleted);
-        if (relationship == null) return null;
+        if (relationship == null)
+            return null;
 
         relationship.Status = dto.Status;
         relationship.StrengthScore = dto.StrengthScore;
@@ -343,7 +345,8 @@ public class RelationshipService
     public async Task<bool> DeleteRelationshipAsync(int id)
     {
         var relationship = await _context.AccountRelationships.FirstOrDefaultAsync(r => r.Id == id && !r.IsDeleted);
-        if (relationship == null) return false;
+        if (relationship == null)
+            return false;
 
         relationship.IsDeleted = true;
         await _context.SaveChangesAsync();
@@ -579,7 +582,8 @@ public class RelationshipService
         {
             var diff = dto.OverallHealthScore - previousSnapshot.OverallHealthScore;
             snapshot.HealthTrend = diff > 5 ? "Improving" : diff < -5 ? "Declining" : "Stable";
-            if (dto.OverallHealthScore < 30) snapshot.HealthTrend = "Critical";
+            if (dto.OverallHealthScore < 30)
+                snapshot.HealthTrend = "Critical";
         }
 
         _context.AccountHealthSnapshots.Add(snapshot);

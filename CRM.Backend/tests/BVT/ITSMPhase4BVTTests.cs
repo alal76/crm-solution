@@ -4,14 +4,13 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
-using Xunit;
-using FluentAssertions;
-using CRM.Core.Interfaces.ITSM;
-using CRM.Core.DTOs.ITSM;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using CRM.Core.DTOs.ITSM;
+using CRM.Core.Interfaces.ITSM;
+using FluentAssertions;
+using Xunit;
 
 namespace CRM.Tests.BVT;
 

@@ -4,21 +4,20 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
-using Xunit;
-using Moq;
-using FluentAssertions;
-using CRM.Core.Entities;
-using CRM.Core.Interfaces;
-using CRM.Infrastructure.Services;
-using CRM.Infrastructure.Data;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using CRM.Core.Entities;
+using CRM.Core.Interfaces;
+using CRM.Infrastructure.Data;
+using CRM.Infrastructure.Services;
+using FluentAssertions;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Moq;
+using Xunit;
 
 namespace CRM.Tests.Services;
 
@@ -53,10 +52,10 @@ public class CommissionServiceTests : IDisposable
             new User { Id = 2, Username = "user2", Email = "user2@test.com", PasswordHash = "hash", FirstName = "User", LastName = "Two" },
             new User { Id = 10, Username = "approver", Email = "approver@test.com", PasswordHash = "hash", FirstName = "Approver", LastName = "User" }
         );
-        
+
         // Seed a default CommissionPlan for FK references
         _dbContext.CommissionPlans.Add(new CommissionPlan { Id = 1, Name = "Default Plan", BaseRate = 0.05m, Status = CommissionPlanStatus.Active, CommissionType = CommissionType.FlatPercentage });
-        
+
         await _dbContext.SaveChangesAsync();
     }
 

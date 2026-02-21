@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using CRM.Core.DTOs.ITSM;
 using CRM.Core.Entities.ITSM;
 using CRM.Core.Entities.KnowledgeBase;
@@ -634,7 +633,7 @@ public class EscalationRuleService : IEscalationRuleService
         _logger.LogInformation(
             "Escalation executed for service request {ServiceRequestId} - Rule: {RuleId}, " +
             "Type: {EscalationType}, ReassignToUser: {UserId}, ReassignToTeam: {TeamId}",
-            serviceRequest.Id, rule.Id, rule.EscalationType, 
+            serviceRequest.Id, rule.Id, rule.EscalationType,
             rule.ReassignToUserId, rule.ReassignToTeamId);
 
         await _dbContext.SaveChangesAsync();

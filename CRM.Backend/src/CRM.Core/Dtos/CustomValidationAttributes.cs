@@ -1,3 +1,9 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This software is source-available. Non-commercial use is permitted under
+// the terms of the LICENSE file. Commercial use requires a separate license.
+// See the LICENSE file in the root directory for full terms.
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.Text.RegularExpressions;
@@ -216,7 +222,7 @@ public class UrlAttribute : ValidationAttribute
         if (value is not string url)
             return false;
 
-        return Uri.TryCreate(url, UriKind.Absolute, out var uri) 
+        return Uri.TryCreate(url, UriKind.Absolute, out var uri)
             && _allowedSchemes.Contains(uri.Scheme.ToLowerInvariant());
     }
 }
@@ -251,8 +257,8 @@ public class IsoDateAttribute : ValidationAttribute
         if (!_isoDateRegex.IsMatch(dateString))
             return false;
 
-        return DateTime.TryParseExact(dateString, "yyyy-MM-dd", 
-            System.Globalization.CultureInfo.InvariantCulture, 
+        return DateTime.TryParseExact(dateString, "yyyy-MM-dd",
+            System.Globalization.CultureInfo.InvariantCulture,
             System.Globalization.DateTimeStyles.None, out _);
     }
 }

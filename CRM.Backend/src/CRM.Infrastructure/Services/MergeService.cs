@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using System.Text.Json;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
@@ -336,7 +335,8 @@ public class MergeService : IMergeService
             .Include(g => g.MergedBy)
             .FirstOrDefaultAsync(g => g.Id == mergeGroupId && !g.IsDeleted);
 
-        if (group == null) return null;
+        if (group == null)
+            return null;
 
         return new MergeGroupInfo
         {
@@ -1174,7 +1174,8 @@ public class MergeService : IMergeService
         foreach (var fieldName in fieldNames)
         {
             var property = entityType.GetProperty(fieldName);
-            if (property == null || !property.CanWrite) continue;
+            if (property == null || !property.CanWrite)
+                continue;
 
             if (property.PropertyType == typeof(string) ||
                 Nullable.GetUnderlyingType(property.PropertyType) != null)
@@ -1398,7 +1399,8 @@ public class MergeService : IMergeService
             _ => null
         };
 
-        if (record == null) return null;
+        if (record == null)
+            return null;
 
         var property = record.GetType().GetProperty(fieldName);
         return property?.GetValue(record)?.ToString();
@@ -1419,7 +1421,8 @@ public class MergeService : IMergeService
             _ => null
         };
 
-        if (record == null) return;
+        if (record == null)
+            return;
 
         var property = record.GetType().GetProperty(fieldName);
         if (property != null && property.CanWrite)

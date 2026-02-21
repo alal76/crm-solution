@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using CRM.Core.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -104,23 +103,23 @@ public class EmailSequenceConfiguration : IEntityTypeConfiguration<EmailSequence
     {
         builder.HasKey(e => e.Id);
         builder.Property(e => e.Name).IsRequired().HasMaxLength(255);
-        
+
         // Relationships
         builder.HasOne(e => e.Sender)
             .WithMany()
             .HasForeignKey(e => e.SenderId)
             .OnDelete(DeleteBehavior.SetNull);
-        
+
         builder.HasOne(e => e.Owner)
             .WithMany()
             .HasForeignKey(e => e.OwnerId)
             .OnDelete(DeleteBehavior.SetNull);
-        
+
         builder.HasMany(e => e.Steps)
             .WithOne(s => s.EmailSequence)
             .HasForeignKey(s => s.EmailSequenceId)
             .OnDelete(DeleteBehavior.Cascade);
-        
+
         builder.HasMany(e => e.Enrollments)
             .WithOne(e => e.EmailSequence)
             .HasForeignKey(e => e.EmailSequenceId)
@@ -138,52 +137,52 @@ public class EmailSequenceEnrollmentConfiguration : IEntityTypeConfiguration<Ema
     public void Configure(EntityTypeBuilder<EmailSequenceEnrollment> builder)
     {
         builder.HasKey(e => e.Id);
-        
+
         // Required properties
         builder.Property(e => e.SequenceId).IsRequired();
         builder.Property(e => e.RecipientEmail).IsRequired().HasMaxLength(255);
         builder.Property(e => e.Status).HasMaxLength(50).HasDefaultValue(EnrollmentStatus.Active);
         builder.Property(e => e.CurrentStepIndex).HasDefaultValue(0);
         builder.Property(e => e.EnrolledAt).HasDefaultValueSql("CURRENT_TIMESTAMP(6)");
-        
+
         // Optional properties
         builder.Property(e => e.ContactId);
         builder.Property(e => e.LeadId);
         builder.Property(e => e.CurrentStepId);
         builder.Property(e => e.ExitReason).HasMaxLength(500);
         builder.Property(e => e.EnrolledById);
-        
+
         // Relationships
         // EmailSequenceEnrollment -> EmailSequence (many-to-one)
         builder.HasOne(e => e.EmailSequence)
             .WithMany(s => s.Enrollments)
             .HasForeignKey(e => e.SequenceId)
             .OnDelete(DeleteBehavior.Cascade);
-        
+
         // EmailSequenceEnrollment -> Contact
         builder.HasOne(e => e.Contact)
             .WithMany()
             .HasForeignKey(e => e.ContactId)
             .OnDelete(DeleteBehavior.SetNull);
-        
+
         // EmailSequenceEnrollment -> Lead
         builder.HasOne(e => e.Lead)
             .WithMany()
             .HasForeignKey(e => e.LeadId)
             .OnDelete(DeleteBehavior.SetNull);
-        
+
         // EmailSequenceEnrollment -> User (EnrolledBy)
         builder.HasOne(e => e.EnrolledBy)
             .WithMany()
             .HasForeignKey(e => e.EnrolledById)
             .OnDelete(DeleteBehavior.SetNull);
-        
+
         // EmailSequenceEnrollment -> EmailSequenceStepExecution (one-to-many)
         builder.HasMany(e => e.StepExecutions)
             .WithOne(se => se.EmailSequenceEnrollment)
             .HasForeignKey(se => se.EmailSequenceEnrollmentId)
             .OnDelete(DeleteBehavior.Cascade);
-        
+
         // Indexes for performance
         builder.HasIndex(e => e.SequenceId).HasDatabaseName("IX_EmailSequenceEnrollments_SequenceId");
         builder.HasIndex(e => e.Status).HasDatabaseName("IX_EmailSequenceEnrollments_Status");
@@ -202,13 +201,13 @@ public class EmailSequenceStepExecutionConfiguration : IEntityTypeConfiguration<
     public void Configure(EntityTypeBuilder<EmailSequenceStepExecution> builder)
     {
         builder.HasKey(e => e.Id);
-        
+
         // Required properties
         builder.Property(e => e.EmailSequenceStepId).IsRequired();
         builder.Property(e => e.EmailSequenceEnrollmentId).IsRequired();
         builder.Property(e => e.ScheduledAt).IsRequired();
         builder.Property(e => e.Success).HasDefaultValue(false);
-        
+
         // Optional properties
         builder.Property(e => e.ExecutedAt);
         builder.Property(e => e.ErrorMessage).HasMaxLength(1000);
@@ -219,20 +218,20 @@ public class EmailSequenceStepExecutionConfiguration : IEntityTypeConfiguration<
         builder.Property(e => e.RepliedAt);
         builder.Property(e => e.Bounced).HasDefaultValue(false);
         builder.Property(e => e.BounceType).HasMaxLength(50);
-        
+
         // Relationships
         // EmailSequenceStepExecution -> EmailSequenceEnrollment
         builder.HasOne(e => e.EmailSequenceEnrollment)
             .WithMany(en => en.StepExecutions)
             .HasForeignKey(e => e.EmailSequenceEnrollmentId)
             .OnDelete(DeleteBehavior.Cascade);
-        
+
         // EmailSequenceStepExecution -> EmailSequenceStep
         builder.HasOne(e => e.EmailSequenceStep)
             .WithMany()
             .HasForeignKey(e => e.EmailSequenceStepId)
             .OnDelete(DeleteBehavior.Restrict);
-        
+
         // Indexes for performance
         builder.HasIndex(e => e.EmailSequenceEnrollmentId).HasDatabaseName("IX_EmailSequenceStepExecutions_EnrollmentId");
         builder.HasIndex(e => e.ExecutedAt).HasDatabaseName("IX_EmailSequenceStepExecutions_ExecutedAt");

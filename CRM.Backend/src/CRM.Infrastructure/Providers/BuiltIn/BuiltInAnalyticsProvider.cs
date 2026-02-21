@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using CRM.Core.Ports.Output.Providers;
@@ -518,13 +517,17 @@ public class BuiltInAnalyticsProvider : IAnalyticsPort
 
         if (parameters?.TryGetValue("startDate", out var startDateObj) == true)
         {
-            if (startDateObj is DateTime sd) startDate = sd;
-            else if (startDateObj is string sds && DateTime.TryParse(sds, out var parsedSd)) startDate = parsedSd;
+            if (startDateObj is DateTime sd)
+                startDate = sd;
+            else if (startDateObj is string sds && DateTime.TryParse(sds, out var parsedSd))
+                startDate = parsedSd;
         }
         if (parameters?.TryGetValue("endDate", out var endDateObj) == true)
         {
-            if (endDateObj is DateTime ed) endDate = ed;
-            else if (endDateObj is string eds && DateTime.TryParse(eds, out var parsedEd)) endDate = parsedEd;
+            if (endDateObj is DateTime ed)
+                endDate = ed;
+            else if (endDateObj is string eds && DateTime.TryParse(eds, out var parsedEd))
+                endDate = parsedEd;
         }
 
         var query = _context.Activities
@@ -678,9 +681,12 @@ public class BuiltInAnalyticsProvider : IAnalyticsPort
         var days = 30;
         if (parameters?.TryGetValue("days", out var daysObj) == true)
         {
-            if (daysObj is int d) days = d;
-            else if (daysObj is long dl) days = (int)dl;
-            else if (daysObj is string ds && int.TryParse(ds, out var parsedDays)) days = parsedDays;
+            if (daysObj is int d)
+                days = d;
+            else if (daysObj is long dl)
+                days = (int)dl;
+            else if (daysObj is string ds && int.TryParse(ds, out var parsedDays))
+                days = parsedDays;
         }
 
         var cutoffDate = DateTime.UtcNow.AddDays(-days);
@@ -692,9 +698,12 @@ public class BuiltInAnalyticsProvider : IAnalyticsPort
         if (parameters?.TryGetValue("userId", out var userIdObj) == true)
         {
             int? userId = null;
-            if (userIdObj is int ui) userId = ui;
-            else if (userIdObj is long ul) userId = (int)ul;
-            else if (userIdObj is string us && int.TryParse(us, out var parsedUid)) userId = parsedUid;
+            if (userIdObj is int ui)
+                userId = ui;
+            else if (userIdObj is long ul)
+                userId = (int)ul;
+            else if (userIdObj is string us && int.TryParse(us, out var parsedUid))
+                userId = parsedUid;
 
             if (userId.HasValue)
             {

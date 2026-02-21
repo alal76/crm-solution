@@ -4,14 +4,11 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 global using System;
 global using System.Collections.Generic;
 global using System.Linq;
 global using System.Threading.Tasks;
-
-global using Microsoft.EntityFrameworkCore;
-global using Microsoft.Extensions.Configuration;
-
 global using CRM.Core.Entities;
 global using CRM.Core.Interfaces;
+global using Microsoft.EntityFrameworkCore;
+global using Microsoft.Extensions.Configuration;

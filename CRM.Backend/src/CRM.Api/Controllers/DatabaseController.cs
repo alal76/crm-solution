@@ -4,7 +4,9 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
+using System.Data.Common;
+using System.Text;
+using System.Text.Json;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using CRM.Infrastructure.Data;
@@ -13,9 +15,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Text;
-using System.Text.Json;
-using System.Data.Common;
 
 namespace CRM.Api.Controllers;
 
@@ -404,7 +403,8 @@ public class DatabaseController : ControllerBase
 
     private string MaskPassword(string? password)
     {
-        if (string.IsNullOrEmpty(password) || password == "N/A") return password ?? "";
+        if (string.IsNullOrEmpty(password) || password == "N/A")
+            return password ?? "";
         return new string('*', Math.Min(password.Length, 12));
     }
 
@@ -856,7 +856,8 @@ Then restart the API container:
                         foreach (var table in tables)
                         {
                             // Validate table name contains only safe characters
-                            if (!IsValidIdentifier(table)) continue;
+                            if (!IsValidIdentifier(table))
+                                continue;
 
                             using var optimizeCmd = connection.CreateCommand();
                             optimizeCmd.CommandText = $"OPTIMIZE TABLE `{table}`";
@@ -1161,7 +1162,8 @@ Then restart the API container:
                         foreach (var table in tables)
                         {
                             // Validate table name
-                            if (!IsValidIdentifier(table)) continue;
+                            if (!IsValidIdentifier(table))
+                                continue;
 
                             using var repairCmd = connection.CreateCommand();
                             repairCmd.CommandText = $"ALTER TABLE `{table}` ENGINE=InnoDB";
@@ -2248,7 +2250,8 @@ Then restart the API container:
 
     private Task GenerateInsertStatements<T>(StringBuilder script, string tableName, List<T> records) where T : class
     {
-        if (!records.Any()) return Task.CompletedTask;
+        if (!records.Any())
+            return Task.CompletedTask;
 
         script.AppendLine($"-- {tableName} ({records.Count} records)");
         // Simplified - real implementation would serialize properly

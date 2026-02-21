@@ -4,12 +4,11 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
+using System.Security.Claims;
 using CRM.Core.DTOs.ITSM;
 using CRM.Core.Interfaces.ITSM;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 
 namespace CRM.Api.Controllers;
 
@@ -255,7 +254,8 @@ public class ITSMWebhooksController : ControllerBase
     public async Task<ActionResult<WebhookDeliveryDto>> TestSubscription(int id)
     {
         var subscription = await _webhookService.GetSubscriptionByIdAsync(id);
-        if (subscription == null) return NotFound();
+        if (subscription == null)
+            return NotFound();
 
         // Send a test event
         await _webhookService.SendWebhookAsync(WebhookEventType.IncidentCreated, new

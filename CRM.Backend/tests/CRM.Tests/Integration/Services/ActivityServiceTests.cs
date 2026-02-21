@@ -4,7 +4,7 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
+using System.Text.Json;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using CRM.Infrastructure.Data;
@@ -12,7 +12,6 @@ using CRM.Infrastructure.Services;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
-using System.Text.Json;
 using Xunit;
 
 namespace CRM.Tests.Integration.Services;
@@ -269,8 +268,14 @@ public class ActivityServiceTests
 
         context.Activities.AddRange(
             new Activity { AccountId = 1, ActivityType = ActivityType.EmailSent, Title = "Email", ActivityDate = DateTime.UtcNow },
-            new Activity { AccountId = 1, ActivityType = ActivityType.ChatMessage, Title = "Chat", ActivityDate = DateTime.UtcNow,
-                Details = JsonSerializer.Serialize(new { chatwootConversationId = 123, channel = "web" }) },
+            new Activity
+            {
+                AccountId = 1,
+                ActivityType = ActivityType.ChatMessage,
+                Title = "Chat",
+                ActivityDate = DateTime.UtcNow,
+                Details = JsonSerializer.Serialize(new { chatwootConversationId = 123, channel = "web" })
+            },
             new Activity { AccountId = 2, ActivityType = ActivityType.CallMade, Title = "Call", ActivityDate = DateTime.UtcNow }
         );
         await context.SaveChangesAsync();

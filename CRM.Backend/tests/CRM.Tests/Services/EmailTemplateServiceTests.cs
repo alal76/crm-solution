@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using CRM.Infrastructure.Services;
@@ -54,7 +53,8 @@ public class EmailTemplateServiceTests
             .Returns<object[], CancellationToken>((keys, _) =>
             {
                 var id = keys.FirstOrDefault();
-                if (id == null) return ValueTask.FromResult<EmailTemplate?>(default);
+                if (id == null)
+                    return ValueTask.FromResult<EmailTemplate?>(default);
                 return ValueTask.FromResult(_templates.FirstOrDefault(e => e.Id == Convert.ToInt32(id)));
             });
 

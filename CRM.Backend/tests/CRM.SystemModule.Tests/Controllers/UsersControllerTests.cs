@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
@@ -40,9 +39,9 @@ public class UsersControllerTests
         // Arrange
         var users = new List<User>
         {
-            new User 
-            { 
-                Id = 1, 
+            new User
+            {
+                Id = 1,
                 Email = "test@example.com",
                 Username = "testuser",
                 FirstName = "Test",
@@ -70,9 +69,9 @@ public class UsersControllerTests
         // Arrange
         var users = new List<User>
         {
-            new User 
-            { 
-                Id = 1, 
+            new User
+            {
+                Id = 1,
                 Email = "test1@example.com",
                 Username = "user1",
                 FirstName = "Test",
@@ -81,9 +80,9 @@ public class UsersControllerTests
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow
             },
-            new User 
-            { 
-                Id = 2, 
+            new User
+            {
+                Id = 2,
                 Email = "test2@example.com",
                 Username = "user2",
                 FirstName = "Test",
@@ -126,9 +125,9 @@ public class UsersControllerTests
         // Arrange
         var users = new List<User>
         {
-            new User 
-            { 
-                Id = 1, 
+            new User
+            {
+                Id = 1,
                 Email = "john@example.com",
                 Username = "john",
                 FirstName = "John",

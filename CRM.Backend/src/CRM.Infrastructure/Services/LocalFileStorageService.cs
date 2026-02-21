@@ -1,3 +1,9 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This software is source-available. Non-commercial use is permitted under
+// the terms of the LICENSE file. Commercial use requires a separate license.
+// See the LICENSE file in the root directory for full terms.
 using CRM.Core.Interfaces;
 using Microsoft.Extensions.Logging;
 
@@ -16,11 +22,11 @@ public class LocalFileStorageService : IFileStorageService
     public LocalFileStorageService(ILogger<LocalFileStorageService> logger)
     {
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        
+
         // Store files in wwwroot/uploads directory
         _basePath = Path.Combine(AppContext.BaseDirectory, "wwwroot", "uploads");
         _baseUrl = "/uploads";
-        
+
         // Ensure directory exists
         try
         {
