@@ -4,11 +4,10 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
-using CRM.Core.Entities;
-using CRM.Core.DTOs;
-using CRM.Core.Interfaces;
 using CRM.Api.Hubs;
+using CRM.Core.DTOs;
+using CRM.Core.Entities;
+using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -169,7 +168,7 @@ public class OpportunitiesController : ControllerBase
     /// <summary>
     /// Creates a new opportunity.
     /// </summary>
-    /// <param name="opportunity">The opportunity to create</param>
+    /// <param name="dto">The opportunity to create</param>
     /// <returns>The created opportunity</returns>
     /// <response code="201">Returns the newly created opportunity</response>
     /// <response code="400">If the opportunity data is invalid</response>
@@ -206,7 +205,7 @@ public class OpportunitiesController : ControllerBase
     /// Updates an existing opportunity.
     /// </summary>
     /// <param name="id">The opportunity ID</param>
-    /// <param name="opportunity">The updated opportunity data</param>
+    /// <param name="dto">The updated opportunity data</param>
     /// <returns>No content on success</returns>
     /// <response code="204">If the opportunity was updated successfully</response>
     /// <response code="400">If the opportunity data is invalid</response>
@@ -341,22 +340,38 @@ public class OpportunitiesController : ControllerBase
 
     private static void MapFromUpdateDto(UpdateOpportunityDto dto, Opportunity entity)
     {
-        if (dto.Name != null) entity.Name = dto.Name;
-        if (dto.Stage.HasValue) entity.Stage = (OpportunityStage)dto.Stage.Value;
-        if (dto.Probability.HasValue) entity.Probability = dto.Probability.Value;
-        if (dto.Amount.HasValue) entity.Amount = dto.Amount.Value;
-        if (dto.Currency != null) entity.Currency = dto.Currency;
-        if (dto.ExpectedCloseDate != null) entity.ExpectedCloseDate = DateTime.Parse(dto.ExpectedCloseDate);
-        if (dto.PricingModel.HasValue) entity.PricingModel = (OpportunityPricingModel)dto.PricingModel.Value;
-        if (dto.TermLengthMonths.HasValue) entity.TermLengthMonths = dto.TermLengthMonths.Value;
-        if (dto.SolutionNotes != null) entity.SolutionNotes = dto.SolutionNotes;
-        if (dto.QualificationReason.HasValue) entity.QualificationReason = (QualificationReason)dto.QualificationReason.Value;
-        if (dto.QualificationNotes != null) entity.QualificationNotes = dto.QualificationNotes;
-        if (dto.Region != null) entity.Region = dto.Region;
-        if (dto.AccountId.HasValue) entity.AccountId = dto.AccountId.Value;
-        if (dto.PrimaryContactId.HasValue) entity.PrimaryContactId = dto.PrimaryContactId.Value;
-        if (dto.SalesOwnerId.HasValue) entity.SalesOwnerId = dto.SalesOwnerId.Value;
-        if (dto.LeadId.HasValue) entity.LeadId = dto.LeadId.Value;
+        if (dto.Name != null)
+            entity.Name = dto.Name;
+        if (dto.Stage.HasValue)
+            entity.Stage = (OpportunityStage)dto.Stage.Value;
+        if (dto.Probability.HasValue)
+            entity.Probability = dto.Probability.Value;
+        if (dto.Amount.HasValue)
+            entity.Amount = dto.Amount.Value;
+        if (dto.Currency != null)
+            entity.Currency = dto.Currency;
+        if (dto.ExpectedCloseDate != null)
+            entity.ExpectedCloseDate = DateTime.Parse(dto.ExpectedCloseDate);
+        if (dto.PricingModel.HasValue)
+            entity.PricingModel = (OpportunityPricingModel)dto.PricingModel.Value;
+        if (dto.TermLengthMonths.HasValue)
+            entity.TermLengthMonths = dto.TermLengthMonths.Value;
+        if (dto.SolutionNotes != null)
+            entity.SolutionNotes = dto.SolutionNotes;
+        if (dto.QualificationReason.HasValue)
+            entity.QualificationReason = (QualificationReason)dto.QualificationReason.Value;
+        if (dto.QualificationNotes != null)
+            entity.QualificationNotes = dto.QualificationNotes;
+        if (dto.Region != null)
+            entity.Region = dto.Region;
+        if (dto.AccountId.HasValue)
+            entity.AccountId = dto.AccountId.Value;
+        if (dto.PrimaryContactId.HasValue)
+            entity.PrimaryContactId = dto.PrimaryContactId.Value;
+        if (dto.SalesOwnerId.HasValue)
+            entity.SalesOwnerId = dto.SalesOwnerId.Value;
+        if (dto.LeadId.HasValue)
+            entity.LeadId = dto.LeadId.Value;
         // Product update logic can be added here if needed
     }
 

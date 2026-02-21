@@ -4,10 +4,9 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
+using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
-using CRM.Core.Dtos;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -114,7 +113,7 @@ public class CampaignsController : ControllerBase
     /// <summary>
     /// Creates a new marketing campaign.
     /// </summary>
-    /// <param name="campaign">The campaign to create</param>
+    /// <param name="dto">The campaign to create</param>
     /// <returns>The created campaign</returns>
     /// <response code="201">Returns the newly created campaign</response>
     /// <response code="400">If the campaign data is invalid (e.g., end date before start date, negative budget)</response>
@@ -150,7 +149,7 @@ public class CampaignsController : ControllerBase
     /// Updates an existing marketing campaign.
     /// </summary>
     /// <param name="id">The campaign ID</param>
-    /// <param name="campaign">The updated campaign data</param>
+    /// <param name="dto">The updated campaign data</param>
     /// <returns>No content on success</returns>
     /// <response code="204">If the campaign was updated successfully</response>
     /// <response code="400">If the campaign data is invalid</response>

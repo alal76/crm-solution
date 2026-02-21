@@ -4,7 +4,29 @@
 import os
 import re
 
-CORRECT_HEADER = """// CRM Solution - Customer Relationship Management System
+import json
+
+# Build the correct header by reading the copyrightText from stylecop.json
+stylecop_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'CRM.Backend', 'stylecop.json')
+CORRECT_HEADER = ""  # placeholder, will be replaced below
+
+try:
+    with open(stylecop_path, 'r', encoding='utf-8') as sc:
+        sc_json = json.load(sc)
+        documentation = sc_json.get('settings', {}).get('documentationRules', {})
+        copyright_text = documentation.get('copyrightText', '')
+        company_name = documentation.get('companyName', '')
+        # substitute placeholder if present
+        if company_name:
+            copyright_text = copyright_text.replace('{companyName}', company_name)
+        # convert to comment format
+        lines = copyright_text.split('\n')
+        commented = ['// ' + line if line.strip() != '' else '//' for line in lines]
+        CORRECT_HEADER = "\n".join(commented)
+except Exception as e:
+    print(f"WARNING: failed to load stylecop.json for header generation: {e}")
+    # fallback to old hardcoded header
+    CORRECT_HEADER = """// CRM Solution - Customer Relationship Management System
 // Copyright (C) 2024-2026 Abhishek Lal
 //
 // This program is free software: you can redistribute it and/or modify

@@ -4,11 +4,10 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
+using CRM.Core.DTOs;
 using CRM.Core.Entities;
 using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Services;
-using CRM.Core.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -103,7 +102,7 @@ public class TasksController : ControllerBase
     /// <summary>
     /// Create a new task.
     /// </summary>
-    /// <param name="task">The task to create.</param>
+    /// <param name="dto">The task to create.</param>
     /// <returns>The created task with generated ID.</returns>
     /// <response code="201">Task created successfully.</response>
     /// <response code="400">Invalid task data provided.</response>
@@ -128,7 +127,7 @@ public class TasksController : ControllerBase
     /// Update an existing task.
     /// </summary>
     /// <param name="id">The unique identifier of the task to update.</param>
-    /// <param name="task">The updated task data.</param>
+    /// <param name="dto">The updated task data.</param>
     /// <returns>No content on success.</returns>
     /// <response code="204">Task updated successfully.</response>
     /// <response code="400">Invalid task data or ID mismatch.</response>
@@ -272,13 +271,20 @@ public class TasksController : ControllerBase
 
     private static void MapFromUpdateDto(UpdateCrmTaskDto dto, CrmTask task)
     {
-        if (dto.Title != null) task.Subject = dto.Title;
-        if (dto.Description != null) task.Description = dto.Description;
-        if (dto.Status.HasValue) task.Status = (CrmTaskStatus)dto.Status.Value;
-        if (dto.Priority.HasValue) task.Priority = (CrmTaskPriority)dto.Priority.Value;
-        if (dto.DueDate != null) task.DueDate = DateTime.Parse(dto.DueDate);
-        if (dto.CompletedDate != null) task.CompletedDate = DateTime.Parse(dto.CompletedDate);
-        if (dto.AssignedToUserId.HasValue) task.AssignedToUserId = dto.AssignedToUserId;
+        if (dto.Title != null)
+            task.Subject = dto.Title;
+        if (dto.Description != null)
+            task.Description = dto.Description;
+        if (dto.Status.HasValue)
+            task.Status = (CrmTaskStatus)dto.Status.Value;
+        if (dto.Priority.HasValue)
+            task.Priority = (CrmTaskPriority)dto.Priority.Value;
+        if (dto.DueDate != null)
+            task.DueDate = DateTime.Parse(dto.DueDate);
+        if (dto.CompletedDate != null)
+            task.CompletedDate = DateTime.Parse(dto.CompletedDate);
+        if (dto.AssignedToUserId.HasValue)
+            task.AssignedToUserId = dto.AssignedToUserId;
     }
 
     /// <summary>

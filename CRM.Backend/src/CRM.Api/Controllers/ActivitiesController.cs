@@ -4,9 +4,8 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
-using CRM.Core.Entities;
 using CRM.Core.DTOs;
+using CRM.Core.Entities;
 using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -82,7 +81,8 @@ public class ActivitiesController : ControllerBase
     {
         entity.Title = dto.Title ?? entity.Title;
         entity.Description = dto.Description ?? entity.Description;
-        if (dto.ActivityDate.HasValue) entity.ActivityDate = dto.ActivityDate.Value;
+        if (dto.ActivityDate.HasValue)
+            entity.ActivityDate = dto.ActivityDate.Value;
         entity.AccountId = dto.AccountId ?? entity.AccountId;
         entity.ContactId = dto.ContactId ?? entity.ContactId;
         entity.OpportunityId = dto.OpportunityId ?? entity.OpportunityId;
@@ -149,9 +149,11 @@ public class ActivitiesController : ControllerBase
         foreach (var a in activities)
         {
             var nt = await _normalization.GetTagsAsync("Activity", a.Id);
-            if (!string.IsNullOrWhiteSpace(nt)) a.Tags = nt;
+            if (!string.IsNullOrWhiteSpace(nt))
+                a.Tags = nt;
             var cf = await _normalization.GetCustomFieldsAsync("Activity", a.Id);
-            if (!string.IsNullOrWhiteSpace(cf)) a.CustomFields = cf;
+            if (!string.IsNullOrWhiteSpace(cf))
+                a.CustomFields = cf;
         }
 
         return Ok(activities.Select(ToDto));
@@ -183,9 +185,11 @@ public class ActivitiesController : ControllerBase
             return NotFound();
 
         var nt = await _normalization.GetTagsAsync("Activity", activity.Id);
-        if (!string.IsNullOrWhiteSpace(nt)) activity.Tags = nt;
+        if (!string.IsNullOrWhiteSpace(nt))
+            activity.Tags = nt;
         var cf = await _normalization.GetCustomFieldsAsync("Activity", activity.Id);
-        if (!string.IsNullOrWhiteSpace(cf)) activity.CustomFields = cf;
+        if (!string.IsNullOrWhiteSpace(cf))
+            activity.CustomFields = cf;
 
         return Ok(ToDto(activity));
     }
@@ -193,7 +197,7 @@ public class ActivitiesController : ControllerBase
     /// <summary>
     /// Create a new activity.
     /// </summary>
-    /// <param name="activity">The activity data to create.</param>
+    /// <param name="dto">The activity data to create.</param>
     /// <returns>The created activity.</returns>
     /// <response code="201">Returns the newly created activity.</response>
     /// <response code="400">Invalid activity data provided.</response>
@@ -276,9 +280,11 @@ public class ActivitiesController : ControllerBase
         foreach (var a in activities)
         {
             var nt = await _normalization.GetTagsAsync("Activity", a.Id);
-            if (!string.IsNullOrWhiteSpace(nt)) a.Tags = nt;
+            if (!string.IsNullOrWhiteSpace(nt))
+                a.Tags = nt;
             var cf = await _normalization.GetCustomFieldsAsync("Activity", a.Id);
-            if (!string.IsNullOrWhiteSpace(cf)) a.CustomFields = cf;
+            if (!string.IsNullOrWhiteSpace(cf))
+                a.CustomFields = cf;
         }
 
         return Ok(activities.Select(ToDto));
@@ -334,9 +340,11 @@ public class ActivitiesController : ControllerBase
         foreach (var a in activities)
         {
             var nt = await _normalization.GetTagsAsync("Activity", a.Id);
-            if (!string.IsNullOrWhiteSpace(nt)) a.Tags = nt;
+            if (!string.IsNullOrWhiteSpace(nt))
+                a.Tags = nt;
             var cf = await _normalization.GetCustomFieldsAsync("Activity", a.Id);
-            if (!string.IsNullOrWhiteSpace(cf)) a.CustomFields = cf;
+            if (!string.IsNullOrWhiteSpace(cf))
+                a.CustomFields = cf;
         }
 
         return Ok(activities.Select(ToDto));
@@ -366,9 +374,11 @@ public class ActivitiesController : ControllerBase
         foreach (var a in activities)
         {
             var nt = await _normalization.GetTagsAsync("Activity", a.Id);
-            if (!string.IsNullOrWhiteSpace(nt)) a.Tags = nt;
+            if (!string.IsNullOrWhiteSpace(nt))
+                a.Tags = nt;
             var cf = await _normalization.GetCustomFieldsAsync("Activity", a.Id);
-            if (!string.IsNullOrWhiteSpace(cf)) a.CustomFields = cf;
+            if (!string.IsNullOrWhiteSpace(cf))
+                a.CustomFields = cf;
         }
 
         return Ok(activities.Select(ToDto));

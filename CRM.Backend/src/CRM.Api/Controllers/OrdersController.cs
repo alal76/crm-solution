@@ -4,10 +4,9 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-
 using System.ComponentModel.DataAnnotations;
-using CRM.Core.Entities;
 using CRM.Core.DTOs;
+using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -78,7 +77,8 @@ public class OrdersController : ControllerBase
         try
         {
             var order = await _orderService.GetByIdAsync(id, cancellationToken);
-            if (order == null) return NotFound($"Order {id} not found");
+            if (order == null)
+                return NotFound($"Order {id} not found");
             return Ok(order);
         }
         catch (Exception ex)
@@ -104,7 +104,8 @@ public class OrdersController : ControllerBase
         try
         {
             var order = await _orderService.GetByOrderNumberAsync(orderNumber, cancellationToken);
-            if (order == null) return NotFound($"Order '{orderNumber}' not found");
+            if (order == null)
+                return NotFound($"Order '{orderNumber}' not found");
             return Ok(order);
         }
         catch (Exception ex)
@@ -115,7 +116,7 @@ public class OrdersController : ControllerBase
     }
 
     /// <summary>Creates a new order.</summary>
-    /// <param name="order">The order to create</param>
+    /// <param name="dto">The order to create</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>The created order</returns>
     /// <response code="201">Returns the newly created order</response>
@@ -129,7 +130,8 @@ public class OrdersController : ControllerBase
     {
         try
         {
-            if (!ModelState.IsValid) return ValidationProblem(ModelState);
+            if (!ModelState.IsValid)
+                return ValidationProblem(ModelState);
             var created = await _orderService.CreateAsync(dto, cancellationToken);
             return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
         }
@@ -142,7 +144,7 @@ public class OrdersController : ControllerBase
 
     /// <summary>Updates an existing order.</summary>
     /// <param name="id">The order ID</param>
-    /// <param name="order">The updated order data</param>
+    /// <param name="dto">The updated order data</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>The updated order</returns>
     /// <response code="200">Returns the updated order</response>
@@ -158,8 +160,10 @@ public class OrdersController : ControllerBase
     {
         try
         {
-            if (!ModelState.IsValid) return ValidationProblem(ModelState);
-            if (id != dto.Id) return BadRequest("ID mismatch");
+            if (!ModelState.IsValid)
+                return ValidationProblem(ModelState);
+            if (id != dto.Id)
+                return BadRequest("ID mismatch");
             var updated = await _orderService.UpdateAsync(dto, cancellationToken);
             return Ok(updated);
         }
@@ -186,7 +190,8 @@ public class OrdersController : ControllerBase
         try
         {
             var result = await _orderService.DeleteAsync(id, cancellationToken);
-            if (!result) return NotFound($"Order {id} not found");
+            if (!result)
+                return NotFound($"Order {id} not found");
             return NoContent();
         }
         catch (Exception ex)
@@ -632,7 +637,8 @@ public class OrdersController : ControllerBase
     {
         try
         {
-            if (!ModelState.IsValid) return ValidationProblem(ModelState);
+            if (!ModelState.IsValid)
+                return ValidationProblem(ModelState);
             var item = await _orderService.AddLineItemAsync(id, lineItem, cancellationToken);
             return Ok(item);
         }
@@ -661,7 +667,8 @@ public class OrdersController : ControllerBase
     {
         try
         {
-            if (!ModelState.IsValid) return ValidationProblem(ModelState);
+            if (!ModelState.IsValid)
+                return ValidationProblem(ModelState);
             lineItem.Id = lineItemId;
             var item = await _orderService.UpdateLineItemAsync(lineItem, cancellationToken);
             return Ok(item);
@@ -689,7 +696,8 @@ public class OrdersController : ControllerBase
         try
         {
             var result = await _orderService.RemoveLineItemAsync(lineItemId, cancellationToken);
-            if (!result) return NotFound($"Line item {lineItemId} not found");
+            if (!result)
+                return NotFound($"Line item {lineItemId} not found");
             return NoContent();
         }
         catch (Exception ex)
