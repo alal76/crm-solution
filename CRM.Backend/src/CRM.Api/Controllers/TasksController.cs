@@ -250,7 +250,22 @@ public class TasksController : ControllerBase
             CreatedAt = t.CreatedAt.ToString("o"),
             UpdatedAt = t.UpdatedAt?.ToString("o") ?? string.Empty,
             IsDeleted = t.IsDeleted,
-            RowVersion = t.RowVersion
+            RowVersion = t.RowVersion,
+            ReminderDate = t.ReminderDate?.ToString("o"),
+            HasReminder = t.HasReminder,
+            PercentComplete = t.PercentComplete,
+            ActualMinutes = t.ActualMinutes,
+            IsRecurring = t.IsRecurring,
+            RecurrencePattern = t.RecurrencePattern,
+            RecurrenceEndDate = t.RecurrenceEndDate?.ToString("o"),
+            ParentTaskId = t.ParentTaskId,
+            ContactId = t.ContactId,
+            CampaignId = t.CampaignId,
+            AssignedToGroupId = t.AssignedToGroupId,
+            Tags = t.Tags,
+            Category = t.Category,
+            Attachments = t.Attachments,
+            CustomFields = t.CustomFields
         };
     }
 
@@ -265,7 +280,22 @@ public class TasksController : ControllerBase
             CreatedByUserId = dto.OwnerUserId,
             AccountId = dto.AccountId,
             OpportunityId = dto.OpportunityId,
-            AssignedToUserId = dto.AssignedToUserId
+            AssignedToUserId = dto.AssignedToUserId,
+            ReminderDate = string.IsNullOrWhiteSpace(dto.ReminderDate) ? null : DateTime.Parse(dto.ReminderDate),
+            HasReminder = dto.HasReminder,
+            PercentComplete = dto.PercentComplete,
+            ActualMinutes = dto.ActualMinutes,
+            IsRecurring = dto.IsRecurring,
+            RecurrencePattern = dto.RecurrencePattern,
+            RecurrenceEndDate = string.IsNullOrWhiteSpace(dto.RecurrenceEndDate) ? null : DateTime.Parse(dto.RecurrenceEndDate),
+            ParentTaskId = dto.ParentTaskId,
+            ContactId = dto.ContactId,
+            CampaignId = dto.CampaignId,
+            AssignedToGroupId = dto.AssignedToGroupId,
+            Tags = dto.Tags,
+            Category = dto.Category,
+            Attachments = dto.Attachments,
+            CustomFields = dto.CustomFields
         };
     }
 
@@ -285,6 +315,36 @@ public class TasksController : ControllerBase
             task.CompletedDate = DateTime.Parse(dto.CompletedDate);
         if (dto.AssignedToUserId.HasValue)
             task.AssignedToUserId = dto.AssignedToUserId;
+        if (dto.ReminderDate != null)
+            task.ReminderDate = string.IsNullOrWhiteSpace(dto.ReminderDate) ? null : DateTime.Parse(dto.ReminderDate);
+        if (dto.HasReminder.HasValue)
+            task.HasReminder = dto.HasReminder.Value;
+        if (dto.PercentComplete.HasValue)
+            task.PercentComplete = dto.PercentComplete.Value;
+        if (dto.ActualMinutes.HasValue)
+            task.ActualMinutes = dto.ActualMinutes;
+        if (dto.IsRecurring.HasValue)
+            task.IsRecurring = dto.IsRecurring.Value;
+        if (dto.RecurrencePattern != null)
+            task.RecurrencePattern = dto.RecurrencePattern;
+        if (dto.RecurrenceEndDate != null)
+            task.RecurrenceEndDate = string.IsNullOrWhiteSpace(dto.RecurrenceEndDate) ? null : DateTime.Parse(dto.RecurrenceEndDate);
+        if (dto.ParentTaskId.HasValue)
+            task.ParentTaskId = dto.ParentTaskId;
+        if (dto.ContactId.HasValue)
+            task.ContactId = dto.ContactId;
+        if (dto.CampaignId.HasValue)
+            task.CampaignId = dto.CampaignId;
+        if (dto.AssignedToGroupId.HasValue)
+            task.AssignedToGroupId = dto.AssignedToGroupId;
+        if (dto.Tags != null)
+            task.Tags = dto.Tags;
+        if (dto.Category != null)
+            task.Category = dto.Category;
+        if (dto.Attachments != null)
+            task.Attachments = dto.Attachments;
+        if (dto.CustomFields != null)
+            task.CustomFields = dto.CustomFields;
     }
 
     /// <summary>
