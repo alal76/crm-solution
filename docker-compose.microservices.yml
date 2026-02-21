@@ -8,8 +8,8 @@ services:
   # API Gateway
   crm-gateway:
     build:
-      context: .
-      dockerfile: docker/Dockerfile.gateway
+      context: ./docker
+      dockerfile: Dockerfile.gateway
     container_name: crm-gateway
     ports:
       - "5000:5000"
@@ -39,8 +39,8 @@ services:
   # Identity Service
   crm-identity:
     build:
-      context: .
-      dockerfile: docker/Dockerfile.identity
+      context: ./docker
+      dockerfile: Dockerfile.identity
     container_name: crm-identity
     ports:
       - "5001:5001"
@@ -55,8 +55,8 @@ services:
   # Customer Service
   crm-customer:
     build:
-      context: .
-      dockerfile: docker/Dockerfile.customer
+      context: ./docker
+      dockerfile: Dockerfile.customer
     container_name: crm-customer
     ports:
       - "5002:5002"
@@ -71,8 +71,8 @@ services:
   # Sales Service
   crm-sales:
     build:
-      context: .
-      dockerfile: docker/Dockerfile.sales
+      context: ./docker
+      dockerfile: Dockerfile.sales
     container_name: crm-sales
     ports:
       - "5003:5003"
@@ -87,8 +87,8 @@ services:
   # Marketing Service
   crm-marketing:
     build:
-      context: .
-      dockerfile: docker/Dockerfile.marketing
+      context: ./docker
+      dockerfile: Dockerfile.marketing
     container_name: crm-marketing
     ports:
       - "5004:5004"
@@ -103,8 +103,8 @@ services:
   # Service Desk Service
   crm-servicedesk:
     build:
-      context: .
-      dockerfile: docker/Dockerfile.servicedesk
+      context: ./docker
+      dockerfile: Dockerfile.servicedesk
     container_name: crm-servicedesk
     ports:
       - "5005:5005"
@@ -119,8 +119,8 @@ services:
   # Core Service
   crm-core:
     build:
-      context: .
-      dockerfile: docker/Dockerfile.core
+      context: ./docker
+      dockerfile: Dockerfile.core
     container_name: crm-core
     ports:
       - "5006:5006"
@@ -135,8 +135,8 @@ services:
   # Frontend
   crm-frontend:
     build:
-      context: .
-      dockerfile: docker/Dockerfile.frontend.prebuilt
+      context: ./docker
+      dockerfile: Dockerfile.frontend.prebuilt
     container_name: crm-frontend
     ports:
       - "80:80"
