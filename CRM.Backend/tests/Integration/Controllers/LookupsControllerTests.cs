@@ -12,29 +12,15 @@ namespace CRM.Backend.Tests.Integration.Controllers
         public LookupsControllerTests(ApiTestFactory factory) => _client = factory.CreateClient();
 
         [Fact]
-        public async Task Crud_Lookups_Succeeds()
+        public async Task GetCategoriesAndItems_WorkAsDesigned()
         {
-            var create = new { name = "Test" };
-            var cRes = await _client.PostAsJsonAsync("/api/lookups", create);
-            cRes.StatusCode.Should().Be(HttpStatusCode.Created);
-            var item = await cRes.Content.ReadFromJsonAsync<dynamic>();
+            // categories endpoint should return 200 and array
+            var cats = await _client.GetAsync("/api/lookups/categories");
+            cats.StatusCode.Should().Be(HttpStatusCode.OK);
 
-            var getRes = await _client.GetAsync($"/api/lookups/{{item.Id}}");
-            getRes.StatusCode.Should().Be(HttpStatusCode.OK);
-            var patch = new { name = "Test2" };
-            var pRes = await _client.PatchAsJsonAsync($"/api/lookups/{{item.Id}}", patch);
-            pRes.StatusCode.Should().Be(HttpStatusCode.OK);
-            var del = await _client.DeleteAsync($"/api/lookups/{{item.Id}}");
-            del.StatusCode.Should().Be(HttpStatusCode.NoContent);
-            var nf = await _client.GetAsync($"/api/lookups/{{item.Id}}");
-            nf.StatusCode.Should().Be(HttpStatusCode.NotFound);
-        }
-
-        [Fact]
-        public async Task Get_Nonexistent_Returns404()
-        {
-            var res = await _client.GetAsync("/api/lookups/999999");
-            Assert.Equal(HttpStatusCode.NotFound, res.StatusCode);
+            // try a nonexistent category name for items should yield 404
+            var items = await _client.GetAsync("/api/lookups/items/doesnotexist");
+            items.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
     }
 }

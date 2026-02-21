@@ -14,7 +14,15 @@ namespace CRM.Backend.Tests.Integration.Controllers
         [Fact]
         public async Task Crud_Departments_Succeeds()
         {
-            var create = new { Name = "Test", Description = "Test", DepartmentCode = "Test", ParentDepartmentId = 1, Name = "Test", Description = "Test", DepartmentCode = "Test", IsActive = true, ParentDepartmentId = 1, UserCount = 1 };
+            var create = new
+            {
+                Name = "Test",
+                Description = "Test",
+                DepartmentCode = "Test",
+                ParentDepartmentId = 1,
+                IsActive = true,
+                UserCount = 1
+            };
             var cRes = await _client.PostAsJsonAsync("/api/departments", create);
             cRes.StatusCode.Should().Be(HttpStatusCode.Created);
             var item = await cRes.Content.ReadFromJsonAsync<dynamic>();
@@ -32,7 +40,15 @@ namespace CRM.Backend.Tests.Integration.Controllers
 
             var getRes = await _client.GetAsync($"/api/departments/{{item.Id}}");
             getRes.StatusCode.Should().Be(HttpStatusCode.OK);
-            var patch = new { Name = "Test2", Description = "Test", DepartmentCode = "Test", ParentDepartmentId = 1, Name = "Test2", Description = "Test", DepartmentCode = "Test", IsActive = true, ParentDepartmentId = 1, UserCount = 1 };
+            var patch = new
+            {
+                Name = "Test2",
+                Description = "Test",
+                DepartmentCode = "Test",
+                ParentDepartmentId = 1,
+                IsActive = true,
+                UserCount = 1
+            };
             var pRes = await _client.PatchAsJsonAsync($"/api/departments/{{item.Id}}", patch);
             pRes.StatusCode.Should().Be(HttpStatusCode.OK);
             var del = await _client.DeleteAsync($"/api/departments/{{item.Id}}");

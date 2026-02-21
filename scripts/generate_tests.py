@@ -69,7 +69,34 @@ for c in controllers:
     entity = c.replace('Controller.cs','')
     route = entity.lower()
 
-    # choose DTO
+    # determine available http methods by reading the controller file
+    controller_path = os.path.join(path, c)
+    methods = set()
+    get_routes = []
+    try:
+        with open(controller_path, 'r', encoding='utf-8') as fh:
+            for line in fh:
+                if '[HttpGet' in line:
+                    methods.add('GET')
+                    m = re.search(r'\[HttpGet\("([^\"]*)"\)\]', line)
+                    if m:
+                        get_routes.append(m.group(1))
+                    else:
+                        # attribute might be just [HttpGet] with no args
+                        get_routes.append("")
+                if '[HttpPost' in line:
+                    methods.add('POST')
+                if '[HttpPut' in line:
+                    methods.add('PUT')
+                if '[HttpPatch' in line or 'PatchAsJsonAsync' in line:
+                    methods.add('PATCH')
+                if '[HttpDelete' in line:
+                    methods.add('DELETE')
+    except FileNotFoundError:
+        print(f"warning: controller file {controller_path} not found - skipping")
+        continue
+
+    # choose DTO for payloads if needed
     base = singularize(entity)
     candidates = [f"{base}Dto", f"Create{base}Dto", f"Update{base}Dto"]
     chosen = None
@@ -79,13 +106,25 @@ for c in controllers:
             break
     props = dto_props.get(chosen, []) if chosen else []
 
+    # dedupe props just in case
+    if props:
+        seen = set()
+        unique = []
+        for t, n in props:
+            if n in seen:
+                continue
+            seen.add(n)
+            unique.append((t, n))
+        props = unique
+
     def default_val(t):
         clean = t.rstrip('?')
         if clean.startswith('DateTime'):
             return "DateTime.UtcNow"
         if clean in primitive_defaults:
             return primitive_defaults[clean]
-        return "null"
+        # fallback for enums or other types
+        return f"default({clean})"
 
     if props:
         assignments = [f"{n} = {default_val(t)}" for t, n in props]
@@ -121,32 +160,53 @@ for c in controllers:
     print("    {")
     print("        private readonly HttpClient _client;")
     print(f"        public {entity}ControllerTests(ApiTestFactory factory) => _client = factory.CreateClient();\n")
-    print("        [Fact]")
-    print(f"        public async Task Crud_{entity}_Succeeds()")
-    print("        {")
-    print(f"            var create = new {{ {create_init} }};")
-    print(f"            var cRes = await _client.PostAsJsonAsync(\"/api/{route}\", create);")
-    print("            cRes.StatusCode.Should().Be(HttpStatusCode.Created);")
-    print("            var item = await cRes.Content.ReadFromJsonAsync<dynamic>();\n")
-    if props:
-        for _, n in props:
-            print(f"            item.{n}.Should().Be(create.{n});")
-        print("")
-    print(f"            var getRes = await _client.GetAsync($\"/api/{route}/{{{{item.Id}}}}\");")
-    print("            getRes.StatusCode.Should().Be(HttpStatusCode.OK);")
-    print(f"            var patch = new {{ {patch_init} }};")
-    print(f"            var pRes = await _client.PatchAsJsonAsync($\"/api/{route}/{{{{item.Id}}}}\", patch);")
-    print("            pRes.StatusCode.Should().Be(HttpStatusCode.OK);")
-    print(f"            var del = await _client.DeleteAsync($\"/api/{route}/{{{{item.Id}}}}\");")
-    print("            del.StatusCode.Should().Be(HttpStatusCode.NoContent);")
-    print(f"            var nf = await _client.GetAsync($\"/api/{route}/{{{{item.Id}}}}\");")
-    print("            nf.StatusCode.Should().Be(HttpStatusCode.NotFound);")
-    print("        }\n")
-    print("        [Fact]")
-    print("        public async Task Get_Nonexistent_Returns404()")
-    print("        {")
-    print(f"            var res = await _client.GetAsync(\"/api/{route}/999999\");")
-    print("            Assert.Equal(HttpStatusCode.NotFound, res.StatusCode);")
-    print("        }")
+    # choose between CRUD or GET-only based on detected methods
+    if 'POST' not in methods:
+        print("        [Fact]")
+        print(f"        public async Task GetEndpoints_{entity}_Work()")
+        print("        {")
+        if not get_routes:
+            # fallback: hit base path
+            print(f"            var all = await _client.GetAsync(\"/api/{route}\");")
+            print("            all.StatusCode.Should().Be(HttpStatusCode.OK);")
+        else:
+            for idx, r in enumerate(get_routes):
+                path = f"/api/{route}"
+                if r and not r.startswith("{"):
+                    path = f"/api/{route}/{r}"
+                elif r:
+                    path = f"/api/{route}/{r}".replace("{id}", "999999")
+                varname = f"resp{idx}" if idx>0 else "resp"
+                print(f"            var {varname} = await _client.GetAsync(\"{path}\");")
+                print(f"            {varname}.StatusCode.Should().Be(HttpStatusCode.OK);")
+        print("        }")
+    else:
+        print("        [Fact]")
+        print(f"        public async Task Crud_{entity}_Succeeds()")
+        print("        {")
+        print(f"            var create = new {{ {create_init} }};")
+        print(f"            var cRes = await _client.PostAsJsonAsync(\"/api/{route}\", create);")
+        print("            cRes.StatusCode.Should().Be(HttpStatusCode.Created);")
+        print("            var item = await cRes.Content.ReadFromJsonAsync<dynamic>();\n")
+        if props:
+            for _, n in props:
+                print(f"            item.{n}.Should().Be(create.{n});")
+            print("")
+        print(f"            var getRes = await _client.GetAsync($\"/api/{route}/{{{{item.Id}}}}\");")
+        print("            getRes.StatusCode.Should().Be(HttpStatusCode.OK);")
+        print(f"            var patch = new {{ {patch_init} }};")
+        print(f"            var pRes = await _client.PatchAsJsonAsync($\"/api/{route}/{{{{item.Id}}}}\", patch);")
+        print("            pRes.StatusCode.Should().Be(HttpStatusCode.OK);")
+        print(f"            var del = await _client.DeleteAsync($\"/api/{route}/{{{{item.Id}}}}\");")
+        print("            del.StatusCode.Should().Be(HttpStatusCode.NoContent);")
+        print(f"            var nf = await _client.GetAsync($\"/api/{route}/{{{{item.Id}}}}\");")
+        print("            nf.StatusCode.Should().Be(HttpStatusCode.NotFound);")
+        print("        }\n")
+        print("        [Fact]")
+        print("        public async Task Get_Nonexistent_Returns404()")
+        print("        {")
+        print(f"            var res = await _client.GetAsync(\"/api/{route}/999999\");")
+        print("            Assert.Equal(HttpStatusCode.NotFound, res.StatusCode);")
+        print("        }")
     print("    }")
     print("}\n")

@@ -14,7 +14,34 @@ namespace CRM.Backend.Tests.Integration.Controllers
         [Fact]
         public async Task Crud_CommissionPayouts_Succeeds()
         {
-            var create = new { PayoutNumber = "Test", UserId = 1, UserName = "Test", CommissionPlanId = 1, TotalCommissionAmount = 1, CommissionCount = 1, PeriodStartDate = DateTime.UtcNow, PeriodEndDate = DateTime.UtcNow, ScheduledPayoutDate = DateTime.UtcNow, ActualPayoutDate = DateTime.UtcNow, PayoutMethod = "Test", Status = "Test", TotalDeductions = 1, NetPayoutAmount = 1, PaymentReferenceId = "Test", Notes = "Test", ApprovedById = 1, ApprovedByName = "Test", ApprovedAt = DateTime.UtcNow, CommissionId = 1, CommissionNumber = "Test", CommissionAmount = 1, OpportunityId = 1, OpportunityName = "Test", InvoiceId = 1, UserId = 1, CommissionPlanId = 1, PeriodStartDate = DateTime.UtcNow, PeriodEndDate = DateTime.UtcNow, ScheduledPayoutDate = DateTime.UtcNow, PayoutMethod = "Test", Notes = "Test", ScheduledPayoutDate = DateTime.UtcNow, PayoutMethod = "Test", Status = "Test", Notes = "Test", PayoutNumber = "Test", UserName = "Test", TotalCommissionAmount = 1, NetPayoutAmount = 1, Status = "Test", ScheduledPayoutDate = DateTime.UtcNow, ActualPayoutDate = DateTime.UtcNow, CommissionCount = 1 };
+            var create = new
+            {
+                PayoutNumber = "Test",
+                UserId = 1,
+                UserName = "Test",
+                CommissionPlanId = 1,
+                TotalCommissionAmount = 1,
+                CommissionCount = 1,
+                PeriodStartDate = DateTime.UtcNow,
+                PeriodEndDate = DateTime.UtcNow,
+                ScheduledPayoutDate = DateTime.UtcNow,
+                ActualPayoutDate = DateTime.UtcNow,
+                PayoutMethod = "Test",
+                Status = "Test",
+                TotalDeductions = 1,
+                NetPayoutAmount = 1,
+                PaymentReferenceId = "Test",
+                Notes = "Test",
+                ApprovedById = 1,
+                ApprovedByName = "Test",
+                ApprovedAt = DateTime.UtcNow,
+                CommissionId = 1,
+                CommissionNumber = "Test",
+                CommissionAmount = 1,
+                OpportunityId = 1,
+                OpportunityName = "Test",
+                InvoiceId = 1
+            };
             var cRes = await _client.PostAsJsonAsync("/api/commissionpayouts", create);
             cRes.StatusCode.Should().Be(HttpStatusCode.Created);
             var item = await cRes.Content.ReadFromJsonAsync<dynamic>();
@@ -66,7 +93,34 @@ namespace CRM.Backend.Tests.Integration.Controllers
 
             var getRes = await _client.GetAsync($"/api/commissionpayouts/{{item.Id}}");
             getRes.StatusCode.Should().Be(HttpStatusCode.OK);
-            var patch = new { PayoutNumber = "Test2", UserId = 1, UserName = "Test", CommissionPlanId = 1, TotalCommissionAmount = 1, CommissionCount = 1, PeriodStartDate = DateTime.UtcNow, PeriodEndDate = DateTime.UtcNow, ScheduledPayoutDate = DateTime.UtcNow, ActualPayoutDate = DateTime.UtcNow, PayoutMethod = "Test", Status = "Test", TotalDeductions = 1, NetPayoutAmount = 1, PaymentReferenceId = "Test", Notes = "Test", ApprovedById = 1, ApprovedByName = "Test", ApprovedAt = DateTime.UtcNow, CommissionId = 1, CommissionNumber = "Test", CommissionAmount = 1, OpportunityId = 1, OpportunityName = "Test", InvoiceId = 1, UserId = 1, CommissionPlanId = 1, PeriodStartDate = DateTime.UtcNow, PeriodEndDate = DateTime.UtcNow, ScheduledPayoutDate = DateTime.UtcNow, PayoutMethod = "Test", Notes = "Test", ScheduledPayoutDate = DateTime.UtcNow, PayoutMethod = "Test", Status = "Test", Notes = "Test", PayoutNumber = "Test2", UserName = "Test", TotalCommissionAmount = 1, NetPayoutAmount = 1, Status = "Test", ScheduledPayoutDate = DateTime.UtcNow, ActualPayoutDate = DateTime.UtcNow, CommissionCount = 1 };
+            var patch = new
+            {
+                PayoutNumber = "Test2",
+                UserId = 1,
+                UserName = "Test",
+                CommissionPlanId = 1,
+                TotalCommissionAmount = 1,
+                CommissionCount = 1,
+                PeriodStartDate = DateTime.UtcNow,
+                PeriodEndDate = DateTime.UtcNow,
+                ScheduledPayoutDate = DateTime.UtcNow,
+                ActualPayoutDate = DateTime.UtcNow,
+                PayoutMethod = "Test",
+                Status = "Test",
+                TotalDeductions = 1,
+                NetPayoutAmount = 1,
+                PaymentReferenceId = "Test",
+                Notes = "Test",
+                ApprovedById = 1,
+                ApprovedByName = "Test",
+                ApprovedAt = DateTime.UtcNow,
+                CommissionId = 1,
+                CommissionNumber = "Test",
+                CommissionAmount = 1,
+                OpportunityId = 1,
+                OpportunityName = "Test",
+                InvoiceId = 1
+            };
             var pRes = await _client.PatchAsJsonAsync($"/api/commissionpayouts/{{item.Id}}", patch);
             pRes.StatusCode.Should().Be(HttpStatusCode.OK);
             var del = await _client.DeleteAsync($"/api/commissionpayouts/{{item.Id}}");

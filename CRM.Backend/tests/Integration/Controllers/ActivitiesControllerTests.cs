@@ -14,7 +14,7 @@ namespace CRM.Backend.Tests.Integration.Controllers
         [Fact]
         public async Task Crud_Activities_Succeeds()
         {
-            var create = new { ActivityType = 1, Title = "Test", Description = "Test", Details = "Test", ActivityDate = DateTime.UtcNow, DurationMinutes = 1, UserId = 1, UserName = "Test", UserEmail = "Test", EntityType = "Test", EntityId = 1, EntityName = "Test", SecondaryEntityType = "Test", SecondaryEntityId = 1, SecondaryEntityName = "Test", AccountId = 1, ContactId = 1, OpportunityId = 1, CampaignId = 1, ProductId = 1, TaskId = 1, QuoteId = 1, InteractionId = 1, NoteId = 1, OldValue = "Test", NewValue = "Test", FieldsChanged = "Test", IsSystem = true, IsPrivate = true, IsImportant = true, Tags = "Test", Category = "Test", Source = "Test", IsDeleted = true, ActivityType = 1, Title = "Test", Description = "Test", Details = "Test", ActivityDate = DateTime.UtcNow, DurationMinutes = 1, UserId = 1, EntityType = "Test", EntityId = 1, AccountId = 1, ContactId = 1, OpportunityId = 1, IsSystem = true, IsPrivate = true, IsImportant = true, Tags = "Test", Source = "Test", Title = "Test", Description = "Test", Details = "Test", ActivityDate = DateTime.UtcNow, DurationMinutes = 1, UserId = 1, AccountId = 1, ContactId = 1, OpportunityId = 1, IsPrivate = true, IsImportant = true, Tags = "Test" };
+            var create = new { ActivityType = 1, Title = "Test", Description = "Test", Details = "Test", ActivityDate = DateTime.UtcNow, DurationMinutes = 1, UserId = 1, UserName = "Test", UserEmail = "Test", EntityType = "Test", EntityId = 1, EntityName = "Test", SecondaryEntityType = "Test", SecondaryEntityId = 1, SecondaryEntityName = "Test", AccountId = 1, ContactId = 1, OpportunityId = 1, CampaignId = 1, ProductId = 1, TaskId = 1, QuoteId = 1, InteractionId = 1, NoteId = 1, OldValue = "Test", NewValue = "Test", FieldsChanged = "Test", IsSystem = true, IsPrivate = true, IsImportant = true, Tags = "Test", Category = "Test", Source = "Test", IsDeleted = true };
             var cRes = await _client.PostAsJsonAsync("/api/activities", create);
             cRes.StatusCode.Should().Be(HttpStatusCode.Created);
             var item = await cRes.Content.ReadFromJsonAsync<dynamic>();
@@ -53,39 +53,10 @@ namespace CRM.Backend.Tests.Integration.Controllers
             item.Category.Should().Be(create.Category);
             item.Source.Should().Be(create.Source);
             item.IsDeleted.Should().Be(create.IsDeleted);
-            item.ActivityType.Should().Be(create.ActivityType);
-            item.Title.Should().Be(create.Title);
-            item.Description.Should().Be(create.Description);
-            item.Details.Should().Be(create.Details);
-            item.ActivityDate.Should().Be(create.ActivityDate);
-            item.DurationMinutes.Should().Be(create.DurationMinutes);
-            item.UserId.Should().Be(create.UserId);
-            item.EntityType.Should().Be(create.EntityType);
-            item.EntityId.Should().Be(create.EntityId);
-            item.AccountId.Should().Be(create.AccountId);
-            item.ContactId.Should().Be(create.ContactId);
-            item.OpportunityId.Should().Be(create.OpportunityId);
-            item.IsSystem.Should().Be(create.IsSystem);
-            item.IsPrivate.Should().Be(create.IsPrivate);
-            item.IsImportant.Should().Be(create.IsImportant);
-            item.Tags.Should().Be(create.Tags);
-            item.Source.Should().Be(create.Source);
-            item.Title.Should().Be(create.Title);
-            item.Description.Should().Be(create.Description);
-            item.Details.Should().Be(create.Details);
-            item.ActivityDate.Should().Be(create.ActivityDate);
-            item.DurationMinutes.Should().Be(create.DurationMinutes);
-            item.UserId.Should().Be(create.UserId);
-            item.AccountId.Should().Be(create.AccountId);
-            item.ContactId.Should().Be(create.ContactId);
-            item.OpportunityId.Should().Be(create.OpportunityId);
-            item.IsPrivate.Should().Be(create.IsPrivate);
-            item.IsImportant.Should().Be(create.IsImportant);
-            item.Tags.Should().Be(create.Tags);
 
             var getRes = await _client.GetAsync($"/api/activities/{{item.Id}}");
             getRes.StatusCode.Should().Be(HttpStatusCode.OK);
-            var patch = new { ActivityType = 1, Title = "Test2", Description = "Test", Details = "Test", ActivityDate = DateTime.UtcNow, DurationMinutes = 1, UserId = 1, UserName = "Test", UserEmail = "Test", EntityType = "Test", EntityId = 1, EntityName = "Test", SecondaryEntityType = "Test", SecondaryEntityId = 1, SecondaryEntityName = "Test", AccountId = 1, ContactId = 1, OpportunityId = 1, CampaignId = 1, ProductId = 1, TaskId = 1, QuoteId = 1, InteractionId = 1, NoteId = 1, OldValue = "Test", NewValue = "Test", FieldsChanged = "Test", IsSystem = true, IsPrivate = true, IsImportant = true, Tags = "Test", Category = "Test", Source = "Test", IsDeleted = true, ActivityType = 1, Title = "Test2", Description = "Test", Details = "Test", ActivityDate = DateTime.UtcNow, DurationMinutes = 1, UserId = 1, EntityType = "Test", EntityId = 1, AccountId = 1, ContactId = 1, OpportunityId = 1, IsSystem = true, IsPrivate = true, IsImportant = true, Tags = "Test", Source = "Test", Title = "Test2", Description = "Test", Details = "Test", ActivityDate = DateTime.UtcNow, DurationMinutes = 1, UserId = 1, AccountId = 1, ContactId = 1, OpportunityId = 1, IsPrivate = true, IsImportant = true, Tags = "Test" };
+            var patch = new { ActivityType = 1, Title = "Test2", Description = "Test", Details = "Test", ActivityDate = DateTime.UtcNow, DurationMinutes = 1, UserId = 1, UserName = "Test", UserEmail = "Test", EntityType = "Test", EntityId = 1, EntityName = "Test", SecondaryEntityType = "Test", SecondaryEntityId = 1, SecondaryEntityName = "Test", AccountId = 1, ContactId = 1, OpportunityId = 1, CampaignId = 1, ProductId = 1, TaskId = 1, QuoteId = 1, InteractionId = 1, NoteId = 1, OldValue = "Test", NewValue = "Test", FieldsChanged = "Test", IsSystem = true, IsPrivate = true, IsImportant = true, Tags = "Test", Category = "Test", Source = "Test", IsDeleted = true };
             var pRes = await _client.PatchAsJsonAsync($"/api/activities/{{item.Id}}", patch);
             pRes.StatusCode.Should().Be(HttpStatusCode.OK);
             var del = await _client.DeleteAsync($"/api/activities/{{item.Id}}");

@@ -135,6 +135,7 @@ interface TaskForm {
   recurrenceEndDate: string;
   contactId: number | '';
   campaignId: number | '';
+  attachments: string; // newline-separated URLs; serialized as JSON array on save
 }
 
 interface User extends BaseEntity {
@@ -165,6 +166,7 @@ function TasksPage() {
     percentComplete: 0, assignedToUserId: '', assignedToGroupId: '', accountId: '', opportunityId: '',
     location: '', reminderDate: '', tags: '',
     category: '', isRecurring: false, hasReminder: false, recurrenceEndDate: '', contactId: '', campaignId: '',
+    attachments: '',
   };
   const [formData, setFormData] = useState<TaskForm>(emptyForm);
 
@@ -240,6 +242,11 @@ function TasksPage() {
         recurrenceEndDate: task.recurrenceEndDate?.split('T')[0] || '',
         contactId: task.contactId || '',
         campaignId: task.campaignId || '',
+        attachments: (() => {
+          if (!task.attachments) return '';
+          try { return (JSON.parse(task.attachments) as string[]).join('\n'); }
+          catch { return task.attachments; }
+        })(),
       });
     } else {
       setEditingId(null);
@@ -270,12 +277,17 @@ function TasksPage() {
       setDialogError('Please enter a task title');
       return;
     }
+    const attachmentUrls = formData.attachments
+      .split('\n')
+      .map(u => u.trim())
+      .filter(u => u.length > 0);
     const payload = {
       ...formData,
       assignedToUserId: formData.assignedToUserId || null,
       assignedToGroupId: formData.assignedToGroupId || null,
       accountId: formData.accountId || null,
       opportunityId: formData.opportunityId || null,
+      attachments: attachmentUrls.length > 0 ? JSON.stringify(attachmentUrls) : null,
     };
     await dialogApi.execute(async () => {
       if (editingId) {
@@ -607,6 +619,11 @@ function TasksPage() {
                               recurrenceEndDate: task.recurrenceEndDate?.split('T')[0] || '',
                               contactId: task.contactId || '',
                               campaignId: task.campaignId || '',
+                              attachments: (() => {
+                                if (!task.attachments) return '';
+                                try { return (JSON.parse(task.attachments) as string[]).join('\n'); }
+                                catch { return task.attachments; }
+                              })(),
                             });
                             setOpenDialog(true);
                           }).catch(() => setError('Failed to load task details'));
@@ -905,6 +922,19 @@ function TasksPage() {
                     ))}
                   </Select>
                 </FormControl>
+              </Grid>
+              <Grid item xs={12}>
+                <TextField
+                  fullWidth
+                  multiline
+                  rows={4}
+                  label="Attachment URLs"
+                  name="attachments"
+                  value={formData.attachments}
+                  onChange={handleInputChange}
+                  placeholder="Enter one URL per line"
+                  helperText="Enter file/document URLs, one per line. These are stored as a JSON array."
+                />
               </Grid>
             </Grid>
           </TabPanel>

@@ -14,7 +14,43 @@ namespace CRM.Backend.Tests.Integration.Controllers
         [Fact]
         public async Task Crud_ModuleUIConfig_Succeeds()
         {
-            var create = new { ModuleName = "Test", IsEnabled = true, Description = "Test", IconName = "Test", DisplayOrder = 1, TabsConfig = "Test", LinkedEntitiesConfig = "Test", ListViewConfig = "Test", DetailViewConfig = "Test", QuickCreateConfig = "Test", SearchFilterConfig = "Test", ModuleSettings = "Test", ModuleName = "Test", IsEnabled = true, Description = "Test", IconName = "Test", DisplayOrder = 1, TabsConfig = "Test", LinkedEntitiesConfig = "Test", ListViewConfig = "Test", DetailViewConfig = "Test", QuickCreateConfig = "Test", SearchFilterConfig = "Test", ModuleSettings = "Test", IsEnabled = true, Description = "Test", IconName = "Test", DisplayOrder = 1, TabsConfig = "Test", LinkedEntitiesConfig = "Test", ListViewConfig = "Test", DetailViewConfig = "Test", QuickCreateConfig = "Test", SearchFilterConfig = "Test", ModuleSettings = "Test", Index = 1, Name = "Test", Enabled = true, Order = 1, Icon = "Test", EntityName = "Test", RelationshipType = "Test", Enabled = true, TabName = "Test", DisplayOrder = 1, ForeignKeyField = "Test", Field = "Test", Label = "Test", Width = 1, Visible = true, Sortable = true, Order = 1, Format = "Test", IsEnabled = true, IsRequired = true, DisplayOrder = 1, GridSize = 1, FieldType = "Test", FieldLabel = "Test", Placeholder = "Test", HelpText = "Test", Options = "Test", ModuleName = "Test", IsEnabled = true, DisplayOrder = 1 };
+            var create = new
+            {
+                ModuleName = "Test",
+                IsEnabled = true,
+                Description = "Test",
+                IconName = "Test",
+                DisplayOrder = 1,
+                TabsConfig = "Test",
+                LinkedEntitiesConfig = "Test",
+                ListViewConfig = "Test",
+                DetailViewConfig = "Test",
+                QuickCreateConfig = "Test",
+                SearchFilterConfig = "Test",
+                ModuleSettings = "Test",
+                Index = 1,
+                Name = "Test",
+                Enabled = true,
+                Order = 1,
+                Icon = "Test",
+                EntityName = "Test",
+                RelationshipType = "Test",
+                TabName = "Test",
+                ForeignKeyField = "Test",
+                Field = "Test",
+                Label = "Test",
+                Width = 1,
+                Visible = true,
+                Sortable = true,
+                Format = "Test",
+                IsRequired = true,
+                GridSize = 1,
+                FieldType = "Test",
+                FieldLabel = "Test",
+                Placeholder = "Test",
+                HelpText = "Test",
+                Options = "Test"
+            };
             var cRes = await _client.PostAsJsonAsync("/api/moduleuiconfig", create);
             cRes.StatusCode.Should().Be(HttpStatusCode.Created);
             var item = await cRes.Content.ReadFromJsonAsync<dynamic>();
@@ -87,7 +123,43 @@ namespace CRM.Backend.Tests.Integration.Controllers
 
             var getRes = await _client.GetAsync($"/api/moduleuiconfig/{{item.Id}}");
             getRes.StatusCode.Should().Be(HttpStatusCode.OK);
-            var patch = new { ModuleName = "Test2", IsEnabled = true, Description = "Test", IconName = "Test", DisplayOrder = 1, TabsConfig = "Test", LinkedEntitiesConfig = "Test", ListViewConfig = "Test", DetailViewConfig = "Test", QuickCreateConfig = "Test", SearchFilterConfig = "Test", ModuleSettings = "Test", ModuleName = "Test2", IsEnabled = true, Description = "Test", IconName = "Test", DisplayOrder = 1, TabsConfig = "Test", LinkedEntitiesConfig = "Test", ListViewConfig = "Test", DetailViewConfig = "Test", QuickCreateConfig = "Test", SearchFilterConfig = "Test", ModuleSettings = "Test", IsEnabled = true, Description = "Test", IconName = "Test", DisplayOrder = 1, TabsConfig = "Test", LinkedEntitiesConfig = "Test", ListViewConfig = "Test", DetailViewConfig = "Test", QuickCreateConfig = "Test", SearchFilterConfig = "Test", ModuleSettings = "Test", Index = 1, Name = "Test", Enabled = true, Order = 1, Icon = "Test", EntityName = "Test", RelationshipType = "Test", Enabled = true, TabName = "Test", DisplayOrder = 1, ForeignKeyField = "Test", Field = "Test", Label = "Test", Width = 1, Visible = true, Sortable = true, Order = 1, Format = "Test", IsEnabled = true, IsRequired = true, DisplayOrder = 1, GridSize = 1, FieldType = "Test", FieldLabel = "Test", Placeholder = "Test", HelpText = "Test", Options = "Test", ModuleName = "Test2", IsEnabled = true, DisplayOrder = 1 };
+            var patch = new
+            {
+                ModuleName = "Test2",
+                IsEnabled = true,
+                Description = "Test",
+                IconName = "Test",
+                DisplayOrder = 1,
+                TabsConfig = "Test",
+                LinkedEntitiesConfig = "Test",
+                ListViewConfig = "Test",
+                DetailViewConfig = "Test",
+                QuickCreateConfig = "Test",
+                SearchFilterConfig = "Test",
+                ModuleSettings = "Test",
+                Index = 1,
+                Name = "Test",
+                Enabled = true,
+                Order = 1,
+                Icon = "Test",
+                EntityName = "Test",
+                RelationshipType = "Test",
+                TabName = "Test",
+                ForeignKeyField = "Test",
+                Field = "Test",
+                Label = "Test",
+                Width = 1,
+                Visible = true,
+                Sortable = true,
+                Format = "Test",
+                IsRequired = true,
+                GridSize = 1,
+                FieldType = "Test",
+                FieldLabel = "Test",
+                Placeholder = "Test",
+                HelpText = "Test",
+                Options = "Test"
+            };
             var pRes = await _client.PatchAsJsonAsync($"/api/moduleuiconfig/{{item.Id}}", patch);
             pRes.StatusCode.Should().Be(HttpStatusCode.OK);
             var del = await _client.DeleteAsync($"/api/moduleuiconfig/{{item.Id}}");

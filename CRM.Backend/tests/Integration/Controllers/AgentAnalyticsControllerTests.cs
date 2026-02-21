@@ -12,30 +12,14 @@ namespace CRM.Backend.Tests.Integration.Controllers
         public AgentAnalyticsControllerTests(ApiTestFactory factory) => _client = factory.CreateClient();
 
         [Fact]
-        public async Task Crud_AgentAnalytics_Succeeds()
+        public async Task GetEndpoints_AgentAnalytics_Work()
         {
-            var create = new { name = "Test" };
-            var cRes = await _client.PostAsJsonAsync("/api/agentanalytics", create);
-            cRes.StatusCode.Should().Be(HttpStatusCode.Created);
-            var item = await cRes.Content.ReadFromJsonAsync<dynamic>();
-
-            var getRes = await _client.GetAsync($"/api/agentanalytics/{{item.Id}}");
-            getRes.StatusCode.Should().Be(HttpStatusCode.OK);
-            var patch = new { name = "Test2" };
-            var pRes = await _client.PatchAsJsonAsync($"/api/agentanalytics/{{item.Id}}", patch);
-            pRes.StatusCode.Should().Be(HttpStatusCode.OK);
-            var del = await _client.DeleteAsync($"/api/agentanalytics/{{item.Id}}");
-            del.StatusCode.Should().Be(HttpStatusCode.NoContent);
-            var nf = await _client.GetAsync($"/api/agentanalytics/{{item.Id}}");
-            nf.StatusCode.Should().Be(HttpStatusCode.NotFound);
-        }
-
-        [Fact]
-        public async Task Get_Nonexistent_Returns404()
-        {
-            var res = await _client.GetAsync("/api/agentanalytics/999999");
-            Assert.Equal(HttpStatusCode.NotFound, res.StatusCode);
+            var resp = await _client.GetAsync("/api/agentanalytics/usage");
+            resp.StatusCode.Should().Be(HttpStatusCode.OK);
+            var resp1 = await _client.GetAsync("/api/agentanalytics/accuracy");
+            resp1.StatusCode.Should().Be(HttpStatusCode.OK);
+            var resp2 = await _client.GetAsync("/api/agentanalytics/cost");
+            resp2.StatusCode.Should().Be(HttpStatusCode.OK);
         }
     }
 }
-

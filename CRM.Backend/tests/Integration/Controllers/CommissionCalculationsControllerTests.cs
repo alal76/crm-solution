@@ -14,7 +14,45 @@ namespace CRM.Backend.Tests.Integration.Controllers
         [Fact]
         public async Task Crud_CommissionCalculations_Succeeds()
         {
-            var create = new { RuleId = 1, RuleName = "Test", DealAmount = 1, Commission = 1, Tier = "Test", CommissionRate = 1, AppliedCap = 1, ClawbackAmount = 1, NetCommission = 1, UserId = 1, UserName = "Test", OpportunityId = 1, OrderId = 1, InvoiceId = 1, Status = "Test", Notes = "Test", CalculatedAt = DateTime.UtcNow, RuleId = 1, DealAmount = 1, UserId = 1, OpportunityId = 1, OrderId = 1, InvoiceId = 1, Notes = "Test", DealAmount = 1, AdjustmentAmount = 1, Status = "Test", Notes = "Test", RuleName = "Test", DealAmount = 1, Commission = 1, UserName = "Test", Tier = "Test", Status = "Test", OpportunityId = 1, DealName = "Test", DealAmount = 1, Commission = 1, CommissionTier = "Test", CommissionRate = 1, UserId = 1, UserName = "Test", CalculatedAt = DateTime.UtcNow, OrderId = 1, OrderNumber = "Test", OrderAmount = 1, Commission = 1, UserId = 1, UserName = "Test", UserId = 1, StartDate = DateTime.UtcNow, EndDate = DateTime.UtcNow, UserId = 1, UserName = "Test", StartDate = DateTime.UtcNow, EndDate = DateTime.UtcNow, TotalDealAmount = 1, TotalCommission = 1, DealCount = 1, RuleId = 1, DealAmount = 1, UserId = 1, IsValid = true, CalculatedCommission = 1, ValidationMessage = "Test", CommissionCalculationId = 1, ClawbackAmount = 1, Reason = "Test", CreatedById = 1, StartDate = DateTime.UtcNow, EndDate = DateTime.UtcNow, TotalRecords = 1, TotalAmount = 1, Status = "Test", ReconciliationDate = DateTime.UtcNow, Notes = "Test" };
+            var create = new
+            {
+                RuleId = 1,
+                RuleName = "Test",
+                DealAmount = 1,
+                Commission = 1,
+                Tier = "Test",
+                CommissionRate = 1,
+                AppliedCap = 1,
+                ClawbackAmount = 1,
+                NetCommission = 1,
+                UserId = 1,
+                UserName = "Test",
+                OpportunityId = 1,
+                OrderId = 1,
+                InvoiceId = 1,
+                Status = "Test",
+                Notes = "Test",
+                CalculatedAt = DateTime.UtcNow,
+                AdjustmentAmount = 1,
+                DealName = "Test",
+                CommissionTier = "Test",
+                OrderNumber = "Test",
+                OrderAmount = 1,
+                StartDate = DateTime.UtcNow,
+                EndDate = DateTime.UtcNow,
+                TotalDealAmount = 1,
+                TotalCommission = 1,
+                DealCount = 1,
+                IsValid = true,
+                CalculatedCommission = 1,
+                ValidationMessage = "Test",
+                CommissionCalculationId = 1,
+                Reason = "Test",
+                CreatedById = 1,
+                TotalRecords = 1,
+                TotalAmount = 1,
+                ReconciliationDate = DateTime.UtcNow
+            };
             var cRes = await _client.PostAsJsonAsync("/api/commissioncalculations", create);
             cRes.StatusCode.Should().Be(HttpStatusCode.Created);
             var item = await cRes.Content.ReadFromJsonAsync<dynamic>();
@@ -98,7 +136,45 @@ namespace CRM.Backend.Tests.Integration.Controllers
 
             var getRes = await _client.GetAsync($"/api/commissioncalculations/{{item.Id}}");
             getRes.StatusCode.Should().Be(HttpStatusCode.OK);
-            var patch = new { RuleId = 1, RuleName = "Test2", DealAmount = 1, Commission = 1, Tier = "Test", CommissionRate = 1, AppliedCap = 1, ClawbackAmount = 1, NetCommission = 1, UserId = 1, UserName = "Test", OpportunityId = 1, OrderId = 1, InvoiceId = 1, Status = "Test", Notes = "Test", CalculatedAt = DateTime.UtcNow, RuleId = 1, DealAmount = 1, UserId = 1, OpportunityId = 1, OrderId = 1, InvoiceId = 1, Notes = "Test", DealAmount = 1, AdjustmentAmount = 1, Status = "Test", Notes = "Test", RuleName = "Test2", DealAmount = 1, Commission = 1, UserName = "Test", Tier = "Test", Status = "Test", OpportunityId = 1, DealName = "Test", DealAmount = 1, Commission = 1, CommissionTier = "Test", CommissionRate = 1, UserId = 1, UserName = "Test", CalculatedAt = DateTime.UtcNow, OrderId = 1, OrderNumber = "Test", OrderAmount = 1, Commission = 1, UserId = 1, UserName = "Test", UserId = 1, StartDate = DateTime.UtcNow, EndDate = DateTime.UtcNow, UserId = 1, UserName = "Test", StartDate = DateTime.UtcNow, EndDate = DateTime.UtcNow, TotalDealAmount = 1, TotalCommission = 1, DealCount = 1, RuleId = 1, DealAmount = 1, UserId = 1, IsValid = true, CalculatedCommission = 1, ValidationMessage = "Test", CommissionCalculationId = 1, ClawbackAmount = 1, Reason = "Test", CreatedById = 1, StartDate = DateTime.UtcNow, EndDate = DateTime.UtcNow, TotalRecords = 1, TotalAmount = 1, Status = "Test", ReconciliationDate = DateTime.UtcNow, Notes = "Test" };
+            var patch = new
+            {
+                RuleId = 1,
+                RuleName = "Test2",
+                DealAmount = 1,
+                Commission = 1,
+                Tier = "Test",
+                CommissionRate = 1,
+                AppliedCap = 1,
+                ClawbackAmount = 1,
+                NetCommission = 1,
+                UserId = 1,
+                UserName = "Test",
+                OpportunityId = 1,
+                OrderId = 1,
+                InvoiceId = 1,
+                Status = "Test",
+                Notes = "Test",
+                CalculatedAt = DateTime.UtcNow,
+                AdjustmentAmount = 1,
+                DealName = "Test",
+                CommissionTier = "Test",
+                OrderNumber = "Test",
+                OrderAmount = 1,
+                StartDate = DateTime.UtcNow,
+                EndDate = DateTime.UtcNow,
+                TotalDealAmount = 1,
+                TotalCommission = 1,
+                DealCount = 1,
+                IsValid = true,
+                CalculatedCommission = 1,
+                ValidationMessage = "Test",
+                CommissionCalculationId = 1,
+                Reason = "Test",
+                CreatedById = 1,
+                TotalRecords = 1,
+                TotalAmount = 1,
+                ReconciliationDate = DateTime.UtcNow
+            };
             var pRes = await _client.PatchAsJsonAsync($"/api/commissioncalculations/{{item.Id}}", patch);
             pRes.StatusCode.Should().Be(HttpStatusCode.OK);
             var del = await _client.DeleteAsync($"/api/commissioncalculations/{{item.Id}}");

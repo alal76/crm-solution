@@ -179,15 +179,15 @@ export interface Opportunity extends BaseEntity {
   accountName?: string;
   primaryContactId?: number;
   primaryContactName?: string;
-  ownerId?: number;
-  ownerName?: string;
   stage: number;               // OpportunityStage numeric value
+  stageName?: string;          // Human-readable stage label (populated by API)
   amount: number;
   probability: number;         // 0-100%
   expectedCloseDate?: string;
   products?: OpportunityProduct[];
   currency?: string;           // ISO currency code (default USD)
   pricingModel?: number;       // OpportunityPricingModel: 0=Subscription, 1=OneTime, 2=UsageBased, 3=Hybrid
+  pricingModelName?: string;   // Human-readable pricing model label (populated by API)
   termLengthMonths?: number;   // Contract term length (1-120)
   solutionNotes?: string;      // Proposed solution description
   qualificationReason?: number; // BANT: 0=Budget, 1=Need, 2=Timing, 3=Authority, 4=Fit
@@ -196,6 +196,10 @@ export interface Opportunity extends BaseEntity {
   leadId?: number;             // Source lead FK
   salesOwnerId?: number;       // Account executive (backend field name)
   salesOwnerName?: string;     // Account executive display name
+  weightedAmount?: number;     // Amount * Probability / 100 (computed by backend)
+  weightedValue?: number;      // Alias for weightedAmount
+  isOpen?: boolean;            // True when stage is not ClosedWon or ClosedLost
+  isWon?: boolean;             // True when stage is ClosedWon
 }
 
 export interface OpportunityProduct {

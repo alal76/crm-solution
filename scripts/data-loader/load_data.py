@@ -254,46 +254,52 @@ def load_essential_data(api: APIClient):
             print(f"  ⚠️ Department {dept['name']} may already exist")
     
     # Create lookup items (currencies, countries, etc.)
-    print("\n💱 Creating lookup data...")
-    lookups = [
-        # Currencies
-        {"category": "Currency", "code": "USD", "value": "US Dollar", "displayOrder": 1, "isActive": True},
-        {"category": "Currency", "code": "EUR", "value": "Euro", "displayOrder": 2, "isActive": True},
-        {"category": "Currency", "code": "GBP", "value": "British Pound", "displayOrder": 3, "isActive": True},
-        {"category": "Currency", "code": "CAD", "value": "Canadian Dollar", "displayOrder": 4, "isActive": True},
-        {"category": "Currency", "code": "AUD", "value": "Australian Dollar", "displayOrder": 5, "isActive": True},
-        
-        # Lead Sources
-        {"category": "LeadSource", "code": "WEB", "value": "Website", "displayOrder": 1, "isActive": True},
-        {"category": "LeadSource", "code": "REF", "value": "Referral", "displayOrder": 2, "isActive": True},
-        {"category": "LeadSource", "code": "TRD", "value": "Trade Show", "displayOrder": 3, "isActive": True},
-        {"category": "LeadSource", "code": "ADV", "value": "Advertisement", "displayOrder": 4, "isActive": True},
-        {"category": "LeadSource", "code": "SOC", "value": "Social Media", "displayOrder": 5, "isActive": True},
-        {"category": "LeadSource", "code": "EML", "value": "Email Campaign", "displayOrder": 6, "isActive": True},
-        
-        # Industries
-        {"category": "Industry", "code": "TECH", "value": "Technology", "displayOrder": 1, "isActive": True},
-        {"category": "Industry", "code": "FIN", "value": "Finance", "displayOrder": 2, "isActive": True},
-        {"category": "Industry", "code": "HLTH", "value": "Healthcare", "displayOrder": 3, "isActive": True},
-        {"category": "Industry", "code": "MFG", "value": "Manufacturing", "displayOrder": 4, "isActive": True},
-        {"category": "Industry", "code": "RET", "value": "Retail", "displayOrder": 5, "isActive": True},
-        {"category": "Industry", "code": "EDU", "value": "Education", "displayOrder": 6, "isActive": True},
-        
-        # Contact Roles
-        {"category": "ContactRole", "code": "DM", "value": "Decision Maker", "displayOrder": 1, "isActive": True},
-        {"category": "ContactRole", "code": "INF", "value": "Influencer", "displayOrder": 2, "isActive": True},
-        {"category": "ContactRole", "code": "TEC", "value": "Technical Evaluator", "displayOrder": 3, "isActive": True},
-        {"category": "ContactRole", "code": "USR", "value": "End User", "displayOrder": 4, "isActive": True},
-        {"category": "ContactRole", "code": "OTH", "value": "Other", "displayOrder": 5, "isActive": True},
-    ]
-    
-    for lookup in lookups:
-        try:
-            result = api.post("/lookups", lookup)
-            api.track_created("lookup", result.get("id", 0))
-        except:
-            pass  # Silently continue if lookup exists
-    print(f"  ✓ Created {len(lookups)} lookup items")
+    print("\n💱 Creating lookup data via admin seed endpoint...")
+    # The public API does not support CRUD for lookups; use admin seeder instead.
+    try:
+        api.post("/admin/seed/lookups", {})
+        print("  ✓ Invoked admin lookup seeder")
+    except Exception as e:
+        print(f"  ⚠️ Lookup seeder call failed: {e}")
+        # fall back to individual posts if necessary
+        lookups = [
+            # Currencies
+            {"category": "Currency", "code": "USD", "value": "US Dollar", "displayOrder": 1, "isActive": True},
+            {"category": "Currency", "code": "EUR", "value": "Euro", "displayOrder": 2, "isActive": True},
+            {"category": "Currency", "code": "GBP", "value": "British Pound", "displayOrder": 3, "isActive": True},
+            {"category": "Currency", "code": "CAD", "value": "Canadian Dollar", "displayOrder": 4, "isActive": True},
+            {"category": "Currency", "code": "AUD", "value": "Australian Dollar", "displayOrder": 5, "isActive": True},
+            
+            # Lead Sources
+            {"category": "LeadSource", "code": "WEB", "value": "Website", "displayOrder": 1, "isActive": True},
+            {"category": "LeadSource", "code": "REF", "value": "Referral", "displayOrder": 2, "isActive": True},
+            {"category": "LeadSource", "code": "TRD", "value": "Trade Show", "displayOrder": 3, "isActive": True},
+            {"category": "LeadSource", "code": "ADV", "value": "Advertisement", "displayOrder": 4, "isActive": True},
+            {"category": "LeadSource", "code": "SOC", "value": "Social Media", "displayOrder": 5, "isActive": True},
+            {"category": "LeadSource", "code": "EML", "value": "Email Campaign", "displayOrder": 6, "isActive": True},
+            
+            # Industries
+            {"category": "Industry", "code": "TECH", "value": "Technology", "displayOrder": 1, "isActive": True},
+            {"category": "Industry", "code": "FIN", "value": "Finance", "displayOrder": 2, "isActive": True},
+            {"category": "Industry", "code": "HLTH", "value": "Healthcare", "displayOrder": 3, "isActive": True},
+            {"category": "Industry", "code": "MFG", "value": "Manufacturing", "displayOrder": 4, "isActive": True},
+            {"category": "Industry", "code": "RET", "value": "Retail", "displayOrder": 5, "isActive": True},
+            {"category": "Industry", "code": "EDU", "value": "Education", "displayOrder": 6, "isActive": True},
+            
+            # Contact Roles
+            {"category": "ContactRole", "code": "DM", "value": "Decision Maker", "displayOrder": 1, "isActive": True},
+            {"category": "ContactRole", "code": "INF", "value": "Influencer", "displayOrder": 2, "isActive": True},
+            {"category": "ContactRole", "code": "TEC", "value": "Technical Evaluator", "displayOrder": 3, "isActive": True},
+            {"category": "ContactRole", "code": "USR", "value": "End User", "displayOrder": 4, "isActive": True},
+            {"category": "ContactRole", "code": "OTH", "value": "Other", "displayOrder": 5, "isActive": True},
+        ]
+        for lookup in lookups:
+            try:
+                result = api.post("/lookups", lookup)
+                api.track_created("lookup", result.get("id", 0))
+            except:
+                pass
+        print(f"  ✓ Created {len(lookups)} lookup items (fallback)")
     
     print("\n✅ Essential data loaded successfully!")
     return True
@@ -582,6 +588,10 @@ def load_basic_data(api: APIClient):
             m = api.post(f"/campaigns/{result.get('id')}/metrics", {"metricType":"OpenRate","value":0.5})
             api.track_created("campaignmetric", m.get("id",0))
         except Exception as e:
+            msg = str(e)
+            if "405" in msg or "Method Not Allowed" in msg:
+                print(f"  ⚠️ Campaign POST not allowed (405); skipping campaign: {campaign['name']}")
+                continue
             print(f"  ❌ Failed to create campaign: {e}")
     
     

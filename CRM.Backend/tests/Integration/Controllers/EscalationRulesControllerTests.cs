@@ -14,7 +14,27 @@ namespace CRM.Backend.Tests.Integration.Controllers
         [Fact]
         public async Task Crud_EscalationRules_Succeeds()
         {
-            var create = new { Name = "Test", Description = "Test", Priority = "Test", Category = "Test", Queue = "Test", AgeInMinutes = 1, TargetType = "Test", TargetId = 1, TargetName = "Test", MaxAttempts = 1, RetryIntervalMinutes = 1, IsActive = true, Name = "Test", Description = "Test", Priority = "Test", Category = "Test", Queue = "Test", AgeInMinutes = 1, TargetType = "Test", TargetId = 1, TargetName = "Test", MaxAttempts = 1, RetryIntervalMinutes = 1, IsActive = true, Name = "Test", Description = "Test", Priority = "Test", Category = "Test", Queue = "Test", AgeInMinutes = 1, TargetType = "Test", TargetId = 1, TargetName = "Test", MaxAttempts = 1, RetryIntervalMinutes = 1, IsActive = true, RuleId = 1, ServiceRequestId = 1, RuleMatched = true, MatchReason = "Test", Rule = null, TestMessage = "Test" };
+            var create = new
+            {
+                Name = "Test",
+                Description = "Test",
+                Priority = "Test",
+                Category = "Test",
+                Queue = "Test",
+                AgeInMinutes = 1,
+                TargetType = "Test",
+                TargetId = 1,
+                TargetName = "Test",
+                MaxAttempts = 1,
+                RetryIntervalMinutes = 1,
+                IsActive = true,
+                RuleId = 1,
+                ServiceRequestId = 1,
+                RuleMatched = true,
+                MatchReason = "Test",
+                Rule = (object?)null,
+                TestMessage = "Test"
+            };
             var cRes = await _client.PostAsJsonAsync("/api/escalationrules", create);
             cRes.StatusCode.Should().Be(HttpStatusCode.Created);
             var item = await cRes.Content.ReadFromJsonAsync<dynamic>();
@@ -64,7 +84,27 @@ namespace CRM.Backend.Tests.Integration.Controllers
 
             var getRes = await _client.GetAsync($"/api/escalationrules/{{item.Id}}");
             getRes.StatusCode.Should().Be(HttpStatusCode.OK);
-            var patch = new { Name = "Test2", Description = "Test", Priority = "Test", Category = "Test", Queue = "Test", AgeInMinutes = 1, TargetType = "Test", TargetId = 1, TargetName = "Test", MaxAttempts = 1, RetryIntervalMinutes = 1, IsActive = true, Name = "Test2", Description = "Test", Priority = "Test", Category = "Test", Queue = "Test", AgeInMinutes = 1, TargetType = "Test", TargetId = 1, TargetName = "Test", MaxAttempts = 1, RetryIntervalMinutes = 1, IsActive = true, Name = "Test2", Description = "Test", Priority = "Test", Category = "Test", Queue = "Test", AgeInMinutes = 1, TargetType = "Test", TargetId = 1, TargetName = "Test", MaxAttempts = 1, RetryIntervalMinutes = 1, IsActive = true, RuleId = 1, ServiceRequestId = 1, RuleMatched = true, MatchReason = "Test", Rule = null, TestMessage = "Test" };
+            var patch = new
+            {
+                Name = "Test2",
+                Description = "Test",
+                Priority = "Test",
+                Category = "Test",
+                Queue = "Test",
+                AgeInMinutes = 1,
+                TargetType = "Test",
+                TargetId = 1,
+                TargetName = "Test",
+                MaxAttempts = 1,
+                RetryIntervalMinutes = 1,
+                IsActive = true,
+                RuleId = 1,
+                ServiceRequestId = 1,
+                RuleMatched = true,
+                MatchReason = "Test",
+                Rule = (object?)null,
+                TestMessage = "Test"
+            };
             var pRes = await _client.PatchAsJsonAsync($"/api/escalationrules/{{item.Id}}", patch);
             pRes.StatusCode.Should().Be(HttpStatusCode.OK);
             var del = await _client.DeleteAsync($"/api/escalationrules/{{item.Id}}");

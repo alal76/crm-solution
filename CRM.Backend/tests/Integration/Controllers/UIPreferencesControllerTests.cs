@@ -14,7 +14,22 @@ namespace CRM.Backend.Tests.Integration.Controllers
         [Fact]
         public async Task Crud_UIPreferences_Succeeds()
         {
-            var create = new { UserId = 1, Theme = "Test", SidebarPosition = "Test", SidebarWidth = 1, FontSize = "Test", ShowBreadcrumbs = true, ShowStatusBar = true, ShowTopNavigation = true, DefaultPageSize = 1, DateFormat = "Test", TimeFormat = "Test", CustomColorScheme = "Test", LastPreferenceUpdate = DateTime.UtcNow, Theme = "Test", SidebarPosition = "Test", SidebarWidth = 1, FontSize = "Test", ShowBreadcrumbs = true, ShowStatusBar = true, ShowTopNavigation = true, DefaultPageSize = 1, DateFormat = "Test", TimeFormat = "Test", CustomColorScheme = "Test" };
+            var create = new
+            {
+                UserId = 1,
+                Theme = "Test",
+                SidebarPosition = "Test",
+                SidebarWidth = 1,
+                FontSize = "Test",
+                ShowBreadcrumbs = true,
+                ShowStatusBar = true,
+                ShowTopNavigation = true,
+                DefaultPageSize = 1,
+                DateFormat = "Test",
+                TimeFormat = "Test",
+                CustomColorScheme = "Test",
+                LastPreferenceUpdate = DateTime.UtcNow
+            };
             var cRes = await _client.PostAsJsonAsync("/api/uipreferences", create);
             cRes.StatusCode.Should().Be(HttpStatusCode.Created);
             var item = await cRes.Content.ReadFromJsonAsync<dynamic>();
@@ -46,7 +61,22 @@ namespace CRM.Backend.Tests.Integration.Controllers
 
             var getRes = await _client.GetAsync($"/api/uipreferences/{{item.Id}}");
             getRes.StatusCode.Should().Be(HttpStatusCode.OK);
-            var patch = new { UserId = 1, Theme = "Test2", SidebarPosition = "Test", SidebarWidth = 1, FontSize = "Test", ShowBreadcrumbs = true, ShowStatusBar = true, ShowTopNavigation = true, DefaultPageSize = 1, DateFormat = "Test", TimeFormat = "Test", CustomColorScheme = "Test", LastPreferenceUpdate = DateTime.UtcNow, Theme = "Test2", SidebarPosition = "Test", SidebarWidth = 1, FontSize = "Test", ShowBreadcrumbs = true, ShowStatusBar = true, ShowTopNavigation = true, DefaultPageSize = 1, DateFormat = "Test", TimeFormat = "Test", CustomColorScheme = "Test" };
+            var patch = new
+            {
+                UserId = 1,
+                Theme = "Test2",
+                SidebarPosition = "Test",
+                SidebarWidth = 1,
+                FontSize = "Test",
+                ShowBreadcrumbs = true,
+                ShowStatusBar = true,
+                ShowTopNavigation = true,
+                DefaultPageSize = 1,
+                DateFormat = "Test",
+                TimeFormat = "Test",
+                CustomColorScheme = "Test",
+                LastPreferenceUpdate = DateTime.UtcNow
+            };
             var pRes = await _client.PatchAsJsonAsync($"/api/uipreferences/{{item.Id}}", patch);
             pRes.StatusCode.Should().Be(HttpStatusCode.OK);
             var del = await _client.DeleteAsync($"/api/uipreferences/{{item.Id}}");

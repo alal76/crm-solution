@@ -1,0 +1,781 @@
+--- File: CRM.Backend/tests/Integration/Controllers/AIAgentUsageControllerTests.cs ---
+using CRM.Tests.Helpers;
+using FluentAssertions;
+using System.Net;
+using System.Net.Http.Json;
+using Xunit;
+
+namespace CRM.Backend.Tests.Integration.Controllers
+{
+    public class AIAgentUsageControllerTests : IClassFixture<ApiTestFactory>
+    {
+        private readonly HttpClient _client;
+        public AIAgentUsageControllerTests(ApiTestFactory factory) => _client = factory.CreateClient();
+
+        [Fact]
+        public async Task Crud_AIAgentUsage_Succeeds()
+        {
+            var create = new { name = "Test" };
+            var cRes = await _client.PostAsJsonAsync("/api/aiagentusage", create);
+            cRes.StatusCode.Should().Be(HttpStatusCode.Created);
+            var item = await cRes.Content.ReadFromJsonAsync<dynamic>();
+
+            var getRes = await _client.GetAsync($"/api/aiagentusage/{{item.Id}}");
+            getRes.StatusCode.Should().Be(HttpStatusCode.OK);
+            var patch = new { name = "Test2" };
+            var pRes = await _client.PatchAsJsonAsync($"/api/aiagentusage/{{item.Id}}", patch);
+            pRes.StatusCode.Should().Be(HttpStatusCode.OK);
+            var del = await _client.DeleteAsync($"/api/aiagentusage/{{item.Id}}");
+            del.StatusCode.Should().Be(HttpStatusCode.NoContent);
+            var nf = await _client.GetAsync($"/api/aiagentusage/{{item.Id}}");
+            nf.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        }
+
+        [Fact]
+        public async Task Get_Nonexistent_Returns404()
+        {
+            var res = await _client.GetAsync("/api/aiagentusage/999999");
+            Assert.Equal(HttpStatusCode.NotFound, res.StatusCode);
+        }
+    }
+}
+
+--- File: CRM.Backend/tests/Integration/Controllers/AIAnalyticsControllerTests.cs ---
+using CRM.Tests.Helpers;
+using FluentAssertions;
+using System.Net;
+using System.Net.Http.Json;
+using Xunit;
+
+namespace CRM.Backend.Tests.Integration.Controllers
+{
+    public class AIAnalyticsControllerTests : IClassFixture<ApiTestFactory>
+    {
+        private readonly HttpClient _client;
+        public AIAnalyticsControllerTests(ApiTestFactory factory) => _client = factory.CreateClient();
+
+        [Fact]
+        public async Task Crud_AIAnalytics_Succeeds()
+        {
+            var create = new { name = "Test" };
+            var cRes = await _client.PostAsJsonAsync("/api/aianalytics", create);
+            cRes.StatusCode.Should().Be(HttpStatusCode.Created);
+            var item = await cRes.Content.ReadFromJsonAsync<dynamic>();
+
+            var getRes = await _client.GetAsync($"/api/aianalytics/{{item.Id}}");
+            getRes.StatusCode.Should().Be(HttpStatusCode.OK);
+            var patch = new { name = "Test2" };
+            var pRes = await _client.PatchAsJsonAsync($"/api/aianalytics/{{item.Id}}", patch);
+            pRes.StatusCode.Should().Be(HttpStatusCode.OK);
+            var del = await _client.DeleteAsync($"/api/aianalytics/{{item.Id}}");
+            del.StatusCode.Should().Be(HttpStatusCode.NoContent);
+            var nf = await _client.GetAsync($"/api/aianalytics/{{item.Id}}");
+            nf.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        }
+
+        [Fact]
+        public async Task Get_Nonexistent_Returns404()
+        {
+            var res = await _client.GetAsync("/api/aianalytics/999999");
+            Assert.Equal(HttpStatusCode.NotFound, res.StatusCode);
+        }
+    }
+}
+
+--- File: CRM.Backend/tests/Integration/Controllers/AIChatbotControllerTests.cs ---
+using CRM.Tests.Helpers;
+using FluentAssertions;
+using System.Net;
+using System.Net.Http.Json;
+using Xunit;
+
+namespace CRM.Backend.Tests.Integration.Controllers
+{
+    public class AIChatbotControllerTests : IClassFixture<ApiTestFactory>
+    {
+        private readonly HttpClient _client;
+        public AIChatbotControllerTests(ApiTestFactory factory) => _client = factory.CreateClient();
+
+        [Fact]
+        public async Task Crud_AIChatbot_Succeeds()
+        {
+            var create = new { name = "Test" };
+            var cRes = await _client.PostAsJsonAsync("/api/aichatbot", create);
+            cRes.StatusCode.Should().Be(HttpStatusCode.Created);
+            var item = await cRes.Content.ReadFromJsonAsync<dynamic>();
+
+            var getRes = await _client.GetAsync($"/api/aichatbot/{{item.Id}}");
+            getRes.StatusCode.Should().Be(HttpStatusCode.OK);
+            var patch = new { name = "Test2" };
+            var pRes = await _client.PatchAsJsonAsync($"/api/aichatbot/{{item.Id}}", patch);
+            pRes.StatusCode.Should().Be(HttpStatusCode.OK);
+            var del = await _client.DeleteAsync($"/api/aichatbot/{{item.Id}}");
+            del.StatusCode.Should().Be(HttpStatusCode.NoContent);
+            var nf = await _client.GetAsync($"/api/aichatbot/{{item.Id}}");
+            nf.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        }
+
+        [Fact]
+        public async Task Get_Nonexistent_Returns404()
+        {
+            var res = await _client.GetAsync("/api/aichatbot/999999");
+            Assert.Equal(HttpStatusCode.NotFound, res.StatusCode);
+        }
+    }
+}
+
+--- File: CRM.Backend/tests/Integration/Controllers/AIEmailControllerTests.cs ---
+using CRM.Tests.Helpers;
+using FluentAssertions;
+using System.Net;
+using System.Net.Http.Json;
+using Xunit;
+
+namespace CRM.Backend.Tests.Integration.Controllers
+{
+    public class AIEmailControllerTests : IClassFixture<ApiTestFactory>
+    {
+        private readonly HttpClient _client;
+        public AIEmailControllerTests(ApiTestFactory factory) => _client = factory.CreateClient();
+
+        [Fact]
+        public async Task Crud_AIEmail_Succeeds()
+        {
+            var create = new { name = "Test" };
+            var cRes = await _client.PostAsJsonAsync("/api/aiemail", create);
+            cRes.StatusCode.Should().Be(HttpStatusCode.Created);
+            var item = await cRes.Content.ReadFromJsonAsync<dynamic>();
+
+            var getRes = await _client.GetAsync($"/api/aiemail/{{item.Id}}");
+            getRes.StatusCode.Should().Be(HttpStatusCode.OK);
+            var patch = new { name = "Test2" };
+            var pRes = await _client.PatchAsJsonAsync($"/api/aiemail/{{item.Id}}", patch);
+            pRes.StatusCode.Should().Be(HttpStatusCode.OK);
+            var del = await _client.DeleteAsync($"/api/aiemail/{{item.Id}}");
+            del.StatusCode.Should().Be(HttpStatusCode.NoContent);
+            var nf = await _client.GetAsync($"/api/aiemail/{{item.Id}}");
+            nf.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        }
+
+        [Fact]
+        public async Task Get_Nonexistent_Returns404()
+        {
+            var res = await _client.GetAsync("/api/aiemail/999999");
+            Assert.Equal(HttpStatusCode.NotFound, res.StatusCode);
+        }
+    }
+}
+
+--- File: CRM.Backend/tests/Integration/Controllers/AILeadScoringControllerTests.cs ---
+using CRM.Tests.Helpers;
+using FluentAssertions;
+using System.Net;
+using System.Net.Http.Json;
+using Xunit;
+
+namespace CRM.Backend.Tests.Integration.Controllers
+{
+    public class AILeadScoringControllerTests : IClassFixture<ApiTestFactory>
+    {
+        private readonly HttpClient _client;
+        public AILeadScoringControllerTests(ApiTestFactory factory) => _client = factory.CreateClient();
+
+        [Fact]
+        public async Task Crud_AILeadScoring_Succeeds()
+        {
+            var create = new { name = "Test" };
+            var cRes = await _client.PostAsJsonAsync("/api/aileadscoring", create);
+            cRes.StatusCode.Should().Be(HttpStatusCode.Created);
+            var item = await cRes.Content.ReadFromJsonAsync<dynamic>();
+
+            var getRes = await _client.GetAsync($"/api/aileadscoring/{{item.Id}}");
+            getRes.StatusCode.Should().Be(HttpStatusCode.OK);
+            var patch = new { name = "Test2" };
+            var pRes = await _client.PatchAsJsonAsync($"/api/aileadscoring/{{item.Id}}", patch);
+            pRes.StatusCode.Should().Be(HttpStatusCode.OK);
+            var del = await _client.DeleteAsync($"/api/aileadscoring/{{item.Id}}");
+            del.StatusCode.Should().Be(HttpStatusCode.NoContent);
+            var nf = await _client.GetAsync($"/api/aileadscoring/{{item.Id}}");
+            nf.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        }
+
+        [Fact]
+        public async Task Get_Nonexistent_Returns404()
+        {
+            var res = await _client.GetAsync("/api/aileadscoring/999999");
+            Assert.Equal(HttpStatusCode.NotFound, res.StatusCode);
+        }
+    }
+}
+
+--- File: CRM.Backend/tests/Integration/Controllers/AccountsControllerTests.cs ---
+using CRM.Tests.Helpers;
+using FluentAssertions;
+using System.Net;
+using System.Net.Http.Json;
+using Xunit;
+
+namespace CRM.Backend.Tests.Integration.Controllers
+{
+    public class AccountsControllerTests : IClassFixture<ApiTestFactory>
+    {
+        private readonly HttpClient _client;
+        public AccountsControllerTests(ApiTestFactory factory) => _client = factory.CreateClient();
+
+        [Fact]
+        public async Task Crud_Accounts_Succeeds()
+        {
+            var create = new { Category = "Test", FirstName = "Test", LastName = "Test", Salutation = "Test", Suffix = "Test", DateOfBirth = DateTime.UtcNow, Gender = "Test", LinkedContactId = 1, LinkedContactName = "Test", Company = "Test", LegalName = "Test", DbaName = "Test", TaxId = "Test", RegistrationNumber = "Test", YearFounded = 1, PrimaryContactId = 1, PrimaryContactName = "Test", Email = "Test", SecondaryEmail = "Test", Phone = "Test", MobilePhone = "Test", FaxNumber = "Test", JobTitle = "Test", Website = "Test", Address = "Test", Address2 = "Test", City = "Test", State = "Test", ZipCode = "Test", Country = "Test", ShippingAddress = "Test", ShippingAddress2 = "Test", ShippingCity = "Test", ShippingState = "Test", ShippingZipCode = "Test", ShippingCountry = "Test", ShippingSameAsBilling = true, Industry = "Test", SubIndustry = "Test", NumberOfEmployees = 1, EmployeeRange = "Test", AnnualRevenue = 1, RevenueRange = "Test", AccountType = "Test", Priority = "Test", StockSymbol = "Test", Ownership = "Test", LifecycleStage = "Test", LeadSource = "Test", FirstContactDate = DateTime.UtcNow, ConversionDate = DateTime.UtcNow, LastActivityDate = DateTime.UtcNow, NextFollowUpDate = DateTime.UtcNow, TotalPurchases = 1, AccountBalance = 1, CreditLimit = 1, PaymentTerms = "Test", PreferredPaymentMethod = "Test", Currency = "Test", BillingCycle = "Test", LeadScore = 1, AccountHealthScore = 1, NpsScore = 1, SatisfactionRating = 1, LinkedInUrl = "Test", TwitterHandle = "Test", FacebookUrl = "Test", OptInEmail = true, OptInSms = true, OptInPhone = true, PreferredContactMethod = "Test", PreferredContactTime = "Test", Timezone = "Test", PreferredLanguage = "Test", AssignedToUserId = 1, AssignedToUserName = "Test", AccountManagerId = 1, AccountManagerName = "Test", Territory = "Test", Region = "Test", Tags = "Test", Segment = "Test", ReferralSource = "Test", ReferredByAccountId = 1, ReferredByAccountName = "Test", ParentAccountId = 1, ParentAccountName = "Test", Notes = "Test", InternalNotes = "Test", Description = "Test", CustomFields = "Test", ContactCount = 1 };
+            var cRes = await _client.PostAsJsonAsync("/api/accounts", create);
+            cRes.StatusCode.Should().Be(HttpStatusCode.Created);
+            var item = await cRes.Content.ReadFromJsonAsync<dynamic>();
+
+            item.Category.Should().Be(create.Category);
+            item.FirstName.Should().Be(create.FirstName);
+            item.LastName.Should().Be(create.LastName);
+            item.Salutation.Should().Be(create.Salutation);
+            item.Suffix.Should().Be(create.Suffix);
+            item.DateOfBirth.Should().Be(create.DateOfBirth);
+            item.Gender.Should().Be(create.Gender);
+            item.LinkedContactId.Should().Be(create.LinkedContactId);
+            item.LinkedContactName.Should().Be(create.LinkedContactName);
+            item.Company.Should().Be(create.Company);
+            item.LegalName.Should().Be(create.LegalName);
+            item.DbaName.Should().Be(create.DbaName);
+            item.TaxId.Should().Be(create.TaxId);
+            item.RegistrationNumber.Should().Be(create.RegistrationNumber);
+            item.YearFounded.Should().Be(create.YearFounded);
+            item.PrimaryContactId.Should().Be(create.PrimaryContactId);
+            item.PrimaryContactName.Should().Be(create.PrimaryContactName);
+            item.Email.Should().Be(create.Email);
+            item.SecondaryEmail.Should().Be(create.SecondaryEmail);
+            item.Phone.Should().Be(create.Phone);
+            item.MobilePhone.Should().Be(create.MobilePhone);
+            item.FaxNumber.Should().Be(create.FaxNumber);
+            item.JobTitle.Should().Be(create.JobTitle);
+            item.Website.Should().Be(create.Website);
+            item.Address.Should().Be(create.Address);
+            item.Address2.Should().Be(create.Address2);
+            item.City.Should().Be(create.City);
+            item.State.Should().Be(create.State);
+            item.ZipCode.Should().Be(create.ZipCode);
+            item.Country.Should().Be(create.Country);
+            item.ShippingAddress.Should().Be(create.ShippingAddress);
+            item.ShippingAddress2.Should().Be(create.ShippingAddress2);
+            item.ShippingCity.Should().Be(create.ShippingCity);
+            item.ShippingState.Should().Be(create.ShippingState);
+            item.ShippingZipCode.Should().Be(create.ShippingZipCode);
+            item.ShippingCountry.Should().Be(create.ShippingCountry);
+            item.ShippingSameAsBilling.Should().Be(create.ShippingSameAsBilling);
+            item.Industry.Should().Be(create.Industry);
+            item.SubIndustry.Should().Be(create.SubIndustry);
+            item.NumberOfEmployees.Should().Be(create.NumberOfEmployees);
+            item.EmployeeRange.Should().Be(create.EmployeeRange);
+            item.AnnualRevenue.Should().Be(create.AnnualRevenue);
+            item.RevenueRange.Should().Be(create.RevenueRange);
+            item.AccountType.Should().Be(create.AccountType);
+            item.Priority.Should().Be(create.Priority);
+            item.StockSymbol.Should().Be(create.StockSymbol);
+            item.Ownership.Should().Be(create.Ownership);
+            item.LifecycleStage.Should().Be(create.LifecycleStage);
+            item.LeadSource.Should().Be(create.LeadSource);
+            item.FirstContactDate.Should().Be(create.FirstContactDate);
+            item.ConversionDate.Should().Be(create.ConversionDate);
+            item.LastActivityDate.Should().Be(create.LastActivityDate);
+            item.NextFollowUpDate.Should().Be(create.NextFollowUpDate);
+            item.TotalPurchases.Should().Be(create.TotalPurchases);
+            item.AccountBalance.Should().Be(create.AccountBalance);
+            item.CreditLimit.Should().Be(create.CreditLimit);
+            item.PaymentTerms.Should().Be(create.PaymentTerms);
+            item.PreferredPaymentMethod.Should().Be(create.PreferredPaymentMethod);
+            item.Currency.Should().Be(create.Currency);
+            item.BillingCycle.Should().Be(create.BillingCycle);
+            item.LeadScore.Should().Be(create.LeadScore);
+            item.AccountHealthScore.Should().Be(create.AccountHealthScore);
+            item.NpsScore.Should().Be(create.NpsScore);
+            item.SatisfactionRating.Should().Be(create.SatisfactionRating);
+            item.LinkedInUrl.Should().Be(create.LinkedInUrl);
+            item.TwitterHandle.Should().Be(create.TwitterHandle);
+            item.FacebookUrl.Should().Be(create.FacebookUrl);
+            item.OptInEmail.Should().Be(create.OptInEmail);
+            item.OptInSms.Should().Be(create.OptInSms);
+            item.OptInPhone.Should().Be(create.OptInPhone);
+            item.PreferredContactMethod.Should().Be(create.PreferredContactMethod);
+            item.PreferredContactTime.Should().Be(create.PreferredContactTime);
+            item.Timezone.Should().Be(create.Timezone);
+            item.PreferredLanguage.Should().Be(create.PreferredLanguage);
+            item.AssignedToUserId.Should().Be(create.AssignedToUserId);
+            item.AssignedToUserName.Should().Be(create.AssignedToUserName);
+            item.AccountManagerId.Should().Be(create.AccountManagerId);
+            item.AccountManagerName.Should().Be(create.AccountManagerName);
+            item.Territory.Should().Be(create.Territory);
+            item.Region.Should().Be(create.Region);
+            item.Tags.Should().Be(create.Tags);
+            item.Segment.Should().Be(create.Segment);
+            item.ReferralSource.Should().Be(create.ReferralSource);
+            item.ReferredByAccountId.Should().Be(create.ReferredByAccountId);
+            item.ReferredByAccountName.Should().Be(create.ReferredByAccountName);
+            item.ParentAccountId.Should().Be(create.ParentAccountId);
+            item.ParentAccountName.Should().Be(create.ParentAccountName);
+            item.Notes.Should().Be(create.Notes);
+            item.InternalNotes.Should().Be(create.InternalNotes);
+            item.Description.Should().Be(create.Description);
+            item.CustomFields.Should().Be(create.CustomFields);
+            item.ContactCount.Should().Be(create.ContactCount);
+
+            var getRes = await _client.GetAsync($"/api/accounts/{{item.Id}}");
+            getRes.StatusCode.Should().Be(HttpStatusCode.OK);
+            var patch = new { Category = "Test2", FirstName = "Test", LastName = "Test", Salutation = "Test", Suffix = "Test", DateOfBirth = DateTime.UtcNow, Gender = "Test", LinkedContactId = 1, LinkedContactName = "Test", Company = "Test", LegalName = "Test", DbaName = "Test", TaxId = "Test", RegistrationNumber = "Test", YearFounded = 1, PrimaryContactId = 1, PrimaryContactName = "Test", Email = "Test", SecondaryEmail = "Test", Phone = "Test", MobilePhone = "Test", FaxNumber = "Test", JobTitle = "Test", Website = "Test", Address = "Test", Address2 = "Test", City = "Test", State = "Test", ZipCode = "Test", Country = "Test", ShippingAddress = "Test", ShippingAddress2 = "Test", ShippingCity = "Test", ShippingState = "Test", ShippingZipCode = "Test", ShippingCountry = "Test", ShippingSameAsBilling = true, Industry = "Test", SubIndustry = "Test", NumberOfEmployees = 1, EmployeeRange = "Test", AnnualRevenue = 1, RevenueRange = "Test", AccountType = "Test", Priority = "Test", StockSymbol = "Test", Ownership = "Test", LifecycleStage = "Test", LeadSource = "Test", FirstContactDate = DateTime.UtcNow, ConversionDate = DateTime.UtcNow, LastActivityDate = DateTime.UtcNow, NextFollowUpDate = DateTime.UtcNow, TotalPurchases = 1, AccountBalance = 1, CreditLimit = 1, PaymentTerms = "Test", PreferredPaymentMethod = "Test", Currency = "Test", BillingCycle = "Test", LeadScore = 1, AccountHealthScore = 1, NpsScore = 1, SatisfactionRating = 1, LinkedInUrl = "Test", TwitterHandle = "Test", FacebookUrl = "Test", OptInEmail = true, OptInSms = true, OptInPhone = true, PreferredContactMethod = "Test", PreferredContactTime = "Test", Timezone = "Test", PreferredLanguage = "Test", AssignedToUserId = 1, AssignedToUserName = "Test", AccountManagerId = 1, AccountManagerName = "Test", Territory = "Test", Region = "Test", Tags = "Test", Segment = "Test", ReferralSource = "Test", ReferredByAccountId = 1, ReferredByAccountName = "Test", ParentAccountId = 1, ParentAccountName = "Test", Notes = "Test", InternalNotes = "Test", Description = "Test", CustomFields = "Test", ContactCount = 1 };
+            var pRes = await _client.PatchAsJsonAsync($"/api/accounts/{{item.Id}}", patch);
+            pRes.StatusCode.Should().Be(HttpStatusCode.OK);
+            var del = await _client.DeleteAsync($"/api/accounts/{{item.Id}}");
+            del.StatusCode.Should().Be(HttpStatusCode.NoContent);
+            var nf = await _client.GetAsync($"/api/accounts/{{item.Id}}");
+            nf.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        }
+
+        [Fact]
+        public async Task Get_Nonexistent_Returns404()
+        {
+            var res = await _client.GetAsync("/api/accounts/999999");
+            Assert.Equal(HttpStatusCode.NotFound, res.StatusCode);
+        }
+    }
+}
+
+--- File: CRM.Backend/tests/Integration/Controllers/ActivitiesControllerTests.cs ---
+using CRM.Tests.Helpers;
+using FluentAssertions;
+using System.Net;
+using System.Net.Http.Json;
+using Xunit;
+
+namespace CRM.Backend.Tests.Integration.Controllers
+{
+    public class ActivitiesControllerTests : IClassFixture<ApiTestFactory>
+    {
+        private readonly HttpClient _client;
+        public ActivitiesControllerTests(ApiTestFactory factory) => _client = factory.CreateClient();
+
+        [Fact]
+        public async Task Crud_Activities_Succeeds()
+        {
+            var create = new { ActivityType = 1, Title = "Test", Description = "Test", Details = "Test", ActivityDate = DateTime.UtcNow, DurationMinutes = 1, UserId = 1, UserName = "Test", UserEmail = "Test", EntityType = "Test", EntityId = 1, EntityName = "Test", SecondaryEntityType = "Test", SecondaryEntityId = 1, SecondaryEntityName = "Test", AccountId = 1, ContactId = 1, OpportunityId = 1, CampaignId = 1, ProductId = 1, TaskId = 1, QuoteId = 1, InteractionId = 1, NoteId = 1, OldValue = "Test", NewValue = "Test", FieldsChanged = "Test", IsSystem = true, IsPrivate = true, IsImportant = true, Tags = "Test", Category = "Test", Source = "Test", IsDeleted = true };
+            var cRes = await _client.PostAsJsonAsync("/api/activities", create);
+            cRes.StatusCode.Should().Be(HttpStatusCode.Created);
+            var item = await cRes.Content.ReadFromJsonAsync<dynamic>();
+
+            item.ActivityType.Should().Be(create.ActivityType);
+            item.Title.Should().Be(create.Title);
+            item.Description.Should().Be(create.Description);
+            item.Details.Should().Be(create.Details);
+            item.ActivityDate.Should().Be(create.ActivityDate);
+            item.DurationMinutes.Should().Be(create.DurationMinutes);
+            item.UserId.Should().Be(create.UserId);
+            item.UserName.Should().Be(create.UserName);
+            item.UserEmail.Should().Be(create.UserEmail);
+            item.EntityType.Should().Be(create.EntityType);
+            item.EntityId.Should().Be(create.EntityId);
+            item.EntityName.Should().Be(create.EntityName);
+            item.SecondaryEntityType.Should().Be(create.SecondaryEntityType);
+            item.SecondaryEntityId.Should().Be(create.SecondaryEntityId);
+            item.SecondaryEntityName.Should().Be(create.SecondaryEntityName);
+            item.AccountId.Should().Be(create.AccountId);
+            item.ContactId.Should().Be(create.ContactId);
+            item.OpportunityId.Should().Be(create.OpportunityId);
+            item.CampaignId.Should().Be(create.CampaignId);
+            item.ProductId.Should().Be(create.ProductId);
+            item.TaskId.Should().Be(create.TaskId);
+            item.QuoteId.Should().Be(create.QuoteId);
+            item.InteractionId.Should().Be(create.InteractionId);
+            item.NoteId.Should().Be(create.NoteId);
+            item.OldValue.Should().Be(create.OldValue);
+            item.NewValue.Should().Be(create.NewValue);
+            item.FieldsChanged.Should().Be(create.FieldsChanged);
+            item.IsSystem.Should().Be(create.IsSystem);
+            item.IsPrivate.Should().Be(create.IsPrivate);
+            item.IsImportant.Should().Be(create.IsImportant);
+            item.Tags.Should().Be(create.Tags);
+            item.Category.Should().Be(create.Category);
+            item.Source.Should().Be(create.Source);
+            item.IsDeleted.Should().Be(create.IsDeleted);
+
+            var getRes = await _client.GetAsync($"/api/activities/{{item.Id}}");
+            getRes.StatusCode.Should().Be(HttpStatusCode.OK);
+            var patch = new { ActivityType = 1, Title = "Test2", Description = "Test", Details = "Test", ActivityDate = DateTime.UtcNow, DurationMinutes = 1, UserId = 1, UserName = "Test", UserEmail = "Test", EntityType = "Test", EntityId = 1, EntityName = "Test", SecondaryEntityType = "Test", SecondaryEntityId = 1, SecondaryEntityName = "Test", AccountId = 1, ContactId = 1, OpportunityId = 1, CampaignId = 1, ProductId = 1, TaskId = 1, QuoteId = 1, InteractionId = 1, NoteId = 1, OldValue = "Test", NewValue = "Test", FieldsChanged = "Test", IsSystem = true, IsPrivate = true, IsImportant = true, Tags = "Test", Category = "Test", Source = "Test", IsDeleted = true };
+            var pRes = await _client.PatchAsJsonAsync($"/api/activities/{{item.Id}}", patch);
+            pRes.StatusCode.Should().Be(HttpStatusCode.OK);
+            var del = await _client.DeleteAsync($"/api/activities/{{item.Id}}");
+            del.StatusCode.Should().Be(HttpStatusCode.NoContent);
+            var nf = await _client.GetAsync($"/api/activities/{{item.Id}}");
+            nf.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        }
+
+        [Fact]
+        public async Task Get_Nonexistent_Returns404()
+        {
+            var res = await _client.GetAsync("/api/activities/999999");
+            Assert.Equal(HttpStatusCode.NotFound, res.StatusCode);
+        }
+    }
+}
+
+--- File: CRM.Backend/tests/Integration/Controllers/AddressesControllerTests.cs ---
+using CRM.Tests.Helpers;
+using FluentAssertions;
+using System.Net;
+using System.Net.Http.Json;
+using Xunit;
+
+namespace CRM.Backend.Tests.Integration.Controllers
+{
+    public class AddressesControllerTests : IClassFixture<ApiTestFactory>
+    {
+        private readonly HttpClient _client;
+        public AddressesControllerTests(ApiTestFactory factory) => _client = factory.CreateClient();
+
+        [Fact]
+        public async Task Crud_Addresses_Succeeds()
+        {
+            var create = new { name = "Test" };
+            var cRes = await _client.PostAsJsonAsync("/api/addresses", create);
+            cRes.StatusCode.Should().Be(HttpStatusCode.Created);
+            var item = await cRes.Content.ReadFromJsonAsync<dynamic>();
+
+            var getRes = await _client.GetAsync($"/api/addresses/{{item.Id}}");
+            getRes.StatusCode.Should().Be(HttpStatusCode.OK);
+            var patch = new { name = "Test2" };
+            var pRes = await _client.PatchAsJsonAsync($"/api/addresses/{{item.Id}}", patch);
+            pRes.StatusCode.Should().Be(HttpStatusCode.OK);
+            var del = await _client.DeleteAsync($"/api/addresses/{{item.Id}}");
+            del.StatusCode.Should().Be(HttpStatusCode.NoContent);
+            var nf = await _client.GetAsync($"/api/addresses/{{item.Id}}");
+            nf.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        }
+
+        [Fact]
+        public async Task Get_Nonexistent_Returns404()
+        {
+            var res = await _client.GetAsync("/api/addresses/999999");
+            Assert.Equal(HttpStatusCode.NotFound, res.StatusCode);
+        }
+    }
+}
+
+--- File: CRM.Backend/tests/Integration/Controllers/AdminDashboardControllerTests.cs ---
+using CRM.Tests.Helpers;
+using FluentAssertions;
+using System.Net;
+using System.Net.Http.Json;
+using Xunit;
+
+namespace CRM.Backend.Tests.Integration.Controllers
+{
+    public class AdminDashboardControllerTests : IClassFixture<ApiTestFactory>
+    {
+        private readonly HttpClient _client;
+        public AdminDashboardControllerTests(ApiTestFactory factory) => _client = factory.CreateClient();
+
+        [Fact]
+        public async Task Crud_AdminDashboard_Succeeds()
+        {
+            var create = new { name = "Test" };
+            var cRes = await _client.PostAsJsonAsync("/api/admindashboard", create);
+            cRes.StatusCode.Should().Be(HttpStatusCode.Created);
+            var item = await cRes.Content.ReadFromJsonAsync<dynamic>();
+
+            var getRes = await _client.GetAsync($"/api/admindashboard/{{item.Id}}");
+            getRes.StatusCode.Should().Be(HttpStatusCode.OK);
+            var patch = new { name = "Test2" };
+            var pRes = await _client.PatchAsJsonAsync($"/api/admindashboard/{{item.Id}}", patch);
+            pRes.StatusCode.Should().Be(HttpStatusCode.OK);
+            var del = await _client.DeleteAsync($"/api/admindashboard/{{item.Id}}");
+            del.StatusCode.Should().Be(HttpStatusCode.NoContent);
+            var nf = await _client.GetAsync($"/api/admindashboard/{{item.Id}}");
+            nf.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        }
+
+        [Fact]
+        public async Task Get_Nonexistent_Returns404()
+        {
+            var res = await _client.GetAsync("/api/admindashboard/999999");
+            Assert.Equal(HttpStatusCode.NotFound, res.StatusCode);
+        }
+    }
+}
+
+--- File: CRM.Backend/tests/Integration/Controllers/AdminSeedControllerTests.cs ---
+using CRM.Tests.Helpers;
+using FluentAssertions;
+using System.Net;
+using System.Net.Http.Json;
+using Xunit;
+
+namespace CRM.Backend.Tests.Integration.Controllers
+{
+    public class AdminSeedControllerTests : IClassFixture<ApiTestFactory>
+    {
+        private readonly HttpClient _client;
+        public AdminSeedControllerTests(ApiTestFactory factory) => _client = factory.CreateClient();
+
+        [Fact]
+        public async Task Crud_AdminSeed_Succeeds()
+        {
+            var create = new { name = "Test" };
+            var cRes = await _client.PostAsJsonAsync("/api/adminseed", create);
+            cRes.StatusCode.Should().Be(HttpStatusCode.Created);
+            var item = await cRes.Content.ReadFromJsonAsync<dynamic>();
+
+            var getRes = await _client.GetAsync($"/api/adminseed/{{item.Id}}");
+            getRes.StatusCode.Should().Be(HttpStatusCode.OK);
+            var patch = new { name = "Test2" };
+            var pRes = await _client.PatchAsJsonAsync($"/api/adminseed/{{item.Id}}", patch);
+            pRes.StatusCode.Should().Be(HttpStatusCode.OK);
+            var del = await _client.DeleteAsync($"/api/adminseed/{{item.Id}}");
+            del.StatusCode.Should().Be(HttpStatusCode.NoContent);
+            var nf = await _client.GetAsync($"/api/adminseed/{{item.Id}}");
+            nf.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        }
+
+        [Fact]
+        public async Task Get_Nonexistent_Returns404()
+        {
+            var res = await _client.GetAsync("/api/adminseed/999999");
+            Assert.Equal(HttpStatusCode.NotFound, res.StatusCode);
+        }
+    }
+}
+
+--- File: CRM.Backend/tests/Integration/Controllers/AdminSettingsControllerTests.cs ---
+using CRM.Tests.Helpers;
+using FluentAssertions;
+using System.Net;
+using System.Net.Http.Json;
+using Xunit;
+
+namespace CRM.Backend.Tests.Integration.Controllers
+{
+    public class AdminSettingsControllerTests : IClassFixture<ApiTestFactory>
+    {
+        private readonly HttpClient _client;
+        public AdminSettingsControllerTests(ApiTestFactory factory) => _client = factory.CreateClient();
+
+        [Fact]
+        public async Task Crud_AdminSettings_Succeeds()
+        {
+            var create = new { name = "Test" };
+            var cRes = await _client.PostAsJsonAsync("/api/adminsettings", create);
+            cRes.StatusCode.Should().Be(HttpStatusCode.Created);
+            var item = await cRes.Content.ReadFromJsonAsync<dynamic>();
+
+            var getRes = await _client.GetAsync($"/api/adminsettings/{{item.Id}}");
+            getRes.StatusCode.Should().Be(HttpStatusCode.OK);
+            var patch = new { name = "Test2" };
+            var pRes = await _client.PatchAsJsonAsync($"/api/adminsettings/{{item.Id}}", patch);
+            pRes.StatusCode.Should().Be(HttpStatusCode.OK);
+            var del = await _client.DeleteAsync($"/api/adminsettings/{{item.Id}}");
+            del.StatusCode.Should().Be(HttpStatusCode.NoContent);
+            var nf = await _client.GetAsync($"/api/adminsettings/{{item.Id}}");
+            nf.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        }
+
+        [Fact]
+        public async Task Get_Nonexistent_Returns404()
+        {
+            var res = await _client.GetAsync("/api/adminsettings/999999");
+            Assert.Equal(HttpStatusCode.NotFound, res.StatusCode);
+        }
+    }
+}
+
+--- File: CRM.Backend/tests/Integration/Controllers/AgentAdminControllerTests.cs ---
+using CRM.Tests.Helpers;
+using FluentAssertions;
+using System.Net;
+using System.Net.Http.Json;
+using Xunit;
+
+namespace CRM.Backend.Tests.Integration.Controllers
+{
+    public class AgentAdminControllerTests : IClassFixture<ApiTestFactory>
+    {
+        private readonly HttpClient _client;
+        public AgentAdminControllerTests(ApiTestFactory factory) => _client = factory.CreateClient();
+
+        [Fact]
+        public async Task Crud_AgentAdmin_Succeeds()
+        {
+            var create = new { name = "Test" };
+            var cRes = await _client.PostAsJsonAsync("/api/agentadmin", create);
+            cRes.StatusCode.Should().Be(HttpStatusCode.Created);
+            var item = await cRes.Content.ReadFromJsonAsync<dynamic>();
+
+            var getRes = await _client.GetAsync($"/api/agentadmin/{{item.Id}}");
+            getRes.StatusCode.Should().Be(HttpStatusCode.OK);
+            var patch = new { name = "Test2" };
+            var pRes = await _client.PatchAsJsonAsync($"/api/agentadmin/{{item.Id}}", patch);
+            pRes.StatusCode.Should().Be(HttpStatusCode.OK);
+            var del = await _client.DeleteAsync($"/api/agentadmin/{{item.Id}}");
+            del.StatusCode.Should().Be(HttpStatusCode.NoContent);
+            var nf = await _client.GetAsync($"/api/agentadmin/{{item.Id}}");
+            nf.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        }
+
+        [Fact]
+        public async Task Get_Nonexistent_Returns404()
+        {
+            var res = await _client.GetAsync("/api/agentadmin/999999");
+            Assert.Equal(HttpStatusCode.NotFound, res.StatusCode);
+        }
+    }
+}
+
+--- File: CRM.Backend/tests/Integration/Controllers/AgentAnalyticsControllerTests.cs ---
+using CRM.Tests.Helpers;
+using FluentAssertions;
+using System.Net;
+using System.Net.Http.Json;
+using Xunit;
+
+namespace CRM.Backend.Tests.Integration.Controllers
+{
+    public class AgentAnalyticsControllerTests : IClassFixture<ApiTestFactory>
+    {
+        private readonly HttpClient _client;
+        public AgentAnalyticsControllerTests(ApiTestFactory factory) => _client = factory.CreateClient();
+
+        [Fact]
+        public async Task GetEndpoints_AgentAnalytics_Work()
+        {
+            var resp = await _client.GetAsync("/api/agentanalytics/usage");
+            resp.StatusCode.Should().Be(HttpStatusCode.OK);
+            var resp = await _client.GetAsync("/api/agentanalytics/accuracy");
+            resp.StatusCode.Should().Be(HttpStatusCode.OK);
+            var resp = await _client.GetAsync("/api/agentanalytics/cost");
+            resp.StatusCode.Should().Be(HttpStatusCode.OK);
+        }
+    }
+}
+
+warning: controller file /api/agentanalytics/cost/AgentController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/AnalyticsController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/AnalyticsEventsController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/ApprovalsController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/AuditLogsController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/AuthController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/AuthDiagnosticsController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/BrandingController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/CICDIntegrationController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/CITypesController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/CalendarIntegrationController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/CampaignConversionsController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/CampaignExecutionController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/CampaignMetricsController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/CampaignRecipientsController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/CampaignsController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/CatalogCategoriesController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/ChangeTypesController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/ChangesController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/ChatwootWebhookController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/CloudDeploymentController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/ColorPalettesController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/CommissionCalculationsController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/CommissionPayoutsController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/CommissionPlansController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/CommissionsController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/CommunicationsController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/ContactInfoController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/ContactsController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/ContractsController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/ConversationsController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/CreditMemosController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/DashboardConfigController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/DashboardController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/DatabaseController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/DepartmentsController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/DocuSealWebhookController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/DocuSignWebhookController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/DuplicatesController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/EmailIntegrationController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/EmailSequencesController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/EmailTemplatesController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/EmailToTicketController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/EscalationPoliciesController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/EscalationRulesController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/EventAttendeesController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/ExportJobsController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/FeatureFlagManagementController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/FeaturesController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/FieldMasterDataController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/FileUploadController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/FormsController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/HealthController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/ITSMDashboardController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/ITSMWebhooksController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/ImportExportController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/ImportJobsController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/IncidentCategoriesController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/IncidentsController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/InteractionsController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/IntercomWebhookController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/InvoicesController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/LandingPageController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/LeadRoutingController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/LeadScoreRulesController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/LeadsController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/LookupsController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/MasterDataController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/ModuleFieldConfigurationsController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/ModuleUIConfigController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/MonitoringController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/MonitoringIntegrationController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/NavigationController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/NewsSocialController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/NormalizationController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/NotesController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/NovuWebhookController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/OpportunitiesController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/OrdersController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/PaymentsController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/PerformanceMonitoringController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/PermissionsController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/PipelinesController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/PreferencesController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/PriceBooksController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/ProblemsController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/ProductBundlesController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/ProductsController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/ProviderHealthController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/QuotesController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/RelationshipsController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/ReportsController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/RolesController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/SalesForecastsController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/SalesQuotasController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/SampleDataController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/SelfServiceChatbotController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/SendGridWebhookController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/ServiceRequestSettingsController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/ServiceRequestsController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/StagesController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/StripeWebhookController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/SubscriptionsController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/SystemSettingsController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/TasksController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/TeamsController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/TerritoriesController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/TestResultsController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/TwilioWebhookController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/UIPreferencesController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/UserGroupsController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/UserProfilesController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/UsersController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/WebhookRegistrationsController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/WebhooksController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/WorkerControlController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/WorkerHealthController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/WorkflowController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/WorkflowInstanceController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/WorkflowTasksController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/WorkflowTriggersController.cs not found - skipping
+warning: controller file /api/agentanalytics/cost/ZipCodesController.cs not found - skipping

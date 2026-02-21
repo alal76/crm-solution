@@ -126,6 +126,7 @@ interface InvoiceForm {
   billingPhone: string;
   earlyPaymentDiscountPercent: number;
   earlyPaymentDiscountDays: number;
+  lateFeePercent: number;
 }
 
 // ==================== CONSTANTS ====================
@@ -200,6 +201,7 @@ function InvoicesPage() {
     billingPhone: '',
     earlyPaymentDiscountPercent: 0,
     earlyPaymentDiscountDays: 0,
+    lateFeePercent: 0,
   };
   const [formData, setFormData] = useState<InvoiceForm>(emptyForm);
 
@@ -267,6 +269,7 @@ function InvoicesPage() {
         billingPhone: (invoice as any).billingPhone || '',
         earlyPaymentDiscountPercent: (invoice as any).earlyPaymentDiscountPercent || 0,
         earlyPaymentDiscountDays: (invoice as any).earlyPaymentDiscountDays || 0,
+        lateFeePercent: (invoice as any).lateFeePercent || 0,
       });
       fetchLineItems(invoice.id);
     } else {
@@ -772,6 +775,18 @@ function InvoicesPage() {
                       onChange={handleInputChange}
                       inputProps={{ min: 0, step: 1 }}
                       helperText="Number of days within which early discount applies"
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      type="number"
+                      label="Late Fee %"
+                      name="lateFeePercent"
+                      value={formData.lateFeePercent}
+                      onChange={handleInputChange}
+                      inputProps={{ min: 0, max: 100, step: 0.01 }}
+                      helperText="Percentage charged on overdue balance"
                     />
                   </Grid>
                 </Grid>

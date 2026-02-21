@@ -14,7 +14,30 @@ namespace CRM.Backend.Tests.Integration.Controllers
         [Fact]
         public async Task Crud_Users_Succeeds()
         {
-            var create = new { Username = "Test", Email = "Test", FirstName = "Test", LastName = "Test", Role = "Test", IsActive = true, IsLocked = true, DepartmentId = 1, DepartmentName = "Test", UserProfileId = 1, UserProfileName = "Test", PrimaryGroupId = 1, PrimaryGroupName = "Test", ContactId = 1, ContactName = "Test", ContactEmail = "Test", LastLoginDate = DateTime.UtcNow, HeaderColor = "Test", PhotoUrl = "Test", Email = "Test", FirstName = "Test", LastName = "Test", Password = "Test", RoleId = 1, DepartmentId = 1, PrimaryGroupId = 1 };
+            var create = new
+            {
+                Username = "Test",
+                Email = "Test",
+                FirstName = "Test",
+                LastName = "Test",
+                Role = "Test",
+                IsActive = true,
+                IsLocked = true,
+                DepartmentId = 1,
+                DepartmentName = "Test",
+                UserProfileId = 1,
+                UserProfileName = "Test",
+                PrimaryGroupId = 1,
+                PrimaryGroupName = "Test",
+                ContactId = 1,
+                ContactName = "Test",
+                ContactEmail = "Test",
+                LastLoginDate = DateTime.UtcNow,
+                HeaderColor = "Test",
+                PhotoUrl = "Test",
+                Password = "Test",
+                RoleId = 1
+            };
             var cRes = await _client.PostAsJsonAsync("/api/users", create);
             cRes.StatusCode.Should().Be(HttpStatusCode.Created);
             var item = await cRes.Content.ReadFromJsonAsync<dynamic>();
@@ -48,7 +71,30 @@ namespace CRM.Backend.Tests.Integration.Controllers
 
             var getRes = await _client.GetAsync($"/api/users/{{item.Id}}");
             getRes.StatusCode.Should().Be(HttpStatusCode.OK);
-            var patch = new { Username = "Test2", Email = "Test", FirstName = "Test", LastName = "Test", Role = "Test", IsActive = true, IsLocked = true, DepartmentId = 1, DepartmentName = "Test", UserProfileId = 1, UserProfileName = "Test", PrimaryGroupId = 1, PrimaryGroupName = "Test", ContactId = 1, ContactName = "Test", ContactEmail = "Test", LastLoginDate = DateTime.UtcNow, HeaderColor = "Test", PhotoUrl = "Test", Email = "Test", FirstName = "Test", LastName = "Test", Password = "Test", RoleId = 1, DepartmentId = 1, PrimaryGroupId = 1 };
+            var patch = new
+            {
+                Username = "Test2",
+                Email = "Test",
+                FirstName = "Test",
+                LastName = "Test",
+                Role = "Test",
+                IsActive = true,
+                IsLocked = true,
+                DepartmentId = 1,
+                DepartmentName = "Test",
+                UserProfileId = 1,
+                UserProfileName = "Test",
+                PrimaryGroupId = 1,
+                PrimaryGroupName = "Test",
+                ContactId = 1,
+                ContactName = "Test",
+                ContactEmail = "Test",
+                LastLoginDate = DateTime.UtcNow,
+                HeaderColor = "Test",
+                PhotoUrl = "Test",
+                Password = "Test",
+                RoleId = 1
+            };
             var pRes = await _client.PatchAsJsonAsync($"/api/users/{{item.Id}}", patch);
             pRes.StatusCode.Should().Be(HttpStatusCode.OK);
             var del = await _client.DeleteAsync($"/api/users/{{item.Id}}");

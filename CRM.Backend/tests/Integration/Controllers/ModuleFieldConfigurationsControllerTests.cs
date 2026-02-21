@@ -14,7 +14,27 @@ namespace CRM.Backend.Tests.Integration.Controllers
         [Fact]
         public async Task Crud_ModuleFieldConfigurations_Succeeds()
         {
-            var create = new { ModuleName = "Test", FieldName = "Test", FieldLabel = "Test", FieldType = "Test", TabIndex = 1, TabName = "Test", DisplayOrder = 1, IsEnabled = true, IsRequired = true, GridSize = 1, Placeholder = "Test", HelpText = "Test", Options = "Test", ParentField = "Test", ParentFieldValue = "Test", IsReorderable = true, IsRequiredConfigurable = true, IsHideable = true, ModuleName = "Test", FieldName = "Test", FieldLabel = "Test", FieldType = "Test", TabIndex = 1, TabName = "Test", DisplayOrder = 1, IsEnabled = true, IsRequired = true, GridSize = 1, Placeholder = "Test", HelpText = "Test", Options = "Test", ParentField = "Test", ParentFieldValue = "Test", IsReorderable = true, IsRequiredConfigurable = true, IsHideable = true, FieldLabel = "Test", TabIndex = 1, TabName = "Test", DisplayOrder = 1, IsEnabled = true, IsRequired = true, GridSize = 1, Placeholder = "Test", HelpText = "Test", Options = "Test", ModuleName = "Test", TabIndex = 1, DisplayOrder = 1 };
+            var create = new
+            {
+                ModuleName = "Test",
+                FieldName = "Test",
+                FieldLabel = "Test",
+                FieldType = "Test",
+                TabIndex = 1,
+                TabName = "Test",
+                DisplayOrder = 1,
+                IsEnabled = true,
+                IsRequired = true,
+                GridSize = 1,
+                Placeholder = "Test",
+                HelpText = "Test",
+                Options = "Test",
+                ParentField = "Test",
+                ParentFieldValue = "Test",
+                IsReorderable = true,
+                IsRequiredConfigurable = true,
+                IsHideable = true
+            };
             var cRes = await _client.PostAsJsonAsync("/api/modulefieldconfigurations", create);
             cRes.StatusCode.Should().Be(HttpStatusCode.Created);
             var item = await cRes.Content.ReadFromJsonAsync<dynamic>();
@@ -71,7 +91,27 @@ namespace CRM.Backend.Tests.Integration.Controllers
 
             var getRes = await _client.GetAsync($"/api/modulefieldconfigurations/{{item.Id}}");
             getRes.StatusCode.Should().Be(HttpStatusCode.OK);
-            var patch = new { ModuleName = "Test2", FieldName = "Test", FieldLabel = "Test", FieldType = "Test", TabIndex = 1, TabName = "Test", DisplayOrder = 1, IsEnabled = true, IsRequired = true, GridSize = 1, Placeholder = "Test", HelpText = "Test", Options = "Test", ParentField = "Test", ParentFieldValue = "Test", IsReorderable = true, IsRequiredConfigurable = true, IsHideable = true, ModuleName = "Test2", FieldName = "Test", FieldLabel = "Test", FieldType = "Test", TabIndex = 1, TabName = "Test", DisplayOrder = 1, IsEnabled = true, IsRequired = true, GridSize = 1, Placeholder = "Test", HelpText = "Test", Options = "Test", ParentField = "Test", ParentFieldValue = "Test", IsReorderable = true, IsRequiredConfigurable = true, IsHideable = true, FieldLabel = "Test", TabIndex = 1, TabName = "Test", DisplayOrder = 1, IsEnabled = true, IsRequired = true, GridSize = 1, Placeholder = "Test", HelpText = "Test", Options = "Test", ModuleName = "Test2", TabIndex = 1, DisplayOrder = 1 };
+            var patch = new
+            {
+                ModuleName = "Test2",
+                FieldName = "Test",
+                FieldLabel = "Test",
+                FieldType = "Test",
+                TabIndex = 1,
+                TabName = "Test",
+                DisplayOrder = 1,
+                IsEnabled = true,
+                IsRequired = true,
+                GridSize = 1,
+                Placeholder = "Test",
+                HelpText = "Test",
+                Options = "Test",
+                ParentField = "Test",
+                ParentFieldValue = "Test",
+                IsReorderable = true,
+                IsRequiredConfigurable = true,
+                IsHideable = true
+            };
             var pRes = await _client.PatchAsJsonAsync($"/api/modulefieldconfigurations/{{item.Id}}", patch);
             pRes.StatusCode.Should().Be(HttpStatusCode.OK);
             var del = await _client.DeleteAsync($"/api/modulefieldconfigurations/{{item.Id}}");

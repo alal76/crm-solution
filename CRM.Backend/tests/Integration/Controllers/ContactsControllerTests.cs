@@ -14,7 +14,48 @@ namespace CRM.Backend.Tests.Integration.Controllers
         [Fact]
         public async Task Crud_Contacts_Succeeds()
         {
-            var create = new { Platform = "Test", Url = "Test", Handle = "Test", ContactType = "Test", FirstName = "Test", LastName = "Test", MiddleName = "Test", EmailPrimary = "Test", EmailSecondary = "Test", PhonePrimary = "Test", PhoneSecondary = "Test", Address = "Test", City = "Test", State = "Test", Country = "Test", ZipCode = "Test", JobTitle = "Test", Department = "Test", Company = "Test", ReportsTo = "Test", Notes = "Test", DateOfBirth = DateTime.UtcNow, DateAdded = DateTime.UtcNow, LastModified = DateTime.UtcNow, ModifiedBy = "Test", Salutation = "Test", Suffix = "Test", Nickname = "Test", Gender = "Test", PhoneMobile = "Test", PhoneFax = "Test", Website = "Test", LinkedInUrl = "Test", TwitterHandle = "Test", DoNotContact = true, PreferredContactMethod = "Test", LeadStatus = "Test", AccountId = 1, Status = "Test", ContactType = "Test", FirstName = "Test", LastName = "Test", MiddleName = "Test", EmailPrimary = "Test", EmailSecondary = "Test", PhonePrimary = "Test", PhoneSecondary = "Test", Address = "Test", City = "Test", State = "Test", Country = "Test", ZipCode = "Test", JobTitle = "Test", Department = "Test", Company = "Test", ReportsTo = "Test", Notes = "Test", DateOfBirth = DateTime.UtcNow, Salutation = "Test", Suffix = "Test", Nickname = "Test", Gender = "Test", PhoneMobile = "Test", PhoneFax = "Test", Website = "Test", LinkedInUrl = "Test", TwitterHandle = "Test", DoNotContact = true, PreferredContactMethod = "Test", ContactType = "Test", FirstName = "Test", LastName = "Test", MiddleName = "Test", EmailPrimary = "Test", EmailSecondary = "Test", PhonePrimary = "Test", PhoneSecondary = "Test", Address = "Test", City = "Test", State = "Test", Country = "Test", ZipCode = "Test", JobTitle = "Test", Department = "Test", Company = "Test", ReportsTo = "Test", Notes = "Test", DateOfBirth = DateTime.UtcNow, Salutation = "Test", Suffix = "Test", Nickname = "Test", Gender = "Test", PhoneMobile = "Test", PhoneFax = "Test", Website = "Test", LinkedInUrl = "Test", TwitterHandle = "Test", DoNotContact = true, PreferredContactMethod = "Test", Platform = "Test", Url = "Test", Handle = "Test" };
+            var create = new
+            {
+                Platform = "Test",
+                Url = "Test",
+                Handle = "Test",
+                ContactType = "Test",
+                FirstName = "Test",
+                LastName = "Test",
+                MiddleName = "Test",
+                EmailPrimary = "Test",
+                EmailSecondary = "Test",
+                PhonePrimary = "Test",
+                PhoneSecondary = "Test",
+                Address = "Test",
+                City = "Test",
+                State = "Test",
+                Country = "Test",
+                ZipCode = "Test",
+                JobTitle = "Test",
+                Department = "Test",
+                Company = "Test",
+                ReportsTo = "Test",
+                Notes = "Test",
+                DateOfBirth = DateTime.UtcNow,
+                DateAdded = DateTime.UtcNow,
+                LastModified = DateTime.UtcNow,
+                ModifiedBy = "Test",
+                Salutation = "Test",
+                Suffix = "Test",
+                Nickname = "Test",
+                Gender = "Test",
+                PhoneMobile = "Test",
+                PhoneFax = "Test",
+                Website = "Test",
+                LinkedInUrl = "Test",
+                TwitterHandle = "Test",
+                DoNotContact = true,
+                PreferredContactMethod = "Test",
+                LeadStatus = "Test",
+                AccountId = 1,
+                Status = "Test"
+            };
             var cRes = await _client.PostAsJsonAsync("/api/contacts", create);
             cRes.StatusCode.Should().Be(HttpStatusCode.Created);
             var item = await cRes.Content.ReadFromJsonAsync<dynamic>();
@@ -124,7 +165,48 @@ namespace CRM.Backend.Tests.Integration.Controllers
 
             var getRes = await _client.GetAsync($"/api/contacts/{{item.Id}}");
             getRes.StatusCode.Should().Be(HttpStatusCode.OK);
-            var patch = new { Platform = "Test2", Url = "Test", Handle = "Test", ContactType = "Test", FirstName = "Test", LastName = "Test", MiddleName = "Test", EmailPrimary = "Test", EmailSecondary = "Test", PhonePrimary = "Test", PhoneSecondary = "Test", Address = "Test", City = "Test", State = "Test", Country = "Test", ZipCode = "Test", JobTitle = "Test", Department = "Test", Company = "Test", ReportsTo = "Test", Notes = "Test", DateOfBirth = DateTime.UtcNow, DateAdded = DateTime.UtcNow, LastModified = DateTime.UtcNow, ModifiedBy = "Test", Salutation = "Test", Suffix = "Test", Nickname = "Test", Gender = "Test", PhoneMobile = "Test", PhoneFax = "Test", Website = "Test", LinkedInUrl = "Test", TwitterHandle = "Test", DoNotContact = true, PreferredContactMethod = "Test", LeadStatus = "Test", AccountId = 1, Status = "Test", ContactType = "Test", FirstName = "Test", LastName = "Test", MiddleName = "Test", EmailPrimary = "Test", EmailSecondary = "Test", PhonePrimary = "Test", PhoneSecondary = "Test", Address = "Test", City = "Test", State = "Test", Country = "Test", ZipCode = "Test", JobTitle = "Test", Department = "Test", Company = "Test", ReportsTo = "Test", Notes = "Test", DateOfBirth = DateTime.UtcNow, Salutation = "Test", Suffix = "Test", Nickname = "Test", Gender = "Test", PhoneMobile = "Test", PhoneFax = "Test", Website = "Test", LinkedInUrl = "Test", TwitterHandle = "Test", DoNotContact = true, PreferredContactMethod = "Test", ContactType = "Test", FirstName = "Test", LastName = "Test", MiddleName = "Test", EmailPrimary = "Test", EmailSecondary = "Test", PhonePrimary = "Test", PhoneSecondary = "Test", Address = "Test", City = "Test", State = "Test", Country = "Test", ZipCode = "Test", JobTitle = "Test", Department = "Test", Company = "Test", ReportsTo = "Test", Notes = "Test", DateOfBirth = DateTime.UtcNow, Salutation = "Test", Suffix = "Test", Nickname = "Test", Gender = "Test", PhoneMobile = "Test", PhoneFax = "Test", Website = "Test", LinkedInUrl = "Test", TwitterHandle = "Test", DoNotContact = true, PreferredContactMethod = "Test", Platform = "Test2", Url = "Test", Handle = "Test" };
+            var patch = new
+            {
+                Platform = "Test2",
+                Url = "Test",
+                Handle = "Test",
+                ContactType = "Test",
+                FirstName = "Test",
+                LastName = "Test",
+                MiddleName = "Test",
+                EmailPrimary = "Test",
+                EmailSecondary = "Test",
+                PhonePrimary = "Test",
+                PhoneSecondary = "Test",
+                Address = "Test",
+                City = "Test",
+                State = "Test",
+                Country = "Test",
+                ZipCode = "Test",
+                JobTitle = "Test",
+                Department = "Test",
+                Company = "Test",
+                ReportsTo = "Test",
+                Notes = "Test",
+                DateOfBirth = DateTime.UtcNow,
+                DateAdded = DateTime.UtcNow,
+                LastModified = DateTime.UtcNow,
+                ModifiedBy = "Test",
+                Salutation = "Test",
+                Suffix = "Test",
+                Nickname = "Test",
+                Gender = "Test",
+                PhoneMobile = "Test",
+                PhoneFax = "Test",
+                Website = "Test",
+                LinkedInUrl = "Test",
+                TwitterHandle = "Test",
+                DoNotContact = true,
+                PreferredContactMethod = "Test",
+                LeadStatus = "Test",
+                AccountId = 1,
+                Status = "Test"
+            };
             var pRes = await _client.PatchAsJsonAsync($"/api/contacts/{{item.Id}}", patch);
             pRes.StatusCode.Should().Be(HttpStatusCode.OK);
             var del = await _client.DeleteAsync($"/api/contacts/{{item.Id}}");

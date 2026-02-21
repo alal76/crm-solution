@@ -14,7 +14,26 @@ namespace CRM.Backend.Tests.Integration.Controllers
         [Fact]
         public async Task Crud_ColorPalettes_Succeeds()
         {
-            var create = new { Name = "Test", Description = "Test", PrimaryColor = "Test", SecondaryColor = "Test", SuccessColor = "Test", WarningColor = "Test", ErrorColor = "Test", InfoColor = "Test", BackgroundLight = "Test", BackgroundDark = "Test", TextLight = "Test", TextDark = "Test", BorderColor = "Test", IsDefault = true, IsActive = true, Category = "Test", IsUserDefined = true, Name = "Test" };
+            var create = new
+            {
+                Name = "Test",
+                Description = "Test",
+                PrimaryColor = "Test",
+                SecondaryColor = "Test",
+                SuccessColor = "Test",
+                WarningColor = "Test",
+                ErrorColor = "Test",
+                InfoColor = "Test",
+                BackgroundLight = "Test",
+                BackgroundDark = "Test",
+                TextLight = "Test",
+                TextDark = "Test",
+                BorderColor = "Test",
+                IsDefault = true,
+                IsActive = true,
+                Category = "Test",
+                IsUserDefined = true
+            };
             var cRes = await _client.PostAsJsonAsync("/api/colorpalettes", create);
             cRes.StatusCode.Should().Be(HttpStatusCode.Created);
             var item = await cRes.Content.ReadFromJsonAsync<dynamic>();
@@ -40,7 +59,26 @@ namespace CRM.Backend.Tests.Integration.Controllers
 
             var getRes = await _client.GetAsync($"/api/colorpalettes/{{item.Id}}");
             getRes.StatusCode.Should().Be(HttpStatusCode.OK);
-            var patch = new { Name = "Test2", Description = "Test", PrimaryColor = "Test", SecondaryColor = "Test", SuccessColor = "Test", WarningColor = "Test", ErrorColor = "Test", InfoColor = "Test", BackgroundLight = "Test", BackgroundDark = "Test", TextLight = "Test", TextDark = "Test", BorderColor = "Test", IsDefault = true, IsActive = true, Category = "Test", IsUserDefined = true, Name = "Test2" };
+            var patch = new
+            {
+                Name = "Test2",
+                Description = "Test",
+                PrimaryColor = "Test",
+                SecondaryColor = "Test",
+                SuccessColor = "Test",
+                WarningColor = "Test",
+                ErrorColor = "Test",
+                InfoColor = "Test",
+                BackgroundLight = "Test",
+                BackgroundDark = "Test",
+                TextLight = "Test",
+                TextDark = "Test",
+                BorderColor = "Test",
+                IsDefault = true,
+                IsActive = true,
+                Category = "Test",
+                IsUserDefined = true
+            };
             var pRes = await _client.PatchAsJsonAsync($"/api/colorpalettes/{{item.Id}}", patch);
             pRes.StatusCode.Should().Be(HttpStatusCode.OK);
             var del = await _client.DeleteAsync($"/api/colorpalettes/{{item.Id}}");
