@@ -78,11 +78,20 @@ public class InvoiceDto
     public string? BillingEmail { get; set; }
     public string? BillingPhone { get; set; }
 
+    // Computed fields
+    public bool IsPaid { get; set; }
+    public int DaysOverdue { get; set; }
+
+    // Late fees
+    public decimal LateFeeTotal { get; set; }
+
     // Collections & dunning
     public int? ReminderCount { get; set; }
     public DateTime? LastReminderDate { get; set; }
     public DateTime? NextReminderDate { get; set; }
     public bool InCollections { get; set; }
+    public string? CollectionsReference { get; set; }
+    public DateTime? CollectionsDate { get; set; }
 
     // Documentation
     public string? InternalNotes { get; set; }
@@ -95,6 +104,13 @@ public class InvoiceDto
     public int? ContactId { get; set; }
     public int? SubscriptionId { get; set; }
     public int? OriginalInvoiceId { get; set; }
+    public int? VoidedById { get; set; }
+
+    // Identification
+    public string? PaymentTermsDescription { get; set; }
+    public string? ExternalInvoiceId { get; set; }
+    public string? ReferenceNumber { get; set; }
+    public string? BatchNumber { get; set; }
 }
 
 /// <summary>
@@ -132,6 +148,12 @@ public class CreateInvoiceDto
     public string? BillingState { get; set; }
     public string? BillingCountry { get; set; }
 
+    // Identification
+    public string? PaymentTermsDescription { get; set; }
+    public string? ExternalInvoiceId { get; set; }
+    public string? ReferenceNumber { get; set; }
+    public string? BatchNumber { get; set; }
+
     public List<CreateInvoiceLineItemDto> LineItems { get; set; } = new();
 }
 
@@ -161,6 +183,12 @@ public class UpdateInvoiceDto
     public string? BillingCity { get; set; }
     public string? BillingState { get; set; }
     public string? BillingCountry { get; set; }
+
+    // Identification
+    public string? PaymentTermsDescription { get; set; }
+    public string? ExternalInvoiceId { get; set; }
+    public string? ReferenceNumber { get; set; }
+    public string? BatchNumber { get; set; }
 }
 
 /// <summary>

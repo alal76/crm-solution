@@ -40,6 +40,47 @@ public class UserDto
     /// URL to user's profile photo
     /// </summary>
     public string? PhotoUrl { get; set; }
+
+    // Security / account status
+    /// <summary>Whether two-factor authentication is enabled (public status flag — does NOT expose the secret)</summary>
+    public bool TwoFactorEnabled { get; set; }
+
+    /// <summary>When the user last changed their password</summary>
+    public DateTime? PasswordLastChangedAt { get; set; }
+
+    /// <summary>Whether the user must reset their password on next login</summary>
+    public bool MustResetPassword { get; set; }
+
+    /// <summary>Whether the user's email address has been verified</summary>
+    public bool EmailVerified { get; set; }
+
+    // Preferences
+    /// <summary>User's theme preference (system, light, dark, high-contrast)</summary>
+    public string? ThemePreference { get; set; }
+
+    /// <summary>User's preferred language code (e.g., en, es, fr)</summary>
+    public string? Language { get; set; }
+
+    /// <summary>User's preferred IANA timezone (e.g., America/New_York)</summary>
+    public string? Timezone { get; set; }
+
+    /// <summary>User's preferred date format (e.g., MM/DD/YYYY)</summary>
+    public string? DateFormat { get; set; }
+
+    /// <summary>User's preferred time format (12h or 24h)</summary>
+    public string? TimeFormat { get; set; }
+
+    /// <summary>Default number of rows per page in tables</summary>
+    public int? RowsPerPage { get; set; }
+
+    /// <summary>Whether to receive email notifications</summary>
+    public bool? EmailNotifications { get; set; }
+
+    /// <summary>Whether to enable desktop/browser notifications</summary>
+    public bool? DesktopNotifications { get; set; }
+
+    /// <summary>Whether to use compact UI mode</summary>
+    public bool? CompactMode { get; set; }
 }
 
 /// <summary>

@@ -54,6 +54,7 @@ public class ContractDto
     public bool IsExpiringSoon => Status == ContractStatus.Active && EndDate <= DateTime.UtcNow.AddDays(30);
     public bool IsExpired => Status == ContractStatus.Expired || (Status == ContractStatus.Active && EndDate < DateTime.UtcNow.Date);
     public int DaysUntilExpiry => (EndDate.Date - DateTime.UtcNow.Date).Days;
+    public int? DaysUntilExpiration => EndDate > DateTime.UtcNow ? (int?)(EndDate - DateTime.UtcNow).Days : null;
 
     // Dates
     public DateTime? ActivatedDate { get; set; }
@@ -80,8 +81,13 @@ public class ContractDto
     public string? ContractFileUrl { get; set; }
     public string? ContractFileName { get; set; }
     public long? ContractFileSize { get; set; }
+    public string? ContractFileMimeType { get; set; }
     public string? SignedContractFileUrl { get; set; }
     public string? SignedContractFileName { get; set; }
+
+    // Signature details
+    public DateTime? SentForSignatureAt { get; set; }
+    public string? SignedBy { get; set; }
 
     // Approval
     public int? ApprovedByUserId { get; set; }

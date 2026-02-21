@@ -135,6 +135,51 @@ public class AccountDto
     public string? Description { get; set; }
     public string? CustomFields { get; set; }
 
+    // Financial Metrics (response DTO only - computed/aggregated)
+    public decimal? LifetimeValue { get; set; }
+    public decimal? MonthlyRecurringRevenue { get; set; }
+    public decimal? AnnualRecurringRevenue { get; set; }
+    public decimal? AverageOrderValue { get; set; }
+    public decimal? ContractValue { get; set; }
+    public DateTime? LastPaymentDate { get; set; }
+    public string? PaymentStatus { get; set; }
+    public int? ActiveSubscriptionCount { get; set; }
+    public int? TotalInvoiceCount { get; set; }
+
+    // Compliance & Verification
+    public string? VerificationStatus { get; set; }
+    public DateTime? VerificationDate { get; set; }
+    public string? VerificationMethod { get; set; }
+    public int? VerifiedByUserId { get; set; }
+    public bool RequiresNda { get; set; }
+    public bool NdaSigned { get; set; }
+    public DateTime? NdaSignedDate { get; set; }
+    public string? NdaReferenceId { get; set; }
+    public string? DataClassification { get; set; }
+    public string? DunsNumber { get; set; }
+    public string? BusinessLicense { get; set; }
+    public DateTime? ComplianceCheckDate { get; set; }
+    public string? ComplianceNotes { get; set; }
+
+    // Partnership & Reseller
+    public bool? IsReseller { get; set; }
+    public bool? IsPartner { get; set; }
+    public bool? IsIntegrationPartner { get; set; }
+    public string? PartnerTier { get; set; }
+    public DateTime? PartnerEnrolledDate { get; set; }
+    public string? PartnerStatus { get; set; }
+    public int? ParentResellerAccountId { get; set; }
+    public int? CompetitorAccountId { get; set; }
+    public string? TechStack { get; set; }
+    public string? IntegrationPartnerType { get; set; }
+
+    // Lead Conversion & Branding (response DTO only)
+    public int? ConvertedFromLeadId { get; set; }
+    public int? SourceCampaignId { get; set; }
+    public string? LogoUrl { get; set; }
+    public int? CurrencyLookupId { get; set; }
+    public int? BillingCycleLookupId { get; set; }
+
     // Metadata
     public DateTime CreatedAt { get; set; }
     public DateTime? UpdatedAt { get; set; }
@@ -278,6 +323,33 @@ public class CreateAccountDto
     public string? Timezone { get; set; }
     public string? PreferredLanguage { get; set; }
     public string? Currency { get; set; }
+
+    // Compliance & Verification
+    public string? VerificationStatus { get; set; }
+    public DateTime? VerificationDate { get; set; }
+    public string? VerificationMethod { get; set; }
+    public int? VerifiedByUserId { get; set; }
+    public bool RequiresNda { get; set; }
+    public bool NdaSigned { get; set; }
+    public DateTime? NdaSignedDate { get; set; }
+    public string? NdaReferenceId { get; set; }
+    public string? DataClassification { get; set; }
+    public string? DunsNumber { get; set; }
+    public string? BusinessLicense { get; set; }
+    public DateTime? ComplianceCheckDate { get; set; }
+    public string? ComplianceNotes { get; set; }
+
+    // Partnership & Reseller
+    public bool? IsReseller { get; set; }
+    public bool? IsPartner { get; set; }
+    public bool? IsIntegrationPartner { get; set; }
+    public string? PartnerTier { get; set; }
+    public DateTime? PartnerEnrolledDate { get; set; }
+    public string? PartnerStatus { get; set; }
+    public int? ParentResellerAccountId { get; set; }
+    public int? CompetitorAccountId { get; set; }
+    public string? TechStack { get; set; }
+    public string? IntegrationPartnerType { get; set; }
 }
 
 /// <summary>
@@ -394,6 +466,33 @@ public class UpdateAccountDto
     public string? LinkedInUrl { get; set; }
     public string? TwitterHandle { get; set; }
     public string? FacebookUrl { get; set; }
+
+    // Compliance & Verification
+    public string? VerificationStatus { get; set; }
+    public DateTime? VerificationDate { get; set; }
+    public string? VerificationMethod { get; set; }
+    public int? VerifiedByUserId { get; set; }
+    public bool? RequiresNda { get; set; }
+    public bool? NdaSigned { get; set; }
+    public DateTime? NdaSignedDate { get; set; }
+    public string? NdaReferenceId { get; set; }
+    public string? DataClassification { get; set; }
+    public string? DunsNumber { get; set; }
+    public string? BusinessLicense { get; set; }
+    public DateTime? ComplianceCheckDate { get; set; }
+    public string? ComplianceNotes { get; set; }
+
+    // Partnership & Reseller
+    public bool? IsReseller { get; set; }
+    public bool? IsPartner { get; set; }
+    public bool? IsIntegrationPartner { get; set; }
+    public string? PartnerTier { get; set; }
+    public DateTime? PartnerEnrolledDate { get; set; }
+    public string? PartnerStatus { get; set; }
+    public int? ParentResellerAccountId { get; set; }
+    public int? CompetitorAccountId { get; set; }
+    public string? TechStack { get; set; }
+    public string? IntegrationPartnerType { get; set; }
 }
 
 /// <summary>

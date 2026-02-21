@@ -25,18 +25,33 @@ public class ContactDto
 
     public string? EmailPrimary { get; set; }
     public string? EmailSecondary { get; set; }
+    public string? EmailWork { get; set; }
     public string? PhonePrimary { get; set; }
     public string? PhoneSecondary { get; set; }
+    public string? PhoneWork { get; set; }
     public string? Address { get; set; }
     public string? City { get; set; }
     public string? State { get; set; }
     public string? Country { get; set; }
     public string? ZipCode { get; set; }
 
+    // Mailing Address
+    public string? MailingAddress { get; set; }
+    public string? MailingCity { get; set; }
+    public string? MailingState { get; set; }
+    public string? MailingCountry { get; set; }
+    public string? MailingZipCode { get; set; }
+
     public string? JobTitle { get; set; }
     public string? Department { get; set; }
     public string? Company { get; set; }
     public string? ReportsTo { get; set; }
+
+    // Professional Hierarchy
+    public int? ReportsToContactId { get; set; }
+    public int? AssistantContactId { get; set; }
+    public string? AssistantName { get; set; }
+    public string? AssistantPhone { get; set; }
 
     public string? Notes { get; set; }
     public DateTime? DateOfBirth { get; set; }
@@ -59,16 +74,59 @@ public class ContactDto
     public string? LinkedInUrl { get; set; }
     public string? TwitterHandle { get; set; }
 
+    // Social
+    public string? FacebookUrl { get; set; }
+    public string? InstagramHandle { get; set; }
+    public string? BlogUrl { get; set; }
+
     // Communication preferences
     public bool DoNotContact { get; set; }
     public string? PreferredContactMethod { get; set; }
+    public string? PreferredContactTime { get; set; }
+    public string? Timezone { get; set; }
+    public string? PreferredLanguage { get; set; }
+    public bool OptInEmail { get; set; }
+    public bool OptInSms { get; set; }
+    public bool OptInPhone { get; set; }
+    public bool OptInMail { get; set; }
+    public DateTime? LastOptInDate { get; set; }
+    public DateTime? LastOptOutDate { get; set; }
 
     // Lead tracking
     public string? LeadStatus { get; set; }
 
+    // Lead Information
+    public string? LeadSource { get; set; }
+    public int? LeadScore { get; set; }
+    public bool? IsQualified { get; set; }
+    public DateTime? QualifiedDate { get; set; }
+    public DateTime? ConvertedDate { get; set; }
+    public int? ConvertedToAccountId { get; set; }
+    public string? LeadRating { get; set; }
+
+    // Assignment & Classification
+    public int? OwnerId { get; set; }
+    public int? AssignedToUserId { get; set; }
+    public string? Territory { get; set; }
+    public string? Tags { get; set; }
+
     // Customer relationship
     public int? AccountId { get; set; }
     public string Status { get; set; } = "Active";
+
+    // Engagement Tracking (system-computed, response only)
+    public DateTime? LastActivityDate { get; set; }
+    public DateTime? LastContactedDate { get; set; }
+    public DateTime? NextFollowUpDate { get; set; }
+    public int? TotalInteractions { get; set; }
+    public int? EmailsReceived { get; set; }
+    public int? EmailsOpened { get; set; }
+    public int? LinksClicked { get; set; }
+
+    // Other
+    public string? CustomFields { get; set; }
+    public string? PhotoUrl { get; set; }
+    public string? Description { get; set; }
 
     public List<SocialMediaLinkDto> SocialMediaLinks { get; set; } = new();
 
@@ -90,18 +148,33 @@ public class CreateContactRequest
 
     public string? EmailPrimary { get; set; }
     public string? EmailSecondary { get; set; }
+    public string? EmailWork { get; set; }
     public string? PhonePrimary { get; set; }
     public string? PhoneSecondary { get; set; }
+    public string? PhoneWork { get; set; }
     public string? Address { get; set; }
     public string? City { get; set; }
     public string? State { get; set; }
     public string? Country { get; set; }
     public string? ZipCode { get; set; }
 
+    // Mailing Address
+    public string? MailingAddress { get; set; }
+    public string? MailingCity { get; set; }
+    public string? MailingState { get; set; }
+    public string? MailingCountry { get; set; }
+    public string? MailingZipCode { get; set; }
+
     public string? JobTitle { get; set; }
     public string? Department { get; set; }
     public string? Company { get; set; }
     public string? ReportsTo { get; set; }
+
+    // Professional Hierarchy
+    public int? ReportsToContactId { get; set; }
+    public int? AssistantContactId { get; set; }
+    public string? AssistantName { get; set; }
+    public string? AssistantPhone { get; set; }
 
     public string? Notes { get; set; }
     public DateTime? DateOfBirth { get; set; }
@@ -115,8 +188,43 @@ public class CreateContactRequest
     public string? Website { get; set; }
     public string? LinkedInUrl { get; set; }
     public string? TwitterHandle { get; set; }
+
+    // Social
+    public string? FacebookUrl { get; set; }
+    public string? InstagramHandle { get; set; }
+    public string? BlogUrl { get; set; }
+
     public bool DoNotContact { get; set; }
     public string? PreferredContactMethod { get; set; }
+    public string? PreferredContactTime { get; set; }
+    public string? Timezone { get; set; }
+    public string? PreferredLanguage { get; set; }
+    public bool OptInEmail { get; set; } = true;
+    public bool OptInSms { get; set; }
+    public bool OptInPhone { get; set; } = true;
+    public bool OptInMail { get; set; } = true;
+    public DateTime? LastOptInDate { get; set; }
+    public DateTime? LastOptOutDate { get; set; }
+
+    // Lead Information
+    public string? LeadSource { get; set; }
+    public int? LeadScore { get; set; }
+    public bool? IsQualified { get; set; }
+    public DateTime? QualifiedDate { get; set; }
+    public DateTime? ConvertedDate { get; set; }
+    public int? ConvertedToAccountId { get; set; }
+    public string? LeadRating { get; set; }
+
+    // Assignment & Classification
+    public int? OwnerId { get; set; }
+    public int? AssignedToUserId { get; set; }
+    public string? Territory { get; set; }
+    public string? Tags { get; set; }
+
+    // Other
+    public string? CustomFields { get; set; }
+    public string? PhotoUrl { get; set; }
+    public string? Description { get; set; }
 }
 
 public class UpdateContactRequest
@@ -129,18 +237,33 @@ public class UpdateContactRequest
 
     public string? EmailPrimary { get; set; }
     public string? EmailSecondary { get; set; }
+    public string? EmailWork { get; set; }
     public string? PhonePrimary { get; set; }
     public string? PhoneSecondary { get; set; }
+    public string? PhoneWork { get; set; }
     public string? Address { get; set; }
     public string? City { get; set; }
     public string? State { get; set; }
     public string? Country { get; set; }
     public string? ZipCode { get; set; }
 
+    // Mailing Address
+    public string? MailingAddress { get; set; }
+    public string? MailingCity { get; set; }
+    public string? MailingState { get; set; }
+    public string? MailingCountry { get; set; }
+    public string? MailingZipCode { get; set; }
+
     public string? JobTitle { get; set; }
     public string? Department { get; set; }
     public string? Company { get; set; }
     public string? ReportsTo { get; set; }
+
+    // Professional Hierarchy
+    public int? ReportsToContactId { get; set; }
+    public int? AssistantContactId { get; set; }
+    public string? AssistantName { get; set; }
+    public string? AssistantPhone { get; set; }
 
     public string? Notes { get; set; }
     public DateTime? DateOfBirth { get; set; }
@@ -154,8 +277,43 @@ public class UpdateContactRequest
     public string? Website { get; set; }
     public string? LinkedInUrl { get; set; }
     public string? TwitterHandle { get; set; }
+
+    // Social
+    public string? FacebookUrl { get; set; }
+    public string? InstagramHandle { get; set; }
+    public string? BlogUrl { get; set; }
+
     public bool? DoNotContact { get; set; }
     public string? PreferredContactMethod { get; set; }
+    public string? PreferredContactTime { get; set; }
+    public string? Timezone { get; set; }
+    public string? PreferredLanguage { get; set; }
+    public bool? OptInEmail { get; set; }
+    public bool? OptInSms { get; set; }
+    public bool? OptInPhone { get; set; }
+    public bool? OptInMail { get; set; }
+    public DateTime? LastOptInDate { get; set; }
+    public DateTime? LastOptOutDate { get; set; }
+
+    // Lead Information
+    public string? LeadSource { get; set; }
+    public int? LeadScore { get; set; }
+    public bool? IsQualified { get; set; }
+    public DateTime? QualifiedDate { get; set; }
+    public DateTime? ConvertedDate { get; set; }
+    public int? ConvertedToAccountId { get; set; }
+    public string? LeadRating { get; set; }
+
+    // Assignment & Classification
+    public int? OwnerId { get; set; }
+    public int? AssignedToUserId { get; set; }
+    public string? Territory { get; set; }
+    public string? Tags { get; set; }
+
+    // Other
+    public string? CustomFields { get; set; }
+    public string? PhotoUrl { get; set; }
+    public string? Description { get; set; }
 }
 
 public class AddSocialMediaRequest

@@ -882,8 +882,11 @@ public class ContractsController : ControllerBase
             ContractFileUrl = c.ContractFileUrl,
             ContractFileName = c.ContractFileName,
             ContractFileSize = c.ContractFileSize,
+            ContractFileMimeType = c.ContractFileMimeType,
             SignedContractFileUrl = c.SignedContractFileUrl,
             SignedContractFileName = c.SignedContractFileName,
+            SentForSignatureAt = c.SentForSignatureAt,
+            SignedBy = c.SignedBy,
 
             // Approval
             ApprovedByUserId = c.ApprovedByUserId,

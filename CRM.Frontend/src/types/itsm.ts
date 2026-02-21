@@ -412,6 +412,33 @@ export interface ServiceRequest extends BaseEntity {
   externalReferenceId?: string;
   sourceEmailAddress?: string;
   isEscalated?: boolean;
+
+  // Additional DTO fields
+  ticketNumber?: string;
+  categoryId?: number;
+  subcategoryId?: number;
+  requesterName?: string;
+  requesterEmail?: string;
+  requesterPhone?: string;
+  assignedToGroupId?: number;
+  lastModifiedByUserId?: number;
+  responseDueDate?: string;
+  resolutionDueDate?: string;
+  statusCode?: string;
+  responseSlaBreached?: boolean;
+  resolutionSlaBreached?: boolean;
+  sourcePhoneNumber?: string;
+  conversationId?: string;
+  relatedOpportunityId?: number;
+  parentServiceRequestId?: number;
+  sourceInteractionId?: number;
+  customFieldValues?: unknown[];
+
+  // Expedite fields
+  isExpedited?: boolean;
+  expediteReason?: string;
+  expeditedByUserId?: number;
+  expeditedAt?: string;
 }
 
 export interface CreateServiceRequestDto {

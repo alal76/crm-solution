@@ -131,6 +131,10 @@ public class InvoicesController : ControllerBase
                 BillingCity = request.BillingCity,
                 BillingState = request.BillingState,
                 BillingCountry = request.BillingCountry,
+                PaymentTermsDescription = request.PaymentTermsDescription,
+                ExternalInvoiceId = request.ExternalInvoiceId,
+                ReferenceNumber = request.ReferenceNumber,
+                BatchNumber = request.BatchNumber,
             };
             var created = await _invoiceService.CreateAsync(invoice, cancellationToken);
             return CreatedAtAction(nameof(GetById), new { id = created.Id }, MapToDto(created));
@@ -654,6 +658,9 @@ public class InvoicesController : ControllerBase
         EarlyPaymentDiscountAmount = invoice.EarlyPaymentDiscountAmount,
         LateFeePercent = invoice.LateFeePercent,
         LateFeeAmount = invoice.LateFeeAmount,
+        LateFeeTotal = invoice.LateFeeTotal,
+        IsPaid = invoice.IsPaid,
+        DaysOverdue = invoice.DaysOverdue,
         BillingName = invoice.BillingName,
         BillingCompany = invoice.BillingCompany,
         BillingStreet = invoice.BillingStreet,
@@ -667,6 +674,8 @@ public class InvoicesController : ControllerBase
         LastReminderDate = invoice.LastReminderDate,
         NextReminderDate = invoice.NextReminderDate,
         InCollections = invoice.InCollections,
+        CollectionsReference = invoice.CollectionsReference,
+        CollectionsDate = invoice.CollectionsDate,
         InternalNotes = invoice.InternalNotes,
         Footer = invoice.Footer,
         TermsAndConditions = invoice.TermsAndConditions,
@@ -675,6 +684,11 @@ public class InvoicesController : ControllerBase
         ContactId = invoice.ContactId,
         SubscriptionId = invoice.SubscriptionId,
         OriginalInvoiceId = invoice.OriginalInvoiceId,
+        VoidedById = invoice.VoidedById,
+        PaymentTermsDescription = invoice.PaymentTermsDescription,
+        ExternalInvoiceId = invoice.ExternalInvoiceId,
+        ReferenceNumber = invoice.ReferenceNumber,
+        BatchNumber = invoice.BatchNumber,
         LineItems = invoice.LineItems.Select(li => new InvoiceLineItemDto
         {
             Id = li.Id,

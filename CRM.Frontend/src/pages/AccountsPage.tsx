@@ -148,31 +148,70 @@ interface AccountForm {
   jobTitle: string;
   website: string;
   address: string;
+  address2: string;
   city: string;
   state: string;
   zipCode: string;
   country: string;
+  // Shipping Address
+  shippingAddress: string;
+  shippingAddress2: string;
+  shippingCity: string;
+  shippingState: string;
+  shippingZipCode: string;
+  shippingCountry: string;
+  shippingSameAsBilling: boolean;
   industry: string;
+  subIndustry: string;
   numberOfEmployees: number;
+  employeeRange: string;
   annualRevenue: number;
+  revenueRange: string;
+  stockSymbol: string;
+  ownership: string;
   customerType: number;
   priority: number;
   lifecycleStage: number;
   leadSource: string;
   leadScore: number;
+  // Lifecycle Dates
+  firstContactDate: string;
+  conversionDate: string;
+  lastActivityDate: string;
+  // Financial
+  totalPurchases: number;
+  accountBalance: number;
   creditLimit: number;
   paymentTerms: string;
+  preferredPaymentMethod: string;
+  currency: string;
+  billingCycle: string;
+  // Scoring
+  npsScore: number;
+  satisfactionRating: number;
   linkedInUrl: string;
   twitterHandle: string;
   optInEmail: boolean;
   optInSms: boolean;
   optInPhone: boolean;
   preferredContactMethod: string;
+  preferredContactTime: string;
   timezone: string;
+  preferredLanguage: string;
   territory: string;
+  region: string;
+  // Assignment
+  accountManagerId: number | null;
+  // Classification
+  segment: string;
+  referralSource: string;
+  referredByAccountId: number | null;
+  parentAccountId: number | null;
   tags: string;
   notes: string;
+  internalNotes: string;
   description: string;
+  customFields: string;
   [key: string]: any; // Allow dynamic fields
 }
 

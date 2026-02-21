@@ -30,7 +30,10 @@ import {
   Tab,
   Accordion,
   AccordionSummary,
-  AccordionDetails
+  AccordionDetails,
+  Switch,
+  FormControlLabel,
+  Divider,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import type { SelectChangeEvent } from '@mui/material';
@@ -127,6 +130,30 @@ interface InvoiceForm {
   earlyPaymentDiscountPercent: number;
   earlyPaymentDiscountDays: number;
   lateFeePercent: number;
+  // Classification
+  description: string;
+  invoiceType: string;
+  // Service Period
+  servicePeriodStart: string;
+  servicePeriodEnd: string;
+  // Financials
+  subtotal: number;
+  discountAmount: number;
+  taxAmount: number;
+  shippingAmount: number;
+  currencyCode: string;
+  earlyPaymentDiscountAmount: number;
+  lateFeeAmount: number;
+  // Collections
+  inCollections: boolean;
+  collectionReference: string;
+  // Relations
+  contactId: number | null;
+  originalInvoiceId: number | null;
+  // Admin
+  footer: string;
+  termsAndConditions: string;
+  voidReason: string;
 }
 
 // ==================== CONSTANTS ====================

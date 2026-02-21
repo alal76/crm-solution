@@ -6,6 +6,47 @@
 import { BaseEntity } from './common';
 
 // ============================================================================
+// CONTACT LINKED SUB-TYPES
+// ============================================================================
+
+export interface LinkedEmailDto {
+  id?: number;
+  email?: string;
+  type?: string;
+  isPrimary?: boolean;
+}
+
+export interface LinkedPhoneDto {
+  id?: number;
+  phone?: string;
+  type?: string;
+  isPrimary?: boolean;
+}
+
+export interface LinkedAddressDto {
+  id?: number;
+  street?: string;
+  city?: string;
+  state?: string;
+  country?: string;
+  zipCode?: string;
+  type?: string;
+}
+
+export interface LinkedSocialMediaDto {
+  id?: number;
+  platform?: string;
+  url?: string;
+  handle?: string;
+}
+
+export interface SocialMediaLinkDto {
+  id?: number;
+  platform?: string;
+  url?: string;
+}
+
+// ============================================================================
 // CONTACTS
 // ============================================================================
 
@@ -41,6 +82,17 @@ export interface Contact extends BaseEntity {
   doNotPhone?: boolean;
   addresses?: ContactAddress[];
   notes?: string;
+
+  // Scalar fields from DTO
+  dateAdded?: string;
+  lastModified?: string;
+  modifiedBy?: string;
+
+  // Collection fields
+  emailAddresses?: LinkedEmailDto[];
+  phoneNumbers?: LinkedPhoneDto[];
+  socialMediaAccounts?: LinkedSocialMediaDto[];
+  socialMediaLinks?: SocialMediaLinkDto[];
 }
 
 export interface ContactAddress {

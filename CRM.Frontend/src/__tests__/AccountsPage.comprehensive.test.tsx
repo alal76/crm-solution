@@ -281,7 +281,7 @@ describe('AccountsPage - Create Account', () => {
   });
 
   it('should validate phone format', () => {
-    const phoneRegex = /^[\d\s\-\+\(\)]+$/;
+    const phoneRegex = /^[\d\s\-+()]+$/;
     expect(phoneRegex.test('555-0101')).toBe(true);
     expect(phoneRegex.test('+1 (555) 010-1234')).toBe(true);
   });

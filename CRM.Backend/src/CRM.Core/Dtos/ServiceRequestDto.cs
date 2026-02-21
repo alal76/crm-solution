@@ -280,6 +280,13 @@ public class ServiceRequestDto
     public int? ParentServiceRequestId { get; set; }
     public string? ParentTicketNumber { get; set; }
 
+    // Expedite
+    public bool IsExpedited { get; set; }
+    public string? ExpediteReason { get; set; }
+    public int? ExpeditedByUserId { get; set; }
+    public string? ExpeditedByUserName { get; set; }
+    public DateTime? ExpeditedAt { get; set; }
+
     // Additional
     public string? Tags { get; set; }
     public string? InternalNotes { get; set; }
@@ -344,6 +351,10 @@ public class CreateServiceRequestDto
     public int? RelatedProductId { get; set; }
     public int? ParentServiceRequestId { get; set; }
 
+    // Expedite
+    public bool IsExpedited { get; set; }
+    public string? ExpediteReason { get; set; }
+
     // Additional
     public string? Tags { get; set; }
     public string? InternalNotes { get; set; }
@@ -394,6 +405,12 @@ public class UpdateServiceRequestDto
     public int? RelatedOpportunityId { get; set; }
     public int? RelatedProductId { get; set; }
     public int? ParentServiceRequestId { get; set; }
+
+    // Expedite
+    public bool IsExpedited { get; set; }
+    public string? ExpediteReason { get; set; }
+    public int? ExpeditedByUserId { get; set; }
+    public DateTime? ExpeditedAt { get; set; }
 
     // Additional
     public string? Tags { get; set; }

@@ -237,6 +237,34 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
             InternalNotes = dto.InternalNotes,
             Description = dto.Description,
             Currency = dto.Currency,
+
+            // Compliance & Verification
+            VerificationStatus = dto.VerificationStatus,
+            VerificationDate = dto.VerificationDate,
+            VerificationMethod = dto.VerificationMethod,
+            VerifiedByUserId = dto.VerifiedByUserId,
+            RequiresNda = dto.RequiresNda,
+            NdaSigned = dto.NdaSigned,
+            NdaSignedDate = dto.NdaSignedDate,
+            NdaReferenceId = dto.NdaReferenceId,
+            DataClassification = dto.DataClassification,
+            DunsNumber = dto.DunsNumber,
+            BusinessLicense = dto.BusinessLicense,
+            ComplianceCheckDate = dto.ComplianceCheckDate,
+            ComplianceNotes = dto.ComplianceNotes,
+
+            // Partnership & Reseller
+            IsReseller = dto.IsReseller,
+            IsPartner = dto.IsPartner,
+            IsIntegrationPartner = dto.IsIntegrationPartner,
+            PartnerTier = dto.PartnerTier,
+            PartnerEnrolledDate = dto.PartnerEnrolledDate,
+            PartnerStatus = dto.PartnerStatus,
+            ParentResellerAccountId = dto.ParentResellerAccountId,
+            CompetitorAccountId = dto.CompetitorAccountId,
+            TechStack = dto.TechStack,
+            IntegrationPartnerType = dto.IntegrationPartnerType,
+
             CreatedAt = DateTime.UtcNow
         };
 
@@ -474,6 +502,56 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
             account.TwitterHandle = dto.TwitterHandle;
         if (dto.FacebookUrl != null)
             account.FacebookUrl = dto.FacebookUrl;
+
+        // Compliance & Verification
+        if (dto.VerificationStatus != null)
+            account.VerificationStatus = dto.VerificationStatus;
+        if (dto.VerificationDate.HasValue)
+            account.VerificationDate = dto.VerificationDate;
+        if (dto.VerificationMethod != null)
+            account.VerificationMethod = dto.VerificationMethod;
+        if (dto.VerifiedByUserId.HasValue)
+            account.VerifiedByUserId = dto.VerifiedByUserId;
+        if (dto.RequiresNda.HasValue)
+            account.RequiresNda = dto.RequiresNda.Value;
+        if (dto.NdaSigned.HasValue)
+            account.NdaSigned = dto.NdaSigned.Value;
+        if (dto.NdaSignedDate.HasValue)
+            account.NdaSignedDate = dto.NdaSignedDate;
+        if (dto.NdaReferenceId != null)
+            account.NdaReferenceId = dto.NdaReferenceId;
+        if (dto.DataClassification != null)
+            account.DataClassification = dto.DataClassification;
+        if (dto.DunsNumber != null)
+            account.DunsNumber = dto.DunsNumber;
+        if (dto.BusinessLicense != null)
+            account.BusinessLicense = dto.BusinessLicense;
+        if (dto.ComplianceCheckDate.HasValue)
+            account.ComplianceCheckDate = dto.ComplianceCheckDate;
+        if (dto.ComplianceNotes != null)
+            account.ComplianceNotes = dto.ComplianceNotes;
+
+        // Partnership & Reseller
+        if (dto.IsReseller.HasValue)
+            account.IsReseller = dto.IsReseller;
+        if (dto.IsPartner.HasValue)
+            account.IsPartner = dto.IsPartner;
+        if (dto.IsIntegrationPartner.HasValue)
+            account.IsIntegrationPartner = dto.IsIntegrationPartner;
+        if (dto.PartnerTier != null)
+            account.PartnerTier = dto.PartnerTier;
+        if (dto.PartnerEnrolledDate.HasValue)
+            account.PartnerEnrolledDate = dto.PartnerEnrolledDate;
+        if (dto.PartnerStatus != null)
+            account.PartnerStatus = dto.PartnerStatus;
+        if (dto.ParentResellerAccountId.HasValue)
+            account.ParentResellerAccountId = dto.ParentResellerAccountId;
+        if (dto.CompetitorAccountId.HasValue)
+            account.CompetitorAccountId = dto.CompetitorAccountId;
+        if (dto.TechStack != null)
+            account.TechStack = dto.TechStack;
+        if (dto.IntegrationPartnerType != null)
+            account.IntegrationPartnerType = dto.IntegrationPartnerType;
 
         account.UpdatedAt = DateTime.UtcNow;
         account.LastActivityDate = DateTime.UtcNow;
@@ -1117,6 +1195,52 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
             InternalNotes = account.InternalNotes,
             Description = account.Description,
             CustomFields = customFieldsValue,
+
+            // Financial Metrics
+            LifetimeValue = account.LifetimeValue,
+            MonthlyRecurringRevenue = account.MonthlyRecurringRevenue,
+            AnnualRecurringRevenue = account.AnnualRecurringRevenue,
+            AverageOrderValue = account.AverageOrderValue,
+            ContractValue = account.ContractValue,
+            LastPaymentDate = account.LastPaymentDate,
+            PaymentStatus = account.PaymentStatus,
+            ActiveSubscriptionCount = account.ActiveSubscriptionCount,
+            TotalInvoiceCount = account.TotalInvoiceCount,
+
+            // Compliance & Verification
+            VerificationStatus = account.VerificationStatus,
+            VerificationDate = account.VerificationDate,
+            VerificationMethod = account.VerificationMethod,
+            VerifiedByUserId = account.VerifiedByUserId,
+            RequiresNda = account.RequiresNda,
+            NdaSigned = account.NdaSigned,
+            NdaSignedDate = account.NdaSignedDate,
+            NdaReferenceId = account.NdaReferenceId,
+            DataClassification = account.DataClassification,
+            DunsNumber = account.DunsNumber,
+            BusinessLicense = account.BusinessLicense,
+            ComplianceCheckDate = account.ComplianceCheckDate,
+            ComplianceNotes = account.ComplianceNotes,
+
+            // Partnership & Reseller
+            IsReseller = account.IsReseller,
+            IsPartner = account.IsPartner,
+            IsIntegrationPartner = account.IsIntegrationPartner,
+            PartnerTier = account.PartnerTier,
+            PartnerEnrolledDate = account.PartnerEnrolledDate,
+            PartnerStatus = account.PartnerStatus,
+            ParentResellerAccountId = account.ParentResellerAccountId,
+            CompetitorAccountId = account.CompetitorAccountId,
+            TechStack = account.TechStack,
+            IntegrationPartnerType = account.IntegrationPartnerType,
+
+            // Lead Conversion & Branding
+            ConvertedFromLeadId = account.ConvertedFromLeadId,
+            SourceCampaignId = account.SourceCampaignId,
+            LogoUrl = account.LogoUrl,
+            CurrencyLookupId = account.CurrencyLookupId,
+            BillingCycleLookupId = account.BillingCycleLookupId,
+
             CreatedAt = account.CreatedAt,
             UpdatedAt = account.UpdatedAt,
             RowVersion = account.RowVersion,

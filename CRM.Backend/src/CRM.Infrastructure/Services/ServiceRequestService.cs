@@ -173,6 +173,11 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
             IsVipAccount = entity.IsVipCustomer,
             EstimatedEffortHours = entity.EstimatedEffortHours,
             ActualEffortHours = entity.ActualEffortHours,
+            IsExpedited = entity.IsExpedited,
+            ExpediteReason = entity.ExpediteReason,
+            ExpeditedByUserId = entity.ExpeditedByUserId,
+            ExpeditedByUserName = entity.ExpeditedByUser != null ? $"{entity.ExpeditedByUser.FirstName} {entity.ExpeditedByUser.LastName}".Trim() : null,
+            ExpeditedAt = entity.ExpeditedAt,
             IsOpen = entity.IsOpen,
             AgeInHours = entity.AgeInHours,
             TimeToFirstResponseHours = entity.TimeToFirstResponseHours,
@@ -399,6 +404,7 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
             .Include(sr => sr.RelatedProduct)
             .Include(sr => sr.ParentServiceRequest)
             .Include(sr => sr.ChildServiceRequests)
+            .Include(sr => sr.ExpeditedByUser)
             .FirstOrDefaultAsync(sr => sr.Id == id && !sr.IsDeleted);
 
         return entity != null ? await MapToDto(entity) : null;

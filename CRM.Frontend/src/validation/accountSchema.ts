@@ -32,7 +32,7 @@ const validateEmailUnique = async (email: string, accountId?: number): Promise<b
 /**
  * Phone number validation regex: +1-234-567-8900 or variants
  */
-const PHONE_REGEX = /^\+?[0-9\s\-\(\)]{10,}$/;
+const PHONE_REGEX = /^\+?[0-9\s\-()]{10,}$/;
 
 /**
  * Base account validation schema (for both create and update)

@@ -577,7 +577,7 @@ describe('ContactsPage - Form Validation', () => {
   });
 
   it('should validate phone format', () => {
-    const phoneRegex = /^[\d\s\-\+\(\)]+$/;
+    const phoneRegex = /^[\d\s\-+()]+$/;
     expect(phoneRegex.test('555-0201')).toBe(true);
     expect(phoneRegex.test('invalid phone')).toBe(false);
   });

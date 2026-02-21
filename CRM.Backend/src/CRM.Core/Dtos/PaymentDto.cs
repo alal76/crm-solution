@@ -23,6 +23,7 @@ public class PaymentDto
     public decimal Amount { get; set; }
     public decimal RefundedAmount { get; set; }
     public decimal AmountApplied { get; set; }
+    public decimal AmountUnapplied { get; set; }
 
     public PaymentMethod PaymentMethod { get; set; }
     public PaymentType PaymentType { get; set; }
@@ -72,18 +73,27 @@ public class PaymentDto
     public string? BankName { get; set; }
     public string? AccountLast4 { get; set; }
     public string? AccountType { get; set; }
+    public string? RoutingNumberLast4 { get; set; }
 
     // Gateway
     public string? Gateway { get; set; }
     public string? GatewayResponseCode { get; set; }
     public string? GatewayResponseMessage { get; set; }
+    public string? AvsResponseCode { get; set; }
+    public string? CvvResponseCode { get; set; }
+    public decimal? RiskScore { get; set; }
+
+    // Fraud & Risk
+    public bool FraudFlagged { get; set; }
 
     // Relationships
     public int? OrderId { get; set; }
     public int? SubscriptionId { get; set; }
+    public int? ProcessedById { get; set; }
 
     // Notes
     public string? InternalNotes { get; set; }
+    public string? RefundReason { get; set; }
 }
 
 /// <summary>

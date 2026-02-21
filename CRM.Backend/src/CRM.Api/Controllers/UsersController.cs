@@ -683,6 +683,7 @@ public class UsersController : ControllerBase
             LastName = user.LastName,
             Role = ((UserRole)user.Role).ToString(),
             IsActive = user.IsActive,
+            IsLocked = user.IsLocked,
             DepartmentId = user.DepartmentId,
             DepartmentName = user.Department?.Name,
             UserProfileId = user.UserProfileId,
@@ -693,7 +694,26 @@ public class UsersController : ControllerBase
             ContactName = contact != null ? $"{contact.FirstName} {contact.LastName}" : null,
             ContactEmail = contact?.EmailPrimary,
             CreatedAt = user.CreatedAt,
-            LastLoginDate = user.LastLoginAt
+            LastLoginDate = user.LastLoginAt,
+            HeaderColor = user.HeaderColor,
+            PhotoUrl = user.PhotoUrl,
+
+            // Security / account status
+            TwoFactorEnabled = user.TwoFactorEnabled,
+            PasswordLastChangedAt = user.PasswordLastChangedAt,
+            MustResetPassword = user.MustResetPassword,
+            EmailVerified = user.EmailVerified,
+
+            // Preferences
+            ThemePreference = user.ThemePreference,
+            Language = user.Language,
+            Timezone = user.Timezone,
+            DateFormat = user.DateFormat,
+            TimeFormat = user.TimeFormat,
+            RowsPerPage = user.RowsPerPage,
+            EmailNotifications = user.EmailNotifications,
+            DesktopNotifications = user.DesktopNotifications,
+            CompactMode = user.CompactMode
         };
     }
 }

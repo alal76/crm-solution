@@ -211,7 +211,149 @@ export interface Campaign extends BaseEntity {
   // Integration
   externalCampaignId?: string;
   syncStatus?: string;
+
+  // Scheduling & Meta
+  type?: string;
+  primarySuccessMetric?: number;
+  theme?: string;
+  valueProposition?: string;
+  durationDays?: number;
+  isEvergreen?: boolean;
+  schedule?: string;
+
+  // Targeting
+  targetAudienceDescription?: string;
+  targetDemographics?: string;
+  targetFirmographics?: string;
+  targetGeography?: string;
+  targetIndustries?: string;
+  targetSegments?: string;
+  targetPersonas?: string;
+  targetJobTitles?: string;
+  targetSeniorityLevels?: string;
+  targetAccounts?: string;
+  exclusionCriteria?: string;
+  suppressionLists?: string;
+  audienceListId?: string;
+
+  // Revenue
+  actualRevenue?: number;
+  actualCost?: number;
+  pipelineInfluenced?: number;
+  pipelineCreated?: number;
+
+  // Cost Metrics
+  costPerMql?: number;
+  costPerSql?: number;
+  costPerOpportunity?: number;
+
+  // Conversion Funnel
+  salsGenerated?: number;
+  opportunitiesInfluenced?: number;
+  leadToMqlRate?: number;
+  mqlToSqlRate?: number;
+  sqlToOpportunityRate?: number;
+  opportunityToWinRate?: number;
+  averageLeadScore?: number;
+  leadQualityDistribution?: string;
+
+  // Digital/Email Metrics
+  frequency?: number;
+  formConversionRate?: number;
+  contentDownloads?: number;
+  videoViews?: number;
+  videoCompletionRate?: number;
+  demoRequests?: number;
+  trialSignups?: number;
+  emailClickRate?: number;
+  clickToOpenRate?: number;
+  hardBounces?: number;
+  softBounces?: number;
+  unsubscribes?: number;
+  unsubscribeRate?: number;
+  spamComplaints?: number;
+  complaintRate?: number;
+  emailForwards?: number;
+  listGrowth?: number;
+
+  // Social Metrics
+  socialEngagementRate?: number;
+  socialComments?: number;
+  socialLikes?: number;
+  socialSaves?: number;
+  newFollowers?: number;
+  profileVisits?: number;
+  mentions?: number;
+  sentimentScore?: number;
+
+  // Paid Advertising
+  adSpend?: number;
+  costPerClick?: number;
+  costPerMille?: number;
+  roas?: number;
+  qualityScore?: number;
+  averagePosition?: number;
+  impressionShare?: number;
+
+  // Event/Webinar
+  registrations?: number;
+  attendanceRate?: number;
+  onDemandViews?: number;
+  pollResponses?: number;
+  questionsAsked?: number;
+  eventSatisfactionScore?: number;
+  webinarPlatform?: string;
+  webinarRecordingUrl?: string;
+
+  // A/B Testing
+  winningVariant?: string;
+  statisticalSignificance?: number;
+  abTestResults?: string;
+
+  // Goal Tracking
+  targetConversions?: number;
+  goalAchievementPercent?: number;
+  campaignHealthScore?: number;
+  benchmarkComparison?: string;
+
+  // Content
+  messageSubject?: string;
+  preheaderText?: string;
+  messageBody?: string;
+  fromName?: string;
+  fromEmail?: string;
+  replyToEmail?: string;
+  callToAction?: string;
+  ctaUrl?: string;
+  trackingUrl?: string;
+  creativeAssets?: string;
+
+  // Admin
+  approvedByUserId?: number;
+  approvedDate?: string;
+  relatedCampaigns?: string;
+  initiative?: string;
+  teamMembers?: string;
+  tags?: string;
+  notes?: string;
+  briefUrl?: string;
+  reportUrl?: string;
+  customFields?: string;
+
+  // Integration channels
+  channels?: string;
+  platforms?: string;
+  socialNetworks?: string;
+  adPlatforms?: string;
+  externalCampaignIds?: string;
+
+  // Keywords
+  keywords?: string;
+  negativeKeywords?: string;
 }
+
+// Alias: MarketingCampaign is the same shape as Campaign
+export type MarketingCampaign = Campaign;
 
 export interface CampaignRecipient {
   id?: number;

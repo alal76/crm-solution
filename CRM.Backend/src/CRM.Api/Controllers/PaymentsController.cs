@@ -562,6 +562,7 @@ public class PaymentsController : ControllerBase
         Amount = payment.Amount,
         RefundedAmount = payment.RefundedAmount,
         AmountApplied = payment.AmountApplied,
+        AmountUnapplied = payment.AmountUnapplied,
         PaymentMethod = payment.PaymentMethod,
         PaymentType = payment.PaymentType,
         Status = payment.Status,
@@ -594,12 +595,19 @@ public class PaymentsController : ControllerBase
         BankName = payment.BankName,
         AccountLast4 = payment.AccountLast4,
         AccountType = payment.AccountType,
+        RoutingNumberLast4 = payment.RoutingNumberLast4,
         Gateway = payment.Gateway,
         GatewayResponseCode = payment.GatewayResponseCode,
         GatewayResponseMessage = payment.GatewayResponseMessage,
+        AvsResponseCode = payment.AvsResponseCode,
+        CvvResponseCode = payment.CvvResponseCode,
+        RiskScore = payment.RiskScore,
+        FraudFlagged = payment.FraudFlagged,
         OrderId = payment.OrderId,
         SubscriptionId = payment.SubscriptionId,
+        ProcessedById = payment.ProcessedById,
         InternalNotes = payment.InternalNotes,
+        RefundReason = payment.RefundReason,
     };
 
     private ActionResult HandleServiceException(Exception ex)
