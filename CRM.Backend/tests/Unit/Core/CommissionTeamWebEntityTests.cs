@@ -62,10 +62,11 @@ public class CommissionTriggerEnumTests
 public class CommissionStatusEnumTests
 {
     [Fact]
-    public void CommissionStatus_ShouldHave7Values()
+    public void CommissionStatus_ShouldHaveAllDefinedValues()
     {
-        // Assert
-        Enum.GetValues<CommissionStatus>().Should().HaveCount(7);
+        // The enum currently defines 9 named values (including an alias),
+        // and we want to ensure the reflection-based count matches exactly.
+        Enum.GetValues<CommissionStatus>().Should().HaveCount(9);
     }
 
     [Theory]
@@ -74,8 +75,10 @@ public class CommissionStatusEnumTests
     [InlineData(CommissionStatus.Held, 2)]
     [InlineData(CommissionStatus.Paid, 3)]
     [InlineData(CommissionStatus.ClawedBack, 4)]
+    [InlineData(CommissionStatus.Clawback, 4)]        // alias should map to same underlying value
     [InlineData(CommissionStatus.Adjusted, 5)]
     [InlineData(CommissionStatus.Cancelled, 6)]
+    [InlineData(CommissionStatus.Rejected, 7)]
     public void CommissionStatus_ShouldHaveCorrectIntValue(CommissionStatus status, int expected)
     {
         // Assert
