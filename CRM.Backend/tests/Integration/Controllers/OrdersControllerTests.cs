@@ -1,14 +1,8 @@
-// CRM Solution - Customer Relationship Management System
-// Copyright (C) 2024-2026 Abhishek Lal
-//
-// This software is source-available. Non-commercial use is permitted under
-// the terms of the LICENSE file. Commercial use requires a separate license.
-// See the LICENSE file in the root directory for full terms.
+using CRM.Tests.Helpers;
+using FluentAssertions;
 using System.Net;
 using System.Net.Http.Json;
 using Xunit;
-using CRM.Tests.Helpers;
-using FluentAssertions;
 
 namespace CRM.Backend.Tests.Integration.Controllers
 {
@@ -20,14 +14,14 @@ namespace CRM.Backend.Tests.Integration.Controllers
         [Fact]
         public async Task Crud_Orders_Succeeds()
         {
-            var create = new { title = "Test" };
+            var create = new { name = "Test" };
             var cRes = await _client.PostAsJsonAsync("/api/orders", create);
             cRes.StatusCode.Should().Be(HttpStatusCode.Created);
             var item = await cRes.Content.ReadFromJsonAsync<dynamic>();
 
             var getRes = await _client.GetAsync($"/api/orders/{{item.Id}}");
             getRes.StatusCode.Should().Be(HttpStatusCode.OK);
-            var patch = new { title = "Test2" };
+            var patch = new { name = "Test2" };
             var pRes = await _client.PatchAsJsonAsync($"/api/orders/{{item.Id}}", patch);
             pRes.StatusCode.Should().Be(HttpStatusCode.OK);
             var del = await _client.DeleteAsync($"/api/orders/{{item.Id}}");
@@ -44,3 +38,4 @@ namespace CRM.Backend.Tests.Integration.Controllers
         }
     }
 }
+

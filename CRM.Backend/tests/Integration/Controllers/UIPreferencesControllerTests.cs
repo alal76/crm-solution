@@ -1,14 +1,8 @@
-// CRM Solution - Customer Relationship Management System
-// Copyright (C) 2024-2026 Abhishek Lal
-//
-// This software is source-available. Non-commercial use is permitted under
-// the terms of the LICENSE file. Commercial use requires a separate license.
-// See the LICENSE file in the root directory for full terms.
+using CRM.Tests.Helpers;
+using FluentAssertions;
 using System.Net;
 using System.Net.Http.Json;
 using Xunit;
-using CRM.Tests.Helpers;
-using FluentAssertions;
 
 namespace CRM.Backend.Tests.Integration.Controllers
 {
@@ -20,14 +14,39 @@ namespace CRM.Backend.Tests.Integration.Controllers
         [Fact]
         public async Task Crud_UIPreferences_Succeeds()
         {
-            var create = new { name = "Test" };
+            var create = new { UserId = 1, Theme = "Test", SidebarPosition = "Test", SidebarWidth = 1, FontSize = "Test", ShowBreadcrumbs = true, ShowStatusBar = true, ShowTopNavigation = true, DefaultPageSize = 1, DateFormat = "Test", TimeFormat = "Test", CustomColorScheme = "Test", LastPreferenceUpdate = DateTime.UtcNow, Theme = "Test", SidebarPosition = "Test", SidebarWidth = 1, FontSize = "Test", ShowBreadcrumbs = true, ShowStatusBar = true, ShowTopNavigation = true, DefaultPageSize = 1, DateFormat = "Test", TimeFormat = "Test", CustomColorScheme = "Test" };
             var cRes = await _client.PostAsJsonAsync("/api/uipreferences", create);
             cRes.StatusCode.Should().Be(HttpStatusCode.Created);
             var item = await cRes.Content.ReadFromJsonAsync<dynamic>();
 
+            item.UserId.Should().Be(create.UserId);
+            item.Theme.Should().Be(create.Theme);
+            item.SidebarPosition.Should().Be(create.SidebarPosition);
+            item.SidebarWidth.Should().Be(create.SidebarWidth);
+            item.FontSize.Should().Be(create.FontSize);
+            item.ShowBreadcrumbs.Should().Be(create.ShowBreadcrumbs);
+            item.ShowStatusBar.Should().Be(create.ShowStatusBar);
+            item.ShowTopNavigation.Should().Be(create.ShowTopNavigation);
+            item.DefaultPageSize.Should().Be(create.DefaultPageSize);
+            item.DateFormat.Should().Be(create.DateFormat);
+            item.TimeFormat.Should().Be(create.TimeFormat);
+            item.CustomColorScheme.Should().Be(create.CustomColorScheme);
+            item.LastPreferenceUpdate.Should().Be(create.LastPreferenceUpdate);
+            item.Theme.Should().Be(create.Theme);
+            item.SidebarPosition.Should().Be(create.SidebarPosition);
+            item.SidebarWidth.Should().Be(create.SidebarWidth);
+            item.FontSize.Should().Be(create.FontSize);
+            item.ShowBreadcrumbs.Should().Be(create.ShowBreadcrumbs);
+            item.ShowStatusBar.Should().Be(create.ShowStatusBar);
+            item.ShowTopNavigation.Should().Be(create.ShowTopNavigation);
+            item.DefaultPageSize.Should().Be(create.DefaultPageSize);
+            item.DateFormat.Should().Be(create.DateFormat);
+            item.TimeFormat.Should().Be(create.TimeFormat);
+            item.CustomColorScheme.Should().Be(create.CustomColorScheme);
+
             var getRes = await _client.GetAsync($"/api/uipreferences/{{item.Id}}");
             getRes.StatusCode.Should().Be(HttpStatusCode.OK);
-            var patch = new { name = "Test2" };
+            var patch = new { UserId = 1, Theme = "Test2", SidebarPosition = "Test", SidebarWidth = 1, FontSize = "Test", ShowBreadcrumbs = true, ShowStatusBar = true, ShowTopNavigation = true, DefaultPageSize = 1, DateFormat = "Test", TimeFormat = "Test", CustomColorScheme = "Test", LastPreferenceUpdate = DateTime.UtcNow, Theme = "Test2", SidebarPosition = "Test", SidebarWidth = 1, FontSize = "Test", ShowBreadcrumbs = true, ShowStatusBar = true, ShowTopNavigation = true, DefaultPageSize = 1, DateFormat = "Test", TimeFormat = "Test", CustomColorScheme = "Test" };
             var pRes = await _client.PatchAsJsonAsync($"/api/uipreferences/{{item.Id}}", patch);
             pRes.StatusCode.Should().Be(HttpStatusCode.OK);
             var del = await _client.DeleteAsync($"/api/uipreferences/{{item.Id}}");
@@ -44,3 +63,4 @@ namespace CRM.Backend.Tests.Integration.Controllers
         }
     }
 }
+

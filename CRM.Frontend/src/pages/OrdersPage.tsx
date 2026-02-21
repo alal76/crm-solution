@@ -575,7 +575,6 @@ function OrdersPage() {
         <DialogContent dividers>
           <Tabs value={dialogTab} onChange={(_, v) => setDialogTab(v)} sx={{ mb: 2 }}>
             <Tab label="Order Details" />
-            <Tab label="Addresses" />
             {editingId && <Tab label="Line Items" />}
           </Tabs>
 
@@ -1010,11 +1009,9 @@ function OrdersPage() {
             </Accordion>
           </TabPanel>
 
-          {/* Tab 1: Addresses (removed, now in accordion) */}
-
-          {/* Tab 2: Line Items (read-only when editing) */}
+          {/* Tab 1: Line Items (read-only when editing) */}
           {editingId && (
-            <TabPanel value={dialogTab} index={2}>
+            <TabPanel value={dialogTab} index={1}>
               {lineItems.length === 0 ? (
                 <Typography color="text.secondary" textAlign="center" py={4}>
                   No line items yet. Add line items through the API.
