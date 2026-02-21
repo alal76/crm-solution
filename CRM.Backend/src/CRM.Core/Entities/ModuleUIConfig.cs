@@ -93,6 +93,7 @@ public static class DefaultModuleConfigs
     public static readonly string[] AllModules = new[]
     {
         ModuleNames.Accounts,
+        // ModuleNames.Customers,    // legacy alias removed, use Accounts instead
         ModuleNames.Contacts,
         ModuleNames.Leads,
         ModuleNames.Opportunities,
@@ -108,6 +109,7 @@ public static class DefaultModuleConfigs
     public static readonly Dictionary<string, string[]> DefaultLinkedEntities = new()
     {
         [ModuleNames.Accounts] = new[] { "Contacts", "Opportunities", "Quotes", "Tasks", "Activities", "Notes" },
+        // legacy customer alias removed - accounts covers the same links
         [ModuleNames.Contacts] = new[] { "Accounts", "Opportunities", "Tasks", "Activities", "Notes" },
         [ModuleNames.Leads] = new[] { "Tasks", "Activities", "Notes" },
         [ModuleNames.Opportunities] = new[] { "Accounts", "Contacts", "Products", "Quotes", "Tasks", "Activities", "Notes" },

@@ -61,7 +61,8 @@ public class ModuleFieldConfigurationServiceTests : IDisposable
         // Assert
         result.Should().HaveCount(1);
         result.First().ModuleName.Should().Be(ModuleNames.Accounts);
-        (await _dbContext.ModuleFieldConfigurations.CountAsync(c => c.ModuleName == ModuleNames.Customers))
+        // there should be no configurations saved under the legacy name
+        (await _dbContext.ModuleFieldConfigurations.CountAsync(c => c.ModuleName == "Customers"))
             .Should().Be(0);
     }
 

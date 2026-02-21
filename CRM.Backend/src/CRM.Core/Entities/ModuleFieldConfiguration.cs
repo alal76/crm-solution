@@ -13,7 +13,7 @@ namespace CRM.Core.Entities;
 public class ModuleFieldConfiguration : BaseEntity
 {
     /// <summary>
-    /// The module this configuration belongs to (e.g., "Customers", "Contacts", "Leads")
+    /// The module this configuration belongs to (e.g., "Accounts", "Contacts", "Leads")
     /// </summary>
     public string ModuleName { get; set; } = string.Empty;
 
@@ -109,7 +109,7 @@ public class ModuleFieldConfiguration : BaseEntity
 public static class ModuleNames
 {
     public const string Accounts = "Accounts";
-    public const string Customers = "Customers";
+    // public const string Customers = "Customers"; // legacy name; use Accounts
     public const string Contacts = "Contacts";
     public const string Leads = "Leads";
     public const string Opportunities = "Opportunities";

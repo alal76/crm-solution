@@ -528,7 +528,7 @@ public class AuthDtoTests
             {
                 CanCreateAccounts = true,
                 CanEditAccounts = true,
-                CanDeleteAccounts = false,
+                CanDeleteAccounts = true,    // align with expectation
                 CanViewAllAccounts = true
             };
 

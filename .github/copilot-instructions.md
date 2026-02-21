@@ -7,6 +7,7 @@
 Copilot usage
 - Use Claude Opus 4.6 subagents for all tasks in particular for research/analysis and test authoring when tasks are complex or multi-step
 - Update documentation as you proceed (specs, remediation plan, and related docs).
+- **Enum changes:** whenever you introduce a new public enum or modify existing ones, update the relevant feature spec and the centralized enum reference (`docs/11-specifications/SPEC-GEN-001-EnumReference.md`), and ensure corresponding unit tests (enum value counts/values) are added or updated. Record enum field gaps in FIELD_GAP_REMEDIATION_PLAN.md.
 - Write and validate unit tests at the end of the task to ensure code quality and correctness.
 - Clean up terminals when done to maintain an organized workspace..
 - Where possible, use the provided documentation and 11-specifications to guide your implementation and ensure consistency with the project's standards and requirements.

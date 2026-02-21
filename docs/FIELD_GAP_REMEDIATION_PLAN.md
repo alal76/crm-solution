@@ -5,6 +5,9 @@
 
 ## Context
 
+> **Note:** the legacy "Customers" module has been consolidated into the modern "Accounts" module. All code references to "Customers" should be commented out or removed and tests updated accordingly. This change fixes recent unit test failures and simplifies the UI configuration.
+
+
 Sessions 1–9 completed a full remediation pass across all 16 entities. All previously identified gaps were resolved and verified. This document replaces that history with a **fresh comprehensive re-audit** covering all 4 layers for all 16 entities.
 
 > **Layers audited:** Backend Entity → Backend DTO → Frontend TypeScript Type → Frontend UI Form

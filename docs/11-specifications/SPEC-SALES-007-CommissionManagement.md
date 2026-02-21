@@ -89,7 +89,21 @@ Commission Management covers calculation, approval, payout, clawback, and report
 | CommissionPlanAssignment | CRM.Core/Entities/Commission.cs | ✅ Implemented | Entity exists; not used in service |
 | CommissionStatement | CRM.Core/Entities/Commission.cs | ✅ Implemented | Statement fields + aliases |
 
-### 3.2 DTOs
+### 3.2 Enumerations
+
+The commission module defines several enums used throughout the backend and frontend. They are declared in `CRM.Core/Entities/Commission.cs` above the entity definitions.
+
+| Enum | Defined Values (int) | Description |
+|------|----------------------|-------------|
+| `CommissionType` | FlatPercentage (0), TieredPercentage (1), FixedAmount (2), TieredAmount (3), MarginBased (4), Custom (5) | Calculation method for commission amount |
+| `CommissionTrigger` | OnClose (0), OnOrder (1), OnInvoice (2), OnPayment (3), OnSubscriptionStart (4), OnSignature (5), Monthly (6) | Event that triggers commission evaluation |
+| `CommissionStatus` | Pending (0), Approved (1), Held (2), Paid (3), ClawedBack (4), Clawback (4) *, Adjusted (5), Cancelled (6), Rejected (7) | Payout status; note `Clawback` is an alias for `ClawedBack` to support legacy code |
+| `CommissionPlanStatus` | Draft (0), Active (1), Inactive (2), Archived (3) | Lifecycle state of a commission plan |
+
+
+*Alias entries increase the reflected count but map to the same integer.
+
+### 3.3 DTOs
 | DTO | File Path | Status | Notes |
 |-----|-----------|--------|-------|
 | N/A | - | ❌ Not Implemented | Controllers/API contracts absent |

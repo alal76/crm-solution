@@ -132,7 +132,7 @@ public class SystemConfigurationEntityTests
     public void ModuleNames_ShouldHaveCorrectValues()
     {
         // Assert
-        ModuleNames.Customers.Should().Be("Customers");
+        // legacy module name 'Customers' removed; use Accounts instead
         ModuleNames.Contacts.Should().Be("Contacts");
         ModuleNames.Leads.Should().Be("Leads");
         ModuleNames.Opportunities.Should().Be("Opportunities");
@@ -145,11 +145,11 @@ public class SystemConfigurationEntityTests
         // Act
         var config = new ModuleFieldConfiguration
         {
-            ModuleName = ModuleNames.Customers
+            ModuleName = ModuleNames.Accounts
         };
 
         // Assert
-        config.ModuleName.Should().Be("Customers");
+        config.ModuleName.Should().Be("Accounts");
     }
 
     #endregion
@@ -273,7 +273,9 @@ public class SystemConfigurationEntityTests
     public void DefaultModuleConfigs_AllModules_ShouldContainExpectedModules()
     {
         // Assert
-        DefaultModuleConfigs.AllModules.Should().Contain("Customers");
+        // Only the modern name should be present; legacy alias removed
+        DefaultModuleConfigs.AllModules.Should().Contain(ModuleNames.Accounts);
+        // legacy Customers entry removed; not expected anymore
         DefaultModuleConfigs.AllModules.Should().Contain("Contacts");
         DefaultModuleConfigs.AllModules.Should().Contain("Leads");
         DefaultModuleConfigs.AllModules.Should().Contain("Opportunities");
@@ -297,12 +299,13 @@ public class SystemConfigurationEntityTests
     public void DefaultModuleConfigs_DefaultLinkedEntities_ShouldHaveCorrectCustomerLinks()
     {
         // Assert
-        DefaultModuleConfigs.DefaultLinkedEntities[ModuleNames.Customers].Should().Contain("Contacts");
-        DefaultModuleConfigs.DefaultLinkedEntities[ModuleNames.Customers].Should().Contain("Opportunities");
-        DefaultModuleConfigs.DefaultLinkedEntities[ModuleNames.Customers].Should().Contain("Quotes");
-        DefaultModuleConfigs.DefaultLinkedEntities[ModuleNames.Customers].Should().Contain("Tasks");
-        DefaultModuleConfigs.DefaultLinkedEntities[ModuleNames.Customers].Should().Contain("Activities");
-        DefaultModuleConfigs.DefaultLinkedEntities[ModuleNames.Customers].Should().Contain("Notes");
+        // customer links now provided under Accounts
+        DefaultModuleConfigs.DefaultLinkedEntities[ModuleNames.Accounts].Should().Contain("Contacts");
+        DefaultModuleConfigs.DefaultLinkedEntities[ModuleNames.Accounts].Should().Contain("Opportunities");
+        DefaultModuleConfigs.DefaultLinkedEntities[ModuleNames.Accounts].Should().Contain("Quotes");
+        DefaultModuleConfigs.DefaultLinkedEntities[ModuleNames.Accounts].Should().Contain("Tasks");
+        DefaultModuleConfigs.DefaultLinkedEntities[ModuleNames.Accounts].Should().Contain("Activities");
+        DefaultModuleConfigs.DefaultLinkedEntities[ModuleNames.Accounts].Should().Contain("Notes");
     }
 
     [Fact]
