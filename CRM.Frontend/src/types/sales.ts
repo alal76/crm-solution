@@ -64,14 +64,14 @@ export interface Quote extends BaseEntity {
   contactName?: string;
   opportunityId?: number;
   status: QuoteStatus; // Use mapping helpers for API contract
-  total: number;
+  grandTotal: number;   // Renamed from total to match DTO GrandTotal
   subtotal?: number;
   taxRate?: number;
-  tax?: number;
-  discount?: number;
+  taxTotal?: number;    // Renamed from tax to match DTO TaxTotal
+  discountTotal?: number; // Renamed from discount to match DTO DiscountTotal
   discountPercent?: number;
   shippingCost?: number;
-  expiryDate?: string;
+  expirationDate?: string; // Renamed from expiryDate to match DTO ExpirationDate
   validFrom?: string;
   lineItems?: QuoteLineItem[];
   notes?: string;
@@ -96,7 +96,6 @@ export interface Quote extends BaseEntity {
   // Approval workflow
   requiresApproval?: boolean;
   isApproved?: boolean;
-  // ...existing code...
   approvalDate?: string;
   approvalNotes?: string;
   submittedForApprovalDate?: string;
@@ -119,6 +118,24 @@ export interface Quote extends BaseEntity {
   deliveryTerms?: string;
   warrantyMonths?: number;
   warrantyEndDate?: string;
+  termsAndConditions?: string;
+  validityDays?: number;
+
+  // Billing address
+  billingName?: string;
+  billingAddress?: string;
+  billingCity?: string;
+  billingState?: string;
+  billingZipCode?: string;
+  billingCountry?: string;
+
+  // Shipping address
+  shippingName?: string;
+  shippingAddress?: string;
+  shippingCity?: string;
+  shippingState?: string;
+  shippingZipCode?: string;
+  shippingCountry?: string;
 
   // Service/delivery dates
   expectedDeliveryDate?: string;
@@ -158,11 +175,11 @@ export interface CreateQuoteDto {
   accountId: number;
   contactId?: number;
   opportunityId?: number;
-  expiryDate: string;
+  expirationDate: string;
   lineItems: QuoteLineItem[];
   notes?: string;
   terms?: string;
-  discount?: number;
+  discountTotal?: number;
   currency?: string;
   name?: string;
   description?: string;
@@ -173,9 +190,9 @@ export interface CreateQuoteDto {
 }
 
 export interface UpdateQuoteDto {
-  expiryDate?: string;
+  expirationDate?: string;
   status?: QuoteStatus;
-  discount?: number;
+  discountTotal?: number;
   notes?: string;
   terms?: string;
   lineItems?: QuoteLineItem[];
@@ -199,7 +216,7 @@ export enum OrderStatus {
 
 export interface Order extends BaseEntity {
   number?: string;
-  accountId: number;
+  accountId: number;            // Primary account reference (DTO uses AccountId)
   accountName?: string;
   contactId?: number;
   contactName?: string;
@@ -216,15 +233,16 @@ export interface Order extends BaseEntity {
   discount?: number;
   discountPercent?: number;
   lineItems?: OrderLineItem[];
-  shippingAddress?: string;
-  billingAddress?: string;
   paymentTerms?: string;
   dueDate?: string;
   notes?: string;
   currency?: string;
+  currencyCode?: string;
   createdById?: number;
 
   // Identity
+  name?: string;
+  description?: string;
   orderNumber?: string;
   externalOrderId?: string;
   customerPONumber?: string;
@@ -250,6 +268,28 @@ export interface Order extends BaseEntity {
   handlingAmount?: number;
   exchangeRate?: number;
   discountReason?: string;
+
+  // Billing address
+  billingName?: string;
+  billingCompany?: string;
+  billingStreet?: string;
+  billingCity?: string;
+  billingState?: string;
+  billingPostalCode?: string;
+  billingCountry?: string;
+
+  // Shipping address
+  shippingName?: string;
+  shippingCompany?: string;
+  shippingStreet?: string;
+  shippingCity?: string;
+  shippingState?: string;
+  shippingPostalCode?: string;
+  shippingCountry?: string;
+
+  // Legacy flat address fields
+  shippingAddress?: string;
+  billingAddress?: string;
 
   // Shipping details
   shippingMethod?: string;
@@ -290,6 +330,8 @@ export interface Order extends BaseEntity {
   tcv?: number;                // Total Contract Value
   acv?: number;                // Annual Contract Value
   baseCurrencyAmount?: number; // Amount in base currency (when multi-currency)
+  oneTimeRevenue?: number;     // One-time revenue component
+  recurringRevenue?: number;   // Recurring revenue component
 
   // Additional workflow dates
   holdDate?: string;           // Date order was placed on hold

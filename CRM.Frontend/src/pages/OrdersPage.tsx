@@ -56,10 +56,21 @@ import logo from '../assets/logo.png';
 
 // ==================== ENUMS ====================
 
+// Numeric values match backend CRM.Core.Entities.OrderStatus
 enum OrderStatus {
-  Draft = 0, Submitted = 1, PendingApproval = 2, Approved = 3, Rejected = 4,
-  Processing = 5, PartiallyFulfilled = 6, Fulfilled = 7, Shipped = 8,
-  Delivered = 9, Cancelled = 10, OnHold = 11, ActionRequired = 12,
+  Draft = 0,
+  PendingApproval = 1,
+  Approved = 2,
+  Processing = 3,
+  PartiallyFulfilled = 4,
+  Fulfilled = 5,
+  Delivered = 6,
+  Completed = 7,
+  Cancelled = 8,
+  Returned = 9,
+  Refunded = 10,
+  OnHold = 11,
+  ActionRequired = 12,
 }
 
 // ==================== INTERFACES ====================
@@ -67,8 +78,8 @@ enum OrderStatus {
 interface Order {
   id: number;
   orderNumber: string;
-  customerId: number;
-  customerName?: string;
+  accountId: number;   // Renamed from customerId to match DTO AccountId
+  accountName?: string;
   opportunityId?: number;
   quoteId?: number;
   status: OrderStatus;
@@ -144,16 +155,16 @@ type ChipColor = 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'succe
 
 const ORDER_STATUS_OPTIONS: Array<{ value: OrderStatus; label: string; color: ChipColor }> = [
   { value: OrderStatus.Draft, label: 'Draft', color: 'default' },
-  { value: OrderStatus.Submitted, label: 'Submitted', color: 'info' },
   { value: OrderStatus.PendingApproval, label: 'Pending Approval', color: 'warning' },
   { value: OrderStatus.Approved, label: 'Approved', color: 'info' },
-  { value: OrderStatus.Rejected, label: 'Rejected', color: 'error' },
   { value: OrderStatus.Processing, label: 'Processing', color: 'primary' },
   { value: OrderStatus.PartiallyFulfilled, label: 'Partially Fulfilled', color: 'warning' },
   { value: OrderStatus.Fulfilled, label: 'Fulfilled', color: 'success' },
-  { value: OrderStatus.Shipped, label: 'Shipped', color: 'info' },
   { value: OrderStatus.Delivered, label: 'Delivered', color: 'success' },
+  { value: OrderStatus.Completed, label: 'Completed', color: 'success' },
   { value: OrderStatus.Cancelled, label: 'Cancelled', color: 'default' },
+  { value: OrderStatus.Returned, label: 'Returned', color: 'error' },
+  { value: OrderStatus.Refunded, label: 'Refunded', color: 'secondary' },
   { value: OrderStatus.OnHold, label: 'On Hold', color: 'warning' },
   { value: OrderStatus.ActionRequired, label: 'Action Required', color: 'error' },
 ];

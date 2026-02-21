@@ -159,22 +159,29 @@ interface CreateContactRequest {
   firstName: string;
   lastName: string;
   middleName?: string;
+  salutation?: string;
+  suffix?: string;
+  nickname?: string;
+  gender?: string;
+  dateOfBirth?: string;
   jobTitle?: string;
   department?: string;
   company?: string;
   reportsTo?: string;
   notes?: string;
-  dateOfBirth?: string;
   accountId?: number | '';
-  salutation?: string;
-  suffix?: string;
   website?: string;
   linkedInUrl?: string;
   twitterHandle?: string;
   doNotContact?: boolean;
   preferredContactMethod?: string;
+  leadStatus?: string;
   emailSecondary?: string;
   phoneSecondary?: string;
+  phoneMobile?: string;
+  phoneFax?: string;
+  address?: string;
+  address2?: string;
 }
 
 const CONTACT_TYPES = ['Employee', 'Customer', 'Partner', 'Lead', 'Vendor', 'Other'];
@@ -356,21 +363,28 @@ function ContactsPage() {
       firstName: contact.firstName,
       lastName: contact.lastName,
       middleName: contact.middleName,
+      salutation: contact.salutation,
+      suffix: contact.suffix,
+      nickname: (contact as any).nickname || '',
+      gender: (contact as any).gender || '',
+      dateOfBirth: contact.dateOfBirth,
       jobTitle: contact.jobTitle,
       department: contact.department,
       company: contact.company,
       reportsTo: contact.reportsTo,
       notes: contact.notes,
-      dateOfBirth: contact.dateOfBirth,
-      salutation: contact.salutation,
-      suffix: contact.suffix,
       website: contact.website,
       linkedInUrl: contact.linkedInUrl,
       twitterHandle: contact.twitterHandle,
       doNotContact: contact.doNotContact,
       preferredContactMethod: contact.preferredContactMethod,
+      leadStatus: (contact as any).leadStatus || '',
       emailSecondary: contact.emailSecondary || '',
       phoneSecondary: contact.phoneSecondary || '',
+      phoneMobile: (contact as any).phoneMobile || '',
+      phoneFax: (contact as any).phoneFax || '',
+      address: (contact as any).address || '',
+      address2: (contact as any).address2 || '',
     });
     setSelectedContact(contact);
     setDialogTab(0);
@@ -1038,6 +1052,32 @@ function ContactsPage() {
                         placeholder="Jr., Sr., III…"
                       />
                     </Box>
+                    <Box sx={{ display: 'flex', gap: 2 }}>
+                      <TextField
+                        label="Nickname"
+                        name="nickname"
+                        value={formData.nickname || ''}
+                        onChange={handleFormChange}
+                        fullWidth
+                        placeholder="Preferred name or alias"
+                      />
+                      <FormControl fullWidth>
+                        <InputLabel>Gender</InputLabel>
+                        <Select
+                          name="gender"
+                          value={formData.gender || ''}
+                          onChange={(e: SelectChangeEvent) => setFormData(prev => ({ ...prev, gender: e.target.value }))}
+                          label="Gender"
+                        >
+                          <MenuItem value="">Not specified</MenuItem>
+                          <MenuItem value="Male">Male</MenuItem>
+                          <MenuItem value="Female">Female</MenuItem>
+                          <MenuItem value="NonBinary">Non-binary</MenuItem>
+                          <MenuItem value="PreferNotToSay">Prefer not to say</MenuItem>
+                          <MenuItem value="Other">Other</MenuItem>
+                        </Select>
+                      </FormControl>
+                    </Box>
                     <TextField
                       label="Website"
                       name="website"
@@ -1095,6 +1135,64 @@ function ContactsPage() {
                       />
                     </Grid>
                     <Grid item xs={6}>
+                      <TextField
+                        fullWidth
+                        label="Mobile Phone"
+                        name="phoneMobile"
+                        value={formData.phoneMobile || ''}
+                        onChange={handleFormChange}
+                        placeholder="Mobile / cell number"
+                      />
+                    </Grid>
+                    <Grid item xs={6}>
+                      <TextField
+                        fullWidth
+                        label="Fax Number"
+                        name="phoneFax"
+                        value={formData.phoneFax || ''}
+                        onChange={handleFormChange}
+                        placeholder="Fax number"
+                      />
+                    </Grid>
+                    <Grid item xs={6}>
+                      <TextField
+                        fullWidth
+                        label="Address"
+                        name="address"
+                        value={formData.address || ''}
+                        onChange={handleFormChange}
+                        placeholder="Street address"
+                      />
+                    </Grid>
+                    <Grid item xs={6}>
+                      <TextField
+                        fullWidth
+                        label="Address Line 2"
+                        name="address2"
+                        value={formData.address2 || ''}
+                        onChange={handleFormChange}
+                        placeholder="Suite, Apt, Floor…"
+                      />
+                    </Grid>
+                    <Grid item xs={6}>
+                      <FormControl fullWidth>
+                        <InputLabel>Lead Status</InputLabel>
+                        <Select
+                          name="leadStatus"
+                          value={formData.leadStatus || ''}
+                          onChange={(e: SelectChangeEvent) => setFormData(prev => ({ ...prev, leadStatus: e.target.value }))}
+                          label="Lead Status"
+                        >
+                          <MenuItem value="">Not specified</MenuItem>
+                          <MenuItem value="new">New</MenuItem>
+                          <MenuItem value="contacted">Contacted</MenuItem>
+                          <MenuItem value="qualified">Qualified</MenuItem>
+                          <MenuItem value="unqualified">Unqualified</MenuItem>
+                          <MenuItem value="converted">Converted</MenuItem>
+                        </Select>
+                      </FormControl>
+                    </Grid>
+                    <Grid item xs={6}>
                       <FormControl fullWidth>
                         <InputLabel>Preferred Contact Method</InputLabel>
                         <Select
@@ -1111,7 +1209,6 @@ function ContactsPage() {
                         </Select>
                       </FormControl>
                     </Grid>
-                    <Grid item xs={6} />
                     <Grid item xs={12}>
                       <FormControlLabel
                         control={

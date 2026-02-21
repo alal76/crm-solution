@@ -227,6 +227,14 @@ interface ResolutionSlaFields {
   estimatedEffortHours: number | '';
   actualEffortHours: number | '';
   internalNotes: string;
+  // Expedite
+  isExpedited: boolean;
+  expediteReason: string;
+  // Feedback
+  satisfactionRating: number | '';
+  customerFeedback: string;
+  // Reference
+  externalReferenceId: string;
 }
 
 const DEFAULT_RESOLUTION_SLA: ResolutionSlaFields = {
@@ -238,6 +246,11 @@ const DEFAULT_RESOLUTION_SLA: ResolutionSlaFields = {
   estimatedEffortHours: '',
   actualEffortHours: '',
   internalNotes: '',
+  isExpedited: false,
+  expediteReason: '',
+  satisfactionRating: '',
+  customerFeedback: '',
+  externalReferenceId: '',
 };
 
 function ServiceRequestsPage() {
@@ -464,6 +477,11 @@ function ServiceRequestsPage() {
       estimatedEffortHours: (request as any).estimatedEffortHours ?? '',
       actualEffortHours: (request as any).actualEffortHours ?? '',
       internalNotes: (request as any).internalNotes || '',
+      isExpedited: (request as any).isExpedited ?? false,
+      expediteReason: (request as any).expediteReason || '',
+      satisfactionRating: (request as any).satisfactionRating ?? '',
+      customerFeedback: (request as any).customerFeedback || '',
+      externalReferenceId: (request as any).externalReferenceId || '',
     });
     setSelectedRequest(request);
     setViewMode(false);
@@ -1540,6 +1558,116 @@ function ServiceRequestsPage() {
                         rows={2}
                         fullWidth
                         disabled={viewMode}
+                      />
+                    </Grid>
+                  </Grid>
+                </AccordionDetails>
+              </Accordion>
+
+              {/* Accordion for Expedite */}
+              <Accordion sx={{ mt: 1 }}>
+                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                  <Typography variant="subtitle1" fontWeight={600}>Expedite</Typography>
+                </AccordionSummary>
+                <AccordionDetails>
+                  <Grid container spacing={2}>
+                    <Grid item xs={12}>
+                      <FormControlLabel
+                        control={
+                          <Switch
+                            checked={resolutionSlaData.isExpedited}
+                            onChange={(e) =>
+                              setResolutionSlaData((prev) => ({ ...prev, isExpedited: e.target.checked }))
+                            }
+                            disabled={viewMode}
+                          />
+                        }
+                        label="Is Expedited"
+                      />
+                    </Grid>
+                    {resolutionSlaData.isExpedited && (
+                      <Grid item xs={12}>
+                        <TextField
+                          label="Expedite Reason"
+                          value={resolutionSlaData.expediteReason}
+                          onChange={(e) =>
+                            setResolutionSlaData((prev) => ({ ...prev, expediteReason: e.target.value }))
+                          }
+                          fullWidth
+                          disabled={viewMode}
+                          placeholder="Reason for expediting this request"
+                        />
+                      </Grid>
+                    )}
+                  </Grid>
+                </AccordionDetails>
+              </Accordion>
+
+              {/* Accordion for Customer Feedback */}
+              <Accordion sx={{ mt: 1 }}>
+                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                  <Typography variant="subtitle1" fontWeight={600}>Customer Feedback</Typography>
+                </AccordionSummary>
+                <AccordionDetails>
+                  <Grid container spacing={2}>
+                    <Grid item xs={6}>
+                      <FormControl fullWidth>
+                        <InputLabel>Satisfaction Rating</InputLabel>
+                        <Select
+                          value={resolutionSlaData.satisfactionRating === '' ? '' : String(resolutionSlaData.satisfactionRating)}
+                          onChange={(e: SelectChangeEvent<string>) =>
+                            setResolutionSlaData((prev) => ({
+                              ...prev,
+                              satisfactionRating: e.target.value === '' ? '' : Number(e.target.value),
+                            }))
+                          }
+                          label="Satisfaction Rating"
+                          disabled={viewMode}
+                        >
+                          <MenuItem value="">Not Rated</MenuItem>
+                          <MenuItem value="1">1 - Very Unsatisfied</MenuItem>
+                          <MenuItem value="2">2 - Unsatisfied</MenuItem>
+                          <MenuItem value="3">3 - Neutral</MenuItem>
+                          <MenuItem value="4">4 - Satisfied</MenuItem>
+                          <MenuItem value="5">5 - Very Satisfied</MenuItem>
+                        </Select>
+                      </FormControl>
+                    </Grid>
+                    <Grid item xs={12}>
+                      <TextField
+                        label="Customer Feedback"
+                        value={resolutionSlaData.customerFeedback}
+                        onChange={(e) =>
+                          setResolutionSlaData((prev) => ({ ...prev, customerFeedback: e.target.value }))
+                        }
+                        multiline
+                        rows={3}
+                        fullWidth
+                        disabled={viewMode}
+                        placeholder="Customer's feedback or comments"
+                      />
+                    </Grid>
+                  </Grid>
+                </AccordionDetails>
+              </Accordion>
+
+              {/* Accordion for Reference */}
+              <Accordion sx={{ mt: 1 }}>
+                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                  <Typography variant="subtitle1" fontWeight={600}>Reference</Typography>
+                </AccordionSummary>
+                <AccordionDetails>
+                  <Grid container spacing={2}>
+                    <Grid item xs={12}>
+                      <TextField
+                        label="External Reference ID"
+                        value={resolutionSlaData.externalReferenceId}
+                        onChange={(e) =>
+                          setResolutionSlaData((prev) => ({ ...prev, externalReferenceId: e.target.value }))
+                        }
+                        fullWidth
+                        disabled={viewMode}
+                        placeholder="External ticket or reference ID"
                       />
                     </Grid>
                   </Grid>

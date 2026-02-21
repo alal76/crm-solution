@@ -68,6 +68,9 @@ public interface IServiceRequestService
     /// <summary>Escalate a service request</summary>
     Task<ServiceRequestDto> EscalateServiceRequestAsync(int id, string reason, int? escalatedByUserId);
 
+    /// <summary>Mark a service request as expedited</summary>
+    Task<ServiceRequestDto> ExpediteServiceRequestAsync(int id, string reason, int? expeditedByUserId);
+
     #endregion
 
     #region Assignment Operations

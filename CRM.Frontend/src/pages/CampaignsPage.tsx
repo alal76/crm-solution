@@ -120,6 +120,32 @@ interface CampaignForm {
   dealsWon: number;
   utmContent: string;
   utmTerm: string;
+  // Scheduling
+  actualStartDate: string;
+  actualEndDate: string;
+  objectiveType: number;
+  // Audience
+  audienceType: number;
+  // Email metrics
+  emailsDelivered: number;
+  deliveryRate: number;
+  emailClicks: number;
+  bounceRate: number;
+  // Digital
+  reach: number;
+  clickThroughRate: number;
+  landingPageVisits: number;
+  // Event
+  attendance: number;
+  noShows: number;
+  eventCapacity: number;
+  eventLocation: string;
+  eventDateTime: string;
+  // Admin
+  costCenter: string;
+  parentCampaignId: number;
+  externalId: string;
+  abTestMetric: string;
 }
 
 function CampaignsPage() {
@@ -156,6 +182,12 @@ function CampaignsPage() {
     dailyBudget: 0, monthlyBudget: 0, expectedRevenue: 0, costPerLead: 0, costPerAcquisition: 0,
     mqlsGenerated: 0, sqlsGenerated: 0, opportunitiesCreated: 0, dealsWon: 0,
     utmContent: '', utmTerm: '',
+    actualStartDate: '', actualEndDate: '', objectiveType: 0,
+    audienceType: 0,
+    emailsDelivered: 0, deliveryRate: 0, emailClicks: 0, bounceRate: 0,
+    reach: 0, clickThroughRate: 0, landingPageVisits: 0,
+    attendance: 0, noShows: 0, eventCapacity: 0, eventLocation: '', eventDateTime: '',
+    costCenter: '', parentCampaignId: 0, externalId: '', abTestMetric: '',
   };
   const [formData, setFormData] = useState<CampaignForm>(emptyForm);
 
@@ -192,9 +224,29 @@ function CampaignsPage() {
         abTestVariants: campaign.abTestVariants || '', winningVariant: campaign.winningVariant || '',
         utmSource: campaign.utmSource || '', utmMedium: campaign.utmMedium || '',
         utmCampaign: campaign.utmCampaign || '', tags: campaign.tags || '',
-        dailyBudget: 0, monthlyBudget: 0, expectedRevenue: 0, costPerLead: 0, costPerAcquisition: 0,
-        mqlsGenerated: 0, sqlsGenerated: 0, opportunitiesCreated: 0, dealsWon: 0,
-        utmContent: '', utmTerm: '',
+        dailyBudget: (campaign as any).dailyBudget || 0, monthlyBudget: (campaign as any).monthlyBudget || 0, expectedRevenue: (campaign as any).expectedRevenue || 0, costPerLead: (campaign as any).costPerLead || 0, costPerAcquisition: (campaign as any).costPerAcquisition || 0,
+        mqlsGenerated: (campaign as any).mqlsGenerated || 0, sqlsGenerated: (campaign as any).sqlsGenerated || 0, opportunitiesCreated: (campaign as any).opportunitiesCreated || 0, dealsWon: (campaign as any).dealsWon || 0,
+        utmContent: (campaign as any).utmContent || '', utmTerm: (campaign as any).utmTerm || '',
+        actualStartDate: (campaign as any).actualStartDate?.split('T')[0] || '',
+        actualEndDate: (campaign as any).actualEndDate?.split('T')[0] || '',
+        objectiveType: (campaign as any).objectiveType || 0,
+        audienceType: (campaign as any).audienceType || 0,
+        emailsDelivered: (campaign as any).emailsDelivered || 0,
+        deliveryRate: (campaign as any).deliveryRate || 0,
+        emailClicks: (campaign as any).emailClicks || 0,
+        bounceRate: (campaign as any).bounceRate || 0,
+        reach: (campaign as any).reach || 0,
+        clickThroughRate: (campaign as any).clickThroughRate || 0,
+        landingPageVisits: (campaign as any).landingPageVisits || 0,
+        attendance: (campaign as any).attendance || 0,
+        noShows: (campaign as any).noShows || 0,
+        eventCapacity: (campaign as any).eventCapacity || 0,
+        eventLocation: (campaign as any).eventLocation || '',
+        eventDateTime: (campaign as any).eventDateTime || '',
+        costCenter: (campaign as any).costCenter || '',
+        parentCampaignId: (campaign as any).parentCampaignId || 0,
+        externalId: (campaign as any).externalId || '',
+        abTestMetric: (campaign as any).abTestMetric || '',
       });
     } else {
       setEditingId(null);
@@ -736,6 +788,217 @@ function CampaignsPage() {
                   </Grid>
                   <Grid item xs={6}>
                     <TextField fullWidth label="UTM Term" name="utmTerm" value={formData.utmTerm} onChange={handleInputChange} placeholder="running+shoes" />
+                  </Grid>
+                </Grid>
+              </AccordionDetails>
+            </Accordion>
+
+            {/* Accordion for Scheduling */}
+            <Accordion sx={{ mt: 1 }}>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <Typography variant="subtitle1" fontWeight={600}>Scheduling</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Grid container spacing={2}>
+                  <Grid item xs={6}>
+                    <TextField fullWidth label="Actual Start Date" name="actualStartDate" type="date" value={formData.actualStartDate} onChange={handleInputChange} InputLabelProps={{ shrink: true }} />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <TextField fullWidth label="Actual End Date" name="actualEndDate" type="date" value={formData.actualEndDate} onChange={handleInputChange} InputLabelProps={{ shrink: true }} />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <FormControl fullWidth>
+                      <InputLabel>Objective Type</InputLabel>
+                      <Select name="objectiveType" value={formData.objectiveType} onChange={handleSelectChange} label="Objective Type">
+                        <MenuItem value={0}>Awareness</MenuItem>
+                        <MenuItem value={1}>Lead Generation</MenuItem>
+                        <MenuItem value={2}>Conversion</MenuItem>
+                        <MenuItem value={3}>Retention</MenuItem>
+                        <MenuItem value={4}>Revenue</MenuItem>
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                </Grid>
+              </AccordionDetails>
+            </Accordion>
+
+            {/* Accordion for Audience */}
+            <Accordion sx={{ mt: 1 }}>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <Typography variant="subtitle1" fontWeight={600}>Audience</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Grid container spacing={2}>
+                  <Grid item xs={6}>
+                    <FormControl fullWidth>
+                      <InputLabel>Audience Type</InputLabel>
+                      <Select name="audienceType" value={formData.audienceType} onChange={handleSelectChange} label="Audience Type">
+                        <MenuItem value={0}>All</MenuItem>
+                        <MenuItem value={1}>New Prospects</MenuItem>
+                        <MenuItem value={2}>Existing Customers</MenuItem>
+                        <MenuItem value={3}>Churned Customers</MenuItem>
+                        <MenuItem value={4}>Segment</MenuItem>
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                  <Grid item xs={6}>
+                    <TextField fullWidth label="Target Audience Count" name="targetAudience" type="number" value={formData.targetAudience} onChange={handleInputChange} inputProps={{ min: 0 }} />
+                  </Grid>
+                </Grid>
+              </AccordionDetails>
+            </Accordion>
+
+            {/* Accordion for Lead Metrics (read-only) */}
+            <Accordion sx={{ mt: 1 }}>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <Typography variant="subtitle1" fontWeight={600}>Lead Metrics (Read-only)</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Grid container spacing={2}>
+                  <Grid item xs={6}>
+                    <TextField fullWidth label="Leads Generated" name="leadsGenerated" type="number" value={formData.leadsGenerated} disabled helperText="System metric" InputProps={{ readOnly: true }} />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <TextField fullWidth label="MQLs Generated" name="mqlsGenerated" type="number" value={formData.mqlsGenerated} disabled helperText="System metric" InputProps={{ readOnly: true }} />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <TextField fullWidth label="SQLs Generated" name="sqlsGenerated" type="number" value={formData.sqlsGenerated} disabled helperText="System metric" InputProps={{ readOnly: true }} />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <TextField fullWidth label="Opportunities Created" name="opportunitiesCreated" type="number" value={formData.opportunitiesCreated} disabled helperText="System metric" InputProps={{ readOnly: true }} />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <TextField fullWidth label="Deals Won" name="dealsWon" type="number" value={formData.dealsWon} disabled helperText="System metric" InputProps={{ readOnly: true }} />
+                  </Grid>
+                </Grid>
+              </AccordionDetails>
+            </Accordion>
+
+            {/* Accordion for Email Metrics (read-only) */}
+            <Accordion sx={{ mt: 1 }}>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <Typography variant="subtitle1" fontWeight={600}>Email Metrics (Read-only)</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Grid container spacing={2}>
+                  <Grid item xs={6}>
+                    <TextField fullWidth label="Emails Sent" disabled value={formData.emailsSent} helperText="System metric" InputProps={{ readOnly: true }} />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <TextField fullWidth label="Emails Delivered" disabled value={formData.emailsDelivered} helperText="System metric" InputProps={{ readOnly: true }} />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <TextField fullWidth label="Delivery Rate (%)" disabled value={formData.deliveryRate} helperText="System metric" InputProps={{ readOnly: true }} />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <TextField fullWidth label="Emails Opened" disabled value={formData.emailsOpened} helperText="System metric" InputProps={{ readOnly: true }} />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <TextField fullWidth label="Open Rate (%)" disabled value={formData.emailsSent > 0 ? ((formData.emailsOpened / formData.emailsSent) * 100).toFixed(2) : '0'} helperText="Calculated" InputProps={{ readOnly: true }} />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <TextField fullWidth label="Email Clicks" disabled value={formData.emailClicks} helperText="System metric" InputProps={{ readOnly: true }} />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <TextField fullWidth label="Bounce Rate (%)" disabled value={formData.bounceRate} helperText="System metric" InputProps={{ readOnly: true }} />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <TextField fullWidth label="Bounces" disabled value={formData.bounces} helperText="System metric" InputProps={{ readOnly: true }} />
+                  </Grid>
+                </Grid>
+              </AccordionDetails>
+            </Accordion>
+
+            {/* Accordion for Digital Metrics (read-only) */}
+            <Accordion sx={{ mt: 1 }}>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <Typography variant="subtitle1" fontWeight={600}>Digital Metrics (Read-only)</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Grid container spacing={2}>
+                  <Grid item xs={6}>
+                    <TextField fullWidth label="Impressions" disabled value={formData.impressions} helperText="System metric" InputProps={{ readOnly: true }} />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <TextField fullWidth label="Reach" disabled value={formData.reach} helperText="System metric" InputProps={{ readOnly: true }} />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <TextField fullWidth label="Clicks" disabled value={formData.clicks} helperText="System metric" InputProps={{ readOnly: true }} />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <TextField fullWidth label="Click-Through Rate (%)" disabled value={formData.clickThroughRate} helperText="System metric" InputProps={{ readOnly: true }} />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <TextField fullWidth label="Landing Page Visits" disabled value={formData.landingPageVisits} helperText="System metric" InputProps={{ readOnly: true }} />
+                  </Grid>
+                </Grid>
+              </AccordionDetails>
+            </Accordion>
+
+            {/* Accordion for Social Metrics (read-only) */}
+            <Accordion sx={{ mt: 1 }}>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <Typography variant="subtitle1" fontWeight={600}>Social Metrics (Read-only)</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Grid container spacing={2}>
+                  <Grid item xs={6}>
+                    <TextField fullWidth label="Social Reach" disabled value={formData.socialReach} helperText="System metric" InputProps={{ readOnly: true }} />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <TextField fullWidth label="Social Engagement" disabled value={formData.socialEngagement} helperText="System metric" InputProps={{ readOnly: true }} />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <TextField fullWidth label="Social Shares" disabled value={formData.socialShares} helperText="System metric" InputProps={{ readOnly: true }} />
+                  </Grid>
+                </Grid>
+              </AccordionDetails>
+            </Accordion>
+
+            {/* Accordion for Event */}
+            <Accordion sx={{ mt: 1 }}>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <Typography variant="subtitle1" fontWeight={600}>Event Details</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Grid container spacing={2}>
+                  <Grid item xs={6}>
+                    <TextField fullWidth label="Attendance" name="attendance" type="number" value={formData.attendance} onChange={handleInputChange} inputProps={{ min: 0 }} />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <TextField fullWidth label="No-Shows" name="noShows" type="number" value={formData.noShows} onChange={handleInputChange} inputProps={{ min: 0 }} />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <TextField fullWidth label="Event Capacity" name="eventCapacity" type="number" value={formData.eventCapacity} onChange={handleInputChange} inputProps={{ min: 0 }} />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <TextField fullWidth label="Event Date & Time" name="eventDateTime" type="datetime-local" value={formData.eventDateTime} onChange={handleInputChange} InputLabelProps={{ shrink: true }} />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField fullWidth label="Event Location" name="eventLocation" value={formData.eventLocation} onChange={handleInputChange} />
+                  </Grid>
+                </Grid>
+              </AccordionDetails>
+            </Accordion>
+
+            {/* Accordion for Admin */}
+            <Accordion sx={{ mt: 1 }}>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <Typography variant="subtitle1" fontWeight={600}>Admin</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Grid container spacing={2}>
+                  <Grid item xs={6}>
+                    <TextField fullWidth label="Cost Center" name="costCenter" value={formData.costCenter} onChange={handleInputChange} />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <TextField fullWidth label="Parent Campaign ID" name="parentCampaignId" type="number" value={formData.parentCampaignId} onChange={handleInputChange} inputProps={{ min: 0 }} />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <TextField fullWidth label="External ID" name="externalId" value={formData.externalId} onChange={handleInputChange} />
+                  </Grid>
+                  <Grid item xs={6}>
+                    <TextField fullWidth label="A/B Test Metric" name="abTestMetric" value={formData.abTestMetric} onChange={handleInputChange} placeholder="e.g. open_rate" />
                   </Grid>
                 </Grid>
               </AccordionDetails>

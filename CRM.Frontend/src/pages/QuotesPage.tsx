@@ -76,10 +76,10 @@ interface Quote extends BaseEntity {
   opportunityId?: number;
   status: number;
   subtotal: number;
-  tax: number;
-  discount: number;
+  taxTotal: number;
+  discountTotal: number;
   shippingCost: number;
-  total: number;
+  grandTotal: number;
   discountPercent: number;
   taxRate: number;
   expirationDate?: string;
@@ -285,9 +285,9 @@ function QuotesPage() {
       ...formData,
       accountId: formData.accountId || null,
       opportunityId: formData.opportunityId || null,
-      discount: totals.discount,
-      tax: totals.tax,
-      total: totals.total,
+      discountTotal: totals.discount,
+      taxTotal: totals.tax,
+      grandTotal: totals.total,
     };
     await dialogApi.execute(async () => {
       if (editingId) {
@@ -412,10 +412,10 @@ function QuotesPage() {
           title: 'Totals',
           fields: [
             { label: 'Subtotal', value: formatCurrency(quote.subtotal) },
-            { label: 'Discount', value: `${formatCurrency(quote.discount)} (${quote.discountPercent || 0}%)` },
-            { label: 'Tax', value: `${formatCurrency(quote.tax)} (${quote.taxRate || 0}%)` },
+            { label: 'Discount', value: `${formatCurrency(quote.discountTotal)} (${quote.discountPercent || 0}%)` },
+            { label: 'Tax', value: `${formatCurrency(quote.taxTotal)} (${quote.taxRate || 0}%)` },
             { label: 'Shipping', value: formatCurrency(quote.shippingCost) },
-            { label: 'Total', value: formatCurrency(quote.total) },
+            { label: 'Total', value: formatCurrency(quote.grandTotal) },
           ],
         },
         quote.termsAndConditions ? {
@@ -533,9 +533,9 @@ function QuotesPage() {
                       </TableCell>
                       <TableCell>
                         <Box>
-                          <Typography fontWeight={500}>${(quote.total || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</Typography>
-                          {(quote.discount || 0) > 0 && (
-                            <Typography variant="caption" color="success.main">-${(quote.discount || 0).toFixed(2)} discount</Typography>
+                          <Typography fontWeight={500}>${(quote.grandTotal || 0).toLocaleString(undefined, { minimumFractionDigits: 2 })}</Typography>
+                          {(quote.discountTotal || 0) > 0 && (
+                            <Typography variant="caption" color="success.main">-${(quote.discountTotal || 0).toFixed(2)} discount</Typography>
                           )}
                         </Box>
                       </TableCell>

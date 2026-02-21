@@ -28,7 +28,8 @@ import {
   CircularProgress,
   Accordion,
   AccordionSummary,
-  AccordionDetails
+  AccordionDetails,
+  Divider,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import type { SelectChangeEvent } from '@mui/material';
@@ -99,6 +100,24 @@ interface PaymentForm {
   gateway: string;
   gatewayResponseCode: string;
   internalNotes: string;
+  // Identifiers
+  paymentNumber: string;
+  externalPaymentId: string;
+  gatewayTransactionId: string;
+  gatewayReference: string;
+  checkNumber: string;
+  // Financials
+  amountApplied: number;
+  processingFee: number;
+  exchangeRate: number;
+  // Dates
+  processedDate: string;
+  settledDate: string;
+  depositDate: string;
+  scheduledDate: string;
+  // Relations
+  accountId: number | null;
+  originalPaymentId: number | null;
 }
 
 // ==================== CONSTANTS ====================
@@ -181,6 +200,24 @@ function PaymentsPage() {
     gateway: '',
     gatewayResponseCode: '',
     internalNotes: '',
+    // Identifiers
+    paymentNumber: '',
+    externalPaymentId: '',
+    gatewayTransactionId: '',
+    gatewayReference: '',
+    checkNumber: '',
+    // Financials
+    amountApplied: 0,
+    processingFee: 0,
+    exchangeRate: 1,
+    // Dates
+    processedDate: '',
+    settledDate: '',
+    depositDate: '',
+    scheduledDate: '',
+    // Relations
+    accountId: null,
+    originalPaymentId: null,
   };
   const [formData, setFormData] = useState<PaymentForm>(emptyForm);
 
@@ -249,6 +286,24 @@ function PaymentsPage() {
         amount: formData.amount,
         method: formData.paymentMethod,
         details: { externalReference: formData.reference },
+        // Identifiers
+        paymentNumber: formData.paymentNumber,
+        externalPaymentId: formData.externalPaymentId,
+        gatewayTransactionId: formData.gatewayTransactionId,
+        gatewayReference: formData.gatewayReference,
+        checkNumber: formData.checkNumber,
+        // Financials
+        amountApplied: formData.amountApplied,
+        processingFee: formData.processingFee,
+        exchangeRate: formData.exchangeRate,
+        // Dates
+        processedDate: formData.processedDate || null,
+        settledDate: formData.settledDate || null,
+        depositDate: formData.depositDate || null,
+        scheduledDate: formData.scheduledDate || null,
+        // Relations
+        accountId: formData.accountId,
+        originalPaymentId: formData.originalPaymentId,
       });
       setSuccessMessage('Payment processed successfully');
       handleCloseDialog();
@@ -503,6 +558,188 @@ function PaymentsPage() {
                     name="notes"
                     value={formData.notes}
                     onChange={handleInputChange}
+                  />
+                </Grid>
+              </Grid>
+            </AccordionDetails>
+          </Accordion>
+
+          {/* Accordion for Identifiers */}
+          <Accordion sx={{ mt: 2 }}>
+            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+              <Typography variant="subtitle1" fontWeight={600}>Identifiers</Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <Grid container spacing={2}>
+                <Grid item xs={12}>
+                  <Typography variant="subtitle2" color="text.secondary" gutterBottom>Payment Identifiers</Typography>
+                  <Divider sx={{ mb: 2 }} />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Payment Number"
+                    name="paymentNumber"
+                    value={formData.paymentNumber}
+                    onChange={handleInputChange}
+                    InputProps={{ readOnly: true }}
+                    helperText="Assigned automatically"
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="External Payment ID"
+                    name="externalPaymentId"
+                    value={formData.externalPaymentId}
+                    onChange={handleInputChange}
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Gateway Transaction ID"
+                    name="gatewayTransactionId"
+                    value={formData.gatewayTransactionId}
+                    onChange={handleInputChange}
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Gateway Reference"
+                    name="gatewayReference"
+                    value={formData.gatewayReference}
+                    onChange={handleInputChange}
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    label="Check Number"
+                    name="checkNumber"
+                    value={formData.checkNumber}
+                    onChange={handleInputChange}
+                  />
+                </Grid>
+              </Grid>
+            </AccordionDetails>
+          </Accordion>
+
+          {/* Accordion for Financial & Date Details */}
+          <Accordion sx={{ mt: 2 }}>
+            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+              <Typography variant="subtitle1" fontWeight={600}>Financial &amp; Date Details</Typography>
+            </AccordionSummary>
+            <AccordionDetails>
+              <Grid container spacing={2}>
+                <Grid item xs={12}>
+                  <Typography variant="subtitle2" color="text.secondary" gutterBottom>Financials</Typography>
+                  <Divider sx={{ mb: 2 }} />
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <TextField
+                    fullWidth
+                    type="number"
+                    label="Amount Applied"
+                    name="amountApplied"
+                    value={formData.amountApplied}
+                    onChange={handleInputChange}
+                    inputProps={{ min: 0, step: 0.01 }}
+                  />
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <TextField
+                    fullWidth
+                    type="number"
+                    label="Processing Fee"
+                    name="processingFee"
+                    value={formData.processingFee}
+                    onChange={handleInputChange}
+                    inputProps={{ min: 0, step: 0.01 }}
+                  />
+                </Grid>
+                <Grid item xs={12} md={4}>
+                  <TextField
+                    fullWidth
+                    type="number"
+                    label="Exchange Rate"
+                    name="exchangeRate"
+                    value={formData.exchangeRate}
+                    onChange={handleInputChange}
+                    inputProps={{ min: 0, step: 0.0001 }}
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <Typography variant="subtitle2" color="text.secondary" sx={{ mt: 1 }} gutterBottom>Dates</Typography>
+                  <Divider sx={{ mb: 2 }} />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    type="date"
+                    label="Processed Date"
+                    name="processedDate"
+                    value={formData.processedDate}
+                    onChange={handleInputChange}
+                    InputLabelProps={{ shrink: true }}
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    type="date"
+                    label="Settled Date"
+                    name="settledDate"
+                    value={formData.settledDate}
+                    onChange={handleInputChange}
+                    InputLabelProps={{ shrink: true }}
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    type="date"
+                    label="Deposit Date"
+                    name="depositDate"
+                    value={formData.depositDate}
+                    onChange={handleInputChange}
+                    InputLabelProps={{ shrink: true }}
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    type="date"
+                    label="Scheduled Date"
+                    name="scheduledDate"
+                    value={formData.scheduledDate}
+                    onChange={handleInputChange}
+                    InputLabelProps={{ shrink: true }}
+                  />
+                </Grid>
+                <Grid item xs={12}>
+                  <Typography variant="subtitle2" color="text.secondary" sx={{ mt: 1 }} gutterBottom>Relations</Typography>
+                  <Divider sx={{ mb: 2 }} />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    type="number"
+                    label="Account ID"
+                    value={formData.accountId || ''}
+                    onChange={(e) => setFormData(prev => ({ ...prev, accountId: e.target.value ? parseInt(e.target.value) : null }))}
+                    helperText="ID of the associated account"
+                  />
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <TextField
+                    fullWidth
+                    type="number"
+                    label="Original Payment ID"
+                    value={formData.originalPaymentId || ''}
+                    onChange={(e) => setFormData(prev => ({ ...prev, originalPaymentId: e.target.value ? parseInt(e.target.value) : null }))}
+                    helperText="For refunds or replacements"
                   />
                 </Grid>
               </Grid>

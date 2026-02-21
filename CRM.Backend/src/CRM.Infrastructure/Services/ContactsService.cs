@@ -105,19 +105,66 @@ public class ContactsService : IContactsService, IContactInputPort
             MiddleName = request.MiddleName,
             EmailPrimary = request.EmailPrimary,
             EmailSecondary = request.EmailSecondary,
+            EmailWork = request.EmailWork,
             PhonePrimary = request.PhonePrimary,
             PhoneSecondary = request.PhoneSecondary,
+            PhoneWork = request.PhoneWork,
             Address = request.Address,
             City = request.City,
             State = request.State,
             Country = request.Country,
             ZipCode = request.ZipCode,
+            MailingAddress = request.MailingAddress,
+            MailingCity = request.MailingCity,
+            MailingState = request.MailingState,
+            MailingCountry = request.MailingCountry,
+            MailingZipCode = request.MailingZipCode,
             JobTitle = request.JobTitle,
             Department = request.Department,
             Company = request.Company,
             ReportsTo = request.ReportsTo,
+            ReportsToContactId = request.ReportsToContactId,
+            AssistantContactId = request.AssistantContactId,
+            AssistantName = request.AssistantName,
+            AssistantPhone = request.AssistantPhone,
             Notes = request.Notes,
             DateOfBirth = request.DateOfBirth,
+            Salutation = request.Salutation,
+            Suffix = request.Suffix,
+            Nickname = request.Nickname,
+            Gender = request.Gender,
+            PhoneMobile = request.PhoneMobile,
+            PhoneFax = request.PhoneFax,
+            Website = request.Website,
+            LinkedInUrl = request.LinkedInUrl,
+            TwitterHandle = request.TwitterHandle,
+            FacebookUrl = request.FacebookUrl,
+            InstagramHandle = request.InstagramHandle,
+            BlogUrl = request.BlogUrl,
+            DoNotContact = request.DoNotContact,
+            PreferredContactTime = request.PreferredContactTime,
+            Timezone = request.Timezone,
+            PreferredLanguage = request.PreferredLanguage,
+            OptInEmail = request.OptInEmail,
+            OptInSms = request.OptInSms,
+            OptInPhone = request.OptInPhone,
+            OptInMail = request.OptInMail,
+            LastOptInDate = request.LastOptInDate,
+            LastOptOutDate = request.LastOptOutDate,
+            LeadSource = request.LeadSource,
+            LeadScore = request.LeadScore,
+            IsQualified = request.IsQualified,
+            QualifiedDate = request.QualifiedDate,
+            ConvertedDate = request.ConvertedDate,
+            ConvertedToAccountId = request.ConvertedToAccountId,
+            LeadRating = request.LeadRating,
+            OwnerId = request.OwnerId,
+            AssignedToUserId = request.AssignedToUserId,
+            Territory = request.Territory,
+            Tags = request.Tags,
+            CustomFields = request.CustomFields,
+            PhotoUrl = request.PhotoUrl,
+            Description = request.Description,
             DateAdded = DateTime.UtcNow,
             LastModified = DateTime.UtcNow,
             ModifiedBy = modifiedBy
@@ -286,6 +333,117 @@ public class ContactsService : IContactsService, IContactInputPort
 
         if (request.DateOfBirth.HasValue)
             contact.DateOfBirth = request.DateOfBirth;
+
+        if (request.EmailWork != null)
+            contact.EmailWork = request.EmailWork;
+
+        if (request.PhoneWork != null)
+            contact.PhoneWork = request.PhoneWork;
+
+        if (request.MailingAddress != null)
+            contact.MailingAddress = request.MailingAddress;
+
+        if (request.MailingCity != null)
+            contact.MailingCity = request.MailingCity;
+
+        if (request.MailingState != null)
+            contact.MailingState = request.MailingState;
+
+        if (request.MailingCountry != null)
+            contact.MailingCountry = request.MailingCountry;
+
+        if (request.MailingZipCode != null)
+            contact.MailingZipCode = request.MailingZipCode;
+
+        if (request.ReportsToContactId.HasValue)
+            contact.ReportsToContactId = request.ReportsToContactId;
+
+        if (request.AssistantContactId.HasValue)
+            contact.AssistantContactId = request.AssistantContactId;
+
+        if (request.AssistantName != null)
+            contact.AssistantName = request.AssistantName;
+
+        if (request.AssistantPhone != null)
+            contact.AssistantPhone = request.AssistantPhone;
+
+        if (request.FacebookUrl != null)
+            contact.FacebookUrl = request.FacebookUrl;
+
+        if (request.InstagramHandle != null)
+            contact.InstagramHandle = request.InstagramHandle;
+
+        if (request.BlogUrl != null)
+            contact.BlogUrl = request.BlogUrl;
+
+        if (request.PreferredContactTime != null)
+            contact.PreferredContactTime = request.PreferredContactTime;
+
+        if (request.Timezone != null)
+            contact.Timezone = request.Timezone;
+
+        if (request.PreferredLanguage != null)
+            contact.PreferredLanguage = request.PreferredLanguage;
+
+        if (request.OptInEmail.HasValue)
+            contact.OptInEmail = request.OptInEmail.Value;
+
+        if (request.OptInSms.HasValue)
+            contact.OptInSms = request.OptInSms.Value;
+
+        if (request.OptInPhone.HasValue)
+            contact.OptInPhone = request.OptInPhone.Value;
+
+        if (request.OptInMail.HasValue)
+            contact.OptInMail = request.OptInMail.Value;
+
+        if (request.LastOptInDate.HasValue)
+            contact.LastOptInDate = request.LastOptInDate;
+
+        if (request.LastOptOutDate.HasValue)
+            contact.LastOptOutDate = request.LastOptOutDate;
+
+        if (request.LeadSource != null)
+            contact.LeadSource = request.LeadSource;
+
+        if (request.LeadScore.HasValue)
+            contact.LeadScore = request.LeadScore;
+
+        if (request.IsQualified.HasValue)
+            contact.IsQualified = request.IsQualified;
+
+        if (request.QualifiedDate.HasValue)
+            contact.QualifiedDate = request.QualifiedDate;
+
+        if (request.ConvertedDate.HasValue)
+            contact.ConvertedDate = request.ConvertedDate;
+
+        if (request.ConvertedToAccountId.HasValue)
+            contact.ConvertedToAccountId = request.ConvertedToAccountId;
+
+        if (request.LeadRating != null)
+            contact.LeadRating = request.LeadRating;
+
+        if (request.OwnerId.HasValue)
+            contact.OwnerId = request.OwnerId;
+
+        if (request.AssignedToUserId.HasValue)
+            contact.AssignedToUserId = request.AssignedToUserId;
+
+        if (request.Territory != null)
+            contact.Territory = request.Territory;
+
+        if (request.Tags != null)
+            contact.Tags = request.Tags;
+
+        if (request.CustomFields != null)
+            contact.CustomFields = request.CustomFields;
+
+        if (request.PhotoUrl != null)
+            contact.PhotoUrl = request.PhotoUrl;
+
+        if (request.Description != null)
+            contact.Description = request.Description;
 
         contact.LastModified = DateTime.UtcNow;
         contact.ModifiedBy = modifiedBy;
@@ -487,24 +645,80 @@ public class ContactsService : IContactsService, IContactInputPort
             MiddleName = contact.MiddleName,
             EmailPrimary = contact.EmailPrimary,
             EmailSecondary = contact.EmailSecondary,
+            EmailWork = contact.EmailWork,
             PhonePrimary = contact.PhonePrimary,
             PhoneSecondary = contact.PhoneSecondary,
+            PhoneWork = contact.PhoneWork,
             Address = contact.Address,
             City = contact.City,
             State = contact.State,
             Country = contact.Country,
             ZipCode = contact.ZipCode,
+            MailingAddress = contact.MailingAddress,
+            MailingCity = contact.MailingCity,
+            MailingState = contact.MailingState,
+            MailingCountry = contact.MailingCountry,
+            MailingZipCode = contact.MailingZipCode,
             JobTitle = contact.JobTitle,
             Department = contact.Department,
             Company = contact.Company,
             ReportsTo = contact.ReportsTo,
+            ReportsToContactId = contact.ReportsToContactId,
+            AssistantContactId = contact.AssistantContactId,
+            AssistantName = contact.AssistantName,
+            AssistantPhone = contact.AssistantPhone,
             Notes = contact.Notes,
             DateOfBirth = contact.DateOfBirth,
             DateAdded = contact.DateAdded,
             LastModified = contact.LastModified,
             ModifiedBy = contact.ModifiedBy,
+            Salutation = contact.Salutation,
+            Suffix = contact.Suffix,
+            Nickname = contact.Nickname,
+            Gender = contact.Gender,
+            PhoneMobile = contact.PhoneMobile,
+            PhoneFax = contact.PhoneFax,
+            Website = contact.Website,
+            LinkedInUrl = contact.LinkedInUrl,
+            TwitterHandle = contact.TwitterHandle,
+            FacebookUrl = contact.FacebookUrl,
+            InstagramHandle = contact.InstagramHandle,
+            BlogUrl = contact.BlogUrl,
+            DoNotContact = contact.DoNotContact,
+            PreferredContactMethod = contact.PreferredContactMethod.ToString(),
+            PreferredContactTime = contact.PreferredContactTime,
+            Timezone = contact.Timezone,
+            PreferredLanguage = contact.PreferredLanguage,
+            OptInEmail = contact.OptInEmail,
+            OptInSms = contact.OptInSms,
+            OptInPhone = contact.OptInPhone,
+            OptInMail = contact.OptInMail,
+            LastOptInDate = contact.LastOptInDate,
+            LastOptOutDate = contact.LastOptOutDate,
+            LeadStatus = contact.LeadStatus?.ToString(),
+            LeadSource = contact.LeadSource,
+            LeadScore = contact.LeadScore,
+            IsQualified = contact.IsQualified,
+            QualifiedDate = contact.QualifiedDate,
+            ConvertedDate = contact.ConvertedDate,
+            ConvertedToAccountId = contact.ConvertedToAccountId,
+            LeadRating = contact.LeadRating,
+            OwnerId = contact.OwnerId,
+            AssignedToUserId = contact.AssignedToUserId,
+            Territory = contact.Territory,
+            Tags = contact.Tags,
             Status = contact.Status.ToString(),
             AccountId = contact.AccountId,
+            LastActivityDate = contact.LastActivityDate,
+            LastContactedDate = contact.LastContactedDate,
+            NextFollowUpDate = contact.NextFollowUpDate,
+            TotalInteractions = contact.TotalInteractions,
+            EmailsReceived = contact.EmailsReceived,
+            EmailsOpened = contact.EmailsOpened,
+            LinksClicked = contact.LinksClicked,
+            CustomFields = contact.CustomFields,
+            PhotoUrl = contact.PhotoUrl,
+            Description = contact.Description,
             SocialMediaLinks = contact.SocialMediaLinks
                 .Select(l => new SocialMediaLinkDto
                 {

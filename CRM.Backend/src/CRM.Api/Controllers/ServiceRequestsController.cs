@@ -587,6 +587,43 @@ public class ServiceRequestsController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Mark a service request as expedited for priority handling.
+    /// </summary>
+    /// <param name="id">The service request ID</param>
+    /// <param name="dto">The expedite reason</param>
+    /// <returns>The expedited service request</returns>
+    /// <response code="200">Returns the expedited service request</response>
+    /// <response code="400">If the expedite reason is missing</response>
+    /// <response code="404">If the service request is not found</response>
+    /// <response code="500">If there was an internal server error</response>
+    [HttpPost("{id}/expedite")]
+    [ProducesResponseType(typeof(ServiceRequestDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<ServiceRequestDto>> Expedite(int id, [FromBody] ExpediteServiceRequestDto dto)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(dto.Reason))
+                return BadRequest("An expedite reason is required.");
+
+            var userId = GetCurrentUserId();
+            var request = await _serviceRequestService.ExpediteServiceRequestAsync(id, dto.Reason, userId);
+            return Ok(request);
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound($"Service request {id} not found");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error expediting service request {Id}", id);
+            return StatusCode(500, "An error occurred");
+        }
+    }
+
     #endregion
 
     #region Assignment Operations
@@ -814,6 +851,11 @@ public class ReopenServiceRequestDto
 }
 
 public class EscalateServiceRequestDto
+{
+    public string Reason { get; set; } = string.Empty;
+}
+
+public class ExpediteServiceRequestDto
 {
     public string Reason { get; set; } = string.Empty;
 }

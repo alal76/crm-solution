@@ -10,7 +10,8 @@ import {
   TableHead, TableRow, Button, Dialog, DialogTitle, DialogContent, DialogActions,
   TextField, MenuItem, Stack, Chip, IconButton, Tooltip, CircularProgress,
   Alert, Grid, Tabs, Tab, FormControl, InputLabel, Select, LinearProgress,
-  SelectChangeEvent, Paper, Divider, Accordion, AccordionSummary, AccordionDetails
+  SelectChangeEvent, Paper, Divider, Accordion, AccordionSummary, AccordionDetails,
+  Switch, FormControlLabel,
 } from '@mui/material';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import {
@@ -113,6 +114,13 @@ interface ContractForm {
   suspensionReason: string;
   suspendedDate: string;
   terminationClause: string;
+  // Currency
+  currencyCode: string;
+  // Renewal Tracking
+  renewalNoticeSent: boolean;
+  renewalNoticeSentDate: string;
+  renewalInitiatedAt: string;
+  renewalCompletedAt: string;
 }
 
 // ==================== TYPES ====================
@@ -220,6 +228,13 @@ function ContractsPage() {
     suspensionReason: '',
     suspendedDate: '',
     terminationClause: '',
+    // Currency
+    currencyCode: 'USD',
+    // Renewal Tracking
+    renewalNoticeSent: false,
+    renewalNoticeSentDate: '',
+    renewalInitiatedAt: '',
+    renewalCompletedAt: '',
   };
   const [formData, setFormData] = useState<ContractForm>(emptyForm);
 
@@ -285,6 +300,13 @@ function ContractsPage() {
         suspensionReason: (contract as any).suspensionReason || '',
         suspendedDate: (contract as any).suspendedDate?.split('T')[0] || '',
         terminationClause: (contract as any).terminationClause || '',
+        // Currency
+        currencyCode: (contract as any).currencyCode || 'USD',
+        // Renewal Tracking
+        renewalNoticeSent: (contract as any).renewalNoticeSent || false,
+        renewalNoticeSentDate: (contract as any).renewalNoticeSentDate?.split('T')[0] || '',
+        renewalInitiatedAt: (contract as any).renewalInitiatedAt?.split('T')[0] || '',
+        renewalCompletedAt: (contract as any).renewalCompletedAt?.split('T')[0] || '',
       });
     } else {
       setEditingId(null);
@@ -973,6 +995,85 @@ function ContractsPage() {
                       value={formData.terminationClause}
                       onChange={handleInputChange}
                       placeholder="Describe the conditions under which this contract may be terminated"
+                    />
+                  </Grid>
+                </Grid>
+              </AccordionDetails>
+            </Accordion>
+            {/* Accordion for Currency & Renewal Tracking */}
+            <Accordion sx={{ mt: 2 }}>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <Typography variant="subtitle1" fontWeight={600}>Currency &amp; Renewal Tracking</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Grid container spacing={2}>
+                  <Grid item xs={12}>
+                    <Typography variant="subtitle2" color="text.secondary" gutterBottom>Currency</Typography>
+                    <Divider sx={{ mb: 2 }} />
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    <TextField
+                      fullWidth
+                      label="Currency Code"
+                      name="currencyCode"
+                      value={formData.currencyCode}
+                      onChange={handleInputChange}
+                      inputProps={{ maxLength: 3 }}
+                      placeholder="USD"
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <Typography variant="subtitle2" color="text.secondary" sx={{ mt: 1 }} gutterBottom>Renewal Tracking</Typography>
+                    <Divider sx={{ mb: 2 }} />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          name="renewalNoticeSent"
+                          checked={formData.renewalNoticeSent}
+                          onChange={handleInputChange}
+                        />
+                      }
+                      label="Renewal Notice Sent"
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      type="date"
+                      label="Renewal Notice Sent Date"
+                      name="renewalNoticeSentDate"
+                      value={formData.renewalNoticeSentDate}
+                      onChange={handleInputChange}
+                      InputLabelProps={{ shrink: true }}
+                      disabled={!formData.renewalNoticeSent}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      type="date"
+                      label="Renewal Initiated At"
+                      name="renewalInitiatedAt"
+                      value={formData.renewalInitiatedAt}
+                      onChange={handleInputChange}
+                      InputLabelProps={{ shrink: true }}
+                      InputProps={{ readOnly: true }}
+                      helperText="Set automatically when renewal begins"
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      type="date"
+                      label="Renewal Completed At"
+                      name="renewalCompletedAt"
+                      value={formData.renewalCompletedAt}
+                      onChange={handleInputChange}
+                      InputLabelProps={{ shrink: true }}
+                      InputProps={{ readOnly: true }}
+                      helperText="Set automatically when renewal completes"
                     />
                   </Grid>
                 </Grid>

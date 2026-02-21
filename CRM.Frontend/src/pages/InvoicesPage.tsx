@@ -229,6 +229,30 @@ function InvoicesPage() {
     earlyPaymentDiscountPercent: 0,
     earlyPaymentDiscountDays: 0,
     lateFeePercent: 0,
+    // Classification
+    description: '',
+    invoiceType: '',
+    // Service Period
+    servicePeriodStart: '',
+    servicePeriodEnd: '',
+    // Financials
+    subtotal: 0,
+    discountAmount: 0,
+    taxAmount: 0,
+    shippingAmount: 0,
+    currencyCode: 'USD',
+    earlyPaymentDiscountAmount: 0,
+    lateFeeAmount: 0,
+    // Collections
+    inCollections: false,
+    collectionReference: '',
+    // Relations
+    contactId: null,
+    originalInvoiceId: null,
+    // Admin
+    footer: '',
+    termsAndConditions: '',
+    voidReason: '',
   };
   const [formData, setFormData] = useState<InvoiceForm>(emptyForm);
 
@@ -297,6 +321,30 @@ function InvoicesPage() {
         earlyPaymentDiscountPercent: (invoice as any).earlyPaymentDiscountPercent || 0,
         earlyPaymentDiscountDays: (invoice as any).earlyPaymentDiscountDays || 0,
         lateFeePercent: (invoice as any).lateFeePercent || 0,
+        // Classification
+        description: (invoice as any).description || '',
+        invoiceType: (invoice as any).invoiceType || '',
+        // Service Period
+        servicePeriodStart: (invoice as any).servicePeriodStart?.split('T')[0] || '',
+        servicePeriodEnd: (invoice as any).servicePeriodEnd?.split('T')[0] || '',
+        // Financials
+        subtotal: invoice.subtotal || 0,
+        discountAmount: invoice.discountAmount || 0,
+        taxAmount: invoice.taxAmount || 0,
+        shippingAmount: (invoice as any).shippingAmount || 0,
+        currencyCode: (invoice as any).currencyCode || 'USD',
+        earlyPaymentDiscountAmount: (invoice as any).earlyPaymentDiscountAmount || 0,
+        lateFeeAmount: (invoice as any).lateFeeAmount || 0,
+        // Collections
+        inCollections: (invoice as any).inCollections || false,
+        collectionReference: (invoice as any).collectionReference || '',
+        // Relations
+        contactId: (invoice as any).contactId || null,
+        originalInvoiceId: (invoice as any).originalInvoiceId || null,
+        // Admin
+        footer: (invoice as any).footer || '',
+        termsAndConditions: (invoice as any).termsAndConditions || '',
+        voidReason: (invoice as any).voidReason || '',
       });
       fetchLineItems(invoice.id);
     } else {
@@ -315,9 +363,10 @@ function InvoicesPage() {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value, type } = e.target;
+    const checked = (e.target as HTMLInputElement).checked;
     setFormData(prev => ({
       ...prev,
-      [name]: type === 'number' ? parseFloat(value) || 0 : value,
+      [name]: type === 'checkbox' ? checked : type === 'number' ? parseFloat(value) || 0 : value,
     }));
   };
 
@@ -686,6 +735,281 @@ function InvoicesPage() {
                       value={formData.internalNotes}
                       onChange={handleInputChange}
                       placeholder="Internal notes (not visible to customer)"
+                    />
+                  </Grid>
+                </Grid>
+              </AccordionDetails>
+            </Accordion>
+
+            {/* Accordion for Classification & Service Period */}
+            <Accordion sx={{ mt: 2 }}>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <Typography variant="subtitle1" fontWeight={600}>Classification &amp; Service Period</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Grid container spacing={2}>
+                  <Grid item xs={12}>
+                    <Typography variant="subtitle2" color="text.secondary" gutterBottom>Classification</Typography>
+                    <Divider sx={{ mb: 2 }} />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      multiline
+                      rows={3}
+                      label="Description"
+                      name="description"
+                      value={formData.description}
+                      onChange={handleInputChange}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <FormControl fullWidth>
+                      <InputLabel>Invoice Type</InputLabel>
+                      <Select
+                        name="invoiceType"
+                        value={formData.invoiceType}
+                        onChange={handleSelectChange}
+                        label="Invoice Type"
+                      >
+                        <MenuItem value="">None</MenuItem>
+                        <MenuItem value="standard">Standard</MenuItem>
+                        <MenuItem value="proforma">Proforma</MenuItem>
+                        <MenuItem value="credit">Credit Note</MenuItem>
+                        <MenuItem value="debit">Debit Note</MenuItem>
+                        <MenuItem value="recurring">Recurring</MenuItem>
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                  <Grid item xs={12}>
+                    <Typography variant="subtitle2" color="text.secondary" sx={{ mt: 1 }} gutterBottom>Service Period</Typography>
+                    <Divider sx={{ mb: 2 }} />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      type="date"
+                      label="Service Period Start"
+                      name="servicePeriodStart"
+                      value={formData.servicePeriodStart}
+                      onChange={handleInputChange}
+                      InputLabelProps={{ shrink: true }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      type="date"
+                      label="Service Period End"
+                      name="servicePeriodEnd"
+                      value={formData.servicePeriodEnd}
+                      onChange={handleInputChange}
+                      InputLabelProps={{ shrink: true }}
+                    />
+                  </Grid>
+                </Grid>
+              </AccordionDetails>
+            </Accordion>
+
+            {/* Accordion for Financial Details */}
+            <Accordion sx={{ mt: 2 }}>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <Typography variant="subtitle1" fontWeight={600}>Financial Details</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Grid container spacing={2}>
+                  <Grid item xs={12}>
+                    <Typography variant="subtitle2" color="text.secondary" gutterBottom>Financials</Typography>
+                    <Divider sx={{ mb: 2 }} />
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    <TextField
+                      fullWidth
+                      type="number"
+                      label="Subtotal"
+                      name="subtotal"
+                      value={formData.subtotal}
+                      onChange={handleInputChange}
+                      InputProps={{ readOnly: true }}
+                      helperText="Calculated automatically"
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    <TextField
+                      fullWidth
+                      type="number"
+                      label="Discount Amount"
+                      name="discountAmount"
+                      value={formData.discountAmount}
+                      onChange={handleInputChange}
+                      inputProps={{ min: 0, step: 0.01 }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    <TextField
+                      fullWidth
+                      type="number"
+                      label="Tax Amount"
+                      name="taxAmount"
+                      value={formData.taxAmount}
+                      onChange={handleInputChange}
+                      inputProps={{ min: 0, step: 0.01 }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    <TextField
+                      fullWidth
+                      type="number"
+                      label="Tax Rate %"
+                      name="taxRate"
+                      value={formData.taxRate}
+                      onChange={handleInputChange}
+                      inputProps={{ min: 0, step: 0.01 }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    <TextField
+                      fullWidth
+                      type="number"
+                      label="Shipping Amount"
+                      name="shippingAmount"
+                      value={formData.shippingAmount}
+                      onChange={handleInputChange}
+                      inputProps={{ min: 0, step: 0.01 }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={4}>
+                    <TextField
+                      fullWidth
+                      label="Currency Code"
+                      name="currencyCode"
+                      value={formData.currencyCode}
+                      onChange={handleInputChange}
+                      inputProps={{ maxLength: 3 }}
+                      placeholder="USD"
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      type="number"
+                      label="Early Payment Discount Amount"
+                      name="earlyPaymentDiscountAmount"
+                      value={formData.earlyPaymentDiscountAmount}
+                      onChange={handleInputChange}
+                      InputProps={{ readOnly: true }}
+                      helperText="Calculated automatically"
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      type="number"
+                      label="Late Fee Amount"
+                      name="lateFeeAmount"
+                      value={formData.lateFeeAmount}
+                      onChange={handleInputChange}
+                      InputProps={{ readOnly: true }}
+                      helperText="Calculated automatically"
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <Typography variant="subtitle2" color="text.secondary" sx={{ mt: 1 }} gutterBottom>Collections</Typography>
+                    <Divider sx={{ mb: 2 }} />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          name="inCollections"
+                          checked={formData.inCollections}
+                          onChange={handleInputChange}
+                        />
+                      }
+                      label="In Collections"
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      label="Collection Reference"
+                      name="collectionReference"
+                      value={formData.collectionReference}
+                      onChange={handleInputChange}
+                      disabled={!formData.inCollections}
+                    />
+                  </Grid>
+                </Grid>
+              </AccordionDetails>
+            </Accordion>
+
+            {/* Accordion for Relations & Admin */}
+            <Accordion sx={{ mt: 2 }}>
+              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+                <Typography variant="subtitle1" fontWeight={600}>Relations &amp; Admin</Typography>
+              </AccordionSummary>
+              <AccordionDetails>
+                <Grid container spacing={2}>
+                  <Grid item xs={12}>
+                    <Typography variant="subtitle2" color="text.secondary" gutterBottom>Relations</Typography>
+                    <Divider sx={{ mb: 2 }} />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      type="number"
+                      label="Contact ID"
+                      value={formData.contactId || ''}
+                      onChange={(e) => setFormData(prev => ({ ...prev, contactId: e.target.value ? parseInt(e.target.value) : null }))}
+                      helperText="ID of the associated contact"
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      type="number"
+                      label="Original Invoice ID"
+                      value={formData.originalInvoiceId || ''}
+                      onChange={(e) => setFormData(prev => ({ ...prev, originalInvoiceId: e.target.value ? parseInt(e.target.value) : null }))}
+                      helperText="For credit notes or replacements"
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <Typography variant="subtitle2" color="text.secondary" sx={{ mt: 1 }} gutterBottom>Admin</Typography>
+                    <Divider sx={{ mb: 2 }} />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      multiline
+                      rows={2}
+                      label="Footer"
+                      name="footer"
+                      value={formData.footer}
+                      onChange={handleInputChange}
+                      placeholder="Invoice footer text"
+                    />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField
+                      fullWidth
+                      multiline
+                      rows={4}
+                      label="Terms and Conditions"
+                      name="termsAndConditions"
+                      value={formData.termsAndConditions}
+                      onChange={handleInputChange}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={6}>
+                    <TextField
+                      fullWidth
+                      label="Void Reason"
+                      name="voidReason"
+                      value={formData.voidReason}
+                      onChange={handleInputChange}
+                      InputProps={{ readOnly: true }}
+                      helperText="Set by the system when voided"
                     />
                   </Grid>
                 </Grid>

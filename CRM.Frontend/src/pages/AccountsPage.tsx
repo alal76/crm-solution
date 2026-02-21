@@ -5,7 +5,7 @@ import {
   DialogContent, DialogActions, Grid, Chip, Tabs, Tab, IconButton, Tooltip, Divider,
   List, ListItem, ListItemText, ListItemSecondaryAction, Autocomplete, TextField,
   FormControl, InputLabel, Select, MenuItem, Checkbox, FormControlLabel, Paper,
-  SelectChangeEvent, Collapse, Stack, TablePagination
+  SelectChangeEvent, Collapse, Stack, TablePagination, Switch
 } from '@mui/material';
 import { 
   TabPanel, 
@@ -36,6 +36,7 @@ import {
   Upload as UploadIcon,
   Download as DownloadIcon,
   LocationOn as LocationIcon,
+  Tune as TuneIcon,
 } from '@mui/icons-material';
 import { Address, CreateAddressDto, UpdateAddressDto } from '../types/address.types';
 import addressService from '../services/addressService';
@@ -253,31 +254,70 @@ const INITIAL_FORM_DATA: AccountForm = {
   jobTitle: '',
   website: '',
   address: '',
+  address2: '',
   city: '',
   state: '',
   zipCode: '',
   country: 'USA',
+  // Shipping Address
+  shippingAddress: '',
+  shippingAddress2: '',
+  shippingCity: '',
+  shippingState: '',
+  shippingZipCode: '',
+  shippingCountry: '',
+  shippingSameAsBilling: false,
   industry: '',
+  subIndustry: '',
   numberOfEmployees: 0,
+  employeeRange: '',
   annualRevenue: 0,
+  revenueRange: '',
+  stockSymbol: '',
+  ownership: '',
   customerType: 0,
   priority: 1,
   lifecycleStage: 0,
   leadSource: '',
   leadScore: 0,
+  // Lifecycle Dates
+  firstContactDate: '',
+  conversionDate: '',
+  lastActivityDate: '',
+  // Financial
+  totalPurchases: 0,
+  accountBalance: 0,
   creditLimit: 0,
   paymentTerms: 'Net 30',
+  preferredPaymentMethod: '',
+  currency: 'USD',
+  billingCycle: '',
+  // Scoring
+  npsScore: 0,
+  satisfactionRating: 0,
   linkedInUrl: '',
   twitterHandle: '',
   optInEmail: true,
   optInSms: false,
   optInPhone: true,
   preferredContactMethod: 'Email',
+  preferredContactTime: '',
   timezone: '',
+  preferredLanguage: '',
   territory: '',
+  region: '',
+  // Assignment
+  accountManagerId: null,
+  // Classification
+  segment: '',
+  referralSource: '',
+  referredByAccountId: null,
+  parentAccountId: null,
   tags: '',
   notes: '',
+  internalNotes: '',
   description: '',
+  customFields: '',
 };
 
 const INITIAL_PREFERENCES: PreferencesDto = {
@@ -923,6 +963,9 @@ function AccountsPage() {
       baseTabs.push({ index: 105, name: 'Addresses' });
     }
 
+    // Add Extended Info tab (always visible for create and edit)
+    baseTabs.push({ index: 106, name: 'Extended Info' });
+
     // Add Related tab when editing (show related opportunities, service requests, etc.)
     if (editingId) {
       baseTabs.push({ index: 103, name: 'Related' });
@@ -1263,12 +1306,13 @@ function AccountsPage() {
                 id={`account-tab-${idx}`}
                 aria-controls={`account-tabpanel-${idx}`}
                 icon={
-                  tab.index === 100 ? <ContactPhoneIcon fontSize="small" /> : 
-                  tab.index === 101 ? <GroupIcon fontSize="small" /> : 
+                  tab.index === 100 ? <ContactPhoneIcon fontSize="small" /> :
+                  tab.index === 101 ? <GroupIcon fontSize="small" /> :
                   tab.index === 105 ? <LocationIcon fontSize="small" /> :
-                  tab.index === 102 ? <NoteIcon fontSize="small" /> : 
+                  tab.index === 102 ? <NoteIcon fontSize="small" /> :
                   tab.index === 103 ? <TrendingUpIcon fontSize="small" /> :
                   tab.index === 104 ? <SettingsIcon fontSize="small" /> :
+                  tab.index === 106 ? <TuneIcon fontSize="small" /> :
                   undefined
                 }
                 iconPosition="start"
@@ -1430,6 +1474,193 @@ function AccountsPage() {
                   />
                 </TabPanel>
               )}
+
+              {/* Extended Info Tab */}
+              <TabPanel value={dialogTab} index={visibleTabs.findIndex(t => t.index === 106)}>
+                {/* Shipping Address */}
+                <Typography variant="subtitle2" fontWeight={600} color="text.secondary" sx={{ mb: 1, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                  Shipping Address
+                </Typography>
+                <Divider sx={{ mb: 2 }} />
+                <Grid container spacing={2} sx={{ mb: 3 }}>
+                  <Grid item xs={12}>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={!!formData.shippingSameAsBilling}
+                          onChange={(e) => setFormData(prev => ({ ...prev, shippingSameAsBilling: e.target.checked }))}
+                          name="shippingSameAsBilling"
+                        />
+                      }
+                      label="Shipping same as billing address"
+                    />
+                  </Grid>
+                  {!formData.shippingSameAsBilling && (
+                    <>
+                      <Grid item xs={12} sm={6}>
+                        <TextField fullWidth size="small" label="Shipping Address" name="shippingAddress" value={formData.shippingAddress} onChange={handleInputChange} />
+                      </Grid>
+                      <Grid item xs={12} sm={6}>
+                        <TextField fullWidth size="small" label="Shipping Address 2" name="shippingAddress2" value={formData.shippingAddress2} onChange={handleInputChange} />
+                      </Grid>
+                      <Grid item xs={12} sm={4}>
+                        <TextField fullWidth size="small" label="Shipping City" name="shippingCity" value={formData.shippingCity} onChange={handleInputChange} />
+                      </Grid>
+                      <Grid item xs={12} sm={4}>
+                        <TextField fullWidth size="small" label="Shipping State" name="shippingState" value={formData.shippingState} onChange={handleInputChange} />
+                      </Grid>
+                      <Grid item xs={12} sm={2}>
+                        <TextField fullWidth size="small" label="Shipping Zip" name="shippingZipCode" value={formData.shippingZipCode} onChange={handleInputChange} />
+                      </Grid>
+                      <Grid item xs={12} sm={2}>
+                        <TextField fullWidth size="small" label="Shipping Country" name="shippingCountry" value={formData.shippingCountry} onChange={handleInputChange} />
+                      </Grid>
+                    </>
+                  )}
+                </Grid>
+
+                {/* Business Details */}
+                <Typography variant="subtitle2" fontWeight={600} color="text.secondary" sx={{ mb: 1, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                  Business Details
+                </Typography>
+                <Divider sx={{ mb: 2 }} />
+                <Grid container spacing={2} sx={{ mb: 3 }}>
+                  <Grid item xs={12} sm={6}>
+                    <TextField fullWidth size="small" label="Sub-Industry" name="subIndustry" value={formData.subIndustry} onChange={handleInputChange} />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField fullWidth size="small" label="Employee Range" name="employeeRange" value={formData.employeeRange} onChange={handleInputChange} placeholder="e.g. 1-10, 11-50, 51-200" />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField fullWidth size="small" label="Revenue Range" name="revenueRange" value={formData.revenueRange} onChange={handleInputChange} placeholder="e.g. $1M-$5M" />
+                  </Grid>
+                  <Grid item xs={12} sm={3}>
+                    <TextField fullWidth size="small" label="Stock Symbol" name="stockSymbol" value={formData.stockSymbol} onChange={handleInputChange} />
+                  </Grid>
+                  <Grid item xs={12} sm={3}>
+                    <TextField fullWidth size="small" label="Ownership" name="ownership" value={formData.ownership} onChange={handleInputChange} placeholder="e.g. Public, Private" />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField fullWidth size="small" label="Billing Address Line 2" name="address2" value={formData.address2} onChange={handleInputChange} />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField fullWidth size="small" label="Region" name="region" value={formData.region} onChange={handleInputChange} />
+                  </Grid>
+                </Grid>
+
+                {/* Lifecycle Dates */}
+                <Typography variant="subtitle2" fontWeight={600} color="text.secondary" sx={{ mb: 1, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                  Lifecycle Dates
+                </Typography>
+                <Divider sx={{ mb: 2 }} />
+                <Grid container spacing={2} sx={{ mb: 3 }}>
+                  <Grid item xs={12} sm={4}>
+                    <TextField fullWidth size="small" type="date" label="First Contact Date" name="firstContactDate" value={formData.firstContactDate} onChange={handleInputChange} InputLabelProps={{ shrink: true }} />
+                  </Grid>
+                  <Grid item xs={12} sm={4}>
+                    <TextField fullWidth size="small" type="date" label="Conversion Date" name="conversionDate" value={formData.conversionDate} onChange={handleInputChange} InputLabelProps={{ shrink: true }} />
+                  </Grid>
+                  <Grid item xs={12} sm={4}>
+                    <TextField fullWidth size="small" type="date" label="Last Activity Date" name="lastActivityDate" value={formData.lastActivityDate} onChange={handleInputChange} InputLabelProps={{ shrink: true }} inputProps={{ readOnly: true }} helperText="Auto-updated by system" />
+                  </Grid>
+                </Grid>
+
+                {/* Financial */}
+                <Typography variant="subtitle2" fontWeight={600} color="text.secondary" sx={{ mb: 1, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                  Financial
+                </Typography>
+                <Divider sx={{ mb: 2 }} />
+                <Grid container spacing={2} sx={{ mb: 3 }}>
+                  <Grid item xs={12} sm={4}>
+                    <TextField fullWidth size="small" type="number" label="Total Purchases" name="totalPurchases" value={formData.totalPurchases} onChange={handleInputChange} inputProps={{ min: 0, step: 0.01 }} />
+                  </Grid>
+                  <Grid item xs={12} sm={4}>
+                    <TextField fullWidth size="small" type="number" label="Account Balance" name="accountBalance" value={formData.accountBalance} onChange={handleInputChange} inputProps={{ step: 0.01 }} />
+                  </Grid>
+                  <Grid item xs={12} sm={4}>
+                    <TextField fullWidth size="small" label="Preferred Payment Method" name="preferredPaymentMethod" value={formData.preferredPaymentMethod} onChange={handleInputChange} placeholder="e.g. Credit Card, ACH" />
+                  </Grid>
+                  <Grid item xs={12} sm={4}>
+                    <TextField fullWidth size="small" label="Currency" name="currency" value={formData.currency} onChange={handleInputChange} placeholder="e.g. USD, EUR" />
+                  </Grid>
+                  <Grid item xs={12} sm={4}>
+                    <TextField fullWidth size="small" label="Billing Cycle" name="billingCycle" value={formData.billingCycle} onChange={handleInputChange} placeholder="e.g. Monthly, Annual" />
+                  </Grid>
+                </Grid>
+
+                {/* Scoring */}
+                <Typography variant="subtitle2" fontWeight={600} color="text.secondary" sx={{ mb: 1, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                  Scoring
+                </Typography>
+                <Divider sx={{ mb: 2 }} />
+                <Grid container spacing={2} sx={{ mb: 3 }}>
+                  <Grid item xs={12} sm={4}>
+                    <TextField fullWidth size="small" type="number" label="NPS Score" name="npsScore" value={formData.npsScore} onChange={handleInputChange} inputProps={{ min: -100, max: 100 }} helperText="-100 to 100" />
+                  </Grid>
+                  <Grid item xs={12} sm={4}>
+                    <TextField fullWidth size="small" type="number" label="Satisfaction Rating" name="satisfactionRating" value={formData.satisfactionRating} onChange={handleInputChange} inputProps={{ min: 0, max: 10, step: 0.1 }} helperText="0-10" />
+                  </Grid>
+                </Grid>
+
+                {/* Preferences */}
+                <Typography variant="subtitle2" fontWeight={600} color="text.secondary" sx={{ mb: 1, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                  Preferences
+                </Typography>
+                <Divider sx={{ mb: 2 }} />
+                <Grid container spacing={2} sx={{ mb: 3 }}>
+                  <Grid item xs={12} sm={6}>
+                    <TextField fullWidth size="small" label="Preferred Contact Time" name="preferredContactTime" value={formData.preferredContactTime} onChange={handleInputChange} placeholder="e.g. Mornings, 9am-12pm" />
+                  </Grid>
+                  <Grid item xs={12} sm={6}>
+                    <TextField fullWidth size="small" label="Preferred Language" name="preferredLanguage" value={formData.preferredLanguage} onChange={handleInputChange} placeholder="e.g. English, Spanish" />
+                  </Grid>
+                </Grid>
+
+                {/* Assignment */}
+                <Typography variant="subtitle2" fontWeight={600} color="text.secondary" sx={{ mb: 1, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                  Assignment
+                </Typography>
+                <Divider sx={{ mb: 2 }} />
+                <Grid container spacing={2} sx={{ mb: 3 }}>
+                  <Grid item xs={12} sm={4}>
+                    <TextField fullWidth size="small" type="number" label="Account Manager ID" name="accountManagerId" value={formData.accountManagerId ?? ''} onChange={(e) => setFormData(prev => ({ ...prev, accountManagerId: e.target.value ? Number(e.target.value) : null }))} inputProps={{ min: 1 }} />
+                  </Grid>
+                </Grid>
+
+                {/* Classification */}
+                <Typography variant="subtitle2" fontWeight={600} color="text.secondary" sx={{ mb: 1, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                  Classification
+                </Typography>
+                <Divider sx={{ mb: 2 }} />
+                <Grid container spacing={2} sx={{ mb: 3 }}>
+                  <Grid item xs={12} sm={4}>
+                    <TextField fullWidth size="small" label="Segment" name="segment" value={formData.segment} onChange={handleInputChange} placeholder="e.g. Enterprise, SMB" />
+                  </Grid>
+                  <Grid item xs={12} sm={4}>
+                    <TextField fullWidth size="small" label="Referral Source" name="referralSource" value={formData.referralSource} onChange={handleInputChange} placeholder="e.g. Partner, Website" />
+                  </Grid>
+                  <Grid item xs={12} sm={4}>
+                    <TextField fullWidth size="small" type="number" label="Referred By Account ID" name="referredByAccountId" value={formData.referredByAccountId ?? ''} onChange={(e) => setFormData(prev => ({ ...prev, referredByAccountId: e.target.value ? Number(e.target.value) : null }))} inputProps={{ min: 1 }} />
+                  </Grid>
+                  <Grid item xs={12} sm={4}>
+                    <TextField fullWidth size="small" type="number" label="Parent Account ID" name="parentAccountId" value={formData.parentAccountId ?? ''} onChange={(e) => setFormData(prev => ({ ...prev, parentAccountId: e.target.value ? Number(e.target.value) : null }))} inputProps={{ min: 1 }} />
+                  </Grid>
+                </Grid>
+
+                {/* Documentation */}
+                <Typography variant="subtitle2" fontWeight={600} color="text.secondary" sx={{ mb: 1, textTransform: 'uppercase', letterSpacing: 0.5 }}>
+                  Documentation
+                </Typography>
+                <Divider sx={{ mb: 2 }} />
+                <Grid container spacing={2}>
+                  <Grid item xs={12}>
+                    <TextField fullWidth size="small" label="Internal Notes" name="internalNotes" value={formData.internalNotes} onChange={handleInputChange} multiline rows={3} placeholder="Internal notes visible to staff only" />
+                  </Grid>
+                  <Grid item xs={12}>
+                    <TextField fullWidth size="small" label="Custom Fields (JSON)" name="customFields" value={formData.customFields} onChange={handleInputChange} multiline rows={2} placeholder='{"key": "value"}' />
+                  </Grid>
+                </Grid>
+              </TabPanel>
 
               {/* Preferences Tab */}
               {editingId && (

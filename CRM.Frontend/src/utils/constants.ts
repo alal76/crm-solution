@@ -446,6 +446,48 @@ export const QUOTE_STATUS_OPTIONS = [
   { value: 12, label: 'End of Life', color: '#424242' },
 ] as const;
 
+// Matching backend OrderStatus enum:
+// Draft=0, PendingApproval=1, Approved=2, Processing=3, PartiallyFulfilled=4,
+// Fulfilled=5, Delivered=6, Completed=7, Cancelled=8, Returned=9,
+// Refunded=10, OnHold=11, ActionRequired=12
+export const ORDER_STATUS_OPTIONS = [
+  { value: 0, label: 'Draft', color: '#9e9e9e' },
+  { value: 1, label: 'Pending Approval', color: '#ff9800' },
+  { value: 2, label: 'Approved', color: '#8bc34a' },
+  { value: 3, label: 'Processing', color: '#2196f3' },
+  { value: 4, label: 'Partially Fulfilled', color: '#ff9800' },
+  { value: 5, label: 'Fulfilled', color: '#4caf50' },
+  { value: 6, label: 'Delivered', color: '#009688' },
+  { value: 7, label: 'Completed', color: '#4caf50' },
+  { value: 8, label: 'Cancelled', color: '#795548' },
+  { value: 9, label: 'Returned', color: '#f44336' },
+  { value: 10, label: 'Refunded', color: '#9c27b0' },
+  { value: 11, label: 'On Hold', color: '#607d8b' },
+  { value: 12, label: 'Action Required', color: '#f44336' },
+] as const;
+
+// Matching backend LeadLifecycleStatus enum:
+// New=0, Working=1, Nurturing=2, Qualified=3, Disqualified=4, Converted=5
+export const LEAD_STATUS_OPTIONS = [
+  { value: 0, label: 'New', color: '#9e9e9e' },
+  { value: 1, label: 'Working', color: '#2196f3' },
+  { value: 2, label: 'Nurturing', color: '#ff9800' },
+  { value: 3, label: 'Qualified', color: '#4caf50' },
+  { value: 4, label: 'Disqualified', color: '#f44336' },
+  { value: 5, label: 'Converted', color: '#009688' },
+] as const;
+
+// Matching backend LeadSource enum:
+// Web=0, Campaign=1, Referral=2, Event=3, Partner=4, Manual=5
+export const LEAD_SOURCE_OPTIONS = [
+  { value: 0, label: 'Web' },
+  { value: 1, label: 'Campaign' },
+  { value: 2, label: 'Referral' },
+  { value: 3, label: 'Event' },
+  { value: 4, label: 'Partner' },
+  { value: 5, label: 'Manual' },
+] as const;
+
 export const CAMPAIGN_STATUS_OPTIONS = [
   { value: 0, label: 'Draft', color: '#9e9e9e' },
   { value: 1, label: 'Scheduled', color: '#2196f3' },

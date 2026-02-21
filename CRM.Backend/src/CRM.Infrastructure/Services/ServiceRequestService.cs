@@ -456,6 +456,8 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
             InternalNotes = dto.InternalNotes,
             IsVipCustomer = dto.IsVipAccount,
             EstimatedEffortHours = dto.EstimatedEffortHours,
+            IsExpedited = dto.IsExpedited,
+            ExpediteReason = dto.IsExpedited ? dto.ExpediteReason : null,
             CreatedAt = DateTime.UtcNow
         };
 
@@ -527,6 +529,12 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
         entity.IsVipCustomer = dto.IsVipAccount;
         entity.EstimatedEffortHours = dto.EstimatedEffortHours;
         entity.ActualEffortHours = dto.ActualEffortHours;
+        entity.IsExpedited = dto.IsExpedited;
+        entity.ExpediteReason = dto.IsExpedited ? dto.ExpediteReason : entity.ExpediteReason;
+        if (dto.ExpeditedByUserId.HasValue)
+            entity.ExpeditedByUserId = dto.ExpeditedByUserId;
+        if (dto.ExpeditedAt.HasValue)
+            entity.ExpeditedAt = dto.ExpeditedAt;
         entity.LastModifiedByUserId = modifiedByUserId;
         entity.UpdatedAt = DateTime.UtcNow;
 
@@ -768,6 +776,32 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
 
         _logger.LogInformation("Escalated service request {TicketNumber} to level {Level}",
             entity.TicketNumber, entity.EscalationLevel);
+
+        return await GetServiceRequestByIdAsync(id) ?? throw new InvalidOperationException();
+    }
+
+    public async Task<ServiceRequestDto> ExpediteServiceRequestAsync(int id, string reason, int? expeditedByUserId)
+    {
+        var entity = await _context.ServiceRequests.FindAsync(id)
+            ?? throw new KeyNotFoundException($"Service request {id} not found");
+
+        entity.IsExpedited = true;
+        entity.ExpediteReason = reason;
+        entity.ExpeditedByUserId = expeditedByUserId;
+        entity.ExpeditedAt = DateTime.UtcNow;
+        entity.LastModifiedByUserId = expeditedByUserId;
+        entity.UpdatedAt = DateTime.UtcNow;
+
+        // Bump priority to at least High when expedited
+        if (entity.Priority < ServiceRequestPriority.High)
+        {
+            entity.Priority = ServiceRequestPriority.High;
+        }
+
+        await _context.SaveChangesAsync();
+
+        _logger.LogInformation("Expedited service request {TicketNumber} by user {UserId}",
+            entity.TicketNumber, expeditedByUserId);
 
         return await GetServiceRequestByIdAsync(id) ?? throw new InvalidOperationException();
     }
