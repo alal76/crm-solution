@@ -336,7 +336,7 @@ public class AuthControllerTests
     [Fact]
     public async Task RequestPasswordReset_ShouldReturnOk_WhenRequestSucceeds()
     {
-        var request = new PasswordResetRequest { Email = "test@example.com" };
+        var request = new CreatePasswordResetDto { Email = "test@example.com" };
         _mockAuthService.Setup(s => s.RequestPasswordResetAsync("test@example.com"))
             .ReturnsAsync("reset-token");
 
@@ -349,7 +349,7 @@ public class AuthControllerTests
     public async Task RequestPasswordReset_ShouldReturnOk_EvenWhenEmailNotFound()
     {
         // Security: Don't reveal if email exists
-        var request = new PasswordResetRequest { Email = "nonexistent@example.com" };
+        var request = new CreatePasswordResetDto { Email = "nonexistent@example.com" };
         _mockAuthService.Setup(s => s.RequestPasswordResetAsync("nonexistent@example.com"))
             .ThrowsAsync(new InvalidOperationException("Email not found"));
 
@@ -364,7 +364,7 @@ public class AuthControllerTests
     [Fact]
     public async Task ConfirmPasswordReset_ShouldReturnOk_WhenResetSucceeds()
     {
-        var request = new PasswordResetConfirm
+        var request = new ConfirmPasswordResetDto
         {
             Token = "valid-token",
             NewPassword = "NewPass@123",
@@ -381,7 +381,7 @@ public class AuthControllerTests
     [Fact]
     public async Task ConfirmPasswordReset_ShouldReturnBadRequest_WhenPasswordsMismatch()
     {
-        var request = new PasswordResetConfirm
+        var request = new ConfirmPasswordResetDto
         {
             Token = "valid-token",
             NewPassword = "Pass@123",
@@ -396,7 +396,7 @@ public class AuthControllerTests
     [Fact]
     public async Task ConfirmPasswordReset_ShouldReturnBadRequest_WhenTokenInvalid()
     {
-        var request = new PasswordResetConfirm
+        var request = new ConfirmPasswordResetDto
         {
             Token = "expired-token",
             NewPassword = "Pass@123",
@@ -416,7 +416,7 @@ public class AuthControllerTests
     public async Task AdminResetPassword_ShouldReturnOk_WhenAdminResetsPassword()
     {
         SetupAuthenticatedUser("1", "0"); // Admin role = "0"
-        var request = new AdminPasswordResetRequest { NewPassword = "NewPass@123" };
+        var request = new AdminPasswordResetDto { NewPassword = "NewPass@123" };
         _mockAuthService.Setup(s => s.AdminResetPasswordAsync(5, "NewPass@123"))
             .ReturnsAsync(true);
 
@@ -429,7 +429,7 @@ public class AuthControllerTests
     public async Task AdminResetPassword_ShouldReturnForbid_WhenNotAdmin()
     {
         SetupAuthenticatedUser("2", "1"); // Non-admin role = "1"
-        var request = new AdminPasswordResetRequest { NewPassword = "NewPass@123" };
+        var request = new AdminPasswordResetDto { NewPassword = "NewPass@123" };
 
         var result = await _controller.AdminResetPassword(5, request);
 

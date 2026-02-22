@@ -97,6 +97,17 @@ namespace CRM.Infrastructure.Services
                 throw new ArgumentNullException(nameof(sequence));
             sequence.CreatedAt = DateTime.UtcNow;
             sequence.UpdatedAt = DateTime.UtcNow;
+
+            // Ensure child step entities have valid timestamps (default DateTime.MinValue is rejected by MariaDB)
+            if (sequence.Steps != null)
+            {
+                foreach (var step in sequence.Steps)
+                {
+                    step.CreatedAt = DateTime.UtcNow;
+                    step.UpdatedAt = DateTime.UtcNow;
+                }
+            }
+
             _context.EmailSequences.Add(sequence);
             await _context.SaveChangesAsync(cancellationToken);
             return sequence;

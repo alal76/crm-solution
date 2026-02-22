@@ -264,9 +264,9 @@ public class CampaignMetricService : ICampaignMetricService
         if (!string.IsNullOrWhiteSpace(dto.Criteria))
         {
             query = query.Where(r =>
-                r.Email.Contains(dto.Criteria) ||
-                r.FirstName.Contains(dto.Criteria) ||
-                r.LastName.Contains(dto.Criteria));
+                (r.Email != null && r.Email.Contains(dto.Criteria!)) ||
+                (r.FirstName != null && r.FirstName.Contains(dto.Criteria!)) ||
+                (r.LastName != null && r.LastName.Contains(dto.Criteria!)));
         }
 
         var recipientsToRetarget = await query.ToListAsync(cancellationToken);

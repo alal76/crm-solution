@@ -172,6 +172,15 @@ export const workflowService = {
   },
 
   /**
+   * Clone an entire workflow definition including its active/latest version, nodes, and transitions.
+   * Returns the cloned workflow's ID, key, name, and status.
+   */
+  async cloneWorkflow(id: number, newName?: string): Promise<{ id: number; workflowKey: string; name: string; status: string }> {
+    const response = await apiClient.post(`/workflows/${id}/clone`, newName ? { newName } : {});
+    return response.data;
+  },
+
+  /**
    * Get workflow statistics
    */
   async getStatistics(): Promise<WorkflowStatistics> {

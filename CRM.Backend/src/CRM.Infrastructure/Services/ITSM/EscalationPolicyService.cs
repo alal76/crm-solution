@@ -431,7 +431,7 @@ public class EscalationPolicyService : IEscalationPolicyService
             Id = level.Id,
             PolicyId = level.PolicyId,
             LevelNumber = level.LevelNumber,
-            Name = level.Name,
+            Name = level.Name ?? string.Empty,
             EscalateAfterMinutes = level.EscalateAfterMinutes,
             NotifyUserId = level.NotifyUserId,
             NotifyTeamId = level.NotifyTeamId,

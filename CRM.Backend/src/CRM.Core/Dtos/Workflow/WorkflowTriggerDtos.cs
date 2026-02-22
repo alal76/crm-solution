@@ -257,3 +257,66 @@ public class TriggerStatisticsDto
     public Dictionary<WorkflowTriggerType, int> TriggersByType { get; set; } = new();
     public Dictionary<string, int> TriggersByEntityType { get; set; } = new();
 }
+
+/// <summary>
+/// Request DTO for manually firing a trigger. Only requires the entity ID and optional user.
+/// </summary>
+public class FireTriggerRequestDto
+{
+    /// <summary>
+    /// ID of the entity to fire the trigger against.
+    /// </summary>
+    [Required]
+    public int EntityId { get; set; }
+
+    /// <summary>
+    /// User ID who initiated the trigger fire. Defaults to current user if not provided.
+    /// </summary>
+    public int? InitiatedById { get; set; }
+}
+
+/// <summary>
+/// Request for updating trigger schedule.
+/// </summary>
+public class UpdateScheduleRequestDto
+{
+    [Required]
+    public DateTime NextScheduledTime { get; set; }
+}
+
+/// <summary>
+/// Request for cron expression validation.
+/// </summary>
+public class CronValidationRequestDto
+{
+    [Required]
+    public string CronExpression { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// Result of cron expression validation.
+/// </summary>
+public class CronValidationResultDto
+{
+    public bool IsValid { get; set; }
+    public string? ErrorMessage { get; set; }
+    public string CronExpression { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// Request for filter conditions validation.
+/// </summary>
+public class FilterValidationRequestDto
+{
+    [Required]
+    public string FilterConditions { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// Result of filter conditions validation.
+/// </summary>
+public class FilterValidationResultDto
+{
+    public bool IsValid { get; set; }
+    public string? ErrorMessage { get; set; }
+}

@@ -63,8 +63,16 @@ public class AnalyticsEventsController : ControllerBase
             return BadRequest(ModelState);
         }
 
-        var result = await _service.CreateAsync(dto, cancellationToken);
-        return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
+        try
+        {
+            var result = await _service.CreateAsync(dto, cancellationToken);
+            return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating analytics event");
+            return StatusCode(500, new { error = "Failed to create analytics event", details = ex.Message });
+        }
     }
 
     /// <summary>

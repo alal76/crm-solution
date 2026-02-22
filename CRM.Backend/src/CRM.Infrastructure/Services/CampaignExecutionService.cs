@@ -579,6 +579,17 @@ public class CampaignExecutionService : CRM.Core.Interfaces.ICampaignExecutionSe
     #region A/B Testing
 
     /// <summary>
+    /// Get all A/B tests for a campaign
+    /// </summary>
+    public async Task<List<CampaignABTest>> GetCampaignABTestsAsync(int campaignId)
+    {
+        return await _context.CampaignABTests
+            .Where(t => t.CampaignId == campaignId && !t.IsDeleted)
+            .OrderByDescending(t => t.CreatedAt)
+            .ToListAsync();
+    }
+
+    /// <summary>
     /// Create an A/B test for a campaign
     /// </summary>
     public async Task<CampaignABTest> CreateABTestAsync(
@@ -643,6 +654,33 @@ public class CampaignExecutionService : CRM.Core.Interfaces.ICampaignExecutionSe
         test.Status = "Running";
         test.TestStartedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
+
+        return true;
+    }
+
+    /// <summary>
+    /// Complete an A/B test by selecting the winning variant
+    /// </summary>
+    public async Task<bool> CompleteABTestAsync(int testId, string winningVariant)
+    {
+        var test = await _context.CampaignABTests.FindAsync(testId);
+        if (test == null || test.IsDeleted)
+            return false;
+
+        if (test.Status != "Running")
+            return false;
+
+        if (string.IsNullOrEmpty(winningVariant) || !new[] { "A", "B", "C" }.Contains(winningVariant.ToUpper()))
+            throw new ArgumentException("Invalid winning variant. Must be A, B, or C.");
+
+        test.Status = "Completed";
+        test.WinnerVariant = winningVariant.ToUpper();
+        test.TestCompletedAt = DateTime.UtcNow;
+        test.UpdatedAt = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync();
+
+        _logger.LogInformation("Completed A/B test {TestId} with winner {Winner}", testId, winningVariant);
 
         return true;
     }

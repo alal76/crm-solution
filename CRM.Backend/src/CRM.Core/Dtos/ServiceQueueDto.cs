@@ -13,11 +13,11 @@ public class ServiceQueueDto
 {
     public int Id { get; set; }
 
-    public string Name { get; set; }
+    public string Name { get; set; } = string.Empty;
 
-    public string Description { get; set; }
+    public string Description { get; set; } = string.Empty;
 
-    public string RoutingType { get; set; } // RoundRobin, SkillBased, Availability, Random
+    public string RoutingType { get; set; } = string.Empty; // RoundRobin, SkillBased, Availability, Random
 
     public List<int> AssignedUserIds { get; set; } = new();
 
@@ -39,11 +39,11 @@ public class ServiceQueueDto
 /// </summary>
 public class CreateServiceQueueDto
 {
-    public string Name { get; set; }
+    public string Name { get; set; } = string.Empty;
 
-    public string Description { get; set; }
+    public string Description { get; set; } = string.Empty;
 
-    public string RoutingType { get; set; }
+    public string RoutingType { get; set; } = string.Empty;
 
     public List<int> AssignedUserIds { get; set; } = new();
 

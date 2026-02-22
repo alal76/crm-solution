@@ -1,9 +1,9 @@
 {
   "major": 0,
-  "minor": 564,
+  "minor": 566,
   "patch": 0,
   "lastUpdate": "2026-02-22",
-  "description": "Expanded AI Agents from 12 to 20 with 7 new specialized agents (DocumentIntelligence, MeetingIntelligence, NextBestAction, RevenueIntelligence, SalesCoach, SalesIntelligence, TicketResolution). Updated AllowedPlugins to comma-separated format. Added workflow trigger seed data and admin seed controller enhancements.",
+  "description": "LLM/AI Administration: Encrypted API key management (ASP.NET Core Data Protection), runtime DB-stored provider config resolution (10 providers: OpenAI, Azure, Anthropic, Google/Vertex, Bedrock, DeepSeek, Groq, AllenAI, Local, Custom), IEncryptionService + EncryptionService, LLMSettingsService rewrite with encrypted key persistence, LLMService updated to resolve keys from DB at runtime with config fallback, test-connection endpoint, full frontend admin UI rewrite (LLMSettingsTab with provider accordions, API key inputs, masked key display, connection testing, 3-tab layout: General/Providers/Status).",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [

@@ -141,6 +141,90 @@ public class WorkflowService : IWorkflowService
     }
 
     /// <summary>
+    /// Clone an entire workflow definition including its active/latest version, nodes, and transitions.
+    /// </summary>
+    public async Task<WorkflowDefinition> CloneWorkflowAsync(int sourceWorkflowId, string? newName = null, int? ownerId = null)
+    {
+        var source = await _context.WorkflowDefinitions
+            .Include(w => w.Versions.Where(v => !v.IsDeleted))
+                .ThenInclude(v => v.Nodes.Where(n => !n.IsDeleted))
+            .Include(w => w.Versions.Where(v => !v.IsDeleted))
+                .ThenInclude(v => v.Transitions.Where(t => !t.IsDeleted))
+            .FirstOrDefaultAsync(w => w.Id == sourceWorkflowId && !w.IsDeleted);
+
+        if (source == null)
+            throw new KeyNotFoundException($"Workflow definition with ID {sourceWorkflowId} not found");
+
+        // Find the best version to clone: active first, then latest draft
+        var sourceVersion = source.Versions
+            .Where(v => v.Status == WorkflowVersionStatus.Active)
+            .OrderByDescending(v => v.VersionNumber)
+            .FirstOrDefault()
+            ?? source.Versions.OrderByDescending(v => v.VersionNumber).FirstOrDefault();
+
+        // Generate a unique key
+        var baseKey = $"{source.WorkflowKey}-copy";
+        var suffix = 1;
+        var newKey = baseKey;
+        while (await _context.WorkflowDefinitions.AnyAsync(w => w.WorkflowKey == newKey && !w.IsDeleted))
+        {
+            newKey = $"{baseKey}-{suffix++}";
+        }
+
+        // Create the cloned definition
+        var cloned = new WorkflowDefinition
+        {
+            WorkflowKey = newKey,
+            Name = newName ?? $"{source.Name} (Copy)",
+            Description = source.Description,
+            Category = source.Category,
+            EntityType = source.EntityType,
+            Status = WorkflowStatus.Draft,
+            CurrentVersion = 1,
+            IconName = source.IconName,
+            Color = source.Color,
+            IsSystem = false,
+            Priority = source.Priority,
+            MaxConcurrentInstances = source.MaxConcurrentInstances,
+            DefaultTimeoutHours = source.DefaultTimeoutHours,
+            OwnerId = ownerId,
+            Tags = source.Tags,
+            Metadata = source.Metadata,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        _context.WorkflowDefinitions.Add(cloned);
+        await _context.SaveChangesAsync();
+
+        // Create an initial draft version
+        var clonedVersion = new WorkflowVersion
+        {
+            WorkflowDefinitionId = cloned.Id,
+            VersionNumber = 1,
+            Label = "v1.0",
+            ChangeLog = $"Cloned from \"{source.Name}\" (ID {source.Id})",
+            Status = WorkflowVersionStatus.Draft,
+            CanvasLayout = sourceVersion?.CanvasLayout,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        _context.WorkflowVersions.Add(clonedVersion);
+        await _context.SaveChangesAsync();
+
+        // Clone nodes and transitions from the source version
+        if (sourceVersion != null)
+        {
+            await CloneVersionNodesAsync(sourceVersion, clonedVersion.Id);
+        }
+
+        _logger.LogInformation(
+            "Cloned workflow {SourceId} ({SourceName}) → {ClonedId} ({ClonedName})",
+            source.Id, source.Name, cloned.Id, cloned.Name);
+
+        return cloned;
+    }
+
+    /// <summary>
     /// Delete a workflow definition (soft delete)
     /// </summary>
     public async Task<bool> DeleteWorkflowDefinitionAsync(int id)

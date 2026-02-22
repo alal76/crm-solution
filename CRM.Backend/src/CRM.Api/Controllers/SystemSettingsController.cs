@@ -411,7 +411,9 @@ public class SystemSettingsController : ControllerBase
                 try
                 {
                     var certPassword = password ?? "";
+#pragma warning disable SYSLIB0057
                     using var x509 = new X509Certificate2(pfxPath, certPassword, X509KeyStorageFlags.Exportable);
+#pragma warning restore SYSLIB0057
                     expiry = x509.NotAfter;
                     subject = x509.Subject;
 

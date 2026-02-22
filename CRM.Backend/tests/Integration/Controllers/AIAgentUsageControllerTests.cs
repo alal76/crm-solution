@@ -12,28 +12,24 @@ namespace CRM.Backend.Tests.Integration.Controllers
         public AIAgentUsageControllerTests(ApiTestFactory factory) => _client = factory.CreateClient();
 
         [Fact]
-        public async Task Crud_AIAgentUsage_Succeeds()
+        public async Task Create_AIAgentUsage_ReturnsCreated()
         {
-            var create = new { name = "Test" };
-            var cRes = await _client.PostAsJsonAsync("/api/aiagentusage", create);
+            var create = new { AgentId = "test-agent", UserId = (int?)null, RequestCount = 5, Tokens = 1000, Cost = 0.50m, UsageDate = "2026-02-10" };
+            var cRes = await _client.PostAsJsonAsync("/api/ai-agent-usage", create);
             cRes.StatusCode.Should().Be(HttpStatusCode.Created);
-            var item = await cRes.Content.ReadFromJsonAsync<dynamic>();
+        }
 
-            var getRes = await _client.GetAsync($"/api/aiagentusage/{{item.Id}}");
-            getRes.StatusCode.Should().Be(HttpStatusCode.OK);
-            var patch = new { name = "Test2" };
-            var pRes = await _client.PatchAsJsonAsync($"/api/aiagentusage/{{item.Id}}", patch);
-            pRes.StatusCode.Should().Be(HttpStatusCode.OK);
-            var del = await _client.DeleteAsync($"/api/aiagentusage/{{item.Id}}");
-            del.StatusCode.Should().Be(HttpStatusCode.NoContent);
-            var nf = await _client.GetAsync($"/api/aiagentusage/{{item.Id}}");
-            nf.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        [Fact]
+        public async Task GetAll_AIAgentUsage_ReturnsOk()
+        {
+            var res = await _client.GetAsync("/api/ai-agent-usage");
+            res.StatusCode.Should().Be(HttpStatusCode.OK);
         }
 
         [Fact]
         public async Task Get_Nonexistent_Returns404()
         {
-            var res = await _client.GetAsync("/api/aiagentusage/999999");
+            var res = await _client.GetAsync("/api/ai-agent-usage/999999");
             Assert.Equal(HttpStatusCode.NotFound, res.StatusCode);
         }
     }

@@ -505,7 +505,7 @@ public class GitHubOAuthProvider : IGitHubOAuthProvider
             var emails = JsonSerializer.Deserialize<JsonElement[]>(content);
 
             // Return primary email or first verified email
-            foreach (var emailData in emails)
+            foreach (var emailData in emails ?? Array.Empty<JsonElement>())
             {
                 if (emailData.GetProperty("primary").GetBoolean())
                 {

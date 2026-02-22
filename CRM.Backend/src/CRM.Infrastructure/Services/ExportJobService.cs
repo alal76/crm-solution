@@ -56,11 +56,11 @@ public class ExportJobService : IExportJobService
 
     public async Task<IEnumerable<ExportJobDto>> GetAllAsync(CancellationToken ct = default)
     {
-        return await _dbContext.ExportJobs
+        var entities = await _dbContext.ExportJobs
             .Where(e => !e.IsDeleted)
             .OrderByDescending(e => e.CreatedAt)
-            .Select(e => MapToDto(e))
             .ToListAsync(ct);
+        return entities.Select(MapToDto).ToList();
     }
 
     private static ExportJobDto MapToDto(ExportJob e) => new()

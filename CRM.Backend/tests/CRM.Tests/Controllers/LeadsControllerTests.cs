@@ -235,7 +235,7 @@ public class LeadsControllerTests
         };
         _mockLeadService
             .Setup(s => s.ConvertAsync(1, "New Opportunity", 10, 5000m, null))
-            .ReturnsAsync((opportunityId: 99, leadId: 1));
+            .ReturnsAsync((99, 1));
 
         // Act
         var result = await _controller.Convert(1, request);

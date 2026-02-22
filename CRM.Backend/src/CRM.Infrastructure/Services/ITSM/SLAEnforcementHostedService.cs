@@ -86,7 +86,7 @@ public class SLAEnforcementHostedService : BackgroundService
                         (si.DueAt < DateTime.UtcNow || si.WarningAt < DateTime.UtcNow))
                 .Include(si => si.ServiceRequest)
                 .Include(si => si.SLAPolicy)
-                .ThenInclude(sp => sp.EscalationRules)
+                .ThenInclude(sp => sp!.EscalationRules)
                 .ToListAsync(cancellationToken);
 
             foreach (var slaInstance in breachedSlAs)

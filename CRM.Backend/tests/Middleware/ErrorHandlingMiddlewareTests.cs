@@ -624,7 +624,7 @@ public class ErrorHandlingMiddleware
 
         if (!_environment.IsProduction())
         {
-            response["stackTrace"] = exception.StackTrace;
+            response["stackTrace"] = exception.StackTrace ?? string.Empty;
         }
 
         return response;

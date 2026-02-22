@@ -26,7 +26,7 @@ namespace CRM.Tests.Integration;
 /// </summary>
 public class ServiceIntegrationTests : IAsyncLifetime
 {
-    private CrmDbContext _context;
+    private CrmDbContext _context = null!;
     private readonly ILoggerFactory _loggerFactory;
 
     public ServiceIntegrationTests()
@@ -76,7 +76,7 @@ public class ServiceIntegrationTests : IAsyncLifetime
 
         // Assert
         retrieved.Should().NotBeNull();
-        retrieved.Amount.Should().Be(1000m);
+        retrieved!.Amount.Should().Be(1000m);
         retrieved.Status.Should().Be(CommissionStatus.Pending);
     }
 
@@ -171,7 +171,7 @@ public class ServiceIntegrationTests : IAsyncLifetime
 
         // Assert
         var retrieved = await _context.MarketingCampaigns.FindAsync(campaign.Id);
-        retrieved.Status.Should().Be(CampaignStatus.Active);
+        retrieved!.Status.Should().Be(CampaignStatus.Active);
     }
 
     [Fact]
@@ -239,7 +239,7 @@ public class ServiceIntegrationTests : IAsyncLifetime
 
         // Assert
         var retrieved = await _context.CampaignMetrics.FindAsync(metric.Id);
-        retrieved.TotalSent.Should().Be(1000);
+        retrieved!.TotalSent.Should().Be(1000);
         // OpenRate is a computed property; just verify it's within expected range
         retrieved.OpenRate.Should().BeGreaterThan(0.5m).And.BeLessThan(0.6m);
     }
@@ -264,7 +264,7 @@ public class ServiceIntegrationTests : IAsyncLifetime
 
         var enrollment = new EmailSequenceEnrollment
         {
-            SequenceId = sequence.Id,
+            EmailSequenceId = sequence.Id,
             ContactId = 1,
             Status = EnrollmentStatus.Active,
             EnrolledAt = DateTime.UtcNow
@@ -277,7 +277,7 @@ public class ServiceIntegrationTests : IAsyncLifetime
         // Assert
         var retrieved = await _context.EmailSequenceEnrollments.FindAsync(enrollment.Id);
         retrieved.Should().NotBeNull();
-        retrieved.SequenceId.Should().Be(sequence.Id);
+        retrieved!.EmailSequenceId.Should().Be(sequence.Id);
     }
 
     [Fact]
@@ -291,9 +291,9 @@ public class ServiceIntegrationTests : IAsyncLifetime
         // Use the saved sequence.Id for all steps
         var steps = new List<EmailSequenceStep>
         {
-            new EmailSequenceStep { SequenceId = sequence.Id, Order = 1, Template = "Step1" },
-            new EmailSequenceStep { SequenceId = sequence.Id, Order = 2, Template = "Step2" },
-            new EmailSequenceStep { SequenceId = sequence.Id, Order = 3, Template = "Step3" }
+            new EmailSequenceStep { EmailSequenceId = sequence.Id, Order = 1, Template = "Step1", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
+            new EmailSequenceStep { EmailSequenceId = sequence.Id, Order = 2, Template = "Step2", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow },
+            new EmailSequenceStep { EmailSequenceId = sequence.Id, Order = 3, Template = "Step3", CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow }
         };
 
         // Act
@@ -302,14 +302,14 @@ public class ServiceIntegrationTests : IAsyncLifetime
 
         // Assert
         var retrieved = _context.EmailSequenceSteps
-            .Where(s => s.SequenceId == sequence.Id)
-            .OrderBy(s => s.Order)
+            .Where(s => s.EmailSequenceId == sequence.Id)
+            .OrderBy(s => s.StepOrder)
             .ToList();
 
         retrieved.Should().HaveCount(3);
-        retrieved[0].Order.Should().Be(1);
-        retrieved[1].Order.Should().Be(2);
-        retrieved[2].Order.Should().Be(3);
+        retrieved[0].StepOrder.Should().Be(1);
+        retrieved[1].StepOrder.Should().Be(2);
+        retrieved[2].StepOrder.Should().Be(3);
     }
 
     #endregion
@@ -480,7 +480,7 @@ public class ServiceIntegrationTests : IAsyncLifetime
 
         // Assert
         var final = await _context.Commissions.FindAsync(commission.Id);
-        final.Status.Should().Be(CommissionStatus.Approved);
+        final!.Status.Should().Be(CommissionStatus.Approved);
     }
 
     [Fact]
@@ -512,7 +512,7 @@ public class ServiceIntegrationTests : IAsyncLifetime
 
         // Assert
         var final = await _context.MarketingCampaigns.FindAsync(campaign.Id);
-        final.Status.Should().Be(CampaignStatus.Active);
+        final!.Status.Should().Be(CampaignStatus.Active);
 
         var finalRecipients = _context.CampaignRecipients
             .Where(r => r.CampaignId == campaign.Id)

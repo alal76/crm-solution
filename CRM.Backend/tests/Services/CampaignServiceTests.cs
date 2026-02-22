@@ -32,7 +32,6 @@ public class MarketingCampaignServiceTests
     private readonly Mock<IRepository<CampaignMetric>> _mockMetricRepository;
     private readonly Mock<IRepository<EntityTag>> _mockEntityTagRepository;
     private readonly Mock<IRepository<CustomField>> _mockCustomFieldRepository;
-    private readonly Mock<NormalizationService> _mockNormalizationService;
     private readonly Mock<ICrmDbContext> _mockContext;
     private readonly MarketingCampaignService _campaignService;
 

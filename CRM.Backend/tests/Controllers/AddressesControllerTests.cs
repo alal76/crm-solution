@@ -179,7 +179,7 @@ public class AddressesControllerTests
         // Assert
         result.Should().BeOfType<BadRequestObjectResult>();
         var badRequest = result as BadRequestObjectResult;
-        badRequest.StatusCode.Should().Be(400);
+        badRequest!.StatusCode.Should().Be(400);
     }
 
     [Fact]
@@ -189,7 +189,7 @@ public class AddressesControllerTests
         var accountId = 999;
 
         _mockAccountService.Setup(s => s.GetAccountByIdAsync(accountId))
-            .ReturnsAsync((AccountDto)null);
+            .ReturnsAsync((AccountDto)null!);
 
         // Act
         var result = await _controller.GetAccountAddresses(accountId, CancellationToken.None);
@@ -197,7 +197,7 @@ public class AddressesControllerTests
         // Assert
         result.Should().BeOfType<NotFoundObjectResult>();
         var notFoundResult = result as NotFoundObjectResult;
-        notFoundResult.StatusCode.Should().Be(404);
+        notFoundResult!.StatusCode.Should().Be(404);
     }
 
     #endregion
@@ -240,7 +240,7 @@ public class AddressesControllerTests
             .ReturnsAsync(_testAccount);
 
         _mockAddressService.Setup(s => s.GetAddressByIdAsync(addressId, It.IsAny<CancellationToken>()))
-            .ReturnsAsync((Address)null);
+            .ReturnsAsync((Address)null!);
 
         // Act
         var result = await _controller.GetAddressById(accountId, addressId, CancellationToken.None);
@@ -431,7 +431,7 @@ public class AddressesControllerTests
         // Assert
         result.Should().BeOfType<NoContentResult>();
         var noContentResult = result as NoContentResult;
-        noContentResult.StatusCode.Should().Be(204);
+        noContentResult!.StatusCode.Should().Be(204);
     }
 
     [Fact]
@@ -474,7 +474,7 @@ public class AddressesControllerTests
         // Assert
         result.Should().BeOfType<OkObjectResult>();
         var okResult = result as OkObjectResult;
-        okResult.StatusCode.Should().Be(200);
+        okResult!.StatusCode.Should().Be(200);
     }
 
     [Fact]
@@ -517,7 +517,7 @@ public class AddressesControllerTests
         // Assert
         result.Should().BeOfType<OkObjectResult>();
         var okResult = result as OkObjectResult;
-        okResult.StatusCode.Should().Be(200);
+        okResult!.StatusCode.Should().Be(200);
     }
 
     [Fact]

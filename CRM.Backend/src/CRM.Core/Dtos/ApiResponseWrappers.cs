@@ -234,7 +234,7 @@ public class ApiResponse : ApiResponse<object>
     /// <param name="message">Optional success message.</param>
     /// <param name="statusCode">HTTP status code (default 200 OK).</param>
     /// <returns>A successful ApiResponse.</returns>
-    public static new ApiResponse SuccessResponse(string? message = null, int statusCode = 200)
+    public static ApiResponse SuccessResponse(string? message = null, int statusCode = 200)
     {
         return new ApiResponse
         {
@@ -252,7 +252,7 @@ public class ApiResponse : ApiResponse<object>
     /// </summary>
     /// <param name="message">Optional message (default "Resource created successfully.").</param>
     /// <returns>A successful ApiResponse with 201 Created status.</returns>
-    public static new ApiResponse CreatedResponse(string? message = null)
+    public static ApiResponse CreatedResponse(string? message = null)
     {
         return SuccessResponse(message ?? "Resource created successfully.", 201);
     }

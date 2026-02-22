@@ -57,11 +57,11 @@ public class AIAgentUsageService : IAIAgentUsageService
 
     public async Task<IEnumerable<AIAgentUsageDto>> GetAllAsync(CancellationToken ct = default)
     {
-        return await _dbContext.AIAgentUsages
+        var entities = await _dbContext.AIAgentUsages
             .Where(e => !e.IsDeleted)
             .OrderByDescending(e => e.UsageDate)
-            .Select(e => MapToDto(e))
             .ToListAsync(ct);
+        return entities.Select(MapToDto).ToList();
     }
 
     private static AIAgentUsageDto MapToDto(AIAgentUsage e) => new()

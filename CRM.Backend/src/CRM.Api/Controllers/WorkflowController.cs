@@ -16,7 +16,6 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore;
 
 namespace CRM.Api.Controllers;
 
@@ -332,6 +331,44 @@ public class WorkflowController : ControllerBase
         {
             _logger.LogError(ex, "Error pausing workflow {Id}", id);
             return StatusCode(500, new { message = "An error occurred while pausing the workflow" });
+        }
+    }
+
+    /// <summary>
+    /// Clone an entire workflow definition including its active/latest version, nodes, and transitions.
+    /// Creates a new Draft workflow with " (Copy)" appended to the name.
+    /// </summary>
+    /// <param name="id">The workflow definition ID to clone.</param>
+    /// <param name="request">Optional clone parameters (new name).</param>
+    /// <returns>The cloned workflow summary.</returns>
+    [HttpPost("{id}/clone")]
+    [Authorize(Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> CloneWorkflow(int id, [FromBody] CloneWorkflowRequest? request = null)
+    {
+        try
+        {
+            var userId = GetCurrentUserId();
+            var cloned = await _workflowService.CloneWorkflowAsync(id, request?.NewName, userId);
+
+            return CreatedAtAction(nameof(GetWorkflow), new { id = cloned.Id }, new
+            {
+                id = cloned.Id,
+                workflowKey = cloned.WorkflowKey,
+                name = cloned.Name,
+                status = cloned.Status.ToString(),
+                message = $"Workflow cloned successfully as \"{cloned.Name}\""
+            });
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error cloning workflow {Id}", id);
+            return StatusCode(500, new { message = "An error occurred while cloning the workflow" });
         }
     }
 
@@ -1052,6 +1089,27 @@ public class WorkflowController : ControllerBase
         {
             _logger.LogError(ex, "Error initializing LLM settings");
             return StatusCode(500, new { message = "An error occurred while initializing LLM settings" });
+        }
+    }
+
+    /// <summary>
+    /// Test connectivity to a specific LLM provider using stored or config-based credentials
+    /// </summary>
+    [HttpPost("llm-settings/test/{provider}")]
+    [Authorize(Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> TestLLMProviderConnection(string provider)
+    {
+        try
+        {
+            var (success, message) = await _llmSettingsService.TestProviderConnectionAsync(provider);
+            return Ok(new { success, message, provider });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error testing LLM provider connection for {Provider}", provider);
+            return StatusCode(500, new { success = false, message = $"Test failed: {ex.Message}", provider });
         }
     }
 

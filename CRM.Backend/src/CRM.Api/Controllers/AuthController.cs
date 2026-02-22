@@ -428,7 +428,7 @@ public class AuthController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> RequestPasswordReset([FromBody] PasswordResetRequest request)
+    public async Task<IActionResult> RequestPasswordReset([FromBody] CreatePasswordResetDto request)
     {
         try
         {
@@ -465,7 +465,7 @@ public class AuthController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> ConfirmPasswordReset([FromBody] PasswordResetConfirm request)
+    public async Task<IActionResult> ConfirmPasswordReset([FromBody] ConfirmPasswordResetDto request)
     {
         try
         {
@@ -508,7 +508,7 @@ public class AuthController : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<IActionResult> AdminResetPassword(int userId, [FromBody] AdminPasswordResetRequest request)
+    public async Task<IActionResult> AdminResetPassword(int userId, [FromBody] AdminPasswordResetDto request)
     {
         try
         {

@@ -516,20 +516,20 @@ public class WorkflowTriggerService : IWorkflowTriggerService
         var trigger = await _context.WorkflowTriggers
             .FirstOrDefaultAsync(t => t.Id == triggerId && !t.IsDeleted, cancellationToken);
 
-        if (trigger != null)
+        if (trigger == null)
+            throw new KeyNotFoundException($"Trigger with ID {triggerId} not found");
+
+        trigger.LastTriggeredAt = DateTime.UtcNow;
+        trigger.ExecutionCount++;
+        trigger.UpdatedAt = DateTime.UtcNow;
+
+        // Update next scheduled time for scheduled triggers
+        if (trigger.TriggerType == WorkflowTriggerType.Scheduled && !string.IsNullOrEmpty(trigger.CronExpression))
         {
-            trigger.LastTriggeredAt = DateTime.UtcNow;
-            trigger.ExecutionCount++;
-            trigger.UpdatedAt = DateTime.UtcNow;
-
-            // Update next scheduled time for scheduled triggers
-            if (trigger.TriggerType == WorkflowTriggerType.Scheduled && !string.IsNullOrEmpty(trigger.CronExpression))
-            {
-                trigger.NextScheduledAt = CalculateNextScheduledTime(trigger.CronExpression);
-            }
-
-            await _context.SaveChangesAsync(cancellationToken);
+            trigger.NextScheduledAt = CalculateNextScheduledTime(trigger.CronExpression);
         }
+
+        await _context.SaveChangesAsync(cancellationToken);
     }
 
     #endregion
@@ -558,8 +558,12 @@ public class WorkflowTriggerService : IWorkflowTriggerService
                 || t.TriggerType == WorkflowTriggerType.OnFieldChange),
             EventTriggers = triggers.Count(t => t.TriggerType == WorkflowTriggerType.OnEvent),
             TotalExecutions = triggers.Sum(t => t.ExecutionCount),
-            ExecutionsToday = 0, // Would need execution log table for this
-            ExecutionsThisWeek = 0,
+            ExecutionsToday = triggers
+                .Where(t => t.LastTriggeredAt.HasValue && t.LastTriggeredAt.Value >= today)
+                .Sum(t => t.LastTriggeredAt!.Value.Date == today ? 1 : 0),
+            ExecutionsThisWeek = triggers
+                .Where(t => t.LastTriggeredAt.HasValue && t.LastTriggeredAt.Value >= weekAgo)
+                .Count(),
             LastExecutionAt = triggers.Where(t => t.LastTriggeredAt.HasValue)
                 .OrderByDescending(t => t.LastTriggeredAt)
                 .Select(t => t.LastTriggeredAt)

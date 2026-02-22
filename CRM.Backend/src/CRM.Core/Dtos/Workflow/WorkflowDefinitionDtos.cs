@@ -230,3 +230,14 @@ public class UpdateTransitionDto
     public string? Color { get; set; }
     public string? AnimationStyle { get; set; }
 }
+
+/// <summary>
+/// Request body for the clone workflow endpoint
+/// </summary>
+public class CloneWorkflowRequest
+{
+    /// <summary>
+    /// Optional custom name for the cloned workflow. When omitted, defaults to "{Original Name} (Copy)".
+    /// </summary>
+    public string? NewName { get; set; }
+}

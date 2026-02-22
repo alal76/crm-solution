@@ -421,6 +421,26 @@ public class CampaignExecutionController : ControllerBase
     #region A/B Testing
 
     /// <summary>
+    /// Get A/B tests for a campaign
+    /// </summary>
+    [HttpGet("{campaignId}/abtests")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetCampaignABTests(int campaignId)
+    {
+        try
+        {
+            var abTests = await _campaignExecutionService.GetCampaignABTestsAsync(campaignId);
+            return Ok(abTests);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting A/B tests for campaign {CampaignId}", campaignId);
+            return StatusCode(500, new { message = "Error retrieving A/B tests" });
+        }
+    }
+
+    /// <summary>
     /// Create an A/B test for a campaign
     /// </summary>
     [HttpPost("{campaignId}/abtests")]
@@ -472,6 +492,37 @@ public class CampaignExecutionController : ControllerBase
         {
             _logger.LogError(ex, "Error starting A/B test {TestId}", testId);
             return StatusCode(500, new { message = "Error starting A/B test" });
+        }
+    }
+
+    /// <summary>
+    /// Complete an A/B test by selecting the winning variant
+    /// </summary>
+    [HttpPost("{campaignId}/abtests/{testId}/complete")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> CompleteABTest(
+        int campaignId,
+        int testId,
+        [FromBody] CompleteABTestRequest request)
+    {
+        try
+        {
+            var result = await _campaignExecutionService.CompleteABTestAsync(testId, request.WinningVariant);
+            if (!result)
+                return BadRequest(new { message = "A/B test cannot be completed. Check the test status." });
+
+            return Ok(new { message = "A/B test completed successfully", winningVariant = request.WinningVariant });
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error completing A/B test {TestId}", testId);
+            return StatusCode(500, new { message = "Error completing A/B test" });
         }
     }
 
@@ -555,6 +606,11 @@ public class CreateABTestRequest
     public int? MinimumSampleSize { get; set; }
     public int? TestDurationHours { get; set; }
     public bool AutoSelectWinner { get; set; } = false;
+}
+
+public class CompleteABTestRequest
+{
+    public string WinningVariant { get; set; } = string.Empty;
 }
 
 #endregion

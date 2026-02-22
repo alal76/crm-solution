@@ -674,9 +674,9 @@ public class CustomerServiceTests
             FirstName = createDto.FirstName,
             LastName = createDto.LastName,
             Email = createDto.Email,
-            Phone = createDto.Phone,
-            MobilePhone = createDto.MobilePhone,
-            FaxNumber = createDto.FaxNumber
+            Phone = createDto.Phone!,
+            MobilePhone = createDto.MobilePhone!,
+            FaxNumber = createDto.FaxNumber!
         };
 
         // Assert - Null fields should be allowed

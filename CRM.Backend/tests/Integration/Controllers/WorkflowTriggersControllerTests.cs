@@ -14,27 +14,75 @@ namespace CRM.Backend.Tests.Integration.Controllers
         [Fact]
         public async Task Crud_WorkflowTriggers_Succeeds()
         {
-            var create = new { name = "Test" };
-            var cRes = await _client.PostAsJsonAsync("/api/workflowtriggers", create);
+            var create = new
+            {
+                workflowDefinitionId = 1,
+                name = "Test Trigger",
+                triggerType = 1, // OnCreate
+                entityType = "Lead",
+                isActive = true,
+                priority = 100,
+                maxRetries = 3
+            };
+            var cRes = await _client.PostAsJsonAsync("/api/workflow-triggers", create);
             cRes.StatusCode.Should().Be(HttpStatusCode.Created);
-            var item = await cRes.Content.ReadFromJsonAsync<dynamic>();
+            var item = (await cRes.Content.ReadFromJsonAsync<dynamic>())!;
 
-            var getRes = await _client.GetAsync($"/api/workflowtriggers/{{item.Id}}");
+            var getRes = await _client.GetAsync($"/api/workflow-triggers/{item.GetProperty("id").GetInt32()}");
             getRes.StatusCode.Should().Be(HttpStatusCode.OK);
-            var patch = new { name = "Test2" };
-            var pRes = await _client.PatchAsJsonAsync($"/api/workflowtriggers/{{item.Id}}", patch);
+
+            var update = new { name = "Updated Trigger" };
+            var pRes = await _client.PutAsJsonAsync($"/api/workflow-triggers/{item.GetProperty("id").GetInt32()}", update);
             pRes.StatusCode.Should().Be(HttpStatusCode.OK);
-            var del = await _client.DeleteAsync($"/api/workflowtriggers/{{item.Id}}");
+
+            var del = await _client.DeleteAsync($"/api/workflow-triggers/{item.GetProperty("id").GetInt32()}");
             del.StatusCode.Should().Be(HttpStatusCode.NoContent);
-            var nf = await _client.GetAsync($"/api/workflowtriggers/{{item.Id}}");
+
+            var nf = await _client.GetAsync($"/api/workflow-triggers/{item.GetProperty("id").GetInt32()}");
             nf.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
 
         [Fact]
         public async Task Get_Nonexistent_Returns404()
         {
-            var res = await _client.GetAsync("/api/workflowtriggers/999999");
+            var res = await _client.GetAsync("/api/workflow-triggers/999999");
             Assert.Equal(HttpStatusCode.NotFound, res.StatusCode);
+        }
+
+        [Fact]
+        public async Task GetTriggers_WithFilters_ReturnsOk()
+        {
+            var res = await _client.GetAsync("/api/workflow-triggers?entityType=Lead&isActive=true");
+            res.StatusCode.Should().Be(HttpStatusCode.OK);
+        }
+
+        [Fact]
+        public async Task GetMatchingTriggers_ReturnsOk()
+        {
+            var res = await _client.GetAsync("/api/workflow-triggers/matching?entityType=Lead&triggerType=1");
+            res.StatusCode.Should().Be(HttpStatusCode.OK);
+        }
+
+        [Fact]
+        public async Task GetStatistics_ReturnsOk()
+        {
+            var res = await _client.GetAsync("/api/workflow-triggers/statistics");
+            res.StatusCode.Should().Be(HttpStatusCode.OK);
+        }
+
+        [Fact]
+        public async Task ValidateCron_ValidExpression_ReturnsOk()
+        {
+            var req = new { cronExpression = "0 8 * * *" };
+            var res = await _client.PostAsJsonAsync("/api/workflow-triggers/validate/cron", req);
+            res.StatusCode.Should().Be(HttpStatusCode.OK);
+        }
+
+        [Fact]
+        public async Task GetScheduledDue_ReturnsOk()
+        {
+            var res = await _client.GetAsync("/api/workflow-triggers/scheduled/due");
+            res.StatusCode.Should().Be(HttpStatusCode.OK);
         }
     }
 }

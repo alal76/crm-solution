@@ -105,8 +105,8 @@ public class ChangeBlackoutConfiguration : IEntityTypeConfiguration<ChangeBlacko
         // Soft delete index
         builder.HasIndex(e => e.IsDeleted);
         // Date range index for blackout period queries
-        builder.HasIndex(e => new { e.StartDate, e.EndDate }).HasName("IX_ChangeBlackout_DateRange");
+        builder.HasIndex(e => new { e.StartDate, e.EndDate }).HasDatabaseName("IX_ChangeBlackout_DateRange");
         // Change lookup index
-        builder.HasIndex(e => e.ChangeId).HasName("IX_ChangeBlackout_ChangeId");
+        builder.HasIndex(e => e.ChangeId).HasDatabaseName("IX_ChangeBlackout_ChangeId");
     }
 }

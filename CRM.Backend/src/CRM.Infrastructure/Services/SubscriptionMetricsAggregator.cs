@@ -126,7 +126,7 @@ public class SubscriptionMetricsAggregator : ISubscriptionMetricsAggregator
         {
             SubscriptionId = subscriptionId,
             MRR = NormalizeToMonthly(subscription.Amount, subscription.BillingCycle ?? "Monthly"),
-            ARR = (subscription.ARR ?? 0.0m) > 0 ? subscription.ARR.Value : NormalizeToMonthly(subscription.Amount, subscription.BillingCycle ?? "Monthly") * 12,
+            ARR = (subscription.ARR ?? 0.0m) > 0 ? subscription.ARR.GetValueOrDefault() : NormalizeToMonthly(subscription.Amount, subscription.BillingCycle ?? "Monthly") * 12,
             CLV = subscription.Amount * 24, // Assume 24-month average lifetime value
             NextBillingDate = subscription.NextBillingDate,
             DaysUntilExpiry = daysUntilExpiry,

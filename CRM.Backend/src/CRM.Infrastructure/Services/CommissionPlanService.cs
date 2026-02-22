@@ -58,9 +58,22 @@ public class CommissionPlanService : CRM.Core.Interfaces.ICommissionPlanService,
         var plan = new CommissionPlan
         {
             Name = dto.Name,
+            Code = dto.Code,
             Description = dto.Description,
+            CommissionType = (CommissionType)dto.CommissionType,
+            Trigger = (CommissionTrigger)dto.Trigger,
             BaseRate = dto.BaseRate,
+            Rate = dto.BaseRate,
             IsActive = dto.IsActive,
+            EffectiveStartDate = dto.EffectiveStartDate ?? dto.EffectiveDate ?? DateTime.UtcNow,
+            EffectiveEndDate = dto.EffectiveEndDate ?? dto.ExpiryDate,
+            FiscalYear = dto.FiscalYear,
+            ClawbackPeriodDays = dto.ClawbackPeriodDays,
+            MinDealSize = dto.MinDealSize,
+            MaxCommissionPerDeal = dto.MaxCommissionPerDeal,
+            MaxCommissionPerPeriod = dto.MaxCommissionPerPeriod,
+            AllowSplits = dto.AllowSplits ?? true,
+            DefaultOverlayPercent = dto.DefaultOverlayPercent,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
@@ -83,14 +96,56 @@ public class CommissionPlanService : CRM.Core.Interfaces.ICommissionPlanService,
         if (!string.IsNullOrWhiteSpace(dto.Name))
             plan.Name = dto.Name;
 
+        if (dto.Code != null)
+            plan.Code = dto.Code;
+
         if (dto.Description != null)
             plan.Description = dto.Description;
 
+        if (dto.CommissionType.HasValue)
+            plan.CommissionType = (CommissionType)dto.CommissionType.Value;
+
+        if (dto.Trigger.HasValue)
+            plan.Trigger = (CommissionTrigger)dto.Trigger.Value;
+
         if (dto.BaseRate.HasValue)
+        {
             plan.BaseRate = dto.BaseRate.Value;
+            plan.Rate = dto.BaseRate.Value;
+        }
 
         if (dto.IsActive.HasValue)
             plan.IsActive = dto.IsActive.Value;
+
+        if (dto.Status.HasValue)
+            plan.Status = (CommissionPlanStatus)dto.Status.Value;
+
+        if (dto.EffectiveStartDate.HasValue)
+            plan.EffectiveStartDate = dto.EffectiveStartDate.Value;
+
+        if (dto.EffectiveEndDate.HasValue)
+            plan.EffectiveEndDate = dto.EffectiveEndDate.Value;
+
+        if (dto.FiscalYear.HasValue)
+            plan.FiscalYear = dto.FiscalYear.Value;
+
+        if (dto.ClawbackPeriodDays.HasValue)
+            plan.ClawbackPeriodDays = dto.ClawbackPeriodDays.Value;
+
+        if (dto.MinDealSize.HasValue)
+            plan.MinDealSize = dto.MinDealSize.Value;
+
+        if (dto.MaxCommissionPerDeal.HasValue)
+            plan.MaxCommissionPerDeal = dto.MaxCommissionPerDeal.Value;
+
+        if (dto.MaxCommissionPerPeriod.HasValue)
+            plan.MaxCommissionPerPeriod = dto.MaxCommissionPerPeriod.Value;
+
+        if (dto.AllowSplits.HasValue)
+            plan.AllowSplits = dto.AllowSplits.Value;
+
+        if (dto.DefaultOverlayPercent.HasValue)
+            plan.DefaultOverlayPercent = dto.DefaultOverlayPercent.Value;
 
         plan.UpdatedAt = DateTime.UtcNow;
         _context.CommissionPlans.Update(plan);
@@ -235,7 +290,7 @@ public class CommissionPlanService : CRM.Core.Interfaces.ICommissionPlanService,
         var users = await _context.CommissionPlanAssignments
             .Where(a => a.CommissionPlanId == planId && !a.IsDeleted)
             .Include(a => a.User)
-            .Select(a => a.User)
+            .Select(a => a.User!)
             .Where(u => !u.IsDeleted)
             .Distinct()
             .OrderBy(u => u.FirstName)
@@ -430,13 +485,35 @@ public class CommissionPlanService : CRM.Core.Interfaces.ICommissionPlanService,
         var commissionCount = _context.Commissions
             .Count(c => c.CommissionPlanId == plan.Id && !c.IsDeleted);
 
+        var tierCount = _context.CommissionTiers
+            .Count(t => t.CommissionPlanId == plan.Id && !t.IsDeleted);
+
         return new CommissionPlanDto
         {
             Id = plan.Id,
             Name = plan.Name,
+            Code = plan.Code,
             Description = plan.Description,
+            Status = (int)plan.Status,
+            CommissionType = (int)plan.CommissionType,
+            Trigger = (int)plan.Trigger,
             BaseRate = plan.BaseRate,
+            Rate = plan.Rate,
             IsActive = plan.IsActive,
+            EffectiveStartDate = plan.EffectiveStartDate,
+            EffectiveEndDate = plan.EffectiveEndDate,
+            EffectiveDate = plan.EffectiveStartDate,
+            ExpiryDate = plan.EffectiveEndDate,
+            FiscalYear = plan.FiscalYear,
+            ClawbackPeriodDays = plan.ClawbackPeriodDays,
+            MinDealSize = plan.MinDealSize,
+            MaxCommissionPerDeal = plan.MaxCommissionPerDeal,
+            MaxCommissionPerPeriod = plan.MaxCommissionPerPeriod,
+            AllowSplits = plan.AllowSplits,
+            DefaultOverlayPercent = plan.DefaultOverlayPercent,
+            ManagerOverridePercent = plan.ManagerOverridePercent,
+            TierCount = tierCount,
+            SplitRules = plan.TierRates,
             UserCount = userCount,
             CommissionCount = commissionCount,
             CreatedAt = plan.CreatedAt,

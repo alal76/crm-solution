@@ -121,15 +121,28 @@ public class CommissionPlanDto
 {
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
+    public string? Code { get; set; }
     public string? Description { get; set; }
+    public int Status { get; set; }
     public int CommissionType { get; set; }
     public int Trigger { get; set; }
     public decimal BaseRate { get; set; }
+    public decimal Rate { get; set; }
     public decimal? MaxCap { get; set; }
     public decimal? MinThreshold { get; set; }
     public bool IsActive { get; set; }
     public DateTime? EffectiveDate { get; set; }
     public DateTime? ExpiryDate { get; set; }
+    public DateTime? EffectiveStartDate { get; set; }
+    public DateTime? EffectiveEndDate { get; set; }
+    public int? FiscalYear { get; set; }
+    public int? ClawbackPeriodDays { get; set; }
+    public decimal? MinDealSize { get; set; }
+    public decimal? MaxCommissionPerDeal { get; set; }
+    public decimal? MaxCommissionPerPeriod { get; set; }
+    public bool AllowSplits { get; set; }
+    public decimal? DefaultOverlayPercent { get; set; }
+    public decimal? ManagerOverridePercent { get; set; }
     public int TierCount { get; set; }
     public string? SplitRules { get; set; }
     public List<CommissionTierDto> Tiers { get; set; } = new();
@@ -147,6 +160,9 @@ public class CreateCommissionPlanDto
     [Required(ErrorMessage = "Plan name is required")]
     [StringLength(255)]
     public string Name { get; set; } = string.Empty;
+
+    [StringLength(50)]
+    public string? Code { get; set; }
 
     [StringLength(1000)]
     public string? Description { get; set; }
@@ -172,6 +188,24 @@ public class CreateCommissionPlanDto
     public bool IsActive { get; set; } = true;
     public DateTime? EffectiveDate { get; set; }
     public DateTime? ExpiryDate { get; set; }
+    public DateTime? EffectiveStartDate { get; set; }
+    public DateTime? EffectiveEndDate { get; set; }
+    public int? FiscalYear { get; set; }
+    public int? ClawbackPeriodDays { get; set; }
+
+    [Range(0, double.MaxValue)]
+    public decimal? MinDealSize { get; set; }
+
+    [Range(0, double.MaxValue)]
+    public decimal? MaxCommissionPerDeal { get; set; }
+
+    [Range(0, double.MaxValue)]
+    public decimal? MaxCommissionPerPeriod { get; set; }
+
+    public bool? AllowSplits { get; set; }
+
+    [Range(0, 100)]
+    public decimal? DefaultOverlayPercent { get; set; }
 
     [StringLength(2000)]
     public string? SplitRules { get; set; }
@@ -185,8 +219,17 @@ public class UpdateCommissionPlanDto
     [StringLength(255)]
     public string? Name { get; set; }
 
+    [StringLength(50)]
+    public string? Code { get; set; }
+
     [StringLength(1000)]
     public string? Description { get; set; }
+
+    [Range(0, 10)]
+    public int? CommissionType { get; set; }
+
+    [Range(0, 10)]
+    public int? Trigger { get; set; }
 
     [Range(0, 100)]
     public decimal? BaseRate { get; set; }
@@ -197,9 +240,28 @@ public class UpdateCommissionPlanDto
     [Range(0, double.MaxValue)]
     public decimal? MinThreshold { get; set; }
 
+    public int? Status { get; set; }
     public bool? IsActive { get; set; }
     public DateTime? EffectiveDate { get; set; }
     public DateTime? ExpiryDate { get; set; }
+    public DateTime? EffectiveStartDate { get; set; }
+    public DateTime? EffectiveEndDate { get; set; }
+    public int? FiscalYear { get; set; }
+    public int? ClawbackPeriodDays { get; set; }
+
+    [Range(0, double.MaxValue)]
+    public decimal? MinDealSize { get; set; }
+
+    [Range(0, double.MaxValue)]
+    public decimal? MaxCommissionPerDeal { get; set; }
+
+    [Range(0, double.MaxValue)]
+    public decimal? MaxCommissionPerPeriod { get; set; }
+
+    public bool? AllowSplits { get; set; }
+
+    [Range(0, 100)]
+    public decimal? DefaultOverlayPercent { get; set; }
 
     [StringLength(2000)]
     public string? SplitRules { get; set; }

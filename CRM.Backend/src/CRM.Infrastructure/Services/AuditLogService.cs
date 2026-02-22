@@ -217,16 +217,15 @@ public class AuditLogService : IAuditLogService
 
         var totalCount = await query.CountAsync(cancellationToken);
 
-        var items = await query
+        var entities = await query
             .OrderByDescending(a => a.CreatedAt)
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
-            .Select(a => MapToDto(a))
             .ToListAsync(cancellationToken);
 
         return new AuditLogPageDto
         {
-            Items = items,
+            Items = entities.Select(MapToDto).ToList(),
             TotalCount = totalCount,
             PageNumber = pageNumber,
             PageSize = pageSize
@@ -290,16 +289,15 @@ public class AuditLogService : IAuditLogService
 
         var totalCount = await dbQuery.CountAsync(cancellationToken);
 
-        var items = await dbQuery
+        var entities = await dbQuery
             .OrderByDescending(a => a.CreatedAt)
             .Skip((pageNumber - 1) * pageSize)
             .Take(pageSize)
-            .Select(a => MapToDto(a))
             .ToListAsync(cancellationToken);
 
         return new AuditLogPageDto
         {
-            Items = items,
+            Items = entities.Select(MapToDto).ToList(),
             TotalCount = totalCount,
             PageNumber = pageNumber,
             PageSize = pageSize

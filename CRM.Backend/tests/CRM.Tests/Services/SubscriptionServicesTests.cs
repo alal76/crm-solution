@@ -355,7 +355,7 @@ public class SubscriptionMetricsAggregatorTests
         // Act: Reflect and invoke private method
         var method = typeof(SubscriptionMetricsAggregator).GetMethod("NormalizeToMonthly",
             System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
-        var result = (decimal)method.Invoke(null, new object[] { amount, "Monthly" });
+        var result = (decimal)method!.Invoke(null, new object[] { amount, "Monthly" })!;
 
         // Assert
         Assert.Equal(100m, result);
@@ -370,7 +370,7 @@ public class SubscriptionMetricsAggregatorTests
         // Act
         var method = typeof(SubscriptionMetricsAggregator).GetMethod("NormalizeToMonthly",
             System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
-        var result = (decimal)method.Invoke(null, new object[] { amount, "Quarterly" });
+        var result = (decimal)method!.Invoke(null, new object[] { amount, "Quarterly" })!;
 
         // Assert: $300/3 = $100/month
         Assert.Equal(100m, result);
@@ -385,7 +385,7 @@ public class SubscriptionMetricsAggregatorTests
         // Act
         var method = typeof(SubscriptionMetricsAggregator).GetMethod("NormalizeToMonthly",
             System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
-        var result = (decimal)method.Invoke(null, new object[] { amount, "Yearly" });
+        var result = (decimal)method!.Invoke(null, new object[] { amount, "Yearly" })!;
 
         // Assert: $1200/12 = $100/month
         Assert.Equal(100m, result);
@@ -400,7 +400,7 @@ public class SubscriptionMetricsAggregatorTests
         // Act
         var method = typeof(SubscriptionMetricsAggregator).GetMethod("NormalizeToMonthly",
             System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
-        var result = (decimal)method.Invoke(null, new object[] { amount, "Weekly" });
+        var result = (decimal)method!.Invoke(null, new object[] { amount, "Weekly" })!;
 
         // Assert: $100 * 52 / 12 ≈ $433.33/month
         var expected = Math.Round(100 * 52m / 12, 4);

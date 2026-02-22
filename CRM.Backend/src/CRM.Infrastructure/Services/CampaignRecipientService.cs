@@ -125,9 +125,10 @@ public class CampaignRecipientService : ICampaignRecipientService, ICampaignReci
         var recipients = await _context.CampaignRecipients
             .Where(r => r.CampaignId == campaignId && !r.IsDeleted)
             .Include(r => r.Contact)
-            .Where(r => r.Contact.FirstName.Contains(criteria) ||
-                       r.Contact.LastName.Contains(criteria) ||
-                       r.Contact.Email.Contains(criteria))
+            .Where(r => r.Contact != null && (
+                       (r.Contact.FirstName != null && r.Contact.FirstName.Contains(criteria)) ||
+                       (r.Contact.LastName != null && r.Contact.LastName.Contains(criteria)) ||
+                       (r.Contact.Email != null && r.Contact.Email.Contains(criteria))))
             .ToListAsync(cancellationToken);
 
         return recipients.Select(r => MapToDto(r)).ToList();

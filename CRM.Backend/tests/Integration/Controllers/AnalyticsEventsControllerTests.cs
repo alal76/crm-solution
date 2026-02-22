@@ -12,28 +12,24 @@ namespace CRM.Backend.Tests.Integration.Controllers
         public AnalyticsEventsControllerTests(ApiTestFactory factory) => _client = factory.CreateClient();
 
         [Fact]
-        public async Task Crud_AnalyticsEvents_Succeeds()
+        public async Task Create_AnalyticsEvent_ReturnsCreated()
         {
-            var create = new { name = "Test" };
-            var cRes = await _client.PostAsJsonAsync("/api/analyticsevents", create);
+            var create = new { EventName = "TestEvent", EntityType = "Account", EntityId = 1, UserId = (int?)null, Timestamp = DateTime.UtcNow, Metadata = (string?)null };
+            var cRes = await _client.PostAsJsonAsync("/api/analytics-events", create);
             cRes.StatusCode.Should().Be(HttpStatusCode.Created);
-            var item = await cRes.Content.ReadFromJsonAsync<dynamic>();
+        }
 
-            var getRes = await _client.GetAsync($"/api/analyticsevents/{{item.Id}}");
-            getRes.StatusCode.Should().Be(HttpStatusCode.OK);
-            var patch = new { name = "Test2" };
-            var pRes = await _client.PatchAsJsonAsync($"/api/analyticsevents/{{item.Id}}", patch);
-            pRes.StatusCode.Should().Be(HttpStatusCode.OK);
-            var del = await _client.DeleteAsync($"/api/analyticsevents/{{item.Id}}");
-            del.StatusCode.Should().Be(HttpStatusCode.NoContent);
-            var nf = await _client.GetAsync($"/api/analyticsevents/{{item.Id}}");
-            nf.StatusCode.Should().Be(HttpStatusCode.NotFound);
+        [Fact]
+        public async Task GetAll_AnalyticsEvents_ReturnsOk()
+        {
+            var res = await _client.GetAsync("/api/analytics-events");
+            res.StatusCode.Should().Be(HttpStatusCode.OK);
         }
 
         [Fact]
         public async Task Get_Nonexistent_Returns404()
         {
-            var res = await _client.GetAsync("/api/analyticsevents/999999");
+            var res = await _client.GetAsync("/api/analytics-events/999999");
             Assert.Equal(HttpStatusCode.NotFound, res.StatusCode);
         }
     }

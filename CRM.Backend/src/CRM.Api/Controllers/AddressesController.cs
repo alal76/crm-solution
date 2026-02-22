@@ -476,7 +476,7 @@ public class AddressesController : ControllerBase
 
             // Retrieve and return the updated address
             var address = await _addressService.GetAddressByIdAsync(addressId, cancellationToken);
-            var addressDto = MapAddressToDto(address);
+            var addressDto = MapAddressToDto(address!);
 
             _logger.LogInformation("Address {AddressId} set as primary billing for account {AccountId}", addressId, accountId);
             return Ok(addressDto);
@@ -531,7 +531,7 @@ public class AddressesController : ControllerBase
 
             // Retrieve and return the updated address
             var address = await _addressService.GetAddressByIdAsync(addressId, cancellationToken);
-            var addressDto = MapAddressToDto(address);
+            var addressDto = MapAddressToDto(address!);
 
             _logger.LogInformation("Address {AddressId} set as primary shipping for account {AccountId}", addressId, accountId);
             return Ok(addressDto);

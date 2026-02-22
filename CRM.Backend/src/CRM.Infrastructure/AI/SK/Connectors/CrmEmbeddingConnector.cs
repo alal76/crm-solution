@@ -16,9 +16,9 @@ namespace CRM.Infrastructure.AI.SK.Connectors;
 /// <see cref="ITextEmbeddingGenerationService"/>. Automatically uses batch embedding
 /// when multiple texts are provided for efficiency.
 /// </summary>
-#pragma warning disable SKEXP0001 // ITextEmbeddingGenerationService is experimental
+#pragma warning disable SKEXP0001, CS0618 // ITextEmbeddingGenerationService is experimental/obsolete
 public class CrmEmbeddingConnector : ITextEmbeddingGenerationService
-#pragma warning restore SKEXP0001
+#pragma warning restore SKEXP0001, CS0618
 {
     #region Fields
 

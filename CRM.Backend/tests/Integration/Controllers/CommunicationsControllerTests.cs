@@ -134,7 +134,7 @@ namespace CRM.Backend.Tests.Integration.Controllers
             };
             var cRes = await _client.PostAsJsonAsync("/api/communications", create);
             cRes.StatusCode.Should().Be(HttpStatusCode.Created);
-            var item = await cRes.Content.ReadFromJsonAsync<dynamic>();
+            var item = (await cRes.Content.ReadFromJsonAsync<dynamic>())!;
 
             item.ChannelType.Should().Be(create.ChannelType);
             item.Name.Should().Be(create.Name);

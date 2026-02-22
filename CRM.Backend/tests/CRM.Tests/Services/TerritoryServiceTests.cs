@@ -593,7 +593,7 @@ public class TerritoryServiceTests : IDisposable
         // Arrange: make the contact service return null explicitly, simulating a misbehaving provider
         _contactInfoServiceMock
             .Setup(x => x.GetAddressesAsync(It.IsAny<EntityType>(), It.IsAny<int>()))
-            .Returns(Task.FromResult<List<LinkedAddressDto>?>(null));
+            .Returns(Task.FromResult<List<LinkedAddressDto>>(null!));
 
         var territory = new AccountTerritory { TerritoryName = "Test", IsActive = true };
         var account = new Account { Company = "Test Company", Email = "test@test.com" };

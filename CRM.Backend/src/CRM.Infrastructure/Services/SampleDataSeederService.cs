@@ -58,7 +58,9 @@ public class SampleDataSeederService
             {
                 settings = new SystemSettings
                 {
+#pragma warning disable CS0618 // SampleDataSeeded is obsolete but deliberately used by seeder
                     SampleDataSeeded = false,
+#pragma warning restore CS0618
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
                 };
@@ -76,8 +78,10 @@ public class SampleDataSeederService
             await SeedOpportunitiesToContextAsync(dbContext);
 
             // Update settings to mark sample data as seeded
+#pragma warning disable CS0618 // SampleDataSeeded/SampleDataLastSeeded are obsolete but deliberately used by seeder
             settings.SampleDataSeeded = true;
             settings.SampleDataLastSeeded = DateTime.UtcNow;
+#pragma warning restore CS0618
             await dbContext.SaveChangesAsync();
 
             _logger.LogInformation("Sample data seeding completed successfully");
@@ -96,7 +100,9 @@ public class SampleDataSeederService
     {
         var dbContext = _context as CrmDbContext ?? throw new InvalidOperationException("Context must be CrmDbContext");
         var settings = await dbContext.SystemSettings.FirstOrDefaultAsync();
+#pragma warning disable CS0618 // SampleDataSeeded is obsolete but deliberately used by seeder
         return settings?.SampleDataSeeded ?? false;
+#pragma warning restore CS0618
     }
 
     /// <summary>
@@ -1709,7 +1715,9 @@ public class SampleDataSeederService
         var settings = await dbContext.SystemSettings.FirstOrDefaultAsync();
         if (settings != null)
         {
+#pragma warning disable CS0618 // SampleDataSeeded is obsolete but deliberately used by seeder
             settings.SampleDataSeeded = false;
+#pragma warning restore CS0618
         }
 
         await dbContext.SaveChangesAsync();

@@ -37,7 +37,7 @@ namespace CRM.Backend.Tests.Integration.Controllers
             };
             var cRes = await _client.PostAsJsonAsync("/api/modulefieldconfigurations", create);
             cRes.StatusCode.Should().Be(HttpStatusCode.Created);
-            var item = await cRes.Content.ReadFromJsonAsync<dynamic>();
+            var item = (await cRes.Content.ReadFromJsonAsync<dynamic>())!;
 
             item.ModuleName.Should().Be(create.ModuleName);
             item.FieldName.Should().Be(create.FieldName);

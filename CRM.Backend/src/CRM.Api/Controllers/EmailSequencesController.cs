@@ -82,8 +82,16 @@ namespace CRM.Api.Controllers
         {
             if (sequence == null)
                 return BadRequest("Sequence payload required");
-            var created = await _service.CreateSequenceAsync(sequence, ct);
-            return CreatedAtAction(nameof(GetById), new { id = created.Id }, MapToDto(created));
+            try
+            {
+                var created = await _service.CreateSequenceAsync(sequence, ct);
+                return CreatedAtAction(nameof(GetById), new { id = created.Id }, MapToDto(created));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error creating email sequence");
+                return StatusCode(500, new { message = "Error creating email sequence", error = ex.Message });
+            }
         }
 
         /// <summary>

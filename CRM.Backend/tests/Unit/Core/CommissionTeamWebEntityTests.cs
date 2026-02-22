@@ -75,7 +75,7 @@ public class CommissionStatusEnumTests
     [InlineData(CommissionStatus.Held, 2)]
     [InlineData(CommissionStatus.Paid, 3)]
     [InlineData(CommissionStatus.ClawedBack, 4)]
-    [InlineData(CommissionStatus.Clawback, 4)]        // alias should map to same underlying value
+    // Note: CommissionStatus.Clawback is an alias for ClawedBack (same value 4), tested separately below
     [InlineData(CommissionStatus.Adjusted, 5)]
     [InlineData(CommissionStatus.Cancelled, 6)]
     [InlineData(CommissionStatus.Rejected, 7)]
@@ -83,6 +83,12 @@ public class CommissionStatusEnumTests
     {
         // Assert
         ((int)status).Should().Be(expected);
+    }
+
+    [Fact]
+    public void CommissionStatus_ClawbackAlias_ShouldMapToClawedBack()
+    {
+        ((int)CommissionStatus.Clawback).Should().Be((int)CommissionStatus.ClawedBack);
     }
 }
 

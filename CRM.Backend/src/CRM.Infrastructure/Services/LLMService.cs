@@ -8,6 +8,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using CRM.Core.Interfaces;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -239,6 +240,7 @@ public interface ILLMService
     Task<LLMResponse> CompletionAsync(LLMRequest request, CancellationToken cancellationToken = default);
     Task<LLMResponse> ChatAsync(LLMRequest request, CancellationToken cancellationToken = default);
     bool IsConfigured(string provider);
+    Task<bool> IsConfiguredAsync(string provider);
     List<LLMProviderInfo> GetAvailableProviders();
     List<LLMModelInfo> GetAvailableModels();
 }
@@ -252,18 +254,21 @@ public class LLMService : ILLMService
     private readonly LLMProviderOptions _options;
     private readonly HttpClient _httpClient;
     private readonly IResilienceService? _resilienceService;
+    private readonly ILLMSettingsService? _settingsService;
 
     public LLMService(
         ILogger<LLMService> logger,
         IOptions<LLMProviderOptions> options,
         HttpClient? httpClient = null,
-        IResilienceService? resilienceService = null)
+        IResilienceService? resilienceService = null,
+        ILLMSettingsService? settingsService = null)
     {
         _logger = logger;
         _options = options.Value;
         _httpClient = httpClient ?? new HttpClient();
         _httpClient.Timeout = TimeSpan.FromSeconds(_options.TimeoutSeconds);
         _resilienceService = resilienceService;
+        _settingsService = settingsService;
     }
 
     public bool IsConfigured(string provider)
@@ -288,6 +293,83 @@ public class LLMService : ILLMService
             "custom" => IsValidApiKey(_options.CustomEndpoint.Url),
             _ => false
         };
+    }
+
+    /// <summary>
+    /// Async version of IsConfigured that also checks for API keys stored in the database.
+    /// Use this when you need to check if a provider is truly configured (DB + config combined).
+    /// </summary>
+    public async Task<bool> IsConfiguredAsync(string provider)
+    {
+        // First check config (fast path)
+        if (IsConfigured(provider))
+            return true;
+
+        // Then check DB-stored keys via settings service
+        if (_settingsService == null)
+            return false;
+
+        try
+        {
+            var apiKey = await _settingsService.GetProviderApiKeyAsync(provider);
+            if (!string.IsNullOrWhiteSpace(apiKey))
+                return true;
+
+            // For local/ollama, check if base URL is configured
+            if (provider.ToLower() is "local" or "ollama")
+            {
+                var baseUrl = await _settingsService.GetProviderBaseUrlAsync(provider);
+                return !string.IsNullOrWhiteSpace(baseUrl);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogDebug(ex, "Error checking DB config for provider {Provider}", provider);
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Resolves the API key for a provider, checking DB-stored encrypted keys first, then falling back to config.
+    /// </summary>
+    private async Task<string> ResolveApiKeyAsync(string provider, string configFallback)
+    {
+        if (_settingsService != null)
+        {
+            try
+            {
+                var key = await _settingsService.GetProviderApiKeyAsync(provider);
+                if (!string.IsNullOrWhiteSpace(key))
+                    return key;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to resolve API key from DB for {Provider}, using config", provider);
+            }
+        }
+        return configFallback;
+    }
+
+    /// <summary>
+    /// Resolves the base URL for a provider, checking DB first, then falling back to config.
+    /// </summary>
+    private async Task<string> ResolveBaseUrlAsync(string provider, string configFallback)
+    {
+        if (_settingsService != null)
+        {
+            try
+            {
+                var url = await _settingsService.GetProviderBaseUrlAsync(provider);
+                if (!string.IsNullOrWhiteSpace(url))
+                    return url;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to resolve base URL from DB for {Provider}, using config", provider);
+            }
+        }
+        return configFallback;
     }
 
     /// <summary>
@@ -452,7 +534,8 @@ public class LLMService : ILLMService
 
         foreach (var provider in providers)
         {
-            if (!IsConfigured(provider))
+            var isReady = await IsConfiguredAsync(provider);
+            if (!isReady)
             {
                 _logger.LogDebug("Skipping provider {Provider} - not configured", provider);
                 continue;
@@ -546,6 +629,8 @@ public class LLMService : ILLMService
     private async Task<LLMResponse> CallOpenAIAsync(LLMRequest request, CancellationToken cancellationToken)
     {
         var model = request.Model.StartsWith("gpt") ? request.Model : _options.OpenAI.DefaultModel;
+        var apiKey = await ResolveApiKeyAsync("openai", _options.OpenAI.ApiKey);
+        var baseUrl = await ResolveBaseUrlAsync("openai", _options.OpenAI.BaseUrl);
 
         var requestBody = new
         {
@@ -556,7 +641,7 @@ public class LLMService : ILLMService
             response_format = request.JsonMode ? new { type = "json_object" } : null
         };
 
-        var httpRequest = new HttpRequestMessage(HttpMethod.Post, $"{_options.OpenAI.BaseUrl}/chat/completions")
+        var httpRequest = new HttpRequestMessage(HttpMethod.Post, $"{baseUrl}/chat/completions")
         {
             Content = new StringContent(
                 JsonSerializer.Serialize(requestBody, new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull }),
@@ -564,7 +649,7 @@ public class LLMService : ILLMService
                 "application/json")
         };
 
-        httpRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _options.OpenAI.ApiKey);
+        httpRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
 
         if (!string.IsNullOrEmpty(_options.OpenAI.Organization))
         {
@@ -603,6 +688,8 @@ public class LLMService : ILLMService
     {
         var deploymentName = _options.AzureOpenAI.DeploymentName;
         var apiVersion = _options.AzureOpenAI.ApiVersion;
+        var apiKey = await ResolveApiKeyAsync("azure", _options.AzureOpenAI.ApiKey);
+        var endpoint = await ResolveBaseUrlAsync("azure", _options.AzureOpenAI.Endpoint);
 
         var requestBody = new
         {
@@ -612,7 +699,7 @@ public class LLMService : ILLMService
             response_format = request.JsonMode ? new { type = "json_object" } : null
         };
 
-        var url = $"{_options.AzureOpenAI.Endpoint}/openai/deployments/{deploymentName}/chat/completions?api-version={apiVersion}";
+        var url = $"{endpoint}/openai/deployments/{deploymentName}/chat/completions?api-version={apiVersion}";
         var httpRequest = new HttpRequestMessage(HttpMethod.Post, url)
         {
             Content = new StringContent(
@@ -621,7 +708,7 @@ public class LLMService : ILLMService
                 "application/json")
         };
 
-        httpRequest.Headers.Add("api-key", _options.AzureOpenAI.ApiKey);
+        httpRequest.Headers.Add("api-key", apiKey);
 
         var httpResponse = await _httpClient.SendAsync(httpRequest, cancellationToken);
         var responseJson = await httpResponse.Content.ReadAsStringAsync(cancellationToken);
@@ -654,6 +741,8 @@ public class LLMService : ILLMService
     private async Task<LLMResponse> CallAnthropicAsync(LLMRequest request, CancellationToken cancellationToken)
     {
         var model = request.Model.StartsWith("claude") ? request.Model : _options.Anthropic.DefaultModel;
+        var apiKey = await ResolveApiKeyAsync("anthropic", _options.Anthropic.ApiKey);
+        var baseUrl = await ResolveBaseUrlAsync("anthropic", _options.Anthropic.BaseUrl);
 
         // Extract system message
         string? systemMessage = null;
@@ -674,7 +763,7 @@ public class LLMService : ILLMService
             max_tokens = request.MaxTokens
         };
 
-        var httpRequest = new HttpRequestMessage(HttpMethod.Post, $"{_options.Anthropic.BaseUrl}/messages")
+        var httpRequest = new HttpRequestMessage(HttpMethod.Post, $"{baseUrl}/messages")
         {
             Content = new StringContent(
                 JsonSerializer.Serialize(requestBody, new JsonSerializerOptions { DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull }),
@@ -682,7 +771,7 @@ public class LLMService : ILLMService
                 "application/json")
         };
 
-        httpRequest.Headers.Add("x-api-key", _options.Anthropic.ApiKey);
+        httpRequest.Headers.Add("x-api-key", apiKey);
         httpRequest.Headers.Add("anthropic-version", _options.Anthropic.ApiVersion);
 
         var httpResponse = await _httpClient.SendAsync(httpRequest, cancellationToken);
@@ -732,6 +821,8 @@ public class LLMService : ILLMService
 
     private async Task<LLMResponse> CallGeminiAPIAsync(LLMRequest request, string model, CancellationToken cancellationToken)
     {
+        var apiKey = await ResolveApiKeyAsync("google", _options.GoogleCloud.ApiKey);
+
         // Gemini API format
         var contents = new List<object>();
 
@@ -755,7 +846,7 @@ public class LLMService : ILLMService
             }
         };
 
-        var url = $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={_options.GoogleCloud.ApiKey}";
+        var url = $"https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={apiKey}";
         var httpRequest = new HttpRequestMessage(HttpMethod.Post, url)
         {
             Content = new StringContent(
@@ -832,7 +923,8 @@ public class LLMService : ILLMService
         };
 
         // Note: In production, use Google.Cloud.AIPlatform.V1 SDK with proper auth
-        httpRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _options.GoogleCloud.ApiKey);
+        var vertexApiKey = await ResolveApiKeyAsync("google", _options.GoogleCloud.ApiKey);
+        httpRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", vertexApiKey);
 
         var httpResponse = await _httpClient.SendAsync(httpRequest, cancellationToken);
         var responseJson = await httpResponse.Content.ReadAsStringAsync(cancellationToken);
@@ -937,7 +1029,8 @@ public class LLMService : ILLMService
         if (!_options.AWSBedrock.UseDefaultCredentials)
         {
             // Add basic auth headers (in production, use proper AWS SigV4)
-            httpRequest.Headers.Add("X-Amz-Access-Key", _options.AWSBedrock.AccessKeyId);
+            var awsAccessKey = await ResolveApiKeyAsync("bedrock", _options.AWSBedrock.AccessKeyId);
+            httpRequest.Headers.Add("X-Amz-Access-Key", awsAccessKey);
             if (!string.IsNullOrEmpty(_options.AWSBedrock.SessionToken))
             {
                 httpRequest.Headers.Add("X-Amz-Security-Token", _options.AWSBedrock.SessionToken);
@@ -1014,7 +1107,8 @@ public class LLMService : ILLMService
         };
 
         var httpRequest = new HttpRequestMessage(HttpMethod.Post, $"{_options.DeepSeek.BaseUrl}/v1/chat/completions");
-        httpRequest.Headers.Add("Authorization", $"Bearer {_options.DeepSeek.ApiKey}");
+        var deepSeekApiKey = await ResolveApiKeyAsync("deepseek", _options.DeepSeek.ApiKey);
+        httpRequest.Headers.Add("Authorization", $"Bearer {deepSeekApiKey}");
         httpRequest.Content = new StringContent(
             JsonSerializer.Serialize(requestBody),
             Encoding.UTF8,
@@ -1071,7 +1165,8 @@ public class LLMService : ILLMService
         };
 
         var httpRequest = new HttpRequestMessage(HttpMethod.Post, $"{_options.Groq.BaseUrl}/chat/completions");
-        httpRequest.Headers.Add("Authorization", $"Bearer {_options.Groq.ApiKey}");
+        var groqApiKey = await ResolveApiKeyAsync("groq", _options.Groq.ApiKey);
+        httpRequest.Headers.Add("Authorization", $"Bearer {groqApiKey}");
         httpRequest.Content = new StringContent(
             JsonSerializer.Serialize(requestBody),
             Encoding.UTF8,
@@ -1133,7 +1228,8 @@ public class LLMService : ILLMService
 
         var modelUrl = model.StartsWith("http") ? model : $"{_options.AllenAI.BaseUrl}/{model}";
         var httpRequest = new HttpRequestMessage(HttpMethod.Post, modelUrl);
-        httpRequest.Headers.Add("Authorization", $"Bearer {_options.AllenAI.ApiKey}");
+        var allenApiKey = await ResolveApiKeyAsync("allenai", _options.AllenAI.ApiKey);
+        httpRequest.Headers.Add("Authorization", $"Bearer {allenApiKey}");
         httpRequest.Content = new StringContent(
             JsonSerializer.Serialize(requestBody),
             Encoding.UTF8,
@@ -1403,7 +1499,8 @@ public class LLMService : ILLMService
 
         if (!string.IsNullOrEmpty(_options.CustomEndpoint.ApiKey))
         {
-            httpRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", _options.CustomEndpoint.ApiKey);
+            var customApiKey = await ResolveApiKeyAsync("custom", _options.CustomEndpoint.ApiKey);
+            httpRequest.Headers.Authorization = new AuthenticationHeaderValue("Bearer", customApiKey);
         }
 
         foreach (var header in _options.CustomEndpoint.Headers)

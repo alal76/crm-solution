@@ -330,6 +330,14 @@ function WorkflowDesignerPage() {
     loadWorkflow();
   }, [loadWorkflow]);
 
+  // Initialize history when workflow is loaded
+  useEffect(() => {
+    if (!loading && nodes.length > 0 && history.length === 0) {
+      setHistory([{ nodes: nodes.map(n => ({ ...n })), transitions: transitions.map(t => ({ ...t })) }]);
+      setHistoryIndex(0);
+    }
+  }, [loading, nodes.length]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // Snap to grid
   const snapToGrid = (value: number) => Math.round(value / GRID_SIZE) * GRID_SIZE;
 
@@ -478,10 +486,15 @@ function WorkflowDesignerPage() {
   const addNode = async (nodeType: string) => {
     if (!version) return;
 
-    // Find a good position for the new node
+    // Find a good position for the new node (offset to avoid stacking)
     const canvasRect = canvasRef.current?.getBoundingClientRect();
-    const centerX = canvasRect ? (canvasRect.width / 2 - pan.x) / zoom : 400;
-    const centerY = canvasRect ? (canvasRect.height / 2 - pan.y) / zoom : 300;
+    const baseCenterX = canvasRect ? (canvasRect.width / 2 - pan.x) / zoom : 400;
+    const baseCenterY = canvasRect ? (canvasRect.height / 2 - pan.y) / zoom : 300;
+    // Spiral offset based on existing node count to prevent overlap
+    const offsetAngle = (nodes.length * 0.8) % (2 * Math.PI);
+    const offsetRadius = 80 + (nodes.length % 5) * 40;
+    const centerX = baseCenterX + Math.cos(offsetAngle) * offsetRadius;
+    const centerY = baseCenterY + Math.sin(offsetAngle) * offsetRadius;
 
     const newNode: CreateNodeDto = {
       name: `${nodeTypeInfo[nodeType]?.label || nodeType} ${nodes.length + 1}`,
@@ -514,11 +527,13 @@ function WorkflowDesignerPage() {
         executionOrder: nodes.length,
         selected: true,
       };
-      setNodes(prev => [...prev.map(n => ({ ...n, selected: false })), addedNode]);
+      const newNodes = [...nodes.map(n => ({ ...n, selected: false })), addedNode];
+      setNodes(newNodes);
       setSelectedNode(addedNode);
       setPropertiesOpen(true);
       setSuccess('Node added');
       setHasChanges(true);
+      pushHistory(newNodes, transitions);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to add node');
     } finally {
@@ -550,9 +565,11 @@ function WorkflowDesignerPage() {
         animationStyle: dto.animationStyle || 'none',
         selected: false,
       };
-      setTransitions(prev => [...prev, addedTransition]);
+      const newTransitions = [...transitions, addedTransition];
+      setTransitions(newTransitions);
       setSuccess('Connection created');
       setHasChanges(true);
+      pushHistory(nodes, newTransitions);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to create connection');
     } finally {
@@ -565,14 +582,15 @@ function WorkflowDesignerPage() {
     try {
       setSaving(true);
       await workflowService.deleteNode(node.id);
-      setNodes(prev => prev.filter(n => n.id !== node.id));
-      setTransitions(prev =>
-        prev.filter(t => t.sourceNodeId !== node.id && t.targetNodeId !== node.id)
-      );
+      const newNodes = nodes.filter(n => n.id !== node.id);
+      const newTransitions = transitions.filter(t => t.sourceNodeId !== node.id && t.targetNodeId !== node.id);
+      setNodes(newNodes);
+      setTransitions(newTransitions);
       setSelectedNode(null);
       setPropertiesOpen(false);
       setSuccess('Node deleted');
       setHasChanges(true);
+      pushHistory(newNodes, newTransitions);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to delete node');
     } finally {
@@ -585,11 +603,13 @@ function WorkflowDesignerPage() {
     try {
       setSaving(true);
       await workflowService.deleteTransition(transition.id);
-      setTransitions(prev => prev.filter(t => t.id !== transition.id));
+      const newTransitions = transitions.filter(t => t.id !== transition.id);
+      setTransitions(newTransitions);
       setSelectedTransition(null);
       setPropertiesOpen(false);
       setSuccess('Connection deleted');
       setHasChanges(true);
+      pushHistory(nodes, newTransitions);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to delete connection');
     } finally {
@@ -779,6 +799,47 @@ function WorkflowDesignerPage() {
           onOpenSimulator={() => setSimulatorOpen(true)}
           onOpenVersionHistory={() => setVersionDiffOpen(true)}
           saving={saving}
+          canUndo={canUndo}
+          canRedo={canRedo}
+          onUndo={handleUndo}
+          onRedo={handleRedo}
+          onSave={async () => {
+            try {
+              setSaving(true);
+              setSuccess('Workflow saved');
+              setHasChanges(false);
+            } catch (err: any) {
+              setError(err.response?.data?.message || 'Failed to save');
+            } finally {
+              setSaving(false);
+            }
+          }}
+          onPublish={version && workflow ? async () => {
+            try {
+              setSaving(true);
+              await workflowService.activateWorkflow(workflow.id, version.id);
+              setVersion(prev => prev ? { ...prev, status: 'Active' } : null);
+              setSuccess('Version published successfully');
+            } catch (err: any) {
+              setError(err.response?.data?.message || 'Failed to publish version');
+            } finally {
+              setSaving(false);
+            }
+          } : undefined}
+          onClone={workflow ? async () => {
+            try {
+              setSaving(true);
+              const cloned = await workflowService.cloneWorkflow(workflow.id);
+              setSuccess(`Workflow cloned as "${cloned.name}"`);
+              navigate(`/admin/workflows/${cloned.id}/designer`);
+            } catch (err: any) {
+              setError(err.response?.data?.message || 'Failed to clone workflow');
+            } finally {
+              setSaving(false);
+            }
+          } : undefined}
+          hasChanges={hasChanges}
+          isDraftVersion={version?.status === 'Draft'}
         />
 
         {/* Canvas */}
@@ -836,8 +897,10 @@ function WorkflowDesignerPage() {
                   x2={(connectState.tempX! - pan.x) / zoom}
                   y2={(connectState.tempY! - pan.y) / zoom}
                   stroke="#1976d2"
-                  strokeWidth={2}
-                  strokeDasharray="5,5"
+                  strokeWidth={2.5}
+                  strokeDasharray="8,4"
+                  strokeLinecap="round"
+                  opacity={0.8}
                 />
               )}
             </g>

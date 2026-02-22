@@ -144,9 +144,9 @@ public class PerformanceOptimizationService : IPerformanceOptimizationService
             {
                 Query = g.Key,
                 Count = g.Count(),
-                AvgDuration = g.Average(m => m.QueryDurationMs.Value),
-                MaxDuration = g.Max(m => m.QueryDurationMs.Value),
-                TotalTime = g.Sum(m => m.QueryDurationMs.Value)
+                AvgDuration = g.Average(m => m.QueryDurationMs.GetValueOrDefault()),
+                MaxDuration = g.Max(m => m.QueryDurationMs.GetValueOrDefault()),
+                TotalTime = g.Sum(m => m.QueryDurationMs.GetValueOrDefault())
             })
             .OrderByDescending(x => x.TotalTime)
             .Take(count)

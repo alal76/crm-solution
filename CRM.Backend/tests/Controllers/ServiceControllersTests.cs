@@ -307,7 +307,7 @@ public class WebhooksControllerTests
     public WebhooksControllerTests()
     {
         // Setup in-memory configuration
-        var inMemorySettings = new Dictionary<string, string>
+        var inMemorySettings = new Dictionary<string, string?>
         {
             { "DatabaseProvider", "inmemory" }
         };

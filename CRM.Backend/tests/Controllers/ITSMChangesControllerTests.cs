@@ -131,7 +131,7 @@ public class ITSMChangesControllerTests
     [Fact]
     public async Task Submit_ShouldReturnNotFound_WhenChangeDoesNotExist()
     {
-        _mockService.Setup(s => s.SubmitAsync(999, It.IsAny<CancellationToken>())).ReturnsAsync((ChangeDto?)null);
+        _mockService.Setup(s => s.SubmitAsync(999, It.IsAny<CancellationToken>())).ReturnsAsync((ChangeDto)null!);
 
         var result = await _controller.Submit(999);
 
@@ -159,7 +159,7 @@ public class ITSMChangesControllerTests
     public async Task Approve_ShouldReturnNotFound_WhenChangeDoesNotExist()
     {
         var dto = new ChangeApprovalDto { ApproverNotes = "LGTM" };
-        _mockService.Setup(s => s.ApproveAsync(999, dto, It.IsAny<CancellationToken>())).ReturnsAsync((ChangeDto?)null);
+        _mockService.Setup(s => s.ApproveAsync(999, dto, It.IsAny<CancellationToken>())).ReturnsAsync((ChangeDto)null!);
 
         var result = await _controller.Approve(999, dto);
 
@@ -187,7 +187,7 @@ public class ITSMChangesControllerTests
     public async Task Reject_ShouldReturnNotFound_WhenChangeDoesNotExist()
     {
         var dto = new ChangeRejectionDto { RejectionReason = "Too risky" };
-        _mockService.Setup(s => s.RejectAsync(999, dto, It.IsAny<CancellationToken>())).ReturnsAsync((ChangeDto?)null);
+        _mockService.Setup(s => s.RejectAsync(999, dto, It.IsAny<CancellationToken>())).ReturnsAsync((ChangeDto)null!);
 
         var result = await _controller.Reject(999, dto);
 

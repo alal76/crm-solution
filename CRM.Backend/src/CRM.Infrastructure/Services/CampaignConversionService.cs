@@ -45,7 +45,7 @@ public class CampaignConversionService : ICampaignConversionService
         {
             var filterLower = filter.ToLower();
             query = query.Where(c =>
-                c.ConversionType.ToLower().Contains(filterLower) ||
+                (c.ConversionType != null && c.ConversionType.ToLower().Contains(filterLower)) ||
                 (c.ExternalOrderId != null && c.ExternalOrderId.ToLower().Contains(filterLower)) ||
                 (c.ExternalTransactionId != null && c.ExternalTransactionId.ToLower().Contains(filterLower)));
         }
@@ -210,7 +210,7 @@ public class CampaignConversionService : ICampaignConversionService
             ContactName = conversion.Contact != null ? $"{conversion.Contact.FirstName} {conversion.Contact.LastName}".Trim() : null,
             AccountId = conversion.AccountId,
             AccountName = conversion.Account?.DisplayName,
-            ConversionType = conversion.ConversionType,
+            ConversionType = conversion.ConversionType ?? string.Empty,
             ConversionValue = conversion.ConversionValue,
             ConversionCurrency = conversion.ConversionCurrency,
             AttributionModel = conversion.AttributionModel,

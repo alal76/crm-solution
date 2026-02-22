@@ -101,6 +101,21 @@ public interface ICampaignExecutionService
 
     /// <summary>Schedules a campaign for future execution.</summary>
     Task<bool> ScheduleAsync(int campaignId, DateTime scheduledDate, CancellationToken cancellationToken = default);
+
+    /// <summary>Gets all A/B tests for a campaign.</summary>
+    Task<List<CampaignABTest>> GetCampaignABTestsAsync(int campaignId);
+
+    /// <summary>Creates an A/B test for a campaign.</summary>
+    Task<CampaignABTest> CreateABTestAsync(int campaignId, string testName, string testType, string testMetric, string variantAConfig, string variantBConfig, int trafficSplit = 50, int? minimumSampleSize = null, int? testDurationHours = null, bool autoSelectWinner = false, int? userId = null);
+
+    /// <summary>Starts an A/B test.</summary>
+    Task<bool> StartABTestAsync(int testId);
+
+    /// <summary>Completes an A/B test by selecting the winning variant.</summary>
+    Task<bool> CompleteABTestAsync(int testId, string winningVariant);
+
+    /// <summary>Assigns a recipient to an A/B test variant.</summary>
+    Task<string> AssignToABTestVariantAsync(int testId, int recipientId);
 }
 
 /// <summary>

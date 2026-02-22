@@ -501,11 +501,11 @@ public class ProblemManagementService : IProblemManagementService
         };
 
         // Calculate average resolution time
-        var resolvedProblems = problems.Where(p => p.ResolvedAt.HasValue && p.CreatedAt != null).ToList();
+        var resolvedProblems = problems.Where(p => p.ResolvedAt.HasValue).ToList();
         if (resolvedProblems.Any())
         {
             metrics.AverageResolutionDays = resolvedProblems
-                .Average(p => (p.ResolvedAt.Value - p.CreatedAt).TotalDays);
+                .Average(p => (p.ResolvedAt.GetValueOrDefault() - p.CreatedAt).TotalDays);
         }
 
         return metrics;

@@ -165,6 +165,19 @@ public interface IWorkflowService
 
     #endregion
 
+    #region Clone
+
+    /// <summary>
+    /// Clone an entire workflow definition including its active/latest version, nodes, and transitions.
+    /// </summary>
+    /// <param name="sourceWorkflowId">The workflow definition ID to clone.</param>
+    /// <param name="newName">Optional name for the cloned workflow. Defaults to "{original} (Copy)".</param>
+    /// <param name="ownerId">Optional owner for the cloned workflow.</param>
+    /// <returns>The newly created workflow definition.</returns>
+    Task<WorkflowDefinition> CloneWorkflowAsync(int sourceWorkflowId, string? newName = null, int? ownerId = null);
+
+    #endregion
+
     #region Statistics
 
     /// <summary>

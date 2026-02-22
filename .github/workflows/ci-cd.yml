@@ -53,14 +53,27 @@ jobs:
 
     - name: Run unit tests
       working-directory: CRM.Frontend
-      run: npm test -- --coverage --watchAll=false --passWithNoTests
+      run: npm run test:ci
+      env:
+        JEST_JUNIT_OUTPUT_DIR: ./test-results
+        JEST_JUNIT_OUTPUT_NAME: frontend-tests.xml
 
     - name: Upload coverage reports
       uses: codecov/codecov-action@v4
+      if: always()
       with:
         files: ./CRM.Frontend/coverage/coverage-final.json
         flags: frontend
         name: frontend-coverage
+      continue-on-error: true
+
+    - name: Upload frontend test results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: frontend-test-results
+        path: CRM.Frontend/test-results/
+        retention-days: 7
       continue-on-error: true
 
     - name: Build production bundle
@@ -87,10 +100,11 @@ jobs:
   # ==========================================================================
   # BACKEND TESTS & BUILD
   #
-  # All 3 test projects are in CRM.sln:
-  #   - CRM.Tests.Unit.Core  (2,854 tests — entity/DTO, MUST all pass)
-  #   - CRM.Tests.Services   (483 tests — service/integration, must pass)
-  #   - CRM.Tests            (1,766 tests — functional/provider, must pass)
+  # All 4 test projects are in CRM.sln:
+  #   - CRM.Tests.Unit.Core         (2,849 tests — entity/DTO unit tests)
+  #   - CRM.Tests (root)            (3,489 tests — functional/provider/service tests)
+  #   - CRM.Tests (subfolder)       (1,045 tests — additional service/integration tests)
+  #   - CRM.SystemModule.Tests      (83 tests — system module tests)
   # ==========================================================================
   backend-tests:
     name: Backend Tests & Build
@@ -110,33 +124,43 @@ jobs:
         dotnet restore CRM.sln
         dotnet build CRM.sln -c Release --no-restore
 
-    # Core unit tests MUST pass — gate for the build
-    - name: Run Core unit tests (must pass)
+    # Core unit tests — entity/DTO tests (2,849 tests)
+    - name: Run Core unit tests
       working-directory: CRM.Backend
       run: |
         dotnet test tests/Unit/Core/CRM.Tests.Unit.Core.csproj \
           -c Release --no-build \
-          --logger "trx;LogFileName=core-tests.trx" \
+          --logger "trx;LogFileName=core-unit-tests.trx" \
           --results-directory tests/TestResults/ \
           --collect:"XPlat Code Coverage"
 
-    # Service tests — must pass
-    - name: Run Service tests
-      working-directory: CRM.Backend
-      run: |
-        dotnet test tests/CRM.Tests/CRM.Tests.csproj \
-          -c Release --no-build \
-          --logger "trx;LogFileName=service-tests.trx" \
-          --results-directory tests/TestResults/ \
-          --collect:"XPlat Code Coverage"
-
-    # Main test suite — must pass
+    # Main test suite — functional/provider/service tests (3,489 tests)
     - name: Run Main test suite
       working-directory: CRM.Backend
       run: |
         dotnet test tests/CRM.Tests.csproj \
           -c Release --no-build \
           --logger "trx;LogFileName=main-tests.trx" \
+          --results-directory tests/TestResults/ \
+          --collect:"XPlat Code Coverage"
+
+    # Additional service/integration tests (1,045 tests)
+    - name: Run Service & Integration tests
+      working-directory: CRM.Backend
+      run: |
+        dotnet test tests/CRM.Tests/CRM.Tests.csproj \
+          -c Release --no-build \
+          --logger "trx;LogFileName=service-integration-tests.trx" \
+          --results-directory tests/TestResults/ \
+          --collect:"XPlat Code Coverage"
+
+    # System module tests (83 tests)
+    - name: Run System Module tests
+      working-directory: CRM.Backend
+      run: |
+        dotnet test tests/CRM.SystemModule.Tests/CRM.SystemModule.Tests.csproj \
+          -c Release --no-build \
+          --logger "trx;LogFileName=system-module-tests.trx" \
           --results-directory tests/TestResults/ \
           --collect:"XPlat Code Coverage"
 
@@ -206,10 +230,10 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - name: Setup .NET 8.0
+    - name: Setup .NET 10.0
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: '8.0.x'
+        dotnet-version: '10.0.x'
 
     - name: Build API
       working-directory: CRM.Backend
@@ -321,7 +345,7 @@ jobs:
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: '8.0.x'
+        dotnet-version: '10.0.x'
 
     - name: Run StyleCop analysis
       working-directory: CRM.Backend
@@ -378,6 +402,14 @@ jobs:
         path: backend-results/
       continue-on-error: true
 
+    - name: Download frontend test results
+      uses: actions/download-artifact@v4
+      if: always()
+      with:
+        name: frontend-test-results
+        path: frontend-results/
+      continue-on-error: true
+
     - name: Download BVT test results
       uses: actions/download-artifact@v4
       if: always()
@@ -393,6 +425,7 @@ jobs:
       with:
         files: |
           backend-results/**/*.trx
+          frontend-results/**/*.xml
         check_name: Test Results
         comment_title: Test Summary
         action_fail_on_inconclusive: false

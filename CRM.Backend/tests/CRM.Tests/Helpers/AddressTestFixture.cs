@@ -235,7 +235,7 @@ public class AddressTestFixture
         private string _email = "test@example.com";
         private string _firstName = "Test Company";
         private string? _lastName = null;
-        private string? _phone = null;
+        private string _phone = string.Empty;
         private string? _website = null;
         private bool _isDeleted = false;
         private readonly List<Address> _addresses = new();

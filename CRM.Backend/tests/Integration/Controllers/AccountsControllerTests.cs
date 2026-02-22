@@ -115,7 +115,7 @@ namespace CRM.Backend.Tests.Integration.Controllers
             };
             var cRes = await _client.PostAsJsonAsync("/api/accounts", create);
             cRes.StatusCode.Should().Be(HttpStatusCode.Created);
-            var item = await cRes.Content.ReadFromJsonAsync<dynamic>();
+            var item = (await cRes.Content.ReadFromJsonAsync<dynamic>())!;
 
             item.Category.Should().Be(create.Category);
             item.FirstName.Should().Be(create.FirstName);

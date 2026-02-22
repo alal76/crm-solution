@@ -84,6 +84,7 @@ public class LLMSettingsDto
     public LLMProviderSettingsDto Groq { get; set; } = new();
     public LLMProviderSettingsDto AllenAI { get; set; } = new();
     public LLMProviderSettingsDto Local { get; set; } = new();
+    public LLMProviderSettingsDto Custom { get; set; } = new();
 }
 
 /// <summary>
@@ -101,6 +102,31 @@ public class LLMProviderSettingsDto
     public bool? UseVertexAI { get; set; }
     public bool? UseDefaultCredentials { get; set; }
     public bool IsConfigured { get; set; }
+
+    /// <summary>
+    /// Masked API key for display (e.g. "sk-****abcd"). Never contains the full key.
+    /// </summary>
+    public string? ApiKeyMasked { get; set; }
+
+    /// <summary>
+    /// Whether an API key is stored in the database for this provider.
+    /// </summary>
+    public bool HasApiKey { get; set; }
+
+    /// <summary>
+    /// For Azure: the endpoint URL (e.g. https://myresource.openai.azure.com)
+    /// </summary>
+    public string? Endpoint { get; set; }
+
+    /// <summary>
+    /// For Azure: the deployment name
+    /// </summary>
+    public string? DeploymentName { get; set; }
+
+    /// <summary>
+    /// For Google: the project ID
+    /// </summary>
+    public string? ProjectId { get; set; }
 }
 
 /// <summary>
@@ -133,4 +159,25 @@ public class LLMProviderUpdateDto
     public bool? Enabled { get; set; }
     public bool? UseVertexAI { get; set; }
     public bool? UseDefaultCredentials { get; set; }
+
+    /// <summary>
+    /// The new API key to store (will be encrypted at rest).
+    /// Send empty string to clear the key. Omit (null) to leave unchanged.
+    /// </summary>
+    public string? ApiKey { get; set; }
+
+    /// <summary>
+    /// For Azure: the endpoint URL
+    /// </summary>
+    public string? Endpoint { get; set; }
+
+    /// <summary>
+    /// For Azure: the deployment name
+    /// </summary>
+    public string? DeploymentName { get; set; }
+
+    /// <summary>
+    /// For Google: the project ID
+    /// </summary>
+    public string? ProjectId { get; set; }
 }

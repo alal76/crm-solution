@@ -286,7 +286,7 @@ public class WebhookManagementService : IWebhookManagementService, IWebhookManag
             SuccessfulDeliveries = successfulCount,
             FailedDeliveries = failedCount,
             SuccessRate = totalCount > 0 ? (successfulCount * 100.0 / totalCount) : 0,
-            AverageDurationMs = deliveries.Any(d => d.DurationMs.HasValue) ? deliveries.Where(d => d.DurationMs.HasValue).Average(d => d.DurationMs.Value) : 0,
+            AverageDurationMs = deliveries.Any(d => d.DurationMs.HasValue) ? deliveries.Where(d => d.DurationMs.HasValue).Average(d => d.DurationMs.GetValueOrDefault()) : 0,
             ConsecutiveFailures = GetConsecutiveFailureCount(deliveries),
             LastSuccessfulDelivery = successfulDeliveries?.CompletedAt,
             LastFailedDelivery = failedDeliveries?.UpdatedAt,
@@ -313,7 +313,7 @@ public class WebhookManagementService : IWebhookManagementService, IWebhookManag
     {
         return deliveries
             .Where(d => d.ResponseStatusCode.HasValue)
-            .GroupBy(d => d.ResponseStatusCode.Value)
+            .GroupBy(d => d.ResponseStatusCode.GetValueOrDefault())
             .ToDictionary(g => g.Key, g => g.Count());
     }
 

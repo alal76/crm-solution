@@ -109,8 +109,8 @@ public class EscalationRule : BaseEntity
     public string? EmailRecipientsJson { get; set; }
 
     // Navigation properties
-    public virtual User EscalateToUser { get; set; }
-    public virtual UserGroup EscalateToGroup { get; set; }
+    public virtual User? EscalateToUser { get; set; }
+    public virtual UserGroup? EscalateToGroup { get; set; }
 }
 
 /// <summary>

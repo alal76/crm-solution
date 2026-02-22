@@ -32,7 +32,7 @@ namespace CRM.Backend.Tests.Integration.Controllers
             };
             var cRes = await _client.PostAsJsonAsync("/api/uipreferences", create);
             cRes.StatusCode.Should().Be(HttpStatusCode.Created);
-            var item = await cRes.Content.ReadFromJsonAsync<dynamic>();
+            var item = (await cRes.Content.ReadFromJsonAsync<dynamic>())!;
 
             item.UserId.Should().Be(create.UserId);
             item.Theme.Should().Be(create.Theme);

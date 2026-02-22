@@ -76,7 +76,7 @@ public class AppleOAuthProvider
 
             var tokenResponse = await response.Content.ReadFromJsonAsync<AppleTokenResponse>(cancellationToken);
             _logger.LogInformation("Successfully exchanged Apple auth code for access token");
-            return tokenResponse;
+            return tokenResponse!;
         }
         catch (Exception ex)
         {

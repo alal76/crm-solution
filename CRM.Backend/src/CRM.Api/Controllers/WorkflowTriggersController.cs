@@ -237,11 +237,13 @@ public class WorkflowTriggersController : ControllerBase
         try
         {
             var trigger = await _triggerService.ActivateAsync(id);
-            if (trigger == null)
-                return NotFound(new { error = $"Trigger with ID {id} not found" });
 
             _logger.LogInformation("Activated workflow trigger {TriggerId} by user {UserId}", id, GetCurrentUserId());
             return Ok(trigger);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { error = ex.Message });
         }
         catch (InvalidOperationException ex)
         {
@@ -265,11 +267,13 @@ public class WorkflowTriggersController : ControllerBase
         try
         {
             var trigger = await _triggerService.DeactivateAsync(id);
-            if (trigger == null)
-                return NotFound(new { error = $"Trigger with ID {id} not found" });
 
             _logger.LogInformation("Deactivated workflow trigger {TriggerId} by user {UserId}", id, GetCurrentUserId());
             return Ok(trigger);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { error = ex.Message });
         }
         catch (Exception ex)
         {
@@ -289,7 +293,7 @@ public class WorkflowTriggersController : ControllerBase
     [ProducesResponseType(typeof(TriggerExecutionResult), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> FireTrigger(int id, [FromBody] TriggerExecutionRequest request)
+    public async Task<IActionResult> FireTrigger(int id, [FromBody] FireTriggerRequestDto request)
     {
         try
         {
@@ -367,6 +371,36 @@ public class WorkflowTriggersController : ControllerBase
     }
     #endregion
 
+    #region Matching Triggers
+
+    /// <summary>
+    /// Get triggers matching a specific entity type and trigger type.
+    /// Useful for discovering which triggers would fire for a given entity event.
+    /// </summary>
+    [HttpGet("matching")]
+    [ProducesResponseType(typeof(IEnumerable<WorkflowTriggerDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetMatchingTriggers(
+        [FromQuery] string entityType,
+        [FromQuery] WorkflowTriggerType triggerType,
+        [FromQuery] string? eventName = null)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(entityType))
+                return BadRequest(new { error = "entityType is required" });
+
+            var triggers = await _triggerService.GetMatchingTriggersAsync(entityType, triggerType, eventName);
+            return Ok(triggers);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving matching triggers for {EntityType}/{TriggerType}", entityType, triggerType);
+            return StatusCode(500, new { error = "Failed to retrieve matching triggers", details = ex.Message });
+        }
+    }
+
+    #endregion
+
     #region Scheduled Triggers
 
     /// <summary>
@@ -394,7 +428,7 @@ public class WorkflowTriggersController : ControllerBase
     [HttpPost("{id:int}/update-schedule")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<IActionResult> UpdateSchedule(int id, [FromBody] UpdateScheduleRequest request)
+    public async Task<IActionResult> UpdateSchedule(int id, [FromBody] UpdateScheduleRequestDto request)
     {
         try
         {
@@ -445,11 +479,11 @@ public class WorkflowTriggersController : ControllerBase
     /// Validate a cron expression
     /// </summary>
     [HttpPost("validate/cron")]
-    [ProducesResponseType(typeof(CronValidationResult), StatusCodes.Status200OK)]
-    public IActionResult ValidateCronExpression([FromBody] CronValidationRequest request)
+    [ProducesResponseType(typeof(CronValidationResultDto), StatusCodes.Status200OK)]
+    public IActionResult ValidateCronExpression([FromBody] CronValidationRequestDto request)
     {
         var isValid = _triggerService.ValidateCronExpression(request.CronExpression, out var errorMessage);
-        return Ok(new CronValidationResult
+        return Ok(new CronValidationResultDto
         {
             IsValid = isValid,
             ErrorMessage = errorMessage,
@@ -461,11 +495,11 @@ public class WorkflowTriggersController : ControllerBase
     /// Validate filter conditions JSON
     /// </summary>
     [HttpPost("validate/filter")]
-    [ProducesResponseType(typeof(FilterValidationResult), StatusCodes.Status200OK)]
-    public IActionResult ValidateFilterConditions([FromBody] FilterValidationRequest request)
+    [ProducesResponseType(typeof(FilterValidationResultDto), StatusCodes.Status200OK)]
+    public IActionResult ValidateFilterConditions([FromBody] FilterValidationRequestDto request)
     {
         var isValid = _triggerService.ValidateFilterConditions(request.FilterConditions, out var errorMessage);
-        return Ok(new FilterValidationResult
+        return Ok(new FilterValidationResultDto
         {
             IsValid = isValid,
             ErrorMessage = errorMessage
@@ -475,49 +509,4 @@ public class WorkflowTriggersController : ControllerBase
     #endregion
 }
 
-#region Request/Response DTOs
-
-/// <summary>
-/// Request for updating trigger schedule
-/// </summary>
-public class UpdateScheduleRequest
-{
-    public DateTime NextScheduledTime { get; set; }
-}
-
-/// <summary>
-/// Request for cron expression validation
-/// </summary>
-public class CronValidationRequest
-{
-    public string CronExpression { get; set; } = string.Empty;
-}
-
-/// <summary>
-/// Result of cron expression validation
-/// </summary>
-public class CronValidationResult
-{
-    public bool IsValid { get; set; }
-    public string? ErrorMessage { get; set; }
-    public string CronExpression { get; set; } = string.Empty;
-}
-
-/// <summary>
-/// Request for filter conditions validation
-/// </summary>
-public class FilterValidationRequest
-{
-    public string FilterConditions { get; set; } = string.Empty;
-}
-
-/// <summary>
-/// Result of filter conditions validation
-/// </summary>
-public class FilterValidationResult
-{
-    public bool IsValid { get; set; }
-    public string? ErrorMessage { get; set; }
-}
-
-#endregion
+// Request/Response DTOs are now in CRM.Core/DTOs/Workflow/WorkflowTriggerDtos.cs

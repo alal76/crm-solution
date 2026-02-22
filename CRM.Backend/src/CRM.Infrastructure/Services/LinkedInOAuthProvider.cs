@@ -69,7 +69,7 @@ public class LinkedInOAuthProvider
 
             var tokenResponse = await response.Content.ReadFromJsonAsync<LinkedInTokenResponse>(cancellationToken);
             _logger.LogInformation("Successfully exchanged LinkedIn auth code for access token");
-            return tokenResponse;
+            return tokenResponse!;
         }
         catch (Exception ex)
         {
@@ -94,7 +94,8 @@ public class LinkedInOAuthProvider
             var response = await _httpClient.SendAsync(request, cancellationToken);
             response.EnsureSuccessStatusCode();
 
-            var profile = await response.Content.ReadFromJsonAsync<LinkedInUserProfile>(cancellationToken);
+            var profile = await response.Content.ReadFromJsonAsync<LinkedInUserProfile>(cancellationToken)
+                ?? throw new InvalidOperationException("Failed to deserialize LinkedIn user profile");
 
             // Get email address
             var emailRequest = new HttpRequestMessage(HttpMethod.Get, EmailUrl);
@@ -146,7 +147,7 @@ public class LinkedInOAuthProvider
 
             var tokenResponse = await response.Content.ReadFromJsonAsync<LinkedInTokenResponse>(cancellationToken);
             _logger.LogInformation("Successfully refreshed LinkedIn access token");
-            return tokenResponse;
+            return tokenResponse!;
         }
         catch (Exception ex)
         {

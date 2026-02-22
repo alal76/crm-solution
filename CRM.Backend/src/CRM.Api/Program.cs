@@ -23,6 +23,7 @@ using CRM.Infrastructure.Services.Authentication;
 using CRM.Infrastructure.Services.Authentication.OAuth;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.DataProtection;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Hybrid;
@@ -53,7 +54,9 @@ builder.WebHost.ConfigureKestrel(serverOptions =>
     {
         try
         {
+#pragma warning disable SYSLIB0057
             var cert = new X509Certificate2(sslCertPath, sslCertPassword);
+#pragma warning restore SYSLIB0057
             serverOptions.ListenAnyIP(httpsPort, listenOptions =>
             {
                 listenOptions.UseHttps(cert);
@@ -770,9 +773,11 @@ builder.Services.AddScoped<CampaignExecutionService>();
 // LLM and Resilience services
 builder.Services.Configure<LLMProviderOptions>(builder.Configuration.GetSection("LLMProviders"));
 builder.Services.Configure<ResilienceOptions>(builder.Configuration.GetSection("Resilience"));
+builder.Services.AddDataProtection();
+builder.Services.AddSingleton<IEncryptionService, CRM.Infrastructure.Services.EncryptionService>();
+builder.Services.AddScoped<ILLMSettingsService, LLMSettingsService>();
 builder.Services.AddHttpClient<ILLMService, LLMService>();
 builder.Services.AddSingleton<IResilienceService, ResilienceService>();
-builder.Services.AddScoped<ILLMSettingsService, LLMSettingsService>();
 
 // Phase 7 services - AI/Analytics Enhancements (KB search, Lead scoring, Opportunity scoring, Dashboards, Reports)
 builder.Services.AddScoped<IAIKnowledgeSearchService, AIKnowledgeSearchService>();

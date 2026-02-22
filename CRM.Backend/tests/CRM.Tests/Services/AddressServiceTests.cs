@@ -490,7 +490,7 @@ public class AddressServiceTests
         // Assert
         result.Should().NotBeNull();
         result.Should().Be(_testAddress);
-        result.Id.Should().Be(1);
+        result!.Id.Should().Be(1);
     }
 
     [Fact]
@@ -549,7 +549,7 @@ public class AddressServiceTests
 
         // Assert
         result.Should().NotBeNull();
-        result.Id.Should().Be(1);
+        result!.Id.Should().Be(1);
     }
 
     [Fact]
@@ -594,7 +594,7 @@ public class AddressServiceTests
 
         // Assert
         result.Should().NotBeNull();
-        result.Id.Should().Be(2);
+        result!.Id.Should().Be(2);
     }
 
     #endregion

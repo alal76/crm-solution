@@ -56,11 +56,11 @@ public class ImportJobService : IImportJobService
 
     public async Task<IEnumerable<ImportJobDto>> GetAllAsync(CancellationToken ct = default)
     {
-        return await _dbContext.ImportJobs
+        var entities = await _dbContext.ImportJobs
             .Where(e => !e.IsDeleted)
             .OrderByDescending(e => e.CreatedAt)
-            .Select(e => MapToDto(e))
             .ToListAsync(ct);
+        return entities.Select(MapToDto).ToList();
     }
 
     private static ImportJobDto MapToDto(ImportJob e) => new()

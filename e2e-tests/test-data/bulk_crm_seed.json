@@ -126,3 +126,5 @@
         ],
         "notes": [
                 { "id": 1, "entityType": "Opportunity", "entityId": 1, "text": "Client requested extended warranty", "createdByUserId": 2, "createdAt": "2026-02-02" }
+        ]
+}

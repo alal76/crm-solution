@@ -256,10 +256,12 @@ public class SystemSettingsService : ISystemSettingsService, ISystemSettingsInpu
                 settings.ForceHttpsRedirect = request.ForceHttpsRedirect.Value;
 
             // Sample data settings
+#pragma warning disable CS0618 // SampleDataSeeded/SampleDataLastSeeded are obsolete but used by settings service
             if (request.SampleDataSeeded.HasValue)
                 settings.SampleDataSeeded = request.SampleDataSeeded.Value;
             if (request.SampleDataLastSeeded.HasValue)
                 settings.SampleDataLastSeeded = request.SampleDataLastSeeded.Value;
+#pragma warning restore CS0618
 
             if (!string.IsNullOrEmpty(request.DateFormat))
                 settings.DateFormat = request.DateFormat;
@@ -359,8 +361,10 @@ public class SystemSettingsService : ISystemSettingsService, ISystemSettingsInpu
             SslCertificateSubject = settings.SslCertificateSubject,
             ForceHttpsRedirect = settings.ForceHttpsRedirect,
 
+#pragma warning disable CS0618 // SampleDataSeeded/SampleDataLastSeeded are obsolete but used by settings service
             SampleDataSeeded = settings.SampleDataSeeded,
             SampleDataLastSeeded = settings.SampleDataLastSeeded,
+#pragma warning restore CS0618
 
             DateFormat = settings.DateFormat,
             TimeFormat = settings.TimeFormat,
