@@ -1,14 +1,25 @@
 #!/usr/bin/env python3
-"""Analyze the JSONL log from a test data loader run."""
+"""Analyze the JSONL log from a test data loader run.
+
+Usage:
+  python3 analyze_run.py                     # uses logs/latest.jsonl
+  python3 analyze_run.py <jsonl_file>         # explicit path
+"""
 import json
+import os
 import sys
 from collections import Counter
 
-if len(sys.argv) < 2:
-    print("Usage: python3 analyze_run.py <jsonl_file>")
-    sys.exit(1)
+if len(sys.argv) >= 2:
+    jsonl_path = sys.argv[1]
+else:
+    # Default to the fixed latest.jsonl produced by run_all_batches.py
+    jsonl_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "logs", "latest.jsonl")
 
-jsonl_path = sys.argv[1]
+if not os.path.exists(jsonl_path):
+    print(f"File not found: {jsonl_path}")
+    print("Run the loader first:  python3 run_all_batches.py")
+    sys.exit(1)
 failures_by_code = {}
 successes = 0
 total = 0

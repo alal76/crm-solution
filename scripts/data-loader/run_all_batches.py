@@ -11,8 +11,8 @@ Usage:
                             [--username U] [--password P]
 
 Examples:
-  python run_all_batches.py                              # all batches against localhost
-  python run_all_batches.py --base-url http://192.168.0.9:5000
+  python run_all_batches.py                              # all batches against 192.168.0.9
+  python run_all_batches.py --base-url http://localhost:5000
   python run_all_batches.py --batches 1,2,3              # only batches 1-3
   python run_all_batches.py --skip 8,10                  # skip batches 8 and 10
 """
@@ -59,8 +59,8 @@ def parse_int_list(s: str) -> list[int]:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="CRM Test Data Loader — Master Coordinator")
-    parser.add_argument("--base-url", default="http://localhost:5000",
-                        help="CRM API base URL (default: http://localhost:5000)")
+    parser.add_argument("--base-url", default="http://192.168.0.9:5000",
+                        help="CRM API base URL (default: http://192.168.0.9:5000)")
     parser.add_argument("--username", default="admin@crm.local",
                         help="Admin username (default: admin@crm.local)")
     parser.add_argument("--password", default="Admin@123",

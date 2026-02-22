@@ -253,15 +253,20 @@ class DockerLogCapture:
 # --------------------------------------------------------- run logger
 
 class RunLogger:
+    # Fixed filenames — each run overwrites the previous one so the same
+    # files can be analyzed without hunting for timestamps.
+    LOG_NAME = "latest.log"
+    JSONL_NAME = "latest.jsonl"
+
     def __init__(self, log_dir: str, run_id: Optional[str] = None,
                  docker: Optional[DockerLogCapture] = None):
         os.makedirs(log_dir, exist_ok=True)
         self.run_id = run_id or datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
-        self.text_path = os.path.join(log_dir, f"test_data_load_{self.run_id}.log")
-        self.jsonl_path = os.path.join(log_dir, f"test_data_load_{self.run_id}.jsonl")
-        # Append mode so multiple batch scripts share same log
-        self.text_fh = open(self.text_path, "a", encoding="utf-8")
-        self.jsonl_fh = open(self.jsonl_path, "a", encoding="utf-8")
+        self.text_path = os.path.join(log_dir, self.LOG_NAME)
+        self.jsonl_path = os.path.join(log_dir, self.JSONL_NAME)
+        # Truncate ("w") so each run starts fresh with the same filenames
+        self.text_fh = open(self.text_path, "w", encoding="utf-8")
+        self.jsonl_fh = open(self.jsonl_path, "w", encoding="utf-8")
         self.counts: Dict[str, int] = {"success": 0, "failed": 0, "skipped": 0, "exists": 0}
         self.docker = docker
         self.created_ids: Dict[str, List[int]] = {}  # track IDs per entity type
@@ -617,6 +622,7 @@ def init_state(log_dir: Optional[str] = None, run_id: Optional[str] = None) -> s
 
     If log_dir is None, uses scripts/data-loader/logs/.
     If run_id is None, generates one from the current timestamp.
+    State is always written to 'latest_state.json' (overwritten each run).
     """
     global STATE_FILE
     if run_id is None:
@@ -624,10 +630,10 @@ def init_state(log_dir: Optional[str] = None, run_id: Optional[str] = None) -> s
     if log_dir is None:
         log_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "logs")
     os.makedirs(log_dir, exist_ok=True)
-    STATE_FILE = os.path.join(log_dir, f"state_{run_id}.json")
-    if not os.path.exists(STATE_FILE):
-        with open(STATE_FILE, "w") as f:
-            json.dump({}, f)
+    STATE_FILE = os.path.join(log_dir, "latest_state.json")
+    # Start fresh each run
+    with open(STATE_FILE, "w") as f:
+        json.dump({}, f)
     return run_id
 
 def save_ids(entity_type: str, ids: List[int]) -> None:
