@@ -116,13 +116,19 @@ public static class ModuleNames
     public const string Products = "Products";
     public const string Campaigns = "Campaigns";
     public const string Quotes = "Quotes";
+    public const string Orders = "Orders";
+    public const string Invoices = "Invoices";
+    public const string Contracts = "Contracts";
+    public const string ServiceRequests = "ServiceRequests";
+    public const string Payments = "Payments";
 
     /// <summary>
     /// All supported module names for field configuration.
     /// </summary>
     public static readonly string[] All = new[]
     {
-        Accounts, Contacts, Leads, Opportunities, Products, Campaigns, Quotes
+        Accounts, Contacts, Leads, Opportunities, Products, Campaigns, Quotes,
+        Orders, Invoices, Contracts, ServiceRequests, Payments
     };
 }
 

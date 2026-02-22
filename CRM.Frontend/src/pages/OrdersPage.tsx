@@ -17,8 +17,6 @@ import {
   Dialog,
   DialogContent,
   DialogActions,
-  TextField,
-  Grid,
   FormControl,
   InputLabel,
   Select,
@@ -26,13 +24,7 @@ import {
   Stack,
   Alert,
   CircularProgress,
-  Tabs,
-  Tab,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails
 } from '@mui/material';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import type { SelectChangeEvent } from '@mui/material';
 import {
   Add as AddIcon,
@@ -47,9 +39,8 @@ import {
 import { DialogError } from '../components/common/DialogError';
 import ActionButton from '../components/common/ActionButton';
 import { DialogHeader } from '../components/common/DialogHeader';
-import TabPanel from '../components/common/TabPanel';
+import DynamicEntityForm, { ExtraTab } from '../components/DynamicEntityForm';
 import { EnhancedEmptyState } from '../components/common/EnhancedEmptyState';
-import EntitySelect from '../components/EntitySelect';
 import { useApiState } from '../hooks/useApiState';
 import apiClient from '../services/apiClient';
 import logo from '../assets/logo.png';
@@ -584,483 +575,65 @@ function OrdersPage() {
           ) : undefined}
         />
         <DialogContent dividers>
-          <Tabs value={dialogTab} onChange={(_, v) => setDialogTab(v)} sx={{ mb: 2 }}>
-            <Tab label="Order Details" />
-            {editingId && <Tab label="Line Items" />}
-          </Tabs>
-
           <DialogError error={dialogApi.error} />
 
-          {/* Tab 0: Order Details */}
-          <TabPanel value={dialogTab} index={0}>
-            <Grid container spacing={3}>
-              <Grid item xs={12} md={6}>
-                <EntitySelect
-                  name="accountId"
-                  label="Account *"
-                  entityType="account"
-                  value={formData.accountId ?? ''}
-                  onChange={(val) => setFormData(prev => ({ ...prev, accountId: val as number | null }))}
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <FormControl fullWidth>
-                  <InputLabel>Status</InputLabel>
-                  <Select
-                    name="status"
-                    value={formData.status}
-                    onChange={handleSelectChange}
-                    label="Status"
-                  >
-                    {ORDER_STATUS_OPTIONS.map(opt => (
-                      <MenuItem key={opt.value} value={opt.value}>{opt.label}</MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  type="date"
-                  label="Order Date"
-                  name="orderDate"
-                  value={formData.orderDate}
-                  onChange={handleInputChange}
-                  InputLabelProps={{ shrink: true }}
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  type="date"
-                  label="Requested Date"
-                  name="requestedDate"
-                  value={formData.requestedDate}
-                  onChange={handleInputChange}
-                  InputLabelProps={{ shrink: true }}
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <EntitySelect
-                  name="opportunityId"
-                  label="Related Opportunity"
-                  entityType="opportunity"
-                  value={formData.opportunityId ?? ''}
-                  onChange={(val) => setFormData(prev => ({ ...prev, opportunityId: val as number | null }))}
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  type="number"
-                  label="Related Quote ID"
-                  value={formData.quoteId || ''}
-                  onChange={(e) => setFormData(prev => ({ ...prev, quoteId: e.target.value ? parseInt(e.target.value) : null }))}
-                />
-              </Grid>
-            </Grid>
-            {/* Accordion for Additional Information */}
-            <Accordion sx={{ mt: 3 }}>
-              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Typography variant="subtitle1" fontWeight={600}>Additional Information</Typography>
-              </AccordionSummary>
-              <AccordionDetails>
-                <Grid container spacing={3}>
-                  <Grid item xs={12}>
-                    <TextField
-                      fullWidth
-                      multiline
-                      rows={3}
-                      label="Notes"
-                      name="notes"
-                      value={formData.notes}
-                      onChange={handleInputChange}
-                    />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <TextField
-                      fullWidth
-                      multiline
-                      rows={3}
-                      label="Shipping Address"
-                      name="shippingAddress"
-                      value={formData.shippingAddress}
-                      onChange={handleInputChange}
-                    />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <TextField
-                      fullWidth
-                      multiline
-                      rows={3}
-                      label="Billing Address"
-                      name="billingAddress"
-                      value={formData.billingAddress}
-                      onChange={handleInputChange}
-                    />
-                  </Grid>
-                </Grid>
-              </AccordionDetails>
-            </Accordion>
-
-            {/* Accordion: Shipping & Fulfillment */}
-            <Accordion sx={{ mt: 2 }}>
-              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Typography variant="subtitle1" fontWeight={600}>Shipping &amp; Fulfillment</Typography>
-              </AccordionSummary>
-              <AccordionDetails>
-                <Grid container spacing={2}>
-                  {/* Row 1: Shipping Name | Shipping Method */}
-                  <Grid item xs={6}>
-                    <TextField
-                      fullWidth
-                      label="Shipping Name"
-                      name="shippingName"
-                      value={formData.shippingName}
-                      onChange={handleInputChange}
-                    />
-                  </Grid>
-                  <Grid item xs={6}>
-                    <TextField
-                      fullWidth
-                      label="Shipping Method"
-                      name="shippingMethod"
-                      value={formData.shippingMethod}
-                      onChange={handleInputChange}
-                    />
-                  </Grid>
-                  {/* Row 2: Shipping Address */}
-                  <Grid item xs={12}>
-                    <TextField
-                      fullWidth
-                      label="Shipping Street Address"
-                      name="shippingAddress"
-                      value={formData.shippingAddress}
-                      onChange={handleInputChange}
-                    />
-                  </Grid>
-                  {/* Row 3: City | State | Zip */}
-                  <Grid item xs={4}>
-                    <TextField
-                      fullWidth
-                      label="City"
-                      name="shippingCity"
-                      value={formData.shippingCity}
-                      onChange={handleInputChange}
-                    />
-                  </Grid>
-                  <Grid item xs={4}>
-                    <TextField
-                      fullWidth
-                      label="State"
-                      name="shippingState"
-                      value={formData.shippingState}
-                      onChange={handleInputChange}
-                    />
-                  </Grid>
-                  <Grid item xs={4}>
-                    <TextField
-                      fullWidth
-                      label="Zip Code"
-                      name="shippingZipCode"
-                      value={formData.shippingZipCode}
-                      onChange={handleInputChange}
-                    />
-                  </Grid>
-                  {/* Row 4: Country | Carrier */}
-                  <Grid item xs={6}>
-                    <TextField
-                      fullWidth
-                      label="Country"
-                      name="shippingCountry"
-                      value={formData.shippingCountry}
-                      onChange={handleInputChange}
-                    />
-                  </Grid>
-                  <Grid item xs={6}>
-                    <TextField
-                      fullWidth
-                      label="Carrier"
-                      name="shippingCarrier"
-                      value={formData.shippingCarrier}
-                      onChange={handleInputChange}
-                    />
-                  </Grid>
-                  {/* Row 5: Tracking Number | Tracking URL */}
-                  <Grid item xs={6}>
-                    <TextField
-                      fullWidth
-                      label="Tracking Number"
-                      name="trackingNumber"
-                      value={formData.trackingNumber}
-                      onChange={handleInputChange}
-                    />
-                  </Grid>
-                  <Grid item xs={6}>
-                    <TextField
-                      fullWidth
-                      label="Tracking URL"
-                      name="trackingUrl"
-                      value={formData.trackingUrl}
-                      onChange={handleInputChange}
-                    />
-                  </Grid>
-                  {/* Row 6: Shipped Date | Estimated Delivery Date | Delivered Date */}
-                  <Grid item xs={4}>
-                    <TextField
-                      fullWidth
-                      type="date"
-                      label="Shipped Date"
-                      name="shippedDate"
-                      value={formData.shippedDate}
-                      onChange={handleInputChange}
-                      InputLabelProps={{ shrink: true }}
-                    />
-                  </Grid>
-                  <Grid item xs={4}>
-                    <TextField
-                      fullWidth
-                      type="date"
-                      label="Estimated Delivery Date"
-                      name="estimatedDeliveryDate"
-                      value={formData.estimatedDeliveryDate}
-                      onChange={handleInputChange}
-                      InputLabelProps={{ shrink: true }}
-                    />
-                  </Grid>
-                  <Grid item xs={4}>
-                    <TextField
-                      fullWidth
-                      type="date"
-                      label="Delivered Date"
-                      name="deliveredDate"
-                      value={formData.deliveredDate}
-                      onChange={handleInputChange}
-                      InputLabelProps={{ shrink: true }}
-                    />
-                  </Grid>
-                </Grid>
-              </AccordionDetails>
-            </Accordion>
-
-            {/* Accordion: Billing, Payment & Revenue */}
-            <Accordion sx={{ mt: 2 }}>
-              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Typography variant="subtitle1" fontWeight={600}>Billing, Payment &amp; Revenue</Typography>
-              </AccordionSummary>
-              <AccordionDetails>
-                <Grid container spacing={2}>
-                  {/* Section label: Billing Address */}
-                  <Grid item xs={12}>
-                    <Typography variant="body2" fontWeight={600} color="text.secondary" sx={{ mt: 1 }}>
-                      Billing Address
+          <DynamicEntityForm
+            moduleName="Orders"
+            formData={formData}
+            onChange={handleInputChange}
+            onSelectChange={(e: any) => setFormData((prev: any) => ({ ...prev, [e.target.name]: e.target.value }))}
+            setFormData={setFormData}
+            activeTab={dialogTab}
+            editingId={editingId}
+            onTabChange={setDialogTab}
+            excludeFields={['tags', 'customFields']}
+            extraTabs={[
+              {
+                index: 100,
+                name: 'Line Items',
+                icon: <ShippingIcon fontSize="small" />,
+                editOnly: true,
+                render: () => (
+                  lineItems.length === 0 ? (
+                    <Typography color="text.secondary" textAlign="center" py={4}>
+                      No line items yet. Add line items through the API.
                     </Typography>
-                  </Grid>
-                  {/* Row 2: Billing Name | Billing Address */}
-                  <Grid item xs={6}>
-                    <TextField
-                      fullWidth
-                      label="Billing Name"
-                      name="billingName"
-                      value={formData.billingName}
-                      onChange={handleInputChange}
-                    />
-                  </Grid>
-                  <Grid item xs={6}>
-                    <TextField
-                      fullWidth
-                      label="Billing Street Address"
-                      name="billingAddress"
-                      value={formData.billingAddress}
-                      onChange={handleInputChange}
-                    />
-                  </Grid>
-                  {/* Row 3: City | State | Zip */}
-                  <Grid item xs={4}>
-                    <TextField
-                      fullWidth
-                      label="City"
-                      name="billingCity"
-                      value={formData.billingCity}
-                      onChange={handleInputChange}
-                    />
-                  </Grid>
-                  <Grid item xs={4}>
-                    <TextField
-                      fullWidth
-                      label="State"
-                      name="billingState"
-                      value={formData.billingState}
-                      onChange={handleInputChange}
-                    />
-                  </Grid>
-                  <Grid item xs={4}>
-                    <TextField
-                      fullWidth
-                      label="Zip Code"
-                      name="billingZipCode"
-                      value={formData.billingZipCode}
-                      onChange={handleInputChange}
-                    />
-                  </Grid>
-                  {/* Row 4: Billing Country */}
-                  <Grid item xs={6}>
-                    <TextField
-                      fullWidth
-                      label="Billing Country"
-                      name="billingCountry"
-                      value={formData.billingCountry}
-                      onChange={handleInputChange}
-                    />
-                  </Grid>
-                  {/* Section label: Payment */}
-                  <Grid item xs={12}>
-                    <Typography variant="body2" fontWeight={600} color="text.secondary" sx={{ mt: 1 }}>
-                      Payment
-                    </Typography>
-                  </Grid>
-                  {/* Row 6: Payment Method (Select) | Payment Terms */}
-                  <Grid item xs={6}>
-                    <FormControl fullWidth>
-                      <InputLabel>Payment Method</InputLabel>
-                      <Select
-                        name="paymentMethod"
-                        value={formData.paymentMethod}
-                        onChange={handleSelectChange}
-                        label="Payment Method"
-                      >
-                        <MenuItem value="">— None —</MenuItem>
-                        <MenuItem value="bank_transfer">Bank Transfer</MenuItem>
-                        <MenuItem value="credit_card">Credit Card</MenuItem>
-                        <MenuItem value="check">Check</MenuItem>
-                        <MenuItem value="cash">Cash</MenuItem>
-                        <MenuItem value="other">Other</MenuItem>
-                      </Select>
-                    </FormControl>
-                  </Grid>
-                  <Grid item xs={6}>
-                    <TextField
-                      fullWidth
-                      label="Payment Terms"
-                      name="paymentTerms"
-                      value={formData.paymentTerms}
-                      onChange={handleInputChange}
-                    />
-                  </Grid>
-                  {/* Row 7: Payment Reference | Payment Date */}
-                  <Grid item xs={6}>
-                    <TextField
-                      fullWidth
-                      label="Payment Reference"
-                      name="paymentReference"
-                      value={formData.paymentReference}
-                      onChange={handleInputChange}
-                    />
-                  </Grid>
-                  <Grid item xs={6}>
-                    <TextField
-                      fullWidth
-                      type="date"
-                      label="Payment Date"
-                      name="paymentDate"
-                      value={formData.paymentDate}
-                      onChange={handleInputChange}
-                      InputLabelProps={{ shrink: true }}
-                    />
-                  </Grid>
-                  {/* Section label: Revenue Recognition */}
-                  <Grid item xs={12}>
-                    <Typography variant="body2" fontWeight={600} color="text.secondary" sx={{ mt: 1 }}>
-                      Revenue Recognition
-                    </Typography>
-                  </Grid>
-                  {/* Row 9: Recognition Method (Select) | Revenue Start Date */}
-                  <Grid item xs={6}>
-                    <FormControl fullWidth>
-                      <InputLabel>Recognition Method</InputLabel>
-                      <Select
-                        name="revenueRecognitionMethod"
-                        value={formData.revenueRecognitionMethod}
-                        onChange={handleSelectChange}
-                        label="Recognition Method"
-                      >
-                        <MenuItem value="">— None —</MenuItem>
-                        <MenuItem value="immediate">Immediate</MenuItem>
-                        <MenuItem value="straight_line">Straight Line</MenuItem>
-                        <MenuItem value="milestone">Milestone</MenuItem>
-                        <MenuItem value="usage">Usage</MenuItem>
-                      </Select>
-                    </FormControl>
-                  </Grid>
-                  <Grid item xs={6}>
-                    <TextField
-                      fullWidth
-                      type="date"
-                      label="Revenue Start Date"
-                      name="revenueStartDate"
-                      value={formData.revenueStartDate}
-                      onChange={handleInputChange}
-                      InputLabelProps={{ shrink: true }}
-                    />
-                  </Grid>
-                  {/* Row 10: Revenue End Date */}
-                  <Grid item xs={6}>
-                    <TextField
-                      fullWidth
-                      type="date"
-                      label="Revenue End Date"
-                      name="revenueEndDate"
-                      value={formData.revenueEndDate}
-                      onChange={handleInputChange}
-                      InputLabelProps={{ shrink: true }}
-                    />
-                  </Grid>
-                </Grid>
-              </AccordionDetails>
-            </Accordion>
-          </TabPanel>
-
-          {/* Tab 1: Line Items (read-only when editing) */}
-          {editingId && (
-            <TabPanel value={dialogTab} index={1}>
-              {lineItems.length === 0 ? (
-                <Typography color="text.secondary" textAlign="center" py={4}>
-                  No line items yet. Add line items through the API.
-                </Typography>
-              ) : (
-                <Table size="small">
-                  <TableHead>
-                    <TableRow>
-                      <TableCell>Product</TableCell>
-                      <TableCell>Description</TableCell>
-                      <TableCell align="right">Qty</TableCell>
-                      <TableCell align="right">Unit Price</TableCell>
-                      <TableCell align="right">Fulfilled</TableCell>
-                      <TableCell align="right">Total</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {lineItems.map(item => (
-                      <TableRow key={item.id}>
-                        <TableCell>{item.productName || '-'}</TableCell>
-                        <TableCell>{item.description}</TableCell>
-                        <TableCell align="right">{item.quantity}</TableCell>
-                        <TableCell align="right">{formatCurrency(item.unitPrice)}</TableCell>
-                        <TableCell align="right">
-                          <Chip
-                            size="small"
-                            label={`${item.fulfilledQuantity}/${item.quantity}`}
-                            color={item.fulfilledQuantity >= item.quantity ? 'success' : item.fulfilledQuantity > 0 ? 'warning' : 'default'}
-                          />
-                        </TableCell>
-                        <TableCell align="right">{formatCurrency(item.totalPrice)}</TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              )}
-            </TabPanel>
-          )}
+                  ) : (
+                    <Table size="small">
+                      <TableHead>
+                        <TableRow>
+                          <TableCell>Product</TableCell>
+                          <TableCell>Description</TableCell>
+                          <TableCell align="right">Qty</TableCell>
+                          <TableCell align="right">Unit Price</TableCell>
+                          <TableCell align="right">Fulfilled</TableCell>
+                          <TableCell align="right">Total</TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {lineItems.map(item => (
+                          <TableRow key={item.id}>
+                            <TableCell>{item.productName || '-'}</TableCell>
+                            <TableCell>{item.description}</TableCell>
+                            <TableCell align="right">{item.quantity}</TableCell>
+                            <TableCell align="right">{formatCurrency(item.unitPrice)}</TableCell>
+                            <TableCell align="right">
+                              <Chip
+                                size="small"
+                                label={`${item.fulfilledQuantity}/${item.quantity}`}
+                                color={item.fulfilledQuantity >= item.quantity ? 'success' : item.fulfilledQuantity > 0 ? 'warning' : 'default'}
+                              />
+                            </TableCell>
+                            <TableCell align="right">{formatCurrency(item.totalPrice)}</TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  )
+                ),
+              },
+            ]}
+          />
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog}>Cancel</Button>

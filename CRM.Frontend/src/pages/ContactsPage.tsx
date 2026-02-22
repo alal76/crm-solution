@@ -894,7 +894,7 @@ function ContactsPage() {
           />
 
           <DynamicEntityForm
-            moduleName="Contact"
+            moduleName="Contacts"
             formData={formData}
             onChange={handleFormChange}
             onSelectChange={(e: any) => setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }))}

@@ -78,6 +78,7 @@ import LinkIcon from '@mui/icons-material/Link';
 import logo from '../assets/logo.png';
 import ImportExportButtons from '../components/ImportExportButtons';
 import NotesTab from '../components/NotesTab';
+import DynamicEntityForm, { ExtraTab } from '../components/DynamicEntityForm';
 import {
   ServiceRequest,
   CreateServiceRequest,
@@ -640,6 +641,16 @@ function ServiceRequestsPage() {
     setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev: any) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSelectChange = (e: any) => {
+    const { name, value } = e.target;
+    setFormData((prev: any) => ({ ...prev, [name]: value }));
+  };
+
   const handleCustomFieldChange = (fieldId: number, value: string) => {
     setCustomFieldValues((prev) => ({ ...prev, [fieldId]: value }));
   };
@@ -1151,563 +1162,56 @@ function ServiceRequestsPage() {
           status={selectedRequest ? (STATUS_LABELS[selectedRequest.status] || undefined) : undefined}
           statusColor={selectedRequest ? STATUS_COLORS[selectedRequest.status] : undefined}
         />
-        <Box sx={{ borderBottom: 1, borderColor: 'divider', px: 3 }}>
-          <Tabs value={dialogTab} onChange={(_, v) => setDialogTab(v)} aria-label="Service request dialog tabs">
-            <Tab label="Request Info" id="sr-tab-0" aria-controls="sr-tabpanel-0" />
-            {selectedRequest && <Tab label="Related" icon={<LinkIcon fontSize="small" />} iconPosition="start" id="sr-tab-1" aria-controls="sr-tabpanel-1" />}
-            <Tab label="Notes" icon={<NoteIcon fontSize="small" />} iconPosition="start" id={`sr-tab-${selectedRequest ? 2 : 1}`} aria-controls={`sr-tabpanel-${selectedRequest ? 2 : 1}`} />
-          </Tabs>
-        </Box>
         <DialogContent dividers>
-          {/* Request Info Tab */}
-          {dialogTab === 0 && (
-            <>
-              <Grid container spacing={2}>
-                <Grid item xs={12}>
-                  <TextField
-                    label="Subject"
-                    value={formData.subject}
-                    onChange={(e) => handleFormChange('subject', e.target.value)}
-                    fullWidth
-                    required
-                    disabled={viewMode}
-                  />
-                </Grid>
-                <Grid item xs={12}>
-                  <TextField
-                    label="Description"
-                    value={formData.description || ''}
-                    onChange={(e) => handleFormChange('description', e.target.value)}
-                    multiline
-                    rows={4}
-                    fullWidth
-                    disabled={viewMode}
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <FormControl fullWidth required>
-                    <InputLabel>Channel</InputLabel>
-                    <Select
-                      value={formData.channel}
-                      onChange={(e: SelectChangeEvent<number>) =>
-                        handleFormChange('channel', e.target.value)
-                      }
-                      label="Channel"
-                      disabled={viewMode}
-                    >
-                      {Object.entries(CHANNEL_LABELS).map(([key, label]) => (
-                        <MenuItem key={key} value={parseInt(key)}>
-                          {label}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <FormControl fullWidth>
-                    <InputLabel>Priority</InputLabel>
-                    <Select
-                      value={formData.priority}
-                      onChange={(e: SelectChangeEvent<number>) =>
-                        handleFormChange('priority', e.target.value)
-                      }
-                      label="Priority"
-                      disabled={viewMode}
-                    >
-                      {Object.entries(PRIORITY_LABELS).map(([key, label]) => (
-                        <MenuItem key={key} value={parseInt(key)}>
-                          {label}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <FormControl fullWidth>
-                    <InputLabel>Category</InputLabel>
-                    <Select
-                      value={formData.categoryId || ''}
-                      onChange={(e: SelectChangeEvent<string | number>) => {
-                        const val = e.target.value ? Number(e.target.value) : undefined;
-                        handleFormChange('categoryId', val);
-                        handleFormChange('subcategoryId', undefined);
-                      }}
-                      label="Category"
-                      disabled={viewMode}
-                    >
-                      <MenuItem value="">None</MenuItem>
-                      {categories.map((cat) => (
-                        <MenuItem key={cat.id} value={cat.id}>
-                          {cat.name}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <EntitySelect
-                    entityType="account"
-                    name="accountId"
-                    value={formData.accountId || ''}
-                    onChange={(e: any) => handleFormChange('accountId', e.target.value ? Number(e.target.value) : undefined)}
-                    label="Account"
-                    disabled={viewMode}
-                    showAddNew={!viewMode}
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <EntitySelect
-                    entityType="contact"
-                    name="contactId"
-                    value={formData.contactId || ''}
-                    onChange={(e: any) => handleFormChange('contactId', e.target.value ? Number(e.target.value) : undefined)}
-                    label="Contact"
-                    disabled={viewMode}
-                    showAddNew={!viewMode}
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <EntitySelect
-                    entityType="user"
-                    name="assignedToUserId"
-                    value={formData.assignedToUserId || ''}
-                    onChange={(e: any) => handleFormChange('assignedToUserId', e.target.value ? Number(e.target.value) : undefined)}
-                    label="Assign to User"
-                    disabled={viewMode}
-                    showAddNew={false}
-                  />
-                </Grid>
-                <Grid item xs={12} sm={6}>
-                  <FormControl fullWidth>
-                    <InputLabel>Assign to Group</InputLabel>
-                    <Select
-                      value={formData.assignedToGroupId || ''}
-                      onChange={(e: SelectChangeEvent<string | number>) =>
-                        handleFormChange('assignedToGroupId', e.target.value ? Number(e.target.value) : undefined)
-                      }
-                      label="Assign to Group"
-                      disabled={viewMode}
-                    >
-                      <MenuItem value="">None</MenuItem>
-                      {groups.map((group) => (
-                        <MenuItem key={group.id} value={group.id}>
-                          {group.name}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                </Grid>
-              </Grid>
-              {/* Accordion for Additional Information */}
-              <Accordion sx={{ mt: 3 }}>
-                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                  <Typography variant="subtitle1" fontWeight={600}>Additional Information</Typography>
-                </AccordionSummary>
-                <AccordionDetails>
-                  <Grid container spacing={2}>
-                    <Grid item xs={12} sm={6}>
-                      <FormControl fullWidth disabled={!formData.categoryId || viewMode}>
-                        <InputLabel>Subcategory</InputLabel>
-                        <Select
-                          value={formData.subcategoryId || ''}
-                          onChange={(e: SelectChangeEvent<string | number>) =>
-                            handleFormChange('subcategoryId', e.target.value ? Number(e.target.value) : undefined)
-                          }
-                          label="Subcategory"
-                        >
-                          <MenuItem value="">None</MenuItem>
-                          {filteredSubcategories.map((sub) => (
-                            <MenuItem key={sub.id} value={sub.id}>
-                              {sub.name}
-                            </MenuItem>
-                          ))}
-                        </Select>
-                      </FormControl>
-                    </Grid>
-                    <Grid item xs={12}>
-                      <FormControl fullWidth>
-                        <InputLabel>Workflow</InputLabel>
-                        <Select
-                          value={formData.workflowId || ''}
-                          onChange={(e: SelectChangeEvent<string | number>) =>
-                            handleFormChange('workflowId', e.target.value ? Number(e.target.value) : undefined)
-                          }
-                          label="Workflow"
-                          disabled={viewMode}
-                        >
-                          <MenuItem value="">None</MenuItem>
-                          {workflows.map((wf) => (
-                            <MenuItem key={wf.id} value={wf.id}>
-                              {wf.name}
-                            </MenuItem>
-                          ))}
-                        </Select>
-                      </FormControl>
-                    </Grid>
-                    {/* Custom Fields */}
-                    {customFields.length > 0 && (
-                      <>
-                        <Grid item xs={12}>
-                          <Divider sx={{ my: 1 }}>
-                            <Typography variant="subtitle2" color="text.secondary">
-                              Custom Fields
-                            </Typography>
-                          </Divider>
-                        </Grid>
-                        {customFields.map((field) => (
-                          <Grid item xs={12} sm={6} key={field.id}>
-                            {renderCustomField(field)}
-                          </Grid>
-                        ))}
-                      </>
-                    )}
-                    {/* View mode additional info */}
-                    {viewMode && selectedRequest && (
-                      <>
-                        <Grid item xs={12}>
-                          <Divider sx={{ my: 1 }}>
-                            <Typography variant="subtitle2" color="text.secondary">
-                              Status Information
-                            </Typography>
-                          </Divider>
-                        </Grid>
-                        <Grid item xs={12} sm={6}>
-                          <Typography variant="body2" color="text.secondary">
-                            Status
-                          </Typography>
-                          <Chip
-                            label={STATUS_LABELS[selectedRequest.status]}
-                            color={STATUS_COLORS[selectedRequest.status]}
-                            size="small"
-                          />
-                        </Grid>
-                        <Grid item xs={12} sm={6}>
-                          <Typography variant="body2" color="text.secondary">
-                            SLA Breached
-                          </Typography>
-                          <Chip
-                            label={selectedRequest.isSlaBreached ? 'Yes' : 'No'}
-                            color={selectedRequest.isSlaBreached ? 'error' : 'success'}
-                            size="small"
-                          />
-                        </Grid>
-                        {selectedRequest.slaResponseDueDate && (
-                          <Grid item xs={12} sm={6}>
-                            <Typography variant="body2" color="text.secondary">
-                              Response Due
-                            </Typography>
-                            <Typography>
-                              {new Date(selectedRequest.slaResponseDueDate).toLocaleString()}
-                            </Typography>
-                          </Grid>
-                        )}
-                        {selectedRequest.slaResolutionDueDate && (
-                          <Grid item xs={12} sm={6}>
-                            <Typography variant="body2" color="text.secondary">
-                              Resolution Due
-                            </Typography>
-                            <Typography>
-                              {new Date(selectedRequest.slaResolutionDueDate).toLocaleString()}
-                            </Typography>
-                          </Grid>
-                        )}
-                        {selectedRequest.resolvedDate && (
-                          <Grid item xs={12} sm={6}>
-                            <Typography variant="body2" color="text.secondary">
-                              Resolved Date
-                            </Typography>
-                            <Typography>
-                              {new Date(selectedRequest.resolvedDate).toLocaleString()}
-                            </Typography>
-                          </Grid>
-                        )}
-                        {selectedRequest.closedDate && (
-                          <Grid item xs={12} sm={6}>
-                            <Typography variant="body2" color="text.secondary">
-                              Closed Date
-                            </Typography>
-                            <Typography>
-                              {new Date(selectedRequest.closedDate).toLocaleString()}
-                            </Typography>
-                          </Grid>
-                        )}
-                      </>
-                    )}
-                  </Grid>
-                </AccordionDetails>
-              </Accordion>
-              {/* Accordion for Resolution & SLA */}
-              <Accordion sx={{ mt: 3 }}>
-                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                  <Typography variant="subtitle1" fontWeight={600}>Resolution & SLA</Typography>
-                </AccordionSummary>
-                <AccordionDetails>
-                  <Grid container spacing={2}>
-                    {/* Row 1: SLA Status | Is VIP Account */}
-                    <Grid item xs={6}>
-                      <FormControl fullWidth>
-                        <InputLabel>SLA Status</InputLabel>
-                        <Select
-                          value={resolutionSlaData.slaStatus}
-                          onChange={(e: SelectChangeEvent<string>) =>
-                            setResolutionSlaData((prev) => ({ ...prev, slaStatus: e.target.value }))
-                          }
-                          label="SLA Status"
-                          disabled={viewMode}
-                        >
-                          <MenuItem value="">None</MenuItem>
-                          <MenuItem value="on_track">On Track</MenuItem>
-                          <MenuItem value="at_risk">At Risk</MenuItem>
-                          <MenuItem value="breached">Breached</MenuItem>
-                        </Select>
-                      </FormControl>
-                    </Grid>
-                    <Grid item xs={6}>
-                      <FormControlLabel
-                        control={
-                          <Switch
-                            checked={resolutionSlaData.isVipAccount}
-                            onChange={(e) =>
-                              setResolutionSlaData((prev) => ({ ...prev, isVipAccount: e.target.checked }))
-                            }
-                            disabled={viewMode}
-                          />
-                        }
-                        label="Is VIP Account"
-                      />
-                    </Grid>
-                    {/* Row 2: Estimated Effort Hours | Actual Effort Hours */}
-                    <Grid item xs={6}>
-                      <TextField
-                        label="Estimated Effort Hours"
-                        type="number"
-                        value={resolutionSlaData.estimatedEffortHours}
-                        onChange={(e) =>
-                          setResolutionSlaData((prev) => ({
-                            ...prev,
-                            estimatedEffortHours: e.target.value === '' ? '' : Number(e.target.value),
-                          }))
-                        }
-                        fullWidth
-                        disabled={viewMode}
-                        inputProps={{ min: 0, step: 0.5 }}
-                      />
-                    </Grid>
-                    <Grid item xs={6}>
-                      <TextField
-                        label="Actual Effort Hours"
-                        type="number"
-                        value={resolutionSlaData.actualEffortHours}
-                        onChange={(e) =>
-                          setResolutionSlaData((prev) => ({
-                            ...prev,
-                            actualEffortHours: e.target.value === '' ? '' : Number(e.target.value),
-                          }))
-                        }
-                        fullWidth
-                        disabled={viewMode}
-                        inputProps={{ min: 0, step: 0.5 }}
-                      />
-                    </Grid>
-                    {/* Row 3: Resolution Code | Root Cause */}
-                    <Grid item xs={6}>
-                      <TextField
-                        label="Resolution Code"
-                        value={resolutionSlaData.resolutionCode}
-                        onChange={(e) =>
-                          setResolutionSlaData((prev) => ({ ...prev, resolutionCode: e.target.value }))
-                        }
-                        fullWidth
-                        disabled={viewMode}
-                      />
-                    </Grid>
-                    <Grid item xs={6}>
-                      <TextField
-                        label="Root Cause"
-                        value={resolutionSlaData.rootCause}
-                        onChange={(e) =>
-                          setResolutionSlaData((prev) => ({ ...prev, rootCause: e.target.value }))
-                        }
-                        fullWidth
-                        disabled={viewMode}
-                      />
-                    </Grid>
-                    {/* Row 4: Resolution Summary */}
-                    <Grid item xs={12}>
-                      <TextField
-                        label="Resolution Summary"
-                        value={resolutionSlaData.resolutionSummary}
-                        onChange={(e) =>
-                          setResolutionSlaData((prev) => ({ ...prev, resolutionSummary: e.target.value }))
-                        }
-                        multiline
-                        rows={3}
-                        fullWidth
-                        disabled={viewMode}
-                      />
-                    </Grid>
-                    {/* Row 5: Internal Notes */}
-                    <Grid item xs={12}>
-                      <TextField
-                        label="Internal Notes"
-                        value={resolutionSlaData.internalNotes}
-                        onChange={(e) =>
-                          setResolutionSlaData((prev) => ({ ...prev, internalNotes: e.target.value }))
-                        }
-                        multiline
-                        rows={2}
-                        fullWidth
-                        disabled={viewMode}
-                      />
-                    </Grid>
-                  </Grid>
-                </AccordionDetails>
-              </Accordion>
-
-              {/* Accordion for Expedite */}
-              <Accordion sx={{ mt: 1 }}>
-                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                  <Typography variant="subtitle1" fontWeight={600}>Expedite</Typography>
-                </AccordionSummary>
-                <AccordionDetails>
-                  <Grid container spacing={2}>
-                    <Grid item xs={12}>
-                      <FormControlLabel
-                        control={
-                          <Switch
-                            checked={resolutionSlaData.isExpedited}
-                            onChange={(e) =>
-                              setResolutionSlaData((prev) => ({ ...prev, isExpedited: e.target.checked }))
-                            }
-                            disabled={viewMode}
-                          />
-                        }
-                        label="Is Expedited"
-                      />
-                    </Grid>
-                    {resolutionSlaData.isExpedited && (
-                      <Grid item xs={12}>
-                        <TextField
-                          label="Expedite Reason"
-                          value={resolutionSlaData.expediteReason}
-                          onChange={(e) =>
-                            setResolutionSlaData((prev) => ({ ...prev, expediteReason: e.target.value }))
-                          }
-                          fullWidth
-                          disabled={viewMode}
-                          placeholder="Reason for expediting this request"
-                        />
-                      </Grid>
-                    )}
-                  </Grid>
-                </AccordionDetails>
-              </Accordion>
-
-              {/* Accordion for Customer Feedback */}
-              <Accordion sx={{ mt: 1 }}>
-                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                  <Typography variant="subtitle1" fontWeight={600}>Customer Feedback</Typography>
-                </AccordionSummary>
-                <AccordionDetails>
-                  <Grid container spacing={2}>
-                    <Grid item xs={6}>
-                      <FormControl fullWidth>
-                        <InputLabel>Satisfaction Rating</InputLabel>
-                        <Select
-                          value={resolutionSlaData.satisfactionRating === '' ? '' : String(resolutionSlaData.satisfactionRating)}
-                          onChange={(e: SelectChangeEvent<string>) =>
-                            setResolutionSlaData((prev) => ({
-                              ...prev,
-                              satisfactionRating: e.target.value === '' ? '' : Number(e.target.value),
-                            }))
-                          }
-                          label="Satisfaction Rating"
-                          disabled={viewMode}
-                        >
-                          <MenuItem value="">Not Rated</MenuItem>
-                          <MenuItem value="1">1 - Very Unsatisfied</MenuItem>
-                          <MenuItem value="2">2 - Unsatisfied</MenuItem>
-                          <MenuItem value="3">3 - Neutral</MenuItem>
-                          <MenuItem value="4">4 - Satisfied</MenuItem>
-                          <MenuItem value="5">5 - Very Satisfied</MenuItem>
-                        </Select>
-                      </FormControl>
-                    </Grid>
-                    <Grid item xs={12}>
-                      <TextField
-                        label="Customer Feedback"
-                        value={resolutionSlaData.customerFeedback}
-                        onChange={(e) =>
-                          setResolutionSlaData((prev) => ({ ...prev, customerFeedback: e.target.value }))
-                        }
-                        multiline
-                        rows={3}
-                        fullWidth
-                        disabled={viewMode}
-                        placeholder="Customer's feedback or comments"
-                      />
-                    </Grid>
-                  </Grid>
-                </AccordionDetails>
-              </Accordion>
-
-              {/* Accordion for Reference */}
-              <Accordion sx={{ mt: 1 }}>
-                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                  <Typography variant="subtitle1" fontWeight={600}>Reference</Typography>
-                </AccordionSummary>
-                <AccordionDetails>
-                  <Grid container spacing={2}>
-                    <Grid item xs={12}>
-                      <TextField
-                        label="External Reference ID"
-                        value={resolutionSlaData.externalReferenceId}
-                        onChange={(e) =>
-                          setResolutionSlaData((prev) => ({ ...prev, externalReferenceId: e.target.value }))
-                        }
-                        fullWidth
-                        disabled={viewMode}
-                        placeholder="External ticket or reference ID"
-                      />
-                    </Grid>
-                  </Grid>
-                </AccordionDetails>
-              </Accordion>
-            </>
-          )}
-
-          {/* Related Entities Tab (only when editing) */}
-          {selectedRequest && dialogTab === 1 && (
-            <RelatedEntitiesPanel
-              entityType="serviceRequests"
-              entityId={selectedRequest.id!}
-              showRelated={['accounts', 'contacts', 'activities']}
-              onEntityClick={(type, id) => {
-                setOpenDialog(false);
-                setDialogTab(0);
-                logger.debug(`Navigate to ${type} ${id}`);
-              }}
-            />
-          )}
-
-          {/* Notes Tab */}
-          {dialogTab === (selectedRequest ? 2 : 1) && (
-            <Box>
-              {selectedRequest?.id ? (
-                <NotesTab
-                  entityType="ServiceRequest"
-                  entityId={selectedRequest.id}
-                  entityName={selectedRequest.ticketNumber || 'Service Request'}
-                />
-              ) : (
-                <Alert severity="info" sx={{ mt: 2 }}>
-                  Please save the service request first to add notes.
-                </Alert>
-              )}
-            </Box>
-          )}
-
           <DialogError error={dialogApi.error} onRetry={() => dialogApi.clearError()} />
+
+          <DynamicEntityForm
+            moduleName="ServiceRequests"
+            formData={formData}
+            onChange={handleInputChange}
+            onSelectChange={handleSelectChange}
+            setFormData={setFormData}
+            activeTab={dialogTab}
+            editingId={selectedRequest?.id || undefined}
+            onTabChange={setDialogTab}
+            excludeFields={['customFieldValues']}
+            extraTabs={[
+              {
+                index: 100,
+                name: 'Related',
+                icon: <LinkIcon fontSize="small" />,
+                editOnly: true,
+                render: () => (
+                  <RelatedEntitiesPanel
+                    entityType="serviceRequests"
+                    entityId={selectedRequest!.id!}
+                    showRelated={['accounts', 'contacts', 'activities']}
+                    onEntityClick={(type, id) => {
+                      setOpenDialog(false);
+                      setDialogTab(0);
+                      logger.debug(`Navigate to ${type} ${id}`);
+                    }}
+                  />
+                ),
+              },
+              {
+                index: 101,
+                name: 'Notes',
+                icon: <NoteIcon fontSize="small" />,
+                render: () => selectedRequest?.id ? (
+                  <NotesTab
+                    entityType="ServiceRequest"
+                    entityId={selectedRequest.id}
+                    entityName={selectedRequest.ticketNumber || 'Service Request'}
+                  />
+                ) : (
+                  <Alert severity="info" sx={{ mt: 2 }}>
+                    Please save the service request first to add notes.
+                  </Alert>
+                ),
+              },
+            ]}
+          />
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpenDialog(false)} disabled={dialogApi.loading}>

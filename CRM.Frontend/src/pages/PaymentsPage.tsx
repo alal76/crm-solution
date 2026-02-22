@@ -17,8 +17,6 @@ import {
   Dialog,
   DialogContent,
   DialogActions,
-  TextField,
-  Grid,
   FormControl,
   InputLabel,
   Select,
@@ -26,12 +24,7 @@ import {
   Stack,
   Alert,
   CircularProgress,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
-  Divider,
 } from '@mui/material';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import type { SelectChangeEvent } from '@mui/material';
 import {
   Add as AddIcon,
@@ -42,6 +35,7 @@ import {
   Warning as WarningIcon,
 } from '@mui/icons-material';
 import { DialogError } from '../components/common/DialogError';
+import DynamicEntityForm from '../components/DynamicEntityForm';
 import ActionButton from '../components/common/ActionButton';
 import { DialogHeader } from '../components/common/DialogHeader';
 import { EnhancedEmptyState } from '../components/common/EnhancedEmptyState';
@@ -181,6 +175,7 @@ function PaymentsPage() {
   const [error, setError] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [openDialog, setOpenDialog] = useState(false);
+  const [dialogTab, setDialogTab] = useState(0);
   const [filterStatus, setFilterStatus] = useState<PaymentStatus | 'all'>('all');
 
   const emptyForm: PaymentForm = {
@@ -484,7 +479,7 @@ function PaymentsPage() {
       </Box>
 
       {/* Process Payment Dialog */}
-      <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="sm" fullWidth>
+      <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth>
         <DialogHeader
           mode="create"
           entityType="payment"
@@ -492,400 +487,17 @@ function PaymentsPage() {
         />
         <DialogContent dividers>
           <DialogError error={dialogApi.error} />
-          <Grid container spacing={3}>
-            <Grid item xs={12}>
-              <TextField
-                fullWidth
-                required
-                type="number"
-                label="Invoice ID"
-                name="invoiceId"
-                value={formData.invoiceId || ''}
-                onChange={(e) => setFormData(prev => ({ ...prev, invoiceId: e.target.value ? parseInt(e.target.value) : null }))}
-                helperText="Enter the invoice ID to apply this payment to"
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                fullWidth
-                required
-                type="number"
-                label="Amount"
-                name="amount"
-                value={formData.amount}
-                onChange={handleInputChange}
-                InputProps={{ startAdornment: <Typography sx={{ mr: 0.5 }}>$</Typography> }}
-              />
-            </Grid>
-            <Grid item xs={12} md={6}>
-              <FormControl fullWidth>
-                <InputLabel>Payment Method</InputLabel>
-                <Select
-                  name="paymentMethod"
-                  value={formData.paymentMethod}
-                  onChange={handleSelectChange}
-                  label="Payment Method"
-                >
-                  {PAYMENT_METHOD_OPTIONS.map(opt => (
-                    <MenuItem key={opt.value} value={opt.value}>{opt.label}</MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-            </Grid>
-          </Grid>
-          {/* Accordion for Additional Information */}
-          <Accordion sx={{ mt: 3 }}>
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography variant="subtitle1" fontWeight={600}>Additional Information</Typography>
-            </AccordionSummary>
-            <AccordionDetails>
-              <Grid container spacing={3}>
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    label="Reference / Transaction ID"
-                    name="reference"
-                    value={formData.reference}
-                    onChange={handleInputChange}
-                  />
-                </Grid>
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    multiline
-                    rows={2}
-                    label="Notes"
-                    name="notes"
-                    value={formData.notes}
-                    onChange={handleInputChange}
-                  />
-                </Grid>
-              </Grid>
-            </AccordionDetails>
-          </Accordion>
 
-          {/* Accordion for Identifiers */}
-          <Accordion sx={{ mt: 2 }}>
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography variant="subtitle1" fontWeight={600}>Identifiers</Typography>
-            </AccordionSummary>
-            <AccordionDetails>
-              <Grid container spacing={2}>
-                <Grid item xs={12}>
-                  <Typography variant="subtitle2" color="text.secondary" gutterBottom>Payment Identifiers</Typography>
-                  <Divider sx={{ mb: 2 }} />
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    label="Payment Number"
-                    name="paymentNumber"
-                    value={formData.paymentNumber}
-                    onChange={handleInputChange}
-                    InputProps={{ readOnly: true }}
-                    helperText="Assigned automatically"
-                  />
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    label="External Payment ID"
-                    name="externalPaymentId"
-                    value={formData.externalPaymentId}
-                    onChange={handleInputChange}
-                  />
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    label="Gateway Transaction ID"
-                    name="gatewayTransactionId"
-                    value={formData.gatewayTransactionId}
-                    onChange={handleInputChange}
-                  />
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    label="Gateway Reference"
-                    name="gatewayReference"
-                    value={formData.gatewayReference}
-                    onChange={handleInputChange}
-                  />
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    label="Check Number"
-                    name="checkNumber"
-                    value={formData.checkNumber}
-                    onChange={handleInputChange}
-                  />
-                </Grid>
-              </Grid>
-            </AccordionDetails>
-          </Accordion>
-
-          {/* Accordion for Financial & Date Details */}
-          <Accordion sx={{ mt: 2 }}>
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography variant="subtitle1" fontWeight={600}>Financial &amp; Date Details</Typography>
-            </AccordionSummary>
-            <AccordionDetails>
-              <Grid container spacing={2}>
-                <Grid item xs={12}>
-                  <Typography variant="subtitle2" color="text.secondary" gutterBottom>Financials</Typography>
-                  <Divider sx={{ mb: 2 }} />
-                </Grid>
-                <Grid item xs={12} md={4}>
-                  <TextField
-                    fullWidth
-                    type="number"
-                    label="Amount Applied"
-                    name="amountApplied"
-                    value={formData.amountApplied}
-                    onChange={handleInputChange}
-                    inputProps={{ min: 0, step: 0.01 }}
-                  />
-                </Grid>
-                <Grid item xs={12} md={4}>
-                  <TextField
-                    fullWidth
-                    type="number"
-                    label="Processing Fee"
-                    name="processingFee"
-                    value={formData.processingFee}
-                    onChange={handleInputChange}
-                    inputProps={{ min: 0, step: 0.01 }}
-                  />
-                </Grid>
-                <Grid item xs={12} md={4}>
-                  <TextField
-                    fullWidth
-                    type="number"
-                    label="Exchange Rate"
-                    name="exchangeRate"
-                    value={formData.exchangeRate}
-                    onChange={handleInputChange}
-                    inputProps={{ min: 0, step: 0.0001 }}
-                  />
-                </Grid>
-                <Grid item xs={12}>
-                  <Typography variant="subtitle2" color="text.secondary" sx={{ mt: 1 }} gutterBottom>Dates</Typography>
-                  <Divider sx={{ mb: 2 }} />
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    type="date"
-                    label="Processed Date"
-                    name="processedDate"
-                    value={formData.processedDate}
-                    onChange={handleInputChange}
-                    InputLabelProps={{ shrink: true }}
-                  />
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    type="date"
-                    label="Settled Date"
-                    name="settledDate"
-                    value={formData.settledDate}
-                    onChange={handleInputChange}
-                    InputLabelProps={{ shrink: true }}
-                  />
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    type="date"
-                    label="Deposit Date"
-                    name="depositDate"
-                    value={formData.depositDate}
-                    onChange={handleInputChange}
-                    InputLabelProps={{ shrink: true }}
-                  />
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    type="date"
-                    label="Scheduled Date"
-                    name="scheduledDate"
-                    value={formData.scheduledDate}
-                    onChange={handleInputChange}
-                    InputLabelProps={{ shrink: true }}
-                  />
-                </Grid>
-                <Grid item xs={12}>
-                  <Typography variant="subtitle2" color="text.secondary" sx={{ mt: 1 }} gutterBottom>Relations</Typography>
-                  <Divider sx={{ mb: 2 }} />
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    type="number"
-                    label="Account ID"
-                    value={formData.accountId || ''}
-                    onChange={(e) => setFormData(prev => ({ ...prev, accountId: e.target.value ? parseInt(e.target.value) : null }))}
-                    helperText="ID of the associated account"
-                  />
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    type="number"
-                    label="Original Payment ID"
-                    value={formData.originalPaymentId || ''}
-                    onChange={(e) => setFormData(prev => ({ ...prev, originalPaymentId: e.target.value ? parseInt(e.target.value) : null }))}
-                    helperText="For refunds or replacements"
-                  />
-                </Grid>
-              </Grid>
-            </AccordionDetails>
-          </Accordion>
-
-          {/* Accordion for Payment Details */}
-          <Accordion sx={{ mt: 2 }}>
-            <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-              <Typography variant="subtitle1" fontWeight={600}>Payment Details</Typography>
-            </AccordionSummary>
-            <AccordionDetails>
-              <Grid container spacing={2}>
-                <Grid item xs={12}>
-                  <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>Card Information</Typography>
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    label="Card Brand"
-                    name="cardBrand"
-                    value={formData.cardBrand}
-                    onChange={handleInputChange}
-                    placeholder="e.g. Visa, Mastercard"
-                  />
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    label="Card Last 4"
-                    name="cardLast4"
-                    value={formData.cardLast4}
-                    onChange={handleInputChange}
-                    inputProps={{ maxLength: 4 }}
-                    placeholder="1234"
-                  />
-                </Grid>
-                <Grid item xs={12} md={4}>
-                  <TextField
-                    fullWidth
-                    type="number"
-                    label="Card Exp Month"
-                    name="cardExpMonth"
-                    value={formData.cardExpMonth || ''}
-                    onChange={handleInputChange}
-                    inputProps={{ min: 1, max: 12 }}
-                    placeholder="MM"
-                  />
-                </Grid>
-                <Grid item xs={12} md={4}>
-                  <TextField
-                    fullWidth
-                    type="number"
-                    label="Card Exp Year"
-                    name="cardExpYear"
-                    value={formData.cardExpYear || ''}
-                    onChange={handleInputChange}
-                    inputProps={{ min: 2020, max: 2099 }}
-                    placeholder="YYYY"
-                  />
-                </Grid>
-                <Grid item xs={12} md={4}>
-                  <TextField
-                    fullWidth
-                    label="Cardholder Name"
-                    name="cardholderName"
-                    value={formData.cardholderName}
-                    onChange={handleInputChange}
-                  />
-                </Grid>
-                <Grid item xs={12}>
-                  <Typography variant="subtitle2" color="text.secondary" sx={{ mt: 1, mb: 1 }}>Bank Account</Typography>
-                </Grid>
-                <Grid item xs={12} md={4}>
-                  <TextField
-                    fullWidth
-                    label="Bank Name"
-                    name="bankName"
-                    value={formData.bankName}
-                    onChange={handleInputChange}
-                  />
-                </Grid>
-                <Grid item xs={12} md={4}>
-                  <TextField
-                    fullWidth
-                    label="Account Last 4"
-                    name="accountLast4"
-                    value={formData.accountLast4}
-                    onChange={handleInputChange}
-                    inputProps={{ maxLength: 4 }}
-                    placeholder="1234"
-                  />
-                </Grid>
-                <Grid item xs={12} md={4}>
-                  <FormControl fullWidth>
-                    <InputLabel>Account Type</InputLabel>
-                    <Select
-                      name="accountType"
-                      value={formData.accountType}
-                      onChange={handleSelectChange}
-                      label="Account Type"
-                    >
-                      <MenuItem value="">None</MenuItem>
-                      <MenuItem value="checking">Checking</MenuItem>
-                      <MenuItem value="savings">Savings</MenuItem>
-                      <MenuItem value="business">Business</MenuItem>
-                    </Select>
-                  </FormControl>
-                </Grid>
-                <Grid item xs={12}>
-                  <Typography variant="subtitle2" color="text.secondary" sx={{ mt: 1, mb: 1 }}>Gateway</Typography>
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    label="Gateway"
-                    name="gateway"
-                    value={formData.gateway}
-                    onChange={handleInputChange}
-                    placeholder="e.g. Stripe, Braintree"
-                  />
-                </Grid>
-                <Grid item xs={12} md={6}>
-                  <TextField
-                    fullWidth
-                    label="Gateway Response Code"
-                    name="gatewayResponseCode"
-                    value={formData.gatewayResponseCode}
-                    onChange={handleInputChange}
-                  />
-                </Grid>
-                <Grid item xs={12}>
-                  <TextField
-                    fullWidth
-                    multiline
-                    rows={3}
-                    label="Internal Notes"
-                    name="internalNotes"
-                    value={formData.internalNotes}
-                    onChange={handleInputChange}
-                    placeholder="Internal notes (not visible to customer)"
-                  />
-                </Grid>
-              </Grid>
-            </AccordionDetails>
-          </Accordion>
+          <DynamicEntityForm
+            moduleName="Payments"
+            formData={formData}
+            onChange={handleInputChange}
+            onSelectChange={(e: any) => setFormData((prev: any) => ({ ...prev, [e.target.name]: e.target.value }))}
+            setFormData={setFormData}
+            activeTab={dialogTab}
+            editingId={null}
+            onTabChange={setDialogTab}
+          />
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog}>Cancel</Button>

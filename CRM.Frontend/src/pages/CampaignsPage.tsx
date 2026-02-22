@@ -1,17 +1,16 @@
 import { useState, useEffect } from 'react';
-import { TabPanel, DialogHeader, RelatedEntitiesPanel, EnhancedEmptyState } from '../components/common';
+import { DialogHeader, RelatedEntitiesPanel, EnhancedEmptyState } from '../components/common';
 import {
   Box, Card, CardContent, Typography, Button, Table, TableBody, TableCell, TableHead,
   TableRow, Dialog, DialogTitle, DialogContent, DialogActions, Alert, CircularProgress,
-  TextField, Container, FormControl, InputLabel, Select, MenuItem, Chip, Tabs, Tab,
-  Grid, IconButton, Tooltip, FormControlLabel, Checkbox, LinearProgress,
-  SelectChangeEvent, Paper, Collapse, Stack, Accordion, AccordionSummary, AccordionDetails
+  Container, FormControl, InputLabel, Select, MenuItem, Chip,
+  IconButton, Tooltip, Checkbox, LinearProgress,
+  SelectChangeEvent, Paper, Collapse, Stack
 } from '@mui/material';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import {
   Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, 
   Campaign as CampaignIcon, TrendingUp as TrendingUpIcon,
-  Email as EmailIcon, Share as ShareIcon, Close as CloseIcon,
+  Close as CloseIcon,
   Note as NoteIcon, Link as LinkIcon
 } from '@mui/icons-material';
 import { DialogError, ActionButton } from '../components/common';
@@ -21,9 +20,9 @@ import apiClient from '../services/apiClient';
 import logger from '../services/logger';
 import { BaseEntity } from '../types';
 import logo from '../assets/logo.png';
-import LookupSelect from '../components/LookupSelect';
 import ImportExportButtons from '../components/ImportExportButtons';
 import NotesTab from '../components/NotesTab';
+import DynamicEntityForm, { ExtraTab } from '../components/DynamicEntityForm';
 import {
   CAMPAIGN_STATUS_OPTIONS,
   CAMPAIGN_TYPE_OPTIONS,
@@ -629,517 +628,55 @@ function CampaignsPage() {
             formData.status === 4 ? 'default' : 'default'
           ) : undefined}
         />
-        <Box sx={{ borderBottom: 1, borderColor: 'divider', px: 3 }}>
-          <Tabs value={dialogTab} onChange={(_, v) => setDialogTab(v)} aria-label="Campaign dialog tabs">
-            <Tab label="Basic Info" id="campaign-tab-0" aria-controls="campaign-tabpanel-0" />
-            <Tab label="Performance" id="campaign-tab-1" aria-controls="campaign-tabpanel-1" />
-            <Tab label="Email Metrics" id="campaign-tab-2" aria-controls="campaign-tabpanel-2" />
-            <Tab label="Social & A/B" id="campaign-tab-3" aria-controls="campaign-tabpanel-3" />
-            <Tab label="Tracking" id="campaign-tab-4" aria-controls="campaign-tabpanel-4" />
-            {editingId && <Tab label="Related" icon={<LinkIcon fontSize="small" />} iconPosition="start" id="campaign-tab-5" aria-controls="campaign-tabpanel-5" />}
-            <Tab label="Notes" icon={<NoteIcon fontSize="small" />} iconPosition="start" id={`campaign-tab-${editingId ? 6 : 5}`} aria-controls={`campaign-tabpanel-${editingId ? 6 : 5}`} />
-          </Tabs>
-        </Box>
-        <DialogContent sx={{ pt: 2, minHeight: 400 }}>
-          <TabPanel value={dialogTab} index={0}>
-            <Grid container spacing={2}>
-              <Grid item xs={12}>
-                <TextField fullWidth label="Campaign Name" name="name" value={formData.name} onChange={handleInputChange} required />
-              </Grid>
-              <Grid item xs={4}>
-                <LookupSelect
-                  category="CampaignType"
-                  name="campaignType"
-                  value={formData.campaignType}
-                  onChange={handleSelectChange}
-                  label="Campaign Type"
-                  fallback={CAMPAIGN_TYPES.map(t => ({ value: t.value, label: t.label }))}
-                />
-              </Grid>
-              <Grid item xs={4}>
-                <LookupSelect
-                  category="CampaignStatus"
-                  name="status"
-                  value={formData.status}
-                  onChange={handleSelectChange}
-                  label="Status"
-                  fallback={CAMPAIGN_STATUSES.map(s => ({ value: s.value, label: s.label }))}
-                />
-              </Grid>
-              <Grid item xs={4}>
-                <LookupSelect
-                  category="Priority"
-                  name="priority"
-                  value={formData.priority}
-                  onChange={handleSelectChange}
-                  label="Priority"
-                  fallback={CAMPAIGN_PRIORITIES.map(p => ({ value: p.value, label: p.label }))}
-                />
-              </Grid>
-              <Grid item xs={6}>
-                <TextField fullWidth label="Start Date" name="startDate" type="date" value={formData.startDate} onChange={handleInputChange} InputLabelProps={{ shrink: true }} required />
-              </Grid>
-              <Grid item xs={6}>
-                <TextField fullWidth label="End Date" name="endDate" type="date" value={formData.endDate} onChange={handleInputChange} InputLabelProps={{ shrink: true }} />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField fullWidth label="Description" name="description" value={formData.description} onChange={handleInputChange} multiline rows={3} />
-              </Grid>
-            </Grid>
-            {/* Accordion for Additional Information */}
-            <Accordion sx={{ mt: 3 }}>
-              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Typography variant="subtitle1" fontWeight={600}>Additional Information</Typography>
-              </AccordionSummary>
-              <AccordionDetails>
-                <Grid container spacing={2}>
-                  <Grid item xs={4}>
-                    <TextField fullWidth label="Budget ($)" name="budget" type="number" value={formData.budget} onChange={handleInputChange} />
-                  </Grid>
-                  <Grid item xs={4}>
-                    <TextField fullWidth label="Actual Spend ($)" name="actualSpend" type="number" value={formData.actualSpend} onChange={handleInputChange} />
-                  </Grid>
-                  <Grid item xs={4}>
-                    <TextField fullWidth label="Target Audience" name="targetAudience" type="number" value={formData.targetAudience} onChange={handleInputChange} />
-                  </Grid>
-                  <Grid item xs={4}>
-                    <TextField fullWidth label="UTM Source" name="utmSource" value={formData.utmSource} onChange={handleInputChange} placeholder="google" />
-                  </Grid>
-                  <Grid item xs={4}>
-                    <TextField fullWidth label="UTM Medium" name="utmMedium" value={formData.utmMedium} onChange={handleInputChange} placeholder="cpc" />
-                  </Grid>
-                  <Grid item xs={4}>
-                    <TextField fullWidth label="UTM Campaign" name="utmCampaign" value={formData.utmCampaign} onChange={handleInputChange} placeholder="spring_sale" />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <TextField fullWidth label="Tags (comma-separated)" name="tags" value={formData.tags} onChange={handleInputChange} placeholder="seasonal, promotion, q1" />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <FormControlLabel
-                      control={<Checkbox name="isABTest" checked={formData.isABTest} onChange={handleInputChange} />}
-                      label="This is an A/B Test Campaign"
-                    />
-                  </Grid>
-                  {formData.isABTest && (
-                    <>
-                      <Grid item xs={6}>
-                        <TextField fullWidth label="A/B Test Variants" name="abTestVariants" value={formData.abTestVariants} onChange={handleInputChange} placeholder="Variant A, Variant B" />
-                      </Grid>
-                      <Grid item xs={6}>
-                        <TextField fullWidth label="Winning Variant" name="winningVariant" value={formData.winningVariant} onChange={handleInputChange} />
-                      </Grid>
-                    </>
-                  )}
-                </Grid>
-              </AccordionDetails>
-            </Accordion>
-            {/* Accordion for Budget & Performance Metrics */}
-            <Accordion sx={{ mt: 3 }}>
-              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Typography variant="subtitle1" fontWeight={600}>Budget & Performance Metrics</Typography>
-              </AccordionSummary>
-              <AccordionDetails>
-                <Grid container spacing={2}>
-                  {/* Row 1: Daily Budget | Monthly Budget */}
-                  <Grid item xs={6}>
-                    <TextField fullWidth label="Daily Budget ($)" name="dailyBudget" type="number" value={formData.dailyBudget} onChange={handleInputChange} inputProps={{ min: 0 }} />
-                  </Grid>
-                  <Grid item xs={6}>
-                    <TextField fullWidth label="Monthly Budget ($)" name="monthlyBudget" type="number" value={formData.monthlyBudget} onChange={handleInputChange} inputProps={{ min: 0 }} />
-                  </Grid>
-                  {/* Row 2: Expected Revenue | Cost Per Lead */}
-                  <Grid item xs={6}>
-                    <TextField fullWidth label="Expected Revenue ($)" name="expectedRevenue" type="number" value={formData.expectedRevenue} onChange={handleInputChange} inputProps={{ min: 0 }} />
-                  </Grid>
-                  <Grid item xs={6}>
-                    <TextField fullWidth label="Cost Per Lead ($)" name="costPerLead" type="number" value={formData.costPerLead} onChange={handleInputChange} inputProps={{ min: 0 }} />
-                  </Grid>
-                  {/* Row 3: Cost Per Acquisition | Impressions */}
-                  <Grid item xs={6}>
-                    <TextField fullWidth label="Cost Per Acquisition ($)" name="costPerAcquisition" type="number" value={formData.costPerAcquisition} onChange={handleInputChange} inputProps={{ min: 0 }} />
-                  </Grid>
-                  <Grid item xs={6}>
-                    <TextField fullWidth label="Impressions" name="impressions" type="number" value={formData.impressions} onChange={handleInputChange} inputProps={{ min: 0 }} />
-                  </Grid>
-                  {/* Row 4: MQLs Generated | SQLs Generated (read-only, system metrics) */}
-                  <Grid item xs={6}>
-                    <TextField fullWidth label="MQLs Generated" name="mqlsGenerated" type="number" value={formData.mqlsGenerated} onChange={handleInputChange} disabled helperText="Set by the system" />
-                  </Grid>
-                  <Grid item xs={6}>
-                    <TextField fullWidth label="SQLs Generated" name="sqlsGenerated" type="number" value={formData.sqlsGenerated} onChange={handleInputChange} disabled helperText="Set by the system" />
-                  </Grid>
-                  {/* Row 5: Opportunities Created | Deals Won (read-only, system metrics) */}
-                  <Grid item xs={6}>
-                    <TextField fullWidth label="Opportunities Created" name="opportunitiesCreated" type="number" value={formData.opportunitiesCreated} onChange={handleInputChange} disabled helperText="Set by the system" />
-                  </Grid>
-                  <Grid item xs={6}>
-                    <TextField fullWidth label="Deals Won" name="dealsWon" type="number" value={formData.dealsWon} onChange={handleInputChange} disabled helperText="Set by the system" />
-                  </Grid>
-                  {/* Row 6: UTM Source | UTM Medium */}
-                  <Grid item xs={6}>
-                    <TextField fullWidth label="UTM Source" name="utmSource" value={formData.utmSource} onChange={handleInputChange} placeholder="google" />
-                  </Grid>
-                  <Grid item xs={6}>
-                    <TextField fullWidth label="UTM Medium" name="utmMedium" value={formData.utmMedium} onChange={handleInputChange} placeholder="cpc" />
-                  </Grid>
-                  {/* Row 7: UTM Content | UTM Term */}
-                  <Grid item xs={6}>
-                    <TextField fullWidth label="UTM Content" name="utmContent" value={formData.utmContent} onChange={handleInputChange} placeholder="banner_ad" />
-                  </Grid>
-                  <Grid item xs={6}>
-                    <TextField fullWidth label="UTM Term" name="utmTerm" value={formData.utmTerm} onChange={handleInputChange} placeholder="running+shoes" />
-                  </Grid>
-                </Grid>
-              </AccordionDetails>
-            </Accordion>
-
-            {/* Accordion for Scheduling */}
-            <Accordion sx={{ mt: 1 }}>
-              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Typography variant="subtitle1" fontWeight={600}>Scheduling</Typography>
-              </AccordionSummary>
-              <AccordionDetails>
-                <Grid container spacing={2}>
-                  <Grid item xs={6}>
-                    <TextField fullWidth label="Actual Start Date" name="actualStartDate" type="date" value={formData.actualStartDate} onChange={handleInputChange} InputLabelProps={{ shrink: true }} />
-                  </Grid>
-                  <Grid item xs={6}>
-                    <TextField fullWidth label="Actual End Date" name="actualEndDate" type="date" value={formData.actualEndDate} onChange={handleInputChange} InputLabelProps={{ shrink: true }} />
-                  </Grid>
-                  <Grid item xs={6}>
-                    <FormControl fullWidth>
-                      <InputLabel>Objective Type</InputLabel>
-                      <Select name="objectiveType" value={formData.objectiveType} onChange={handleSelectChange} label="Objective Type">
-                        <MenuItem value={0}>Awareness</MenuItem>
-                        <MenuItem value={1}>Lead Generation</MenuItem>
-                        <MenuItem value={2}>Conversion</MenuItem>
-                        <MenuItem value={3}>Retention</MenuItem>
-                        <MenuItem value={4}>Revenue</MenuItem>
-                      </Select>
-                    </FormControl>
-                  </Grid>
-                </Grid>
-              </AccordionDetails>
-            </Accordion>
-
-            {/* Accordion for Audience */}
-            <Accordion sx={{ mt: 1 }}>
-              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Typography variant="subtitle1" fontWeight={600}>Audience</Typography>
-              </AccordionSummary>
-              <AccordionDetails>
-                <Grid container spacing={2}>
-                  <Grid item xs={6}>
-                    <FormControl fullWidth>
-                      <InputLabel>Audience Type</InputLabel>
-                      <Select name="audienceType" value={formData.audienceType} onChange={handleSelectChange} label="Audience Type">
-                        <MenuItem value={0}>All</MenuItem>
-                        <MenuItem value={1}>New Prospects</MenuItem>
-                        <MenuItem value={2}>Existing Customers</MenuItem>
-                        <MenuItem value={3}>Churned Customers</MenuItem>
-                        <MenuItem value={4}>Segment</MenuItem>
-                      </Select>
-                    </FormControl>
-                  </Grid>
-                  <Grid item xs={6}>
-                    <TextField fullWidth label="Target Audience Count" name="targetAudience" type="number" value={formData.targetAudience} onChange={handleInputChange} inputProps={{ min: 0 }} />
-                  </Grid>
-                </Grid>
-              </AccordionDetails>
-            </Accordion>
-
-            {/* Accordion for Lead Metrics (read-only) */}
-            <Accordion sx={{ mt: 1 }}>
-              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Typography variant="subtitle1" fontWeight={600}>Lead Metrics (Read-only)</Typography>
-              </AccordionSummary>
-              <AccordionDetails>
-                <Grid container spacing={2}>
-                  <Grid item xs={6}>
-                    <TextField fullWidth label="Leads Generated" name="leadsGenerated" type="number" value={formData.leadsGenerated} disabled helperText="System metric" InputProps={{ readOnly: true }} />
-                  </Grid>
-                  <Grid item xs={6}>
-                    <TextField fullWidth label="MQLs Generated" name="mqlsGenerated" type="number" value={formData.mqlsGenerated} disabled helperText="System metric" InputProps={{ readOnly: true }} />
-                  </Grid>
-                  <Grid item xs={6}>
-                    <TextField fullWidth label="SQLs Generated" name="sqlsGenerated" type="number" value={formData.sqlsGenerated} disabled helperText="System metric" InputProps={{ readOnly: true }} />
-                  </Grid>
-                  <Grid item xs={6}>
-                    <TextField fullWidth label="Opportunities Created" name="opportunitiesCreated" type="number" value={formData.opportunitiesCreated} disabled helperText="System metric" InputProps={{ readOnly: true }} />
-                  </Grid>
-                  <Grid item xs={6}>
-                    <TextField fullWidth label="Deals Won" name="dealsWon" type="number" value={formData.dealsWon} disabled helperText="System metric" InputProps={{ readOnly: true }} />
-                  </Grid>
-                </Grid>
-              </AccordionDetails>
-            </Accordion>
-
-            {/* Accordion for Email Metrics (read-only) */}
-            <Accordion sx={{ mt: 1 }}>
-              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Typography variant="subtitle1" fontWeight={600}>Email Metrics (Read-only)</Typography>
-              </AccordionSummary>
-              <AccordionDetails>
-                <Grid container spacing={2}>
-                  <Grid item xs={6}>
-                    <TextField fullWidth label="Emails Sent" disabled value={formData.emailsSent} helperText="System metric" InputProps={{ readOnly: true }} />
-                  </Grid>
-                  <Grid item xs={6}>
-                    <TextField fullWidth label="Emails Delivered" disabled value={formData.emailsDelivered} helperText="System metric" InputProps={{ readOnly: true }} />
-                  </Grid>
-                  <Grid item xs={6}>
-                    <TextField fullWidth label="Delivery Rate (%)" disabled value={formData.deliveryRate} helperText="System metric" InputProps={{ readOnly: true }} />
-                  </Grid>
-                  <Grid item xs={6}>
-                    <TextField fullWidth label="Emails Opened" disabled value={formData.emailsOpened} helperText="System metric" InputProps={{ readOnly: true }} />
-                  </Grid>
-                  <Grid item xs={6}>
-                    <TextField fullWidth label="Open Rate (%)" disabled value={formData.emailsSent > 0 ? ((formData.emailsOpened / formData.emailsSent) * 100).toFixed(2) : '0'} helperText="Calculated" InputProps={{ readOnly: true }} />
-                  </Grid>
-                  <Grid item xs={6}>
-                    <TextField fullWidth label="Email Clicks" disabled value={formData.emailClicks} helperText="System metric" InputProps={{ readOnly: true }} />
-                  </Grid>
-                  <Grid item xs={6}>
-                    <TextField fullWidth label="Bounce Rate (%)" disabled value={formData.bounceRate} helperText="System metric" InputProps={{ readOnly: true }} />
-                  </Grid>
-                  <Grid item xs={6}>
-                    <TextField fullWidth label="Bounces" disabled value={formData.bounces} helperText="System metric" InputProps={{ readOnly: true }} />
-                  </Grid>
-                </Grid>
-              </AccordionDetails>
-            </Accordion>
-
-            {/* Accordion for Digital Metrics (read-only) */}
-            <Accordion sx={{ mt: 1 }}>
-              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Typography variant="subtitle1" fontWeight={600}>Digital Metrics (Read-only)</Typography>
-              </AccordionSummary>
-              <AccordionDetails>
-                <Grid container spacing={2}>
-                  <Grid item xs={6}>
-                    <TextField fullWidth label="Impressions" disabled value={formData.impressions} helperText="System metric" InputProps={{ readOnly: true }} />
-                  </Grid>
-                  <Grid item xs={6}>
-                    <TextField fullWidth label="Reach" disabled value={formData.reach} helperText="System metric" InputProps={{ readOnly: true }} />
-                  </Grid>
-                  <Grid item xs={6}>
-                    <TextField fullWidth label="Clicks" disabled value={formData.clicks} helperText="System metric" InputProps={{ readOnly: true }} />
-                  </Grid>
-                  <Grid item xs={6}>
-                    <TextField fullWidth label="Click-Through Rate (%)" disabled value={formData.clickThroughRate} helperText="System metric" InputProps={{ readOnly: true }} />
-                  </Grid>
-                  <Grid item xs={6}>
-                    <TextField fullWidth label="Landing Page Visits" disabled value={formData.landingPageVisits} helperText="System metric" InputProps={{ readOnly: true }} />
-                  </Grid>
-                </Grid>
-              </AccordionDetails>
-            </Accordion>
-
-            {/* Accordion for Social Metrics (read-only) */}
-            <Accordion sx={{ mt: 1 }}>
-              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Typography variant="subtitle1" fontWeight={600}>Social Metrics (Read-only)</Typography>
-              </AccordionSummary>
-              <AccordionDetails>
-                <Grid container spacing={2}>
-                  <Grid item xs={6}>
-                    <TextField fullWidth label="Social Reach" disabled value={formData.socialReach} helperText="System metric" InputProps={{ readOnly: true }} />
-                  </Grid>
-                  <Grid item xs={6}>
-                    <TextField fullWidth label="Social Engagement" disabled value={formData.socialEngagement} helperText="System metric" InputProps={{ readOnly: true }} />
-                  </Grid>
-                  <Grid item xs={6}>
-                    <TextField fullWidth label="Social Shares" disabled value={formData.socialShares} helperText="System metric" InputProps={{ readOnly: true }} />
-                  </Grid>
-                </Grid>
-              </AccordionDetails>
-            </Accordion>
-
-            {/* Accordion for Event */}
-            <Accordion sx={{ mt: 1 }}>
-              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Typography variant="subtitle1" fontWeight={600}>Event Details</Typography>
-              </AccordionSummary>
-              <AccordionDetails>
-                <Grid container spacing={2}>
-                  <Grid item xs={6}>
-                    <TextField fullWidth label="Attendance" name="attendance" type="number" value={formData.attendance} onChange={handleInputChange} inputProps={{ min: 0 }} />
-                  </Grid>
-                  <Grid item xs={6}>
-                    <TextField fullWidth label="No-Shows" name="noShows" type="number" value={formData.noShows} onChange={handleInputChange} inputProps={{ min: 0 }} />
-                  </Grid>
-                  <Grid item xs={6}>
-                    <TextField fullWidth label="Event Capacity" name="eventCapacity" type="number" value={formData.eventCapacity} onChange={handleInputChange} inputProps={{ min: 0 }} />
-                  </Grid>
-                  <Grid item xs={6}>
-                    <TextField fullWidth label="Event Date & Time" name="eventDateTime" type="datetime-local" value={formData.eventDateTime} onChange={handleInputChange} InputLabelProps={{ shrink: true }} />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <TextField fullWidth label="Event Location" name="eventLocation" value={formData.eventLocation} onChange={handleInputChange} />
-                  </Grid>
-                </Grid>
-              </AccordionDetails>
-            </Accordion>
-
-            {/* Accordion for Admin */}
-            <Accordion sx={{ mt: 1 }}>
-              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Typography variant="subtitle1" fontWeight={600}>Admin</Typography>
-              </AccordionSummary>
-              <AccordionDetails>
-                <Grid container spacing={2}>
-                  <Grid item xs={6}>
-                    <TextField fullWidth label="Cost Center" name="costCenter" value={formData.costCenter} onChange={handleInputChange} />
-                  </Grid>
-                  <Grid item xs={6}>
-                    <TextField fullWidth label="Parent Campaign ID" name="parentCampaignId" type="number" value={formData.parentCampaignId} onChange={handleInputChange} inputProps={{ min: 0 }} />
-                  </Grid>
-                  <Grid item xs={6}>
-                    <TextField fullWidth label="External ID" name="externalId" value={formData.externalId} onChange={handleInputChange} />
-                  </Grid>
-                  <Grid item xs={6}>
-                    <TextField fullWidth label="A/B Test Metric" name="abTestMetric" value={formData.abTestMetric} onChange={handleInputChange} placeholder="e.g. open_rate" />
-                  </Grid>
-                </Grid>
-              </AccordionDetails>
-            </Accordion>
-          </TabPanel>
-
-          <TabPanel value={dialogTab} index={1}>
-            <Grid container spacing={2}>
-              <Grid item xs={4}>
-                <TextField fullWidth label="Impressions" name="impressions" type="number" value={formData.impressions} onChange={handleInputChange} />
-              </Grid>
-              <Grid item xs={4}>
-                <TextField fullWidth label="Clicks" name="clicks" type="number" value={formData.clicks} onChange={handleInputChange} />
-              </Grid>
-              <Grid item xs={4}>
-                <TextField 
-                  fullWidth 
-                  label="CTR (%)" 
-                  value={formData.impressions > 0 ? ((formData.clicks / formData.impressions) * 100).toFixed(2) : '0'}
-                  InputProps={{ readOnly: true }}
-                />
-              </Grid>
-              <Grid item xs={4}>
-                <TextField fullWidth label="Conversions" name="conversions" type="number" value={formData.conversions} onChange={handleInputChange} />
-              </Grid>
-              <Grid item xs={4}>
-                <TextField fullWidth label="Leads Generated" name="leadsGenerated" type="number" value={formData.leadsGenerated} onChange={handleInputChange} />
-              </Grid>
-              <Grid item xs={4}>
-                <TextField fullWidth label="Revenue ($)" name="revenue" type="number" value={formData.revenue} onChange={handleInputChange} />
-              </Grid>
-              <Grid item xs={12}>
-                <Typography variant="h6" sx={{ mt: 2 }}>
-                  Calculated ROI: {formData.actualSpend > 0 ? ((formData.revenue - formData.actualSpend) / formData.actualSpend * 100).toFixed(1) : 0}%
-                </Typography>
-              </Grid>
-            </Grid>
-          </TabPanel>
-
-          <TabPanel value={dialogTab} index={2}>
-            <Grid container spacing={2}>
-              <Grid item xs={6}>
-                <TextField fullWidth label="Emails Sent" name="emailsSent" type="number" value={formData.emailsSent} onChange={handleInputChange} InputProps={{ startAdornment: <EmailIcon sx={{ mr: 1, color: '#666' }} /> }} />
-              </Grid>
-              <Grid item xs={6}>
-                <TextField fullWidth label="Emails Opened" name="emailsOpened" type="number" value={formData.emailsOpened} onChange={handleInputChange} />
-              </Grid>
-              <Grid item xs={4}>
-                <TextField 
-                  fullWidth 
-                  label="Open Rate (%)" 
-                  value={formData.emailsSent > 0 ? ((formData.emailsOpened / formData.emailsSent) * 100).toFixed(2) : '0'}
-                  InputProps={{ readOnly: true }}
-                />
-              </Grid>
-              <Grid item xs={4}>
-                <TextField fullWidth label="Unsubscribes" name="unsubscribes" type="number" value={formData.unsubscribes} onChange={handleInputChange} />
-              </Grid>
-              <Grid item xs={4}>
-                <TextField fullWidth label="Bounces" name="bounces" type="number" value={formData.bounces} onChange={handleInputChange} />
-              </Grid>
-            </Grid>
-          </TabPanel>
-
-          <TabPanel value={dialogTab} index={3}>
-            <Grid container spacing={2}>
-              <Grid item xs={4}>
-                <TextField fullWidth label="Social Reach" name="socialReach" type="number" value={formData.socialReach} onChange={handleInputChange} InputProps={{ startAdornment: <ShareIcon sx={{ mr: 1, color: '#666' }} /> }} />
-              </Grid>
-              <Grid item xs={4}>
-                <TextField fullWidth label="Social Engagement" name="socialEngagement" type="number" value={formData.socialEngagement} onChange={handleInputChange} />
-              </Grid>
-              <Grid item xs={4}>
-                <TextField fullWidth label="Social Shares" name="socialShares" type="number" value={formData.socialShares} onChange={handleInputChange} />
-              </Grid>
-              <Grid item xs={12}>
-                <FormControlLabel
-                  control={<Checkbox name="isABTest" checked={formData.isABTest} onChange={handleInputChange} />}
-                  label="This is an A/B Test Campaign"
-                />
-              </Grid>
-              {formData.isABTest && (
-                <>
-                  <Grid item xs={6}>
-                    <TextField fullWidth label="A/B Test Variants" name="abTestVariants" value={formData.abTestVariants} onChange={handleInputChange} placeholder="Variant A, Variant B" />
-                  </Grid>
-                  <Grid item xs={6}>
-                    <TextField fullWidth label="Winning Variant" name="winningVariant" value={formData.winningVariant} onChange={handleInputChange} />
-                  </Grid>
-                </>
-              )}
-            </Grid>
-          </TabPanel>
-
-          <TabPanel value={dialogTab} index={4}>
-            <Grid container spacing={2}>
-              <Grid item xs={4}>
-                <TextField fullWidth label="UTM Source" name="utmSource" value={formData.utmSource} onChange={handleInputChange} placeholder="google" />
-              </Grid>
-              <Grid item xs={4}>
-                <TextField fullWidth label="UTM Medium" name="utmMedium" value={formData.utmMedium} onChange={handleInputChange} placeholder="cpc" />
-              </Grid>
-              <Grid item xs={4}>
-                <TextField fullWidth label="UTM Campaign" name="utmCampaign" value={formData.utmCampaign} onChange={handleInputChange} placeholder="spring_sale" />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField fullWidth label="Tags (comma-separated)" name="tags" value={formData.tags} onChange={handleInputChange} placeholder="seasonal, promotion, q1" />
-              </Grid>
-            </Grid>
-          </TabPanel>
-
-          {/* Related Entities Tab (only when editing) */}
-          {editingId && (
-            <TabPanel value={dialogTab} index={5}>
-              <RelatedEntitiesPanel
-                entityType="campaigns"
-                entityId={editingId}
-                showRelated={['contacts', 'opportunities', 'activities']}
-                onEntityClick={(type, id) => {
-                  handleCloseDialog();
-                  logger.debug(`Navigate to ${type} ${id}`);
-                }}
-              />
-            </TabPanel>
-          )}
-
-          {/* Notes Tab */}
-          <TabPanel value={dialogTab} index={editingId ? 6 : 5}>
-            {editingId ? (
-              <NotesTab
-                entityType="Campaign"
-                entityId={editingId}
-                entityName={formData.name || 'Campaign'}
-              />
-            ) : (
-              <Alert severity="info" sx={{ mt: 2 }}>
-                Please save the campaign first to add notes.
-              </Alert>
-            )}
-          </TabPanel>
+        <DialogContent sx={{ pt: 0, minHeight: 400 }}>
           <DialogError error={dialogApi.error} onRetry={() => dialogApi.clearError()} />
+
+          <DynamicEntityForm
+            moduleName="Campaigns"
+            formData={formData}
+            onChange={handleInputChange}
+            onSelectChange={(e: any) => setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }))}
+            setFormData={setFormData}
+            activeTab={dialogTab}
+            editingId={editingId}
+            onTabChange={setDialogTab}
+            excludeFields={['tags', 'customFields', 'recipients']}
+            extraTabs={[
+              {
+                index: 100,
+                name: 'Related',
+                icon: <LinkIcon fontSize="small" />,
+                editOnly: true,
+                render: () => (
+                  <RelatedEntitiesPanel
+                    entityType="campaigns"
+                    entityId={editingId!}
+                    showRelated={['contacts', 'opportunities', 'activities']}
+                    onEntityClick={(type, id) => {
+                      handleCloseDialog();
+                      logger.debug(`Navigate to ${type} ${id}`);
+                    }}
+                  />
+                ),
+              },
+              {
+                index: 101,
+                name: 'Notes',
+                icon: <NoteIcon fontSize="small" />,
+                render: () => editingId ? (
+                  <NotesTab
+                    entityType="Campaign"
+                    entityId={editingId}
+                    entityName={formData.name || 'Campaign'}
+                  />
+                ) : (
+                  <Alert severity="info" sx={{ mt: 2 }}>
+                    Please save the campaign first to add notes.
+                  </Alert>
+                ),
+              },
+            ]}
+          />
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog} disabled={dialogApi.loading}>Cancel</Button>

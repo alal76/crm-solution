@@ -782,7 +782,7 @@ function OpportunitiesPage() {
           <DialogError error={dialogApi.error} onRetry={() => dialogApi.clearError()} />
 
           <DynamicEntityForm
-            moduleName="Opportunity"
+            moduleName="Opportunities"
             formData={formData}
             onChange={handleInputChange}
             onSelectChange={(e: any) => setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }))}

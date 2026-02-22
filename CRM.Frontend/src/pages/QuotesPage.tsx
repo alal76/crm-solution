@@ -1,12 +1,10 @@
 import { useState, useEffect, useMemo } from 'react';
 import {
   Box, Card, CardContent, Typography, Button, Table, TableBody, TableCell, TableContainer, TableHead,
-  TableRow, Dialog, DialogTitle, DialogContent, DialogActions, Alert, CircularProgress,
-  TextField, Container, FormControl, InputLabel, Select, MenuItem, Chip, Grid,
-  IconButton, Tooltip, Tabs, Tab, SelectChangeEvent, Divider, Accordion, AccordionSummary, AccordionDetails,
-  Switch, FormControlLabel
+  TableRow, Dialog, DialogContent, DialogActions, Alert, CircularProgress,
+  Container, Chip,
+  IconButton, Tooltip, Divider
 } from '@mui/material';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import {
   Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, 
   Description as QuoteIcon, Send as SendIcon, CheckCircle as AcceptIcon,
@@ -15,15 +13,14 @@ import {
 } from '@mui/icons-material';
 import apiClient from '../services/apiClient';
 import logger from '../services/logger';
-import { TabPanel, DialogError, DialogSuccess, ActionButton, DialogHeader, RelatedEntitiesPanel, EnhancedEmptyState } from '../components/common';
+import { DialogError, DialogSuccess, ActionButton, DialogHeader, RelatedEntitiesPanel, EnhancedEmptyState } from '../components/common';
 import { useApiState } from '../hooks/useApiState';
 import { BaseEntity } from '../types';
 import logo from '../assets/logo.png';
-import LookupSelect from '../components/LookupSelect';
-import EntitySelect from '../components/EntitySelect';
 import ImportExportButtons from '../components/ImportExportButtons';
 import NotesTab from '../components/NotesTab';
 import QuoteLineItemsEditor from '../components/QuoteLineItemsEditor';
+import DynamicEntityForm, { ExtraTab } from '../components/DynamicEntityForm';
 import AdvancedSearch, { SearchField, SearchFilter, filterData } from '../components/AdvancedSearch';
 import { generatePDF, formatCurrency, formatDate } from '../services/pdfExportService';
 
@@ -262,11 +259,6 @@ function QuotesPage() {
     }));
   };
 
-  const handleSelectChange = (e: SelectChangeEvent<string | number>) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-  };
-
   const calculateTotals = () => {
     const discount = (formData.subtotal || 0) * ((formData.discountPercent || 0) / 100);
     const taxable = (formData.subtotal || 0) - discount;
@@ -444,8 +436,6 @@ function QuotesPage() {
       </Box>
     );
   }
-
-  const totals = calculateTotals();
 
   return (
     <Box sx={{ py: 4 }}>
@@ -635,347 +625,105 @@ function QuotesPage() {
             formData.status === 8 ? 'error' : 'default'
           ) : undefined}
         />
-        <Box sx={{ borderBottom: 1, borderColor: 'divider', px: 3 }}>
-          <Tabs value={dialogTab} onChange={(_, v) => setDialogTab(v)} aria-label="Quote dialog tabs">
-            <Tab label="Details" id="quote-tab-0" aria-controls="quote-tabpanel-0" />
-            <Tab label="Line Items" id="quote-tab-1" aria-controls="quote-tabpanel-1" />
-            <Tab label="Pricing" id="quote-tab-2" aria-controls="quote-tabpanel-2" />
-            <Tab label="Addresses" id="quote-tab-3" aria-controls="quote-tabpanel-3" />
-            <Tab label="Terms" id="quote-tab-4" aria-controls="quote-tabpanel-4" />
-            {editingId && <Tab label="Related" icon={<LinkIcon fontSize="small" />} iconPosition="start" id="quote-tab-5" aria-controls="quote-tabpanel-5" />}
-            <Tab label="Notes" icon={<NoteIcon fontSize="small" />} iconPosition="start" id={`quote-tab-${editingId ? 6 : 5}`} aria-controls={`quote-tabpanel-${editingId ? 6 : 5}`} />
-          </Tabs>
-        </Box>
-
-        <DialogContent sx={{ pt: 2, minHeight: 400 }}>
+        <DialogContent dividers>
           <DialogError error={dialogError} onClose={() => setDialogError(null)} />
-          <TabPanel value={dialogTab} index={0}>
-            <Grid container spacing={2}>
-              <Grid item xs={12}>
-                <TextField fullWidth label="Quote Title" name="name" value={formData.name} onChange={handleInputChange} required />
-              </Grid>
-              <Grid item xs={6}>
-                <EntitySelect
-                  entityType="account"
-                  name="accountId"
-                  value={formData.accountId}
-                  onChange={handleSelectChange}
-                  label="Account"
-                  showAddNew={true}
-                />
-              </Grid>
-              <Grid item xs={6}>
-                <LookupSelect
-                  category="QuoteStatus"
-                  name="status"
-                  value={formData.status}
-                  onChange={handleSelectChange}
-                  label="Status"
-                  fallback={QUOTE_STATUSES.map(s => ({ value: s.value, label: s.label }))}
-                />
-              </Grid>
-              <Grid item xs={6}>
-                <TextField fullWidth label="Valid Until" name="expirationDate" type="date" value={formData.expirationDate} onChange={handleInputChange} InputLabelProps={{ shrink: true }} />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField fullWidth label="Description" name="description" value={formData.description} onChange={handleInputChange} multiline rows={2} />
-              </Grid>
-            </Grid>
-            {/* Accordion for Additional Information */}
-            <Accordion sx={{ mt: 3 }}>
-              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Typography variant="subtitle1" fontWeight={600}>Additional Information</Typography>
-              </AccordionSummary>
-              <AccordionDetails>
-                <Grid container spacing={2}>
-                  <Grid item xs={12}>
-                    <TextField fullWidth label="Billing Address" name="billingAddress" value={formData.billingAddress} onChange={handleInputChange} multiline rows={3} />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <TextField fullWidth label="Shipping Address" name="shippingAddress" value={formData.shippingAddress} onChange={handleInputChange} multiline rows={3} />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <TextField fullWidth label="Terms and Conditions" name="termsAndConditions" value={formData.termsAndConditions} onChange={handleInputChange} multiline rows={6} />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <TextField fullWidth label="Notes" name="notes" value={formData.notes} onChange={handleInputChange} multiline rows={3} />
-                  </Grid>
-                </Grid>
-              </AccordionDetails>
-            </Accordion>
-          </TabPanel>
 
-          <TabPanel value={dialogTab} index={1}>
-            {editingId ? (
-              <QuoteLineItemsEditor
-                quoteId={editingId}
-                onTotalsChange={(t) => {
-                  setFormData(prev => ({
-                    ...prev,
-                    subtotal: t.subtotal,
-                    discountPercent: t.discount > 0 && t.subtotal > 0 ? (t.discount / t.subtotal) * 100 : 0,
-                    taxRate: t.tax > 0 && (t.subtotal - t.discount) > 0 ? (t.tax / (t.subtotal - t.discount)) * 100 : 0,
-                  }));
-                }}
-              />
-            ) : (
-              <Alert severity="info">
-                Please save the quote first to add line items.
-              </Alert>
-            )}
-          </TabPanel>
-
-          <TabPanel value={dialogTab} index={2}>
-            <Grid container spacing={2}>
-              <Grid item xs={6}>
-                <TextField fullWidth label="Subtotal ($)" name="subtotal" type="number" value={formData.subtotal} onChange={handleInputChange} />
-              </Grid>
-              <Grid item xs={6}>
-                <TextField fullWidth label="Discount (%)" name="discountPercent" type="number" value={formData.discountPercent} onChange={handleInputChange} inputProps={{ min: 0, max: 100 }} />
-              </Grid>
-              <Grid item xs={6}>
-                <TextField fullWidth label="Tax (%)" name="taxRate" type="number" value={formData.taxRate} onChange={handleInputChange} inputProps={{ min: 0 }} />
-              </Grid>
-              <Grid item xs={6}>
-                <TextField fullWidth label="Shipping ($)" name="shippingCost" type="number" value={formData.shippingCost} onChange={handleInputChange} />
-              </Grid>
-              <Grid item xs={12}>
-                <Divider sx={{ my: 2 }} />
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                  <Typography>Subtotal:</Typography>
-                  <Typography>${(formData.subtotal || 0).toFixed(2)}</Typography>
-                </Box>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1, color: 'success.main' }}>
-                  <Typography>Discount ({formData.discountPercent || 0}%):</Typography>
-                  <Typography>-${(totals.discount || 0).toFixed(2)}</Typography>
-                </Box>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                  <Typography>Tax ({formData.taxRate || 0}%):</Typography>
-                  <Typography>${(totals.tax || 0).toFixed(2)}</Typography>
-                </Box>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                  <Typography>Shipping:</Typography>
-                  <Typography>${(formData.shippingCost || 0).toFixed(2)}</Typography>
-                </Box>
-                <Divider sx={{ my: 1 }} />
-                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <Typography variant="h6">Total:</Typography>
-                  <Typography variant="h6" fontWeight={700}>${(totals.total || 0).toFixed(2)}</Typography>
-                </Box>
-              </Grid>
-            </Grid>
-          </TabPanel>
-
-          {/* Addresses Tab */}
-          <TabPanel value={dialogTab} index={3}>
-            <Accordion defaultExpanded>
-              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Typography variant="subtitle1" fontWeight={600}>Billing &amp; Shipping Address</Typography>
-              </AccordionSummary>
-              <AccordionDetails>
-                <Grid container spacing={2}>
-                  {/* Row 1: Billing Name | Shipping Name */}
-                  <Grid item xs={6}>
-                    <TextField fullWidth label="Billing Name" name="billingName" value={formData.billingName} onChange={handleInputChange} />
-                  </Grid>
-                  <Grid item xs={6}>
-                    <TextField fullWidth label="Shipping Name" name="shippingName" value={formData.shippingName} onChange={handleInputChange} />
-                  </Grid>
-                  {/* Row 2: Billing Address | Shipping Address */}
-                  <Grid item xs={6}>
-                    <TextField fullWidth label="Billing Address" name="billingAddress" value={formData.billingAddress} onChange={handleInputChange} />
-                  </Grid>
-                  <Grid item xs={6}>
-                    <TextField fullWidth label="Shipping Address" name="shippingAddress" value={formData.shippingAddress} onChange={handleInputChange} />
-                  </Grid>
-                  {/* Row 3: Billing City | Billing State | Billing Zip */}
-                  <Grid item xs={4}>
-                    <TextField fullWidth label="Billing City" name="billingCity" value={formData.billingCity} onChange={handleInputChange} />
-                  </Grid>
-                  <Grid item xs={4}>
-                    <TextField fullWidth label="Billing State" name="billingState" value={formData.billingState} onChange={handleInputChange} />
-                  </Grid>
-                  <Grid item xs={4}>
-                    <TextField fullWidth label="Billing Zip Code" name="billingZipCode" value={formData.billingZipCode} onChange={handleInputChange} />
-                  </Grid>
-                  {/* Row 4: Shipping City | Shipping State | Shipping Zip */}
-                  <Grid item xs={4}>
-                    <TextField fullWidth label="Shipping City" name="shippingCity" value={formData.shippingCity} onChange={handleInputChange} />
-                  </Grid>
-                  <Grid item xs={4}>
-                    <TextField fullWidth label="Shipping State" name="shippingState" value={formData.shippingState} onChange={handleInputChange} />
-                  </Grid>
-                  <Grid item xs={4}>
-                    <TextField fullWidth label="Shipping Zip Code" name="shippingZipCode" value={formData.shippingZipCode} onChange={handleInputChange} />
-                  </Grid>
-                  {/* Row 5: Billing Country | Shipping Country */}
-                  <Grid item xs={6}>
-                    <TextField fullWidth label="Billing Country" name="billingCountry" value={formData.billingCountry} onChange={handleInputChange} />
-                  </Grid>
-                  <Grid item xs={6}>
-                    <TextField fullWidth label="Shipping Country" name="shippingCountry" value={formData.shippingCountry} onChange={handleInputChange} />
-                  </Grid>
-                </Grid>
-              </AccordionDetails>
-            </Accordion>
-          </TabPanel>
-
-          {/* Terms / Approval & Signature Tab */}
-          <TabPanel value={dialogTab} index={4}>
-            <Accordion defaultExpanded>
-              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Typography variant="subtitle1" fontWeight={600}>Approval &amp; Signature</Typography>
-              </AccordionSummary>
-              <AccordionDetails>
-                <Grid container spacing={2}>
-                  {/* Row 1: Requires Approval | Is Approved */}
-                  <Grid item xs={6}>
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          checked={formData.requiresApproval}
-                          onChange={(e) => setFormData(prev => ({ ...prev, requiresApproval: e.target.checked }))}
-                          name="requiresApproval"
-                        />
-                      }
-                      label="Requires Approval"
-                    />
-                  </Grid>
-                  <Grid item xs={6}>
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          checked={formData.isApproved}
-                          onChange={(e) => setFormData(prev => ({ ...prev, isApproved: e.target.checked }))}
-                          name="isApproved"
-                        />
-                      }
-                      label="Is Approved"
-                    />
-                  </Grid>
-                  {/* Row 2: Approved By User ID | Approval Date */}
-                  <Grid item xs={6}>
-                    <TextField
-                      fullWidth
-                      label="Approved By User ID"
-                      name="approvedByUserId"
-                      type="number"
-                      value={formData.approvedByUserId}
-                      onChange={(e) => setFormData(prev => ({ ...prev, approvedByUserId: e.target.value === '' ? '' : parseInt(e.target.value) || '' }))}
-                    />
-                  </Grid>
-                  <Grid item xs={6}>
-                    <TextField fullWidth label="Approval Date" name="approvalDate" type="date" value={formData.approvalDate} onChange={handleInputChange} InputLabelProps={{ shrink: true }} />
-                  </Grid>
-                  {/* Row 3: Submitted For Approval Date */}
-                  <Grid item xs={6}>
-                    <TextField fullWidth label="Submitted For Approval Date" name="submittedForApprovalDate" type="date" value={formData.submittedForApprovalDate} onChange={handleInputChange} InputLabelProps={{ shrink: true }} />
-                  </Grid>
-                  <Grid item xs={6} />
-                  {/* Row 4: Approval Notes */}
-                  <Grid item xs={12}>
-                    <TextField fullWidth label="Approval Notes" name="approvalNotes" value={formData.approvalNotes} onChange={handleInputChange} multiline rows={3} />
-                  </Grid>
-                  {/* Row 5: Signature divider */}
-                  <Grid item xs={12}>
-                    <Divider sx={{ my: 1 }}>
-                      <Typography variant="caption" color="textSecondary" fontWeight={600} sx={{ textTransform: 'uppercase', letterSpacing: 1 }}>Signature</Typography>
-                    </Divider>
-                  </Grid>
-                  {/* Row 6: Is Signed | Signed Date */}
-                  <Grid item xs={6}>
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          checked={formData.isSigned}
-                          onChange={(e) => setFormData(prev => ({ ...prev, isSigned: e.target.checked }))}
-                          name="isSigned"
-                        />
-                      }
-                      label="Is Signed"
-                    />
-                  </Grid>
-                  <Grid item xs={6}>
-                    <TextField fullWidth label="Signed Date" name="signedDate" type="date" value={formData.signedDate} onChange={handleInputChange} InputLabelProps={{ shrink: true }} />
-                  </Grid>
-                  {/* Row 7: Signed By | Signature URL */}
-                  <Grid item xs={6}>
-                    <TextField fullWidth label="Signed By" name="signedBy" value={formData.signedBy} onChange={handleInputChange} />
-                  </Grid>
-                  <Grid item xs={6}>
-                    <TextField fullWidth label="Signature URL" name="signatureUrl" value={formData.signatureUrl} onChange={handleInputChange} />
-                  </Grid>
-                  {/* Row 8: Contact & Terms divider */}
-                  <Grid item xs={12}>
-                    <Divider sx={{ my: 1 }}>
-                      <Typography variant="caption" color="textSecondary" fontWeight={600} sx={{ textTransform: 'uppercase', letterSpacing: 1 }}>Contact &amp; Terms</Typography>
-                    </Divider>
-                  </Grid>
-                  {/* Row 9: Contact Email | Contact Phone */}
-                  <Grid item xs={6}>
-                    <TextField fullWidth label="Contact Email" name="contactEmail" type="email" value={formData.contactEmail} onChange={handleInputChange} />
-                  </Grid>
-                  <Grid item xs={6}>
-                    <TextField fullWidth label="Contact Phone" name="contactPhone" value={formData.contactPhone} onChange={handleInputChange} />
-                  </Grid>
-                  {/* Row 10: Payment Terms | Delivery Terms */}
-                  <Grid item xs={6}>
-                    <TextField fullWidth label="Payment Terms" name="paymentTerms" value={formData.paymentTerms} onChange={handleInputChange} />
-                  </Grid>
-                  <Grid item xs={6}>
-                    <TextField fullWidth label="Delivery Terms" name="deliveryTerms" value={formData.deliveryTerms} onChange={handleInputChange} />
-                  </Grid>
-                  {/* Row 11: Warranty Months */}
-                  <Grid item xs={6}>
-                    <TextField
-                      fullWidth
-                      label="Warranty Months"
-                      name="warrantyMonths"
-                      type="number"
-                      value={formData.warrantyMonths}
-                      onChange={(e) => setFormData(prev => ({ ...prev, warrantyMonths: e.target.value === '' ? '' : parseInt(e.target.value) || '' }))}
-                      inputProps={{ min: 0 }}
-                    />
-                  </Grid>
-                  <Grid item xs={6} />
-                  {/* Row 12: Internal Notes */}
-                  <Grid item xs={12}>
-                    <TextField fullWidth label="Internal Notes" name="internalNotes" value={formData.internalNotes} onChange={handleInputChange} multiline rows={2} />
-                  </Grid>
-                </Grid>
-              </AccordionDetails>
-            </Accordion>
-          </TabPanel>
-
-          {/* Related Entities Tab (only when editing) */}
-          {editingId && (
-            <TabPanel value={dialogTab} index={5}>
-              <RelatedEntitiesPanel
-                entityType="quotes"
-                entityId={editingId}
-                showRelated={['accounts', 'contacts', 'opportunities']}
-                onEntityClick={(type, id) => {
-                  handleCloseDialog();
-                  logger.debug(`Navigate to ${type} ${id}`);
-                }}
-              />
-            </TabPanel>
-          )}
-
-          {/* Notes Tab */}
-          <TabPanel value={dialogTab} index={editingId ? 6 : 5}>
-            {editingId ? (
-              <NotesTab
-                entityType="Quote"
-                entityId={editingId}
-                entityName={formData.name || 'Quote'}
-              />
-            ) : (
-              <Alert severity="info" sx={{ mt: 2 }}>
-                Please save the quote first to add notes.
-              </Alert>
-            )}
-          </TabPanel>
+          <DynamicEntityForm
+            moduleName="Quotes"
+            formData={formData}
+            onChange={handleInputChange}
+            onSelectChange={(e: any) => setFormData((prev: any) => ({ ...prev, [e.target.name]: e.target.value }))}
+            setFormData={setFormData}
+            activeTab={dialogTab}
+            editingId={editingId}
+            onTabChange={setDialogTab}
+            excludeFields={['tags', 'customFields']}
+            extraTabs={[
+              {
+                index: 100,
+                name: 'Line Items',
+                icon: <QuoteIcon fontSize="small" />,
+                editOnly: true,
+                render: () => editingId ? (
+                  <QuoteLineItemsEditor
+                    quoteId={editingId}
+                    onTotalsChange={(t) => {
+                      setFormData(prev => ({
+                        ...prev,
+                        subtotal: t.subtotal,
+                        discountPercent: t.discount > 0 && t.subtotal > 0 ? (t.discount / t.subtotal) * 100 : 0,
+                        taxRate: t.tax > 0 && (t.subtotal - t.discount) > 0 ? (t.tax / (t.subtotal - t.discount)) * 100 : 0,
+                      }));
+                    }}
+                  />
+                ) : (
+                  <Alert severity="info">
+                    Please save the quote first to add line items.
+                  </Alert>
+                ),
+              },
+              {
+                index: 101,
+                name: 'Pricing',
+                render: () => {
+                  const t = calculateTotals();
+                  return (
+                    <Box>
+                      <Divider sx={{ my: 2 }} />
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                        <Typography>Subtotal:</Typography>
+                        <Typography>${(formData.subtotal || 0).toFixed(2)}</Typography>
+                      </Box>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1, color: 'success.main' }}>
+                        <Typography>Discount ({formData.discountPercent || 0}%):</Typography>
+                        <Typography>-${(t.discount || 0).toFixed(2)}</Typography>
+                      </Box>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                        <Typography>Tax ({formData.taxRate || 0}%):</Typography>
+                        <Typography>${(t.tax || 0).toFixed(2)}</Typography>
+                      </Box>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                        <Typography>Shipping:</Typography>
+                        <Typography>${(formData.shippingCost || 0).toFixed(2)}</Typography>
+                      </Box>
+                      <Divider sx={{ my: 1 }} />
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                        <Typography variant="h6">Total:</Typography>
+                        <Typography variant="h6" fontWeight={700}>${(t.total || 0).toFixed(2)}</Typography>
+                      </Box>
+                    </Box>
+                  );
+                },
+              },
+              {
+                index: 102,
+                name: 'Related',
+                icon: <LinkIcon fontSize="small" />,
+                editOnly: true,
+                render: () => (
+                  <RelatedEntitiesPanel
+                    entityType="quotes"
+                    entityId={editingId!}
+                    showRelated={['accounts', 'contacts', 'opportunities']}
+                    onEntityClick={(type, id) => {
+                      handleCloseDialog();
+                      logger.debug(`Navigate to ${type} ${id}`);
+                    }}
+                  />
+                ),
+              },
+              {
+                index: 103,
+                name: 'Notes',
+                icon: <NoteIcon fontSize="small" />,
+                render: () => editingId ? (
+                  <NotesTab entityType="Quote" entityId={editingId} entityName={formData.name || 'Quote'} />
+                ) : (
+                  <Alert severity="info" sx={{ mt: 2 }}>Please save the quote first to add notes.</Alert>
+                ),
+              },
+            ]}
+          />
         </DialogContent>
         <DialogActions>
           <DialogError error={dialogApi.error} />

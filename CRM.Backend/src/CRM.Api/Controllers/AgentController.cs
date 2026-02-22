@@ -7,6 +7,8 @@
 #nullable enable
 
 using System.Security.Claims;
+using System.Text.Json;
+using CRM.Core.Entities.AI;
 using CRM.Core.Features;
 using CRM.Core.Interfaces;
 using CRM.Infrastructure.AI.SK.Agents;
@@ -305,7 +307,7 @@ public class AgentController : ControllerBase
                 return BadRequest("Unable to identify the current user.");
             }
 
-            var (response, conversationId, history) = await _executionService.ChatAsync(
+            var conversation = await _executionService.ChatAsync(
                 agentId,
                 userId,
                 request.Message,
@@ -314,7 +316,10 @@ public class AgentController : ControllerBase
                 request.EntityId,
                 HttpContext.RequestAborted);
 
-            return Ok(new ChatResponse(response, conversationId, history));
+            var history = DeserializeMessages(conversation.Messages);
+            var response = history.LastOrDefault(m => m.Role == "assistant")?.Content ?? string.Empty;
+
+            return Ok(new ChatResponse(response, conversation.Id, history));
         }
         catch (KeyNotFoundException ex)
         {
@@ -350,8 +355,12 @@ public class AgentController : ControllerBase
                 return BadRequest("Unable to identify the current user.");
             }
 
-            var conversations = await _executionService.GetConversationHistoryAsync(
-                agentId, userId, limit, HttpContext.RequestAborted);
+            var conversations = await _dbContext.AgentConversations
+                .AsNoTracking()
+                .Where(c => c.AgentId == agentId && c.UserId == userId && !c.IsDeleted)
+                .OrderByDescending(c => c.UpdatedAt)
+                .Take(limit)
+                .ToListAsync(HttpContext.RequestAborted);
 
             return Ok(conversations);
         }
@@ -451,11 +460,12 @@ public class AgentController : ControllerBase
             }
 
             var message = $"What are the next best actions for {entityType} {entityId}?";
-            var agent = await _orchestrator.RouteToAgentAsync(message, entityType, entityId, HttpContext.RequestAborted);
+            var agentBase = await _orchestrator.RouteToAgentAsync(message, entityType, entityId, HttpContext.RequestAborted);
+            var dbAgentId = await ResolveAgentDbIdAsync(agentBase, HttpContext.RequestAborted);
 
             var userId = GetCurrentUserId();
-            var (response, conversationId, _) = await _executionService.ChatAsync(
-                agent.AgentId,
+            var conversation = await _executionService.ChatAsync(
+                dbAgentId,
                 userId,
                 message,
                 conversationId: null,
@@ -463,7 +473,8 @@ public class AgentController : ControllerBase
                 entityId,
                 HttpContext.RequestAborted);
 
-            return Ok(new { EntityType = entityType, EntityId = entityId, Recommendations = response, ConversationId = conversationId });
+            var response = ExtractLastAssistantResponse(conversation);
+            return Ok(new { EntityType = entityType, EntityId = entityId, Recommendations = response, ConversationId = conversation.Id });
         }
         catch (Exception ex)
         {
@@ -484,11 +495,12 @@ public class AgentController : ControllerBase
         try
         {
             var message = $"Provide comprehensive deal intelligence analysis for opportunity {opportunityId} including risk factors, win probability assessment, and strategic recommendations.";
-            var agent = await _orchestrator.RouteToAgentAsync(message, "Opportunity", opportunityId, HttpContext.RequestAborted);
+            var agentBase = await _orchestrator.RouteToAgentAsync(message, "Opportunity", opportunityId, HttpContext.RequestAborted);
+            var dbAgentId = await ResolveAgentDbIdAsync(agentBase, HttpContext.RequestAborted);
 
             var userId = GetCurrentUserId();
-            var (response, conversationId, _) = await _executionService.ChatAsync(
-                agent.AgentId,
+            var conversation = await _executionService.ChatAsync(
+                dbAgentId,
                 userId,
                 message,
                 conversationId: null,
@@ -496,7 +508,8 @@ public class AgentController : ControllerBase
                 opportunityId,
                 HttpContext.RequestAborted);
 
-            return Ok(new { OpportunityId = opportunityId, Analysis = response, ConversationId = conversationId });
+            var response = ExtractLastAssistantResponse(conversation);
+            return Ok(new { OpportunityId = opportunityId, Analysis = response, ConversationId = conversation.Id });
         }
         catch (Exception ex)
         {
@@ -542,11 +555,12 @@ public class AgentController : ControllerBase
                 prompt += $" Base on template ID: {request.TemplateId.Value}.";
             }
 
-            var agent = await _orchestrator.RouteToAgentAsync(prompt, "Email", null, HttpContext.RequestAborted);
+            var agentBase = await _orchestrator.RouteToAgentAsync(prompt, "Email", null, HttpContext.RequestAborted);
+            var dbAgentId = await ResolveAgentDbIdAsync(agentBase, HttpContext.RequestAborted);
 
             var userId = GetCurrentUserId();
-            var (response, conversationId, _) = await _executionService.ChatAsync(
-                agent.AgentId,
+            var conversation = await _executionService.ChatAsync(
+                dbAgentId,
                 userId,
                 prompt,
                 conversationId: null,
@@ -554,7 +568,8 @@ public class AgentController : ControllerBase
                 null,
                 HttpContext.RequestAborted);
 
-            return Ok(new { Draft = response, ConversationId = conversationId });
+            var response = ExtractLastAssistantResponse(conversation);
+            return Ok(new { Draft = response, ConversationId = conversation.Id });
         }
         catch (Exception ex)
         {
@@ -575,11 +590,12 @@ public class AgentController : ControllerBase
         try
         {
             var message = $"Analyze service request {serviceRequestId} and suggest resolution steps, relevant knowledge articles, and recommended assignment.";
-            var agent = await _orchestrator.RouteToAgentAsync(message, "ServiceRequest", serviceRequestId, HttpContext.RequestAborted);
+            var agentBase = await _orchestrator.RouteToAgentAsync(message, "ServiceRequest", serviceRequestId, HttpContext.RequestAborted);
+            var dbAgentId = await ResolveAgentDbIdAsync(agentBase, HttpContext.RequestAborted);
 
             var userId = GetCurrentUserId();
-            var (response, conversationId, _) = await _executionService.ChatAsync(
-                agent.AgentId,
+            var conversation = await _executionService.ChatAsync(
+                dbAgentId,
                 userId,
                 message,
                 conversationId: null,
@@ -587,7 +603,8 @@ public class AgentController : ControllerBase
                 serviceRequestId,
                 HttpContext.RequestAborted);
 
-            return Ok(new { ServiceRequestId = serviceRequestId, Resolution = response, ConversationId = conversationId });
+            var response = ExtractLastAssistantResponse(conversation);
+            return Ok(new { ServiceRequestId = serviceRequestId, Resolution = response, ConversationId = conversation.Id });
         }
         catch (Exception ex)
         {
@@ -765,6 +782,49 @@ public class AgentController : ControllerBase
     {
         var claim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         return int.TryParse(claim, out var userId) ? userId : 0;
+    }
+
+    /// <summary>
+    /// Resolves the database agent ID from an in-memory <see cref="CrmAgentBase"/> by matching AgentType.
+    /// </summary>
+    private async Task<int> ResolveAgentDbIdAsync(CrmAgentBase agentBase, CancellationToken cancellationToken)
+    {
+        var dbAgent = await _dbContext.AIAgents
+            .AsNoTracking()
+            .FirstOrDefaultAsync(a => a.AgentType == agentBase.AgentType && a.IsActive && !a.IsDeleted, cancellationToken);
+
+        return dbAgent?.Id ?? throw new KeyNotFoundException(
+            $"No database agent found for type {agentBase.AgentType}");
+    }
+
+    /// <summary>
+    /// Extracts the last assistant response from a conversation's serialized messages.
+    /// </summary>
+    private static string ExtractLastAssistantResponse(AgentConversation conversation)
+    {
+        var messages = DeserializeMessages(conversation.Messages);
+        return messages.LastOrDefault(m => m.Role == "assistant")?.Content ?? string.Empty;
+    }
+
+    /// <summary>
+    /// Deserializes the JSON message array from a conversation record.
+    /// </summary>
+    private static IReadOnlyList<AgentExecutionService.ChatMessageRecord> DeserializeMessages(string? messagesJson)
+    {
+        if (string.IsNullOrWhiteSpace(messagesJson))
+        {
+            return Array.Empty<AgentExecutionService.ChatMessageRecord>();
+        }
+
+        try
+        {
+            return JsonSerializer.Deserialize<List<AgentExecutionService.ChatMessageRecord>>(messagesJson)
+                ?? new List<AgentExecutionService.ChatMessageRecord>();
+        }
+        catch
+        {
+            return Array.Empty<AgentExecutionService.ChatMessageRecord>();
+        }
     }
 
     #endregion

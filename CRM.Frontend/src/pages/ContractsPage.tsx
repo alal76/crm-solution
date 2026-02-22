@@ -8,25 +8,22 @@ import { useState, useEffect } from 'react';
 import {
   Box, Container, Typography, Card, CardContent, Table, TableBody, TableCell,
   TableHead, TableRow, Button, Dialog, DialogTitle, DialogContent, DialogActions,
-  TextField, MenuItem, Stack, Chip, IconButton, Tooltip, CircularProgress,
-  Alert, Grid, Tabs, Tab, FormControl, InputLabel, Select, LinearProgress,
-  SelectChangeEvent, Paper, Divider, Accordion, AccordionSummary, AccordionDetails,
-  Switch, FormControlLabel,
+  MenuItem, Stack, Chip, IconButton, Tooltip, CircularProgress,
+  Alert, FormControl, InputLabel, Select,
+  SelectChangeEvent,
 } from '@mui/material';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import {
   Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon,
-  Download as DownloadIcon, Upload as UploadIcon, Close as CloseIcon,
-  Refresh as RefreshIcon, Description as ContractIcon,
-  AttachFile as AttachIcon, Warning as WarningIcon,
+  Download as DownloadIcon, Upload as UploadIcon,
+  Refresh as RefreshIcon,
+  Warning as WarningIcon,
   Print as PrintIcon, Link as LinkIcon, Note as NoteIcon,
 } from '@mui/icons-material';
 import { DialogError, ActionButton, TabPanel, DialogHeader, RelatedEntitiesPanel, EnhancedEmptyState } from '../components/common';
 import { useApiState } from '../hooks/useApiState';
 import { useProfile } from '../contexts/ProfileContext';
-import LookupSelect from '../components/LookupSelect';
-import EntitySelect from '../components/EntitySelect';
 import NotesTab from '../components/NotesTab';
+import DynamicEntityForm, { ExtraTab } from '../components/DynamicEntityForm';
 import apiClient from '../services/apiClient';
 import logger from '../services/logger';
 import logo from '../assets/logo.png';
@@ -693,478 +690,48 @@ function ContractsPage() {
           ) : undefined}
         />
         <DialogContent dividers>
-          <Tabs value={dialogTab} onChange={(_, v) => setDialogTab(v)} sx={{ mb: 2 }} aria-label="Contract dialog tabs">
-            <Tab label="Basic Info" id="contract-tab-0" aria-controls="contract-tabpanel-0" />
-            <Tab label="Terms & Conditions" id="contract-tab-1" aria-controls="contract-tabpanel-1" />
-            <Tab label="Related Records" id="contract-tab-2" aria-controls="contract-tabpanel-2" />
-            {editingId && <Tab label="Related" icon={<LinkIcon fontSize="small" />} iconPosition="start" id="contract-tab-3" aria-controls="contract-tabpanel-3" />}
-            {editingId && <Tab label="Notes" icon={<NoteIcon fontSize="small" />} iconPosition="start" id={`contract-tab-${editingId ? 4 : 3}`} aria-controls={`contract-tabpanel-${editingId ? 4 : 3}`} />}
-          </Tabs>
-
           <DialogError error={dialogApi.error} />
 
-          {/* Tab 0: Basic Info */}
-          <TabPanel value={dialogTab} index={0}>
-            <Grid container spacing={3}>
-              <Grid item xs={12} md={8}>
-                <TextField
-                  fullWidth
-                  required
-                  label="Contract Name"
-                  name="name"
-                  value={formData.name}
-                  onChange={handleInputChange}
-                />
-              </Grid>
-              <Grid item xs={12} md={4}>
-                <FormControl fullWidth>
-                  <InputLabel>Status</InputLabel>
-                  <Select
-                    name="status"
-                    value={formData.status}
-                    onChange={handleSelectChange}
-                    label="Status"
-                  >
-                    {CONTRACT_STATUS_OPTIONS.map(opt => (
-                      <MenuItem key={opt.value} value={opt.value}>{opt.label}</MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  multiline
-                  rows={2}
-                  label="Description"
-                  name="description"
-                  value={formData.description}
-                  onChange={handleInputChange}
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <FormControl fullWidth>
-                  <InputLabel>Contract Type</InputLabel>
-                  <Select
-                    name="contractType"
-                    value={formData.contractType}
-                    onChange={handleSelectChange}
-                    label="Contract Type"
-                  >
-                    {CONTRACT_TYPE_OPTIONS.map(opt => (
-                      <MenuItem key={opt.value} value={opt.value}>{opt.label}</MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <EntitySelect
-                  name="accountId"
-                  label="Account *"
-                  entityType="account"
-                  value={formData.accountId ?? ''}
-                  onChange={(val) => setFormData(prev => ({ ...prev, accountId: val as number | null }))}
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <EntitySelect
-                  name="contactId"
-                  label="Contact"
-                  entityType="contact"
-                  value={formData.contactId ?? ''}
-                  onChange={(val) => setFormData(prev => ({ ...prev, contactId: val as number | null }))}
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  type="number"
-                  label="Contract Value"
-                  name="value"
-                  value={formData.value}
-                  onChange={handleInputChange}
-                  InputProps={{ startAdornment: '$' }}
-                />
-              </Grid>
-              <Grid item xs={12} md={4}>
-                <TextField
-                  fullWidth
-                  type="date"
-                  label="Start Date"
-                  name="startDate"
-                  value={formData.startDate}
-                  onChange={handleInputChange}
-                  InputLabelProps={{ shrink: true }}
-                />
-              </Grid>
-              <Grid item xs={12} md={4}>
-                <TextField
-                  fullWidth
-                  type="date"
-                  label="End Date"
-                  name="endDate"
-                  value={formData.endDate}
-                  onChange={handleInputChange}
-                  InputLabelProps={{ shrink: true }}
-                />
-              </Grid>
-              <Grid item xs={12} md={4}>
-                <TextField
-                  fullWidth
-                  type="date"
-                  label="Signed Date"
-                  name="signedDate"
-                  value={formData.signedDate}
-                  onChange={handleInputChange}
-                  InputLabelProps={{ shrink: true }}
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <FormControl fullWidth>
-                  <InputLabel>Billing Frequency</InputLabel>
-                  <Select
-                    name="billingFrequency"
-                    value={formData.billingFrequency}
-                    onChange={handleSelectChange}
-                    label="Billing Frequency"
-                  >
-                    {BILLING_FREQUENCY_OPTIONS.map(opt => (
-                      <MenuItem key={opt.value} value={opt.value}>{opt.label}</MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Grid>
-            </Grid>
-            {/* Accordion for Additional Information */}
-            <Accordion sx={{ mt: 3 }}>
-              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Typography variant="subtitle1" fontWeight={600}>Additional Information</Typography>
-              </AccordionSummary>
-              <AccordionDetails>
-                <Grid container spacing={3}>
-                  <Grid item xs={12}>
-                    <TextField
-                      fullWidth
-                      multiline
-                      rows={4}
-                      label="Special Conditions"
-                      name="specialConditions"
-                      value={formData.specialConditions}
-                      onChange={handleInputChange}
-                    />
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <TextField
-                      fullWidth
-                      type="number"
-                      label="Parent Contract ID"
-                      value={formData.parentContractId || ''}
-                      onChange={(e) => setFormData(prev => ({ ...prev, parentContractId: e.target.value ? parseInt(e.target.value) : null }))}
-                      helperText="Enter the ID of the parent contract if this is a sub-contract"
-                    />
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <TextField
-                      fullWidth
-                      type="number"
-                      label="Related Quote ID"
-                      value={formData.quoteId || ''}
-                      onChange={(e) => setFormData(prev => ({ ...prev, quoteId: e.target.value ? parseInt(e.target.value) : null }))}
-                      helperText="Enter the ID of the related quote"
-                    />
-                  </Grid>
-                  <Grid item xs={12} md={3}>
-                    <TextField
-                      fullWidth
-                      type="number"
-                      label="Renewal Notice (days)"
-                      name="renewalNoticeDays"
-                      value={formData.renewalNoticeDays}
-                      onChange={handleInputChange}
-                    />
-                  </Grid>
-                  <Grid item xs={12} md={3}>
-                    <Box display="flex" alignItems="center" height="100%">
-                      <label>
-                        <input
-                          type="checkbox"
-                          name="autoRenew"
-                          checked={formData.autoRenew}
-                          onChange={handleInputChange}
-                        />
-                        {' '}Auto Renew
-                      </label>
-                    </Box>
-                  </Grid>
-                </Grid>
-              </AccordionDetails>
-            </Accordion>
-
-            {/* Accordion for Documents & Approval */}
-            <Accordion sx={{ mt: 2 }}>
-              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Typography variant="subtitle1" fontWeight={600}>Documents &amp; Approval</Typography>
-              </AccordionSummary>
-              <AccordionDetails>
-                <Grid container spacing={2}>
-                  <Grid item xs={12}>
-                    <Typography variant="subtitle2" color="text.secondary" sx={{ mb: 1 }}>Document URLs</Typography>
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <TextField
-                      fullWidth
-                      label="Contract File URL"
-                      name="contractFileUrl"
-                      value={formData.contractFileUrl}
-                      onChange={handleInputChange}
-                      placeholder="https://..."
-                    />
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <TextField
-                      fullWidth
-                      label="Signed Contract File URL"
-                      name="signedContractFileUrl"
-                      value={formData.signedContractFileUrl}
-                      onChange={handleInputChange}
-                      placeholder="https://..."
-                    />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <Typography variant="subtitle2" color="text.secondary" sx={{ mt: 1, mb: 1 }}>Approval</Typography>
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <TextField
-                      fullWidth
-                      type="number"
-                      label="Approved By User ID"
-                      value={formData.approvedByUserId || ''}
-                      onChange={(e) => setFormData(prev => ({ ...prev, approvedByUserId: e.target.value ? parseInt(e.target.value) : null }))}
-                    />
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <TextField
-                      fullWidth
-                      type="date"
-                      label="Approved Date"
-                      name="approvedDate"
-                      value={formData.approvedDate}
-                      onChange={handleInputChange}
-                      InputLabelProps={{ shrink: true }}
-                    />
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <TextField
-                      fullWidth
-                      label="Rejection Reason"
-                      name="rejectionReason"
-                      value={formData.rejectionReason}
-                      onChange={handleInputChange}
-                    />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <Typography variant="subtitle2" color="text.secondary" sx={{ mt: 1, mb: 1 }}>Suspension</Typography>
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <TextField
-                      fullWidth
-                      label="Suspension Reason"
-                      name="suspensionReason"
-                      value={formData.suspensionReason}
-                      onChange={handleInputChange}
-                    />
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <TextField
-                      fullWidth
-                      type="date"
-                      label="Suspended Date"
-                      name="suspendedDate"
-                      value={formData.suspendedDate}
-                      onChange={handleInputChange}
-                      InputLabelProps={{ shrink: true }}
-                    />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <TextField
-                      fullWidth
-                      multiline
-                      rows={4}
-                      label="Termination Clause"
-                      name="terminationClause"
-                      value={formData.terminationClause}
-                      onChange={handleInputChange}
-                      placeholder="Describe the conditions under which this contract may be terminated"
-                    />
-                  </Grid>
-                </Grid>
-              </AccordionDetails>
-            </Accordion>
-            {/* Accordion for Currency & Renewal Tracking */}
-            <Accordion sx={{ mt: 2 }}>
-              <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                <Typography variant="subtitle1" fontWeight={600}>Currency &amp; Renewal Tracking</Typography>
-              </AccordionSummary>
-              <AccordionDetails>
-                <Grid container spacing={2}>
-                  <Grid item xs={12}>
-                    <Typography variant="subtitle2" color="text.secondary" gutterBottom>Currency</Typography>
-                    <Divider sx={{ mb: 2 }} />
-                  </Grid>
-                  <Grid item xs={12} md={4}>
-                    <TextField
-                      fullWidth
-                      label="Currency Code"
-                      name="currencyCode"
-                      value={formData.currencyCode}
-                      onChange={handleInputChange}
-                      inputProps={{ maxLength: 3 }}
-                      placeholder="USD"
-                    />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <Typography variant="subtitle2" color="text.secondary" sx={{ mt: 1 }} gutterBottom>Renewal Tracking</Typography>
-                    <Divider sx={{ mb: 2 }} />
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          name="renewalNoticeSent"
-                          checked={formData.renewalNoticeSent}
-                          onChange={handleInputChange}
-                        />
-                      }
-                      label="Renewal Notice Sent"
-                    />
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <TextField
-                      fullWidth
-                      type="date"
-                      label="Renewal Notice Sent Date"
-                      name="renewalNoticeSentDate"
-                      value={formData.renewalNoticeSentDate}
-                      onChange={handleInputChange}
-                      InputLabelProps={{ shrink: true }}
-                      disabled={!formData.renewalNoticeSent}
-                    />
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <TextField
-                      fullWidth
-                      type="date"
-                      label="Renewal Initiated At"
-                      name="renewalInitiatedAt"
-                      value={formData.renewalInitiatedAt}
-                      onChange={handleInputChange}
-                      InputLabelProps={{ shrink: true }}
-                      InputProps={{ readOnly: true }}
-                      helperText="Set automatically when renewal begins"
-                    />
-                  </Grid>
-                  <Grid item xs={12} md={6}>
-                    <TextField
-                      fullWidth
-                      type="date"
-                      label="Renewal Completed At"
-                      name="renewalCompletedAt"
-                      value={formData.renewalCompletedAt}
-                      onChange={handleInputChange}
-                      InputLabelProps={{ shrink: true }}
-                      InputProps={{ readOnly: true }}
-                      helperText="Set automatically when renewal completes"
-                    />
-                  </Grid>
-                </Grid>
-              </AccordionDetails>
-            </Accordion>
-          </TabPanel>
-
-          {/* Tab 1: Terms & Conditions */}
-          <TabPanel value={dialogTab} index={1}>
-            <Grid container spacing={3}>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  multiline
-                  rows={8}
-                  label="Terms & Conditions"
-                  name="terms"
-                  value={formData.terms}
-                  onChange={handleInputChange}
-                />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField
-                  fullWidth
-                  multiline
-                  rows={4}
-                  label="Special Conditions"
-                  name="specialConditions"
-                  value={formData.specialConditions}
-                  onChange={handleInputChange}
-                />
-              </Grid>
-            </Grid>
-          </TabPanel>
-
-          {/* Tab 2: Related Records */}
-          <TabPanel value={dialogTab} index={2}>
-            <Grid container spacing={3}>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  type="number"
-                  label="Parent Contract ID"
-                  value={formData.parentContractId || ''}
-                  onChange={(e) => setFormData(prev => ({ ...prev, parentContractId: e.target.value ? parseInt(e.target.value) : null }))}
-                  helperText="Enter the ID of the parent contract if this is a sub-contract"
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <EntitySelect
-                  name="opportunityId"
-                  label="Related Opportunity"
-                  entityType="opportunity"
-                  value={formData.opportunityId ?? ''}
-                  onChange={(val) => setFormData(prev => ({ ...prev, opportunityId: val as number | null }))}
-                />
-              </Grid>
-              <Grid item xs={12} md={6}>
-                <TextField
-                  fullWidth
-                  type="number"
-                  label="Related Quote ID"
-                  value={formData.quoteId || ''}
-                  onChange={(e) => setFormData(prev => ({ ...prev, quoteId: e.target.value ? parseInt(e.target.value) : null }))}
-                  helperText="Enter the ID of the related quote"
-                />
-              </Grid>
-            </Grid>
-          </TabPanel>
-
-          {/* Tab 3: Related Entities (only when editing) */}
-          {editingId && (
-            <TabPanel value={dialogTab} index={3}>
-              <RelatedEntitiesPanel
-                entityType="contracts"
-                entityId={editingId}
-                showRelated={['accounts', 'contacts', 'quotes']}
-                onEntityClick={(type, id) => {
-                  handleCloseDialog();
-                  logger.debug(`Navigate to ${type} ${id}`);
-                }}
-              />
-            </TabPanel>
-          )}
-
-          {/* Tab 4: Notes */}
-          {editingId && (
-            <TabPanel value={dialogTab} index={4}>
-              <NotesTab entityType="Contract" entityId={editingId} entityName={formData.name || 'Contract'} />
-            </TabPanel>
-          )}
+          <DynamicEntityForm
+            moduleName="Contracts"
+            formData={formData}
+            onChange={handleInputChange}
+            onSelectChange={(e: any) => setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }))}
+            setFormData={setFormData}
+            activeTab={dialogTab}
+            editingId={editingId}
+            onTabChange={setDialogTab}
+            excludeFields={['tags', 'customFields']}
+            extraTabs={[
+              {
+                index: 100,
+                name: 'Related',
+                icon: <LinkIcon fontSize="small" />,
+                editOnly: true,
+                render: () => (
+                  <RelatedEntitiesPanel
+                    entityType="contracts"
+                    entityId={editingId!}
+                    showRelated={['accounts', 'contacts', 'quotes']}
+                    onEntityClick={(type, id) => {
+                      handleCloseDialog();
+                      logger.debug(`Navigate to ${type} ${id}`);
+                    }}
+                  />
+                ),
+              },
+              {
+                index: 101,
+                name: 'Notes',
+                icon: <NoteIcon fontSize="small" />,
+                render: () => editingId ? (
+                  <NotesTab entityType="Contract" entityId={editingId} entityName={formData.name || 'Contract'} />
+                ) : (
+                  <Alert severity="info" sx={{ mt: 2 }}>Please save the contract first to add notes.</Alert>
+                ),
+              },
+            ]}
+          />
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog}>Cancel</Button>

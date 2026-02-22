@@ -1034,7 +1034,7 @@ function LeadsPage() {
           />
 
           <DynamicEntityForm
-            moduleName="Lead"
+            moduleName="Leads"
             formData={formData}
             onChange={handleInputChange}
             onSelectChange={(e: any) => setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }))}

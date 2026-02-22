@@ -477,7 +477,7 @@ function ProductsPage() {
           <DialogError error={dialogApi.error} onClose={() => dialogApi.reset()} />
 
           <DynamicEntityForm
-            moduleName="Product"
+            moduleName="Products"
             formData={formData}
             onChange={handleInputChange}
             onSelectChange={(e: any) => setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }))}

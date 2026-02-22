@@ -1,9 +1,9 @@
 {
   "major": 0,
-  "minor": 561,
-  "patch": 11,
-  "lastUpdate": "2026-02-22",
-  "description": "DynamicEntityForm migration: ContactsPage, LeadsPage, OpportunitiesPage, ProductsPage now use DynamicEntityForm for config-driven forms. Fixed sales.ts duplicate customFields and OrderStatus enum test. SPEC-UI-001 updated to v1.3.",
+  "minor": 562,
+  "patch": 0,
+  "lastUpdate": "2026-02-23",
+  "description": "Full DynamicEntityForm migration: All 11 entity pages (Accounts, Contacts, Leads, Opportunities, Products, Campaigns, Quotes, Orders, Invoices, Contracts, ServiceRequests, Payments) now use config-driven forms. Expanded seed data from 7 to 12 modules (~320 total fields). Fixed moduleName singular/plural mismatch across all pages.",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [
