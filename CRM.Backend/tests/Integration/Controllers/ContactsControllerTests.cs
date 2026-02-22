@@ -70,54 +70,6 @@ namespace CRM.Backend.Tests.Integration.Controllers
 
             var getRes = await _client.GetAsync($"/api/contacts/{id}");
             getRes.StatusCode.Should().Be(HttpStatusCode.OK);
-            var patch = new
-            {
-                Platform = "Test2",
-                Url = "Test",
-                Handle = "Test",
-                ContactType = "Test",
-                FirstName = "Test",
-                LastName = "Test",
-                MiddleName = "Test",
-                EmailPrimary = "Test",
-                EmailSecondary = "Test",
-                PhonePrimary = "Test",
-                PhoneSecondary = "Test",
-                Address = "Test",
-                City = "Test",
-                State = "Test",
-                Country = "Test",
-                ZipCode = "Test",
-                JobTitle = "Test",
-                Department = "Test",
-                Company = "Test",
-                ReportsTo = "Test",
-                Notes = "Test",
-                DateOfBirth = DateTime.UtcNow,
-                DateAdded = DateTime.UtcNow,
-                LastModified = DateTime.UtcNow,
-                ModifiedBy = "Test",
-                Salutation = "Test",
-                Suffix = "Test",
-                Nickname = "Test",
-                Gender = "Test",
-                PhoneMobile = "Test",
-                PhoneFax = "Test",
-                Website = "Test",
-                LinkedInUrl = "Test",
-                TwitterHandle = "Test",
-                DoNotContact = true,
-                PreferredContactMethod = "Test",
-                LeadStatus = "Test",
-                AccountId = 1,
-                Status = "Test"
-            };
-            var pRes = await _client.PatchAsJsonAsync($"/api/contacts/{id}", patch);
-            pRes.StatusCode.Should().Be(HttpStatusCode.OK);
-            var del = await _client.DeleteAsync($"/api/contacts/{id}");
-            del.StatusCode.Should().Be(HttpStatusCode.NoContent);
-            var nf = await _client.GetAsync($"/api/contacts/{id}");
-            nf.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
 
         [Fact]

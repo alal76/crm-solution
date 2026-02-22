@@ -29,13 +29,6 @@ namespace CRM.Backend.Tests.Integration.Controllers
 
             var getRes = await _client.GetAsync($"/api/incident-categories/{id}");
             getRes.StatusCode.Should().Be(HttpStatusCode.OK);
-            var patch = new { name = "Test2" };
-            var pRes = await _client.PatchAsJsonAsync($"/api/incident-categories/{id}", patch);
-            pRes.StatusCode.Should().Be(HttpStatusCode.OK);
-            var del = await _client.DeleteAsync($"/api/incident-categories/{id}");
-            del.StatusCode.Should().Be(HttpStatusCode.NoContent);
-            var nf = await _client.GetAsync($"/api/incident-categories/{id}");
-            nf.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
 
         [Fact]

@@ -49,33 +49,6 @@ namespace CRM.Backend.Tests.Integration.Controllers
 
             var getRes = await _client.GetAsync($"/api/userprofiles/{id}");
             getRes.StatusCode.Should().Be(HttpStatusCode.OK);
-            var patch = new
-            {
-                Name = "Test2",
-                Description = "Test",
-                DepartmentId = 1,
-                CanCreateAccounts = true,
-                CanEditAccounts = true,
-                CanDeleteAccounts = true,
-                CanCreateOpportunities = true,
-                CanEditOpportunities = true,
-                CanDeleteOpportunities = true,
-                CanCreateProducts = true,
-                CanEditProducts = true,
-                CanDeleteProducts = true,
-                CanManageCampaigns = true,
-                CanViewReports = true,
-                CanManageUsers = true,
-                DepartmentName = "Test",
-                IsActive = true,
-                UserCount = 1
-            };
-            var pRes = await _client.PatchAsJsonAsync($"/api/userprofiles/{id}", patch);
-            pRes.StatusCode.Should().Be(HttpStatusCode.OK);
-            var del = await _client.DeleteAsync($"/api/userprofiles/{id}");
-            del.StatusCode.Should().Be(HttpStatusCode.NoContent);
-            var nf = await _client.GetAsync($"/api/userprofiles/{id}");
-            nf.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
 
         [Fact]

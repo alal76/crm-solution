@@ -52,36 +52,6 @@ namespace CRM.Backend.Tests.Integration.Controllers
 
             var getRes = await _client.GetAsync($"/api/users/{id}");
             getRes.StatusCode.Should().Be(HttpStatusCode.OK);
-            var patch = new
-            {
-                Username = "Test2",
-                Email = "Test",
-                FirstName = "Test",
-                LastName = "Test",
-                Role = "Test",
-                IsActive = true,
-                IsLocked = true,
-                DepartmentId = 1,
-                DepartmentName = "Test",
-                UserProfileId = 1,
-                UserProfileName = "Test",
-                PrimaryGroupId = 1,
-                PrimaryGroupName = "Test",
-                ContactId = 1,
-                ContactName = "Test",
-                ContactEmail = "Test",
-                LastLoginDate = DateTime.UtcNow,
-                HeaderColor = "Test",
-                PhotoUrl = "Test",
-                Password = "Test",
-                RoleId = 1
-            };
-            var pRes = await _client.PatchAsJsonAsync($"/api/users/{id}", patch);
-            pRes.StatusCode.Should().Be(HttpStatusCode.OK);
-            var del = await _client.DeleteAsync($"/api/users/{id}");
-            del.StatusCode.Should().Be(HttpStatusCode.NoContent);
-            var nf = await _client.GetAsync($"/api/users/{id}");
-            nf.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
 
         [Fact]

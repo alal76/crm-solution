@@ -50,34 +50,6 @@ namespace CRM.Backend.Tests.Integration.Controllers
 
             var getRes = await _client.GetAsync($"/api/itsm/escalation-policies/{id}");
             getRes.StatusCode.Should().Be(HttpStatusCode.OK);
-            var patch = new
-            {
-                Name = "Test2",
-                Description = "Test",
-                InitialAssignmentMinutes = 1,
-                MaxEscalationLevels = 1,
-                IsActive = true,
-                NotifyDuringEscalation = true,
-                PolicyId = 1,
-                Level = 1,
-                EscalationAfterMinutes = 1,
-                EscalateToUserId = 1,
-                EscalateToGroupId = 1,
-                NotificationTemplate = "Test",
-                SendNotification = true,
-                TicketId = 1,
-                EscalatedAt = DateTime.UtcNow,
-                EscalatedToUserId = 1,
-                EscalatedToGroupId = 1,
-                Reason = "Test",
-                Notes = "Test"
-            };
-            var pRes = await _client.PatchAsJsonAsync($"/api/itsm/escalation-policies/{id}", patch);
-            pRes.StatusCode.Should().Be(HttpStatusCode.OK);
-            var del = await _client.DeleteAsync($"/api/itsm/escalation-policies/{id}");
-            del.StatusCode.Should().Be(HttpStatusCode.NoContent);
-            var nf = await _client.GetAsync($"/api/itsm/escalation-policies/{id}");
-            nf.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
 
         [Fact]

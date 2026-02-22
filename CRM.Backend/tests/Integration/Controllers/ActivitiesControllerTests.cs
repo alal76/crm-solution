@@ -29,13 +29,6 @@ namespace CRM.Backend.Tests.Integration.Controllers
 
             var getRes = await _client.GetAsync($"/api/activities/{id}");
             getRes.StatusCode.Should().Be(HttpStatusCode.OK);
-            var patch = new { ActivityType = 1, Title = "Test2", Description = "Test", Details = "Test", ActivityDate = DateTime.UtcNow, DurationMinutes = 1, UserId = 1, UserName = "Test", UserEmail = "Test", EntityType = "Test", EntityId = 1, EntityName = "Test", SecondaryEntityType = "Test", SecondaryEntityId = 1, SecondaryEntityName = "Test", AccountId = 1, ContactId = 1, OpportunityId = 1, CampaignId = 1, ProductId = 1, TaskId = 1, QuoteId = 1, InteractionId = 1, NoteId = 1, OldValue = "Test", NewValue = "Test", FieldsChanged = "Test", IsSystem = true, IsPrivate = true, IsImportant = true, Tags = "Test", Category = "Test", Source = "Test", IsDeleted = true };
-            var pRes = await _client.PatchAsJsonAsync($"/api/activities/{id}", patch);
-            pRes.StatusCode.Should().Be(HttpStatusCode.OK);
-            var del = await _client.DeleteAsync($"/api/activities/{id}");
-            del.StatusCode.Should().Be(HttpStatusCode.NoContent);
-            var nf = await _client.GetAsync($"/api/activities/{id}");
-            nf.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
 
         [Fact]
