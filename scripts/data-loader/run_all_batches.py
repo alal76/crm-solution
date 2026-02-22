@@ -30,7 +30,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from loader_utils import (
     ApiClient, RunLogger, DockerLogCapture,
-    init_state, authenticate,
+    init_state, authenticate, check_service_availability,
 )
 
 
@@ -48,6 +48,7 @@ BATCHES = [
     (10, "batch_10_ai_analytics",     "AI Agents, Analytics, Reports, Webhooks"),
     (11, "batch_11_infrastructure",   "Monitoring, Config, MasterData"),
     (12, "batch_12_misc",             "Files, Tags, CustomFields, Misc"),
+    (13, "batch_13_integration",      "Integration-Dependent Endpoints (probe & skip)"),
 ]
 
 
@@ -188,6 +189,7 @@ def main() -> None:
         "",
         f"API calls made    : {api.stats['total']}",
         f"  Success (2xx)   : {api.stats['success']}",
+        f"  Skipped (svc)   : {api.stats['skipped_integration']}",
         f"  Client err (4xx): {api.stats['client_error']}",
         f"  Server err (5xx): {api.stats['server_error']}",
         f"  Network errors  : {api.stats['network_error']}",
@@ -219,6 +221,15 @@ def main() -> None:
         mark = "✓" if r["status"] == "success" else "✗"
         err_short = (r["error"][:50] + "...") if len(r["error"]) > 50 else r["error"]
         print(f"  {mark} {r['batch']:>4}  {r['status']:<8}  {r['elapsed_s']:>6.1f}s  {r['module']:<32}  {err_short}")
+
+    # ── Integration Services availability report ──
+    if api.stats["skipped_integration"] > 0:
+        print(f"\n  {'─' * 50}")
+        print("  INTEGRATION SERVICES")
+        print(f"  {'─' * 50}")
+        print(f"  Endpoints skipped (service unavailable): {api.stats['skipped_integration']}")
+        print("  Run with services configured to exercise these endpoints.")
+        log.log(f"Integration endpoints skipped: {api.stats['skipped_integration']}")
 
     print(f"\n  Log file: {log.log_path}")
     print(f"  JSONL   : {log.jsonl_path}")

@@ -97,6 +97,7 @@ public class CommissionRuleServiceTests
 
         var rules = new List<CommissionRule> { rule };
         _mockRuleRepository.Setup(r => r.GetAllAsync()).ReturnsAsync(rules);
+        _mockRuleRepository.Setup(r => r.GetByIdAsync(1)).ReturnsAsync(rule);
 
         // Act
         var result = await _service.CalculateCommissionAsync(1000m, "DirectSale");

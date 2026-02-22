@@ -100,7 +100,7 @@ namespace CRM.Tests.Controllers
         public async Task Update_ShouldReturnUpdatedOrder_WhenValid()
         {
             // Arrange
-            var dto = new UpdateOrderDto { Name = "Order 1" };
+            var dto = new UpdateOrderDto { Id = 1, Name = "Order 1" };
             var updated = new OrderDto { Id = 1, Name = "Order 1" };
             _mockOrderService.Setup(s => s.UpdateAsync(dto, It.IsAny<CancellationToken>())).ReturnsAsync(updated);
 

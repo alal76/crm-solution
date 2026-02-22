@@ -416,7 +416,7 @@ public class AdminDashboardService : IAdminDashboardService
             var summary = new QuickActionsSummaryDto
             {
                 PendingApprovals = await _context.UserApprovalRequests
-                    .Where(u => !u.IsDeleted && !u.IsApproved)
+                    .Where(u => !u.IsDeleted && u.Status != (int)ApprovalStatus.Approved)
                     .CountAsync(cancellationToken),
                 FailedJobs = 0, // Would come from job scheduler
                 OverdueTickets = await _context.ServiceRequests

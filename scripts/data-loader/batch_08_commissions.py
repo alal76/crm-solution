@@ -132,23 +132,46 @@ def run(api: ApiClient, log: RunLogger) -> None:
 
     # ---- Relationships ----
     log.section("Relationships CRUD")
-    if acct_ids and len(acct_ids) >= 2:
+    # First create a RelationshipType so the FK reference is valid
+    rel_type_payload = {"typeName": "Partner", "description": "Strategic partnership type",
+                        "category": "Business", "isBidirectional": True, "isActive": True,
+                        "displayOrder": 1}
+    rel_type_id = None
+    code, body, _ = api.post("/api/relationships/types", rel_type_payload)
+    if code in (200, 201) and body and isinstance(body, dict):
+        rel_type_id = body.get("id")
+        print(f"    Created RelationshipType id={rel_type_id}")
+    else:
+        # Try to fetch existing types and use the first one
+        code2, body2, _ = api.get("/api/relationships/types")
+        if code2 == 200 and body2 and isinstance(body2, list) and len(body2) > 0:
+            rel_type_id = body2[0].get("id")
+            print(f"    Using existing RelationshipType id={rel_type_id}")
+
+    if acct_ids and len(acct_ids) >= 2 and rel_type_id:
         rel = {"sourceAccountId": acct_ids[0], "targetAccountId": acct_ids[1],
-               "relationshipType": "Partner", "description": "Strategic partnership"}
+               "relationshipTypeId": rel_type_id, "description": "Strategic partnership",
+               "status": "Active", "strengthScore": 75, "strategicImportance": "High"}
         eid = api.create_and_track("relationships", "/api/relationships", rel)
         if eid:
             api.get(f"/api/relationships/{eid}")
             save_ids("relationships", [eid])
+    elif acct_ids and len(acct_ids) >= 2:
+        print("    Skipping relationship creation: no valid RelationshipType available")
     api.get("/api/relationships")
 
     # ---- Credit Memos ----
     log.section("CreditMemos CRUD")
     invoice_ids = load_ids("invoices")
     if acct_ids:
+        # CreditMemo entity: reason is CreditMemoReason enum (int), date field is creditMemoDate,
+        # source invoice field is sourceInvoiceId
+        # CreditMemoReason: Return=0, BillingError=1, PriceAdjustment=2, Goodwill=3, ...
         cm = {"accountId": acct_ids[0], "amount": 5000,
-              "reason": f"Billing adjustment {ts}", "status": 0,
-              "issueDate": "2026-02-22T00:00:00Z",
-              "invoiceId": invoice_ids[0] if invoice_ids else None}
+              "reason": 2, "status": 0,
+              "creditMemoDate": "2026-02-22T00:00:00Z",
+              "description": f"Billing adjustment {ts}",
+              "sourceInvoiceId": invoice_ids[0] if invoice_ids else None}
         payload = {k: v for k, v in cm.items() if v is not None}
         eid = api.create_and_track("creditmemos", "/api/creditmemos", payload)
         if eid:

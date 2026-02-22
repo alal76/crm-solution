@@ -519,11 +519,10 @@ else
 }
 builder.Services.AddScoped<IRBACService, RBACService>();
 
-// builder.Services.AddScoped<IProviderHealthService, ProviderHealthService>(); // DISABLED for System Module isolation
+builder.Services.AddScoped<IProviderHealthService, ProviderHealthService>();
 
 // SYS-001: Admin Dashboard Service
-// Already registered but listed here for clarity - depends on IProviderHealthService above
-// builder.Services.AddScoped<IAdminDashboardService, AdminDashboardService>(); // Already at line 488
+builder.Services.AddScoped<IAdminDashboardService, AdminDashboardService>();
 
 // SYS-006: Optional Audit Logging Service (conditional registration)
 // Audit logging is disabled by default (opt-in via UseOptionalAuditLogging feature flag)
@@ -553,7 +552,7 @@ builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IEscalationPolicyService, CR
 // builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IEmailToTicketService, CRM.Infrastructure.Services.ITSM.EmailToTicketService>();
 builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IITSMDashboardService, CRM.Infrastructure.Services.ITSM.ITSMDashboardService>();
 // builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IMonitoringIntegrationService, CRM.Infrastructure.Services.ITSM.MonitoringIntegrationService>();
-// builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.ICICDIntegrationService, CRM.Infrastructure.Services.ITSM.CICDIntegrationService>();
+builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.ICICDIntegrationService, CRM.Infrastructure.Services.ITSM.CICDIntegrationService>();
 // builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.ISelfServiceChatbotService, CRM.Infrastructure.Services.ITSM.SelfServiceChatbotService>();
 // #if ITSM_ADVANCED
 // SLA Enforcement Background Service - runs continuously to monitor and enforce SLAs

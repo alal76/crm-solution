@@ -13,6 +13,7 @@ using CRM.Core.Entities;
 using CRM.Infrastructure.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
 
@@ -33,7 +34,8 @@ namespace CRM.Tests.Controllers
         public async Task CreateTask_ValidDto_ReturnsCreatedTask()
         {
             using var dbContext = CreateInMemoryContext();
-            var controller = new TasksController(dbContext, null, null);
+            var mockLogger = new Mock<ILogger<TasksController>>();
+            var controller = new TasksController(dbContext, mockLogger.Object, null);
             var dto = new CreateCrmTaskDto
             {
                 Title = "Test Task",

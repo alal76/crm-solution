@@ -373,6 +373,12 @@ public class AddressesControllerTests
             UpdatedAt = DateTime.UtcNow
         };
 
+        _mockAccountService.Setup(s => s.GetAccountByIdAsync(accountId))
+            .ReturnsAsync(_testAccount);
+
+        _mockAddressService.Setup(s => s.GetAddressByIdAsync(addressId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(_testAddress);
+
         _mockAddressService.Setup(s => s.UpdateAddressAsync(accountId, addressId, It.IsAny<Address>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(updatedAddress);
 
@@ -422,6 +428,9 @@ public class AddressesControllerTests
         var accountId = 1;
         var addressId = 1;
 
+        _mockAccountService.Setup(s => s.GetAccountByIdAsync(accountId))
+            .ReturnsAsync(_testAccount);
+
         _mockAddressService.Setup(s => s.DeleteAddressAsync(accountId, addressId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
 
@@ -461,6 +470,9 @@ public class AddressesControllerTests
         // Arrange
         var accountId = 1;
         var addressId = 1;
+
+        _mockAccountService.Setup(s => s.GetAccountByIdAsync(accountId))
+            .ReturnsAsync(_testAccount);
 
         _mockAddressService.Setup(s => s.SetPrimaryBillingAddressAsync(accountId, addressId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);
@@ -504,6 +516,9 @@ public class AddressesControllerTests
         // Arrange
         var accountId = 1;
         var addressId = 2;
+
+        _mockAccountService.Setup(s => s.GetAccountByIdAsync(accountId))
+            .ReturnsAsync(_testAccount);
 
         _mockAddressService.Setup(s => s.SetPrimaryShippingAddressAsync(accountId, addressId, It.IsAny<CancellationToken>()))
             .ReturnsAsync(true);

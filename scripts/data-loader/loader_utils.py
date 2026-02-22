@@ -320,6 +320,19 @@ class RunLogger:
                 self.text_fh.flush()
         self._write(entry)
 
+    def log_integration_skip(self, endpoint: str, service_name: str) -> None:
+        """Log that an endpoint was skipped because its backing service is unavailable."""
+        msg = f"  SKIP  {endpoint} — {service_name} not available"
+        self.counts["skipped"] = self.counts.get("skipped", 0) + 1
+        entry = {
+            "event": "integration_skip",
+            "status": "skipped_integration",
+            "endpoint": endpoint,
+            "service": service_name,
+            "summary": msg,
+        }
+        self._write(entry)
+
     def summary_line(self) -> str:
         return (f"success={self.counts.get('success', 0)}  exists={self.counts.get('exists', 0)}  "
                 f"failed={self.counts.get('failed', 0)}  skipped={self.counts.get('skipped', 0)}")
@@ -361,6 +374,7 @@ class ApiClient:
         self.stats: Dict[str, int] = {
             "total": 0, "success": 0, "client_error": 0,
             "server_error": 0, "network_error": 0,
+            "skipped_integration": 0,
         }
 
     def set_token(self, token: str) -> None:
@@ -570,6 +584,28 @@ def authenticate(api_or_url, username: str, password: str,
         if log:
             log.log(f"Authentication error: {exc}")
         return ""
+
+
+# ------------------------------------------------------- integration probing
+
+def check_service_availability(api: ApiClient, endpoint: str) -> bool:
+    """Probe an endpoint and return True if it responds with anything other than 404.
+
+    A 404 response indicates the backing service/controller is not registered.
+    Any other response (200, 400, 401, 500, etc.) means the service exists.
+    Network errors are treated as unavailable.
+    """
+    url = f"{api.base_url}{endpoint}"
+    req = urllib.request.Request(url, method="GET")
+    req.add_header("Authorization", f"Bearer {api.token}")
+    req.add_header("Content-Type", "application/json")
+    try:
+        with urllib.request.urlopen(req, timeout=10) as resp:
+            return True  # 2xx — service is available
+    except urllib.error.HTTPError as exc:
+        return exc.code != 404
+    except Exception:
+        return False
 
 
 # ------------------------------------------------------- shared state (JSON file)

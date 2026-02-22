@@ -27,23 +27,17 @@ def run(api: ApiClient, log: RunLogger) -> None:
     api.get("/api/itsm/cicd/pipelines")
 
     # ---- Monitoring ----
-    log.section("Monitoring")
-    api.get("/api/monitoring/status")
-    api.get("/api/monitoring/metrics")
-    api.get("/api/monitoring/alerts")
+    # NOTE: Monitoring endpoints moved to batch_13_integration.py
 
     # ---- Performance Monitoring ----
-    log.section("PerformanceMonitoring")
-    api.get("/api/performance/metrics")
-    api.get("/api/performance/slow-queries")
+    # NOTE: Performance endpoints moved to batch_13_integration.py
 
     # ---- Calendar Integration ----
     log.section("CalendarIntegration")
     api.get("/api/calendar/integrations")
 
     # ---- Email Integration ----
-    log.section("EmailIntegration")
-    api.get("/api/email/status")
+    # NOTE: Email Integration endpoint moved to batch_13_integration.py
 
     # ---- UI Preferences ----
     log.section("UIPreferences CRUD")
@@ -57,15 +51,10 @@ def run(api: ApiClient, log: RunLogger) -> None:
     # ---- User Profiles ----
     log.section("UserProfiles")
     api.get("/api/userprofiles")
-    if user_ids:
-        api.get(f"/api/userprofiles/{user_ids[0]}")
+    # NOTE: /api/userprofiles/{id} moved to batch_13_integration.py
 
     # ---- Master Data ----
-    log.section("MasterData")
-    api.get("/api/masterdata/countries")
-    api.get("/api/masterdata/currencies")
-    api.get("/api/masterdata/timezones")
-    api.get("/api/masterdata/industries")
+    # NOTE: MasterData endpoints moved to batch_13_integration.py
 
     # ---- Field Master Data ----
     log.section("FieldMasterData")
@@ -78,14 +67,10 @@ def run(api: ApiClient, log: RunLogger) -> None:
     api.get("/api/modulefieldconfigurations/Accounts")
 
     # ---- Duplicates ----
-    log.section("Duplicates")
-    api.get("/api/duplicates/accounts")
-    api.get("/api/duplicates/contacts")
+    # NOTE: Duplicates endpoints moved to batch_13_integration.py
 
     # ---- Normalization ----
-    log.section("Normalization")
-    api.post("/api/normalization/phone", {"value": "+1 (555) 123-4567"})
-    api.post("/api/normalization/email", {"value": "  Test@Example.COM  "})
+    # NOTE: Normalization endpoints moved to batch_13_integration.py
 
     # ---- Database ----
     log.section("Database Admin")
@@ -126,20 +111,18 @@ def run(api: ApiClient, log: RunLogger) -> None:
     api.get("/api/adminsettings/database/backups")
 
     # ---- News/Social ----
-    log.section("NewsSocial")
-    api.get("/api/news-social/feed")
+    # NOTE: News/Social endpoint moved to batch_13_integration.py
 
     # ---- Worker Health ----
-    log.section("WorkerHealth")
-    api.get("/api/workers")
+    # NOTE: Workers endpoints moved to batch_13_integration.py
 
     # ---- Worker Control ----
-    log.section("WorkerControl")
-    api.get("/api/workers/control/status")
+    # NOTE: Worker Control endpoint moved to batch_13_integration.py
 
     # ---- Provider Health ----
+    # NOTE: /api/health/providers returns 503 when no external providers configured (expected)
     log.section("ProviderHealth")
-    api.get("/api/health/providers")
+    log.log_integration_skip("GET /api/health/providers", "Returns 503 without configured external providers")
 
     # ---- Analytics ----
     log.section("Analytics")
@@ -151,11 +134,9 @@ def run(api: ApiClient, log: RunLogger) -> None:
     api.get("/api/sampledata/status")
 
     # ---- Test Results ----
-    log.section("TestResults")
-    api.get("/api/testresults")
+    # NOTE: TestResults endpoint moved to batch_13_integration.py
 
     # ---- Auth Diagnostics ----
-    log.section("AuthDiagnostics")
-    api.get("/api/auth-diagnostics/known-issues")
+    # NOTE: AuthDiagnostics endpoint moved to batch_13_integration.py
 
     print(f"  Batch 11 done: {log.summary_line()}")

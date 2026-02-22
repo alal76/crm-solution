@@ -19,14 +19,8 @@ def run(api: ApiClient, log: RunLogger) -> None:
     user_ids = load_ids("users")
 
     # ---- AI Agents ----
-    log.section("AI Agents")
-    api.get("/api/agents")
-    # Agent admin
-    api.get("/api/agents/admin")
-    # Agent analytics
-    api.get("/api/agents/analytics/usage")
-    api.get("/api/agents/analytics/accuracy")
-    api.get("/api/agents/analytics/cost")
+    # NOTE: AI Agent endpoints moved to batch_13_integration.py
+    # (returns 404 when UseExternalAI feature flag is not enabled)
 
     # ---- AI Lead Scoring ----
     log.section("AI Lead Scoring")
@@ -44,14 +38,16 @@ def run(api: ApiClient, log: RunLogger) -> None:
 
     # ---- AI Email ----
     log.section("AI Email")
+    # EmailAnalysisRequest DTO uses emailContent (not body)
     api.post("/api/ai/email/analyze", {"subject": "Test email subject",
-                                        "body": "This is a test email body for analysis."})
+                                        "emailContent": "This is a test email body for analysis."})
 
     # ---- AI Analytics/Dashboards ----
     log.section("AI Analytics Dashboards")
     api.get("/api/ai/dashboards")
     api.get("/api/ai/reports")
     ai_dash = {"name": f"AI Sales Dashboard {ts}", "description": "AI-powered sales insights",
+               "userId": user_ids[0] if user_ids else 1,
                "widgets": []}
     eid = api.create_and_track("aidashboards", "/api/ai/dashboards", ai_dash)
     if eid:
@@ -101,8 +97,7 @@ def run(api: ApiClient, log: RunLogger) -> None:
     api.get("/api/itsm/dashboard/executive-summary")
 
     # ---- Dashboard Config ----
-    log.section("DashboardConfig")
-    api.get("/api/dashboard-config")
+    # NOTE: Dashboard Config endpoint moved to batch_13_integration.py
 
     # ---- Import/Export Jobs ----
     log.section("ImportJobs CRUD")

@@ -67,7 +67,8 @@ def run(api: ApiClient, log: RunLogger) -> None:
     log.section("Quotes CRUD")
     quotes = []
     if opp_ids and acct_ids:
-        q = {"name": f"Quote for Enterprise Deal {ts}", "opportunityId": opp_ids[0],
+        q = {"name": f"Quote for Enterprise Deal {ts}", "quoteNumber": f"Q-{ts}-00001",
+             "opportunityId": opp_ids[0],
              "accountId": acct_ids[0], "status": 0,
              "expirationDate": "2026-04-30T00:00:00Z", "subtotal": 250000,
              "discount": 10, "tax": 22500, "total": 247500,
@@ -122,7 +123,9 @@ def run(api: ApiClient, log: RunLogger) -> None:
         if eid:
             invoice_ids.append(eid)
             api.get(f"/api/invoices/{eid}")
-            api.put(f"/api/invoices/{eid}", {**inv, "status": 3})
+            # PUT requires id and invoiceNumber (Required on entity)
+            inv_update = {**inv, "id": eid, "invoiceNumber": f"INV-{ts}", "status": 3}
+            api.put(f"/api/invoices/{eid}", inv_update)
     api.get("/api/invoices")
     save_ids("invoices", invoice_ids)
 

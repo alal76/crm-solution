@@ -101,11 +101,13 @@ def run(api: ApiClient, log: RunLogger) -> None:
 
     # ---- Problems ----
     log.section("Problems CRUD")
+    # CreateProblemDto (CRM.Core.DTOs.ITSM) requires shortDescription + priority (ProblemPriority enum)
+    # ProblemPriority: Critical=1, High=2, Medium=3, Low=4
     problems = [
-        {"title": f"Recurring server crashes {ts}", "description": "Memory leak causing periodic crashes",
-         "urgency": "High", "impact": "High"},
-        {"title": f"Intermittent DB timeouts {ts}", "description": "Database connection pool exhaustion",
-         "urgency": "Medium", "impact": "Medium"},
+        {"shortDescription": f"Recurring server crashes {ts}", "description": "Memory leak causing periodic crashes",
+         "priority": 2},
+        {"shortDescription": f"Intermittent DB timeouts {ts}", "description": "Database connection pool exhaustion",
+         "priority": 3},
     ]
     problem_ids = []
     for p in problems:
@@ -115,9 +117,9 @@ def run(api: ApiClient, log: RunLogger) -> None:
     api.get("/api/problems")
     if problem_ids:
         api.get(f"/api/problems/{problem_ids[0]}")
-        api.put(f"/api/problems/{problem_ids[0]}", {"title": problems[0]["title"],
+        api.put(f"/api/problems/{problem_ids[0]}", {"shortDescription": problems[0]["shortDescription"],
                                                      "description": "Root cause analysis in progress",
-                                                     "urgency": "High", "impact": "High"})
+                                                     "state": "UnderInvestigation"})
     save_ids("problems", problem_ids)
 
     # ---- Change Types ----

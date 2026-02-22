@@ -516,8 +516,16 @@ public class CommissionsController : ControllerBase
         [FromQuery] DateTime? asOfDate = null,
         CancellationToken cancellationToken = default)
     {
-        var forecast = await _commissionService.GetForecastAsync(userId, asOfDate, cancellationToken);
-        return Ok(forecast);
+        try
+        {
+            var forecast = await _commissionService.GetForecastAsync(userId, asOfDate, cancellationToken);
+            return Ok(forecast);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting commission forecast for user {UserId}", userId);
+            return StatusCode(500, new { message = "Error retrieving commission forecast" });
+        }
     }
 
     /// <summary>

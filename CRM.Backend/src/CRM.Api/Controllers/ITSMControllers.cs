@@ -51,8 +51,21 @@ public class ProblemsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<ActionResult<ProblemDto>> CreateProblem([FromBody] CreateProblemDto dto)
     {
-        var problem = await _problemService.CreateProblemAsync(dto, GetCurrentUserId());
-        return CreatedAtAction(nameof(GetProblem), new { id = problem.ProblemId }, problem);
+        try
+        {
+            var problem = await _problemService.CreateProblemAsync(dto, GetCurrentUserId());
+            return CreatedAtAction(nameof(GetProblem), new { id = problem.ProblemId }, problem);
+        }
+        catch (CRM.Core.Exceptions.ValidationException ex)
+        {
+            _logger.LogWarning(ex, "Validation error creating problem");
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating problem");
+            return StatusCode(500, new { message = "An error occurred while creating the problem" });
+        }
     }
 
     /// <summary>

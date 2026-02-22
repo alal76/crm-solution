@@ -99,12 +99,14 @@ namespace CRM.Infrastructure.Services
             sequence.UpdatedAt = DateTime.UtcNow;
 
             // Ensure child step entities have valid timestamps (default DateTime.MinValue is rejected by MariaDB)
+            // Also ensure Template is non-null to satisfy DB NOT NULL constraint
             if (sequence.Steps != null)
             {
                 foreach (var step in sequence.Steps)
                 {
                     step.CreatedAt = DateTime.UtcNow;
                     step.UpdatedAt = DateTime.UtcNow;
+                    step.Template ??= step.Subject ?? step.Body ?? string.Empty;
                 }
             }
 

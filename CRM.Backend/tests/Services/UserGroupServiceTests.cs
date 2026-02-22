@@ -243,6 +243,7 @@ public class UserGroupServiceTests
         // Arrange
         var request = CreateTestRequest("Permissions Group");
         request.CanAccessDashboard = true;
+        request.CanAccessAccounts = false;
         request.CanAccessCustomers = false;
         request.IsSystemAdmin = true;
 

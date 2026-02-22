@@ -91,12 +91,18 @@ public class TeamService : ITeamService
             throw new InvalidOperationException($"Team {team.Id} not found");
         }
 
-        team.UpdatedAt = DateTime.UtcNow;
-        _context.Teams.Update(team);
+        // Map properties onto the tracked entity to avoid EF tracking conflicts
+        existing.Name = team.Name;
+        existing.Code = team.Code;
+        existing.Description = team.Description;
+        existing.IsActive = team.IsActive;
+        existing.ManagerId = team.ManagerId;
+        existing.ParentTeamId = team.ParentTeamId;
+        existing.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation("Updated team {TeamId}", team.Id);
-        return team;
+        return existing;
     }
 
     public async Task<bool> DeleteAsync(int id, CancellationToken cancellationToken = default)

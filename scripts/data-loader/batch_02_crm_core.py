@@ -135,10 +135,7 @@ def run(api: ApiClient, log: RunLogger) -> None:
         api.get(f"/api/accounts/{acct_ids[0]}/direct-contacts")
 
     # ---- Preferences ----
-    log.section("Preferences")
-    if acct_ids:
-        api.get(f"/api/preferences/account/{acct_ids[0]}")
-    if contact_ids:
-        api.get(f"/api/preferences/contact/{contact_ids[0]}")
+    # NOTE: Preferences endpoints moved to batch_13_integration.py
+    # (returns 404 when PreferencesService is not configured)
 
     print(f"  Batch 02 done: {log.summary_line()}")

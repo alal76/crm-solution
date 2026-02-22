@@ -21,8 +21,7 @@ def run(api: ApiClient, log: RunLogger) -> None:
     # Skipping — upload requires multipart form data
 
     # ---- Self-Service Chatbot ----
-    log.section("SelfServiceChatbot")
-    api.get("/api/itsm/chatbot/status")
+    # NOTE: ITSM Chatbot endpoint moved to batch_13_integration.py
 
     # ---- Pipelines Detail ----
     log.section("Pipelines Detail")
@@ -36,8 +35,7 @@ def run(api: ApiClient, log: RunLogger) -> None:
     api.get("/api/webhooks/docuseal/health")
 
     # ---- Email-to-Ticket ----
-    log.section("EmailToTicket")
-    api.get("/api/itsm/email/settings")
+    # NOTE: ITSM Email Settings endpoint moved to batch_13_integration.py
 
     # ---- Custom Fields (controller does not exist - skipped) ----
     # Tags, CustomFields, Documents, NotificationPreferences,

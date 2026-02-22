@@ -63,6 +63,26 @@ public class RelationshipService
     /// </summary>
     public async Task<RelationshipTypeDto> CreateRelationshipTypeAsync(RelationshipTypeCreateDto dto, int? userId = null)
     {
+        // Check for existing type with the same name (upsert behavior)
+        var existing = await _context.RelationshipTypes
+            .FirstOrDefaultAsync(t => t.TypeName == dto.TypeName && !t.IsDeleted);
+        if (existing != null)
+        {
+            // Update existing type and return it
+            existing.TypeCategory = dto.TypeCategory;
+            existing.Description = dto.Description;
+            existing.IsBidirectional = dto.IsBidirectional;
+            existing.ReverseTypeName = dto.ReverseTypeName;
+            existing.Icon = dto.Icon;
+            existing.Color = dto.Color;
+            existing.IsActive = dto.IsActive;
+            existing.DisplayOrder = dto.DisplayOrder;
+            existing.UpdatedAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+            _logger.LogInformation("Updated existing relationship type {TypeName} with ID {Id}", existing.TypeName, existing.Id);
+            return MapToDto(existing);
+        }
+
         var type = new RelationshipType
         {
             TypeName = dto.TypeName,
@@ -235,12 +255,21 @@ public class RelationshipService
     /// </summary>
     public async Task<AccountRelationshipDto> CreateRelationshipAsync(AccountRelationshipCreateDto dto, int? userId = null)
     {
+        // Validate RelationshipTypeId is provided and valid
+        if (dto.RelationshipTypeId <= 0)
+            throw new InvalidOperationException("A valid RelationshipTypeId is required");
+
         // Validate accounts exist
         var sourceExists = await _context.Accounts.AnyAsync(c => c.Id == dto.SourceAccountId && !c.IsDeleted);
         var targetExists = await _context.Accounts.AnyAsync(c => c.Id == dto.TargetAccountId && !c.IsDeleted);
 
         if (!sourceExists || !targetExists)
             throw new InvalidOperationException("Source or target account does not exist");
+
+        // Validate relationship type exists
+        var typeExists = await _context.RelationshipTypes.AnyAsync(t => t.Id == dto.RelationshipTypeId && !t.IsDeleted);
+        if (!typeExists)
+            throw new InvalidOperationException($"Relationship type with ID {dto.RelationshipTypeId} does not exist");
 
         // Check for duplicate
         var exists = await _context.AccountRelationships.AnyAsync(r =>

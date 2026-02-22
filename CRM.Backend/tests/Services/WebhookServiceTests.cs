@@ -14,6 +14,7 @@ using CRM.Core.Interfaces;
 using CRM.Core.Models;
 using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Services;
+using CRM.Tests.Helpers;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -57,6 +58,12 @@ public class WebhookServiceTests
             Message = "Interested in your services"
         };
 
+        // Mock Accounts DbSet (async-compatible) - no matching account
+        var accountList = new List<Account>();
+        var mockAccountDbSet = MockDbSetFactory.CreateMockDbSet(accountList);
+        _mockContext.Setup(x => x.Accounts).Returns(mockAccountDbSet.Object);
+
+        // Mock Contacts DbSet (async-compatible)
         var contactList = new List<CRM.Core.Models.Contact> {
             new CRM.Core.Models.Contact {
                 Id = 1,
@@ -64,13 +71,20 @@ public class WebhookServiceTests
                 FirstName = "John",
                 LastName = "Doe"
             }
-        }.AsQueryable();
-        var mockContactDbSet = new Mock<DbSet<CRM.Core.Models.Contact>>();
-        mockContactDbSet.As<IQueryable<CRM.Core.Models.Contact>>().Setup(m => m.Provider).Returns(contactList.Provider);
-        mockContactDbSet.As<IQueryable<CRM.Core.Models.Contact>>().Setup(m => m.Expression).Returns(contactList.Expression);
-        mockContactDbSet.As<IQueryable<CRM.Core.Models.Contact>>().Setup(m => m.ElementType).Returns(contactList.ElementType);
-        mockContactDbSet.As<IQueryable<CRM.Core.Models.Contact>>().Setup(m => m.GetEnumerator()).Returns(contactList.GetEnumerator());
+        };
+        var mockContactDbSet = MockDbSetFactory.CreateMockDbSet(contactList);
         _mockContext.Setup(x => x.Contacts).Returns(mockContactDbSet.Object);
+
+        // Mock Leads DbSet (async-compatible) - for lead creation
+        var leadList = new List<Lead>();
+        var mockLeadDbSet = MockDbSetFactory.CreateMockDbSet(leadList);
+        _mockContext.Setup(x => x.Leads).Returns(mockLeadDbSet.Object);
+
+        // Mock Interactions DbSet (async-compatible)
+        var interactionList = new List<Interaction>();
+        var mockInteractionDbSet = MockDbSetFactory.CreateMockDbSet(interactionList);
+        _mockContext.Setup(x => x.Interactions).Returns(mockInteractionDbSet.Object);
+
         _mockContext.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(1);
 
@@ -95,6 +109,12 @@ public class WebhookServiceTests
             Timestamp = DateTime.UtcNow
         };
 
+        // Mock Accounts DbSet (async-compatible) - no matching account
+        var accountList = new List<Account>();
+        var mockAccountDbSet = MockDbSetFactory.CreateMockDbSet(accountList);
+        _mockContext.Setup(x => x.Accounts).Returns(mockAccountDbSet.Object);
+
+        // Mock Contacts DbSet (async-compatible)
         var contactList = new List<CRM.Core.Models.Contact> {
             new CRM.Core.Models.Contact {
                 Id = 2,
@@ -102,13 +122,20 @@ public class WebhookServiceTests
                 FirstName = "Jane",
                 LastName = "Smith"
             }
-        }.AsQueryable();
-        var mockContactDbSet = new Mock<DbSet<CRM.Core.Models.Contact>>();
-        mockContactDbSet.As<IQueryable<CRM.Core.Models.Contact>>().Setup(m => m.Provider).Returns(contactList.Provider);
-        mockContactDbSet.As<IQueryable<CRM.Core.Models.Contact>>().Setup(m => m.Expression).Returns(contactList.Expression);
-        mockContactDbSet.As<IQueryable<CRM.Core.Models.Contact>>().Setup(m => m.ElementType).Returns(contactList.ElementType);
-        mockContactDbSet.As<IQueryable<CRM.Core.Models.Contact>>().Setup(m => m.GetEnumerator()).Returns(contactList.GetEnumerator());
+        };
+        var mockContactDbSet = MockDbSetFactory.CreateMockDbSet(contactList);
         _mockContext.Setup(x => x.Contacts).Returns(mockContactDbSet.Object);
+
+        // Mock CommunicationMessages DbSet (async-compatible)
+        var messageList = new List<CommunicationMessage>();
+        var mockMessageDbSet = MockDbSetFactory.CreateMockDbSet(messageList);
+        _mockContext.Setup(x => x.CommunicationMessages).Returns(mockMessageDbSet.Object);
+
+        // Mock Interactions DbSet (async-compatible)
+        var interactionList = new List<Interaction>();
+        var mockInteractionDbSet = MockDbSetFactory.CreateMockDbSet(interactionList);
+        _mockContext.Setup(x => x.Interactions).Returns(mockInteractionDbSet.Object);
+
         _mockContext.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>()))
             .ReturnsAsync(1);
 

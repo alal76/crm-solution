@@ -737,8 +737,10 @@ public class WorkflowInstanceService : IWorkflowInstanceService
         // Filter by assignment
         if (roles != null && roles.Length > 0)
         {
+            // Convert to List<string> to avoid ReadOnlySpan<string> EF Core translation error with string[].Contains
+            var rolesList = roles.ToList();
             query = query.Where(t => t.AssignedToId == userId ||
-                                    (t.AssignedToRole != null && roles.Contains(t.AssignedToRole)));
+                                    (t.AssignedToRole != null && rolesList.Contains(t.AssignedToRole)));
         }
         else
         {

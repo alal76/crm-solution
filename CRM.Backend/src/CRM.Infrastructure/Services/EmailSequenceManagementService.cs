@@ -143,6 +143,7 @@ public class EmailSequenceManagementService : IEmailSequenceManagementService
             Subject = dto.Subject,
             Body = dto.HtmlContent,
             BodyPlainText = dto.TextContent,
+            Template = dto.Subject ?? dto.Name ?? string.Empty,
             DelayDays = dto.DelayDays,
             DelayHours = dto.DelayHours,
             DelayMinutes = dto.DelayMinutes,

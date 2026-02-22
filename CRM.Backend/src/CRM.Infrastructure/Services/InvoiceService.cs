@@ -99,12 +99,47 @@ public class InvoiceService : IInvoiceService
             throw new InvalidOperationException($"Invoice {invoice.Id} not found");
         }
 
-        invoice.UpdatedAt = DateTime.UtcNow;
-        _context.Invoices.Update(invoice);
+        // Map properties onto the tracked entity to avoid EF tracking conflicts
+        existing.InvoiceNumber = invoice.InvoiceNumber;
+        existing.ExternalInvoiceId = invoice.ExternalInvoiceId;
+        existing.ReferenceNumber = invoice.ReferenceNumber;
+        existing.BatchNumber = invoice.BatchNumber;
+        existing.Description = invoice.Description;
+        existing.Status = invoice.Status;
+        existing.InvoiceType = invoice.InvoiceType;
+        existing.PaymentTerms = invoice.PaymentTerms;
+        existing.PaymentTermsDescription = invoice.PaymentTermsDescription;
+        existing.InvoiceDate = invoice.InvoiceDate;
+        existing.DueDate = invoice.DueDate;
+        existing.SentDate = invoice.SentDate;
+        existing.ViewedDate = invoice.ViewedDate;
+        existing.PaidDate = invoice.PaidDate;
+        existing.VoidedDate = invoice.VoidedDate;
+        existing.ServicePeriodStart = invoice.ServicePeriodStart;
+        existing.ServicePeriodEnd = invoice.ServicePeriodEnd;
+        existing.Subtotal = invoice.Subtotal;
+        existing.DiscountAmount = invoice.DiscountAmount;
+        existing.DiscountPercent = invoice.DiscountPercent;
+        existing.TaxAmount = invoice.TaxAmount;
+        existing.TaxRate = invoice.TaxRate;
+        existing.ShippingAmount = invoice.ShippingAmount;
+        existing.FeesAmount = invoice.FeesAmount;
+        existing.TotalAmount = invoice.TotalAmount;
+        existing.AmountPaid = invoice.AmountPaid;
+        existing.AmountCredited = invoice.AmountCredited;
+        existing.CurrencyCode = invoice.CurrencyCode;
+        existing.ExchangeRate = invoice.ExchangeRate;
+        existing.AccountId = invoice.AccountId;
+        existing.ContactId = invoice.ContactId;
+        existing.OrderId = invoice.OrderId;
+        existing.SubscriptionId = invoice.SubscriptionId;
+        existing.Notes = invoice.Notes;
+        existing.InternalNotes = invoice.InternalNotes;
+        existing.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync(cancellationToken);
 
-        _logger.LogInformation("Updated invoice {InvoiceNumber}", invoice.InvoiceNumber);
-        return invoice;
+        _logger.LogInformation("Updated invoice {InvoiceNumber}", existing.InvoiceNumber);
+        return existing;
     }
 
     /// <inheritdoc />

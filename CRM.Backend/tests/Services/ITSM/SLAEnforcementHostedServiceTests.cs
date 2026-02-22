@@ -188,9 +188,12 @@ public class SLAEnforcementHostedServiceTests
         // Arrange
         var service = new SLAEnforcementHostedService(_mockServiceProvider.Object, _mockLogger.Object);
 
-        // Act
+        // Act - Start the service, give ExecuteAsync time to run on the thread pool,
+        // then StopAsync which awaits the background task to completion.
+        // Verifying AFTER StopAsync eliminates race conditions on slow CI machines.
         await service.StartAsync(CancellationToken.None);
-        await Task.Delay(50);
+        await Task.Delay(150);
+        await service.StopAsync(CancellationToken.None);
 
         // Assert
         _mockLogger.Verify(
@@ -201,9 +204,6 @@ public class SLAEnforcementHostedServiceTests
                 null,
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
             Times.AtLeastOnce);
-
-        // Cleanup
-        await service.StopAsync(CancellationToken.None);
     }
 
     #endregion

@@ -45,10 +45,10 @@ def run(api: ApiClient, log: RunLogger) -> None:
            "status": 0, "isActive": True,
            "steps": [
                {"order": 1, "type": 0, "delayDays": 0, "subject": "Welcome!",
-                "htmlBody": "<p>Welcome aboard!</p>"},
-               {"order": 2, "type": 1, "delayDays": 3},
+                "htmlBody": "<p>Welcome aboard!</p>", "template": "Welcome Email"},
+               {"order": 2, "type": 1, "delayDays": 3, "template": "Wait Step"},
                {"order": 3, "type": 0, "delayDays": 0, "subject": "Getting Started",
-                "htmlBody": "<p>Here are some tips to get started.</p>"},
+                "htmlBody": "<p>Here are some tips to get started.</p>", "template": "Getting Started Email"},
            ]}
     eid = api.create_and_track("emailsequences", "/api/email-sequences", seq)
     if eid:
@@ -146,7 +146,7 @@ def run(api: ApiClient, log: RunLogger) -> None:
     eid = api.create_and_track("forms", "/api/forms", form)
     if eid:
         api.get(f"/api/forms/{eid}")
-        api.put(f"/api/forms/{eid}", {**form, "description": "Updated contact form"})
+        api.put(f"/api/forms/{eid}", {**form, "id": eid, "description": "Updated contact form"})
         save_ids("forms", [eid])
     api.get("/api/forms")
 

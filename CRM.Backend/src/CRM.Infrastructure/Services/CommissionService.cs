@@ -648,7 +648,7 @@ public class CommissionService : ICommissionService
 
         var currentCommissions = await _context.Commissions
             .Where(c => c.UserId == userId && !c.IsDeleted && c.CreatedAt >= monthStart && c.CreatedAt <= date)
-            .SumAsync(c => c.Amount, cancellationToken);
+            .SumAsync(c => c.CommissionAmount, cancellationToken);
 
         var pipeline = await _context.Opportunities
             .Where(o => o.SalesOwnerId == userId && !o.IsDeleted)

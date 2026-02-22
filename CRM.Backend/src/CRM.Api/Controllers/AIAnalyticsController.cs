@@ -197,11 +197,22 @@ public class AIAnalyticsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> CreateDashboard([FromBody] CustomDashboard dashboard, CancellationToken ct)
     {
-        if (string.IsNullOrWhiteSpace(dashboard?.Name))
-            return BadRequest("Dashboard name is required.");
+        try
+        {
+            if (string.IsNullOrWhiteSpace(dashboard?.Name))
+                return BadRequest("Dashboard name is required.");
 
-        var created = await _dashboardBuilder.CreateDashboardAsync(dashboard, ct);
-        return CreatedAtAction(nameof(GetDashboard), new { id = created.Id }, created);
+            // Ensure Widgets is never null to prevent NullReferenceException in service
+            dashboard.Widgets ??= new List<DashboardWidget>();
+
+            var created = await _dashboardBuilder.CreateDashboardAsync(dashboard, ct);
+            return CreatedAtAction(nameof(GetDashboard), new { id = created.Id }, created);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating dashboard");
+            return StatusCode(500, new { message = "An error occurred while creating the dashboard" });
+        }
     }
 
     /// <summary>

@@ -256,7 +256,7 @@ public class DashboardBuilderService : IDashboardBuilderService
             UpdatedAt = DateTime.UtcNow
         };
 
-        foreach (var widget in dashboard.Widgets)
+        foreach (var widget in dashboard.Widgets ?? Enumerable.Empty<DashboardWidget>())
         {
             entity.Widgets.Add(MapWidgetToEntity(widget));
         }
@@ -292,7 +292,7 @@ public class DashboardBuilderService : IDashboardBuilderService
         _context.DashboardWidgets.RemoveRange(entity.Widgets);
 
         var newWidgets = new List<DashboardWidgetEntity>();
-        foreach (var widget in dashboard.Widgets)
+        foreach (var widget in dashboard.Widgets ?? Enumerable.Empty<DashboardWidget>())
         {
             var we = MapWidgetToEntity(widget);
             we.DashboardId = entity.Id;

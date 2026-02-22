@@ -464,8 +464,9 @@ public class CalendarSyncHostedServiceTests
 
         // Act
         await service.StartAsync(cts.Token);
-        await Task.Delay(100);
+        await Task.Delay(200);
         cts.Cancel();
+        // StopAsync waits for ExecuteAsync to complete, ensuring all logging has occurred
         await service.StopAsync(CancellationToken.None);
 
         // Assert

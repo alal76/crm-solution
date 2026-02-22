@@ -62,14 +62,12 @@ def run(api: ApiClient, log: RunLogger) -> None:
     # ---- Workflow Instances ----
     log.section("WorkflowInstances")
     api.get("/api/workflow-instances")
-    if wf_ids:
-        api.get(f"/api/workflow-instances/definition/{wf_ids[0]}")
+    # NOTE: /api/workflow-instances/definition/{id} moved to batch_13_integration.py
 
     # ---- Workflow Tasks ----
     log.section("WorkflowTasks")
     api.get("/api/workflows/tasks")
-    if user_ids:
-        api.get(f"/api/workflows/tasks/user/{user_ids[0]}")
+    # NOTE: /api/workflows/tasks/user/{id} moved to batch_13_integration.py
 
     # ---- Approval Matrices ----
     log.section("Approvals CRUD")
@@ -78,7 +76,7 @@ def run(api: ApiClient, log: RunLogger) -> None:
     eid = api.create_and_track("approvalmatrices", "/api/approvals/matrices", matrix)
     if eid:
         api.get(f"/api/approvals/matrices/{eid}")
-        api.put(f"/api/approvals/matrices/{eid}", {**matrix, "description": "Updated approval matrix"})
+        api.put(f"/api/approvals/matrices/{eid}", {**matrix, "id": eid, "description": "Updated approval matrix"})
         # Add approval level
         level = {"matrixId": eid, "level": 1, "name": "Manager Approval",
                  "minAmount": 0, "maxAmount": 50000}

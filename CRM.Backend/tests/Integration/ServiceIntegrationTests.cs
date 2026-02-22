@@ -36,7 +36,7 @@ public class ServiceIntegrationTests : IAsyncLifetime
 
     public async Task InitializeAsync()
     {
-        _context = TestDbContextFactory.GetInMemoryContext("IntegrationTestDb");
+        _context = TestDbContextFactory.GetInMemoryContext($"IntegrationTestDb_{Guid.NewGuid()}");
         await _context.Database.EnsureCreatedAsync();
     }
 
@@ -60,10 +60,22 @@ public class ServiceIntegrationTests : IAsyncLifetime
         _context.Users.Add(user);
         await _context.SaveChangesAsync();
 
+        // Seed commission plan (required FK for Commission.CommissionPlanId)
+        var plan = new CommissionPlan
+        {
+            Name = "Test Plan",
+            Rate = 0.10m,
+            CommissionType = CommissionType.FlatPercentage,
+            IsActive = true
+        };
+        _context.CommissionPlans.Add(plan);
+        await _context.SaveChangesAsync();
+
         // Ensure user is tracked and saved before commission
         var commission = new Commission
         {
             UserId = user.Id,
+            CommissionPlanId = plan.Id,
             Amount = 1000m,
             Status = CommissionStatus.Pending,
             CreatedAt = DateTime.UtcNow
@@ -92,9 +104,21 @@ public class ServiceIntegrationTests : IAsyncLifetime
         _context.Users.Add(user);
         await _context.SaveChangesAsync();
 
+        // Seed commission plan (required FK for Commission.CommissionPlanId)
+        var plan = new CommissionPlan
+        {
+            Name = "Test Plan",
+            Rate = 0.10m,
+            CommissionType = CommissionType.FlatPercentage,
+            IsActive = true
+        };
+        _context.CommissionPlans.Add(plan);
+        await _context.SaveChangesAsync();
+
         var commission = new Commission
         {
             UserId = user.Id,
+            CommissionPlanId = plan.Id,
             Amount = 2000m,
             Status = CommissionStatus.Pending,
             CreatedAt = DateTime.UtcNow

@@ -72,7 +72,7 @@ public class OpportunitiesControllerTests
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-        var returnedOpportunities = okResult.Value.Should().BeAssignableTo<IEnumerable<Opportunity>>().Subject;
+        var returnedOpportunities = okResult.Value.Should().BeAssignableTo<IEnumerable<OpportunityDto>>().Subject;
         returnedOpportunities.Should().HaveCount(2);
     }
 
@@ -88,7 +88,7 @@ public class OpportunitiesControllerTests
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-        var returnedOpportunities = okResult.Value.Should().BeAssignableTo<IEnumerable<Opportunity>>().Subject;
+        var returnedOpportunities = okResult.Value.Should().BeAssignableTo<IEnumerable<OpportunityDto>>().Subject;
         returnedOpportunities.Should().BeEmpty();
     }
 
@@ -131,7 +131,7 @@ public class OpportunitiesControllerTests
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-        var returnedOpportunity = okResult.Value.Should().BeOfType<Opportunity>().Subject;
+        var returnedOpportunity = okResult.Value.Should().BeOfType<OpportunityDto>().Subject;
         returnedOpportunity.Id.Should().Be(1);
         returnedOpportunity.Name.Should().Be("Big Deal");
     }
@@ -186,7 +186,7 @@ public class OpportunitiesControllerTests
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-        var returnedOpportunities = okResult.Value.Should().BeAssignableTo<IEnumerable<Opportunity>>().Subject;
+        var returnedOpportunities = okResult.Value.Should().BeAssignableTo<IEnumerable<OpportunityDto>>().Subject;
         returnedOpportunities.Should().HaveCount(2);
         returnedOpportunities.All(o => o.AccountId == 5).Should().BeTrue();
     }
@@ -203,7 +203,7 @@ public class OpportunitiesControllerTests
 
         // Assert
         var okResult = result.Should().BeOfType<OkObjectResult>().Subject;
-        var returnedOpportunities = okResult.Value.Should().BeAssignableTo<IEnumerable<Opportunity>>().Subject;
+        var returnedOpportunities = okResult.Value.Should().BeAssignableTo<IEnumerable<OpportunityDto>>().Subject;
         returnedOpportunities.Should().BeEmpty();
     }
 
@@ -320,7 +320,10 @@ public class OpportunitiesControllerTests
     public async Task Update_ReturnsNoContent_WhenSuccessful()
     {
         // Arrange
+        var existingOpportunity = new Opportunity { Id = 1, Name = "Old Opportunity", AccountId = 1 };
         var dto = new UpdateOpportunityDto { Name = "Updated Opportunity" };
+        _mockOpportunityService.Setup(s => s.GetOpportunityByIdAsync(1))
+            .ReturnsAsync(existingOpportunity);
         _mockOpportunityService.Setup(s => s.UpdateOpportunityAsync(It.IsAny<Opportunity>()))
             .Returns(Task.CompletedTask);
 
@@ -335,7 +338,10 @@ public class OpportunitiesControllerTests
     public async Task Update_Returns500_OnException()
     {
         // Arrange
+        var existingOpportunity = new Opportunity { Id = 1, Name = "Test", AccountId = 1 };
         var dto = new UpdateOpportunityDto { Name = "Test" };
+        _mockOpportunityService.Setup(s => s.GetOpportunityByIdAsync(1))
+            .ReturnsAsync(existingOpportunity);
         _mockOpportunityService.Setup(s => s.UpdateOpportunityAsync(It.IsAny<Opportunity>()))
             .ThrowsAsync(new Exception("Update failed"));
 

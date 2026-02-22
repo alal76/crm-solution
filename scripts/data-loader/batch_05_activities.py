@@ -149,7 +149,7 @@ def run(api: ApiClient, log: RunLogger) -> None:
     api.get("/api/notes")
     if note_ids:
         api.get(f"/api/notes/{note_ids[0]}")
-        api.put(f"/api/notes/{note_ids[0]}", {**notes[0], "content": "Updated meeting notes with action items"})
+        api.put(f"/api/notes/{note_ids[0]}", {**notes[0], "id": note_ids[0], "content": "Updated meeting notes with action items"})
     # Delete test
     del_n = {"title": f"DELETE-Note-{ts}", "content": "To be deleted", "noteType": 0,
              "visibility": 0, "entityType": "Account", "entityId": acct_ids[0] if acct_ids else 1}

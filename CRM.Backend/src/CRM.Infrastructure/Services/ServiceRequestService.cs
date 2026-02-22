@@ -48,7 +48,10 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
             if (!_counterInitialized)
             {
                 var todayPrefix = $"SR-{DateTime.UtcNow:yyyyMMdd}-";
+                // IgnoreQueryFilters: include soft-deleted records so we never
+                // generate a ticket number that still occupies the unique index.
                 var maxTicket = await _context.ServiceRequests
+                    .IgnoreQueryFilters()
                     .Where(sr => sr.TicketNumber != null && sr.TicketNumber.StartsWith(todayPrefix))
                     .OrderByDescending(sr => sr.TicketNumber)
                     .Select(sr => sr.TicketNumber)
@@ -113,6 +116,23 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
         _ => priority.ToString()
     };
 
+    /// <summary>
+    /// Safely retrieves tags from the normalization service, falling back to null on error.
+    /// This prevents failures in EntityTags queries from breaking service request operations.
+    /// </summary>
+    private async Task<string?> SafeGetTagsAsync(string entityType, int entityId)
+    {
+        try
+        {
+            return await _normalizationService.GetTagsAsync(entityType, entityId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Failed to get normalized tags for {EntityType} {EntityId}, falling back to entity tags", entityType, entityId);
+            return null;
+        }
+    }
+
     private async Task<ServiceRequestDto> MapToDto(ServiceRequest entity)
     {
         var dto = new ServiceRequestDto
@@ -166,7 +186,7 @@ public class ServiceRequestService : IServiceRequestService, IServiceRequestInpu
             ParentServiceRequestId = entity.ParentServiceRequestId,
             ParentTicketNumber = entity.ParentServiceRequest?.TicketNumber,
             // Prefer normalized tags stored in EntityTags when available
-            Tags = await _normalizationService.GetTagsAsync("ServiceRequest", entity.Id) ?? entity.Tags,
+            Tags = await SafeGetTagsAsync("ServiceRequest", entity.Id) ?? entity.Tags,
             InternalNotes = entity.InternalNotes,
             EscalationLevel = entity.EscalationLevel,
             ReopenCount = entity.ReopenCount,
