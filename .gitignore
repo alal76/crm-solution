@@ -100,3 +100,4 @@ e2e-tests/job-logs.txt
 docs/VIBE_CODING_JOURNEY.md
 docs/DEVELOPMENT_NARRATIVE.md
 logs/
+local-secrets/
