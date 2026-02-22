@@ -214,6 +214,86 @@ function WorkflowDesignerPage() {
   const [simulatorOpen, setSimulatorOpen] = useState(false);
   const [versionDiffOpen, setVersionDiffOpen] = useState(false);
 
+  // Undo/Redo history
+  const MAX_HISTORY = 50;
+  const [history, setHistory] = useState<{ nodes: CanvasNode[]; transitions: CanvasTransition[] }[]>([]);
+  const [historyIndex, setHistoryIndex] = useState(-1);
+  const isUndoRedoRef = useRef(false);
+
+  const pushHistory = useCallback((currentNodes: CanvasNode[], currentTransitions: CanvasTransition[]) => {
+    if (isUndoRedoRef.current) return;
+    setHistory(prev => {
+      const truncated = prev.slice(0, historyIndex + 1);
+      const entry = {
+        nodes: currentNodes.map(n => ({ ...n })),
+        transitions: currentTransitions.map(t => ({ ...t })),
+      };
+      const newHistory = [...truncated, entry].slice(-MAX_HISTORY);
+      setHistoryIndex(newHistory.length - 1);
+      return newHistory;
+    });
+  }, [historyIndex]);
+
+  const canUndo = historyIndex > 0;
+  const canRedo = historyIndex < history.length - 1;
+
+  const handleUndo = useCallback(() => {
+    if (!canUndo) return;
+    isUndoRedoRef.current = true;
+    const prevIndex = historyIndex - 1;
+    const snapshot = history[prevIndex];
+    setNodes(snapshot.nodes.map(n => ({ ...n })));
+    setTransitions(snapshot.transitions.map(t => ({ ...t })));
+    setHistoryIndex(prevIndex);
+    setHasChanges(true);
+    setSelectedNode(null);
+    setSelectedTransition(null);
+    setPropertiesOpen(false);
+    setTimeout(() => { isUndoRedoRef.current = false; }, 0);
+  }, [canUndo, historyIndex, history]);
+
+  const handleRedo = useCallback(() => {
+    if (!canRedo) return;
+    isUndoRedoRef.current = true;
+    const nextIndex = historyIndex + 1;
+    const snapshot = history[nextIndex];
+    setNodes(snapshot.nodes.map(n => ({ ...n })));
+    setTransitions(snapshot.transitions.map(t => ({ ...t })));
+    setHistoryIndex(nextIndex);
+    setHasChanges(true);
+    setSelectedNode(null);
+    setSelectedTransition(null);
+    setPropertiesOpen(false);
+    setTimeout(() => { isUndoRedoRef.current = false; }, 0);
+  }, [canRedo, historyIndex, history]);
+
+  // Keyboard shortcuts for undo/redo and delete
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+      const mod = isMac ? e.metaKey : e.ctrlKey;
+
+      if (mod && e.key === 'z' && !e.shiftKey) {
+        e.preventDefault();
+        handleUndo();
+      } else if ((mod && e.key === 'y') || (mod && e.shiftKey && e.key === 'z') || (mod && e.shiftKey && e.key === 'Z')) {
+        e.preventDefault();
+        handleRedo();
+      } else if (e.key === 'Delete' || e.key === 'Backspace') {
+        // Delete selected node/transition (only if not in an input)
+        const tag = (e.target as HTMLElement).tagName;
+        if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT') return;
+        if (selectedNode) {
+          deleteNode(selectedNode);
+        } else if (selectedTransition) {
+          deleteTransition(selectedTransition);
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleUndo, handleRedo, selectedNode, selectedTransition]);
+
   // Load workflow data
   const loadWorkflow = useCallback(async () => {
     if (!id) return;

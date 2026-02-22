@@ -23,6 +23,11 @@ import {
   GridOn as GridIcon,
   Science as SimulatorIcon,
   History as VersionIcon,
+  Undo as UndoIcon,
+  Redo as RedoIcon,
+  Save as SaveIcon,
+  Publish as PublishIcon,
+  ContentCopy as CloneIcon,
 } from '@mui/icons-material';
 
 interface WorkflowToolbarProps {
@@ -39,6 +44,15 @@ interface WorkflowToolbarProps {
   onOpenSimulator: () => void;
   onOpenVersionHistory: () => void;
   saving?: boolean;
+  canUndo?: boolean;
+  canRedo?: boolean;
+  onUndo?: () => void;
+  onRedo?: () => void;
+  onSave?: () => void;
+  onPublish?: () => void;
+  onClone?: () => void;
+  hasChanges?: boolean;
+  isDraftVersion?: boolean;
 }
 
 const WorkflowToolbar: React.FC<WorkflowToolbarProps> = ({
@@ -55,6 +69,15 @@ const WorkflowToolbar: React.FC<WorkflowToolbarProps> = ({
   onOpenSimulator,
   onOpenVersionHistory,
   saving = false,
+  canUndo = false,
+  canRedo = false,
+  onUndo,
+  onRedo,
+  onSave,
+  onPublish,
+  onClone,
+  hasChanges = false,
+  isDraftVersion = true,
 }) => {
   return (
     <Paper sx={{ p: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -68,6 +91,47 @@ const WorkflowToolbar: React.FC<WorkflowToolbarProps> = ({
           {success}
         </Alert>
       )}
+      {/* Undo/Redo */}
+      <Tooltip title="Undo (Ctrl+Z)">
+        <span>
+          <IconButton size="small" onClick={onUndo} disabled={!canUndo}>
+            <UndoIcon />
+          </IconButton>
+        </span>
+      </Tooltip>
+      <Tooltip title="Redo (Ctrl+Y)">
+        <span>
+          <IconButton size="small" onClick={onRedo} disabled={!canRedo}>
+            <RedoIcon />
+          </IconButton>
+        </span>
+      </Tooltip>
+      <Divider orientation="vertical" flexItem sx={{ mx: 0.5 }} />
+      {/* Save/Publish/Clone */}
+      {onSave && (
+        <Tooltip title="Save">
+          <span>
+            <IconButton size="small" onClick={onSave} disabled={!hasChanges || saving} color={hasChanges ? 'primary' : 'default'}>
+              <SaveIcon />
+            </IconButton>
+          </span>
+        </Tooltip>
+      )}
+      {onPublish && isDraftVersion && (
+        <Tooltip title="Publish Version">
+          <IconButton size="small" onClick={onPublish} color="success">
+            <PublishIcon />
+          </IconButton>
+        </Tooltip>
+      )}
+      {onClone && (
+        <Tooltip title="Clone Workflow">
+          <IconButton size="small" onClick={onClone}>
+            <CloneIcon />
+          </IconButton>
+        </Tooltip>
+      )}
+      <Divider orientation="vertical" flexItem sx={{ mx: 0.5 }} />
       <Box sx={{ flex: 1 }} />
       <Tooltip title="Zoom Out">
         <IconButton size="small" onClick={onZoomOut}>
@@ -109,6 +173,9 @@ const WorkflowToolbar: React.FC<WorkflowToolbarProps> = ({
       </Tooltip>
       <Divider orientation="vertical" flexItem sx={{ mx: 1 }} />
       {saving && <CircularProgress size={24} />}
+      {hasChanges && !saving && (
+        <Chip label="Unsaved" size="small" color="warning" variant="outlined" />
+      )}
     </Paper>
   );
 };
