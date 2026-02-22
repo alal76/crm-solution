@@ -90,7 +90,7 @@ jobs:
     # CONTAINER VULNERABILITY SCANNING
     # ================================================================
     - name: Run Trivy vulnerability scanner (API)
-      uses: aquasecurity/trivy-action@0.28.0
+      uses: aquasecurity/trivy-action@0.24.0
       with:
         image-ref: '${{ env.REGISTRY }}/${{ env.IMAGE_NAME_API }}:${{ steps.meta-api.outputs.version }}'
         format: 'table'
@@ -100,7 +100,7 @@ jobs:
       # Set exit-code to '1' to fail builds on CRITICAL vulnerabilities
 
     - name: Run Trivy vulnerability scanner (Frontend)
-      uses: aquasecurity/trivy-action@0.28.0
+      uses: aquasecurity/trivy-action@0.24.0
       with:
         image-ref: '${{ env.REGISTRY }}/${{ env.IMAGE_NAME_FRONTEND }}:${{ steps.meta-frontend.outputs.version }}'
         format: 'table'
@@ -140,7 +140,7 @@ jobs:
     - name: Configure kubectl
       id: kube-config
       env:
-        KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
+        KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}  # Optional — configure in repo Settings > Secrets to enable deployment
       run: |
         if [ -z "$KUBE_CONFIG" ]; then
           echo "⚠️ KUBE_CONFIG secret is not configured. Skipping deployment."
