@@ -5,6 +5,7 @@
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
 using CRM.Core.Entities;
+using CRM.Core.Entities.Workflow;
 using CRM.Core.Models;
 using CRM.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
@@ -51,6 +52,9 @@ public interface ICoreDataSeederService
 
     /// <summary>Seeds 12 ensure-lookup categories (Salutation, Gender, LifecycleStage, etc.) if they don't already exist.</summary>
     Task SeedEnsureLookupsAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>Seeds workflow trigger configurations for key workflow definitions if they don't already exist.</summary>
+    Task SeedWorkflowTriggersAsync(CancellationToken cancellationToken = default);
 }
 
 /// <summary>
@@ -885,6 +889,115 @@ public class CoreDataSeederService : ICoreDataSeederService
         }
 
         _logger.LogInformation("Additional master data seeding complete");
+    }
+
+    // ──────────────────────────────────────────────
+    // Workflow Triggers
+    // ──────────────────────────────────────────────
+
+    public async Task SeedWorkflowTriggersAsync(CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Seeding workflow triggers...");
+
+        // Build a list of triggers to seed. Each is checked by Name to avoid duplicates.
+        var triggers = new List<(string Name, int WorkflowDefinitionId, WorkflowTriggerType TriggerType, string EntityType, string? EventName, string? CronExpression, string? FilterConditions, string? WatchedField, string? OldValue, string? NewValue, int Priority, int DelaySeconds, string Description)>
+        {
+            // 1. Lead OnCreate → New Lead Assignment (Workflow ID 1)
+            ("New Lead Created - Auto Assignment", 1, WorkflowTriggerType.OnCreate,
+             "Lead", null, null, null, null, null, null, 10, 0,
+             "Triggers automatic lead assignment when a new lead is created in the system. Routes leads based on territory, product interest, or round-robin rules."),
+
+            // 2. Lead OnUpdate (Status field) → Lead Qualification (Workflow ID 3)
+            ("Lead Status Change - Recalculate Score", 3, WorkflowTriggerType.OnUpdate,
+             "Lead", null, null,
+             "{\"rules\":[{\"field\":\"Status\",\"operator\":\"changed\"}]}",
+             "Status", null, null, 20, 0,
+             "Triggers lead score recalculation when the lead Status field is updated. Evaluates engagement metrics, demographics, and activity history."),
+
+            // 3. Opportunity OnFieldChange (Stage) → Stage Change Notification (Workflow ID 5)
+            ("Opportunity Stage Changed - Notify Stakeholders", 5, WorkflowTriggerType.OnFieldChange,
+             "Opportunity", null, null, null, "Stage", null, null, 20, 0,
+             "Triggers notifications to relevant stakeholders (owner, manager, team) whenever an opportunity moves to a different pipeline stage."),
+
+            // 4. Opportunity OnFieldChange (Stage=Won) → Won Opportunity Processing (Workflow ID 8)
+            ("Opportunity Won - Post-Sale Processing", 8, WorkflowTriggerType.OnFieldChange,
+             "Opportunity", null, null, null, "Stage", null, "Won", 10, 0,
+             "Fires when an opportunity stage changes to Won. Triggers post-sale actions including order creation, welcome email, onboarding task generation, and commission calculation."),
+
+            // 5. ServiceRequest OnCreate → Ticket Assignment (Workflow ID 9)
+            ("New Service Request - Auto Assignment", 9, WorkflowTriggerType.OnCreate,
+             "ServiceRequest", null, null, null, null, null, null, 10, 0,
+             "Triggers automatic ticket assignment when a new service request is created. Routes tickets based on category, priority, and agent availability."),
+
+            // 6. Account OnCreate → Customer Welcome (Workflow ID 17)
+            ("New Account Created - Welcome Sequence", 17, WorkflowTriggerType.OnCreate,
+             "Account", null, null, null, null, null, null, 20, 0,
+             "Fires when a new customer account is created. Sends a welcome email, creates onboarding tasks, and notifies the account manager."),
+
+            // 7. Quote OnCreate (Amount > 10000) → Quote Approval (Workflow ID 15)
+            ("Quote Created - Approval Required", 15, WorkflowTriggerType.OnCreate,
+             "Quote", null, null,
+             "{\"rules\":[{\"field\":\"TotalAmount\",\"operator\":\"greaterThan\",\"value\":\"10000\"}]}",
+             null, null, null, 10, 0,
+             "Fires when a new quote is created with TotalAmount exceeding $10,000. Routes the quote through the approval workflow based on discount level and amount tier."),
+        };
+
+        int seededCount = 0;
+
+        foreach (var t in triggers)
+        {
+            bool exists = await _context.WorkflowTriggers
+                .AnyAsync(wt => wt.Name == t.Name && !wt.IsDeleted, cancellationToken);
+
+            if (exists)
+            {
+                _logger.LogDebug("Workflow trigger '{Name}' already exists, skipping", t.Name);
+                continue;
+            }
+
+            // Verify the workflow definition exists before linking
+            bool workflowExists = await _context.WorkflowDefinitions
+                .AnyAsync(wd => wd.Id == t.WorkflowDefinitionId && !wd.IsDeleted, cancellationToken);
+
+            if (!workflowExists)
+            {
+                _logger.LogWarning(
+                    "Workflow definition ID {Id} not found for trigger '{Name}', skipping",
+                    t.WorkflowDefinitionId, t.Name);
+                continue;
+            }
+
+            var trigger = new WorkflowTrigger
+            {
+                WorkflowDefinitionId = t.WorkflowDefinitionId,
+                Name = t.Name,
+                TriggerType = t.TriggerType,
+                EntityType = t.EntityType,
+                EventName = t.EventName,
+                CronExpression = t.CronExpression,
+                FilterConditions = t.FilterConditions,
+                WatchedField = t.WatchedField,
+                OldValue = t.OldValue,
+                NewValue = t.NewValue,
+                IsActive = true,
+                Priority = t.Priority,
+                Description = t.Description,
+                DelaySeconds = t.DelaySeconds,
+                RunAsync = true,
+                MaxRetries = 3,
+                ExecutionCount = 0,
+            };
+
+            _context.WorkflowTriggers.Add(trigger);
+            seededCount++;
+        }
+
+        if (seededCount > 0)
+        {
+            await _context.SaveChangesAsync(cancellationToken);
+        }
+
+        _logger.LogInformation("Workflow trigger seeding complete. Seeded {Count} new triggers", seededCount);
     }
 }
 

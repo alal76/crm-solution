@@ -55,6 +55,7 @@ public class AdminSeedController : ControllerBase
             await _seeder.SeedModuleFieldConfigurationsAsync(cancellationToken);
             await _seeder.SeedAdditionalMasterDataAsync(cancellationToken);
             await _seeder.SeedEnsureLookupsAsync(cancellationToken);
+            await _seeder.SeedWorkflowTriggersAsync(cancellationToken);
 
             _logger.LogInformation("Full core data seed completed successfully.");
             return Ok(new { message = "All core data seeded successfully." });
@@ -217,6 +218,28 @@ public class AdminSeedController : ControllerBase
         {
             _logger.LogError(ex, "Error during module field configurations seed.");
             return StatusCode(500, new { message = "Failed to seed module field configurations.", error = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Seeds workflow triggers only.
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A success message or a 500 error on failure.</returns>
+    [HttpPost("workflow-triggers")]
+    public async Task<IActionResult> SeedWorkflowTriggers(CancellationToken cancellationToken)
+    {
+        try
+        {
+            _logger.LogInformation("Starting workflow triggers seed...");
+            await _seeder.SeedWorkflowTriggersAsync(cancellationToken);
+            _logger.LogInformation("Workflow triggers seed completed successfully.");
+            return Ok(new { message = "Workflow triggers seeded successfully." });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error during workflow triggers seed.");
+            return StatusCode(500, new { message = "Failed to seed workflow triggers.", error = ex.Message });
         }
     }
 

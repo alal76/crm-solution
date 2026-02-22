@@ -64,7 +64,7 @@ public static class SemanticKernelServiceExtensions
 
 
 
-        // Register all 12 specialized CRM agents as CrmAgentBase for orchestrator resolution
+        // Register all 19 specialized CRM agents as CrmAgentBase for orchestrator resolution
         services.AddScoped<CrmAgentBase, GeneralAssistantAgent>();
         services.AddScoped<CrmAgentBase, SalesAssistantAgent>();
         services.AddScoped<CrmAgentBase, LeadScoringAgent>();
@@ -77,6 +77,13 @@ public static class SemanticKernelServiceExtensions
         services.AddScoped<CrmAgentBase, CustomerSuccessAgent>();
         services.AddScoped<CrmAgentBase, ContractAnalystAgent>();
         services.AddScoped<CrmAgentBase, KnowledgeExpertAgent>();
+        services.AddScoped<CrmAgentBase, NextBestActionAgent>();
+        services.AddScoped<CrmAgentBase, SalesIntelligenceAgent>();
+        services.AddScoped<CrmAgentBase, RevenueIntelligenceAgent>();
+        services.AddScoped<CrmAgentBase, TicketResolutionAgent>();
+        services.AddScoped<CrmAgentBase, DocumentIntelligenceAgent>();
+        services.AddScoped<CrmAgentBase, SalesCoachAgent>();
+        services.AddScoped<CrmAgentBase, MeetingIntelligenceAgent>();
 
 
 

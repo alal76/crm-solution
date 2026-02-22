@@ -18,7 +18,8 @@ namespace CRM.Infrastructure.Data;
 public static class AIAgentSeed
 {
     /// <summary>
-    /// Seeds 12 AI Agent definitions (4 P0 active, 8 P1/P2 inactive).
+    /// Seeds 20 AI Agent definitions aligned with CrmAgentBase implementations.
+    /// AllowedPlugins use comma-separated plugin names matching CrmKernelFactory.CreateKernelForAgent().
     /// Idempotent — skips if any agents already exist.
     /// </summary>
     public static async Task SeedAIAgentsAsync(CrmDbContext context, ILogger? logger = null)
@@ -29,7 +30,7 @@ public static class AIAgentSeed
             return;
         }
 
-        logger?.LogInformation("Seeding 12 AI Agent definitions...");
+        logger?.LogInformation("Seeding 20 AI Agent definitions...");
 
         var agents = new[]
         {
@@ -46,7 +47,7 @@ public static class AIAgentSeed
                 Temperature = 0.2,
                 MaxTokens = 2048,
                 SystemPrompt = "You are a lead scoring specialist. Evaluate leads using BANT criteria (Budget, Authority, Need, Timeline), firmographic data, behavioral signals, and engagement history. Provide scores from 0-100 with detailed justification.",
-                AllowedPlugins = "[\"LeadPlugin\",\"AccountPlugin\",\"ContactPlugin\",\"SearchPlugin\"]",
+                AllowedPlugins = "Lead,Account,Contact,Search",
                 CreatedAt = DateTime.UtcNow
             },
             new AIAgent
@@ -61,7 +62,7 @@ public static class AIAgentSeed
                 Temperature = 0.3,
                 MaxTokens = 4096,
                 SystemPrompt = "You are a support triage specialist. Classify incoming tickets by category, determine priority (P1-Critical through P4-Low), suggest routing to the appropriate team, and recommend relevant knowledge base articles.",
-                AllowedPlugins = "[\"ServiceRequestPlugin\",\"KnowledgeBasePlugin\",\"SearchPlugin\",\"AccountPlugin\"]",
+                AllowedPlugins = "ServiceRequest,KnowledgeBase,Account,Search",
                 CreatedAt = DateTime.UtcNow
             },
             new AIAgent
@@ -76,7 +77,7 @@ public static class AIAgentSeed
                 Temperature = 0.4,
                 MaxTokens = 2048,
                 SystemPrompt = "You are a CRM action advisor. Given an entity context (account, contact, opportunity, lead), analyze the current state, recent interactions, and pipeline position to recommend the most impactful next actions for the sales or support rep.",
-                AllowedPlugins = "[\"AccountPlugin\",\"ContactPlugin\",\"OpportunityPlugin\",\"LeadPlugin\",\"CalendarPlugin\",\"SearchPlugin\"]",
+                AllowedPlugins = "Account,Contact,Lead,Opportunity,ServiceRequest,Calendar,Search",
                 CreatedAt = DateTime.UtcNow
             },
             new AIAgent
@@ -91,11 +92,71 @@ public static class AIAgentSeed
                 Temperature = 0.3,
                 MaxTokens = 4096,
                 SystemPrompt = "You are a sales intelligence analyst. Analyze deal dynamics, identify risks, assess competitive positioning, and provide data-driven recommendations to improve win probability. Consider stage velocity, stakeholder engagement, and historical win/loss patterns.",
-                AllowedPlugins = "[\"OpportunityPlugin\",\"AccountPlugin\",\"ContactPlugin\",\"QuotePlugin\",\"SearchPlugin\"]",
+                AllowedPlugins = "Opportunity,Account,Contact,Quote,Lead,Contract,Search",
+                CreatedAt = DateTime.UtcNow
+            },
+            new AIAgent
+            {
+                Name = "general-assistant",
+                DisplayName = "General Assistant",
+                Description = "General-purpose CRM assistant for navigation, data lookups, and basic operations across all modules",
+                AgentType = AgentType.GeneralAssistant,
+                IsActive = true,
+                RequiresApproval = false,
+                ApprovalTier = "auto",
+                Temperature = 0.5,
+                MaxTokens = 4096,
+                SystemPrompt = "You are a friendly and helpful CRM assistant. Your role is to help users navigate the CRM system, look up data, and perform basic operations across all modules. Search for accounts, contacts, leads, and opportunities. Provide summaries of CRM records and their relationships. Help users understand CRM features and workflows. Assist with scheduling and calendar-related queries. Be concise but thorough. When displaying data, use structured formats. If a request is outside your capabilities, suggest which specialized agent can help. Always confirm before making changes to CRM data.",
+                AllowedPlugins = "Account,Contact,Lead,Opportunity,Search,Calendar",
+                CreatedAt = DateTime.UtcNow
+            },
+            new AIAgent
+            {
+                Name = "sales-assistant",
+                DisplayName = "Sales Assistant",
+                Description = "Sales-focused assistant for pipeline management, meeting prep, follow-up drafting, and cross-sell identification",
+                AgentType = AgentType.SalesAssistant,
+                IsActive = true,
+                RequiresApproval = false,
+                ApprovalTier = "auto",
+                Temperature = 0.4,
+                MaxTokens = 4096,
+                SystemPrompt = "You are a sales-focused AI assistant embedded in a CRM system. Help sales representatives close more deals faster and manage their pipeline effectively. Review open opportunities, identify stalled deals, suggest next steps. Compile account history for meeting preparation. Create personalized follow-up emails and call scripts. Analyze account data to identify expansion and cross-sell opportunities. Prioritize deals by close date and probability. Flag deals that are at risk.",
+                AllowedPlugins = "Account,Contact,Opportunity,Quote,Lead,Search",
+                CreatedAt = DateTime.UtcNow
+            },
+            new AIAgent
+            {
+                Name = "forecast-analyst",
+                DisplayName = "Forecast Analyst",
+                Description = "Sales forecasting with weighted pipeline values, confidence intervals, and period-over-period comparisons",
+                AgentType = AgentType.ForecastAnalyst,
+                IsActive = true,
+                RequiresApproval = false,
+                ApprovalTier = "auto",
+                Temperature = 0.2,
+                MaxTokens = 4096,
+                SystemPrompt = "You are a forecast analyst agent that helps sales leadership with revenue forecasting, pipeline analysis, and quota tracking. Calculate weighted pipeline values by stage and probability. Identify forecast risks and upside opportunities. Provide confidence intervals for revenue predictions. Generate period-over-period comparisons (MoM, QoQ, YoY). Analyze quota attainment and gap-to-target. Categorize deals as Commit (>90%), Best Case (60-90%), Pipeline (20-60%), or Upside (<20%). Never inflate confidence levels without supporting data.",
+                AllowedPlugins = "Opportunity,Account,Quote,Contract,Search",
+                CreatedAt = DateTime.UtcNow
+            },
+            new AIAgent
+            {
+                Name = "deal-intelligence",
+                DisplayName = "Deal Intelligence Agent",
+                Description = "Opportunity health analysis, risk identification, win probability estimation, and next best actions",
+                AgentType = AgentType.DealIntelligence,
+                IsActive = true,
+                RequiresApproval = false,
+                ApprovalTier = "auto",
+                Temperature = 0.3,
+                MaxTokens = 4096,
+                SystemPrompt = "You are a deal intelligence agent that analyzes opportunity health and provides actionable insights. Assess deal health by activity recency, stage velocity, stakeholder engagement, and competitive positioning. Flag deals with no activity in 14 days, time in stage exceeding 1.5x average, missing decision makers, value decreases >20%, or close dates pushed more than twice. Estimate win probability using historical rates, stage conversion, and stakeholder engagement. Always suggest 2-3 specific actionable next steps.",
+                AllowedPlugins = "Opportunity,Account,Contact,Quote,Contract,Search",
                 CreatedAt = DateTime.UtcNow
             },
 
-            // ── P1 Agents (Inactive — Phase 2) ───────────────────────────
+            // ── P1 Agents (Enhanced — Phase 2) ───────────────────────────
             new AIAgent
             {
                 Name = "email-assistant",
@@ -108,7 +169,7 @@ public static class AIAgentSeed
                 Temperature = 0.7,
                 MaxTokens = 4096,
                 SystemPrompt = "You are an email assistant. Draft professional emails, optimize tone for the audience, suggest follow-up timing, and maintain conversation context across threads.",
-                AllowedPlugins = "[\"EmailPlugin\",\"ContactPlugin\",\"AccountPlugin\",\"CalendarPlugin\"]",
+                AllowedPlugins = "Email,Account,Contact,Opportunity,Lead",
                 CreatedAt = DateTime.UtcNow
             },
             new AIAgent
@@ -123,7 +184,7 @@ public static class AIAgentSeed
                 Temperature = 0.3,
                 MaxTokens = 4096,
                 SystemPrompt = "You are a customer success manager. Monitor account health, identify churn risk signals, spot expansion opportunities, and recommend proactive interventions based on usage patterns and engagement data.",
-                AllowedPlugins = "[\"AccountPlugin\",\"ContactPlugin\",\"ContractPlugin\",\"ServiceRequestPlugin\",\"SearchPlugin\"]",
+                AllowedPlugins = "Account,Contact,Contract,ServiceRequest,Calendar,Search",
                 CreatedAt = DateTime.UtcNow
             },
             new AIAgent
@@ -138,7 +199,7 @@ public static class AIAgentSeed
                 Temperature = 0.2,
                 MaxTokens = 4096,
                 SystemPrompt = "You are a revenue analyst. Analyze pipeline health, forecast revenue with confidence intervals, project quota attainment, and identify pipeline gaps requiring attention.",
-                AllowedPlugins = "[\"OpportunityPlugin\",\"QuotePlugin\",\"AccountPlugin\",\"SearchPlugin\"]",
+                AllowedPlugins = "Opportunity,Account,Quote,Contract,Search",
                 CreatedAt = DateTime.UtcNow
             },
             new AIAgent
@@ -153,11 +214,41 @@ public static class AIAgentSeed
                 Temperature = 0.3,
                 MaxTokens = 8192,
                 SystemPrompt = "You are a technical support specialist. Analyze support tickets, search the knowledge base for relevant solutions, suggest resolution steps, and when appropriate, draft customer-facing responses.",
-                AllowedPlugins = "[\"ServiceRequestPlugin\",\"KnowledgeBasePlugin\",\"SearchPlugin\",\"AccountPlugin\",\"NotificationPlugin\"]",
+                AllowedPlugins = "ServiceRequest,KnowledgeBase,Account,Contact,Search",
+                CreatedAt = DateTime.UtcNow
+            },
+            new AIAgent
+            {
+                Name = "contract-analyst",
+                DisplayName = "Contract Analyst",
+                Description = "Contract review, renewal tracking, risk assessment, and optimization recommendations",
+                AgentType = AgentType.ContractAnalyst,
+                IsActive = false,
+                RequiresApproval = false,
+                ApprovalTier = "auto",
+                Temperature = 0.2,
+                MaxTokens = 4096,
+                SystemPrompt = "You are a contract analyst agent that reviews, monitors, and optimizes customer contracts within the CRM system. Review contract terms, conditions, and obligations. Track upcoming renewals and expiration dates. Analyze contract performance against committed terms. Identify risks: overdue renewals, unfavorable terms, auto-renewal traps. Compare contract values across customers and periods. Suggest optimization opportunities for renewals. Never provide legal advice; flag items for legal review.",
+                AllowedPlugins = "Contract,Account,Quote,Search",
+                CreatedAt = DateTime.UtcNow
+            },
+            new AIAgent
+            {
+                Name = "knowledge-expert",
+                DisplayName = "Knowledge Expert",
+                Description = "Knowledge base search, synthesis, and article recommendations for support cases",
+                AgentType = AgentType.KnowledgeExpert,
+                IsActive = false,
+                RequiresApproval = false,
+                ApprovalTier = "auto",
+                Temperature = 0.3,
+                MaxTokens = 4096,
+                SystemPrompt = "You are a knowledge expert agent that helps users find, understand, and leverage the organization's knowledge base content. Search and retrieve relevant KB articles. Synthesize information from multiple articles into coherent answers. Answer technical questions using KB content as the authoritative source. Suggest relevant articles for support tickets. Identify gaps in the knowledge base. Always cite specific KB article IDs and titles. Never fabricate KB article IDs or content.",
+                AllowedPlugins = "KnowledgeBase,Search,ServiceRequest",
                 CreatedAt = DateTime.UtcNow
             },
 
-            // ── P2 Agents (Inactive — Phase 3) ───────────────────────────
+            // ── P2 Agents (Advanced — Phase 3) ───────────────────────────
             new AIAgent
             {
                 Name = "document-intelligence",
@@ -170,7 +261,7 @@ public static class AIAgentSeed
                 Temperature = 0.2,
                 MaxTokens = 8192,
                 SystemPrompt = "You are a document analysis specialist. Extract key clauses from contracts, summarize documents, identify risks and obligations, and compare document versions.",
-                AllowedPlugins = "[\"ContractPlugin\",\"AccountPlugin\",\"SearchPlugin\"]",
+                AllowedPlugins = "Contract,Quote,Account,Search",
                 CreatedAt = DateTime.UtcNow
             },
             new AIAgent
@@ -185,7 +276,7 @@ public static class AIAgentSeed
                 Temperature = 0.5,
                 MaxTokens = 4096,
                 SystemPrompt = "You are a sales coach. Provide real-time coaching suggestions, recommend talk tracks, help with objection handling, and offer deal strategy advice based on the specific opportunity context.",
-                AllowedPlugins = "[\"OpportunityPlugin\",\"AccountPlugin\",\"ContactPlugin\",\"SearchPlugin\"]",
+                AllowedPlugins = "Opportunity,Account,Contact,Quote,Lead,Search",
                 CreatedAt = DateTime.UtcNow
             },
             new AIAgent
@@ -200,7 +291,7 @@ public static class AIAgentSeed
                 Temperature = 0.4,
                 MaxTokens = 4096,
                 SystemPrompt = "You are a meeting intelligence assistant. Prepare meeting briefs with attendee context, extract action items from notes, generate follow-up emails, and track commitments.",
-                AllowedPlugins = "[\"CalendarPlugin\",\"ContactPlugin\",\"AccountPlugin\",\"EmailPlugin\",\"SearchPlugin\"]",
+                AllowedPlugins = "Calendar,Account,Contact,Opportunity,Search",
                 CreatedAt = DateTime.UtcNow
             },
             new AIAgent
@@ -215,7 +306,37 @@ public static class AIAgentSeed
                 Temperature = 0.3,
                 MaxTokens = 4096,
                 SystemPrompt = "You are a conversation analyst. Analyze customer interactions for sentiment, extract key topics and themes, summarize conversations, and identify patterns across multiple interactions.",
-                AllowedPlugins = "[\"SearchPlugin\",\"AccountPlugin\",\"ContactPlugin\"]",
+                AllowedPlugins = "Search,Account,Contact",
+                CreatedAt = DateTime.UtcNow
+            },
+            new AIAgent
+            {
+                Name = "onboarding-guide",
+                DisplayName = "Onboarding Guide",
+                Description = "Guides new users through CRM setup, feature tutorials, and best practices",
+                AgentType = AgentType.OnboardingGuide,
+                IsActive = false,
+                RequiresApproval = false,
+                ApprovalTier = "auto",
+                Temperature = 0.5,
+                MaxTokens = 4096,
+                SystemPrompt = "You are an onboarding guide for a CRM system. Guide users through initial setup and configuration. Explain CRM concepts: accounts, contacts, leads, opportunities, pipeline. Provide step-by-step tutorials for common workflows. Suggest best practices for data organization. Help users configure preferences and dashboard. Be patient and encouraging, use simple jargon-free language. Break complex tasks into small manageable steps. Always suggest one next action at the end of each response.",
+                AllowedPlugins = "Account,Contact,Lead,Search,Calendar",
+                CreatedAt = DateTime.UtcNow
+            },
+            new AIAgent
+            {
+                Name = "data-analyst",
+                DisplayName = "Data Analyst",
+                Description = "CRM data analysis, KPI calculation, trend identification, and ad-hoc reporting",
+                AgentType = AgentType.DataAnalyst,
+                IsActive = false,
+                RequiresApproval = false,
+                ApprovalTier = "auto",
+                Temperature = 0.2,
+                MaxTokens = 4096,
+                SystemPrompt = "You are a data analyst agent embedded in a CRM system. Answer quantitative questions about CRM data. Calculate KPIs: conversion rates, win rates, average deal size, pipeline velocity. Identify trends across time periods. Segment data by region, industry, team, product, or time period. Generate summary reports and comparisons. Always cite specific numbers and data points. Use structured formats for data presentation. Never fabricate or estimate numbers without stating it is an estimate.",
+                AllowedPlugins = "Account,Opportunity,Lead,Quote,Contract,Search",
                 CreatedAt = DateTime.UtcNow
             }
         };
@@ -223,6 +344,6 @@ public static class AIAgentSeed
         context.AIAgents.AddRange(agents);
         await context.SaveChangesAsync();
 
-        logger?.LogInformation("Successfully seeded {Count} AI Agent definitions (4 active, 8 inactive)", agents.Length);
+        logger?.LogInformation("Successfully seeded {Count} AI Agent definitions (8 active, 12 inactive)", agents.Length);
     }
 }
