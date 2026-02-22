@@ -20,16 +20,16 @@ def run(api: ApiClient, log: RunLogger) -> None:
     # ---- Interactions ----
     log.section("Interactions CRUD")
     interactions = [
-        {"type": 1, "direction": 1, "outcome": 1,
+        {"interactionType": 1, "direction": 1, "outcome": 1,
          "subject": f"Sales call with Acme {ts}", "description": "Discussed enterprise deal",
          "accountId": acct_ids[0] if acct_ids else None,
          "contactId": contact_ids[0] if contact_ids else None,
-         "duration": 30, "interactionDate": "2026-02-20T10:00:00Z"},
-        {"type": 2, "direction": 0, "outcome": 3,
+         "durationMinutes": 30, "interactionDate": "2026-02-20T10:00:00Z"},
+        {"interactionType": 2, "direction": 0, "outcome": 3,
          "subject": f"Product demo meeting {ts}", "description": "Presented CRM features",
          "accountId": acct_ids[1] if len(acct_ids) > 1 else None,
-         "duration": 60, "interactionDate": "2026-02-21T14:00:00Z"},
-        {"type": 0, "direction": 1, "outcome": 1,
+         "durationMinutes": 60, "interactionDate": "2026-02-21T14:00:00Z"},
+        {"interactionType": 0, "direction": 1, "outcome": 1,
          "subject": f"Follow-up email {ts}", "description": "Sent proposal follow-up",
          "contactId": contact_ids[1] if len(contact_ids) > 1 else None,
          "interactionDate": "2026-02-22T09:00:00Z"},
@@ -51,7 +51,7 @@ def run(api: ApiClient, log: RunLogger) -> None:
     api.get("/api/activities/recent")
     api.get("/api/activities/stats")
     # Delete test
-    del_i = {"type": 0, "direction": 1, "outcome": 0,
+    del_i = {"interactionType": 0, "direction": 1, "outcome": 0,
              "subject": f"DELETE-Interaction-{ts}", "interactionDate": "2026-02-22T00:00:00Z"}
     code, body, _ = api.post("/api/interactions", del_i)
     if body and isinstance(body, dict) and body.get("id"):
@@ -61,11 +61,11 @@ def run(api: ApiClient, log: RunLogger) -> None:
     # ---- Activities ----
     log.section("Activities CRUD")
     activities = [
-        {"activityType": 0, "subject": f"Sent proposal email {ts}",
+        {"activityType": 0, "title": f"Sent proposal email {ts}",
          "description": "Enterprise proposal emailed",
          "entityType": "Account", "entityId": acct_ids[0] if acct_ids else 1,
          "activityDate": "2026-02-22T11:00:00Z"},
-        {"activityType": 4, "subject": f"Scheduled demo {ts}",
+        {"activityType": 4, "title": f"Scheduled demo {ts}",
          "description": "Product demo scheduled",
          "entityType": "Opportunity", "entityId": opp_ids[0] if opp_ids else 1,
          "activityDate": "2026-02-25T14:00:00Z"},
@@ -79,7 +79,7 @@ def run(api: ApiClient, log: RunLogger) -> None:
     if activity_ids:
         api.get(f"/api/activities/{activity_ids[0]}")
     # Delete test
-    del_a = {"activityType": 99, "subject": f"DELETE-Activity-{ts}",
+    del_a = {"activityType": 99, "title": f"DELETE-Activity-{ts}",
              "entityType": "Account", "entityId": acct_ids[0] if acct_ids else 1,
              "activityDate": "2026-02-22T00:00:00Z"}
     code, body, _ = api.post("/api/activities", del_a)
@@ -90,9 +90,8 @@ def run(api: ApiClient, log: RunLogger) -> None:
     # ---- Event Attendees ----
     log.section("EventAttendees")
     if activity_ids and contact_ids:
-        att = {"activityId": activity_ids[0] if activity_ids else 1,
-               "attendeeType": "Contact", "attendeeId": contact_ids[0],
-               "responseStatus": 0}
+        att = {"attendeeType": 1, "attendeeId": contact_ids[0],
+               "isOrganizer": False, "isRequired": True}
         api.post(f"/api/activities/{activity_ids[0]}/attendees", att)
         api.get(f"/api/activities/{activity_ids[0]}/attendees")
 
@@ -122,7 +121,8 @@ def run(api: ApiClient, log: RunLogger) -> None:
         api.get(f"/api/tasks/{task_ids[0]}")
         api.put(f"/api/tasks/{task_ids[0]}", {**tasks[0], "status": 1,
                                                "description": "In progress - called John"})
-        api.patch(f"/api/tasks/{task_ids[0]}", {"status": 2})
+        api.put(f"/api/tasks/{task_ids[0]}", {**tasks[0], "status": 2,
+                                               "description": "Completed - task done"})
     # Delete test
     del_t = {"title": f"DELETE-Task-{ts}", "taskType": 8, "status": 0, "priority": 0,
              "dueDate": "2026-12-31T00:00:00Z"}

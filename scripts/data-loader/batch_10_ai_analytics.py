@@ -61,9 +61,9 @@ def run(api: ApiClient, log: RunLogger) -> None:
     # ---- Analytics Events ----
     log.section("AnalyticsEvents CRUD")
     events = [
-        {"eventType": "PageView", "entityType": "Account", "entityId": 1,
+        {"eventName": "PageView", "entityType": "Account", "entityId": 1,
          "eventData": '{"page": "/accounts/1"}', "timestamp": "2026-02-22T10:00:00Z"},
-        {"eventType": "ButtonClick", "entityType": "Opportunity", "entityId": 1,
+        {"eventName": "ButtonClick", "entityType": "Opportunity", "entityId": 1,
          "eventData": '{"button": "CreateQuote"}', "timestamp": "2026-02-22T11:00:00Z"},
     ]
     event_ids = []
@@ -95,18 +95,19 @@ def run(api: ApiClient, log: RunLogger) -> None:
 
     # ---- Dashboard ----
     log.section("Dashboard")
-    api.get("/api/dashboard")
-    api.get("/api/dashboard/sales")
-    api.get("/api/dashboard/support")
+    # No base GET /api/dashboard exists; use sub-paths
+    api.get("/api/dashboard/stats")
+    api.get("/api/dashboard/pipeline")
+    api.get("/api/itsm/dashboard/executive-summary")
 
     # ---- Dashboard Config ----
     log.section("DashboardConfig")
-    api.get("/api/dashboardconfig")
+    api.get("/api/dashboard-config")
 
     # ---- Import/Export Jobs ----
     log.section("ImportJobs CRUD")
-    imp = {"name": f"Import Accounts {ts}", "entityType": "Account",
-           "status": 0, "fileName": "accounts.csv", "totalRecords": 100}
+    imp = {"entity": "Account", "source": f"accounts_{ts}.csv",
+           "status": "Pending", "submittedByUserId": user_ids[0] if user_ids else 1}
     eid = api.create_and_track("importjobs", "/api/import-jobs", imp)
     if eid:
         api.get(f"/api/import-jobs/{eid}")
@@ -114,8 +115,8 @@ def run(api: ApiClient, log: RunLogger) -> None:
     api.get("/api/import-jobs")
 
     log.section("ExportJobs CRUD")
-    exp = {"name": f"Export Contacts {ts}", "entityType": "Contact",
-           "status": 0, "format": "csv"}
+    exp = {"entity": "Contact", "destination": "csv",
+           "status": "Pending", "requestedByUserId": user_ids[0] if user_ids else 1}
     eid = api.create_and_track("exportjobs", "/api/export-jobs", exp)
     if eid:
         api.get(f"/api/export-jobs/{eid}")
@@ -126,18 +127,19 @@ def run(api: ApiClient, log: RunLogger) -> None:
     log.section("WebhookRegistrations CRUD")
     wh = {"name": f"Account Created Webhook {ts}", "url": "https://example.com/webhook/account",
           "eventType": "Account.Created", "isActive": True, "secret": "webhook-secret-123"}
-    eid = api.create_and_track("webhookregistrations", "/api/webhookregistrations", wh)
+    eid = api.create_and_track("webhookregistrations", "/api/webhook-registrations", wh)
     if eid:
-        api.get(f"/api/webhookregistrations/{eid}")
-        api.put(f"/api/webhookregistrations/{eid}", {**wh, "url": "https://example.com/webhook/v2/account"})
+        api.get(f"/api/webhook-registrations/{eid}")
+        # No PUT endpoint exists on WebhookRegistrationsController (only POST, GET, DELETE)
+        # api.put(f"/api/webhook-registrations/{eid}", {**wh, "url": "https://example.com/webhook/v2/account"})
         save_ids("webhookregistrations", [eid])
-    api.get("/api/webhookregistrations")
+    api.get("/api/webhook-registrations")
 
     # ---- Communications ----
     log.section("Communications CRUD")
     # Channels
     api.get("/api/communications/channels")
-    ch = {"name": f"Email Channel {ts}", "type": "Email", "isActive": True,
+    ch = {"name": f"Email Channel {ts}", "channelType": "Email", "isActive": True,
           "configuration": '{"smtp": "mail.example.com"}'}
     eid = api.create_and_track("commchannels", "/api/communications/channels", ch)
     if eid:
@@ -157,7 +159,7 @@ def run(api: ApiClient, log: RunLogger) -> None:
 
     # ---- AI Agent Usage ----
     log.section("AIAgentUsage")
-    usage = {"agentId": 1, "userId": user_ids[0] if user_ids else 1,
+    usage = {"agentId": "lead-scoring", "userId": user_ids[0] if user_ids else 1,
              "action": "chat", "tokensUsed": 500,
              "timestamp": "2026-02-22T12:00:00Z", "duration": 2.5}
     api.post("/api/ai-agent-usage", usage)

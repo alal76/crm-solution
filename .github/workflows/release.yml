@@ -81,10 +81,11 @@ jobs:
 
       - name: Package Helm charts
         run: |
+          RELEASE_VERSION=${GITHUB_REF_NAME#v}
           mkdir -p dist
-          helm package kubernetes/helm/monolith -d dist
-          helm package kubernetes/helm/microservices -d dist
-          (cd dist && shasum -a 256 *.tgz > checksums.txt)
+          helm package kubernetes/helm/monolith -d dist --version "$RELEASE_VERSION" --app-version "$RELEASE_VERSION"
+          helm package kubernetes/helm/microservices -d dist --version "$RELEASE_VERSION" --app-version "$RELEASE_VERSION"
+          (cd dist && sha256sum *.tgz > checksums.txt)
 
       - name: Create GitHub release
         uses: softprops/action-gh-release@v2

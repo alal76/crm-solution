@@ -87,7 +87,8 @@ namespace CRM.Infrastructure.Services.Authentication
 
                 // Verify the TOTP code
                 long currentTimeCounter = GetTimeCounter();
-                for (int i = -1; i <= 1; i++) // Allow ±1 time window for clock drift
+                // Allow ±1 time window for clock drift
+                for (int i = -1; i <= 1; i++)
                 {
                     string code = GenerateTotpCode(secretBytes, currentTimeCounter + i);
                     if (code == totp)

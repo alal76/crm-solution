@@ -266,6 +266,15 @@ class RunLogger:
         self.docker = docker
         self.created_ids: Dict[str, List[int]] = {}  # track IDs per entity type
 
+    # Aliases used by the coordinator
+    @property
+    def log_path(self) -> str:
+        return self.text_path
+
+    @property
+    def state_path(self) -> str:
+        return STATE_FILE or ""
+
     def close(self) -> None:
         self.text_fh.close()
         self.jsonl_fh.close()
@@ -275,6 +284,12 @@ class RunLogger:
 
     def get_ids(self, entity_type: str) -> List[int]:
         return self.created_ids.get(entity_type, [])
+
+    def log(self, message: str) -> None:
+        """Write a plain-text message to the log."""
+        self.text_fh.write(message + "\n")
+        self.text_fh.flush()
+        self._write({"event": "log", "message": message, "summary": message})
 
     def section(self, name: str) -> None:
         sep = f"\n{'=' * 60}\n  {name}\n{'=' * 60}"
@@ -337,12 +352,24 @@ class RunLogger:
 class ApiClient:
     """HTTP client wrapping urllib with logging, retry, and error handling."""
 
-    def __init__(self, base_url: str, token: str, logger: RunLogger,
+    def __init__(self, base_url: str, token: str = "", logger: Optional[RunLogger] = None,
                  docker: Optional[DockerLogCapture] = None):
         self.base_url = base_url.rstrip("/")
         self.token = token
         self.logger = logger
         self.docker = docker
+        self.stats: Dict[str, int] = {
+            "total": 0, "success": 0, "client_error": 0,
+            "server_error": 0, "network_error": 0,
+        }
+
+    def set_token(self, token: str) -> None:
+        """Set the auth token (used after authentication)."""
+        self.token = token
+
+    def set_logger(self, logger: RunLogger) -> None:
+        """Set the logger (used when constructing ApiClient before RunLogger is ready)."""
+        self.logger = logger
 
     def request(self, method: str, path: str, payload: Any = None, *,
                 file: Optional[str] = None, index: Optional[int] = None,
@@ -362,18 +389,24 @@ class ApiClient:
                         parsed = json.loads(resp_body)
                     except json.JSONDecodeError:
                         pass
-                self.logger.log_result("success", method, path, resp.getcode(),
-                                       file=file, index=index,
-                                       request_summary=summary or compact(payload),
-                                       response_body=resp_body)
+                self.stats["total"] += 1
+                self.stats["success"] += 1
+                if self.logger:
+                    self.logger.log_result("success", method, path, resp.getcode(),
+                                           file=file, index=index,
+                                           request_summary=summary or compact(payload),
+                                           response_body=resp_body)
                 return resp.getcode(), parsed, resp_body
         except urllib.error.HTTPError as exc:
+            self.stats["total"] += 1
             resp_body = exc.read().decode("utf-8", errors="replace") if exc.fp else None
             if is_already_exists(resp_body):
-                self.logger.log_result("exists", method, path, exc.code,
-                                       file=file, index=index,
-                                       request_summary=summary or compact(payload),
-                                       response_body=resp_body)
+                self.stats["success"] += 1
+                if self.logger:
+                    self.logger.log_result("exists", method, path, exc.code,
+                                           file=file, index=index,
+                                           request_summary=summary or compact(payload),
+                                           response_body=resp_body)
                 return exc.code, None, resp_body
             # 500-but-created heuristic
             if exc.code == 500 and resp_body and method in ("POST", "PUT"):
@@ -381,34 +414,48 @@ class ApiClient:
                     p500 = json.loads(resp_body)
                     if isinstance(p500, dict):
                         if ("id" in p500 or "name" in p500) and "error" not in p500 and "errors" not in p500:
-                            self.logger.log_result("success", method, path, exc.code,
-                                                   file=file, index=index,
-                                                   response_body=f"[500-but-created] {resp_body[:500]}")
+                            self.stats["success"] += 1
+                            if self.logger:
+                                self.logger.log_result("success", method, path, exc.code,
+                                                       file=file, index=index,
+                                                       response_body=f"[500-but-created] {resp_body[:500]}")
                             return exc.code, p500, resp_body
                         err_msg = (p500.get("error", "") or p500.get("message", "")).lower()
                         if any(p in err_msg for p in ["duplicate entry", "saving the entity",
                                                        "already exists", "error assigning"]):
-                            self.logger.log_result("success", method, path, exc.code,
-                                                   response_body=f"[500-known-bug] {resp_body[:500]}")
+                            self.stats["success"] += 1
+                            if self.logger:
+                                self.logger.log_result("success", method, path, exc.code,
+                                                       response_body=f"[500-known-bug] {resp_body[:500]}")
                             return exc.code, None, resp_body
                 except (json.JSONDecodeError, ValueError):
                     pass
+            if exc.code and 400 <= exc.code < 500:
+                self.stats["client_error"] += 1
+            elif exc.code and exc.code >= 500:
+                self.stats["server_error"] += 1
             snap = self.docker.snapshot() if self.docker else None
-            self.logger.log_result("failed", method, path, exc.code,
-                                   file=file, index=index,
-                                   request_summary=summary or compact(payload),
-                                   response_body=resp_body, error=str(exc),
-                                   docker_snapshot=snap)
+            if self.logger:
+                self.logger.log_result("failed", method, path, exc.code,
+                                       file=file, index=index,
+                                       request_summary=summary or compact(payload),
+                                       response_body=resp_body, error=str(exc),
+                                       docker_snapshot=snap)
             return exc.code, None, resp_body
         except Exception as exc:
+            self.stats["total"] += 1
+            self.stats["network_error"] += 1
             exc_name = type(exc).__name__
             if exc_name == "IncompleteRead":
-                self.logger.log_result("success", method, path, 200,
-                                       response_body=f"[IncompleteRead] partial")
+                self.stats["success"] += 1
+                if self.logger:
+                    self.logger.log_result("success", method, path, 200,
+                                           response_body=f"[IncompleteRead] partial")
                 return 200, None, None
             snap = self.docker.snapshot() if self.docker else None
-            self.logger.log_result("failed", method, path, None,
-                                   error=f"{exc_name}: {exc}", docker_snapshot=snap)
+            if self.logger:
+                self.logger.log_result("failed", method, path, None,
+                                       error=f"{exc_name}: {exc}", docker_snapshot=snap)
             return None, None, None
 
     def get(self, path: str, **kw) -> Tuple[Optional[int], Optional[Dict], Optional[str]]:
@@ -433,7 +480,8 @@ class ApiClient:
         if body and isinstance(body, dict):
             eid = body.get("id")
             if eid:
-                self.logger.track_id(entity_type, eid)
+                if self.logger:
+                    self.logger.track_id(entity_type, eid)
                 return eid
         return None
 
@@ -489,35 +537,62 @@ class ApiClient:
 
 # ------------------------------------------------------- auth helper
 
-def authenticate(base_url: str, username: str, password: str) -> str:
-    """Authenticate and return JWT token."""
+def authenticate(api_or_url, username: str, password: str,
+                 log: Optional[RunLogger] = None) -> str:
+    """Authenticate and return JWT token.
+
+    api_or_url can be an ApiClient instance or a base URL string.
+    """
+    if isinstance(api_or_url, ApiClient):
+        base_url = api_or_url.base_url
+    else:
+        base_url = str(api_or_url).rstrip("/")
     auth_payload = {"email": username, "password": password}
     req = urllib.request.Request(
-        f"{base_url.rstrip('/')}/api/auth/login",
+        f"{base_url}/api/auth/login",
         data=json.dumps(auth_payload).encode(),
         method="POST",
     )
     req.add_header("Content-Type", "application/json")
-    with urllib.request.urlopen(req, timeout=15) as resp:
-        body = json.loads(resp.read().decode())
-    token = body.get("accessToken") or body.get("token") or ""
-    if not token:
-        raise RuntimeError(f"Auth failed - no token in response: {body}")
-    return token
+    try:
+        with urllib.request.urlopen(req, timeout=15) as resp:
+            body = json.loads(resp.read().decode())
+        token = body.get("accessToken") or body.get("token") or ""
+        if not token:
+            if log:
+                log.log(f"Auth response had no token: {body}")
+            return ""
+        # If an ApiClient was passed, set its token
+        if isinstance(api_or_url, ApiClient):
+            api_or_url.set_token(token)
+        return token
+    except Exception as exc:
+        if log:
+            log.log(f"Authentication error: {exc}")
+        return ""
 
 
 # ------------------------------------------------------- shared state (JSON file)
 
 STATE_FILE = None
 
-def init_state(log_dir: str, run_id: str) -> str:
-    """Initialize shared state file path."""
+def init_state(log_dir: Optional[str] = None, run_id: Optional[str] = None) -> str:
+    """Initialize shared state. Returns the run_id.
+
+    If log_dir is None, uses scripts/data-loader/logs/.
+    If run_id is None, generates one from the current timestamp.
+    """
     global STATE_FILE
+    if run_id is None:
+        run_id = datetime.now(timezone.utc).strftime("%Y%m%d_%H%M%S")
+    if log_dir is None:
+        log_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "logs")
+    os.makedirs(log_dir, exist_ok=True)
     STATE_FILE = os.path.join(log_dir, f"state_{run_id}.json")
     if not os.path.exists(STATE_FILE):
         with open(STATE_FILE, "w") as f:
             json.dump({}, f)
-    return STATE_FILE
+    return run_id
 
 def save_ids(entity_type: str, ids: List[int]) -> None:
     """Save created IDs to shared state file."""

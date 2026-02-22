@@ -30,16 +30,18 @@ def run(api: ApiClient, log: RunLogger) -> None:
     log.section("Opportunities CRUD")
     opps = [
         {"name": f"Enterprise Deal {ts}", "accountId": acct_ids[0] if acct_ids else 1,
-         "contactId": contact_ids[0] if contact_ids else None,
+         "primaryContactId": contact_ids[0] if contact_ids else None,
          "stage": 0, "amount": 250000, "probability": 60,
-         "expectedCloseDate": "2026-06-30T00:00:00Z", "source": "Website",
-         "description": "Large enterprise opportunity"},
+         "expectedCloseDate": "2026-06-30T00:00:00Z",
+         "termLengthMonths": 12, "currency": "USD"},
         {"name": f"Mid-Market Sale {ts}", "accountId": acct_ids[1] if len(acct_ids) > 1 else 1,
          "stage": 1, "amount": 75000, "probability": 40,
-         "expectedCloseDate": "2026-04-30T00:00:00Z", "source": "Referral"},
+         "expectedCloseDate": "2026-04-30T00:00:00Z",
+         "termLengthMonths": 12, "currency": "USD"},
         {"name": f"Startup Pilot {ts}", "accountId": acct_ids[2] if len(acct_ids) > 2 else 1,
          "stage": 2, "amount": 15000, "probability": 80,
-         "expectedCloseDate": "2026-03-31T00:00:00Z", "source": "Trade Show"},
+         "expectedCloseDate": "2026-03-31T00:00:00Z",
+         "termLengthMonths": 12, "currency": "USD"},
     ]
     opp_ids = []
     for o in opps:
@@ -50,12 +52,12 @@ def run(api: ApiClient, log: RunLogger) -> None:
     api.get("/api/opportunities")
     if opp_ids:
         api.get(f"/api/opportunities/{opp_ids[0]}")
-        api.put(f"/api/opportunities/{opp_ids[0]}", {**opps[0], "stage": 2, "probability": 70,
-                                                      "description": "Updated - moving to proposal"})
-        api.patch(f"/api/opportunities/{opp_ids[0]}", {"stage": 3})
+        api.put(f"/api/opportunities/{opp_ids[0]}", {**opps[0], "stage": 2, "probability": 70})
+        api.put(f"/api/opportunities/{opp_ids[0]}", {**opps[0], "stage": 3, "probability": 70})
     # Delete test
     del_o = {"name": f"DELETE-Opp-{ts}", "accountId": acct_ids[0] if acct_ids else 1,
-             "stage": 0, "amount": 100, "expectedCloseDate": "2026-12-31T00:00:00Z"}
+             "stage": 0, "amount": 100, "expectedCloseDate": "2026-12-31T00:00:00Z",
+             "termLengthMonths": 12, "currency": "USD"}
     code, body, _ = api.post("/api/opportunities", del_o)
     if body and isinstance(body, dict) and body.get("id"):
         api.delete(f"/api/opportunities/{body['id']}")
@@ -65,16 +67,16 @@ def run(api: ApiClient, log: RunLogger) -> None:
     log.section("Quotes CRUD")
     quotes = []
     if opp_ids and acct_ids:
-        q = {"title": f"Quote for Enterprise Deal {ts}", "opportunityId": opp_ids[0],
+        q = {"name": f"Quote for Enterprise Deal {ts}", "opportunityId": opp_ids[0],
              "accountId": acct_ids[0], "status": 0,
-             "validUntil": "2026-04-30T00:00:00Z", "subtotal": 250000,
+             "expirationDate": "2026-04-30T00:00:00Z", "subtotal": 250000,
              "discount": 10, "tax": 22500, "total": 247500,
-             "notes": "Enterprise pricing"}
+             "description": "Enterprise pricing", "validityDays": 30}
         eid = api.create_and_track("quotes", "/api/quotes", q)
         if eid:
             quotes.append(eid)
             api.get(f"/api/quotes/{eid}")
-            api.put(f"/api/quotes/{eid}", {**q, "discount": 15, "total": 240000})
+            api.put(f"/api/quotes/{eid}", {**q, "id": eid, "discount": 15, "total": 240000})
             # Quote line items
             if product_ids:
                 li = {"quoteId": eid, "productId": product_ids[0],
@@ -88,18 +90,21 @@ def run(api: ApiClient, log: RunLogger) -> None:
     log.section("Orders CRUD")
     order_ids = []
     if acct_ids:
-        order = {"accountId": acct_ids[0], "status": 0,
-                 "orderDate": "2026-02-22T00:00:00Z", "totalAmount": 250000,
-                 "shippingAddress": "123 Main St, San Francisco, CA",
-                 "billingAddress": "123 Main St, San Francisco, CA",
-                 "notes": "Enterprise order"}
-        if quotes:
-            order["quoteId"] = quotes[0]
+        order = {"accountId": acct_ids[0], "name": f"Enterprise Order {ts}",
+                 "orderType": 0, "orderDate": "2026-02-22T00:00:00Z",
+                 "description": "Enterprise order",
+                 "billingStreet": "123 Main St", "billingCity": "San Francisco",
+                 "billingState": "CA", "billingCountry": "US",
+                 "shippingStreet": "123 Main St", "shippingCity": "San Francisco",
+                 "shippingState": "CA", "shippingCountry": "US",
+                 "lineItems": [{"productId": product_ids[0] if product_ids else 1,
+                     "name": "Enterprise License", "quantity": 1,
+                     "unitPrice": 250000}]}
         eid = api.create_and_track("orders", "/api/orders", order)
         if eid:
             order_ids.append(eid)
             api.get(f"/api/orders/{eid}")
-            api.put(f"/api/orders/{eid}", {**order, "status": 2, "notes": "Approved order"})
+            api.put(f"/api/orders/{eid}", {"id": eid, "status": 2, "description": "Approved order"})
     api.get("/api/orders")
     save_ids("orders", order_ids)
 
@@ -108,8 +113,8 @@ def run(api: ApiClient, log: RunLogger) -> None:
     invoice_ids = []
     if acct_ids:
         inv = {"accountId": acct_ids[0], "status": 0,
-               "issueDate": "2026-02-22T00:00:00Z", "dueDate": "2026-03-22T00:00:00Z",
-               "subtotal": 250000, "tax": 22500, "total": 272500,
+               "invoiceDate": "2026-02-22T00:00:00Z", "dueDate": "2026-03-22T00:00:00Z",
+               "subtotal": 250000, "taxAmount": 22500,
                "notes": "Invoice for enterprise order"}
         if order_ids:
             inv["orderId"] = order_ids[0]
@@ -124,11 +129,11 @@ def run(api: ApiClient, log: RunLogger) -> None:
     # ---- Payments ----
     log.section("Payments CRUD")
     payment_ids = []
-    if invoice_ids:
-        pay = {"invoiceId": invoice_ids[0], "amount": 272500,
-               "paymentDate": "2026-02-25T00:00:00Z", "paymentMethod": 2,
-               "status": 0, "referenceNumber": f"PAY-{ts}",
-               "notes": "Wire transfer payment"}
+    if invoice_ids and acct_ids:
+        pay = {"invoiceId": invoice_ids[0], "accountId": acct_ids[0],
+               "amount": 272500, "paymentMethod": 2,
+               "paymentType": 0, "status": 0,
+               "description": "Wire transfer payment"}
         eid = api.create_and_track("payments", "/api/payments", pay)
         if eid:
             payment_ids.append(eid)
@@ -176,11 +181,11 @@ def run(api: ApiClient, log: RunLogger) -> None:
     if user_ids:
         sq = {"userId": user_ids[0], "year": 2026, "quarter": 1,
               "targetAmount": 500000, "description": "Q1 2026 quota"}
-        eid = api.create_and_track("salesquotas", "/api/salesquotas", sq)
+        eid = api.create_and_track("salesquotas", "/api/sales-quotas", sq)
         if eid:
-            api.get(f"/api/salesquotas/{eid}")
+            api.get(f"/api/sales-quotas/{eid}")
             save_ids("salesquotas", [eid])
-    api.get("/api/salesquotas")
+    api.get("/api/sales-quotas")
 
     # ---- Sales Forecasts ----
     log.section("SalesForecasts CRUD")
@@ -188,10 +193,10 @@ def run(api: ApiClient, log: RunLogger) -> None:
         sf = {"userId": user_ids[0], "period": "2026-Q1",
               "forecastAmount": 350000, "bestCase": 500000, "worstCase": 200000,
               "forecast": 350000, "description": "Q1 forecast"}
-        eid = api.create_and_track("salesforecasts", "/api/salesforecasts", sf)
+        eid = api.create_and_track("salesforecasts", "/api/sales-forecasts", sf)
         if eid:
-            api.get(f"/api/salesforecasts/{eid}")
+            api.get(f"/api/sales-forecasts/{eid}")
             save_ids("salesforecasts", [eid])
-    api.get("/api/salesforecasts")
+    api.get("/api/sales-forecasts")
 
     print(f"  Batch 04 done: {log.summary_line()}")

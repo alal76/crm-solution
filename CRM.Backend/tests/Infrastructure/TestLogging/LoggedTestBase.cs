@@ -18,7 +18,9 @@ namespace CRM.Tests.Infrastructure.TestLogging;
 /// </summary>
 public abstract class LoggedTestBase
 {
+#pragma warning disable SA1401 // Fields should be private (protected field in abstract base class by design)
     protected readonly ITestOutputHelper? Output;
+#pragma warning restore SA1401
 
     protected LoggedTestBase()
     {

@@ -281,18 +281,23 @@ describe('Navigation - Auto-Heal Config', () => {
 
     render(<Navigation />);
 
+    // Wait for async effects (navigation config load) to settle
+    await waitFor(() => {
+      expect(screen.getByLabelText('open drawer')).toBeInTheDocument();
+    }, { timeout: 5000 });
+
     const openButton = screen.getByLabelText('open drawer');
     fireEvent.click(openButton);
 
     await waitFor(() => {
       // Look for the admin subcategory heading "Workflows & Dashboards"
       expect(screen.getByText('Workflows & Dashboards')).toBeInTheDocument();
-    });
+    }, { timeout: 5000 });
 
     await waitFor(() => {
       expect(screen.getByText('Workflow Monitor')).toBeInTheDocument();
-    });
-  });
+    }, { timeout: 5000 });
+  }, 15000);
 });
 
 // ============================================================================

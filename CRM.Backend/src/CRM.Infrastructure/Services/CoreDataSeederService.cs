@@ -1000,4 +1000,3 @@ public class CoreDataSeederService : ICoreDataSeederService
         _logger.LogInformation("Workflow trigger seeding complete. Seeded {Count} new triggers", seededCount);
     }
 }
-

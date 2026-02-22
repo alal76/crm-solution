@@ -90,9 +90,9 @@ jobs:
     # CONTAINER VULNERABILITY SCANNING
     # ================================================================
     - name: Run Trivy vulnerability scanner (API)
-      uses: aquasecurity/trivy-action@master
+      uses: aquasecurity/trivy-action@0.28.0
       with:
-        image-ref: '${{ env.REGISTRY }}/${{ env.IMAGE_NAME_API }}:${{ github.event.workflow_run.head_branch || github.ref_name }}'
+        image-ref: '${{ env.REGISTRY }}/${{ env.IMAGE_NAME_API }}:${{ steps.meta-api.outputs.version }}'
         format: 'table'
         exit-code: '0'  # Don't fail build yet, just report
         severity: 'CRITICAL,HIGH'
@@ -100,9 +100,9 @@ jobs:
       # Set exit-code to '1' to fail builds on CRITICAL vulnerabilities
 
     - name: Run Trivy vulnerability scanner (Frontend)
-      uses: aquasecurity/trivy-action@master
+      uses: aquasecurity/trivy-action@0.28.0
       with:
-        image-ref: '${{ env.REGISTRY }}/${{ env.IMAGE_NAME_FRONTEND }}:${{ github.event.workflow_run.head_branch || github.ref_name }}'
+        image-ref: '${{ env.REGISTRY }}/${{ env.IMAGE_NAME_FRONTEND }}:${{ steps.meta-frontend.outputs.version }}'
         format: 'table'
         exit-code: '0'  # Don't fail build yet, just report
         severity: 'CRITICAL,HIGH'
@@ -138,26 +138,24 @@ jobs:
         version: 'v1.29.0'
     
     - name: Configure kubectl
+      id: kube-config
       env:
         KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
       run: |
         if [ -z "$KUBE_CONFIG" ]; then
           echo "⚠️ KUBE_CONFIG secret is not configured. Skipping deployment."
           echo "To enable deployment, add a KUBE_CONFIG secret in repository settings."
+          echo "configured=false" >> "$GITHUB_OUTPUT"
           exit 0
         fi
         mkdir -p $HOME/.kube
         echo "$KUBE_CONFIG" | base64 -d > $HOME/.kube/config
         chmod 600 $HOME/.kube/config
+        echo "configured=true" >> "$GITHUB_OUTPUT"
     
     - name: Deploy to Kubernetes
-      env:
-        KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}
+      if: steps.kube-config.outputs.configured == 'true'
       run: |
-        if [ -z "$KUBE_CONFIG" ]; then
-          echo "Deployment skipped - no KUBE_CONFIG configured"
-          exit 0
-        fi
         kubectl apply -f kubernetes/00-namespace-config.yaml
         kubectl apply -f kubernetes/01-database-tier.yaml
         kubectl apply -f kubernetes/02-application-tier.yaml

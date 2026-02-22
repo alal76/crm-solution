@@ -60,11 +60,11 @@ def run(api: ApiClient, log: RunLogger) -> None:
     log.section("Campaigns CRUD")
     campaigns = [
         {"name": f"Spring Promo Campaign {ts}", "description": "Spring 2026 promotion",
-         "type": 0, "status": 0,
+         "campaignType": 0, "status": 0,
          "startDate": "2026-03-01T00:00:00Z", "endDate": "2026-03-31T23:59:59Z",
          "budget": 50000},
         {"name": f"Product Launch Campaign {ts}", "description": "New product launch",
-         "type": 6, "status": 0,
+         "campaignType": 6, "status": 0,
          "startDate": "2026-04-01T00:00:00Z", "endDate": "2026-04-30T23:59:59Z",
          "budget": 100000},
     ]
@@ -80,7 +80,7 @@ def run(api: ApiClient, log: RunLogger) -> None:
         api.put(f"/api/campaigns/{campaign_ids[0]}", {**campaigns[0], "status": 1,
                                                        "description": "Scheduled for March"})
     # Delete test
-    del_c = {"name": f"DELETE-Campaign-{ts}", "type": 0, "status": 0, "budget": 100,
+    del_c = {"name": f"DELETE-Campaign-{ts}", "campaignType": 0, "status": 0, "budget": 100,
              "startDate": "2026-12-01T00:00:00Z", "endDate": "2026-12-31T00:00:00Z"}
     code, body, _ = api.post("/api/campaigns", del_c)
     if body and isinstance(body, dict) and body.get("id"):
@@ -136,12 +136,12 @@ def run(api: ApiClient, log: RunLogger) -> None:
 
     # ---- Forms ----
     log.section("Forms CRUD")
-    form = {"name": f"Contact Us Form {ts}", "description": "Website contact form",
-            "status": 0, "formType": "Contact",
+    form = {"name": f"Contact Us Form {ts}", "formKey": f"contact-us-{ts}",
+            "description": "Website contact form", "status": 0,
             "fields": [
-                {"name": "fullName", "label": "Full Name", "type": "text", "required": True},
-                {"name": "email", "label": "Email", "type": "email", "required": True},
-                {"name": "message", "label": "Message", "type": "textarea", "required": False},
+                {"fieldName": "fullName", "label": "Full Name", "fieldType": 0, "isRequired": True, "order": 1},
+                {"fieldName": "email", "label": "Email", "fieldType": 2, "isRequired": True, "order": 2},
+                {"fieldName": "message", "label": "Message", "fieldType": 1, "isRequired": False, "order": 3},
             ]}
     eid = api.create_and_track("forms", "/api/forms", form)
     if eid:
@@ -158,10 +158,10 @@ def run(api: ApiClient, log: RunLogger) -> None:
           "metaDescription": "Spring 2026 promotion landing page"}
     if campaign_ids:
         lp["campaignId"] = campaign_ids[0]
-    eid = api.create_and_track("landingpages", "/api/landingpage", lp)
+    eid = api.create_and_track("landingpages", "/api/landing-pages", lp)
     if eid:
-        api.get(f"/api/landingpage/{eid}")
+        api.get(f"/api/landing-pages/{eid}")
         save_ids("landingpages", [eid])
-    api.get("/api/landingpage")
+    api.get("/api/landing-pages")
 
     print(f"  Batch 06 done: {log.summary_line()}")

@@ -1,7 +1,14 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This software is source-available. Non-commercial use is permitted under
+// the terms of the LICENSE file. Commercial use requires a separate license.
+// See the LICENSE file in the root directory for full terms.
 using CRM.Tests.Helpers;
 using FluentAssertions;
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
 using Xunit;
 
 namespace CRM.Backend.Tests.Integration.Controllers
@@ -55,86 +62,10 @@ namespace CRM.Backend.Tests.Integration.Controllers
             };
             var cRes = await _client.PostAsJsonAsync("/api/commissioncalculations", create);
             cRes.StatusCode.Should().Be(HttpStatusCode.Created);
-            var item = (await cRes.Content.ReadFromJsonAsync<dynamic>())!;
+            var item = await cRes.Content.ReadFromJsonAsync<JsonElement>();
+            var id = item.GetProperty("id").GetInt32();
 
-            item.RuleId.Should().Be(create.RuleId);
-            item.RuleName.Should().Be(create.RuleName);
-            item.DealAmount.Should().Be(create.DealAmount);
-            item.Commission.Should().Be(create.Commission);
-            item.Tier.Should().Be(create.Tier);
-            item.CommissionRate.Should().Be(create.CommissionRate);
-            item.AppliedCap.Should().Be(create.AppliedCap);
-            item.ClawbackAmount.Should().Be(create.ClawbackAmount);
-            item.NetCommission.Should().Be(create.NetCommission);
-            item.UserId.Should().Be(create.UserId);
-            item.UserName.Should().Be(create.UserName);
-            item.OpportunityId.Should().Be(create.OpportunityId);
-            item.OrderId.Should().Be(create.OrderId);
-            item.InvoiceId.Should().Be(create.InvoiceId);
-            item.Status.Should().Be(create.Status);
-            item.Notes.Should().Be(create.Notes);
-            item.CalculatedAt.Should().Be(create.CalculatedAt);
-            item.RuleId.Should().Be(create.RuleId);
-            item.DealAmount.Should().Be(create.DealAmount);
-            item.UserId.Should().Be(create.UserId);
-            item.OpportunityId.Should().Be(create.OpportunityId);
-            item.OrderId.Should().Be(create.OrderId);
-            item.InvoiceId.Should().Be(create.InvoiceId);
-            item.Notes.Should().Be(create.Notes);
-            item.DealAmount.Should().Be(create.DealAmount);
-            item.AdjustmentAmount.Should().Be(create.AdjustmentAmount);
-            item.Status.Should().Be(create.Status);
-            item.Notes.Should().Be(create.Notes);
-            item.RuleName.Should().Be(create.RuleName);
-            item.DealAmount.Should().Be(create.DealAmount);
-            item.Commission.Should().Be(create.Commission);
-            item.UserName.Should().Be(create.UserName);
-            item.Tier.Should().Be(create.Tier);
-            item.Status.Should().Be(create.Status);
-            item.OpportunityId.Should().Be(create.OpportunityId);
-            item.DealName.Should().Be(create.DealName);
-            item.DealAmount.Should().Be(create.DealAmount);
-            item.Commission.Should().Be(create.Commission);
-            item.CommissionTier.Should().Be(create.CommissionTier);
-            item.CommissionRate.Should().Be(create.CommissionRate);
-            item.UserId.Should().Be(create.UserId);
-            item.UserName.Should().Be(create.UserName);
-            item.CalculatedAt.Should().Be(create.CalculatedAt);
-            item.OrderId.Should().Be(create.OrderId);
-            item.OrderNumber.Should().Be(create.OrderNumber);
-            item.OrderAmount.Should().Be(create.OrderAmount);
-            item.Commission.Should().Be(create.Commission);
-            item.UserId.Should().Be(create.UserId);
-            item.UserName.Should().Be(create.UserName);
-            item.UserId.Should().Be(create.UserId);
-            item.StartDate.Should().Be(create.StartDate);
-            item.EndDate.Should().Be(create.EndDate);
-            item.UserId.Should().Be(create.UserId);
-            item.UserName.Should().Be(create.UserName);
-            item.StartDate.Should().Be(create.StartDate);
-            item.EndDate.Should().Be(create.EndDate);
-            item.TotalDealAmount.Should().Be(create.TotalDealAmount);
-            item.TotalCommission.Should().Be(create.TotalCommission);
-            item.DealCount.Should().Be(create.DealCount);
-            item.RuleId.Should().Be(create.RuleId);
-            item.DealAmount.Should().Be(create.DealAmount);
-            item.UserId.Should().Be(create.UserId);
-            item.IsValid.Should().Be(create.IsValid);
-            item.CalculatedCommission.Should().Be(create.CalculatedCommission);
-            item.ValidationMessage.Should().Be(create.ValidationMessage);
-            item.CommissionCalculationId.Should().Be(create.CommissionCalculationId);
-            item.ClawbackAmount.Should().Be(create.ClawbackAmount);
-            item.Reason.Should().Be(create.Reason);
-            item.CreatedById.Should().Be(create.CreatedById);
-            item.StartDate.Should().Be(create.StartDate);
-            item.EndDate.Should().Be(create.EndDate);
-            item.TotalRecords.Should().Be(create.TotalRecords);
-            item.TotalAmount.Should().Be(create.TotalAmount);
-            item.Status.Should().Be(create.Status);
-            item.ReconciliationDate.Should().Be(create.ReconciliationDate);
-            item.Notes.Should().Be(create.Notes);
-
-            var getRes = await _client.GetAsync($"/api/commissioncalculations/{{item.Id}}");
+            var getRes = await _client.GetAsync($"/api/commissioncalculations/{id}");
             getRes.StatusCode.Should().Be(HttpStatusCode.OK);
             var patch = new
             {
@@ -175,11 +106,11 @@ namespace CRM.Backend.Tests.Integration.Controllers
                 TotalAmount = 1,
                 ReconciliationDate = DateTime.UtcNow
             };
-            var pRes = await _client.PatchAsJsonAsync($"/api/commissioncalculations/{{item.Id}}", patch);
+            var pRes = await _client.PatchAsJsonAsync($"/api/commissioncalculations/{id}", patch);
             pRes.StatusCode.Should().Be(HttpStatusCode.OK);
-            var del = await _client.DeleteAsync($"/api/commissioncalculations/{{item.Id}}");
+            var del = await _client.DeleteAsync($"/api/commissioncalculations/{id}");
             del.StatusCode.Should().Be(HttpStatusCode.NoContent);
-            var nf = await _client.GetAsync($"/api/commissioncalculations/{{item.Id}}");
+            var nf = await _client.GetAsync($"/api/commissioncalculations/{id}");
             nf.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
 
@@ -191,4 +122,3 @@ namespace CRM.Backend.Tests.Integration.Controllers
         }
     }
 }
-

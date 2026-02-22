@@ -20,8 +20,8 @@ def run(api: ApiClient, log: RunLogger) -> None:
 
     # ---- Service Request Categories (read) ----
     log.section("ServiceRequest Settings")
-    api.get("/api/servicerequestsettings/categories")
-    api.get("/api/servicerequestsettings/types")
+    api.get("/api/service-request-settings/categories")
+    api.get("/api/service-request-settings/types")
 
     # ---- Service Requests ----
     log.section("ServiceRequests CRUD")
@@ -56,8 +56,8 @@ def run(api: ApiClient, log: RunLogger) -> None:
 
     # ---- CI Types ----
     log.section("CITypes CRUD")
-    ci_type = {"name": f"WebServer-{ts}", "description": "Web server configuration item",
-               "category": "Infrastructure", "icon": "server"}
+    ci_type = {"typeName": f"WebServer-{ts}", "description": "Web server configuration item",
+               "typeCategory": "Infrastructure", "icon": "server"}
     eid = api.create_and_track("citypes", "/api/ci-types", ci_type)
     if eid:
         api.get(f"/api/ci-types/{eid}")
@@ -69,41 +69,43 @@ def run(api: ApiClient, log: RunLogger) -> None:
     # ---- Incident Categories ----
     log.section("IncidentCategories CRUD")
     ic = {"name": f"Network Issue {ts}", "description": "Network-related incidents"}
-    eid = api.create_and_track("incidentcategories", "/api/incidentcategories", ic)
+    eid = api.create_and_track("incidentcategories", "/api/incident-categories", ic)
     if eid:
-        api.get(f"/api/incidentcategories/{eid}")
+        api.get(f"/api/incident-categories/{eid}")
         save_ids("incidentcategories", [eid])
-    api.get("/api/incidentcategories")
+    api.get("/api/incident-categories")
 
     # ---- Incidents ----
     log.section("Incidents CRUD")
     incidents = [
-        {"title": f"Server outage - Production {ts}", "description": "Main production server down",
-         "impact": 1, "urgency": 1, "status": 0,
+        {"shortDescription": f"Server outage - Production {ts}",
+         "callerId": user_ids[0] if user_ids else 1,
+         "impact": 1, "urgency": 1,
          "category": "Infrastructure"},
-        {"title": f"Email service degraded {ts}", "description": "Email delivery delays",
-         "impact": 2, "urgency": 2, "status": 0,
+        {"shortDescription": f"Email service degraded {ts}",
+         "callerId": user_ids[0] if user_ids else 1,
+         "impact": 2, "urgency": 2,
          "category": "Application"},
     ]
     incident_ids = []
     for i in incidents:
-        eid = api.create_and_track("incidents", "/api/incidents", i)
+        eid = api.create_and_track("incidents", "/api/itsm/incidents", i)
         if eid:
             incident_ids.append(eid)
-    api.get("/api/incidents")
+    api.get("/api/itsm/incidents")
     if incident_ids:
-        api.get(f"/api/incidents/{incident_ids[0]}")
-        api.put(f"/api/incidents/{incident_ids[0]}", {**incidents[0], "status": 1,
-                                                       "description": "Investigating server outage"})
+        api.get(f"/api/itsm/incidents/{incident_ids[0]}")
+        api.put(f"/api/itsm/incidents/{incident_ids[0]}", {**incidents[0],
+                                                       "shortDescription": f"Server outage - Production {ts} (investigating)"})
     save_ids("incidents", incident_ids)
 
     # ---- Problems ----
     log.section("Problems CRUD")
     problems = [
         {"title": f"Recurring server crashes {ts}", "description": "Memory leak causing periodic crashes",
-         "priority": 1, "status": 0, "category": "Infrastructure"},
+         "urgency": "High", "impact": "High"},
         {"title": f"Intermittent DB timeouts {ts}", "description": "Database connection pool exhaustion",
-         "priority": 2, "status": 0, "category": "Database"},
+         "urgency": "Medium", "impact": "Medium"},
     ]
     problem_ids = []
     for p in problems:
@@ -113,14 +115,16 @@ def run(api: ApiClient, log: RunLogger) -> None:
     api.get("/api/problems")
     if problem_ids:
         api.get(f"/api/problems/{problem_ids[0]}")
-        api.put(f"/api/problems/{problem_ids[0]}", {**problems[0], "status": 1,
-                                                     "description": "Root cause analysis in progress"})
+        api.put(f"/api/problems/{problem_ids[0]}", {"title": problems[0]["title"],
+                                                     "description": "Root cause analysis in progress",
+                                                     "urgency": "High", "impact": "High"})
     save_ids("problems", problem_ids)
 
     # ---- Change Types ----
     log.section("ChangeTypes CRUD")
-    ct = {"name": f"EmergencyChange-{ts}", "description": "Emergency change type",
-          "approvalRequired": True, "riskLevel": "High"}
+    ct = {"typeName": f"EmergencyChange-{ts}", "description": "Emergency change type",
+          "requiresApproval": True, "requiresCAB": True,
+          "defaultRiskLevel": "High", "leadTimeDays": 0, "isActive": True}
     eid = api.create_and_track("changetypes", "/api/change-types", ct)
     if eid:
         api.get(f"/api/change-types/{eid}")
@@ -138,10 +142,10 @@ def run(api: ApiClient, log: RunLogger) -> None:
     eid = api.create_and_track("changes", "/api/changes", change)
     if eid:
         api.get(f"/api/changes/{eid}")
-        api.put(f"/api/changes/{eid}", {**change, "status": 1})
+        api.put(f"/api/changes/{eid}", {**change, "status": "Planned"})
         # Lifecycle: submit, approve
         api.post(f"/api/changes/{eid}/submit")
-        api.post(f"/api/changes/{eid}/approve")
+        api.post(f"/api/changes/{eid}/approve", {"approverNotes": "Approved by admin"})
         save_ids("changes", [eid])
     api.get("/api/changes")
 
@@ -149,45 +153,48 @@ def run(api: ApiClient, log: RunLogger) -> None:
     log.section("KnowledgeArticles CRUD")
     articles = [
         {"title": f"How to reset your password {ts}",
-         "content": "Step 1: Click Forgot Password... Step 2: Check email... Step 3: Set new password",
+         "articleBody": "Step 1: Click Forgot Password... Step 2: Check email... Step 3: Set new password",
          "category": "Account", "articleType": 1, "status": 0, "isPublished": True},
         {"title": f"VPN Setup Guide {ts}",
-         "content": "Download the VPN client from... Configure with server address...",
+         "articleBody": "Download the VPN client from... Configure with server address...",
          "category": "Network", "articleType": 1, "status": 0, "isPublished": True},
     ]
     article_ids = []
     for a in articles:
-        eid = api.create_and_track("knowledgearticles", "/api/knowledgearticles", a)
+        eid = api.create_and_track("knowledgearticles", "/api/itsm/knowledge", a)
         if eid:
             article_ids.append(eid)
-    api.get("/api/knowledgearticles")
+    api.get("/api/itsm/knowledge/articles")
     if article_ids:
-        api.get(f"/api/knowledgearticles/{article_ids[0]}")
+        api.get(f"/api/itsm/knowledge/{article_ids[0]}")
     save_ids("knowledgearticles", article_ids)
 
     # ---- Escalation Rules ----
     log.section("EscalationRules CRUD")
     er = {"name": f"Critical-Escalation-{ts}", "description": "Escalate critical tickets in 1 hour",
-          "isActive": True, "priority": 3, "timeThresholdMinutes": 60}
-    eid = api.create_and_track("escalationrules", "/api/escalationrules", er)
+          "isActive": True, "priority": "Critical", "ageInMinutes": 60,
+          "targetType": "User", "targetName": "On-Call Engineer",
+          "maxAttempts": 3, "retryIntervalMinutes": 15}
+    eid = api.create_and_track("escalationrules", "/api/escalation-rules", er)
     if eid:
-        api.get(f"/api/escalationrules/{eid}")
+        api.get(f"/api/escalation-rules/{eid}")
         save_ids("escalationrules", [eid])
-    api.get("/api/escalationrules")
+    api.get("/api/escalation-rules")
 
     # ---- Escalation Policies ----
     log.section("EscalationPolicies CRUD")
     ep = {"name": f"P1-Escalation-Policy-{ts}", "description": "Priority 1 escalation",
           "isActive": True}
-    eid = api.create_and_track("escalationpolicies", "/api/escalationpolicies", ep)
+    eid = api.create_and_track("escalationpolicies", "/api/itsm/escalation-policies", ep)
     if eid:
-        api.get(f"/api/escalationpolicies/{eid}")
+        api.get(f"/api/itsm/escalation-policies/{eid}")
         save_ids("escalationpolicies", [eid])
-    api.get("/api/escalationpolicies")
+    api.get("/api/itsm/escalation-policies")
 
     # ---- ITSM Dashboard ----
     log.section("ITSM Dashboard")
-    api.get("/api/itsm/dashboard")
-    api.get("/api/itsm/dashboard/summary")
+    # No base GET /api/itsm/dashboard exists; use sub-paths
+    api.get("/api/itsm/dashboard/metrics")
+    api.get("/api/itsm/dashboard/executive-summary")
 
     print(f"  Batch 07 done: {log.summary_line()}")

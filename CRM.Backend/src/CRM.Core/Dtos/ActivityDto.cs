@@ -24,7 +24,8 @@ namespace CRM.Core.DTOs
         public int ActivityType { get; set; }
 
         /// <summary>Short title or subject for the activity.</summary>
-        [Required, MaxLength(200)]
+        [Required]
+        [MaxLength(200)]
         public string Title { get; set; } = string.Empty;
 
         /// <summary>Optional description or summary.</summary>
@@ -143,7 +144,8 @@ namespace CRM.Core.DTOs
         [Required]
         public int ActivityType { get; set; }
 
-        [Required, MaxLength(200)]
+        [Required]
+        [MaxLength(200)]
         public string Title { get; set; } = string.Empty;
 
         [MaxLength(2000)]

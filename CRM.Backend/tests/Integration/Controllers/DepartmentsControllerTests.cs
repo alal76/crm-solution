@@ -1,7 +1,14 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This software is source-available. Non-commercial use is permitted under
+// the terms of the LICENSE file. Commercial use requires a separate license.
+// See the LICENSE file in the root directory for full terms.
 using CRM.Tests.Helpers;
 using FluentAssertions;
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
 using Xunit;
 
 namespace CRM.Backend.Tests.Integration.Controllers
@@ -25,20 +32,10 @@ namespace CRM.Backend.Tests.Integration.Controllers
             };
             var cRes = await _client.PostAsJsonAsync("/api/departments", create);
             cRes.StatusCode.Should().Be(HttpStatusCode.Created);
-            var item = (await cRes.Content.ReadFromJsonAsync<dynamic>())!;
+            var item = await cRes.Content.ReadFromJsonAsync<JsonElement>();
+            var id = item.GetProperty("id").GetInt32();
 
-            item.Name.Should().Be(create.Name);
-            item.Description.Should().Be(create.Description);
-            item.DepartmentCode.Should().Be(create.DepartmentCode);
-            item.ParentDepartmentId.Should().Be(create.ParentDepartmentId);
-            item.Name.Should().Be(create.Name);
-            item.Description.Should().Be(create.Description);
-            item.DepartmentCode.Should().Be(create.DepartmentCode);
-            item.IsActive.Should().Be(create.IsActive);
-            item.ParentDepartmentId.Should().Be(create.ParentDepartmentId);
-            item.UserCount.Should().Be(create.UserCount);
-
-            var getRes = await _client.GetAsync($"/api/departments/{{item.Id}}");
+            var getRes = await _client.GetAsync($"/api/departments/{id}");
             getRes.StatusCode.Should().Be(HttpStatusCode.OK);
             var patch = new
             {
@@ -49,11 +46,11 @@ namespace CRM.Backend.Tests.Integration.Controllers
                 IsActive = true,
                 UserCount = 1
             };
-            var pRes = await _client.PatchAsJsonAsync($"/api/departments/{{item.Id}}", patch);
+            var pRes = await _client.PatchAsJsonAsync($"/api/departments/{id}", patch);
             pRes.StatusCode.Should().Be(HttpStatusCode.OK);
-            var del = await _client.DeleteAsync($"/api/departments/{{item.Id}}");
+            var del = await _client.DeleteAsync($"/api/departments/{id}");
             del.StatusCode.Should().Be(HttpStatusCode.NoContent);
-            var nf = await _client.GetAsync($"/api/departments/{{item.Id}}");
+            var nf = await _client.GetAsync($"/api/departments/{id}");
             nf.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
 
@@ -65,4 +62,3 @@ namespace CRM.Backend.Tests.Integration.Controllers
         }
     }
 }
-

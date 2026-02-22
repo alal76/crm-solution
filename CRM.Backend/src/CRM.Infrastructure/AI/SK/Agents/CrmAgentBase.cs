@@ -20,6 +20,8 @@ public abstract class CrmAgentBase
 {
     #region Fields
 
+#pragma warning disable SA1401 // Fields should be private (protected fields in abstract base class by design)
+
     /// <summary>
     /// The Semantic Kernel instance configured for this agent.
     /// </summary>
@@ -29,6 +31,8 @@ public abstract class CrmAgentBase
     /// Logger available to all derived agents.
     /// </summary>
     protected readonly ILogger Logger;
+
+#pragma warning restore SA1401
 
     #endregion
 

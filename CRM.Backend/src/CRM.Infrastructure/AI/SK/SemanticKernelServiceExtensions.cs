@@ -35,7 +35,6 @@ public static class SemanticKernelServiceExtensions
         this IServiceCollection services,
         IConfiguration configuration)
     {
-
         // Bind SemanticKernel configuration section to options
         services.Configure<SemanticKernelOptions>(configuration.GetSection("SemanticKernel"));
 

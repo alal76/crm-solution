@@ -1,7 +1,14 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This software is source-available. Non-commercial use is permitted under
+// the terms of the LICENSE file. Commercial use requires a separate license.
+// See the LICENSE file in the root directory for full terms.
 using CRM.Tests.Helpers;
 using FluentAssertions;
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
 using Xunit;
 
 namespace CRM.Backend.Tests.Integration.Controllers
@@ -44,54 +51,10 @@ namespace CRM.Backend.Tests.Integration.Controllers
             };
             var cRes = await _client.PostAsJsonAsync("/api/commissionpayouts", create);
             cRes.StatusCode.Should().Be(HttpStatusCode.Created);
-            var item = (await cRes.Content.ReadFromJsonAsync<dynamic>())!;
+            var item = await cRes.Content.ReadFromJsonAsync<JsonElement>();
+            var id = item.GetProperty("id").GetInt32();
 
-            item.PayoutNumber.Should().Be(create.PayoutNumber);
-            item.UserId.Should().Be(create.UserId);
-            item.UserName.Should().Be(create.UserName);
-            item.CommissionPlanId.Should().Be(create.CommissionPlanId);
-            item.TotalCommissionAmount.Should().Be(create.TotalCommissionAmount);
-            item.CommissionCount.Should().Be(create.CommissionCount);
-            item.PeriodStartDate.Should().Be(create.PeriodStartDate);
-            item.PeriodEndDate.Should().Be(create.PeriodEndDate);
-            item.ScheduledPayoutDate.Should().Be(create.ScheduledPayoutDate);
-            item.ActualPayoutDate.Should().Be(create.ActualPayoutDate);
-            item.PayoutMethod.Should().Be(create.PayoutMethod);
-            item.Status.Should().Be(create.Status);
-            item.TotalDeductions.Should().Be(create.TotalDeductions);
-            item.NetPayoutAmount.Should().Be(create.NetPayoutAmount);
-            item.PaymentReferenceId.Should().Be(create.PaymentReferenceId);
-            item.Notes.Should().Be(create.Notes);
-            item.ApprovedById.Should().Be(create.ApprovedById);
-            item.ApprovedByName.Should().Be(create.ApprovedByName);
-            item.ApprovedAt.Should().Be(create.ApprovedAt);
-            item.CommissionId.Should().Be(create.CommissionId);
-            item.CommissionNumber.Should().Be(create.CommissionNumber);
-            item.CommissionAmount.Should().Be(create.CommissionAmount);
-            item.OpportunityId.Should().Be(create.OpportunityId);
-            item.OpportunityName.Should().Be(create.OpportunityName);
-            item.InvoiceId.Should().Be(create.InvoiceId);
-            item.UserId.Should().Be(create.UserId);
-            item.CommissionPlanId.Should().Be(create.CommissionPlanId);
-            item.PeriodStartDate.Should().Be(create.PeriodStartDate);
-            item.PeriodEndDate.Should().Be(create.PeriodEndDate);
-            item.ScheduledPayoutDate.Should().Be(create.ScheduledPayoutDate);
-            item.PayoutMethod.Should().Be(create.PayoutMethod);
-            item.Notes.Should().Be(create.Notes);
-            item.ScheduledPayoutDate.Should().Be(create.ScheduledPayoutDate);
-            item.PayoutMethod.Should().Be(create.PayoutMethod);
-            item.Status.Should().Be(create.Status);
-            item.Notes.Should().Be(create.Notes);
-            item.PayoutNumber.Should().Be(create.PayoutNumber);
-            item.UserName.Should().Be(create.UserName);
-            item.TotalCommissionAmount.Should().Be(create.TotalCommissionAmount);
-            item.NetPayoutAmount.Should().Be(create.NetPayoutAmount);
-            item.Status.Should().Be(create.Status);
-            item.ScheduledPayoutDate.Should().Be(create.ScheduledPayoutDate);
-            item.ActualPayoutDate.Should().Be(create.ActualPayoutDate);
-            item.CommissionCount.Should().Be(create.CommissionCount);
-
-            var getRes = await _client.GetAsync($"/api/commissionpayouts/{{item.Id}}");
+            var getRes = await _client.GetAsync($"/api/commissionpayouts/{id}");
             getRes.StatusCode.Should().Be(HttpStatusCode.OK);
             var patch = new
             {
@@ -121,11 +84,11 @@ namespace CRM.Backend.Tests.Integration.Controllers
                 OpportunityName = "Test",
                 InvoiceId = 1
             };
-            var pRes = await _client.PatchAsJsonAsync($"/api/commissionpayouts/{{item.Id}}", patch);
+            var pRes = await _client.PatchAsJsonAsync($"/api/commissionpayouts/{id}", patch);
             pRes.StatusCode.Should().Be(HttpStatusCode.OK);
-            var del = await _client.DeleteAsync($"/api/commissionpayouts/{{item.Id}}");
+            var del = await _client.DeleteAsync($"/api/commissionpayouts/{id}");
             del.StatusCode.Should().Be(HttpStatusCode.NoContent);
-            var nf = await _client.GetAsync($"/api/commissionpayouts/{{item.Id}}");
+            var nf = await _client.GetAsync($"/api/commissionpayouts/{id}");
             nf.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
 
@@ -137,4 +100,3 @@ namespace CRM.Backend.Tests.Integration.Controllers
         }
     }
 }
-

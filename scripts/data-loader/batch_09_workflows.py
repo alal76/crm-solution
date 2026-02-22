@@ -18,26 +18,26 @@ def run(api: ApiClient, log: RunLogger) -> None:
     # ---- Workflow Definitions ----
     log.section("Workflows CRUD")
     workflows = [
-        {"name": f"Lead Assignment {ts}", "description": "Auto-assign leads to sales reps",
+        {"workflowKey": f"lead-assignment-{ts}", "name": f"Lead Assignment {ts}", "description": "Auto-assign leads to sales reps",
          "entityType": "Lead", "isActive": True,
          "triggerType": "OnCreate"},
-        {"name": f"Deal Close Notification {ts}", "description": "Notify team when deal closes",
+        {"workflowKey": f"deal-close-notification-{ts}", "name": f"Deal Close Notification {ts}", "description": "Notify team when deal closes",
          "entityType": "Opportunity", "isActive": True,
          "triggerType": "OnUpdate"},
-        {"name": f"Ticket Escalation {ts}", "description": "Escalate unresolved tickets",
+        {"workflowKey": f"ticket-escalation-{ts}", "name": f"Ticket Escalation {ts}", "description": "Escalate unresolved tickets",
          "entityType": "ServiceRequest", "isActive": True,
          "triggerType": "OnSchedule"},
     ]
     wf_ids = []
     for w in workflows:
-        code, body, _ = api.post("/api/workflow/definitions", w)
+        code, body, _ = api.post("/api/workflows/definitions", w)
         if body and isinstance(body, dict) and body.get("id"):
             wf_ids.append(body["id"])
             log.track_id("workflows", body["id"])
-    api.get("/api/workflow/definitions")
+    api.get("/api/workflows/definitions")
     if wf_ids:
-        api.get(f"/api/workflow/definitions/{wf_ids[0]}")
-        api.put(f"/api/workflow/definitions/{wf_ids[0]}",
+        api.get(f"/api/workflows/definitions/{wf_ids[0]}")
+        api.put(f"/api/workflows/definitions/{wf_ids[0]}",
                 {**workflows[0], "description": "Updated lead assignment workflow"})
     save_ids("workflows", wf_ids)
 
@@ -51,25 +51,25 @@ def run(api: ApiClient, log: RunLogger) -> None:
     trigger_ids = []
     for t in triggers:
         payload = {k: v for k, v in t.items() if v is not None}
-        eid = api.create_and_track("workflowtriggers", "/api/workflowtriggers", payload)
+        eid = api.create_and_track("workflowtriggers", "/api/workflow-triggers", payload)
         if eid:
             trigger_ids.append(eid)
-    api.get("/api/workflowtriggers")
+    api.get("/api/workflow-triggers")
     if trigger_ids:
-        api.get(f"/api/workflowtriggers/{trigger_ids[0]}")
+        api.get(f"/api/workflow-triggers/{trigger_ids[0]}")
     save_ids("workflowtriggers", trigger_ids)
 
     # ---- Workflow Instances ----
     log.section("WorkflowInstances")
-    api.get("/api/workflowinstance")
+    api.get("/api/workflow-instances")
     if wf_ids:
-        api.get(f"/api/workflowinstance/definition/{wf_ids[0]}")
+        api.get(f"/api/workflow-instances/definition/{wf_ids[0]}")
 
     # ---- Workflow Tasks ----
     log.section("WorkflowTasks")
-    api.get("/api/workflowtasks")
+    api.get("/api/workflows/tasks")
     if user_ids:
-        api.get(f"/api/workflowtasks/user/{user_ids[0]}")
+        api.get(f"/api/workflows/tasks/user/{user_ids[0]}")
 
     # ---- Approval Matrices ----
     log.section("Approvals CRUD")

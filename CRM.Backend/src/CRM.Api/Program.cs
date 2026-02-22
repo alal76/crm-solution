@@ -1007,9 +1007,11 @@ using (var scope = app.Services.CreateScope())
                     }
                     catch (Exception migEx)
                     {
-                        Log.Error(migEx, "MigrateAsync failed. For MariaDB/MySQL, use scripts/apply-migrations.sh " +
-                            "to generate and apply idempotent SQL. MySQL DDL is auto-committed and cannot be " +
-                            "rolled back, causing 'Table already exists' errors on retry after partial failures.");
+                        const string migrationErrorMessage =
+                            "MigrateAsync failed. For MariaDB/MySQL, use scripts/apply-migrations.sh "
+                            + "to generate and apply idempotent SQL. MySQL DDL is auto-committed and cannot be "
+                            + "rolled back, causing 'Table already exists' errors on retry after partial failures.";
+                        Log.Error(migEx, migrationErrorMessage);
                         throw;
                     }
                 }

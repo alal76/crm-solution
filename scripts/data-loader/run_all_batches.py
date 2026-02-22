@@ -28,7 +28,10 @@ import traceback
 # Ensure the data-loader directory is on the import path
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-from loader_utils import ApiClient, RunLogger, init_state, authenticate
+from loader_utils import (
+    ApiClient, RunLogger, DockerLogCapture,
+    init_state, authenticate,
+)
 
 
 # ── Batch registry (order matters — later batches depend on entities from earlier batches)
@@ -69,6 +72,8 @@ def main() -> None:
                         help="Continue to next batch even if the current one fails (default: True)")
     parser.add_argument("--stop-on-error", action="store_true", default=False,
                         help="Stop immediately if any batch throws an exception")
+    parser.add_argument("--ssh-host", default=None,
+                        help="SSH host for docker log capture (e.g., root@192.168.0.9)")
     args = parser.parse_args()
 
     continue_on_error = not args.stop_on_error
@@ -90,9 +95,15 @@ def main() -> None:
         sys.exit(1)
 
     # ── Initialize shared state, logger, and API client
-    run_id = init_state()
-    log = RunLogger(run_id)
-    api = ApiClient(args.base_url)
+    log_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "logs")
+    run_id = init_state(log_dir)
+
+    docker = None
+    if args.ssh_host:
+        docker = DockerLogCapture(ssh_host=args.ssh_host)
+
+    log = RunLogger(log_dir, run_id, docker=docker)
+    api = ApiClient(args.base_url, logger=log, docker=docker)
 
     print("=" * 72)
     print("  CRM Comprehensive Test Data Loader")
@@ -113,6 +124,7 @@ def main() -> None:
     if not token:
         print("\n  FATAL: Authentication failed. Cannot proceed.")
         log.log("FATAL: Authentication failed")
+        log.close()
         sys.exit(1)
     print(f"  Authenticated as {args.username}")
 
@@ -212,6 +224,8 @@ def main() -> None:
     print(f"  JSONL   : {log.jsonl_path}")
     print(f"  State   : {log.state_path}")
     print("=" * 72)
+
+    log.close()
 
     # Exit code based on success
     if error_count > 0:

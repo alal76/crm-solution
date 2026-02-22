@@ -1,7 +1,14 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This software is source-available. Non-commercial use is permitted under
+// the terms of the LICENSE file. Commercial use requires a separate license.
+// See the LICENSE file in the root directory for full terms.
 using CRM.Tests.Helpers;
 using FluentAssertions;
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
 using Xunit;
 
 namespace CRM.Backend.Tests.Integration.Controllers
@@ -104,181 +111,10 @@ namespace CRM.Backend.Tests.Integration.Controllers
             };
             var cRes = await _client.PostAsJsonAsync("/api/clouddeployment", create);
             cRes.StatusCode.Should().Be(HttpStatusCode.Created);
-            var item = (await cRes.Content.ReadFromJsonAsync<dynamic>())!;
+            var item = await cRes.Content.ReadFromJsonAsync<JsonElement>();
+            var id = item.GetProperty("id").GetInt32();
 
-            item.Name.Should().Be(create.Name);
-            item.ProviderType.Should().Be(create.ProviderType);
-            item.Description.Should().Be(create.Description);
-            item.Region.Should().Be(create.Region);
-            item.Endpoint.Should().Be(create.Endpoint);
-            item.IsActive.Should().Be(create.IsActive);
-            item.IsDefault.Should().Be(create.IsDefault);
-            item.DeploymentCount.Should().Be(create.DeploymentCount);
-            item.Name.Should().Be(create.Name);
-            item.ProviderType.Should().Be(create.ProviderType);
-            item.Description.Should().Be(create.Description);
-            item.AccessKeyId.Should().Be(create.AccessKeyId);
-            item.SecretAccessKey.Should().Be(create.SecretAccessKey);
-            item.TenantId.Should().Be(create.TenantId);
-            item.SubscriptionId.Should().Be(create.SubscriptionId);
-            item.ProjectId.Should().Be(create.ProjectId);
-            item.Region.Should().Be(create.Region);
-            item.Endpoint.Should().Be(create.Endpoint);
-            item.IsDefault.Should().Be(create.IsDefault);
-            item.Name.Should().Be(create.Name);
-            item.Description.Should().Be(create.Description);
-            item.AccessKeyId.Should().Be(create.AccessKeyId);
-            item.SecretAccessKey.Should().Be(create.SecretAccessKey);
-            item.TenantId.Should().Be(create.TenantId);
-            item.SubscriptionId.Should().Be(create.SubscriptionId);
-            item.ProjectId.Should().Be(create.ProjectId);
-            item.Region.Should().Be(create.Region);
-            item.Endpoint.Should().Be(create.Endpoint);
-            item.IsActive.Should().Be(create.IsActive);
-            item.IsDefault.Should().Be(create.IsDefault);
-            item.ProviderId.Should().Be(create.ProviderId);
-            item.ProviderType.Should().Be(create.ProviderType);
-            item.AccessKeyId.Should().Be(create.AccessKeyId);
-            item.SecretAccessKey.Should().Be(create.SecretAccessKey);
-            item.TenantId.Should().Be(create.TenantId);
-            item.SubscriptionId.Should().Be(create.SubscriptionId);
-            item.ProjectId.Should().Be(create.ProjectId);
-            item.Region.Should().Be(create.Region);
-            item.Endpoint.Should().Be(create.Endpoint);
-            item.Success.Should().Be(create.Success);
-            item.Message.Should().Be(create.Message);
-            item.Name.Should().Be(create.Name);
-            item.Type.Should().Be(create.Type);
-            item.Region.Should().Be(create.Region);
-            item.Status.Should().Be(create.Status);
-            item.Name.Should().Be(create.Name);
-            item.Description.Should().Be(create.Description);
-            item.CloudProviderId.Should().Be(create.CloudProviderId);
-            item.ProviderName.Should().Be(create.ProviderName);
-            item.ProviderType.Should().Be(create.ProviderType);
-            item.ClusterName.Should().Be(create.ClusterName);
-            item.Namespace.Should().Be(create.Namespace);
-            item.ResourceGroup.Should().Be(create.ResourceGroup);
-            item.BackendVersion.Should().Be(create.BackendVersion);
-            item.FrontendVersion.Should().Be(create.FrontendVersion);
-            item.FrontendUrl.Should().Be(create.FrontendUrl);
-            item.ApiUrl.Should().Be(create.ApiUrl);
-            item.DomainName.Should().Be(create.DomainName);
-            item.SslEnabled.Should().Be(create.SslEnabled);
-            item.CpuUnits.Should().Be(create.CpuUnits);
-            item.MemoryMb.Should().Be(create.MemoryMb);
-            item.Replicas.Should().Be(create.Replicas);
-            item.Status.Should().Be(create.Status);
-            item.HealthStatus.Should().Be(create.HealthStatus);
-            item.LastHealthCheck.Should().Be(create.LastHealthCheck);
-            item.DeployedAt.Should().Be(create.DeployedAt);
-            item.LastError.Should().Be(create.LastError);
-            item.AttemptCount.Should().Be(create.AttemptCount);
-            item.Name.Should().Be(create.Name);
-            item.Description.Should().Be(create.Description);
-            item.CloudProviderId.Should().Be(create.CloudProviderId);
-            item.ClusterName.Should().Be(create.ClusterName);
-            item.Namespace.Should().Be(create.Namespace);
-            item.ResourceGroup.Should().Be(create.ResourceGroup);
-            item.VpcId.Should().Be(create.VpcId);
-            item.BackendImage.Should().Be(create.BackendImage);
-            item.FrontendImage.Should().Be(create.FrontendImage);
-            item.DatabaseImage.Should().Be(create.DatabaseImage);
-            item.DomainName.Should().Be(create.DomainName);
-            item.SslEnabled.Should().Be(create.SslEnabled);
-            item.CpuUnits.Should().Be(create.CpuUnits);
-            item.MemoryMb.Should().Be(create.MemoryMb);
-            item.Replicas.Should().Be(create.Replicas);
-            item.Name.Should().Be(create.Name);
-            item.Description.Should().Be(create.Description);
-            item.ClusterName.Should().Be(create.ClusterName);
-            item.Namespace.Should().Be(create.Namespace);
-            item.DomainName.Should().Be(create.DomainName);
-            item.SslEnabled.Should().Be(create.SslEnabled);
-            item.CpuUnits.Should().Be(create.CpuUnits);
-            item.MemoryMb.Should().Be(create.MemoryMb);
-            item.Replicas.Should().Be(create.Replicas);
-            item.DeploymentId.Should().Be(create.DeploymentId);
-            item.BackendVersion.Should().Be(create.BackendVersion);
-            item.FrontendVersion.Should().Be(create.FrontendVersion);
-            item.GitBranch.Should().Be(create.GitBranch);
-            item.GitCommitHash.Should().Be(create.GitCommitHash);
-            item.ForceBuild.Should().Be(create.ForceBuild);
-            item.TriggeredByUserId.Should().Be(create.TriggeredByUserId);
-            item.Success.Should().Be(create.Success);
-            item.Message.Should().Be(create.Message);
-            item.AttemptId.Should().Be(create.AttemptId);
-            item.FrontendUrl.Should().Be(create.FrontendUrl);
-            item.ApiUrl.Should().Be(create.ApiUrl);
-            item.BuildLog.Should().Be(create.BuildLog);
-            item.DeployLog.Should().Be(create.DeployLog);
-            item.CloudDeploymentId.Should().Be(create.CloudDeploymentId);
-            item.DeploymentName.Should().Be(create.DeploymentName);
-            item.AttemptNumber.Should().Be(create.AttemptNumber);
-            item.Status.Should().Be(create.Status);
-            item.GitCommitHash.Should().Be(create.GitCommitHash);
-            item.GitBranch.Should().Be(create.GitBranch);
-            item.BuildNumber.Should().Be(create.BuildNumber);
-            item.BackendImageTag.Should().Be(create.BackendImageTag);
-            item.FrontendImageTag.Should().Be(create.FrontendImageTag);
-            item.StartedAt.Should().Be(create.StartedAt);
-            item.CompletedAt.Should().Be(create.CompletedAt);
-            item.DurationSeconds.Should().Be(create.DurationSeconds);
-            item.BuildLog.Should().Be(create.BuildLog);
-            item.DeployLog.Should().Be(create.DeployLog);
-            item.ErrorMessage.Should().Be(create.ErrorMessage);
-            item.TriggeredByUserId.Should().Be(create.TriggeredByUserId);
-            item.TriggeredByUser.Should().Be(create.TriggeredByUser);
-            item.TriggerType.Should().Be(create.TriggerType);
-            item.AttemptNumber.Should().Be(create.AttemptNumber);
-            item.Status.Should().Be(create.Status);
-            item.GitBranch.Should().Be(create.GitBranch);
-            item.BackendImageTag.Should().Be(create.BackendImageTag);
-            item.FrontendImageTag.Should().Be(create.FrontendImageTag);
-            item.StartedAt.Should().Be(create.StartedAt);
-            item.CompletedAt.Should().Be(create.CompletedAt);
-            item.DurationSeconds.Should().Be(create.DurationSeconds);
-            item.TriggerType.Should().Be(create.TriggerType);
-            item.ErrorMessage.Should().Be(create.ErrorMessage);
-            item.CloudDeploymentId.Should().Be(create.CloudDeploymentId);
-            item.DeploymentName.Should().Be(create.DeploymentName);
-            item.Status.Should().Be(create.Status);
-            item.CheckedAt.Should().Be(create.CheckedAt);
-            item.ApiHealthy.Should().Be(create.ApiHealthy);
-            item.FrontendHealthy.Should().Be(create.FrontendHealthy);
-            item.DatabaseHealthy.Should().Be(create.DatabaseHealthy);
-            item.ApiResponseTimeMs.Should().Be(create.ApiResponseTimeMs);
-            item.FrontendResponseTimeMs.Should().Be(create.FrontendResponseTimeMs);
-            item.DatabaseResponseTimeMs.Should().Be(create.DatabaseResponseTimeMs);
-            item.ApiResponse.Should().Be(create.ApiResponse);
-            item.FrontendResponse.Should().Be(create.FrontendResponse);
-            item.ErrorDetails.Should().Be(create.ErrorDetails);
-            item.DeploymentId.Should().Be(create.DeploymentId);
-            item.Success.Should().Be(create.Success);
-            item.OverallStatus.Should().Be(create.OverallStatus);
-            item.CheckedAt.Should().Be(create.CheckedAt);
-            item.Api.Should().Be(create.Api);
-            item.Frontend.Should().Be(create.Frontend);
-            item.Database.Should().Be(create.Database);
-            item.Message.Should().Be(create.Message);
-            item.Healthy.Should().Be(create.Healthy);
-            item.ResponseTimeMs.Should().Be(create.ResponseTimeMs);
-            item.Response.Should().Be(create.Response);
-            item.Error.Should().Be(create.Error);
-            item.TotalProviders.Should().Be(create.TotalProviders);
-            item.ActiveProviders.Should().Be(create.ActiveProviders);
-            item.TotalDeployments.Should().Be(create.TotalDeployments);
-            item.RunningDeployments.Should().Be(create.RunningDeployments);
-            item.HealthyDeployments.Should().Be(create.HealthyDeployments);
-            item.FailedDeployments.Should().Be(create.FailedDeployments);
-            item.Name.Should().Be(create.Name);
-            item.ProviderType.Should().Be(create.ProviderType);
-            item.Status.Should().Be(create.Status);
-            item.HealthStatus.Should().Be(create.HealthStatus);
-            item.FrontendUrl.Should().Be(create.FrontendUrl);
-            item.DeployedAt.Should().Be(create.DeployedAt);
-
-            var getRes = await _client.GetAsync($"/api/clouddeployment/{{item.Id}}");
+            var getRes = await _client.GetAsync($"/api/clouddeployment/{id}");
             getRes.StatusCode.Should().Be(HttpStatusCode.OK);
             var patch = new
             {
@@ -368,11 +204,11 @@ namespace CRM.Backend.Tests.Integration.Controllers
                 HealthyDeployments = 1,
                 FailedDeployments = 1
             };
-            var pRes = await _client.PatchAsJsonAsync($"/api/clouddeployment/{{item.Id}}", patch);
+            var pRes = await _client.PatchAsJsonAsync($"/api/clouddeployment/{id}", patch);
             pRes.StatusCode.Should().Be(HttpStatusCode.OK);
-            var del = await _client.DeleteAsync($"/api/clouddeployment/{{item.Id}}");
+            var del = await _client.DeleteAsync($"/api/clouddeployment/{id}");
             del.StatusCode.Should().Be(HttpStatusCode.NoContent);
-            var nf = await _client.GetAsync($"/api/clouddeployment/{{item.Id}}");
+            var nf = await _client.GetAsync($"/api/clouddeployment/{id}");
             nf.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
 
@@ -384,4 +220,3 @@ namespace CRM.Backend.Tests.Integration.Controllers
         }
     }
 }
-

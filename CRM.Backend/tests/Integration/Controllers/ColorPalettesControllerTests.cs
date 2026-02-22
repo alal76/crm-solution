@@ -1,7 +1,14 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This software is source-available. Non-commercial use is permitted under
+// the terms of the LICENSE file. Commercial use requires a separate license.
+// See the LICENSE file in the root directory for full terms.
 using CRM.Tests.Helpers;
 using FluentAssertions;
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
 using Xunit;
 
 namespace CRM.Backend.Tests.Integration.Controllers
@@ -36,28 +43,10 @@ namespace CRM.Backend.Tests.Integration.Controllers
             };
             var cRes = await _client.PostAsJsonAsync("/api/colorpalettes", create);
             cRes.StatusCode.Should().Be(HttpStatusCode.Created);
-            var item = (await cRes.Content.ReadFromJsonAsync<dynamic>())!;
+            var item = await cRes.Content.ReadFromJsonAsync<JsonElement>();
+            var id = item.GetProperty("id").GetInt32();
 
-            item.Name.Should().Be(create.Name);
-            item.Description.Should().Be(create.Description);
-            item.PrimaryColor.Should().Be(create.PrimaryColor);
-            item.SecondaryColor.Should().Be(create.SecondaryColor);
-            item.SuccessColor.Should().Be(create.SuccessColor);
-            item.WarningColor.Should().Be(create.WarningColor);
-            item.ErrorColor.Should().Be(create.ErrorColor);
-            item.InfoColor.Should().Be(create.InfoColor);
-            item.BackgroundLight.Should().Be(create.BackgroundLight);
-            item.BackgroundDark.Should().Be(create.BackgroundDark);
-            item.TextLight.Should().Be(create.TextLight);
-            item.TextDark.Should().Be(create.TextDark);
-            item.BorderColor.Should().Be(create.BorderColor);
-            item.IsDefault.Should().Be(create.IsDefault);
-            item.IsActive.Should().Be(create.IsActive);
-            item.Category.Should().Be(create.Category);
-            item.IsUserDefined.Should().Be(create.IsUserDefined);
-            item.Name.Should().Be(create.Name);
-
-            var getRes = await _client.GetAsync($"/api/colorpalettes/{{item.Id}}");
+            var getRes = await _client.GetAsync($"/api/colorpalettes/{id}");
             getRes.StatusCode.Should().Be(HttpStatusCode.OK);
             var patch = new
             {
@@ -79,11 +68,11 @@ namespace CRM.Backend.Tests.Integration.Controllers
                 Category = "Test",
                 IsUserDefined = true
             };
-            var pRes = await _client.PatchAsJsonAsync($"/api/colorpalettes/{{item.Id}}", patch);
+            var pRes = await _client.PatchAsJsonAsync($"/api/colorpalettes/{id}", patch);
             pRes.StatusCode.Should().Be(HttpStatusCode.OK);
-            var del = await _client.DeleteAsync($"/api/colorpalettes/{{item.Id}}");
+            var del = await _client.DeleteAsync($"/api/colorpalettes/{id}");
             del.StatusCode.Should().Be(HttpStatusCode.NoContent);
-            var nf = await _client.GetAsync($"/api/colorpalettes/{{item.Id}}");
+            var nf = await _client.GetAsync($"/api/colorpalettes/{id}");
             nf.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
 
@@ -95,4 +84,3 @@ namespace CRM.Backend.Tests.Integration.Controllers
         }
     }
 }
-

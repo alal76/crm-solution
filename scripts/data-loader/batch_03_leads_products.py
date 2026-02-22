@@ -36,8 +36,12 @@ def run(api: ApiClient, log: RunLogger) -> None:
     api.get("/api/leads")
     if lead_ids:
         api.get(f"/api/leads/{lead_ids[0]}")
-        api.put(f"/api/leads/{lead_ids[0]}", {**leads[0], "status": 1, "title": "Sr Director"})
-        api.patch(f"/api/leads/{lead_ids[0]}", {"status": 2})
+        api.put(f"/api/leads/{lead_ids[0]}", {"firstName": "Lead", "lastName": f"One_{ts}",
+             "email": f"lead1_{ts}@prospect.com", "companyName": "ProspectCo",
+             "phone": "+1-555-2001", "source": "Website", "status": "Contacted", "title": "Sr Director"})
+        api.put(f"/api/leads/{lead_ids[0]}", {"firstName": "Lead", "lastName": f"One_{ts}",
+             "email": f"lead1_{ts}@prospect.com", "companyName": "ProspectCo",
+             "phone": "+1-555-2001", "source": "Website", "status": "Qualified", "title": "Sr Director"})
     # Delete test
     del_l = {"firstName": "Delete", "lastName": f"Lead_{ts}", "email": f"del_lead_{ts}@test.com",
              "company": "DeleteCo", "status": 0}
@@ -72,7 +76,7 @@ def run(api: ApiClient, log: RunLogger) -> None:
         api.get(f"/api/products/{product_ids[0]}")
         api.put(f"/api/products/{product_ids[0]}", {**products[0], "price": 109999.00})
     # Delete test
-    del_p = {"name": f"DELETE-Product-{ts}", "sku": f"DEL-{ts}", "price": 1.00, "isActive": True, "type": 0}
+    del_p = {"name": f"DELETE-Product-{ts}", "sku": f"DEL-{ts}", "price": 1.00, "category": "Test", "isActive": True, "type": 0}
     code, body, _ = api.post("/api/products", del_p)
     if body and isinstance(body, dict) and body.get("id"):
         api.delete(f"/api/products/{body['id']}")
@@ -87,7 +91,7 @@ def run(api: ApiClient, log: RunLogger) -> None:
         eid = api.create_and_track("productbundles", "/api/productbundles", bundle)
         if eid:
             api.get(f"/api/productbundles/{eid}")
-            api.put(f"/api/productbundles/{eid}", {**bundle, "description": "Updated bundle"})
+            api.put(f"/api/productbundles/{eid}", {**bundle, "id": eid, "description": "Updated bundle"})
             save_ids("productbundles", [eid])
     api.get("/api/productbundles")
 
@@ -99,7 +103,7 @@ def run(api: ApiClient, log: RunLogger) -> None:
     eid = api.create_and_track("pricebooks", "/api/pricebooks", pb)
     if eid:
         api.get(f"/api/pricebooks/{eid}")
-        api.put(f"/api/pricebooks/{eid}", {**pb, "description": "Updated pricing"})
+        api.put(f"/api/pricebooks/{eid}", {**pb, "id": eid, "description": "Updated pricing"})
         save_ids("pricebooks", [eid])
     api.get("/api/pricebooks")
 
@@ -107,23 +111,24 @@ def run(api: ApiClient, log: RunLogger) -> None:
     log.section("LeadRoutingRules CRUD")
     user_ids = load_ids("users")
     lr = {"name": f"Route-Web-Leads-{ts}", "description": "Route web leads to sales",
-          "isActive": True, "priority": 1, "criteria": "source == 'Website'",
-          "assignToUserId": user_ids[0] if user_ids else 1}
-    eid = api.create_and_track("leadroutingrules", "/api/leadrouting", lr)
+          "status": 0, "priority": 1, "assignmentType": 0,
+          "assignToTeam": False, "sendNotification": True,
+          "fallbackOwnerId": user_ids[0] if user_ids else 1}
+    eid = api.create_and_track("leadroutingrules", "/api/leadrouting/rules", lr)
     if eid:
-        api.get(f"/api/leadrouting/{eid}")
+        api.get(f"/api/leadrouting/rules/{eid}")
         save_ids("leadroutingrules", [eid])
-    api.get("/api/leadrouting")
+    api.get("/api/leadrouting/rules")
 
     # ---- Lead Score Rules ----
     log.section("LeadScoreRules CRUD")
     lsr = {"name": f"HighValue-Score-{ts}", "description": "Score for high value leads",
-           "field": "company", "operator": "contains", "value": "Corp",
-           "score": 25, "isActive": True}
-    eid = api.create_and_track("leadscorerules", "/api/leadscorerules", lsr)
+           "ruleType": 0, "fieldName": "CompanyName", "operator": 2, "value": "Corp",
+           "scoreImpact": 25, "isActive": True, "priority": 50, "category": "Attributes"}
+    eid = api.create_and_track("leadscorerules", "/api/admin/leadscorerules", lsr)
     if eid:
-        api.get(f"/api/leadscorerules/{eid}")
+        api.get(f"/api/admin/leadscorerules/{eid}")
         save_ids("leadscorerules", [eid])
-    api.get("/api/leadscorerules")
+    api.get("/api/admin/leadscorerules")
 
     print(f"  Batch 03 done: {log.summary_line()}")

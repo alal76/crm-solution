@@ -18,10 +18,14 @@ public abstract class CrmPluginBase
 {
     #region Fields
 
+#pragma warning disable SA1401 // Fields should be private (protected field in abstract base class by design)
+
     /// <summary>
     /// Logger available to all derived plugins.
     /// </summary>
     protected readonly ILogger Logger;
+
+#pragma warning restore SA1401
 
     /// <summary>
     /// Shared JSON serializer options for consistent output formatting.

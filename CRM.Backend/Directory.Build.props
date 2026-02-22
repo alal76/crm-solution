@@ -21,7 +21,7 @@
     
     <!-- Documentation -->
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <NoWarn>$(NoWarn);1591</NoWarn> <!-- Missing XML comment -->
+    <NoWarn>$(NoWarn);1591;AD0001</NoWarn> <!-- Missing XML comment; StyleCop analyzer crash on RecordDeclaration (upstream bug) -->
     
     <!-- Build settings -->
     <LangVersion>latest</LangVersion>

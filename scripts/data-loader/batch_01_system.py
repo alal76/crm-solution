@@ -70,7 +70,7 @@ def run(api: ApiClient, log: RunLogger) -> None:
     api.get("/api/usergroups")
     # Link: add user to group
     if group_ids and user_ids:
-        api.post(f"/api/usergroups/{group_ids[0]}/members", {"userId": user_ids[0]})
+        api.post(f"/api/usergroups/{group_ids[0]}/members/{user_ids[0]}", None)
         api.get(f"/api/usergroups/{group_ids[0]}/members")
         # Unlink
         api.delete(f"/api/usergroups/{group_ids[0]}/members/{user_ids[0]}")
@@ -99,8 +99,8 @@ def run(api: ApiClient, log: RunLogger) -> None:
 
     # ---- Feature Flags ----
     log.section("FeatureFlags")
-    api.get("/api/features")
-    api.get("/api/featureflagmanagement")
+    api.get("/api/admin/features")
+    api.get("/api/feature-flags")
 
     # ---- Branding ----
     log.section("Branding")
@@ -113,7 +113,7 @@ def run(api: ApiClient, log: RunLogger) -> None:
 
     # ---- Lookups ----
     log.section("Lookups")
-    api.get("/api/lookups")
+    api.get("/api/lookups/categories")
 
     # ---- Module UI Config ----
     log.section("ModuleUIConfig")
@@ -121,16 +121,17 @@ def run(api: ApiClient, log: RunLogger) -> None:
 
     # ---- Navigation ----
     log.section("Navigation")
-    api.get("/api/navigation")
+    api.get("/api/navigation/config")
 
     # ---- Admin Dashboard ----
     log.section("AdminDashboard")
     api.get("/api/admin/dashboard")
     api.get("/api/admin/statistics")
     api.get("/api/admin/modules/status")
+    api.get("/api/admin/health")
 
     # ---- Health ----
     log.section("Health Endpoints")
-    api.get("/api/health")  # Note: health endpoints may not need auth
+    api.get("/health")  # Note: health endpoints do not need auth (no /api prefix)
 
     print(f"  Batch 01 done: {log.summary_line()}")

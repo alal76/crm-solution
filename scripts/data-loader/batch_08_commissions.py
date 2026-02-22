@@ -22,11 +22,11 @@ def run(api: ApiClient, log: RunLogger) -> None:
     log.section("CommissionPlans CRUD")
     plans = [
         {"name": f"Standard Sales Commission {ts}", "description": "Standard 10% commission",
-         "commissionType": 0, "rate": 10.0, "isActive": True,
+         "commissionType": 0, "trigger": 0, "baseRate": 10.0, "isActive": True,
          "effectiveStartDate": "2026-01-01T00:00:00Z",
          "effectiveEndDate": "2026-12-31T23:59:59Z"},
         {"name": f"Enterprise Bonus Plan {ts}", "description": "15% for enterprise deals",
-         "commissionType": 1, "rate": 15.0, "isActive": True,
+         "commissionType": 1, "trigger": 1, "baseRate": 15.0, "isActive": True,
          "effectiveStartDate": "2026-01-01T00:00:00Z",
          "effectiveEndDate": "2026-12-31T23:59:59Z"},
     ]
@@ -38,14 +38,15 @@ def run(api: ApiClient, log: RunLogger) -> None:
     api.get("/api/commissionplans")
     if plan_ids:
         api.get(f"/api/commissionplans/{plan_ids[0]}")
-        api.put(f"/api/commissionplans/{plan_ids[0]}", {**plans[0], "rate": 12.0})
+        api.put(f"/api/commissionplans/{plan_ids[0]}", {**plans[0], "baseRate": 12.0})
         # Activate/deactivate
         api.post(f"/api/commissionplans/{plan_ids[0]}/activate")
         # Assign to user
         if user_ids:
             api.post(f"/api/commissionplans/{plan_ids[0]}/assign/{user_ids[0]}")
         # Tiers
-        tier = {"planId": plan_ids[0], "minAmount": 0, "maxAmount": 100000, "rate": 10.0}
+        tier = {"tierLevel": 1, "minValue": 0, "maxValue": 100000, "rate": 10.0,
+                "minimumAmount": 0, "maximumAmount": 100000, "commissionRate": 10.0, "sequence": 1}
         api.post(f"/api/commissionplans/{plan_ids[0]}/tiers", tier)
         api.get(f"/api/commissionplans/{plan_ids[0]}/tiers")
     save_ids("commissionplans", plan_ids)
@@ -54,17 +55,16 @@ def run(api: ApiClient, log: RunLogger) -> None:
     log.section("Commissions CRUD")
     comm_ids = []
     if user_ids:
-        comm = {"userId": user_ids[0], "amount": 25000, "status": 0,
-                "commissionDate": "2026-02-22T00:00:00Z",
-                "description": f"Commission for Q1 sales {ts}",
-                "opportunityId": opp_ids[0] if opp_ids else None,
-                "planId": plan_ids[0] if plan_ids else None}
+        comm = {"userId": user_ids[0], "commissionPlanId": plan_ids[0] if plan_ids else None,
+                "dealAmount": 25000, "commissionRate": 0.10, "commissionAmount": 2500,
+                "notes": f"Commission for Q1 sales {ts}",
+                "opportunityId": opp_ids[0] if opp_ids else None}
         payload = {k: v for k, v in comm.items() if v is not None}
         eid = api.create_and_track("commissions", "/api/commissions", payload)
         if eid:
             comm_ids.append(eid)
             api.get(f"/api/commissions/{eid}")
-            api.put(f"/api/commissions/{eid}", {**payload, "amount": 27500})
+            api.put(f"/api/commissions/{eid}", {"dealAmount": 27500, "commissionAmount": 2750})
             api.patch(f"/api/commissions/{eid}/status", {"status": 1})
     api.get("/api/commissions")
     api.get("/api/commissions/statistics")
@@ -73,7 +73,7 @@ def run(api: ApiClient, log: RunLogger) -> None:
     api.get("/api/commissions/ready-for-payout")
     if user_ids:
         api.get(f"/api/commissions/user/{user_ids[0]}")
-        api.get(f"/api/commissions/summary/{user_ids[0]}")
+        api.get(f"/api/commissions/summary/{user_ids[0]}?fromDate=2026-01-01T00:00:00Z&toDate=2026-12-31T23:59:59Z")
         api.get(f"/api/commissions/forecast/{user_ids[0]}")
     save_ids("commissions", comm_ids)
 
@@ -107,7 +107,8 @@ def run(api: ApiClient, log: RunLogger) -> None:
     api.get("/api/territories")
     if territory_ids:
         api.get(f"/api/territories/{territory_ids[0]}")
-        api.put(f"/api/territories/{territory_ids[0]}", {**territories[0], "description": "Updated NA territory"})
+        api.put(f"/api/territories/{territory_ids[0]}", {"id": territory_ids[0], "territoryName": f"North America {ts}", "description": "Updated NA territory",
+         "isActive": True, "region": "NA"})
     save_ids("territories", territory_ids)
 
     # ---- Teams ----
@@ -117,10 +118,10 @@ def run(api: ApiClient, log: RunLogger) -> None:
     eid = api.create_and_track("teams", "/api/teams", team)
     if eid:
         api.get(f"/api/teams/{eid}")
-        api.put(f"/api/teams/{eid}", {**team, "description": "Updated enterprise team"})
+        api.put(f"/api/teams/{eid}", {"id": eid, **team, "description": "Updated enterprise team"})
         # Add member
         if user_ids:
-            api.post(f"/api/teams/{eid}/members", {"userId": user_ids[0], "role": "Member"})
+            api.post(f"/api/teams/{eid}/members", {"userId": user_ids[0], "role": 0})
             api.get(f"/api/teams/{eid}/members")
         # Add account
         if acct_ids:

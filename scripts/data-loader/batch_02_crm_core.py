@@ -17,19 +17,19 @@ def run(api: ApiClient, log: RunLogger) -> None:
     # ---- Accounts ----
     log.section("Accounts CRUD")
     accounts = [
-        {"name": f"Acme Corp {ts}", "industry": "Technology", "website": "https://acme.example.com",
-         "phone": "+1-555-0101", "email": f"info_{ts}@acme.example.com", "type": 1,
+        {"company": f"Acme Corp {ts}", "industry": "Technology", "website": "https://acme.example.com",
+         "phone": "+1-555-0101", "email": f"info_{ts}@acme.example.com", "accountType": 1, "category": 1,
          "annualRevenue": 5000000, "numberOfEmployees": 250, "description": "Test account 1"},
-        {"name": f"Global Industries {ts}", "industry": "Manufacturing", "website": "https://global.example.com",
-         "phone": "+1-555-0102", "email": f"info_{ts}@global.example.com", "type": 1,
+        {"company": f"Global Industries {ts}", "industry": "Manufacturing", "website": "https://global.example.com",
+         "phone": "+1-555-0102", "email": f"info_{ts}@global.example.com", "accountType": 1, "category": 1,
          "annualRevenue": 10000000, "numberOfEmployees": 500, "description": "Test account 2"},
-        {"name": f"TechStart Inc {ts}", "industry": "Software", "website": "https://techstart.example.com",
-         "phone": "+1-555-0103", "email": f"info_{ts}@techstart.example.com", "type": 1,
+        {"company": f"TechStart Inc {ts}", "industry": "Software", "website": "https://techstart.example.com",
+         "phone": "+1-555-0103", "email": f"info_{ts}@techstart.example.com", "accountType": 1, "category": 1,
          "annualRevenue": 1000000, "numberOfEmployees": 50, "description": "Test account 3"},
-        {"name": f"ConsultPro LLC {ts}", "industry": "Consulting", "type": 1,
+        {"company": f"ConsultPro LLC {ts}", "industry": "Consulting", "accountType": 1, "category": 1,
          "phone": "+1-555-0104", "email": f"info_{ts}@consultpro.example.com",
          "annualRevenue": 2000000, "numberOfEmployees": 100},
-        {"name": f"RetailMax {ts}", "industry": "Retail", "type": 1,
+        {"company": f"RetailMax {ts}", "industry": "Retail", "accountType": 1, "category": 1,
          "phone": "+1-555-0105", "email": f"info_{ts}@retailmax.example.com",
          "annualRevenue": 8000000, "numberOfEmployees": 800},
     ]
@@ -48,7 +48,7 @@ def run(api: ApiClient, log: RunLogger) -> None:
     api.get("/api/accounts/organizations")
 
     # Delete test
-    del_payload = {"name": f"DELETE-Acct-{ts}", "industry": "Test", "type": 1,
+    del_payload = {"company": f"DELETE-Acct-{ts}", "industry": "Test", "accountType": 1, "category": 1,
                    "email": f"del_{ts}@test.com"}
     code, body, _ = api.post("/api/accounts", del_payload)
     if body and isinstance(body, dict) and body.get("id"):
@@ -58,19 +58,16 @@ def run(api: ApiClient, log: RunLogger) -> None:
     # ---- Contacts ----
     log.section("Contacts CRUD")
     contacts = [
-        {"firstName": "John", "lastName": f"Smith_{ts}", "email": f"john.smith_{ts}@acme.example.com",
-         "phone": "+1-555-1001", "title": "VP Sales", "contactType": 0,
-         "accountId": acct_ids[0] if acct_ids else None},
-        {"firstName": "Jane", "lastName": f"Doe_{ts}", "email": f"jane.doe_{ts}@global.example.com",
-         "phone": "+1-555-1002", "title": "CTO", "contactType": 0,
-         "accountId": acct_ids[1] if len(acct_ids) > 1 else None},
-        {"firstName": "Bob", "lastName": f"Johnson_{ts}", "email": f"bob.j_{ts}@techstart.example.com",
-         "phone": "+1-555-1003", "title": "CEO", "contactType": 0,
-         "accountId": acct_ids[2] if len(acct_ids) > 2 else None},
-        {"firstName": "Alice", "lastName": f"Williams_{ts}", "email": f"alice.w_{ts}@example.com",
-         "phone": "+1-555-1004", "title": "Director", "contactType": 0},
-        {"firstName": "Charlie", "lastName": f"Brown_{ts}", "email": f"charlie.b_{ts}@example.com",
-         "phone": "+1-555-1005", "title": "Manager", "contactType": 0},
+        {"firstName": "John", "lastName": f"Smith_{ts}", "emailPrimary": f"john.smith_{ts}@acme.example.com",
+         "phonePrimary": "+1-555-1001", "jobTitle": "VP Sales", "contactType": "Customer"},
+        {"firstName": "Jane", "lastName": f"Doe_{ts}", "emailPrimary": f"jane.doe_{ts}@global.example.com",
+         "phonePrimary": "+1-555-1002", "jobTitle": "CTO", "contactType": "Customer"},
+        {"firstName": "Bob", "lastName": f"Johnson_{ts}", "emailPrimary": f"bob.j_{ts}@techstart.example.com",
+         "phonePrimary": "+1-555-1003", "jobTitle": "CEO", "contactType": "Partner"},
+        {"firstName": "Alice", "lastName": f"Williams_{ts}", "emailPrimary": f"alice.w_{ts}@example.com",
+         "phonePrimary": "+1-555-1004", "jobTitle": "Director", "contactType": "Prospect"},
+        {"firstName": "Charlie", "lastName": f"Brown_{ts}", "emailPrimary": f"charlie.b_{ts}@example.com",
+         "phonePrimary": "+1-555-1005", "jobTitle": "Manager", "contactType": "Customer"},
     ]
     contact_ids = []
     for c in contacts:
@@ -81,9 +78,9 @@ def run(api: ApiClient, log: RunLogger) -> None:
     api.get("/api/contacts")
     if contact_ids:
         api.get(f"/api/contacts/{contact_ids[0]}")
-        api.put(f"/api/contacts/{contact_ids[0]}", {**contacts[0], "title": "SVP Sales"})
+        api.put(f"/api/contacts/{contact_ids[0]}", {**contacts[0], "jobTitle": "SVP Sales"})
     # Delete test
-    del_c = {"firstName": "Delete", "lastName": f"Test_{ts}", "email": f"del_{ts}@test.com", "contactType": 0}
+    del_c = {"firstName": "Delete", "lastName": f"Test_{ts}", "emailPrimary": f"del_{ts}@test.com", "contactType": "Customer"}
     code, body, _ = api.post("/api/contacts", del_c)
     if body and isinstance(body, dict) and body.get("id"):
         api.delete(f"/api/contacts/{body['id']}")

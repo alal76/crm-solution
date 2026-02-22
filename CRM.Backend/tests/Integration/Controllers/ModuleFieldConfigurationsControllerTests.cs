@@ -1,7 +1,14 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This software is source-available. Non-commercial use is permitted under
+// the terms of the LICENSE file. Commercial use requires a separate license.
+// See the LICENSE file in the root directory for full terms.
 using CRM.Tests.Helpers;
 using FluentAssertions;
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
 using Xunit;
 
 namespace CRM.Backend.Tests.Integration.Controllers
@@ -37,59 +44,10 @@ namespace CRM.Backend.Tests.Integration.Controllers
             };
             var cRes = await _client.PostAsJsonAsync("/api/modulefieldconfigurations", create);
             cRes.StatusCode.Should().Be(HttpStatusCode.Created);
-            var item = (await cRes.Content.ReadFromJsonAsync<dynamic>())!;
+            var item = await cRes.Content.ReadFromJsonAsync<JsonElement>();
+            var id = item.GetProperty("id").GetInt32();
 
-            item.ModuleName.Should().Be(create.ModuleName);
-            item.FieldName.Should().Be(create.FieldName);
-            item.FieldLabel.Should().Be(create.FieldLabel);
-            item.FieldType.Should().Be(create.FieldType);
-            item.TabIndex.Should().Be(create.TabIndex);
-            item.TabName.Should().Be(create.TabName);
-            item.DisplayOrder.Should().Be(create.DisplayOrder);
-            item.IsEnabled.Should().Be(create.IsEnabled);
-            item.IsRequired.Should().Be(create.IsRequired);
-            item.GridSize.Should().Be(create.GridSize);
-            item.Placeholder.Should().Be(create.Placeholder);
-            item.HelpText.Should().Be(create.HelpText);
-            item.Options.Should().Be(create.Options);
-            item.ParentField.Should().Be(create.ParentField);
-            item.ParentFieldValue.Should().Be(create.ParentFieldValue);
-            item.IsReorderable.Should().Be(create.IsReorderable);
-            item.IsRequiredConfigurable.Should().Be(create.IsRequiredConfigurable);
-            item.IsHideable.Should().Be(create.IsHideable);
-            item.ModuleName.Should().Be(create.ModuleName);
-            item.FieldName.Should().Be(create.FieldName);
-            item.FieldLabel.Should().Be(create.FieldLabel);
-            item.FieldType.Should().Be(create.FieldType);
-            item.TabIndex.Should().Be(create.TabIndex);
-            item.TabName.Should().Be(create.TabName);
-            item.DisplayOrder.Should().Be(create.DisplayOrder);
-            item.IsEnabled.Should().Be(create.IsEnabled);
-            item.IsRequired.Should().Be(create.IsRequired);
-            item.GridSize.Should().Be(create.GridSize);
-            item.Placeholder.Should().Be(create.Placeholder);
-            item.HelpText.Should().Be(create.HelpText);
-            item.Options.Should().Be(create.Options);
-            item.ParentField.Should().Be(create.ParentField);
-            item.ParentFieldValue.Should().Be(create.ParentFieldValue);
-            item.IsReorderable.Should().Be(create.IsReorderable);
-            item.IsRequiredConfigurable.Should().Be(create.IsRequiredConfigurable);
-            item.IsHideable.Should().Be(create.IsHideable);
-            item.FieldLabel.Should().Be(create.FieldLabel);
-            item.TabIndex.Should().Be(create.TabIndex);
-            item.TabName.Should().Be(create.TabName);
-            item.DisplayOrder.Should().Be(create.DisplayOrder);
-            item.IsEnabled.Should().Be(create.IsEnabled);
-            item.IsRequired.Should().Be(create.IsRequired);
-            item.GridSize.Should().Be(create.GridSize);
-            item.Placeholder.Should().Be(create.Placeholder);
-            item.HelpText.Should().Be(create.HelpText);
-            item.Options.Should().Be(create.Options);
-            item.ModuleName.Should().Be(create.ModuleName);
-            item.TabIndex.Should().Be(create.TabIndex);
-            item.DisplayOrder.Should().Be(create.DisplayOrder);
-
-            var getRes = await _client.GetAsync($"/api/modulefieldconfigurations/{{item.Id}}");
+            var getRes = await _client.GetAsync($"/api/modulefieldconfigurations/{id}");
             getRes.StatusCode.Should().Be(HttpStatusCode.OK);
             var patch = new
             {
@@ -112,11 +70,11 @@ namespace CRM.Backend.Tests.Integration.Controllers
                 IsRequiredConfigurable = true,
                 IsHideable = true
             };
-            var pRes = await _client.PatchAsJsonAsync($"/api/modulefieldconfigurations/{{item.Id}}", patch);
+            var pRes = await _client.PatchAsJsonAsync($"/api/modulefieldconfigurations/{id}", patch);
             pRes.StatusCode.Should().Be(HttpStatusCode.OK);
-            var del = await _client.DeleteAsync($"/api/modulefieldconfigurations/{{item.Id}}");
+            var del = await _client.DeleteAsync($"/api/modulefieldconfigurations/{id}");
             del.StatusCode.Should().Be(HttpStatusCode.NoContent);
-            var nf = await _client.GetAsync($"/api/modulefieldconfigurations/{{item.Id}}");
+            var nf = await _client.GetAsync($"/api/modulefieldconfigurations/{id}");
             nf.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
 
@@ -128,4 +86,3 @@ namespace CRM.Backend.Tests.Integration.Controllers
         }
     }
 }
-

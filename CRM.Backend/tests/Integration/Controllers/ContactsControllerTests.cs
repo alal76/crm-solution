@@ -1,7 +1,14 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This software is source-available. Non-commercial use is permitted under
+// the terms of the LICENSE file. Commercial use requires a separate license.
+// See the LICENSE file in the root directory for full terms.
 using CRM.Tests.Helpers;
 using FluentAssertions;
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
 using Xunit;
 
 namespace CRM.Backend.Tests.Integration.Controllers
@@ -58,112 +65,10 @@ namespace CRM.Backend.Tests.Integration.Controllers
             };
             var cRes = await _client.PostAsJsonAsync("/api/contacts", create);
             cRes.StatusCode.Should().Be(HttpStatusCode.Created);
-            var item = (await cRes.Content.ReadFromJsonAsync<dynamic>())!;
+            var item = await cRes.Content.ReadFromJsonAsync<JsonElement>();
+            var id = item.GetProperty("id").GetInt32();
 
-            item.Platform.Should().Be(create.Platform);
-            item.Url.Should().Be(create.Url);
-            item.Handle.Should().Be(create.Handle);
-            item.ContactType.Should().Be(create.ContactType);
-            item.FirstName.Should().Be(create.FirstName);
-            item.LastName.Should().Be(create.LastName);
-            item.MiddleName.Should().Be(create.MiddleName);
-            item.EmailPrimary.Should().Be(create.EmailPrimary);
-            item.EmailSecondary.Should().Be(create.EmailSecondary);
-            item.PhonePrimary.Should().Be(create.PhonePrimary);
-            item.PhoneSecondary.Should().Be(create.PhoneSecondary);
-            item.Address.Should().Be(create.Address);
-            item.City.Should().Be(create.City);
-            item.State.Should().Be(create.State);
-            item.Country.Should().Be(create.Country);
-            item.ZipCode.Should().Be(create.ZipCode);
-            item.JobTitle.Should().Be(create.JobTitle);
-            item.Department.Should().Be(create.Department);
-            item.Company.Should().Be(create.Company);
-            item.ReportsTo.Should().Be(create.ReportsTo);
-            item.Notes.Should().Be(create.Notes);
-            item.DateOfBirth.Should().Be(create.DateOfBirth);
-            item.DateAdded.Should().Be(create.DateAdded);
-            item.LastModified.Should().Be(create.LastModified);
-            item.ModifiedBy.Should().Be(create.ModifiedBy);
-            item.Salutation.Should().Be(create.Salutation);
-            item.Suffix.Should().Be(create.Suffix);
-            item.Nickname.Should().Be(create.Nickname);
-            item.Gender.Should().Be(create.Gender);
-            item.PhoneMobile.Should().Be(create.PhoneMobile);
-            item.PhoneFax.Should().Be(create.PhoneFax);
-            item.Website.Should().Be(create.Website);
-            item.LinkedInUrl.Should().Be(create.LinkedInUrl);
-            item.TwitterHandle.Should().Be(create.TwitterHandle);
-            item.DoNotContact.Should().Be(create.DoNotContact);
-            item.PreferredContactMethod.Should().Be(create.PreferredContactMethod);
-            item.LeadStatus.Should().Be(create.LeadStatus);
-            item.AccountId.Should().Be(create.AccountId);
-            item.Status.Should().Be(create.Status);
-            item.ContactType.Should().Be(create.ContactType);
-            item.FirstName.Should().Be(create.FirstName);
-            item.LastName.Should().Be(create.LastName);
-            item.MiddleName.Should().Be(create.MiddleName);
-            item.EmailPrimary.Should().Be(create.EmailPrimary);
-            item.EmailSecondary.Should().Be(create.EmailSecondary);
-            item.PhonePrimary.Should().Be(create.PhonePrimary);
-            item.PhoneSecondary.Should().Be(create.PhoneSecondary);
-            item.Address.Should().Be(create.Address);
-            item.City.Should().Be(create.City);
-            item.State.Should().Be(create.State);
-            item.Country.Should().Be(create.Country);
-            item.ZipCode.Should().Be(create.ZipCode);
-            item.JobTitle.Should().Be(create.JobTitle);
-            item.Department.Should().Be(create.Department);
-            item.Company.Should().Be(create.Company);
-            item.ReportsTo.Should().Be(create.ReportsTo);
-            item.Notes.Should().Be(create.Notes);
-            item.DateOfBirth.Should().Be(create.DateOfBirth);
-            item.Salutation.Should().Be(create.Salutation);
-            item.Suffix.Should().Be(create.Suffix);
-            item.Nickname.Should().Be(create.Nickname);
-            item.Gender.Should().Be(create.Gender);
-            item.PhoneMobile.Should().Be(create.PhoneMobile);
-            item.PhoneFax.Should().Be(create.PhoneFax);
-            item.Website.Should().Be(create.Website);
-            item.LinkedInUrl.Should().Be(create.LinkedInUrl);
-            item.TwitterHandle.Should().Be(create.TwitterHandle);
-            item.DoNotContact.Should().Be(create.DoNotContact);
-            item.PreferredContactMethod.Should().Be(create.PreferredContactMethod);
-            item.ContactType.Should().Be(create.ContactType);
-            item.FirstName.Should().Be(create.FirstName);
-            item.LastName.Should().Be(create.LastName);
-            item.MiddleName.Should().Be(create.MiddleName);
-            item.EmailPrimary.Should().Be(create.EmailPrimary);
-            item.EmailSecondary.Should().Be(create.EmailSecondary);
-            item.PhonePrimary.Should().Be(create.PhonePrimary);
-            item.PhoneSecondary.Should().Be(create.PhoneSecondary);
-            item.Address.Should().Be(create.Address);
-            item.City.Should().Be(create.City);
-            item.State.Should().Be(create.State);
-            item.Country.Should().Be(create.Country);
-            item.ZipCode.Should().Be(create.ZipCode);
-            item.JobTitle.Should().Be(create.JobTitle);
-            item.Department.Should().Be(create.Department);
-            item.Company.Should().Be(create.Company);
-            item.ReportsTo.Should().Be(create.ReportsTo);
-            item.Notes.Should().Be(create.Notes);
-            item.DateOfBirth.Should().Be(create.DateOfBirth);
-            item.Salutation.Should().Be(create.Salutation);
-            item.Suffix.Should().Be(create.Suffix);
-            item.Nickname.Should().Be(create.Nickname);
-            item.Gender.Should().Be(create.Gender);
-            item.PhoneMobile.Should().Be(create.PhoneMobile);
-            item.PhoneFax.Should().Be(create.PhoneFax);
-            item.Website.Should().Be(create.Website);
-            item.LinkedInUrl.Should().Be(create.LinkedInUrl);
-            item.TwitterHandle.Should().Be(create.TwitterHandle);
-            item.DoNotContact.Should().Be(create.DoNotContact);
-            item.PreferredContactMethod.Should().Be(create.PreferredContactMethod);
-            item.Platform.Should().Be(create.Platform);
-            item.Url.Should().Be(create.Url);
-            item.Handle.Should().Be(create.Handle);
-
-            var getRes = await _client.GetAsync($"/api/contacts/{{item.Id}}");
+            var getRes = await _client.GetAsync($"/api/contacts/{id}");
             getRes.StatusCode.Should().Be(HttpStatusCode.OK);
             var patch = new
             {
@@ -207,11 +112,11 @@ namespace CRM.Backend.Tests.Integration.Controllers
                 AccountId = 1,
                 Status = "Test"
             };
-            var pRes = await _client.PatchAsJsonAsync($"/api/contacts/{{item.Id}}", patch);
+            var pRes = await _client.PatchAsJsonAsync($"/api/contacts/{id}", patch);
             pRes.StatusCode.Should().Be(HttpStatusCode.OK);
-            var del = await _client.DeleteAsync($"/api/contacts/{{item.Id}}");
+            var del = await _client.DeleteAsync($"/api/contacts/{id}");
             del.StatusCode.Should().Be(HttpStatusCode.NoContent);
-            var nf = await _client.GetAsync($"/api/contacts/{{item.Id}}");
+            var nf = await _client.GetAsync($"/api/contacts/{id}");
             nf.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
 
@@ -223,4 +128,3 @@ namespace CRM.Backend.Tests.Integration.Controllers
         }
     }
 }
-

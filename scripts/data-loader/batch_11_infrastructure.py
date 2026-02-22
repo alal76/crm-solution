@@ -34,8 +34,8 @@ def run(api: ApiClient, log: RunLogger) -> None:
 
     # ---- Performance Monitoring ----
     log.section("PerformanceMonitoring")
-    api.get("/api/performancemonitoring/metrics")
-    api.get("/api/performancemonitoring/slow-queries")
+    api.get("/api/performance/metrics")
+    api.get("/api/performance/slow-queries")
 
     # ---- Calendar Integration ----
     log.section("CalendarIntegration")
@@ -43,15 +43,16 @@ def run(api: ApiClient, log: RunLogger) -> None:
 
     # ---- Email Integration ----
     log.section("EmailIntegration")
-    api.get("/api/emailintegration/status")
+    api.get("/api/email/status")
 
     # ---- UI Preferences ----
     log.section("UIPreferences CRUD")
     pref = {"theme": "dark", "language": "en", "density": "comfortable",
             "sidebarCollapsed": False, "dashboardLayout": "default"}
-    api.post("/api/uipreferences", pref)
-    api.get("/api/uipreferences")
-    api.put("/api/uipreferences", {**pref, "theme": "light"})
+    api.post("/api/ui-preferences", pref)
+    api.get("/api/ui-preferences")
+    # No PUT exists on this controller; use POST to save/update
+    api.post("/api/ui-preferences", {**pref, "theme": "light"})
 
     # ---- User Profiles ----
     log.section("UserProfiles")
@@ -68,11 +69,13 @@ def run(api: ApiClient, log: RunLogger) -> None:
 
     # ---- Field Master Data ----
     log.section("FieldMasterData")
-    api.get("/api/fieldmasterdata")
+    # No base GET exists. Available: GET /field/{fieldConfigurationId}, GET /module/{moduleName}, GET /{id}
+    api.get("/api/fieldmasterdata/module/Accounts")
 
     # ---- Module Field Configurations ----
     log.section("ModuleFieldConfigurations")
-    api.get("/api/modulefieldconfigurations")
+    # No base GET exists. Available: GET /{moduleName}, GET /config/{id}
+    api.get("/api/modulefieldconfigurations/Accounts")
 
     # ---- Duplicates ----
     log.section("Duplicates")
@@ -124,15 +127,15 @@ def run(api: ApiClient, log: RunLogger) -> None:
 
     # ---- News/Social ----
     log.section("NewsSocial")
-    api.get("/api/newssocial/feed")
+    api.get("/api/news-social/feed")
 
     # ---- Worker Health ----
     log.section("WorkerHealth")
-    api.get("/api/workerhealth")
+    api.get("/api/workers")
 
     # ---- Worker Control ----
     log.section("WorkerControl")
-    api.get("/api/workercontrol/status")
+    api.get("/api/workers/control/status")
 
     # ---- Provider Health ----
     log.section("ProviderHealth")

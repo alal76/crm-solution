@@ -1,7 +1,14 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This software is source-available. Non-commercial use is permitted under
+// the terms of the LICENSE file. Commercial use requires a separate license.
+// See the LICENSE file in the root directory for full terms.
 using CRM.Tests.Helpers;
 using FluentAssertions;
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
 using Xunit;
 
 namespace CRM.Backend.Tests.Integration.Controllers
@@ -53,75 +60,10 @@ namespace CRM.Backend.Tests.Integration.Controllers
             };
             var cRes = await _client.PostAsJsonAsync("/api/moduleuiconfig", create);
             cRes.StatusCode.Should().Be(HttpStatusCode.Created);
-            var item = (await cRes.Content.ReadFromJsonAsync<dynamic>())!;
+            var item = await cRes.Content.ReadFromJsonAsync<JsonElement>();
+            var id = item.GetProperty("id").GetInt32();
 
-            item.ModuleName.Should().Be(create.ModuleName);
-            item.IsEnabled.Should().Be(create.IsEnabled);
-            item.Description.Should().Be(create.Description);
-            item.IconName.Should().Be(create.IconName);
-            item.DisplayOrder.Should().Be(create.DisplayOrder);
-            item.TabsConfig.Should().Be(create.TabsConfig);
-            item.LinkedEntitiesConfig.Should().Be(create.LinkedEntitiesConfig);
-            item.ListViewConfig.Should().Be(create.ListViewConfig);
-            item.DetailViewConfig.Should().Be(create.DetailViewConfig);
-            item.QuickCreateConfig.Should().Be(create.QuickCreateConfig);
-            item.SearchFilterConfig.Should().Be(create.SearchFilterConfig);
-            item.ModuleSettings.Should().Be(create.ModuleSettings);
-            item.ModuleName.Should().Be(create.ModuleName);
-            item.IsEnabled.Should().Be(create.IsEnabled);
-            item.Description.Should().Be(create.Description);
-            item.IconName.Should().Be(create.IconName);
-            item.DisplayOrder.Should().Be(create.DisplayOrder);
-            item.TabsConfig.Should().Be(create.TabsConfig);
-            item.LinkedEntitiesConfig.Should().Be(create.LinkedEntitiesConfig);
-            item.ListViewConfig.Should().Be(create.ListViewConfig);
-            item.DetailViewConfig.Should().Be(create.DetailViewConfig);
-            item.QuickCreateConfig.Should().Be(create.QuickCreateConfig);
-            item.SearchFilterConfig.Should().Be(create.SearchFilterConfig);
-            item.ModuleSettings.Should().Be(create.ModuleSettings);
-            item.IsEnabled.Should().Be(create.IsEnabled);
-            item.Description.Should().Be(create.Description);
-            item.IconName.Should().Be(create.IconName);
-            item.DisplayOrder.Should().Be(create.DisplayOrder);
-            item.TabsConfig.Should().Be(create.TabsConfig);
-            item.LinkedEntitiesConfig.Should().Be(create.LinkedEntitiesConfig);
-            item.ListViewConfig.Should().Be(create.ListViewConfig);
-            item.DetailViewConfig.Should().Be(create.DetailViewConfig);
-            item.QuickCreateConfig.Should().Be(create.QuickCreateConfig);
-            item.SearchFilterConfig.Should().Be(create.SearchFilterConfig);
-            item.ModuleSettings.Should().Be(create.ModuleSettings);
-            item.Index.Should().Be(create.Index);
-            item.Name.Should().Be(create.Name);
-            item.Enabled.Should().Be(create.Enabled);
-            item.Order.Should().Be(create.Order);
-            item.Icon.Should().Be(create.Icon);
-            item.EntityName.Should().Be(create.EntityName);
-            item.RelationshipType.Should().Be(create.RelationshipType);
-            item.Enabled.Should().Be(create.Enabled);
-            item.TabName.Should().Be(create.TabName);
-            item.DisplayOrder.Should().Be(create.DisplayOrder);
-            item.ForeignKeyField.Should().Be(create.ForeignKeyField);
-            item.Field.Should().Be(create.Field);
-            item.Label.Should().Be(create.Label);
-            item.Width.Should().Be(create.Width);
-            item.Visible.Should().Be(create.Visible);
-            item.Sortable.Should().Be(create.Sortable);
-            item.Order.Should().Be(create.Order);
-            item.Format.Should().Be(create.Format);
-            item.IsEnabled.Should().Be(create.IsEnabled);
-            item.IsRequired.Should().Be(create.IsRequired);
-            item.DisplayOrder.Should().Be(create.DisplayOrder);
-            item.GridSize.Should().Be(create.GridSize);
-            item.FieldType.Should().Be(create.FieldType);
-            item.FieldLabel.Should().Be(create.FieldLabel);
-            item.Placeholder.Should().Be(create.Placeholder);
-            item.HelpText.Should().Be(create.HelpText);
-            item.Options.Should().Be(create.Options);
-            item.ModuleName.Should().Be(create.ModuleName);
-            item.IsEnabled.Should().Be(create.IsEnabled);
-            item.DisplayOrder.Should().Be(create.DisplayOrder);
-
-            var getRes = await _client.GetAsync($"/api/moduleuiconfig/{{item.Id}}");
+            var getRes = await _client.GetAsync($"/api/moduleuiconfig/{id}");
             getRes.StatusCode.Should().Be(HttpStatusCode.OK);
             var patch = new
             {
@@ -160,11 +102,11 @@ namespace CRM.Backend.Tests.Integration.Controllers
                 HelpText = "Test",
                 Options = "Test"
             };
-            var pRes = await _client.PatchAsJsonAsync($"/api/moduleuiconfig/{{item.Id}}", patch);
+            var pRes = await _client.PatchAsJsonAsync($"/api/moduleuiconfig/{id}", patch);
             pRes.StatusCode.Should().Be(HttpStatusCode.OK);
-            var del = await _client.DeleteAsync($"/api/moduleuiconfig/{{item.Id}}");
+            var del = await _client.DeleteAsync($"/api/moduleuiconfig/{id}");
             del.StatusCode.Should().Be(HttpStatusCode.NoContent);
-            var nf = await _client.GetAsync($"/api/moduleuiconfig/{{item.Id}}");
+            var nf = await _client.GetAsync($"/api/moduleuiconfig/{id}");
             nf.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
 
@@ -176,4 +118,3 @@ namespace CRM.Backend.Tests.Integration.Controllers
         }
     }
 }
-

@@ -1,7 +1,14 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This software is source-available. Non-commercial use is permitted under
+// the terms of the LICENSE file. Commercial use requires a separate license.
+// See the LICENSE file in the root directory for full terms.
 using CRM.Tests.Helpers;
 using FluentAssertions;
 using System.Net;
 using System.Net.Http.Json;
+using System.Text.Json;
 using Xunit;
 
 namespace CRM.Backend.Tests.Integration.Controllers
@@ -40,36 +47,10 @@ namespace CRM.Backend.Tests.Integration.Controllers
             };
             var cRes = await _client.PostAsJsonAsync("/api/users", create);
             cRes.StatusCode.Should().Be(HttpStatusCode.Created);
-            var item = (await cRes.Content.ReadFromJsonAsync<dynamic>())!;
+            var item = await cRes.Content.ReadFromJsonAsync<JsonElement>();
+            var id = item.GetProperty("id").GetInt32();
 
-            item.Username.Should().Be(create.Username);
-            item.Email.Should().Be(create.Email);
-            item.FirstName.Should().Be(create.FirstName);
-            item.LastName.Should().Be(create.LastName);
-            item.Role.Should().Be(create.Role);
-            item.IsActive.Should().Be(create.IsActive);
-            item.IsLocked.Should().Be(create.IsLocked);
-            item.DepartmentId.Should().Be(create.DepartmentId);
-            item.DepartmentName.Should().Be(create.DepartmentName);
-            item.UserProfileId.Should().Be(create.UserProfileId);
-            item.UserProfileName.Should().Be(create.UserProfileName);
-            item.PrimaryGroupId.Should().Be(create.PrimaryGroupId);
-            item.PrimaryGroupName.Should().Be(create.PrimaryGroupName);
-            item.ContactId.Should().Be(create.ContactId);
-            item.ContactName.Should().Be(create.ContactName);
-            item.ContactEmail.Should().Be(create.ContactEmail);
-            item.LastLoginDate.Should().Be(create.LastLoginDate);
-            item.HeaderColor.Should().Be(create.HeaderColor);
-            item.PhotoUrl.Should().Be(create.PhotoUrl);
-            item.Email.Should().Be(create.Email);
-            item.FirstName.Should().Be(create.FirstName);
-            item.LastName.Should().Be(create.LastName);
-            item.Password.Should().Be(create.Password);
-            item.RoleId.Should().Be(create.RoleId);
-            item.DepartmentId.Should().Be(create.DepartmentId);
-            item.PrimaryGroupId.Should().Be(create.PrimaryGroupId);
-
-            var getRes = await _client.GetAsync($"/api/users/{{item.Id}}");
+            var getRes = await _client.GetAsync($"/api/users/{id}");
             getRes.StatusCode.Should().Be(HttpStatusCode.OK);
             var patch = new
             {
@@ -95,11 +76,11 @@ namespace CRM.Backend.Tests.Integration.Controllers
                 Password = "Test",
                 RoleId = 1
             };
-            var pRes = await _client.PatchAsJsonAsync($"/api/users/{{item.Id}}", patch);
+            var pRes = await _client.PatchAsJsonAsync($"/api/users/{id}", patch);
             pRes.StatusCode.Should().Be(HttpStatusCode.OK);
-            var del = await _client.DeleteAsync($"/api/users/{{item.Id}}");
+            var del = await _client.DeleteAsync($"/api/users/{id}");
             del.StatusCode.Should().Be(HttpStatusCode.NoContent);
-            var nf = await _client.GetAsync($"/api/users/{{item.Id}}");
+            var nf = await _client.GetAsync($"/api/users/{id}");
             nf.StatusCode.Should().Be(HttpStatusCode.NotFound);
         }
 
@@ -111,4 +92,3 @@ namespace CRM.Backend.Tests.Integration.Controllers
         }
     }
 }
-

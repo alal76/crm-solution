@@ -7,6 +7,7 @@
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
+using CRM.Core.Models;
 using CRM.Infrastructure.Services;
 using CRM.SystemModule.Tests.Helpers;
 using Microsoft.Extensions.Logging;
@@ -48,13 +49,19 @@ public class AdminDashboardServiceTests
         // Setup empty lists for entities
         var users = new List<User>();
         var accounts = new List<Account>();
+        var contacts = new List<Contact>();
         var opportunities = new List<Opportunity>();
+        var leads = new List<Lead>();
         var serviceRequests = new List<ServiceRequest>();
+        var activities = new List<Activity>();
 
         _dbContextMock.Setup(x => x.Users).Returns(users.CreateMockDbSet().Object);
         _dbContextMock.Setup(x => x.Accounts).Returns(accounts.CreateMockDbSet().Object);
+        _dbContextMock.Setup(x => x.Contacts).Returns(contacts.CreateMockDbSet().Object);
         _dbContextMock.Setup(x => x.Opportunities).Returns(opportunities.CreateMockDbSet().Object);
+        _dbContextMock.Setup(x => x.Leads).Returns(leads.CreateMockDbSet().Object);
         _dbContextMock.Setup(x => x.ServiceRequests).Returns(serviceRequests.CreateMockDbSet().Object);
+        _dbContextMock.Setup(x => x.Activities).Returns(activities.CreateMockDbSet().Object);
 
         // Setup provider health
         _providerHealthServiceMock.Setup(x => x.GetProviderHealthDashboardAsync(It.IsAny<CancellationToken>()))

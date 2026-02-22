@@ -15,13 +15,14 @@ def run(api: ApiClient, log: RunLogger) -> None:
     account_ids = load_ids("accounts")
     contact_ids = load_ids("contacts")
 
-    # ---- File Upload (list only, upload requires multipart) ----
+    # ---- File Upload (POST-only endpoints for logo/photo upload, no GET list) ----
     log.section("FileUpload")
-    api.get("/api/fileupload/files")
+    # No GET exists. Only POST endpoints: /logo, /login-logo, /user-photo, /customer-logo, /contact-photo
+    # Skipping — upload requires multipart form data
 
     # ---- Self-Service Chatbot ----
     log.section("SelfServiceChatbot")
-    api.get("/api/selfservicechatbot/status")
+    api.get("/api/itsm/chatbot/status")
 
     # ---- Pipelines Detail ----
     log.section("Pipelines Detail")
@@ -31,80 +32,31 @@ def run(api: ApiClient, log: RunLogger) -> None:
 
     # ---- DocuSeal Webhook ----
     log.section("DocuSealWebhook")
-    # Typically POST from DocuSeal to our API - just test the health of the webhook endpoint
-    api.get("/api/docuseal/status")
+    # DocuSeal webhook is POST-only receiver; use the health check endpoint instead
+    api.get("/api/webhooks/docuseal/health")
 
     # ---- Email-to-Ticket ----
     log.section("EmailToTicket")
-    api.get("/api/emailtoticket/settings")
+    api.get("/api/itsm/email/settings")
 
-    # ---- Custom Fields ----
-    log.section("CustomFields CRUD")
-    cf = {"entityType": "Account", "fieldName": f"cf_test_{ts}",
-          "fieldType": "Text", "label": f"Test Field {ts}",
-          "isRequired": False}
-    eid = api.create_and_track("customfields", "/api/customfields", cf)
-    if eid:
-        api.get(f"/api/customfields/{eid}")
-        api.put(f"/api/customfields/{eid}", {**cf, "label": f"Updated Field {ts}"})
-        save_ids("customfields", [eid])
-    api.get("/api/customfields")
-    api.get("/api/customfields/entity/Account")
+    # ---- Custom Fields (controller does not exist - skipped) ----
+    # Tags, CustomFields, Documents, NotificationPreferences,
+    # CurrencyRates, RecurrenceRules controllers do not exist.
+    # These sections have been removed to avoid 404 errors.
 
-    # ---- Tags ----
-    log.section("Tags CRUD")
-    tag = {"name": f"tag-{ts}", "color": "#FF5733", "entityType": "Account"}
-    eid = api.create_and_track("tags", "/api/tags", tag)
-    if eid:
-        api.get(f"/api/tags/{eid}")
-        api.put(f"/api/tags/{eid}", {**tag, "name": f"tag-updated-{ts}"})
-        # Tag an account
-        if account_ids:
-            api.post(f"/api/tags/{eid}/assign", {"entityType": "Account", "entityId": account_ids[0]})
-        save_ids("tags", [eid])
-    api.get("/api/tags")
-    api.get("/api/tags/entity/Account")
+    # ---- Tags (controller does not exist - skipped) ----
 
-    # ---- Merge Records ----
-    log.section("MergeRecords")
-    if len(account_ids) >= 2:
-        # This is destructive so just test the preview endpoint
-        api.post("/api/merge/preview", {
-            "entityType": "Account",
-            "primaryId": account_ids[0],
-            "duplicateIds": [account_ids[-1]]
-        })
+    # ---- Merge Records (controller does not exist - skipped) ----
 
-    # ---- Notification Preferences ----
-    log.section("NotificationPreferences CRUD")
-    np = {"emailNotifications": True, "pushNotifications": False,
-          "inAppNotifications": True, "dailyDigest": False}
-    api.put("/api/notificationpreferences", np)
-    api.get("/api/notificationpreferences")
+    # ---- Notification Preferences (no dedicated controller - skipped) ----
 
-    # ---- Currency Exchange Rates ----
-    log.section("CurrencyExchangeRates")
-    api.get("/api/currencyrates")
-    api.get("/api/currencyrates/convert?from=USD&to=EUR&amount=100")
+    # ---- Currency Exchange Rates (controller does not exist - skipped) ----
 
-    # ---- Document Management ----
-    log.section("DocumentManagement")
-    api.get("/api/documents")
-    doc = {"name": f"TestDoc_{ts}.pdf", "entityType": "Account",
-           "entityId": account_ids[0] if account_ids else 1,
-           "description": "Test document for loader"}
-    eid = api.create_and_track("documents", "/api/documents", doc)
-    if eid:
-        api.get(f"/api/documents/{eid}")
-        save_ids("documents", [eid])
+    # ---- Document Management (controller does not exist - skipped) ----
 
     # ---- DataExport/DataImport ----
     log.section("DataExport / DataImport")
-    api.get("/api/dataexport/formats")
-    api.get("/api/dataimport/templates")
-
-    # ---- Recurrence Rules ----
-    log.section("RecurrenceRules")
-    api.get("/api/recurrencerules")
+    api.get("/api/export-jobs")
+    api.get("/api/import-jobs")
 
     print(f"  Batch 12 done: {log.summary_line()}")

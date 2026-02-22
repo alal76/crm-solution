@@ -267,7 +267,7 @@ public class AddressTestFixture
 
         public TestAccountBuilder WithPhone(string? phone)
         {
-            _phone = phone;
+            _phone = phone ?? string.Empty;
             return this;
         }
 
@@ -335,7 +335,7 @@ public class AddressTestFixture
                 Id = _id,
                 Email = _email,
                 FirstName = _firstName,
-                LastName = _lastName,
+                LastName = _lastName ?? string.Empty,
                 Phone = _phone,
                 Website = _website,
                 IsDeleted = _isDeleted,
