@@ -25,7 +25,6 @@ import {
   Select,
   MenuItem,
   Chip,
-  Slider,
   Checkbox,
   Paper,
   Collapse,
@@ -34,6 +33,7 @@ import {
   SelectChangeEvent,
   Tabs,
   Tab,
+  Grid,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -49,11 +49,11 @@ import PipelineKanban from '../components/sales/PipelineKanban';
 import apiClient from '../services/apiClient';
 import { getApiErrorMessage } from '../utils/errorHandler';
 import logo from '../assets/logo.png';
-import LookupSelect from '../components/LookupSelect';
-import EntitySelect from '../components/EntitySelect';
+
 import ImportExportButtons from '../components/ImportExportButtons';
 import NotesTab from '../components/NotesTab';
 import AdvancedSearch, { SearchField, SearchFilter, filterData } from '../components/AdvancedSearch';
+import DynamicEntityForm, { ExtraTab } from '../components/DynamicEntityForm';
 import { useAccountContext } from '../contexts/AccountContextProvider';
 import { useProfile } from '../contexts/ProfileContext';
 import { BaseEntity } from '../types';
@@ -175,6 +175,9 @@ function OpportunitiesPage() {
   const [searchFilters, setSearchFilters] = useState<SearchFilter[]>([]);
   const [searchText, setSearchText] = useState('');
   const [viewMode, setViewMode] = useState<'table' | 'kanban'>('table');
+
+  // Dynamic field configuration
+  // Field configuration now handled internally by DynamicEntityForm
   
   // Account contacts for the selected account (for Primary Contact dropdown)
   const [accountContacts, setAccountContacts] = useState<Array<{ id: number; firstName: string; lastName: string; role?: string }>>([]);
@@ -775,252 +778,53 @@ function OpportunitiesPage() {
           status={STAGES.find(s => s.value === formData.stage)?.label}
           statusColor={STAGES.find(s => s.value === formData.stage)?.color}
         />
-        <Box sx={{ borderBottom: 1, borderColor: 'divider', px: 3 }}>
-          <Tabs value={dialogTab} onChange={(_, v) => setDialogTab(v)} aria-label="Opportunity dialog tabs">
-            <Tab label="Opportunity Info" id="opp-tab-0" aria-controls="opp-tabpanel-0" />
-            {editingId && <Tab label="Related" icon={<LinkIcon fontSize="small" />} iconPosition="start" id="opp-tab-1" aria-controls="opp-tabpanel-1" />}
-            <Tab label="Notes" icon={<NoteIcon fontSize="small" />} iconPosition="start" id={editingId ? "opp-tab-2" : "opp-tab-1"} aria-controls={editingId ? "opp-tabpanel-2" : "opp-tabpanel-1"} />
-          </Tabs>
-        </Box>
-        <DialogContent sx={{ pt: 2 }}>
-          {/* Opportunity Info Tab */}
-          {dialogTab === 0 && (
-          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
-            <TextField
-              autoFocus
-              fullWidth
-              label="Name"
-              name="name"
-              value={formData.name}
-              onChange={handleInputChange}
-              margin="normal"
-              required
-            />
-            
-            <Box sx={{ mt: 2 }}>
-              <EntitySelect
-                entityType="account"
-                name="accountId"
-                value={formData.accountId}
-                onChange={handleSelectChange}
-                label="Account"
-                required
-                showAddNew={true}
-              />
-            </Box>
-
-            {/* Primary Contact - filtered by selected account */}
-            <FormControl fullWidth margin="normal">
-              <InputLabel>Primary Contact</InputLabel>
-              <Select
-                name="primaryContactId"
-                value={formData.primaryContactId ?? ''}
-                onChange={handleSelectChange}
-                label="Primary Contact"
-                disabled={!formData.accountId || loadingContacts}
-              >
-                <MenuItem value="">
-                  {loadingContacts ? 'Loading contacts...' : 'None'}
-                </MenuItem>
-                {accountContacts.map(c => (
-                  <MenuItem key={c.id} value={c.id}>
-                    {c.firstName} {c.lastName}{c.role ? ` (${c.role})` : ''}
-                  </MenuItem>
-                ))}
-                {formData.accountId && !loadingContacts && accountContacts.length === 0 && (
-                  <MenuItem disabled>No contacts linked to this account</MenuItem>
-                )}
-              </Select>
-            </FormControl>
-
-            <TextField
-              fullWidth
-              label="Amount"
-              name="amount"
-              type="number"
-              value={formData.amount}
-              onChange={handleInputChange}
-              margin="normal"
-              inputProps={{ step: "0.01", min: 0 }}
-            />
-
-            <FormControl fullWidth margin="normal">
-              <InputLabel>Currency</InputLabel>
-              <Select
-                name="currency"
-                value={formData.currency}
-                onChange={handleSelectChange}
-                label="Currency"
-              >
-                <MenuItem value="USD">USD</MenuItem>
-                <MenuItem value="EUR">EUR</MenuItem>
-                <MenuItem value="GBP">GBP</MenuItem>
-                <MenuItem value="INR">INR</MenuItem>
-                <MenuItem value="CAD">CAD</MenuItem>
-                <MenuItem value="AUD">AUD</MenuItem>
-              </Select>
-            </FormControl>
-
-            <LookupSelect
-              category="OpportunityStage"
-              name="stage"
-              value={formData.stage}
-              onChange={handleSelectChange}
-              label="Stage"
-              fallback={STAGES.map(s => ({ value: s.value, label: s.label }))}
-            />
-
-            <FormControl fullWidth margin="normal">
-              <InputLabel>Pricing Model</InputLabel>
-              <Select
-                name="pricingModel"
-                value={formData.pricingModel}
-                onChange={handleSelectChange}
-                label="Pricing Model"
-              >
-                {PRICING_MODELS.map(pm => (
-                  <MenuItem key={pm.value} value={pm.value}>{pm.label}</MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-
-            <Box sx={{ mt: 2, mb: 1, gridColumn: { xs: '1', md: '1 / -1' } }}>
-              <Typography gutterBottom>Probability: {formData.probability}%</Typography>
-              <Slider
-                value={formData.probability}
-                onChange={handleProbabilityChange}
-                min={0}
-                max={100}
-                step={5}
-                marks={[
-                  { value: 0, label: '0%' },
-                  { value: 50, label: '50%' },
-                  { value: 100, label: '100%' },
-                ]}
-                valueLabelDisplay="auto"
-              />
-            </Box>
-
-            <TextField
-              fullWidth
-              label="Expected Close Date"
-              name="expectedCloseDate"
-              type="date"
-              value={formData.expectedCloseDate}
-              onChange={handleInputChange}
-              margin="normal"
-              InputLabelProps={{ shrink: true }}
-            />
-
-            <TextField
-              fullWidth
-              label="Term Length (Months)"
-              name="termLengthMonths"
-              type="number"
-              value={formData.termLengthMonths}
-              onChange={handleInputChange}
-              margin="normal"
-              inputProps={{ min: 1 }}
-            />
-
-            <TextField
-              fullWidth
-              label="Region"
-              name="region"
-              value={formData.region}
-              onChange={handleInputChange}
-              margin="normal"
-            />
-
-            <FormControl fullWidth margin="normal">
-              <InputLabel>Qualification Reason</InputLabel>
-              <Select
-                name="qualificationReason"
-                value={formData.qualificationReason ?? ''}
-                onChange={handleSelectChange}
-                label="Qualification Reason"
-              >
-                <MenuItem value="">None</MenuItem>
-                {QUALIFICATION_REASONS.map(qr => (
-                  <MenuItem key={qr.value} value={qr.value}>{qr.label}</MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-
-            <Box sx={{ mt: 2 }}>
-              <EntitySelect
-                entityType="user"
-                name="salesOwnerId"
-                value={formData.salesOwnerId || ''}
-                onChange={handleSelectChange}
-                label="Sales Owner (Optional)"
-                showAddNew={false}
-              />
-            </Box>
-
-            <TextField
-              fullWidth
-              label="Solution Notes"
-              name="solutionNotes"
-              value={formData.solutionNotes}
-              onChange={handleInputChange}
-              margin="normal"
-              multiline
-              rows={2}
-              sx={{ gridColumn: { xs: '1', md: '1 / -1' } }}
-            />
-
-            <TextField
-              fullWidth
-              label="Qualification Notes"
-              name="qualificationNotes"
-              value={formData.qualificationNotes}
-              onChange={handleInputChange}
-              margin="normal"
-              multiline
-              rows={2}
-              sx={{ gridColumn: { xs: '1', md: '1 / -1' } }}
-            />
-          </Box>
-          )}
-
-          {/* Related Entities Tab - Only when editing */}
-          {editingId && dialogTab === 1 && (
-            <Box role="tabpanel" id="opp-tabpanel-1" aria-labelledby="opp-tab-1">
-              <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2 }}>
-                Related Records
-              </Typography>
-              <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
-                View quotes, contacts, and activities linked to this opportunity.
-              </Typography>
-              <RelatedEntitiesPanel
-                entityType="opportunity"
-                entityId={editingId}
-                showRelated={['contacts', 'quotes', 'activities']}
-                compact
-                showAddButtons
-              />
-            </Box>
-          )}
-
-          {/* Notes Tab */}
-          {((editingId && dialogTab === 2) || (!editingId && dialogTab === 1)) && (
-            <Box role="tabpanel" id={editingId ? "opp-tabpanel-2" : "opp-tabpanel-1"} aria-labelledby={editingId ? "opp-tab-2" : "opp-tab-1"}>
-              {editingId ? (
-                <NotesTab
-                  entityType="Opportunity"
-                  entityId={editingId}
-                  entityName={formData.name || 'Opportunity'}
-                />
-              ) : (
-                <Alert severity="info" sx={{ mt: 2 }}>
-                  Please save the opportunity first to add notes.
-                </Alert>
-              )}
-            </Box>
-          )}
-
+        <DialogContent sx={{ pt: 0 }}>
           <DialogError error={dialogApi.error} onRetry={() => dialogApi.clearError()} />
+
+          <DynamicEntityForm
+            moduleName="Opportunity"
+            formData={formData}
+            onChange={handleInputChange}
+            onSelectChange={(e: any) => setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }))}
+            setFormData={setFormData}
+            activeTab={dialogTab}
+            editingId={editingId}
+            onTabChange={setDialogTab}
+            excludeFields={['tags', 'customFields']}
+            extraTabs={[
+              {
+                index: 100,
+                name: 'Related',
+                icon: <LinkIcon fontSize="small" />,
+                editOnly: true,
+                render: () => (
+                  <Box>
+                    <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2 }}>Related Records</Typography>
+                    <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
+                      View quotes, contacts, and activities linked to this opportunity.
+                    </Typography>
+                    <RelatedEntitiesPanel
+                      entityType="opportunity"
+                      entityId={editingId!}
+                      showRelated={['contacts', 'quotes', 'activities']}
+                      compact
+                      showAddButtons
+                    />
+                  </Box>
+                ),
+              },
+              {
+                index: 101,
+                name: 'Notes',
+                icon: <NoteIcon fontSize="small" />,
+                render: () => editingId ? (
+                  <NotesTab entityType="Opportunity" entityId={editingId} entityName={formData.name || 'Opportunity'} />
+                ) : (
+                  <Alert severity="info" sx={{ mt: 2 }}>Please save the opportunity first to add notes.</Alert>
+                ),
+              },
+            ]}
+          />
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog} disabled={dialogApi.loading}>Cancel</Button>

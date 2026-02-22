@@ -297,6 +297,9 @@ ADVANCED_WORKFLOWS=true
 DEMO_AUTO_SEED=true
 DEMO_DB_NAME=crm_demodb
 
+# Module Field Config Re-seeding (set to true on first deploy or when field defs change)
+FORCE_RESEED_FIELD_CONFIGS=true
+
 # Contract Storage
 CONTRACT_STORAGE_PATH=/app/data/contracts
 MAX_CONTRACT_FILE_SIZE_BYTES=10485760

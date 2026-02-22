@@ -55,8 +55,21 @@ export function useFieldConfig(moduleName: string): UseFieldConfigResult {
     try {
       setLoading(true);
       setError(null);
-      const response = await apiClient.get(`/modulefieldconfigurations/${moduleName}`);
-      const configs = response.data || [];
+      let response = await apiClient.get(`/modulefieldconfigurations/${moduleName}`);
+      let configs = response.data || [];
+
+      // Auto-initialize field configs if none exist for this module
+      if (configs.length === 0) {
+        try {
+          await apiClient.post(`/modulefieldconfigurations/initialize/${moduleName}`);
+          response = await apiClient.get(`/modulefieldconfigurations/${moduleName}`);
+          configs = response.data || [];
+        } catch (initErr: any) {
+          // Non-critical: may fail if user is not admin; fall through with empty configs
+          console.warn(`Auto-init field configs for ${moduleName} failed (may need admin):`, initErr.response?.status);
+        }
+      }
+
       setFieldConfigs(configs);
     } catch (err: any) {
       console.error(`Error fetching field configurations for ${moduleName}:`, err);

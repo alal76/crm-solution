@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 561,
-  "patch": 9,
-  "lastUpdate": "2026-02-18",
-  "description": "AI agents show disabled state when not configured; Groq API key for local dev; graceful agent error handling",
+  "patch": 11,
+  "lastUpdate": "2026-02-22",
+  "description": "DynamicEntityForm migration: ContactsPage, LeadsPage, OpportunitiesPage, ProductsPage now use DynamicEntityForm for config-driven forms. Fixed sales.ts duplicate customFields and OrderStatus enum test. SPEC-UI-001 updated to v1.3.",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [

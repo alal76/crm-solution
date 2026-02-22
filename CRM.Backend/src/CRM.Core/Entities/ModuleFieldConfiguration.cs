@@ -114,6 +114,16 @@ public static class ModuleNames
     public const string Leads = "Leads";
     public const string Opportunities = "Opportunities";
     public const string Products = "Products";
+    public const string Campaigns = "Campaigns";
+    public const string Quotes = "Quotes";
+
+    /// <summary>
+    /// All supported module names for field configuration.
+    /// </summary>
+    public static readonly string[] All = new[]
+    {
+        Accounts, Contacts, Leads, Opportunities, Products, Campaigns, Quotes
+    };
 }
 
 /// <summary>

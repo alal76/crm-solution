@@ -43,7 +43,9 @@ public class CoreDataSeederServiceTests
 
     private CoreDataSeederService CreateService(CrmDbContext context)
     {
-        return new CoreDataSeederService(context, _loggerMock.Object);
+        var fieldConfigLogger = new Mock<ILogger<ModuleFieldConfigurationService>>();
+        var fieldConfigService = new ModuleFieldConfigurationService(context, fieldConfigLogger.Object);
+        return new CoreDataSeederService(context, _loggerMock.Object, fieldConfigService);
     }
 
     // ──────────────────────────────────────────────

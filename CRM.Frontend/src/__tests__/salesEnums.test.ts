@@ -24,21 +24,21 @@ describe('QuoteStatus mappings', () => {
   });
 });
 
-describe('OrderStatus string enum completeness', () => {
-  it('contains every status defined in orderService numeric enum', () => {
-    // compile-time presence check
-    expect(OrderStatus.Draft).toBe('draft');
-    expect(OrderStatus.PendingApproval).toBe('pending_approval');
-    expect(OrderStatus.Approved).toBe('approved');
-    expect(OrderStatus.Processing).toBe('processing');
-    expect(OrderStatus.PartiallyFulfilled).toBe('partially_fulfilled');
-    expect(OrderStatus.Fulfilled).toBe('fulfilled');
-    expect(OrderStatus.Delivered).toBe('delivered');
-    expect(OrderStatus.Completed).toBe('completed');
-    expect(OrderStatus.Cancelled).toBe('cancelled');
-    expect(OrderStatus.Returned).toBe('returned');
-    expect(OrderStatus.Refunded).toBe('refunded');
-    expect(OrderStatus.OnHold).toBe('on_hold');
-    expect(OrderStatus.ActionRequired).toBe('action_required');
+describe('OrderStatus numeric enum completeness', () => {
+  it('contains every status defined in the numeric enum', () => {
+    // compile-time presence check against actual numeric enum
+    expect(OrderStatus.Draft).toBe(0);
+    expect(OrderStatus.Submitted).toBe(1);
+    expect(OrderStatus.Pending).toBe(2);
+    expect(OrderStatus.Processing).toBe(3);
+    expect(OrderStatus.Approved).toBe(4);
+    expect(OrderStatus.OnHold).toBe(5);
+    expect(OrderStatus.Shipped).toBe(6);
+    expect(OrderStatus.Delivered).toBe(7);
+    expect(OrderStatus.Completed).toBe(8);
+    expect(OrderStatus.Cancelled).toBe(9);
+    expect(OrderStatus.Refunded).toBe(10);
+    expect(OrderStatus.Returned).toBe(11);
+    expect(OrderStatus.ActionRequired).toBe(12);
   });
 });

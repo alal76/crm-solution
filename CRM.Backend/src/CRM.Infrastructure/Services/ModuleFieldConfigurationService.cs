@@ -152,15 +152,7 @@ public class ModuleFieldConfigurationService
             return;
         }
 
-        List<ModuleFieldConfiguration> configs = moduleName switch
-        {
-            ModuleNames.Accounts => GetDefaultCustomerFields(),
-            ModuleNames.Contacts => GetDefaultContactFields(),
-            ModuleNames.Leads => GetDefaultLeadFields(),
-            ModuleNames.Opportunities => GetDefaultOpportunityFields(),
-            ModuleNames.Products => GetDefaultProductFields(),
-            _ => new List<ModuleFieldConfiguration>()
-        };
+        var configs = GetDefaultFieldsForModule(moduleName);
 
         if (configs.Any())
         {
@@ -176,18 +168,9 @@ public class ModuleFieldConfigurationService
     /// </summary>
     public async Task<Dictionary<string, int>> InitializeAllModulesAsync()
     {
-        var allModuleNames = new[]
-        {
-            ModuleNames.Accounts,
-            ModuleNames.Contacts,
-            ModuleNames.Leads,
-            ModuleNames.Opportunities,
-            ModuleNames.Products
-        };
-
         var results = new Dictionary<string, int>();
 
-        foreach (var moduleName in allModuleNames)
+        foreach (var moduleName in ModuleNames.All)
         {
             var existingCount = await _context.ModuleFieldConfigurations
                 .CountAsync(c => c.ModuleName == moduleName);
@@ -198,15 +181,7 @@ public class ModuleFieldConfigurationService
                 continue;
             }
 
-            List<ModuleFieldConfiguration> configs = moduleName switch
-            {
-                ModuleNames.Accounts => GetDefaultCustomerFields(),
-                ModuleNames.Contacts => GetDefaultContactFields(),
-                ModuleNames.Leads => GetDefaultLeadFields(),
-                ModuleNames.Opportunities => GetDefaultOpportunityFields(),
-                ModuleNames.Products => GetDefaultProductFields(),
-                _ => new List<ModuleFieldConfiguration>()
-            };
+            var configs = GetDefaultFieldsForModule(moduleName);
 
             if (configs.Any())
             {
@@ -222,6 +197,62 @@ public class ModuleFieldConfigurationService
         }
 
         return results;
+    }
+
+    /// <summary>
+    /// Force reinitialize all module field configurations.
+    /// Deletes ALL existing configs and reseeds with current defaults.
+    /// Used during deployments and when field definitions are updated.
+    /// </summary>
+    public async Task<Dictionary<string, int>> ForceReinitializeAllAsync()
+    {
+        // Delete all existing field configurations
+        var existing = await _context.ModuleFieldConfigurations.ToListAsync();
+        if (existing.Any())
+        {
+            _context.ModuleFieldConfigurations.RemoveRange(existing);
+            await _context.SaveChangesAsync();
+            _logger.LogInformation("Cleared {Count} existing module field configurations for force reinitialize", existing.Count);
+        }
+
+        // Reseed all modules with current defaults
+        var results = new Dictionary<string, int>();
+        foreach (var moduleName in ModuleNames.All)
+        {
+            var configs = GetDefaultFieldsForModule(moduleName);
+            if (configs.Any())
+            {
+                _context.ModuleFieldConfigurations.AddRange(configs);
+                await _context.SaveChangesAsync();
+                results[moduleName] = configs.Count;
+                _logger.LogInformation("Force reinitialized {Count} field configurations for module {ModuleName}", configs.Count, moduleName);
+            }
+            else
+            {
+                results[moduleName] = 0;
+            }
+        }
+
+        return results;
+    }
+
+    /// <summary>
+    /// Get all default field configurations for the specified module.
+    /// This is the single source of truth for default field definitions.
+    /// </summary>
+    public List<ModuleFieldConfiguration> GetDefaultFieldsForModule(string moduleName)
+    {
+        return moduleName switch
+        {
+            ModuleNames.Accounts => GetDefaultCustomerFields(),
+            ModuleNames.Contacts => GetDefaultContactFields(),
+            ModuleNames.Leads => GetDefaultLeadFields(),
+            ModuleNames.Opportunities => GetDefaultOpportunityFields(),
+            ModuleNames.Products => GetDefaultProductFields(),
+            ModuleNames.Campaigns => GetDefaultCampaignFields(),
+            ModuleNames.Quotes => GetDefaultQuoteFields(),
+            _ => new List<ModuleFieldConfiguration>()
+        };
     }
 
     private ModuleFieldConfigurationDto MapToDto(ModuleFieldConfiguration entity)
@@ -347,28 +378,40 @@ public class ModuleFieldConfigurationService
             new() { ModuleName = "Contacts", FieldName = "firstName", FieldLabel = "First Name", FieldType = "text", TabIndex = 0, TabName = "Basic Info", DisplayOrder = 2, IsEnabled = true, IsRequired = true, GridSize = 4, CreatedAt = now },
             new() { ModuleName = "Contacts", FieldName = "middleName", FieldLabel = "Middle Name", FieldType = "text", TabIndex = 0, TabName = "Basic Info", DisplayOrder = 3, IsEnabled = true, IsRequired = false, GridSize = 3, CreatedAt = now },
             new() { ModuleName = "Contacts", FieldName = "lastName", FieldLabel = "Last Name", FieldType = "text", TabIndex = 0, TabName = "Basic Info", DisplayOrder = 4, IsEnabled = true, IsRequired = true, GridSize = 3, CreatedAt = now },
-            new() { ModuleName = "Contacts", FieldName = "emailPrimary", FieldLabel = "Primary Email", FieldType = "email", TabIndex = 0, TabName = "Basic Info", DisplayOrder = 5, IsEnabled = true, IsRequired = true, GridSize = 6, CreatedAt = now },
-            new() { ModuleName = "Contacts", FieldName = "emailSecondary", FieldLabel = "Secondary Email", FieldType = "email", TabIndex = 0, TabName = "Basic Info", DisplayOrder = 6, IsEnabled = true, IsRequired = false, GridSize = 6, CreatedAt = now },
-            new() { ModuleName = "Contacts", FieldName = "phonePrimary", FieldLabel = "Primary Phone", FieldType = "phone", TabIndex = 0, TabName = "Basic Info", DisplayOrder = 7, IsEnabled = true, IsRequired = false, GridSize = 6, CreatedAt = now },
-            new() { ModuleName = "Contacts", FieldName = "phoneSecondary", FieldLabel = "Secondary Phone", FieldType = "phone", TabIndex = 0, TabName = "Basic Info", DisplayOrder = 8, IsEnabled = true, IsRequired = false, GridSize = 6, CreatedAt = now },
+            new() { ModuleName = "Contacts", FieldName = "suffix", FieldLabel = "Suffix", FieldType = "text", TabIndex = 0, TabName = "Basic Info", DisplayOrder = 5, IsEnabled = true, IsRequired = false, GridSize = 2, Placeholder = "Jr., Sr., III", CreatedAt = now },
+            new() { ModuleName = "Contacts", FieldName = "nickname", FieldLabel = "Nickname", FieldType = "text", TabIndex = 0, TabName = "Basic Info", DisplayOrder = 6, IsEnabled = true, IsRequired = false, GridSize = 4, Placeholder = "Preferred name", CreatedAt = now },
+            new() { ModuleName = "Contacts", FieldName = "gender", FieldLabel = "Gender", FieldType = "select", TabIndex = 0, TabName = "Basic Info", DisplayOrder = 7, IsEnabled = true, IsRequired = false, GridSize = 6, Options = "Male,Female,NonBinary,PreferNotToSay,Other", CreatedAt = now },
+            new() { ModuleName = "Contacts", FieldName = "emailPrimary", FieldLabel = "Primary Email", FieldType = "email", TabIndex = 0, TabName = "Basic Info", DisplayOrder = 8, IsEnabled = true, IsRequired = true, GridSize = 6, CreatedAt = now },
+            new() { ModuleName = "Contacts", FieldName = "emailSecondary", FieldLabel = "Secondary Email", FieldType = "email", TabIndex = 0, TabName = "Basic Info", DisplayOrder = 9, IsEnabled = true, IsRequired = false, GridSize = 6, CreatedAt = now },
+            new() { ModuleName = "Contacts", FieldName = "phonePrimary", FieldLabel = "Primary Phone", FieldType = "phone", TabIndex = 0, TabName = "Basic Info", DisplayOrder = 10, IsEnabled = true, IsRequired = false, GridSize = 6, CreatedAt = now },
+            new() { ModuleName = "Contacts", FieldName = "phoneSecondary", FieldLabel = "Secondary Phone", FieldType = "phone", TabIndex = 0, TabName = "Basic Info", DisplayOrder = 11, IsEnabled = true, IsRequired = false, GridSize = 6, CreatedAt = now },
+            new() { ModuleName = "Contacts", FieldName = "phoneMobile", FieldLabel = "Mobile Phone", FieldType = "phone", TabIndex = 0, TabName = "Basic Info", DisplayOrder = 12, IsEnabled = true, IsRequired = false, GridSize = 6, Placeholder = "Mobile / cell number", CreatedAt = now },
+            new() { ModuleName = "Contacts", FieldName = "phoneFax", FieldLabel = "Fax Number", FieldType = "phone", TabIndex = 0, TabName = "Basic Info", DisplayOrder = 13, IsEnabled = true, IsRequired = false, GridSize = 6, CreatedAt = now },
+            new() { ModuleName = "Contacts", FieldName = "dateOfBirth", FieldLabel = "Date of Birth", FieldType = "date", TabIndex = 0, TabName = "Basic Info", DisplayOrder = 14, IsEnabled = true, IsRequired = false, GridSize = 6, CreatedAt = now },
 
             // Work Info Tab (1)
             new() { ModuleName = "Contacts", FieldName = "company", FieldLabel = "Company", FieldType = "text", TabIndex = 1, TabName = "Work Info", DisplayOrder = 0, IsEnabled = true, IsRequired = false, GridSize = 6, CreatedAt = now },
             new() { ModuleName = "Contacts", FieldName = "jobTitle", FieldLabel = "Job Title", FieldType = "text", TabIndex = 1, TabName = "Work Info", DisplayOrder = 1, IsEnabled = true, IsRequired = false, GridSize = 6, CreatedAt = now },
             new() { ModuleName = "Contacts", FieldName = "department", FieldLabel = "Department", FieldType = "text", TabIndex = 1, TabName = "Work Info", DisplayOrder = 2, IsEnabled = true, IsRequired = false, GridSize = 6, CreatedAt = now },
             new() { ModuleName = "Contacts", FieldName = "reportsTo", FieldLabel = "Reports To", FieldType = "text", TabIndex = 1, TabName = "Work Info", DisplayOrder = 3, IsEnabled = true, IsRequired = false, GridSize = 6, CreatedAt = now },
+            new() { ModuleName = "Contacts", FieldName = "accountId", FieldLabel = "Owner Account", FieldType = "lookup", TabIndex = 1, TabName = "Work Info", DisplayOrder = 4, IsEnabled = true, IsRequired = false, GridSize = 12, CreatedAt = now },
 
-            // Address Tab (2)
-            new() { ModuleName = "Contacts", FieldName = "addressLine1", FieldLabel = "Address Line 1", FieldType = "text", TabIndex = 2, TabName = "Address", DisplayOrder = 0, IsEnabled = true, IsRequired = false, GridSize = 12, CreatedAt = now },
-            new() { ModuleName = "Contacts", FieldName = "addressLine2", FieldLabel = "Address Line 2", FieldType = "text", TabIndex = 2, TabName = "Address", DisplayOrder = 1, IsEnabled = true, IsRequired = false, GridSize = 12, CreatedAt = now },
-            new() { ModuleName = "Contacts", FieldName = "city", FieldLabel = "City", FieldType = "text", TabIndex = 2, TabName = "Address", DisplayOrder = 2, IsEnabled = true, IsRequired = false, GridSize = 4, CreatedAt = now },
-            new() { ModuleName = "Contacts", FieldName = "state", FieldLabel = "State/Province", FieldType = "text", TabIndex = 2, TabName = "Address", DisplayOrder = 3, IsEnabled = true, IsRequired = false, GridSize = 4, CreatedAt = now },
-            new() { ModuleName = "Contacts", FieldName = "zipCode", FieldLabel = "Zip/Postal Code", FieldType = "text", TabIndex = 2, TabName = "Address", DisplayOrder = 4, IsEnabled = true, IsRequired = false, GridSize = 4, CreatedAt = now },
-            new() { ModuleName = "Contacts", FieldName = "country", FieldLabel = "Country", FieldType = "text", TabIndex = 2, TabName = "Address", DisplayOrder = 5, IsEnabled = true, IsRequired = false, GridSize = 12, CreatedAt = now },
+            // Address & Social Tab (2)
+            new() { ModuleName = "Contacts", FieldName = "address", FieldLabel = "Address", FieldType = "text", TabIndex = 2, TabName = "Address & Social", DisplayOrder = 0, IsEnabled = true, IsRequired = false, GridSize = 6, Placeholder = "Street address", CreatedAt = now },
+            new() { ModuleName = "Contacts", FieldName = "address2", FieldLabel = "Address Line 2", FieldType = "text", TabIndex = 2, TabName = "Address & Social", DisplayOrder = 1, IsEnabled = true, IsRequired = false, GridSize = 6, Placeholder = "Suite, Apt, Floor", CreatedAt = now },
+            new() { ModuleName = "Contacts", FieldName = "city", FieldLabel = "City", FieldType = "text", TabIndex = 2, TabName = "Address & Social", DisplayOrder = 2, IsEnabled = true, IsRequired = false, GridSize = 4, CreatedAt = now },
+            new() { ModuleName = "Contacts", FieldName = "state", FieldLabel = "State/Province", FieldType = "text", TabIndex = 2, TabName = "Address & Social", DisplayOrder = 3, IsEnabled = true, IsRequired = false, GridSize = 4, CreatedAt = now },
+            new() { ModuleName = "Contacts", FieldName = "zipCode", FieldLabel = "Zip/Postal Code", FieldType = "text", TabIndex = 2, TabName = "Address & Social", DisplayOrder = 4, IsEnabled = true, IsRequired = false, GridSize = 4, CreatedAt = now },
+            new() { ModuleName = "Contacts", FieldName = "country", FieldLabel = "Country", FieldType = "text", TabIndex = 2, TabName = "Address & Social", DisplayOrder = 5, IsEnabled = true, IsRequired = false, GridSize = 12, CreatedAt = now },
+            new() { ModuleName = "Contacts", FieldName = "website", FieldLabel = "Website", FieldType = "url", TabIndex = 2, TabName = "Address & Social", DisplayOrder = 6, IsEnabled = true, IsRequired = false, GridSize = 12, Placeholder = "https://", CreatedAt = now },
+            new() { ModuleName = "Contacts", FieldName = "linkedInUrl", FieldLabel = "LinkedIn URL", FieldType = "url", TabIndex = 2, TabName = "Address & Social", DisplayOrder = 7, IsEnabled = true, IsRequired = false, GridSize = 6, Placeholder = "https://linkedin.com/in/...", CreatedAt = now },
+            new() { ModuleName = "Contacts", FieldName = "twitterHandle", FieldLabel = "Twitter Handle", FieldType = "text", TabIndex = 2, TabName = "Address & Social", DisplayOrder = 8, IsEnabled = true, IsRequired = false, GridSize = 6, Placeholder = "@username", CreatedAt = now },
 
             // Additional Tab (3)
-            new() { ModuleName = "Contacts", FieldName = "dateOfBirth", FieldLabel = "Date of Birth", FieldType = "date", TabIndex = 3, TabName = "Additional", DisplayOrder = 0, IsEnabled = true, IsRequired = false, GridSize = 6, CreatedAt = now },
-            new() { ModuleName = "Contacts", FieldName = "notes", FieldLabel = "Notes", FieldType = "textarea", TabIndex = 3, TabName = "Additional", DisplayOrder = 1, IsEnabled = true, IsRequired = false, GridSize = 12, CreatedAt = now },
+            new() { ModuleName = "Contacts", FieldName = "leadStatus", FieldLabel = "Lead Status", FieldType = "select", TabIndex = 3, TabName = "Additional", DisplayOrder = 0, IsEnabled = true, IsRequired = false, GridSize = 6, Options = "new,contacted,qualified,unqualified,converted", CreatedAt = now },
+            new() { ModuleName = "Contacts", FieldName = "preferredContactMethod", FieldLabel = "Preferred Contact Method", FieldType = "select", TabIndex = 3, TabName = "Additional", DisplayOrder = 1, IsEnabled = true, IsRequired = false, GridSize = 6, Options = "email,phone,sms,linkedin", CreatedAt = now },
+            new() { ModuleName = "Contacts", FieldName = "doNotContact", FieldLabel = "Do Not Contact", FieldType = "checkbox", TabIndex = 3, TabName = "Additional", DisplayOrder = 2, IsEnabled = true, IsRequired = false, GridSize = 12, CreatedAt = now },
+            new() { ModuleName = "Contacts", FieldName = "notes", FieldLabel = "Notes", FieldType = "textarea", TabIndex = 3, TabName = "Additional", DisplayOrder = 3, IsEnabled = true, IsRequired = false, GridSize = 12, CreatedAt = now },
         };
     }
 
@@ -380,29 +423,27 @@ public class ModuleFieldConfigurationService
             // Basic Info Tab (0)
             new() { ModuleName = "Leads", FieldName = "firstName", FieldLabel = "First Name", FieldType = "text", TabIndex = 0, TabName = "Basic Info", DisplayOrder = 0, IsEnabled = true, IsRequired = true, GridSize = 6, CreatedAt = now },
             new() { ModuleName = "Leads", FieldName = "lastName", FieldLabel = "Last Name", FieldType = "text", TabIndex = 0, TabName = "Basic Info", DisplayOrder = 1, IsEnabled = true, IsRequired = true, GridSize = 6, CreatedAt = now },
-            new() { ModuleName = "Leads", FieldName = "email", FieldLabel = "Email", FieldType = "email", TabIndex = 0, TabName = "Basic Info", DisplayOrder = 2, IsEnabled = true, IsRequired = true, GridSize = 6, CreatedAt = now },
-            new() { ModuleName = "Leads", FieldName = "phone", FieldLabel = "Phone", FieldType = "phone", TabIndex = 0, TabName = "Basic Info", DisplayOrder = 3, IsEnabled = true, IsRequired = false, GridSize = 6, CreatedAt = now },
+            new() { ModuleName = "Leads", FieldName = "emailPrimary", FieldLabel = "Email", FieldType = "email", TabIndex = 0, TabName = "Basic Info", DisplayOrder = 2, IsEnabled = true, IsRequired = true, GridSize = 6, CreatedAt = now },
+            new() { ModuleName = "Leads", FieldName = "phonePrimary", FieldLabel = "Phone", FieldType = "phone", TabIndex = 0, TabName = "Basic Info", DisplayOrder = 3, IsEnabled = true, IsRequired = false, GridSize = 6, CreatedAt = now },
             new() { ModuleName = "Leads", FieldName = "company", FieldLabel = "Company", FieldType = "text", TabIndex = 0, TabName = "Basic Info", DisplayOrder = 4, IsEnabled = true, IsRequired = false, GridSize = 6, CreatedAt = now },
             new() { ModuleName = "Leads", FieldName = "jobTitle", FieldLabel = "Job Title", FieldType = "text", TabIndex = 0, TabName = "Basic Info", DisplayOrder = 5, IsEnabled = true, IsRequired = false, GridSize = 6, CreatedAt = now },
+            new() { ModuleName = "Leads", FieldName = "source", FieldLabel = "Lead Source", FieldType = "select", TabIndex = 0, TabName = "Basic Info", DisplayOrder = 6, IsEnabled = true, IsRequired = false, GridSize = 6, Options = "website,referral,event,cold_call,social,other", CreatedAt = now },
+            new() { ModuleName = "Leads", FieldName = "status", FieldLabel = "Status", FieldType = "select", TabIndex = 0, TabName = "Basic Info", DisplayOrder = 7, IsEnabled = true, IsRequired = true, GridSize = 6, Options = "new,contacted,qualified,converted,lost", CreatedAt = now },
+            new() { ModuleName = "Leads", FieldName = "notes", FieldLabel = "Notes", FieldType = "textarea", TabIndex = 0, TabName = "Basic Info", DisplayOrder = 8, IsEnabled = true, IsRequired = false, GridSize = 12, CreatedAt = now },
 
-            // Lead Details Tab (1)
-            new() { ModuleName = "Leads", FieldName = "status", FieldLabel = "Status", FieldType = "select", TabIndex = 1, TabName = "Lead Details", DisplayOrder = 0, IsEnabled = true, IsRequired = true, GridSize = 6, Options = "New,Contacted,Qualified,Unqualified,Converted", CreatedAt = now },
-            new() { ModuleName = "Leads", FieldName = "source", FieldLabel = "Lead Source", FieldType = "select", TabIndex = 1, TabName = "Lead Details", DisplayOrder = 1, IsEnabled = true, IsRequired = false, GridSize = 6, Options = "Website,Referral,Social Media,Cold Call,Trade Show,Advertisement,Partner,Other", CreatedAt = now },
-            new() { ModuleName = "Leads", FieldName = "rating", FieldLabel = "Rating", FieldType = "select", TabIndex = 1, TabName = "Lead Details", DisplayOrder = 2, IsEnabled = true, IsRequired = false, GridSize = 6, Options = "Hot,Warm,Cold", CreatedAt = now },
-            new() { ModuleName = "Leads", FieldName = "score", FieldLabel = "Lead Score", FieldType = "number", TabIndex = 1, TabName = "Lead Details", DisplayOrder = 3, IsEnabled = true, IsRequired = false, GridSize = 6, HelpText = "Score from 0-100", CreatedAt = now },
-            new() { ModuleName = "Leads", FieldName = "estimatedValue", FieldLabel = "Estimated Value ($)", FieldType = "currency", TabIndex = 1, TabName = "Lead Details", DisplayOrder = 4, IsEnabled = true, IsRequired = false, GridSize = 6, CreatedAt = now },
-            new() { ModuleName = "Leads", FieldName = "industry", FieldLabel = "Industry", FieldType = "select", TabIndex = 1, TabName = "Lead Details", DisplayOrder = 5, IsEnabled = true, IsRequired = false, GridSize = 6, Options = "Technology,Healthcare,Finance,Retail,Manufacturing,Education,Other", CreatedAt = now },
-
-            // Address Tab (2)
-            new() { ModuleName = "Leads", FieldName = "address", FieldLabel = "Address", FieldType = "text", TabIndex = 2, TabName = "Address", DisplayOrder = 0, IsEnabled = true, IsRequired = false, GridSize = 12, CreatedAt = now },
-            new() { ModuleName = "Leads", FieldName = "city", FieldLabel = "City", FieldType = "text", TabIndex = 2, TabName = "Address", DisplayOrder = 1, IsEnabled = true, IsRequired = false, GridSize = 4, CreatedAt = now },
-            new() { ModuleName = "Leads", FieldName = "state", FieldLabel = "State", FieldType = "text", TabIndex = 2, TabName = "Address", DisplayOrder = 2, IsEnabled = true, IsRequired = false, GridSize = 4, CreatedAt = now },
-            new() { ModuleName = "Leads", FieldName = "zipCode", FieldLabel = "Zip Code", FieldType = "text", TabIndex = 2, TabName = "Address", DisplayOrder = 3, IsEnabled = true, IsRequired = false, GridSize = 4, CreatedAt = now },
-            new() { ModuleName = "Leads", FieldName = "country", FieldLabel = "Country", FieldType = "text", TabIndex = 2, TabName = "Address", DisplayOrder = 4, IsEnabled = true, IsRequired = false, GridSize = 12, CreatedAt = now },
-
-            // Notes Tab (3)
-            new() { ModuleName = "Leads", FieldName = "description", FieldLabel = "Description", FieldType = "textarea", TabIndex = 3, TabName = "Notes", DisplayOrder = 0, IsEnabled = true, IsRequired = false, GridSize = 12, CreatedAt = now },
-            new() { ModuleName = "Leads", FieldName = "notes", FieldLabel = "Notes", FieldType = "textarea", TabIndex = 3, TabName = "Notes", DisplayOrder = 1, IsEnabled = true, IsRequired = false, GridSize = 12, CreatedAt = now },
+            // Additional Info Tab (1)
+            new() { ModuleName = "Leads", FieldName = "website", FieldLabel = "Website", FieldType = "url", TabIndex = 1, TabName = "Additional Info", DisplayOrder = 0, IsEnabled = true, IsRequired = false, GridSize = 6, Placeholder = "https://", CreatedAt = now },
+            new() { ModuleName = "Leads", FieldName = "phoneSecondary", FieldLabel = "Secondary Phone", FieldType = "phone", TabIndex = 1, TabName = "Additional Info", DisplayOrder = 1, IsEnabled = true, IsRequired = false, GridSize = 6, CreatedAt = now },
+            new() { ModuleName = "Leads", FieldName = "linkedInUrl", FieldLabel = "LinkedIn URL", FieldType = "url", TabIndex = 1, TabName = "Additional Info", DisplayOrder = 2, IsEnabled = true, IsRequired = false, GridSize = 6, Placeholder = "https://linkedin.com/in/...", CreatedAt = now },
+            new() { ModuleName = "Leads", FieldName = "twitterHandle", FieldLabel = "Twitter Handle", FieldType = "text", TabIndex = 1, TabName = "Additional Info", DisplayOrder = 3, IsEnabled = true, IsRequired = false, GridSize = 6, Placeholder = "@username", CreatedAt = now },
+            new() { ModuleName = "Leads", FieldName = "preferredContactMethod", FieldLabel = "Preferred Contact Method", FieldType = "select", TabIndex = 1, TabName = "Additional Info", DisplayOrder = 4, IsEnabled = true, IsRequired = false, GridSize = 6, Options = "Email,Phone,SMS,Mail", CreatedAt = now },
+            new() { ModuleName = "Leads", FieldName = "doNotContact", FieldLabel = "Do Not Contact", FieldType = "checkbox", TabIndex = 1, TabName = "Additional Info", DisplayOrder = 5, IsEnabled = true, IsRequired = false, GridSize = 6, CreatedAt = now },
+            new() { ModuleName = "Leads", FieldName = "region", FieldLabel = "Region", FieldType = "text", TabIndex = 1, TabName = "Additional Info", DisplayOrder = 6, IsEnabled = true, IsRequired = false, GridSize = 6, CreatedAt = now },
+            new() { ModuleName = "Leads", FieldName = "campaignId", FieldLabel = "Campaign ID", FieldType = "number", TabIndex = 1, TabName = "Additional Info", DisplayOrder = 7, IsEnabled = true, IsRequired = false, GridSize = 6, CreatedAt = now },
+            new() { ModuleName = "Leads", FieldName = "mqlDate", FieldLabel = "MQL Date", FieldType = "date", TabIndex = 1, TabName = "Additional Info", DisplayOrder = 8, IsEnabled = true, IsRequired = false, GridSize = 6, CreatedAt = now },
+            new() { ModuleName = "Leads", FieldName = "sqlDate", FieldLabel = "SQL Date", FieldType = "date", TabIndex = 1, TabName = "Additional Info", DisplayOrder = 9, IsEnabled = true, IsRequired = false, GridSize = 6, CreatedAt = now },
+            new() { ModuleName = "Leads", FieldName = "qualificationNotes", FieldLabel = "Qualification Notes", FieldType = "textarea", TabIndex = 1, TabName = "Additional Info", DisplayOrder = 10, IsEnabled = true, IsRequired = false, GridSize = 12, CreatedAt = now },
+            new() { ModuleName = "Leads", FieldName = "tags", FieldLabel = "Tags", FieldType = "text", TabIndex = 1, TabName = "Additional Info", DisplayOrder = 11, IsEnabled = true, IsRequired = false, GridSize = 12, Placeholder = "comma-separated", CreatedAt = now },
         };
     }
 
@@ -411,23 +452,25 @@ public class ModuleFieldConfigurationService
         var now = DateTime.UtcNow;
         return new List<ModuleFieldConfiguration>
         {
-            // Basic Info Tab (0)
-            new() { ModuleName = "Opportunities", FieldName = "title", FieldLabel = "Opportunity Title", FieldType = "text", TabIndex = 0, TabName = "Basic Info", DisplayOrder = 0, IsEnabled = true, IsRequired = true, GridSize = 12, CreatedAt = now },
-            new() { ModuleName = "Opportunities", FieldName = "accountId", FieldLabel = "Account", FieldType = "lookup", TabIndex = 0, TabName = "Basic Info", DisplayOrder = 1, IsEnabled = true, IsRequired = true, GridSize = 6, CreatedAt = now },
-            new() { ModuleName = "Opportunities", FieldName = "contactId", FieldLabel = "Primary Contact", FieldType = "lookup", TabIndex = 0, TabName = "Basic Info", DisplayOrder = 2, IsEnabled = true, IsRequired = false, GridSize = 6, CreatedAt = now },
+            // Opportunity Info Tab (0)
+            new() { ModuleName = "Opportunities", FieldName = "name", FieldLabel = "Opportunity Name", FieldType = "text", TabIndex = 0, TabName = "Opportunity Info", DisplayOrder = 0, IsEnabled = true, IsRequired = true, GridSize = 12, CreatedAt = now },
+            new() { ModuleName = "Opportunities", FieldName = "accountId", FieldLabel = "Account", FieldType = "lookup", TabIndex = 0, TabName = "Opportunity Info", DisplayOrder = 1, IsEnabled = true, IsRequired = true, GridSize = 6, CreatedAt = now },
+            new() { ModuleName = "Opportunities", FieldName = "primaryContactId", FieldLabel = "Primary Contact", FieldType = "lookup", TabIndex = 0, TabName = "Opportunity Info", DisplayOrder = 2, IsEnabled = true, IsRequired = false, GridSize = 6, CreatedAt = now },
+            new() { ModuleName = "Opportunities", FieldName = "salesOwnerId", FieldLabel = "Sales Owner", FieldType = "lookup", TabIndex = 0, TabName = "Opportunity Info", DisplayOrder = 3, IsEnabled = true, IsRequired = false, GridSize = 6, CreatedAt = now },
+            new() { ModuleName = "Opportunities", FieldName = "stage", FieldLabel = "Stage", FieldType = "select", TabIndex = 0, TabName = "Opportunity Info", DisplayOrder = 4, IsEnabled = true, IsRequired = true, GridSize = 6, Options = "Prospecting,Qualification,Proposal,Negotiation,Closed Won,Closed Lost", CreatedAt = now },
+            new() { ModuleName = "Opportunities", FieldName = "probability", FieldLabel = "Probability (%)", FieldType = "number", TabIndex = 0, TabName = "Opportunity Info", DisplayOrder = 5, IsEnabled = true, IsRequired = false, GridSize = 6, HelpText = "Win probability 0-100%", CreatedAt = now },
+            new() { ModuleName = "Opportunities", FieldName = "amount", FieldLabel = "Amount", FieldType = "currency", TabIndex = 0, TabName = "Opportunity Info", DisplayOrder = 6, IsEnabled = true, IsRequired = false, GridSize = 6, CreatedAt = now },
+            new() { ModuleName = "Opportunities", FieldName = "currency", FieldLabel = "Currency", FieldType = "select", TabIndex = 0, TabName = "Opportunity Info", DisplayOrder = 7, IsEnabled = true, IsRequired = false, GridSize = 6, Options = "USD,EUR,GBP,CAD,AUD,JPY,CNY,INR", CreatedAt = now },
+            new() { ModuleName = "Opportunities", FieldName = "expectedCloseDate", FieldLabel = "Expected Close Date", FieldType = "date", TabIndex = 0, TabName = "Opportunity Info", DisplayOrder = 8, IsEnabled = true, IsRequired = false, GridSize = 6, CreatedAt = now },
+            new() { ModuleName = "Opportunities", FieldName = "pricingModel", FieldLabel = "Pricing Model", FieldType = "select", TabIndex = 0, TabName = "Opportunity Info", DisplayOrder = 9, IsEnabled = true, IsRequired = false, GridSize = 6, Options = "Subscription,OneTime,UsageBased,Tiered", CreatedAt = now },
+            new() { ModuleName = "Opportunities", FieldName = "termLengthMonths", FieldLabel = "Term Length (months)", FieldType = "number", TabIndex = 0, TabName = "Opportunity Info", DisplayOrder = 10, IsEnabled = true, IsRequired = false, GridSize = 6, HelpText = "1-120 months", CreatedAt = now },
+            new() { ModuleName = "Opportunities", FieldName = "region", FieldLabel = "Region", FieldType = "text", TabIndex = 0, TabName = "Opportunity Info", DisplayOrder = 11, IsEnabled = true, IsRequired = false, GridSize = 6, CreatedAt = now },
 
-            // Opportunity Details Tab (1)
-            new() { ModuleName = "Opportunities", FieldName = "stage", FieldLabel = "Stage", FieldType = "select", TabIndex = 1, TabName = "Details", DisplayOrder = 0, IsEnabled = true, IsRequired = true, GridSize = 6, Options = "Prospecting,Qualification,Proposal,Negotiation,Closed Won,Closed Lost", CreatedAt = now },
-            new() { ModuleName = "Opportunities", FieldName = "probability", FieldLabel = "Probability (%)", FieldType = "number", TabIndex = 1, TabName = "Details", DisplayOrder = 1, IsEnabled = true, IsRequired = false, GridSize = 6, HelpText = "Win probability 0-100%", CreatedAt = now },
-            new() { ModuleName = "Opportunities", FieldName = "amount", FieldLabel = "Amount ($)", FieldType = "currency", TabIndex = 1, TabName = "Details", DisplayOrder = 2, IsEnabled = true, IsRequired = false, GridSize = 6, CreatedAt = now },
-            new() { ModuleName = "Opportunities", FieldName = "expectedCloseDate", FieldLabel = "Expected Close Date", FieldType = "date", TabIndex = 1, TabName = "Details", DisplayOrder = 3, IsEnabled = true, IsRequired = false, GridSize = 6, CreatedAt = now },
-            new() { ModuleName = "Opportunities", FieldName = "source", FieldLabel = "Lead Source", FieldType = "select", TabIndex = 1, TabName = "Details", DisplayOrder = 4, IsEnabled = true, IsRequired = false, GridSize = 6, Options = "Website,Referral,Social Media,Cold Call,Trade Show,Partner,Other", CreatedAt = now },
-            new() { ModuleName = "Opportunities", FieldName = "type", FieldLabel = "Type", FieldType = "select", TabIndex = 1, TabName = "Details", DisplayOrder = 5, IsEnabled = true, IsRequired = false, GridSize = 6, Options = "New Business,Existing Business,Upsell,Renewal", CreatedAt = now },
-
-            // Notes Tab (2)
-            new() { ModuleName = "Opportunities", FieldName = "description", FieldLabel = "Description", FieldType = "textarea", TabIndex = 2, TabName = "Notes", DisplayOrder = 0, IsEnabled = true, IsRequired = false, GridSize = 12, CreatedAt = now },
-            new() { ModuleName = "Opportunities", FieldName = "nextSteps", FieldLabel = "Next Steps", FieldType = "textarea", TabIndex = 2, TabName = "Notes", DisplayOrder = 1, IsEnabled = true, IsRequired = false, GridSize = 12, CreatedAt = now },
-            new() { ModuleName = "Opportunities", FieldName = "competitorInfo", FieldLabel = "Competitor Information", FieldType = "textarea", TabIndex = 2, TabName = "Notes", DisplayOrder = 2, IsEnabled = true, IsRequired = false, GridSize = 12, CreatedAt = now },
+            // Qualification Tab (1)
+            new() { ModuleName = "Opportunities", FieldName = "qualificationReason", FieldLabel = "Qualification Reason", FieldType = "select", TabIndex = 1, TabName = "Qualification", DisplayOrder = 0, IsEnabled = true, IsRequired = false, GridSize = 6, Options = "Budget,Authority,Need,Timeline,Competition", CreatedAt = now },
+            new() { ModuleName = "Opportunities", FieldName = "qualificationNotes", FieldLabel = "Qualification Notes", FieldType = "textarea", TabIndex = 1, TabName = "Qualification", DisplayOrder = 1, IsEnabled = true, IsRequired = false, GridSize = 12, CreatedAt = now },
+            new() { ModuleName = "Opportunities", FieldName = "solutionNotes", FieldLabel = "Solution Notes", FieldType = "textarea", TabIndex = 1, TabName = "Qualification", DisplayOrder = 2, IsEnabled = true, IsRequired = false, GridSize = 12, CreatedAt = now },
+            new() { ModuleName = "Opportunities", FieldName = "description", FieldLabel = "Description", FieldType = "textarea", TabIndex = 1, TabName = "Qualification", DisplayOrder = 3, IsEnabled = true, IsRequired = false, GridSize = 12, CreatedAt = now },
         };
     }
 
@@ -437,20 +480,98 @@ public class ModuleFieldConfigurationService
         return new List<ModuleFieldConfiguration>
         {
             // Basic Info Tab (0)
-            new() { ModuleName = "Products", FieldName = "name", FieldLabel = "Product Name", FieldType = "text", TabIndex = 0, TabName = "Basic Info", DisplayOrder = 0, IsEnabled = true, IsRequired = true, GridSize = 8, CreatedAt = now },
-            new() { ModuleName = "Products", FieldName = "sku", FieldLabel = "SKU", FieldType = "text", TabIndex = 0, TabName = "Basic Info", DisplayOrder = 1, IsEnabled = true, IsRequired = true, GridSize = 4, CreatedAt = now },
-            new() { ModuleName = "Products", FieldName = "category", FieldLabel = "Category", FieldType = "select", TabIndex = 0, TabName = "Basic Info", DisplayOrder = 2, IsEnabled = true, IsRequired = false, GridSize = 6, Options = "Software,Hardware,Service,Subscription,Other", CreatedAt = now },
-            new() { ModuleName = "Products", FieldName = "isActive", FieldLabel = "Active", FieldType = "checkbox", TabIndex = 0, TabName = "Basic Info", DisplayOrder = 3, IsEnabled = true, IsRequired = false, GridSize = 6, CreatedAt = now },
+            new() { ModuleName = "Products", FieldName = "name", FieldLabel = "Product Name", FieldType = "text", TabIndex = 0, TabName = "Basic Info", DisplayOrder = 0, IsEnabled = true, IsRequired = true, GridSize = 6, CreatedAt = now },
+            new() { ModuleName = "Products", FieldName = "sku", FieldLabel = "SKU", FieldType = "text", TabIndex = 0, TabName = "Basic Info", DisplayOrder = 1, IsEnabled = true, IsRequired = true, GridSize = 3, CreatedAt = now },
+            new() { ModuleName = "Products", FieldName = "barcode", FieldLabel = "Barcode", FieldType = "text", TabIndex = 0, TabName = "Basic Info", DisplayOrder = 2, IsEnabled = true, IsRequired = false, GridSize = 3, CreatedAt = now },
+            new() { ModuleName = "Products", FieldName = "productType", FieldLabel = "Product Type", FieldType = "select", TabIndex = 0, TabName = "Basic Info", DisplayOrder = 3, IsEnabled = true, IsRequired = false, GridSize = 4, Options = "Physical,Digital,Service,Subscription,Bundle", CreatedAt = now },
+            new() { ModuleName = "Products", FieldName = "status", FieldLabel = "Status", FieldType = "select", TabIndex = 0, TabName = "Basic Info", DisplayOrder = 4, IsEnabled = true, IsRequired = false, GridSize = 4, Options = "Draft,Active,Discontinued,Archived", CreatedAt = now },
+            new() { ModuleName = "Products", FieldName = "category", FieldLabel = "Category", FieldType = "select", TabIndex = 0, TabName = "Basic Info", DisplayOrder = 5, IsEnabled = true, IsRequired = false, GridSize = 4, Options = "Software,Hardware,Service,Subscription,Other", CreatedAt = now },
+            new() { ModuleName = "Products", FieldName = "subcategory", FieldLabel = "Subcategory", FieldType = "text", TabIndex = 0, TabName = "Basic Info", DisplayOrder = 6, IsEnabled = true, IsRequired = false, GridSize = 6, CreatedAt = now },
+            new() { ModuleName = "Products", FieldName = "isActive", FieldLabel = "Active", FieldType = "checkbox", TabIndex = 0, TabName = "Basic Info", DisplayOrder = 7, IsEnabled = true, IsRequired = false, GridSize = 3, CreatedAt = now },
+            new() { ModuleName = "Products", FieldName = "isFeatured", FieldLabel = "Featured", FieldType = "checkbox", TabIndex = 0, TabName = "Basic Info", DisplayOrder = 8, IsEnabled = true, IsRequired = false, GridSize = 3, CreatedAt = now },
+            new() { ModuleName = "Products", FieldName = "description", FieldLabel = "Description", FieldType = "textarea", TabIndex = 0, TabName = "Basic Info", DisplayOrder = 9, IsEnabled = true, IsRequired = false, GridSize = 12, CreatedAt = now },
+            new() { ModuleName = "Products", FieldName = "shortDescription", FieldLabel = "Short Description", FieldType = "textarea", TabIndex = 0, TabName = "Basic Info", DisplayOrder = 10, IsEnabled = true, IsRequired = false, GridSize = 12, CreatedAt = now },
+            new() { ModuleName = "Products", FieldName = "features", FieldLabel = "Features", FieldType = "textarea", TabIndex = 0, TabName = "Basic Info", DisplayOrder = 11, IsEnabled = true, IsRequired = false, GridSize = 12, CreatedAt = now },
+            new() { ModuleName = "Products", FieldName = "tags", FieldLabel = "Tags", FieldType = "text", TabIndex = 0, TabName = "Basic Info", DisplayOrder = 12, IsEnabled = true, IsRequired = false, GridSize = 12, Placeholder = "comma-separated", CreatedAt = now },
 
             // Pricing Tab (1)
             new() { ModuleName = "Products", FieldName = "price", FieldLabel = "Price ($)", FieldType = "currency", TabIndex = 1, TabName = "Pricing", DisplayOrder = 0, IsEnabled = true, IsRequired = true, GridSize = 6, CreatedAt = now },
-            new() { ModuleName = "Products", FieldName = "cost", FieldLabel = "Cost ($)", FieldType = "currency", TabIndex = 1, TabName = "Pricing", DisplayOrder = 1, IsEnabled = true, IsRequired = false, GridSize = 6, CreatedAt = now },
-            new() { ModuleName = "Products", FieldName = "quantity", FieldLabel = "Quantity in Stock", FieldType = "number", TabIndex = 1, TabName = "Pricing", DisplayOrder = 2, IsEnabled = true, IsRequired = false, GridSize = 6, CreatedAt = now },
-            new() { ModuleName = "Products", FieldName = "reorderLevel", FieldLabel = "Reorder Level", FieldType = "number", TabIndex = 1, TabName = "Pricing", DisplayOrder = 3, IsEnabled = true, IsRequired = false, GridSize = 6, CreatedAt = now },
+            new() { ModuleName = "Products", FieldName = "listPrice", FieldLabel = "List Price ($)", FieldType = "currency", TabIndex = 1, TabName = "Pricing", DisplayOrder = 1, IsEnabled = true, IsRequired = false, GridSize = 6, CreatedAt = now },
+            new() { ModuleName = "Products", FieldName = "minimumPrice", FieldLabel = "Minimum Price ($)", FieldType = "currency", TabIndex = 1, TabName = "Pricing", DisplayOrder = 2, IsEnabled = true, IsRequired = false, GridSize = 6, CreatedAt = now },
+            new() { ModuleName = "Products", FieldName = "costPrice", FieldLabel = "Cost Price ($)", FieldType = "currency", TabIndex = 1, TabName = "Pricing", DisplayOrder = 3, IsEnabled = true, IsRequired = false, GridSize = 6, CreatedAt = now },
+            new() { ModuleName = "Products", FieldName = "isTaxable", FieldLabel = "Taxable", FieldType = "checkbox", TabIndex = 1, TabName = "Pricing", DisplayOrder = 4, IsEnabled = true, IsRequired = false, GridSize = 6, CreatedAt = now },
+            new() { ModuleName = "Products", FieldName = "taxRate", FieldLabel = "Tax Rate (%)", FieldType = "number", TabIndex = 1, TabName = "Pricing", DisplayOrder = 5, IsEnabled = true, IsRequired = false, GridSize = 6, HelpText = "e.g. 8.25", CreatedAt = now },
+
+            // Subscription Tab (2)
+            new() { ModuleName = "Products", FieldName = "isSubscription", FieldLabel = "Is Subscription", FieldType = "checkbox", TabIndex = 2, TabName = "Subscription", DisplayOrder = 0, IsEnabled = true, IsRequired = false, GridSize = 6, CreatedAt = now },
+            new() { ModuleName = "Products", FieldName = "billingFrequency", FieldLabel = "Billing Frequency", FieldType = "select", TabIndex = 2, TabName = "Subscription", DisplayOrder = 1, IsEnabled = true, IsRequired = false, GridSize = 6, Options = "Monthly,Quarterly,SemiAnnual,Annual", CreatedAt = now },
+            new() { ModuleName = "Products", FieldName = "recurringPrice", FieldLabel = "Recurring Price ($)", FieldType = "currency", TabIndex = 2, TabName = "Subscription", DisplayOrder = 2, IsEnabled = true, IsRequired = false, GridSize = 6, CreatedAt = now },
+            new() { ModuleName = "Products", FieldName = "setupFee", FieldLabel = "Setup Fee ($)", FieldType = "currency", TabIndex = 2, TabName = "Subscription", DisplayOrder = 3, IsEnabled = true, IsRequired = false, GridSize = 6, CreatedAt = now },
+            new() { ModuleName = "Products", FieldName = "trialPeriodDays", FieldLabel = "Trial Period (days)", FieldType = "number", TabIndex = 2, TabName = "Subscription", DisplayOrder = 4, IsEnabled = true, IsRequired = false, GridSize = 6, CreatedAt = now },
+            new() { ModuleName = "Products", FieldName = "contractLengthMonths", FieldLabel = "Contract Length (months)", FieldType = "number", TabIndex = 2, TabName = "Subscription", DisplayOrder = 5, IsEnabled = true, IsRequired = false, GridSize = 6, CreatedAt = now },
+
+            // Inventory Tab (3)
+            new() { ModuleName = "Products", FieldName = "trackInventory", FieldLabel = "Track Inventory", FieldType = "checkbox", TabIndex = 3, TabName = "Inventory", DisplayOrder = 0, IsEnabled = true, IsRequired = false, GridSize = 6, CreatedAt = now },
+            new() { ModuleName = "Products", FieldName = "stock", FieldLabel = "Current Stock", FieldType = "number", TabIndex = 3, TabName = "Inventory", DisplayOrder = 1, IsEnabled = true, IsRequired = false, GridSize = 6, CreatedAt = now },
+            new() { ModuleName = "Products", FieldName = "reorderLevel", FieldLabel = "Reorder Level", FieldType = "number", TabIndex = 3, TabName = "Inventory", DisplayOrder = 2, IsEnabled = true, IsRequired = false, GridSize = 6, CreatedAt = now },
+            new() { ModuleName = "Products", FieldName = "reorderQuantity", FieldLabel = "Reorder Quantity", FieldType = "number", TabIndex = 3, TabName = "Inventory", DisplayOrder = 3, IsEnabled = true, IsRequired = false, GridSize = 6, CreatedAt = now },
+            new() { ModuleName = "Products", FieldName = "warehouseLocation", FieldLabel = "Warehouse Location", FieldType = "text", TabIndex = 3, TabName = "Inventory", DisplayOrder = 4, IsEnabled = true, IsRequired = false, GridSize = 6, CreatedAt = now },
+            new() { ModuleName = "Products", FieldName = "weight", FieldLabel = "Weight", FieldType = "text", TabIndex = 3, TabName = "Inventory", DisplayOrder = 5, IsEnabled = true, IsRequired = false, GridSize = 6, Placeholder = "e.g. 1.5 kg", CreatedAt = now },
+            new() { ModuleName = "Products", FieldName = "dimensions", FieldLabel = "Dimensions", FieldType = "text", TabIndex = 3, TabName = "Inventory", DisplayOrder = 6, IsEnabled = true, IsRequired = false, GridSize = 6, Placeholder = "L x W x H", CreatedAt = now },
+
+            // SEO & Media Tab (4)
+            new() { ModuleName = "Products", FieldName = "thumbnailUrl", FieldLabel = "Thumbnail URL", FieldType = "url", TabIndex = 4, TabName = "SEO & Media", DisplayOrder = 0, IsEnabled = true, IsRequired = false, GridSize = 6, CreatedAt = now },
+            new() { ModuleName = "Products", FieldName = "videoUrl", FieldLabel = "Video URL", FieldType = "url", TabIndex = 4, TabName = "SEO & Media", DisplayOrder = 1, IsEnabled = true, IsRequired = false, GridSize = 6, CreatedAt = now },
+            new() { ModuleName = "Products", FieldName = "slug", FieldLabel = "URL Slug", FieldType = "text", TabIndex = 4, TabName = "SEO & Media", DisplayOrder = 2, IsEnabled = true, IsRequired = false, GridSize = 6, CreatedAt = now },
+            new() { ModuleName = "Products", FieldName = "metaTitle", FieldLabel = "Meta Title", FieldType = "text", TabIndex = 4, TabName = "SEO & Media", DisplayOrder = 3, IsEnabled = true, IsRequired = false, GridSize = 6, CreatedAt = now },
+            new() { ModuleName = "Products", FieldName = "metaDescription", FieldLabel = "Meta Description", FieldType = "textarea", TabIndex = 4, TabName = "SEO & Media", DisplayOrder = 4, IsEnabled = true, IsRequired = false, GridSize = 12, CreatedAt = now },
+        };
+    }
+
+    private List<ModuleFieldConfiguration> GetDefaultCampaignFields()
+    {
+        var now = DateTime.UtcNow;
+        return new List<ModuleFieldConfiguration>
+        {
+            // Basic Info Tab (0)
+            new() { ModuleName = "Campaigns", FieldName = "name", FieldLabel = "Campaign Name", FieldType = "text", TabIndex = 0, TabName = "Basic Info", DisplayOrder = 0, IsEnabled = true, IsRequired = true, GridSize = 12, CreatedAt = now },
+            new() { ModuleName = "Campaigns", FieldName = "type", FieldLabel = "Type", FieldType = "select", TabIndex = 0, TabName = "Basic Info", DisplayOrder = 1, IsEnabled = true, IsRequired = true, GridSize = 6, Options = "Email,Social Media,Event,Webinar,Advertising,Referral,Other", CreatedAt = now },
+            new() { ModuleName = "Campaigns", FieldName = "status", FieldLabel = "Status", FieldType = "select", TabIndex = 0, TabName = "Basic Info", DisplayOrder = 2, IsEnabled = true, IsRequired = true, GridSize = 6, Options = "Planning,Active,Paused,Completed,Cancelled", CreatedAt = now },
+            new() { ModuleName = "Campaigns", FieldName = "startDate", FieldLabel = "Start Date", FieldType = "date", TabIndex = 0, TabName = "Basic Info", DisplayOrder = 3, IsEnabled = true, IsRequired = false, GridSize = 6, CreatedAt = now },
+            new() { ModuleName = "Campaigns", FieldName = "endDate", FieldLabel = "End Date", FieldType = "date", TabIndex = 0, TabName = "Basic Info", DisplayOrder = 4, IsEnabled = true, IsRequired = false, GridSize = 6, CreatedAt = now },
+
+            // Budget Tab (1)
+            new() { ModuleName = "Campaigns", FieldName = "budget", FieldLabel = "Budget", FieldType = "currency", TabIndex = 1, TabName = "Budget", DisplayOrder = 0, IsEnabled = true, IsRequired = false, GridSize = 6, CreatedAt = now },
+            new() { ModuleName = "Campaigns", FieldName = "actualCost", FieldLabel = "Actual Cost", FieldType = "currency", TabIndex = 1, TabName = "Budget", DisplayOrder = 1, IsEnabled = true, IsRequired = false, GridSize = 6, CreatedAt = now },
+            new() { ModuleName = "Campaigns", FieldName = "expectedRevenue", FieldLabel = "Expected Revenue", FieldType = "currency", TabIndex = 1, TabName = "Budget", DisplayOrder = 2, IsEnabled = true, IsRequired = false, GridSize = 6, CreatedAt = now },
+            new() { ModuleName = "Campaigns", FieldName = "expectedResponse", FieldLabel = "Expected Response", FieldType = "number", TabIndex = 1, TabName = "Budget", DisplayOrder = 3, IsEnabled = true, IsRequired = false, GridSize = 6, CreatedAt = now },
 
             // Details Tab (2)
-            new() { ModuleName = "Products", FieldName = "description", FieldLabel = "Description", FieldType = "textarea", TabIndex = 2, TabName = "Details", DisplayOrder = 0, IsEnabled = true, IsRequired = false, GridSize = 12, CreatedAt = now },
-            new() { ModuleName = "Products", FieldName = "features", FieldLabel = "Features", FieldType = "textarea", TabIndex = 2, TabName = "Details", DisplayOrder = 1, IsEnabled = true, IsRequired = false, GridSize = 12, CreatedAt = now },
+            new() { ModuleName = "Campaigns", FieldName = "description", FieldLabel = "Description", FieldType = "textarea", TabIndex = 2, TabName = "Details", DisplayOrder = 0, IsEnabled = true, IsRequired = false, GridSize = 12, CreatedAt = now },
+            new() { ModuleName = "Campaigns", FieldName = "objectives", FieldLabel = "Objectives", FieldType = "textarea", TabIndex = 2, TabName = "Details", DisplayOrder = 1, IsEnabled = true, IsRequired = false, GridSize = 12, CreatedAt = now },
+        };
+    }
+
+    private List<ModuleFieldConfiguration> GetDefaultQuoteFields()
+    {
+        var now = DateTime.UtcNow;
+        return new List<ModuleFieldConfiguration>
+        {
+            // Basic Info Tab (0)
+            new() { ModuleName = "Quotes", FieldName = "quoteNumber", FieldLabel = "Quote Number", FieldType = "text", TabIndex = 0, TabName = "Basic Info", DisplayOrder = 0, IsEnabled = true, IsRequired = true, GridSize = 6, CreatedAt = now },
+            new() { ModuleName = "Quotes", FieldName = "accountId", FieldLabel = "Account", FieldType = "lookup", TabIndex = 0, TabName = "Basic Info", DisplayOrder = 1, IsEnabled = true, IsRequired = true, GridSize = 6, CreatedAt = now },
+            new() { ModuleName = "Quotes", FieldName = "status", FieldLabel = "Status", FieldType = "select", TabIndex = 0, TabName = "Basic Info", DisplayOrder = 2, IsEnabled = true, IsRequired = true, GridSize = 6, Options = "Draft,Sent,Accepted,Rejected,Expired", CreatedAt = now },
+            new() { ModuleName = "Quotes", FieldName = "validUntil", FieldLabel = "Valid Until", FieldType = "date", TabIndex = 0, TabName = "Basic Info", DisplayOrder = 3, IsEnabled = true, IsRequired = false, GridSize = 6, CreatedAt = now },
+
+            // Pricing Tab (1)
+            new() { ModuleName = "Quotes", FieldName = "subtotal", FieldLabel = "Subtotal", FieldType = "currency", TabIndex = 1, TabName = "Pricing", DisplayOrder = 0, IsEnabled = true, IsRequired = false, GridSize = 4, CreatedAt = now },
+            new() { ModuleName = "Quotes", FieldName = "discount", FieldLabel = "Discount", FieldType = "currency", TabIndex = 1, TabName = "Pricing", DisplayOrder = 1, IsEnabled = true, IsRequired = false, GridSize = 4, CreatedAt = now },
+            new() { ModuleName = "Quotes", FieldName = "tax", FieldLabel = "Tax", FieldType = "currency", TabIndex = 1, TabName = "Pricing", DisplayOrder = 2, IsEnabled = true, IsRequired = false, GridSize = 4, CreatedAt = now },
+            new() { ModuleName = "Quotes", FieldName = "total", FieldLabel = "Total", FieldType = "currency", TabIndex = 1, TabName = "Pricing", DisplayOrder = 3, IsEnabled = true, IsRequired = false, GridSize = 12, CreatedAt = now },
+
+            // Terms Tab (2)
+            new() { ModuleName = "Quotes", FieldName = "terms", FieldLabel = "Terms & Conditions", FieldType = "textarea", TabIndex = 2, TabName = "Terms", DisplayOrder = 0, IsEnabled = true, IsRequired = false, GridSize = 12, CreatedAt = now },
+            new() { ModuleName = "Quotes", FieldName = "notes", FieldLabel = "Notes", FieldType = "textarea", TabIndex = 2, TabName = "Terms", DisplayOrder = 1, IsEnabled = true, IsRequired = false, GridSize = 12, CreatedAt = now },
         };
     }
 }

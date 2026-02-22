@@ -33,8 +33,6 @@ import {
   Collapse,
   Container,
   TableContainer,
-  Switch,
-  FormControlLabel,
 } from '@mui/material';
 import {
   Edit as EditIcon,
@@ -47,18 +45,14 @@ import {
   TrendingUp as TrendingUpIcon,
   Psychology as PsychologyIcon,
   Refresh as RefreshIcon,
-  ExpandMore as ExpandMoreIcon,
 } from '@mui/icons-material';
 import {
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
   Grid,
 } from '@mui/material';
 import apiClient from '../services/apiClient';
 import logger from '../services/logger';
 import logo from '../assets/logo.png';
-import LookupSelect from '../components/LookupSelect';
+
 import { ContactInfoPanel } from '../components/ContactInfo';
 import NotesTab from '../components/NotesTab';
 import { BaseEntity } from '../types';
@@ -75,6 +69,7 @@ import { useApiState } from '../hooks/useApiState';
 import { usePagination } from '../hooks/usePagination';
 import { useEntityTypeSubscription } from '../hooks/useSignalR';
 import AdvancedSearch, { SearchField, SearchFilter, filterData } from '../components/AdvancedSearch';
+import DynamicEntityForm, { ExtraTab } from '../components/DynamicEntityForm';
 
 // Lead sources for the dropdown
 const LEAD_SOURCES = [
@@ -214,7 +209,9 @@ function LeadsPage() {
   // Search and filter state
   const [searchFilters, setSearchFilters] = useState<SearchFilter[]>([]);
   const [searchText, setSearchText] = useState('');
-  
+
+  // Dynamic field configuration
+  // Field configuration now handled internally by DynamicEntityForm
   // Multi-select and bulk update state
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [bulkDialogOpen, setBulkDialogOpen] = useState(false);
@@ -1029,310 +1026,76 @@ function LeadsPage() {
           status={formData.status ? LEAD_STATUSES.find(s => s.value === formData.status)?.label : undefined}
           statusColor={formData.status ? LEAD_STATUSES.find(s => s.value === formData.status)?.text : undefined}
         />
-        <Box sx={{ borderBottom: 1, borderColor: 'divider', px: 3 }}>
-          <Tabs value={dialogTab} onChange={(_, v) => setDialogTab(v)} aria-label="Lead dialog tabs">
-            <Tab label="Lead Info" id="lead-tab-0" aria-controls="lead-tabpanel-0" />
-            <Tab label="Additional Info" id="lead-tab-1" aria-controls="lead-tabpanel-1" />
-            {editingId && <Tab label="Contact Info" icon={<ContactPhoneIcon fontSize="small" />} iconPosition="start" id="lead-tab-2" aria-controls="lead-tabpanel-2" />}
-            {editingId && <Tab label="Related" icon={<PersonAddIcon fontSize="small" />} iconPosition="start" id="lead-tab-3" aria-controls="lead-tabpanel-3" />}
-            <Tab label="Notes" icon={<NoteIcon fontSize="small" />} iconPosition="start" id={editingId ? "lead-tab-4" : "lead-tab-2"} aria-controls={editingId ? "lead-tabpanel-4" : "lead-tabpanel-2"} />
-          </Tabs>
-        </Box>
-        <DialogContent sx={{ pt: 2, minHeight: 350 }}>
+        <DialogContent sx={{ pt: 0, minHeight: 350 }}>
           {/* Error Display */}
           <DialogError 
             error={dialogApi.error} 
             onClose={dialogApi.clearError}
           />
 
-          {/* Lead Info Tab */}
-          {dialogTab === 0 && (
-            <Stack spacing={2}>
-              <Box sx={{ display: 'flex', gap: 2 }}>
-                <TextField
-                  fullWidth
-                  label="First Name"
-                  name="firstName"
-                  value={formData.firstName}
-                  onChange={handleInputChange}
-                  required
-                />
-                <TextField
-                  fullWidth
-                  label="Last Name"
-                  name="lastName"
-                  value={formData.lastName}
-                  onChange={handleInputChange}
-                  required
-                />
-              </Box>
-              <TextField
-                fullWidth
-                label="Email"
-                name="emailPrimary"
-                type="email"
-                value={formData.emailPrimary}
-                onChange={handleInputChange}
-                required
-              />
-              <TextField
-                fullWidth
-                label="Phone"
-                name="phonePrimary"
-                value={formData.phonePrimary}
-                onChange={handleInputChange}
-              />
-              <Box sx={{ display: 'flex', gap: 2 }}>
-                <TextField
-                  fullWidth
-                  label="Company"
-                  name="company"
-                  value={formData.company}
-                  onChange={handleInputChange}
-                />
-                <TextField
-                  fullWidth
-                  label="Job Title"
-                  name="jobTitle"
-                  value={formData.jobTitle}
-                  onChange={handleInputChange}
-                />
-              </Box>
-              <Box sx={{ display: 'flex', gap: 2 }}>
-                <LookupSelect
-                  category="LeadSource"
-                  name="source"
-                  value={formData.source}
-                  onChange={handleSelectChange}
-                  label="Lead Source"
-                  fallback={LEAD_SOURCES.map(s => ({ value: s.value, label: s.label }))}
-                />
-                <LookupSelect
-                  category="LeadStatus"
-                  name="status"
-                  value={formData.status}
-                  onChange={handleSelectChange}
-                  label="Status"
-                  fallback={LEAD_STATUSES.map(s => ({ value: s.value, label: s.label }))}
-                />
-              </Box>
-              <TextField
-                fullWidth
-                label="Notes"
-                name="notes"
-                value={formData.notes}
-                onChange={handleInputChange}
-                multiline
-                rows={3}
-              />
-            </Stack>
-          )}
-
-          {/* Additional Info Tab - Always visible (Tab 1) */}
-          {dialogTab === 1 && (
-            <Box role="tabpanel" id="lead-tabpanel-1" aria-labelledby="lead-tab-1">
-              <Stack spacing={2}>
-                <Box sx={{ display: 'flex', gap: 2 }}>
-                  <TextField
-                    fullWidth
-                    label="Website"
-                    name="website"
-                    value={formData.website}
-                    onChange={handleInputChange}
-                    placeholder="https://"
-                  />
-                  <TextField
-                    fullWidth
-                    label="Secondary Phone"
-                    name="phoneSecondary"
-                    value={formData.phoneSecondary}
-                    onChange={handleInputChange}
-                  />
-                </Box>
-                <Box sx={{ display: 'flex', gap: 2 }}>
-                  <TextField
-                    fullWidth
-                    label="LinkedIn URL"
-                    name="linkedInUrl"
-                    value={formData.linkedInUrl}
-                    onChange={handleInputChange}
-                    placeholder="https://linkedin.com/in/..."
-                  />
-                  <TextField
-                    fullWidth
-                    label="Twitter Handle"
-                    name="twitterHandle"
-                    value={formData.twitterHandle}
-                    onChange={handleInputChange}
-                    placeholder="@username"
-                  />
-                </Box>
-                <FormControl fullWidth>
-                  <InputLabel>Preferred Contact Method</InputLabel>
-                  <Select
-                    name="preferredContactMethod"
-                    value={formData.preferredContactMethod}
-                    onChange={handleSelectChange}
-                    label="Preferred Contact Method"
-                  >
-                    <MenuItem value="">Not specified</MenuItem>
-                    <MenuItem value="Email">Email</MenuItem>
-                    <MenuItem value="Phone">Phone</MenuItem>
-                    <MenuItem value="SMS">SMS</MenuItem>
-                    <MenuItem value="Mail">Mail</MenuItem>
-                  </Select>
-                </FormControl>
-                <FormControlLabel
-                  control={
-                    <Switch
-                      name="doNotContact"
-                      checked={formData.doNotContact}
-                      onChange={(e) => setFormData(prev => ({ ...prev, doNotContact: e.target.checked }))}
-                    />
-                  }
-                  label="Do Not Contact"
-                />
-
-                {/* Qualification & Scoring Accordion */}
-                <Accordion variant="outlined" sx={{ mt: 1, borderRadius: 1, '&:before': { display: 'none' } }}>
-                  <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                    <Typography variant="subtitle2" fontWeight={600}>
-                      Qualification &amp; Scoring
+          <DynamicEntityForm
+            moduleName="Lead"
+            formData={formData}
+            onChange={handleInputChange}
+            onSelectChange={(e: any) => setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }))}
+            setFormData={setFormData}
+            activeTab={dialogTab}
+            editingId={editingId}
+            onTabChange={setDialogTab}
+            excludeFields={['tags', 'customFields']}
+            extraTabs={[
+              {
+                index: 100,
+                name: 'Contact Info',
+                icon: <ContactPhoneIcon fontSize="small" />,
+                editOnly: true,
+                render: () => (
+                  <Box>
+                    <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2 }}>Manage Contact Information</Typography>
+                    <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
+                      Add and manage multiple addresses, phone numbers, emails, and social media accounts for this lead.
                     </Typography>
-                  </AccordionSummary>
-                  <AccordionDetails>
-                    <Grid container spacing={2}>
-                      <Grid item xs={6}>
-                        <TextField
-                          fullWidth
-                          label="Region"
-                          name="region"
-                          value={formData.region}
-                          onChange={handleInputChange}
-                        />
-                      </Grid>
-                      <Grid item xs={6}>
-                        <TextField
-                          fullWidth
-                          label="Campaign ID"
-                          name="campaignId"
-                          type="number"
-                          value={formData.campaignId}
-                          onChange={handleInputChange}
-                          inputProps={{ min: 0 }}
-                        />
-                      </Grid>
-                      <Grid item xs={6}>
-                        <TextField
-                          fullWidth
-                          label="MQL Date"
-                          name="mqlDate"
-                          type="date"
-                          value={formData.mqlDate}
-                          onChange={handleInputChange}
-                          InputLabelProps={{ shrink: true }}
-                        />
-                      </Grid>
-                      <Grid item xs={6}>
-                        <TextField
-                          fullWidth
-                          label="SQL Date"
-                          name="sqlDate"
-                          type="date"
-                          value={formData.sqlDate}
-                          onChange={handleInputChange}
-                          InputLabelProps={{ shrink: true }}
-                        />
-                      </Grid>
-                      <Grid item xs={12}>
-                        <TextField
-                          fullWidth
-                          label="Qualification Notes"
-                          name="qualificationNotes"
-                          value={formData.qualificationNotes}
-                          onChange={handleInputChange}
-                          multiline
-                          rows={3}
-                        />
-                      </Grid>
-                      <Grid item xs={12}>
-                        <TextField
-                          fullWidth
-                          label="Tags"
-                          name="tags"
-                          value={formData.tags}
-                          onChange={handleInputChange}
-                          placeholder="comma-separated"
-                        />
-                      </Grid>
-                    </Grid>
-                  </AccordionDetails>
-                </Accordion>
-              </Stack>
-            </Box>
-          )}
-
-          {/* Contact Info Tab - Only when editing */}
-          {editingId && dialogTab === 2 && (
-            <Box role="tabpanel" id="lead-tabpanel-2" aria-labelledby="lead-tab-2">
-              <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2 }}>
-                Manage Contact Information
-              </Typography>
-              <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
-                Add and manage multiple addresses, phone numbers, emails, and social media accounts for this lead.
-              </Typography>
-              <ContactInfoPanel
-                entityType="Lead"
-                entityId={editingId}
-                layout="tabs"
-                showCounts={true}
-              />
-            </Box>
-          )}
-
-          {/* Related Entities Tab - Only when editing */}
-          {editingId && dialogTab === 3 && (
-            <Box role="tabpanel" id="lead-tabpanel-3" aria-labelledby="lead-tab-3">
-              <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2 }}>
-                Related Records
-              </Typography>
-              <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
-                View activities and related records linked to this lead.
-              </Typography>
-              <RelatedEntitiesPanel
-                entityType="lead"
-                entityId={editingId}
-                showRelated={['activities']}
-                compact
-                showAddButtons
-              />
-            </Box>
-          )}
-
-          {/* Notes Tab - Index depends on whether we're editing (has Contact Info + Related tabs) or adding */}
-          {((editingId && dialogTab === 4) || (!editingId && dialogTab === 2)) && (
-            <Box role="tabpanel" id={editingId ? "lead-tabpanel-4" : "lead-tabpanel-2"} aria-labelledby={editingId ? "lead-tab-4" : "lead-tab-2"}>
-              {editingId ? (
-                <NotesTab
-                  entityType="Lead"
-                  entityId={editingId}
-                  entityName={`${formData.firstName} ${formData.lastName}`.trim() || 'Lead'}
-                />
-              ) : (
-                <TextField
-                  fullWidth
-                  label="Initial Notes"
-                  name="notes"
-                  value={formData.notes}
-                  onChange={handleInputChange}
-                  multiline
-                  rows={4}
-                  placeholder="Add any initial notes about this lead..."
-                  sx={{ mt: 2 }}
-                />
-              )}
-            </Box>
-          )}
+                    <ContactInfoPanel entityType="Lead" entityId={editingId!} layout="tabs" showCounts={true} />
+                  </Box>
+                ),
+              },
+              {
+                index: 101,
+                name: 'Related',
+                icon: <PersonAddIcon fontSize="small" />,
+                editOnly: true,
+                render: () => (
+                  <Box>
+                    <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2 }}>Related Records</Typography>
+                    <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
+                      View activities and related records linked to this lead.
+                    </Typography>
+                    <RelatedEntitiesPanel entityType="lead" entityId={editingId!} showRelated={['activities']} compact showAddButtons />
+                  </Box>
+                ),
+              },
+              {
+                index: 102,
+                name: 'Notes',
+                icon: <NoteIcon fontSize="small" />,
+                render: () => editingId ? (
+                  <NotesTab entityType="Lead" entityId={editingId} entityName={`${formData.firstName} ${formData.lastName}`.trim() || 'Lead'} />
+                ) : (
+                  <TextField
+                    fullWidth
+                    label="Initial Notes"
+                    name="notes"
+                    value={formData.notes}
+                    onChange={handleInputChange}
+                    multiline
+                    rows={4}
+                    placeholder="Add any initial notes about this lead..."
+                    sx={{ mt: 2 }}
+                  />
+                ),
+              },
+            ]}
+          />
         </DialogContent>
         <DialogActions>
           <Button onClick={handleCloseDialog}>Cancel</Button>

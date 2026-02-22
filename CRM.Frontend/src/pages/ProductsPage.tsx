@@ -3,7 +3,7 @@ import {
   Box, Card, CardContent, Typography, Button, Table, TableBody, TableCell, TableContainer, TableHead,
   TableRow, TablePagination, Dialog, DialogTitle, DialogContent, DialogActions, Alert, CircularProgress,
   TextField, Container, FormControl, InputLabel, Select, MenuItem, Chip, Tabs, Tab,
-  FormControlLabel, Checkbox, Grid, IconButton, Tooltip, SelectChangeEvent
+  Grid, IconButton, Tooltip, SelectChangeEvent
 } from '@mui/material';
 import {
   Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, 
@@ -12,11 +12,12 @@ import {
 } from '@mui/icons-material';
 import apiClient from '../services/apiClient';
 import logger from '../services/logger';
-import { TabPanel, DialogError, DialogSuccess, ActionButton } from '../components/common';
-import LookupSelect from '../components/LookupSelect';
+import { DialogError, DialogSuccess, ActionButton } from '../components/common';
+
 import ImportExportButtons from '../components/ImportExportButtons';
 import NotesTab from '../components/NotesTab';
 import AdvancedSearch, { SearchField, SearchFilter, filterData } from '../components/AdvancedSearch';
+import DynamicEntityForm, { ExtraTab } from '../components/DynamicEntityForm';
 import { usePagination } from '../hooks/usePagination';
 import { useApiState } from '../hooks/useApiState';
 import { useEntityTypeSubscription } from '../hooks/useSignalR';
@@ -179,7 +180,9 @@ function ProductsPage() {
   const [dialogTab, setDialogTab] = useState(0);
   const [searchFilters, setSearchFilters] = useState<SearchFilter[]>([]);
   const [searchText, setSearchText] = useState('');
-  
+
+  // Dynamic field configuration
+  // Field configuration now handled internally by DynamicEntityForm
   // API state for dialog operations
   const dialogApi = useApiState({ successTimeout: 3000 });
 
@@ -470,220 +473,32 @@ function ProductsPage() {
       {/* Enhanced Add/Edit Product Dialog */}
       <Dialog open={openDialog} onClose={handleCloseDialog} maxWidth="md" fullWidth>
         <DialogTitle sx={{ pb: 0 }}>{editingId ? 'Edit Product' : 'Add Product'}</DialogTitle>
-        <Box sx={{ borderBottom: 1, borderColor: 'divider', px: 3 }}>
-          <Tabs value={dialogTab} onChange={(_, v) => setDialogTab(v)}>
-            <Tab label="Basic Info" />
-            <Tab label="Pricing" />
-            <Tab label="Subscription" />
-            <Tab label="Inventory" />
-            <Tab label="SEO & Media" />
-            <Tab label="Notes" icon={<NoteIcon fontSize="small" />} iconPosition="start" />
-          </Tabs>
-        </Box>
-        <DialogContent sx={{ pt: 2, minHeight: 400 }}>
+        <DialogContent sx={{ pt: 0, minHeight: 400 }}>
           <DialogError error={dialogApi.error} onClose={() => dialogApi.reset()} />
-          <TabPanel value={dialogTab} index={0}>
-            <Grid container spacing={2}>
-              <Grid item xs={8}>
-                <TextField fullWidth label="Product Name" name="name" value={formData.name} onChange={handleInputChange} required />
-              </Grid>
-              <Grid item xs={4}>
-                <TextField fullWidth label="SKU" name="sku" value={formData.sku} onChange={handleInputChange} required />
-              </Grid>
-              <Grid item xs={4}>
-                <TextField fullWidth label="Barcode" name="barcode" value={formData.barcode} onChange={handleInputChange} />
-              </Grid>
-              <Grid item xs={4}>
-                <LookupSelect
-                  category="ProductType"
-                  name="productType"
-                  value={formData.productType}
-                  onChange={handleSelectChange}
-                  label="Product Type"
-                  fallback={PRODUCT_TYPES.map(t => ({ value: t.value, label: t.label }))}
-                />
-              </Grid>
-              <Grid item xs={4}>
-                <LookupSelect
-                  category="ProductStatus"
-                  name="status"
-                  value={formData.status}
-                  onChange={handleSelectChange}
-                  label="Status"
-                  fallback={PRODUCT_STATUSES.map(s => ({ value: s.value, label: s.label }))}
-                />
-              </Grid>
-              <Grid item xs={6}>
-                <LookupSelect
-                  category="ProductCategory"
-                  name="category"
-                  value={formData.category}
-                  onChange={handleSelectChange}
-                  label="Category"
-                  fallback={CATEGORIES.map(c => ({ value: c, label: c }))}
-                />
-              </Grid>
-              <Grid item xs={6}>
-                <TextField fullWidth label="Subcategory" name="subcategory" value={formData.subcategory} onChange={handleInputChange} />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField fullWidth label="Short Description" name="shortDescription" value={formData.shortDescription} onChange={handleInputChange} />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField fullWidth label="Full Description" name="description" value={formData.description} onChange={handleInputChange} multiline rows={3} />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField fullWidth label="Features (comma-separated)" name="features" value={formData.features} onChange={handleInputChange} placeholder="Feature 1, Feature 2, Feature 3" />
-              </Grid>
-              <Grid item xs={12}>
-                <FormControlLabel
-                  control={<Checkbox name="isFeatured" checked={formData.isFeatured} onChange={handleInputChange} />}
-                  label="Featured Product"
-                />
-              </Grid>
-            </Grid>
-          </TabPanel>
 
-          <TabPanel value={dialogTab} index={1}>
-            <Grid container spacing={2}>
-              <Grid item xs={4}>
-                <TextField fullWidth label="Sale Price ($)" name="price" type="number" value={formData.price} onChange={handleInputChange} />
-              </Grid>
-              <Grid item xs={4}>
-                <TextField fullWidth label="List Price ($)" name="listPrice" type="number" value={formData.listPrice} onChange={handleInputChange} />
-              </Grid>
-              <Grid item xs={4}>
-                <TextField fullWidth label="Minimum Price ($)" name="minimumPrice" type="number" value={formData.minimumPrice} onChange={handleInputChange} />
-              </Grid>
-              <Grid item xs={4}>
-                <TextField fullWidth label="Cost Price ($)" name="costPrice" type="number" value={formData.costPrice} onChange={handleInputChange} />
-              </Grid>
-              <Grid item xs={4}>
-                <TextField 
-                  fullWidth 
-                  label="Margin (%)" 
-                  value={formData.price > 0 && formData.costPrice > 0 ? (((formData.price - formData.costPrice) / formData.price) * 100).toFixed(1) : 0}
-                  InputProps={{ readOnly: true }}
-                />
-              </Grid>
-              <Grid item xs={4}>
-                <TextField fullWidth label="Tax Rate (%)" name="taxRate" type="number" value={formData.taxRate} onChange={handleInputChange} />
-              </Grid>
-              <Grid item xs={12}>
-                <FormControlLabel
-                  control={<Checkbox name="isTaxable" checked={formData.isTaxable} onChange={handleInputChange} />}
-                  label="Product is Taxable"
-                />
-              </Grid>
-            </Grid>
-          </TabPanel>
-
-          <TabPanel value={dialogTab} index={2}>
-            <Grid container spacing={2}>
-              <Grid item xs={12}>
-                <FormControlLabel
-                  control={<Checkbox name="isSubscription" checked={formData.isSubscription} onChange={handleInputChange} />}
-                  label="This is a Subscription Product"
-                />
-              </Grid>
-              {formData.isSubscription && (
-                <>
-                  <Grid item xs={4}>
-                    <LookupSelect
-                      category="BillingCycle"
-                      name="billingFrequency"
-                      value={formData.billingFrequency}
-                      onChange={handleSelectChange}
-                      label="Billing Frequency"
-                      fallback={BILLING_FREQUENCIES.map(f => ({ value: f.value, label: f.label }))}
-                    />
-                  </Grid>
-                  <Grid item xs={4}>
-                    <TextField fullWidth label="Recurring Price ($)" name="recurringPrice" type="number" value={formData.recurringPrice} onChange={handleInputChange} />
-                  </Grid>
-                  <Grid item xs={4}>
-                    <TextField fullWidth label="Setup Fee ($)" name="setupFee" type="number" value={formData.setupFee} onChange={handleInputChange} />
-                  </Grid>
-                  <Grid item xs={6}>
-                    <TextField fullWidth label="Trial Period (Days)" name="trialPeriodDays" type="number" value={formData.trialPeriodDays} onChange={handleInputChange} />
-                  </Grid>
-                  <Grid item xs={6}>
-                    <TextField fullWidth label="Contract Length (Months)" name="contractLengthMonths" type="number" value={formData.contractLengthMonths} onChange={handleInputChange} />
-                  </Grid>
-                </>
-              )}
-            </Grid>
-          </TabPanel>
-
-          <TabPanel value={dialogTab} index={3}>
-            <Grid container spacing={2}>
-              <Grid item xs={12}>
-                <FormControlLabel
-                  control={<Checkbox name="trackInventory" checked={formData.trackInventory} onChange={handleInputChange} />}
-                  label="Track Inventory"
-                />
-              </Grid>
-              {formData.trackInventory && (
-                <>
-                  <Grid item xs={4}>
-                    <TextField fullWidth label="Stock Quantity" name="stock" type="number" value={formData.stock} onChange={handleInputChange} />
-                  </Grid>
-                  <Grid item xs={4}>
-                    <TextField fullWidth label="Reorder Level" name="reorderLevel" type="number" value={formData.reorderLevel} onChange={handleInputChange} />
-                  </Grid>
-                  <Grid item xs={4}>
-                    <TextField fullWidth label="Reorder Quantity" name="reorderQuantity" type="number" value={formData.reorderQuantity} onChange={handleInputChange} />
-                  </Grid>
-                  <Grid item xs={12}>
-                    <TextField fullWidth label="Warehouse Location" name="warehouseLocation" value={formData.warehouseLocation} onChange={handleInputChange} />
-                  </Grid>
-                </>
-              )}
-              <Grid item xs={4}>
-                <TextField fullWidth label="Weight (lbs)" name="weight" type="number" value={formData.weight} onChange={handleInputChange} />
-              </Grid>
-              <Grid item xs={8}>
-                <TextField fullWidth label="Dimensions (LxWxH)" name="dimensions" value={formData.dimensions} onChange={handleInputChange} placeholder="10x5x3 inches" />
-              </Grid>
-            </Grid>
-          </TabPanel>
-
-          <TabPanel value={dialogTab} index={4}>
-            <Grid container spacing={2}>
-              <Grid item xs={6}>
-                <TextField fullWidth label="Thumbnail URL" name="thumbnailUrl" value={formData.thumbnailUrl} onChange={handleInputChange} />
-              </Grid>
-              <Grid item xs={6}>
-                <TextField fullWidth label="Video URL" name="videoUrl" value={formData.videoUrl} onChange={handleInputChange} />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField fullWidth label="URL Slug" name="slug" value={formData.slug} onChange={handleInputChange} placeholder="product-name" />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField fullWidth label="Meta Title" name="metaTitle" value={formData.metaTitle} onChange={handleInputChange} />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField fullWidth label="Meta Description" name="metaDescription" value={formData.metaDescription} onChange={handleInputChange} multiline rows={2} />
-              </Grid>
-              <Grid item xs={12}>
-                <TextField fullWidth label="Tags (comma-separated)" name="tags" value={formData.tags} onChange={handleInputChange} placeholder="tag1, tag2, tag3" />
-              </Grid>
-            </Grid>
-          </TabPanel>
-
-          <TabPanel value={dialogTab} index={5}>
-            {editingId ? (
-              <NotesTab
-                entityType="Product"
-                entityId={editingId}
-                entityName={formData.name || 'Product'}
-              />
-            ) : (
-              <Alert severity="info" sx={{ mt: 2 }}>
-                Please save the product first to add notes.
-              </Alert>
-            )}
-          </TabPanel>
+          <DynamicEntityForm
+            moduleName="Product"
+            formData={formData}
+            onChange={handleInputChange}
+            onSelectChange={(e: any) => setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }))}
+            setFormData={setFormData}
+            activeTab={dialogTab}
+            editingId={editingId}
+            onTabChange={setDialogTab}
+            excludeFields={['tags', 'customFields']}
+            extraTabs={[
+              {
+                index: 100,
+                name: 'Notes',
+                icon: <NoteIcon fontSize="small" />,
+                render: () => editingId ? (
+                  <NotesTab entityType="Product" entityId={editingId} entityName={formData.name || 'Product'} />
+                ) : (
+                  <Alert severity="info" sx={{ mt: 2 }}>Please save the product first to add notes.</Alert>
+                ),
+              },
+            ]}
+          />
         </DialogContent>
         <DialogActions>
           <DialogError error={dialogApi.error} />

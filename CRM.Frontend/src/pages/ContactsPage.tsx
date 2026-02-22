@@ -34,14 +34,9 @@ import {
   Select,
   Collapse,
   SelectChangeEvent,
-  Accordion,
-  AccordionSummary,
-  AccordionDetails,
-  Switch,
-  FormControlLabel,
   Grid,
 } from '@mui/material';
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import apiClient from '../services/apiClient';
 import { getApiErrorMessage } from '../utils/errorHandler';
@@ -60,13 +55,14 @@ import FilterListIcon from '@mui/icons-material/FilterList';
 import CloseIcon from '@mui/icons-material/Close';
 import NoteIcon from '@mui/icons-material/Note';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
+import RefreshIcon from '@mui/icons-material/Refresh';
 import logo from '../assets/logo.png';
-import LookupSelect from '../components/LookupSelect';
 import EntitySelect from '../components/EntitySelect';
 import ImportExportButtons from '../components/ImportExportButtons';
 import AdvancedSearch, { SearchField, SearchFilter, filterData } from '../components/AdvancedSearch';
 import { ContactInfoPanel } from '../components/ContactInfo';
 import NotesTab from '../components/NotesTab';
+import DynamicEntityForm, { ExtraTab } from '../components/DynamicEntityForm';
 import { contactInfoService, EntityContactInfoDto, LinkedEmailDto, LinkedPhoneDto, LinkedAddressDto, LinkedSocialMediaDto } from '../services/contactInfoService';
 import { useAccountContext } from '../contexts/AccountContextProvider';
 import { useProfile } from '../contexts/ProfileContext';
@@ -232,6 +228,9 @@ function ContactsPage() {
   const dialogApi = useApiState({ successTimeout: 3000 });
   const bulkApi = useApiState({ successTimeout: 3000 });
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  // Field configuration now handled internally by DynamicEntityForm
+
   const [formData, setFormData] = useState<CreateContactRequest>({
     contactType: 'Other',
     firstName: '',
@@ -883,35 +882,7 @@ function ContactsPage() {
           modifiedAt={selectedContact?.lastModified}
           subtitle={selectedContact?.jobTitle || selectedContact?.company}
         />
-        <Box sx={{ borderBottom: 1, borderColor: 'divider', px: 3 }}>
-          <Tabs value={dialogTab} onChange={(_, v) => setDialogTab(v)} aria-label="Contact dialog tabs">
-            <Tab label="Basic Info" id="contact-tab-0" aria-controls="contact-tabpanel-0" />
-            <Tab 
-              label="Contact Info" 
-              icon={<ContactPhoneIcon fontSize="small" />} 
-              iconPosition="start"
-              disabled={!selectedContact}
-              id="contact-tab-1"
-              aria-controls="contact-tabpanel-1"
-            />
-            <Tab 
-              label="Related" 
-              icon={<TrendingUpIcon fontSize="small" />} 
-              iconPosition="start"
-              disabled={!selectedContact}
-              id="contact-tab-2"
-              aria-controls="contact-tabpanel-2"
-            />
-            <Tab 
-              label="Notes" 
-              icon={<NoteIcon fontSize="small" />} 
-              iconPosition="start"
-              id="contact-tab-3"
-              aria-controls="contact-tabpanel-3"
-            />
-          </Tabs>
-        </Box>
-        <DialogContent sx={{ pt: 2, minHeight: 400 }}>
+        <DialogContent sx={{ pt: 0, minHeight: 400 }}>
           {/* Error Display */}
           <DialogError 
             error={dialogApi.error} 
@@ -921,366 +892,76 @@ function ContactsPage() {
             message={dialogApi.success} 
             onClose={dialogApi.clearSuccess}
           />
-          
-          {/* Basic Info Tab */}
-          {dialogTab === 0 && (
-            <Stack spacing={2}>
-              <LookupSelect
-                category="ContactType"
-                name="contactType"
-                value={formData.contactType}
-                onChange={handleFormChange}
-                label="Contact Type"
-                fallback={CONTACT_TYPES.map(t => ({ value: t, label: t }))}
-              />
 
-              <TextField
-                label="First Name"
-                name="firstName"
-                value={formData.firstName}
-                onChange={handleFormChange}
-                fullWidth
-                required
-              />
-
-              <TextField
-                label="Last Name"
-                name="lastName"
-                value={formData.lastName}
-                onChange={handleFormChange}
-                fullWidth
-                required
-              />
-
-              <TextField
-                label="Middle Name"
-                name="middleName"
-                value={formData.middleName || ''}
-                onChange={handleFormChange}
-                fullWidth
-              />
-
-              <TextField
-                label="Company"
-                name="company"
-                value={formData.company || ''}
-                onChange={handleFormChange}
-                fullWidth
-              />
-
-              <TextField
-                label="Job Title"
-                name="jobTitle"
-                value={formData.jobTitle || ''}
-                onChange={handleFormChange}
-                fullWidth
-              />
-
-              <EntitySelect
-                entityType="account"
-                name="accountId"
-                value={formData.accountId || ''}
-                onChange={(e) => setFormData({ ...formData, accountId: e.target.value ? Number(e.target.value) : '' })}
-                label="Owner Account"
-                showAddNew={true}
-              />
-
-              <TextField
-                label="Department"
-                name="department"
-                value={formData.department || ''}
-                onChange={handleFormChange}
-                fullWidth
-              />
-
-              <TextField
-                label="Reports To"
-                name="reportsTo"
-                value={formData.reportsTo || ''}
-                onChange={handleFormChange}
-                fullWidth
-              />
-
-              <TextField
-                label="Date of Birth"
-                name="dateOfBirth"
-                type="date"
-                value={formData.dateOfBirth || ''}
-                onChange={handleFormChange}
-                fullWidth
-                InputLabelProps={{ shrink: true }}
-              />
-
-              <TextField
-                label="Notes"
-                name="notes"
-                value={formData.notes || ''}
-                onChange={handleFormChange}
-                fullWidth
-                multiline
-                rows={3}
-              />
-
-              {!selectedContact && (
-                <Alert severity="info" icon={<InfoOutlinedIcon />}>
-                  Save the contact first to add addresses, phone numbers, emails, and social media accounts.
-                </Alert>
-              )}
-
-              {/* Additional Information accordion */}
-              <Accordion sx={{ mt: 1, boxShadow: 'none', border: '1px solid', borderColor: 'divider', borderRadius: 1 }} disableGutters>
-                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                  <Typography variant="subtitle2" fontWeight={600}>Additional Information</Typography>
-                </AccordionSummary>
-                <AccordionDetails>
-                  <Stack spacing={2}>
-                    <Box sx={{ display: 'flex', gap: 2 }}>
-                      <TextField
-                        label="Salutation"
-                        name="salutation"
-                        value={formData.salutation || ''}
-                        onChange={handleFormChange}
-                        fullWidth
-                        placeholder="Mr., Ms., Dr.…"
-                      />
-                      <TextField
-                        label="Suffix"
-                        name="suffix"
-                        value={formData.suffix || ''}
-                        onChange={handleFormChange}
-                        fullWidth
-                        placeholder="Jr., Sr., III…"
-                      />
-                    </Box>
-                    <Box sx={{ display: 'flex', gap: 2 }}>
-                      <TextField
-                        label="Nickname"
-                        name="nickname"
-                        value={formData.nickname || ''}
-                        onChange={handleFormChange}
-                        fullWidth
-                        placeholder="Preferred name or alias"
-                      />
-                      <FormControl fullWidth>
-                        <InputLabel>Gender</InputLabel>
-                        <Select
-                          name="gender"
-                          value={formData.gender || ''}
-                          onChange={(e: SelectChangeEvent) => setFormData(prev => ({ ...prev, gender: e.target.value }))}
-                          label="Gender"
-                        >
-                          <MenuItem value="">Not specified</MenuItem>
-                          <MenuItem value="Male">Male</MenuItem>
-                          <MenuItem value="Female">Female</MenuItem>
-                          <MenuItem value="NonBinary">Non-binary</MenuItem>
-                          <MenuItem value="PreferNotToSay">Prefer not to say</MenuItem>
-                          <MenuItem value="Other">Other</MenuItem>
-                        </Select>
-                      </FormControl>
-                    </Box>
-                    <TextField
-                      label="Website"
-                      name="website"
-                      value={formData.website || ''}
-                      onChange={handleFormChange}
-                      fullWidth
-                      placeholder="https://"
+          <DynamicEntityForm
+            moduleName="Contact"
+            formData={formData}
+            onChange={handleFormChange}
+            onSelectChange={(e: any) => setFormData(prev => ({ ...prev, [e.target.name]: e.target.value }))}
+            setFormData={setFormData}
+            activeTab={dialogTab}
+            editingId={selectedContact?.id}
+            onTabChange={setDialogTab}
+            excludeFields={['tags', 'customFields']}
+            extraTabs={[
+              {
+                index: 100,
+                name: 'Contact Info',
+                icon: <ContactPhoneIcon fontSize="small" />,
+                editOnly: true,
+                render: () => (
+                  <Box>
+                    <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2 }}>Manage Contact Information</Typography>
+                    <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
+                      Add and manage multiple addresses, phone numbers, emails, and social media accounts.
+                    </Typography>
+                    <ContactInfoPanel
+                      entityType="Contact"
+                      entityId={selectedContact!.id}
+                      layout="tabs"
+                      showCounts={true}
+                      onContactInfoChange={() => fetchContactInfoSummaries(contacts)}
                     />
-                    <Box sx={{ display: 'flex', gap: 2 }}>
-                      <TextField
-                        label="LinkedIn URL"
-                        name="linkedInUrl"
-                        value={formData.linkedInUrl || ''}
-                        onChange={handleFormChange}
-                        fullWidth
-                        placeholder="https://linkedin.com/in/…"
-                      />
-                      <TextField
-                        label="Twitter Handle"
-                        name="twitterHandle"
-                        value={formData.twitterHandle || ''}
-                        onChange={handleFormChange}
-                        fullWidth
-                        placeholder="@username"
-                      />
-                    </Box>
-                  </Stack>
-                </AccordionDetails>
-              </Accordion>
-
-              {/* Additional Contact Info accordion */}
-              <Accordion sx={{ mt: 1, boxShadow: 'none', border: '1px solid', borderColor: 'divider', borderRadius: 1 }} disableGutters>
-                <AccordionSummary expandIcon={<ExpandMoreIcon />}>
-                  <Typography variant="subtitle2" fontWeight={600}>Additional Contact Info</Typography>
-                </AccordionSummary>
-                <AccordionDetails>
-                  <Grid container spacing={2}>
-                    <Grid item xs={6}>
-                      <TextField
-                        fullWidth
-                        label="Secondary Email"
-                        name="emailSecondary"
-                        type="email"
-                        value={formData.emailSecondary || ''}
-                        onChange={handleFormChange}
-                      />
-                    </Grid>
-                    <Grid item xs={6}>
-                      <TextField
-                        fullWidth
-                        label="Secondary Phone"
-                        name="phoneSecondary"
-                        value={formData.phoneSecondary || ''}
-                        onChange={handleFormChange}
-                      />
-                    </Grid>
-                    <Grid item xs={6}>
-                      <TextField
-                        fullWidth
-                        label="Mobile Phone"
-                        name="phoneMobile"
-                        value={formData.phoneMobile || ''}
-                        onChange={handleFormChange}
-                        placeholder="Mobile / cell number"
-                      />
-                    </Grid>
-                    <Grid item xs={6}>
-                      <TextField
-                        fullWidth
-                        label="Fax Number"
-                        name="phoneFax"
-                        value={formData.phoneFax || ''}
-                        onChange={handleFormChange}
-                        placeholder="Fax number"
-                      />
-                    </Grid>
-                    <Grid item xs={6}>
-                      <TextField
-                        fullWidth
-                        label="Address"
-                        name="address"
-                        value={formData.address || ''}
-                        onChange={handleFormChange}
-                        placeholder="Street address"
-                      />
-                    </Grid>
-                    <Grid item xs={6}>
-                      <TextField
-                        fullWidth
-                        label="Address Line 2"
-                        name="address2"
-                        value={formData.address2 || ''}
-                        onChange={handleFormChange}
-                        placeholder="Suite, Apt, Floor…"
-                      />
-                    </Grid>
-                    <Grid item xs={6}>
-                      <FormControl fullWidth>
-                        <InputLabel>Lead Status</InputLabel>
-                        <Select
-                          name="leadStatus"
-                          value={formData.leadStatus || ''}
-                          onChange={(e: SelectChangeEvent) => setFormData(prev => ({ ...prev, leadStatus: e.target.value }))}
-                          label="Lead Status"
-                        >
-                          <MenuItem value="">Not specified</MenuItem>
-                          <MenuItem value="new">New</MenuItem>
-                          <MenuItem value="contacted">Contacted</MenuItem>
-                          <MenuItem value="qualified">Qualified</MenuItem>
-                          <MenuItem value="unqualified">Unqualified</MenuItem>
-                          <MenuItem value="converted">Converted</MenuItem>
-                        </Select>
-                      </FormControl>
-                    </Grid>
-                    <Grid item xs={6}>
-                      <FormControl fullWidth>
-                        <InputLabel>Preferred Contact Method</InputLabel>
-                        <Select
-                          name="preferredContactMethod"
-                          value={formData.preferredContactMethod || ''}
-                          onChange={(e: SelectChangeEvent) => setFormData(prev => ({ ...prev, preferredContactMethod: e.target.value }))}
-                          label="Preferred Contact Method"
-                        >
-                          <MenuItem value="">Not specified</MenuItem>
-                          <MenuItem value="email">Email</MenuItem>
-                          <MenuItem value="phone">Phone</MenuItem>
-                          <MenuItem value="sms">SMS</MenuItem>
-                          <MenuItem value="linkedin">LinkedIn</MenuItem>
-                        </Select>
-                      </FormControl>
-                    </Grid>
-                    <Grid item xs={12}>
-                      <FormControlLabel
-                        control={
-                          <Switch
-                            name="doNotContact"
-                            checked={formData.doNotContact || false}
-                            onChange={(e) => setFormData(prev => ({ ...prev, doNotContact: e.target.checked }))}
-                          />
-                        }
-                        label="Do Not Contact"
-                      />
-                    </Grid>
-                  </Grid>
-                </AccordionDetails>
-              </Accordion>
-            </Stack>
-          )}
-
-          {/* Contact Info Tab - Only when editing */}
-          {dialogTab === 1 && selectedContact && (
-            <Box role="tabpanel" id="contact-tabpanel-1" aria-labelledby="contact-tab-1">
-              <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2 }}>
-                Manage Contact Information
-              </Typography>
-              <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
-                Add and manage multiple addresses, phone numbers, emails, and social media accounts.
-              </Typography>
-              <ContactInfoPanel
-                entityType="Contact"
-                entityId={selectedContact.id}
-                layout="tabs"
-                showCounts={true}
-                onContactInfoChange={() => fetchContactInfoSummaries(contacts)}
-              />
-            </Box>
-          )}
-
-          {/* Related Entities Tab - Only when editing */}
-          {dialogTab === 2 && selectedContact && (
-            <Box role="tabpanel" id="contact-tabpanel-2" aria-labelledby="contact-tab-2">
-              <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2 }}>
-                Related Records
-              </Typography>
-              <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
-                View and navigate to opportunities, accounts, and activities linked to this contact.
-              </Typography>
-              <RelatedEntitiesPanel
-                entityType="contact"
-                entityId={selectedContact.id}
-                showRelated={['accounts', 'opportunities', 'activities']}
-                compact
-                showAddButtons
-              />
-            </Box>
-          )}
-
-          {/* Notes Tab */}
-          {dialogTab === 3 && (
-            <Box role="tabpanel" id="contact-tabpanel-3" aria-labelledby="contact-tab-3">
-              {selectedContact ? (
-                <NotesTab
-                  entityType="Contact"
-                  entityId={selectedContact.id}
-                  entityName={`${selectedContact.firstName} ${selectedContact.lastName}`}
-                />
-              ) : (
-                <Alert severity="info">
-                  Save the contact first to add notes.
-                </Alert>
-              )}
-            </Box>
-          )}
+                  </Box>
+                ),
+              },
+              {
+                index: 101,
+                name: 'Related',
+                icon: <TrendingUpIcon fontSize="small" />,
+                editOnly: true,
+                render: () => (
+                  <Box>
+                    <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 2 }}>Related Records</Typography>
+                    <Typography variant="body2" color="textSecondary" sx={{ mb: 2 }}>
+                      View and navigate to opportunities, accounts, and activities linked to this contact.
+                    </Typography>
+                    <RelatedEntitiesPanel
+                      entityType="contact"
+                      entityId={selectedContact!.id}
+                      showRelated={['accounts', 'opportunities', 'activities']}
+                      compact
+                      showAddButtons
+                    />
+                  </Box>
+                ),
+              },
+              {
+                index: 102,
+                name: 'Notes',
+                icon: <NoteIcon fontSize="small" />,
+                render: () => selectedContact ? (
+                  <NotesTab
+                    entityType="Contact"
+                    entityId={selectedContact.id}
+                    entityName={`${selectedContact.firstName} ${selectedContact.lastName}`}
+                  />
+                ) : (
+                  <Alert severity="info">Save the contact first to add notes.</Alert>
+                ),
+              },
+            ]}
+          />
         </DialogContent>
         <DialogActions>
           <Button onClick={() => { dialogApi.clearError(); setOpenDialog(false); }}>Cancel</Button>

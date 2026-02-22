@@ -371,7 +371,6 @@ export interface Order extends BaseEntity {
   // Classification
   tags?: string;
   category?: string;
-  customFields?: string;
 }
 
 export interface OrderLineItem {

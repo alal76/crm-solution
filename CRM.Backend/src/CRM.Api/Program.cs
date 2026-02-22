@@ -1081,13 +1081,24 @@ using (var scope = app.Services.CreateScope())
         }
 
         // Seed module field configurations (optional, non-blocking)
+        // Set FORCE_RESEED_FIELD_CONFIGS=true to delete and re-seed all module field configs on startup
         try
         {
             var coreDataSeeder = scope.ServiceProvider.GetService<ICoreDataSeederService>();
             if (coreDataSeeder != null)
             {
-                await coreDataSeeder.SeedModuleFieldConfigurationsAsync();
-                Log.Information("Module field configurations seeded successfully");
+                var forceReseed = Environment.GetEnvironmentVariable("FORCE_RESEED_FIELD_CONFIGS");
+                if (string.Equals(forceReseed, "true", StringComparison.OrdinalIgnoreCase))
+                {
+                    Log.Information("FORCE_RESEED_FIELD_CONFIGS is set — deleting and re-seeding all module field configurations");
+                    await coreDataSeeder.ForceReseedModuleFieldConfigurationsAsync();
+                    Log.Information("Module field configurations force re-seeded successfully");
+                }
+                else
+                {
+                    await coreDataSeeder.SeedModuleFieldConfigurationsAsync();
+                    Log.Information("Module field configurations seeded successfully");
+                }
             }
             else
             {
