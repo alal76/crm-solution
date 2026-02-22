@@ -27,17 +27,34 @@ log_error() { echo -e "${RED}[ERROR]${NC} $1"; }
 # Login and get JWT token
 login() {
     log_info "Authenticating as admin..."
-    local response=$(curl -s -X POST "${API_BASE}/auth/login" \
+    local response
+    response=$(curl -s -D - -X POST "${API_BASE}/auth/login" \
         -H "Content-Type: application/json" \
-        -d '{"username": "admin", "password": "Admin@123"}')
-    
-    AUTH_TOKEN=$(echo "$response" | jq -r '.token // .accessToken // empty')
-    
-    if [ -z "$AUTH_TOKEN" ]; then
-        log_error "Failed to authenticate. Response: $response"
+        -d '{"email": "admin@crm.local", "password": "Admin@123"}')
+
+    # Extract HTTP status code
+    local status
+    status=$(echo "$response" | head -n 1 | awk '{print $2}')
+
+    # Extract JSON body (skip headers)
+    local json_body
+    json_body=$(echo "$response" | awk 'BEGIN{found=0} /^$/{found=1;next} {if(found)print}' | tr -d '\r')
+
+    # Check HTTP status
+    if [[ "$status" != "200" ]]; then
+        log_error "Login failed: HTTP $status"
+        echo "$json_body"
         exit 1
     fi
-    
+
+    # Parse access token, handle jq errors
+    AUTH_TOKEN=$(echo "$json_body" | jq -r '.accessToken' 2>/dev/null)
+    if [[ -z "$AUTH_TOKEN" || "$AUTH_TOKEN" == "null" ]]; then
+        log_error "Login failed: Could not parse access token from response."
+        echo "$json_body"
+        exit 1
+    fi
+
     log_info "Authentication successful"
 }
 

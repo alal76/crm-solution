@@ -1334,11 +1334,14 @@ function AccountsPage() {
           ) : (
             <>
               {/* Render field configuration tabs */}
-              {tabs.map((tab, idx) => (
-                <TabPanel key={tab.index} value={dialogTab} index={idx}>
-                  {renderTabFields(tab.index)}
-                </TabPanel>
-              ))}
+              {tabs.map((tab, idx) => {
+                const visibleTabIndex = visibleTabs.findIndex(t => t.index === tab.index);
+                return (
+                  <TabPanel key={tab.index} value={dialogTab} index={visibleTabIndex}>
+                    {renderTabFields(tab.index)}
+                  </TabPanel>
+                );
+              })}
 
               {/* Contact Info Tab */}
               {editingId && (
