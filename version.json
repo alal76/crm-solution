@@ -1,9 +1,9 @@
 {
   "major": 0,
-  "minor": 562,
+  "minor": 563,
   "patch": 0,
   "lastUpdate": "2026-02-23",
-  "description": "Full DynamicEntityForm migration: All 11 entity pages (Accounts, Contacts, Leads, Opportunities, Products, Campaigns, Quotes, Orders, Invoices, Contracts, ServiceRequests, Payments) now use config-driven forms. Expanded seed data from 7 to 12 modules (~320 total fields). Fixed moduleName singular/plural mismatch across all pages.",
+  "description": "Monitoring & analytics integration: Updated MonitoringDashboard with accurate Uptime Kuma integration, External Resources tab with all tool links/credentials, Apache Superset card. Deployed Superset with CRM Overview dashboard (10 datasets, 6 charts). Updated AnalyticsSettingsPage with dynamic URLs and CRM dashboard links.",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [

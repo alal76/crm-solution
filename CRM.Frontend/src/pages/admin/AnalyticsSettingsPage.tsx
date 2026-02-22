@@ -25,9 +25,12 @@ import {
  * for the CRM solution.
  */
 const AnalyticsSettingsPage: React.FC = () => {
-  // In production, these URLs would come from backend configuration
-  const supersetUrl = process.env.REACT_APP_SUPERSET_URL || 'http://localhost:8088';
-  const metabaseUrl = process.env.REACT_APP_METABASE_URL || 'http://localhost:3000';
+  // Use dynamic hostname so links work on any deployment
+  const hostname = window.location.hostname;
+  const supersetUrl = process.env.REACT_APP_SUPERSET_URL || `http://${hostname}:8088`;
+  const supersetCrmDashboard = `${supersetUrl}/superset/dashboard/crm-overview/`;
+  const supersetSqlLab = `${supersetUrl}/sqllab/`;
+  const metabaseUrl = process.env.REACT_APP_METABASE_URL || `http://${hostname}:3000`;
   
   return (
     <Box sx={{ p: 3 }}>
@@ -64,12 +67,41 @@ const AnalyticsSettingsPage: React.FC = () => {
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
                 Apache Superset is an open-source data visualization and business 
                 intelligence platform. Create interactive dashboards, explore data, 
-                and share insights.
+                and share insights. A CRM Overview dashboard with 6 charts and 10 datasets 
+                is pre-configured.
               </Typography>
+
+              <Alert severity="success" sx={{ mb: 2 }}>
+                <Typography variant="body2">
+                  <strong>CRM Dashboard:</strong> Pre-configured with Accounts, Leads, Opportunities, and Service Request charts.
+                  <br />
+                  <strong>Credentials:</strong> admin / admin123
+                </Typography>
+              </Alert>
               
               <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                 <Button
                   variant="contained"
+                  startIcon={<DashboardIcon />}
+                  component={Link}
+                  href={supersetCrmDashboard}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  CRM Dashboard
+                </Button>
+                <Button
+                  variant="outlined"
+                  startIcon={<ExternalLinkIcon />}
+                  component={Link}
+                  href={supersetSqlLab}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  SQL Lab
+                </Button>
+                <Button
+                  variant="outlined"
                   startIcon={<ExternalLinkIcon />}
                   component={Link}
                   href={supersetUrl}
@@ -77,13 +109,6 @@ const AnalyticsSettingsPage: React.FC = () => {
                   rel="noopener noreferrer"
                 >
                   Open Superset
-                </Button>
-                <Button
-                  variant="outlined"
-                  startIcon={<ConfigIcon />}
-                  disabled
-                >
-                  Configure
                 </Button>
               </Box>
             </CardContent>

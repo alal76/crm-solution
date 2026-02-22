@@ -51,6 +51,12 @@ import {
   Api as ApiIcon,
   Web as WebIcon,
   Cached as CacheIcon,
+  Search as SearchIcon,
+  Analytics as AnalyticsIcon,
+  ContentCopy as CopyIcon,
+  Lock as LockIcon,
+  Link as LinkIcon,
+  SmartToy as AIIcon,
 } from '@mui/icons-material';
 
 // Configuration for monitoring tools
@@ -65,15 +71,106 @@ const MONITORING_TOOLS = {
     path: '/',
   },
   portainer: {
-    name: 'Portainer',
-    description: 'Container management and monitoring for Docker and Kubernetes',
+    name: 'Portainer Agent',
+    description: 'Docker container agent for remote management — connect via Portainer CE/EE',
     icon: <ContainerIcon sx={{ fontSize: 48 }} />,
     color: '#13B5EA',
-    features: ['Docker containers', 'Docker Compose stacks', 'Kubernetes clusters', 'Container logs', 'Resource usage', 'Image management'],
-    defaultPort: 9000,
+    features: ['Remote container management', 'Docker API proxy', 'Volume management', 'Network management', 'Image management', 'Cluster endpoint'],
+    defaultPort: 9001,
+    path: '/',
+  },
+  superset: {
+    name: 'Apache Superset',
+    description: 'Business intelligence and data visualization platform with CRM dashboards',
+    icon: <AnalyticsIcon sx={{ fontSize: 48 }} />,
+    color: '#20A7C9',
+    features: ['SQL Lab', 'Interactive dashboards', 'Chart builder', 'CRM data sources', 'Scheduled reports', 'Role-based access'],
+    defaultPort: 8088,
     path: '/',
   },
 };
+
+// External resources configuration
+const EXTERNAL_RESOURCES = [
+  {
+    name: 'Uptime Kuma',
+    description: 'Service health monitoring dashboard',
+    icon: <MonitorIcon />,
+    color: '#5CDD8B',
+    port: 3001,
+    path: '/dashboard',
+    credentials: { username: 'admin', password: 'CrmAdmin2024!' },
+    status: 'deployed' as const,
+  },
+  {
+    name: 'Apache Superset',
+    description: 'BI & data visualization with CRM dashboards',
+    icon: <AnalyticsIcon />,
+    color: '#20A7C9',
+    port: 8088,
+    path: '/superset/dashboard/crm-overview/',
+    credentials: { username: 'admin', password: 'admin123' },
+    status: 'deployed' as const,
+  },
+  {
+    name: 'Meilisearch',
+    description: 'Full-text search engine for CRM data',
+    icon: <SearchIcon />,
+    color: '#FF5CAA',
+    port: 7700,
+    path: '/',
+    credentials: { apiKey: 'masterKey123' },
+    status: 'deployed' as const,
+  },
+  {
+    name: 'MariaDB',
+    description: 'Primary CRM relational database',
+    icon: <DatabaseIcon />,
+    color: '#003545',
+    port: 3306,
+    credentials: { username: 'crm_user', password: 'CrmPass@Dev2024', database: 'crm_db' },
+    status: 'deployed' as const,
+  },
+  {
+    name: 'Redis',
+    description: 'In-memory cache and session store',
+    icon: <CacheIcon />,
+    color: '#DC382D',
+    port: 6379,
+    credentials: {},
+    status: 'deployed' as const,
+  },
+  {
+    name: 'Portainer Agent',
+    description: 'Docker container management endpoint',
+    icon: <ContainerIcon />,
+    color: '#13B5EA',
+    port: 9001,
+    path: '/',
+    credentials: {},
+    status: 'deployed' as const,
+  },
+  {
+    name: 'CRM API',
+    description: 'Backend REST API',
+    icon: <ApiIcon />,
+    color: '#512BD4',
+    port: 5000,
+    path: '/health',
+    credentials: { email: 'admin@crm.local', password: 'Admin@123' },
+    status: 'deployed' as const,
+  },
+  {
+    name: 'CRM Frontend',
+    description: 'React web application',
+    icon: <WebIcon />,
+    color: '#61DAFB',
+    port: 80,
+    path: '/',
+    credentials: {},
+    status: 'deployed' as const,
+  },
+];
 
 // CRM Service endpoints to monitor
 const CRM_SERVICES = [
@@ -166,7 +263,7 @@ const MonitoringDashboard: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [lastRefresh, setLastRefresh] = useState(new Date());
   const [tabValue, setTabValue] = useState(0);
-  const [showEmbeddedView, setShowEmbeddedView] = useState<'none' | 'uptimeKuma' | 'portainer'>('none');
+  const [showEmbeddedView, setShowEmbeddedView] = useState<'none' | 'uptimeKuma' | 'portainer' | 'superset'>('none');
 
   // Determine base URL for monitoring tools
   const getBaseUrl = () => {
@@ -523,6 +620,7 @@ const MonitoringDashboard: React.FC = () => {
       <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 0 }}>
         <Tabs value={tabValue} onChange={handleTabChange}>
           <Tab label="Monitoring Tools" />
+          <Tab label="External Resources" />
           <Tab label="Quick Links" />
           <Tab label="Embedded View" />
         </Tabs>
@@ -683,14 +781,12 @@ const MonitoringDashboard: React.FC = () => {
                     size="small" 
                     variant="outlined" 
                   />
-                  {externalTools?.portainer?.version && (
-                    <Chip 
-                      label={`v${externalTools.portainer.version}`} 
-                      size="small" 
-                      color="success"
-                      variant="outlined" 
-                    />
-                  )}
+                  <Chip 
+                    label="Agent Only"
+                    size="small"
+                    color="info"
+                    variant="outlined"
+                  />
                 </Box>
               </Box>
               
@@ -703,58 +799,110 @@ const MonitoringDashboard: React.FC = () => {
               
               <Divider sx={{ my: 2 }} />
               
-              {/* Portainer Status Info */}
-              {portainerData?.connected ? (
-                <>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
-                    Status:
-                  </Typography>
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
-                    <Chip 
-                      icon={<HealthyIcon />}
-                      label="Connected"
-                      size="small"
-                      color="success"
-                    />
-                    {portainerData.version && (
-                      <Chip 
-                        label={`Version ${portainerData.version}`}
-                        size="small"
-                        variant="outlined"
-                      />
-                    )}
-                  </Box>
-                  {portainerData.message && (
-                    <Typography variant="body2" color="textSecondary" sx={{ mb: 1 }}>
-                      {portainerData.message}
-                    </Typography>
-                  )}
-                </>
-              ) : (
-                <>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
-                    Features:
-                  </Typography>
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-                    {MONITORING_TOOLS.portainer.features.map((feature) => (
-                      <Chip key={feature} label={feature} size="small" variant="outlined" />
-                    ))}
-                  </Box>
-                </>
-              )}
+              <Alert severity="info" sx={{ mb: 2 }}>
+                <Typography variant="body2">
+                  The Portainer Agent is running on port 9001. Connect to it from a Portainer CE/EE instance to manage Docker containers remotely.
+                </Typography>
+              </Alert>
+              
+              <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
+                Features:
+              </Typography>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                {MONITORING_TOOLS.portainer.features.map((feature) => (
+                  <Chip key={feature} label={feature} size="small" variant="outlined" />
+                ))}
+              </Box>
+            </CardContent>
+            <CardActions sx={{ p: 2, pt: 0 }}>
+              <Button 
+                variant="outlined" 
+                fullWidth
+                disabled
+                sx={{ 
+                  borderColor: MONITORING_TOOLS.portainer.color,
+                  color: MONITORING_TOOLS.portainer.color,
+                }}
+              >
+                Agent Only — No Web UI
+              </Button>
+            </CardActions>
+          </Card>
+        </Grid>
+
+        {/* Apache Superset Card */}
+        <Grid item xs={12} md={6}>
+          <Card 
+            sx={{ 
+              borderRadius: 3, 
+              height: '100%',
+              border: `2px solid ${MONITORING_TOOLS.superset.color}40`,
+              transition: 'all 0.3s ease',
+              '&:hover': {
+                boxShadow: `0 8px 24px ${MONITORING_TOOLS.superset.color}30`,
+                transform: 'translateY(-4px)',
+              }
+            }}
+          >
+            <CardContent>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 2 }}>
+                <Box sx={{ color: MONITORING_TOOLS.superset.color }}>
+                  {MONITORING_TOOLS.superset.icon}
+                </Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Chip 
+                    label={`Port ${MONITORING_TOOLS.superset.defaultPort}`} 
+                    size="small" 
+                    variant="outlined" 
+                  />
+                  <Chip 
+                    label="Online" 
+                    size="small" 
+                    color="success"
+                  />
+                </Box>
+              </Box>
+              
+              <Typography variant="h5" sx={{ fontWeight: 700, mb: 1 }}>
+                {MONITORING_TOOLS.superset.name}
+              </Typography>
+              <Typography color="textSecondary" sx={{ mb: 2 }}>
+                {MONITORING_TOOLS.superset.description}
+              </Typography>
+              
+              <Divider sx={{ my: 2 }} />
+              
+              <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
+                CRM Dashboards:
+              </Typography>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
+                <Chip label="CRM Overview" size="small" color="primary" />
+                <Chip label="10 CRM Datasets" size="small" variant="outlined" />
+                <Chip label="6 Charts" size="small" variant="outlined" />
+                <Chip label="SQL Lab" size="small" variant="outlined" />
+              </Box>
+              
+              <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1 }}>
+                Features:
+              </Typography>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                {MONITORING_TOOLS.superset.features.map((feature) => (
+                  <Chip key={feature} label={feature} size="small" variant="outlined" />
+                ))}
+              </Box>
             </CardContent>
             <CardActions sx={{ p: 2, pt: 0 }}>
               <Button 
                 variant="contained" 
                 fullWidth
-                onClick={() => openTool(MONITORING_TOOLS.portainer.defaultPort)}
+                onClick={() => openTool(MONITORING_TOOLS.superset.defaultPort, '/superset/dashboard/crm-overview/')}
                 endIcon={<OpenInNewIcon />}
                 sx={{ 
-                  bgcolor: MONITORING_TOOLS.portainer.color,
-                  '&:hover': { bgcolor: MONITORING_TOOLS.portainer.color, filter: 'brightness(0.9)' }
+                  bgcolor: MONITORING_TOOLS.superset.color,
+                  '&:hover': { bgcolor: MONITORING_TOOLS.superset.color, filter: 'brightness(0.9)' }
                 }}
               >
-                Open Portainer
+                Open Superset
               </Button>
             </CardActions>
           </Card>
@@ -762,8 +910,152 @@ const MonitoringDashboard: React.FC = () => {
       </Grid>
       </TabPanel>
 
-      {/* Tab 1: Quick Links */}
+      {/* Tab 1: External Resources */}
       <TabPanel value={tabValue} index={1}>
+        <Alert severity="info" sx={{ mb: 3, borderRadius: 2 }}>
+          <Typography variant="body2">
+            All external resources deployed on the CRM infrastructure. Click to open in a new tab. Credentials are for the development environment only.
+          </Typography>
+        </Alert>
+
+        <Grid container spacing={2}>
+          {EXTERNAL_RESOURCES.map((resource) => (
+            <Grid item xs={12} sm={6} md={4} key={resource.name}>
+              <Card
+                sx={{
+                  borderRadius: 2,
+                  height: '100%',
+                  border: `1px solid ${resource.color}30`,
+                  transition: 'all 0.2s ease',
+                  '&:hover': {
+                    boxShadow: `0 4px 16px ${resource.color}20`,
+                    transform: 'translateY(-2px)',
+                  }
+                }}
+              >
+                <CardContent sx={{ pb: 1 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1.5 }}>
+                    <Box sx={{ color: resource.color }}>{resource.icon}</Box>
+                    <Box sx={{ flex: 1 }}>
+                      <Typography variant="subtitle1" fontWeight={700}>
+                        {resource.name}
+                      </Typography>
+                    </Box>
+                    <Chip
+                      icon={<HealthyIcon />}
+                      label="Deployed"
+                      size="small"
+                      color="success"
+                      variant="outlined"
+                    />
+                  </Box>
+                  <Typography variant="body2" color="textSecondary" sx={{ mb: 1.5 }}>
+                    {resource.description}
+                  </Typography>
+                  <Box sx={{ bgcolor: 'action.hover', borderRadius: 1, p: 1.5, mb: 1 }}>
+                    <Typography variant="caption" sx={{ fontFamily: 'monospace', display: 'block', mb: 0.5 }}>
+                      <LinkIcon sx={{ fontSize: 12, mr: 0.5, verticalAlign: 'middle' }} />
+                      {`http://${baseUrl}:${resource.port}${resource.path || ''}`}
+                    </Typography>
+                    {resource.credentials && Object.keys(resource.credentials).length > 0 && (
+                      <>
+                        <Divider sx={{ my: 0.5 }} />
+                        {Object.entries(resource.credentials).map(([key, value]) => (
+                          <Typography key={key} variant="caption" sx={{ fontFamily: 'monospace', display: 'block' }}>
+                            <LockIcon sx={{ fontSize: 10, mr: 0.5, verticalAlign: 'middle' }} />
+                            {key}: <strong>{value}</strong>
+                          </Typography>
+                        ))}
+                      </>
+                    )}
+                  </Box>
+                </CardContent>
+                <CardActions sx={{ px: 2, pb: 2, pt: 0 }}>
+                  {resource.port !== 3306 && resource.port !== 6379 ? (
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      fullWidth
+                      onClick={() => openTool(resource.port, resource.path)}
+                      endIcon={<OpenInNewIcon />}
+                      sx={{ borderColor: resource.color, color: resource.color }}
+                    >
+                      Open
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      fullWidth
+                      disabled
+                      sx={{ borderColor: resource.color }}
+                    >
+                      TCP Service — No Web UI
+                    </Button>
+                  )}
+                </CardActions>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+
+        {/* Superset Quick Access */}
+        <Paper variant="outlined" sx={{ borderRadius: 2, p: 3, mt: 3 }}>
+          <Typography variant="h6" sx={{ fontWeight: 600, mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+            <AnalyticsIcon sx={{ color: '#20A7C9' }} />
+            Apache Superset — Quick Access
+          </Typography>
+          <Grid container spacing={2}>
+            <Grid item xs={12} sm={6} md={3}>
+              <Button
+                variant="contained"
+                fullWidth
+                startIcon={<DashboardIcon />}
+                onClick={() => openTool(8088, '/superset/dashboard/crm-overview/')}
+                sx={{ py: 1.5, bgcolor: '#20A7C9', '&:hover': { bgcolor: '#1890b0' } }}
+              >
+                CRM Dashboard
+              </Button>
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <Button
+                variant="outlined"
+                fullWidth
+                startIcon={<DatabaseIcon />}
+                onClick={() => openTool(8088, '/sqllab/')}
+                sx={{ py: 1.5 }}
+              >
+                SQL Lab
+              </Button>
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <Button
+                variant="outlined"
+                fullWidth
+                startIcon={<AnalyticsIcon />}
+                onClick={() => openTool(8088, '/chart/list/')}
+                sx={{ py: 1.5 }}
+              >
+                All Charts
+              </Button>
+            </Grid>
+            <Grid item xs={12} sm={6} md={3}>
+              <Button
+                variant="outlined"
+                fullWidth
+                startIcon={<DashboardIcon />}
+                onClick={() => openTool(8088, '/dashboard/list/')}
+                sx={{ py: 1.5 }}
+              >
+                All Dashboards
+              </Button>
+            </Grid>
+          </Grid>
+        </Paper>
+      </TabPanel>
+
+      {/* Tab 2: Quick Links */}
+      <TabPanel value={tabValue} index={2}>
         <Paper variant="outlined" sx={{ borderRadius: 2, p: 3, mb: 3 }}>
           <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
             Uptime Kuma
@@ -818,59 +1110,81 @@ const MonitoringDashboard: React.FC = () => {
 
         <Paper variant="outlined" sx={{ borderRadius: 2, p: 3 }}>
           <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
-            Portainer
+            Portainer Agent
           </Typography>
+          <Alert severity="info" sx={{ mb: 2 }}>
+            Portainer Agent (port 9001) provides a Docker API endpoint. Connect via a Portainer CE/EE instance for full container management.
+          </Alert>
           <Grid container spacing={2}>
             <Grid item xs={12} sm={6} md={3}>
               <Button 
                 variant="outlined" 
                 fullWidth 
                 startIcon={<ContainerIcon />}
-                onClick={() => openTool(MONITORING_TOOLS.portainer.defaultPort, '/#/containers')}
+                disabled
                 sx={{ py: 1.5 }}
               >
-                Containers
+                Agent on :9001
+              </Button>
+            </Grid>
+          </Grid>
+        </Paper>
+
+        <Paper variant="outlined" sx={{ borderRadius: 2, p: 3, mt: 3 }}>
+          <Typography variant="h6" sx={{ fontWeight: 600, mb: 2 }}>
+            Apache Superset
+          </Typography>
+          <Grid container spacing={2}>
+            <Grid item xs={12} sm={6} md={3}>
+              <Button 
+                variant="outlined" 
+                fullWidth 
+                startIcon={<DashboardIcon />}
+                onClick={() => openTool(MONITORING_TOOLS.superset.defaultPort, '/superset/dashboard/crm-overview/')}
+                sx={{ py: 1.5 }}
+              >
+                CRM Dashboard
               </Button>
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
               <Button 
                 variant="outlined" 
                 fullWidth 
-                startIcon={<MemoryIcon />}
-                onClick={() => openTool(MONITORING_TOOLS.portainer.defaultPort, '/#/stacks')}
+                startIcon={<DatabaseIcon />}
+                onClick={() => openTool(MONITORING_TOOLS.superset.defaultPort, '/sqllab/')}
                 sx={{ py: 1.5 }}
               >
-                Docker Stacks
+                SQL Lab
               </Button>
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
               <Button 
                 variant="outlined" 
                 fullWidth 
-                startIcon={<CloudIcon />}
-                onClick={() => openTool(MONITORING_TOOLS.portainer.defaultPort, '/#/images')}
+                startIcon={<AnalyticsIcon />}
+                onClick={() => openTool(MONITORING_TOOLS.superset.defaultPort, '/chart/list/')}
                 sx={{ py: 1.5 }}
               >
-                Images
+                Charts
               </Button>
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
               <Button 
                 variant="outlined" 
                 fullWidth 
-                startIcon={<KubernetesIcon />}
-                onClick={() => openTool(MONITORING_TOOLS.portainer.defaultPort, '/#/kubernetes')}
+                startIcon={<DashboardIcon />}
+                onClick={() => openTool(MONITORING_TOOLS.superset.defaultPort, '/dashboard/list/')}
                 sx={{ py: 1.5 }}
               >
-                Kubernetes
+                All Dashboards
               </Button>
             </Grid>
           </Grid>
         </Paper>
       </TabPanel>
 
-      {/* Tab 2: Embedded View */}
-      <TabPanel value={tabValue} index={2}>
+      {/* Tab 3: Embedded View */}
+      <TabPanel value={tabValue} index={3}>
         <Box sx={{ mb: 2 }}>
           <Button 
             variant={showEmbeddedView === 'uptimeKuma' ? 'contained' : 'outlined'}
@@ -881,11 +1195,20 @@ const MonitoringDashboard: React.FC = () => {
             Uptime Kuma
           </Button>
           <Button 
+            variant={showEmbeddedView === 'superset' ? 'contained' : 'outlined'}
+            onClick={() => setShowEmbeddedView(showEmbeddedView === 'superset' ? 'none' : 'superset')}
+            sx={{ mr: 2 }}
+            startIcon={<AnalyticsIcon />}
+          >
+            Superset
+          </Button>
+          <Button 
             variant={showEmbeddedView === 'portainer' ? 'contained' : 'outlined'}
             onClick={() => setShowEmbeddedView(showEmbeddedView === 'portainer' ? 'none' : 'portainer')}
             startIcon={<ContainerIcon />}
+            disabled
           >
-            Portainer
+            Portainer (Agent Only)
           </Button>
         </Box>
 
@@ -916,6 +1239,26 @@ const MonitoringDashboard: React.FC = () => {
           </Paper>
         )}
 
+        {showEmbeddedView === 'superset' && (
+          <Paper variant="outlined" sx={{ borderRadius: 2, overflow: 'hidden' }}>
+            <Box sx={{ p: 2, bgcolor: 'background.default', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Typography variant="subtitle1" fontWeight={600}>Apache Superset — CRM Dashboard</Typography>
+              <Button 
+                size="small" 
+                onClick={() => openTool(MONITORING_TOOLS.superset.defaultPort, '/superset/dashboard/crm-overview/')}
+                endIcon={<OpenInNewIcon />}
+              >
+                Open in New Tab
+              </Button>
+            </Box>
+            <iframe
+              src={`http://${baseUrl}:${MONITORING_TOOLS.superset.defaultPort}/superset/dashboard/crm-overview/?standalone=true`}
+              style={{ width: '100%', height: '700px', border: 'none' }}
+              title="Apache Superset"
+            />
+          </Paper>
+        )}
+
         {showEmbeddedView === 'portainer' && (
           <Paper variant="outlined" sx={{ borderRadius: 2, overflow: 'hidden' }}>
             <Box sx={{ p: 2, bgcolor: 'background.default', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -940,12 +1283,27 @@ const MonitoringDashboard: React.FC = () => {
       {/* Setup Instructions */}
       <Box sx={{ mt: 4 }}>
         <Alert severity="info" sx={{ borderRadius: 2 }}>
-          <Typography variant="subtitle1" fontWeight={600}>Credentials</Typography>
+          <Typography variant="subtitle1" fontWeight={600}>Default Credentials (Development)</Typography>
           <Typography variant="body2" sx={{ mt: 1 }}>
+            <strong>CRM Login:</strong> admin@crm.local / Admin@123 (Port 5000)
+          </Typography>
+          <Typography variant="body2" sx={{ mt: 0.5 }}>
             <strong>Uptime Kuma:</strong> admin / CrmAdmin2024! (Port {MONITORING_TOOLS.uptimeKuma.defaultPort})
           </Typography>
           <Typography variant="body2" sx={{ mt: 0.5 }}>
-            <strong>Portainer:</strong> admin / CrmAdmin2024! (Port {MONITORING_TOOLS.portainer.defaultPort})
+            <strong>Apache Superset:</strong> admin / admin123 (Port {MONITORING_TOOLS.superset.defaultPort})
+          </Typography>
+          <Typography variant="body2" sx={{ mt: 0.5 }}>
+            <strong>Meilisearch:</strong> API Key: masterKey123 (Port 7700)
+          </Typography>
+          <Typography variant="body2" sx={{ mt: 0.5 }}>
+            <strong>MariaDB:</strong> crm_user / CrmPass@Dev2024 (Port 3306, DB: crm_db)
+          </Typography>
+          <Typography variant="body2" sx={{ mt: 0.5 }}>
+            <strong>Redis:</strong> No auth (Port 6379)
+          </Typography>
+          <Typography variant="body2" sx={{ mt: 0.5 }}>
+            <strong>Portainer Agent:</strong> Port 9001 (connect via Portainer CE/EE)
           </Typography>
         </Alert>
       </Box>

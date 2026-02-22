@@ -21,6 +21,7 @@
     <PackageReference Include="Algolia.Search" Version="7.11.0" />
     <PackageReference Include="Cronos" Version="0.8.4" />
     <PackageReference Include="DocuSign.eSign.dll" Version="8.6.0" />
+    <PackageReference Include="Jint" Version="4.2.1" />
     <PackageReference Include="Meilisearch" Version="0.15.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="9.0.1" />

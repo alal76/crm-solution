@@ -17,6 +17,7 @@ using System.Text.Json;
 using CRM.Core.Entities.Workflow;
 using CRM.Core.Ports.Output.Providers;
 using CRM.Infrastructure.Data;
+using Jint;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -80,6 +81,7 @@ public class WorkflowWorkerService : BackgroundService
             { "Notification", ExecuteNotificationAction },
             { "Integration", ExecuteIntegrationAction },
             { "DataOperation", ExecuteDataOperationAction },
+            { "Script", ExecuteScriptAction },
             { "ZipCodeImport", ExecuteZipCodeImportAction },
         };
     }
@@ -763,6 +765,7 @@ public class WorkflowWorkerService : BackgroundService
             "updateEntity" => await ExecuteUpdateEntityAction(config, dbContext, ct),
             "sendEmail" => await ExecuteSendEmailAction(config),
             "webhook" => await ExecuteWebhookAction(config, ct),
+            "script" => await ExecuteScriptAction(task, dbContext, ct),
             _ => new TaskResult { Success = true, ResultData = JsonSerializer.Serialize(new { actionType, status = "completed" }) }
         };
     }
@@ -1206,34 +1209,367 @@ public class WorkflowWorkerService : BackgroundService
         public string? OutputVariableName { get; set; } = "llmResult";
     }
 
-    private Task<TaskResult> ExecuteNotificationAction(WorkflowTask task, CrmDbContext dbContext, CancellationToken ct)
+    private async Task<TaskResult> ExecuteNotificationAction(WorkflowTask task, CrmDbContext dbContext, CancellationToken ct)
     {
-        // Would send push notification, SMS, etc.
-        return Task.FromResult(new TaskResult
+        try
         {
-            Success = true,
-            ResultData = JsonSerializer.Serialize(new { notificationSent = true })
-        });
+            var config = new Dictionary<string, object>();
+            if (!string.IsNullOrEmpty(task.InputData))
+            {
+                try
+                {
+                    config = JsonSerializer.Deserialize<Dictionary<string, object>>(task.InputData) ?? new Dictionary<string, object>();
+                }
+                catch (JsonException ex)
+                {
+                    _logger.LogWarning(ex, "Failed to parse notification config for task {TaskId}", task.Id);
+                }
+            }
+
+            var notificationType = config.GetValueOrDefault("notificationType")?.ToString()?.ToLowerInvariant() ?? "email";
+
+            using var scope = _serviceProvider.CreateScope();
+            var notificationPort = scope.ServiceProvider.GetService<INotificationPort>();
+
+            switch (notificationType)
+            {
+                case "email":
+                {
+                    var to = config.GetValueOrDefault("to")?.ToString();
+                    var subject = config.GetValueOrDefault("subject")?.ToString();
+                    var body = config.GetValueOrDefault("body")?.ToString() ?? "";
+
+                    if (string.IsNullOrEmpty(to) || string.IsNullOrEmpty(subject))
+                    {
+                        return new TaskResult { Success = false, ErrorMessage = "Email 'to' and 'subject' are required" };
+                    }
+
+                    if (notificationPort == null)
+                    {
+                        _logger.LogWarning("INotificationPort not registered; email notification to {To} logged but not sent", to);
+                        return new TaskResult
+                        {
+                            Success = true,
+                            ResultData = JsonSerializer.Serialize(new { notificationSent = false, logged = true, notificationType, to, reason = "notification_service_unavailable" })
+                        };
+                    }
+
+                    var emailRequest = new EmailNotificationRequest
+                    {
+                        To = to,
+                        Subject = subject,
+                        Body = body,
+                        IsHtml = config.GetValueOrDefault("isHtml")?.ToString()?.Equals("true", StringComparison.OrdinalIgnoreCase) ?? true,
+                        From = config.GetValueOrDefault("from")?.ToString()
+                    };
+
+                    var emailResult = await notificationPort.SendEmailAsync(emailRequest, ct);
+                    return new TaskResult
+                    {
+                        Success = emailResult.Success,
+                        ResultData = JsonSerializer.Serialize(new { notificationSent = emailResult.Success, notificationType, to, subject, messageId = emailResult.MessageId }),
+                        ErrorMessage = emailResult.Success ? null : emailResult.Error
+                    };
+                }
+
+                case "sms":
+                {
+                    var phone = config.GetValueOrDefault("to")?.ToString();
+                    var message = config.GetValueOrDefault("message")?.ToString() ?? "";
+
+                    if (string.IsNullOrEmpty(phone))
+                    {
+                        return new TaskResult { Success = false, ErrorMessage = "SMS 'to' phone number is required" };
+                    }
+
+                    if (notificationPort == null)
+                    {
+                        _logger.LogWarning("INotificationPort not registered; SMS to {Phone} logged but not sent", phone);
+                        return new TaskResult
+                        {
+                            Success = true,
+                            ResultData = JsonSerializer.Serialize(new { notificationSent = false, logged = true, notificationType, to = phone, reason = "notification_service_unavailable" })
+                        };
+                    }
+
+                    var smsRequest = new SmsNotificationRequest { To = phone, Message = message };
+                    var smsResult = await notificationPort.SendSmsAsync(smsRequest, ct);
+                    return new TaskResult
+                    {
+                        Success = smsResult.Success,
+                        ResultData = JsonSerializer.Serialize(new { notificationSent = smsResult.Success, notificationType, to = phone, messageId = smsResult.MessageId }),
+                        ErrorMessage = smsResult.Success ? null : smsResult.Error
+                    };
+                }
+
+                case "push":
+                {
+                    var deviceToken = config.GetValueOrDefault("to")?.ToString();
+                    var title = config.GetValueOrDefault("title")?.ToString() ?? "Notification";
+                    var pushBody = config.GetValueOrDefault("body")?.ToString() ?? "";
+
+                    if (string.IsNullOrEmpty(deviceToken))
+                    {
+                        return new TaskResult { Success = false, ErrorMessage = "Push notification 'to' device token is required" };
+                    }
+
+                    if (notificationPort == null)
+                    {
+                        _logger.LogWarning("INotificationPort not registered; push to {Token} logged but not sent", deviceToken);
+                        return new TaskResult
+                        {
+                            Success = true,
+                            ResultData = JsonSerializer.Serialize(new { notificationSent = false, logged = true, notificationType, to = deviceToken, reason = "notification_service_unavailable" })
+                        };
+                    }
+
+                    var pushRequest = new PushNotificationRequest { To = deviceToken, Title = title, Body = pushBody };
+                    var pushResult = await notificationPort.SendPushAsync(pushRequest, ct);
+                    return new TaskResult
+                    {
+                        Success = pushResult.Success,
+                        ResultData = JsonSerializer.Serialize(new { notificationSent = pushResult.Success, notificationType, to = deviceToken, messageId = pushResult.MessageId }),
+                        ErrorMessage = pushResult.Success ? null : pushResult.Error
+                    };
+                }
+
+                default:
+                    _logger.LogInformation("Unsupported notification type '{Type}' for task {TaskId}, logging and returning success", notificationType, task.Id);
+                    return new TaskResult
+                    {
+                        Success = true,
+                        ResultData = JsonSerializer.Serialize(new { notificationSent = false, notificationType, reason = "unsupported_type" })
+                    };
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error executing notification action for task {TaskId}", task.Id);
+            return new TaskResult { Success = false, ErrorMessage = $"Notification failed: {ex.Message}" };
+        }
     }
 
-    private Task<TaskResult> ExecuteIntegrationAction(WorkflowTask task, CrmDbContext dbContext, CancellationToken ct)
+    private async Task<TaskResult> ExecuteIntegrationAction(WorkflowTask task, CrmDbContext dbContext, CancellationToken ct)
     {
-        // Would call external integrations (Salesforce, HubSpot, etc.)
-        return Task.FromResult(new TaskResult
+        try
         {
-            Success = true,
-            ResultData = JsonSerializer.Serialize(new { integrationCompleted = true })
-        });
+            var config = new Dictionary<string, object>();
+            if (!string.IsNullOrEmpty(task.InputData))
+            {
+                try
+                {
+                    config = JsonSerializer.Deserialize<Dictionary<string, object>>(task.InputData) ?? new Dictionary<string, object>();
+                }
+                catch (JsonException ex)
+                {
+                    _logger.LogWarning(ex, "Failed to parse integration config for task {TaskId}", task.Id);
+                }
+            }
+
+            var workflowId = config.GetValueOrDefault("workflowId")?.ToString();
+            var payloadJson = config.GetValueOrDefault("payload")?.ToString();
+
+            using var scope = _serviceProvider.CreateScope();
+            var integrationPort = scope.ServiceProvider.GetService<IIntegrationPort>();
+
+            if (integrationPort == null)
+            {
+                _logger.LogWarning("IIntegrationPort not registered; integration action for task {TaskId} logged but not executed", task.Id);
+                return new TaskResult
+                {
+                    Success = true,
+                    ResultData = JsonSerializer.Serialize(new { integrationCompleted = false, logged = true, reason = "integration_service_unavailable" })
+                };
+            }
+
+            if (!string.IsNullOrEmpty(workflowId))
+            {
+                // Trigger an external workflow (n8n, Zapier, etc.)
+                object payload = !string.IsNullOrEmpty(payloadJson)
+                    ? JsonSerializer.Deserialize<Dictionary<string, object>>(payloadJson) ?? new Dictionary<string, object>()
+                    : new Dictionary<string, object> { ["taskId"] = task.Id, ["taskType"] = task.TaskType.ToString() };
+
+                var triggerResult = await integrationPort.TriggerWorkflowAsync(workflowId, payload, ct);
+                return new TaskResult
+                {
+                    Success = triggerResult.Success,
+                    ResultData = JsonSerializer.Serialize(new { integrationCompleted = triggerResult.Success, workflowId, executionId = triggerResult.ExecutionId }),
+                    ErrorMessage = triggerResult.Success ? null : triggerResult.Error
+                };
+            }
+            else
+            {
+                // Publish a CRM event to the integration platform
+                var eventType = config.GetValueOrDefault("eventType")?.ToString() ?? "workflow.action";
+                var crmEvent = new CrmEvent
+                {
+                    EventType = eventType,
+                    EntityType = config.GetValueOrDefault("entityType")?.ToString() ?? "WorkflowTask",
+                    EntityId = task.Id,
+                    Timestamp = DateTime.UtcNow,
+                    Data = new Dictionary<string, object> { ["taskId"] = task.Id, ["taskType"] = task.TaskType.ToString() }
+                };
+
+                var publishResult = await integrationPort.PublishEventAsync(crmEvent, ct);
+                return new TaskResult
+                {
+                    Success = publishResult.Success,
+                    ResultData = JsonSerializer.Serialize(new { integrationCompleted = publishResult.Success, eventType, eventId = publishResult.EventId }),
+                    ErrorMessage = publishResult.Success ? null : publishResult.Error
+                };
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error executing integration action for task {TaskId}", task.Id);
+            return new TaskResult { Success = false, ErrorMessage = $"Integration failed: {ex.Message}" };
+        }
     }
 
-    private Task<TaskResult> ExecuteDataOperationAction(WorkflowTask task, CrmDbContext dbContext, CancellationToken ct)
+    private async Task<TaskResult> ExecuteDataOperationAction(WorkflowTask task, CrmDbContext dbContext, CancellationToken ct)
     {
-        // Would perform data operations (aggregate, transform, etc.)
-        return Task.FromResult(new TaskResult
+        try
         {
-            Success = true,
-            ResultData = JsonSerializer.Serialize(new { dataOperationCompleted = true })
-        });
+            var config = new Dictionary<string, object>();
+            if (!string.IsNullOrEmpty(task.InputData))
+            {
+                try
+                {
+                    config = JsonSerializer.Deserialize<Dictionary<string, object>>(task.InputData) ?? new Dictionary<string, object>();
+                }
+                catch (JsonException ex)
+                {
+                    _logger.LogWarning(ex, "Failed to parse data operation config for task {TaskId}", task.Id);
+                }
+            }
+
+            var operationType = config.GetValueOrDefault("operationType")?.ToString()?.ToLowerInvariant() ?? "count";
+            var entityType = config.GetValueOrDefault("entityType")?.ToString()?.ToLowerInvariant() ?? "account";
+
+            switch (operationType)
+            {
+                case "count":
+                {
+                    var count = entityType switch
+                    {
+                        "account" or "customer" => await dbContext.Accounts.CountAsync(ct),
+                        "contact" => await dbContext.Contacts.CountAsync(ct),
+                        "lead" => await dbContext.Leads.CountAsync(ct),
+                        "opportunity" => await dbContext.Opportunities.CountAsync(ct),
+                        "product" => await dbContext.Products.CountAsync(ct),
+                        "servicerequest" => await dbContext.ServiceRequests.CountAsync(ct),
+                        "order" => await dbContext.Orders.CountAsync(ct),
+                        "invoice" => await dbContext.Invoices.CountAsync(ct),
+                        "quote" => await dbContext.Quotes.CountAsync(ct),
+                        "contract" => await dbContext.Contracts.CountAsync(ct),
+                        _ => -1
+                    };
+
+                    return new TaskResult
+                    {
+                        Success = count >= 0,
+                        ResultData = JsonSerializer.Serialize(new { operationType, entityType, count }),
+                        ErrorMessage = count < 0 ? $"Unknown entity type: {entityType}" : null
+                    };
+                }
+
+                case "aggregate":
+                {
+                    var field = config.GetValueOrDefault("field")?.ToString() ?? "Id";
+                    var aggregateFunc = config.GetValueOrDefault("function")?.ToString()?.ToLowerInvariant() ?? "count";
+
+                    // For aggregation, we support count across known entities
+                    if (aggregateFunc == "count")
+                    {
+                        var count = entityType switch
+                        {
+                            "account" or "customer" => await dbContext.Accounts.CountAsync(ct),
+                            "contact" => await dbContext.Contacts.CountAsync(ct),
+                            "lead" => await dbContext.Leads.CountAsync(ct),
+                            "opportunity" => await dbContext.Opportunities.CountAsync(ct),
+                            _ => -1
+                        };
+                        return new TaskResult
+                        {
+                            Success = count >= 0,
+                            ResultData = JsonSerializer.Serialize(new { operationType, entityType, function_ = aggregateFunc, field, result = count })
+                        };
+                    }
+
+                    // Sum/Avg on Opportunity.Amount
+                    if (entityType == "opportunity" && (aggregateFunc == "sum" || aggregateFunc == "avg"))
+                    {
+                        var values = await dbContext.Opportunities
+                            .Where(o => !o.IsDeleted)
+                            .Select(o => o.Amount)
+                            .ToListAsync(ct);
+
+                        var aggregateResult = aggregateFunc == "sum"
+                            ? values.Sum()
+                            : (values.Count > 0 ? values.Average() : 0);
+
+                        return new TaskResult
+                        {
+                            Success = true,
+                            ResultData = JsonSerializer.Serialize(new { operationType, entityType, function_ = aggregateFunc, field, result = aggregateResult })
+                        };
+                    }
+
+                    return new TaskResult
+                    {
+                        Success = true,
+                        ResultData = JsonSerializer.Serialize(new { operationType, entityType, function_ = aggregateFunc, field, result = (object?)null, note = "aggregate_not_supported_for_combination" })
+                    };
+                }
+
+                case "update_many":
+                {
+                    var fieldName = config.GetValueOrDefault("fieldName")?.ToString();
+                    var fieldValue = config.GetValueOrDefault("fieldValue")?.ToString();
+                    var conditionField = config.GetValueOrDefault("conditionField")?.ToString();
+                    var conditionValue = config.GetValueOrDefault("conditionValue")?.ToString();
+
+                    if (string.IsNullOrEmpty(fieldName))
+                    {
+                        return new TaskResult { Success = false, ErrorMessage = "fieldName is required for update_many" };
+                    }
+
+                    _logger.LogInformation(
+                        "Data operation update_many: {EntityType}.{Field} = {Value} where {CondField} = {CondValue}",
+                        entityType, fieldName, fieldValue, conditionField, conditionValue);
+
+                    // For safety, log but don't execute bulk updates without further safeguards
+                    return new TaskResult
+                    {
+                        Success = true,
+                        ResultData = JsonSerializer.Serialize(new { operationType, entityType, fieldName, fieldValue, conditionField, conditionValue, status = "logged_for_review" })
+                    };
+                }
+
+                case "delete_many":
+                {
+                    _logger.LogWarning("Bulk delete operation requested for {EntityType} in task {TaskId} - soft delete only", entityType, task.Id);
+                    return new TaskResult
+                    {
+                        Success = true,
+                        ResultData = JsonSerializer.Serialize(new { operationType, entityType, status = "logged_for_review", note = "bulk_deletes_require_manual_approval" })
+                    };
+                }
+
+                default:
+                    _logger.LogInformation("Data operation '{OperationType}' for task {TaskId} completed (no-op)", operationType, task.Id);
+                    return new TaskResult
+                    {
+                        Success = true,
+                        ResultData = JsonSerializer.Serialize(new { operationType, entityType, status = "completed" })
+                    };
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error executing data operation for task {TaskId}", task.Id);
+            return new TaskResult { Success = false, ErrorMessage = $"Data operation failed: {ex.Message}" };
+        }
     }
 
     /// <summary>
@@ -1331,6 +1667,137 @@ public class WorkflowWorkerService : BackgroundService
                 ErrorMessage = ex.Message
             };
         }
+    }
+
+    /// <summary>
+    /// Execute a JavaScript script using the Jint engine (sandboxed).
+    /// Configuration in task.InputData JSON:
+    ///   - script: (string) The JavaScript code to execute
+    ///   - variables: (object) Optional key-value pairs to inject as JS variables
+    ///   - context: (object) Optional context data available as 'context' variable
+    /// </summary>
+    private async Task<TaskResult> ExecuteScriptAction(WorkflowTask task, CrmDbContext dbContext, CancellationToken ct)
+    {
+        _logger.LogInformation("Executing script action for task {TaskId}", task.Id);
+
+        try
+        {
+            var config = new Dictionary<string, object>();
+            if (!string.IsNullOrEmpty(task.InputData))
+            {
+                try
+                {
+                    config = JsonSerializer.Deserialize<Dictionary<string, object>>(task.InputData) ?? new Dictionary<string, object>();
+                }
+                catch (JsonException ex)
+                {
+                    _logger.LogWarning(ex, "Failed to parse script config for task {TaskId}", task.Id);
+                }
+            }
+
+            var script = config.GetValueOrDefault("script")?.ToString();
+            if (string.IsNullOrWhiteSpace(script))
+            {
+                return new TaskResult { Success = false, ErrorMessage = "Script is required but was empty or missing" };
+            }
+
+            // Create sandboxed Jint engine with resource limits
+            var engine = new Engine(options =>
+            {
+                options.TimeoutInterval(TimeSpan.FromSeconds(10));
+                options.LimitMemory(16 * 1024 * 1024); // 16 MB
+                options.Strict();
+            });
+
+            // Inject variables from config
+            if (config.TryGetValue("variables", out var varsObj) && varsObj is JsonElement varsElement)
+            {
+                if (varsElement.ValueKind == JsonValueKind.Object)
+                {
+                    foreach (var prop in varsElement.EnumerateObject())
+                    {
+                        engine.SetValue(prop.Name, ConvertJsonElementToClr(prop.Value));
+                    }
+                }
+            }
+
+            // Inject context data if available
+            if (config.TryGetValue("context", out var ctxObj) && ctxObj is JsonElement ctxElement)
+            {
+                engine.SetValue("context", ConvertJsonElementToClr(ctxElement));
+            }
+
+            // Provide a basic console.log that captures output
+            var logOutput = new List<string>();
+            engine.SetValue("log", new Action<object?>(msg => logOutput.Add(msg?.ToString() ?? "null")));
+
+            // Execute the script
+            var jsResult = await Task.Run(() => engine.Evaluate(script), ct);
+
+            // Capture result: prefer explicit return value, fall back to 'result' variable
+            object? resultValue = null;
+            if (jsResult != null && !jsResult.IsUndefined() && !jsResult.IsNull())
+            {
+                resultValue = jsResult.ToObject();
+            }
+            else
+            {
+                // Check if script defined a 'result' variable
+                var resultVar = engine.GetValue("result");
+                if (resultVar != null && !resultVar.IsUndefined() && !resultVar.IsNull())
+                {
+                    resultValue = resultVar.ToObject();
+                }
+            }
+
+            var output = new Dictionary<string, object?>
+            {
+                ["scriptCompleted"] = true,
+                ["result"] = resultValue,
+                ["logs"] = logOutput.Count > 0 ? logOutput : null
+            };
+
+            _logger.LogInformation("Script action completed for task {TaskId} with {LogCount} log entries", task.Id, logOutput.Count);
+
+            return new TaskResult
+            {
+                Success = true,
+                ResultData = JsonSerializer.Serialize(output)
+            };
+        }
+        catch (TimeoutException)
+        {
+            _logger.LogWarning("Script execution timed out for task {TaskId} (10s limit)", task.Id);
+            return new TaskResult { Success = false, ErrorMessage = "Script execution timed out (10 second limit)" };
+        }
+        catch (Jint.Runtime.JavaScriptException jsEx)
+        {
+            _logger.LogWarning(jsEx, "JavaScript error in script for task {TaskId}: {Error}", task.Id, jsEx.Message);
+            return new TaskResult { Success = false, ErrorMessage = $"JavaScript error: {jsEx.Message}" };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error executing script action for task {TaskId}", task.Id);
+            return new TaskResult { Success = false, ErrorMessage = $"Script execution failed: {ex.Message}" };
+        }
+    }
+
+    /// <summary>
+    /// Converts a JsonElement to a CLR object suitable for the Jint engine.
+    /// </summary>
+    private static object? ConvertJsonElementToClr(JsonElement element)
+    {
+        return element.ValueKind switch
+        {
+            JsonValueKind.String => element.GetString(),
+            JsonValueKind.Number => element.TryGetInt64(out var l) ? l : element.GetDouble(),
+            JsonValueKind.True => true,
+            JsonValueKind.False => false,
+            JsonValueKind.Null => null,
+            JsonValueKind.Array => element.EnumerateArray().Select(ConvertJsonElementToClr).ToArray(),
+            JsonValueKind.Object => element.EnumerateObject().ToDictionary(p => p.Name, p => ConvertJsonElementToClr(p.Value)),
+            _ => element.ToString()
+        };
     }
 
     private Task<TaskResult> ExecuteGenericAction(WorkflowTask task, CrmDbContext dbContext, CancellationToken ct)

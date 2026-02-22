@@ -818,6 +818,7 @@ if (!skipWorkflowWorker)
 
 // Workflow Trigger Service + Scheduled Workflow Background Service
 builder.Services.AddScoped<IWorkflowTriggerService, WorkflowTriggerService>();
+builder.Services.AddScoped<WorkflowEventInterceptor>();
 builder.Services.AddSingleton<IEntityEventDispatcher, EntityEventDispatcher>();
 builder.Services.AddHostedService<ScheduledWorkflowService>();
 
