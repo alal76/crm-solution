@@ -188,18 +188,17 @@ public class SLAEnforcementHostedServiceTests
         // Arrange
         var service = new SLAEnforcementHostedService(_mockServiceProvider.Object, _mockLogger.Object);
         
-        // Setup mock to handle GetRequiredService calls to prevent exceptions
+        // Setup mock to handle GetService calls - use callback to return appropriate service
         var scopeServiceProvider = new Mock<IServiceProvider>();
-        scopeServiceProvider.Setup(x => x.GetService(typeof(ICrmDbContext)))
-            .Returns(_mockDbContext.Object);
-        scopeServiceProvider.Setup(x => x.GetService(typeof(IEscalationRuleService)))
-            .Returns(_mockEscalationRuleService.Object);
-        
-        // Setup GetRequiredService to return our mocks
-        scopeServiceProvider.Setup(x => x.GetRequiredService(typeof(ICrmDbContext)))
-            .Returns(_mockDbContext.Object);
-        scopeServiceProvider.Setup(x => x.GetRequiredService(typeof(IEscalationRuleService)))
-            .Returns(_mockEscalationRuleService.Object);
+        scopeServiceProvider.Setup(x => x.GetService(It.IsAny<Type>()))
+            .Returns((Type serviceType) =>
+            {
+                if (serviceType == typeof(ICrmDbContext))
+                    return _mockDbContext.Object;
+                if (serviceType == typeof(IEscalationRuleService))
+                    return _mockEscalationRuleService.Object;
+                return null;
+            });
         
         var mockScope = new Mock<IServiceScope>();
         mockScope.Setup(x => x.ServiceProvider).Returns(scopeServiceProvider.Object);
@@ -208,10 +207,13 @@ public class SLAEnforcementHostedServiceTests
         mockScopeFactory.Setup(x => x.CreateScope()).Returns(mockScope.Object);
         
         var mockServiceProvider = new Mock<IServiceProvider>();
-        mockServiceProvider.Setup(x => x.GetService(typeof(IServiceScopeFactory)))
-            .Returns(mockScopeFactory.Object);
-        mockServiceProvider.Setup(x => x.GetRequiredService(typeof(IServiceScopeFactory)))
-            .Returns(mockScopeFactory.Object);
+        mockServiceProvider.Setup(x => x.GetService(It.IsAny<Type>()))
+            .Returns((Type serviceType) =>
+            {
+                if (serviceType == typeof(IServiceScopeFactory))
+                    return mockScopeFactory.Object;
+                return null;
+            });
 
         var serviceWithProperMocks = new SLAEnforcementHostedService(mockServiceProvider.Object, _mockLogger.Object);
         using var cts = new CancellationTokenSource();
