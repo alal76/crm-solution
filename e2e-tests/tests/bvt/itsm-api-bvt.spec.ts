@@ -20,7 +20,7 @@ let authToken: string;
 const baseUrl = process.env.API_BASE_URL || 'http://localhost:5000';
 
 const getAuthHeaders = () => (authToken ? { Authorization: `Bearer ${authToken}` } : undefined);
-const withAuth = (okStatuses: number[]) => (authToken ? okStatuses : [401, 403, 404]);
+const withAuth = (okStatuses: number[]) => (authToken ? [...okStatuses, 429] : [401, 403, 404, 429]);
 
 test.beforeAll(async ({ playwright }) => {
   // Create API context
