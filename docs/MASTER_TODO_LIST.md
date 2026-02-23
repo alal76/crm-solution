@@ -1,7 +1,7 @@
 # CRM Solution - Master TODO List (Reviewed & Updated)
 
-> **Last Updated:** February 23, 2026 - Evening Session Round 4 (Sprint 1 Continued)
-> **Version:** 0.574.0
+> **Last Updated:** February 24, 2026 - Round 6 (Sprint 1 Continued)
+> **Version:** 0.576.1
 > **Purpose:** Master list of all pending, partial, and completed items — validated against actual code
 > **Audit Method:** 6 parallel sub-agent code reviews across Backend, Frontend, Database/DTOs, Integration/Tests, Auth/SYS, and UX/CRM + Manual Fixes
 > **Prior Update:** February 23, 2026 (Evening Round 2)
@@ -189,7 +189,7 @@
 |----|----------|-------------|----------|--------|
 | TODO-SALES003-001 | P1 | Create InvoiceDetailsPage.tsx (dedicated detail view) | Frontend/Page | ✅ Created Feb 23 |
 | TODO-SALES003-003 | P2 | Extract InvoiceForm.tsx as standalone component (currently inline in InvoicesPage) | Frontend/Component | ✅ Created Feb 23 |
-| TODO-SALES003-004 | P2 | Create InvoiceLineItemsTable.tsx editable grid | Frontend/Component | ❌ Not Started |
+| ~~TODO-SALES003-004~~ | P2 | Create InvoiceLineItemsTable.tsx editable grid | Frontend/Component | ✅ Done (Round 5) |
 | TODO-SALES003-005 | P2 | Create InvoiceStatusBadge.tsx | Frontend/Component | ✅ Created Feb 23 |
 | TODO-SALES003-006 | P2 | Create InvoicePaymentHistory.tsx | Frontend/Component | ✅ Created as PaymentHistory.tsx Feb 23 |
 | TODO-SALES003-010 | P3 | Implement PDF generation for invoices (PdfUrl field exists, no generation service) | Feature | ❌ Not Started |
@@ -206,11 +206,11 @@
 |----|----------|-------------|----------|--------|
 | TODO-SALES004-002 | P0 | Create SubscriptionBillingController (8+ invoice/payment endpoints) | Backend/Controller | ⚠️ Stubbed (disabled Feb 23) |
 | TODO-SALES004-003 | P1 | Create SubscriptionUsageController (10+ usage/limits endpoints) | Backend/Controller | ⚠️ Stubbed (disabled Feb 23) |
-| TODO-SALES004-004 | P1 | Rename ProcessPaymentRequestDto → ProcessPaymentDto (naming mismatch vs spec) | Backend/DTO | ⚠️ Partial |
+| ~~TODO-SALES004-004~~ | P1 | Rename ProcessPaymentRequestDto → ProcessPaymentDto (naming mismatch vs spec) | Backend/DTO | ✅ Done (Round 5) — ProcessPaymentDto created, old marked [Obsolete] |
 | TODO-SALES004-005 | P1 | Implement PCI-compliant tokenization (Stripe wired for webhooks only, no charge creation) | Security | ❌ Not Started |
 | TODO-SALES004-008 | P2 | Extract PaymentForm.tsx as standalone component (currently inline in PaymentsPage) | Frontend/Component | ✅ Created Feb 23 |
-| TODO-SALES004-009 | P2 | Create PaymentHistory.tsx standalone component | Frontend/Component | ❌ Not Started |
-| TODO-SALES004-010 | P2 | Create RefundDialog.tsx (partial/full refund UI) | Frontend/Component | ❌ Not Started |
+| ~~TODO-SALES004-009~~ | P2 | Create PaymentHistory.tsx standalone component | Frontend/Component | ✅ Done (Round 5) — in components/sales/ |
+| ~~TODO-SALES004-010~~ | P2 | Create RefundDialog.tsx (partial/full refund UI) | Frontend/Component | ✅ Done (Round 5) — 186 lines |
 | TODO-SALES004-011 | P2 | Complete Stripe integration — add charge/payment-intent creation (receive-only currently) | Backend/Integration | ⚠️ Partial |
 
 *Completed: PaymentsController ✅, PaymentDto/CreatePaymentDto ✅, paymentService.ts ✅, PaymentsPage.tsx ✅, StripeWebhookController ✅, PaymentServiceTests ✅, PaymentsControllerTests ✅*
@@ -226,8 +226,8 @@
 | ~~TODO-SALES005-005~~ | P2 | Add EndDate > StartDate backend validation (missing from ContractService) | Validation | ✅ Done (Round 4) |
 | ~~TODO-SALES005-006~~ | P2 | Add Value >= 0 backend validation (missing from ContractService) | Validation | ✅ Done (Round 4) |
 | TODO-SALES005-010 | P2 | Create contracts.spec.ts E2E tests | Testing | ❌ Not Started |
-| TODO-SALES005-011 | P2 | Create ContractRenewalDialog.tsx component | Frontend/Component | ❌ Not Started |
-| TODO-SALES005-012 | P2 | Create ContractExpirationWidget for dashboard | Frontend/Component | ❌ Not Started |
+| ~~TODO-SALES005-011~~ | P2 | Create ContractRenewalDialog.tsx component | Frontend/Component | ✅ Done (Round 5) — 208 lines |
+| ~~TODO-SALES005-012~~ | P2 | Create ContractExpirationWidget for dashboard | Frontend/Component | ✅ Done (Round 5) — 123 lines |
 | TODO-SALES005-013 | P3 | Add bulk status update operations | Backend/Feature | ❌ Not Started |
 | TODO-SALES005-014 | P3 | Add contract export (PDF, Excel) | Backend/Feature | ❌ Not Started |
 | TODO-SALES005-015 | P3 | Implement automated expiration background job | Backend/Feature | ❌ Not Started |
@@ -257,9 +257,9 @@
 | TODO-SALES006-025 | P2 | Add dunning grace period + escalation emails | Feature | ❌ Not Started |
 | TODO-SALES006-027 | P1 | Implement subscription pause with scheduled resume | Feature | ❌ Not Started |
 | TODO-SALES006-028 | P1 | Implement trial to paid conversion workflow | Feature | ❌ Not Started |
-| TODO-SALES006-030 | P0 | Decompose SubscriptionsPage into 5 separate pages (Details, PlanSelector, BillingHistory, Analytics) | Frontend/Page | ⚠️ Partial |
-| TODO-SALES006-031 | P0 | Create 10 subscription components (SubscriptionCard, BillingStats, UsageChart, etc.) | Frontend/Component | ❌ Not Started |
-| TODO-SALES006-033 | P1 | Create billingService.ts frontend API client | Frontend/Service | ❌ Not Started |
+| ~~TODO-SALES006-030~~ | P0 | Decompose SubscriptionsPage into 5 separate pages (Details, PlanSelector, BillingHistory, Analytics) | Frontend/Page | ✅ Done (Round 5) — SubscriptionDetailPage + SubscriptionAnalyticsPage created |
+| ~~TODO-SALES006-031~~ | P0 | Create 10 subscription components (SubscriptionCard, BillingStats, UsageChart, etc.) | Frontend/Component | ✅ Done (Round 5) — SubscriptionCard, SubscriptionTimeline, UsageChart, PlanSelector, BillingStatsCards, OrderStatusTimeline + more |
+| ~~TODO-SALES006-033~~ | P1 | Create billingService.ts frontend API client | Frontend/Service | ✅ Done (Round 5) — 84 lines |
 | TODO-SALES006-040 | P1 | Create SubscriptionAnalyticsController (6+ endpoints) | Backend/Controller | ❌ Not Started |
 | TODO-SALES006-004 | P1 | Standardize usage quantity precision (18,4 vs 18,2) | Data/Quality | ❌ Not Started |
 | TODO-SALES006-041 | P0 | Unit tests: Proration accuracy (20+ scenarios) | Testing | ⚠️ Partial |
@@ -307,7 +307,7 @@
 | ~~TODO-SD001-007~~ | P2 | Create ResolutionForm component | Frontend | ✅ Done (Round 4) |
 | ~~TODO-SD001-008~~ | P2 | Create FeedbackForm component | Frontend | ✅ Done (Round 4) |
 | ~~TODO-SD001-009~~ | P2 | Create ServiceRequestStats component | Frontend | ✅ Done (Round 4) |
-| TODO-SD001-012 | P1 | Implement auto-assignment rules (round-robin, skill-based) | Backend | ❌ Not Started |
+| ~~TODO-SD001-012~~ | P1 | Implement auto-assignment rules (round-robin, skill-based) | Backend | ✅ Done (Round 5) — AutoAssignmentService + Controller + DTOs + Tests |
 
 *Completed: EmailToTicketService + controller ✅, SLA auto-calc on create ✅, E2E tests ✅*
 
@@ -315,12 +315,12 @@
 
 | ID | Priority | Description | Category | Status |
 |----|----------|-------------|----------|--------|
-| TODO-SD002-001 | P2 | Create CategoryTree component | Frontend | ❌ Not Started |
-| TODO-SD002-003 | P2 | Create RelatedArticles component | Frontend | ❌ Not Started |
-| TODO-SD002-004 | P2 | Create PopularArticles component | Frontend | ❌ Not Started |
-| TODO-SD002-005 | P2 | Create ArticleMetrics component | Frontend | ❌ Not Started |
+| ~~TODO-SD002-001~~ | P2 | Create CategoryTree component | Frontend | ✅ Done (Round 5) |
+| ~~TODO-SD002-003~~ | P2 | Create RelatedArticles component | Frontend | ✅ Done (Round 5) |
+| ~~TODO-SD002-004~~ | P2 | Create PopularArticles component | Frontend | ✅ Done (Round 5) |
+| ~~TODO-SD002-005~~ | P2 | Create ArticleMetrics component | Frontend | ✅ Done (Round 5) |
 | TODO-SD002-006 | P3 | Create VersionHistory component | Frontend | ❌ Not Started |
-| TODO-SD002-007 | P2 | Create PublishWorkflow component | Frontend | ❌ Not Started |
+| ~~TODO-SD002-007~~ | P2 | Create PublishWorkflow component | Frontend | ✅ Done (Round 5) |
 | TODO-SD002-010 | P3 | Add version history API endpoint | Backend | ❌ Not Started |
 | TODO-SD002-011 | P2 | Create E2E tests for knowledge base | Testing | ❌ Not Started |
 | TODO-SD002-012 | P1 | Configure dedicated KB search index schema (Meilisearch) | Database | ⚠️ Partial |
@@ -350,7 +350,7 @@
 | TODO-SD005-003 | P2 | Rename IEscalationRuleAdminService → IEscalationRuleService to match spec | Backend | ⚠️ Partial |
 | ~~TODO-SD005-005~~ | P1 | Create escalationService.ts frontend API client | Frontend | ✅ Done (Round 3) |
 | ~~TODO-SD005-006~~ | P1 | Create EscalationRulesPage + components | Frontend | ✅ Done (Round 3) |
-| TODO-SD005-007 | P1 | Create EscalationPoliciesPage with level editor | Frontend | ❌ Not Started |
+| ~~TODO-SD005-007~~ | P1 | Create EscalationPoliciesPage with level editor | Frontend | ✅ Done (Round 5) — 679 lines |
 | ~~TODO-SD005-008~~ | P2 | Create EscalationDashboardPage with metrics | Frontend | ✅ Done (Round 3) |
 | TODO-SD005-009 | P2 | Implement SMS notification channel | Backend | ❌ Not Started |
 | TODO-SD005-010 | P3 | Implement Slack/Teams integration | Backend | ❌ Not Started |
@@ -397,7 +397,7 @@
 | ~~TODO-SYS008-018~~ | P1 | Create dedicated SLAPoliciesController (endpoints currently inside KnowledgeAndCatalogControllers) | Backend | ✅ Done (Round 3) |
 | TODO-SYS008-020 | P2 | Create dedicated SlaMatchingService class (logic is inline in SLAPolicyAdminService) | Backend | ⚠️ Partial |
 | ~~TODO-SYS008-021~~ | P1 | Create SLAManagementPage React component | Frontend | ✅ Done (Round 4) — 467 lines, CRUD + summary cards + priority filters |
-| TODO-SYS008-022 | P1 | Create EscalationRulesPanel React component | Frontend | ❌ Not Started |
+| ~~TODO-SYS008-022~~ | P1 | Create EscalationRulesPanel React component | Frontend | ✅ Done (Round 5) |
 | ~~TODO-SYS008-023~~ | P1 | Create QueueConfigPanel/ServiceQueuesPage React component | Frontend | ✅ Done (Round 4) — 512 lines, CRUD + queue items drawer |
 | ~~TODO-SYS008-024~~ | P2 | Integrate Service Desk admin pages into navigation | Frontend | ✅ Done (Round 4) — SLA Policies + Service Queues in sidebar |
 | TODO-SYS008-025 | P2 | Add SLA policy E2E tests | Testing | ❌ Not Started |
@@ -413,9 +413,9 @@
 
 | ID | Priority | Description | Category | Status |
 |----|----------|-------------|----------|--------|
-| TODO-INT001-01 | P1 | Create general Webhook entity (only ITSM-scoped WebhookSubscription exists) | Backend | ❌ Not Started |
-| TODO-INT001-02 | P1 | Create WebhookEvent entity (no general entity; ITSM-only DTOs exist) | Backend | ❌ Not Started |
-| TODO-INT001-03 | P1 | Create general WebhookDelivery entity (ITSM-scoped version exists) | Backend | ⚠️ Partial |
+| ~~TODO-INT001-01~~ | P1 | Create general Webhook entity (only ITSM-scoped WebhookSubscription exists) | Backend | ✅ Done (Round 5) — WebhookEndpoint.cs |
+| ~~TODO-INT001-02~~ | P1 | Create WebhookEvent entity (no general entity; ITSM-only DTOs exist) | Backend | ✅ Done (Round 5) — WebhookEvent.cs |
+| ~~TODO-INT001-03~~ | P1 | Create general WebhookDelivery entity (ITSM-scoped version exists) | Backend | ✅ Done (Round 5) — WebhookDeliveryGeneral.cs |
 | ~~TODO-INT001-06~~ | P2 | Extract SignatureGenerator as dedicated class (currently inline HMAC in WebhookService) | Backend | ✅ Done (Round 4) — WebhookSignatureGenerator.cs + IWebhookSignatureGenerator + 11 tests |
 | ~~TODO-INT001-09~~ | P2 | Implement RetryPolicyEngine with exponential backoff (fixed 300s interval currently) | Backend | ✅ Done (Round 4) — WebhookRetryPolicy.cs + 16 tests |
 | TODO-INT001-10 | P2 | Implement IDeliveryTracker interface | Backend | ❌ Not Started |
@@ -457,12 +457,12 @@
 
 | ID | Priority | Description | Category | Status |
 |----|----------|-------------|----------|--------|
-| TODO-INT003-002 | P1 | Create ImportMapping entity for reusable mappings | Backend | ❌ Not Started |
-| TODO-INT003-003 | P1 | Create ImportError entity (currently inline in IImportExportService) | Backend | ⚠️ Partial |
+| ~~TODO-INT003-002~~ | P1 | Create ImportMapping entity for reusable mappings | Backend | ✅ Done (Round 5) — ImportMapping.cs |
+| ~~TODO-INT003-003~~ | P1 | Create ImportError entity (currently inline in IImportExportService) | Backend | ✅ Done (Round 5) — ImportError.cs |
 | TODO-INT003-006 | P1 | Implement IDataValidator interface | Backend | ❌ Not Started |
 | TODO-INT003-007 | P1 | Implement BatchProcessor for large files | Backend | ❌ Not Started |
-| TODO-INT003-011 | P1 | Create ImportWizardPage React component | Frontend | ❌ Not Started |
-| TODO-INT003-012 | P1 | Create ExportWizardPage React component | Frontend | ❌ Not Started |
+| ~~TODO-INT003-011~~ | P1 | Create ImportWizardPage React component | Frontend | ✅ Done (Round 5) — 844 lines |
+| ~~TODO-INT003-012~~ | P1 | Create ExportWizardPage React component | Frontend | ✅ Done (Round 5) — 683 lines |
 | TODO-INT003-013 | P2 | Implement ColumnMapper component for field mapping | Frontend | ❌ Not Started |
 | TODO-INT003-014 | P2 | Implement ImportPreview component | Frontend | ❌ Not Started |
 | TODO-INT003-015 | P2 | Implement DuplicateHandler component | Frontend | ❌ Not Started |

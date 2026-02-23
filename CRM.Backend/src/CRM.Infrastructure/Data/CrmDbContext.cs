@@ -465,6 +465,9 @@ public class CrmDbContext : DbContext, ICrmDbContext
     public DbSet<CRM.Core.Entities.ImportMapping> ImportMappings { get; set; }
     public DbSet<CRM.Core.Entities.ImportError> ImportErrors { get; set; }
 
+    // Field-level audit trail (TODO-SYS006-001)
+    public DbSet<FieldChangeLog> FieldChangeLogs { get; set; }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         if (!optionsBuilder.IsConfigured && _configuration != null)

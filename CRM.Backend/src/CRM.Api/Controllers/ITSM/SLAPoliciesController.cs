@@ -5,10 +5,12 @@
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
 using CRM.Core.Dtos.ITSM;
+using CRM.Core.Interfaces;
 using CRM.Core.Interfaces.ITSM;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace CRM.Api.Controllers.ITSM;
 
@@ -24,14 +26,16 @@ namespace CRM.Api.Controllers.ITSM;
 public class SLAPoliciesController : ControllerBase
 {
     private readonly ISLAPolicyAdminService _slaPolicyService;
+    private readonly ICrmDbContext _dbContext;
     private readonly ILogger<SLAPoliciesController> _logger;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="SLAPoliciesController"/> class.
     /// </summary>
-    public SLAPoliciesController(ISLAPolicyAdminService slaPolicyService, ILogger<SLAPoliciesController> logger)
+    public SLAPoliciesController(ISLAPolicyAdminService slaPolicyService, ICrmDbContext dbContext, ILogger<SLAPoliciesController> logger)
     {
         _slaPolicyService = slaPolicyService ?? throw new ArgumentNullException(nameof(slaPolicyService));
+        _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
@@ -241,6 +245,117 @@ public class SLAPoliciesController : ControllerBase
         {
             _logger.LogError(ex, "Error assigning SLA policy {PolicyId} to service request {RequestId}", policyId, serviceRequestId);
             return StatusCode(500, new { message = "Error assigning SLA policy", error = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Get SLA dashboard metrics with aggregate compliance data.
+    /// Returns total tickets, breach counts, compliance rate, average times, and daily trends.
+    /// </summary>
+    /// <param name="startDate">Optional start date filter (defaults to 30 days ago)</param>
+    /// <param name="endDate">Optional end date filter (defaults to today)</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>SLA dashboard metrics</returns>
+    /// <response code="200">Returns the SLA dashboard data</response>
+    /// <response code="500">Internal server error</response>
+    [HttpGet("dashboard")]
+    [Authorize]
+    [ProducesResponseType(typeof(SLADashboardDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> GetSLADashboard(
+        [FromQuery] DateTime? startDate,
+        [FromQuery] DateTime? endDate,
+        CancellationToken ct)
+    {
+        try
+        {
+            var start = startDate ?? DateTime.UtcNow.AddDays(-30);
+            var end = endDate ?? DateTime.UtcNow;
+
+            _logger.LogInformation("Fetching SLA dashboard data from {Start} to {End}", start, end);
+
+            // Query service requests within the date range
+            var requests = await _dbContext.ServiceRequests
+                .AsNoTracking()
+                .Where(sr => !sr.IsDeleted && sr.CreatedAt >= start && sr.CreatedAt <= end)
+                .Select(sr => new
+                {
+                    sr.Id,
+                    sr.Priority,
+                    sr.Status,
+                    sr.CreatedAt,
+                    sr.ResponseDueDate,
+                    sr.ResolutionDueDate,
+                    sr.FirstResponseDate,
+                    sr.ResolvedDate,
+                    sr.ResponseSlaBreached,
+                    sr.ResolutionSlaBreached
+                })
+                .ToListAsync(ct);
+
+            var totalTickets = requests.Count;
+            var breachedCount = requests.Count(r => r.ResponseSlaBreached || r.ResolutionSlaBreached);
+            var withinSLA = totalTickets - breachedCount;
+            var complianceRate = totalTickets > 0 ? (double)withinSLA / totalTickets * 100.0 : 100.0;
+
+            // Average response time (minutes) for tickets that have a first response
+            var respondedTickets = requests
+                .Where(r => r.FirstResponseDate.HasValue)
+                .ToList();
+            var avgResponseTime = respondedTickets.Count > 0
+                ? respondedTickets.Average(r => (r.FirstResponseDate!.Value - r.CreatedAt).TotalMinutes)
+                : 0.0;
+
+            // Average resolution time (minutes) for resolved tickets
+            var resolvedTickets = requests
+                .Where(r => r.ResolvedDate.HasValue)
+                .ToList();
+            var avgResolutionTime = resolvedTickets.Count > 0
+                ? resolvedTickets.Average(r => (r.ResolvedDate!.Value - r.CreatedAt).TotalMinutes)
+                : 0.0;
+
+            // Breaches by priority
+            var breachesByPriority = requests
+                .Where(r => r.ResponseSlaBreached || r.ResolutionSlaBreached)
+                .GroupBy(r => r.Priority.ToString())
+                .ToDictionary(g => g.Key, g => g.Count());
+
+            // Daily trend
+            var dailyTrend = requests
+                .GroupBy(r => r.CreatedAt.Date)
+                .OrderBy(g => g.Key)
+                .Select(g =>
+                {
+                    var dayTotal = g.Count();
+                    var dayBreached = g.Count(r => r.ResponseSlaBreached || r.ResolutionSlaBreached);
+                    var dayWithin = dayTotal - dayBreached;
+                    return new SLATrendPoint
+                    {
+                        Date = g.Key,
+                        ComplianceRate = dayTotal > 0 ? (double)dayWithin / dayTotal * 100.0 : 100.0,
+                        TotalTickets = dayTotal
+                    };
+                })
+                .ToList();
+
+            var dashboard = new CRM.Core.Dtos.ITSM.SLADashboardDto
+            {
+                TotalTickets = totalTickets,
+                WithinSLA = withinSLA,
+                BreachedSLA = breachedCount,
+                ComplianceRate = Math.Round(complianceRate, 2),
+                AvgResponseTimeMinutes = Math.Round(avgResponseTime, 2),
+                AvgResolutionTimeMinutes = Math.Round(avgResolutionTime, 2),
+                BreachesByPriority = breachesByPriority,
+                DailyTrend = dailyTrend
+            };
+
+            return Ok(dashboard);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error fetching SLA dashboard data");
+            return StatusCode(500, new { message = "Error fetching SLA dashboard data", error = ex.Message });
         }
     }
 }

@@ -8,6 +8,7 @@ using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using CRM.Infrastructure.Services;
+using CRM.Infrastructure.Services.Auth;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -28,19 +29,28 @@ public class AuthController : ControllerBase
     private readonly LinkedInOAuthProvider _linkedInOAuthProvider;
     private readonly AppleOAuthProvider _appleOAuthProvider;
     private readonly IWebAuthnService _webAuthnService;
+    private readonly IOAuthStateService _oauthStateService;
+    private readonly ITwoFactorPolicyService _twoFactorPolicyService;
+    private readonly CRM.Core.Interfaces.ITotpService _totpService;
 
     public AuthController(
         IAuthenticationService authenticationService,
         ILogger<AuthController> logger,
         LinkedInOAuthProvider linkedInOAuthProvider,
         AppleOAuthProvider appleOAuthProvider,
-        IWebAuthnService webAuthnService)
+        IWebAuthnService webAuthnService,
+        IOAuthStateService oauthStateService,
+        ITwoFactorPolicyService twoFactorPolicyService,
+        CRM.Core.Interfaces.ITotpService totpService)
     {
         _authenticationService = authenticationService;
         _logger = logger;
         _linkedInOAuthProvider = linkedInOAuthProvider;
         _appleOAuthProvider = appleOAuthProvider;
         _webAuthnService = webAuthnService;
+        _oauthStateService = oauthStateService;
+        _twoFactorPolicyService = twoFactorPolicyService;
+        _totpService = totpService;
     }
 
     /// <summary>
@@ -1199,5 +1209,302 @@ public class AuthController : ControllerBase
             _logger.LogError(ex, "Error removing WebAuthn credential");
             return StatusCode(500, new { message = "An error occurred removing WebAuthn credential" });
         }
+    }
+
+    // ==========================================
+    // OAuth State / CSRF Protection Endpoints
+    // ==========================================
+
+    /// <summary>
+    /// Generate an OAuth state token for CSRF protection.
+    /// The returned state should be passed as the state parameter when initiating OAuth flows.
+    /// </summary>
+    /// <param name="returnUrl">Optional URL to redirect to after OAuth callback</param>
+    /// <returns>A cryptographically random state token</returns>
+    /// <response code="200">Returns the generated state token</response>
+    /// <response code="500">If there was an internal server error</response>
+    [HttpGet("oauth/state")]
+    [AllowAnonymous]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public IActionResult GenerateOAuthState([FromQuery] string? returnUrl = null)
+    {
+        try
+        {
+            var state = _oauthStateService.GenerateState(returnUrl);
+            return Ok(new { state });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error generating OAuth state token");
+            return StatusCode(500, new { message = "An error occurred generating OAuth state" });
+        }
+    }
+
+    /// <summary>
+    /// Validate an OAuth state token (typically called internally during callback processing).
+    /// Consumes the token (one-time use) and returns the embedded return URL.
+    /// </summary>
+    /// <param name="state">The state token to validate</param>
+    /// <returns>Validation result with optional return URL</returns>
+    /// <response code="200">Returns validation result</response>
+    /// <response code="400">If the state token is invalid, expired, or already consumed</response>
+    /// <response code="500">If there was an internal server error</response>
+    [HttpPost("oauth/state/validate")]
+    [AllowAnonymous]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public IActionResult ValidateOAuthState([FromBody] OAuthStateValidateRequest request)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(request.State))
+                return BadRequest(new { message = "State parameter is required" });
+
+            var isValid = _oauthStateService.ValidateState(request.State, out var returnUrl);
+            if (!isValid)
+                return BadRequest(new { message = "Invalid, expired, or already consumed state token" });
+
+            return Ok(new { isValid = true, returnUrl });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error validating OAuth state token");
+            return StatusCode(500, new { message = "An error occurred validating OAuth state" });
+        }
+    }
+
+    // ==========================================
+    // OAuth Token Refresh Endpoint
+    // ==========================================
+
+    /// <summary>
+    /// Refresh an OAuth provider token (not JWT refresh, which is at POST /api/auth/refresh).
+    /// Uses the provider's refresh token to obtain a new access token from the external OAuth provider.
+    /// </summary>
+    /// <param name="dto">The OAuth refresh request with provider name and refresh token</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>New OAuth token response from the provider</returns>
+    /// <response code="200">Returns new OAuth tokens from the provider</response>
+    /// <response code="400">If the request data is invalid or provider is unsupported</response>
+    /// <response code="401">If user is not authenticated</response>
+    /// <response code="500">If there was an internal server error</response>
+    [HttpPost("oauth/refresh")]
+    [Authorize]
+    [ProducesResponseType(typeof(OAuthTokenResponseDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> RefreshOAuthToken([FromBody] OAuthRefreshDto dto, CancellationToken ct)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(dto.Provider))
+                return BadRequest(new { message = "Provider is required" });
+
+            if (string.IsNullOrWhiteSpace(dto.RefreshToken))
+                return BadRequest(new { message = "Refresh token is required" });
+
+            var provider = dto.Provider.ToLowerInvariant();
+
+            OAuthTokenResponseDto tokenResponse;
+
+            switch (provider)
+            {
+                case "linkedin":
+                    var linkedInResult = await _linkedInOAuthProvider.RefreshTokenAsync(dto.RefreshToken, ct);
+                    tokenResponse = new OAuthTokenResponseDto
+                    {
+                        AccessToken = linkedInResult.Access_token,
+                        ExpiresIn = linkedInResult.Expires_in,
+                        RefreshToken = linkedInResult.Refresh_token
+                    };
+                    break;
+
+                case "apple":
+                    var appleResult = await _appleOAuthProvider.RefreshTokenAsync(dto.RefreshToken, ct);
+                    tokenResponse = new OAuthTokenResponseDto
+                    {
+                        AccessToken = appleResult.Access_token,
+                        ExpiresIn = appleResult.Expires_in,
+                        RefreshToken = appleResult.Refresh_token,
+                        IdToken = appleResult.Id_token
+                    };
+                    break;
+
+                default:
+                    return BadRequest(new { message = $"OAuth token refresh not supported for provider: {dto.Provider}" });
+            }
+
+            _logger.LogInformation("OAuth token refreshed for provider {Provider}", dto.Provider);
+            return Ok(tokenResponse);
+        }
+        catch (HttpRequestException ex)
+        {
+            _logger.LogWarning(ex, "OAuth token refresh failed for provider {Provider}", dto.Provider);
+            return BadRequest(new { message = $"Failed to refresh token with provider: {ex.Message}" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "OAuth token refresh error for provider {Provider}", dto.Provider);
+            return StatusCode(500, new { message = "An error occurred during OAuth token refresh" });
+        }
+    }
+
+    // ==========================================
+    // 2FA Policy Enforcement Endpoints
+    // ==========================================
+
+    /// <summary>
+    /// Get all 2FA enforcement policies for all user groups.
+    /// Requires Admin role.
+    /// </summary>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>List of 2FA policies per group</returns>
+    /// <response code="200">Returns all 2FA policies</response>
+    /// <response code="401">If user is not authenticated</response>
+    /// <response code="403">If user is not an Admin</response>
+    /// <response code="500">If there was an internal server error</response>
+    [HttpGet("2fa/policies")]
+    [Authorize(Roles = "Admin")]
+    [ProducesResponseType(typeof(IEnumerable<TwoFactorPolicyDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> Get2FAPolicies(CancellationToken ct)
+    {
+        try
+        {
+            var policies = await _twoFactorPolicyService.GetAllPoliciesAsync(ct);
+            return Ok(policies);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving 2FA policies");
+            return StatusCode(500, new { message = "An error occurred retrieving 2FA policies" });
+        }
+    }
+
+    /// <summary>
+    /// Set or update the 2FA enforcement policy for a specific user group.
+    /// Requires Admin role.
+    /// </summary>
+    /// <param name="groupId">The user group ID to set the policy for</param>
+    /// <param name="policy">The 2FA policy configuration</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>Updated policy</returns>
+    /// <response code="200">Returns success message</response>
+    /// <response code="400">If the policy data is invalid</response>
+    /// <response code="401">If user is not authenticated</response>
+    /// <response code="403">If user is not an Admin</response>
+    /// <response code="500">If there was an internal server error</response>
+    [HttpPut("2fa/policies/{groupId}")]
+    [Authorize(Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> Set2FAPolicy(int groupId, [FromBody] TwoFactorPolicyDto policy, CancellationToken ct)
+    {
+        try
+        {
+            if (groupId <= 0)
+                return BadRequest(new { message = "Invalid group ID" });
+
+            await _twoFactorPolicyService.SetPolicyForGroupAsync(groupId, policy, ct);
+
+            var updated = await _twoFactorPolicyService.GetPolicyForGroupAsync(groupId, ct);
+            return Ok(updated);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error setting 2FA policy for group {GroupId}", groupId);
+            return StatusCode(500, new { message = "An error occurred setting 2FA policy" });
+        }
+    }
+
+    /// <summary>
+    /// Check if 2FA is required for the current authenticated user based on their group memberships.
+    /// </summary>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>Whether 2FA is required</returns>
+    /// <response code="200">Returns 2FA requirement status</response>
+    /// <response code="401">If user is not authenticated</response>
+    /// <response code="500">If there was an internal server error</response>
+    [HttpGet("2fa/required")]
+    [Authorize]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> Check2FARequired(CancellationToken ct)
+    {
+        try
+        {
+            var userIdClaim = User.FindFirst("sub") ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
+                return Unauthorized();
+
+            var isRequired = await _twoFactorPolicyService.Is2FARequiredForUserAsync(userId, ct);
+            return Ok(new { required = isRequired });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error checking 2FA requirement");
+            return StatusCode(500, new { message = "An error occurred checking 2FA requirement" });
+        }
+    }
+
+    // ==========================================
+    // Backup Code Regeneration Endpoint
+    // ==========================================
+
+    /// <summary>
+    /// Regenerate 2FA backup codes for the current user.
+    /// Generates 10 new backup codes, invalidates all previous ones,
+    /// and returns the plain-text codes ONCE (user must save them).
+    /// </summary>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>New set of backup codes</returns>
+    /// <response code="200">Returns new backup codes in plain text (one-time display)</response>
+    /// <response code="401">If user is not authenticated</response>
+    /// <response code="500">If there was an internal server error</response>
+    [HttpPost("2fa/backup-codes/regenerate")]
+    [Authorize]
+    [ProducesResponseType(typeof(BackupCodesDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> RegenerateBackupCodes(CancellationToken ct)
+    {
+        try
+        {
+            var userIdClaim = User.FindFirst("sub") ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
+                return Unauthorized();
+
+            var result = await _totpService.RegenerateBackupCodesAsync(userId);
+
+            _logger.LogInformation("Backup codes regenerated for user {UserId}, {Count} codes issued", userId, result.TotalCodes);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error regenerating backup codes");
+            return StatusCode(500, new { message = "An error occurred regenerating backup codes" });
+        }
+    }
+
+    // ==========================================
+    // Supporting Request DTOs
+    // ==========================================
+
+    /// <summary>
+    /// Request DTO for validating an OAuth state token.
+    /// </summary>
+    public class OAuthStateValidateRequest
+    {
+        /// <summary>The state token to validate.</summary>
+        public string State { get; set; } = string.Empty;
     }
 }

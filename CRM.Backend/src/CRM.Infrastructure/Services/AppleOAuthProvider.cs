@@ -257,6 +257,41 @@ public class AppleOAuthProvider
             return false;
         }
     }
+
+    /// <summary>
+    /// Refresh access token using Apple's token endpoint with grant_type=refresh_token.
+    /// Apple refresh tokens do not expire and can be used to obtain new access tokens.
+    /// </summary>
+    public async Task<AppleTokenResponse> RefreshTokenAsync(
+        string refreshToken,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var clientSecret = GenerateClientSecret();
+
+            var parameters = new Dictionary<string, string>
+            {
+                { "client_id", _options.ClientId },
+                { "client_secret", clientSecret },
+                { "grant_type", "refresh_token" },
+                { "refresh_token", refreshToken }
+            };
+
+            var content = new FormUrlEncodedContent(parameters);
+            var response = await _httpClient.PostAsync(TokenUrl, content, cancellationToken);
+            response.EnsureSuccessStatusCode();
+
+            var tokenResponse = await response.Content.ReadFromJsonAsync<AppleTokenResponse>(cancellationToken);
+            _logger.LogInformation("Successfully refreshed Apple access token");
+            return tokenResponse!;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to refresh Apple token");
+            throw;
+        }
+    }
 }
 
 /// <summary>

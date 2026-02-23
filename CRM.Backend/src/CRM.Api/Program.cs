@@ -123,7 +123,12 @@ builder.Services.AddScoped<CRM.Core.Interfaces.IWebAuthnService, CRM.Infrastruct
 builder.Services.AddScoped<IGoogleOAuthProvider, GoogleOAuthProvider>();
 builder.Services.AddScoped<IMicrosoftOAuthProvider, MicrosoftOAuthProvider>();
 builder.Services.AddScoped<IGitHubOAuthProvider, GitHubOAuthProvider>();
-Log.Information("Authentication services registered - TOTP, WebAuthn, OAuth providers");
+
+// OAuth CSRF state validation & 2FA policy enforcement (TODO-AUTH-005, TODO-AUTH-011)
+builder.Services.AddSingleton<CRM.Infrastructure.Services.Auth.IOAuthStateService, CRM.Infrastructure.Services.Auth.OAuthStateService>();
+builder.Services.AddScoped<CRM.Infrastructure.Services.Auth.ITwoFactorPolicyService, CRM.Infrastructure.Services.Auth.TwoFactorPolicyService>();
+
+Log.Information("Authentication services registered - TOTP, WebAuthn, OAuth providers, OAuth state, 2FA policies");
 
 // Configure Redis cache
 var redisConfig = builder.Configuration.GetSection("Redis");
@@ -316,6 +321,9 @@ builder.Services.AddSignalR(options =>
 
 // Register SignalR notification service
 builder.Services.AddSingleton<CRM.Api.Hubs.ICrmNotificationService, CRM.Api.Hubs.CrmNotificationService>();
+
+// Register SLA SignalR notifier for real-time SLA countdown push
+builder.Services.AddSingleton<CRM.Core.Interfaces.ITSM.ISLASignalRNotifier, CRM.Api.Hubs.SLASignalRNotifier>();
 
 // Add CORS - dynamic origin handling based on deployment
 var configuredOrigins = builder.Configuration["AllowedOrigins"]?.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
@@ -825,6 +833,9 @@ builder.Services.AddHttpClient<INewsSocialService, NewsSocialService>();
 // Navigation Configuration Service - dynamic navigation aware of pluggable architecture
 builder.Services.AddScoped<INavigationConfigService, NavigationConfigService>();
 
+// Field-level audit trail tracking (TODO-SYS006-001)
+builder.Services.AddScoped<CRM.Infrastructure.Services.IFieldChangeTracker, CRM.Infrastructure.Services.FieldChangeTracker>();
+
 // Workflow background worker
 var workflowWorkerOptions = new WorkflowWorkerOptions
 {
@@ -1219,6 +1230,7 @@ app.MapControllers();
 // Map SignalR hubs for real-time notifications
 app.MapHub<CRM.Api.Hubs.CrmNotificationHub>("/hubs/notifications");
 app.MapHub<CRM.Api.Hubs.AgentApprovalHub>("/hubs/agent-approvals");
+app.MapHub<CRM.Api.Hubs.SLACountdownHub>("/hubs/sla");
 
 // SPA fallback - serve index.html for unmatched routes (only if frontend build exists)
 if (Directory.Exists(frontendBuildPath))

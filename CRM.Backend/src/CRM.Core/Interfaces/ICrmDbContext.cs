@@ -313,6 +313,9 @@ public interface ICrmDbContext
     DbSet<ProviderConfiguration> ProviderConfigurations { get; }
     DbSet<ConfigurationChangeLog> ConfigurationChangeLogs { get; }
 
+    // Field-level audit trail (TODO-SYS006-001)
+    DbSet<FieldChangeLog> FieldChangeLogs { get; }
+
     DatabaseFacade Database { get; }
 
     /// <summary>

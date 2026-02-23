@@ -141,6 +141,19 @@ namespace CRM.Core.Dtos
     }
 
     /// <summary>
+    /// DTO for requesting an OAuth provider token refresh (not JWT refresh).
+    /// Used to obtain a new access token from a social/external provider using its refresh token.
+    /// </summary>
+    public class OAuthRefreshDto
+    {
+        /// <summary>OAuth provider name (e.g., "google", "linkedin", "apple", "microsoft", "github").</summary>
+        public string Provider { get; set; } = string.Empty;
+
+        /// <summary>Refresh token issued by the OAuth provider.</summary>
+        public string RefreshToken { get; set; } = string.Empty;
+    }
+
+    /// <summary>
     /// DTO for WebAuthn login initiation request.
     /// </summary>
     public class WebAuthnLoginInitiateDto
