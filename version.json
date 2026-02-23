@@ -1,9 +1,9 @@
 {
   "major": 0,
-  "minor": 574,
-  "patch": 1,
+  "minor": 575,
+  "patch": 0,
   "lastUpdate": "2026-02-23",
-  "description": "feat(webhooks): Extract WebhookSignatureGenerator, add WebhookRetryPolicy + WebhookCircuitBreaker with 35 unit tests",
+  "description": "feat(sales): Add Contract EndDate/Value + Subscription validations with unit tests; fix ResilienceService Polly CircuitState build error",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [
