@@ -476,7 +476,7 @@ public class AdminConfigurationService : IAdminConfigurationService
     {
         try
         {
-            var rules = await _context.EscalationRules
+            var rules = await _context.ITSMEscalationRules
                 .Where(r => !r.IsDeleted)
                 .OrderBy(r => r.Name)
                 .ToListAsync(cancellationToken);
@@ -494,7 +494,7 @@ public class AdminConfigurationService : IAdminConfigurationService
     {
         try
         {
-            var rule = await _context.EscalationRules
+            var rule = await _context.ITSMEscalationRules
                 .Where(r => !r.IsDeleted && r.Id == id)
                 .FirstOrDefaultAsync(cancellationToken);
 
@@ -511,21 +511,25 @@ public class AdminConfigurationService : IAdminConfigurationService
     {
         try
         {
-            var rule = new CRM.Core.Entities.EscalationRule
+            // TODO: ITSM.EscalationRule schema differs from root EscalationRule.
+            // Mapping: Condition→Conditions, ConditionMetric→Priority, ThresholdValue→AgeInMinutes,
+            // EscalateToGroupId/UserId→TargetId+TargetType. SendNotification not available on ITSM.EscalationRule.
+            var rule = new CRM.Core.Entities.ITSM.EscalationRule
             {
                 Name = request.Name,
                 Description = request.Description,
-                Condition = request.Condition,
-                ConditionMetric = Enum.Parse<EscalationMetric>(request.ConditionMetric),
-                ThresholdValue = request.ThresholdValue,
-                EscalateToUserId = request.EscalateToUserId,
-                EscalateToGroupId = request.EscalateToGroupId,
-                SendNotification = request.SendNotification,
+                Conditions = request.Condition,
+                Priority = request.ConditionMetric,
+                AgeInMinutes = request.ThresholdValue,
+                TargetType = request.EscalateToGroupId.HasValue
+                    ? CRM.Core.Entities.ITSM.EscalationTargetType.Group
+                    : CRM.Core.Entities.ITSM.EscalationTargetType.User,
+                TargetId = request.EscalateToGroupId ?? request.EscalateToUserId,
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow,
             };
 
-            _context.EscalationRules.Add(rule);
+            _context.ITSMEscalationRules.Add(rule);
             await _context.SaveChangesAsync(cancellationToken);
 
             _logger.LogInformation($"Escalation rule '{rule.Name}' created by user {createdByUserId}");
@@ -542,7 +546,7 @@ public class AdminConfigurationService : IAdminConfigurationService
     {
         try
         {
-            var rule = await _context.EscalationRules
+            var rule = await _context.ITSMEscalationRules
                 .Where(r => !r.IsDeleted && r.Id == id)
                 .FirstOrDefaultAsync(cancellationToken);
 
@@ -553,24 +557,30 @@ public class AdminConfigurationService : IAdminConfigurationService
                 rule.Name = request.Name;
             if (!string.IsNullOrEmpty(request.Description))
                 rule.Description = request.Description;
+            // TODO: ITSM.EscalationRule uses Conditions/Priority/AgeInMinutes instead of Condition/ConditionMetric/ThresholdValue
             if (!string.IsNullOrEmpty(request.Condition))
-                rule.Condition = request.Condition;
+                rule.Conditions = request.Condition;
             if (!string.IsNullOrEmpty(request.ConditionMetric))
-                rule.ConditionMetric = Enum.Parse<EscalationMetric>(request.ConditionMetric);
+                rule.Priority = request.ConditionMetric;
             if (request.ThresholdValue.HasValue)
-                rule.ThresholdValue = request.ThresholdValue.Value;
+                rule.AgeInMinutes = request.ThresholdValue.Value;
             if (request.EscalateToUserId.HasValue)
-                rule.EscalateToUserId = request.EscalateToUserId;
+            {
+                rule.TargetId = request.EscalateToUserId;
+                rule.TargetType = CRM.Core.Entities.ITSM.EscalationTargetType.User;
+            }
             if (request.EscalateToGroupId.HasValue)
-                rule.EscalateToGroupId = request.EscalateToGroupId;
-            if (request.SendNotification.HasValue)
-                rule.SendNotification = request.SendNotification.Value;
+            {
+                rule.TargetId = request.EscalateToGroupId;
+                rule.TargetType = CRM.Core.Entities.ITSM.EscalationTargetType.Group;
+            }
+            // TODO: SendNotification not available on ITSM.EscalationRule - skipped
             if (request.IsActive.HasValue)
                 rule.IsActive = request.IsActive.Value;
 
             rule.UpdatedAt = DateTime.UtcNow;
 
-            _context.EscalationRules.Update(rule);
+            _context.ITSMEscalationRules.Update(rule);
             await _context.SaveChangesAsync(cancellationToken);
 
             _logger.LogInformation($"Escalation rule '{rule.Name}' updated by user {modifiedByUserId}");
@@ -587,7 +597,7 @@ public class AdminConfigurationService : IAdminConfigurationService
     {
         try
         {
-            var rule = await _context.EscalationRules
+            var rule = await _context.ITSMEscalationRules
                 .Where(r => !r.IsDeleted && r.Id == id)
                 .FirstOrDefaultAsync(cancellationToken);
 
@@ -597,7 +607,7 @@ public class AdminConfigurationService : IAdminConfigurationService
             rule.IsDeleted = true;
             rule.UpdatedAt = DateTime.UtcNow;
 
-            _context.EscalationRules.Update(rule);
+            _context.ITSMEscalationRules.Update(rule);
             await _context.SaveChangesAsync(cancellationToken);
 
             _logger.LogInformation($"Escalation rule '{rule.Name}' soft-deleted by user {deletedByUserId}");
@@ -620,7 +630,7 @@ public class AdminConfigurationService : IAdminConfigurationService
         {
             var queues = await _context.ServiceQueues
                 .Where(q => !q.IsDeleted)
-                .OrderBy(q => q.DisplayOrder)
+                .OrderBy(q => q.Priority) // TODO: ITSM.ServiceQueue uses Priority instead of DisplayOrder
                 .ToListAsync(cancellationToken);
 
             return queues.Select(MapServiceQueueToDto);
@@ -653,15 +663,20 @@ public class AdminConfigurationService : IAdminConfigurationService
     {
         try
         {
-            var queue = new ServiceQueue
+            // TODO: ITSM.ServiceQueue lacks RoutingType, AssignedUserIds, AssignedGroupIds, SkillRequirements, DisplayOrder.
+            // These extended fields are stored as JSON in RoutingConfiguration pending a schema migration.
+            var queue = new CRM.Core.Entities.ITSM.ServiceQueue
             {
                 Name = request.Name,
                 Description = request.Description,
-                RoutingType = Enum.Parse<QueueRoutingType>(request.RoutingType),
-                AssignedUserIds = JsonSerializer.Serialize(request.AssignedUserIds),
-                AssignedGroupIds = JsonSerializer.Serialize(request.AssignedGroupIds),
-                SkillRequirements = JsonSerializer.Serialize(request.SkillRequirements),
-                DisplayOrder = request.DisplayOrder,
+                RoutingConfiguration = JsonSerializer.Serialize(new
+                {
+                    RoutingType = request.RoutingType,
+                    AssignedUserIds = request.AssignedUserIds,
+                    AssignedGroupIds = request.AssignedGroupIds,
+                    SkillRequirements = request.SkillRequirements,
+                    DisplayOrder = request.DisplayOrder
+                }),
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow,
             };
@@ -694,16 +709,22 @@ public class AdminConfigurationService : IAdminConfigurationService
                 queue.Name = request.Name;
             if (!string.IsNullOrEmpty(request.Description))
                 queue.Description = request.Description;
-            if (!string.IsNullOrEmpty(request.RoutingType))
-                queue.RoutingType = Enum.Parse<QueueRoutingType>(request.RoutingType);
-            if (request.AssignedUserIds != null)
-                queue.AssignedUserIds = JsonSerializer.Serialize(request.AssignedUserIds);
-            if (request.AssignedGroupIds != null)
-                queue.AssignedGroupIds = JsonSerializer.Serialize(request.AssignedGroupIds);
-            if (request.SkillRequirements != null)
-                queue.SkillRequirements = JsonSerializer.Serialize(request.SkillRequirements);
-            if (request.DisplayOrder.HasValue)
-                queue.DisplayOrder = request.DisplayOrder.Value;
+            // TODO: ITSM.ServiceQueue lacks RoutingType, AssignedUserIds, AssignedGroupIds, SkillRequirements, DisplayOrder.
+            // Update the RoutingConfiguration JSON field with any changed extended properties.
+            if (request.RoutingType != null || request.AssignedUserIds != null ||
+                request.AssignedGroupIds != null || request.SkillRequirements != null || request.DisplayOrder.HasValue)
+            {
+                var existingConfig = string.IsNullOrEmpty(queue.RoutingConfiguration)
+                    ? new System.Collections.Generic.Dictionary<string, object?>()
+                    : JsonSerializer.Deserialize<System.Collections.Generic.Dictionary<string, object?>>(queue.RoutingConfiguration)
+                      ?? new System.Collections.Generic.Dictionary<string, object?>();
+                if (request.RoutingType != null) existingConfig["RoutingType"] = (object?)request.RoutingType;
+                if (request.AssignedUserIds != null) existingConfig["AssignedUserIds"] = (object?)request.AssignedUserIds;
+                if (request.AssignedGroupIds != null) existingConfig["AssignedGroupIds"] = (object?)request.AssignedGroupIds;
+                if (request.SkillRequirements != null) existingConfig["SkillRequirements"] = (object?)request.SkillRequirements;
+                if (request.DisplayOrder.HasValue) existingConfig["DisplayOrder"] = (object?)request.DisplayOrder.Value;
+                queue.RoutingConfiguration = JsonSerializer.Serialize(existingConfig);
+            }
             if (request.IsActive.HasValue)
                 queue.IsActive = request.IsActive.Value;
 
@@ -888,37 +909,51 @@ public class AdminConfigurationService : IAdminConfigurationService
         };
     }
 
-    private EscalationRuleDto MapEscalationRuleToDto(CRM.Core.Entities.EscalationRule entity)
+    private EscalationRuleDto MapEscalationRuleToDto(CRM.Core.Entities.ITSM.EscalationRule entity)
     {
+        // TODO: ITSM.EscalationRule has different schema. Mapping approximation:
+        // Conditions→Condition, Priority→ConditionMetric, AgeInMinutes→ThresholdValue,
+        // TargetId→EscalateToUserId or EscalateToGroupId based on TargetType
         return new EscalationRuleDto
         {
             Id = entity.Id,
             Name = entity.Name,
             Description = entity.Description,
-            Condition = entity.Condition,
-            ConditionMetric = entity.ConditionMetric.ToString(),
-            ThresholdValue = entity.ThresholdValue,
-            EscalateToUserId = entity.EscalateToUserId,
-            EscalateToGroupId = entity.EscalateToGroupId,
-            SendNotification = entity.SendNotification,
+            Condition = entity.Conditions ?? string.Empty,
+            ConditionMetric = entity.Priority,
+            ThresholdValue = entity.AgeInMinutes,
+            EscalateToUserId = entity.TargetType == CRM.Core.Entities.ITSM.EscalationTargetType.User ? entity.TargetId : null,
+            EscalateToGroupId = entity.TargetType == CRM.Core.Entities.ITSM.EscalationTargetType.Group ? entity.TargetId : null,
+            SendNotification = true, // TODO: not available on ITSM.EscalationRule
             IsActive = entity.IsActive,
             CreatedAt = entity.CreatedAt,
             UpdatedAt = entity.UpdatedAt,
         };
     }
 
-    private ServiceQueueDto MapServiceQueueToDto(ServiceQueue entity)
+    private ServiceQueueDto MapServiceQueueToDto(CRM.Core.Entities.ITSM.ServiceQueue entity)
     {
+        // TODO: ITSM.ServiceQueue stores routing config as JSON in RoutingConfiguration.
+        // Extract DisplayOrder, RoutingType, AssignedUserIds, AssignedGroupIds, SkillRequirements from JSON.
+        System.Text.Json.JsonElement? config = null;
+        if (!string.IsNullOrEmpty(entity.RoutingConfiguration))
+            config = JsonSerializer.Deserialize<System.Text.Json.JsonElement>(entity.RoutingConfiguration);
         return new ServiceQueueDto
         {
             Id = entity.Id,
             Name = entity.Name,
-            Description = entity.Description,
-            RoutingType = entity.RoutingType.ToString(),
-            AssignedUserIds = JsonSerializer.Deserialize<List<int>>(entity.AssignedUserIds ?? "[]") ?? new(),
-            AssignedGroupIds = JsonSerializer.Deserialize<List<int>>(entity.AssignedGroupIds ?? "[]") ?? new(),
-            SkillRequirements = JsonSerializer.Deserialize<List<string>>(entity.SkillRequirements ?? "[]") ?? new(),
-            DisplayOrder = entity.DisplayOrder,
+            Description = entity.Description ?? string.Empty,
+            RoutingType = config.HasValue && config.Value.TryGetProperty("RoutingType", out var rt) ? rt.GetString() ?? string.Empty : string.Empty,
+            AssignedUserIds = config.HasValue && config.Value.TryGetProperty("AssignedUserIds", out var au)
+                ? JsonSerializer.Deserialize<List<int>>(au.GetRawText()) ?? new()
+                : new(),
+            AssignedGroupIds = config.HasValue && config.Value.TryGetProperty("AssignedGroupIds", out var ag)
+                ? JsonSerializer.Deserialize<List<int>>(ag.GetRawText()) ?? new()
+                : new(),
+            SkillRequirements = config.HasValue && config.Value.TryGetProperty("SkillRequirements", out var sr)
+                ? JsonSerializer.Deserialize<List<string>>(sr.GetRawText()) ?? new()
+                : new(),
+            DisplayOrder = config.HasValue && config.Value.TryGetProperty("DisplayOrder", out var dOrd) && dOrd.TryGetInt32(out int doVal) ? doVal : 0,
             IsActive = entity.IsActive,
             CreatedAt = entity.CreatedAt,
             UpdatedAt = entity.UpdatedAt,

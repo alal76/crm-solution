@@ -372,6 +372,7 @@ public class CrmDbContext : DbContext, ICrmDbContext
     // DISABLED: Conflicts with ITSM.EscalationRule - both trying to use "EscalationRule" table
     // public DbSet<CRM.Core.Entities.EscalationRule> EscalationRules { get; set; }
     public DbSet<ITSM.ServiceQueue> ServiceQueues { get; set; }
+    public DbSet<ITSM.EscalationRule> ITSMEscalationRules { get; set; }
 
     // NOTE: EscalationPolicy, EscalationLevel, EscalationHistory services are disabled pending proper entity implementation
 

@@ -500,7 +500,7 @@ builder.Services.AddScoped<IServiceRequestCustomFieldService, ServiceRequestCust
 builder.Services.AddScoped<IServiceRequestTypeService, ServiceRequestTypeService>();
 builder.Services.AddScoped<IColorPaletteService, ColorPaletteService>();
 
-// builder.Services.AddScoped<IAdminConfigurationService, AdminConfigurationService>(); // DISABLED for System Module isolation
+builder.Services.AddScoped<IAdminConfigurationService, AdminConfigurationService>(); // Re-enabled: EscalationRules→ITSMEscalationRules, ServiceQueue→ITSM.ServiceQueue
 
 // Unified Configuration Management Services
 builder.Services.AddScoped<IProviderConfigurationService, ProviderConfigurationService>();
@@ -554,6 +554,7 @@ builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IProblemManagementService, C
 builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IProblemService, CRM.Infrastructure.Services.ITSM.ProblemService>();
 builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.ICMDBService, CRM.Infrastructure.Services.ITSM.CMDBService>();
 builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IChangeManagementService, CRM.Infrastructure.Services.ITSM.ChangeManagementService>();
+builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IChangeManagementServiceEx, CRM.Infrastructure.Services.ITSM.ChangeManagementServiceEx>();
 builder.Services.AddScoped<CRM.Core.Interfaces.IChangeService, CRM.Infrastructure.Services.ChangeService>();
 builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IKnowledgeManagementService, CRM.Infrastructure.Services.ITSM.KnowledgeManagementService>();
 builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IServiceCatalogService, CRM.Infrastructure.Services.ITSM.ServiceCatalogService>();

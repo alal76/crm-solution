@@ -8,8 +8,10 @@ using CRM.Core.DTOs.ITSM;
 using CRM.Core.Entities.ITSM;
 using CRM.Core.Interfaces;
 using CRM.Core.Interfaces.ITSM;
+using CRM.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using ApprovalStatus = CRM.Core.Entities.ITSM.ApprovalStatus;
 
 namespace CRM.Infrastructure.Services.ITSM;
 
