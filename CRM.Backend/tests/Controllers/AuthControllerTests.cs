@@ -9,10 +9,12 @@ using CRM.Api.Controllers;
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
+using CRM.Infrastructure.Services;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Moq;
 using Xunit;
 
@@ -28,7 +30,25 @@ public class AuthControllerTests
     {
         _mockAuthService = new Mock<IAuthenticationService>();
         _mockLogger = new Mock<ILogger<AuthController>>();
-        _controller = new AuthController(_mockAuthService.Object, _mockLogger.Object);
+
+        // Create minimal mock dependencies for AuthController constructor
+        var mockHttpClient = new HttpClient();
+        var mockLinkedInOptions = Options.Create(new LinkedInOAuthOptions());
+        var mockLinkedInLogger = new Mock<ILogger<LinkedInOAuthProvider>>();
+        var linkedInProvider = new LinkedInOAuthProvider(mockHttpClient, mockLinkedInOptions, mockLinkedInLogger.Object);
+
+        var mockAppleOptions = Options.Create(new AppleOAuthOptions());
+        var mockAppleLogger = new Mock<ILogger<AppleOAuthProvider>>();
+        var appleProvider = new AppleOAuthProvider(mockHttpClient, mockAppleOptions, mockAppleLogger.Object);
+
+        var mockWebAuthnService = new Mock<IWebAuthnService>();
+
+        _controller = new AuthController(
+            _mockAuthService.Object,
+            _mockLogger.Object,
+            linkedInProvider,
+            appleProvider,
+            mockWebAuthnService.Object);
     }
 
     private void SetupAuthenticatedUser(string userId = "1", string role = "0")

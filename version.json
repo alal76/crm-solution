@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 574,
-  "patch": 0,
+  "patch": 1,
   "lastUpdate": "2026-02-23",
-  "description": "feat(auth): Wire LinkedIn/Apple OAuth endpoints + WebAuthn/FIDO2 registration and login to AuthController",
+  "description": "feat(webhooks): Extract WebhookSignatureGenerator, add WebhookRetryPolicy + WebhookCircuitBreaker with 35 unit tests",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [
