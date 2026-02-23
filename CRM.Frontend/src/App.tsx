@@ -128,6 +128,8 @@ const SLADashboardPage = lazy(() => import('./pages/itsm/SLADashboardPage'));
 const SLAPolicyListPage = lazy(() => import('./pages/itsm/SLAPolicyListPage'));
 const SLAPolicyFormPage = lazy(() => import('./pages/itsm/SLAPolicyFormPage'));
 const SLAInstanceListPage = lazy(() => import('./pages/itsm/SLAInstanceListPage'));
+const EscalationRulesPage = lazy(() => import('./pages/itsm/EscalationRulesPage'));
+const EscalationDashboardPage = lazy(() => import('./pages/itsm/EscalationDashboardPage'));
 
 // ----------------------------------------------------------------------------
 // Account Module - Lazy Loaded
@@ -1064,6 +1066,26 @@ function ThemedApp() {
                   <ProtectedRoute>
                     <RoleBasedRoute requiredPage="ITSMSLA" moduleName="ITSM">
                       <SLAInstanceListPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/itsm/escalation/rules"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute requiredPage="ITSMEscalation" moduleName="ITSM">
+                      <EscalationRulesPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/itsm/escalation/dashboard"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute requiredPage="ITSMEscalation" moduleName="ITSM">
+                      <EscalationDashboardPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
                 }

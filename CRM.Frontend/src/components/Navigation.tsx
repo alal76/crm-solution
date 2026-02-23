@@ -310,6 +310,8 @@ function NavigationContent() {
     'itsm-catalog': { label: 'Service Catalog', icon: PackageIcon as typeof DashboardIcon, path: '/itsm/catalog', menuName: 'ITSMCatalog' },
     'itsm-sla': { label: 'SLA', icon: ActivityIcon as typeof DashboardIcon, path: '/itsm/sla', menuName: 'ITSMSLA' },
     'itsm-metrics': { label: 'ITSM Metrics', icon: DashboardIcon, path: '/itsm/metrics', menuName: 'ITSMMetrics' },
+    'itsm-escalation-rules': { label: 'Escalation Rules', icon: WarningIcon as typeof DashboardIcon, path: '/itsm/escalation/rules', menuName: 'ITSMEscalation' },
+    'itsm-escalation-dashboard': { label: 'Escalation Dashboard', icon: ActivityIcon as typeof DashboardIcon, path: '/itsm/escalation/dashboard', menuName: 'ITSMEscalation' },
     'campaigns': { label: 'Campaigns', icon: MegaphoneIcon, path: '/campaigns', menuName: 'Campaigns' },
     'email-templates': { label: 'Email Templates', icon: EmailIcon, path: '/email-templates', menuName: 'EmailTemplates' },
     'campaign-execution': { label: 'Campaign Execution', icon: CampaignExecutionIcon, path: '/campaign-execution', menuName: 'CampaignExecution' },
@@ -540,7 +542,7 @@ function NavigationContent() {
     'products', 'services', 'service-requests', 'campaigns', 'email-templates', 'campaign-execution', 'landing-pages', 'quotes',
     'contracts', 'invoices', 'payments', 'orders', 'commissions', 'subscriptions', 'teams',
     'territories', 'lead-routing', 'approvals',
-    'itsm-overview', 'itsm-incidents', 'itsm-problems', 'itsm-changes', 'itsm-cmdb', 'itsm-knowledge', 'itsm-catalog', 'itsm-sla', 'itsm-metrics',
+    'itsm-overview', 'itsm-incidents', 'itsm-problems', 'itsm-changes', 'itsm-cmdb', 'itsm-knowledge', 'itsm-catalog', 'itsm-sla', 'itsm-metrics', 'itsm-escalation-rules', 'itsm-escalation-dashboard',
     'my-queue', 'activities', 'tasks', 'notes', 'communications', 'interactions'
   ], []);
   const defaultAdminOrder = useMemo(() => [
@@ -623,6 +625,8 @@ function NavigationContent() {
     { id: 'itsm-catalog', order: 36, visible: true, category: 'itsm' },
     { id: 'itsm-sla', order: 37, visible: true, category: 'itsm' },
     { id: 'itsm-metrics', order: 38, visible: true, category: 'itsm' },
+    { id: 'itsm-escalation-rules', order: 39, visible: true, category: 'itsm' },
+    { id: 'itsm-escalation-dashboard', order: 40, visible: true, category: 'itsm' },
     { id: 'campaigns', order: 9, visible: true, category: 'marketing' },
     { id: 'email-templates', order: 9.1, visible: true, category: 'marketing' },
     { id: 'campaign-execution', order: 9.2, visible: true, category: 'marketing' },
