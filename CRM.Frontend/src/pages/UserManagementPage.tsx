@@ -197,14 +197,16 @@ function UserManagementPage() {
     }
 
     try {
-      const payload = editingId
-        ? { ...formData, password: formData.password || undefined }
-        : formData;
-
+      let payload: any;
       if (editingId) {
+        // Update uses 'role' field (matches UpdateUserDto)
+        payload = { ...formData, password: formData.password || undefined };
         await apiClient.put(`/users/${editingId}`, payload);
         setSuccessMessage('User updated successfully');
       } else {
+        // Create uses 'roleId' field (matches CreateUserRequest)
+        const { role, username, ...rest } = formData;
+        payload = { ...rest, roleId: role, password: formData.password || undefined };
         await apiClient.post('/users', payload);
         setSuccessMessage('User created successfully');
       }

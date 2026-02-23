@@ -125,7 +125,7 @@ public class UserService : IUserService, IUserInputPort
         }
     }
 
-    public async Task<UserDto> CreateUserAsync(string email, string firstName, string lastName, string password, int roleId = 2)
+    public async Task<UserDto> CreateUserAsync(string email, string firstName, string lastName, string password, int roleId = 2, string? username = null)
     {
         try
         {
@@ -140,7 +140,7 @@ public class UserService : IUserService, IUserInputPort
             var user = new User
             {
                 Email = email,
-                Username = email,
+                Username = username ?? email,
                 FirstName = firstName,
                 LastName = lastName,
                 PasswordHash = passwordHash,
@@ -171,7 +171,7 @@ public class UserService : IUserService, IUserInputPort
         }
     }
 
-    public async Task<UserDto> CreateUserWithoutPasswordAsync(string email, string firstName, string lastName, int roleId = 2)
+    public async Task<UserDto> CreateUserWithoutPasswordAsync(string email, string firstName, string lastName, int roleId = 2, string? username = null)
     {
         try
         {
@@ -185,7 +185,7 @@ public class UserService : IUserService, IUserInputPort
             var user = new User
             {
                 Email = email,
-                Username = email,
+                Username = username ?? email,
                 FirstName = firstName,
                 LastName = lastName,
                 PasswordHash = string.Empty, // No password hash

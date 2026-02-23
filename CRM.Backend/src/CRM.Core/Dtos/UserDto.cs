@@ -89,7 +89,12 @@ public class UserDto
 public class CreateUserRequest
 {
     /// <summary>
-    /// User's email address (required, used as username)
+    /// Optional username (if not provided, email is used as username)
+    /// </summary>
+    public string? Username { get; set; }
+
+    /// <summary>
+    /// User's email address (required, used as username if Username not provided)
     /// </summary>
     public string Email { get; set; } = string.Empty;
 
@@ -108,10 +113,29 @@ public class CreateUserRequest
     /// </summary>
     public string? Password { get; set; }
 
+    private int _roleId = 2;
+
     /// <summary>
-    /// Role ID (default: 2 = User)
+    /// Role ID (default: 2 = Sales). Accepts both "roleId" and "role" from JSON.
+    /// Values: 0=Admin, 1=Manager, 2=Sales, 3=Support, 4=Guest
     /// </summary>
-    public int RoleId { get; set; } = 2;
+    [System.Text.Json.Serialization.JsonPropertyName("roleId")]
+    public int RoleId
+    {
+        get => _roleId;
+        set => _roleId = value;
+    }
+
+    /// <summary>
+    /// Alias for RoleId — accepts "role" from JSON (frontend compatibility).
+    /// If both "role" and "roleId" are sent, the last one deserialized wins.
+    /// </summary>
+    [System.Text.Json.Serialization.JsonPropertyName("role")]
+    public int Role
+    {
+        get => _roleId;
+        set => _roleId = value;
+    }
 
     /// <summary>
     /// Department ID (optional)

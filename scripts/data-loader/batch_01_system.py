@@ -38,12 +38,12 @@ def run(api: ApiClient, log: RunLogger) -> None:
     log.section("Users CRUD")
     ts = int(time.time())
     users = [
-        {"username": f"testuser1_{ts}", "email": f"test1_{ts}@crm.local", "password": "Test@12345",
-         "firstName": "Test", "lastName": "User1", "role": "User"},
-        {"username": f"testuser2_{ts}", "email": f"test2_{ts}@crm.local", "password": "Test@12345",
-         "firstName": "Test", "lastName": "User2", "role": "User"},
-        {"username": f"testuser3_{ts}", "email": f"test3_{ts}@crm.local", "password": "Test@12345",
-         "firstName": "Test", "lastName": "Manager1", "role": "Manager"},
+        {"email": f"test1_{ts}@crm.local", "password": "Test@12345",
+         "firstName": "Test", "lastName": "User1", "roleId": 2},
+        {"email": f"test2_{ts}@crm.local", "password": "Test@12345",
+         "firstName": "Test", "lastName": "User2", "roleId": 2},
+        {"email": f"test3_{ts}@crm.local", "password": "Test@12345",
+         "firstName": "Test", "lastName": "Manager1", "roleId": 1},
     ]
     user_ids = []
     for u in users:

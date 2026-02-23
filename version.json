@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 570,
-  "patch": 0,
+  "patch": 1,
   "lastUpdate": "2026-02-23",
-  "description": "Admin module full-stack audit & completion: 8-category admin nav in main drawer, added SalesConfigPage, ServiceDeskConfigPage, AuditLoggingPage, UICustomization route, fixed database route redirect, 3 new frontend services, all 35 admin menu items now have full routes/pages.",
+  "description": "Fix user creation role assignment: dual roleId/role DTO properties, optional username field, backward-compatible JSON deserialization, frontend sends roleId on create, data loader uses correct field names and numeric role values.",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [

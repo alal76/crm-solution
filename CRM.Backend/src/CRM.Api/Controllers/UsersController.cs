@@ -81,6 +81,11 @@ public class UsersController : ControllerBase
                 return BadRequest(new { message = "Last name is required" });
 
             UserDto userDto;
+            // Use provided username or fall back to email
+            var effectiveUsername = !string.IsNullOrWhiteSpace(request.Username)
+                ? request.Username.Trim()
+                : request.Email.Trim();
+
             if (string.IsNullOrWhiteSpace(request.Password))
             {
                 // Create user without password - they will set it on first login
@@ -88,7 +93,8 @@ public class UsersController : ControllerBase
                     request.Email.Trim(),
                     request.FirstName.Trim(),
                     request.LastName.Trim(),
-                    request.RoleId);
+                    request.RoleId,
+                    effectiveUsername);
             }
             else
             {
@@ -98,7 +104,8 @@ public class UsersController : ControllerBase
                     request.FirstName.Trim(),
                     request.LastName.Trim(),
                     request.Password,
-                    request.RoleId);
+                    request.RoleId,
+                    effectiveUsername);
             }
 
             // Update department and group if provided
