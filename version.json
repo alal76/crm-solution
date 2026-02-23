@@ -1,9 +1,9 @@
 {
   "major": 0,
-  "minor": 570,
-  "patch": 1,
+  "minor": 571,
+  "patch": 0,
   "lastUpdate": "2026-02-23",
-  "description": "Fix user creation role assignment: dual roleId/role DTO properties, optional username field, backward-compatible JSON deserialization, frontend sends roleId on create, data loader uses correct field names and numeric role values.",
+  "description": "API User Management: dedicated API user CRUD in Developer Tools, API key authentication (X-Api-Key header), API groups with per-API RBAC, login blocking for API users/groups, SmartScheme dual auth (Bearer JWT + API Key).",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [

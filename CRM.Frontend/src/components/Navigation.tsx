@@ -391,6 +391,7 @@ function NavigationContent() {
     'api-docs': { label: 'API Docs', icon: ApiIcon, path: '/admin/api-docs', menuName: 'ApiDocs' },
     'test-results': { label: 'Test Results', icon: TestResultsIcon, path: '/admin/test-results', menuName: 'TestResults' },
     'audit-logging': { label: 'Audit Logging', icon: QuoteIcon, path: '/admin/audit', menuName: 'AuditLogging' },
+    'api-users': { label: 'API Users', icon: VpnKeyIcon, path: '/admin/api-users', menuName: 'ApiUsers' },
   }), []);
 
   const iconNameMap: Record<string, typeof DashboardIcon> = useMemo(() => ({
@@ -698,6 +699,7 @@ function NavigationContent() {
     { id: 'api-docs', order: 92, visible: true, category: 'admin', adminSubcategory: 'developer-tools' },
     { id: 'test-results', order: 93, visible: true, category: 'admin', adminSubcategory: 'developer-tools' },
     { id: 'audit-logging', order: 94, visible: true, category: 'admin', adminSubcategory: 'developer-tools' },
+    { id: 'api-users', order: 95, visible: true, category: 'admin', adminSubcategory: 'developer-tools' },
   ], []);
 
   // Build lookup of correct defaults keyed by item id — used for auto-healing

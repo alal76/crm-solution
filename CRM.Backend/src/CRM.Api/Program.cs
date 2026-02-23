@@ -896,8 +896,18 @@ var key = Encoding.UTF8.GetBytes(jwtSecret);
 
 builder.Services.AddAuthentication(options =>
 {
-    options.DefaultAuthenticateScheme = "Bearer";
-    options.DefaultChallengeScheme = "Bearer";
+    options.DefaultAuthenticateScheme = "SmartScheme";
+    options.DefaultChallengeScheme = "SmartScheme";
+})
+.AddPolicyScheme("SmartScheme", "Bearer or API Key", options =>
+{
+    options.ForwardDefaultSelector = context =>
+    {
+        // If X-Api-Key header is present, use ApiKey scheme; otherwise use Bearer JWT
+        if (context.Request.Headers.ContainsKey("X-Api-Key"))
+            return CRM.Infrastructure.Authentication.ApiKeyAuthenticationHandler.SchemeName;
+        return "Bearer";
+    };
 })
 .AddJwtBearer("Bearer", options =>
 {
@@ -934,10 +944,9 @@ builder.Services.AddAuthentication(options =>
 // Default policy: Authenticated users only (accepts both Bearer JWT and ApiKey)
 builder.Services.AddAuthorization(options =>
 {
-    // Default policy requires authentication via any registered scheme
+    // Default policy requires authentication (SmartScheme auto-selects Bearer or ApiKey)
     options.FallbackPolicy = new AuthorizationPolicyBuilder()
         .RequireAuthenticatedUser()
-        .AddAuthenticationSchemes("Bearer", CRM.Infrastructure.Authentication.ApiKeyAuthenticationHandler.SchemeName)
         .Build();
 });
 

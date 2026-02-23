@@ -42,6 +42,7 @@ import { useApiState } from '../../hooks/useApiState';
 
 interface GroupPermissions {
   isSystemAdmin: boolean;
+  isApiGroup: boolean;
   canAccessDashboard: boolean;
   canAccessCustomers: boolean;
   canAccessContacts: boolean;
@@ -121,6 +122,7 @@ interface UserGroup extends GroupPermissions {
 
 const defaultPermissions: GroupPermissions = {
   isSystemAdmin: false,
+  isApiGroup: false,
   canAccessDashboard: true,
   canAccessCustomers: false,
   canAccessContacts: false,
@@ -411,6 +413,8 @@ function GroupManagementTab() {
                     <TableCell>
                       {group.isSystemAdmin ? (
                         <Chip label="System Admin" color="primary" size="small" />
+                      ) : group.isApiGroup ? (
+                        <Chip label="API Group" color="warning" size="small" />
                       ) : (
                         <Chip label="Standard" variant="outlined" size="small" />
                       )}
@@ -544,6 +548,27 @@ function GroupManagementTab() {
                           <Typography variant="body2" fontWeight={600}>System Administrator</Typography>
                           <Typography variant="caption" color="textSecondary">
                             Members have full access to all features and bypass all permission checks
+                          </Typography>
+                        </Box>
+                      }
+                    />
+                  </Alert>
+                </Grid>
+                <Grid item xs={12}>
+                  <Alert severity="warning" icon={<SecurityIcon />}>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={formData.isApiGroup}
+                          onChange={(e) => setFormData({ ...formData, isApiGroup: e.target.checked })}
+                          color="warning"
+                        />
+                      }
+                      label={
+                        <Box>
+                          <Typography variant="body2" fontWeight={600}>API Group</Typography>
+                          <Typography variant="caption" color="textSecondary">
+                            Members of API groups authenticate via API key only and cannot log in interactively
                           </Typography>
                         </Box>
                       }

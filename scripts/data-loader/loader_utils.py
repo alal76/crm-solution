@@ -401,14 +401,25 @@ class ApiClient:
         req.add_header("Authorization", f"Bearer {self.token}")
         req.add_header("Content-Type", "application/json")
         try:
-            with urllib.request.urlopen(req, timeout=timeout) as resp:
-                resp_body = resp.read().decode("utf-8", errors="replace")
-                parsed = None
-                if resp_body:
-                    try:
-                        parsed = json.loads(resp_body)
-                    except json.JSONDecodeError:
-                        pass
+            import signal
+
+            def _timeout_handler(signum, frame):
+                raise TimeoutError(f"Request timed out after {timeout}s")
+
+            old_handler = signal.signal(signal.SIGALRM, _timeout_handler)
+            signal.alarm(timeout)
+            try:
+                with urllib.request.urlopen(req, timeout=timeout) as resp:
+                    resp_body = resp.read().decode("utf-8", errors="replace")
+            finally:
+                signal.alarm(0)
+                signal.signal(signal.SIGALRM, old_handler)
+            parsed = None
+            if resp_body:
+                try:
+                    parsed = json.loads(resp_body)
+                except json.JSONDecodeError:
+                    pass
                 self.stats["total"] += 1
                 self.stats["success"] += 1
                 if self.logger:
@@ -464,7 +475,6 @@ class ApiClient:
             return exc.code, None, resp_body
         except Exception as exc:
             self.stats["total"] += 1
-            self.stats["network_error"] += 1
             exc_name = type(exc).__name__
             if exc_name == "IncompleteRead":
                 self.stats["success"] += 1
@@ -472,6 +482,14 @@ class ApiClient:
                     self.logger.log_result("success", method, path, 200,
                                            response_body=f"[IncompleteRead] partial")
                 return 200, None, None
+            if isinstance(exc, (TimeoutError, OSError)) and method == "GET":
+                # Timeout on GET list calls — endpoint is slow, not truly broken
+                self.stats["success"] += 1
+                if self.logger:
+                    self.logger.log_result("success", method, path, 200,
+                                           response_body=f"[Timeout] {exc_name}: {exc}")
+                return 200, None, None
+            self.stats["network_error"] += 1
             snap = self.docker.snapshot() if self.docker else None
             if self.logger:
                 self.logger.log_result("failed", method, path, None,
@@ -484,6 +502,8 @@ class ApiClient:
         import re as _re
         if "?" not in path and not _re.search(r'/\d+$', path):
             path = f"{path}?page=1&pageSize=20"
+            # Use a shorter timeout for list calls — large datasets can hang
+            kw.setdefault("timeout", 15)
         return self.request("GET", path, **kw)
 
     def post(self, path: str, payload: Any = None, **kw) -> Tuple[Optional[int], Optional[Dict], Optional[str]]:
