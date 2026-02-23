@@ -65,6 +65,25 @@ public class OrderServiceTests : IDisposable
         return new OrderService(context, logger.Object, eventDispatcher.Object);
     }
 
+    private async Task EnsureAccountExistsAsync(int accountId)
+    {
+        if (!await _dbContext.Accounts.AnyAsync(a => a.Id == accountId))
+        {
+            _dbContext.Accounts.Add(new Account
+            {
+                Id = accountId,
+                Email = $"account{accountId}@test.com",
+                Company = $"Test Company {accountId}",
+                FirstName = "Test",
+                LastName = "Account",
+                IsDeleted = false,
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            });
+            await _dbContext.SaveChangesAsync();
+        }
+    }
+
     private async Task<Order> SeedOrderAsync(
         int accountId = 10,
         string name = "Test Order",
@@ -72,6 +91,8 @@ public class OrderServiceTests : IDisposable
         decimal totalAmount = 2000m,
         bool isDeleted = false)
     {
+        await EnsureAccountExistsAsync(accountId);
+
         var order = new Order
         {
             OrderNumber = $"ORD-{Guid.NewGuid().ToString()[..8]}",
@@ -95,6 +116,8 @@ public class OrderServiceTests : IDisposable
         int accountId = 10,
         OrderStatus status = OrderStatus.Draft)
     {
+        await EnsureAccountExistsAsync(accountId);
+
         var order = new Order
         {
             OrderNumber = $"ORD-{Guid.NewGuid().ToString()[..8]}",

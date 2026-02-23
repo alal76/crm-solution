@@ -138,24 +138,24 @@ build_images() {
 
 # Save images as tar archives
 save_images() {
-    log_info "Saving Docker images as tar archives..."
+    log_info "Saving Docker images as tar archives..." >&2
     
     TEMP_DIR="/tmp/crm-deployment-$$"
     mkdir -p "$TEMP_DIR"
     
-    log_info "Saving crm-api image..."
+    log_info "Saving crm-api image..." >&2
     docker save crm-api:latest -o "$TEMP_DIR/crm-api.tar" || {
-        log_error "Failed to save crm-api image"
+        log_error "Failed to save crm-api image" >&2
         return 1
     }
-    log_success "crm-api.tar saved ($(du -h "$TEMP_DIR/crm-api.tar" | cut -f1))"
+    log_success "crm-api.tar saved ($(du -h "$TEMP_DIR/crm-api.tar" | cut -f1))" >&2
     
-    log_info "Saving crm-frontend image..."
+    log_info "Saving crm-frontend image..." >&2
     docker save crm-frontend:latest -o "$TEMP_DIR/crm-frontend.tar" || {
-        log_error "Failed to save crm-frontend image"
+        log_error "Failed to save crm-frontend image" >&2
         return 1
     }
-    log_success "crm-frontend.tar saved ($(du -h "$TEMP_DIR/crm-frontend.tar" | cut -f1))"
+    log_success "crm-frontend.tar saved ($(du -h "$TEMP_DIR/crm-frontend.tar" | cut -f1))" >&2
     
     echo "$TEMP_DIR"
 }
