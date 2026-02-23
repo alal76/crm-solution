@@ -1,9 +1,9 @@
 {
   "major": 0,
-  "minor": 575,
+  "minor": 576,
   "patch": 0,
   "lastUpdate": "2026-02-23",
-  "description": "feat(sales): Add Contract EndDate/Value + Subscription validations with unit tests; fix ResilienceService Polly CircuitState build error",
+  "description": "Sprint 1 Round 4: 6 parallel workstreams — Contract/Subscription validations (24 tests), SLA/Queue admin pages, 6 SD components, ARCH-010/011/012 specs, Webhook SignatureGenerator+RetryPolicy+CircuitBreaker (35 tests), LinkedIn/Apple OAuth + WebAuthn endpoints (10 new HTTP endpoints)",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [

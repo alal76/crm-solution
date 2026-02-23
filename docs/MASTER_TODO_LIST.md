@@ -1,7 +1,7 @@
 # CRM Solution - Master TODO List (Reviewed & Updated)
 
-> **Last Updated:** February 23, 2026 - Evening Session Round 3 (Sprint 1 Continued)
-> **Version:** 0.573.1
+> **Last Updated:** February 23, 2026 - Evening Session Round 4 (Sprint 1 Continued)
+> **Version:** 0.574.0
 > **Purpose:** Master list of all pending, partial, and completed items — validated against actual code
 > **Audit Method:** 6 parallel sub-agent code reviews across Backend, Frontend, Database/DTOs, Integration/Tests, Auth/SYS, and UX/CRM + Manual Fixes
 > **Prior Update:** February 23, 2026 (Evening Round 2)
@@ -108,14 +108,14 @@
 
 | Area | ✅ Confirmed Done | ⚠️ Partial | ❌ Still Pending |
 |------|-----------------|-----------|----------------|
-| **Sales Backend** | PaymentsController, CommissionModule (100%), Subscription services + core entities, InvoiceDTOs, ContractService, SubscriptionRenewal entity ✅, BillingHistory/DunningRecord DbSet ✅, BillingCycle enum ✅ | Stripe (webhooks only), ProcessPaymentDto naming | SubscriptionBilling/UsageControllers (disabled), ChangeManagementServiceEx compilation errors (disabled) |
-| **Sales Frontend** | PaymentsPage, ContractsPage, SubscriptionsPage, subscriptionService, commissionService | Inline forms (not standalone components), SubscriptionsPage is 1 page not 5 | 20+ sub-components (InvoiceForm, InvoiceDetailsPage, PaymentHistory, RefundDialog, ContractDetailsPage, etc.) |
+| **Sales Backend** | PaymentsController, CommissionModule (100%), Subscription services + core entities, InvoiceDTOs, ContractService, SubscriptionRenewal entity ✅, BillingHistory/DunningRecord DbSet ✅, BillingCycle enum ✅, Contract EndDate/Value validations ✅, Subscription validations ✅ | Stripe (webhooks only), ProcessPaymentDto naming | SubscriptionBilling/UsageControllers (disabled) |
+| **Sales Frontend** | PaymentsPage, ContractsPage, SubscriptionsPage, subscriptionService, commissionService, InvoiceDetailsPage ✅, ContractDetailsPage ✅, InvoiceForm ✅, PaymentForm ✅, InvoiceStatusBadge ✅, PaymentHistory ✅ | Inline forms (not standalone components), SubscriptionsPage is 1 page not 5 | ~14 sub-components remaining (RefundDialog, etc.) |
 | **Service Desk Backend** | EmailToTicket, SLAEnforcementService, EscalationControllers/Services, BusinessHours, SLA compliance report, ServiceQueuesController ✅, SLAPoliciesController ✅, EscalationRulesController ✅, ChangeManagementServiceEx ✅ | ProblemManagementService (24/26 methods), ChangeManagementService (13/39 methods) | Auto-assignment rules, SLA countdown SignalR |
-| **ITSM** | 17 unit tests, 6 controller tests, itsmService.ts, MUI migration complete, ChangeManagement pages, EscalationRulesPage ✅, EscalationDashboardPage ✅, AdminConfigurationController ✅ | ItsmSeed data | Advanced services gaps |
-| **Auth** | Google/MS/GitHub OAuth, TOTP 2FA, SMS OTP, Email OTP | LinkedIn/Apple/WebAuthn (services, no endpoints) | Okta SSO, magic link, concurrent session limits, password history |
-| **Integration** | WebhookService, Import/Export controllers, StripeWebhook, Polly retry+circuit-breaker | Webhook general entity missing (ITSM-only), retry not exponential | ProviderRegistryService, AdminProvidersController, ImportMapping, IDataValidator, Hangfire disabled |
+| **ITSM** | 17 unit tests, 6 controller tests, itsmService.ts, MUI migration complete, ChangeManagement pages, EscalationRulesPage ✅, EscalationDashboardPage ✅, AdminConfigurationController ✅, SLAManagementPage ✅, ServiceQueuesPage ✅, 6 SD sub-components ✅ | ItsmSeed data | Advanced services gaps |
+| **Auth** | Google/MS/GitHub OAuth, TOTP 2FA, SMS OTP, Email OTP, LinkedIn OAuth endpoints ✅, Apple OAuth endpoints ✅, WebAuthn/FIDO2 endpoints (6) ✅ | — | Okta SSO, magic link, concurrent session limits, password history |
+| **Integration** | WebhookService, Import/Export controllers, StripeWebhook, Polly retry+circuit-breaker, WebhookSignatureGenerator ✅, WebhookRetryPolicy ✅, WebhookCircuitBreaker ✅ | Webhook general entity missing (ITSM-only) | ProviderRegistryService, AdminProvidersController, ImportMapping, IDataValidator, Hangfire disabled |
 | **CRM Core** | Lead conversion, Lead scoring, Sales forecast, Weighted pipeline, Quote approval | Stage probability (not auto-updated), multi-currency (fields only), CPQ bundles (no UI) | Dynamic pricing engine, opportunity product line items endpoints |
-| **Architecture Specs** | SPEC-ARCH-001–006, 013 (7/13 done) | — | SPEC-ARCH-007–012 (6 remaining) |
+| **Architecture Specs** | SPEC-ARCH-001–006, 007–012, 013 (13/13 done) ✅ | — | — |
 | **Missing Specs** | ALL previously missing specs now exist (ITSM, INT, AI-003/004, SYS-002) | — | — |
 | **Tests** | 425 test files, 0 excluded, ITSM unit+controller tests, Sales unit+integration tests, SD E2E | Subscription (no E2E), ChangeManagement partial | Analytics E2E, invoice/contract E2E, Subscription E2E |
 | **Infra** | .NET 10 ✅, Polly retry/circuit-breaker ✅ | Hangfire coded but 100% commented out | Global search typeahead, secrets manager docs |
@@ -166,9 +166,9 @@
 | ~~SPEC-ARCH-007~~ | ~~Middleware Pipeline~~ | ~~3h~~ | ✅ Created Feb 23 |
 | ~~SPEC-ARCH-008~~ | ~~Provider Plugin Architecture~~ | ~~5h~~ | ✅ Created Feb 23 |
 | ~~SPEC-ARCH-009~~ | ~~Concurrency Control~~ | ~~3h~~ | ✅ Created Feb 23 |
-| SPEC-ARCH-010 | Data Isolation & Multi-Tenancy | 4h | 🟡 MEDIUM |
-| SPEC-ARCH-011 | API Versioning Strategy | 3h | 🟡 MEDIUM |
-| SPEC-ARCH-012 | Frontend Architecture Patterns | 4h | 🟢 OPTIONAL |
+| ~~SPEC-ARCH-010~~ | ~~Data Isolation & Multi-Tenancy~~ | ~~4h~~ | ✅ Created Feb 23 (Round 4) |
+| ~~SPEC-ARCH-011~~ | ~~API Versioning Strategy~~ | ~~3h~~ | ✅ Created Feb 23 (Round 4) |
+| ~~SPEC-ARCH-012~~ | ~~Frontend Architecture Patterns~~ | ~~4h~~ | ✅ Created Feb 23 (Round 4) |
 
 ### 1.3 Infrastructure Arch Items
 
@@ -223,8 +223,8 @@
 |----|----------|-------------|----------|--------|
 | TODO-SALES005-002 | P1 | Create ContractDetailsPage.tsx (no dedicated detail view) | Frontend/Page | ✅ Created Feb 23 |
 | TODO-SALES005-003 | P2 | Extract ContractForm.tsx as standalone component | Frontend/Component | ⚠️ In ContractDetailsPage (inline) |
-| TODO-SALES005-005 | P2 | Add EndDate > StartDate backend validation (missing from ContractService) | Validation | ❌ Not Started |
-| TODO-SALES005-006 | P2 | Add Value >= 0 backend validation (missing from ContractService) | Validation | ❌ Not Started |
+| ~~TODO-SALES005-005~~ | P2 | Add EndDate > StartDate backend validation (missing from ContractService) | Validation | ✅ Done (Round 4) |
+| ~~TODO-SALES005-006~~ | P2 | Add Value >= 0 backend validation (missing from ContractService) | Validation | ✅ Done (Round 4) |
 | TODO-SALES005-010 | P2 | Create contracts.spec.ts E2E tests | Testing | ❌ Not Started |
 | TODO-SALES005-011 | P2 | Create ContractRenewalDialog.tsx component | Frontend/Component | ❌ Not Started |
 | TODO-SALES005-012 | P2 | Create ContractExpirationWidget for dashboard | Frontend/Component | ❌ Not Started |
@@ -248,9 +248,9 @@
 | TODO-SALES006-013 | P0 | Register DunningRecord entity as DbSet + add migration (entity exists, not in DbContext) | Database | ✅ Registered Feb 23 |
 | TODO-SALES006-037 | P0 | Create SubscriptionRenewals table (entity, DbSet, migration all missing) | Database | ✅ Created Feb 23 |
 | TODO-SALES006-006 | P2 | Create BillingCycle enum (currently stored as string in Subscription + Account entities) | Code/Quality | ✅ Created Feb 23 |
-| TODO-SALES006-018 | P1 | Add validation for SubscriptionNumber, Amount, BillingCycle | Validation | ❌ Not Started |
+| ~~TODO-SALES006-018~~ | P1 | Add validation for SubscriptionNumber, Amount, BillingCycle | Validation | ✅ Done (Round 4) |
 | TODO-SALES006-019 | P2 | Add validation for trial dates, proration type, usage limits | Validation | ❌ Not Started |
-| TODO-SALES006-020 | P2 | Add validation: auto-renewal/cancelled mutual exclusion | Validation | ❌ Not Started |
+| ~~TODO-SALES006-020~~ | P2 | Add validation: auto-renewal/cancelled mutual exclusion | Validation | ✅ Done (Round 4) |
 | TODO-SALES006-022 | P1 | Implement optimistic locking (RowVersion) on Subscriptions | Concurrency | ❌ Not Started |
 | TODO-SALES006-023 | P2 | Add timezone support for billing date calculations | Feature | ❌ Not Started |
 | TODO-SALES006-024 | P2 | Implement usage record batching for performance | Performance | ❌ Not Started |
@@ -298,15 +298,15 @@
 
 | ID | Priority | Description | Category | Status |
 |----|----------|-------------|----------|--------|
-| TODO-SD001-001 | P2 | Create ServiceRequestCard standalone component | Frontend | ❌ Not Started |
+| ~~TODO-SD001-001~~ | P2 | Create ServiceRequestCard standalone component | Frontend | ✅ Done (Round 4) |
 | TODO-SD001-002 | P2 | Extract ServiceRequestTimeline as standalone component (inline in detail page) | Frontend | ⚠️ Partial |
 | TODO-SD001-003 | P2 | Create CustomFieldRenderer reusable component | Frontend | ⚠️ Partial |
 | TODO-SD001-004 | P2 | Extract AssignmentPanel as standalone component (inline in detail page) | Frontend | ⚠️ Partial |
 | TODO-SD001-005 | P2 | Extract SLAStatusBadge as standalone component (inline in detail page) | Frontend | ⚠️ Partial |
-| TODO-SD001-006 | P2 | Create StatusTransitionButtons component | Frontend | ❌ Not Started |
-| TODO-SD001-007 | P2 | Create ResolutionForm component | Frontend | ❌ Not Started |
-| TODO-SD001-008 | P2 | Create FeedbackForm component | Frontend | ❌ Not Started |
-| TODO-SD001-009 | P2 | Create ServiceRequestStats component | Frontend | ❌ Not Started |
+| ~~TODO-SD001-006~~ | P2 | Create StatusTransitionButtons component | Frontend | ✅ Done (Round 4) |
+| ~~TODO-SD001-007~~ | P2 | Create ResolutionForm component | Frontend | ✅ Done (Round 4) |
+| ~~TODO-SD001-008~~ | P2 | Create FeedbackForm component | Frontend | ✅ Done (Round 4) |
+| ~~TODO-SD001-009~~ | P2 | Create ServiceRequestStats component | Frontend | ✅ Done (Round 4) |
 | TODO-SD001-012 | P1 | Implement auto-assignment rules (round-robin, skill-based) | Backend | ❌ Not Started |
 
 *Completed: EmailToTicketService + controller ✅, SLA auto-calc on create ✅, E2E tests ✅*
@@ -332,8 +332,8 @@
 | ID | Priority | Description | Category | Status |
 |----|----------|-------------|----------|--------|
 | TODO-SD003-002 | P2 | Create HolidayCalendar component | Frontend | ❌ Not Started |
-| TODO-SD003-003 | P2 | Create SLAComplianceChart component | Frontend | ❌ Not Started |
-| TODO-SD003-005 | P2 | Create SLAMetricsCard component | Frontend | ❌ Not Started |
+| ~~TODO-SD003-003~~ | P2 | Create SLAComplianceChart component | Frontend | ✅ Done (Round 4 - in SLAManagementPage) |
+| ~~TODO-SD003-005~~ | P2 | Create SLAMetricsCard component | Frontend | ✅ Done (Round 4 - in SLAManagementPage) |
 | TODO-SD003-008 | P2 | Add DST handling to SLA time calculations | Backend | ❌ Not Started |
 | TODO-SD003-010 | P2 | Create E2E tests for SLA workflows | Testing | ❌ Not Started |
 | TODO-SD003-011 | P2 | Add SLA dashboard API endpoints | Backend | ❌ Not Started |
@@ -348,10 +348,10 @@
 | ID | Priority | Description | Category | Status |
 |----|----------|-------------|----------|--------|
 | TODO-SD005-003 | P2 | Rename IEscalationRuleAdminService → IEscalationRuleService to match spec | Backend | ⚠️ Partial |
-| TODO-SD005-005 | P1 | Create escalationService.ts frontend API client | Frontend | ❌ Not Started |
-| TODO-SD005-006 | P1 | Create EscalationRulesPage + components | Frontend | ❌ Not Started |
+| ~~TODO-SD005-005~~ | P1 | Create escalationService.ts frontend API client | Frontend | ✅ Done (Round 3) |
+| ~~TODO-SD005-006~~ | P1 | Create EscalationRulesPage + components | Frontend | ✅ Done (Round 3) |
 | TODO-SD005-007 | P1 | Create EscalationPoliciesPage with level editor | Frontend | ❌ Not Started |
-| TODO-SD005-008 | P2 | Create EscalationDashboardPage with metrics | Frontend | ❌ Not Started |
+| ~~TODO-SD005-008~~ | P2 | Create EscalationDashboardPage with metrics | Frontend | ✅ Done (Round 3) |
 | TODO-SD005-009 | P2 | Implement SMS notification channel | Backend | ❌ Not Started |
 | TODO-SD005-010 | P3 | Implement Slack/Teams integration | Backend | ❌ Not Started |
 | TODO-SD005-011 | P2 | Create escalation analytics reports | Backend | ❌ Not Started |
@@ -368,10 +368,10 @@
 
 | ID | Priority | Description | Status |
 |----|----------|-------------|--------|
-| TODO-ITSM-01 | P2 | Complete ChangeManagementService — 26 of 39 interface methods missing (IChangeManagementServiceEx) | ⚠️ Disabled Feb 23 (compile errors) |
+| TODO-ITSM-01 | P2 | Complete ChangeManagementService — 26 of 39 interface methods missing (IChangeManagementServiceEx) | ✅ Re-enabled (Round 3) — 38/39 methods compile, service registered in DI |
 | TODO-ITSM-02 | P2 | Complete ProblemManagementService — 2 of 26 interface methods missing | ⚠️ Partial |
 | TODO-ITSM-03 | P2 | Implement Knowledge AI semantic search — **DONE** via AIKnowledgeSearchService | ✅ Done |
-| TODO-GAP-BACKEND-004 | P1 | Re-enable AdminConfigurationController and AdminConfigurationService (currently .disabled files) | ⚠️ Files renamed but has 12 compile errors (Feb 23) |
+| ~~TODO-GAP-BACKEND-004~~ | P1 | Re-enable AdminConfigurationController and AdminConfigurationService (currently .disabled files) | ✅ Done (Round 3) — All 12 errors fixed, DI re-enabled |
 
 ### 4.2 ITSM Database & Seeding
 
@@ -393,13 +393,13 @@
 
 | ID | Priority | Description | Category | Status |
 |----|----------|-------------|----------|--------|
-| TODO-SYS008-017 | P1 | Create ServiceQueuesController (ServiceQueueService exists, no HTTP exposure) | Backend | ❌ Not Started |
-| TODO-SYS008-018 | P1 | Create dedicated SLAPoliciesController (endpoints currently inside KnowledgeAndCatalogControllers) | Backend | ⚠️ Partial |
+| ~~TODO-SYS008-017~~ | P1 | Create ServiceQueuesController (ServiceQueueService exists, no HTTP exposure) | Backend | ✅ Done (Round 3) |
+| ~~TODO-SYS008-018~~ | P1 | Create dedicated SLAPoliciesController (endpoints currently inside KnowledgeAndCatalogControllers) | Backend | ✅ Done (Round 3) |
 | TODO-SYS008-020 | P2 | Create dedicated SlaMatchingService class (logic is inline in SLAPolicyAdminService) | Backend | ⚠️ Partial |
-| TODO-SYS008-021 | P1 | Create SLAManagementPage React component | Frontend | ❌ Not Started |
+| ~~TODO-SYS008-021~~ | P1 | Create SLAManagementPage React component | Frontend | ✅ Done (Round 4) — 467 lines, CRUD + summary cards + priority filters |
 | TODO-SYS008-022 | P1 | Create EscalationRulesPanel React component | Frontend | ❌ Not Started |
-| TODO-SYS008-023 | P1 | Create QueueConfigPanel React component | Frontend | ❌ Not Started |
-| TODO-SYS008-024 | P2 | Integrate Service Desk admin pages into navigation | Frontend | ❌ Not Started |
+| ~~TODO-SYS008-023~~ | P1 | Create QueueConfigPanel/ServiceQueuesPage React component | Frontend | ✅ Done (Round 4) — 512 lines, CRUD + queue items drawer |
+| ~~TODO-SYS008-024~~ | P2 | Integrate Service Desk admin pages into navigation | Frontend | ✅ Done (Round 4) — SLA Policies + Service Queues in sidebar |
 | TODO-SYS008-025 | P2 | Add SLA policy E2E tests | Testing | ❌ Not Started |
 | TODO-SYS008-026 | P2 | Add escalation rule unit tests | Testing | ❌ Not Started |
 
@@ -416,8 +416,8 @@
 | TODO-INT001-01 | P1 | Create general Webhook entity (only ITSM-scoped WebhookSubscription exists) | Backend | ❌ Not Started |
 | TODO-INT001-02 | P1 | Create WebhookEvent entity (no general entity; ITSM-only DTOs exist) | Backend | ❌ Not Started |
 | TODO-INT001-03 | P1 | Create general WebhookDelivery entity (ITSM-scoped version exists) | Backend | ⚠️ Partial |
-| TODO-INT001-06 | P2 | Extract SignatureGenerator as dedicated class (currently inline HMAC in WebhookService) | Backend | ⚠️ Partial |
-| TODO-INT001-09 | P2 | Implement RetryPolicyEngine with exponential backoff (fixed 300s interval currently) | Backend | ⚠️ Partial |
+| ~~TODO-INT001-06~~ | P2 | Extract SignatureGenerator as dedicated class (currently inline HMAC in WebhookService) | Backend | ✅ Done (Round 4) — WebhookSignatureGenerator.cs + IWebhookSignatureGenerator + 11 tests |
+| ~~TODO-INT001-09~~ | P2 | Implement RetryPolicyEngine with exponential backoff (fixed 300s interval currently) | Backend | ✅ Done (Round 4) — WebhookRetryPolicy.cs + 16 tests |
 | TODO-INT001-10 | P2 | Implement IDeliveryTracker interface | Backend | ❌ Not Started |
 | TODO-INT001-11 | P2 | Implement DeliveryTracker for logging/metrics | Backend | ❌ Not Started |
 | TODO-INT001-15 | P3 | Add feature flag for webhook system | Configuration | ❌ Not Started |
@@ -430,12 +430,12 @@
 | TODO-INT001-28 | P2 | Implement SignatureVerificationUI | Frontend | ❌ Not Started |
 | TODO-INT001-31 | P2 | Implement webhook health monitoring dashboard | Frontend | ❌ Not Started |
 | TODO-INT001-32 | P2 | Create unit tests for WebhookService | Testing | ❌ Not Started |
-| TODO-INT001-33 | P2 | Create unit tests for SignatureGenerator | Testing | ❌ Not Started |
-| TODO-INT001-34 | P2 | Create unit tests for RetryPolicyEngine | Testing | ❌ Not Started |
+| ~~TODO-INT001-33~~ | P2 | Create unit tests for SignatureGenerator | Testing | ✅ Done (Round 4) — 11 tests in WebhookSignatureGeneratorTests.cs |
+| ~~TODO-INT001-34~~ | P2 | Create unit tests for RetryPolicyEngine | Testing | ✅ Done (Round 4) — 16 tests in WebhookRetryPolicyTests.cs |
 | TODO-INT001-35 | P2 | Create unit tests for WebhookDispatcher | Testing | ❌ Not Started |
 | TODO-INT001-40 | P3 | Create E2E tests for webhook management | Testing | ❌ Not Started |
-| TODO-INT001-45 | P1 | Implement infinite loop prevention mechanism | Feature | ❌ Not Started |
-| TODO-INT001-46 | P1 | Implement auto-disable dead webhook logic | Feature | ❌ Not Started |
+| ~~TODO-INT001-45~~ | P1 | Implement infinite loop prevention mechanism | Feature | ✅ Done (Round 4) — WebhookCircuitBreaker.cs + 8 tests |
+| ~~TODO-INT001-46~~ | P1 | Implement auto-disable dead webhook logic | Feature | ✅ Done (Round 4) — ShouldDisableWebhook in RetryPolicy (10 consecutive failures) |
 | TODO-INT001-47 | P2 | Implement large payload handling/chunking | Feature | ❌ Not Started |
 | TODO-INT001-48 | P1 | Implement event chain tracking and cycle detection | Feature | ❌ Not Started |
 | TODO-INT001-50 | P2 | Implement webhook analytics (success rate, latency) | Feature | ❌ Not Started |
@@ -480,13 +480,13 @@
 
 | ID | Priority | Description | Category | Status |
 |----|----------|-------------|----------|--------|
-| TODO-AUTH-001 | P1 | Wire LinkedIn OAuth to /api/auth/oauth-login endpoint (service+DI registered, no endpoint routing) | Backend | ⚠️ Partial |
-| TODO-AUTH-002 | P1 | Wire Apple OAuth to /api/auth/oauth-login endpoint (service+DI registered, no endpoint routing) | Backend | ⚠️ Partial |
+| ~~TODO-AUTH-001~~ | P1 | Wire LinkedIn OAuth to /api/auth/oauth-login endpoint (service+DI registered, no endpoint routing) | Backend | ✅ Done (Round 4) — GET/POST /api/auth/oauth/linkedin |
+| ~~TODO-AUTH-002~~ | P1 | Wire Apple OAuth to /api/auth/oauth-login endpoint (service+DI registered, no endpoint routing) | Backend | ✅ Done (Round 4) — GET/POST /api/auth/oauth/apple |
 | TODO-AUTH-003 | P1 | Implement Okta/Enterprise SSO support | Backend | ❌ Not Started |
 | TODO-AUTH-004 | P1 | Add generic OpenID Connect provider | Backend | ❌ Not Started |
 | TODO-AUTH-005 | P1 | Add OAuth provider state validation and CSRF protection | Backend | ❌ Not Started |
 | TODO-AUTH-006 | P1 | Implement OAuth token refresh for long-lived sessions | Backend | ❌ Not Started |
-| TODO-AUTH-009 | P1 | Wire WebAuthn/FIDO2 to API endpoints (service exists, no controller endpoints) | Backend | ⚠️ Partial |
+| ~~TODO-AUTH-009~~ | P1 | Wire WebAuthn/FIDO2 to API endpoints (service exists, no controller endpoints) | Backend | ✅ Done (Round 4) — 6 endpoints (register options/complete, login options/complete, credentials list/delete) |
 | TODO-AUTH-010 | P1 | Add biometric login (platform-specific) | Backend | ❌ Not Started |
 | TODO-AUTH-011 | P1 | Add 2FA enforcement policies per user group | Backend | ❌ Not Started |
 | TODO-AUTH-012 | P1 | Implement backup code regeneration | Backend | ❌ Not Started |
