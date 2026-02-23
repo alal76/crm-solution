@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 568,
-  "patch": 0,
+  "patch": 1,
   "lastUpdate": "2026-02-23",
-  "description": "Test Coverage Achievement: Increased backend code coverage from 4.2% (CI reporting bug) to 42.7% (actual merged). Fixed CI/CD pipeline to merge coverage reports using ReportGenerator instead of picking only the first XML file. Added runsettings-based coverage collection. Created 10 new comprehensive service test files (OrderService, UserGroupService, LandingPageService, DuplicateDetectionService, TaskService, InteractionService, AuditLogService, SalesForecastService, SalesQuotaService, CommunicationService) with ~400 new test methods. Added coverlet.collector to SystemModule.Tests project. Total tests now 7717 across 4 test projects, all passing.",
+  "description": "Re-enable 5 ITSM Phase 4 services (WebhookNotification, EmailToTicket, MonitoringIntegration, SelfServiceChatbot, ServiceCatalog) that were disabled in DI but had active controllers, causing BVT test failures (HTTP 500) in CI/CD pipeline. Renamed .cs.disabled files back to .cs and uncommented DI registrations in Program.cs.",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [
