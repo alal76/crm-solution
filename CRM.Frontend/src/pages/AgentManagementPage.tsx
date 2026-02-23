@@ -239,8 +239,8 @@ const AgentManagementPage: React.FC = () => {
       : 0;
 
   // ── parsed plugin chips ─────────────────────────────────────────────────
-  const parsePlugins = (raw: string): string[] =>
-    raw
+  const parsePlugins = (raw: string | null | undefined): string[] =>
+    (raw ?? '')
       .split(',')
       .map((p) => p.trim())
       .filter(Boolean);
@@ -387,7 +387,7 @@ const AgentManagementPage: React.FC = () => {
                                 fontSize: 14,
                               }}
                             >
-                              {agent.displayName
+                              {(agent.displayName ?? agent.name ?? '?')
                                 .split(' ')
                                 .map((w) => w[0])
                                 .join('')
@@ -396,7 +396,7 @@ const AgentManagementPage: React.FC = () => {
                             </Avatar>
                             <Box>
                               <Typography variant="body2" fontWeight={600}>
-                                {agent.displayName}
+                                {agent.displayName ?? agent.name}
                               </Typography>
                               <Typography
                                 variant="caption"
@@ -549,7 +549,7 @@ const AgentManagementPage: React.FC = () => {
                 fontSize: 14,
               }}
             >
-              {selectedAgent.displayName
+              {(selectedAgent.displayName ?? selectedAgent.name ?? '?')
                 .split(' ')
                 .map((w) => w[0])
                 .join('')

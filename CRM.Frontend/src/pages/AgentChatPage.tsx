@@ -390,11 +390,11 @@ const AgentChatPage = () => {
               fontWeight: 600,
             }}
           >
-            {agent.displayName.charAt(0).toUpperCase()}
+            {(agent.displayName ?? agent.name ?? '?').charAt(0).toUpperCase()}
           </Avatar>
           <Box sx={{ flex: 1, minWidth: 0 }}>
             <Typography variant="subtitle1" sx={{ fontWeight: 600, lineHeight: 1.2 }} noWrap>
-              {agent.displayName}
+              {agent.displayName ?? agent.name}
             </Typography>
             <Chip
               label={typeLabel}
@@ -463,10 +463,10 @@ const AgentChatPage = () => {
                   fontWeight: 600,
                 }}
               >
-                {agent.displayName.charAt(0).toUpperCase()}
+                {(agent.displayName ?? agent.name ?? '?').charAt(0).toUpperCase()}
               </Avatar>
               <Typography variant="h6" sx={{ fontWeight: 600, color: '#1C1B1F', mb: 0.5 }}>
-                {agent.displayName}
+                {agent.displayName ?? agent.name}
               </Typography>
               <Typography variant="body2" sx={{ color: '#49454F', mb: 3, maxWidth: 480 }}>
                 {agent.description || 'Start a conversation to get help from this AI assistant.'}
@@ -547,7 +547,7 @@ const AgentChatPage = () => {
                           fontWeight: 600,
                         }}
                       >
-                        {agent.displayName.charAt(0).toUpperCase()}
+                        {(agent.displayName ?? agent.name ?? '?').charAt(0).toUpperCase()}
                       </Avatar>
                     )}
                     <Box
@@ -589,7 +589,7 @@ const AgentChatPage = () => {
                       fontWeight: 600,
                     }}
                   >
-                    {agent.displayName.charAt(0).toUpperCase()}
+                    {(agent.displayName ?? agent.name ?? '?').charAt(0).toUpperCase()}
                   </Avatar>
                   <Box
                     sx={{

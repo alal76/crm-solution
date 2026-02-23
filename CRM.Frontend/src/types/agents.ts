@@ -72,11 +72,11 @@ export enum MemoryType {
 export interface Agent {
   id: number;
   name: string;
-  displayName: string;
+  displayName?: string;
   description?: string;
   systemPrompt: string;
   agentType: AgentType;
-  allowedPlugins: string;
+  allowedPlugins?: string;
   configuration?: string;
   isActive: boolean;
   requiresApproval: boolean;

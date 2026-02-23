@@ -144,7 +144,7 @@ const AgentDirectoryPage = () => {
       const q = searchQuery.toLowerCase().trim();
       result = result.filter(
         (a) =>
-          a.displayName.toLowerCase().includes(q) ||
+          a.displayName?.toLowerCase().includes(q) ||
           (a.description && a.description.toLowerCase().includes(q)) ||
           a.name.toLowerCase().includes(q)
       );
@@ -308,7 +308,7 @@ const AgentDirectoryPage = () => {
                           fontWeight: 600,
                         }}
                       >
-                        {agent.displayName.charAt(0).toUpperCase()}
+                        {(agent.displayName ?? agent.name ?? '?').charAt(0).toUpperCase()}
                       </Avatar>
                       <Box sx={{ flex: 1, minWidth: 0 }}>
                         <Typography
