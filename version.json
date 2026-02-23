@@ -1,9 +1,9 @@
 {
   "major": 0,
-  "minor": 567,
+  "minor": 568,
   "patch": 0,
-  "lastUpdate": "2026-02-22",
-  "description": "CI/CD Warnings Remediation: Eliminated all 418 build warnings (CS8601/8602/8603/8604/8618/8629 null safety, CS0618 obsolete APIs, CA2024 async EndOfStream, SYSLIB0057 X509Certificate2, SA1633/SA1518/SA1206/SA1401 StyleCop, xUnit1025 duplicate InlineData). Pinned Trivy action to v0.28.0, upgraded Codecov to v5 with token, fixed Helm chart release versioning, improved kubectl deploy guards. AD0001 upstream StyleCop bug suppressed in Directory.Build.props.",
+  "lastUpdate": "2026-02-23",
+  "description": "Test Coverage Achievement: Increased backend code coverage from 4.2% (CI reporting bug) to 42.7% (actual merged). Fixed CI/CD pipeline to merge coverage reports using ReportGenerator instead of picking only the first XML file. Added runsettings-based coverage collection. Created 10 new comprehensive service test files (OrderService, UserGroupService, LandingPageService, DuplicateDetectionService, TaskService, InteractionService, AuditLogService, SalesForecastService, SalesQuotaService, CommunicationService) with ~400 new test methods. Added coverlet.collector to SystemModule.Tests project. Total tests now 7717 across 4 test projects, all passing.",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [

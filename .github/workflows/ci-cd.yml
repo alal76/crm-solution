@@ -133,7 +133,7 @@ jobs:
           -c Release --no-build \
           --logger "trx;LogFileName=core-unit-tests.trx" \
           --results-directory tests/TestResults/ \
-          --collect:"XPlat Code Coverage"
+          --settings tests/coverage.runsettings
 
     # Main test suite — functional/provider/service tests (3,489 tests)
     - name: Run Main test suite
@@ -143,7 +143,7 @@ jobs:
           -c Release --no-build \
           --logger "trx;LogFileName=main-tests.trx" \
           --results-directory tests/TestResults/ \
-          --collect:"XPlat Code Coverage"
+          --settings tests/coverage.runsettings
 
     # Additional service/integration tests (1,045 tests)
     - name: Run Service & Integration tests
@@ -153,7 +153,7 @@ jobs:
           -c Release --no-build \
           --logger "trx;LogFileName=service-integration-tests.trx" \
           --results-directory tests/TestResults/ \
-          --collect:"XPlat Code Coverage"
+          --settings tests/coverage.runsettings
 
     # System module tests (83 tests)
     - name: Run System Module tests
@@ -163,25 +163,50 @@ jobs:
           -c Release --no-build \
           --logger "trx;LogFileName=system-module-tests.trx" \
           --results-directory tests/TestResults/ \
-          --collect:"XPlat Code Coverage"
+          --settings tests/coverage.runsettings
 
     - name: Generate coverage summary
       if: always()
       working-directory: CRM.Backend
       run: |
-        COVERAGE_FILE=$(find tests/TestResults -name "coverage.cobertura.xml" -type f 2>/dev/null | head -1)
-        if [ -z "$COVERAGE_FILE" ]; then
+        # Find ALL Cobertura coverage files from the 4 test projects
+        COVERAGE_FILES=$(find tests/TestResults -name "coverage.cobertura.xml" -type f 2>/dev/null)
+        if [ -z "$COVERAGE_FILES" ]; then
           echo "⚠️ No coverage file found — skipping coverage summary"
           exit 0
         fi
-        LINE_RATE=$(grep -o 'line-rate="[^"]*"' "$COVERAGE_FILE" | head -1 | sed 's/line-rate="//;s/"//')
+
+        FILE_COUNT=$(echo "$COVERAGE_FILES" | wc -l | tr -d ' ')
+        echo "Found ${FILE_COUNT} coverage file(s)"
+
+        # Install ReportGenerator to merge multiple coverage reports
+        dotnet tool install --global dotnet-reportgenerator-globaltool --version 5.* 2>/dev/null || true
+        export PATH="$PATH:$HOME/.dotnet/tools"
+
+        # Merge all coverage files into a single Cobertura report
+        MERGED_FILE="tests/TestResults/merged-coverage.cobertura.xml"
+        reportgenerator \
+          -reports:"tests/TestResults/**/coverage.cobertura.xml" \
+          -targetdir:"tests/TestResults/merged" \
+          -reporttypes:"Cobertura" \
+          -verbosity:Warning
+
+        if [ -f "tests/TestResults/merged/Cobertura.xml" ]; then
+          cp "tests/TestResults/merged/Cobertura.xml" "$MERGED_FILE"
+          echo "✅ Merged ${FILE_COUNT} coverage files into ${MERGED_FILE}"
+        else
+          echo "⚠️ Merge failed, falling back to first coverage file"
+          MERGED_FILE=$(echo "$COVERAGE_FILES" | head -1)
+        fi
+
+        LINE_RATE=$(grep -o 'line-rate="[^"]*"' "$MERGED_FILE" | head -1 | sed 's/line-rate="//;s/"//')
         if [ -z "$LINE_RATE" ]; then
           echo "⚠️ Could not parse coverage rate"
           exit 0
         fi
         COVERAGE_PCT=$(echo "$LINE_RATE * 100" | bc -l | xargs printf "%.1f")
-        echo "## 📊 Code Coverage: ${COVERAGE_PCT}%" >> $GITHUB_STEP_SUMMARY
-        echo "Source: ${COVERAGE_FILE}" >> $GITHUB_STEP_SUMMARY
+        echo "## 📊 Code Coverage: ${COVERAGE_PCT}% (merged from ${FILE_COUNT} reports)" >> $GITHUB_STEP_SUMMARY
+        echo "Source: ${MERGED_FILE}" >> $GITHUB_STEP_SUMMARY
         echo "✅ Code coverage: ${COVERAGE_PCT}%"
         # Enforce minimum coverage threshold (raise this as coverage improves)
         THRESHOLD=30
