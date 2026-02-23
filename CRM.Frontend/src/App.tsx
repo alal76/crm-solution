@@ -65,7 +65,9 @@ const OpportunitiesPage = lazy(() => import('./pages/OpportunitiesPage'));
 const QuotesPage = lazy(() => import('./pages/QuotesPage'));
 const ProductsPage = lazy(() => import('./pages/ProductsPage'));
 const ContractsPage = lazy(() => import('./pages/ContractsPage'));
+const ContractDetailsPage = lazy(() => import('./pages/ContractDetailsPage'));
 const InvoicesPage = lazy(() => import('./pages/InvoicesPage'));
+const InvoiceDetailsPage = lazy(() => import('./pages/InvoiceDetailsPage'));
 const PaymentsPage = lazy(() => import('./pages/PaymentsPage'));
 const OrdersPage = lazy(() => import('./pages/OrdersPage'));
 const TeamsPage = lazy(() => import('./pages/TeamsPage'));
@@ -558,6 +560,16 @@ function ThemedApp() {
                 }
               />
               <Route
+                path="/contracts/:id"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute requiredPage="Contracts">
+                      <ContractDetailsPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
                 path="/commissions"
                 element={
                   <ProtectedRoute>
@@ -573,6 +585,16 @@ function ThemedApp() {
                   <ProtectedRoute>
                     <RoleBasedRoute requiredPage="Invoices">
                       <InvoicesPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/invoices/:id"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute requiredPage="Invoices">
+                      <InvoiceDetailsPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
                 }
