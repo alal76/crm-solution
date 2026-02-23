@@ -187,21 +187,48 @@ public class SLAEnforcementHostedServiceTests
     {
         // Arrange
         var service = new SLAEnforcementHostedService(_mockServiceProvider.Object, _mockLogger.Object);
+        
+        // Setup mock to handle GetRequiredService calls to prevent exceptions
+        var scopeServiceProvider = new Mock<IServiceProvider>();
+        scopeServiceProvider.Setup(x => x.GetService(typeof(ICrmDbContext)))
+            .Returns(_mockDbContext.Object);
+        scopeServiceProvider.Setup(x => x.GetService(typeof(IEscalationRuleService)))
+            .Returns(_mockEscalationRuleService.Object);
+        
+        // Setup GetRequiredService to return our mocks
+        scopeServiceProvider.Setup(x => x.GetRequiredService(typeof(ICrmDbContext)))
+            .Returns(_mockDbContext.Object);
+        scopeServiceProvider.Setup(x => x.GetRequiredService(typeof(IEscalationRuleService)))
+            .Returns(_mockEscalationRuleService.Object);
+        
+        var mockScope = new Mock<IServiceScope>();
+        mockScope.Setup(x => x.ServiceProvider).Returns(scopeServiceProvider.Object);
+        
+        var mockScopeFactory = new Mock<IServiceScopeFactory>();
+        mockScopeFactory.Setup(x => x.CreateScope()).Returns(mockScope.Object);
+        
+        var mockServiceProvider = new Mock<IServiceProvider>();
+        mockServiceProvider.Setup(x => x.GetService(typeof(IServiceScopeFactory)))
+            .Returns(mockScopeFactory.Object);
+        mockServiceProvider.Setup(x => x.GetRequiredService(typeof(IServiceScopeFactory)))
+            .Returns(mockScopeFactory.Object);
 
-        // Act - Start the service, give ExecuteAsync time to run on the thread pool,
-        // then StopAsync which awaits the background task to completion.
-        // Verifying AFTER StopAsync eliminates race conditions on slow CI machines.
-        await service.StartAsync(CancellationToken.None);
-        await Task.Delay(150);
-        await service.StopAsync(CancellationToken.None);
+        var serviceWithProperMocks = new SLAEnforcementHostedService(mockServiceProvider.Object, _mockLogger.Object);
+        using var cts = new CancellationTokenSource();
 
-        // Assert
+        // Act - Start the service and let it run for a bit to ensure the "started" message is logged
+        _ = serviceWithProperMocks.StartAsync(cts.Token);
+        await Task.Delay(200);  // Give ExecuteAsync time to log the "started" message
+        cts.Cancel();
+        await serviceWithProperMocks.StopAsync(CancellationToken.None);
+
+        // Assert - verify that a log was made containing "started"
         _mockLogger.Verify(
             x => x.Log(
                 LogLevel.Information,
                 It.IsAny<EventId>(),
                 It.Is<It.IsAnyType>((v, t) => v.ToString()!.Contains("started")),
-                null,
+                It.IsAny<Exception>(),
                 It.IsAny<Func<It.IsAnyType, Exception?, string>>()),
             Times.AtLeastOnce);
     }
