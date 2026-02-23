@@ -253,7 +253,7 @@ Redis__Enabled=true
 
 # Meilisearch Configuration
 MEILISEARCH_ENV=production
-MEILISEARCH_API_KEY=masterKey123
+MEILISEARCH_API_KEY=CrmMeiliMasterKey2024Prod
 MEILISEARCH_EXTERNAL_PORT=7700
 MEILISEARCH_URL=http://meilisearch:7700
 

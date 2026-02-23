@@ -56,8 +56,8 @@ services:
     volumes:
       - meilisearch-data:/meili_data
     environment:
-      - MEILI_MASTER_KEY=${MEILISEARCH_API_KEY:-masterKey123}
-      - MEILI_ENV=${MEILISEARCH_ENV:-development}
+      - MEILI_MASTER_KEY=${MEILISEARCH_API_KEY:-CrmMeiliMasterKey2024Prod}
+      - MEILI_ENV=${MEILISEARCH_ENV:-production}
       - MEILI_NO_ANALYTICS=true
     healthcheck:
       test: ["CMD-SHELL", "curl -sf http://127.0.0.1:7700/health || exit 1"]
