@@ -1,9 +1,9 @@
 {
   "major": 0,
-  "minor": 571,
+  "minor": 572,
   "patch": 0,
-  "lastUpdate": "2026-02-23",
-  "description": "API User Management: dedicated API user CRUD in Developer Tools, API key authentication (X-Api-Key header), API groups with per-API RBAC, login blocking for API users/groups, SmartScheme dual auth (Bearer JWT + API Key).",
+  "lastUpdate": "2026-02-24",
+  "description": "Agent system end-to-end: fix <Compile Remove> exclusions for all 3 agent controllers, fix ChatMessageRecord type reference, fix property mismatches (IsActive, UserRating, ApprovedByUserId), SK registration, Kernel DI, feature flags, DB agent bridge, Create Agent button.",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [

@@ -82,7 +82,7 @@ public class AgentController : ControllerBase
     /// <param name="Response">The agent's response message.</param>
     /// <param name="ConversationId">The conversation ID (new or existing).</param>
     /// <param name="History">The full conversation history.</param>
-    public record ChatResponse(string Response, int ConversationId, IReadOnlyList<AgentExecutionService.ChatMessageRecord> History);
+    public record ChatResponse(string Response, int ConversationId, IReadOnlyList<ChatMessageRecord> History);
 
     /// <summary>
     /// Request DTO for rating a conversation.
@@ -707,7 +707,7 @@ public class AgentController : ControllerBase
 
             var userId = GetCurrentUserId();
             approval.Status = CRM.Core.Entities.AI.ApprovalStatus.Approved;
-            approval.ApprovedById = userId;
+            approval.ApprovedByUserId = userId;
             approval.UpdatedAt = DateTime.UtcNow;
 
             await _dbContext.SaveChangesAsync(HttpContext.RequestAborted);
@@ -756,7 +756,7 @@ public class AgentController : ControllerBase
 
             var userId = GetCurrentUserId();
             approval.Status = CRM.Core.Entities.AI.ApprovalStatus.Rejected;
-            approval.ApprovedById = userId;
+            approval.ApprovedByUserId = userId;
             approval.UpdatedAt = DateTime.UtcNow;
 
             await _dbContext.SaveChangesAsync(HttpContext.RequestAborted);
@@ -809,21 +809,21 @@ public class AgentController : ControllerBase
     /// <summary>
     /// Deserializes the JSON message array from a conversation record.
     /// </summary>
-    private static IReadOnlyList<AgentExecutionService.ChatMessageRecord> DeserializeMessages(string? messagesJson)
+    private static IReadOnlyList<ChatMessageRecord> DeserializeMessages(string? messagesJson)
     {
         if (string.IsNullOrWhiteSpace(messagesJson))
         {
-            return Array.Empty<AgentExecutionService.ChatMessageRecord>();
+            return Array.Empty<ChatMessageRecord>();
         }
 
         try
         {
-            return JsonSerializer.Deserialize<List<AgentExecutionService.ChatMessageRecord>>(messagesJson)
-                ?? new List<AgentExecutionService.ChatMessageRecord>();
+            return JsonSerializer.Deserialize<List<ChatMessageRecord>>(messagesJson)
+                ?? new List<ChatMessageRecord>();
         }
         catch
         {
-            return Array.Empty<AgentExecutionService.ChatMessageRecord>();
+            return Array.Empty<ChatMessageRecord>();
         }
     }
 

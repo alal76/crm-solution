@@ -96,7 +96,7 @@ public class AgentAdminController : ControllerBase
                     a.AgentType,
                     a.SystemPrompt,
                     a.AllowedPlugins,
-                    a.IsEnabled,
+                    a.IsActive,
                     a.Temperature,
                     a.MaxTokens,
                     a.CreatedAt,
@@ -177,7 +177,7 @@ public class AgentAdminController : ControllerBase
                 agent.AgentType,
                 agent.SystemPrompt,
                 agent.AllowedPlugins,
-                agent.IsEnabled,
+                agent.IsActive,
                 agent.Temperature,
                 agent.MaxTokens,
                 agent.UpdatedAt,
@@ -210,13 +210,13 @@ public class AgentAdminController : ControllerBase
                 return NotFound($"Agent with ID {agentId} not found.");
             }
 
-            agent.IsEnabled = !agent.IsEnabled;
+            agent.IsActive = !agent.IsActive;
             agent.UpdatedAt = DateTime.UtcNow;
 
             await _dbContext.SaveChangesAsync(HttpContext.RequestAborted);
 
-            _logger.LogInformation("Agent {AgentId} ({AgentName}) toggled to {IsEnabled}", agentId, agent.Name, agent.IsEnabled);
-            return Ok(new { agent.Id, agent.Name, agent.IsEnabled });
+            _logger.LogInformation("Agent {AgentId} ({AgentName}) toggled to {IsActive}", agentId, agent.Name, agent.IsActive);
+            return Ok(new { agent.Id, agent.Name, agent.IsActive });
         }
         catch (Exception ex)
         {

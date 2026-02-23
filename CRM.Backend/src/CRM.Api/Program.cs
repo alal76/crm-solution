@@ -19,6 +19,7 @@ using CRM.Infrastructure.Data;
 using CRM.Infrastructure.DependencyInjection;
 using CRM.Infrastructure.Repositories;
 using CRM.Infrastructure.Services;
+using CRM.Infrastructure.AI.SK;
 using CRM.Infrastructure.Services.AI;
 using CRM.Infrastructure.Services.Authentication;
 using CRM.Infrastructure.Services.Configuration;
@@ -680,6 +681,10 @@ builder.Services.AddScoped<CRM.Core.Interfaces.IAuditLogService, CRM.Infrastruct
 builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.ICITypeService, CRM.Infrastructure.Services.ITSM.CITypeService>();
 builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IChangeTypeService, CRM.Infrastructure.Services.ITSM.ChangeTypeService>();
 builder.Services.AddScoped<CRM.Core.Interfaces.IAIAgentUsageService, CRM.Infrastructure.Services.AIAgentUsageService>();
+
+// Semantic Kernel AI Agent Subsystem — registers all 19 agents, 13 plugins,
+// CrmKernelFactory, AgentOrchestrator, AgentExecutionService, and filters.
+builder.Services.AddSemanticKernel(builder.Configuration);
 builder.Services.AddScoped<CRM.Core.Interfaces.IExportJobService, CRM.Infrastructure.Services.ExportJobService>();
 builder.Services.AddScoped<CRM.Core.Interfaces.IImportJobService, CRM.Infrastructure.Services.ImportJobService>();
 builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IIncidentCategoryService, CRM.Infrastructure.Services.ITSM.IncidentCategoryService>();

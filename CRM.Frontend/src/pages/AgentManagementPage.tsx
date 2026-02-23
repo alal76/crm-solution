@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Box,
   Typography,
@@ -34,6 +35,7 @@ import {
   ChatOutlined,
   StarOutlined,
   CheckCircleOutline,
+  AddOutlined,
 } from '@mui/icons-material';
 import {
   Agent,
@@ -105,6 +107,7 @@ const AgentManagementPage: React.FC = () => {
   const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
   const [activeTab, setActiveTab] = useState(0);
   const [saving, setSaving] = useState(false);
+  const navigate = useNavigate();
 
   // edit form state
   const [editSystemPrompt, setEditSystemPrompt] = useState('');
@@ -248,7 +251,7 @@ const AgentManagementPage: React.FC = () => {
       {/* ── Page Header ────────────────────────────────────────────────── */}
       <Box sx={{ display: 'flex', alignItems: 'center', mb: 3, gap: 1.5 }}>
         <SettingsOutlined sx={{ fontSize: 32, color: '#6750A4' }} />
-        <Box>
+        <Box sx={{ flex: 1 }}>
           <Typography variant="h5" fontWeight={700}>
             Agent Management
           </Typography>
@@ -256,6 +259,14 @@ const AgentManagementPage: React.FC = () => {
             Configure and manage AI agents
           </Typography>
         </Box>
+        <Button
+          variant="contained"
+          startIcon={<AddOutlined />}
+          onClick={() => navigate('/admin/agents/new')}
+          sx={{ borderRadius: 2, textTransform: 'none', fontWeight: 600 }}
+        >
+          Create Agent
+        </Button>
       </Box>
 
       {/* ── Alerts ─────────────────────────────────────────────────────── */}

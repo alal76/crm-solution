@@ -8,6 +8,7 @@
 
 using CRM.Core.Entities.AI;
 using CRM.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
@@ -194,27 +195,75 @@ public sealed class AgentOrchestrator
     /// </summary>
     /// <param name="cancellationToken">Cancellation token.</param>
     /// <returns>
-    /// An enumerable of <see cref="AIAgent"/> records representing the available agents.
+    /// An enumerable of <see cref="AIAgent"/> records representing the available agents,
+    /// merging database-configured agents with code-registered agents.
     /// </returns>
-    public Task<IEnumerable<AIAgent>> GetAvailableAgentsAsync(
+    public async Task<IEnumerable<AIAgent>> GetAvailableAgentsAsync(
         CancellationToken cancellationToken = default)
     {
         var registeredAgents = _serviceProvider.GetServices<CrmAgentBase>().ToList();
+        _logger.LogDebug("Found {Count} DI-registered AI agents.", registeredAgents.Count);
 
-        _logger.LogDebug("Found {Count} registered AI agents.", registeredAgents.Count);
+        // Query all active DB agents (both code-seeded and user-created via wizard)
+        var dbAgents = await _dbContext.AIAgents
+            .AsNoTracking()
+            .Where(a => a.IsActive && !a.IsDeleted)
+            .ToListAsync(cancellationToken);
 
-        var agentInfos = registeredAgents.Select(agent => new AIAgent
+        _logger.LogDebug("Found {Count} active DB AI agents.", dbAgents.Count);
+
+        // Build a lookup of DB agents by AgentType for fast merge
+        var dbByType = dbAgents
+            .GroupBy(a => a.AgentType)
+            .ToDictionary(g => g.Key, g => g.First());
+
+        var result = new List<AIAgent>();
+
+        // 1. DB agents take precedence — include all active DB agents
+        foreach (var db in dbAgents)
         {
-            Name = agent.AgentName,
-            AgentType = agent.AgentType,
-            SystemPrompt = agent.SystemPrompt,
-            Temperature = agent.Temperature,
-            MaxTokens = agent.MaxTokens,
-            IsEnabled = true,
-            AllowedPlugins = agent.AllowedPlugins.ToList(),
-        });
+            result.Add(new AIAgent
+            {
+                Id = db.Id,
+                Name = db.Name,
+                DisplayName = db.DisplayName,
+                Description = db.Description,
+                AgentType = db.AgentType,
+                SystemPrompt = db.SystemPrompt,
+                Temperature = db.Temperature,
+                MaxTokens = db.MaxTokens,
+                ModelOverride = db.ModelOverride,
+                IsEnabled = db.IsActive,
+                RequiresApproval = db.RequiresApproval,
+                TotalConversations = db.TotalConversations,
+                AverageRating = db.AverageRating,
+                AllowedPlugins = (db.AllowedPlugins ?? string.Empty)
+                    .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+                    .ToList(),
+            });
+        }
 
-        return Task.FromResult(agentInfos);
+        // 2. For DI agents whose AgentType has no DB record yet, surface them with Id=0
+        foreach (var diAgent in registeredAgents)
+        {
+            if (!dbByType.ContainsKey(diAgent.AgentType))
+            {
+                result.Add(new AIAgent
+                {
+                    Id = 0,
+                    Name = diAgent.AgentName,
+                    DisplayName = diAgent.AgentName,
+                    AgentType = diAgent.AgentType,
+                    SystemPrompt = diAgent.SystemPrompt,
+                    Temperature = diAgent.Temperature,
+                    MaxTokens = diAgent.MaxTokens,
+                    IsEnabled = true,
+                    AllowedPlugins = diAgent.AllowedPlugins.ToList(),
+                });
+            }
+        }
+
+        return result;
     }
 
     #endregion
@@ -225,8 +274,17 @@ public sealed class AgentOrchestrator
 /// </summary>
 public class AIAgent
 {
-    /// <summary>Gets or sets the display name of the agent.</summary>
+    /// <summary>Gets or sets the database ID of the agent (0 = code-only, not persisted).</summary>
+    public int Id { get; set; }
+
+    /// <summary>Gets or sets the unique internal name of the agent.</summary>
     public string Name { get; set; } = string.Empty;
+
+    /// <summary>Gets or sets the human-friendly display name.</summary>
+    public string DisplayName { get; set; } = string.Empty;
+
+    /// <summary>Gets or sets the optional description of the agent's purpose.</summary>
+    public string? Description { get; set; }
 
     /// <summary>Gets or sets the agent type classification.</summary>
     public AgentType AgentType { get; set; }
@@ -240,8 +298,20 @@ public class AIAgent
     /// <summary>Gets or sets the maximum token limit for responses.</summary>
     public int MaxTokens { get; set; }
 
+    /// <summary>Gets or sets an optional model override (e.g. "gpt-4o").</summary>
+    public string? ModelOverride { get; set; }
+
     /// <summary>Gets or sets whether the agent is currently enabled.</summary>
     public bool IsEnabled { get; set; }
+
+    /// <summary>Gets or sets whether agent actions require human approval.</summary>
+    public bool RequiresApproval { get; set; }
+
+    /// <summary>Gets or sets the total number of conversations handled.</summary>
+    public int TotalConversations { get; set; }
+
+    /// <summary>Gets or sets the average user rating (null if unrated).</summary>
+    public double? AverageRating { get; set; }
 
     /// <summary>Gets or sets the list of plugins this agent may invoke.</summary>
     public List<string> AllowedPlugins { get; set; } = new();

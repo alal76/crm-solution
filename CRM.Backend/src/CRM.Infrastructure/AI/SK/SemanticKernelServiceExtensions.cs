@@ -14,6 +14,7 @@ using CRM.Infrastructure.AI.SK.Plugins;
 using CRM.Infrastructure.AI.SK.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.SemanticKernel;
 
 namespace CRM.Infrastructure.AI.SK;
 
@@ -45,7 +46,11 @@ public static class SemanticKernelServiceExtensions
         services.AddScoped<CrmChatCompletionConnector>();
         services.AddScoped<CrmEmbeddingConnector>();
 
-
+        // Register Kernel as a scoped service — built by the CrmKernelFactory.
+        // DI-injected agents (for routing/metadata) use this shared kernel instance.
+        // Actual chat executions use CreateKernelForAgent() in AgentExecutionService.
+        services.AddScoped<Kernel>(sp =>
+            sp.GetRequiredService<CrmKernelFactory>().CreateKernel());
 
         // Register all 12 CRM domain plugins
         services.AddScoped<AccountPlugin>();

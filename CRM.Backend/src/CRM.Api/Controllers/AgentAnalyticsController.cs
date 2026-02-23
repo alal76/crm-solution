@@ -204,9 +204,9 @@ public class AgentAnalyticsController : ControllerBase
             var metrics = agents.Select(agent =>
             {
                 var agentConversations = conversations.Where(c => c.AgentId == agent.Id).ToList();
-                var ratedConversations = agentConversations.Where(c => c.Rating.HasValue).ToList();
+                var ratedConversations = agentConversations.Where(c => c.UserRating.HasValue).ToList();
                 var avgRating = ratedConversations.Count > 0
-                    ? ratedConversations.Average(c => c.Rating!.Value)
+                    ? ratedConversations.Average(c => c.UserRating!.Value)
                     : 0.0;
 
                 return new AgentAccuracyMetric(
@@ -217,9 +217,9 @@ public class AgentAnalyticsController : ControllerBase
                     agentConversations.Count);
             }).ToList();
 
-            var overallRated = conversations.Where(c => c.Rating.HasValue).ToList();
+            var overallRated = conversations.Where(c => c.UserRating.HasValue).ToList();
             var overallAvg = overallRated.Count > 0
-                ? Math.Round(overallRated.Average(c => c.Rating!.Value), 2)
+                ? Math.Round(overallRated.Average(c => c.UserRating!.Value), 2)
                 : 0.0;
 
             return Ok(new
