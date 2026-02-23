@@ -1,9 +1,9 @@
 {
   "major": 0,
-  "minor": 576,
-  "patch": 1,
-  "lastUpdate": "2026-02-23",
-  "description": "ProcessPaymentDto rename (backward-compat alias), Subscription RowVersion verification, Payment/Invoice/Order unit test expansion (115 tests passing)",
+  "minor": 577,
+  "patch": 0,
+  "lastUpdate": "2026-02-24",
+  "description": "SLA Countdown SignalR Hub (real-time breach/warning), Holiday Calendar component, SLA Dashboard API endpoint",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [
