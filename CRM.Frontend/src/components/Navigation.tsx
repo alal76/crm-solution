@@ -700,10 +700,40 @@ function NavigationContent() {
     { id: 'audit-logging', order: 94, visible: true, category: 'admin', adminSubcategory: 'developer-tools' },
   ], []);
 
+  // Build lookup of correct defaults keyed by item id — used for auto-healing
+  const defaultItemsById = useMemo(() => {
+    const map: Record<string, typeof defaultNavItemsWithCategory[0]> = {};
+    defaultNavItemsWithCategory.forEach(item => { map[item.id] = item; });
+    return map;
+  }, [defaultNavItemsWithCategory]);
+
+  // Set of valid admin subcategory IDs for validation
+  const validSubcategoryIds = useMemo(
+    () => new Set(defaultAdminSubcategories.map(s => s.id)),
+    [defaultAdminSubcategories]
+  );
+
   const mergeNavItemsWithDefaults = useCallback((savedItems: any[] | undefined) => {
     const merged = Array.isArray(savedItems) ? [...savedItems] : [];
     const existingIds = new Set(merged.map(item => item.id));
 
+    // Auto-heal existing items: fix stale/invalid adminSubcategory values
+    merged.forEach(item => {
+      const defaultItem = defaultItemsById[item.id];
+      if (defaultItem) {
+        // If saved item has an admin subcategory that no longer exists, replace with the correct one
+        if (item.category === 'admin' && item.adminSubcategory && !validSubcategoryIds.has(item.adminSubcategory)) {
+          item.adminSubcategory = defaultItem.adminSubcategory;
+        }
+        // If item should be admin but lost its subcategory, restore it
+        if (defaultItem.category === 'admin' && !item.adminSubcategory) {
+          item.category = 'admin';
+          item.adminSubcategory = defaultItem.adminSubcategory;
+        }
+      }
+    });
+
+    // Backfill any items from defaults that are missing entirely
     defaultNavItemsWithCategory.forEach(defaultItem => {
       if (!existingIds.has(defaultItem.id)) {
         merged.push({
@@ -717,7 +747,7 @@ function NavigationContent() {
     });
 
     return merged;
-  }, [defaultNavItemsWithCategory]);
+  }, [defaultNavItemsWithCategory, defaultItemsById, validSubcategoryIds]);
 
   const dynamicNavOrder = useMemo(() => {
     if (!dynamicNavConfig.length) return [];
