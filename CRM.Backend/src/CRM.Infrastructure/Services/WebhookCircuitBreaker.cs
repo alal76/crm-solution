@@ -25,10 +25,10 @@ public interface IWebhookCircuitBreaker
     void RecordFailure(string webhookUrl);
 
     /// <summary>Get circuit state for a webhook URL</summary>
-    CircuitState GetState(string webhookUrl);
+    WebhookCircuitState GetState(string webhookUrl);
 }
 
-public enum CircuitState
+public enum WebhookCircuitState
 {
     Closed,
     Open,
@@ -58,7 +58,7 @@ public class WebhookCircuitBreaker : IWebhookCircuitBreaker
                 lock (existing.Lock)
                 {
                     existing.ConsecutiveFailures = 0;
-                    existing.State = CircuitState.Closed;
+                    existing.State = WebhookCircuitState.Closed;
                     existing.LastSuccessUtc = DateTime.UtcNow;
                     return existing;
                 }
@@ -85,7 +85,7 @@ public class WebhookCircuitBreaker : IWebhookCircuitBreaker
 
                     if (existing.ConsecutiveFailures >= FailureThreshold)
                     {
-                        existing.State = CircuitState.Open;
+                        existing.State = WebhookCircuitState.Open;
                         existing.OpenedAtUtc = DateTime.UtcNow;
                     }
 
@@ -94,23 +94,23 @@ public class WebhookCircuitBreaker : IWebhookCircuitBreaker
             });
     }
 
-    public CircuitState GetState(string webhookUrl)
+    public WebhookCircuitState GetState(string webhookUrl)
     {
         if (!_circuits.TryGetValue(webhookUrl, out var info))
         {
-            return CircuitState.Closed;
+            return WebhookCircuitState.Closed;
         }
 
         lock (info.Lock)
         {
-            if (info.State == CircuitState.Open)
+            if (info.State == WebhookCircuitState.Open)
             {
                 // Check if reset timeout has elapsed → transition to half-open
                 if (info.OpenedAtUtc.HasValue &&
                     DateTime.UtcNow - info.OpenedAtUtc.Value >= ResetTimeout)
                 {
-                    info.State = CircuitState.HalfOpen;
-                    return CircuitState.HalfOpen;
+                    info.State = WebhookCircuitState.HalfOpen;
+                    return WebhookCircuitState.HalfOpen;
                 }
             }
 
@@ -125,7 +125,7 @@ public class WebhookCircuitBreaker : IWebhookCircuitBreaker
     {
         public readonly object Lock = new();
         public int ConsecutiveFailures { get; set; }
-        public CircuitState State { get; set; } = CircuitState.Closed;
+        public WebhookCircuitState State { get; set; } = WebhookCircuitState.Closed;
         public DateTime? LastFailureUtc { get; set; }
         public DateTime? LastSuccessUtc { get; set; }
         public DateTime? OpenedAtUtc { get; set; }

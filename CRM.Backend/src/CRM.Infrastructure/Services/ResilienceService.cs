@@ -84,7 +84,7 @@ public class ServiceResilienceConfig
 public class CircuitBreakerState
 {
     public string ServiceName { get; set; } = "";
-    public CircuitState State { get; set; }
+    public Polly.CircuitBreaker.CircuitState State { get; set; }
     public DateTime? LastStateChange { get; set; }
     public int FailureCount { get; set; }
     public int SuccessCount { get; set; }
@@ -224,7 +224,7 @@ public class ResilienceService : IResilienceService
 
             if (_states.TryGetValue(serviceName, out var state))
             {
-                state.State = CircuitState.Closed;
+                state.State = Polly.CircuitBreaker.CircuitState.Closed;
                 state.LastStateChange = DateTime.UtcNow;
                 state.FailureCount = 0;
             }
@@ -235,8 +235,8 @@ public class ResilienceService : IResilienceService
     {
         if (_policies.TryGetValue(serviceName, out var policy))
         {
-            return policy.CircuitBreaker.CircuitState == CircuitState.Open ||
-                   policy.CircuitBreaker.CircuitState == CircuitState.Isolated;
+            return policy.CircuitBreaker.CircuitState == Polly.CircuitBreaker.CircuitState.Open ||
+                   policy.CircuitBreaker.CircuitState == Polly.CircuitBreaker.CircuitState.Isolated;
         }
         return false;
     }

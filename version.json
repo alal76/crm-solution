@@ -1,9 +1,9 @@
 {
   "major": 0,
-  "minor": 573,
-  "patch": 1,
+  "minor": 574,
+  "patch": 0,
   "lastUpdate": "2026-02-23",
-  "description": "fix(itsm): Fix AdminConfigurationService EscalationRules→ITSMEscalationRules, enable ChangeManagementServiceEx. Add ITSMEscalationRules DbSet, map ITSM entity properties, enable IAdminConfigurationService and IChangeManagementServiceEx in DI.",
+  "description": "feat(auth): Wire LinkedIn/Apple OAuth endpoints + WebAuthn/FIDO2 registration and login to AuthController",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [

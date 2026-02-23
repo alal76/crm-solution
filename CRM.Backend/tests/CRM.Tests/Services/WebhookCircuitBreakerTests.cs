@@ -24,7 +24,7 @@ public class WebhookCircuitBreakerTests
     [Fact]
     public void GetState_ShouldReturnClosed_ForUnknownUrl()
     {
-        _breaker.GetState("https://unknown.com/hook").Should().Be(CircuitState.Closed);
+        _breaker.GetState("https://unknown.com/hook").Should().Be(WebhookCircuitState.Closed);
     }
 
     [Fact]
@@ -40,7 +40,7 @@ public class WebhookCircuitBreakerTests
             _breaker.RecordFailure(TestUrl);
 
         _breaker.IsCircuitOpen(TestUrl).Should().BeFalse();
-        _breaker.GetState(TestUrl).Should().Be(CircuitState.Closed);
+        _breaker.GetState(TestUrl).Should().Be(WebhookCircuitState.Closed);
     }
 
     [Fact]
@@ -50,7 +50,7 @@ public class WebhookCircuitBreakerTests
             _breaker.RecordFailure(TestUrl);
 
         _breaker.IsCircuitOpen(TestUrl).Should().BeTrue();
-        _breaker.GetState(TestUrl).Should().Be(CircuitState.Open);
+        _breaker.GetState(TestUrl).Should().Be(WebhookCircuitState.Open);
     }
 
     [Fact]
@@ -60,12 +60,12 @@ public class WebhookCircuitBreakerTests
         for (int i = 0; i < 5; i++)
             _breaker.RecordFailure(TestUrl);
 
-        _breaker.GetState(TestUrl).Should().Be(CircuitState.Open);
+        _breaker.GetState(TestUrl).Should().Be(WebhookCircuitState.Open);
 
         // Success resets
         _breaker.RecordSuccess(TestUrl);
 
-        _breaker.GetState(TestUrl).Should().Be(CircuitState.Closed);
+        _breaker.GetState(TestUrl).Should().Be(WebhookCircuitState.Closed);
         _breaker.IsCircuitOpen(TestUrl).Should().BeFalse();
     }
 
@@ -74,7 +74,7 @@ public class WebhookCircuitBreakerTests
     {
         _breaker.RecordSuccess("https://new.com/hook");
 
-        _breaker.GetState("https://new.com/hook").Should().Be(CircuitState.Closed);
+        _breaker.GetState("https://new.com/hook").Should().Be(WebhookCircuitState.Closed);
     }
 
     [Fact]
@@ -104,6 +104,6 @@ public class WebhookCircuitBreakerTests
             _breaker.RecordFailure(TestUrl);
 
         // Consecutive failures should be 3 (reset by success), so circuit stays closed
-        _breaker.GetState(TestUrl).Should().Be(CircuitState.Closed);
+        _breaker.GetState(TestUrl).Should().Be(WebhookCircuitState.Closed);
     }
 }
