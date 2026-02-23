@@ -201,6 +201,7 @@ const ApiDocumentationPage = lazy(() => import('./pages/admin/ApiDocumentationPa
 const SystemConfigurationPage = lazy(() => import('./pages/admin/SystemConfigurationPage'));
 const CRMConfigurationPage = lazy(() => import('./pages/admin/CRMConfigurationPage'));
 const DatabaseSettingsPage = lazy(() => import('./pages/admin/DatabaseSettingsPage'));
+const AdminLayout = lazy(() => import('./components/admin/AdminLayout'));
 const DuplicateRulesPage = lazy(() => import('./pages/admin/DuplicateRulesPage'));
 const LeadScoreRulesPage = lazy(() => import('./pages/admin/LeadScoreRulesPage'));
 const IntegrationsSettingsPage = lazy(() => import('./pages/admin/IntegrationsSettingsPage'));
@@ -1041,321 +1042,56 @@ function ThemedApp() {
                 }
               />
 
-              {/* Admin Settings Routes */}
+              {/* Admin Settings Routes - with AdminLayout sidebar */}
               <Route
-                path="/admin/config/system"
+                path="/admin"
                 element={
                   <ProtectedRoute>
                     <RoleBasedRoute requiredPage="Settings">
-                      <SystemConfigurationPage />
+                      <AdminLayout />
                     </RoleBasedRoute>
                   </ProtectedRoute>
                 }
-              />
-              <Route
-                path="/admin/config/crm"
-                element={
-                  <ProtectedRoute>
-                    <RoleBasedRoute requiredPage="Settings">
-                      <CRMConfigurationPage />
-                    </RoleBasedRoute>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/database"
-                element={<Navigate to="/admin/monitoring" replace />}
-              />
-              <Route
-                path="/admin/deployment"
-                element={
-                  <ProtectedRoute>
-                    <RoleBasedRoute requiredPage="Settings">
-                      <DeploymentSettingsPage />
-                    </RoleBasedRoute>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/monitoring"
-                element={
-                  <ProtectedRoute>
-                    <RoleBasedRoute requiredPage="Settings">
-                      <MonitoringSettingsPage />
-                    </RoleBasedRoute>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/workers"
-                element={
-                  <ProtectedRoute>
-                    <RoleBasedRoute requiredPage="Settings">
-                      <WorkerOperationsPage />
-                    </RoleBasedRoute>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/security"
-                element={
-                  <ProtectedRoute>
-                    <RoleBasedRoute requiredPage="Settings">
-                      <SecuritySettingsPage />
-                    </RoleBasedRoute>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/features"
-                element={
-                  <ProtectedRoute>
-                    <RoleBasedRoute requiredPage="Settings">
-                      <FeatureManagementPage />
-                    </RoleBasedRoute>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/users"
-                element={
-                  <ProtectedRoute>
-                    <RoleBasedRoute requiredPage="User Management">
-                      <UserManagementSettingsPage />
-                    </RoleBasedRoute>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/approvals"
-                element={
-                  <ProtectedRoute>
-                    <RoleBasedRoute requiredPage="User Management">
-                      <UserApprovalPage />
-                    </RoleBasedRoute>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/groups"
-                element={
-                  <ProtectedRoute>
-                    <RoleBasedRoute requiredPage="User Management">
-                      <GroupManagementPage />
-                    </RoleBasedRoute>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/social-login"
-                element={
-                  <ProtectedRoute>
-                    <RoleBasedRoute requiredPage="Settings">
-                      <SocialLoginSettingsPage />
-                    </RoleBasedRoute>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/branding"
-                element={
-                  <ProtectedRoute>
-                    <RoleBasedRoute requiredPage="Settings">
-                      <BrandingSettingsPage />
-                    </RoleBasedRoute>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/navigation"
-                element={
-                  <ProtectedRoute>
-                    <RoleBasedRoute requiredPage="Settings">
-                      <NavigationSettingsPage />
-                    </RoleBasedRoute>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/modules"
-                element={
-                  <ProtectedRoute>
-                    <RoleBasedRoute requiredPage="Settings">
-                      <ModuleFieldSettingsPage />
-                    </RoleBasedRoute>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/service-requests"
-                element={
-                  <ProtectedRoute>
-                    <RoleBasedRoute requiredPage="Settings">
-                      <ServiceRequestDefinitionsPage />
-                    </RoleBasedRoute>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/master-data"
-                element={
-                  <ProtectedRoute>
-                    <RoleBasedRoute requiredPage="Settings">
-                      <MasterDataSettingsPage />
-                    </RoleBasedRoute>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/dashboards"
-                element={
-                  <ProtectedRoute>
-                    <RoleBasedRoute requiredPage="Settings">
-                      <DashboardSettingsPage />
-                    </RoleBasedRoute>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/workflows"
-                element={
-                  <ProtectedRoute>
-                    <RoleBasedRoute requiredPage="Settings">
-                      <WorkflowListPage />
-                    </RoleBasedRoute>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/workflows/:id/designer"
-                element={
-                  <ProtectedRoute>
-                    <RoleBasedRoute requiredPage="Settings">
-                      <WorkflowDesignerPage />
-                    </RoleBasedRoute>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/workflows/monitor"
-                element={
-                  <ProtectedRoute>
-                    <RoleBasedRoute requiredPage="Settings">
-                      <WorkflowMonitorPage />
-                    </RoleBasedRoute>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/workflows/instances"
-                element={
-                  <ProtectedRoute>
-                    <RoleBasedRoute requiredPage="Settings">
-                      <WorkflowInstancesPage />
-                    </RoleBasedRoute>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/workflows/instances/:id"
-                element={
-                  <ProtectedRoute>
-                    <RoleBasedRoute requiredPage="Settings">
-                      <WorkflowInstanceDetailPage />
-                    </RoleBasedRoute>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/workflows/:workflowId/monitor"
-                element={
-                  <ProtectedRoute>
-                    <RoleBasedRoute requiredPage="Settings">
-                      <WorkflowMonitorPage />
-                    </RoleBasedRoute>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/workflows/templates"
-                element={
-                  <ProtectedRoute>
-                    <RoleBasedRoute requiredPage="Settings">
-                      <WorkflowTemplatesPage />
-                    </RoleBasedRoute>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/test-results"
-                element={
-                  <ProtectedRoute>
-                    <RoleBasedRoute requiredPage="Settings">
-                      <TestResultsPage />
-                    </RoleBasedRoute>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/llm"
-                element={
-                  <ProtectedRoute>
-                    <RoleBasedRoute requiredPage="Settings">
-                      <LLMSettingsPage />
-                    </RoleBasedRoute>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/database-settings"
-                element={
-                  <ProtectedRoute>
-                    <RoleBasedRoute requiredPage="Settings">
-                      <DatabaseSettingsPage />
-                    </RoleBasedRoute>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/duplicate-rules"
-                element={
-                  <ProtectedRoute>
-                    <RoleBasedRoute requiredPage="Settings">
-                      <DuplicateRulesPage />
-                    </RoleBasedRoute>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/lead-score-rules"
-                element={
-                  <ProtectedRoute>
-                    <RoleBasedRoute requiredPage="Settings">
-                      <LeadScoreRulesPage />
-                    </RoleBasedRoute>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/integrations"
-                element={
-                  <ProtectedRoute>
-                    <RoleBasedRoute requiredPage="Settings">
-                      <IntegrationsSettingsPage />
-                    </RoleBasedRoute>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/analytics"
-                element={
-                  <ProtectedRoute>
-                    <RoleBasedRoute requiredPage="Settings">
-                      <AnalyticsSettingsPage />
-                    </RoleBasedRoute>
-                  </ProtectedRoute>
-                }
-              />
+              >
+                <Route index element={<Navigate to="/admin/config/system" replace />} />
+                <Route path="config/system" element={<SystemConfigurationPage />} />
+                <Route path="config/crm" element={<CRMConfigurationPage />} />
+                <Route path="database" element={<Navigate to="/admin/monitoring" replace />} />
+                <Route path="deployment" element={<DeploymentSettingsPage />} />
+                <Route path="monitoring" element={<MonitoringSettingsPage />} />
+                <Route path="workers" element={<WorkerOperationsPage />} />
+                <Route path="security" element={<SecuritySettingsPage />} />
+                <Route path="features" element={<FeatureManagementPage />} />
+                <Route path="users" element={<UserManagementSettingsPage />} />
+                <Route path="approvals" element={<UserApprovalPage />} />
+                <Route path="groups" element={<GroupManagementPage />} />
+                <Route path="social-login" element={<SocialLoginSettingsPage />} />
+                <Route path="branding" element={<BrandingSettingsPage />} />
+                <Route path="navigation" element={<NavigationSettingsPage />} />
+                <Route path="modules" element={<ModuleFieldSettingsPage />} />
+                <Route path="service-requests" element={<ServiceRequestDefinitionsPage />} />
+                <Route path="master-data" element={<MasterDataSettingsPage />} />
+                <Route path="dashboards" element={<DashboardSettingsPage />} />
+                <Route path="workflows" element={<WorkflowListPage />} />
+                <Route path="workflows/:id/designer" element={<WorkflowDesignerPage />} />
+                <Route path="workflows/monitor" element={<WorkflowMonitorPage />} />
+                <Route path="workflows/instances" element={<WorkflowInstancesPage />} />
+                <Route path="workflows/instances/:id" element={<WorkflowInstanceDetailPage />} />
+                <Route path="workflows/:workflowId/monitor" element={<WorkflowMonitorPage />} />
+                <Route path="workflows/templates" element={<WorkflowTemplatesPage />} />
+                <Route path="test-results" element={<TestResultsPage />} />
+                <Route path="llm" element={<LLMSettingsPage />} />
+                <Route path="database-settings" element={<DatabaseSettingsPage />} />
+                <Route path="duplicate-rules" element={<DuplicateRulesPage />} />
+                <Route path="lead-score-rules" element={<LeadScoreRulesPage />} />
+                <Route path="integrations" element={<IntegrationsSettingsPage />} />
+                <Route path="analytics" element={<AnalyticsSettingsPage />} />
+                <Route path="api-docs" element={<ApiDocumentationPage />} />
+                <Route path="agents/new" element={<AgentCreatorPage />} />
+                <Route path="agents" element={<AgentManagementPage />} />
+                <Route path="agents/approvals" element={<AgentApprovalsPage />} />
+                <Route path="agents/analytics" element={<AgentAnalyticsPage />} />
+              </Route>
               <Route
                 path="/analytics"
                 element={
@@ -1399,46 +1135,6 @@ function ThemedApp() {
                 element={
                   <ProtectedRoute>
                     <AgentChatPage />
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/agents/new"
-                element={
-                  <ProtectedRoute>
-                    <RoleBasedRoute requiredPage="Settings">
-                      <AgentCreatorPage />
-                    </RoleBasedRoute>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/agents"
-                element={
-                  <ProtectedRoute>
-                    <RoleBasedRoute requiredPage="Settings">
-                      <AgentManagementPage />
-                    </RoleBasedRoute>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/agents/approvals"
-                element={
-                  <ProtectedRoute>
-                    <RoleBasedRoute requiredPage="Settings">
-                      <AgentApprovalsPage />
-                    </RoleBasedRoute>
-                  </ProtectedRoute>
-                }
-              />
-              <Route
-                path="/admin/agents/analytics"
-                element={
-                  <ProtectedRoute>
-                    <RoleBasedRoute requiredPage="Settings">
-                      <AgentAnalyticsPage />
-                    </RoleBasedRoute>
                   </ProtectedRoute>
                 }
               />
