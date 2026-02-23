@@ -1,16 +1,16 @@
 # CRM Solution - Feature Specification Index
 
-> **Last Updated:** February 23, 2026 (8 Architecture Specs COMPLETE ✅)  
-> **Total Specifications:** 49 Feature Specs + 13 Required Architecture Specs (8 ✅ Complete | 5 ⏳ Pending)  
+> **Last Updated:** February 23, 2026 (11 Architecture Specs COMPLETE ✅)  
+> **Total Specifications:** 49 Feature Specs + 13 Required Architecture Specs (11 ✅ Complete | 2 ⏳ Pending)  
 > **Template Version:** 1.0  
 > **✅ Overall Status:** 71.4% Feature Complete | Core CRM 100% ✅ | Sales 72% | Service Desk 80% | ITSM 85%+ | **System 100%** ✅ | Backend 84% | Frontend 75% | Database 92-94%
-> **🆕 ARCHITECTURE SPECS:** 8/13 architectures documented (DTO, Error Handling, DI, Caching, Validation, Middleware, Provider Plugin, Concurrency) | Ready for implementation guidance
+> **🆕 ARCHITECTURE SPECS:** 11/13 architectures documented (DTO, Error Handling, DI, Caching, Validation, Middleware, Provider Plugin, Concurrency, Logging & Instrumentation, Data Isolation, API Versioning) | Ready for implementation guidance
 
 ---
 
 ## 📋 NEW: Architecture Specifications (Foundation Layer)
 
-The following 8 **critical architecture specifications** have been created to provide consistent patterns across the entire CRM solution:
+The following 11 **critical architecture specifications** have been created to provide consistent patterns across the entire CRM solution:
 
 ### Architecture Specs - Complete ✅
 
@@ -24,15 +24,15 @@ The following 8 **critical architecture specifications** have been created to pr
 | [**SPEC-ARCH-007**](SPEC-ARCH-007-MiddlewarePipeline.md) | Middleware Pipeline Architecture | ASP.NET Core middleware execution order & patterns | ✅ Complete | Centralized cross-cutting concerns, better observability |
 | [**SPEC-ARCH-008**](SPEC-ARCH-008-ProviderPluginArchitecture.md) | Provider Plugin Architecture | Hexagonal architecture for pluggable providers | ✅ Complete | Vendor independence, runtime provider switching |
 | [**SPEC-ARCH-009**](SPEC-ARCH-009-ConcurrencyControl.md) | Concurrency Control | Optimistic concurrency with RowVersion & ETags | ✅ Complete | Prevents data loss in multi-user scenarios |
+| [**SPEC-ARCH-010**](SPEC-ARCH-010-LoggingInstrumentation.md) | Logging & Instrumentation | Serilog, InstrumentationMiddleware, distributed tracing, audit logging | ✅ Complete | Observability, diagnostics, compliance |
+| [**SPEC-ARCH-011**](SPEC-ARCH-011-DataIsolationMultiTenancy.md) | Data Isolation & Multi-Tenancy | Soft delete, global query filters, BaseEntity, row-level security | ✅ Complete | Data integrity, tenant isolation, security |
+| [**SPEC-ARCH-012**](SPEC-ARCH-012-APIVersioningStrategy.md) | API Versioning Strategy | URL path versioning, Asp.Versioning.Mvc, deprecation lifecycle | ✅ Complete | API evolution, client compatibility |
 
 ### Architecture Specs - Pending ⏳
 
 | Spec ID | Title | Priority | Estimated Effort |
 |---------|-------|----------|------------------|
 | [SPEC-ARCH-006](SPEC-ARCH-006-WorkerServiceArchitecture.md) | Worker Service Architecture | 🔴 HIGH | 6h |
-| SPEC-ARCH-010 | Logging & Instrumentation | 🟡 HIGH | 4h |
-| SPEC-ARCH-011 | Data Isolation & Multi-Tenancy Strategy | 🟡 MEDIUM | 4h |
-| SPEC-ARCH-012 | API Versioning Strategy | 🟡 MEDIUM | 3h |
 | [SPEC-ARCH-013](SPEC-ARCH-013-InfrastructureDeploymentStandards.md) | Infrastructure & Deployment Standards | 🔴 HIGH | 6h |
 
 **Benefits of Architecture Specs:**
