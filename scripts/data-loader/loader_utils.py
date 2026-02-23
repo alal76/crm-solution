@@ -668,8 +668,11 @@ def save_ids(entity_type: str, ids: List[int]) -> None:
         return
     state = {}
     if os.path.exists(STATE_FILE):
-        with open(STATE_FILE) as f:
-            state = json.load(f)
+        try:
+            with open(STATE_FILE) as f:
+                state = json.load(f)
+        except (json.JSONDecodeError, ValueError):
+            state = {}  # Reset corrupted state
     state[entity_type] = ids
     with open(STATE_FILE, "w") as f:
         json.dump(state, f, indent=2)
@@ -678,13 +681,19 @@ def load_ids(entity_type: str) -> List[int]:
     """Load previously created IDs from shared state file."""
     if not STATE_FILE or not os.path.exists(STATE_FILE):
         return []
-    with open(STATE_FILE) as f:
-        state = json.load(f)
+    try:
+        with open(STATE_FILE) as f:
+            state = json.load(f)
+    except (json.JSONDecodeError, ValueError):
+        return []
     return state.get(entity_type, [])
 
 def load_all_state() -> Dict[str, List[int]]:
     """Load all state."""
     if not STATE_FILE or not os.path.exists(STATE_FILE):
         return {}
-    with open(STATE_FILE) as f:
-        return json.load(f)
+    try:
+        with open(STATE_FILE) as f:
+            return json.load(f)
+    except (json.JSONDecodeError, ValueError):
+        return {}
