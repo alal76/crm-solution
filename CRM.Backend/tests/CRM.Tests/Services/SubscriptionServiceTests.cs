@@ -190,7 +190,7 @@ public class SubscriptionServiceTests
     public async Task CreateAsync_ShouldSetTimestampsAndSubscriptionNumber()
     {
         // Arrange
-        var subscription = new Subscription { AccountId = 1, Amount = 100m };
+        var subscription = new Subscription { AccountId = 1, Amount = 100m, BillingCycle = "Monthly" };
 
         // Act
         var result = await _service.CreateAsync(subscription);
@@ -207,7 +207,7 @@ public class SubscriptionServiceTests
     public async Task CreateAsync_ShouldThrow_WhenAccountIdIsZero()
     {
         // Arrange
-        var subscription = new Subscription { AccountId = 0, Amount = 100m };
+        var subscription = new Subscription { AccountId = 0, Amount = 100m, BillingCycle = "Monthly" };
 
         // Act
         var act = async () => await _service.CreateAsync(subscription);

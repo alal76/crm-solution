@@ -70,6 +70,8 @@ public class ContractService : IContractService
 
     public async Task<Contract> CreateAsync(Contract contract, CancellationToken cancellationToken = default)
     {
+        ValidateContractInput(contract);
+
         contract.ContractNumber = await GenerateContractNumberAsync(cancellationToken);
         contract.CreatedAt = DateTime.UtcNow;
         contract.UpdatedAt = DateTime.UtcNow;
@@ -88,6 +90,8 @@ public class ContractService : IContractService
         {
             throw new InvalidOperationException($"Contract {contract.Id} not found");
         }
+
+        ValidateContractInput(contract);
 
         contract.UpdatedAt = DateTime.UtcNow;
         _context.Contracts.Update(contract);
@@ -804,6 +808,23 @@ public class ContractService : IContractService
             }
         }
         return sb.ToString();
+    }
+
+    #endregion
+
+    #region Validation Helpers
+
+    private static void ValidateContractInput(Contract contract)
+    {
+        if (contract.EndDate != default && contract.StartDate != default && contract.EndDate <= contract.StartDate)
+        {
+            throw new ArgumentException("EndDate must be after StartDate.", nameof(contract));
+        }
+
+        if (contract.TotalValue < 0)
+        {
+            throw new ArgumentException("Contract value must be zero or positive.", nameof(contract));
+        }
     }
 
     #endregion

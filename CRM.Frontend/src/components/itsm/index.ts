@@ -81,3 +81,22 @@ export type {
   CIStatus, 
   RelationshipType 
 } from './CIRelationshipDiagram';
+
+// Service Desk Sub-Components
+export { default as ServiceRequestCard } from './ServiceRequestCard';
+export type { ServiceRequestCardProps } from './ServiceRequestCard';
+
+export { default as StatusTransitionButtons } from './StatusTransitionButtons';
+export type { StatusTransitionButtonsProps } from './StatusTransitionButtons';
+
+export { default as ResolutionForm } from './ResolutionForm';
+export type { ResolutionFormProps, ResolutionData } from './ResolutionForm';
+
+export { default as FeedbackForm } from './FeedbackForm';
+export type { FeedbackFormProps, FeedbackData } from './FeedbackForm';
+
+export { default as SLAStatusBadge } from './SLAStatusBadge';
+export type { SLAStatusBadgeProps } from './SLAStatusBadge';
+
+export { default as ServiceRequestStats } from './ServiceRequestStats';
+export type { ServiceRequestStatsProps } from './ServiceRequestStats';

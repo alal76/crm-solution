@@ -98,6 +98,11 @@ public class SubscriptionService : ISubscriptionService
             throw new InvalidOperationException($"Subscription {subscription.Id} not found");
         }
 
+        if (string.IsNullOrWhiteSpace(subscription.SubscriptionNumber))
+        {
+            throw new ArgumentException("SubscriptionNumber is required.", nameof(subscription));
+        }
+
         ValidateSubscriptionInput(subscription);
         subscription.BillingCycle = NormalizeBillingCycle(subscription.BillingCycle);
         subscription.UpdatedAt = DateTime.UtcNow;
@@ -827,6 +832,16 @@ public class SubscriptionService : ISubscriptionService
             throw new ArgumentException("Amount must be greater than or equal to zero.");
         }
 
+        if (string.IsNullOrWhiteSpace(subscription.BillingCycle))
+        {
+            throw new ArgumentException("BillingCycle is required.", nameof(subscription));
+        }
+
+        if (subscription.IsAutoRenew && subscription.SubscriptionStatus == SubscriptionStatus.Cancelled)
+        {
+            throw new InvalidOperationException("Cannot set AutoRenew on a cancelled subscription.");
+        }
+
         if (subscription.MRR.HasValue && subscription.MRR.Value < 0)
         {
             throw new ArgumentException("MRR must be greater than or equal to zero.");
@@ -847,10 +862,7 @@ public class SubscriptionService : ISubscriptionService
             throw new ArgumentException("BillingEndDate must be greater than or equal to BillingStartDate.");
         }
 
-        if (!string.IsNullOrWhiteSpace(subscription.BillingCycle))
-        {
-            _ = NormalizeBillingCycle(subscription.BillingCycle); // will throw if invalid
-        }
+        _ = NormalizeBillingCycle(subscription.BillingCycle); // will throw if invalid
     }
 
     private async Task<string> GenerateInvoiceNumberAsync(CancellationToken cancellationToken)

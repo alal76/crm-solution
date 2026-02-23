@@ -616,6 +616,10 @@ builder.Services.AddScoped<IInteractionService, InteractionService>();
 builder.Services.AddScoped<ICommunicationService, CommunicationService>();
 builder.Services.AddScoped<IImportExportService, ImportExportService>();
 builder.Services.AddScoped<IWebhookService, WebhookService>();
+// Webhook infrastructure - signature generation, retry policy, circuit breaker
+builder.Services.AddSingleton<IWebhookSignatureGenerator, WebhookSignatureGenerator>();
+builder.Services.AddSingleton<IWebhookRetryPolicy, WebhookRetryPolicy>();
+builder.Services.AddSingleton<IWebhookCircuitBreaker, WebhookCircuitBreaker>();
 // Phase 2B services - Lead Management, Form Builder, Territory Management, Approval Workflows
 builder.Services.AddScoped<ILeadService, LeadService>();
 builder.Services.AddScoped<ILeadRoutingService, LeadRoutingService>();

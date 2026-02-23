@@ -7,6 +7,7 @@
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
+using CRM.Infrastructure.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -24,11 +25,22 @@ public class AuthController : ControllerBase
 {
     private readonly IAuthenticationService _authenticationService;
     private readonly ILogger<AuthController> _logger;
+    private readonly LinkedInOAuthProvider _linkedInOAuthProvider;
+    private readonly AppleOAuthProvider _appleOAuthProvider;
+    private readonly IWebAuthnService _webAuthnService;
 
-    public AuthController(IAuthenticationService authenticationService, ILogger<AuthController> logger)
+    public AuthController(
+        IAuthenticationService authenticationService,
+        ILogger<AuthController> logger,
+        LinkedInOAuthProvider linkedInOAuthProvider,
+        AppleOAuthProvider appleOAuthProvider,
+        IWebAuthnService webAuthnService)
     {
         _authenticationService = authenticationService;
         _logger = logger;
+        _linkedInOAuthProvider = linkedInOAuthProvider;
+        _appleOAuthProvider = appleOAuthProvider;
+        _webAuthnService = webAuthnService;
     }
 
     /// <summary>
@@ -693,6 +705,499 @@ public class AuthController : ControllerBase
         {
             _logger.LogError($"Change password error: {ex.Message}");
             return StatusCode(500, new { message = "An error occurred during password change" });
+        }
+    }
+
+    // ==========================================
+    // LinkedIn OAuth Endpoints
+    // ==========================================
+
+    /// <summary>
+    /// Initiate LinkedIn OAuth login flow — returns the authorization URL.
+    /// </summary>
+    /// <param name="returnUrl">Optional URL to redirect to after successful login</param>
+    /// <param name="redirectUri">The OAuth redirect URI registered with LinkedIn</param>
+    /// <returns>Authorization URL and anti-CSRF state token</returns>
+    /// <response code="200">Returns the LinkedIn authorization URL</response>
+    /// <response code="500">If there was an internal server error</response>
+    [HttpGet("oauth/linkedin")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(OAuthRedirectDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public IActionResult GetLinkedInAuthUrl(
+        [FromQuery] string? returnUrl = null,
+        [FromQuery] string? redirectUri = null)
+    {
+        try
+        {
+            var state = Convert.ToBase64String(System.Security.Cryptography.RandomNumberGenerator.GetBytes(32));
+            var effectiveRedirectUri = redirectUri ?? $"{Request.Scheme}://{Request.Host}/api/auth/oauth/linkedin/callback";
+
+            var authorizationUrl = _linkedInOAuthProvider.GetAuthorizationUrl(state, effectiveRedirectUri);
+
+            if (!string.IsNullOrEmpty(returnUrl))
+            {
+                authorizationUrl += $"&return_url={Uri.EscapeDataString(returnUrl)}";
+            }
+
+            _logger.LogInformation("Generated LinkedIn OAuth authorization URL");
+            return Ok(new OAuthRedirectDto
+            {
+                AuthorizationUrl = authorizationUrl,
+                State = state
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to generate LinkedIn OAuth authorization URL");
+            return StatusCode(500, new { message = "Failed to initiate LinkedIn OAuth flow" });
+        }
+    }
+
+    /// <summary>
+    /// LinkedIn OAuth callback — exchanges authorization code for token and logs in.
+    /// </summary>
+    /// <param name="dto">The OAuth callback data with authorization code</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>Authentication response with JWT tokens</returns>
+    /// <response code="200">Returns authentication tokens for the LinkedIn user</response>
+    /// <response code="400">If the callback data is invalid</response>
+    /// <response code="500">If there was an internal server error</response>
+    [HttpPost("oauth/linkedin/callback")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> LinkedInCallback([FromBody] OAuthCallbackDto dto, CancellationToken ct)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(dto.Code))
+                return BadRequest(new { message = "Authorization code is required" });
+
+            var effectiveRedirectUri = dto.RedirectUri ?? $"{Request.Scheme}://{Request.Host}/api/auth/oauth/linkedin/callback";
+
+            // Exchange authorization code for access token
+            var tokenResponse = await _linkedInOAuthProvider.ExchangeCodeForTokenAsync(dto.Code, effectiveRedirectUri, ct);
+
+            // Get user profile from LinkedIn
+            var profile = await _linkedInOAuthProvider.GetUserProfileAsync(tokenResponse.Access_token, ct);
+
+            if (string.IsNullOrEmpty(profile.Email))
+            {
+                _logger.LogWarning("LinkedIn OAuth: No email returned for user {LinkedInId}", profile.Id);
+                return BadRequest(new { message = "LinkedIn account does not have an accessible email address" });
+            }
+
+            // Delegate to the existing OAuthLoginAsync which handles find-or-create user and JWT generation
+            var oauthRequest = new OAuthLoginRequest
+            {
+                Provider = "linkedin",
+                Token = tokenResponse.Access_token
+            };
+
+            var response = await _authenticationService.OAuthLoginAsync(oauthRequest);
+            _logger.LogInformation("LinkedIn OAuth login successful for {Email}", profile.Email);
+            return Ok(response);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "LinkedIn OAuth callback error");
+            return StatusCode(500, new { message = "An error occurred during LinkedIn OAuth login" });
+        }
+    }
+
+    // ==========================================
+    // Apple OAuth Endpoints
+    // ==========================================
+
+    /// <summary>
+    /// Initiate Apple OAuth login flow — returns the authorization URL.
+    /// </summary>
+    /// <param name="returnUrl">Optional URL to redirect to after successful login</param>
+    /// <param name="redirectUri">The OAuth redirect URI registered with Apple</param>
+    /// <returns>Authorization URL and anti-CSRF state token</returns>
+    /// <response code="200">Returns the Apple authorization URL</response>
+    /// <response code="500">If there was an internal server error</response>
+    [HttpGet("oauth/apple")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(OAuthRedirectDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public IActionResult GetAppleAuthUrl(
+        [FromQuery] string? returnUrl = null,
+        [FromQuery] string? redirectUri = null)
+    {
+        try
+        {
+            var state = Convert.ToBase64String(System.Security.Cryptography.RandomNumberGenerator.GetBytes(32));
+            var effectiveRedirectUri = redirectUri ?? $"{Request.Scheme}://{Request.Host}/api/auth/oauth/apple/callback";
+
+            var authorizationUrl = _appleOAuthProvider.GetAuthorizationUrl(state, effectiveRedirectUri);
+
+            if (!string.IsNullOrEmpty(returnUrl))
+            {
+                authorizationUrl += $"&return_url={Uri.EscapeDataString(returnUrl)}";
+            }
+
+            _logger.LogInformation("Generated Apple OAuth authorization URL");
+            return Ok(new OAuthRedirectDto
+            {
+                AuthorizationUrl = authorizationUrl,
+                State = state
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to generate Apple OAuth authorization URL");
+            return StatusCode(500, new { message = "Failed to initiate Apple OAuth flow" });
+        }
+    }
+
+    /// <summary>
+    /// Apple OAuth callback — exchanges authorization code for token and logs in.
+    /// Apple uses JWT client assertion and returns user info only on first sign-in.
+    /// </summary>
+    /// <param name="dto">The OAuth callback data with authorization code</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>Authentication response with JWT tokens</returns>
+    /// <response code="200">Returns authentication tokens for the Apple user</response>
+    /// <response code="400">If the callback data is invalid</response>
+    /// <response code="500">If there was an internal server error</response>
+    [HttpPost("oauth/apple/callback")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> AppleCallback([FromBody] OAuthCallbackDto dto, CancellationToken ct)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(dto.Code))
+                return BadRequest(new { message = "Authorization code is required" });
+
+            var effectiveRedirectUri = dto.RedirectUri ?? $"{Request.Scheme}://{Request.Host}/api/auth/oauth/apple/callback";
+
+            // Exchange authorization code for access token (Apple uses JWT client secret)
+            var tokenResponse = await _appleOAuthProvider.ExchangeCodeForTokenAsync(dto.Code, effectiveRedirectUri, ct);
+
+            // Decode the ID token to get user info
+            AppleUserProfile? profile = null;
+            if (!string.IsNullOrEmpty(tokenResponse.Id_token))
+            {
+                profile = _appleOAuthProvider.DecodeIdToken(tokenResponse.Id_token);
+            }
+
+            // Apple sends user data only on first authorization — merge if present
+            if (!string.IsNullOrEmpty(dto.UserData))
+            {
+                var parsedProfile = _appleOAuthProvider.ParseUserResponse(dto.UserData, profile?.Email);
+                if (profile != null)
+                {
+                    profile.FirstName ??= parsedProfile.FirstName;
+                    profile.LastName ??= parsedProfile.LastName;
+                }
+                else
+                {
+                    profile = parsedProfile;
+                }
+            }
+
+            if (profile == null || string.IsNullOrEmpty(profile.Email))
+            {
+                _logger.LogWarning("Apple OAuth: No email could be extracted from callback");
+                return BadRequest(new { message = "Apple account did not provide an email address" });
+            }
+
+            // Delegate to the existing OAuthLoginAsync
+            var oauthRequest = new OAuthLoginRequest
+            {
+                Provider = "apple",
+                Token = tokenResponse.Id_token ?? tokenResponse.Access_token ?? string.Empty
+            };
+
+            var response = await _authenticationService.OAuthLoginAsync(oauthRequest);
+            _logger.LogInformation("Apple OAuth login successful for {Email}", profile.Email);
+            return Ok(response);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Apple OAuth callback error");
+            return StatusCode(500, new { message = "An error occurred during Apple OAuth login" });
+        }
+    }
+
+    // ==========================================
+    // WebAuthn / FIDO2 Endpoints
+    // ==========================================
+
+    /// <summary>
+    /// Get WebAuthn registration options for creating a new credential.
+    /// Returns a challenge and relying party info for navigator.credentials.create().
+    /// </summary>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>WebAuthn registration options with challenge</returns>
+    /// <response code="200">Returns registration options (challenge, RP info, user entity)</response>
+    /// <response code="401">If the user is not authenticated</response>
+    /// <response code="500">If there was an internal server error</response>
+    [HttpPost("webauthn/register/options")]
+    [Authorize]
+    [ProducesResponseType(typeof(WebAuthnRegistrationOptionsDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> GetWebAuthnRegistrationOptions(CancellationToken ct)
+    {
+        try
+        {
+            var userIdClaim = User.FindFirst("sub") ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
+                return Unauthorized();
+
+            var emailClaim = User.FindFirst("email") ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/emailaddress");
+            var nameClaim = User.FindFirst("name") ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/name");
+
+            var userEmail = emailClaim?.Value ?? string.Empty;
+            var userName = nameClaim?.Value ?? userEmail;
+
+            var options = await _webAuthnService.InitiateRegistrationAsync(userId, userEmail, userName, ct);
+            return Ok(options);
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning("WebAuthn registration options failed: {Message}", ex.Message);
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "WebAuthn registration options error");
+            return StatusCode(500, new { message = "An error occurred generating WebAuthn registration options" });
+        }
+    }
+
+    /// <summary>
+    /// Complete WebAuthn registration with client attestation response.
+    /// Verifies the attestation and stores the new credential.
+    /// </summary>
+    /// <param name="dto">Attestation response and credential name</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>The registered credential details</returns>
+    /// <response code="200">Returns the registered credential</response>
+    /// <response code="400">If the attestation is invalid</response>
+    /// <response code="401">If the user is not authenticated</response>
+    /// <response code="500">If there was an internal server error</response>
+    [HttpPost("webauthn/register/complete")]
+    [Authorize]
+    [ProducesResponseType(typeof(WebAuthnCredentialDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> CompleteWebAuthnRegistration([FromBody] WebAuthnRegistrationCompleteDto dto, CancellationToken ct)
+    {
+        try
+        {
+            var userIdClaim = User.FindFirst("sub") ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
+                return Unauthorized();
+
+            var credential = await _webAuthnService.CompleteRegistrationAsync(
+                userId,
+                dto.CredentialName,
+                dto.Attestation,
+                ct);
+
+            _logger.LogInformation("WebAuthn credential registered for user {UserId}", userId);
+            return Ok(credential);
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning("WebAuthn registration completion failed: {Message}", ex.Message);
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogWarning("WebAuthn registration invalid: {Message}", ex.Message);
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "WebAuthn registration completion error");
+            return StatusCode(500, new { message = "An error occurred completing WebAuthn registration" });
+        }
+    }
+
+    /// <summary>
+    /// Get WebAuthn authentication options (challenge) for passwordless login.
+    /// Returns a challenge for navigator.credentials.get().
+    /// </summary>
+    /// <param name="dto">Optional email to scope the challenge to a specific user</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>WebAuthn authentication options with challenge and allowed credentials</returns>
+    /// <response code="200">Returns authentication options (challenge, allowed credentials)</response>
+    /// <response code="400">If the request is invalid</response>
+    /// <response code="500">If there was an internal server error</response>
+    [HttpPost("webauthn/login/options")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(WebAuthnAuthenticationOptionsDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> GetWebAuthnLoginOptions([FromBody] WebAuthnLoginInitiateDto dto, CancellationToken ct)
+    {
+        try
+        {
+            var userEmail = dto.Email ?? string.Empty;
+            var options = await _webAuthnService.InitiateAuthenticationAsync(userEmail, ct);
+            return Ok(options);
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning("WebAuthn login options failed: {Message}", ex.Message);
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "WebAuthn login options error");
+            return StatusCode(500, new { message = "An error occurred generating WebAuthn login options" });
+        }
+    }
+
+    /// <summary>
+    /// Complete WebAuthn passwordless authentication.
+    /// Verifies the assertion and returns JWT tokens.
+    /// </summary>
+    /// <param name="dto">Assertion response with credential ID</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>Authentication response with JWT tokens</returns>
+    /// <response code="200">Returns authentication tokens</response>
+    /// <response code="400">If the assertion is invalid</response>
+    /// <response code="401">If authentication fails</response>
+    /// <response code="500">If there was an internal server error</response>
+    [HttpPost("webauthn/login/complete")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> CompleteWebAuthnLogin([FromBody] WebAuthnLoginCompleteDto dto, CancellationToken ct)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(dto.CredentialId))
+                return BadRequest(new { message = "Credential ID is required" });
+
+            var result = await _webAuthnService.CompleteAuthenticationAsync(
+                dto.Email ?? string.Empty,
+                dto.CredentialId,
+                dto.Assertion,
+                ct);
+
+            if (!result.IsValid || !result.UserId.HasValue)
+            {
+                _logger.LogWarning("WebAuthn authentication failed: {Error}", result.ErrorMessage);
+                return Unauthorized(new { message = result.ErrorMessage ?? "WebAuthn authentication failed" });
+            }
+
+            // Generate JWT tokens for the authenticated user
+            var user = await _authenticationService.GetUserByIdAsync(result.UserId.Value);
+            if (user == null)
+            {
+                return Unauthorized(new { message = "User not found" });
+            }
+
+            // Use the existing OAuthLogin flow to generate tokens for the WebAuthn-authenticated user
+            // This reuses the token generation logic without requiring a password
+            var oauthRequest = new OAuthLoginRequest
+            {
+                Provider = "webauthn",
+                Token = result.CredentialId ?? dto.CredentialId
+            };
+
+            var response = await _authenticationService.OAuthLoginAsync(oauthRequest);
+            _logger.LogInformation("WebAuthn login successful for user {UserId} with credential {CredentialId}",
+                result.UserId.Value, result.CredentialId);
+            return Ok(response);
+        }
+        catch (ArgumentException ex)
+        {
+            _logger.LogWarning("WebAuthn login completion failed: {Message}", ex.Message);
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            _logger.LogWarning("WebAuthn login unauthorized: {Message}", ex.Message);
+            return Unauthorized(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "WebAuthn login completion error");
+            return StatusCode(500, new { message = "An error occurred during WebAuthn login" });
+        }
+    }
+
+    /// <summary>
+    /// List all registered WebAuthn credentials for the current user.
+    /// </summary>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>List of registered WebAuthn credentials</returns>
+    /// <response code="200">Returns list of credentials</response>
+    /// <response code="401">If the user is not authenticated</response>
+    /// <response code="500">If there was an internal server error</response>
+    [HttpGet("webauthn/credentials")]
+    [Authorize]
+    [ProducesResponseType(typeof(IEnumerable<WebAuthnCredentialDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> GetWebAuthnCredentials(CancellationToken ct)
+    {
+        try
+        {
+            var userIdClaim = User.FindFirst("sub") ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
+                return Unauthorized();
+
+            var credentials = await _webAuthnService.GetCredentialsAsync(userId, ct);
+            return Ok(credentials);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving WebAuthn credentials");
+            return StatusCode(500, new { message = "An error occurred retrieving WebAuthn credentials" });
+        }
+    }
+
+    /// <summary>
+    /// Remove a registered WebAuthn credential.
+    /// </summary>
+    /// <param name="credentialId">The credential ID to remove</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>Success status</returns>
+    /// <response code="200">Credential successfully removed</response>
+    /// <response code="401">If the user is not authenticated</response>
+    /// <response code="404">If the credential was not found</response>
+    /// <response code="500">If there was an internal server error</response>
+    [HttpDelete("webauthn/credentials/{credentialId}")]
+    [Authorize]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> RemoveWebAuthnCredential(string credentialId, CancellationToken ct)
+    {
+        try
+        {
+            var userIdClaim = User.FindFirst("sub") ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
+                return Unauthorized();
+
+            var success = await _webAuthnService.RemoveCredentialAsync(userId, credentialId, ct);
+            if (!success)
+                return NotFound(new { message = "Credential not found" });
+
+            _logger.LogInformation("WebAuthn credential {CredentialId} removed for user {UserId}", credentialId, userId);
+            return Ok(new { message = "WebAuthn credential removed successfully" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error removing WebAuthn credential");
+            return StatusCode(500, new { message = "An error occurred removing WebAuthn credential" });
         }
     }
 }
