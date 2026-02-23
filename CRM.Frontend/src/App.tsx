@@ -206,6 +206,10 @@ const DuplicateRulesPage = lazy(() => import('./pages/admin/DuplicateRulesPage')
 const LeadScoreRulesPage = lazy(() => import('./pages/admin/LeadScoreRulesPage'));
 const IntegrationsSettingsPage = lazy(() => import('./pages/admin/IntegrationsSettingsPage'));
 const AnalyticsSettingsPage = lazy(() => import('./pages/admin/AnalyticsSettingsPage'));
+const SalesConfigPage = lazy(() => import('./pages/admin/SalesConfigPage'));
+const ServiceDeskConfigPage = lazy(() => import('./pages/admin/ServiceDeskConfigPage'));
+const AuditLoggingPage = lazy(() => import('./pages/admin/AuditLoggingPage'));
+const UICustomizationPage = lazy(() => import('./pages/admin/UICustomizationPage'));
 
 // Analytics & Reports Pages (main navigation)
 const AnalyticsPage = lazy(() => import('./pages/AnalyticsPage'));
@@ -1056,7 +1060,7 @@ function ThemedApp() {
                 <Route index element={<Navigate to="/admin/config/system" replace />} />
                 <Route path="config/system" element={<SystemConfigurationPage />} />
                 <Route path="config/crm" element={<CRMConfigurationPage />} />
-                <Route path="database" element={<Navigate to="/admin/monitoring" replace />} />
+                <Route path="database" element={<Navigate to="/admin/database-settings" replace />} />
                 <Route path="deployment" element={<DeploymentSettingsPage />} />
                 <Route path="monitoring" element={<MonitoringSettingsPage />} />
                 <Route path="workers" element={<WorkerOperationsPage />} />
@@ -1086,6 +1090,10 @@ function ThemedApp() {
                 <Route path="lead-score-rules" element={<LeadScoreRulesPage />} />
                 <Route path="integrations" element={<IntegrationsSettingsPage />} />
                 <Route path="analytics" element={<AnalyticsSettingsPage />} />
+                <Route path="settings/sales" element={<SalesConfigPage />} />
+                <Route path="settings/service-desk" element={<ServiceDeskConfigPage />} />
+                <Route path="audit" element={<AuditLoggingPage />} />
+                <Route path="ui-customization" element={<UICustomizationPage />} />
                 <Route path="api-docs" element={<ApiDocumentationPage />} />
                 <Route path="agents/new" element={<AgentCreatorPage />} />
                 <Route path="agents" element={<AgentManagementPage />} />

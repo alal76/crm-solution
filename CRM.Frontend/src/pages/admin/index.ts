@@ -34,3 +34,6 @@ export { default as LLMSettingsPage } from './LLMSettingsPage';
 export { default as ApiDocumentationPage } from './ApiDocumentationPage';
 export { default as SystemConfigurationPage } from './SystemConfigurationPage';
 export { default as CRMConfigurationPage } from './CRMConfigurationPage';
+export { default as SalesConfigPage } from './SalesConfigPage';
+export { default as ServiceDeskConfigPage } from './ServiceDeskConfigPage';
+export { default as AuditLoggingPage } from './AuditLoggingPage';

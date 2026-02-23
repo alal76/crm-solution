@@ -115,6 +115,12 @@ import {
   Podcasts as ChannelAdminIcon,
   FolderSpecial as ViewQuiltIcon,
   SmartToy as SmartToyIcon,
+  Tune as CRMConfigIcon,
+  Dns as DatabaseIcon,
+  Memory as WorkerIcon,
+  Widgets as UiCustomIcon,
+  FileCopy as TemplateIcon,
+  Person as PersonIcon,
 } from '@mui/icons-material';
 import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
@@ -163,14 +169,14 @@ function NavigationContent() {
 
   // Collapsible admin subcategories state
   const [expandedAdminSections, setExpandedAdminSections] = useState<Record<string, boolean>>({
-    'admin-system': false,
-    'admin-users': false,
-    'admin-crm': false,
-    'admin-service': false,
-    'admin-navigation': false,
-    'admin-modules': false,
-    'admin-workflows': false,
-    'admin-channels': false,
+    'system-config': false,
+    'user-management': false,
+    'crm-config': false,
+    'ai-integrations': false,
+    'infrastructure': false,
+    'customization': false,
+    'workflows': false,
+    'developer-tools': false,
   });
 
   // Dynamic navigation configuration from backend (provider-aware)
@@ -344,39 +350,49 @@ function NavigationContent() {
   }), []);
 
   const staticAdminItemsConfig: Record<string, { label: string; icon: typeof DashboardIcon; path: string; menuName: string }> = useMemo(() => ({
-    // System Administration
-    'monitoring-settings': { label: 'Monitoring', icon: MonitorIcon, path: '/admin/monitoring', menuName: 'MonitoringSettings' },
-    'deployment-settings': { label: 'Deployment', icon: CloudIcon, path: '/admin/deployment', menuName: 'DeploymentSettings' },
-    'security-settings': { label: 'Security', icon: SecurityIcon, path: '/admin/security', menuName: 'SecuritySettings' },
-    'feature-management': { label: 'Features', icon: FeatureToggleIcon, path: '/admin/features', menuName: 'FeatureManagement' },
-    'database-settings': { label: 'Database', icon: StorageIcon, path: '/admin/database-settings', menuName: 'DatabaseSettings' },
-    'worker-ops': { label: 'Worker Operations', icon: SpeedIcon, path: '/admin/workers', menuName: 'WorkerOperations' },
-    // User Administration
+    // System Configuration
+    'general-settings': { label: 'General Settings', icon: SettingsIcon, path: '/admin/config/system', menuName: 'SystemConfiguration' },
+    'feature-management': { label: 'Feature Flags', icon: FeatureToggleIcon, path: '/admin/features', menuName: 'FeatureManagement' },
+    'navigation-settings': { label: 'Navigation', icon: NavAdminIcon as typeof DashboardIcon, path: '/admin/navigation', menuName: 'NavigationSettings' },
+    // User Management
     'user-management': { label: 'Users', icon: PeopleIcon, path: '/admin/users', menuName: 'UserManagement' },
-    'user-approvals': { label: 'Approvals', icon: PersonAddIcon, path: '/admin/approvals', menuName: 'UserApprovals' },
     'group-management': { label: 'Groups', icon: GroupsIcon, path: '/admin/groups', menuName: 'GroupManagement' },
+    'user-approvals': { label: 'Approvals', icon: ThumbUpIcon, path: '/admin/approvals', menuName: 'UserApprovals' },
+    'security-settings': { label: 'Security', icon: SecurityIcon, path: '/admin/security', menuName: 'SecuritySettings' },
     'social-login': { label: 'Social Login', icon: LoginIcon, path: '/admin/social-login', menuName: 'SocialLogin' },
-    // CRM Administration
-    'branding-settings': { label: 'Branding', icon: PaletteIcon, path: '/admin/branding', menuName: 'BrandingSettings' },
-    'navigation-settings': { label: 'Navigation', icon: MenuIcon, path: '/admin/navigation', menuName: 'NavigationSettings' },
+    // CRM Configuration
+    'crm-config-page': { label: 'CRM Config', icon: CRMConfigIcon as typeof DashboardIcon, path: '/admin/config/crm', menuName: 'CRMConfiguration' },
+    'sales-config': { label: 'Sales Config', icon: CommissionIcon, path: '/admin/settings/sales', menuName: 'SalesConfig' },
+    'service-desk-config': { label: 'Service Desk', icon: SupportAgentIcon, path: '/admin/settings/service-desk', menuName: 'ServiceDeskConfig' },
     'module-fields': { label: 'Modules & Fields', icon: ModuleIcon, path: '/admin/modules', menuName: 'ModuleFields' },
-    'duplicate-rules': { label: 'Duplicate Rules', icon: MergeIcon, path: '/admin/duplicate-rules', menuName: 'DuplicateRules' },
-    'lead-score-rules': { label: 'Lead Score Rules', icon: TrendingUpIcon, path: '/admin/lead-score-rules', menuName: 'LeadScoreRules' },
-    'sr-definitions': { label: 'Service Requests', icon: SupportAgentIcon, path: '/admin/service-requests', menuName: 'ServiceRequestDefinitions' },
     'master-data': { label: 'Master Data', icon: StorageIcon, path: '/admin/master-data', menuName: 'MasterData' },
-    'dashboard-settings': { label: 'Dashboards', icon: DashboardIcon, path: '/admin/dashboards', menuName: 'DashboardSettings' },
-    'workflow-settings': { label: 'Workflows', icon: WorkflowIcon, path: '/admin/workflows', menuName: 'WorkflowSettings' },
-    'workflow-monitor': { label: 'Workflow Monitor', icon: WorkflowMonitorIcon, path: '/admin/workflows/monitor', menuName: 'WorkflowMonitor' },
-    'integrations': { label: 'Integrations (n8n)', icon: IntegrationsIcon, path: '/admin/integrations', menuName: 'Integrations' },
-    'analytics-settings': { label: 'Analytics (Superset)', icon: AnalyticsIcon, path: '/admin/analytics', menuName: 'AnalyticsSettings' },
-    'test-results': { label: 'Test Results', icon: TestResultsIcon, path: '/admin/test-results', menuName: 'TestResults' },
+    'duplicate-rules': { label: 'Duplicate Rules', icon: MergeIcon, path: '/admin/duplicate-rules', menuName: 'DuplicateRules' },
+    'lead-score-rules': { label: 'Lead Score Rules', icon: ScoreIcon as typeof DashboardIcon, path: '/admin/lead-score-rules', menuName: 'LeadScoreRules' },
+    'sr-definitions': { label: 'Service Requests', icon: SupportAgentIcon, path: '/admin/service-requests', menuName: 'ServiceRequestDefinitions' },
+    // AI & Integrations
     'llm-settings': { label: 'AI / LLM Settings', icon: LLMIcon, path: '/admin/llm', menuName: 'LLMSettings' },
-    // AI Agent Administration
+    'integrations': { label: 'Integrations', icon: IntegrationsIcon, path: '/admin/integrations', menuName: 'Integrations' },
+    'analytics-settings': { label: 'Analytics', icon: AnalyticsIcon, path: '/admin/analytics', menuName: 'AnalyticsSettings' },
     'agent-management': { label: 'Agent Management', icon: SmartToyIcon as typeof DashboardIcon, path: '/admin/agents', menuName: 'AgentManagement' },
     'agent-approvals': { label: 'Agent Approvals', icon: PersonAddIcon, path: '/admin/agents/approvals', menuName: 'AgentApprovals' },
     'agent-analytics': { label: 'Agent Analytics', icon: AnalyticsIcon, path: '/admin/agents/analytics', menuName: 'AgentAnalytics' },
-    // Legacy items
-    'channel-settings': { label: 'Channel Settings', icon: ChannelSettingsIcon, path: '/channel-settings', menuName: 'ChannelSettings' },
+    // Infrastructure
+    'database-settings': { label: 'Database', icon: DatabaseIcon as typeof DashboardIcon, path: '/admin/database', menuName: 'DatabaseSettings' },
+    'monitoring-settings': { label: 'Monitoring', icon: MonitorIcon, path: '/admin/monitoring', menuName: 'MonitoringSettings' },
+    'deployment-settings': { label: 'Deployment', icon: CloudIcon, path: '/admin/deployment', menuName: 'DeploymentSettings' },
+    'worker-ops': { label: 'Workers', icon: WorkerIcon as typeof DashboardIcon, path: '/admin/workers', menuName: 'WorkerOperations' },
+    // Customization
+    'branding-settings': { label: 'Branding', icon: PaletteIcon, path: '/admin/branding', menuName: 'BrandingSettings' },
+    'dashboard-settings': { label: 'Dashboards', icon: DashboardIcon, path: '/admin/dashboards', menuName: 'DashboardSettings' },
+    'ui-customization': { label: 'UI Custom', icon: UiCustomIcon as typeof DashboardIcon, path: '/admin/ui-customization', menuName: 'UICustomization' },
+    // Workflows
+    'workflow-settings': { label: 'Workflow List', icon: WorkflowIcon, path: '/admin/workflows', menuName: 'WorkflowSettings' },
+    'workflow-monitor': { label: 'Monitor', icon: WorkflowMonitorIcon, path: '/admin/workflows/monitor', menuName: 'WorkflowMonitor' },
+    'workflow-templates': { label: 'Templates', icon: TemplateIcon as typeof DashboardIcon, path: '/admin/workflows/templates', menuName: 'WorkflowTemplates' },
+    // Developer Tools
+    'api-docs': { label: 'API Docs', icon: ApiIcon, path: '/admin/api-docs', menuName: 'ApiDocs' },
+    'test-results': { label: 'Test Results', icon: TestResultsIcon, path: '/admin/test-results', menuName: 'TestResults' },
+    'audit-logging': { label: 'Audit Logging', icon: QuoteIcon, path: '/admin/audit', menuName: 'AuditLogging' },
   }), []);
 
   const iconNameMap: Record<string, typeof DashboardIcon> = useMemo(() => ({
@@ -529,10 +545,14 @@ function NavigationContent() {
     'my-queue', 'activities', 'tasks', 'notes', 'communications', 'interactions'
   ], []);
   const defaultAdminOrder = useMemo(() => [
-    'monitoring-settings', 'deployment-settings', 'security-settings', 'feature-management', 'worker-ops',
-    'user-management', 'user-approvals', 'group-management', 'social-login',
-    'branding-settings', 'navigation-settings', 'module-fields', 'sr-definitions', 'master-data', 'dashboard-settings', 'workflow-settings',
-    'channel-settings', 'settings'
+    'general-settings', 'feature-management', 'navigation-settings',
+    'user-management', 'group-management', 'user-approvals', 'security-settings', 'social-login',
+    'crm-config-page', 'sales-config', 'service-desk-config', 'module-fields', 'master-data', 'duplicate-rules', 'lead-score-rules', 'sr-definitions',
+    'llm-settings', 'integrations', 'analytics-settings', 'agent-management', 'agent-approvals', 'agent-analytics',
+    'database-settings', 'monitoring-settings', 'deployment-settings', 'worker-ops',
+    'branding-settings', 'dashboard-settings', 'ui-customization',
+    'workflow-settings', 'workflow-monitor', 'workflow-templates',
+    'api-docs', 'test-results', 'audit-logging',
   ], []);
 
   // Default categories
@@ -550,14 +570,14 @@ function NavigationContent() {
 
   // Default admin subcategories with icons for collapsible sections
   const defaultAdminSubcategories = useMemo(() => [
-    { id: 'admin-system', label: 'System Settings', icon: 'SystemAdminIcon', order: 0 },
-    { id: 'admin-users', label: 'User & Group Settings', icon: 'UserAdminIcon', order: 1 },
-    { id: 'admin-crm', label: 'CRM Settings', icon: 'CRMAdminIcon', order: 2 },
-    { id: 'admin-service', label: 'Service Request Setup', icon: 'ServiceReqIcon', order: 3 },
-    { id: 'admin-navigation', label: 'Navigation', icon: 'NavAdminIcon', order: 4 },
-    { id: 'admin-modules', label: 'Modules & Fields', icon: 'ModulesIcon', order: 5 },
-    { id: 'admin-workflows', label: 'Workflows & Dashboards', icon: 'DashboardAdminIcon', order: 6 },
-    { id: 'admin-channels', label: 'Channels', icon: 'ChannelAdminIcon', order: 7 },
+    { id: 'system-config', label: 'System Configuration', icon: 'SystemAdminIcon', order: 0 },
+    { id: 'user-management', label: 'User Management', icon: 'UserAdminIcon', order: 1 },
+    { id: 'crm-config', label: 'CRM Configuration', icon: 'CRMAdminIcon', order: 2 },
+    { id: 'ai-integrations', label: 'AI & Integrations', icon: 'SmartToyIcon', order: 3 },
+    { id: 'infrastructure', label: 'Infrastructure', icon: 'StorageIcon', order: 4 },
+    { id: 'customization', label: 'Customization', icon: 'PaletteIcon', order: 5 },
+    { id: 'workflows', label: 'Workflows', icon: 'DashboardAdminIcon', order: 6 },
+    { id: 'developer-tools', label: 'Developer Tools', icon: 'ServiceReqIcon', order: 7 },
   ], []);
 
   // Icon map for admin subcategories
@@ -565,13 +585,12 @@ function NavigationContent() {
     SystemAdminIcon,
     UserAdminIcon,
     CRMAdminIcon,
-    ServiceReqIcon,
-    NavAdminIcon,
-    ModulesIcon,
-    DashboardAdminIcon,
-    ChannelAdminIcon,
-    SettingsIcon,
+    SmartToyIcon,
     StorageIcon,
+    PaletteIcon,
+    DashboardAdminIcon,
+    ServiceReqIcon,
+    SettingsIcon,
     SecurityIcon,
     Settings: SettingsIcon,
     People: PeopleIcon,
@@ -638,40 +657,49 @@ function NavigationContent() {
     { id: 'help', order: 51, visible: true, category: 'info' },
     { id: 'api-documentation', order: 51.5, visible: true, category: 'info' },
     { id: 'licenses', order: 52, visible: true, category: 'info' },
-    // System Administration
-    { id: 'monitoring-settings', order: 60, visible: true, category: 'admin', adminSubcategory: 'admin-system' },
-    { id: 'deployment-settings', order: 61, visible: true, category: 'admin', adminSubcategory: 'admin-system' },
-    { id: 'security-settings', order: 63, visible: true, category: 'admin', adminSubcategory: 'admin-system' },
-    { id: 'feature-management', order: 64, visible: true, category: 'admin', adminSubcategory: 'admin-system' },
-    { id: 'database-settings', order: 64.5, visible: true, category: 'admin', adminSubcategory: 'admin-system' },
-    { id: 'worker-ops', order: 64.6, visible: true, category: 'admin', adminSubcategory: 'admin-system' },
-    // User Administration
-    { id: 'user-management', order: 65, visible: true, category: 'admin', adminSubcategory: 'admin-users' },
-    { id: 'user-approvals', order: 66, visible: true, category: 'admin', adminSubcategory: 'admin-users' },
-    { id: 'group-management', order: 67, visible: true, category: 'admin', adminSubcategory: 'admin-users' },
-    { id: 'social-login', order: 68, visible: true, category: 'admin', adminSubcategory: 'admin-users' },
-    // CRM Administration
-    { id: 'branding-settings', order: 69, visible: true, category: 'admin', adminSubcategory: 'admin-crm' },
-    { id: 'navigation-settings', order: 70, visible: true, category: 'admin', adminSubcategory: 'admin-navigation' },
-    { id: 'module-fields', order: 71, visible: true, category: 'admin', adminSubcategory: 'admin-modules' },
-    { id: 'duplicate-rules', order: 71.5, visible: true, category: 'admin', adminSubcategory: 'admin-crm' },
-    { id: 'lead-score-rules', order: 71.6, visible: true, category: 'admin', adminSubcategory: 'admin-crm' },
-    { id: 'sr-definitions', order: 72, visible: true, category: 'admin', adminSubcategory: 'admin-service' },
-    { id: 'master-data', order: 73, visible: true, category: 'admin', adminSubcategory: 'admin-crm' },
-    { id: 'dashboard-settings', order: 74, visible: true, category: 'admin', adminSubcategory: 'admin-workflows' },
-    { id: 'workflow-settings', order: 75, visible: true, category: 'admin', adminSubcategory: 'admin-workflows' },
-    { id: 'workflow-monitor', order: 75.1, visible: true, category: 'admin', adminSubcategory: 'admin-workflows' },
-    { id: 'integrations', order: 75.2, visible: true, category: 'admin', adminSubcategory: 'admin-workflows' },
-    { id: 'analytics-settings', order: 75.3, visible: true, category: 'admin', adminSubcategory: 'admin-workflows' },
-    // Channels
-    { id: 'channel-settings', order: 76, visible: true, category: 'admin', adminSubcategory: 'admin-channels' },
-    // Test Results
-    { id: 'test-results', order: 77, visible: true, category: 'admin', adminSubcategory: 'admin-system' },
-    // AI / LLM
-    { id: 'llm-settings', order: 78, visible: true, category: 'admin', adminSubcategory: 'admin-workflows' },
-    { id: 'agent-management', order: 79, visible: true, category: 'admin', adminSubcategory: 'admin-workflows' },
-    { id: 'agent-approvals', order: 80, visible: true, category: 'admin', adminSubcategory: 'admin-workflows' },
-    { id: 'agent-analytics', order: 81, visible: true, category: 'admin', adminSubcategory: 'admin-workflows' },
+    // System Configuration
+    { id: 'general-settings', order: 60, visible: true, category: 'admin', adminSubcategory: 'system-config' },
+    { id: 'feature-management', order: 61, visible: true, category: 'admin', adminSubcategory: 'system-config' },
+    { id: 'navigation-settings', order: 62, visible: true, category: 'admin', adminSubcategory: 'system-config' },
+    // User Management
+    { id: 'user-management', order: 63, visible: true, category: 'admin', adminSubcategory: 'user-management' },
+    { id: 'group-management', order: 64, visible: true, category: 'admin', adminSubcategory: 'user-management' },
+    { id: 'user-approvals', order: 65, visible: true, category: 'admin', adminSubcategory: 'user-management' },
+    { id: 'security-settings', order: 66, visible: true, category: 'admin', adminSubcategory: 'user-management' },
+    { id: 'social-login', order: 67, visible: true, category: 'admin', adminSubcategory: 'user-management' },
+    // CRM Configuration
+    { id: 'crm-config-page', order: 68, visible: true, category: 'admin', adminSubcategory: 'crm-config' },
+    { id: 'sales-config', order: 69, visible: true, category: 'admin', adminSubcategory: 'crm-config' },
+    { id: 'service-desk-config', order: 70, visible: true, category: 'admin', adminSubcategory: 'crm-config' },
+    { id: 'module-fields', order: 71, visible: true, category: 'admin', adminSubcategory: 'crm-config' },
+    { id: 'master-data', order: 72, visible: true, category: 'admin', adminSubcategory: 'crm-config' },
+    { id: 'duplicate-rules', order: 73, visible: true, category: 'admin', adminSubcategory: 'crm-config' },
+    { id: 'lead-score-rules', order: 74, visible: true, category: 'admin', adminSubcategory: 'crm-config' },
+    { id: 'sr-definitions', order: 75, visible: true, category: 'admin', adminSubcategory: 'crm-config' },
+    // AI & Integrations
+    { id: 'llm-settings', order: 76, visible: true, category: 'admin', adminSubcategory: 'ai-integrations' },
+    { id: 'integrations', order: 77, visible: true, category: 'admin', adminSubcategory: 'ai-integrations' },
+    { id: 'analytics-settings', order: 78, visible: true, category: 'admin', adminSubcategory: 'ai-integrations' },
+    { id: 'agent-management', order: 79, visible: true, category: 'admin', adminSubcategory: 'ai-integrations' },
+    { id: 'agent-approvals', order: 80, visible: true, category: 'admin', adminSubcategory: 'ai-integrations' },
+    { id: 'agent-analytics', order: 81, visible: true, category: 'admin', adminSubcategory: 'ai-integrations' },
+    // Infrastructure
+    { id: 'database-settings', order: 82, visible: true, category: 'admin', adminSubcategory: 'infrastructure' },
+    { id: 'monitoring-settings', order: 83, visible: true, category: 'admin', adminSubcategory: 'infrastructure' },
+    { id: 'deployment-settings', order: 84, visible: true, category: 'admin', adminSubcategory: 'infrastructure' },
+    { id: 'worker-ops', order: 85, visible: true, category: 'admin', adminSubcategory: 'infrastructure' },
+    // Customization
+    { id: 'branding-settings', order: 86, visible: true, category: 'admin', adminSubcategory: 'customization' },
+    { id: 'dashboard-settings', order: 87, visible: true, category: 'admin', adminSubcategory: 'customization' },
+    { id: 'ui-customization', order: 88, visible: true, category: 'admin', adminSubcategory: 'customization' },
+    // Workflows
+    { id: 'workflow-settings', order: 89, visible: true, category: 'admin', adminSubcategory: 'workflows' },
+    { id: 'workflow-monitor', order: 90, visible: true, category: 'admin', adminSubcategory: 'workflows' },
+    { id: 'workflow-templates', order: 91, visible: true, category: 'admin', adminSubcategory: 'workflows' },
+    // Developer Tools
+    { id: 'api-docs', order: 92, visible: true, category: 'admin', adminSubcategory: 'developer-tools' },
+    { id: 'test-results', order: 93, visible: true, category: 'admin', adminSubcategory: 'developer-tools' },
+    { id: 'audit-logging', order: 94, visible: true, category: 'admin', adminSubcategory: 'developer-tools' },
   ], []);
 
   const mergeNavItemsWithDefaults = useCallback((savedItems: any[] | undefined) => {

@@ -1,47 +1,17 @@
 import React from 'react';
-import { Box } from '@mui/material';
+import { Container } from '@mui/material';
 import { Outlet } from 'react-router-dom';
-import { AdminSettingsMenu } from './AdminSettingsMenu';
 
 /**
- * Admin layout wrapper that renders the AdminSettingsMenu sidebar
- * alongside the admin page content via React Router <Outlet />.
- *
- * Used as a layout route for all /admin/* paths in App.tsx.
+ * Admin layout wrapper for all /admin/* paths.
+ * Navigation is handled by the main Navigation drawer (hamburger menu).
+ * This layout simply provides consistent spacing for admin page content.
  */
 const AdminLayout: React.FC = () => {
   return (
-    <Box
-      sx={{
-        display: 'flex',
-        minHeight: 'calc(100vh - 200px)',
-        mx: -2,          // offset parent Container padding
-        width: 'calc(100% + 32px)',
-      }}
-    >
-      {/* Sidebar */}
-      <Box
-        sx={{
-          flexShrink: 0,
-          display: { xs: 'none', md: 'block' },
-        }}
-      >
-        <AdminSettingsMenu />
-      </Box>
-
-      {/* Content area */}
-      <Box
-        sx={{
-          flexGrow: 1,
-          minWidth: 0,
-          px: 3,
-          py: 1,
-          overflow: 'auto',
-        }}
-      >
-        <Outlet />
-      </Box>
-    </Box>
+    <Container maxWidth="lg" sx={{ py: 2 }}>
+      <Outlet />
+    </Container>
   );
 };
 
