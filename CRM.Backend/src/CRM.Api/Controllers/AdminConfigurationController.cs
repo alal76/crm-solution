@@ -49,8 +49,8 @@ namespace CRM.Api.Controllers
         /// Get all commission rules with pagination
         /// </summary>
         [HttpGet("commission-rules")]
-        [ProduceResponseType(typeof(IEnumerable<CommissionRuleDto>), 200)]
-        [ProduceResponseType(500)]
+        [ProducesResponseType(typeof(IEnumerable<CommissionRuleDto>), 200)]
+        [ProducesResponseType(500)]
         public async Task<IActionResult> GetCommissionRules(
             [FromQuery] int? page = 1,
             [FromQuery] int? pageSize = 20,
@@ -74,9 +74,9 @@ namespace CRM.Api.Controllers
         /// Get commission rule by ID
         /// </summary>
         [HttpGet("commission-rules/{id}")]
-        [ProduceResponseType(typeof(CommissionRuleDto), 200)]
-        [ProduceResponseType(404)]
-        [ProduceResponseType(500)]
+        [ProducesResponseType(typeof(CommissionRuleDto), 200)]
+        [ProducesResponseType(404)]
+        [ProducesResponseType(500)]
         public async Task<IActionResult> GetCommissionRuleById(
             int id,
             CancellationToken cancellationToken = default)
@@ -85,7 +85,7 @@ namespace CRM.Api.Controllers
             {
                 _logger.LogInformation($"Fetching commission rule: {id}");
 
-                var rule = await _adminConfigService.GetCommissionRuleByIdAsync(id, cancellationToken);
+                var rule = await _adminConfigService.GetCommissionRuleByIdAsync(id, cancellationToken: cancellationToken);
                 if (rule == null)
                     return NotFound(new { message = $"Commission rule with ID {id} not found" });
 
@@ -102,9 +102,9 @@ namespace CRM.Api.Controllers
         /// Create new commission rule
         /// </summary>
         [HttpPost("commission-rules")]
-        [ProduceResponseType(typeof(CommissionRuleDto), 201)]
-        [ProduceResponseType(400)]
-        [ProduceResponseType(500)]
+        [ProducesResponseType(typeof(CommissionRuleDto), 201)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(500)]
         public async Task<IActionResult> CreateCommissionRule(
             [FromBody] CreateCommissionRuleDto request,
             CancellationToken cancellationToken = default)
@@ -116,7 +116,7 @@ namespace CRM.Api.Controllers
 
                 _logger.LogInformation($"Creating commission rule: {request.Name}");
 
-                var rule = await _adminConfigService.CreateCommissionRuleAsync(request, cancellationToken);
+                var rule = await _adminConfigService.CreateCommissionRuleAsync(request, cancellationToken: cancellationToken);
                 return CreatedAtAction(nameof(GetCommissionRuleById), new { id = rule.Id }, rule);
             }
             catch (ArgumentException ex)
@@ -135,9 +135,9 @@ namespace CRM.Api.Controllers
         /// Update commission rule
         /// </summary>
         [HttpPut("commission-rules/{id}")]
-        [ProduceResponseType(typeof(CommissionRuleDto), 200)]
-        [ProduceResponseType(404)]
-        [ProduceResponseType(500)]
+        [ProducesResponseType(typeof(CommissionRuleDto), 200)]
+        [ProducesResponseType(404)]
+        [ProducesResponseType(500)]
         public async Task<IActionResult> UpdateCommissionRule(
             int id,
             [FromBody] UpdateCommissionRuleDto request,
@@ -147,7 +147,7 @@ namespace CRM.Api.Controllers
             {
                 _logger.LogInformation($"Updating commission rule: {id}");
 
-                var rule = await _adminConfigService.UpdateCommissionRuleAsync(id, request, cancellationToken);
+                var rule = await _adminConfigService.UpdateCommissionRuleAsync(id, request, cancellationToken: cancellationToken);
                 if (rule == null)
                     return NotFound(new { message = $"Commission rule with ID {id} not found" });
 
@@ -164,9 +164,9 @@ namespace CRM.Api.Controllers
         /// Delete commission rule
         /// </summary>
         [HttpDelete("commission-rules/{id}")]
-        [ProduceResponseType(204)]
-        [ProduceResponseType(404)]
-        [ProduceResponseType(500)]
+        [ProducesResponseType(204)]
+        [ProducesResponseType(404)]
+        [ProducesResponseType(500)]
         public async Task<IActionResult> DeleteCommissionRule(
             int id,
             CancellationToken cancellationToken = default)
@@ -175,7 +175,7 @@ namespace CRM.Api.Controllers
             {
                 _logger.LogInformation($"Deleting commission rule: {id}");
 
-                var success = await _adminConfigService.DeleteCommissionRuleAsync(id, cancellationToken);
+                var success = await _adminConfigService.DeleteCommissionRuleAsync(id, cancellationToken: cancellationToken);
                 if (!success)
                     return NotFound(new { message = $"Commission rule with ID {id} not found" });
 
@@ -196,8 +196,8 @@ namespace CRM.Api.Controllers
         /// Get all discount rules
         /// </summary>
         [HttpGet("discount-rules")]
-        [ProduceResponseType(typeof(IEnumerable<DiscountRuleDto>), 200)]
-        [ProduceResponseType(500)]
+        [ProducesResponseType(typeof(IEnumerable<DiscountRuleDto>), 200)]
+        [ProducesResponseType(500)]
         public async Task<IActionResult> GetDiscountRules(CancellationToken cancellationToken = default)
         {
             try
@@ -218,9 +218,9 @@ namespace CRM.Api.Controllers
         /// Get discount rule by ID
         /// </summary>
         [HttpGet("discount-rules/{id}")]
-        [ProduceResponseType(typeof(DiscountRuleDto), 200)]
-        [ProduceResponseType(404)]
-        [ProduceResponseType(500)]
+        [ProducesResponseType(typeof(DiscountRuleDto), 200)]
+        [ProducesResponseType(404)]
+        [ProducesResponseType(500)]
         public async Task<IActionResult> GetDiscountRuleById(
             int id,
             CancellationToken cancellationToken = default)
@@ -229,7 +229,7 @@ namespace CRM.Api.Controllers
             {
                 _logger.LogInformation($"Fetching discount rule: {id}");
 
-                var rule = await _adminConfigService.GetDiscountRuleByIdAsync(id, cancellationToken);
+                var rule = await _adminConfigService.GetDiscountRuleByIdAsync(id, cancellationToken: cancellationToken);
                 if (rule == null)
                     return NotFound(new { message = $"Discount rule with ID {id} not found" });
 
@@ -246,9 +246,9 @@ namespace CRM.Api.Controllers
         /// Create new discount rule
         /// </summary>
         [HttpPost("discount-rules")]
-        [ProduceResponseType(typeof(DiscountRuleDto), 201)]
-        [ProduceResponseType(400)]
-        [ProduceResponseType(500)]
+        [ProducesResponseType(typeof(DiscountRuleDto), 201)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(500)]
         public async Task<IActionResult> CreateDiscountRule(
             [FromBody] CreateDiscountRuleDto request,
             CancellationToken cancellationToken = default)
@@ -260,7 +260,7 @@ namespace CRM.Api.Controllers
 
                 _logger.LogInformation($"Creating discount rule: {request.Name}");
 
-                var rule = await _adminConfigService.CreateDiscountRuleAsync(request, cancellationToken);
+                var rule = await _adminConfigService.CreateDiscountRuleAsync(request, cancellationToken: cancellationToken);
                 return CreatedAtAction(nameof(GetDiscountRuleById), new { id = rule.Id }, rule);
             }
             catch (ArgumentException ex)
@@ -279,9 +279,9 @@ namespace CRM.Api.Controllers
         /// Update discount rule
         /// </summary>
         [HttpPut("discount-rules/{id}")]
-        [ProduceResponseType(typeof(DiscountRuleDto), 200)]
-        [ProduceResponseType(404)]
-        [ProduceResponseType(500)]
+        [ProducesResponseType(typeof(DiscountRuleDto), 200)]
+        [ProducesResponseType(404)]
+        [ProducesResponseType(500)]
         public async Task<IActionResult> UpdateDiscountRule(
             int id,
             [FromBody] UpdateDiscountRuleDto request,
@@ -291,7 +291,7 @@ namespace CRM.Api.Controllers
             {
                 _logger.LogInformation($"Updating discount rule: {id}");
 
-                var rule = await _adminConfigService.UpdateDiscountRuleAsync(id, request, cancellationToken);
+                var rule = await _adminConfigService.UpdateDiscountRuleAsync(id, request, cancellationToken: cancellationToken);
                 if (rule == null)
                     return NotFound(new { message = $"Discount rule with ID {id} not found" });
 
@@ -308,9 +308,9 @@ namespace CRM.Api.Controllers
         /// Delete discount rule
         /// </summary>
         [HttpDelete("discount-rules/{id}")]
-        [ProduceResponseType(204)]
-        [ProduceResponseType(404)]
-        [ProduceResponseType(500)]
+        [ProducesResponseType(204)]
+        [ProducesResponseType(404)]
+        [ProducesResponseType(500)]
         public async Task<IActionResult> DeleteDiscountRule(
             int id,
             CancellationToken cancellationToken = default)
@@ -319,7 +319,7 @@ namespace CRM.Api.Controllers
             {
                 _logger.LogInformation($"Deleting discount rule: {id}");
 
-                var success = await _adminConfigService.DeleteDiscountRuleAsync(id, cancellationToken);
+                var success = await _adminConfigService.DeleteDiscountRuleAsync(id, cancellationToken: cancellationToken);
                 if (!success)
                     return NotFound(new { message = $"Discount rule with ID {id} not found" });
 
@@ -340,8 +340,8 @@ namespace CRM.Api.Controllers
         /// Get all SLA policies
         /// </summary>
         [HttpGet("sla-policies")]
-        [ProduceResponseType(typeof(IEnumerable<SLAPolicyDto>), 200)]
-        [ProduceResponseType(500)]
+        [ProducesResponseType(typeof(IEnumerable<SLAPolicyDto>), 200)]
+        [ProducesResponseType(500)]
         public async Task<IActionResult> GetSLAPolicies(CancellationToken cancellationToken = default)
         {
             try
@@ -362,9 +362,9 @@ namespace CRM.Api.Controllers
         /// Get SLA policy by ID
         /// </summary>
         [HttpGet("sla-policies/{id}")]
-        [ProduceResponseType(typeof(SLAPolicyDto), 200)]
-        [ProduceResponseType(404)]
-        [ProduceResponseType(500)]
+        [ProducesResponseType(typeof(SLAPolicyDto), 200)]
+        [ProducesResponseType(404)]
+        [ProducesResponseType(500)]
         public async Task<IActionResult> GetSLAPolicyById(
             int id,
             CancellationToken cancellationToken = default)
@@ -373,7 +373,7 @@ namespace CRM.Api.Controllers
             {
                 _logger.LogInformation($"Fetching SLA policy: {id}");
 
-                var policy = await _adminConfigService.GetSLAPolicyByIdAsync(id, cancellationToken);
+                var policy = await _adminConfigService.GetSLAPolicyByIdAsync(id, cancellationToken: cancellationToken);
                 if (policy == null)
                     return NotFound(new { message = $"SLA policy with ID {id} not found" });
 
@@ -390,9 +390,9 @@ namespace CRM.Api.Controllers
         /// Create new SLA policy
         /// </summary>
         [HttpPost("sla-policies")]
-        [ProduceResponseType(typeof(SLAPolicyDto), 201)]
-        [ProduceResponseType(400)]
-        [ProduceResponseType(500)]
+        [ProducesResponseType(typeof(SLAPolicyDto), 201)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(500)]
         public async Task<IActionResult> CreateSLAPolicy(
             [FromBody] CreateSLAPolicyDto request,
             CancellationToken cancellationToken = default)
@@ -404,7 +404,7 @@ namespace CRM.Api.Controllers
 
                 _logger.LogInformation($"Creating SLA policy: {request.Name}");
 
-                var policy = await _adminConfigService.CreateSLAPolicyAsync(request, cancellationToken);
+                var policy = await _adminConfigService.CreateSLAPolicyAsync(request, cancellationToken: cancellationToken);
                 return CreatedAtAction(nameof(GetSLAPolicyById), new { id = policy.Id }, policy);
             }
             catch (ArgumentException ex)
@@ -423,9 +423,9 @@ namespace CRM.Api.Controllers
         /// Update SLA policy
         /// </summary>
         [HttpPut("sla-policies/{id}")]
-        [ProduceResponseType(typeof(SLAPolicyDto), 200)]
-        [ProduceResponseType(404)]
-        [ProduceResponseType(500)]
+        [ProducesResponseType(typeof(SLAPolicyDto), 200)]
+        [ProducesResponseType(404)]
+        [ProducesResponseType(500)]
         public async Task<IActionResult> UpdateSLAPolicy(
             int id,
             [FromBody] UpdateSLAPolicyDto request,
@@ -435,7 +435,7 @@ namespace CRM.Api.Controllers
             {
                 _logger.LogInformation($"Updating SLA policy: {id}");
 
-                var policy = await _adminConfigService.UpdateSLAPolicyAsync(id, request, cancellationToken);
+                var policy = await _adminConfigService.UpdateSLAPolicyAsync(id, request, cancellationToken: cancellationToken);
                 if (policy == null)
                     return NotFound(new { message = $"SLA policy with ID {id} not found" });
 
@@ -452,9 +452,9 @@ namespace CRM.Api.Controllers
         /// Delete SLA policy
         /// </summary>
         [HttpDelete("sla-policies/{id}")]
-        [ProduceResponseType(204)]
-        [ProduceResponseType(404)]
-        [ProduceResponseType(500)]
+        [ProducesResponseType(204)]
+        [ProducesResponseType(404)]
+        [ProducesResponseType(500)]
         public async Task<IActionResult> DeleteSLAPolicy(
             int id,
             CancellationToken cancellationToken = default)
@@ -463,7 +463,7 @@ namespace CRM.Api.Controllers
             {
                 _logger.LogInformation($"Deleting SLA policy: {id}");
 
-                var success = await _adminConfigService.DeleteSLAPolicyAsync(id, cancellationToken);
+                var success = await _adminConfigService.DeleteSLAPolicyAsync(id, cancellationToken: cancellationToken);
                 if (!success)
                     return NotFound(new { message = $"SLA policy with ID {id} not found" });
 
@@ -484,8 +484,8 @@ namespace CRM.Api.Controllers
         /// Get all escalation rules
         /// </summary>
         [HttpGet("escalation-rules")]
-        [ProduceResponseType(typeof(IEnumerable<EscalationRuleDto>), 200)]
-        [ProduceResponseType(500)]
+        [ProducesResponseType(typeof(IEnumerable<EscalationRuleDto>), 200)]
+        [ProducesResponseType(500)]
         public async Task<IActionResult> GetEscalationRules(CancellationToken cancellationToken = default)
         {
             try
@@ -506,9 +506,9 @@ namespace CRM.Api.Controllers
         /// Get escalation rule by ID
         /// </summary>
         [HttpGet("escalation-rules/{id}")]
-        [ProduceResponseType(typeof(EscalationRuleDto), 200)]
-        [ProduceResponseType(404)]
-        [ProduceResponseType(500)]
+        [ProducesResponseType(typeof(EscalationRuleDto), 200)]
+        [ProducesResponseType(404)]
+        [ProducesResponseType(500)]
         public async Task<IActionResult> GetEscalationRuleById(
             int id,
             CancellationToken cancellationToken = default)
@@ -517,7 +517,7 @@ namespace CRM.Api.Controllers
             {
                 _logger.LogInformation($"Fetching escalation rule: {id}");
 
-                var rule = await _adminConfigService.GetEscalationRuleByIdAsync(id, cancellationToken);
+                var rule = await _adminConfigService.GetEscalationRuleByIdAsync(id, cancellationToken: cancellationToken);
                 if (rule == null)
                     return NotFound(new { message = $"Escalation rule with ID {id} not found" });
 
@@ -534,9 +534,9 @@ namespace CRM.Api.Controllers
         /// Create new escalation rule
         /// </summary>
         [HttpPost("escalation-rules")]
-        [ProduceResponseType(typeof(EscalationRuleDto), 201)]
-        [ProduceResponseType(400)]
-        [ProduceResponseType(500)]
+        [ProducesResponseType(typeof(EscalationRuleDto), 201)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(500)]
         public async Task<IActionResult> CreateEscalationRule(
             [FromBody] CreateEscalationRuleDto request,
             CancellationToken cancellationToken = default)
@@ -548,7 +548,7 @@ namespace CRM.Api.Controllers
 
                 _logger.LogInformation($"Creating escalation rule: {request.Name}");
 
-                var rule = await _adminConfigService.CreateEscalationRuleAsync(request, cancellationToken);
+                var rule = await _adminConfigService.CreateEscalationRuleAsync(request, cancellationToken: cancellationToken);
                 return CreatedAtAction(nameof(GetEscalationRuleById), new { id = rule.Id }, rule);
             }
             catch (ArgumentException ex)
@@ -567,9 +567,9 @@ namespace CRM.Api.Controllers
         /// Update escalation rule
         /// </summary>
         [HttpPut("escalation-rules/{id}")]
-        [ProduceResponseType(typeof(EscalationRuleDto), 200)]
-        [ProduceResponseType(404)]
-        [ProduceResponseType(500)]
+        [ProducesResponseType(typeof(EscalationRuleDto), 200)]
+        [ProducesResponseType(404)]
+        [ProducesResponseType(500)]
         public async Task<IActionResult> UpdateEscalationRule(
             int id,
             [FromBody] UpdateEscalationRuleDto request,
@@ -579,7 +579,7 @@ namespace CRM.Api.Controllers
             {
                 _logger.LogInformation($"Updating escalation rule: {id}");
 
-                var rule = await _adminConfigService.UpdateEscalationRuleAsync(id, request, cancellationToken);
+                var rule = await _adminConfigService.UpdateEscalationRuleAsync(id, request, cancellationToken: cancellationToken);
                 if (rule == null)
                     return NotFound(new { message = $"Escalation rule with ID {id} not found" });
 
@@ -596,9 +596,9 @@ namespace CRM.Api.Controllers
         /// Delete escalation rule
         /// </summary>
         [HttpDelete("escalation-rules/{id}")]
-        [ProduceResponseType(204)]
-        [ProduceResponseType(404)]
-        [ProduceResponseType(500)]
+        [ProducesResponseType(204)]
+        [ProducesResponseType(404)]
+        [ProducesResponseType(500)]
         public async Task<IActionResult> DeleteEscalationRule(
             int id,
             CancellationToken cancellationToken = default)
@@ -607,7 +607,7 @@ namespace CRM.Api.Controllers
             {
                 _logger.LogInformation($"Deleting escalation rule: {id}");
 
-                var success = await _adminConfigService.DeleteEscalationRuleAsync(id, cancellationToken);
+                var success = await _adminConfigService.DeleteEscalationRuleAsync(id, cancellationToken: cancellationToken);
                 if (!success)
                     return NotFound(new { message = $"Escalation rule with ID {id} not found" });
 
@@ -628,8 +628,8 @@ namespace CRM.Api.Controllers
         /// Get all service queues
         /// </summary>
         [HttpGet("service-queues")]
-        [ProduceResponseType(typeof(IEnumerable<ServiceQueueDto>), 200)]
-        [ProduceResponseType(500)]
+        [ProducesResponseType(typeof(IEnumerable<ServiceQueueDto>), 200)]
+        [ProducesResponseType(500)]
         public async Task<IActionResult> GetServiceQueues(CancellationToken cancellationToken = default)
         {
             try
@@ -650,9 +650,9 @@ namespace CRM.Api.Controllers
         /// Get service queue by ID
         /// </summary>
         [HttpGet("service-queues/{id}")]
-        [ProduceResponseType(typeof(ServiceQueueDto), 200)]
-        [ProduceResponseType(404)]
-        [ProduceResponseType(500)]
+        [ProducesResponseType(typeof(ServiceQueueDto), 200)]
+        [ProducesResponseType(404)]
+        [ProducesResponseType(500)]
         public async Task<IActionResult> GetServiceQueueById(
             int id,
             CancellationToken cancellationToken = default)
@@ -661,7 +661,7 @@ namespace CRM.Api.Controllers
             {
                 _logger.LogInformation($"Fetching service queue: {id}");
 
-                var queue = await _adminConfigService.GetServiceQueueByIdAsync(id, cancellationToken);
+                var queue = await _adminConfigService.GetServiceQueueByIdAsync(id, cancellationToken: cancellationToken);
                 if (queue == null)
                     return NotFound(new { message = $"Service queue with ID {id} not found" });
 
@@ -678,9 +678,9 @@ namespace CRM.Api.Controllers
         /// Create new service queue
         /// </summary>
         [HttpPost("service-queues")]
-        [ProduceResponseType(typeof(ServiceQueueDto), 201)]
-        [ProduceResponseType(400)]
-        [ProduceResponseType(500)]
+        [ProducesResponseType(typeof(ServiceQueueDto), 201)]
+        [ProducesResponseType(400)]
+        [ProducesResponseType(500)]
         public async Task<IActionResult> CreateServiceQueue(
             [FromBody] CreateServiceQueueDto request,
             CancellationToken cancellationToken = default)
@@ -692,7 +692,7 @@ namespace CRM.Api.Controllers
 
                 _logger.LogInformation($"Creating service queue: {request.Name}");
 
-                var queue = await _adminConfigService.CreateServiceQueueAsync(request, cancellationToken);
+                var queue = await _adminConfigService.CreateServiceQueueAsync(request, cancellationToken: cancellationToken);
                 return CreatedAtAction(nameof(GetServiceQueueById), new { id = queue.Id }, queue);
             }
             catch (ArgumentException ex)
@@ -711,9 +711,9 @@ namespace CRM.Api.Controllers
         /// Update service queue
         /// </summary>
         [HttpPut("service-queues/{id}")]
-        [ProduceResponseType(typeof(ServiceQueueDto), 200)]
-        [ProduceResponseType(404)]
-        [ProduceResponseType(500)]
+        [ProducesResponseType(typeof(ServiceQueueDto), 200)]
+        [ProducesResponseType(404)]
+        [ProducesResponseType(500)]
         public async Task<IActionResult> UpdateServiceQueue(
             int id,
             [FromBody] UpdateServiceQueueDto request,
@@ -723,7 +723,7 @@ namespace CRM.Api.Controllers
             {
                 _logger.LogInformation($"Updating service queue: {id}");
 
-                var queue = await _adminConfigService.UpdateServiceQueueAsync(id, request, cancellationToken);
+                var queue = await _adminConfigService.UpdateServiceQueueAsync(id, request, cancellationToken: cancellationToken);
                 if (queue == null)
                     return NotFound(new { message = $"Service queue with ID {id} not found" });
 
@@ -740,9 +740,9 @@ namespace CRM.Api.Controllers
         /// Delete service queue
         /// </summary>
         [HttpDelete("service-queues/{id}")]
-        [ProduceResponseType(204)]
-        [ProduceResponseType(404)]
-        [ProduceResponseType(500)]
+        [ProducesResponseType(204)]
+        [ProducesResponseType(404)]
+        [ProducesResponseType(500)]
         public async Task<IActionResult> DeleteServiceQueue(
             int id,
             CancellationToken cancellationToken = default)
@@ -751,7 +751,7 @@ namespace CRM.Api.Controllers
             {
                 _logger.LogInformation($"Deleting service queue: {id}");
 
-                var success = await _adminConfigService.DeleteServiceQueueAsync(id, cancellationToken);
+                var success = await _adminConfigService.DeleteServiceQueueAsync(id, cancellationToken: cancellationToken);
                 if (!success)
                     return NotFound(new { message = $"Service queue with ID {id} not found" });
 
@@ -772,8 +772,8 @@ namespace CRM.Api.Controllers
         /// Get complete admin configuration overview
         /// </summary>
         [HttpGet("overview")]
-        [ProduceResponseType(typeof(AdminConfigurationDto), 200)]
-        [ProduceResponseType(500)]
+        [ProducesResponseType(typeof(AdminConfigurationDto), 200)]
+        [ProducesResponseType(500)]
         public async Task<IActionResult> GetConfigurationOverview(CancellationToken cancellationToken = default)
         {
             try
@@ -794,8 +794,8 @@ namespace CRM.Api.Controllers
         /// Get sales configuration overview
         /// </summary>
         [HttpGet("sales")]
-        [ProduceResponseType(typeof(SalesAdminConfigDto), 200)]
-        [ProduceResponseType(500)]
+        [ProducesResponseType(typeof(SalesAdminConfigDto), 200)]
+        [ProducesResponseType(500)]
         public async Task<IActionResult> GetSalesConfig(CancellationToken cancellationToken = default)
         {
             try
@@ -816,8 +816,8 @@ namespace CRM.Api.Controllers
         /// Get service desk configuration overview
         /// </summary>
         [HttpGet("service-desk")]
-        [ProduceResponseType(typeof(ServiceDeskAdminConfigDto), 200)]
-        [ProduceResponseType(500)]
+        [ProducesResponseType(typeof(ServiceDeskAdminConfigDto), 200)]
+        [ProducesResponseType(500)]
         public async Task<IActionResult> GetServiceDeskConfig(CancellationToken cancellationToken = default)
         {
             try
