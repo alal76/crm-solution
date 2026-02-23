@@ -17,3 +17,7 @@ export {
   useFeatureFlagVariant,
   useDashboardCustomization,
 } from './useUICustomization';
+
+// SLA real-time countdown hooks
+export { useSLACountdown, useSLADashboardUpdates } from './useSLACountdown';
+export type { SLACountdown, SLABreachEvent, SLAWarningEvent } from './useSLACountdown';

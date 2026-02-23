@@ -120,3 +120,7 @@ export type { ArticleMetricsProps, ArticleMetricsData } from './ArticleMetrics';
 
 export { default as PublishWorkflow } from './PublishWorkflow';
 export type { PublishWorkflowProps, ArticlePublishStatus } from './PublishWorkflow';
+
+// Holiday Calendar
+export { default as HolidayCalendar } from './HolidayCalendar';
+export type { HolidayCalendarProps, Holiday } from './HolidayCalendar';

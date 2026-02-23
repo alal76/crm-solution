@@ -11,6 +11,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using ITSMSLADashboardDto = CRM.Core.Dtos.ITSM.SLADashboardDto;
 
 namespace CRM.Api.Controllers.ITSM;
 
@@ -260,7 +261,7 @@ public class SLAPoliciesController : ControllerBase
     /// <response code="500">Internal server error</response>
     [HttpGet("dashboard")]
     [Authorize]
-    [ProducesResponseType(typeof(SLADashboardDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ITSMSLADashboardDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> GetSLADashboard(
         [FromQuery] DateTime? startDate,
@@ -338,7 +339,7 @@ public class SLAPoliciesController : ControllerBase
                 })
                 .ToList();
 
-            var dashboard = new CRM.Core.Dtos.ITSM.SLADashboardDto
+            var dashboard = new ITSMSLADashboardDto
             {
                 TotalTickets = totalTickets,
                 WithinSLA = withinSLA,
