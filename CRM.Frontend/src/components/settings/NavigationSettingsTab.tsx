@@ -131,16 +131,16 @@ const DEFAULT_CATEGORIES = [
   { id: 'admin', label: 'Administration', order: 5 },
 ];
 
-// Default admin subcategories
+// Default admin subcategories — must match Navigation.tsx defaultAdminSubcategories
 const DEFAULT_ADMIN_SUBCATEGORIES: AdminSubcategory[] = [
-  { id: 'admin-system', label: 'System Settings', icon: 'SystemAdminIcon', order: 0 },
-  { id: 'admin-users', label: 'User & Group Settings', icon: 'UserAdminIcon', order: 1 },
-  { id: 'admin-crm', label: 'CRM Settings', icon: 'CRMAdminIcon', order: 2 },
-  { id: 'admin-service', label: 'Service Request Setup', icon: 'ServiceReqIcon', order: 3 },
-  { id: 'admin-navigation', label: 'Navigation', icon: 'NavAdminIcon', order: 4 },
-  { id: 'admin-modules', label: 'Modules & Fields', icon: 'ModulesIcon', order: 5 },
-  { id: 'admin-workflows', label: 'Workflows & Dashboards', icon: 'DashboardAdminIcon', order: 6 },
-  { id: 'admin-channels', label: 'Channels', icon: 'ChannelAdminIcon', order: 7 },
+  { id: 'system-config', label: 'System Configuration', icon: 'SystemAdminIcon', order: 0 },
+  { id: 'user-management', label: 'User Management', icon: 'UserAdminIcon', order: 1 },
+  { id: 'crm-config', label: 'CRM Configuration', icon: 'CRMAdminIcon', order: 2 },
+  { id: 'ai-integrations', label: 'AI & Integrations', icon: 'SmartToyIcon', order: 3 },
+  { id: 'infrastructure', label: 'Infrastructure', icon: 'StorageIcon', order: 4 },
+  { id: 'customization', label: 'Customization', icon: 'PaletteIcon', order: 5 },
+  { id: 'workflows', label: 'Workflows', icon: 'DashboardAdminIcon', order: 6 },
+  { id: 'developer-tools', label: 'Developer Tools', icon: 'ServiceReqIcon', order: 7 },
 ];
 
 const DEFAULT_NAV_ITEMS: NavItem[] = [
@@ -166,26 +166,49 @@ const DEFAULT_NAV_ITEMS: NavItem[] = [
   { id: 'about', label: 'About', menuName: 'About', icon: 'AboutIcon', order: 18, visible: true, isAdmin: false, category: 'info' },
   { id: 'help', label: 'Help', menuName: 'Help', icon: 'HelpIcon', order: 19, visible: true, isAdmin: false, category: 'info' },
   { id: 'licenses', label: 'Licenses', menuName: 'Licenses', icon: 'LicensesIcon', order: 20, visible: true, isAdmin: false, category: 'info' },
-  // System Administration - with adminSubcategory
-  { id: 'workflows', label: 'Workflows', menuName: 'Workflows', icon: 'AutomationIcon', order: 21, visible: true, isAdmin: true, category: 'admin', adminSubcategory: 'admin-workflows' },
-  { id: 'database-settings', label: 'Database', menuName: 'DatabaseSettings', icon: 'StorageIcon', order: 17, visible: true, isAdmin: true, category: 'admin', adminSubcategory: 'admin-system' },
-  { id: 'deployment-settings', label: 'Deployment', menuName: 'DeploymentSettings', icon: 'CloudIcon', order: 18, visible: true, isAdmin: true, category: 'admin', adminSubcategory: 'admin-system' },
-  { id: 'monitoring-settings', label: 'Monitoring', menuName: 'MonitoringSettings', icon: 'MonitorIcon', order: 19, visible: true, isAdmin: true, category: 'admin', adminSubcategory: 'admin-system' },
-  { id: 'security-settings', label: 'Security', menuName: 'SecuritySettings', icon: 'SecurityIcon', order: 20, visible: true, isAdmin: true, category: 'admin', adminSubcategory: 'admin-system' },
-  { id: 'feature-management', label: 'Features', menuName: 'FeatureManagement', icon: 'FeatureToggleIcon', order: 21, visible: true, isAdmin: true, category: 'admin', adminSubcategory: 'admin-system' },
-  // User Administration
-  { id: 'user-management', label: 'Users', menuName: 'UserManagement', icon: 'PeopleIcon', order: 22, visible: true, isAdmin: true, category: 'admin', adminSubcategory: 'admin-users' },
-  { id: 'user-approvals', label: 'Approvals', menuName: 'UserApprovals', icon: 'PersonAddIcon', order: 23, visible: true, isAdmin: true, category: 'admin', adminSubcategory: 'admin-users' },
-  { id: 'group-management', label: 'Groups', menuName: 'GroupManagement', icon: 'GroupsIcon', order: 24, visible: true, isAdmin: true, category: 'admin', adminSubcategory: 'admin-users' },
-  { id: 'social-login', label: 'Social Login', menuName: 'SocialLogin', icon: 'LoginIcon', order: 25, visible: true, isAdmin: true, category: 'admin', adminSubcategory: 'admin-users' },
-  // CRM Administration
-  { id: 'branding-settings', label: 'Branding', menuName: 'BrandingSettings', icon: 'PaletteIcon', order: 26, visible: true, isAdmin: true, category: 'admin', adminSubcategory: 'admin-crm' },
-  { id: 'navigation-settings', label: 'Navigation', menuName: 'NavigationSettings', icon: 'MenuIcon', order: 27, visible: true, isAdmin: true, category: 'admin', adminSubcategory: 'admin-navigation' },
-  { id: 'module-fields', label: 'Modules & Fields', menuName: 'ModuleFields', icon: 'ModuleIcon', order: 28, visible: true, isAdmin: true, category: 'admin', adminSubcategory: 'admin-modules' },
-  { id: 'sr-definitions', label: 'Service Requests', menuName: 'ServiceRequestDefinitions', icon: 'SupportAgentIcon', order: 29, visible: true, isAdmin: true, category: 'admin', adminSubcategory: 'admin-service' },
-  { id: 'master-data', label: 'Master Data', menuName: 'MasterData', icon: 'StorageIcon', order: 30, visible: true, isAdmin: true, category: 'admin', adminSubcategory: 'admin-crm' },
-  // Legacy items
-  { id: 'channel-settings', label: 'Channel Settings', menuName: 'ChannelSettings', icon: 'ChannelSettingsIcon', order: 31, visible: true, isAdmin: true, category: 'admin', adminSubcategory: 'admin-channels' },
+  // System Configuration
+  { id: 'general-settings', label: 'General Settings', menuName: 'SystemConfiguration', icon: 'SettingsIcon', order: 60, visible: true, isAdmin: true, category: 'admin', adminSubcategory: 'system-config' },
+  { id: 'feature-management', label: 'Feature Management', menuName: 'FeatureManagement', icon: 'FeatureToggleIcon', order: 61, visible: true, isAdmin: true, category: 'admin', adminSubcategory: 'system-config' },
+  { id: 'navigation-settings', label: 'Navigation', menuName: 'NavigationSettings', icon: 'MenuIcon', order: 62, visible: true, isAdmin: true, category: 'admin', adminSubcategory: 'system-config' },
+  // User Management
+  { id: 'user-management', label: 'Users', menuName: 'UserManagement', icon: 'PeopleIcon', order: 63, visible: true, isAdmin: true, category: 'admin', adminSubcategory: 'user-management' },
+  { id: 'group-management', label: 'Groups', menuName: 'GroupManagement', icon: 'GroupsIcon', order: 64, visible: true, isAdmin: true, category: 'admin', adminSubcategory: 'user-management' },
+  { id: 'user-approvals', label: 'Approvals', menuName: 'UserApprovals', icon: 'PersonAddIcon', order: 65, visible: true, isAdmin: true, category: 'admin', adminSubcategory: 'user-management' },
+  { id: 'security-settings', label: 'Security', menuName: 'SecuritySettings', icon: 'SecurityIcon', order: 66, visible: true, isAdmin: true, category: 'admin', adminSubcategory: 'user-management' },
+  { id: 'social-login', label: 'Social Login', menuName: 'SocialLogin', icon: 'LoginIcon', order: 67, visible: true, isAdmin: true, category: 'admin', adminSubcategory: 'user-management' },
+  // CRM Configuration
+  { id: 'crm-config-page', label: 'CRM Settings', menuName: 'CRMConfiguration', icon: 'StorageIcon', order: 68, visible: true, isAdmin: true, category: 'admin', adminSubcategory: 'crm-config' },
+  { id: 'sales-config', label: 'Sales Config', menuName: 'SalesConfig', icon: 'TrendingUpIcon', order: 69, visible: true, isAdmin: true, category: 'admin', adminSubcategory: 'crm-config' },
+  { id: 'service-desk-config', label: 'Service Desk', menuName: 'ServiceDeskConfig', icon: 'SupportAgentIcon', order: 70, visible: true, isAdmin: true, category: 'admin', adminSubcategory: 'crm-config' },
+  { id: 'module-fields', label: 'Modules & Fields', menuName: 'ModuleFields', icon: 'ModuleIcon', order: 71, visible: true, isAdmin: true, category: 'admin', adminSubcategory: 'crm-config' },
+  { id: 'master-data', label: 'Master Data', menuName: 'MasterData', icon: 'StorageIcon', order: 72, visible: true, isAdmin: true, category: 'admin', adminSubcategory: 'crm-config' },
+  { id: 'duplicate-rules', label: 'Duplicate Rules', menuName: 'DuplicateRules', icon: 'SettingsIcon', order: 73, visible: true, isAdmin: true, category: 'admin', adminSubcategory: 'crm-config' },
+  { id: 'lead-score-rules', label: 'Lead Scoring', menuName: 'LeadScoreRules', icon: 'TrendingUpIcon', order: 74, visible: true, isAdmin: true, category: 'admin', adminSubcategory: 'crm-config' },
+  { id: 'sr-definitions', label: 'Service Requests', menuName: 'ServiceRequestDefinitions', icon: 'SupportAgentIcon', order: 75, visible: true, isAdmin: true, category: 'admin', adminSubcategory: 'crm-config' },
+  // AI & Integrations
+  { id: 'llm-settings', label: 'LLM Settings', menuName: 'LLMSettings', icon: 'SettingsIcon', order: 76, visible: true, isAdmin: true, category: 'admin', adminSubcategory: 'ai-integrations' },
+  { id: 'integrations', label: 'Integrations', menuName: 'Integrations', icon: 'SettingsIcon', order: 77, visible: true, isAdmin: true, category: 'admin', adminSubcategory: 'ai-integrations' },
+  { id: 'analytics-settings', label: 'Analytics', menuName: 'AnalyticsSettings', icon: 'SettingsIcon', order: 78, visible: true, isAdmin: true, category: 'admin', adminSubcategory: 'ai-integrations' },
+  { id: 'agent-management', label: 'Agent Management', menuName: 'AgentManagement', icon: 'SettingsIcon', order: 79, visible: true, isAdmin: true, category: 'admin', adminSubcategory: 'ai-integrations' },
+  { id: 'agent-approvals', label: 'Agent Approvals', menuName: 'AgentApprovals', icon: 'PersonAddIcon', order: 80, visible: true, isAdmin: true, category: 'admin', adminSubcategory: 'ai-integrations' },
+  { id: 'agent-analytics', label: 'Agent Analytics', menuName: 'AgentAnalytics', icon: 'SettingsIcon', order: 81, visible: true, isAdmin: true, category: 'admin', adminSubcategory: 'ai-integrations' },
+  // Infrastructure
+  { id: 'database-settings', label: 'Database', menuName: 'DatabaseSettings', icon: 'StorageIcon', order: 82, visible: true, isAdmin: true, category: 'admin', adminSubcategory: 'infrastructure' },
+  { id: 'monitoring-settings', label: 'Monitoring', menuName: 'MonitoringSettings', icon: 'MonitorIcon', order: 83, visible: true, isAdmin: true, category: 'admin', adminSubcategory: 'infrastructure' },
+  { id: 'deployment-settings', label: 'Deployment', menuName: 'DeploymentSettings', icon: 'CloudIcon', order: 84, visible: true, isAdmin: true, category: 'admin', adminSubcategory: 'infrastructure' },
+  { id: 'worker-ops', label: 'Worker Operations', menuName: 'WorkerOperations', icon: 'SettingsIcon', order: 85, visible: true, isAdmin: true, category: 'admin', adminSubcategory: 'infrastructure' },
+  // Customization
+  { id: 'branding-settings', label: 'Branding', menuName: 'BrandingSettings', icon: 'PaletteIcon', order: 86, visible: true, isAdmin: true, category: 'admin', adminSubcategory: 'customization' },
+  { id: 'dashboard-settings', label: 'Dashboard Settings', menuName: 'DashboardSettings', icon: 'DashboardIcon', order: 87, visible: true, isAdmin: true, category: 'admin', adminSubcategory: 'customization' },
+  { id: 'ui-customization', label: 'UI Customization', menuName: 'UICustomization', icon: 'PaletteIcon', order: 88, visible: true, isAdmin: true, category: 'admin', adminSubcategory: 'customization' },
+  // Workflows
+  { id: 'workflow-settings', label: 'Workflow Manager', menuName: 'WorkflowSettings', icon: 'AutomationIcon', order: 89, visible: true, isAdmin: true, category: 'admin', adminSubcategory: 'workflows' },
+  { id: 'workflow-monitor', label: 'Workflow Monitor', menuName: 'WorkflowMonitor', icon: 'MonitorIcon', order: 90, visible: true, isAdmin: true, category: 'admin', adminSubcategory: 'workflows' },
+  { id: 'workflow-templates', label: 'Workflow Templates', menuName: 'WorkflowTemplates', icon: 'SettingsIcon', order: 91, visible: true, isAdmin: true, category: 'admin', adminSubcategory: 'workflows' },
+  // Developer Tools
+  { id: 'api-docs', label: 'API Documentation', menuName: 'ApiDocs', icon: 'SettingsIcon', order: 92, visible: true, isAdmin: true, category: 'admin', adminSubcategory: 'developer-tools' },
+  { id: 'test-results', label: 'Test Results', menuName: 'TestResults', icon: 'SettingsIcon', order: 93, visible: true, isAdmin: true, category: 'admin', adminSubcategory: 'developer-tools' },
+  { id: 'audit-logging', label: 'Audit Logging', menuName: 'AuditLogging', icon: 'SecurityIcon', order: 94, visible: true, isAdmin: true, category: 'admin', adminSubcategory: 'developer-tools' },
 ];
 
 const iconMap: Record<string, React.ReactNode> = {
@@ -685,6 +708,8 @@ function NavigationSettingsTab() {
       if (response.ok) {
         // Save to localStorage for immediate use by Navigation component (include categories and adminSubcategories)
         localStorage.setItem('crm_nav_order', JSON.stringify(configToSave));
+        // Update nav config version so Navigation.tsx cache-busting doesn't clear this save
+        localStorage.setItem('crm_nav_config_version', 'v2-2026-02-23');
         // Dispatch custom event to trigger Navigation refresh without page reload
         window.dispatchEvent(new CustomEvent('navigationUpdated', { detail: configToSave }));
         setSuccess('Navigation order saved successfully. Changes applied.');

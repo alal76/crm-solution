@@ -169,9 +169,9 @@ function NavigationContent() {
 
   // Collapsible admin subcategories state
   const [expandedAdminSections, setExpandedAdminSections] = useState<Record<string, boolean>>({
-    'system-config': false,
-    'user-management': false,
-    'crm-config': false,
+    'system-config': true,
+    'user-management': true,
+    'crm-config': true,
     'ai-integrations': false,
     'infrastructure': false,
     'customization': false,
@@ -248,29 +248,27 @@ function NavigationContent() {
       setExpandedCategories(prev => ({ ...prev, 'info': true }));
     }
     
-    // Auto-expand admin sections
+    // Auto-expand admin sections based on current path
     if (path.startsWith('/admin/')) {
       setExpandedCategories(prev => ({ ...prev, 'admin': true }));
       // Determine which section to expand based on path
-      if (path.includes('database') || path.includes('deployment') || path.includes('monitoring') || path.includes('security') || path.includes('features')) {
-        setExpandedAdminSections(prev => ({ ...prev, 'admin-system': true }));
-      } else if (path.includes('users') || path.includes('approvals') || path.includes('groups') || path.includes('social-login')) {
-        setExpandedAdminSections(prev => ({ ...prev, 'admin-users': true }));
-      } else if (path.includes('branding') || path.includes('master-data')) {
-        setExpandedAdminSections(prev => ({ ...prev, 'admin-crm': true }));
-      } else if (path.includes('service-requests')) {
-        setExpandedAdminSections(prev => ({ ...prev, 'admin-service': true }));
-      } else if (path.includes('navigation')) {
-        setExpandedAdminSections(prev => ({ ...prev, 'admin-navigation': true }));
-      } else if (path.includes('modules')) {
-        setExpandedAdminSections(prev => ({ ...prev, 'admin-modules': true }));
-      } else if (path.includes('workflows') || path.includes('dashboards') || path.includes('agents')) {
-        setExpandedAdminSections(prev => ({ ...prev, 'admin-workflows': true }));
+      if (path.includes('/config/system') || path.includes('/features') || path.includes('/navigation')) {
+        setExpandedAdminSections(prev => ({ ...prev, 'system-config': true }));
+      } else if (path.includes('/users') || path.includes('/approvals') || path.includes('/groups') || path.includes('/social-login') || path.includes('/security')) {
+        setExpandedAdminSections(prev => ({ ...prev, 'user-management': true }));
+      } else if (path.includes('/config/crm') || path.includes('/settings/sales') || path.includes('/settings/service-desk') || path.includes('/modules') || path.includes('/master-data') || path.includes('/duplicate-rules') || path.includes('/lead-score-rules') || path.includes('/service-requests')) {
+        setExpandedAdminSections(prev => ({ ...prev, 'crm-config': true }));
+      } else if (path.includes('/llm') || path.includes('/integrations') || path.includes('/analytics') || path.includes('/agents')) {
+        setExpandedAdminSections(prev => ({ ...prev, 'ai-integrations': true }));
+      } else if (path.includes('/database') || path.includes('/monitoring') || path.includes('/deployment') || path.includes('/workers')) {
+        setExpandedAdminSections(prev => ({ ...prev, 'infrastructure': true }));
+      } else if (path.includes('/branding') || path.includes('/dashboards') || path.includes('/ui-customization')) {
+        setExpandedAdminSections(prev => ({ ...prev, 'customization': true }));
+      } else if (path.includes('/workflows')) {
+        setExpandedAdminSections(prev => ({ ...prev, 'workflows': true }));
+      } else if (path.includes('/api-docs') || path.includes('/test-results') || path.includes('/audit')) {
+        setExpandedAdminSections(prev => ({ ...prev, 'developer-tools': true }));
       }
-    }
-    if (path.includes('channel')) {
-      setExpandedCategories(prev => ({ ...prev, 'admin': true }));
-      setExpandedAdminSections(prev => ({ ...prev, 'admin-channels': true }));
     }
   }, [location.pathname]);
 
@@ -737,6 +735,17 @@ function NavigationContent() {
     return mergeNavItemsWithDefaults(items);
   }, [dynamicNavConfig, isDynamicItemEnabled, mergeNavItemsWithDefaults]);
 
+  // Clear stale localStorage nav config when admin subcategory IDs have changed
+  useEffect(() => {
+    const NAV_CONFIG_VERSION = 'v2-2026-02-23';
+    const storedVersion = localStorage.getItem('crm_nav_config_version');
+    if (storedVersion !== NAV_CONFIG_VERSION) {
+      localStorage.removeItem('crm_nav_order');
+      localStorage.removeItem('crm_admin_menu_expanded');
+      localStorage.setItem('crm_nav_config_version', NAV_CONFIG_VERSION);
+    }
+  }, []);
+
   // Get nav config from localStorage or use defaults
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const navConfig = useMemo(() => {
@@ -1135,7 +1144,9 @@ function NavigationContent() {
                 <ListItemIcon sx={{ minWidth: 28 }}>
                   {category.id === 'main' && <DashboardIcon fontSize="small" sx={{ color: 'primary.main' }} />}
                   {category.id === 'sales' && <TrendingUpIcon fontSize="small" sx={{ color: 'success.main' }} />}
+                  {category.id === 'marketing' && <MegaphoneIcon fontSize="small" sx={{ color: 'warning.main' }} />}
                   {category.id === 'support' && <SupportAgentIcon fontSize="small" sx={{ color: 'info.main' }} />}
+                  {category.id === 'itsm' && <SettingsIcon fontSize="small" sx={{ color: 'error.main' }} />}
                   {category.id === 'productivity' && <TaskIcon fontSize="small" sx={{ color: 'secondary.main' }} />}
                   {category.id === 'agents' && <SmartToyIcon fontSize="small" sx={{ color: 'secondary.dark' }} />}
                   {category.id === 'info' && <InfoIcon fontSize="small" sx={{ color: 'text.secondary' }} />}
