@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 573,
-  "patch": 0,
+  "patch": 1,
   "lastUpdate": "2026-02-23",
-  "description": "P0 subscription billing entities: add SubscriptionRenewal entity, BillingCycle enum, register BillingHistories/DunningRecords/SubscriptionRenewals DbSets in CrmDbContext with OnModelCreating configs, EF Core migration 20260223190000, unit tests. (TODO-SALES006-011/012/013/037/006)",
+  "description": "fix(itsm): Fix AdminConfigurationService EscalationRules→ITSMEscalationRules, enable ChangeManagementServiceEx. Add ITSMEscalationRules DbSet, map ITSM entity properties, enable IAdminConfigurationService and IChangeManagementServiceEx in DI.",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [
