@@ -13,6 +13,7 @@
   <!-- Allow test project to access internal members -->
   <ItemGroup>
     <InternalsVisibleTo Include="CRM.Tests" />
+    <InternalsVisibleTo Include="CRM.Tests.Services" />
   </ItemGroup>
 
   <!-- Phase 4 services - Entity alignment in progress -->

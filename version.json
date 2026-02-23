@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 576,
-  "patch": 0,
+  "patch": 1,
   "lastUpdate": "2026-02-23",
-  "description": "Sprint 1 Round 4: 6 parallel workstreams — Contract/Subscription validations (24 tests), SLA/Queue admin pages, 6 SD components, ARCH-010/011/012 specs, Webhook SignatureGenerator+RetryPolicy+CircuitBreaker (35 tests), LinkedIn/Apple OAuth + WebAuthn endpoints (10 new HTTP endpoints)",
+  "description": "ProcessPaymentDto rename (backward-compat alias), Subscription RowVersion verification, Payment/Invoice/Order unit test expansion (115 tests passing)",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [
