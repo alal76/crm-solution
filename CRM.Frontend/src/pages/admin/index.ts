@@ -32,3 +32,5 @@ export { default as WorkflowTemplatesPage } from './WorkflowTemplatesPage';
 export { default as TestResultsPage } from './TestResultsPage';
 export { default as LLMSettingsPage } from './LLMSettingsPage';
 export { default as ApiDocumentationPage } from './ApiDocumentationPage';
+export { default as SystemConfigurationPage } from './SystemConfigurationPage';
+export { default as CRMConfigurationPage } from './CRMConfigurationPage';

@@ -1,9 +1,9 @@
 {
   "major": 0,
-  "minor": 568,
-  "patch": 2,
+  "minor": 569,
+  "patch": 0,
   "lastUpdate": "2026-02-23",
-  "description": "Fix StyleCop analyzer crash that was blocking CI/CD build pipeline. Disabled SA1201 ElementsMustAppearInTheCorrectOrder rule in stylecop.json to prevent KeyNotFoundException with C# 10+ record declarations. Build now succeeds with 0 errors, 4,900+ unit tests passing.",
+  "description": "Unified Configuration Management System: 2-category admin config (System + CRM), encrypted DB storage for API keys/integrations, 3 backend services, 2 API controllers, 2 frontend config pages, restructured admin sidebar with 8 categories, 47 unit tests passing.",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [

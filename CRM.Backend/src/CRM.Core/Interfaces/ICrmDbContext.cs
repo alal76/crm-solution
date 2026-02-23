@@ -299,6 +299,10 @@ public interface ICrmDbContext
     DbSet<ImportJob> ImportJobs { get; }
     DbSet<CRM.Core.Entities.ITSM.IncidentCategory> IncidentCategories { get; }
 
+    // Configuration Management
+    DbSet<ProviderConfiguration> ProviderConfigurations { get; }
+    DbSet<ConfigurationChangeLog> ConfigurationChangeLogs { get; }
+
     DatabaseFacade Database { get; }
 
     /// <summary>

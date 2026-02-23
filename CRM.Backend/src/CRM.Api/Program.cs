@@ -13,6 +13,7 @@ using CRM.Api.Middleware;
 using CRM.Core.Interfaces;
 using CRM.Core.Interfaces.AI;
 using CRM.Core.Options;
+using CRM.Core.Ports;
 using CRM.Core.Ports.Input;
 using CRM.Infrastructure.Data;
 using CRM.Infrastructure.DependencyInjection;
@@ -20,6 +21,7 @@ using CRM.Infrastructure.Repositories;
 using CRM.Infrastructure.Services;
 using CRM.Infrastructure.Services.AI;
 using CRM.Infrastructure.Services.Authentication;
+using CRM.Infrastructure.Services.Configuration;
 using CRM.Infrastructure.Services.Authentication.OAuth;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
@@ -494,6 +496,11 @@ builder.Services.AddScoped<IServiceRequestTypeService, ServiceRequestTypeService
 builder.Services.AddScoped<IColorPaletteService, ColorPaletteService>();
 
 // builder.Services.AddScoped<IAdminConfigurationService, AdminConfigurationService>(); // DISABLED for System Module isolation
+
+// Unified Configuration Management Services
+builder.Services.AddScoped<IProviderConfigurationService, ProviderConfigurationService>();
+builder.Services.AddScoped<ISystemConfigurationService, SystemConfigurationService>();
+builder.Services.AddScoped<ICRMConfigurationService, CRMConfigurationService>();
 
 // SYS-004: Feature Flag Management Service
 builder.Services.AddScoped<IFeatureFlagManagementService, FeatureFlagManagementService>();

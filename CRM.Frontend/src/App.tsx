@@ -198,6 +198,8 @@ const WorkflowTasksPage = lazy(() => import('./pages/WorkflowTasksPage'));
 const TestResultsPage = lazy(() => import('./pages/admin/TestResultsPage'));
 const LLMSettingsPage = lazy(() => import('./pages/admin/LLMSettingsPage'));
 const ApiDocumentationPage = lazy(() => import('./pages/admin/ApiDocumentationPage'));
+const SystemConfigurationPage = lazy(() => import('./pages/admin/SystemConfigurationPage'));
+const CRMConfigurationPage = lazy(() => import('./pages/admin/CRMConfigurationPage'));
 const DatabaseSettingsPage = lazy(() => import('./pages/admin/DatabaseSettingsPage'));
 const DuplicateRulesPage = lazy(() => import('./pages/admin/DuplicateRulesPage'));
 const LeadScoreRulesPage = lazy(() => import('./pages/admin/LeadScoreRulesPage'));
@@ -1040,6 +1042,26 @@ function ThemedApp() {
               />
 
               {/* Admin Settings Routes */}
+              <Route
+                path="/admin/config/system"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute requiredPage="Settings">
+                      <SystemConfigurationPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/admin/config/crm"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute requiredPage="Settings">
+                      <CRMConfigurationPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
               <Route
                 path="/admin/database"
                 element={<Navigate to="/admin/monitoring" replace />}

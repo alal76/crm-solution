@@ -141,6 +141,10 @@ public class CrmDbContext : DbContext, ICrmDbContext
     // LLM Provider Settings
     public DbSet<LLMProviderSetting> LLMProviderSettings { get; set; }
 
+    // Provider Configuration Management (System & CRM Config)
+    public DbSet<ProviderConfiguration> ProviderConfigurations { get; set; }
+    public DbSet<ConfigurationChangeLog> ConfigurationChangeLogs { get; set; }
+
     // Module field configurations
     public DbSet<ModuleFieldConfiguration> ModuleFieldConfigurations { get; set; }
     public DbSet<ModuleUIConfig> ModuleUIConfigs { get; set; }
@@ -3565,6 +3569,12 @@ public class CrmDbContext : DbContext, ICrmDbContext
         modelBuilder.ApplyConfiguration(new CRM.Infrastructure.Data.Configurations.Marketing.EmailSequenceStepConfiguration());
         modelBuilder.ApplyConfiguration(new CRM.Infrastructure.Data.Configurations.Marketing.EmailSequenceEnrollmentConfiguration());
         modelBuilder.ApplyConfiguration(new CRM.Infrastructure.Data.Configurations.Marketing.EmailSequenceStepExecutionConfiguration());
+
+        // =============================================================================
+        // Configuration Management (System & CRM Config)
+        // =============================================================================
+        modelBuilder.ApplyConfiguration(new CRM.Infrastructure.Data.Configurations.ProviderConfigurationConfiguration());
+        modelBuilder.ApplyConfiguration(new CRM.Infrastructure.Data.Configurations.ConfigurationChangeLogConfiguration());
 
         // =============================================================================
         // Web Tracking Entity Configurations (Analytics & Performance)
