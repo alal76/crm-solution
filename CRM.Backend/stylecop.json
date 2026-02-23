@@ -29,7 +29,8 @@
     "orderingRules": {
       "usingDirectivesPlacement": "outsideNamespace",
       "systemUsingDirectivesFirst": true,
-      "blankLinesBetweenUsingGroups": "require"
+      "blankLinesBetweenUsingGroups": "require",
+      "elementsMustAppearInTheCorrectOrder": false
     },
     "readabilityRules": {
       "allowBuiltInTypeAliases": true
