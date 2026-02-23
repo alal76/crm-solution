@@ -456,6 +456,15 @@ public class CrmDbContext : DbContext, ICrmDbContext
     public DbSet<ImportJob> ImportJobs { get; set; }
     public DbSet<ITSM.IncidentCategory> IncidentCategories { get; set; }
 
+    // General-purpose Webhook entities
+    public DbSet<WebhookEndpoint> WebhookEndpoints { get; set; }
+    public DbSet<WebhookEvent> WebhookEvents { get; set; }
+    public DbSet<WebhookDeliveryGeneral> WebhookDeliveriesGeneral { get; set; }
+
+    // Import entities
+    public DbSet<CRM.Core.Entities.ImportMapping> ImportMappings { get; set; }
+    public DbSet<CRM.Core.Entities.ImportError> ImportErrors { get; set; }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         if (!optionsBuilder.IsConfigured && _configuration != null)
@@ -4047,6 +4056,191 @@ public class CrmDbContext : DbContext, ICrmDbContext
                 .HasDatabaseName("IX_DunningRecords_Status");
             entity.HasIndex(e => e.NextRetryDate)
                 .HasDatabaseName("IX_DunningRecords_NextRetryDate");
+        });
+
+        // =============================================================================
+        // General-purpose Webhook Entities
+        // =============================================================================
+        modelBuilder.Entity<WebhookEndpoint>(entity =>
+        {
+            entity.ToTable("WebhookEndpoints");
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.Name)
+                .IsRequired()
+                .HasMaxLength(255);
+
+            entity.Property(e => e.Url)
+                .IsRequired()
+                .HasMaxLength(500);
+
+            entity.Property(e => e.Secret)
+                .HasMaxLength(255);
+
+            entity.Property(e => e.EventTypes)
+                .HasMaxLength(2000)
+                .HasDefaultValue("[]");
+
+            entity.Property(e => e.Headers)
+                .HasMaxLength(2000);
+
+            entity.Property(e => e.Description)
+                .HasMaxLength(500);
+
+            entity.Property(e => e.DisabledReason)
+                .HasMaxLength(500);
+
+            entity.Property(e => e.IsActive)
+                .HasDefaultValue(true);
+
+            entity.Property(e => e.MaxRetries)
+                .HasDefaultValue(5);
+
+            entity.Property(e => e.TimeoutSeconds)
+                .HasDefaultValue(30);
+
+            entity.HasIndex(e => e.IsActive)
+                .HasDatabaseName("IX_WebhookEndpoints_IsActive");
+
+            entity.HasIndex(e => e.CreatedByUserId)
+                .HasDatabaseName("IX_WebhookEndpoints_CreatedByUserId");
+        });
+
+        modelBuilder.Entity<WebhookEvent>(entity =>
+        {
+            entity.ToTable("WebhookEvents");
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.EventType)
+                .IsRequired()
+                .HasMaxLength(100);
+
+            entity.Property(e => e.EntityType)
+                .IsRequired()
+                .HasMaxLength(100);
+
+            entity.Property(e => e.Payload)
+                .HasDefaultValue("{}");
+
+            entity.Property(e => e.CorrelationId)
+                .HasMaxLength(100);
+
+            entity.Property(e => e.ParentEventId)
+                .HasMaxLength(100);
+
+            entity.HasIndex(e => e.EventType)
+                .HasDatabaseName("IX_WebhookEvents_EventType");
+
+            entity.HasIndex(e => e.EntityType)
+                .HasDatabaseName("IX_WebhookEvents_EntityType");
+
+            entity.HasIndex(e => e.OccurredAt)
+                .HasDatabaseName("IX_WebhookEvents_OccurredAt");
+
+            entity.HasIndex(e => e.CorrelationId)
+                .HasDatabaseName("IX_WebhookEvents_CorrelationId");
+        });
+
+        modelBuilder.Entity<WebhookDeliveryGeneral>(entity =>
+        {
+            entity.ToTable("WebhookDeliveriesGeneral");
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.Status)
+                .IsRequired()
+                .HasMaxLength(50)
+                .HasDefaultValue("Pending");
+
+            entity.Property(e => e.ResponseBody)
+                .HasMaxLength(2000);
+
+            entity.Property(e => e.ErrorMessage)
+                .HasMaxLength(1000);
+
+            entity.HasOne(e => e.WebhookEndpoint)
+                .WithMany()
+                .HasForeignKey(e => e.WebhookEndpointId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.WebhookEvent)
+                .WithMany()
+                .HasForeignKey(e => e.WebhookEventId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(e => e.WebhookEndpointId)
+                .HasDatabaseName("IX_WebhookDeliveriesGeneral_WebhookEndpointId");
+
+            entity.HasIndex(e => e.WebhookEventId)
+                .HasDatabaseName("IX_WebhookDeliveriesGeneral_WebhookEventId");
+
+            entity.HasIndex(e => e.Status)
+                .HasDatabaseName("IX_WebhookDeliveriesGeneral_Status");
+
+            entity.HasIndex(e => e.NextRetryAt)
+                .HasDatabaseName("IX_WebhookDeliveriesGeneral_NextRetryAt");
+        });
+
+        // =============================================================================
+        // Import Entities
+        // =============================================================================
+        modelBuilder.Entity<CRM.Core.Entities.ImportMapping>(entity =>
+        {
+            entity.ToTable("ImportMappings");
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.Name)
+                .IsRequired()
+                .HasMaxLength(255);
+
+            entity.Property(e => e.EntityType)
+                .IsRequired()
+                .HasMaxLength(100);
+
+            entity.Property(e => e.MappingDefinition)
+                .HasMaxLength(4000)
+                .HasDefaultValue("[]");
+
+            entity.Property(e => e.Description)
+                .HasMaxLength(500);
+
+            entity.HasIndex(e => e.EntityType)
+                .HasDatabaseName("IX_ImportMappings_EntityType");
+
+            entity.HasIndex(e => e.CreatedByUserId)
+                .HasDatabaseName("IX_ImportMappings_CreatedByUserId");
+        });
+
+        modelBuilder.Entity<CRM.Core.Entities.ImportError>(entity =>
+        {
+            entity.ToTable("ImportErrors");
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.Field)
+                .IsRequired()
+                .HasMaxLength(100);
+
+            entity.Property(e => e.ErrorMessage)
+                .IsRequired()
+                .HasMaxLength(1000);
+
+            entity.Property(e => e.RawValue)
+                .HasMaxLength(500);
+
+            entity.Property(e => e.Severity)
+                .IsRequired()
+                .HasMaxLength(50)
+                .HasDefaultValue("Error");
+
+            entity.HasOne(e => e.ImportJob)
+                .WithMany(j => j.Errors)
+                .HasForeignKey(e => e.ImportJobId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(e => e.ImportJobId)
+                .HasDatabaseName("IX_ImportErrors_ImportJobId");
+
+            entity.HasIndex(e => e.Severity)
+                .HasDatabaseName("IX_ImportErrors_Severity");
         });
 
         // Apply provider-specific post-configuration using the Strategy Pattern

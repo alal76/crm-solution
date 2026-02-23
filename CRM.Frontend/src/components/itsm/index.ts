@@ -100,3 +100,23 @@ export type { SLAStatusBadgeProps } from './SLAStatusBadge';
 
 export { default as ServiceRequestStats } from './ServiceRequestStats';
 export type { ServiceRequestStatsProps } from './ServiceRequestStats';
+
+// Escalation
+export { default as EscalationRulesPanel } from './EscalationRulesPanel';
+export type { EscalationRulesPanelProps } from './EscalationRulesPanel';
+
+// Knowledge Base Sub-Components
+export { default as CategoryTree } from './CategoryTree';
+export type { CategoryTreeProps, CategoryNode } from './CategoryTree';
+
+export { default as RelatedArticles } from './RelatedArticles';
+export type { RelatedArticlesProps, RelatedArticleDto } from './RelatedArticles';
+
+export { default as PopularArticles } from './PopularArticles';
+export type { PopularArticlesProps, PopularArticleDto } from './PopularArticles';
+
+export { default as ArticleMetrics } from './ArticleMetrics';
+export type { ArticleMetricsProps, ArticleMetricsData } from './ArticleMetrics';
+
+export { default as PublishWorkflow } from './PublishWorkflow';
+export type { PublishWorkflowProps, ArticlePublishStatus } from './PublishWorkflow';

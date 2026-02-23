@@ -312,6 +312,7 @@ function NavigationContent() {
     'itsm-metrics': { label: 'ITSM Metrics', icon: DashboardIcon, path: '/itsm/metrics', menuName: 'ITSMMetrics' },
     'itsm-escalation-rules': { label: 'Escalation Rules', icon: WarningIcon as typeof DashboardIcon, path: '/itsm/escalation/rules', menuName: 'ITSMEscalation' },
     'itsm-escalation-dashboard': { label: 'Escalation Dashboard', icon: ActivityIcon as typeof DashboardIcon, path: '/itsm/escalation/dashboard', menuName: 'ITSMEscalation' },
+    'itsm-escalation-policies': { label: 'Escalation Policies', icon: AssignmentIcon as typeof DashboardIcon, path: '/itsm/escalation-policies', menuName: 'ITSMEscalation' },
     'itsm-sla-policies': { label: 'SLA Policies', icon: AssignmentIcon as typeof DashboardIcon, path: '/itsm/sla-policies', menuName: 'ITSMSLA' },
     'itsm-service-queues': { label: 'Service Queues', icon: QueueIcon as typeof DashboardIcon, path: '/itsm/service-queues', menuName: 'ITSMSLA' },
     'campaigns': { label: 'Campaigns', icon: MegaphoneIcon, path: '/campaigns', menuName: 'Campaigns' },
@@ -342,6 +343,9 @@ function NavigationContent() {
     // Reports & Analytics
     'reports': { label: 'Reports', icon: ReportsIcon as typeof DashboardIcon, path: '/reports', menuName: 'Reports' },
     'analytics': { label: 'Analytics', icon: AnalyticsIcon as typeof DashboardIcon, path: '/analytics', menuName: 'Analytics' },
+    // Data Management
+    'import-data': { label: 'Import Data', icon: StorageIcon as typeof DashboardIcon, path: '/data/import', menuName: 'ImportData' },
+    'export-data': { label: 'Export Data', icon: StorageIcon as typeof DashboardIcon, path: '/data/export', menuName: 'ExportData' },
     // AI Agents
     'agent-directory': { label: 'AI Agents', icon: SmartToyIcon as typeof DashboardIcon, path: '/agents', menuName: 'AgentDirectory' },
     // Help & Info items
@@ -544,7 +548,7 @@ function NavigationContent() {
     'products', 'services', 'service-requests', 'campaigns', 'email-templates', 'campaign-execution', 'landing-pages', 'quotes',
     'contracts', 'invoices', 'payments', 'orders', 'commissions', 'subscriptions', 'teams',
     'territories', 'lead-routing', 'approvals',
-    'itsm-overview', 'itsm-incidents', 'itsm-problems', 'itsm-changes', 'itsm-cmdb', 'itsm-knowledge', 'itsm-catalog', 'itsm-sla', 'itsm-metrics', 'itsm-escalation-rules', 'itsm-escalation-dashboard', 'itsm-sla-policies', 'itsm-service-queues',
+    'itsm-overview', 'itsm-incidents', 'itsm-problems', 'itsm-changes', 'itsm-cmdb', 'itsm-knowledge', 'itsm-catalog', 'itsm-sla', 'itsm-metrics', 'itsm-escalation-rules', 'itsm-escalation-dashboard', 'itsm-escalation-policies', 'itsm-sla-policies', 'itsm-service-queues',
     'my-queue', 'activities', 'tasks', 'notes', 'communications', 'interactions'
   ], []);
   const defaultAdminOrder = useMemo(() => [
@@ -629,6 +633,7 @@ function NavigationContent() {
     { id: 'itsm-metrics', order: 38, visible: true, category: 'itsm' },
     { id: 'itsm-escalation-rules', order: 39, visible: true, category: 'itsm' },
     { id: 'itsm-escalation-dashboard', order: 40, visible: true, category: 'itsm' },
+    { id: 'itsm-escalation-policies', order: 40.5, visible: true, category: 'itsm' },
     { id: 'itsm-sla-policies', order: 41, visible: true, category: 'itsm' },
     { id: 'itsm-service-queues', order: 42, visible: true, category: 'itsm' },
     { id: 'campaigns', order: 9, visible: true, category: 'marketing' },
@@ -657,6 +662,9 @@ function NavigationContent() {
     { id: 'knowledge-base', order: 15.5, visible: true, category: 'support' },
     { id: 'reports', order: 16, visible: true, category: 'productivity' },
     { id: 'analytics', order: 17, visible: true, category: 'productivity' },
+    // Data Management
+    { id: 'import-data', order: 18, visible: true, category: 'productivity' },
+    { id: 'export-data', order: 19, visible: true, category: 'productivity' },
     // AI Agents
     { id: 'agent-directory', order: 40, visible: true, category: 'agents' },
     // Help & Info

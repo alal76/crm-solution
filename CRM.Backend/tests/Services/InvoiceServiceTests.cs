@@ -525,4 +525,217 @@ public class InvoiceServiceTests
         result.AccountId.Should().Be(10);
         result.TotalAmount.Should().Be(2000m);
     }
+
+    // ========================================================================
+    // CreateAsync – default status should be Draft (or preserved)
+    // ========================================================================
+    [Fact]
+    public async Task CreateAsync_ShouldPreserveDraftStatus_WhenCreatingNewInvoice()
+    {
+        // Arrange
+        var invoices = new List<Invoice>();
+        SetupDbSets(invoices: invoices);
+
+        var newInvoice = new Invoice
+        {
+            AccountId = 10,
+            TotalAmount = 500m,
+            DueDate = DateTime.UtcNow.AddDays(30),
+            Status = InvoiceStatus.Draft
+        };
+
+        // Act
+        var result = await _service.CreateAsync(newInvoice);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Status.Should().Be(InvoiceStatus.Draft);
+    }
+
+    // ========================================================================
+    // CreateFromOrderAsync – line items copied
+    // ========================================================================
+    [Fact]
+    public async Task CreateFromOrderAsync_ShouldCopyLineItems()
+    {
+        // Arrange
+        var order = new Order
+        {
+            Id = 2,
+            OrderNumber = "ORD-0002",
+            AccountId = 10,
+            TotalAmount = 500m,
+            Subtotal = 500m,
+            Status = OrderStatus.Approved,
+            IsDeleted = false,
+            CreatedAt = DateTime.UtcNow,
+            LineItems = new List<OrderLineItem>
+            {
+                new OrderLineItem
+                {
+                    Id = 1,
+                    LineNumber = 1,
+                    Description = "Widget A",
+                    Quantity = 2,
+                    UnitPrice = 100m,
+                    TotalAmount = 200m,
+                    IsDeleted = false,
+                    CreatedAt = DateTime.UtcNow
+                },
+                new OrderLineItem
+                {
+                    Id = 2,
+                    LineNumber = 2,
+                    Description = "Widget B",
+                    Quantity = 3,
+                    UnitPrice = 100m,
+                    TotalAmount = 300m,
+                    IsDeleted = false,
+                    CreatedAt = DateTime.UtcNow
+                }
+            }
+        };
+        var invoices = new List<Invoice>();
+        var orders = new List<Order> { order };
+        SetupDbSets(invoices: invoices, orders: orders);
+
+        // Act
+        var result = await _service.CreateFromOrderAsync(2);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.LineItems.Should().HaveCount(2);
+        result.TotalAmount.Should().Be(500m);
+    }
+
+    // ========================================================================
+    // CreateFromOrderAsync – should throw when order not found
+    // ========================================================================
+    [Fact]
+    public async Task CreateFromOrderAsync_ShouldThrow_WhenOrderNotFound()
+    {
+        // Arrange
+        SetupDbSets(invoices: new List<Invoice>(), orders: new List<Order>());
+
+        // Act
+        var act = () => _service.CreateFromOrderAsync(999);
+
+        // Assert
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("*999*not found*");
+    }
+
+    // ========================================================================
+    // Constructor null checks
+    // ========================================================================
+    [Fact]
+    public void Constructor_ShouldThrowArgumentNullException_WhenContextIsNull()
+    {
+        // Act
+        var act = () => new InvoiceService(null!, _mockLogger.Object);
+
+        // Assert
+        act.Should().Throw<ArgumentNullException>().WithParameterName("context");
+    }
+
+    [Fact]
+    public void Constructor_ShouldThrowArgumentNullException_WhenLoggerIsNull()
+    {
+        // Act
+        var act = () => new InvoiceService(_mockContext.Object, null!);
+
+        // Assert
+        act.Should().Throw<ArgumentNullException>().WithParameterName("logger");
+    }
+
+    // ========================================================================
+    // GetByInvoiceNumberAsync
+    // ========================================================================
+    [Fact]
+    public async Task GetByInvoiceNumberAsync_ShouldReturnInvoice_WhenExists()
+    {
+        // Arrange
+        var invoices = new List<Invoice> { CreateTestInvoice(1) };
+        SetupDbSets(invoices: invoices);
+
+        // Act
+        var result = await _service.GetByInvoiceNumberAsync("INV-0001");
+
+        // Assert
+        result.Should().NotBeNull();
+        result!.InvoiceNumber.Should().Be("INV-0001");
+    }
+
+    [Fact]
+    public async Task GetByInvoiceNumberAsync_ShouldReturnNull_WhenNotFound()
+    {
+        // Arrange
+        SetupDbSets(invoices: new List<Invoice>());
+
+        // Act
+        var result = await _service.GetByInvoiceNumberAsync("NONEXISTENT");
+
+        // Assert
+        result.Should().BeNull();
+    }
+
+    // ========================================================================
+    // MarkAsPaidAsync – sets PaidDate
+    // ========================================================================
+    [Fact]
+    public async Task MarkAsPaidAsync_ShouldSetPaidDate_WhenInvoiceIsSent()
+    {
+        // Arrange
+        var invoice = CreateTestInvoice(1, status: InvoiceStatus.Sent, totalAmount: 1000m);
+        SetupDbSets(invoices: new List<Invoice> { invoice });
+
+        // Act
+        var result = await _service.MarkAsPaidAsync(1);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.PaidDate.Should().NotBeNull();
+        result.PaidDate.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
+    }
+
+    // ========================================================================
+    // UpdateAsync – should throw when invoice not found
+    // ========================================================================
+    [Fact]
+    public async Task UpdateAsync_ShouldThrow_WhenInvoiceNotFound()
+    {
+        // Arrange
+        SetupDbSets(invoices: new List<Invoice>());
+        var invoice = new Invoice { Id = 999, InvoiceNumber = "NONEXIST" };
+
+        // Act
+        var act = () => _service.UpdateAsync(invoice);
+
+        // Assert
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("*999*not found*");
+    }
+
+    // ========================================================================
+    // DeleteAsync – already deleted
+    // ========================================================================
+    [Fact]
+    public async Task DeleteAsync_ShouldReturnFalse_WhenAlreadyDeleted()
+    {
+        // Arrange
+        var invoice = new Invoice
+        {
+            Id = 1,
+            InvoiceNumber = "INV-DEL",
+            IsDeleted = true,
+            CreatedAt = DateTime.UtcNow
+        };
+        SetupDbSets(invoices: new List<Invoice> { invoice });
+
+        // Act
+        var result = await _service.DeleteAsync(1);
+
+        // Assert
+        result.Should().BeFalse();
+    }
 }

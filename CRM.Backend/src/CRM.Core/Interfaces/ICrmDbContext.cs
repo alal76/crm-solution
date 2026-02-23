@@ -300,6 +300,15 @@ public interface ICrmDbContext
     DbSet<ImportJob> ImportJobs { get; }
     DbSet<CRM.Core.Entities.ITSM.IncidentCategory> IncidentCategories { get; }
 
+    // General-purpose Webhook entities
+    DbSet<WebhookEndpoint> WebhookEndpoints { get; }
+    DbSet<WebhookEvent> WebhookEvents { get; }
+    DbSet<WebhookDeliveryGeneral> WebhookDeliveriesGeneral { get; }
+
+    // Import entities
+    DbSet<CRM.Core.Entities.ImportMapping> ImportMappings { get; }
+    DbSet<CRM.Core.Entities.ImportError> ImportErrors { get; }
+
     // Configuration Management
     DbSet<ProviderConfiguration> ProviderConfigurations { get; }
     DbSet<ConfigurationChangeLog> ConfigurationChangeLogs { get; }

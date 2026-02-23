@@ -643,7 +643,8 @@ builder.Services.AddScoped<IDiscountRuleService, DiscountRuleService>();
 builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.ISLAPolicyAdminService, CRM.Infrastructure.Services.ITSM.SLAPolicyAdminService>();
 builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IEscalationRuleAdminService, CRM.Infrastructure.Services.ITSM.EscalationRuleAdminService>();
 builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IServiceQueueService, CRM.Infrastructure.Services.ITSM.ServiceQueueService>();
-Log.Information("Admin Configuration Services registered: CommissionRule, DiscountRule, SLAPolicy, EscalationRule, ServiceQueue");
+builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IAutoAssignmentService, CRM.Infrastructure.Services.ITSM.AutoAssignmentService>();
+Log.Information("Admin Configuration Services registered: CommissionRule, DiscountRule, SLAPolicy, EscalationRule, ServiceQueue, AutoAssignment");
 
 // Worker architecture services (queue, outbox, escalation processing, notifications)
 builder.Services.AddScoped<CRM.Core.Interfaces.Workers.IWorkerQueue, CRM.Infrastructure.Workers.DbWorkerQueue>();

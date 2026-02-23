@@ -13,6 +13,7 @@ using CRM.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using ContactModel = CRM.Core.Models.Contact;
+using ImportError = CRM.Core.Interfaces.ImportError;
 
 namespace CRM.Infrastructure.Services;
 

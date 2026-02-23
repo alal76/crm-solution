@@ -8,6 +8,7 @@ export { default as contactInfoService } from './contactInfoService';
 export { default as contractService } from './contractService';
 export { default as dashboardService } from './dashboardService';
 export { default as duplicateService } from './duplicateService';
+export { default as importExportService } from './importExportService';
 export { default as eSignatureService } from './eSignatureService';
 export { default as emailSequenceService } from './emailSequenceService';
 export { default as fieldMasterDataService } from './fieldMasterDataService';

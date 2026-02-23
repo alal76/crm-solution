@@ -72,6 +72,8 @@ const PaymentsPage = lazy(() => import('./pages/PaymentsPage'));
 const OrdersPage = lazy(() => import('./pages/OrdersPage'));
 const TeamsPage = lazy(() => import('./pages/TeamsPage'));
 const SubscriptionsPage = lazy(() => import('./pages/SubscriptionsPage'));
+const SubscriptionDetailPage = lazy(() => import('./pages/subscriptions/SubscriptionDetailPage'));
+const SubscriptionAnalyticsPage = lazy(() => import('./pages/subscriptions/SubscriptionAnalyticsPage'));
 const CommissionsPage = lazy(() => import('./pages/CommissionsPage'));
 const TerritoriesPage = lazy(() => import('./pages/TerritoriesPage'));
 const ApprovalsPage = lazy(() => import('./pages/ApprovalsPage'));
@@ -130,6 +132,7 @@ const SLAPolicyFormPage = lazy(() => import('./pages/itsm/SLAPolicyFormPage'));
 const SLAInstanceListPage = lazy(() => import('./pages/itsm/SLAInstanceListPage'));
 const EscalationRulesPage = lazy(() => import('./pages/itsm/EscalationRulesPage'));
 const EscalationDashboardPage = lazy(() => import('./pages/itsm/EscalationDashboardPage'));
+const EscalationPoliciesPage = lazy(() => import('./pages/itsm/EscalationPoliciesPage'));
 const SLAManagementPage = lazy(() => import('./pages/itsm/SLAManagementPage'));
 const ServiceQueuesPage = lazy(() => import('./pages/itsm/ServiceQueuesPage'));
 
@@ -229,6 +232,12 @@ const AgentApprovalsPage = lazy(() => import('./pages/AgentApprovalsPage'));
 const AgentAnalyticsPage = lazy(() => import('./pages/AgentAnalyticsPage'));
 const ConversationHistoryPage = lazy(() => import('./pages/ConversationHistoryPage'));
 const AgentCreatorPage = lazy(() => import('./pages/AgentCreatorPage'));
+
+// ----------------------------------------------------------------------------
+// Data Management Module - Lazy Loaded
+// ----------------------------------------------------------------------------
+const ImportWizardPage = lazy(() => import('./pages/ImportWizardPage'));
+const ExportWizardPage = lazy(() => import('./pages/ExportWizardPage'));
 
 // Inner component that can access the theme context
 function ThemedApp() {
@@ -629,6 +638,26 @@ function ThemedApp() {
                   <ProtectedRoute>
                     <RoleBasedRoute requiredPage="Subscriptions">
                       <SubscriptionsPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/subscriptions/analytics"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute requiredPage="Subscriptions">
+                      <SubscriptionAnalyticsPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/subscriptions/:id"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute requiredPage="Subscriptions">
+                      <SubscriptionDetailPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
                 }
@@ -1093,6 +1122,16 @@ function ThemedApp() {
                 }
               />
               <Route
+                path="/itsm/escalation-policies"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute requiredPage="ITSMEscalation" moduleName="ITSM">
+                      <EscalationPoliciesPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
                 path="/itsm/sla-policies"
                 element={
                   <ProtectedRoute>
@@ -1211,6 +1250,24 @@ function ThemedApp() {
                 element={
                   <ProtectedRoute>
                     <AgentChatPage />
+                  </ProtectedRoute>
+                }
+              />
+
+              {/* Data Management Routes */}
+              <Route
+                path="/data/import"
+                element={
+                  <ProtectedRoute>
+                    <ImportWizardPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/data/export"
+                element={
+                  <ProtectedRoute>
+                    <ExportWizardPage />
                   </ProtectedRoute>
                 }
               />

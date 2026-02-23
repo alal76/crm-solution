@@ -145,9 +145,9 @@ public class PaymentFilterDto
 }
 
 /// <summary>
-/// Process payment request DTO
+/// Process payment DTO - standard name for payment processing requests.
 /// </summary>
-public class ProcessPaymentRequestDto
+public class ProcessPaymentDto
 {
     public decimal Amount { get; set; }
     public PaymentMethod PaymentMethod { get; set; } = PaymentMethod.CreditCard;
@@ -159,6 +159,15 @@ public class ProcessPaymentRequestDto
 
     public string? AuthorizationCode { get; set; }
     public string? Description { get; set; }
+}
+
+/// <summary>
+/// Process payment request DTO.
+/// Retained for backward compatibility — use <see cref="ProcessPaymentDto"/> instead.
+/// </summary>
+[Obsolete("Use ProcessPaymentDto instead. This class will be removed in a future version.")]
+public class ProcessPaymentRequestDto : ProcessPaymentDto
+{
 }
 
 /// <summary>

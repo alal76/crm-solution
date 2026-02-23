@@ -44,4 +44,9 @@ public class ImportJob : BaseEntity
 
     [ForeignKey("SubmittedByUserId")]
     public virtual User? SubmittedByUser { get; set; }
+
+    /// <summary>
+    /// Errors encountered during import processing.
+    /// </summary>
+    public virtual ICollection<ImportError> Errors { get; set; } = new List<ImportError>();
 }

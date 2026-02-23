@@ -460,4 +460,199 @@ public class PaymentServiceTests
         result.Should().HaveCount(2);
         result.Should().OnlyContain(p => p.Status == PaymentStatus.Pending);
     }
+
+    // ========================================================================
+    // ProcessPaymentAsync – negative amount
+    // ========================================================================
+    [Fact]
+    public async Task ProcessPaymentAsync_ShouldReturnFailure_WhenAmountIsNegative()
+    {
+        // Arrange
+        var invoice = CreateTestInvoice(1, totalAmount: 1000m);
+        SetupDbSets(payments: new List<Payment>(), invoices: new List<Invoice> { invoice });
+
+        // Act
+        var result = await _service.ProcessPaymentAsync(1, -50m, PaymentMethod.CreditCard, new PaymentDetails());
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Success.Should().BeFalse();
+        result.ErrorCode.Should().Be("INVALID_AMOUNT");
+    }
+
+    [Fact]
+    public async Task ProcessPaymentAsync_ShouldReturnFailure_WhenAmountIsZero()
+    {
+        // Arrange
+        var invoice = CreateTestInvoice(1, totalAmount: 1000m);
+        SetupDbSets(payments: new List<Payment>(), invoices: new List<Invoice> { invoice });
+
+        // Act
+        var result = await _service.ProcessPaymentAsync(1, 0m, PaymentMethod.CreditCard, new PaymentDetails());
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Success.Should().BeFalse();
+        result.ErrorCode.Should().Be("INVALID_AMOUNT");
+    }
+
+    // ========================================================================
+    // ProcessPaymentAsync – invoice not found
+    // ========================================================================
+    [Fact]
+    public async Task ProcessPaymentAsync_ShouldReturnFailure_WhenInvoiceNotFound()
+    {
+        // Arrange
+        SetupDbSets(payments: new List<Payment>(), invoices: new List<Invoice>());
+
+        // Act
+        var result = await _service.ProcessPaymentAsync(999, 100m, PaymentMethod.CreditCard, new PaymentDetails());
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Success.Should().BeFalse();
+        result.ErrorCode.Should().Be("INVOICE_NOT_FOUND");
+    }
+
+    // ========================================================================
+    // GetByIdAsync – not found
+    // ========================================================================
+    [Fact]
+    public async Task GetByIdAsync_ShouldReturnNull_WhenNotFound()
+    {
+        // Arrange
+        SetupDbSets(payments: new List<Payment>());
+
+        // Act
+        var result = await _service.GetByIdAsync(999);
+
+        // Assert
+        result.Should().BeNull();
+    }
+
+    // ========================================================================
+    // GetAllAsync – empty result for specific invoice
+    // ========================================================================
+    [Fact]
+    public async Task GetAllAsync_ShouldReturnEmpty_WhenNoPaymentsForInvoice()
+    {
+        // Arrange
+        var payments = new List<Payment>
+        {
+            CreateTestPayment(1, invoiceId: 1),
+            CreateTestPayment(2, invoiceId: 2)
+        };
+        SetupDbSets(payments: payments);
+
+        // Act
+        var result = await _service.GetAllAsync(invoiceId: 999);
+
+        // Assert
+        result.Should().BeEmpty();
+    }
+
+    // ========================================================================
+    // ProcessRefundAsync – payment not found
+    // ========================================================================
+    [Fact]
+    public async Task ProcessRefundAsync_ShouldReturnFailure_WhenPaymentNotFound()
+    {
+        // Arrange
+        SetupDbSets(payments: new List<Payment>());
+
+        // Act
+        var result = await _service.ProcessRefundAsync(999, 100m, "Refund request");
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Success.Should().BeFalse();
+        result.ErrorCode.Should().Be("PAYMENT_NOT_FOUND");
+    }
+
+    // ========================================================================
+    // Constructor null checks
+    // ========================================================================
+    [Fact]
+    public void Constructor_ShouldThrowArgumentNullException_WhenContextIsNull()
+    {
+        // Act
+        var act = () => new PaymentService(null!, _mockLogger.Object);
+
+        // Assert
+        act.Should().Throw<ArgumentNullException>().WithParameterName("context");
+    }
+
+    [Fact]
+    public void Constructor_ShouldThrowArgumentNullException_WhenLoggerIsNull()
+    {
+        // Act
+        var act = () => new PaymentService(_mockContext.Object, null!);
+
+        // Assert
+        act.Should().Throw<ArgumentNullException>().WithParameterName("logger");
+    }
+
+    // ========================================================================
+    // VoidPaymentAsync – payment not found
+    // ========================================================================
+    [Fact]
+    public async Task VoidPaymentAsync_ShouldReturnFailure_WhenPaymentNotFound()
+    {
+        // Arrange
+        SetupDbSets(payments: new List<Payment>());
+
+        // Act
+        var result = await _service.VoidPaymentAsync(999, "Void request");
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Success.Should().BeFalse();
+        result.ErrorCode.Should().Be("PAYMENT_NOT_FOUND");
+    }
+
+    // ========================================================================
+    // GetAllAsync – filter by account
+    // ========================================================================
+    [Fact]
+    public async Task GetAllAsync_ShouldFilterByAccountId()
+    {
+        // Arrange
+        var payments = new List<Payment>
+        {
+            CreateTestPayment(1, accountId: 10),
+            CreateTestPayment(2, accountId: 20),
+            CreateTestPayment(3, accountId: 10)
+        };
+        SetupDbSets(payments: payments);
+
+        // Act
+        var result = await _service.GetAllAsync(accountId: 10);
+
+        // Assert
+        result.Should().HaveCount(2);
+        result.Should().OnlyContain(p => p.AccountId == 10);
+    }
+
+    // ========================================================================
+    // GetAllAsync – filter by status
+    // ========================================================================
+    [Fact]
+    public async Task GetAllAsync_ShouldFilterByStatus()
+    {
+        // Arrange
+        var payments = new List<Payment>
+        {
+            CreateTestPayment(1, status: PaymentStatus.Completed),
+            CreateTestPayment(2, status: PaymentStatus.Failed),
+            CreateTestPayment(3, status: PaymentStatus.Completed)
+        };
+        SetupDbSets(payments: payments);
+
+        // Act
+        var result = await _service.GetAllAsync(status: PaymentStatus.Completed);
+
+        // Assert
+        result.Should().HaveCount(2);
+        result.Should().OnlyContain(p => p.Status == PaymentStatus.Completed);
+    }
 }
