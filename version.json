@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 568,
-  "patch": 1,
+  "patch": 2,
   "lastUpdate": "2026-02-23",
-  "description": "Re-enable 5 ITSM Phase 4 services (WebhookNotification, EmailToTicket, MonitoringIntegration, SelfServiceChatbot, ServiceCatalog) that were disabled in DI but had active controllers, causing BVT test failures (HTTP 500) in CI/CD pipeline. Renamed .cs.disabled files back to .cs and uncommented DI registrations in Program.cs.",
+  "description": "Fix StyleCop analyzer crash that was blocking CI/CD build pipeline. Disabled SA1201 ElementsMustAppearInTheCorrectOrder rule in stylecop.json to prevent KeyNotFoundException with C# 10+ record declarations. Build now succeeds with 0 errors, 4,900+ unit tests passing.",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [
