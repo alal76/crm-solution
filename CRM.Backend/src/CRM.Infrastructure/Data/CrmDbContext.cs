@@ -238,6 +238,9 @@ public class CrmDbContext : DbContext, ICrmDbContext
     public DbSet<SubscriptionItem> SubscriptionItems { get; set; }
     public DbSet<SubscriptionUsage> SubscriptionUsages { get; set; }
     public DbSet<SubscriptionUsageLimit> SubscriptionUsageLimits { get; set; }
+    public DbSet<SubscriptionRenewal> SubscriptionRenewals { get; set; }
+    public DbSet<BillingHistory> BillingHistories { get; set; }
+    public DbSet<DunningRecord> DunningRecords { get; set; }
     public DbSet<Contract> Contracts { get; set; }
     public DbSet<CreditMemo> CreditMemos { get; set; }
     public DbSet<CreditMemoLineItem> CreditMemoLineItems { get; set; }
@@ -3941,6 +3944,108 @@ public class CrmDbContext : DbContext, ICrmDbContext
         {
             entity.ToTable("ImportJobs");
             entity.HasKey(e => e.Id);
+        });
+
+        // Configure SubscriptionRenewal
+        modelBuilder.Entity<SubscriptionRenewal>(entity =>
+        {
+            entity.ToTable("SubscriptionRenewals");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Amount).HasColumnType("DECIMAL(18,4)");
+            entity.Property(e => e.Notes).HasMaxLength(1000);
+
+            entity.HasOne(e => e.Subscription)
+                .WithMany()
+                .HasForeignKey(e => e.SubscriptionId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.Invoice)
+                .WithMany()
+                .HasForeignKey(e => e.InvoiceId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasIndex(e => e.SubscriptionId)
+                .HasDatabaseName("IX_SubscriptionRenewals_SubscriptionId");
+            entity.HasIndex(e => e.RenewalDate)
+                .HasDatabaseName("IX_SubscriptionRenewals_RenewalDate");
+            entity.HasIndex(e => e.Status)
+                .HasDatabaseName("IX_SubscriptionRenewals_Status");
+        });
+
+        // Configure BillingHistory
+        modelBuilder.Entity<BillingHistory>(entity =>
+        {
+            entity.ToTable("BillingHistory");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Amount).HasColumnType("DECIMAL(18,4)");
+            entity.Property(e => e.ProratedAmount).HasColumnType("DECIMAL(18,4)");
+            entity.Property(e => e.UsageCharges).HasColumnType("DECIMAL(18,4)");
+            entity.Property(e => e.DiscountAmount).HasColumnType("DECIMAL(18,4)");
+            entity.Property(e => e.TaxAmount).HasColumnType("DECIMAL(18,4)");
+            entity.Property(e => e.EventDetails).HasMaxLength(500);
+            entity.Property(e => e.Status).HasMaxLength(50);
+
+            entity.HasOne(e => e.Subscription)
+                .WithMany()
+                .HasForeignKey(e => e.SubscriptionId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.Invoice)
+                .WithMany()
+                .HasForeignKey(e => e.InvoiceId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasOne(e => e.User)
+                .WithMany()
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasOne(e => e.DunningRecord)
+                .WithMany()
+                .HasForeignKey(e => e.DunningRecordId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasIndex(e => e.SubscriptionId)
+                .HasDatabaseName("IX_BillingHistory_SubscriptionId");
+            entity.HasIndex(e => e.EventType)
+                .HasDatabaseName("IX_BillingHistory_EventType");
+            entity.HasIndex(e => e.EventDate)
+                .HasDatabaseName("IX_BillingHistory_EventDate");
+        });
+
+        // Configure DunningRecord
+        modelBuilder.Entity<DunningRecord>(entity =>
+        {
+            entity.ToTable("DunningRecords");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.OutstandingAmount).HasColumnType("DECIMAL(18,4)");
+            entity.Property(e => e.RecoveredAmount).HasColumnType("DECIMAL(18,4)");
+            entity.Property(e => e.Reason).HasMaxLength(200);
+            entity.Property(e => e.LastErrorMessage).HasMaxLength(500);
+            entity.Property(e => e.NotificationEmail).HasMaxLength(255);
+            entity.Property(e => e.Notes).HasMaxLength(1000);
+
+            entity.HasOne(e => e.Subscription)
+                .WithMany()
+                .HasForeignKey(e => e.SubscriptionId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.Invoice)
+                .WithMany()
+                .HasForeignKey(e => e.InvoiceId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.BillingHistory)
+                .WithMany()
+                .HasForeignKey(e => e.BillingHistoryId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasIndex(e => e.SubscriptionId)
+                .HasDatabaseName("IX_DunningRecords_SubscriptionId");
+            entity.HasIndex(e => e.Status)
+                .HasDatabaseName("IX_DunningRecords_Status");
+            entity.HasIndex(e => e.NextRetryDate)
+                .HasDatabaseName("IX_DunningRecords_NextRetryDate");
         });
 
         // Apply provider-specific post-configuration using the Strategy Pattern

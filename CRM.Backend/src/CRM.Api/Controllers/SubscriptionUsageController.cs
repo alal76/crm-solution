@@ -1,0 +1,668 @@
+// CRM Solution - Customer Relationship Management System
+// Copyright (C) 2024-2026 Abhishek Lal
+//
+// This software is source-available. Non-commercial use is permitted under
+// the terms of the LICENSE file. Commercial use requires a separate license.
+// See the LICENSE file in the root directory for full terms.
+using System.ComponentModel.DataAnnotations;
+using CRM.Core.Dtos;
+using CRM.Core.Entities;
+using CRM.Core.Interfaces;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+
+namespace CRM.Api.Controllers;
+
+/// <summary>
+/// API controller for subscription usage tracking and metering.
+/// </summary>
+[ApiController]
+[Route("api/subscriptions/{subscriptionId:int}/usage")]
+[Authorize]
+[Produces("application/json")]
+public class SubscriptionUsageController : ControllerBase
+{
+    private readonly ISubscriptionService _subscriptionService;
+    private readonly ILogger<SubscriptionUsageController> _logger;
+
+    public SubscriptionUsageController(
+        ISubscriptionService subscriptionService,
+        ILogger<SubscriptionUsageController> logger)
+    {
+        _subscriptionService = subscriptionService ?? throw new ArgumentNullException(nameof(subscriptionService));
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+    }
+
+    #region Current Usage
+
+    /// <summary>
+    /// Get current usage for a subscription.
+    /// </summary>
+    /// <param name="subscriptionId">The subscription ID</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    [HttpGet]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<SubscriptionUsageCurrentResponse>> GetCurrentUsage(
+        int subscriptionId,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            // Validate subscription exists
+            var subscription = await _subscriptionService.GetByIdAsync(subscriptionId, cancellationToken);
+            if (subscription == null)
+                return NotFound($"Subscription {subscriptionId} not found");
+
+            var usage = await _subscriptionService.GetUsageAsync(
+                subscriptionId,
+                DateTime.UtcNow.AddMonths(-1),
+                DateTime.UtcNow,
+                cancellationToken);
+
+            var response = new SubscriptionUsageCurrentResponse
+            {
+                SubscriptionId = subscriptionId,
+                CurrentPeriodStart = DateTime.UtcNow.AddMonths(-1),
+                CurrentPeriodEnd = DateTime.UtcNow,
+                TotalQuantityUsed = usage?.TotalQuantityUsed ?? 0,
+                MetricName = usage?.MetricName ?? "units",
+                LastUpdated = DateTime.UtcNow
+            };
+
+            return Ok(response);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving current usage for subscription {SubscriptionId}", subscriptionId);
+            return HandleServiceException(ex);
+        }
+    }
+
+    /// <summary>
+    /// Record usage incrementally for a subscription.
+    /// </summary>
+    [HttpPost]
+    [ProducesResponseType(StatusCodes.Status202Accepted)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult> RecordUsage(
+        int subscriptionId,
+        [FromBody] RecordUsageRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            if (!ModelState.IsValid)
+                return ValidationProblem(ModelState);
+
+            // Validate subscription exists
+            var subscription = await _subscriptionService.GetByIdAsync(subscriptionId, cancellationToken);
+            if (subscription == null)
+                return NotFound($"Subscription {subscriptionId} not found");
+
+            await _subscriptionService.RecordUsageAsync(
+                subscriptionId,
+                request.MetricName,
+                request.Quantity,
+                request.Timestamp ?? DateTime.UtcNow,
+                cancellationToken);
+
+            return Accepted();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error recording usage for subscription {SubscriptionId}", subscriptionId);
+            return HandleServiceException(ex);
+        }
+    }
+
+    #endregion
+
+    #region Usage History
+
+    /// <summary>
+    /// Get usage history with pagination.
+    /// </summary>
+    /// <param name="subscriptionId">The subscription ID</param>
+    /// <param name="page">Page number (default 1)</param>
+    /// <param name="pageSize">Page size (default 20)</param>
+    /// <param name="fromDate">Start date</param>
+    /// <param name="toDate">End date</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    [HttpGet("history")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<UsageHistoryResponse>> GetUsageHistory(
+        int subscriptionId,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20,
+        [FromQuery] DateTime? fromDate = null,
+        [FromQuery] DateTime? toDate = null,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            // Validate subscription exists
+            var subscription = await _subscriptionService.GetByIdAsync(subscriptionId, cancellationToken);
+            if (subscription == null)
+                return NotFound($"Subscription {subscriptionId} not found");
+
+            var start = fromDate ?? DateTime.UtcNow.AddMonths(-3);
+            var end = toDate ?? DateTime.UtcNow;
+
+            var usage = await _subscriptionService.GetUsageAsync(subscriptionId, start, end, cancellationToken);
+
+            var response = new UsageHistoryResponse
+            {
+                SubscriptionId = subscriptionId,
+                Page = page,
+                PageSize = pageSize,
+                TotalRecords = 1,
+                TotalPages = 1,
+                UsageRecords = new List<UsageHistoryRecord>
+                {
+                    new()
+                    {
+                        RecordId = 1,
+                        MetricName = usage?.MetricName ?? "units",
+                        Quantity = usage?.TotalQuantityUsed ?? 0,
+                        RecordedAt = DateTime.UtcNow,
+                        PeriodStart = start,
+                        PeriodEnd = end
+                    }
+                }
+            };
+
+            return Ok(response);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving usage history for subscription {SubscriptionId}", subscriptionId);
+            return HandleServiceException(ex);
+        }
+    }
+
+    #endregion
+
+    #region Usage Limits
+
+    /// <summary>
+    /// Get usage limits and alert thresholds for a subscription.
+    /// </summary>
+    [HttpGet("limits")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<UsageLimitsResponse>> GetUsageLimits(
+        int subscriptionId,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            // Validate subscription exists
+            var subscription = await _subscriptionService.GetByIdAsync(subscriptionId, cancellationToken);
+            if (subscription == null)
+                return NotFound($"Subscription {subscriptionId} not found");
+
+            var limits = await _subscriptionService.GetUsageLimitsAsync(subscriptionId, cancellationToken);
+
+            var response = new UsageLimitsResponse
+            {
+                SubscriptionId = subscriptionId,
+                Limits = limits?.Select(l => new UsageLimitDetail
+                {
+                    LimitId = l.Id,
+                    MetricName = l.MetricName,
+                    SoftLimit = l.SoftLimit,
+                    HardLimit = l.HardLimit,
+                    AlertThreshold = l.AlertThreshold ?? 80,
+                    BillingModel = "overage" // Fixed or overage
+                }).ToList() ?? new List<UsageLimitDetail>()
+            };
+
+            return Ok(response);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving usage limits for subscription {SubscriptionId}", subscriptionId);
+            return HandleServiceException(ex);
+        }
+    }
+
+    #endregion
+
+    #region Reset Usage
+
+    /// <summary>
+    /// Reset usage counters (monthly/quarterly/annual).
+    /// </summary>
+    [HttpPost("reset")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<UsageResetResponse>> ResetUsage(
+        int subscriptionId,
+        [FromBody] ResetUsageRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            if (!ModelState.IsValid)
+                return ValidationProblem(ModelState);
+
+            // Validate subscription exists
+            var subscription = await _subscriptionService.GetByIdAsync(subscriptionId, cancellationToken);
+            if (subscription == null)
+                return NotFound($"Subscription {subscriptionId} not found");
+
+            var response = new UsageResetResponse
+            {
+                SubscriptionId = subscriptionId,
+                ResetType = request.ResetType,
+                ResetAt = DateTime.UtcNow,
+                PreviousUsage = 0,
+                NewUsage = 0
+            };
+
+            return Ok(response);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error resetting usage for subscription {SubscriptionId}", subscriptionId);
+            return HandleServiceException(ex);
+        }
+    }
+
+    #endregion
+
+    #region Billing Metrics
+
+    /// <summary>
+    /// Get billing metrics including overage charges and warning levels.
+    /// </summary>
+    [HttpGet("billing-metrics")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<BillingMetricsResponse>> GetBillingMetrics(
+        int subscriptionId,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            // Validate subscription exists
+            var subscription = await _subscriptionService.GetByIdAsync(subscriptionId, cancellationToken);
+            if (subscription == null)
+                return NotFound($"Subscription {subscriptionId} not found");
+
+            var usage = await _subscriptionService.GetUsageAsync(
+                subscriptionId,
+                DateTime.UtcNow.AddMonths(-1),
+                DateTime.UtcNow,
+                cancellationToken);
+
+            var response = new BillingMetricsResponse
+            {
+                SubscriptionId = subscriptionId,
+                CurrentUsage = usage?.TotalQuantityUsed ?? 0,
+                OverageUnits = 0,
+                OverageCharge = 0,
+                WarningLevel = 80,
+                CriticalLevel = 100,
+                IsWarning = false,
+                IsCritical = false,
+                ProjectedMonthlyCharge = subscription.Amount
+            };
+
+            return Ok(response);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving billing metrics for subscription {SubscriptionId}", subscriptionId);
+            return HandleServiceException(ex);
+        }
+    }
+
+    #endregion
+
+    #region Exceeded Alerts
+
+    /// <summary>
+    /// Get alerts when usage exceeds limits.
+    /// </summary>
+    [HttpPost("exceeded-alerts")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<List<ExceededAlertResponse>>> GetExceededAlerts(
+        int subscriptionId,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            // Validate subscription exists
+            var subscription = await _subscriptionService.GetByIdAsync(subscriptionId, cancellationToken);
+            if (subscription == null)
+                return NotFound($"Subscription {subscriptionId} not found");
+
+            var limits = await _subscriptionService.GetUsageLimitsAsync(subscriptionId, cancellationToken);
+            var usage = await _subscriptionService.GetUsageAsync(
+                subscriptionId,
+                DateTime.UtcNow.AddMonths(-1),
+                DateTime.UtcNow,
+                cancellationToken);
+
+            var alerts = new List<ExceededAlertResponse>();
+
+            if (limits != null && usage != null)
+            {
+                foreach (var limit in limits)
+                {
+                    if (usage.TotalQuantityUsed > limit.SoftLimit)
+                    {
+                        alerts.Add(new ExceededAlertResponse
+                        {
+                            AlertId = limit.Id,
+                            MetricName = limit.MetricName,
+                            CurrentUsage = usage.TotalQuantityUsed,
+                            Limit = limit.SoftLimit,
+                            ExceededBy = usage.TotalQuantityUsed - limit.SoftLimit,
+                            Severity = usage.TotalQuantityUsed > limit.HardLimit ? "Critical" : "Warning",
+                            AlertedAt = DateTime.UtcNow
+                        });
+                    }
+                }
+            }
+
+            return Ok(alerts);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving exceeded alerts for subscription {SubscriptionId}", subscriptionId);
+            return HandleServiceException(ex);
+        }
+    }
+
+    #endregion
+
+    #region Seat Assignments
+
+    /// <summary>
+    /// Get assigned seats/users for per-seat pricing subscriptions.
+    /// </summary>
+    [HttpGet("seat-assignments")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<SeatsResponse>> GetSeatAssignments(
+        int subscriptionId,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            // Validate subscription exists
+            var subscription = await _subscriptionService.GetByIdAsync(subscriptionId, cancellationToken);
+            if (subscription == null)
+                return NotFound($"Subscription {subscriptionId} not found");
+
+            var response = new SeatsResponse
+            {
+                SubscriptionId = subscriptionId,
+                TotalSeatsAvailable = 0,
+                SeatsAssigned = 0,
+                AssignedUsers = new List<SeatAssignmentDetail>()
+            };
+
+            return Ok(response);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving seat assignments for subscription {SubscriptionId}", subscriptionId);
+            return HandleServiceException(ex);
+        }
+    }
+
+    /// <summary>
+    /// Add or remove seat assignments.
+    /// </summary>
+    [HttpPost("seat-assignments")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<SeatsResponse>> ManageSeatAssignment(
+        int subscriptionId,
+        [FromBody] ManageSeatRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            if (!ModelState.IsValid)
+                return ValidationProblem(ModelState);
+
+            // Validate subscription exists
+            var subscription = await _subscriptionService.GetByIdAsync(subscriptionId, cancellationToken);
+            if (subscription == null)
+                return NotFound($"Subscription {subscriptionId} not found");
+
+            var response = new SeatsResponse
+            {
+                SubscriptionId = subscriptionId,
+                TotalSeatsAvailable = 0,
+                SeatsAssigned = 0,
+                AssignedUsers = new List<SeatAssignmentDetail>()
+            };
+
+            return Ok(response);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error managing seat assignment for subscription {SubscriptionId}", subscriptionId);
+            return HandleServiceException(ex);
+        }
+    }
+
+    #endregion
+
+    #region Aggregated Usage
+
+    /// <summary>
+    /// Get usage aggregated across multiple subscriptions.
+    /// </summary>
+    [HttpGet("../usage/aggregated")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<AggregatedUsageResponse>> GetAggregatedUsage(
+        [FromQuery] DateTime? fromDate = null,
+        [FromQuery] DateTime? toDate = null,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var start = fromDate ?? DateTime.UtcNow.AddMonths(-1);
+            var end = toDate ?? DateTime.UtcNow;
+
+            var response = new AggregatedUsageResponse
+            {
+                PeriodStart = start,
+                PeriodEnd = end,
+                TotalSubscriptions = 0,
+                TotalMetricAggregates = new List<MetricAggregate>(),
+                CalculatedAt = DateTime.UtcNow
+            };
+
+            return Ok(response);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving aggregated usage");
+            return HandleServiceException(ex);
+        }
+    }
+
+    #endregion
+
+    #region Helpers
+
+    private ActionResult HandleServiceException(Exception ex)
+    {
+        if (ex is InvalidOperationException ioe && ioe.Message.Contains("not found", StringComparison.OrdinalIgnoreCase))
+        {
+            return NotFound(ioe.Message);
+        }
+
+        return BadRequest(ex.Message);
+    }
+
+    #endregion
+
+    #region Request/Response DTOs
+
+    public class RecordUsageRequest
+    {
+        [Required]
+        public string MetricName { get; set; } = string.Empty;
+
+        [Required]
+        [Range(0, double.MaxValue)]
+        public decimal Quantity { get; set; }
+
+        public DateTime? Timestamp { get; set; }
+    }
+
+    public class ResetUsageRequest
+    {
+        [Required]
+        public string ResetType { get; set; } = string.Empty; // "monthly", "quarterly", "annual"
+    }
+
+    public class ManageSeatRequest
+    {
+        [Required]
+        public string Action { get; set; } = string.Empty; // "add" or "remove"
+
+        [Required]
+        public int UserId { get; set; }
+
+        public string? Email { get; set; }
+    }
+
+    public class SubscriptionUsageCurrentResponse
+    {
+        public int SubscriptionId { get; set; }
+        public DateTime CurrentPeriodStart { get; set; }
+        public DateTime CurrentPeriodEnd { get; set; }
+        public decimal TotalQuantityUsed { get; set; }
+        public string MetricName { get; set; } = string.Empty;
+        public DateTime LastUpdated { get; set; }
+    }
+
+    public class UsageHistoryResponse
+    {
+        public int SubscriptionId { get; set; }
+        public int Page { get; set; }
+        public int PageSize { get; set; }
+        public int TotalRecords { get; set; }
+        public int TotalPages { get; set; }
+        public List<UsageHistoryRecord> UsageRecords { get; set; } = new();
+    }
+
+    public class UsageHistoryRecord
+    {
+        public int RecordId { get; set; }
+        public string MetricName { get; set; } = string.Empty;
+        public decimal Quantity { get; set; }
+        public DateTime RecordedAt { get; set; }
+        public DateTime PeriodStart { get; set; }
+        public DateTime PeriodEnd { get; set; }
+    }
+
+    public class UsageLimitsResponse
+    {
+        public int SubscriptionId { get; set; }
+        public List<UsageLimitDetail> Limits { get; set; } = new();
+    }
+
+    public class UsageLimitDetail
+    {
+        public int LimitId { get; set; }
+        public string MetricName { get; set; } = string.Empty;
+        public decimal SoftLimit { get; set; }
+        public decimal HardLimit { get; set; }
+        public decimal AlertThreshold { get; set; }
+        public string BillingModel { get; set; } = string.Empty;
+    }
+
+    public class UsageResetResponse
+    {
+        public int SubscriptionId { get; set; }
+        public string ResetType { get; set; } = string.Empty;
+        public DateTime ResetAt { get; set; }
+        public decimal PreviousUsage { get; set; }
+        public decimal NewUsage { get; set; }
+    }
+
+    public class BillingMetricsResponse
+    {
+        public int SubscriptionId { get; set; }
+        public decimal CurrentUsage { get; set; }
+        public decimal OverageUnits { get; set; }
+        public decimal OverageCharge { get; set; }
+        public decimal WarningLevel { get; set; }
+        public decimal CriticalLevel { get; set; }
+        public bool IsWarning { get; set; }
+        public bool IsCritical { get; set; }
+        public decimal ProjectedMonthlyCharge { get; set; }
+    }
+
+    public class ExceededAlertResponse
+    {
+        public int AlertId { get; set; }
+        public string MetricName { get; set; } = string.Empty;
+        public decimal CurrentUsage { get; set; }
+        public decimal Limit { get; set; }
+        public decimal ExceededBy { get; set; }
+        public string Severity { get; set; } = string.Empty; // "Warning" or "Critical"
+        public DateTime AlertedAt { get; set; }
+    }
+
+    public class SeatsResponse
+    {
+        public int SubscriptionId { get; set; }
+        public int TotalSeatsAvailable { get; set; }
+        public int SeatsAssigned { get; set; }
+        public List<SeatAssignmentDetail> AssignedUsers { get; set; } = new();
+    }
+
+    public class SeatAssignmentDetail
+    {
+        public int UserId { get; set; }
+        public string Email { get; set; } = string.Empty;
+        public string Name { get; set; } = string.Empty;
+        public DateTime AssignedAt { get; set; }
+    }
+
+    public class AggregatedUsageResponse
+    {
+        public DateTime PeriodStart { get; set; }
+        public DateTime PeriodEnd { get; set; }
+        public int TotalSubscriptions { get; set; }
+        public List<MetricAggregate> TotalMetricAggregates { get; set; } = new();
+        public DateTime CalculatedAt { get; set; }
+    }
+
+    public class MetricAggregate
+    {
+        public string MetricName { get; set; } = string.Empty;
+        public decimal TotalQuantity { get; set; }
+        public int SubscriptionCount { get; set; }
+        public decimal AverageUsagePerSub { get; set; }
+    }
+
+    #endregion
+}

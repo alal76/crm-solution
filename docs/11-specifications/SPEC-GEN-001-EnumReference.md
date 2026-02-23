@@ -43,7 +43,18 @@ global note: `Clawback` is an alias for `ClawedBack`.
 | `OrderStatus` | Draft (0), PendingApproval (1), Approved (2), Processing (3), PartiallyFulfilled (4), Fulfilled (5), Shipped (6), Delivered (7), Completed (8), Cancelled (9), OnHold (10), Returned (11), Refunded (12) |
 | `OrderType` | Standard (0), Renewal (1), Amendment (2), Upgrade (3), Downgrade (4), AddOn (5), Replacement (6), Trial (7), Sample (8), Return (9), Credit (10), MultiYear (11) |
 
-### 2.5 Additional enums
+### 2.5 Subscription.cs / BillingHistory.cs / DunningRecord.cs / SubscriptionRenewal.cs
+| Enum | File | Values (int) | Description |
+|------|------|--------------|-------------|
+| `SubscriptionStatus` | `Subscription.cs` | Active (0), Paused (1), Cancelled (2), Suspended (3), PendingCancellation (4), Expired (5), Trial (6); aliased: Current=0, Churned=2 | Subscription lifecycle state |
+| `BillingEventType` | `BillingHistory.cs` | Created (0), Activated (1), PlanChanged (2), Invoiced (3), Cancelled (4), Renewed (5), Paused (6), Resumed (7), Suspended (8), PaymentCollected (9), PaymentFailed (10), ProrationApplied (11), UsageChargeApplied (12) | Audit trail event type |
+| `DunningStatus` | `DunningRecord.cs` | Active (0), Resolved (1), Exhausted (2), WrittenOff (3), GracePeriod (4) | Payment recovery workflow state |
+| `SubscriptionRenewalStatus` | `SubscriptionRenewal.cs` | Pending (0), Completed (1), Failed (2), Skipped (3) | Renewal attempt outcome |
+| `BillingCycle` | `Entities/Enums/BillingCycle.cs` | Monthly (1), Quarterly (2), Annual (3), Weekly (4), Daily (5), Biannual (6), Custom (99) | Billing frequency — numeric enum for future migration of Subscription.BillingCycle string field (TODO-SALES006-014) |
+
+> **Note:** `BillingCycle` starts at 1 (not 0) to distinguish unset/default from "Monthly". The `Custom = 99` value is intentionally non-sequential to allow future values 7–98 without breaking existing stored data.
+
+### 2.6 Additional enums
 List additional enums similarly as they are discovered (e.g. `AddressType`, `PaymentStatus`, etc.).
 
 ## 3. Maintenance
