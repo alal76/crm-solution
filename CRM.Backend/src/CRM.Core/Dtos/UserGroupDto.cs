@@ -19,6 +19,7 @@ public class UserGroupDto
     public int DisplayOrder { get; set; }
     public string HeaderColor { get; set; } = "#6750A4";
     public bool IsSystemAdmin { get; set; }
+    public bool IsApiGroup { get; set; }
     public DateTime CreatedAt { get; set; }
     public int MemberCount { get; set; }
 
@@ -108,6 +109,7 @@ public class CreateUserGroupRequest
     public int DisplayOrder { get; set; } = 0;
     public string HeaderColor { get; set; } = "#6750A4";
     public bool IsSystemAdmin { get; set; } = false;
+    public bool IsApiGroup { get; set; } = false;
 
     // Menu Permissions
     public bool CanAccessDashboard { get; set; } = true;

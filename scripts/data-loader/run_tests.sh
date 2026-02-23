@@ -47,17 +47,18 @@ fi
 # Parse counts from the JSONL
 TOTAL=$(python3 -c "
 import json, sys
-t=s=f=sk=0
+t=s=f=sk=ex=0
 for line in open('$JSONL'):
     try: e=json.loads(line)
     except: continue
     if e.get('status') in ('success','exists','failed'): t+=1
     if e.get('status')=='success': s+=1
+    if e.get('status')=='exists': ex+=1
     if e.get('status')=='failed': f+=1
     if e.get('status')=='skipped_integration': sk+=1
-print(f'{t} {s} {f} {sk}')
+print(f'{t} {s} {f} {sk} {ex}')
 ")
-read -r COUNT_TOTAL COUNT_OK COUNT_FAIL COUNT_SKIP <<< "$TOTAL"
+read -r COUNT_TOTAL COUNT_OK COUNT_FAIL COUNT_SKIP COUNT_EXISTS <<< "$TOTAL"
 
 # Build detailed error log
 python3 -c "
@@ -107,6 +108,10 @@ if [ "$COUNT_FAIL" -eq 0 ]; then
     echo "  ✅  ALL PASSED   $COUNT_OK / $COUNT_TOTAL API calls succeeded"
 else
     echo "  ❌  FAILURES     $COUNT_OK / $COUNT_TOTAL passed, $COUNT_FAIL failed"
+fi
+
+if [ "$COUNT_EXISTS" -gt 0 ]; then
+    echo "  🔁  DUPLICATES   $COUNT_EXISTS already-exists (dedup rejected)"
 fi
 
 if [ "$COUNT_SKIP" -gt 0 ]; then

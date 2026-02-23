@@ -79,6 +79,7 @@ public class UserGroupService : IUserGroupService, IUserGroupInputPort
             DisplayOrder = g.DisplayOrder,
             HeaderColor = g.HeaderColor,
             IsSystemAdmin = g.IsSystemAdmin,
+            IsApiGroup = g.IsApiGroup,
             CreatedAt = g.CreatedAt,
             MemberCount = g.Members.Count,
 
@@ -165,6 +166,7 @@ public class UserGroupService : IUserGroupService, IUserGroupInputPort
         group.DisplayOrder = request.DisplayOrder;
         group.HeaderColor = request.HeaderColor;
         group.IsSystemAdmin = request.IsSystemAdmin;
+        group.IsApiGroup = request.IsApiGroup;
 
         // Menu Permissions
         group.CanAccessDashboard = request.CanAccessDashboard;

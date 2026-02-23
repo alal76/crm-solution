@@ -268,7 +268,11 @@ builder.Services.AddRateLimiter(options =>
 });
 
 // Add services
-builder.Services.AddControllers()
+builder.Services.AddControllers(options =>
+    {
+        // Global exception filter: converts DuplicateExistsException → 409 Conflict
+        options.Filters.Add<CRM.Api.Filters.DuplicateExistsExceptionFilter>();
+    })
     .AddJsonOptions(options =>
     {
         // Safety net: prevent circular reference exceptions from navigation properties
@@ -844,6 +848,9 @@ builder.Services.Configure<CalendarSyncOptions>(builder.Configuration.GetSection
 builder.Services.AddScoped<ICalendarSyncService, CalendarSyncService>();
 builder.Services.AddHostedService<CalendarSyncHostedService>();
 
+// Duplicate Review Worker - assigns pending duplicate candidates to account managers
+builder.Services.AddHostedService<DuplicateReviewWorkerService>();
+
 // Email Sync Service - IMAP/OAuth sync for unified inbox (G5)
 // TEMPORARILY DISABLED - causes model building errors
 // builder.Services.Configure<EmailSyncOptions>(builder.Configuration.GetSection(EmailSyncOptions.SectionName));
@@ -918,15 +925,19 @@ builder.Services.AddAuthentication(options =>
         ValidateLifetime = true,
         ClockSkew = TimeSpan.Zero
     };
-});
+})
+.AddScheme<CRM.Infrastructure.Authentication.ApiKeyAuthenticationOptions,
+    CRM.Infrastructure.Authentication.ApiKeyAuthenticationHandler>(
+    CRM.Infrastructure.Authentication.ApiKeyAuthenticationHandler.SchemeName, options => { });
 
 // Add Authorization policies
-// Default policy: Authenticated users only
+// Default policy: Authenticated users only (accepts both Bearer JWT and ApiKey)
 builder.Services.AddAuthorization(options =>
 {
-    // Default policy requires authentication
+    // Default policy requires authentication via any registered scheme
     options.FallbackPolicy = new AuthorizationPolicyBuilder()
         .RequireAuthenticatedUser()
+        .AddAuthenticationSchemes("Bearer", CRM.Infrastructure.Authentication.ApiKeyAuthenticationHandler.SchemeName)
         .Build();
 });
 

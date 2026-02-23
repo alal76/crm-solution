@@ -5,8 +5,10 @@
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
 using CRM.Core.Entities;
+using CRM.Core.Exceptions;
 using CRM.Core.Interfaces;
 using CRM.Core.Ports.Input;
+using Microsoft.Extensions.Logging;
 
 namespace CRM.Infrastructure.Services;
 
@@ -24,16 +26,25 @@ public class ProductService : IProductService, IProductInputPort
     private readonly IRepository<CRM.Core.Entities.EntityTag> _entityTagRepository;
     private readonly IRepository<CRM.Core.Entities.CustomField> _customFieldRepository;
     private readonly NormalizationService _normalizationService;
+    private readonly IDuplicateDetectionService _duplicateDetection;
+    private readonly ICrmDbContext _dbContext;
+    private readonly ILogger<ProductService> _logger;
 
     public ProductService(IRepository<Product> repository,
         IRepository<CRM.Core.Entities.EntityTag> entityTagRepository,
         IRepository<CRM.Core.Entities.CustomField> customFieldRepository,
-        NormalizationService normalizationService)
+        NormalizationService normalizationService,
+        IDuplicateDetectionService duplicateDetection,
+        ICrmDbContext dbContext,
+        ILogger<ProductService> logger)
     {
         _repository = repository;
         _entityTagRepository = entityTagRepository;
         _customFieldRepository = customFieldRepository;
         _normalizationService = normalizationService;
+        _duplicateDetection = duplicateDetection;
+        _dbContext = dbContext;
+        _logger = logger;
     }
 
     public async Task<Product?> GetProductByIdAsync(int id)
@@ -92,8 +103,23 @@ public class ProductService : IProductService, IProductInputPort
 
     public async Task<int> CreateProductAsync(Product product)
     {
+        // Duplicate detection check before creation
+        var fieldValues = new Dictionary<string, string?>
+        {
+            ["Name"] = product.Name,
+            ["SKU"] = product.SKU,
+            ["ProductCode"] = product.ProductCode
+        };
+        var candidatesQueued = await DuplicateCheckHelper.CheckAndHandleDuplicatesAsync(
+            _duplicateDetection, _dbContext, "Product", fieldValues, _logger);
+
         await _repository.AddAsync(product);
         await _repository.SaveAsync();
+
+        // Update any queued duplicate candidates with the new entity ID
+        if (candidatesQueued > 0)
+            await DuplicateCheckHelper.UpdateCandidateSourceIdsAsync(_dbContext, "Product", product.Id);
+
         return product.Id;
     }
 

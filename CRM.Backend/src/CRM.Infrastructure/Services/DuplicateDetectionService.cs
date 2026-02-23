@@ -276,6 +276,11 @@ public class DuplicateDetectionService : IDuplicateDetectionService
             DuplicateEntityType.Lead => await GetAllLeadRecordsAsync(cancellationToken),
             DuplicateEntityType.Contact => await GetAllContactRecordsAsync(cancellationToken),
             DuplicateEntityType.Account => await GetAllAccountRecordsAsync(cancellationToken),
+            DuplicateEntityType.Opportunity => await GetAllOpportunityRecordsAsync(cancellationToken),
+            DuplicateEntityType.Product => await GetAllProductRecordsAsync(cancellationToken),
+            DuplicateEntityType.Campaign => await GetAllCampaignRecordsAsync(cancellationToken),
+            DuplicateEntityType.ServiceRequest => await GetAllServiceRequestRecordsAsync(cancellationToken),
+            DuplicateEntityType.Interaction => await GetAllInteractionRecordsAsync(cancellationToken),
             _ => new List<CandidateRecord>()
         };
     }
@@ -367,6 +372,120 @@ public class DuplicateDetectionService : IDuplicateDetectionService
         }).ToList();
     }
 
+    private async Task<List<CandidateRecord>> GetAllOpportunityRecordsAsync(CancellationToken cancellationToken)
+    {
+        var items = await _context.Set<Opportunity>()
+            .Where(o => !o.IsDeleted)
+            .ToListAsync(cancellationToken);
+
+        return items.Select(o => new CandidateRecord
+        {
+            Id = o.Id,
+            Summary = new RecordSummary
+            {
+                Id = o.Id,
+                Name = o.Name,
+                CreatedAt = o.CreatedAt
+            },
+            FieldValues = new Dictionary<string, string?>
+            {
+                ["Name"] = o.Name,
+                ["AccountId"] = o.AccountId.ToString()
+            }
+        }).ToList();
+    }
+
+    private async Task<List<CandidateRecord>> GetAllProductRecordsAsync(CancellationToken cancellationToken)
+    {
+        var items = await _context.Set<Product>()
+            .Where(p => !p.IsDeleted)
+            .ToListAsync(cancellationToken);
+
+        return items.Select(p => new CandidateRecord
+        {
+            Id = p.Id,
+            Summary = new RecordSummary
+            {
+                Id = p.Id,
+                Name = p.Name,
+                CreatedAt = p.CreatedAt
+            },
+            FieldValues = new Dictionary<string, string?>
+            {
+                ["Name"] = p.Name,
+                ["ProductCode"] = p.ProductCode
+            }
+        }).ToList();
+    }
+
+    private async Task<List<CandidateRecord>> GetAllCampaignRecordsAsync(CancellationToken cancellationToken)
+    {
+        var items = await _context.Set<MarketingCampaign>()
+            .Where(c => !c.IsDeleted)
+            .ToListAsync(cancellationToken);
+
+        return items.Select(c => new CandidateRecord
+        {
+            Id = c.Id,
+            Summary = new RecordSummary
+            {
+                Id = c.Id,
+                Name = c.Name,
+                CreatedAt = c.CreatedAt
+            },
+            FieldValues = new Dictionary<string, string?>
+            {
+                ["Name"] = c.Name
+            }
+        }).ToList();
+    }
+
+    private async Task<List<CandidateRecord>> GetAllServiceRequestRecordsAsync(CancellationToken cancellationToken)
+    {
+        var items = await _context.Set<ServiceRequest>()
+            .Where(s => !s.IsDeleted)
+            .ToListAsync(cancellationToken);
+
+        return items.Select(s => new CandidateRecord
+        {
+            Id = s.Id,
+            Summary = new RecordSummary
+            {
+                Id = s.Id,
+                Title = s.Subject,
+                CreatedAt = s.CreatedAt
+            },
+            FieldValues = new Dictionary<string, string?>
+            {
+                ["Subject"] = s.Subject,
+                ["ContactId"] = s.ContactId?.ToString()
+            }
+        }).ToList();
+    }
+
+    private async Task<List<CandidateRecord>> GetAllInteractionRecordsAsync(CancellationToken cancellationToken)
+    {
+        var items = await _context.Set<Interaction>()
+            .Where(i => !i.IsDeleted)
+            .ToListAsync(cancellationToken);
+
+        return items.Select(i => new CandidateRecord
+        {
+            Id = i.Id,
+            Summary = new RecordSummary
+            {
+                Id = i.Id,
+                Title = i.Subject,
+                CreatedAt = i.CreatedAt
+            },
+            FieldValues = new Dictionary<string, string?>
+            {
+                ["Subject"] = i.Subject,
+                ["Type"] = i.Type
+            }
+        }).ToList();
+    }
+
     public async Task<IEnumerable<DuplicateCandidate>> GetPendingCandidatesAsync(
         DuplicateEntityType? entityType = null,
         int page = 1,
@@ -422,6 +541,11 @@ public class DuplicateDetectionService : IDuplicateDetectionService
             DuplicateEntityType.Lead => await GetLeadCandidatesAsync(fieldValues, excludeRecordId, cancellationToken),
             DuplicateEntityType.Contact => await GetContactCandidatesAsync(fieldValues, excludeRecordId, cancellationToken),
             DuplicateEntityType.Account => await GetAccountCandidatesAsync(fieldValues, excludeRecordId, cancellationToken),
+            DuplicateEntityType.Opportunity => await GetAllOpportunityRecordsAsync(cancellationToken),
+            DuplicateEntityType.Product => await GetAllProductRecordsAsync(cancellationToken),
+            DuplicateEntityType.Campaign => await GetAllCampaignRecordsAsync(cancellationToken),
+            DuplicateEntityType.ServiceRequest => await GetAllServiceRequestRecordsAsync(cancellationToken),
+            DuplicateEntityType.Interaction => await GetAllInteractionRecordsAsync(cancellationToken),
             _ => new List<CandidateRecord>()
         };
     }

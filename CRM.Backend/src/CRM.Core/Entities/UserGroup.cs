@@ -95,6 +95,13 @@ public class UserGroup : BaseEntity
     /// </summary>
     public bool IsSystemAdmin { get; set; } = false;
 
+    /// <summary>
+    /// FUNCTIONAL: If true, this group is for API-only users. Members authenticate via API key
+    /// and cannot log in interactively. RBAC permissions on this group control API access scope.
+    /// TECHNICAL: Enforced at login time - API group members are blocked from LoginAsync.
+    /// </summary>
+    public bool IsApiGroup { get; set; } = false;
+
     #endregion
 
     #region Menu/Navigation Permissions

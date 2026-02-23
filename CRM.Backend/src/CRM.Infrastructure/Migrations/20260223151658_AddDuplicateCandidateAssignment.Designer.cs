@@ -4,6 +4,7 @@ using CRM.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CRM.Infrastructure.Migrations
 {
     [DbContext(typeof(CrmDbContext))]
-    partial class CrmDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260223151658_AddDuplicateCandidateAssignment")]
+    partial class AddDuplicateCandidateAssignment
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -22222,27 +22225,6 @@ namespace CRM.Infrastructure.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<DateTime?>("ApiKeyCreatedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<DateTime?>("ApiKeyExpiresAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("ApiKeyHash")
-                        .HasMaxLength(128)
-                        .HasColumnType("VARCHAR(128)");
-
-                    b.Property<DateTime?>("ApiKeyLastUsedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("ApiKeyPrefix")
-                        .HasMaxLength(12)
-                        .HasColumnType("VARCHAR(12)");
-
-                    b.Property<string>("ApiUserDescription")
-                        .HasMaxLength(500)
-                        .HasColumnType("VARCHAR(500)");
-
                     b.Property<string>("BackupCodes")
                         .HasColumnType("TEXT");
 
@@ -22291,9 +22273,6 @@ namespace CRM.Infrastructure.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<bool>("IsApiUser")
                         .HasColumnType("tinyint(1)");
 
                     b.Property<bool>("IsDeleted")
@@ -22379,16 +22358,10 @@ namespace CRM.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("ApiKeyHash")
-                        .HasDatabaseName("IX_Users_ApiKeyHash");
-
                     b.HasIndex("DepartmentId");
 
                     b.HasIndex("Email")
                         .IsUnique();
-
-                    b.HasIndex("IsApiUser")
-                        .HasDatabaseName("IX_Users_IsApiUser");
 
                     b.HasIndex("PrimaryGroupId");
 
@@ -22676,9 +22649,6 @@ namespace CRM.Infrastructure.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<bool>("IsActive")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<bool>("IsApiGroup")
                         .HasColumnType("tinyint(1)");
 
                     b.Property<bool>("IsDefault")

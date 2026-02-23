@@ -8,6 +8,7 @@ using System.Linq;
 using CRM.Api.Helpers;
 using CRM.Api.Hubs;
 using CRM.Core.Dtos;
+using CRM.Core.Exceptions;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -479,6 +480,10 @@ public class AccountsController : ControllerBase
         {
             // Other validation errors (phone format, etc.)
             return BadRequest(new { message = ex.Message });
+        }
+        catch (DuplicateExistsException dex)
+        {
+            return Conflict(new { message = dex.Message, entityType = dex.EntityType, existingRecordId = dex.ExistingRecordId, matchScore = dex.MatchScore });
         }
         catch (Exception ex)
         {

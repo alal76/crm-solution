@@ -9,6 +9,8 @@ using CRM.Core.Entities;
 using CRM.Core.Entities.Workflow;
 using CRM.Core.Interfaces;
 using CRM.Core.Ports.Input;
+using CRM.Core.Exceptions;
+using Microsoft.Extensions.Logging;
 
 namespace CRM.Infrastructure.Services;
 
@@ -52,6 +54,9 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
     private readonly NormalizationService _normalizationService;
     private readonly IEntityEventDispatcher _eventDispatcher;
     private readonly IPreferencesService _preferencesService;
+    private readonly IDuplicateDetectionService _duplicateDetection;
+    private readonly ICrmDbContext _dbContext;
+    private readonly ILogger<AccountService> _logger;
 
     /// <summary>
     /// Initializes a new instance of AccountService with required dependencies.
@@ -72,7 +77,10 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
         IRepository<CRM.Core.Entities.CustomField> customFieldRepository,
         NormalizationService normalizationService,
         IEntityEventDispatcher eventDispatcher,
-        IPreferencesService preferencesService)
+        IPreferencesService preferencesService,
+        IDuplicateDetectionService duplicateDetection,
+        ICrmDbContext dbContext,
+        ILogger<AccountService> logger)
     {
         _accountRepository = accountRepository;
         _accountContactRepository = accountContactRepository;
@@ -87,6 +95,9 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
         _normalizationService = normalizationService;
         _eventDispatcher = eventDispatcher;
         _preferencesService = preferencesService;
+        _duplicateDetection = duplicateDetection;
+        _dbContext = dbContext;
+        _logger = logger;
     }
 
     /// <summary>
@@ -163,6 +174,17 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
     /// <returns>Created AccountDto with assigned ID</returns>
     public async Task<AccountDto> CreateAccountAsync(CreateAccountDto dto)
     {
+        // Duplicate detection check before creation
+        var fieldValues = new Dictionary<string, string?>
+        {
+            ["Name"] = $"{dto.FirstName} {dto.LastName}".Trim(),
+            ["Email"] = dto.Email,
+            ["Phone"] = dto.Phone,
+            ["CompanyName"] = dto.Company
+        };
+        var candidatesQueued = await DuplicateCheckHelper.CheckAndHandleDuplicatesAsync(
+            _duplicateDetection, _dbContext, "Account", fieldValues, _logger);
+
         // TODO-CRM001-08: Validate duplicate email
         if (!string.IsNullOrEmpty(dto.Email))
         {
@@ -340,6 +362,10 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
         }
 
 
+
+        // Update any queued duplicate candidates with the new entity ID
+        if (candidatesQueued > 0)
+            await DuplicateCheckHelper.UpdateCandidateSourceIdsAsync(_dbContext, "Account", account.Id);
 
         // Fire workflow triggers for entity creation
         _eventDispatcher.DispatchEntityEvent("Account", account.Id, WorkflowTriggerType.OnCreate);

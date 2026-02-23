@@ -189,6 +189,7 @@ def main() -> None:
         "",
         f"API calls made    : {api.stats['total']}",
         f"  Success (2xx)   : {api.stats['success']}",
+        f"  Exists (dedup)  : {api.stats['exists']}",
         f"  Skipped (svc)   : {api.stats['skipped_integration']}",
         f"  Client err (4xx): {api.stats['client_error']}",
         f"  Server err (5xx): {api.stats['server_error']}",

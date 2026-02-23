@@ -6,6 +6,7 @@
 // See the LICENSE file in the root directory for full terms.
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
+using CRM.Core.Exceptions;
 using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -137,6 +138,10 @@ public class CampaignsController : ControllerBase
         catch (ArgumentException ex)
         {
             return BadRequest(new { message = ex.Message });
+        }
+        catch (DuplicateExistsException dex)
+        {
+            return Conflict(new { message = dex.Message, entityType = dex.EntityType, existingRecordId = dex.ExistingRecordId, matchScore = dex.MatchScore });
         }
         catch (Exception ex)
         {

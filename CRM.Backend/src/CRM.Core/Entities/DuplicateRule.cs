@@ -77,7 +77,22 @@ public enum DuplicateEntityType
     LeadContact = 3,
 
     /// <summary>All person records</summary>
-    AllPersons = 4
+    AllPersons = 4,
+
+    /// <summary>Opportunity records</summary>
+    Opportunity = 5,
+
+    /// <summary>Product records</summary>
+    Product = 6,
+
+    /// <summary>Marketing campaign records</summary>
+    Campaign = 7,
+
+    /// <summary>Service request (ticket) records</summary>
+    ServiceRequest = 8,
+
+    /// <summary>Interaction/activity records</summary>
+    Interaction = 9
 }
 
 /// <summary>
@@ -299,6 +314,15 @@ public class DuplicateCandidate : BaseEntity
 
     /// <summary>Navigation to merger</summary>
     public User? MergedBy { get; set; }
+
+    /// <summary>User assigned to review this duplicate candidate</summary>
+    public int? AssignedToUserId { get; set; }
+
+    /// <summary>Navigation to assigned user</summary>
+    public User? AssignedToUser { get; set; }
+
+    /// <summary>Date when assigned for review</summary>
+    public DateTime? AssignedAt { get; set; }
 
     #endregion
 

@@ -19,6 +19,12 @@ public class UserDto
     public string Role { get; set; } = string.Empty;
     public bool IsActive { get; set; }
     public bool IsLocked { get; set; }
+    public bool IsApiUser { get; set; }
+    public string? ApiKeyPrefix { get; set; }
+    public DateTime? ApiKeyCreatedAt { get; set; }
+    public DateTime? ApiKeyLastUsedAt { get; set; }
+    public DateTime? ApiKeyExpiresAt { get; set; }
+    public string? ApiUserDescription { get; set; }
     public int? DepartmentId { get; set; }
     public string? DepartmentName { get; set; }
     public int? UserProfileId { get; set; }

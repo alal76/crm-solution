@@ -9,6 +9,7 @@ using CRM.Core.Interfaces;
 using CRM.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using CRM.Core.Exceptions;
 
 namespace CRM.Infrastructure.Services;
 
@@ -19,11 +20,13 @@ public class InteractionService : IInteractionService
 {
     private readonly ICrmDbContext _dbContext;
     private readonly ILogger<InteractionService> _logger;
+    private readonly IDuplicateDetectionService _duplicateDetection;
 
-    public InteractionService(ICrmDbContext dbContext, ILogger<InteractionService> logger)
+    public InteractionService(ICrmDbContext dbContext, ILogger<InteractionService> logger, IDuplicateDetectionService duplicateDetection)
     {
         _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _duplicateDetection = duplicateDetection;
     }
 
     /// <inheritdoc />
@@ -96,6 +99,17 @@ public class InteractionService : IInteractionService
     {
         _logger.LogDebug("Creating interaction for account {AccountId}", interaction.AccountId);
 
+        // Duplicate detection check before creation
+        var fieldValues = new Dictionary<string, string?>
+        {
+            ["Subject"] = interaction.Subject,
+            ["Type"] = interaction.InteractionType.ToString(),
+            ["AccountId"] = interaction.AccountId.ToString(),
+            ["InteractionDate"] = interaction.InteractionDate.ToString("O")
+        };
+        var candidatesQueued = await DuplicateCheckHelper.CheckAndHandleDuplicatesAsync(
+            _duplicateDetection, _dbContext, "Interaction", fieldValues, _logger);
+
         try
         {
             interaction.CreatedAt = DateTime.UtcNow;
@@ -104,10 +118,18 @@ public class InteractionService : IInteractionService
             _dbContext.Interactions.Add(interaction);
             await _dbContext.SaveChangesAsync();
 
+            // Update any queued duplicate candidates with the new entity ID
+            if (candidatesQueued > 0)
+                await DuplicateCheckHelper.UpdateCandidateSourceIdsAsync(_dbContext, "Interaction", interaction.Id);
+
             _logger.LogInformation("Created interaction {InteractionId} for account {AccountId}",
                 interaction.Id, interaction.AccountId);
 
             return interaction;
+        }
+        catch (DuplicateExistsException)
+        {
+            throw; // Re-throw dedup exceptions without logging as error
         }
         catch (Exception ex)
         {

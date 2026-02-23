@@ -102,3 +102,48 @@ docs/DEVELOPMENT_NARRATIVE.md
 logs/
 local-secrets/
 DEVELOPMENT_TEAM_PERSONAS_WEEKLY_ANALYSIS.md
+
+# Build logs - explicit patterns for CI/development builds
+buildlog*.txt
+*.build.log
+build_result.log
+
+# Generated environment files with potential secrets
+.env.generated
+
+# Infrastructure configuration (contains local overrides)
+config/infrastructure.env
+
+# IDE and editor workspace-specific config (user settings)
+.idea/
+*.code-workspace
+.vscode/settings.json
+.vscode/extensions.json
+
+# AI/LLM generated files or caches
+.continuation/
+.copilot/
+.chatgpt-cache/
+.claude-cache/
+
+# Backup files from editors
+*.swp
+*.swo
+*~
+*.bak
+
+# Platform-specific files
+Thumbs.db
+.AppleDouble
+.LSOverride
+
+# Gradle/Maven
+.gradle/
+target/
+
+# Python artifacts (from admin scripts)
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.pytest_cache/

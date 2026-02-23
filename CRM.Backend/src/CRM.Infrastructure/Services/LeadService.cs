@@ -7,6 +7,7 @@
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Entities.Workflow;
+using CRM.Core.Exceptions;
 using CRM.Core.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -18,12 +19,14 @@ public class LeadService : ILeadService
     private readonly ICrmDbContext _context;
     private readonly IEntityEventDispatcher _eventDispatcher;
     private readonly ILogger<LeadService> _logger;
+    private readonly IDuplicateDetectionService _duplicateDetection;
 
-    public LeadService(ICrmDbContext context, IEntityEventDispatcher eventDispatcher, ILogger<LeadService> logger)
+    public LeadService(ICrmDbContext context, IEntityEventDispatcher eventDispatcher, ILogger<LeadService> logger, IDuplicateDetectionService duplicateDetection)
     {
         _context = context;
         _eventDispatcher = eventDispatcher;
         _logger = logger;
+        _duplicateDetection = duplicateDetection;
     }
 
     public async Task<(IEnumerable<LeadSummaryDto> Items, int TotalCount, int Page, int PageSize, int TotalPages)> GetAllAsync(int page = 1, int pageSize = 25)
@@ -96,10 +99,26 @@ public class LeadService : ILeadService
 
     public async Task<int> CreateAsync(Lead lead)
     {
+        // Duplicate detection check before creation
+        var fieldValues = new Dictionary<string, string?>
+        {
+            ["FirstName"] = lead.FirstName,
+            ["LastName"] = lead.LastName,
+            ["Email"] = lead.Email,
+            ["Phone"] = lead.Phone,
+            ["CompanyName"] = lead.CompanyName
+        };
+        var candidatesQueued = await DuplicateCheckHelper.CheckAndHandleDuplicatesAsync(
+            _duplicateDetection, _context, "Lead", fieldValues, _logger);
+
         lead.Status = LeadLifecycleStatus.New;
         lead.CreatedAt = DateTime.UtcNow;
         _context.Set<Lead>().Add(lead);
         await _context.SaveChangesAsync();
+
+        // Update any queued duplicate candidates with the new entity ID
+        if (candidatesQueued > 0)
+            await DuplicateCheckHelper.UpdateCandidateSourceIdsAsync(_context, "Lead", lead.Id);
 
         // Fire workflow triggers for entity creation
         _eventDispatcher.DispatchEntityEvent("Lead", lead.Id, WorkflowTriggerType.OnCreate);

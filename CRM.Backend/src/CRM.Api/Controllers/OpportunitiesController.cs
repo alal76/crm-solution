@@ -6,6 +6,7 @@
 // See the LICENSE file in the root directory for full terms.
 using CRM.Api.Hubs;
 using CRM.Core.DTOs;
+using CRM.Core.Exceptions;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -193,6 +194,10 @@ public class OpportunitiesController : ControllerBase
             await _notificationService.NotifyRecordCreatedAsync("Opportunity", id, MapToDto(opportunity), userId);
 
             return CreatedAtAction(nameof(GetById), new { id }, MapToDto(opportunity));
+        }
+        catch (DuplicateExistsException dex)
+        {
+            return Conflict(new { message = dex.Message, entityType = dex.EntityType, existingRecordId = dex.ExistingRecordId, matchScore = dex.MatchScore });
         }
         catch (Exception ex)
         {

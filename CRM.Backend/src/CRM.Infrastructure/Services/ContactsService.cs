@@ -12,6 +12,8 @@ using CRM.Core.Models;
 using CRM.Core.Ports.Input;
 using CRM.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using CRM.Core.Exceptions;
+using Microsoft.Extensions.Logging;
 using SocialPlatform = CRM.Core.Models.SocialMediaPlatform;
 
 namespace CRM.Infrastructure.Services;
@@ -29,15 +31,19 @@ public class ContactsService : IContactsService, IContactInputPort
     private readonly ICrmDbContext _context;
     private readonly IContactInfoService _contactInfoService;
     private readonly IEntityEventDispatcher _eventDispatcher;
+    private readonly IDuplicateDetectionService _duplicateDetection;
+    private readonly ILogger<ContactsService> _logger;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ContactsService"/> class.
     /// </summary>
-    public ContactsService(ICrmDbContext context, IContactInfoService contactInfoService, IEntityEventDispatcher eventDispatcher)
+    public ContactsService(ICrmDbContext context, IContactInfoService contactInfoService, IEntityEventDispatcher eventDispatcher, IDuplicateDetectionService duplicateDetection, ILogger<ContactsService> logger)
     {
         _context = context;
         _contactInfoService = contactInfoService;
         _eventDispatcher = eventDispatcher;
+        _duplicateDetection = duplicateDetection;
+        _logger = logger;
     }
 
     public async Task<ContactDto> GetByIdAsync(int id)
@@ -92,6 +98,18 @@ public class ContactsService : IContactsService, IContactInputPort
     {
         if (string.IsNullOrWhiteSpace(request.FirstName) || string.IsNullOrWhiteSpace(request.LastName))
             throw new ArgumentException("First name and last name are required");
+
+        // Duplicate detection check before creation
+        var fieldValues = new Dictionary<string, string?>
+        {
+            ["FirstName"] = request.FirstName,
+            ["LastName"] = request.LastName,
+            ["Email"] = request.EmailPrimary,
+            ["Phone"] = request.PhonePrimary,
+            ["CompanyName"] = request.Company
+        };
+        var candidatesQueued = await DuplicateCheckHelper.CheckAndHandleDuplicatesAsync(
+            _duplicateDetection, _context, "Contact", fieldValues, _logger);
 
         var contactType = Enum.TryParse<ContactType>(request.ContactType, true, out var type)
             ? type
@@ -258,6 +276,10 @@ public class ContactsService : IContactsService, IContactInputPort
             _context.ContactInfoLinks.Add(link);
             await _context.SaveChangesAsync();
         }
+
+        // Update any queued duplicate candidates with the new entity ID
+        if (candidatesQueued > 0)
+            await DuplicateCheckHelper.UpdateCandidateSourceIdsAsync(_context, "Contact", contact.Id);
 
         // Fire workflow triggers for entity creation
         _eventDispatcher.DispatchEntityEvent("Contact", contact.Id, WorkflowTriggerType.OnCreate);

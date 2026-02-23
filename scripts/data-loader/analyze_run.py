@@ -22,6 +22,7 @@ if not os.path.exists(jsonl_path):
     sys.exit(1)
 failures_by_code = {}
 successes = 0
+exists_count = 0
 total = 0
 
 with open(jsonl_path) as f:
@@ -34,6 +35,7 @@ with open(jsonl_path) as f:
             successes += 1
             total += 1
         elif e.get("status") == "exists":
+            exists_count += 1
             total += 1
         elif e.get("status") == "failed":
             total += 1
@@ -45,6 +47,10 @@ with open(jsonl_path) as f:
 
 print(f"Total API calls: {total}")
 print(f"Successes: {successes}")
+if exists_count > 0:
+    print(f"Already exists (dedup): {exists_count}")
+failure_total = sum(len(v) for v in failures_by_code.values())
+print(f"Failures: {failure_total}")
 print()
 
 for code in sorted(failures_by_code.keys(), key=lambda x: str(x)):

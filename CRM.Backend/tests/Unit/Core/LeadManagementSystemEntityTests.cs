@@ -190,12 +190,17 @@ public class LeadManagementSystemEntityTests
         var values = Enum.GetValues<DuplicateEntityType>();
 
         // Assert
-        values.Should().HaveCount(5);
+        values.Should().HaveCount(10);
         ((int)DuplicateEntityType.Lead).Should().Be(0);
         ((int)DuplicateEntityType.Contact).Should().Be(1);
         ((int)DuplicateEntityType.Account).Should().Be(2);
         ((int)DuplicateEntityType.LeadContact).Should().Be(3);
         ((int)DuplicateEntityType.AllPersons).Should().Be(4);
+        ((int)DuplicateEntityType.Opportunity).Should().Be(5);
+        ((int)DuplicateEntityType.Product).Should().Be(6);
+        ((int)DuplicateEntityType.Campaign).Should().Be(7);
+        ((int)DuplicateEntityType.ServiceRequest).Should().Be(8);
+        ((int)DuplicateEntityType.Interaction).Should().Be(9);
     }
 
     [Theory]
@@ -204,6 +209,11 @@ public class LeadManagementSystemEntityTests
     [InlineData(DuplicateEntityType.Account, "Account")]
     [InlineData(DuplicateEntityType.LeadContact, "LeadContact")]
     [InlineData(DuplicateEntityType.AllPersons, "AllPersons")]
+    [InlineData(DuplicateEntityType.Opportunity, "Opportunity")]
+    [InlineData(DuplicateEntityType.Product, "Product")]
+    [InlineData(DuplicateEntityType.Campaign, "Campaign")]
+    [InlineData(DuplicateEntityType.ServiceRequest, "ServiceRequest")]
+    [InlineData(DuplicateEntityType.Interaction, "Interaction")]
     public void DuplicateEntityType_ShouldHaveCorrectNames(DuplicateEntityType value, string expectedName)
     {
         value.ToString().Should().Be(expectedName);

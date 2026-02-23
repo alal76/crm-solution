@@ -106,6 +106,48 @@ public class User : BaseEntity
 
     #endregion
 
+    #region API User Properties
+
+    /// <summary>
+    /// Whether this user is an API-only user (authenticates via API key, cannot login interactively)
+    /// </summary>
+    public bool IsApiUser { get; set; } = false;
+
+    /// <summary>
+    /// SHA-256 hash of the API key. The raw key is shown once on creation and never stored.
+    /// </summary>
+    [MaxLength(128)]
+    public string? ApiKeyHash { get; set; }
+
+    /// <summary>
+    /// First 8 characters of the API key for display/identification (e.g., "crm_a1b2...")
+    /// </summary>
+    [MaxLength(12)]
+    public string? ApiKeyPrefix { get; set; }
+
+    /// <summary>
+    /// When the API key was created or last regenerated
+    /// </summary>
+    public DateTime? ApiKeyCreatedAt { get; set; }
+
+    /// <summary>
+    /// When the API key was last used for authentication
+    /// </summary>
+    public DateTime? ApiKeyLastUsedAt { get; set; }
+
+    /// <summary>
+    /// Optional expiration date for the API key. Null means no expiration.
+    /// </summary>
+    public DateTime? ApiKeyExpiresAt { get; set; }
+
+    /// <summary>
+    /// Description/purpose of this API user (e.g., "CI/CD Pipeline", "Data Sync")
+    /// </summary>
+    [MaxLength(500)]
+    public string? ApiUserDescription { get; set; }
+
+    #endregion
+
     /// <summary>
     /// Whether the user can currently log in
     /// </summary>

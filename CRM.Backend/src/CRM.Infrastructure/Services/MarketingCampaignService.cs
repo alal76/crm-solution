@@ -6,9 +6,11 @@
 // See the LICENSE file in the root directory for full terms.
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
+using CRM.Core.Exceptions;
 using CRM.Core.Interfaces;
 using CRM.Core.Mappers;
 using CRM.Core.Ports.Input;
+using Microsoft.Extensions.Logging;
 
 namespace CRM.Infrastructure.Services;
 
@@ -27,17 +29,26 @@ public class MarketingCampaignService : IMarketingCampaignService, ICampaignInpu
     private readonly IRepository<CRM.Core.Entities.EntityTag> _entityTagRepository;
     private readonly IRepository<CRM.Core.Entities.CustomField> _customFieldRepository;
     private readonly NormalizationService _normalizationService;
+    private readonly IDuplicateDetectionService _duplicateDetection;
+    private readonly ICrmDbContext _dbContext;
+    private readonly ILogger<MarketingCampaignService> _logger;
 
     public MarketingCampaignService(IRepository<MarketingCampaign> repository, IRepository<CampaignMetric> metricRepository,
         IRepository<CRM.Core.Entities.EntityTag> entityTagRepository,
         IRepository<CRM.Core.Entities.CustomField> customFieldRepository,
-        NormalizationService normalizationService)
+        NormalizationService normalizationService,
+        IDuplicateDetectionService duplicateDetection,
+        ICrmDbContext dbContext,
+        ILogger<MarketingCampaignService> logger)
     {
         _repository = repository;
         _metricRepository = metricRepository;
         _entityTagRepository = entityTagRepository;
         _customFieldRepository = customFieldRepository;
         _normalizationService = normalizationService;
+        _duplicateDetection = duplicateDetection;
+        _dbContext = dbContext;
+        _logger = logger;
     }
 
     public async Task<CampaignDto?> GetCampaignByIdAsync(int id)
@@ -120,9 +131,24 @@ public class MarketingCampaignService : IMarketingCampaignService, ICampaignInpu
     {
         var campaign = CampaignMapper.ToEntity(dto);
         ValidateCampaign(campaign);
+
+        // Duplicate detection check before creation
+        var fieldValues = new Dictionary<string, string?>
+        {
+            ["Name"] = campaign.Name,
+            ["Type"] = campaign.Type.ToString()
+        };
+        var candidatesQueued = await DuplicateCheckHelper.CheckAndHandleDuplicatesAsync(
+            _duplicateDetection, _dbContext, "Campaign", fieldValues, _logger);
+
         campaign.CreatedAt = DateTime.UtcNow;
         await _repository.AddAsync(campaign);
         await _repository.SaveAsync();
+
+        // Update any queued duplicate candidates with the new entity ID
+        if (candidatesQueued > 0)
+            await DuplicateCheckHelper.UpdateCandidateSourceIdsAsync(_dbContext, "Campaign", campaign.Id);
+
         return campaign.Id;
     }
 

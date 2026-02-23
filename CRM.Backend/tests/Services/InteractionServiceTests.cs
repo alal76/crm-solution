@@ -30,7 +30,7 @@ public class InteractionServiceTests : IDisposable
 
         _dbContext = new CrmDbContext(options, null);
         _mockLogger = new Mock<ILogger<InteractionService>>();
-        _service = new InteractionService(_dbContext, _mockLogger.Object);
+        _service = new InteractionService(_dbContext, _mockLogger.Object, Mock.Of<IDuplicateDetectionService>());
     }
 
     public void Dispose()
@@ -99,14 +99,14 @@ public class InteractionServiceTests : IDisposable
     [Fact]
     public void Constructor_ShouldThrowArgumentNullException_WhenDbContextIsNull()
     {
-        var act = () => new InteractionService(null!, _mockLogger.Object);
+        var act = () => new InteractionService(null!, _mockLogger.Object, Mock.Of<IDuplicateDetectionService>());
         act.Should().Throw<ArgumentNullException>().WithParameterName("dbContext");
     }
 
     [Fact]
     public void Constructor_ShouldThrowArgumentNullException_WhenLoggerIsNull()
     {
-        var act = () => new InteractionService(_dbContext, null!);
+        var act = () => new InteractionService(_dbContext, null!, Mock.Of<IDuplicateDetectionService>());
         act.Should().Throw<ArgumentNullException>().WithParameterName("logger");
     }
 

@@ -1091,6 +1091,13 @@ public class CrmDbContext : DbContext, ICrmDbContext
             // RoleAssignments is already configured via UserRoleAssignment Fluent API.
             // Without Ignore, EF creates a duplicate relationship with shadow FK "UserId1".
             entity.Ignore(e => e.UserRoles);
+
+            // API User columns
+            entity.Property(e => e.ApiKeyHash).HasMaxLength(128);
+            entity.Property(e => e.ApiKeyPrefix).HasMaxLength(12);
+            entity.Property(e => e.ApiUserDescription).HasMaxLength(500);
+            entity.HasIndex(e => e.ApiKeyHash).HasDatabaseName("IX_Users_ApiKeyHash");
+            entity.HasIndex(e => e.IsApiUser).HasDatabaseName("IX_Users_IsApiUser");
         });
 
         // Configure RefreshToken

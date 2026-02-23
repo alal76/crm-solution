@@ -34,7 +34,7 @@ public class LeadServiceTests
 
     private static LeadService CreateService(CrmDbContext context, Mock<IEntityEventDispatcher> dispatcher)
     {
-        return new LeadService(context, dispatcher.Object, Mock.Of<ILogger<LeadService>>());
+        return new LeadService(context, dispatcher.Object, Mock.Of<ILogger<LeadService>>(), Mock.Of<IDuplicateDetectionService>());
     }
 
     [Fact]

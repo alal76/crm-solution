@@ -1541,6 +1541,237 @@ curl -X POST http://localhost:5000/api/auth/login \
 
 ### List of all endpoints and their purposes###
 Add and update this section as new endpoints are implemented, ensuring it remains a comprehensive reference for developers and testers.
+
+---
+
+## 14. Documentation Structure & Maintenance (CRITICAL)
+
+### 14.1 Root Directory Policy
+
+**ONLY these files should exist in the solution root:**
+
+| File | Purpose | Updatable |
+|------|---------|-----------|
+| **README.md** | Project overview & quick start | Yes |
+| **LICENSE** | License information | No |
+| **version.json** | Current version tracking | Yes (every commit) |
+| **build.sh** | Primary build script | Yes |
+| **deploy-to-dev-server.sh** | Main development deployment | Yes |
+| **start-dev.sh** | Development environment startup | Yes |
+| **deploy.sh** | Production deployment script | Yes |
+| **.env** | Local environment variables (git-ignored) | No |
+| **.env.example** | Environment template | Yes |
+| **.gitignore** | Git exclusion rules | Yes |
+| **Dockerfile.*** | Docker configurations (if any) | Yes |
+
+**ALL OTHER FILES** must be moved to appropriate subdirectories per this policy. Do NOT add new .md files to root.
+
+### 14.2 Documentation Directory Structure
+
+```
+docs/
+├── README.md                          # Docs index
+├──
+├── 01-architecture/                  # ADRs & architectural decisions
+│   ├── ADR-001-*.md
+│   ├── ADR-002-*.md
+│   └── ARCHITECTURE_OVERVIEW.md
+│
+├── 02-design/                        # Design documents
+│   ├── SYSTEM_DESIGN.md
+│   ├── DATABASE_DESIGN.md
+│   └── UI_UX_GUIDELINES.md
+│
+├── 03-backend/                       # Backend documentation
+│   ├── API_REFERENCE.md
+│   ├── SERVICE_STRUCTURE.md
+│   └── CODE_PATTERNS.md
+│
+├── 04-api/                           # API specifications
+│   ├── ENDPOINTS_REFERENCE.md
+│   ├── API_AUTHENTICATION.md
+│   └── RATE_LIMITING.md
+│
+├── 05-frontend/                      # Frontend documentation
+│   ├── COMPONENT_LIBRARY.md
+│   ├── STATE_MANAGEMENT.md
+│   └── STYLING_GUIDE.md
+│
+├── 06-standards/                     # Code standards
+│   ├── NAMING_CONVENTIONS.md
+│   ├── CODE_REVIEW_CHECKLIST.md
+│   └── GIT_WORKFLOW.md
+│
+├── 07-testing/                       # Testing guides
+│   ├── TEST_STRATEGY.md
+│   ├── UNIT_TEST_GUIDE.md
+│   ├── E2E_TEST_GUIDE.md
+│   └── TEST_DATA_SETUP.md
+│
+├── 08-deployment/                    # Deployment guides
+│   ├── DOCKER_DEPLOYMENT.md
+│   ├── KUBERNETES_DEPLOYMENT.md
+│   ├── AWS_DEPLOYMENT.md
+│   ├── AZURE_DEPLOYMENT.md
+│   └── GCP_DEPLOYMENT.md
+│
+├── 09-operations/                    # Operational runbooks
+│   ├── MONITORING_SETUP.md
+│   ├── TROUBLESHOOTING_RUNBOOK.md
+│   ├── BACKUP_RECOVERY.md
+│   └── SCALING_GUIDE.md
+│
+├── 10-traceability/                  # Traceability & mapping
+│   ├── REQUIREMENTS_TRACEABILITY.md
+│   └── TEST_COVERAGE_MATRIX.md
+│
+├── 11-specifications/                # Feature specifications (MAIN)
+│   ├── INDEX.md
+│   ├── SPEC-TEMPLATE.md
+│   ├── SPEC-*.md
+│   ├── SPEC-GEN-001-EnumReference.md
+│   ├── FIELD_GAP_REMEDIATION_PLAN.md
+│   ├── MASTER_TODO_LIST.md
+│   └── SOLUTION_GAPS_REMEDIATION_PLAN.md
+│
+├── 12-enhancements/                  # Future enhancements
+│   ├── ROADMAP.md
+│   └── PLANNED_FEATURES.md
+│
+├── guides/                           # How-to guides
+│   ├── LOCAL_DEVELOPMENT_SETUP.md
+│   ├── FIRST_RUN_GUIDE.md
+│   ├── ONBOARDING.md
+│   ├── DATABASE_SETUP.md
+│   └── BACKEND_IMPLEMENTATION_GUIDE.md
+│
+├── decisions/                        # Architecture decision records
+│   ├── ADR-*.md (if not in 01-architecture/)
+│   ├── POSTGRES_CHOICE.md
+│   └── HEXAGONAL_ARCHITECTURE.md
+│
+├── references/                       # Technical references
+│   ├── TECHNOLOGY_STACK.md
+│   ├── GLOSSARY.md
+│   ├── QUICK_REFERENCE.md
+│   ├── SOLUTION_CONTEXT.md
+│   ├── UNIFIED_CONFIG_SYSTEM_SUMMARY.md
+│   └── PROVIDER_CONFIGURATION_REFERENCE.md
+│
+├── investigations/                   # Investigation reports
+│   ├── 2026-02-*.md
+│   ├── BACKEND_BUILD_FAILURE_ANALYSIS.md
+│   ├── TEST_DATA_LOADER_FAILURE_ANALYSIS.md
+│   └── PERFORMANCE_ANALYSIS.md
+│
+├── fixes-and-patches/                # Implementation fixes
+│   ├── ADMIN_CONFIG_IMPLEMENTATION_STATUS.md
+│   ├── CAMPAIGN_EXECUTION_FIX_IMPLEMENTATION.md
+│   ├── COMMISSIONS_FIXES_IMPLEMENTATION.md
+│   ├── DEPLOYMENT_SUCCESS_20260217.md
+│   ├── SESSION_FIXES_SUMMARY.md
+│   ├── stylecop_fixes_summary.md
+│   ├── TEST_DATA_LOADER_FIXES_SUMMARY.md
+│   └── CI_CD_BUILD_FIX_SUMMARY.md
+│
+├── changelog/                        # Version history
+│   ├── CHANGELOG.md
+│   ├── v0.560.md
+│   └── v0.561.md
+│
+├── development/                      # Development processes
+│   ├── DEVELOPMENT.md
+│   ├── DATABASE_EF_CORE_GAP_ANALYSIS.md
+│   ├── SOLUTION_CONTEXT.md
+│   ├── ARCHITECTURE_OVERVIEW.md
+│   └── MICROSERVICES_ARCHITECTURE.md
+│
+├── tools/                            # Utility scripts & analysis
+│   ├── analyze_failures.py
+│   ├── detailed_failure_analysis.py
+│   ├── fix_bulk_crm_seed_json.py
+│   └── README.md (with tool descriptions)
+│
+├── archives/                         # Historical/temporary files
+│   ├── generated_tests.txt
+│   ├── regenerated_tests_*.txt
+│   └── old_implementations/
+│
+├── common_development_issues.md      # Living document: problems & solutions
+└── INDEX.md                          # Complete documentation index
+```
+
+### 14.3 Documentation Categories & Rules
+
+| Category | Location | File Pattern | When Created | Updates | Audience |
+|----------|----------|--------------|-------------|---------|----------|
+| **Feature Specifications** | `docs/11-specifications/` | `SPEC-{MODULE}-{SEQ}-{Name}.md` | Before implementation | Every iteration | Tech leads, developers |
+| **Architecture Decisions** | `docs/01-architecture/` or `docs/decisions/` | `ADR-{Number}-{Title}.md` | Design phase | On reversal | All engineers |
+| **API Documentation** | `docs/04-api/` | `ENDPOINTS_REFERENCE.md` | Before release | Per release | Backend, frontend devs |
+| **How-To Guides** | `docs/guides/` | Descriptive names | Ongoing | When process changes | New developers |
+| **Implementation Fixes** | `docs/fixes-and-patches/` | `{FEATURE}_FIX_*.md` | During bug fix | After resolution | Team |
+| **Investigation Reports** | `docs/investigations/` | `{DATE}-{ISSUE}_*.md` | During problem-solving | Never (immutable) | All engineers |
+| **Troubleshooting** | `docs/09-operations/` | `TROUBLESHOOTING_RUNBOOK.md` | On first issue | When issue recurs | Ops, developers |
+| **Problem Tracker** | `docs/common_development_issues.md` | Living document | On first occurrence | After each new issue | All |
+| **Remediations** | `docs/11-specifications/` | `*_REMEDIATION_PLAN.md` | During gap analysis | After each completed item | Tech leads |
+| **Code Standards** | `docs/06-standards/` | `*.md` | Project start | Per policy change | All developers |
+
+### 14.4 When to Create New Documentation
+
+**MANDATORY DOCUMENTATION CREATION:**
+
+1. **New Feature** → Create `SPEC-*.md` in `docs/11-specifications/`
+2. **Breaking Change** → Create `ADR-*.md` in `docs/01-architecture/`
+3. **New Service/Module** → Create guide in `docs/guides/` + API docs in `docs/04-api/`
+4. **Investigation/Bug Fix** → Create report in `docs/investigations/` or `docs/fixes-and-patches/`
+5. **New Recurring Problem** → Add to `docs/common_development_issues.md`
+6. **Deployment Issue** → Update `docs/09-operations/TROUBLESHOOTING_RUNBOOK.md`
+
+**DO NOT CREATE:**
+- Documentation in project root (use `/docs`)
+- Random .md files without category
+- Temporary notes (use docs/archives/)
+- Duplicate documentation (update existing instead)
+
+### 14.5 Documentation Maintenance Checklist
+
+Before committing code with documentation changes:
+
+- [ ] File location matches `14.2` structure
+- [ ] File naming follows patterns in `14.3`
+- [ ] Update `docs/INDEX.md` with new files
+- [ ] Link related documents together
+- [ ] Mark implementation status (`✅`, `⚠️`, `❌`)
+- [ ] Update version.json
+- [ ] No new files in project root (except approved scripts)
+- [ ] All links are relative paths (`docs/11-specifications/SPEC-*.md`)
+- [ ] Verify no PHI/sensitive data in documentation
+- [ ] For fixes: mark as completed and move to archives if superseded
+
+### 14.6 Documentation Entry Points
+
+| Role | Read These First |
+|------|------------------|
+| **New Contributor** | README.md → docs/guides/ONBOARDING.md |
+| **Backend Developer** | docs/03-backend/SERVICE_STRUCTURE.md → docs/11-specifications/ |
+| **Frontend Developer** | docs/05-frontend/COMPONENT_LIBRARY.md → docs/guides/ |
+| **DevOps/Ops** | docs/08-deployment/ → docs/09-operations/ |
+| **QA Engineer** | docs/07-testing/ → docs/11-specifications/ |
+| **Tech Lead** | docs/01-architecture/ → docs/11-specifications/ |
+| **Project Manager** | docs/INDEX.md → docs/11-specifications/SOLUTION_GAPS_REMEDIATION_PLAN.md |
+
+### 14.7 Living Documents (Continuously Updated)
+
+These files should be updated regularly and never archived:
+
+- `docs/11-specifications/FIELD_GAP_REMEDIATION_PLAN.md` - Updated every field change
+- `docs/11-specifications/SOLUTION_GAPS_REMEDIATION_PLAN.md` - Updated per session
+- `docs/11-specifications/MASTER_TODO_LIST.md` - Updated per TODO completion
+- `docs/common_development_issues.md` - Updated on each new problem
+- `docs/09-operations/TROUBLESHOOTING_RUNBOOK.md` - Updated on new issue
+- `CHANGELOG.md` / `version.json` - Updated before every commit
+- `README.md` - Updated when dependencies or setup changes
+
 ---
 
 **END OF COPILOT INSTRUCTIONS**

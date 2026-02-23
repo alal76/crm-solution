@@ -193,6 +193,21 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
             throw new UnauthorizedAccessException("Invalid email or password");
         }
 
+        // Block API-only users from interactive login
+        if (user.IsApiUser)
+        {
+            _logger.LogWarning("Login blocked - user {Email} is an API-only user and cannot log in interactively", normalizedEmail);
+            throw new UnauthorizedAccessException("API users cannot log in interactively. Use the X-Api-Key header for API authentication.");
+        }
+
+        // Block members of API groups from interactive login
+        if (user.PrimaryGroup?.IsApiGroup == true)
+        {
+            _logger.LogWarning("Login blocked - user {Email} belongs to API group '{Group}' and cannot log in interactively",
+                normalizedEmail, user.PrimaryGroup.Name);
+            throw new UnauthorizedAccessException("Members of API groups cannot log in interactively. Use the X-Api-Key header for API authentication.");
+        }
+
         // Check if password has never been set - allow login with any password to redirect to setup
         if (user.PasswordNeverSet)
         {

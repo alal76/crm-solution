@@ -377,7 +377,8 @@ class ApiClient:
         self.logger = logger
         self.docker = docker
         self.stats: Dict[str, int] = {
-            "total": 0, "success": 0, "client_error": 0,
+            "total": 0, "success": 0, "exists": 0,
+            "client_error": 0,
             "server_error": 0, "network_error": 0,
             "skipped_integration": 0,
         }
@@ -420,7 +421,7 @@ class ApiClient:
             self.stats["total"] += 1
             resp_body = exc.read().decode("utf-8", errors="replace") if exc.fp else None
             if is_already_exists(resp_body):
-                self.stats["success"] += 1
+                self.stats["exists"] += 1
                 if self.logger:
                     self.logger.log_result("exists", method, path, exc.code,
                                            file=file, index=index,
@@ -478,6 +479,11 @@ class ApiClient:
             return None, None, None
 
     def get(self, path: str, **kw) -> Tuple[Optional[int], Optional[Dict], Optional[str]]:
+        # Auto-paginate list endpoints to avoid hanging on large datasets.
+        # A "list" call is a GET without a trailing numeric ID segment.
+        import re as _re
+        if "?" not in path and not _re.search(r'/\d+$', path):
+            path = f"{path}?page=1&pageSize=20"
         return self.request("GET", path, **kw)
 
     def post(self, path: str, payload: Any = None, **kw) -> Tuple[Optional[int], Optional[Dict], Optional[str]]:

@@ -51,7 +51,10 @@ public class MarketingCampaignServiceTests
             _mockMetricRepository.Object,
             _mockEntityTagRepository.Object,
             _mockCustomFieldRepository.Object,
-            normalizationService);
+            normalizationService,
+            Mock.Of<IDuplicateDetectionService>(),
+            _mockContext.Object,
+            Mock.Of<ILogger<MarketingCampaignService>>());
     }
 
     #region CRUD Tests
