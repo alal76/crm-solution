@@ -45,7 +45,7 @@ public class WebhookCircuitBreaker : IWebhookCircuitBreaker
     public bool IsCircuitOpen(string webhookUrl)
     {
         var state = GetState(webhookUrl);
-        return state == CircuitState.Open;
+        return state == WebhookCircuitState.Open;
     }
 
     public void RecordSuccess(string webhookUrl)
