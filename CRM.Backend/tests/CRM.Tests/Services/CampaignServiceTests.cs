@@ -9,6 +9,7 @@ using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using CRM.Infrastructure.Services;
+using CRM.Tests.Helpers;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
@@ -26,7 +27,7 @@ public class CampaignServiceTests
     private readonly Mock<IRepository<CampaignMetric>> _mockMetricRepository;
     private readonly Mock<IRepository<EntityTag>> _mockEntityTagRepository;
     private readonly Mock<IRepository<CustomField>> _mockCustomFieldRepository;
-    private readonly Mock<NormalizationService> _mockNormalizationService;
+    private readonly NormalizationService _normalizationService;
     private readonly Mock<IDuplicateDetectionService> _mockDuplicateDetection;
     private readonly Mock<ICrmDbContext> _mockDbContext;
     private readonly Mock<ILogger<MarketingCampaignService>> _mockLogger;
@@ -45,10 +46,15 @@ public class CampaignServiceTests
         _mockLogger = new Mock<ILogger<MarketingCampaignService>>();
         _mockDuplicateDetection = new Mock<IDuplicateDetectionService>();
 
-        // NormalizationService is a concrete class; we mock its dependencies
-        _mockNormalizationService = new Mock<NormalizationService>(
-            _mockEntityTagRepository.Object,
-            _mockCustomFieldRepository.Object);
+        // NormalizationService is a concrete class with non-virtual methods;
+        // use a real instance with mocked DbContext (empty DbSets)
+        var emptyEntityTags = MockDbSetFactory.CreateMockDbSet(new List<EntityTag>());
+        var emptyCustomFields = MockDbSetFactory.CreateMockDbSet(new List<CustomField>());
+        var emptyContactInfoLinks = MockDbSetFactory.CreateMockDbSet(new List<ContactInfoLink>());
+        _mockDbContext.Setup(c => c.EntityTags).Returns(emptyEntityTags.Object);
+        _mockDbContext.Setup(c => c.CustomFields).Returns(emptyCustomFields.Object);
+        _mockDbContext.Setup(c => c.ContactInfoLinks).Returns(emptyContactInfoLinks.Object);
+        _normalizationService = new NormalizationService(_mockDbContext.Object);
 
         _campaigns = new List<MarketingCampaign>();
         _metrics = new List<CampaignMetric>();
@@ -60,7 +66,7 @@ public class CampaignServiceTests
             _mockMetricRepository.Object,
             _mockEntityTagRepository.Object,
             _mockCustomFieldRepository.Object,
-            _mockNormalizationService.Object,
+            _normalizationService,
             _mockDuplicateDetection.Object,
             _mockDbContext.Object,
             _mockLogger.Object);
@@ -69,16 +75,8 @@ public class CampaignServiceTests
     private void SetupDefaults()
     {
         _mockDuplicateDetection
-            .Setup(d => d.FindDuplicatesAsync(It.IsAny<string>(), It.IsAny<Dictionary<string, string?>>()))
-            .ReturnsAsync(new List<DuplicateCandidate>());
-
-        _mockNormalizationService
-            .Setup(n => n.GetTagsAsync(It.IsAny<string>(), It.IsAny<int>()))
-            .ReturnsAsync(string.Empty);
-
-        _mockNormalizationService
-            .Setup(n => n.GetCustomFieldsAsync(It.IsAny<string>(), It.IsAny<int>()))
-            .ReturnsAsync(string.Empty);
+            .Setup(d => d.CheckForDuplicatesAsync(It.IsAny<string>(), It.IsAny<Dictionary<string, string?>>(), It.IsAny<int?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new DuplicateCheckResult());
     }
 
     // ========================================================================
@@ -330,7 +328,7 @@ public class CampaignServiceTests
             CampaignId = 1,
             MetricName = "Opens",
             MetricValue = 150,
-            RecordedAt = DateTime.UtcNow
+            RecordedDate = DateTime.UtcNow
         };
 
         _mockMetricRepository.Setup(r => r.AddAsync(It.IsAny<CampaignMetric>())).Returns(Task.CompletedTask);

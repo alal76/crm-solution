@@ -8,6 +8,7 @@ using CRM.Api.Controllers;
 using CRM.Core.Dtos;
 using CRM.Core.Interfaces;
 using CRM.Infrastructure.Services;
+using CRM.Infrastructure.Services.Auth;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -44,13 +45,19 @@ public class AuthControllerTests
         var appleProvider = new AppleOAuthProvider(mockHttpClient, mockAppleOptions, mockAppleLogger.Object);
 
         var mockWebAuthnService = new Mock<IWebAuthnService>();
+        var mockOAuthStateService = new Mock<IOAuthStateService>();
+        var mockTwoFactorPolicyService = new Mock<ITwoFactorPolicyService>();
+        var mockTotpService = new Mock<CRM.Core.Interfaces.ITotpService>();
 
         _controller = new AuthController(
             _mockAuthService.Object,
             _mockLogger.Object,
             linkedInProvider,
             appleProvider,
-            mockWebAuthnService.Object);
+            mockWebAuthnService.Object,
+            mockOAuthStateService.Object,
+            mockTwoFactorPolicyService.Object,
+            mockTotpService.Object);
     }
 
     #region Register Tests

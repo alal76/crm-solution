@@ -135,7 +135,7 @@ public class WebhookServiceTests
     public async Task ProcessWebFormAsync_ShouldMatchExistingAccount_ByEmail()
     {
         // Arrange
-        _accounts.Add(new Account { Id = 10, Email = "known@company.com", Name = "Known Co" });
+        _accounts.Add(new Account { Id = 10, Email = "known@company.com", Company = "Known Co" });
         RefreshMockDbSets();
 
         var submission = new WebFormSubmission
@@ -178,7 +178,7 @@ public class WebhookServiceTests
     public async Task ProcessInboundEmailAsync_ShouldReturnSuccess_WithKnownSender()
     {
         // Arrange
-        _accounts.Add(new Account { Id = 5, Email = "sender@known.com", Name = "Known Account" });
+        _accounts.Add(new Account { Id = 5, Email = "sender@known.com", Company = "Known Account" });
         RefreshMockDbSets();
 
         var email = new InboundEmail

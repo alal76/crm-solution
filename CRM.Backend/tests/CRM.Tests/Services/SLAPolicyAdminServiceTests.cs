@@ -314,7 +314,7 @@ public class SLAPolicyAdminServiceTests
     {
         // Arrange
         _policies.Add(CreateTestPolicy(1, "Assign SLA"));
-        _serviceRequests.Add(new ServiceRequest { Id = 10, Title = "Test Ticket", CreatedAt = DateTime.UtcNow });
+        _serviceRequests.Add(new ServiceRequest { Id = 10, Subject = "Test Ticket", TicketNumber = "SR-010", CreatedAt = DateTime.UtcNow });
         RefreshMockDbSets();
 
         // Act
@@ -330,7 +330,7 @@ public class SLAPolicyAdminServiceTests
     public async Task AssignPolicyAsync_ShouldThrow_WhenPolicyNotFound()
     {
         // Arrange
-        _serviceRequests.Add(new ServiceRequest { Id = 10, Title = "Test Ticket", CreatedAt = DateTime.UtcNow });
+        _serviceRequests.Add(new ServiceRequest { Id = 10, Subject = "Test Ticket", TicketNumber = "SR-010", CreatedAt = DateTime.UtcNow });
         RefreshMockDbSets();
 
         // Act & Assert

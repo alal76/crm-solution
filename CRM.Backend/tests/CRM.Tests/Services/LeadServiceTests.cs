@@ -64,8 +64,8 @@ public class LeadServiceTests
 
         // DuplicateDetection won't find duplicates by default
         _mockDuplicateDetection
-            .Setup(d => d.FindDuplicatesAsync(It.IsAny<string>(), It.IsAny<Dictionary<string, string?>>()))
-            .ReturnsAsync(new List<DuplicateCandidate>());
+            .Setup(d => d.CheckForDuplicatesAsync(It.IsAny<string>(), It.IsAny<Dictionary<string, string?>>(), It.IsAny<int?>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new DuplicateCheckResult());
     }
 
     // ========================================================================
