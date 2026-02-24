@@ -3,7 +3,7 @@
   "minor": 577,
   "patch": 0,
   "lastUpdate": "2026-02-24",
-  "description": "SLA Countdown SignalR Hub (real-time breach/warning), Holiday Calendar component, SLA Dashboard API endpoint",
+  "description": "Round 6: Auth OAuth CSRF + 2FA policies, SLA SignalR countdown, field audit trail, global search, webhook frontend, marketing components, 94 unit tests",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [

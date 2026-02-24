@@ -1,7 +1,8 @@
 # CRM Solution - Master TODO List (Reviewed & Updated)
 
-> **Last Updated:** February 24, 2026 - Round 6 (Sprint 1 Continued)
-> **Version:** 0.576.1
+> **Last Updated:** February 24, 2026 - Round 6 Complete (Sprint 1 Continued)
+> **Version:** 0.577.0
+> **Progress:** ✅ 235 Done | ⚠️ 37 Partial | ❌ 194 Remaining
 > **Purpose:** Master list of all pending, partial, and completed items — validated against actual code
 > **Audit Method:** 6 parallel sub-agent code reviews across Backend, Frontend, Database/DTOs, Integration/Tests, Auth/SYS, and UX/CRM + Manual Fixes
 > **Prior Update:** February 23, 2026 (Evening Round 2)
@@ -331,13 +332,13 @@
 
 | ID | Priority | Description | Category | Status |
 |----|----------|-------------|----------|--------|
-| TODO-SD003-002 | P2 | Create HolidayCalendar component | Frontend | ❌ Not Started |
+| ~~TODO-SD003-002~~ | P2 | Create HolidayCalendar component | Frontend | ✅ Done (Round 6) — HolidayCalendar.tsx (507L) |
 | ~~TODO-SD003-003~~ | P2 | Create SLAComplianceChart component | Frontend | ✅ Done (Round 4 - in SLAManagementPage) |
 | ~~TODO-SD003-005~~ | P2 | Create SLAMetricsCard component | Frontend | ✅ Done (Round 4 - in SLAManagementPage) |
 | TODO-SD003-008 | P2 | Add DST handling to SLA time calculations | Backend | ❌ Not Started |
 | TODO-SD003-010 | P2 | Create E2E tests for SLA workflows | Testing | ❌ Not Started |
-| TODO-SD003-011 | P2 | Add SLA dashboard API endpoints | Backend | ❌ Not Started |
-| TODO-SD003-012 | P1 | Implement real-time SLA countdown via SignalR (SLACountdownWidget uses polling, not SignalR) | Frontend | ❌ Not Started |
+| ~~TODO-SD003-011~~ | P2 | Add SLA dashboard API endpoints | Backend | ✅ Done (Round 6) — SLADashboardDto.cs, GET /api/slapolicies/dashboard |
+| ~~TODO-SD003-012~~ | P1 | Implement real-time SLA countdown via SignalR (SLACountdownWidget uses polling, not SignalR) | Frontend | ✅ Done (Round 6) — SLACountdownHub.cs, SLASignalRNotifier.cs, useSLACountdown.ts |
 
 *Completed: SLACountdownWidget ✅, SLABreachAlert ✅, SLAEnforcementHostedService ✅, BusinessHoursCalculator with timezone ✅, SLA compliance report endpoint ✅*
 
@@ -422,14 +423,14 @@
 | TODO-INT001-11 | P2 | Implement DeliveryTracker for logging/metrics | Backend | ❌ Not Started |
 | TODO-INT001-15 | P3 | Add feature flag for webhook system | Configuration | ❌ Not Started |
 | TODO-INT001-21 | P2 | Extract WebhookList as standalone component (currently inline in WebhooksManagementPage) | Frontend | ⚠️ Partial |
-| TODO-INT001-23 | P1 | Create EventTypeSelector multi-select component | Frontend | ❌ Not Started |
+| ~~TODO-INT001-23~~ | P1 | Create EventTypeSelector multi-select component | Frontend | ✅ Done (Round 6) — EventTypeSelector.tsx (198L) |
 | TODO-INT001-24 | P2 | Implement EventFilterBuilder for advanced filters | Frontend | ❌ Not Started |
-| TODO-INT001-25 | P1 | Implement WebhookTestSender UI with payload editor | Frontend | ❌ Not Started |
-| TODO-INT001-26 | P2 | Implement DeliveryHistoryTable with sorting/filtering | Frontend | ❌ Not Started |
-| TODO-INT001-27 | P2 | Implement DeliveryDetail modal for debugging | Frontend | ❌ Not Started |
+| ~~TODO-INT001-25~~ | P1 | Implement WebhookTestSender UI with payload editor | Frontend | ✅ Done (Round 6) — WebhookTestSender.tsx (268L) |
+| ~~TODO-INT001-26~~ | P2 | Implement DeliveryHistoryTable with sorting/filtering | Frontend | ✅ Done (Round 6) — DeliveryHistoryTable.tsx (242L) |
+| ~~TODO-INT001-27~~ | P2 | Implement DeliveryDetail modal for debugging | Frontend | ✅ Done (Round 6) — DeliveryDetailModal.tsx (309L) |
 | TODO-INT001-28 | P2 | Implement SignatureVerificationUI | Frontend | ❌ Not Started |
-| TODO-INT001-31 | P2 | Implement webhook health monitoring dashboard | Frontend | ❌ Not Started |
-| TODO-INT001-32 | P2 | Create unit tests for WebhookService | Testing | ❌ Not Started |
+| ~~TODO-INT001-31~~ | P2 | Implement webhook health monitoring dashboard | Frontend | ✅ Done (Round 6) — WebhookHealthDashboard.tsx (350L) |
+| ~~TODO-INT001-32~~ | P2 | Create unit tests for WebhookService | Testing | ✅ Done (Round 6) — WebhookServiceTests.cs (19 tests) |
 | ~~TODO-INT001-33~~ | P2 | Create unit tests for SignatureGenerator | Testing | ✅ Done (Round 4) — 11 tests in WebhookSignatureGeneratorTests.cs |
 | ~~TODO-INT001-34~~ | P2 | Create unit tests for RetryPolicyEngine | Testing | ✅ Done (Round 4) — 16 tests in WebhookRetryPolicyTests.cs |
 | TODO-INT001-35 | P2 | Create unit tests for WebhookDispatcher | Testing | ❌ Not Started |
@@ -467,7 +468,7 @@
 | TODO-INT003-014 | P2 | Implement ImportPreview component | Frontend | ❌ Not Started |
 | TODO-INT003-015 | P2 | Implement DuplicateHandler component | Frontend | ❌ Not Started |
 | TODO-INT003-016 | P2 | Implement ImportProgress component with real-time updates | Frontend | ❌ Not Started |
-| TODO-INT003-017 | P2 | Create unit tests for import validation | Testing | ❌ Not Started |
+| ~~TODO-INT003-017~~ | P2 | Create unit tests for import validation | Testing | ✅ Done (Round 6) — ImportExportServiceTests.cs (18 tests) |
 | TODO-INT003-018 | P2 | Create E2E tests for import/export flow | Testing | ❌ Not Started |
 
 *Completed: ImportJob entity + DbSet ✅, IImportService (IImportJobService) ✅, IExportService (IExportJobService) ✅, ImportJobsController + ImportExportController ✅, ExportJobsController ✅, BulkImportDialog.tsx (basic CSV dialog) ✅*
@@ -484,12 +485,12 @@
 | ~~TODO-AUTH-002~~ | P1 | Wire Apple OAuth to /api/auth/oauth-login endpoint (service+DI registered, no endpoint routing) | Backend | ✅ Done (Round 4) — GET/POST /api/auth/oauth/apple |
 | TODO-AUTH-003 | P1 | Implement Okta/Enterprise SSO support | Backend | ❌ Not Started |
 | TODO-AUTH-004 | P1 | Add generic OpenID Connect provider | Backend | ❌ Not Started |
-| TODO-AUTH-005 | P1 | Add OAuth provider state validation and CSRF protection | Backend | ❌ Not Started |
-| TODO-AUTH-006 | P1 | Implement OAuth token refresh for long-lived sessions | Backend | ❌ Not Started |
+| ~~TODO-AUTH-005~~ | P1 | Add OAuth provider state validation and CSRF protection | Backend | ✅ Done (Round 6) — OAuthStateService.cs |
+| ~~TODO-AUTH-006~~ | P1 | Implement OAuth token refresh for long-lived sessions | Backend | ✅ Done (Round 6) — POST /api/auth/oauth/refresh |
 | ~~TODO-AUTH-009~~ | P1 | Wire WebAuthn/FIDO2 to API endpoints (service exists, no controller endpoints) | Backend | ✅ Done (Round 4) — 6 endpoints (register options/complete, login options/complete, credentials list/delete) |
 | TODO-AUTH-010 | P1 | Add biometric login (platform-specific) | Backend | ❌ Not Started |
-| TODO-AUTH-011 | P1 | Add 2FA enforcement policies per user group | Backend | ❌ Not Started |
-| TODO-AUTH-012 | P1 | Implement backup code regeneration | Backend | ❌ Not Started |
+| ~~TODO-AUTH-011~~ | P1 | Add 2FA enforcement policies per user group | Backend | ✅ Done (Round 6) — TwoFactorPolicyService.cs, GET/PUT /api/auth/2fa/policies |
+| ~~TODO-AUTH-012~~ | P1 | Implement backup code regeneration | Backend | ✅ Done (Round 6) — POST /api/auth/2fa/backup-codes/regenerate |
 | TODO-AUTH-013 | P2 | Add concurrent session limit enforcement | Backend | ❌ Not Started |
 | TODO-AUTH-014 | P2 | Implement password history validation (last 5) | Backend | ❌ Not Started |
 | TODO-AUTH-015 | P2 | Implement IP-based session binding | Backend | ❌ Not Started |
@@ -530,8 +531,8 @@
 
 | ID | Priority | Description | Status |
 |----|----------|-------------|--------|
-| TODO-SYS006-001 | P1 | Implement field-level audit trail tracking (entity-level exists, no field-diff logic) | ❌ Not Started |
-| TODO-SYS006-003 | P1 | Implement change history timeline visualization frontend | ❌ Not Started |
+| ~~TODO-SYS006-001~~ | P1 | Implement field-level audit trail tracking (entity-level exists, no field-diff logic) | ✅ Done (Round 6) — FieldChangeTracker.cs, FieldChangeLog.cs entity + DbSet |
+| ~~TODO-SYS006-003~~ | P1 | Implement change history timeline visualization frontend | ✅ Done (Round 6) — ChangeHistoryTimeline.tsx (340L) |
 | TODO-SYS006-004 | P2 | Implement GDPR data access logging (Article 15) | ❌ Not Started |
 | TODO-SYS006-005 | P2 | Create GDPR data export workflow | ❌ Not Started |
 | TODO-SYS006-006 | P2 | Implement audit retention policy and archival | ❌ Not Started |
@@ -662,7 +663,7 @@
 
 | ID | Priority | Description | Status |
 |----|----------|-------------|--------|
-| TODO-UX-06 | P1 | Implement global search with typeahead (cross-entity, no component exists) | ❌ Not Started |
+| ~~TODO-UX-06~~ | P1 | Implement global search with typeahead (cross-entity, no component exists) | ✅ Done (Round 6) — GlobalSearchTypeahead.tsx (225L), searchService.ts (131L) |
 | TODO-UX-07 | P1 | Add inline editing for data grid cells | ❌ Not Started |
 | TODO-UX-09 | P2 | Implement generic bulk action toolbar for list views (IncidentBulkActionTools exists for ITSM only) | ⚠️ Partial |
 | TODO-UX-10 | P2 | Implement advanced filter builder widget (AdvancedSearch.tsx is per-page, not a reusable builder) | ⚠️ Partial |
