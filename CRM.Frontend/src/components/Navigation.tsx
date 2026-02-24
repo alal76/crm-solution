@@ -1017,6 +1017,7 @@ function NavigationContent() {
         anchor="left"
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
+        aria-label="Main navigation"
         sx={{
           '& .MuiDrawer-paper': {
             width: 260,

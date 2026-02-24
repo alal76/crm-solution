@@ -559,8 +559,9 @@ export const serviceDeskConfigService = {
         `/itsm/sla/instances/${targetId}/${targetType}`
       );
       return response.data;
-    } catch (err: any) {
-      if (err?.response?.status === 404) return null;
+    } catch (err: unknown) {
+      const axiosError = err as { response?: { status: number } };
+      if (axiosError?.response?.status === 404) return null;
       throw err;
     }
   },

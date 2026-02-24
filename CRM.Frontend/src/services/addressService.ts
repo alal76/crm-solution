@@ -13,7 +13,7 @@ class AddressService {
     try {
       const response = await apiClient.get<Address[]>(`/accounts/${accountId}/addresses`);
       return response.data;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(`Error fetching addresses for account ${accountId}:`, error);
       throw error;
     }
@@ -28,7 +28,7 @@ class AddressService {
         `/accounts/${accountId}/addresses/${addressId}`
       );
       return response.data;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(`Error fetching address ${addressId}:`, error);
       throw error;
     }
@@ -44,7 +44,7 @@ class AddressService {
         address
       );
       return response.data;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error creating address:', error);
       throw error;
     }
@@ -64,7 +64,7 @@ class AddressService {
         address
       );
       return response.data;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(`Error updating address ${addressId}:`, error);
       throw error;
     }
@@ -76,7 +76,7 @@ class AddressService {
   async deleteAddress(accountId: number, addressId: number): Promise<void> {
     try {
       await apiClient.delete(`/accounts/${accountId}/addresses/${addressId}`);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(`Error deleting address ${addressId}:`, error);
       throw error;
     }
@@ -91,7 +91,7 @@ class AddressService {
         `/accounts/${accountId}/addresses/${addressId}/set-primary-billing`
       );
       return response.data;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(`Error setting primary billing address:`, error);
       throw error;
     }
@@ -106,7 +106,7 @@ class AddressService {
         `/accounts/${accountId}/addresses/${addressId}/set-primary-shipping`
       );
       return response.data;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error(`Error setting primary shipping address:`, error);
       throw error;
     }

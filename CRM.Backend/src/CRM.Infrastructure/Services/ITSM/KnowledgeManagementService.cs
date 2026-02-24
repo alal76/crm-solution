@@ -319,4 +319,89 @@ public class KnowledgeManagementService : IKnowledgeManagementService
             PublishedDate = article.PublishedDate
         };
     }
+
+    /// <summary>
+    /// Get version history for a knowledge article.
+    /// TODO-SD002-010: Version history endpoint implementation.
+    /// </summary>
+    public async Task<IEnumerable<ArticleVersionDto>> GetArticleVersionsAsync(int articleId)
+    {
+        var context = _dbContextResolver.ResolveContext();
+
+        var versions = await context.Set<ArticleVersion>()
+            .Include(v => v.ChangedBy)
+            .Where(v => v.ArticleId == articleId)
+            .OrderByDescending(v => v.VersionNumber)
+            .ToListAsync();
+
+        return versions.Select(v => new ArticleVersionDto
+        {
+            Id = v.Id,
+            ArticleId = v.ArticleId,
+            VersionNumber = v.VersionNumber,
+            Title = v.Title,
+            Content = v.Content,
+            ChangedById = v.ChangedById,
+            ChangedByName = v.ChangedBy?.Username,
+            ChangedAt = v.ChangedAt,
+            ChangeNote = v.ChangeNote
+        });
+    }
+
+    /// <summary>
+    /// Restore a previous version of a knowledge article.
+    /// </summary>
+    public async Task<KnowledgeArticleDto?> RestoreArticleVersionAsync(int articleId, int versionId, int modifiedById)
+    {
+        var context = _dbContextResolver.ResolveContext();
+
+        var article = await context.ITSMKnowledgeArticles
+            .FirstOrDefaultAsync(a => a.ArticleId == articleId && !a.IsDeleted);
+
+        if (article == null)
+            return null;
+
+        var version = await context.Set<ArticleVersion>()
+            .FirstOrDefaultAsync(v => v.Id == versionId && v.ArticleId == articleId);
+
+        if (version == null)
+            return null;
+
+        // Save current state as a new version before restoring
+        var currentVersion = new ArticleVersion
+        {
+            ArticleId = articleId,
+            VersionNumber = article.Version + 1,
+            Title = article.Title,
+            Content = article.ArticleBody,
+            ChangedById = modifiedById,
+            ChangedAt = DateTime.UtcNow,
+            ChangeNote = $"Before restore to v{version.VersionNumber}"
+        };
+        context.Set<ArticleVersion>().Add(currentVersion);
+
+        // Restore the selected version
+        article.Title = version.Title;
+        article.ArticleBody = version.Content;
+        article.Version = article.Version + 2;
+        article.UpdatedAt = DateTime.UtcNow;
+
+        // Create a new version entry for the restored content
+        var restoredVersion = new ArticleVersion
+        {
+            ArticleId = articleId,
+            VersionNumber = article.Version,
+            Title = version.Title,
+            Content = version.Content,
+            ChangedById = modifiedById,
+            ChangedAt = DateTime.UtcNow,
+            ChangeNote = $"Restored from v{version.VersionNumber}"
+        };
+        context.Set<ArticleVersion>().Add(restoredVersion);
+
+        await context.SaveChangesAsync();
+
+        _logger.LogInformation("Restored article {ArticleId} to version {VersionNumber}", articleId, version.VersionNumber);
+        return MapToDto(article);
+    }
 }

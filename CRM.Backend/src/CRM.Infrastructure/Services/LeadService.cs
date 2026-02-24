@@ -324,4 +324,31 @@ public class LeadService : ILeadService
 
         return (false, null, null);
     }
+
+    /// <inheritdoc />
+    public async Task<bool> AssignToNurtureCampaignAsync(int leadId, int campaignId, CancellationToken ct = default)
+    {
+        var lead = await _context.Set<Lead>()
+            .FirstOrDefaultAsync(l => l.Id == leadId && !l.IsDeleted, ct);
+
+        if (lead == null)
+            return false;
+
+        // Verify campaign exists
+        var campaign = await _context.MarketingCampaigns
+            .FirstOrDefaultAsync(c => c.Id == campaignId && !c.IsDeleted, ct);
+
+        if (campaign == null)
+            return false;
+
+        lead.NurtureCampaignId = campaignId;
+        lead.UpdatedAt = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync(ct);
+
+        _logger.LogInformation("Lead {LeadId} assigned to nurture campaign {CampaignId}", leadId, campaignId);
+        _eventDispatcher.DispatchEntityEvent("Lead", lead.Id, WorkflowTriggerType.OnUpdate);
+
+        return true;
+    }
 }

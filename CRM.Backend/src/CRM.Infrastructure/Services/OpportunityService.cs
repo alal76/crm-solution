@@ -237,4 +237,392 @@ public class OpportunityService : IOpportunityService, IOpportunityInputPort
 
         return Math.Round(lineTotal, 2);
     }
+
+    // =============================================================================
+    // Opportunity Cloning (TODO-CRM003-06)
+    // =============================================================================
+
+    public async Task<Opportunity> CloneAsync(int opportunityId, OpportunityCloneOptions? options = null, CancellationToken ct = default)
+    {
+        options ??= new OpportunityCloneOptions();
+
+        var original = await _dbContext.Opportunities
+            .AsNoTracking()
+            .FirstOrDefaultAsync(o => o.Id == opportunityId && !o.IsDeleted, ct);
+
+        if (original == null)
+            throw new NotFoundException($"Opportunity with ID {opportunityId} not found");
+
+        // Create the cloned opportunity
+        var cloned = new Opportunity
+        {
+            Name = options.NewName ?? $"Copy of {original.Name}",
+            Description = original.Description,
+            AccountId = options.NewAccountId ?? original.AccountId,
+            Amount = original.Amount,
+            Stage = options.ResetStage ? OpportunityStage.Discovery : original.Stage,
+            Probability = options.ResetStage ? StageProbabilityDefaults[OpportunityStage.Discovery] : original.Probability,
+            ExpectedCloseDate = options.NewExpectedCloseDate ?? original.ExpectedCloseDate,
+            OwnerId = original.OwnerId,
+            Source = original.Source,
+            Type = original.Type,
+            Priority = original.Priority,
+            ForecastCategory = options.ResetStage ? ForecastCategory.Pipeline : original.ForecastCategory,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow,
+            IsDeleted = false
+        };
+
+        _dbContext.Opportunities.Add(cloned);
+        await _dbContext.SaveChangesAsync(ct);
+
+        _logger.LogInformation("Cloned opportunity {OriginalId} to {ClonedId}: {Name}", 
+            opportunityId, cloned.Id, cloned.Name);
+
+        // Clone products if requested
+        if (options.CloneProducts)
+        {
+            var products = await _dbContext.OpportunityProducts
+                .AsNoTracking()
+                .Where(p => p.OpportunityId == opportunityId && !p.IsDeleted)
+                .ToListAsync(ct);
+
+            foreach (var product in products)
+            {
+                var clonedProduct = new OpportunityProduct
+                {
+                    OpportunityId = cloned.Id,
+                    ProductId = product.ProductId,
+                    Quantity = product.Quantity,
+                    UnitPrice = product.UnitPrice,
+                    DiscountPercent = product.DiscountPercent,
+                    LineTotal = product.LineTotal,
+                    Notes = product.Notes,
+                    SortOrder = product.SortOrder,
+                    CreatedAt = DateTime.UtcNow,
+                    IsDeleted = false
+                };
+                _dbContext.OpportunityProducts.Add(clonedProduct);
+            }
+
+            _logger.LogDebug("Cloned {Count} products to opportunity {Id}", products.Count, cloned.Id);
+        }
+
+        // Clone team members if requested
+        if (options.CloneTeamMembers)
+        {
+            var teamMembers = await _dbContext.OpportunityTeamMembers
+                .AsNoTracking()
+                .Where(tm => tm.OpportunityId == opportunityId && !tm.IsDeleted)
+                .ToListAsync(ct);
+
+            foreach (var member in teamMembers)
+            {
+                var clonedMember = new OpportunityTeamMember
+                {
+                    OpportunityId = cloned.Id,
+                    UserId = member.UserId,
+                    Role = member.Role,
+                    SplitPercentage = member.SplitPercentage,
+                    IsPrimary = member.IsPrimary,
+                    CommissionPlanId = member.CommissionPlanId,
+                    Notes = member.Notes,
+                    CreatedAt = DateTime.UtcNow,
+                    IsDeleted = false
+                };
+                _dbContext.OpportunityTeamMembers.Add(clonedMember);
+            }
+
+            _logger.LogDebug("Cloned {Count} team members to opportunity {Id}", teamMembers.Count, cloned.Id);
+        }
+
+        // Clone competitors if requested
+        if (options.CloneCompetitors)
+        {
+            var competitors = await _dbContext.OpportunityCompetitors
+                .AsNoTracking()
+                .Where(c => c.OpportunityId == opportunityId)
+                .ToListAsync(ct);
+
+            foreach (var competitor in competitors)
+            {
+                var clonedCompetitor = new OpportunityCompetitor
+                {
+                    OpportunityId = cloned.Id,
+                    CompetitorId = competitor.CompetitorId,
+                    ThreatLevel = competitor.ThreatLevel,
+                    Status = CompetitorStatus.Active, // Reset status for new opportunity
+                    StrengthsAgainstUs = competitor.StrengthsAgainstUs,
+                    WeaknessesAgainstUs = competitor.WeaknessesAgainstUs,
+                    Strategy = competitor.Strategy,
+                    Notes = competitor.Notes
+                };
+                _dbContext.OpportunityCompetitors.Add(clonedCompetitor);
+            }
+
+            _logger.LogDebug("Cloned {Count} competitors to opportunity {Id}", competitors.Count, cloned.Id);
+        }
+
+        await _dbContext.SaveChangesAsync(ct);
+        return cloned;
+    }
+
+    // =============================================================================
+    // Team Member Management (TODO-CRM003-08)
+    // =============================================================================
+
+    public async Task<IEnumerable<OpportunityTeamMember>> GetTeamMembersAsync(int opportunityId, CancellationToken ct = default)
+    {
+        return await _dbContext.OpportunityTeamMembers
+            .Include(tm => tm.User)
+            .Where(tm => tm.OpportunityId == opportunityId && !tm.IsDeleted)
+            .OrderByDescending(tm => tm.IsPrimary)
+            .ThenBy(tm => tm.User.FirstName)
+            .ToListAsync(ct);
+    }
+
+    public async Task<OpportunityTeamMember> AddTeamMemberAsync(int opportunityId, OpportunityTeamMember member, CancellationToken ct = default)
+    {
+        // Verify opportunity exists
+        var opportunity = await _dbContext.Opportunities
+            .FirstOrDefaultAsync(o => o.Id == opportunityId && !o.IsDeleted, ct);
+
+        if (opportunity == null)
+            throw new NotFoundException($"Opportunity with ID {opportunityId} not found");
+
+        // If this is primary, remove primary flag from others
+        if (member.IsPrimary)
+        {
+            var existingPrimary = await _dbContext.OpportunityTeamMembers
+                .Where(tm => tm.OpportunityId == opportunityId && tm.IsPrimary && !tm.IsDeleted)
+                .ToListAsync(ct);
+
+            foreach (var existing in existingPrimary)
+            {
+                existing.IsPrimary = false;
+            }
+        }
+
+        member.OpportunityId = opportunityId;
+        member.CreatedAt = DateTime.UtcNow;
+        member.IsDeleted = false;
+
+        _dbContext.OpportunityTeamMembers.Add(member);
+        await _dbContext.SaveChangesAsync(ct);
+
+        _logger.LogInformation("Added team member {UserId} to opportunity {OpportunityId} with role {Role}", 
+            member.UserId, opportunityId, member.Role);
+
+        return member;
+    }
+
+    public async Task<OpportunityTeamMember?> UpdateTeamMemberAsync(int opportunityId, int memberId, OpportunityTeamMember updated, CancellationToken ct = default)
+    {
+        var existing = await _dbContext.OpportunityTeamMembers
+            .FirstOrDefaultAsync(tm => tm.Id == memberId && tm.OpportunityId == opportunityId && !tm.IsDeleted, ct);
+
+        if (existing == null)
+            return null;
+
+        // If setting as primary, remove primary flag from others
+        if (updated.IsPrimary && !existing.IsPrimary)
+        {
+            var otherPrimary = await _dbContext.OpportunityTeamMembers
+                .Where(tm => tm.OpportunityId == opportunityId && tm.IsPrimary && tm.Id != memberId && !tm.IsDeleted)
+                .ToListAsync(ct);
+
+            foreach (var other in otherPrimary)
+            {
+                other.IsPrimary = false;
+            }
+        }
+
+        existing.Role = updated.Role;
+        existing.SplitPercentage = updated.SplitPercentage;
+        existing.IsPrimary = updated.IsPrimary;
+        existing.CommissionPlanId = updated.CommissionPlanId;
+        existing.Notes = updated.Notes;
+        existing.UpdatedAt = DateTime.UtcNow;
+
+        await _dbContext.SaveChangesAsync(ct);
+
+        _logger.LogInformation("Updated team member {MemberId} on opportunity {OpportunityId}", memberId, opportunityId);
+
+        return existing;
+    }
+
+    public async Task<bool> RemoveTeamMemberAsync(int opportunityId, int memberId, CancellationToken ct = default)
+    {
+        var member = await _dbContext.OpportunityTeamMembers
+            .FirstOrDefaultAsync(tm => tm.Id == memberId && tm.OpportunityId == opportunityId && !tm.IsDeleted, ct);
+
+        if (member == null)
+            return false;
+
+        member.IsDeleted = true;
+        member.UpdatedAt = DateTime.UtcNow;
+        await _dbContext.SaveChangesAsync(ct);
+
+        _logger.LogInformation("Removed team member {MemberId} from opportunity {OpportunityId}", memberId, opportunityId);
+
+        return true;
+    }
+
+    // =============================================================================
+    // Competitor Management (TODO-CRM003-03)
+    // =============================================================================
+
+    public async Task<IEnumerable<OpportunityCompetitor>> GetCompetitorsAsync(int opportunityId, CancellationToken ct = default)
+    {
+        return await _dbContext.OpportunityCompetitors
+            .Include(c => c.Competitor)
+            .Where(c => c.OpportunityId == opportunityId)
+            .OrderByDescending(c => c.ThreatLevel)
+            .ThenBy(c => c.Competitor.Name)
+            .ToListAsync(ct);
+    }
+
+    public async Task<OpportunityCompetitor> AddCompetitorAsync(int opportunityId, OpportunityCompetitor competitor, CancellationToken ct = default)
+    {
+        // Verify opportunity exists
+        var opportunity = await _dbContext.Opportunities
+            .FirstOrDefaultAsync(o => o.Id == opportunityId && !o.IsDeleted, ct);
+
+        if (opportunity == null)
+            throw new NotFoundException($"Opportunity with ID {opportunityId} not found");
+
+        // Check if competitor already exists on this opportunity
+        var existing = await _dbContext.OpportunityCompetitors
+            .FirstOrDefaultAsync(c => c.OpportunityId == opportunityId && c.CompetitorId == competitor.CompetitorId, ct);
+
+        if (existing != null)
+            throw new ValidationException($"Competitor {competitor.CompetitorId} already exists on this opportunity");
+
+        competitor.OpportunityId = opportunityId;
+        _dbContext.OpportunityCompetitors.Add(competitor);
+        await _dbContext.SaveChangesAsync(ct);
+
+        _logger.LogInformation("Added competitor {CompetitorId} to opportunity {OpportunityId}", 
+            competitor.CompetitorId, opportunityId);
+
+        return competitor;
+    }
+
+    public async Task<bool> RemoveCompetitorAsync(int opportunityId, int competitorId, CancellationToken ct = default)
+    {
+        var competitor = await _dbContext.OpportunityCompetitors
+            .FirstOrDefaultAsync(c => c.OpportunityId == opportunityId && c.CompetitorId == competitorId, ct);
+
+        if (competitor == null)
+            return false;
+
+        _dbContext.OpportunityCompetitors.Remove(competitor);
+        await _dbContext.SaveChangesAsync(ct);
+
+        _logger.LogInformation("Removed competitor {CompetitorId} from opportunity {OpportunityId}", competitorId, opportunityId);
+
+        return true;
+    }
+
+    /// <inheritdoc />
+    public async Task<Opportunity> CloneAsync(int opportunityId, OpportunityCloneOptions? options = null, CancellationToken ct = default)
+    {
+        options ??= new OpportunityCloneOptions();
+
+        var original = await _dbContext.Opportunities
+            .Include(o => o.Products)
+            .Include(o => o.TeamMembers)
+            .Include(o => o.Competitors)
+            .FirstOrDefaultAsync(o => o.Id == opportunityId && !o.IsDeleted, ct);
+
+        if (original == null)
+            throw new NotFoundException($"Opportunity with ID {opportunityId} not found");
+
+        var cloned = new Opportunity
+        {
+            Name = options.NewName ?? $"Copy of {original.Name}",
+            AccountId = original.AccountId,
+            ContactId = original.ContactId,
+            OwnerId = original.OwnerId,
+            Amount = original.Amount,
+            Stage = OpportunityStage.Prospecting, // Reset to first stage
+            Probability = 10, // Reset probability
+            ExpectedCloseDate = DateTime.UtcNow.AddMonths(3), // New close date
+            Description = original.Description,
+            LeadSource = original.LeadSource,
+            Type = original.Type,
+            ForecastCategory = ForecastCategory.Pipeline,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow,
+            IsDeleted = false
+        };
+
+        _dbContext.Opportunities.Add(cloned);
+        await _dbContext.SaveChangesAsync(ct);
+
+        // Clone products if requested
+        if (options.CloneProducts && original.Products != null)
+        {
+            foreach (var product in original.Products.Where(p => !p.IsDeleted))
+            {
+                var clonedProduct = new OpportunityProduct
+                {
+                    OpportunityId = cloned.Id,
+                    ProductId = product.ProductId,
+                    Quantity = product.Quantity,
+                    UnitPrice = product.UnitPrice,
+                    Discount = product.Discount,
+                    TotalPrice = product.TotalPrice,
+                    Description = product.Description,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+                _dbContext.OpportunityProducts.Add(clonedProduct);
+            }
+        }
+
+        // Clone team members if requested
+        if (options.CloneTeamMembers && original.TeamMembers != null)
+        {
+            foreach (var member in original.TeamMembers.Where(m => !m.IsDeleted))
+            {
+                var clonedMember = new OpportunityTeamMember
+                {
+                    OpportunityId = cloned.Id,
+                    UserId = member.UserId,
+                    Role = member.Role,
+                    AccessLevel = member.AccessLevel,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+                _dbContext.OpportunityTeamMembers.Add(clonedMember);
+            }
+        }
+
+        // Clone competitors if requested
+        if (options.CloneCompetitors && original.Competitors != null)
+        {
+            foreach (var competitor in original.Competitors.Where(c => !c.IsDeleted))
+            {
+                var clonedCompetitor = new OpportunityCompetitor
+                {
+                    OpportunityId = cloned.Id,
+                    CompetitorId = competitor.CompetitorId,
+                    ThreatLevel = competitor.ThreatLevel,
+                    Strengths = competitor.Strengths,
+                    Weaknesses = competitor.Weaknesses,
+                    Notes = competitor.Notes,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+                _dbContext.OpportunityCompetitors.Add(clonedCompetitor);
+            }
+        }
+
+        await _dbContext.SaveChangesAsync(ct);
+
+        _logger.LogInformation("Cloned opportunity {OriginalId} to new opportunity {ClonedId}", opportunityId, cloned.Id);
+
+        return cloned;
+    }
 }

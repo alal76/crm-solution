@@ -95,6 +95,17 @@ public interface IKnowledgeManagementService
     Task<IEnumerable<KnowledgeArticleDto>> GetPopularArticlesAsync(int count);
     Task<IEnumerable<KnowledgeArticleDto>> GetRecentArticlesAsync(int count);
     Task<IEnumerable<string>> GetCategoriesAsync();
+
+    /// <summary>
+    /// Get version history for a knowledge article.
+    /// TODO-SD002-010: Version history endpoint.
+    /// </summary>
+    Task<IEnumerable<ArticleVersionDto>> GetArticleVersionsAsync(int articleId);
+
+    /// <summary>
+    /// Restore a previous version of a knowledge article.
+    /// </summary>
+    Task<KnowledgeArticleDto?> RestoreArticleVersionAsync(int articleId, int versionId, int modifiedById);
 }
 
 public interface IServiceCatalogService

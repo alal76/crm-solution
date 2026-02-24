@@ -44,10 +44,45 @@ public class WebhookDeliveryGeneral : BaseEntity
 
     public DateTime? NextRetryAt { get; set; }
 
+    /// <summary>
+    /// Parent event ID for event chain tracking (TODO-INT001-48).
+    /// Null for root events (events not triggered by another event).
+    /// </summary>
+    public int? ParentEventId { get; set; }
+
+    /// <summary>
+    /// Depth in the event chain (TODO-INT001-48).
+    /// 0 for root events, increments for each triggered event in the chain.
+    /// </summary>
+    public int ChainDepth { get; set; } = 0;
+
+    /// <summary>
+    /// Correlation ID for tracking across distributed systems.
+    /// </summary>
+    [StringLength(100)]
+    public string? CorrelationId { get; set; }
+
+    /// <summary>
+    /// Entity type that triggered this delivery (e.g., "Account", "Lead").
+    /// </summary>
+    [StringLength(100)]
+    public string? EntityType { get; set; }
+
+    /// <summary>
+    /// Entity ID that triggered this delivery.
+    /// </summary>
+    public int? EntityId { get; set; }
+
     // Navigation properties
     [ForeignKey("WebhookEndpointId")]
     public virtual WebhookEndpoint? WebhookEndpoint { get; set; }
 
     [ForeignKey("WebhookEventId")]
     public virtual WebhookEvent? WebhookEvent { get; set; }
+
+    /// <summary>
+    /// Navigation to parent event for chain tracking.
+    /// </summary>
+    [ForeignKey("ParentEventId")]
+    public virtual WebhookEvent? ParentEvent { get; set; }
 }

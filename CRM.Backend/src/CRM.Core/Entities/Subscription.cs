@@ -266,6 +266,82 @@ public class Subscription : BaseEntity
     public DateTime? ResumeAt { get; set; }
 
     #endregion
+
+    #region Trial Properties (TODO-SALES006-019)
+
+    /// <summary>Trial period start date (null = no trial)</summary>
+    public DateTime? TrialStartDate { get; set; }
+
+    /// <summary>Trial period end date (must be > TrialStartDate)</summary>
+    public DateTime? TrialEndDate { get; set; }
+
+    /// <summary>How proration is calculated for mid-cycle changes</summary>
+    public ProrationStrategy ProrationType { get; set; } = ProrationStrategy.Daily;
+
+    #endregion
+
+    #region Timezone & Billing Configuration (TODO-SALES006-023)
+
+    /// <summary>
+    /// Timezone identifier for billing date calculations (IANA format).
+    /// Example: "America/New_York", "Europe/London", "UTC"
+    /// </summary>
+    [MaxLength(100)]
+    public string? BillingTimezone { get; set; }
+
+    #endregion
+
+    #region Dunning Configuration (TODO-SALES006-025)
+
+    /// <summary>Grace period in days before full suspension (default 3 days)</summary>
+    public int DunningGracePeriodDays { get; set; } = 3;
+
+    /// <summary>Whether escalation emails should be sent during dunning</summary>
+    public bool SendDunningEscalationEmails { get; set; } = true;
+
+    /// <summary>Email addresses for dunning notifications (comma-separated)</summary>
+    [MaxLength(500)]
+    public string? DunningNotificationEmails { get; set; }
+
+    /// <summary>Date when dunning process was last triggered</summary>
+    public DateTime? LastDunningDate { get; set; }
+
+    /// <summary>Current dunning attempt count</summary>
+    public int DunningAttemptCount { get; set; }
+
+    #endregion
+
+    #region Concurrency Control (TODO-SALES006-022)
+
+    /// <summary>
+    /// Optimistic concurrency token for preventing concurrent updates.
+    /// EF Core uses this for conflict detection.
+    /// </summary>
+    [Timestamp]
+    public byte[]? RowVersion { get; set; }
+
+    #endregion
+}
+
+/// <summary>
+/// Strategy for calculating prorated amounts during mid-cycle subscription changes.
+/// </summary>
+public enum ProrationStrategy
+{
+    /// <summary>Prorate based on exact days remaining in period</summary>
+    Daily = 0,
+
+    /// <summary>Prorate based on half-month increments</summary>
+    HalfMonth = 1,
+
+    /// <summary>Prorate based on full months only (no partial)</summary>
+    FullMonth = 2,
+
+    /// <summary>No proration - charge full amount immediately</summary>
+    None = 3,
+
+    /// <summary>Credit remaining balance to next invoice</summary>
+    Credit = 4
 }
 
 #region Backward Compatibility Alias

@@ -107,7 +107,17 @@ public class SubscriptionService : ISubscriptionService
         subscription.BillingCycle = NormalizeBillingCycle(subscription.BillingCycle);
         subscription.UpdatedAt = DateTime.UtcNow;
         _context.Subscriptions.Update(subscription);
-        await _context.SaveChangesAsync(cancellationToken);
+
+        // TODO-SALES006-022: Handle DbUpdateConcurrencyException for optimistic locking
+        try
+        {
+            await _context.SaveChangesAsync(cancellationToken);
+        }
+        catch (DbUpdateConcurrencyException ex)
+        {
+            _logger.LogWarning(ex, "Concurrency conflict while updating subscription {SubscriptionId}. The record was modified by another process.", subscription.Id);
+            throw new InvalidOperationException($"Subscription {subscription.Id} was modified by another process. Please refresh and try again.", ex);
+        }
 
         _logger.LogInformation("Updated subscription {SubscriptionId}", subscription.Id);
         return subscription;
@@ -711,6 +721,124 @@ public class SubscriptionService : ISubscriptionService
         }).ToList();
     }
 
+    /// <summary>
+    /// Records multiple usage records in a batch for performance optimization.
+    /// TODO-SALES006-024: Batch usage recording implementation.
+    /// </summary>
+    public async Task<int> RecordUsageBatchAsync(List<UsageRecordBatchDto> usageRecords, CancellationToken cancellationToken = default)
+    {
+        if (usageRecords == null || !usageRecords.Any())
+        {
+            return 0;
+        }
+
+        _logger.LogInformation("Recording batch of {Count} usage records", usageRecords.Count);
+
+        // Validate all subscription IDs exist
+        var subscriptionIds = usageRecords.Select(r => r.SubscriptionId).Distinct().ToList();
+        var validSubscriptions = await _context.Subscriptions
+            .Where(s => subscriptionIds.Contains(s.Id) && !s.IsDeleted)
+            .Select(s => s.Id)
+            .ToListAsync(cancellationToken);
+
+        var invalidIds = subscriptionIds.Except(validSubscriptions).ToList();
+        if (invalidIds.Any())
+        {
+            throw new InvalidOperationException($"Invalid subscription IDs: {string.Join(", ", invalidIds)}");
+        }
+
+        // Check usage limits (optional - can be enforced or just logged)
+        var now = DateTime.UtcNow;
+        var usageEntities = usageRecords.Select(r => new SubscriptionUsage
+        {
+            SubscriptionId = r.SubscriptionId,
+            MetricName = r.MetricName?.Trim() ?? string.Empty,
+            Quantity = r.Quantity,
+            Timestamp = r.Timestamp ?? now,
+            UsageDate = r.Timestamp?.Date ?? now.Date,
+            Description = r.Description,
+            CreatedAt = now,
+            UpdatedAt = now
+        }).ToList();
+
+        // Batch insert
+        foreach (var usage in usageEntities)
+        {
+            _context.SubscriptionUsages.Add(usage);
+        }
+
+        await _context.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation("Successfully recorded {Count} usage records in batch", usageEntities.Count);
+        return usageEntities.Count;
+    }
+
+    #endregion
+
+    #region Timezone-Aware Billing (TODO-SALES006-023)
+
+    /// <summary>
+    /// Gets the next billing date using the subscription's billing timezone.
+    /// </summary>
+    public async Task<DateTimeOffset?> GetNextBillingDateWithTimezoneAsync(int subscriptionId, CancellationToken cancellationToken = default)
+    {
+        var subscription = await GetByIdAsync(subscriptionId, cancellationToken);
+        if (subscription == null)
+        {
+            return null;
+        }
+
+        if (!subscription.NextBillingDate.HasValue)
+        {
+            // Calculate next billing date from billing start
+            if (!subscription.BillingStartDate.HasValue)
+            {
+                return null;
+            }
+
+            var nextDate = CalculateNextBillingDate(subscription.BillingStartDate.Value, subscription.BillingPeriod);
+            subscription.NextBillingDate = nextDate;
+        }
+
+        // Apply timezone if configured
+        var billingDate = subscription.NextBillingDate.Value;
+        if (!string.IsNullOrWhiteSpace(subscription.BillingTimezone))
+        {
+            try
+            {
+                var timeZone = TimeZoneInfo.FindSystemTimeZoneById(subscription.BillingTimezone);
+                return new DateTimeOffset(billingDate, timeZone.GetUtcOffset(billingDate));
+            }
+            catch (TimeZoneNotFoundException)
+            {
+                _logger.LogWarning("Invalid timezone '{Timezone}' for subscription {SubscriptionId}, using UTC",
+                    subscription.BillingTimezone, subscriptionId);
+            }
+        }
+
+        return new DateTimeOffset(billingDate, TimeSpan.Zero);
+    }
+
+    private static DateTime CalculateNextBillingDate(DateTime startDate, BillingPeriod period)
+    {
+        var now = DateTime.UtcNow;
+        var nextDate = startDate;
+
+        while (nextDate <= now)
+        {
+            nextDate = period switch
+            {
+                BillingPeriod.Weekly => nextDate.AddDays(7),
+                BillingPeriod.Monthly => nextDate.AddMonths(1),
+                BillingPeriod.Quarterly => nextDate.AddMonths(3),
+                BillingPeriod.Yearly => nextDate.AddYears(1),
+                _ => nextDate.AddMonths(1)
+            };
+        }
+
+        return nextDate;
+    }
+
     #endregion
 
     #region Queries
@@ -860,6 +988,32 @@ public class SubscriptionService : ISubscriptionService
         if (subscription.BillingStartDate.HasValue && subscription.BillingEndDate.HasValue && subscription.BillingEndDate < subscription.BillingStartDate)
         {
             throw new ArgumentException("BillingEndDate must be greater than or equal to BillingStartDate.");
+        }
+
+        // TODO-SALES006-019: Trial date validation
+        if (subscription.TrialStartDate.HasValue && subscription.TrialEndDate.HasValue)
+        {
+            if (subscription.TrialEndDate <= subscription.TrialStartDate)
+            {
+                throw new ArgumentException("TrialEndDate must be greater than TrialStartDate.");
+            }
+        }
+
+        if (subscription.TrialEndDate.HasValue && !subscription.TrialStartDate.HasValue)
+        {
+            throw new ArgumentException("TrialStartDate is required when TrialEndDate is set.");
+        }
+
+        // TODO-SALES006-019: Proration type validation
+        if (!Enum.IsDefined(typeof(ProrationStrategy), subscription.ProrationType))
+        {
+            throw new ArgumentException($"Invalid ProrationType value: {subscription.ProrationType}.");
+        }
+
+        // TODO-SALES006-025: Dunning validation
+        if (subscription.DunningGracePeriodDays < 0)
+        {
+            throw new ArgumentException("DunningGracePeriodDays must be greater than or equal to zero.");
         }
 
         _ = NormalizeBillingCycle(subscription.BillingCycle); // will throw if invalid

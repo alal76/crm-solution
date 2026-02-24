@@ -30,8 +30,15 @@ public interface ICrmDbContext
     DbSet<CRM.Core.Models.Contact> Contacts { get; }
     DbSet<Lead> Leads { get; }
     DbSet<LeadProductInterest> LeadProductInterests { get; }
+    DbSet<LeadSourceConfig> LeadSourceConfigs { get; }
+    DbSet<LeadSourceEntity> LeadSources { get; }
+    DbSet<WebToLeadForm> WebToLeadForms { get; }
     DbSet<Opportunity> Opportunities { get; }
     DbSet<OpportunityProduct> OpportunityProducts { get; }
+    DbSet<OpportunityCompetitor> OpportunityCompetitors { get; }
+    DbSet<OpportunityTeamMember> OpportunityTeamMembers { get; }
+    DbSet<Competitor> Competitors { get; }
+    DbSet<Territory> Territories { get; }
     DbSet<Product> Products { get; }
     DbSet<ProductBundle> ProductBundles { get; }
     DbSet<ProductBundleItem> ProductBundleItems { get; }
@@ -221,6 +228,7 @@ public interface ICrmDbContext
     DbSet<CRM.Core.Entities.ITSM.ChangeComment> ChangeComments { get; }
     DbSet<CRM.Core.Entities.ITSM.ChangeAttachment> ChangeAttachments { get; }
     DbSet<CRM.Core.Entities.ITSM.KnowledgeArticle> ITSMKnowledgeArticles { get; }
+    DbSet<CRM.Core.Entities.ITSM.ArticleVersion> ArticleVersions { get; }
     DbSet<CRM.Core.Entities.ITSM.ArticleRelationship> ArticleRelationships { get; }
     DbSet<CRM.Core.Entities.ITSM.ArticleIncident> ArticleIncidents { get; }
     DbSet<CRM.Core.Entities.ITSM.ArticleFeedback> ITSMArticleFeedback { get; }
@@ -329,6 +337,11 @@ public interface ICrmDbContext
     DbSet<AuthAuditLog> AuthAuditLogs { get; }
     DbSet<MagicLinkToken> MagicLinkTokens { get; }
     DbSet<UserOAuthLink> UserOAuthLinks { get; }
+
+    // Auth / Security Advanced Features (TODO-AUTH-019 to TODO-AUTH-024)
+    DbSet<TrustedDevice> TrustedDevices { get; }
+    DbSet<DeviceAuthorizationCode> DeviceAuthorizationCodes { get; }
+    DbSet<LoginAttempt> LoginAttempts { get; }
 
     DatabaseFacade Database { get; }
 

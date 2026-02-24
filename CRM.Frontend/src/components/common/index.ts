@@ -65,3 +65,47 @@ export type { ChatMessageActivity } from './ChatTimelineItem';
 
 // Analytics Embed for embedding Superset/Power BI dashboards
 export { default as AnalyticsEmbed } from './AnalyticsEmbed';
+
+// Accessible DataGrid with keyboard navigation
+export { DataGrid } from './DataGrid';
+export type { DataGridProps, DataGridColumn, SortOrder, PaginationInfo } from './DataGrid';
+
+// Accessible SearchBar with suggestions
+export { SearchBar } from './SearchBar';
+export type { SearchBarProps, SearchSuggestion } from './SearchBar';
+
+// Inline editing cell for data grids
+export { EditableCell } from './EditableCell';
+export type { EditableCellProps, CellType, EditableCellValue, CellValidation } from './EditableCell';
+
+// Bulk action toolbar for list views
+export { BulkActionToolbar, createDeleteAction, createExportAction } from './BulkActionToolbar';
+export type { BulkActionToolbarProps, BulkAction } from './BulkActionToolbar';
+
+// Advanced filter builder for complex queries  
+export { AdvancedFilterBuilder } from './AdvancedFilterBuilder';
+export type { 
+  AdvancedFilterBuilderProps, 
+  FilterField, 
+  FilterCondition, 
+  FilterGroup, 
+  SavedFilter,
+  LogicalOperator 
+} from './AdvancedFilterBuilder';
+
+// Split view for side-by-side record comparison
+export { SplitView } from './SplitView';
+export type { SplitViewProps, SplitOrientation } from './SplitView';
+
+// Customizable sidebar with drag-drop reordering
+export { CustomizableSidebar } from './CustomizableSidebar';
+export type { 
+  CustomizableSidebarProps, 
+  SidebarSection, 
+  SidebarItem, 
+  SidebarPreferences 
+} from './CustomizableSidebar';
+
+// Recent items component and context
+export { RecentItems } from './RecentItems';
+export type { RecentItemsProps } from './RecentItems';

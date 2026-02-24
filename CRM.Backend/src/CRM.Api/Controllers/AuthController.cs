@@ -37,6 +37,12 @@ public class AuthController : ControllerBase
     private readonly IAuthAuditService _authAuditService;
     private readonly IMagicLinkService _magicLinkService;
     private readonly IUserOAuthLinkService _userOAuthLinkService;
+    private readonly IOktaSsoService _oktaSsoService;
+    private readonly ITrustedDeviceService _trustedDeviceService;
+    private readonly ILoginAnalyticsService _loginAnalyticsService;
+    private readonly IRiskAssessmentService _riskAssessmentService;
+    private readonly IDeviceAuthorizationService _deviceAuthorizationService;
+    private readonly IGeoLocationService _geoLocationService;
 
     public AuthController(
         IAuthenticationService authenticationService,
@@ -51,7 +57,13 @@ public class AuthController : ControllerBase
         IPasswordHistoryService passwordHistoryService,
         IAuthAuditService authAuditService,
         IMagicLinkService magicLinkService,
-        IUserOAuthLinkService userOAuthLinkService)
+        IUserOAuthLinkService userOAuthLinkService,
+        IOktaSsoService oktaSsoService,
+        ITrustedDeviceService trustedDeviceService,
+        ILoginAnalyticsService loginAnalyticsService,
+        IRiskAssessmentService riskAssessmentService,
+        IDeviceAuthorizationService deviceAuthorizationService,
+        IGeoLocationService geoLocationService)
     {
         _authenticationService = authenticationService;
         _logger = logger;
@@ -66,6 +78,12 @@ public class AuthController : ControllerBase
         _authAuditService = authAuditService;
         _magicLinkService = magicLinkService;
         _userOAuthLinkService = userOAuthLinkService;
+        _oktaSsoService = oktaSsoService;
+        _trustedDeviceService = trustedDeviceService;
+        _loginAnalyticsService = loginAnalyticsService;
+        _riskAssessmentService = riskAssessmentService;
+        _deviceAuthorizationService = deviceAuthorizationService;
+        _geoLocationService = geoLocationService;
     }
 
     /// <summary>
@@ -1811,6 +1829,429 @@ public class AuthController : ControllerBase
             _logger.LogError(ex, "Error unlinking OAuth provider");
             return StatusCode(500, new { message = "An error occurred unlinking the OAuth provider." });
         }
+    }
+
+    // =========================================================================
+    // Okta SSO Endpoints (TODO-AUTH-003)
+    // =========================================================================
+
+    /// <summary>
+    /// Initiate Okta SSO login flow.
+    /// </summary>
+    [HttpGet("sso/okta")]
+    [AllowAnonymous]
+    [ProducesResponseType(StatusCodes.Status302Found)]
+    public IActionResult InitiateOktaSso([FromQuery] string? redirectUri = null, [FromQuery] string? state = null)
+    {
+        var effectiveRedirectUri = redirectUri ?? $"{Request.Scheme}://{Request.Host}/api/auth/sso/okta/callback";
+        var authUrl = _oktaSsoService.GetAuthorizationUrl(effectiveRedirectUri, state ?? Guid.NewGuid().ToString());
+        return Redirect(authUrl);
+    }
+
+    /// <summary>
+    /// Handle Okta SSO callback.
+    /// </summary>
+    [HttpPost("sso/okta/callback")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> OktaSsoCallback(
+        [FromBody] OktaSsoCallbackDto dto,
+        CancellationToken ct = default)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(dto.Code))
+                return BadRequest(new { message = "Authorization code is required." });
+
+            var redirectUri = dto.RedirectUri ?? $"{Request.Scheme}://{Request.Host}/api/auth/sso/okta/callback";
+            var tokens = await _oktaSsoService.ExchangeCodeForTokenAsync(dto.Code, redirectUri, ct);
+            var userInfo = await _oktaSsoService.GetUserInfoAsync(tokens.AccessToken!, ct);
+
+            if (string.IsNullOrWhiteSpace(userInfo.Email))
+                return BadRequest(new { message = "Email not returned from Okta." });
+
+            // Auto-provision or login existing user
+            var response = await _authenticationService.OAuthLoginAsync(new OAuthLoginRequest
+            {
+                Provider = "okta",
+                ProviderUserId = userInfo.Sub!,
+                Email = userInfo.Email,
+                FirstName = userInfo.GivenName,
+                LastName = userInfo.FamilyName
+            });
+
+            return Ok(response);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Okta SSO callback error");
+            return StatusCode(500, new { message = "An error occurred during Okta SSO." });
+        }
+    }
+
+    // =========================================================================
+    // Trusted Device Endpoints (TODO-AUTH-019)
+    // =========================================================================
+
+    /// <summary>
+    /// Get trusted devices for the current user.
+    /// </summary>
+    [HttpGet("devices/trusted")]
+    [Authorize]
+    [ProducesResponseType(typeof(IEnumerable<TrustedDeviceDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetTrustedDevices(CancellationToken ct = default)
+    {
+        var userId = GetCurrentUserId();
+        if (userId == null) return Unauthorized();
+
+        var devices = await _trustedDeviceService.GetTrustedDevicesAsync(userId.Value, ct);
+        return Ok(devices.Select(d => new TrustedDeviceDto
+        {
+            Id = d.Id,
+            DeviceId = d.DeviceId,
+            DeviceName = d.DeviceName,
+            LastUsedAt = d.LastUsedAt,
+            ExpiresAt = d.ExpiresAt,
+            IpAddress = d.IpAddress,
+            CreatedAt = d.CreatedAt
+        }));
+    }
+
+    /// <summary>
+    /// Trust the current device for 2FA.
+    /// </summary>
+    [HttpPost("devices/trust")]
+    [Authorize]
+    [ProducesResponseType(typeof(TrustedDeviceDto), StatusCodes.Status200OK)]
+    public async Task<IActionResult> TrustDevice(
+        [FromBody] TrustDeviceRequestDto request,
+        CancellationToken ct = default)
+    {
+        var userId = GetCurrentUserId();
+        if (userId == null) return Unauthorized();
+
+        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        var userAgent = Request.Headers.UserAgent.ToString();
+
+        var device = await _trustedDeviceService.TrustDeviceAsync(
+            userId.Value,
+            request.DeviceId,
+            request.DeviceName ?? userAgent,
+            userAgent,
+            ipAddress,
+            ct);
+
+        return Ok(new TrustedDeviceDto
+        {
+            Id = device.Id,
+            DeviceId = device.DeviceId,
+            DeviceName = device.DeviceName,
+            LastUsedAt = device.LastUsedAt,
+            ExpiresAt = device.ExpiresAt,
+            IpAddress = device.IpAddress,
+            CreatedAt = device.CreatedAt
+        });
+    }
+
+    /// <summary>
+    /// Revoke trust for a specific device.
+    /// </summary>
+    [HttpDelete("devices/trusted/{deviceId}")]
+    [Authorize]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> RevokeTrustedDevice(string deviceId, CancellationToken ct = default)
+    {
+        var userId = GetCurrentUserId();
+        if (userId == null) return Unauthorized();
+
+        var revoked = await _trustedDeviceService.RevokeDeviceTrustAsync(userId.Value, deviceId, ct);
+        if (!revoked) return NotFound(new { message = "Device not found." });
+
+        return Ok(new { message = "Device trust revoked." });
+    }
+
+    // =========================================================================
+    // Login Analytics Endpoints (TODO-AUTH-021)
+    // =========================================================================
+
+    /// <summary>
+    /// Get login statistics for the current user.
+    /// </summary>
+    [HttpGet("analytics/login-stats")]
+    [Authorize]
+    [ProducesResponseType(typeof(LoginStatistics), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetLoginStatistics(
+        [FromQuery] int days = 30,
+        CancellationToken ct = default)
+    {
+        var userId = GetCurrentUserId();
+        if (userId == null) return Unauthorized();
+
+        var stats = await _loginAnalyticsService.GetLoginStatisticsAsync(userId.Value, days, ct);
+        return Ok(stats);
+    }
+
+    /// <summary>
+    /// Get recent login history for the current user.
+    /// </summary>
+    [HttpGet("analytics/recent-logins")]
+    [Authorize]
+    [ProducesResponseType(typeof(IEnumerable<LoginAttemptRecord>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetRecentLogins(
+        [FromQuery] int count = 10,
+        CancellationToken ct = default)
+    {
+        var userId = GetCurrentUserId();
+        if (userId == null) return Unauthorized();
+
+        var logins = await _loginAnalyticsService.GetRecentLoginsAsync(userId.Value, count, ct);
+        return Ok(logins);
+    }
+
+    // =========================================================================
+    // Risk Assessment Endpoints (TODO-AUTH-022)
+    // =========================================================================
+
+    /// <summary>
+    /// Assess risk for a login attempt (for administrative purposes).
+    /// </summary>
+    [HttpPost("risk/assess")]
+    [Authorize(Roles = "Admin")]
+    [ProducesResponseType(typeof(RiskAssessmentResult), StatusCodes.Status200OK)]
+    public async Task<IActionResult> AssessRisk(
+        [FromBody] RiskAssessmentRequestDto request,
+        CancellationToken ct = default)
+    {
+        var result = await _riskAssessmentService.AssessLoginRiskAsync(new RiskAssessmentRequest
+        {
+            UserId = request.UserId,
+            IpAddress = request.IpAddress ?? HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            UserAgent = request.UserAgent ?? Request.Headers.UserAgent.ToString(),
+            DeviceId = request.DeviceId
+        }, ct);
+
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Get risk thresholds configuration.
+    /// </summary>
+    [HttpGet("risk/thresholds")]
+    [Authorize(Roles = "Admin")]
+    [ProducesResponseType(typeof(RiskThresholds), StatusCodes.Status200OK)]
+    public IActionResult GetRiskThresholds()
+    {
+        var thresholds = _riskAssessmentService.GetRiskThresholds();
+        return Ok(thresholds);
+    }
+
+    // =========================================================================
+    // Device Authorization Flow Endpoints (TODO-AUTH-023)
+    // =========================================================================
+
+    /// <summary>
+    /// Initiate device authorization flow (RFC 8628).
+    /// Returns device_code and user_code for the device to display.
+    /// </summary>
+    [HttpPost("device/authorize")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(DeviceAuthorizationResponse), StatusCodes.Status200OK)]
+    public async Task<IActionResult> InitiateDeviceAuthorization(
+        [FromBody] DeviceAuthorizationRequestDto request,
+        CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(request.ClientId))
+            return BadRequest(new { message = "client_id is required." });
+
+        var response = await _deviceAuthorizationService.InitiateDeviceAuthorizationAsync(
+            request.ClientId,
+            request.Scope,
+            ct);
+
+        // Include verification_uri as per RFC 8628
+        var baseUrl = $"{Request.Scheme}://{Request.Host}";
+        return Ok(new
+        {
+            device_code = response.DeviceCode,
+            user_code = response.UserCode,
+            verification_uri = $"{baseUrl}/device",
+            verification_uri_complete = $"{baseUrl}/device?user_code={response.UserCode}",
+            expires_in = response.ExpiresIn,
+            interval = response.Interval
+        });
+    }
+
+    /// <summary>
+    /// Poll for device authorization token (called by the device).
+    /// </summary>
+    [HttpPost("device/token")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(DeviceTokenResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> DeviceToken(
+        [FromBody] DeviceTokenRequestDto request,
+        CancellationToken ct = default)
+    {
+        if (string.IsNullOrWhiteSpace(request.DeviceCode))
+            return BadRequest(new { error = "invalid_request", error_description = "device_code is required." });
+
+        var response = await _deviceAuthorizationService.PollForTokenAsync(request.DeviceCode, ct);
+
+        if (response.Error != null)
+        {
+            return BadRequest(new { error = response.Error, error_description = response.ErrorDescription });
+        }
+
+        return Ok(new
+        {
+            access_token = response.AccessToken,
+            token_type = response.TokenType,
+            expires_in = response.ExpiresIn,
+            refresh_token = response.RefreshToken
+        });
+    }
+
+    /// <summary>
+    /// User authorizes a device using the user_code (called from the web UI).
+    /// </summary>
+    [HttpPost("device/confirm")]
+    [Authorize]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> ConfirmDeviceAuthorization(
+        [FromBody] DeviceConfirmRequestDto request,
+        CancellationToken ct = default)
+    {
+        var userId = GetCurrentUserId();
+        if (userId == null) return Unauthorized();
+
+        if (string.IsNullOrWhiteSpace(request.UserCode))
+            return BadRequest(new { message = "user_code is required." });
+
+        var success = await _deviceAuthorizationService.AuthorizeDeviceAsync(request.UserCode, userId.Value, ct);
+        if (!success)
+            return NotFound(new { message = "Invalid or expired user code." });
+
+        return Ok(new { message = "Device authorized successfully." });
+    }
+
+    // =========================================================================
+    // Geolocation Alerts (TODO-AUTH-024)
+    // =========================================================================
+
+    /// <summary>
+    /// Check if a login location is anomalous for the user.
+    /// </summary>
+    [HttpPost("geo/check")]
+    [Authorize(Roles = "Admin")]
+    [ProducesResponseType(typeof(GeoLocationCheckResult), StatusCodes.Status200OK)]
+    public async Task<IActionResult> CheckGeoLocation(
+        [FromBody] GeoLocationCheckRequestDto request,
+        CancellationToken ct = default)
+    {
+        var geoResult = await _geoLocationService.LookupAsync(request.IpAddress, ct);
+        var isNew = await _loginAnalyticsService.IsNewLocationAsync(request.UserId, request.IpAddress, ct);
+
+        return Ok(new GeoLocationCheckResult
+        {
+            IpAddress = request.IpAddress,
+            Country = geoResult?.CountryCode,
+            City = geoResult?.City,
+            Latitude = geoResult?.Latitude,
+            Longitude = geoResult?.Longitude,
+            IsNewLocation = isNew,
+            IsVpnOrProxy = geoResult?.IsVpnOrProxy ?? false
+        });
+    }
+
+    // ─── Helper Methods ───────────────────────────────────────────────────────
+
+    private int? GetCurrentUserId()
+    {
+        var userIdClaim = User.FindFirst("sub") ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
+        if (userIdClaim != null && int.TryParse(userIdClaim.Value, out var userId))
+            return userId;
+        return null;
+    }
+
+    // ─── DTOs for Auth Advanced Features ──────────────────────────────────────
+
+    /// <summary>Okta SSO callback request.</summary>
+    public class OktaSsoCallbackDto
+    {
+        public string Code { get; set; } = string.Empty;
+        public string? RedirectUri { get; set; }
+        public string? State { get; set; }
+    }
+
+    /// <summary>Trust device request.</summary>
+    public class TrustDeviceRequestDto
+    {
+        public string DeviceId { get; set; } = string.Empty;
+        public string? DeviceName { get; set; }
+    }
+
+    /// <summary>Trusted device response.</summary>
+    public class TrustedDeviceDto
+    {
+        public int Id { get; set; }
+        public string DeviceId { get; set; } = string.Empty;
+        public string? DeviceName { get; set; }
+        public DateTime? LastUsedAt { get; set; }
+        public DateTime? ExpiresAt { get; set; }
+        public string? IpAddress { get; set; }
+        public DateTime CreatedAt { get; set; }
+    }
+
+    /// <summary>Risk assessment request.</summary>
+    public class RiskAssessmentRequestDto
+    {
+        public int UserId { get; set; }
+        public string? IpAddress { get; set; }
+        public string? UserAgent { get; set; }
+        public string? DeviceId { get; set; }
+    }
+
+    /// <summary>Device authorization request (RFC 8628).</summary>
+    public class DeviceAuthorizationRequestDto
+    {
+        public string ClientId { get; set; } = string.Empty;
+        public string? Scope { get; set; }
+    }
+
+    /// <summary>Device token polling request.</summary>
+    public class DeviceTokenRequestDto
+    {
+        public string DeviceCode { get; set; } = string.Empty;
+        public string? ClientId { get; set; }
+    }
+
+    /// <summary>Device confirmation request.</summary>
+    public class DeviceConfirmRequestDto
+    {
+        public string UserCode { get; set; } = string.Empty;
+    }
+
+    /// <summary>Geolocation check request.</summary>
+    public class GeoLocationCheckRequestDto
+    {
+        public int UserId { get; set; }
+        public string IpAddress { get; set; } = string.Empty;
+    }
+
+    /// <summary>Geolocation check result.</summary>
+    public class GeoLocationCheckResult
+    {
+        public string IpAddress { get; set; } = string.Empty;
+        public string? Country { get; set; }
+        public string? City { get; set; }
+        public double? Latitude { get; set; }
+        public double? Longitude { get; set; }
+        public bool IsNewLocation { get; set; }
+        public bool IsVpnOrProxy { get; set; }
     }
 
     /// <summary>

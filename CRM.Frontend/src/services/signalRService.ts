@@ -415,7 +415,7 @@ export interface RecordNotification {
   action: 'Created' | 'Updated' | 'Deleted';
   entityType: string;
   entityId: number;
-  record?: any;
+  record?: Record<string, unknown>;
   userId?: string;
   timestamp: string;
 }

@@ -92,6 +92,13 @@ public class AuditLog : BaseEntity
     [Column(TypeName = "TEXT")]
     public string? Details { get; set; }
 
+    /// <summary>
+    /// Timestamp when this audit log was archived for retention purposes.
+    /// Null if the log has not been archived yet.
+    /// TODO-SYS006-006
+    /// </summary>
+    public DateTime? ArchivedAt { get; set; }
+
     // Navigation properties
 
     /// <summary>

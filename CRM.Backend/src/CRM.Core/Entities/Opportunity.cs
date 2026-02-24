@@ -75,6 +75,62 @@ public enum OpportunityPricingModel
     Hybrid = 3
 }
 
+/// <summary>
+/// Forecast category for sales forecasting.
+/// TODO-CRM003-07: Forecast category assignment
+/// </summary>
+public enum ForecastCategory
+{
+    /// <summary>Early stage, not included in forecast</summary>
+    Pipeline = 0,
+
+    /// <summary>Strong potential, optimistic case</summary>
+    BestCase = 1,
+
+    /// <summary>High confidence, committed</summary>
+    Commit = 2,
+
+    /// <summary>Deal has been won and closed</summary>
+    Closed = 3,
+
+    /// <summary>Excluded from forecast</summary>
+    Omitted = 4
+}
+
+/// <summary>
+/// Reason for losing an opportunity.
+/// TODO-CRM003-05: Win/loss analysis reports
+/// </summary>
+public enum LossReasonCategory
+{
+    /// <summary>No reason specified</summary>
+    None = 0,
+
+    /// <summary>Lost on price</summary>
+    Price = 1,
+
+    /// <summary>Lost on features/functionality</summary>
+    Features = 2,
+
+    /// <summary>Lost to competitor</summary>
+    Competition = 3,
+
+    /// <summary>Customer chose no decision</summary>
+    NoDecision = 4,
+
+    /// <summary>Budget was cut or unavailable</summary>
+    Budget = 5,
+
+    /// <summary>Timing not right</summary>
+    Timing = 6,
+
+    /// <summary>Lost relationship/trust</summary>
+    Relationship = 7,
+
+    /// <summary>Other reason</summary>
+    Other = 99
+}
+
 #endregion
 
 /// <summary>
@@ -153,6 +209,34 @@ public class Opportunity : BaseEntity
 
     #endregion
 
+    #region Forecasting (TODO-CRM003-07)
+
+    /// <summary>Forecast category for pipeline management</summary>
+    public ForecastCategory ForecastCategory { get; set; } = ForecastCategory.Pipeline;
+
+    #endregion
+
+    #region Win/Loss Analysis (TODO-CRM003-05)
+
+    /// <summary>Reason category for lost deals</summary>
+    public LossReasonCategory? LossReasonCategory { get; set; }
+
+    /// <summary>Detailed loss reason description</summary>
+    [MaxLength(2000)]
+    public string? LossReason { get; set; }
+
+    /// <summary>ID of competitor who won (if lost to competition)</summary>
+    public int? CompetitorWinnerId { get; set; }
+
+    /// <summary>Win/Loss analysis notes</summary>
+    [MaxLength(4000)]
+    public string? WinLossNotes { get; set; }
+
+    /// <summary>Date when deal was won or lost</summary>
+    public DateTime? ClosedDate { get; set; }
+
+    #endregion
+
     #region Foreign Keys
 
     /// <summary>Customer/company for this opportunity (required)</summary>
@@ -196,8 +280,18 @@ public class Opportunity : BaseEntity
     [ForeignKey("LeadId")]
     public virtual Lead? Lead { get; set; }
 
+    /// <summary>Competitor who won (if lost) (TODO-CRM003-05)</summary>
+    [ForeignKey("CompetitorWinnerId")]
+    public virtual Competitor? CompetitorWinner { get; set; }
+
     /// <summary>Products included in the deal (many-to-many)</summary>
     public virtual ICollection<OpportunityProduct> Products { get; set; } = new List<OpportunityProduct>();
+
+    /// <summary>Competitors involved in this deal (TODO-CRM003-03)</summary>
+    public virtual ICollection<OpportunityCompetitor> Competitors { get; set; } = new List<OpportunityCompetitor>();
+
+    /// <summary>Team members working on this opportunity (TODO-CRM003-08)</summary>
+    public virtual ICollection<OpportunityTeamMember> TeamMembers { get; set; } = new List<OpportunityTeamMember>();
 
     #endregion
 

@@ -237,6 +237,41 @@ public class KnowledgeController : ControllerBase
         return Ok(categories);
     }
 
+    /// <summary>
+    /// Get version history for a knowledge article.
+    /// TODO-SD002-010: GET /api/knowledgearticles/{id}/versions endpoint
+    /// </summary>
+    /// <param name="id">The article ID</param>
+    /// <returns>List of article versions</returns>
+    [HttpGet("{id:int}/versions")]
+    [ProducesResponseType(typeof(IEnumerable<ArticleVersionDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<IEnumerable<ArticleVersionDto>>> GetArticleVersions(int id)
+    {
+        var article = await _knowledgeService.GetArticleByIdAsync(id);
+        if (article == null)
+            return NotFound();
+
+        var versions = await _knowledgeService.GetArticleVersionsAsync(id);
+        return Ok(versions);
+    }
+
+    /// <summary>
+    /// Restore a previous version of a knowledge article.
+    /// </summary>
+    /// <param name="id">The article ID</param>
+    /// <param name="versionId">The version ID to restore</param>
+    /// <returns>The restored article</returns>
+    [HttpPost("{id:int}/restore/{versionId:int}")]
+    [ProducesResponseType(typeof(KnowledgeArticleDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<KnowledgeArticleDto>> RestoreArticleVersion(int id, int versionId)
+    {
+        var article = await _knowledgeService.RestoreArticleVersionAsync(id, versionId, GetCurrentUserId());
+        return article == null ? NotFound() : Ok(article);
+    }
+
     private int GetCurrentUserId() => int.Parse(User.FindFirst(ClaimTypes.NameIdentifier)?.Value ?? "1");
 }
 

@@ -415,4 +415,226 @@ public class SubscriptionValidationTests
         result.Amount.Should().Be(200m);
         result.UpdatedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
     }
+
+    // ========================================================================
+    // Trial Date Validation (TODO-SALES006-019)
+    // ========================================================================
+
+    [Fact]
+    public async Task CreateAsync_ShouldThrow_WhenTrialEndDateBeforeTrialStartDate()
+    {
+        // Arrange
+        var subscription = CreateValidSubscription();
+        subscription.TrialStartDate = DateTime.UtcNow.AddDays(10);
+        subscription.TrialEndDate = DateTime.UtcNow; // Before start
+
+        // Act
+        var act = async () => await _service.CreateAsync(subscription);
+
+        // Assert
+        await act.Should().ThrowAsync<ArgumentException>()
+            .WithMessage("*TrialEndDate must be greater than TrialStartDate*");
+    }
+
+    [Fact]
+    public async Task CreateAsync_ShouldThrow_WhenTrialEndDateEqualsTrialStartDate()
+    {
+        // Arrange
+        var now = DateTime.UtcNow;
+        var subscription = CreateValidSubscription();
+        subscription.TrialStartDate = now;
+        subscription.TrialEndDate = now; // Equal
+
+        // Act
+        var act = async () => await _service.CreateAsync(subscription);
+
+        // Assert
+        await act.Should().ThrowAsync<ArgumentException>()
+            .WithMessage("*TrialEndDate must be greater than TrialStartDate*");
+    }
+
+    [Fact]
+    public async Task CreateAsync_ShouldThrow_WhenTrialEndDateSetWithoutStartDate()
+    {
+        // Arrange
+        var subscription = CreateValidSubscription();
+        subscription.TrialStartDate = null;
+        subscription.TrialEndDate = DateTime.UtcNow.AddDays(14);
+
+        // Act
+        var act = async () => await _service.CreateAsync(subscription);
+
+        // Assert
+        await act.Should().ThrowAsync<ArgumentException>()
+            .WithMessage("*TrialStartDate is required when TrialEndDate is set*");
+    }
+
+    [Fact]
+    public async Task CreateAsync_ShouldSucceed_WhenTrialDatesValid()
+    {
+        // Arrange
+        var subscription = CreateValidSubscription();
+        subscription.TrialStartDate = DateTime.UtcNow;
+        subscription.TrialEndDate = DateTime.UtcNow.AddDays(14);
+
+        // Act
+        var result = await _service.CreateAsync(subscription);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.TrialStartDate.Should().NotBeNull();
+        result.TrialEndDate.Should().NotBeNull();
+    }
+
+    [Fact]
+    public async Task CreateAsync_ShouldSucceed_WhenNoTrialDates()
+    {
+        // Arrange
+        var subscription = CreateValidSubscription();
+        subscription.TrialStartDate = null;
+        subscription.TrialEndDate = null;
+
+        // Act
+        var result = await _service.CreateAsync(subscription);
+
+        // Assert
+        result.Should().NotBeNull();
+    }
+
+    // ========================================================================
+    // Proration Type Validation (TODO-SALES006-019)
+    // ========================================================================
+
+    [Fact]
+    public void ProrationStrategy_Default_ShouldBeDaily()
+    {
+        // Arrange
+        var subscription = new Subscription();
+
+        // Assert
+        subscription.ProrationType.Should().Be(ProrationStrategy.Daily);
+    }
+
+    [Fact]
+    public async Task CreateAsync_ShouldSucceed_WithAllProrationTypes()
+    {
+        // Arrange & Act & Assert
+        foreach (var strategy in Enum.GetValues<ProrationStrategy>())
+        {
+            var subscription = CreateValidSubscription();
+            subscription.ProrationType = strategy;
+
+            var result = await _service.CreateAsync(subscription);
+            result.Should().NotBeNull();
+            result.ProrationType.Should().Be(strategy);
+
+            // Clean up for next iteration
+            _subscriptions.Clear();
+        }
+    }
+
+    // ========================================================================
+    // Dunning Configuration Validation (TODO-SALES006-025)
+    // ========================================================================
+
+    [Fact]
+    public async Task CreateAsync_ShouldThrow_WhenDunningGracePeriodNegative()
+    {
+        // Arrange
+        var subscription = CreateValidSubscription();
+        subscription.DunningGracePeriodDays = -1;
+
+        // Act
+        var act = async () => await _service.CreateAsync(subscription);
+
+        // Assert
+        await act.Should().ThrowAsync<ArgumentException>()
+            .WithMessage("*DunningGracePeriodDays must be greater than or equal to zero*");
+    }
+
+    [Fact]
+    public async Task CreateAsync_ShouldSucceed_WhenDunningGracePeriodZero()
+    {
+        // Arrange
+        var subscription = CreateValidSubscription();
+        subscription.DunningGracePeriodDays = 0;
+
+        // Act
+        var result = await _service.CreateAsync(subscription);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.DunningGracePeriodDays.Should().Be(0);
+    }
+
+    [Fact]
+    public void DunningGracePeriodDays_Default_ShouldBeThree()
+    {
+        // Arrange
+        var subscription = new Subscription();
+
+        // Assert
+        subscription.DunningGracePeriodDays.Should().Be(3);
+    }
+
+    [Fact]
+    public void SendDunningEscalationEmails_Default_ShouldBeTrue()
+    {
+        // Arrange
+        var subscription = new Subscription();
+
+        // Assert
+        subscription.SendDunningEscalationEmails.Should().BeTrue();
+    }
+
+    // ========================================================================
+    // Timezone Validation (TODO-SALES006-023)
+    // ========================================================================
+
+    [Fact]
+    public async Task CreateAsync_ShouldAcceptValidTimezone()
+    {
+        // Arrange
+        var subscription = CreateValidSubscription();
+        subscription.BillingTimezone = "America/New_York";
+
+        // Act
+        var result = await _service.CreateAsync(subscription);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.BillingTimezone.Should().Be("America/New_York");
+    }
+
+    [Fact]
+    public async Task CreateAsync_ShouldAcceptNullTimezone()
+    {
+        // Arrange
+        var subscription = CreateValidSubscription();
+        subscription.BillingTimezone = null;
+
+        // Act
+        var result = await _service.CreateAsync(subscription);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.BillingTimezone.Should().BeNull();
+    }
+
+    // ========================================================================
+    // RowVersion Optimistic Locking (TODO-SALES006-022)
+    // ========================================================================
+
+    [Fact]
+    public void Subscription_ShouldHaveRowVersionProperty()
+    {
+        // Arrange & Act
+        var subscription = new Subscription();
+
+        // Assert
+        var property = typeof(Subscription).GetProperty("RowVersion");
+        property.Should().NotBeNull();
+        property!.PropertyType.Should().Be(typeof(byte[]));
+    }
 }
+

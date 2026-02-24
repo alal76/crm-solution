@@ -242,6 +242,8 @@ public class CrmDbContext : DbContext, ICrmDbContext
     public DbSet<BillingHistory> BillingHistories { get; set; }
     public DbSet<DunningRecord> DunningRecords { get; set; }
     public DbSet<Contract> Contracts { get; set; }
+    public DbSet<ContractVersion> ContractVersions { get; set; }
+    public DbSet<OrderReturn> OrderReturns { get; set; }
     public DbSet<CreditMemo> CreditMemos { get; set; }
     public DbSet<CreditMemoLineItem> CreditMemoLineItems { get; set; }
     public DbSet<CreditApplication> CreditApplications { get; set; }
@@ -260,6 +262,23 @@ public class CrmDbContext : DbContext, ICrmDbContext
     public DbSet<DuplicateMergeHistory> DuplicateMergeHistories { get; set; }
     public DbSet<DuplicateMergeGroup> DuplicateMergeGroups { get; set; }
     public DbSet<DuplicateMergeGroupMember> DuplicateMergeGroupMembers { get; set; }
+
+    // Lead Source Configuration and Web-to-Lead (TODO-CRM002-03, TODO-CRM002-04)
+    public DbSet<LeadSourceConfig> LeadSourceConfigs { get; set; }
+    public DbSet<LeadSourceEntity> LeadSources { get; set; }
+    public DbSet<WebToLeadForm> WebToLeadForms { get; set; }
+
+    // =============================================================================
+    // Competitor & Opportunity Enhancements (TODO-CRM003-03, TODO-CRM003-08)
+    // =============================================================================
+    public DbSet<Competitor> Competitors { get; set; }
+    public DbSet<OpportunityCompetitor> OpportunityCompetitors { get; set; }
+    public DbSet<OpportunityTeamMember> OpportunityTeamMembers { get; set; }
+
+    // =============================================================================
+    // Territory Management (TODO-GAP-04)
+    // =============================================================================
+    public DbSet<Territory> Territories { get; set; }
 
     // =============================================================================
     // Marketing Automation Entities (Email Sequences, Web Tracking, Forms)
@@ -415,6 +434,7 @@ public class CrmDbContext : DbContext, ICrmDbContext
 
     // Knowledge Management (Enhanced)
     public DbSet<ITSM.KnowledgeArticle> ITSMKnowledgeArticles { get; set; }
+    public DbSet<ITSM.ArticleVersion> ArticleVersions { get; set; }
     public DbSet<ITSM.ArticleRelationship> ArticleRelationships { get; set; }
     public DbSet<ITSM.ArticleIncident> ArticleIncidents { get; set; }
     public DbSet<ITSM.ArticleFeedback> ITSMArticleFeedback { get; set; }
@@ -477,6 +497,9 @@ public class CrmDbContext : DbContext, ICrmDbContext
     public DbSet<AuthAuditLog> AuthAuditLogs { get; set; }
     public DbSet<MagicLinkToken> MagicLinkTokens { get; set; }
     public DbSet<UserOAuthLink> UserOAuthLinks { get; set; }
+    public DbSet<TrustedDevice> TrustedDevices { get; set; }
+    public DbSet<DeviceAuthorizationCode> DeviceAuthorizationCodes { get; set; }
+    public DbSet<LoginAttempt> LoginAttempts { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -1349,6 +1372,21 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.Property(e => e.BillingContactEmail).HasMaxLength(255);
             entity.HasIndex(e => e.SubscriptionNumber).IsUnique(false);
 
+            // TODO-SALES006-022: Optimistic concurrency with RowVersion
+            entity.Property(e => e.RowVersion).IsRowVersion();
+
+            // Decimal precision for financial fields
+            entity.Property(e => e.MRR).HasPrecision(18, 4);
+            entity.Property(e => e.ARR).HasPrecision(18, 4);
+            entity.Property(e => e.Amount).HasPrecision(18, 4);
+            entity.Property(e => e.OneTimeFee).HasPrecision(18, 4);
+
+            // TODO-SALES006-023: Billing timezone configuration
+            entity.Property(e => e.BillingTimezone).HasMaxLength(100);
+
+            // TODO-SALES006-025: Dunning configuration
+            entity.Property(e => e.DunningNotificationEmails).HasMaxLength(500);
+
             entity.HasOne(e => e.Account)
                 .WithMany(c => c.Subscriptions)
                 .HasForeignKey(e => e.AccountId)
@@ -1365,6 +1403,61 @@ public class CrmDbContext : DbContext, ICrmDbContext
             // Opportunity does not have SubscriptionId — prevents shadow FK
             // "SubscriptionId" on Opportunities table.
             entity.Ignore(e => e.Opportunities);
+        });
+
+        // TODO-SALES006-004: Configure SubscriptionUsage with decimal(18,4) precision
+        modelBuilder.Entity<SubscriptionUsage>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Quantity).HasPrecision(18, 4);
+            entity.Property(e => e.MetricName).HasMaxLength(100);
+            entity.Property(e => e.UsageType).HasMaxLength(100);
+            entity.Property(e => e.Description).HasMaxLength(500);
+
+            entity.HasOne(e => e.Subscription)
+                .WithMany()
+                .HasForeignKey(e => e.SubscriptionId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.SubscriptionItem)
+                .WithMany()
+                .HasForeignKey(e => e.SubscriptionItemId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        // Configure SubscriptionUsageLimit with decimal precision
+        modelBuilder.Entity<SubscriptionUsageLimit>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Limit).HasPrecision(18, 4);
+            entity.Property(e => e.MetricName).HasMaxLength(100);
+            entity.Property(e => e.Unit).HasMaxLength(50);
+
+            entity.HasOne(e => e.Subscription)
+                .WithMany()
+                .HasForeignKey(e => e.SubscriptionId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // Configure SubscriptionItem with decimal precision
+        modelBuilder.Entity<SubscriptionItem>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Quantity).HasPrecision(18, 4);
+            entity.Property(e => e.UnitPrice).HasPrecision(18, 4);
+            entity.Property(e => e.Amount).HasPrecision(18, 4);
+            entity.Property(e => e.ItemName).HasMaxLength(255);
+            entity.Property(e => e.Description).HasMaxLength(1000);
+
+            entity.HasOne(e => e.Subscription)
+                .WithMany()
+                .HasForeignKey(e => e.SubscriptionId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.Product)
+                .WithMany()
+                .HasForeignKey(e => e.ProductId)
+                .OnDelete(DeleteBehavior.SetNull);
         });
 
         // Configure CrmTask
@@ -4296,6 +4389,43 @@ public class CrmDbContext : DbContext, ICrmDbContext
                 .OnDelete(DeleteBehavior.Cascade);
         });
 
+        // TrustedDevice entity configuration (TODO-AUTH-019)
+        modelBuilder.Entity<TrustedDevice>(entity =>
+        {
+            entity.ToTable("TrustedDevices");
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.DeviceId)
+                .IsRequired()
+                .HasMaxLength(128);
+
+            entity.Property(e => e.DeviceName)
+                .HasMaxLength(256);
+
+            entity.Property(e => e.UserAgent)
+                .HasMaxLength(512);
+
+            entity.Property(e => e.IpAddress)
+                .HasMaxLength(45);
+
+            entity.Property(e => e.FingerprintHash)
+                .HasMaxLength(256);
+
+            entity.HasIndex(e => e.UserId)
+                .HasDatabaseName("IX_TrustedDevices_UserId");
+
+            entity.HasIndex(e => new { e.UserId, e.DeviceId })
+                .HasDatabaseName("IX_TrustedDevices_UserId_DeviceId");
+
+            entity.HasIndex(e => new { e.UserId, e.ExpiresAt })
+                .HasDatabaseName("IX_TrustedDevices_UserId_ExpiresAt");
+
+            entity.HasOne(e => e.User)
+                .WithMany()
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
         modelBuilder.Entity<PasswordHistory>(entity =>
         {
             entity.ToTable("PasswordHistories");
@@ -4418,6 +4548,99 @@ public class CrmDbContext : DbContext, ICrmDbContext
                 .WithMany()
                 .HasForeignKey(e => e.UserId)
                 .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // DeviceAuthorizationCode entity configuration (TODO-AUTH-023)
+        modelBuilder.Entity<DeviceAuthorizationCode>(entity =>
+        {
+            entity.ToTable("DeviceAuthorizationCodes");
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.DeviceCode)
+                .IsRequired()
+                .HasMaxLength(128);
+
+            entity.Property(e => e.UserCode)
+                .IsRequired()
+                .HasMaxLength(32);
+
+            entity.Property(e => e.ClientId)
+                .IsRequired()
+                .HasMaxLength(256);
+
+            entity.Property(e => e.Scope)
+                .HasMaxLength(1024);
+
+            entity.HasIndex(e => e.DeviceCode)
+                .IsUnique()
+                .HasDatabaseName("IX_DeviceAuthorizationCodes_DeviceCode");
+
+            entity.HasIndex(e => e.UserCode)
+                .IsUnique()
+                .HasDatabaseName("IX_DeviceAuthorizationCodes_UserCode");
+
+            entity.HasIndex(e => e.ExpiresAt)
+                .HasDatabaseName("IX_DeviceAuthorizationCodes_ExpiresAt");
+
+            entity.HasOne(e => e.AuthorizedUser)
+                .WithMany()
+                .HasForeignKey(e => e.AuthorizedUserId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        // LoginAttempt entity configuration (TODO-AUTH-021, TODO-AUTH-022, TODO-AUTH-024)
+        modelBuilder.Entity<LoginAttempt>(entity =>
+        {
+            entity.ToTable("LoginAttempts");
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.Email)
+                .IsRequired()
+                .HasMaxLength(256);
+
+            entity.Property(e => e.IpAddress)
+                .IsRequired()
+                .HasMaxLength(45);
+
+            entity.Property(e => e.UserAgent)
+                .HasMaxLength(512);
+
+            entity.Property(e => e.FailureReason)
+                .HasMaxLength(256);
+
+            entity.Property(e => e.RiskFactors)
+                .HasMaxLength(1024);
+
+            entity.Property(e => e.CountryCode)
+                .HasMaxLength(2);
+
+            entity.Property(e => e.City)
+                .HasMaxLength(128);
+
+            entity.HasIndex(e => e.UserId)
+                .HasDatabaseName("IX_LoginAttempts_UserId");
+
+            entity.HasIndex(e => e.Email)
+                .HasDatabaseName("IX_LoginAttempts_Email");
+
+            entity.HasIndex(e => e.IpAddress)
+                .HasDatabaseName("IX_LoginAttempts_IpAddress");
+
+            entity.HasIndex(e => e.CreatedAt)
+                .HasDatabaseName("IX_LoginAttempts_CreatedAt");
+
+            entity.HasIndex(e => new { e.Email, e.Success, e.CreatedAt })
+                .HasDatabaseName("IX_LoginAttempts_Email_Success_CreatedAt");
+
+            entity.HasIndex(e => new { e.IpAddress, e.Success, e.CreatedAt })
+                .HasDatabaseName("IX_LoginAttempts_IpAddress_Success_CreatedAt");
+
+            entity.HasOne(e => e.User)
+                .WithMany()
+                .HasForeignKey(e => e.UserId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.SetNull);
         });
 
         // Apply provider-specific post-configuration using the Strategy Pattern

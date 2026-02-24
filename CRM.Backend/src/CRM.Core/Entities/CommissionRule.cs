@@ -78,6 +78,56 @@ public class CommissionRule : BaseEntity
 
     /// <summary>Optional JSON for additional rule configuration</summary>
     public string? Configuration { get; set; }
+
+    // === Enhanced fields for TODO-SALES007-003 ===
+
+    /// <summary>Maximum commission amount cap (null = no cap)</summary>
+    public decimal? MaxCommissionAmount { get; set; }
+
+    /// <summary>Split percentage for team/partner splits (0-100)</summary>
+    public decimal? SplitPercentage { get; set; }
+
+    /// <summary>Commission trigger event type</summary>
+    public CommissionTriggerEvent TriggerEvent { get; set; } = CommissionTriggerEvent.OnClose;
+
+    /// <summary>Priority for rule evaluation (lower = higher priority)</summary>
+    public int Priority { get; set; } = 100;
+
+    /// <summary>Whether to stack with other applicable rules</summary>
+    public bool AllowStacking { get; set; }
+
+    /// <summary>Minimum deal size required for this rule to apply</summary>
+    public decimal? MinDealSize { get; set; }
+
+    /// <summary>Foreign key to commission plan this rule belongs to</summary>
+    public int? CommissionPlanId { get; set; }
+}
+
+/// <summary>
+/// Commission trigger event types
+/// </summary>
+public enum CommissionTriggerEvent
+{
+    /// <summary>Commission triggered on deal close</summary>
+    OnClose = 0,
+
+    /// <summary>Commission triggered on payment received</summary>
+    OnPayment = 1,
+
+    /// <summary>Commission triggered on invoice creation</summary>
+    OnInvoice = 2,
+
+    /// <summary>Commission triggered on order placement</summary>
+    OnOrder = 3,
+
+    /// <summary>Commission triggered on contract signature</summary>
+    OnSignature = 4,
+
+    /// <summary>Commission triggered on subscription start</summary>
+    OnSubscriptionStart = 5,
+
+    /// <summary>Commission paid monthly (recurring)</summary>
+    Monthly = 6
 }
 
 /// <summary>

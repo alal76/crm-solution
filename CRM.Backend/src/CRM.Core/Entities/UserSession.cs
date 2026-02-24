@@ -27,6 +27,12 @@ public class UserSession
     /// <summary>Optional device identifier for device-aware session management.</summary>
     public string? DeviceId { get; set; }
 
+    /// <summary>
+    /// If true, this session is bound to its originating IP address and will be invalidated
+    /// if requests come from a different IP. Feature flag for TODO-AUTH-015.
+    /// </summary>
+    public bool IpBindingEnabled { get; set; } = false;
+
     // Navigation property
     public User? User { get; set; }
 }

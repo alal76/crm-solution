@@ -55,16 +55,16 @@ export const settingsService = {
   /**
    * Get specific setting value by key
    */
-  getSettingByKey: async (key: string): Promise<any> => {
-    const response = await apiClient.get(`/settings/${key}`);
+  getSettingByKey: async <T = unknown>(key: string): Promise<T> => {
+    const response = await apiClient.get<T>(`/settings/${key}`);
     return response.data;
   },
 
   /**
    * Update specific setting value by key
    */
-  updateSettingByKey: async (key: string, value: any): Promise<any> => {
-    const response = await apiClient.put(`/settings/${key}`, { value });
+  updateSettingByKey: async <T = unknown>(key: string, value: T): Promise<T> => {
+    const response = await apiClient.put<T>(`/settings/${key}`, { value });
     return response.data;
   },
 
@@ -99,11 +99,40 @@ export const settingsService = {
   /**
    * Get provider health status
    */
-  getProviderStatus: async (): Promise<Record<string, any>> => {
+  getProviderStatus: async (): Promise<Record<string, unknown>> => {
     const response = await apiClient.get('/health/providers');
     return response.data;
   },
+
+  /**
+   * Get business hours configuration
+   */
+  getBusinessHours: async (): Promise<BusinessHoursConfig> => {
+    const response = await apiClient.get('/settings/business-hours');
+    return response.data;
+  },
+
+  /**
+   * Update business hours configuration
+   */
+  updateBusinessHours: async (config: BusinessHoursConfig): Promise<void> => {
+    await apiClient.put('/settings/business-hours', config);
+  },
 };
+
+/** Business hours configuration type */
+export interface BusinessHoursConfig {
+  enabled: boolean;
+  timezone: string;
+  days: DayHours[];
+}
+
+export interface DayHours {
+  dayOfWeek: number;
+  isOpen: boolean;
+  openTime: string;
+  closeTime: string;
+}
 
 /**
  * Default export for backward compatibility

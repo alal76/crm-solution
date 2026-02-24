@@ -26,11 +26,16 @@ public class UserGroupService : IUserGroupService, IUserGroupInputPort
 {
     private readonly ICrmDbContext _context;
     private readonly ILogger<UserGroupService> _logger;
+    private readonly IAuditLogService? _auditLogService;
 
-    public UserGroupService(ICrmDbContext context, ILogger<UserGroupService> logger)
+    public UserGroupService(
+        ICrmDbContext context,
+        ILogger<UserGroupService> logger,
+        IAuditLogService? auditLogService = null)
     {
         _context = context;
         _logger = logger;
+        _auditLogService = auditLogService;
     }
 
     public async Task<IEnumerable<UserGroupDto>> GetAllGroupsAsync()
@@ -289,6 +294,29 @@ public class UserGroupService : IUserGroupService, IUserGroupInputPort
             _context.UserGroups.Add(group);
             await _context.SaveChangesAsync();
 
+            // TODO-SYS012-003: Audit log permission changes
+            if (_auditLogService != null)
+            {
+                await _auditLogService.LogCreateAsync(
+                    entityType: "UserGroup",
+                    entityId: group.Id,
+                    entityName: group.Name,
+                    userId: null,
+                    newValues: new Dictionary<string, object>
+                    {
+                        ["Name"] = group.Name,
+                        ["IsSystemAdmin"] = group.IsSystemAdmin,
+                        ["IsActive"] = group.IsActive,
+                        ["IsDefault"] = group.IsDefault,
+                        ["CanAccessDashboard"] = group.CanAccessDashboard,
+                        ["CanAccessAccounts"] = group.CanAccessAccounts,
+                        ["CanAccessContacts"] = group.CanAccessContacts,
+                        ["CanAccessSettings"] = group.CanAccessSettings,
+                        ["CanAccessUserManagement"] = group.CanAccessUserManagement,
+                        ["DataAccessScope"] = group.DataAccessScope ?? "Own"
+                    });
+            }
+
             return MapToDto(group);
         }
         catch (Exception ex)
@@ -344,10 +372,51 @@ public class UserGroupService : IUserGroupService, IUserGroupInputPort
                 }
             }
 
+            // Capture old values for audit
+            var oldValues = new Dictionary<string, object>
+            {
+                ["Name"] = group.Name,
+                ["IsSystemAdmin"] = group.IsSystemAdmin,
+                ["IsActive"] = group.IsActive,
+                ["IsDefault"] = group.IsDefault,
+                ["CanAccessDashboard"] = group.CanAccessDashboard,
+                ["CanAccessAccounts"] = group.CanAccessAccounts,
+                ["CanAccessContacts"] = group.CanAccessContacts,
+                ["CanAccessSettings"] = group.CanAccessSettings,
+                ["CanAccessUserManagement"] = group.CanAccessUserManagement,
+                ["DataAccessScope"] = group.DataAccessScope ?? "Own"
+            };
+
             MapFromRequest(group, request);
 
             _context.UserGroups.Update(group);
             await _context.SaveChangesAsync();
+
+            // TODO-SYS012-003: Audit log permission changes
+            if (_auditLogService != null)
+            {
+                var newValues = new Dictionary<string, object>
+                {
+                    ["Name"] = group.Name,
+                    ["IsSystemAdmin"] = group.IsSystemAdmin,
+                    ["IsActive"] = group.IsActive,
+                    ["IsDefault"] = group.IsDefault,
+                    ["CanAccessDashboard"] = group.CanAccessDashboard,
+                    ["CanAccessAccounts"] = group.CanAccessAccounts,
+                    ["CanAccessContacts"] = group.CanAccessContacts,
+                    ["CanAccessSettings"] = group.CanAccessSettings,
+                    ["CanAccessUserManagement"] = group.CanAccessUserManagement,
+                    ["DataAccessScope"] = group.DataAccessScope ?? "Own"
+                };
+
+                await _auditLogService.LogUpdateAsync(
+                    entityType: "UserGroup",
+                    entityId: group.Id,
+                    entityName: group.Name,
+                    userId: null,
+                    oldValues: oldValues,
+                    newValues: newValues);
+            }
 
             return MapToDto(group);
         }

@@ -130,11 +130,32 @@ public interface ISubscriptionService
     /// <summary>Records usage for a metered subscription.</summary>
     Task<bool> RecordUsageAsync(int subscriptionId, string metricName, decimal quantity, DateTime? timestamp = null, CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Records multiple usage records in a batch for performance optimization.
+    /// TODO-SALES006-024: Batch usage recording implementation.
+    /// </summary>
+    /// <param name="usageRecords">List of usage records to insert.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Number of records successfully inserted.</returns>
+    Task<int> RecordUsageBatchAsync(List<UsageRecordBatchDto> usageRecords, CancellationToken cancellationToken = default);
+
     /// <summary>Gets usage data for a subscription.</summary>
     Task<SubscriptionUsageData> GetUsageAsync(int subscriptionId, DateTime fromDate, DateTime toDate, CancellationToken cancellationToken = default);
 
     /// <summary>Gets current usage against limits.</summary>
     Task<IEnumerable<UsageLimit>> GetUsageLimitsAsync(int subscriptionId, CancellationToken cancellationToken = default);
+
+    #endregion
+
+    #region Timezone-Aware Billing (TODO-SALES006-023)
+
+    /// <summary>
+    /// Gets the next billing date using the subscription's billing timezone.
+    /// </summary>
+    /// <param name="subscriptionId">Subscription ID.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Next billing date in the subscription's timezone, or null if not calculable.</returns>
+    Task<DateTimeOffset?> GetNextBillingDateWithTimezoneAsync(int subscriptionId, CancellationToken cancellationToken = default);
 
     #endregion
 
@@ -256,4 +277,25 @@ public class SubscriptionStatistics
     public int NewSubscriptionsThisMonth { get; set; }
     public int CancellationsThisMonth { get; set; }
     public Dictionary<string, int> SubscriptionsByPlan { get; set; } = new();
+}
+
+/// <summary>
+/// DTO for batch usage recording (TODO-SALES006-024).
+/// </summary>
+public class UsageRecordBatchDto
+{
+    /// <summary>Subscription ID for the usage record.</summary>
+    public int SubscriptionId { get; set; }
+
+    /// <summary>Metric name (e.g., "api_calls", "storage_gb").</summary>
+    public string MetricName { get; set; } = string.Empty;
+
+    /// <summary>Usage quantity.</summary>
+    public decimal Quantity { get; set; }
+
+    /// <summary>Timestamp of usage (default: now).</summary>
+    public DateTime? Timestamp { get; set; }
+
+    /// <summary>Optional description.</summary>
+    public string? Description { get; set; }
 }

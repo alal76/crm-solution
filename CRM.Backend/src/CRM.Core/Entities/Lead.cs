@@ -60,6 +60,34 @@ public enum LeadSource
     Manual = 5
 }
 
+/// <summary>
+/// Lead qualification framework type.
+/// TODO-CRM002-08: Lead qualification matrix (BANT/MEDDIC)
+/// </summary>
+public enum QualificationFramework
+{
+    /// <summary>No specific framework</summary>
+    None = 0,
+
+    /// <summary>BANT: Budget, Authority, Need, Timeline</summary>
+    BANT = 1,
+
+    /// <summary>MEDDIC: Metrics, Economic Buyer, Decision Criteria, Decision Process, Identify Pain, Champion</summary>
+    MEDDIC = 2,
+
+    /// <summary>MEDDPICC: MEDDIC + Paper Process, Competition</summary>
+    MEDDPICC = 3,
+
+    /// <summary>CHAMP: Challenges, Authority, Money, Prioritization</summary>
+    CHAMP = 4,
+
+    /// <summary>GPCTBA/C&I: Goals, Plans, Challenges, Timeline, Budget, Authority, Consequences & Implications</summary>
+    GPCTBA = 5,
+
+    /// <summary>Custom qualification framework</summary>
+    Custom = 99
+}
+
 #endregion
 
 /// <summary>
@@ -185,6 +213,111 @@ public class Lead : BaseEntity
 
     #endregion
 
+    #region Source Attribution (TODO-CRM002-03)
+
+    /// <summary>Lead source entity ID for detailed attribution</summary>
+    public int? LeadSourceId { get; set; }
+
+    /// <summary>Original source description (free text for initial capture)</summary>
+    [MaxLength(500)]
+    public string? OriginalSource { get; set; }
+
+    /// <summary>First touch date - when lead first interacted</summary>
+    public DateTime? FirstTouchDate { get; set; }
+
+    /// <summary>UTM source parameter</summary>
+    [MaxLength(255)]
+    public string? UtmSource { get; set; }
+
+    /// <summary>UTM medium parameter</summary>
+    [MaxLength(255)]
+    public string? UtmMedium { get; set; }
+
+    /// <summary>UTM campaign parameter</summary>
+    [MaxLength(255)]
+    public string? UtmCampaign { get; set; }
+
+    #endregion
+
+    #region Nurturing & Engagement (TODO-CRM002-06, TODO-CRM002-07)
+
+    /// <summary>Active nurture campaign enrollment</summary>
+    public int? NurtureCampaignId { get; set; }
+
+    /// <summary>When enrolled in nurture campaign</summary>
+    public DateTime? NurtureCampaignEnrolledAt { get; set; }
+
+    /// <summary>Last time lead was contacted by sales/marketing</summary>
+    public DateTime? LastContactedAt { get; set; }
+
+    /// <summary>Number of days since last contact</summary>
+    [NotMapped]
+    public int? DaysSinceLastContact => LastContactedAt.HasValue
+        ? (int)(DateTime.UtcNow - LastContactedAt.Value).TotalDays
+        : null;
+
+    #endregion
+
+    #region Qualification Framework (TODO-CRM002-08)
+
+    /// <summary>Qualification framework being used (BANT, MEDDIC, etc.)</summary>
+    public QualificationFramework QualificationFrameworkType { get; set; } = QualificationFramework.None;
+
+    // BANT Scoring Fields
+    /// <summary>Budget score (0-100)</summary>
+    [Range(0, 100)]
+    public int? BudgetScore { get; set; }
+
+    /// <summary>Authority score (0-100)</summary>
+    [Range(0, 100)]
+    public int? AuthorityScore { get; set; }
+
+    /// <summary>Need score (0-100)</summary>
+    [Range(0, 100)]
+    public int? NeedScore { get; set; }
+
+    /// <summary>Timeline score (0-100)</summary>
+    [Range(0, 100)]
+    public int? TimelineScore { get; set; }
+
+    // MEDDIC Scoring Fields
+    /// <summary>Metrics score (quantified business impact)</summary>
+    [Range(0, 100)]
+    public int? MetricsScore { get; set; }
+
+    /// <summary>Economic Buyer score</summary>
+    [Range(0, 100)]
+    public int? EconomicBuyerScore { get; set; }
+
+    /// <summary>Decision Criteria score</summary>
+    [Range(0, 100)]
+    public int? DecisionCriteriaScore { get; set; }
+
+    /// <summary>Decision Process score</summary>
+    [Range(0, 100)]
+    public int? DecisionProcessScore { get; set; }
+
+    /// <summary>Identify Pain score</summary>
+    [Range(0, 100)]
+    public int? IdentifyPainScore { get; set; }
+
+    /// <summary>Champion score</summary>
+    [Range(0, 100)]
+    public int? ChampionScore { get; set; }
+
+    /// <summary>Custom qualification JSON for flexible frameworks</summary>
+    [MaxLength(4000)]
+    public string? CustomQualificationJson { get; set; }
+
+    #endregion
+
+    #region Territory Assignment (TODO-GAP-04)
+
+    /// <summary>Assigned territory ID</summary>
+    public int? TerritoryId { get; set; }
+
+    #endregion
+
     #region Merge Tracking
 
     /// <summary>If this record was merged, ID of the master record it was merged into</summary>
@@ -218,6 +351,18 @@ public class Lead : BaseEntity
     /// <summary>Matched contact (person)</summary>
     [ForeignKey("ContactId")]
     public virtual ContactModel? Contact { get; set; }
+
+    /// <summary>Lead source for attribution (TODO-CRM002-03)</summary>
+    [ForeignKey("LeadSourceId")]
+    public virtual LeadSourceEntity? LeadSourceEntity { get; set; }
+
+    /// <summary>Active nurture campaign enrollment (TODO-CRM002-06)</summary>
+    [ForeignKey("NurtureCampaignId")]
+    public virtual MarketingCampaign? NurtureCampaign { get; set; }
+
+    /// <summary>Assigned territory (TODO-GAP-04)</summary>
+    [ForeignKey("TerritoryId")]
+    public virtual Territory? Territory { get; set; }
 
     /// <summary>Products/services of interest (many-to-many)</summary>
     public virtual ICollection<LeadProductInterest> ProductInterests { get; set; } = new List<LeadProductInterest>();

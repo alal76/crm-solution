@@ -144,6 +144,26 @@ public interface IContractService
     Task<byte[]> GenerateContractPdfAsync(int contractId, CancellationToken cancellationToken = default);
 
     #endregion
+
+    #region Bulk Operations (TODO-SALES005-013)
+
+    /// <summary>Bulk update status for multiple contracts.</summary>
+    Task<int> BulkUpdateStatusAsync(IEnumerable<int> contractIds, ContractStatus status, CancellationToken cancellationToken = default);
+
+    #endregion
+
+    #region Version History (TODO-SALES005-016)
+
+    /// <summary>Gets version history for a contract.</summary>
+    Task<IEnumerable<ContractVersion>> GetVersionHistoryAsync(int contractId, CancellationToken cancellationToken = default);
+
+    /// <summary>Creates a new version snapshot of a contract.</summary>
+    Task<ContractVersion> CreateVersionSnapshotAsync(int contractId, string changeDescription, int? modifiedByUserId = null, CancellationToken cancellationToken = default);
+
+    /// <summary>Restores a contract to a previous version.</summary>
+    Task<Contract> RestoreVersionAsync(int contractId, int versionId, CancellationToken cancellationToken = default);
+
+    #endregion
 }
 
 /// <summary>

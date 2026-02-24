@@ -59,6 +59,76 @@ public enum OrderStatus
 }
 
 /// <summary>
+/// Return status for order return workflow.
+/// TODO-GAP-SALES-001: Complete order returns workflow
+/// </summary>
+public enum ReturnStatus
+{
+    /// <summary>No return requested</summary>
+    None = 0,
+
+    /// <summary>Return requested by customer</summary>
+    Requested = 1,
+
+    /// <summary>Return request approved</summary>
+    Approved = 2,
+
+    /// <summary>Return request rejected</summary>
+    Rejected = 3,
+
+    /// <summary>Items shipped back</summary>
+    ItemsShipped = 4,
+
+    /// <summary>Items received</summary>
+    ItemsReceived = 5,
+
+    /// <summary>Quality inspection in progress</summary>
+    Inspecting = 6,
+
+    /// <summary>Return processing complete</summary>
+    Processed = 7,
+
+    /// <summary>Refund issued</summary>
+    Refunded = 8,
+
+    /// <summary>Exchange issued</summary>
+    Exchanged = 9
+}
+
+/// <summary>
+/// Reason category for order returns.
+/// </summary>
+public enum ReturnReasonCategory
+{
+    /// <summary>Other/unspecified</summary>
+    Other = 0,
+
+    /// <summary>Defective or damaged product</summary>
+    Defective = 1,
+
+    /// <summary>Wrong item received</summary>
+    WrongItem = 2,
+
+    /// <summary>Changed mind</summary>
+    ChangedMind = 3,
+
+    /// <summary>Better price found elsewhere</summary>
+    PriceMatch = 4,
+
+    /// <summary>Does not match description</summary>
+    NotAsDescribed = 5,
+
+    /// <summary>Late delivery</summary>
+    LateDelivery = 6,
+
+    /// <summary>Duplicate order</summary>
+    DuplicateOrder = 7,
+
+    /// <summary>Quality issue</summary>
+    QualityIssue = 8
+}
+
+/// <summary>
 /// FUNCTIONAL: Type of order transaction.
 /// TECHNICAL: Determines processing rules and revenue recognition.
 /// </summary>
@@ -482,10 +552,55 @@ public class Order : BaseEntity
 
     #endregion
 
-    #region Return Information
+    #region Return Information (TODO-GAP-SALES-001)
 
-    /// <summary>Reason for return</summary>
+    /// <summary>Current return status</summary>
+    public ReturnStatus ReturnStatus { get; set; } = ReturnStatus.None;
+
+    /// <summary>Return reason category</summary>
+    public ReturnReasonCategory? ReturnReasonCategory { get; set; }
+
+    /// <summary>Detailed reason for return</summary>
+    [MaxLength(2000)]
     public string? ReturnReason { get; set; }
+
+    /// <summary>Date return was requested</summary>
+    public DateTime? ReturnRequestedDate { get; set; }
+
+    /// <summary>Date return was approved</summary>
+    public DateTime? ReturnApprovedDate { get; set; }
+
+    /// <summary>Date items were received back</summary>
+    public DateTime? ReturnReceivedDate { get; set; }
+
+    /// <summary>Date return was processed</summary>
+    public DateTime? ReturnProcessedDate { get; set; }
+
+    /// <summary>Return authorization number (RMA)</summary>
+    [MaxLength(100)]
+    public string? ReturnAuthorizationNumber { get; set; }
+
+    /// <summary>Amount to be refunded</summary>
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal? RefundAmount { get; set; }
+
+    /// <summary>Restocking fee applied</summary>
+    [Column(TypeName = "decimal(18,2)")]
+    public decimal? RestockingFee { get; set; }
+
+    /// <summary>Return shipping tracking number</summary>
+    [MaxLength(255)]
+    public string? ReturnTrackingNumber { get; set; }
+
+    /// <summary>Quality inspection notes</summary>
+    [MaxLength(2000)]
+    public string? QualityInspectionNotes { get; set; }
+
+    /// <summary>Whether return qualifies for exchange</summary>
+    public bool IsEligibleForExchange { get; set; } = false;
+
+    /// <summary>Exchange order ID if exchanged</summary>
+    public int? ExchangeOrderId { get; set; }
 
     #endregion
 

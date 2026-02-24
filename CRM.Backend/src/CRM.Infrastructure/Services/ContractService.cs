@@ -828,4 +828,160 @@ public class ContractService : IContractService
     }
 
     #endregion
+
+    #region Bulk Operations (TODO-SALES005-013)
+
+    /// <summary>Bulk update status for multiple contracts.</summary>
+    public async Task<int> BulkUpdateStatusAsync(IEnumerable<int> contractIds, ContractStatus status, CancellationToken cancellationToken = default)
+    {
+        var ids = contractIds.ToList();
+        if (!ids.Any())
+        {
+            return 0;
+        }
+
+        _logger.LogInformation("Bulk updating {Count} contracts to status {Status}", ids.Count, status);
+
+        var contracts = await _dbContext.Contracts
+            .Where(c => ids.Contains(c.Id) && !c.IsDeleted)
+            .ToListAsync(cancellationToken);
+
+        foreach (var contract in contracts)
+        {
+            contract.Status = status;
+            contract.UpdatedAt = DateTime.UtcNow;
+        }
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+        _logger.LogInformation("Bulk updated {Count} contracts to status {Status}", contracts.Count, status);
+
+        return contracts.Count;
+    }
+
+    #endregion
+
+    #region Version History (TODO-SALES005-016)
+
+    /// <summary>Gets version history for a contract.</summary>
+    public async Task<IEnumerable<ContractVersion>> GetVersionHistoryAsync(int contractId, CancellationToken cancellationToken = default)
+    {
+        return await _dbContext.ContractVersions
+            .Where(v => v.ContractId == contractId)
+            .OrderByDescending(v => v.VersionNumber)
+            .ToListAsync(cancellationToken);
+    }
+
+    /// <summary>Creates a new version snapshot of a contract.</summary>
+    public async Task<ContractVersion> CreateVersionSnapshotAsync(int contractId, string changeDescription, int? modifiedByUserId = null, CancellationToken cancellationToken = default)
+    {
+        var contract = await GetByIdAsync(contractId, cancellationToken);
+        if (contract == null)
+        {
+            throw new InvalidOperationException($"Contract {contractId} not found");
+        }
+
+        // Mark previous versions as not current
+        var previousVersions = await _dbContext.ContractVersions
+            .Where(v => v.ContractId == contractId && v.IsCurrent)
+            .ToListAsync(cancellationToken);
+
+        foreach (var pv in previousVersions)
+        {
+            pv.IsCurrent = false;
+        }
+
+        // Get next version number
+        var lastVersion = await _dbContext.ContractVersions
+            .Where(v => v.ContractId == contractId)
+            .OrderByDescending(v => v.VersionNumber)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        var nextVersionNumber = (lastVersion?.VersionNumber ?? 0) + 1;
+
+        // Create snapshot JSON
+        var snapshot = System.Text.Json.JsonSerializer.Serialize(new
+        {
+            contract.Name,
+            contract.ContractNumber,
+            contract.Description,
+            contract.Type,
+            contract.Status,
+            contract.StartDate,
+            contract.EndDate,
+            contract.TotalValue,
+            contract.TermsAndConditions,
+            contract.PaymentTerms,
+            contract.SignatureRequired,
+            contract.AutoRenew,
+            contract.RenewalTermMonths
+        });
+
+        var version = new ContractVersion
+        {
+            ContractId = contractId,
+            VersionNumber = nextVersionNumber,
+            ChangeDescription = changeDescription,
+            ChangesJson = "[]", // Could be populated with actual diff
+            SnapshotJson = snapshot,
+            IsCurrent = true,
+            ModifiedByUserId = modifiedByUserId,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        _dbContext.ContractVersions.Add(version);
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation("Created version {Version} for contract {ContractId}", nextVersionNumber, contractId);
+        return version;
+    }
+
+    /// <summary>Restores a contract to a previous version.</summary>
+    public async Task<Contract> RestoreVersionAsync(int contractId, int versionId, CancellationToken cancellationToken = default)
+    {
+        var contract = await GetByIdAsync(contractId, cancellationToken);
+        if (contract == null)
+        {
+            throw new InvalidOperationException($"Contract {contractId} not found");
+        }
+
+        var version = await _dbContext.ContractVersions
+            .FirstOrDefaultAsync(v => v.Id == versionId && v.ContractId == contractId, cancellationToken);
+
+        if (version == null)
+        {
+            throw new InvalidOperationException($"Version {versionId} not found for contract {contractId}");
+        }
+
+        if (string.IsNullOrEmpty(version.SnapshotJson))
+        {
+            throw new InvalidOperationException($"Version {versionId} has no snapshot data");
+        }
+
+        // Parse snapshot and restore fields
+        var snapshot = System.Text.Json.JsonDocument.Parse(version.SnapshotJson);
+        var root = snapshot.RootElement;
+
+        if (root.TryGetProperty("Name", out var name))
+            contract.Name = name.GetString() ?? contract.Name;
+        if (root.TryGetProperty("Description", out var desc))
+            contract.Description = desc.GetString();
+        if (root.TryGetProperty("TotalValue", out var value))
+            contract.TotalValue = value.GetDecimal();
+        if (root.TryGetProperty("TermsAndConditions", out var terms))
+            contract.TermsAndConditions = terms.GetString();
+        if (root.TryGetProperty("PaymentTerms", out var payment))
+            contract.PaymentTerms = payment.GetString();
+
+        contract.UpdatedAt = DateTime.UtcNow;
+
+        // Create a new version recording the restore
+        await CreateVersionSnapshotAsync(contractId, $"Restored from version {version.VersionNumber}", null, cancellationToken);
+
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation("Restored contract {ContractId} to version {VersionId}", contractId, versionId);
+        return contract;
+    }
+
+    #endregion
 }

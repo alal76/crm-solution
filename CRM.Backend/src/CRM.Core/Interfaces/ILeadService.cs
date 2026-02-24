@@ -38,4 +38,14 @@ public interface ILeadService
         string? lastName,
         string? company,
         CancellationToken ct = default);
+
+    /// <summary>
+    /// Assigns a lead to a nurture campaign (TODO-CRM002-06).
+    /// Sets the NurtureCampaignId field on the lead.
+    /// </summary>
+    /// <param name="leadId">The lead to assign.</param>
+    /// <param name="campaignId">The nurture campaign to assign to.</param>
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns>True if successful.</returns>
+    Task<bool> AssignToNurtureCampaignAsync(int leadId, int campaignId, CancellationToken ct = default);
 }

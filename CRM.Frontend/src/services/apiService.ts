@@ -121,6 +121,12 @@ export interface MarketingCampaign extends BaseEntity {
   status: number;
 }
 
+export interface CampaignMetric {
+  name: string;
+  value: number;
+  measurementDate?: string;
+}
+
 export const campaignService = {
   getAll: () => apiClient.get<MarketingCampaign[]>('/campaigns'),
   getActive: () => apiClient.get<MarketingCampaign[]>('/campaigns/active'),
@@ -129,7 +135,7 @@ export const campaignService = {
   update: (id: number, data: MarketingCampaign) => 
     apiClient.put(`/campaigns/${id}`, data),
   delete: (id: number) => apiClient.delete(`/campaigns/${id}`),
-  addMetric: (id: number, metric: any) => 
+  addMetric: (id: number, metric: CampaignMetric) => 
     apiClient.post(`/campaigns/${id}/metrics`, metric),
 };
 

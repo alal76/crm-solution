@@ -469,6 +469,23 @@ builder.Services.AddScoped<CRM.Core.Interfaces.IAuthAuditService, CRM.Infrastruc
 builder.Services.AddScoped<CRM.Core.Interfaces.IMagicLinkService, CRM.Infrastructure.Services.MagicLinkService>();
 builder.Services.AddScoped<CRM.Core.Interfaces.IUserOAuthLinkService, CRM.Infrastructure.Services.UserOAuthLinkService>();
 
+// Auth Advanced Services (TODO-AUTH-003, TODO-AUTH-004, TODO-AUTH-010, TODO-AUTH-019)
+builder.Services.Configure<CRM.Core.Options.OktaSsoOptions>(builder.Configuration.GetSection("Auth:Okta"));
+builder.Services.Configure<CRM.Core.Options.OpenIdConnectOptions>(builder.Configuration.GetSection("Auth:OpenIdConnect"));
+builder.Services.AddScoped<CRM.Core.Interfaces.IOktaSsoService, CRM.Infrastructure.Services.Auth.OktaSsoService>();
+builder.Services.AddScoped<CRM.Core.Interfaces.IOpenIdConnectService, CRM.Infrastructure.Services.Auth.OpenIdConnectService>();
+builder.Services.AddScoped<CRM.Core.Interfaces.IBiometricAuthService, CRM.Infrastructure.Services.Auth.BiometricAuthService>();
+builder.Services.AddScoped<CRM.Core.Interfaces.ITrustedDeviceService, CRM.Infrastructure.Services.Auth.TrustedDeviceService>();
+
+// Auth Advanced Services (TODO-AUTH-021 to TODO-AUTH-024)
+builder.Services.AddScoped<CRM.Core.Interfaces.ILoginAnalyticsService, CRM.Infrastructure.Services.Auth.LoginAnalyticsService>();
+builder.Services.AddScoped<CRM.Core.Interfaces.IRiskAssessmentService, CRM.Infrastructure.Services.Auth.RiskAssessmentService>();
+builder.Services.AddScoped<CRM.Core.Interfaces.IDeviceAuthorizationService, CRM.Infrastructure.Services.Auth.DeviceAuthorizationService>();
+builder.Services.AddScoped<CRM.Core.Interfaces.IGeoLocationService, CRM.Infrastructure.Services.Auth.GeoLocationService>();
+
+// Rate Limiting Service (TODO-SYS005-002)
+builder.Services.AddScoped<CRM.Core.Interfaces.IRateLimitingService, CRM.Infrastructure.Services.RateLimitingService>();
+
 // System Module Services (TODO-SYS005-001, TODO-SYS006-004)
 builder.Services.AddScoped<CRM.Core.Interfaces.IBusinessHoursConfigService, CRM.Infrastructure.Services.BusinessHoursConfigService>();
 builder.Services.AddScoped<CRM.Core.Ports.Input.IGdprService, CRM.Infrastructure.Services.GdprService>();
@@ -729,8 +746,27 @@ builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.ICatalogCategoryService, CRM
 // Pricing & Bundles
 builder.Services.AddScoped<CRM.Core.Interfaces.IPricingService, CRM.Infrastructure.Services.PricingService>();
 builder.Services.AddScoped<CRM.Core.Interfaces.IProductBundleService, CRM.Infrastructure.Services.ProductBundleService>();
+
+// CRM Core & Sales Features P2 (TODO-CRM002-*, TODO-CRM003-*, TODO-GAP-*)
+builder.Services.AddScoped<ILeadSourceConfigService, LeadSourceConfigService>();
+builder.Services.AddScoped<IWebToLeadFormService, WebToLeadFormService>();
+builder.Services.AddScoped<ILeadAgingAlertService, LeadAgingAlertService>();
+builder.Services.AddScoped<IWinLossAnalysisService, WinLossAnalysisService>();
+builder.Services.AddScoped<ITerritoryAssignmentService, TerritoryAssignmentService>();
+builder.Services.AddScoped<IDynamicPricingEngine, DynamicPricingEngine>();
+builder.Services.AddScoped<ICompetitorService, CompetitorService>();
+
 // Credit Memo service
 builder.Services.AddScoped<ICreditMemoService, CreditMemoService>();
+
+// SPRINT 3: Commission & Contract Enhancement Services (TODO-SALES004-011, TODO-GAP-BACKEND-005, TODO-SALES005-014, TODO-GAP-SALES-001)
+builder.Services.AddScoped<ICommissionRulesEngine, CommissionRulesEngine>();
+builder.Services.AddScoped<IOrderReturnService, OrderReturnService>();
+builder.Services.AddScoped<IContractExportService, ContractExportService>();
+builder.Services.AddScoped<IPaymentTokenizationService, PaymentTokenizationService>();
+builder.Services.AddScoped<StripeIntegrationService>();
+Log.Information("Commission & Contract Enhancement Services registered: CommissionRulesEngine, OrderReturn, ContractExport, PaymentTokenization, StripeIntegration");
+
 // Subscription Billing Services (SPEC-SALES-006)
 // Recurring Billing Engine - background job for hourly subscription billing cycles
 // builder.Services.AddScoped<IRecurringBillingEngine, RecurringBillingEngine>(); // DISABLED for System Module isolation

@@ -445,6 +445,158 @@ public class AuditLogService : IAuditLogService
         return Encoding.UTF8.GetBytes(sb.ToString());
     }
 
+    /// <summary>
+    /// Exports audit logs to JSON format.
+    /// TODO-SYS006-008
+    /// </summary>
+    public async Task<byte[]> ExportToJsonAsync(
+        string? entityType = null,
+        DateTime? fromDate = null,
+        DateTime? toDate = null,
+        CancellationToken cancellationToken = default)
+    {
+        var query = _dbContext.AuditLogs
+            .Include(a => a.User)
+            .AsNoTracking()
+            .Where(a => !a.IsDeleted);
+
+        if (!string.IsNullOrEmpty(entityType))
+            query = query.Where(a => a.EntityType == entityType);
+
+        if (fromDate.HasValue)
+            query = query.Where(a => a.CreatedAt >= fromDate.Value);
+
+        if (toDate.HasValue)
+            query = query.Where(a => a.CreatedAt <= toDate.Value);
+
+        var logs = await query.OrderByDescending(a => a.CreatedAt).ToListAsync(cancellationToken);
+        var dtos = logs.Select(MapToDto).ToList();
+
+        var exportData = new
+        {
+            ExportDate = DateTime.UtcNow,
+            TotalRecords = dtos.Count,
+            Filters = new
+            {
+                EntityType = entityType,
+                FromDate = fromDate,
+                ToDate = toDate
+            },
+            AuditLogs = dtos
+        };
+
+        var json = JsonSerializer.Serialize(exportData, new JsonSerializerOptions
+        {
+            WriteIndented = true,
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+        });
+
+        _logger.LogInformation("Exported {Count} audit logs to JSON format", dtos.Count);
+        return Encoding.UTF8.GetBytes(json);
+    }
+
+    /// <summary>
+    /// Exports audit logs to PDF format (simplified HTML-based PDF).
+    /// TODO-SYS006-008
+    /// </summary>
+    public async Task<byte[]> ExportToPdfAsync(
+        string? entityType = null,
+        DateTime? fromDate = null,
+        DateTime? toDate = null,
+        CancellationToken cancellationToken = default)
+    {
+        var query = _dbContext.AuditLogs
+            .Include(a => a.User)
+            .AsNoTracking()
+            .Where(a => !a.IsDeleted);
+
+        if (!string.IsNullOrEmpty(entityType))
+            query = query.Where(a => a.EntityType == entityType);
+
+        if (fromDate.HasValue)
+            query = query.Where(a => a.CreatedAt >= fromDate.Value);
+
+        if (toDate.HasValue)
+            query = query.Where(a => a.CreatedAt <= toDate.Value);
+
+        var logs = await query.OrderByDescending(a => a.CreatedAt).ToListAsync(cancellationToken);
+
+        // Generate HTML document that can be converted to PDF client-side or by a PDF service
+        var sb = new StringBuilder();
+        sb.AppendLine("<!DOCTYPE html>");
+        sb.AppendLine("<html><head><title>Audit Log Export</title>");
+        sb.AppendLine("<style>");
+        sb.AppendLine("body { font-family: Arial, sans-serif; font-size: 12px; }");
+        sb.AppendLine("table { width: 100%; border-collapse: collapse; margin-top: 20px; }");
+        sb.AppendLine("th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }");
+        sb.AppendLine("th { background-color: #4CAF50; color: white; }");
+        sb.AppendLine("tr:nth-child(even) { background-color: #f2f2f2; }");
+        sb.AppendLine("h1 { color: #333; }");
+        sb.AppendLine(".header { margin-bottom: 20px; }");
+        sb.AppendLine("</style></head><body>");
+        sb.AppendLine("<div class='header'>");
+        sb.AppendLine("<h1>Audit Log Export</h1>");
+        sb.AppendLine($"<p>Generated: {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss} UTC</p>");
+        sb.AppendLine($"<p>Total Records: {logs.Count}</p>");
+        if (!string.IsNullOrEmpty(entityType))
+            sb.AppendLine($"<p>Entity Type: {entityType}</p>");
+        if (fromDate.HasValue || toDate.HasValue)
+            sb.AppendLine($"<p>Date Range: {fromDate?.ToString("yyyy-MM-dd") ?? "N/A"} to {toDate?.ToString("yyyy-MM-dd") ?? "N/A"}</p>");
+        sb.AppendLine("</div>");
+
+        sb.AppendLine("<table>");
+        sb.AppendLine("<tr><th>ID</th><th>Timestamp</th><th>User</th><th>Action</th><th>Entity</th><th>Entity ID</th><th>Changes</th></tr>");
+
+        foreach (var log in logs)
+        {
+            sb.AppendLine($"<tr><td>{log.Id}</td><td>{log.CreatedAt:yyyy-MM-dd HH:mm:ss}</td>" +
+                $"<td>{System.Net.WebUtility.HtmlEncode(log.User?.Email ?? "System")}</td>" +
+                $"<td>{System.Net.WebUtility.HtmlEncode(log.Action)}</td>" +
+                $"<td>{System.Net.WebUtility.HtmlEncode(log.EntityType)}</td>" +
+                $"<td>{log.EntityId}</td>" +
+                $"<td>{System.Net.WebUtility.HtmlEncode(log.ChangedProperties ?? "-")}</td></tr>");
+        }
+
+        sb.AppendLine("</table></body></html>");
+
+        _logger.LogInformation("Exported {Count} audit logs to PDF/HTML format", logs.Count);
+        return Encoding.UTF8.GetBytes(sb.ToString());
+    }
+
+    /// <summary>
+    /// Exports audit logs in the specified format.
+    /// TODO-SYS006-008
+    /// </summary>
+    /// <param name="format">csv, json, or pdf</param>
+    public async Task<(byte[] Data, string ContentType, string FileName)> ExportAuditLogsAsync(
+        string format,
+        string? entityType = null,
+        DateTime? fromDate = null,
+        DateTime? toDate = null,
+        CancellationToken cancellationToken = default)
+    {
+        var timestamp = DateTime.UtcNow.ToString("yyyyMMdd-HHmmss");
+
+        return format.ToLowerInvariant() switch
+        {
+            "json" => (
+                await ExportToJsonAsync(entityType, fromDate, toDate, cancellationToken),
+                "application/json",
+                $"audit-logs-{timestamp}.json"
+            ),
+            "pdf" => (
+                await ExportToPdfAsync(entityType, fromDate, toDate, cancellationToken),
+                "text/html", // HTML that can be printed to PDF
+                $"audit-logs-{timestamp}.html"
+            ),
+            _ => (
+                await ExportToCsvAsync(entityType, fromDate, toDate, cancellationToken),
+                "text/csv",
+                $"audit-logs-{timestamp}.csv"
+            )
+        };
+    }
+
     #endregion
 
     #region Cleanup & Maintenance

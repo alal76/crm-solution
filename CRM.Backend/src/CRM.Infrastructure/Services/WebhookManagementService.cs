@@ -414,12 +414,21 @@ public class WebhookManagementService : IWebhookManagementService, IWebhookManag
 /// <summary>
 /// Implementation of IWebhookDispatcherService for webhook dispatch operations.
 /// Handles dispatching webhook payloads to registered endpoints.
+/// Includes large payload chunking (TODO-INT001-47) and event chain cycle detection (TODO-INT001-48).
 /// </summary>
 public class WebhookDispatcherService : IWebhookDispatcherService, IWebhookDispatcherInputPort
 {
     private readonly ICrmDbContext _context;
     private readonly ILogger<WebhookDispatcherService> _logger;
     private readonly HttpClient _httpClient;
+
+    // Maximum payload size before chunking (64KB)
+    private const int MaxPayloadSizeBytes = 64 * 1024;
+    // Maximum chain depth to prevent infinite loops
+    private const int MaxEventChainDepth = 10;
+    // Cache of recent event chains to detect cycles (event type + correlation ID -> count)
+    private static readonly Dictionary<string, int> _eventChainTracker = new();
+    private static readonly object _chainLock = new();
 
     public WebhookDispatcherService(ICrmDbContext context, ILogger<WebhookDispatcherService> logger, HttpClient httpClient)
     {
@@ -430,6 +439,31 @@ public class WebhookDispatcherService : IWebhookDispatcherService, IWebhookDispa
 
     public async Task DispatchAsync(string eventType, object payload, CancellationToken cancellationToken = default)
     {
+        await DispatchWithTrackingAsync(eventType, payload, null, null, cancellationToken);
+    }
+
+    /// <summary>
+    /// Dispatches an event with correlation and parent tracking for chain detection.
+    /// </summary>
+    public async Task DispatchWithTrackingAsync(
+        string eventType,
+        object payload,
+        string? correlationId,
+        string? parentEventId,
+        CancellationToken cancellationToken = default)
+    {
+        // Generate correlation ID if not provided
+        correlationId ??= Guid.NewGuid().ToString("N");
+
+        // Check for event chain cycles (TODO-INT001-48)
+        if (!ValidateEventChain(eventType, correlationId, parentEventId))
+        {
+            _logger.LogWarning(
+                "Event chain cycle detected for event {EventType}, correlation {CorrelationId}. Skipping dispatch.",
+                eventType, correlationId);
+            return;
+        }
+
         var webhooks = await _context.WebhookSubscriptions
             .Where(w => !w.IsDeleted && w.IsActive)
             .ToListAsync(cancellationToken);
@@ -441,35 +475,172 @@ public class WebhookDispatcherService : IWebhookDispatcherService, IWebhookDispa
                 continue;
 
             var payloadJson = System.Text.Json.JsonSerializer.Serialize(payload);
-            var delivery = new WebhookDelivery
+            var payloadSizeBytes = System.Text.Encoding.UTF8.GetByteCount(payloadJson);
+
+            // Handle large payloads with chunking (TODO-INT001-47)
+            if (payloadSizeBytes > MaxPayloadSizeBytes)
             {
-                WebhookSubscriptionId = webhook.WebhookSubscriptionId,
-                EventType = eventType,
-                TargetUrl = webhook.TargetUrl,
-                RequestBody = payloadJson,
-                Success = false,
-                AttemptNumber = 0,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow
-            };
+                await CreateChunkedDeliveriesAsync(webhook, eventType, payloadJson, payloadSizeBytes, correlationId, parentEventId, cancellationToken);
+            }
+            else
+            {
+                var delivery = CreateDeliveryRecord(webhook, eventType, payloadJson, payloadSizeBytes, correlationId, parentEventId);
+                _context.WebhookDeliveries.Add(delivery);
+            }
+        }
+
+        await _context.SaveChangesAsync(cancellationToken);
+        _logger.LogInformation("Event {EventType} (correlation: {CorrelationId}) queued for {WebhookCount} webhooks",
+            eventType, correlationId, webhooks.Count);
+    }
+
+    private WebhookDelivery CreateDeliveryRecord(
+        WebhookSubscription webhook,
+        string eventType,
+        string payloadJson,
+        int payloadSizeBytes,
+        string? correlationId,
+        string? parentEventId,
+        int? chunkNumber = null,
+        int? totalChunks = null,
+        string? continuationToken = null)
+    {
+        return new WebhookDelivery
+        {
+            WebhookSubscriptionId = webhook.WebhookSubscriptionId,
+            EventType = eventType,
+            TargetUrl = webhook.TargetUrl,
+            RequestBody = payloadJson,
+            Success = false,
+            AttemptNumber = 0,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow,
+            CorrelationId = correlationId,
+            ParentEventId = parentEventId,
+            PayloadSizeBytes = payloadSizeBytes,
+            ChunkNumber = chunkNumber,
+            TotalChunks = totalChunks,
+            ContinuationToken = continuationToken
+        };
+    }
+
+    /// <summary>
+    /// Creates chunked delivery records for large payloads (TODO-INT001-47).
+    /// </summary>
+    private async Task CreateChunkedDeliveriesAsync(
+        WebhookSubscription webhook,
+        string eventType,
+        string payloadJson,
+        int payloadSizeBytes,
+        string? correlationId,
+        string? parentEventId,
+        CancellationToken cancellationToken)
+    {
+        var chunkSize = MaxPayloadSizeBytes;
+        var totalChunks = (int)Math.Ceiling((double)payloadSizeBytes / chunkSize);
+        var continuationToken = Guid.NewGuid().ToString("N");
+
+        _logger.LogInformation(
+            "Large payload ({PayloadSize} bytes) for event {EventType} will be split into {TotalChunks} chunks",
+            payloadSizeBytes, eventType, totalChunks);
+
+        for (int i = 0; i < totalChunks; i++)
+        {
+            var startIndex = i * chunkSize;
+            var length = Math.Min(chunkSize, payloadJson.Length - startIndex);
+            var chunkPayload = payloadJson.Substring(startIndex, length);
+
+            // Wrap chunk in metadata envelope
+            var chunkEnvelope = System.Text.Json.JsonSerializer.Serialize(new
+            {
+                _chunked = true,
+                _chunkNumber = i + 1,
+                _totalChunks = totalChunks,
+                _continuationToken = continuationToken,
+                _payloadSizeBytes = payloadSizeBytes,
+                data = chunkPayload
+            });
+
+            var delivery = CreateDeliveryRecord(
+                webhook,
+                eventType,
+                chunkEnvelope,
+                System.Text.Encoding.UTF8.GetByteCount(chunkEnvelope),
+                correlationId,
+                parentEventId,
+                i + 1,
+                totalChunks,
+                continuationToken);
 
             _context.WebhookDeliveries.Add(delivery);
         }
 
-        await _context.SaveChangesAsync(cancellationToken);
-        _logger.LogInformation("Event {EventType} queued for {WebhookCount} webhooks", eventType, webhooks.Count);
+        await Task.CompletedTask; // Placeholder for any async operations
+    }
+
+    /// <summary>
+    /// Validates event chain to detect and prevent infinite loops (TODO-INT001-48).
+    /// </summary>
+    private bool ValidateEventChain(string eventType, string correlationId, string? parentEventId)
+    {
+        var chainKey = $"{eventType}:{correlationId}";
+
+        lock (_chainLock)
+        {
+            // Clean up old entries (simple approach - in production, use TTL-based cache)
+            if (_eventChainTracker.Count > 10000)
+            {
+                _eventChainTracker.Clear();
+            }
+
+            if (_eventChainTracker.TryGetValue(chainKey, out var depth))
+            {
+                if (depth >= MaxEventChainDepth)
+                {
+                    _logger.LogWarning(
+                        "Event chain depth exceeded for {EventType}, correlation {CorrelationId}. Depth: {Depth}",
+                        eventType, correlationId, depth);
+                    return false;
+                }
+
+                _eventChainTracker[chainKey] = depth + 1;
+            }
+            else
+            {
+                // Check parent chain depth
+                var parentDepth = 0;
+                if (!string.IsNullOrEmpty(parentEventId))
+                {
+                    var parentKey = $"{eventType}:{parentEventId}";
+                    _eventChainTracker.TryGetValue(parentKey, out parentDepth);
+                }
+
+                if (parentDepth >= MaxEventChainDepth)
+                {
+                    return false;
+                }
+
+                _eventChainTracker[chainKey] = parentDepth + 1;
+            }
+
+            return true;
+        }
     }
 
     public async Task DispatchBatchAsync(List<(string EventType, object Payload)> events, CancellationToken cancellationToken = default)
     {
+        var batchCorrelationId = Guid.NewGuid().ToString("N");
+        string? previousEventId = null;
+
         foreach (var (eventType, payload) in events)
         {
-            await DispatchAsync(eventType, payload, cancellationToken);
+            var currentEventId = Guid.NewGuid().ToString("N");
+            await DispatchWithTrackingAsync(eventType, payload, batchCorrelationId, previousEventId, cancellationToken);
+            previousEventId = currentEventId;
         }
 
-        _logger.LogInformation("Batch of {EventCount} events dispatched", events.Count);
-    }
-
+        _logger.LogInformation("Batch of {EventCount} events dispatched with correlation {CorrelationId}",
+            events.Count, batchCorrelationId);
     public async Task ProcessQueueAsync(CancellationToken cancellationToken = default)
     {
         var pendingDeliveries = await _context.WebhookDeliveries

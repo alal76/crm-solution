@@ -56,6 +56,14 @@ public static class FeatureFlags
     /// </summary>
     public const string UseExternalIntegrations = "UseExternalIntegrations";
 
+    /// <summary>
+    /// When true, webhook system is enabled and dispatches events to registered endpoints.
+    /// When false, WebhookDispatcher skips all outbound webhook deliveries.
+    /// Configuration key: FeatureManagement:UseWebhooks
+    /// Implements TODO-INT001-15.
+    /// </summary>
+    public const string UseWebhooks = "UseWebhooks";
+
     #endregion
 
     #region Module Enablement Flags
@@ -84,6 +92,14 @@ public static class FeatureFlags
     /// When true, Knowledge Base module is enabled.
     /// </summary>
     public const string EnableKnowledgeBase = "EnableKnowledgeBase";
+
+    /// <summary>
+    /// When true, webhook system is enabled and dispatches events to registered endpoints.
+    /// Alias for UseWebhooks for consistency with other Enable* flags.
+    /// Configuration key: FeatureManagement:EnableWebhooks
+    /// Implements TODO-INT001-15.
+    /// </summary>
+    public const string EnableWebhooks = "EnableWebhooks";
 
     #endregion
 

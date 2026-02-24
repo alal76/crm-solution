@@ -148,4 +148,41 @@ public class WebhookDelivery : BaseEntity
     /// Duration in milliseconds.
     /// </summary>
     public double? DurationMs { get; set; }
+
+    /// <summary>
+    /// Correlation ID for tracking webhook events across systems.
+    /// Used to correlate original event with webhook delivery.
+    /// </summary>
+    public string? CorrelationId { get; set; }
+
+    /// <summary>
+    /// Parent event ID for event chain tracking.
+    /// Used to detect and prevent infinite event loops.
+    /// </summary>
+    public string? ParentEventId { get; set; }
+
+    /// <summary>
+    /// When the next retry is scheduled.
+    /// </summary>
+    public DateTime? NextRetryAt { get; set; }
+
+    /// <summary>
+    /// Payload size in bytes before chunking.
+    /// </summary>
+    public int? PayloadSizeBytes { get; set; }
+
+    /// <summary>
+    /// Chunk number if payload was split (1-based).
+    /// </summary>
+    public int? ChunkNumber { get; set; }
+
+    /// <summary>
+    /// Total number of chunks if payload was split.
+    /// </summary>
+    public int? TotalChunks { get; set; }
+
+    /// <summary>
+    /// Continuation token for retrieving subsequent chunks.
+    /// </summary>
+    public string? ContinuationToken { get; set; }
 }
