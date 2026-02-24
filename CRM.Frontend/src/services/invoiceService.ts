@@ -147,14 +147,14 @@ const invoiceService = {
   },
   getById: (id: number) => apiClient.get<Invoice>(`/api/invoices/${id}`),
   getByInvoiceNumber: (invoiceNumber: string) => apiClient.get<Invoice>(`/api/invoices/by-number/${invoiceNumber}`),
-  create: (invoice: Partial<Invoice>) => apiClient.post<Invoice>('/api/invoices', invoice),
+  create: (invoice: Partial<Invoice>) => apiClient.post<Invoice>('/invoices', invoice),
   update: (id: number, invoice: Partial<Invoice>) => apiClient.put<Invoice>(`/api/invoices/${id}`, invoice),
   delete: (id: number) => apiClient.delete(`/invoices/${id}`),
 
   // Operations
   createFromOrder: (orderId: number) => apiClient.post<Invoice>(`/api/invoices/from-order/${orderId}`, {}),
   createFromQuote: (quoteId: number) => apiClient.post<Invoice>(`/api/invoices/from-quote/${quoteId}`, {}),
-  generateNumber: () => apiClient.get<string>('/api/invoices/next-number'),
+  generateNumber: () => apiClient.get<string>('/invoices/next-number'),
   send: (id: number, recipientEmail?: string) => {
     const params = recipientEmail ? `?recipientEmail=${encodeURIComponent(recipientEmail)}` : '';
     return apiClient.post<Invoice>(`/api/invoices/${id}/send${params}`, {});

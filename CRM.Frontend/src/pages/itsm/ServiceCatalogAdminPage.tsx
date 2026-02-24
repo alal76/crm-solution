@@ -35,7 +35,7 @@ const ServiceCatalogAdminPage: React.FC = () => {
   useEffect(() => {
     const load = async () => {
       try {
-        const response = await apiClient.get('/api/catalog/items');
+        const response = await apiClient.get('/catalog/items');
         setItems(response.data ?? []);
       } catch (loadError) {
         console.error('Failed to load catalog items', loadError);

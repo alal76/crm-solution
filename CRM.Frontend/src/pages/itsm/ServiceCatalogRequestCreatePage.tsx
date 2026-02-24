@@ -33,7 +33,7 @@ const ServiceCatalogRequestCreatePage: React.FC = () => {
     setSubmitting(true);
 
     try {
-      await apiClient.post('/api/catalog/requests', {
+      await apiClient.post('/catalog/requests', {
         catalogItemId: Number(id),
         requestedForId: Number(requestedForId)
       });
@@ -78,7 +78,7 @@ const ServiceCatalogRequestCreatePage: React.FC = () => {
             onSubmit={async (data) => {
               setSubmitting(true);
               try {
-                await apiClient.post('/api/catalog/requests', {
+                await apiClient.post('/catalog/requests', {
                   catalogItemId: Number(id),
                   ...data,
                 });

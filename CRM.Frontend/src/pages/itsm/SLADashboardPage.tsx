@@ -43,10 +43,10 @@ const SLADashboardPage: React.FC = () => {
     const load = async () => {
       try {
         const [policiesResp, breachedResp, instancesResp, breachInfoResp] = await Promise.allSettled([
-          apiClient.get('/api/sla/policies'),
-          apiClient.get('/api/sla/breached'),
-          apiClient.get('/api/sla/instances/active'),
-          apiClient.get('/api/sla/breach-alerts'),
+          apiClient.get('/sla/policies'),
+          apiClient.get('/sla/breached'),
+          apiClient.get('/sla/instances/active'),
+          apiClient.get('/sla/breach-alerts'),
         ]);
         if (policiesResp.status === 'fulfilled') {
           const policies: SLAPolicySummary[] = policiesResp.value.data ?? [];

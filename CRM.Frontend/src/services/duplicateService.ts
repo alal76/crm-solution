@@ -148,7 +148,7 @@ export interface DuplicateMatchField {
 export async function checkForDuplicates(
   request: DuplicateCheckRequest
 ): Promise<DuplicateCheckResult> {
-  const response = await api.post<DuplicateCheckResult>('/api/duplicates/check', request);
+  const response = await api.post<DuplicateCheckResult>('/duplicates/check', request);
   return response.data;
 }
 
@@ -158,7 +158,7 @@ export async function checkForDuplicates(
 export async function getActiveRules(
   entityType: 'Lead' | 'Contact' | 'Account'
 ): Promise<DuplicateRule[]> {
-  const response = await api.get<DuplicateRule[]>(`/api/duplicates/rules/${entityType}`);
+  const response = await api.get<DuplicateRule[]>(`/duplicates/rules/${entityType}`);
   return response.data;
 }
 
@@ -169,7 +169,7 @@ export async function scanForDuplicates(
   entityType: 'Lead' | 'Contact' | 'Account',
   ruleId?: number
 ): Promise<{ totalRecordsScanned: number; duplicateCandidatesFound: number; completedAt: Date }> {
-  const response = await api.post(`/api/duplicates/scan/${entityType}`, null, {
+  const response = await api.post(`/duplicates/scan/${entityType}`, null, {
     params: ruleId ? { ruleId } : undefined,
   });
   return response.data;
@@ -183,7 +183,7 @@ export async function getPendingCandidates(
   page: number = 1,
   pageSize: number = 20
 ): Promise<DuplicateMatch[]> {
-  const response = await api.get<DuplicateMatch[]>(`/api/duplicates/candidates/${entityType}`, {
+  const response = await api.get<DuplicateMatch[]>(`/duplicates/candidates/${entityType}`, {
     params: { page, pageSize },
   });
   return response.data;
@@ -193,7 +193,7 @@ export async function getPendingCandidates(
  * Preview a merge operation before executing
  */
 export async function previewMerge(request: MergeRequest): Promise<MergePreview> {
-  const response = await api.post<MergePreview>('/api/duplicates/merge/preview', request);
+  const response = await api.post<MergePreview>('/duplicates/merge/preview', request);
   return response.data;
 }
 
@@ -201,7 +201,7 @@ export async function previewMerge(request: MergeRequest): Promise<MergePreview>
  * Merge multiple records into a master record
  */
 export async function mergeRecords(request: MergeRequest): Promise<MergeResult> {
-  const response = await api.post<MergeResult>('/api/duplicates/merge', request);
+  const response = await api.post<MergeResult>('/duplicates/merge', request);
   return response.data;
 }
 
@@ -209,7 +209,7 @@ export async function mergeRecords(request: MergeRequest): Promise<MergeResult> 
  * Unmerge records (restore previously merged duplicates)
  */
 export async function unmergeRecords(request: UnmergeRequest): Promise<UnmergeResult> {
-  const response = await api.post<UnmergeResult>('/api/duplicates/unmerge', request);
+  const response = await api.post<UnmergeResult>('/duplicates/unmerge', request);
   return response.data;
 }
 
@@ -221,7 +221,7 @@ export async function getMergeHistory(
   recordId: number
 ): Promise<MergeGroupInfo[]> {
   const response = await api.get<MergeGroupInfo[]>(
-    `/api/duplicates/history/${entityType}/${recordId}`
+    `/duplicates/history/${entityType}/${recordId}`
   );
   return response.data;
 }
@@ -234,7 +234,7 @@ export async function getMergedRecords(
   masterRecordId: number
 ): Promise<MergedRecordInfo[]> {
   const response = await api.get<MergedRecordInfo[]>(
-    `/api/duplicates/merged-into/${entityType}/${masterRecordId}`
+    `/duplicates/merged-into/${entityType}/${masterRecordId}`
   );
   return response.data;
 }
@@ -244,7 +244,7 @@ export async function getMergedRecords(
  */
 export async function getMergeGroup(mergeGroupId: number): Promise<MergeGroupInfo | null> {
   try {
-    const response = await api.get<MergeGroupInfo>(`/api/duplicates/groups/${mergeGroupId}`);
+    const response = await api.get<MergeGroupInfo>(`/duplicates/groups/${mergeGroupId}`);
     return response.data;
   } catch {
     return null;

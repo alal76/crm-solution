@@ -18,7 +18,7 @@ const CMDBFormPage: React.FC = () => {
     setSubmitting(true);
 
     try {
-      await apiClient.post('/api/cmdb', formData);
+      await apiClient.post('/cmdb', formData);
       navigate('/itsm/cmdb');
     } catch (error) {
       console.error('Failed to create configuration item', error);

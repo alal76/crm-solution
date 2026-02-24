@@ -179,16 +179,16 @@ const paymentService = {
     if (invoiceId !== undefined) params.append('invoiceId', invoiceId.toString());
     if (status !== undefined) params.append('status', status.toString());
     const query = params.toString();
-    return apiClient.get<Payment[]>(`/api/payments${query ? `?${query}` : ''}`);
+    return apiClient.get<Payment[]>(`/payments${query ? `?${query}` : ''}`);
   },
   getById: (id: number) => apiClient.get<Payment>(`/api/payments/${id}`),
   getByTransactionId: (transactionId: string) => apiClient.get<Payment>(`/api/payments/by-transaction/${transactionId}`),
-  create: (payment: Partial<Payment>) => apiClient.post<Payment>('/api/payments', payment),
+  create: (payment: Partial<Payment>) => apiClient.post<Payment>('/payments', payment),
   update: (id: number, payment: Partial<Payment>) => apiClient.put<Payment>(`/api/payments/${id}`, payment),
   delete: (id: number) => apiClient.delete(`/payments/${id}`),
 
   // Payment Processing
-  processPayment: (request: ProcessPaymentRequest) => apiClient.post<PaymentResult>('/api/payments/process', request),
+  processPayment: (request: ProcessPaymentRequest) => apiClient.post<PaymentResult>('/payments/process', request),
   processRefund: (id: number, amount: number, reason: string) =>
     apiClient.post<PaymentResult>(`/api/payments/${id}/refund`, { amount, reason }),
   voidPayment: (id: number, reason: string) => apiClient.post<Payment>(`/api/payments/${id}/void`, { reason }),
@@ -206,7 +206,7 @@ const paymentService = {
   // Queries
   getByDateRange: (fromDate: string, toDate: string) =>
     apiClient.get<Payment[]>(`/api/payments/by-date-range?fromDate=${fromDate}&toDate=${toDate}`),
-  getPending: () => apiClient.get<Payment[]>('/api/payments/pending'),
+  getPending: () => apiClient.get<Payment[]>('/payments/pending'),
   getFailed: (maxRetries?: number) => {
     const params = maxRetries !== undefined ? `?maxRetries=${maxRetries}` : '';
     return apiClient.get<Payment[]>(`/api/payments/failed${params}`);
@@ -223,13 +223,13 @@ const paymentService = {
   // Reconciliation
   reconcile: (id: number, externalReference: string) =>
     apiClient.post<Payment>(`/api/payments/${id}/reconcile`, { externalReference }),
-  getUnreconciled: () => apiClient.get<Payment[]>('/api/payments/unreconciled'),
+  getUnreconciled: () => apiClient.get<Payment[]>('/payments/unreconciled'),
   applyToInvoices: (id: number, allocations: PaymentAllocation[]) =>
     apiClient.post<PaymentAllocation[]>(`/api/payments/${id}/apply`, allocations),
 
   // Retry & Recovery
   retry: (id: number) => apiClient.post<PaymentResult>(`/api/payments/${id}/retry`, {}),
-  schedule: (request: SchedulePaymentRequest) => apiClient.post<Payment>('/api/payments/schedule', request),
+  schedule: (request: SchedulePaymentRequest) => apiClient.post<Payment>('/payments/schedule', request),
 };
 
 export default paymentService;

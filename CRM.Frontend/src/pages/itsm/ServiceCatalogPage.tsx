@@ -49,7 +49,7 @@ export const ServiceCatalogPage: React.FC = () => {
   useEffect(() => {
     const loadCategories = async () => {
       try {
-        const response = await apiClient.get('/api/catalog/categories');
+        const response = await apiClient.get('/catalog/categories');
         setCategories(response.data ?? []);
       } catch (error) {
         console.error('Failed to load categories', error);

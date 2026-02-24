@@ -202,7 +202,7 @@ const changeService = {
    * Create new change
    */
   createChange: async (data: CreateChangeRequest): Promise<Change> => {
-    const response = await apiClient.post('/api/changes', data);
+    const response = await apiClient.post('/changes', data);
     return response.data;
   },
 
@@ -326,7 +326,7 @@ const changeService = {
    * Get change statistics
    */
   getStatistics: async (): Promise<ChangeStatistics> => {
-    const response = await apiClient.get('/api/changes/statistics');
+    const response = await apiClient.get('/changes/statistics');
     return response.data;
   },
 

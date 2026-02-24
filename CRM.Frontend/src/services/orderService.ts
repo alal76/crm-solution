@@ -124,14 +124,14 @@ const orderService = {
   },
   getById: (id: number) => apiClient.get<Order>(`/api/orders/${id}`),
   getByOrderNumber: (orderNumber: string) => apiClient.get<Order>(`/api/orders/by-number/${orderNumber}`),
-  create: (order: Partial<Order>) => apiClient.post<Order>('/api/orders', order),
+  create: (order: Partial<Order>) => apiClient.post<Order>('/orders', order),
   update: (id: number, order: Partial<Order>) => apiClient.put<Order>(`/api/orders/${id}`, order),
   delete: (id: number) => apiClient.delete(`/orders/${id}`),
 
   // Order Operations
   createFromQuote: (quoteId: number) => apiClient.post<Order>(`/api/orders/from-quote/${quoteId}`, {}),
   createFromOpportunity: (opportunityId: number) => apiClient.post<Order>(`/api/orders/from-opportunity/${opportunityId}`, {}),
-  generateNumber: () => apiClient.get<string>('/api/orders/generate-number'),
+  generateNumber: () => apiClient.get<string>('/orders/generate-number'),
   clone: (id: number) => apiClient.post<Order>(`/api/orders/${id}/clone`, {}),
 
   // Status Management
@@ -167,7 +167,7 @@ const orderService = {
   getByStatus: (status: OrderStatus) => apiClient.get<Order[]>(`/api/orders/by-status/${status}`),
   getByDateRange: (fromDate: string, toDate: string) =>
     apiClient.get<Order[]>(`/api/orders/by-date-range?fromDate=${fromDate}&toDate=${toDate}`),
-  getRequiringAction: () => apiClient.get<Order[]>('/api/orders/requiring-action'),
+  getRequiringAction: () => apiClient.get<Order[]>('/orders/requiring-action'),
   getStatistics: (fromDate?: string, toDate?: string) => {
     const params = new URLSearchParams();
     if (fromDate) params.append('fromDate', fromDate);

@@ -158,7 +158,7 @@ const problemService = {
    * Create new problem
    */
   createProblem: async (data: CreateProblemRequest): Promise<Problem> => {
-    const response = await apiClient.post('/api/problems', data);
+    const response = await apiClient.post('/problems', data);
     return response.data;
   },
 
@@ -261,7 +261,7 @@ const problemService = {
    * Get problem statistics
    */
   getStatistics: async (): Promise<ProblemStatistics> => {
-    const response = await apiClient.get('/api/problems/statistics');
+    const response = await apiClient.get('/problems/statistics');
     return response.data;
   },
 

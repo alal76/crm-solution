@@ -83,7 +83,7 @@ const SalesConfigPage: React.FC = () => {
   const loadConfig = useCallback(async () => {
     setLoading(true);
     try {
-      const { data } = await apiClient.get('/api/admin/config/sales');
+      const { data } = await apiClient.get('/admin/config/sales');
       setConfig({ ...defaultConfig, ...data });
     } catch {
       // Use defaults if endpoint not available yet
@@ -101,7 +101,7 @@ const SalesConfigPage: React.FC = () => {
   const handleSave = async () => {
     setSaving(true);
     try {
-      await apiClient.put('/api/admin/config/sales', config);
+      await apiClient.put('/admin/config/sales', config);
       setSnack({ open: true, msg: 'Sales configuration saved successfully', severity: 'success' });
     } catch {
       setSnack({ open: true, msg: 'Failed to save sales configuration', severity: 'error' });

@@ -101,8 +101,8 @@ export const PerformanceMonitoringPage: React.FC = () => {
     try {
       setLoading(true);
       const [dashRes, cacheRes] = await Promise.all([
-        apiClient.get<PerformanceDashboard>('/api/performance/dashboard'),
-        apiClient.get<CacheStats>('/api/performance/cache')
+        apiClient.get<PerformanceDashboard>('/performance/dashboard'),
+        apiClient.get<CacheStats>('/performance/cache')
       ]);
       setDashboard(dashRes.data);
       setCacheStats(cacheRes.data);
@@ -124,7 +124,7 @@ export const PerformanceMonitoringPage: React.FC = () => {
   const handleClearCache = async () => {
     if (!window.confirm('Clear all cache?')) return;
     try {
-      await apiClient.post('/api/performance/cache/clear');
+      await apiClient.post('/performance/cache/clear');
       await loadDashboard();
     } catch (err) {
       setError('Failed to clear cache');

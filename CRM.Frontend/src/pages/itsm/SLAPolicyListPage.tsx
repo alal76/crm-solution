@@ -30,7 +30,7 @@ const SLAPolicyListPage: React.FC = () => {
   useEffect(() => {
     const load = async () => {
       try {
-        const response = await apiClient.get('/api/sla/policies');
+        const response = await apiClient.get('/sla/policies');
         setItems(response.data ?? []);
       } catch (error) {
         console.error('Failed to load SLA policies', error);

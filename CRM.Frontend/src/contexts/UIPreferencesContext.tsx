@@ -66,7 +66,7 @@ export const UIPreferencesProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const loadPreferences = async () => {
     try {
-      const response = await apiClient.get<UIPreference>('/api/ui-preferences');
+      const response = await apiClient.get<UIPreference>('/ui-preferences');
       setPreferences(response.data);
       setError(null);
     } catch (err) {
@@ -81,7 +81,7 @@ export const UIPreferencesProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const savePreferences = async (prefs: Partial<UIPreference>) => {
     try {
-      const response = await apiClient.post<UIPreference>('/api/ui-preferences', prefs);
+      const response = await apiClient.post<UIPreference>('/ui-preferences', prefs);
       setPreferences(response.data);
       setError(null);
     } catch (err) {
@@ -92,7 +92,7 @@ export const UIPreferencesProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const resetPreferences = async () => {
     try {
-      await apiClient.post('/api/ui-preferences/reset');
+      await apiClient.post('/ui-preferences/reset');
       await loadPreferences();
       setError(null);
     } catch (err) {

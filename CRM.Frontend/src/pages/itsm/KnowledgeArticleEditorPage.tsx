@@ -25,7 +25,7 @@ const KnowledgeArticleEditorPage: React.FC = () => {
     setSubmitting(true);
 
     try {
-      await apiClient.post('/api/knowledge', formData);
+      await apiClient.post('/knowledge', formData);
       navigate('/itsm/knowledge');
     } catch (error) {
       console.error('Failed to create article', error);

@@ -62,6 +62,10 @@ class APIClient:
         except urllib.error.HTTPError as e:
             error_body = e.read().decode('utf-8') if e.fp else ""
             print(f"  ❌ API Error {e.code}: {error_body[:200]}")
+            try:
+                e.crm_response = json.loads(error_body)
+            except Exception:
+                e.crm_response = {}
             raise
         except urllib.error.URLError as e:
             print(f"  ❌ Connection Error: {e.reason}")
@@ -714,6 +718,52 @@ def load_demo_data(api: APIClient):
     
     print(f"  ✓ Created {len(api.created_ids.get('account', []))} accounts")
 
+    # ── Contacts first so we can thread contactId into everything that follows ──
+    print("\n📇 Creating demo contacts (~100)...")
+    account_contacts: dict = {}   # account_id → [contact_id, ...]
+
+    # Pre-populate map from contacts already in the DB (idempotency on re-runs)
+    try:
+        existing = api.get("/contacts?pageSize=500")
+        existing_list = existing.get("items", existing) if isinstance(existing, dict) else existing
+        if isinstance(existing_list, list):
+            for c in existing_list:
+                acct = c.get("accountId") or c.get("customerId")
+                cid = c.get("id", 0)
+                if acct and cid:
+                    account_contacts.setdefault(acct, []).append(cid)
+    except Exception:
+        pass
+
+    contact_count = 0
+    for account_id in api.created_ids.get("account", []):
+        account_contacts.setdefault(account_id, [])  # preserve existing entries from DB fetch
+        for _ in range(random.randint(1, 2)):
+            first, last = DataGenerator.name()
+            contact = {
+                "firstName": first,
+                "lastName": last,
+                "email": f"{first.lower()}.{last.lower()}{random.randint(1,9999)}@{DataGenerator.company().lower().replace(' ', '')}.com",
+                "phone": DataGenerator.phone(),
+                "title": random.choice(DataGenerator.TITLES),
+                "accountId": account_id,
+                "isPrimary": len(account_contacts[account_id]) == 0
+            }
+            try:
+                result = api.post("/contacts", contact)
+                cid = result.get("id", 0)
+                api.track_created("contact", cid)
+                account_contacts[account_id].append(cid)
+                contact_count += 1
+            except:
+                pass
+    print(f"  ✓ Created {contact_count} contacts")
+
+    # ── Helper to pick a contact for a given account ──
+    def contact_for(acct_id):
+        cids = account_contacts.get(acct_id, [])
+        return random.choice(cids) if cids else None
+
     # demo quotes/orders/invoices/payments/contracts/subscriptions — cover up to 60 accounts
     print("\n📄 Creating quotes, orders, invoices, contracts, subscriptions...")
     for acct in api.created_ids.get("account", [])[:60]:
@@ -781,6 +831,7 @@ def load_demo_data(api: APIClient):
                 contract_types = ["Service Agreement", "License Contract", "Support Contract",
                                   "Maintenance Agreement", "Subscription Agreement", "Enterprise Agreement"]
                 con = {"accountId": acct,
+                       "contactId": contact_for(acct),
                        "name": random.choice(contract_types),
                        "startDate": DataGenerator.date_in_past(random.randint(30, 180)),
                        "endDate": DataGenerator.date_in_future(random.randint(90, 730)),
@@ -795,7 +846,7 @@ def load_demo_data(api: APIClient):
             try:
                 sub = {"accountId": acct, "productId": prod,
                        "billingStartDate": DataGenerator.date_in_past(random.randint(1, 90)),
-                       "billingCycle": random.choice(["Monthly", "Quarterly", "Annually"])}
+                       "billingCycle": random.choice(["Monthly", "Quarterly", "Yearly"])}
                 api.post("/subscriptions", sub)
                 api.track_created("subscription", 0)
             except Exception as e:
@@ -805,29 +856,6 @@ def load_demo_data(api: APIClient):
           f"{len(api.created_ids.get('invoice', []))} invoices, "
           f"{len(api.created_ids.get('contract', []))} contracts")
 
-    # Create contacts — 1-2 per account (targeting ~75-100 contacts)
-    print("\n📇 Creating demo contacts (~100)...")
-    contact_count = 0
-    for account_id in api.created_ids.get("account", []):
-        for _ in range(random.randint(1, 2)):
-            first, last = DataGenerator.name()
-            contact = {
-                "firstName": first,
-                "lastName": last,
-                "email": f"{first.lower()}.{last.lower()}{random.randint(1,999)}@{DataGenerator.company().lower().replace(' ', '')}.com",
-                "phone": DataGenerator.phone(),
-                "title": random.choice(DataGenerator.TITLES),
-                "accountId": account_id,
-                "isPrimary": contact_count == 0
-            }
-            try:
-                result = api.post("/contacts", contact)
-                api.track_created("contact", result.get("id", 0))
-                contact_count += 1
-            except:
-                pass
-    print(f"  ✓ Created {contact_count} contacts")
-
     # Create 60 leads with variety
     print("\n🎯 Creating demo leads (60)...")
     lead_sources = ["Web", "Referral", "Cold Call", "Email Campaign", "Trade Show",
@@ -835,15 +863,18 @@ def load_demo_data(api: APIClient):
     lead_statuses = [0, 1, 2, 3]  # New, Contacted, Qualified, Disqualified
     for i in range(60):
         first, last = DataGenerator.name()
+        acct_id = api.get_random_id("account")
         lead = {
             "firstName": first,
             "lastName": last,
             "companyName": DataGenerator.company(),
-            "email": f"{first.lower()}.{last.lower()}{random.randint(1,999)}@prospect.com",
+            "email": f"{first.lower()}.{last.lower()}{random.randint(1,9999)}@prospect.com",
             "phone": DataGenerator.phone(),
             "source": random.choice(lead_sources),
             "industry": DataGenerator.industry(),
-            "estimatedBudget": random.randint(5000, 500000)
+            "estimatedBudget": random.randint(5000, 500000),
+            "accountId": acct_id,
+            "contactId": contact_for(acct_id) if acct_id else None
         }
         try:
             result = api.post("/leads", lead)
@@ -869,6 +900,7 @@ def load_demo_data(api: APIClient):
             "currency": random.choice(["USD", "EUR", "GBP", "CAD"]),
             "expectedCloseDate": DataGenerator.date_in_future(random.randint(14, 365)),
             "accountId": customer_id,
+            "primaryContactId": contact_for(customer_id),
             "pricingModel": random.choice([0, 1, 2, 3]),
             "termLengthMonths": random.choice([1, 6, 12, 24, 36, 48, 60])
         }
@@ -895,6 +927,7 @@ def load_demo_data(api: APIClient):
             "priority": random.choice(priorities),
             "status": random.choice(statuses),
             "customerId": customer_id,
+            "contactId": contact_for(customer_id),
             "category": random.choice(categories)
         }
         try:
@@ -909,6 +942,7 @@ def load_demo_data(api: APIClient):
     task_types = [0, 1, 2, 3, 4]  # Call, Email, Meeting, Follow-up, Other
     for i in range(75):
         account_id = api.get_random_id("account")
+        opp_id = api.get_random_id("opportunity")
         task = {
             "title": random.choice(DataGenerator.TASK_TITLES),
             "description": f"Action required: {random.choice(DataGenerator.TASK_TITLES)}.",
@@ -916,7 +950,9 @@ def load_demo_data(api: APIClient):
             "priority": random.choice([0, 1, 2]),
             "status": random.choice([0, 1, 2]),
             "taskType": random.choice(task_types),
-            "accountId": account_id
+            "accountId": account_id,
+            "contactId": contact_for(account_id) if account_id else None,
+            "opportunityId": opp_id
         }
         try:
             result = api.post("/tasks", task)
@@ -953,13 +989,100 @@ def load_demo_data(api: APIClient):
             acct_id = api.get_random_id("account")
             if acct_id and cid:
                 try:
-                    api.post(f"/campaigns/{cid}/recipients", {"accountId": acct_id})
+                    contact_id = contact_for(acct_id)
+                    api.post(f"/campaigns/{cid}/recipients",
+                             {"accountId": acct_id, "contactId": contact_id})
                 except:
                     pass
         except:
             pass
     print(f"  ✓ Created {len(api.created_ids.get('campaign', []))} campaigns")
-    
+
+    # ── Linking Phase ────────────────────────────────────────────────────────
+    print("\n🔗 Creating entity links and relationships...")
+
+    # 1. Account → Contact many-to-many links (AccountContacts junction)
+    #    Each contact is already linked via accountId FK; here we also create
+    #    the explicit junction row so they appear in both directions.
+    link_count = 0
+    roles = [0, 1, 2, 3]  # AccountContactRole enum values
+    for account_id, cids in account_contacts.items():
+        for idx, cid in enumerate(cids):
+            try:
+                api.post(f"/accounts/{account_id}/contacts", {
+                    "contactId": cid,
+                    "role": roles[idx % len(roles)],
+                    "isPrimaryContact": idx == 0,
+                    "isDecisionMaker": idx == 0,
+                    "receivesBillingNotifications": idx == 0,
+                    "receivesMarketingEmails": True,
+                    "receivesTechnicalUpdates": False
+                })
+                link_count += 1
+            except:
+                pass
+    print(f"  ✓ Created {link_count} account-contact links")
+
+    # 2. Account → Account relationships (partner, supplier, reseller, etc.)
+    #    First get the available relationship types
+    rel_type_id = None
+    try:
+        rel_types = api.get("/relationships/types")
+        if isinstance(rel_types, list) and len(rel_types) > 0:
+            rel_type_id = rel_types[0].get("id")
+        elif isinstance(rel_types, dict) and "items" in rel_types:
+            items = rel_types["items"]
+            if items:
+                rel_type_id = items[0].get("id")
+    except:
+        pass
+
+    if not rel_type_id:
+        # Create a default relationship type if none exist
+        try:
+            rt = api.post("/relationships/types", {
+                "name": "Partner",
+                "description": "Business partnership",
+                "directionality": "Bidirectional",
+                "isActive": True
+            })
+            rel_type_id = rt.get("id")
+        except:
+            pass
+
+    acct_ids = api.created_ids.get("account", [])
+    rel_descriptions = [
+        "Strategic technology partner", "Preferred supplier", "Reseller agreement",
+        "Joint venture", "OEM partner", "Integration partner", "Referral partner",
+        "Subsidiary relationship", "Distributor agreement", "Alliance partnership"
+    ]
+    rel_count = 0
+    if rel_type_id and len(acct_ids) >= 2:
+        # Create ~20 account-account relationships
+        pairs = set()
+        for _ in range(30):  # attempt 30 to get ~20 unique pairs
+            src, tgt = random.sample(acct_ids, 2)
+            pair = (min(src, tgt), max(src, tgt))
+            if pair in pairs:
+                continue
+            pairs.add(pair)
+            try:
+                api.post("/relationships", {
+                    "sourceAccountId": src,
+                    "targetAccountId": tgt,
+                    "relationshipTypeId": rel_type_id,
+                    "status": "Active",
+                    "strengthScore": random.randint(20, 90),
+                    "strategicImportance": random.choice(["Low", "Medium", "High"]),
+                    "description": random.choice(rel_descriptions),
+                    "annualRevenueImpact": random.randint(10000, 500000)
+                })
+                rel_count += 1
+            except:
+                pass
+    print(f"  ✓ Created {rel_count} account-account relationships")
+    # ── End Linking Phase ────────────────────────────────────────────────────
+
     print("\n✅ Demo data loaded successfully!")
     # apply some updates
     print("\n🔁 Applying update examples to created records...")

@@ -198,7 +198,7 @@ const webhookService = {
    * Create new webhook
    */
   createWebhook: async (data: CreateWebhookRequest): Promise<Webhook> => {
-    const response = await apiClient.post('/api/webhooks', data);
+    const response = await apiClient.post('/webhooks', data);
     return response.data;
   },
 
@@ -300,7 +300,7 @@ const webhookService = {
    */
   retryDelivery: async (webhookId: number, deliveryId: number): Promise<WebhookDelivery> => {
     const response = await apiClient.post(
-      `/api/webhooks/${webhookId}/deliveries/${deliveryId}/retry`,
+      `/webhooks/${webhookId}/deliveries/${deliveryId}/retry`,
       {}
     );
     return response.data;
@@ -310,7 +310,7 @@ const webhookService = {
    * Get available webhook events
    */
   getAvailableEvents: async (): Promise<WebhookEvent[]> => {
-    const response = await apiClient.get('/api/webhooks/events');
+    const response = await apiClient.get('/webhooks/events');
     return response.data;
   },
 
@@ -332,7 +332,7 @@ const webhookService = {
    * Validate webhook URL
    */
   validateUrl: async (url: string): Promise<{ valid: boolean; message: string }> => {
-    const response = await apiClient.post('/api/webhooks/validate-url', { url });
+    const response = await apiClient.post('/webhooks/validate-url', { url });
     return response.data;
   },
 
@@ -344,7 +344,7 @@ const webhookService = {
     signature: string,
     secret: string
   ): Promise<{ valid: boolean }> => {
-    const response = await apiClient.post('/api/webhooks/verify-signature', {
+    const response = await apiClient.post('/webhooks/verify-signature', {
       payload,
       signature,
       secret,

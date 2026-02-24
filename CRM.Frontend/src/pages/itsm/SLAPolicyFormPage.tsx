@@ -28,7 +28,7 @@ const SLAPolicyFormPage: React.FC = () => {
     setSubmitting(true);
 
     try {
-      await apiClient.post('/api/sla/policies', formData);
+      await apiClient.post('/sla/policies', formData);
       navigate('/itsm/sla/policies');
     } catch (error) {
       console.error('Failed to create SLA policy', error);

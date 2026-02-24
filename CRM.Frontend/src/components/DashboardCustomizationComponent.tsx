@@ -105,7 +105,7 @@ export const DashboardCustomizationComponent: React.FC<{ userId?: number }> = ()
   const loadDashboards = async () => {
     try {
       setLoading(true);
-      const response = await apiClient.get<Dashboard[]>('/api/ui-preferences/dashboards');
+      const response = await apiClient.get<Dashboard[]>('/ui-preferences/dashboards');
       setDashboards(response.data);
       if (response.data.length > 0) {
         const defaultDash = response.data.find(d => d.isDefault) || response.data[0];
@@ -136,7 +136,7 @@ export const DashboardCustomizationComponent: React.FC<{ userId?: number }> = ()
         lastModified: new Date().toISOString()
       };
 
-      const response = await apiClient.post<Dashboard>('/api/ui-preferences/dashboards', newDashboard);
+      const response = await apiClient.post<Dashboard>('/ui-preferences/dashboards', newDashboard);
       setDashboards([...dashboards, response.data]);
       setSelectedDashboard(response.data);
       setNewDashboardName('');
@@ -250,7 +250,7 @@ export const DashboardCustomizationComponent: React.FC<{ userId?: number }> = ()
   const saveDashboard = async (dashboard: Dashboard) => {
     setSaving(true);
     try {
-      const response = await apiClient.post<Dashboard>('/api/ui-preferences/dashboards', dashboard);
+      const response = await apiClient.post<Dashboard>('/ui-preferences/dashboards', dashboard);
       setSelectedDashboard(response.data);
       setDashboards(dashboards.map((d: Dashboard) =>
         d.dashboardName === response.data.dashboardName ? response.data : d

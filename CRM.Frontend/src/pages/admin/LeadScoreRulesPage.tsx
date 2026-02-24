@@ -194,7 +194,7 @@ const LeadScoreRulesPage: React.FC = () => {
   const fetchRules = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await api.get('/api/admin/leadscoreRules');
+      const response = await api.get('/admin/leadscoreRules');
       setRules(response.data);
     } catch (err: unknown) {
       setError('Failed to load lead scoring rules');
@@ -206,7 +206,7 @@ const LeadScoreRulesPage: React.FC = () => {
 
   const fetchFields = useCallback(async () => {
     try {
-      const response = await api.get('/api/admin/leadscoreRules/fields');
+      const response = await api.get('/admin/leadscoreRules/fields');
       setFields(response.data);
     } catch (err) {
       console.error('Failed to load fields:', err);
@@ -215,7 +215,7 @@ const LeadScoreRulesPage: React.FC = () => {
 
   const fetchStats = useCallback(async () => {
     try {
-      const response = await api.get('/api/admin/leadscoreRules/stats');
+      const response = await api.get('/admin/leadscoreRules/stats');
       setStats(response.data);
     } catch (err) {
       console.error('Failed to load stats:', err);
@@ -304,7 +304,7 @@ const LeadScoreRulesPage: React.FC = () => {
         await api.put(`/api/admin/leadscoreRules/${editingRule.id}`, payload);
         setSuccessMessage('Rule updated successfully');
       } else {
-        await api.post('/api/admin/leadscoreRules', payload);
+        await api.post('/admin/leadscoreRules', payload);
         setSuccessMessage('Rule created successfully');
       }
 

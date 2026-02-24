@@ -87,7 +87,7 @@ const ServiceDeskConfigPage: React.FC = () => {
   const loadConfig = useCallback(async () => {
     setLoading(true);
     try {
-      const { data } = await apiClient.get('/api/admin/config/service-desk');
+      const { data } = await apiClient.get('/admin/config/service-desk');
       setConfig({ ...defaultConfig, ...data });
     } catch {
       // Use defaults if endpoint not available yet
@@ -105,7 +105,7 @@ const ServiceDeskConfigPage: React.FC = () => {
   const handleSave = async () => {
     setSaving(true);
     try {
-      await apiClient.put('/api/admin/config/service-desk', config);
+      await apiClient.put('/admin/config/service-desk', config);
       setSnack({ open: true, msg: 'Service desk configuration saved successfully', severity: 'success' });
     } catch {
       setSnack({ open: true, msg: 'Failed to save service desk configuration', severity: 'error' });

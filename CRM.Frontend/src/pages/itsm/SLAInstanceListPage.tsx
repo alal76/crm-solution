@@ -29,7 +29,7 @@ const SLAInstanceListPage: React.FC = () => {
   useEffect(() => {
     const load = async () => {
       try {
-        const response = await apiClient.get('/api/sla/breached');
+        const response = await apiClient.get('/sla/breached');
         setItems(response.data ?? []);
       } catch (error) {
         console.error('Failed to load SLA instances', error);

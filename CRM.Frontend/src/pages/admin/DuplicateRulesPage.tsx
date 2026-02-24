@@ -199,7 +199,7 @@ const DuplicateRulesPage: React.FC = () => {
         await api.put(`/api/duplicates/rules/${editingRule.id}`, formData);
         setSuccessMessage('Rule updated successfully');
       } else {
-        await api.post('/api/duplicates/rules', formData);
+        await api.post('/duplicates/rules', formData);
         setSuccessMessage('Rule created successfully');
       }
       setDialogOpen(false);

@@ -32,8 +32,8 @@ const ServiceCatalogRequestDetailPage: React.FC = () => {
     const load = async () => {
       try {
         const [requestResponse, catalogResponse] = await Promise.all([
-          apiClient.get('/api/catalog/requests'),
-          apiClient.get('/api/catalog/items')
+          apiClient.get('/catalog/requests'),
+          apiClient.get('/catalog/items')
         ]);
         const items: CatalogRequestDetail[] = requestResponse.data ?? [];
         const found = items.find((item) => item.requestId === Number(id));

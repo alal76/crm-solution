@@ -101,7 +101,7 @@ export const FeatureFlagsDashboard: React.FC = () => {
   const loadFlags = async () => {
     try {
       setLoading(true);
-      const response = await apiClient.get<FeatureFlag[]>('/api/feature-flags');
+      const response = await apiClient.get<FeatureFlag[]>('/feature-flags');
       setFlags(response.data);
       setError(null);
     } catch (err) {
@@ -114,7 +114,7 @@ export const FeatureFlagsDashboard: React.FC = () => {
 
   const loadAuditLog = async () => {
     try {
-      const response = await apiClient.get<AuditEntry[]>('/api/feature-flags/audit');
+      const response = await apiClient.get<AuditEntry[]>('/feature-flags/audit');
       setAuditLog(response.data);
     } catch (err) {
       console.error('Failed to load audit log:', err);
@@ -160,7 +160,7 @@ export const FeatureFlagsDashboard: React.FC = () => {
 
     setSaving(true);
     try {
-      await apiClient.post('/api/feature-flags/reset');
+      await apiClient.post('/feature-flags/reset');
       await loadFlags();
       setSuccessMessage('Flags reset to defaults');
       setTimeout(() => setSuccessMessage(null), 3000);

@@ -128,10 +128,10 @@ const SessionActivityDashboard: React.FC = () => {
 
     try {
       const [devicesRes, loginsRes, statsRes, sessionsRes] = await Promise.all([
-        apiClient.get<TrustedDevice[]>('/api/auth/devices/trusted'),
-        apiClient.get<LoginAttempt[]>('/api/auth/analytics/recent-logins?count=10'),
-        apiClient.get<LoginStatistics>('/api/auth/analytics/login-stats?days=30'),
-        apiClient.get<ActiveSession[]>('/api/sessions/active'),
+        apiClient.get<TrustedDevice[]>('/auth/devices/trusted'),
+        apiClient.get<LoginAttempt[]>('/auth/analytics/recent-logins?count=10'),
+        apiClient.get<LoginStatistics>('/auth/analytics/login-stats?days=30'),
+        apiClient.get<ActiveSession[]>('/sessions/active'),
       ]);
 
       setTrustedDevices(devicesRes.data);

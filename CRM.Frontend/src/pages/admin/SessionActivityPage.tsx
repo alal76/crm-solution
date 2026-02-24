@@ -62,7 +62,7 @@ const SessionActivityPage: React.FC = () => {
       if (searchUserId) {
         params.userId = parseInt(searchUserId, 10);
       }
-      const response = await apiClient.get('/api/auth/sessions', { params });
+      const response = await apiClient.get('/auth/sessions', { params });
       const data = response.data;
       setSessions(data.items || data || []);
       setTotalCount(data.totalCount || (data.items?.length ?? 0));
@@ -80,7 +80,7 @@ const SessionActivityPage: React.FC = () => {
 
   const handleRevokeSession = async (sessionToken: string) => {
     try {
-      await apiClient.post('/api/auth/sessions/revoke', { sessionToken });
+      await apiClient.post('/auth/sessions/revoke', { sessionToken });
       fetchSessions();
     } catch {
       setError('Failed to revoke session');

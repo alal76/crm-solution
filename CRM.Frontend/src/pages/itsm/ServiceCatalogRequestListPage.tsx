@@ -34,8 +34,8 @@ const ServiceCatalogRequestListPage: React.FC = () => {
     const load = async () => {
       try {
         const [requestResponse, catalogResponse] = await Promise.all([
-          apiClient.get('/api/catalog/requests'),
-          apiClient.get('/api/catalog/items')
+          apiClient.get('/catalog/requests'),
+          apiClient.get('/catalog/items')
         ]);
         setItems(requestResponse.data ?? []);
         setCatalogItems(catalogResponse.data ?? []);

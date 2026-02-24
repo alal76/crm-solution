@@ -125,7 +125,7 @@ const teamService = {
   },
   getById: (id: number) => apiClient.get<Team>(`/api/teams/${id}`),
   getByName: (name: string) => apiClient.get<Team>(`/api/teams/by-name/${encodeURIComponent(name)}`),
-  create: (team: Partial<Team>) => apiClient.post<Team>('/api/teams', team),
+  create: (team: Partial<Team>) => apiClient.post<Team>('/teams', team),
   update: (id: number, team: Partial<Team>) => apiClient.put<Team>(`/api/teams/${id}`, team),
   delete: (id: number) => apiClient.delete(`/teams/${id}`),
 

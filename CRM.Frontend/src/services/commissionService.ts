@@ -480,7 +480,7 @@ export interface CommissionStatementGenerateRequest {
 // Commission API
 // ============================================================================
 
-const API_BASE = '/api/commissions';
+const API_BASE = '/commissions';
 
 /**
  * Get all commissions with optional filtering.

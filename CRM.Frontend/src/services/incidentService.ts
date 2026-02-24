@@ -177,7 +177,7 @@ const incidentService = {
    * Create new incident
    */
   createIncident: async (data: CreateIncidentRequest): Promise<Incident> => {
-    const response = await apiClient.post('/api/incidents', data);
+    const response = await apiClient.post('/incidents', data);
     return response.data;
   },
 
@@ -249,14 +249,14 @@ const incidentService = {
    * Bulk update incidents status
    */
   bulkUpdateStatus: async (incidentIds: number[], status: IncidentStatus): Promise<void> => {
-    await apiClient.patch('/api/incidents/bulk/status', { incidentIds, status });
+    await apiClient.patch('/incidents/bulk/status', { incidentIds, status });
   },
 
   /**
    * Bulk assign incidents
    */
   bulkAssign: async (incidentIds: number[], userId: number): Promise<void> => {
-    await apiClient.patch('/api/incidents/bulk/assign', { incidentIds, assignedToId: userId });
+    await apiClient.patch('/incidents/bulk/assign', { incidentIds, assignedToId: userId });
   },
 
   /**
