@@ -1338,7 +1338,7 @@ public class AuthController : ControllerBase
     /// Validate an OAuth state token (typically called internally during callback processing).
     /// Consumes the token (one-time use) and returns the embedded return URL.
     /// </summary>
-    /// <param name="state">The state token to validate</param>
+    /// <param name="request">The request containing the state token to validate</param>
     /// <returns>Validation result with optional return URL</returns>
     /// <response code="200">Returns validation result</response>
     /// <response code="400">If the state token is invalid, expired, or already consumed</response>
@@ -1419,7 +1419,7 @@ public class AuthController : ControllerBase
                     var appleResult = await _appleOAuthProvider.RefreshTokenAsync(dto.RefreshToken, ct);
                     tokenResponse = new OAuthTokenResponseDto
                     {
-                        AccessToken = appleResult.Access_token,
+                        AccessToken = appleResult.Access_token ?? string.Empty,
                         ExpiresIn = appleResult.Expires_in,
                         RefreshToken = appleResult.Refresh_token,
                         IdToken = appleResult.Id_token

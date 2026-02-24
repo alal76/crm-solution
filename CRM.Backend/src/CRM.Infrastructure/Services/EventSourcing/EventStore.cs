@@ -231,7 +231,7 @@ public class EventStore : IEventStore
     private static StoredEvent MapToStoredEvent(CRM.Core.Entities.AuditLog log)
     {
         var version = 0;
-        var metadata = log.Details;
+        string? metadata = log.Details;
 
         // Parse version from Details field (format: "v{version}|{metadata}")
         if (!string.IsNullOrEmpty(log.Details) && log.Details.StartsWith("v"))
@@ -253,7 +253,7 @@ public class EventStore : IEventStore
         {
             Id = log.Id,
             AggregateType = log.EntityType ?? string.Empty,
-            AggregateId = log.EntityId.ToString(),
+            AggregateId = log.EntityId?.ToString() ?? string.Empty,
             EventType = log.Action ?? string.Empty,
             EventData = log.NewValues ?? string.Empty,
             Metadata = metadata,

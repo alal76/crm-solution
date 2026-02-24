@@ -122,9 +122,9 @@ public class LeadCaptureService : ILeadCaptureService
             // Create lead
             var lead = new Lead
             {
-                FirstName = request.FirstName,
-                LastName = request.LastName,
-                Email = request.Email,
+                FirstName = request.FirstName ?? string.Empty,
+                LastName = request.LastName ?? string.Empty,
+                Email = request.Email ?? string.Empty,
                 Phone = request.Phone,
                 CompanyName = request.Company,
                 Title = request.Title,

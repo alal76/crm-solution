@@ -239,7 +239,7 @@ public class OpenIdConnectService : IOpenIdConnectService
             {
                 Sub = userInfo.GetProperty("sub").GetString() ?? string.Empty,
                 Email = userInfo.TryGetProperty(options.EmailClaimType, out var email) ? email.GetString() ?? string.Empty : string.Empty,
-                Name = userInfo.TryGetProperty(options.NameClaimType, out var name) ? name.GetString() : null,
+                Name = userInfo.TryGetProperty(options.NameClaimType, out var name) ? name.GetString() ?? string.Empty : string.Empty,
                 GivenName = userInfo.TryGetProperty("given_name", out var givenName) ? givenName.GetString() : null,
                 FamilyName = userInfo.TryGetProperty("family_name", out var familyName) ? familyName.GetString() : null,
                 PreferredUsername = userInfo.TryGetProperty("preferred_username", out var username) ? username.GetString() : null,

@@ -273,7 +273,7 @@ public class GdprService : IGdprService
                         account.FirstName = "ERASED";
                         account.LastName = "ERASED";
                         account.Email = $"erased-{account.Id}@gdpr.invalid";
-                        account.Phone = null;
+                        account.Phone = string.Empty;
                         account.IsDeleted = true;
                         account.UpdatedAt = DateTime.UtcNow;
                         _context.Accounts.Update(account);

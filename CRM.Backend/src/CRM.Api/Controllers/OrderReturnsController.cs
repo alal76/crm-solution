@@ -183,7 +183,7 @@ public class OrderReturnsController : ControllerBase
     /// Approves an order return request.
     /// </summary>
     /// <param name="id">Order return ID</param>
-    /// <param name="notes">Optional approval notes</param>
+    /// <param name="request">Optional approval request with notes</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Updated order return</returns>
     [HttpPost("{id:int}/approve")]

@@ -118,32 +118,95 @@ class DataGenerator:
         "James", "John", "Robert", "Michael", "William", "David", "Richard", "Joseph",
         "Thomas", "Charles", "Mary", "Patricia", "Jennifer", "Linda", "Elizabeth",
         "Barbara", "Susan", "Jessica", "Sarah", "Karen", "Emily", "Ashley", "Amanda",
-        "Sophia", "Isabella", "Mia", "Charlotte", "Amelia", "Harper", "Evelyn"
+        "Sophia", "Isabella", "Mia", "Charlotte", "Amelia", "Harper", "Evelyn",
+        "Daniel", "Matthew", "Anthony", "Mark", "Donald", "Steven", "Paul", "Andrew",
+        "Joshua", "Kevin", "Brian", "George", "Timothy", "Ronald", "Edward", "Jason",
+        "Olivia", "Emma", "Ava", "Abigail", "Madison", "Lucas", "Ethan", "Mason",
+        "Logan", "Aiden", "Natasha", "Priya", "Mei", "Fatima", "Elena", "Yuki"
     ]
-    
+
     LAST_NAMES = [
         "Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis",
         "Rodriguez", "Martinez", "Hernandez", "Lopez", "Gonzalez", "Wilson", "Anderson",
         "Thomas", "Taylor", "Moore", "Jackson", "Martin", "Lee", "Perez", "Thompson",
-        "White", "Harris", "Sanchez", "Clark", "Ramirez", "Lewis", "Robinson"
+        "White", "Harris", "Sanchez", "Clark", "Ramirez", "Lewis", "Robinson",
+        "Walker", "Young", "Allen", "King", "Wright", "Scott", "Torres", "Nguyen",
+        "Hill", "Flores", "Green", "Adams", "Nelson", "Baker", "Hall", "Rivera",
+        "Campbell", "Mitchell", "Carter", "Roberts", "Patel", "Kim", "Chen", "Singh"
     ]
-    
+
     COMPANY_PREFIXES = [
         "Global", "United", "Premier", "Advanced", "Strategic", "Dynamic", "Innovative",
         "Precision", "Apex", "Summit", "Elite", "Prime", "Nexus", "Synergy", "Vertex",
-        "Quantum", "Alpha", "Omega", "Delta", "Pacific", "Atlantic", "Mountain", "Valley"
+        "Quantum", "Alpha", "Omega", "Delta", "Pacific", "Atlantic", "Mountain", "Valley",
+        "Horizon", "Pinnacle", "Catalyst", "Fusion", "Velocity", "Meridian", "Cascade",
+        "Sterling", "Cobalt", "Amber", "Azure", "Crimson", "Vanguard", "Titan", "Apex",
+        "Metro", "Capital", "Centurion", "Frontier", "Heritage", "Liberty", "Phoenix"
     ]
-    
+
     COMPANY_SUFFIXES = [
         "Technologies", "Solutions", "Industries", "Systems", "Enterprises", "Group",
         "Corp", "Inc", "Partners", "Holdings", "Services", "Consulting", "Digital",
-        "Innovations", "Networks", "Software", "Hardware", "Manufacturing", "Logistics"
+        "Innovations", "Networks", "Software", "Hardware", "Manufacturing", "Logistics",
+        "Labs", "Works", "Ventures", "Capital", "Analytics", "Data", "Cloud", "AI",
+        "Dynamics", "Strategies", "Research", "Development", "International", "Global"
     ]
-    
+
     INDUSTRIES = [
         "Technology", "Healthcare", "Finance", "Manufacturing", "Retail", "Education",
         "Real Estate", "Construction", "Transportation", "Energy", "Telecommunications",
-        "Media", "Hospitality", "Agriculture", "Automotive", "Aerospace"
+        "Media", "Hospitality", "Agriculture", "Automotive", "Aerospace",
+        "Biotechnology", "Pharmaceuticals", "Insurance", "Legal", "Consulting",
+        "E-Commerce", "Cybersecurity", "Logistics", "Food & Beverage", "Entertainment"
+    ]
+
+    TITLES = [
+        "CEO", "CTO", "CFO", "COO", "CRO", "VP Sales", "VP Marketing", "VP Engineering",
+        "Director of Sales", "Director of Operations", "Director of IT",
+        "Sales Manager", "Account Manager", "Product Manager", "Project Manager",
+        "Senior Engineer", "Software Engineer", "DevOps Engineer", "Data Analyst",
+        "Marketing Manager", "Business Analyst", "Customer Success Manager",
+        "Procurement Manager", "IT Manager", "Finance Manager", "HR Manager"
+    ]
+
+    SR_SUBJECTS = [
+        "Cannot login to the portal", "Feature request: bulk export",
+        "Billing discrepancy on last invoice", "API integration failing",
+        "Performance degradation noticed", "Data import not working",
+        "Need help configuring SSO", "Contact deduplication issue",
+        "Report not displaying correctly", "Mobile app crashes on startup",
+        "Password reset email not received", "Custom field not saving",
+        "Webhook not triggering", "Dashboard widget missing",
+        "Incorrect tax calculation", "Cannot delete opportunity",
+        "Email template not rendering", "Slow search results",
+        "User permissions issue", "Automated workflow not firing",
+        "CSV export truncating data", "Calendar sync broken",
+        "Two-factor auth locked out", "CRM API rate limit hit",
+        "Onboarding assistance needed", "Subscription renewal question"
+    ]
+
+    TASK_TITLES = [
+        "Follow up on proposal", "Schedule product demo",
+        "Send pricing information", "Check on implementation status",
+        "Quarterly business review", "Contract renewal discussion",
+        "Technical consultation call", "Onboarding kickoff call",
+        "Prepare executive presentation", "Review SLA requirements",
+        "Send welcome package", "Conduct needs assessment",
+        "Coordinate legal review", "Update CRM records",
+        "Send post-meeting summary", "Arrange site visit",
+        "Confirm payment receipt", "Escalate open ticket",
+        "Negotiate contract terms", "Validate test environment",
+        "Send case study", "Book travel for conference",
+        "Review competitor analysis", "Finalize project timeline"
+    ]
+
+    OPP_NAMES = [
+        "Cloud Migration", "Enterprise License Renewal", "Professional Services",
+        "SaaS Platform Deal", "Infrastructure Upgrade", "Security Audit",
+        "Analytics Implementation", "CRM Rollout", "Digital Transformation",
+        "Managed Services Contract", "Annual Support Agreement", "Custom Development",
+        "Training Program", "Data Warehouse Project", "AI Integration",
+        "Mobile App Development", "API Platform Expansion", "DevOps Toolchain"
     ]
     
     CITIES = [
@@ -609,24 +672,26 @@ def load_demo_data(api: APIClient):
     print("🎭 LOADING DEMO DATA")
     print("="*60)
     
-    # Create 20+ demo accounts with variety
-    print("\n👤 Creating demo accounts (20+)...")
-    
-    for i in range(20):
-        is_org = i % 3 != 0
+    # Create 75 demo accounts with variety
+    print("\n👤 Creating demo accounts (75)...")
+
+    for i in range(75):
+        is_org = i % 4 != 0  # 75% org, 25% individual
         if is_org:
             company = DataGenerator.company()
+            suffix = random.choice(["LLC", "Inc", "Corp", "Ltd"])
             acct = {
                 "category": 1,
                 "company": company,
-                "legalName": f"{company} LLC",
-                "email": f"info@{company.lower().replace(' ', '')}.com",
+                "legalName": f"{company} {suffix}",
+                "email": f"info@{company.lower().replace(' ', '')[:20]}{random.randint(1,999)}.com",
                 "phone": DataGenerator.phone(),
-                "lifecycleStage": 2,
-                "priority": random.choice([0,1,2,3]),
+                "lifecycleStage": random.choice([1, 2, 3, 4]),
+                "priority": random.choice([0, 1, 2, 3]),
                 "industry": DataGenerator.industry(),
                 "website": DataGenerator.website(company),
-                "annualRevenue": random.randint(100000,10000000),
+                "annualRevenue": random.randint(100000, 50000000),
+                "numberOfEmployees": random.randint(10, 5000),
                 **DataGenerator.address()
             }
         else:
@@ -635,29 +700,23 @@ def load_demo_data(api: APIClient):
                 "category": 0,
                 "firstName": first,
                 "lastName": last,
-                "email": DataGenerator.email(first, last),
+                "email": f"{first.lower()}.{last.lower()}{random.randint(1,999)}@email.com",
                 "phone": DataGenerator.phone(),
-                "lifecycleStage": random.choice([1,2,3]),
-                "priority": random.choice([0,1,2]),
+                "lifecycleStage": random.choice([1, 2, 3]),
+                "priority": random.choice([0, 1, 2]),
                 **DataGenerator.address()
             }
         try:
             result = api.post("/accounts", acct)
             api.track_created("account", result.get("id", 0))
-            # also attach a phone and email record
-            aid = result.get("id",0)
-            # link a new phone number using proper DTO
-            api.post("/contactinfo/phones/link", {"entityType":"Account","entityId":aid,
-                      "newPhone": {"number": DataGenerator.phone(), "countryCode": "+1"}})
-            # link a new email address using proper DTO
-            api.post("/contactinfo/emails/link", {"entityType":"Account","entityId":aid,
-                      "newEmail": {"email": DataGenerator.email(first if not is_org else company,'','info')}})
         except:
             pass
     
     print(f"  ✓ Created {len(api.created_ids.get('account', []))} accounts")
-    # demo quotes/orders/invoices/payments/contract/subscription
-    for acct in api.created_ids.get("account", [])[:5]:
+
+    # demo quotes/orders/invoices/payments/contracts/subscriptions — cover up to 60 accounts
+    print("\n📄 Creating quotes, orders, invoices, contracts, subscriptions...")
+    for acct in api.created_ids.get("account", [])[:60]:
         prod = api.get_random_id("product")
         quote_id = None
         if not prod:
@@ -673,7 +732,6 @@ def load_demo_data(api: APIClient):
                  "name": "Demo Quote",
                  "currency": "USD",
                  "quoteLineItems": [{"productId": prod, "quantity":1, "unitPrice":5000}]}
-        print(f"    Debug quote payload for acct {acct}: {quote}")
         try:
             q = api.post("/quotes", quote)
             quote_id = q.get("id",0)
@@ -682,76 +740,83 @@ def load_demo_data(api: APIClient):
             print(f"  ❌ Failed to create quote for acct {acct}: {e}")
         if quote_id:
             # create order
+            order_amount = random.randint(2000, 50000)
             try:
                 order = {
                     "accountId": acct,
                     "quoteId": quote_id,
-                    "name": quote.get("name", "Order from Quote"),
-                    "orderDate": DataGenerator.date_in_past(30),
-                    "status": 3,
-                    "totalAmount": 5000,
-                    "currency": "USD",
+                    "name": f"{random.choice(['Sales Order', 'Purchase Order', 'Service Order', 'Renewal Order'])} {quote_id}",
+                    "orderDate": DataGenerator.date_in_past(random.randint(1, 60)),
+                    "status": random.choice([2, 3, 5, 7]),
+                    "totalAmount": order_amount,
+                    "currency": random.choice(["USD", "EUR", "GBP"]),
                 }
-                print(f"    ➤ Order payload: {order}")
                 o = api.post("/orders", order)
-                api.track_created("order", o.get("id",0))
-                print(f"    ✓ Order created (id={o.get('id')})")
+                api.track_created("order", o.get("id", 0))
             except Exception as e:
                 print(f"    ❌ Order creation failed: {e}")
-                return
+                continue
             # create invoice
             try:
-                inv = {"accountId":acct,"orderId":o.get("id",0),"invoiceNumber":"INV-"+str(o.get("id",0)),"totalAmount":5000,"currency":"USD","dueDate":DataGenerator.date_in_future(30)}
-                print(f"    ➤ Invoice payload: {inv}")
-                i = api.post("/invoices", inv); api.track_created("invoice", i.get("id",0))
-                print(f"    ✓ Invoice created (id={i.get('id')})")
+                inv_num = f"INV-{datetime.now().year}-{random.randint(10000,99999)}"
+                inv = {"accountId": acct, "orderId": o.get("id", 0), "invoiceNumber": inv_num,
+                       "totalAmount": order_amount, "currency": "USD",
+                       "dueDate": DataGenerator.date_in_future(random.randint(15, 60))}
+                i = api.post("/invoices", inv)
+                api.track_created("invoice", i.get("id", 0))
             except Exception as e:
                 print(f"    ❌ Invoice creation failed: {e}")
-                return
+                continue
             # create payment
             try:
-                pay = {"invoiceId":i.get("id",0),"accountId":acct,"amount":5000,"paymentDate":DataGenerator.date_in_future(35),"method":"CreditCard"}
-                print(f"    ➤ Payment payload: {pay}")
+                pay = {"invoiceId": i.get("id", 0), "accountId": acct, "amount": order_amount,
+                       "paymentDate": DataGenerator.date_in_past(random.randint(1, 30)),
+                       "method": random.choice(["CreditCard", "BankTransfer", "Check", "ACH"])}
                 api.post("/payments", pay)
-                print(f"    ✓ Payment recorded")
+                api.track_created("payment", pay.get("id", 0))
             except Exception as e:
                 print(f"    ❌ Payment creation failed: {e}")
-                return
             # create contract
             try:
-                con = {"accountId":acct,"name":"Demo Contract","startDate":DataGenerator.date_in_past(60),"endDate":DataGenerator.date_in_future(300),"status":3,"totalValue":12000,"currency":"USD"}
-                print(f"    ➤ Contract payload: {con}")
-                c = api.post("/contracts", con); api.track_created("contract", c.get("id",0))
-                print(f"    ✓ Contract created (id={c.get('id')})")
+                contract_types = ["Service Agreement", "License Contract", "Support Contract",
+                                  "Maintenance Agreement", "Subscription Agreement", "Enterprise Agreement"]
+                con = {"accountId": acct,
+                       "name": random.choice(contract_types),
+                       "startDate": DataGenerator.date_in_past(random.randint(30, 180)),
+                       "endDate": DataGenerator.date_in_future(random.randint(90, 730)),
+                       "status": random.choice([0, 2, 3, 4]),
+                       "totalValue": random.randint(5000, 100000),
+                       "currency": "USD"}
+                c = api.post("/contracts", con)
+                api.track_created("contract", c.get("id", 0))
             except Exception as e:
                 print(f"    ❌ Contract creation failed: {e}")
-                return
             # create subscription
             try:
-                sub = {"accountId":acct,"productId":prod,"billingStartDate":DataGenerator.date_in_past(60),"billingCycle":"Monthly"}
-                print(f"    ➤ Subscription payload: {sub}")
+                sub = {"accountId": acct, "productId": prod,
+                       "billingStartDate": DataGenerator.date_in_past(random.randint(1, 90)),
+                       "billingCycle": random.choice(["Monthly", "Quarterly", "Annually"])}
                 api.post("/subscriptions", sub)
-                print(f"    ✓ Subscription created")
+                api.track_created("subscription", 0)
             except Exception as e:
                 print(f"    ❌ Subscription creation failed: {e}")
-                return
-    # debug output of account IDs
-    print(f"    Account IDs: {api.created_ids.get('account', [])}")
-    
-    # Create contacts for each organization customer
-    print("\n📇 Creating demo contacts...")
+    print(f"  ✓ Created {len(api.created_ids.get('quote', []))} quotes, "
+          f"{len(api.created_ids.get('order', []))} orders, "
+          f"{len(api.created_ids.get('invoice', []))} invoices, "
+          f"{len(api.created_ids.get('contract', []))} contracts")
+
+    # Create contacts — 1-2 per account (targeting ~75-100 contacts)
+    print("\n📇 Creating demo contacts (~100)...")
     contact_count = 0
-    
     for account_id in api.created_ids.get("account", []):
-        # Create 1-3 contacts per account
-        for _ in range(random.randint(1, 3)):
+        for _ in range(random.randint(1, 2)):
             first, last = DataGenerator.name()
             contact = {
                 "firstName": first,
                 "lastName": last,
-                "email": DataGenerator.email(first, last),
+                "email": f"{first.lower()}.{last.lower()}{random.randint(1,999)}@{DataGenerator.company().lower().replace(' ', '')}.com",
                 "phone": DataGenerator.phone(),
-                "title": random.choice(["CEO", "CTO", "VP Sales", "Director", "Manager", "Engineer"]),
+                "title": random.choice(DataGenerator.TITLES),
                 "accountId": account_id,
                 "isPrimary": contact_count == 0
             }
@@ -761,122 +826,139 @@ def load_demo_data(api: APIClient):
                 contact_count += 1
             except:
                 pass
-    
     print(f"  ✓ Created {contact_count} contacts")
-    
-    # Create 15+ leads with variety
-    print("\n🎯 Creating demo leads (15+)...")
-    
-    for i in range(15):
+
+    # Create 60 leads with variety
+    print("\n🎯 Creating demo leads (60)...")
+    lead_sources = ["Web", "Referral", "Cold Call", "Email Campaign", "Trade Show",
+                    "Partner", "Social Media", "Inbound", "Advertisement"]
+    lead_statuses = [0, 1, 2, 3]  # New, Contacted, Qualified, Disqualified
+    for i in range(60):
         first, last = DataGenerator.name()
         lead = {
             "firstName": first,
             "lastName": last,
             "companyName": DataGenerator.company(),
-            "email": DataGenerator.email(first, last, "prospect"),
-            "phone": DataGenerator.phone()
+            "email": f"{first.lower()}.{last.lower()}{random.randint(1,999)}@prospect.com",
+            "phone": DataGenerator.phone(),
+            "source": random.choice(lead_sources),
+            "industry": DataGenerator.industry(),
+            "estimatedBudget": random.randint(5000, 500000)
         }
         try:
             result = api.post("/leads", lead)
             api.track_created("lead", result.get("id", 0))
         except:
             pass
-    
     print(f"  ✓ Created {len(api.created_ids.get('lead', []))} leads")
-    
-    # Create 10+ opportunities across all stages
-    print("\n💰 Creating demo opportunities (10+)...")
-    
-    stages = [0, 1, 2, 3, 4, 5]  # Discovery to Closed Lost
+
+    # Create 60 opportunities across all stages
+    print("\n💰 Creating demo opportunities (60)...")
+    stages = [0, 1, 2, 3, 4, 5]
     probabilities = {0: 10, 1: 25, 2: 50, 3: 75, 4: 100, 5: 0}
-    
-    for i in range(10):
+    for i in range(60):
         customer_id = api.get_random_id("account")
         if not customer_id:
             continue
-            
         stage = random.choice(stages)
         opp = {
-            "name": f"{DataGenerator.company()} - {random.choice(['Cloud', 'Enterprise', 'Pro', 'Standard'])} Deal",
+            "name": f"{random.choice(DataGenerator.OPP_NAMES)} - {DataGenerator.company()}",
             "stage": stage,
             "probability": probabilities[stage],
-            "amount": random.randint(10000, 500000),
-            "currency": random.choice(["USD", "EUR", "GBP"]),
-            "expectedCloseDate": DataGenerator.date_in_future(random.randint(30, 180)),
+            "amount": random.randint(5000, 750000),
+            "currency": random.choice(["USD", "EUR", "GBP", "CAD"]),
+            "expectedCloseDate": DataGenerator.date_in_future(random.randint(14, 365)),
             "accountId": customer_id,
             "pricingModel": random.choice([0, 1, 2, 3]),
-            "termLengthMonths": random.choice([12, 24, 36])
+            "termLengthMonths": random.choice([1, 6, 12, 24, 36, 48, 60])
         }
-        print(f"    Attempting opportunity for account_id={customer_id}")
         try:
             result = api.post("/opportunities", opp)
             api.track_created("opportunity", result.get("id", 0))
         except:
             pass
-    
     print(f"  ✓ Created {len(api.created_ids.get('opportunity', []))} opportunities")
-    
-    # Create service requests
-    print("\n🎫 Creating demo service requests...")
-    
-    priorities = [0, 1, 2, 3]  # Low, Medium, High, Critical
-    statuses = [0, 1, 2, 3, 4]  # New, Open, InProgress, Resolved, Closed
-    
-    for i in range(10):
+
+    # Create 75 service requests
+    print("\n🎫 Creating demo service requests (75)...")
+    priorities = [0, 1, 2, 3]
+    statuses = [0, 1, 2, 3, 4]
+    categories = ["Technical", "Billing", "General", "Feature Request", "Security",
+                  "Performance", "Integration", "Training", "Compliance"]
+    for i in range(75):
         customer_id = api.get_random_id("account")
         if not customer_id:
             continue
-            
         sr = {
-            "subject": random.choice([
-                "Login issues", "Feature request", "Billing inquiry",
-                "Technical support needed", "Integration help",
-                "Performance problems", "Data export request"
-            ]),
-            "description": "Detailed description of the issue or request.",
+            "subject": random.choice(DataGenerator.SR_SUBJECTS),
+            "description": f"Customer reported: {random.choice(DataGenerator.SR_SUBJECTS)}. Impact: {random.choice(['Low', 'Medium', 'High'])}. Steps to reproduce provided.",
             "priority": random.choice(priorities),
             "status": random.choice(statuses),
             "customerId": customer_id,
-            "category": random.choice(["Technical", "Billing", "General", "Feature Request"])
+            "category": random.choice(categories)
         }
         try:
-            # endpoint is 'servicerequests' (no hyphen)
             result = api.post("/servicerequests", sr)
             api.track_created("servicerequest", result.get("id", 0))
         except:
             pass
-    
     print(f"  ✓ Created {len(api.created_ids.get('servicerequest', []))} service requests")
-    
-    # Create tasks
-    print("\n✅ Creating demo tasks...")
-    
+
+    # Create 75 tasks
+    print("\n✅ Creating demo tasks (75)...")
     task_types = [0, 1, 2, 3, 4]  # Call, Email, Meeting, Follow-up, Other
-    
-    for i in range(15):
-        customer_id = api.get_random_id("customer")
-        
+    for i in range(75):
+        account_id = api.get_random_id("account")
         task = {
-            "title": random.choice([
-                "Follow up on proposal", "Schedule demo call",
-                "Send pricing information", "Check on implementation",
-                "Quarterly review meeting", "Contract renewal discussion",
-                "Technical consultation", "Onboarding call"
-            ]),
-            "description": "Task details and notes.",
-            "dueDate": DataGenerator.date_in_future(random.randint(1, 30)),
+            "title": random.choice(DataGenerator.TASK_TITLES),
+            "description": f"Action required: {random.choice(DataGenerator.TASK_TITLES)}.",
+            "dueDate": DataGenerator.date_in_future(random.randint(1, 60)),
             "priority": random.choice([0, 1, 2]),
-            "status": random.choice([0, 1, 2]),  # Not Started, In Progress, Completed
+            "status": random.choice([0, 1, 2]),
             "taskType": random.choice(task_types),
-            "accountId": customer_id
+            "accountId": account_id
         }
         try:
             result = api.post("/tasks", task)
             api.track_created("task", result.get("id", 0))
         except:
             pass
-    
     print(f"  ✓ Created {len(api.created_ids.get('task', []))} tasks")
+
+    # Create 20 campaigns
+    print("\n📣 Creating demo campaigns (20)...")
+    campaign_types = [0, 1, 2, 3, 4]  # Email, Event, Webinar, Social, Other
+    campaign_names = [
+        "Q1 Product Launch", "Spring Promotion", "Annual Conference 2026",
+        "Webinar Series: Cloud Migration", "Partner Referral Drive",
+        "Customer Retention Campaign", "New Feature Announcement",
+        "Industry Thought Leadership", "Holiday Special Offer",
+        "Enterprise Upsell Push", "SMB Growth Initiative",
+        "Reactivation Campaign", "Product Demo Blitz",
+        "Customer Success Stories", "Competitive Win-Back",
+        "Developer Community Outreach", "End-of-Quarter Push",
+        "Annual Renewal Reminder", "AI Feature Launch", "EMEA Expansion Drive"
+    ]
+    for cname in campaign_names:
+        try:
+            result = api.post("/campaigns", {
+                "name": cname,
+                "campaignType": random.choice(campaign_types),
+                "budget": random.randint(1000, 100000),
+                "targetRoi": round(random.uniform(0.5, 5.0), 2)
+            })
+            cid = result.get("id", 0)
+            api.track_created("campaign", cid)
+            # add a recipient
+            acct_id = api.get_random_id("account")
+            if acct_id and cid:
+                try:
+                    api.post(f"/campaigns/{cid}/recipients", {"accountId": acct_id})
+                except:
+                    pass
+        except:
+            pass
+    print(f"  ✓ Created {len(api.created_ids.get('campaign', []))} campaigns")
     
     print("\n✅ Demo data loaded successfully!")
     # apply some updates

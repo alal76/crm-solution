@@ -318,7 +318,7 @@ public class Subscription : BaseEntity
     /// EF Core uses this for conflict detection.
     /// </summary>
     [Timestamp]
-    public byte[]? RowVersion { get; set; }
+    public new byte[]? RowVersion { get; set; }
 
     #endregion
 }
