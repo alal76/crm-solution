@@ -213,6 +213,7 @@ const DatabaseSettingsPage = lazy(() => import('./pages/admin/DatabaseSettingsPa
 const AdminLayout = lazy(() => import('./components/admin/AdminLayout'));
 const DuplicateRulesPage = lazy(() => import('./pages/admin/DuplicateRulesPage'));
 const LeadScoreRulesPage = lazy(() => import('./pages/admin/LeadScoreRulesPage'));
+const ProvidersPage = lazy(() => import('./pages/admin/ProvidersPage'));
 const IntegrationsSettingsPage = lazy(() => import('./pages/admin/IntegrationsSettingsPage'));
 const AnalyticsSettingsPage = lazy(() => import('./pages/admin/AnalyticsSettingsPage'));
 const SalesConfigPage = lazy(() => import('./pages/admin/SalesConfigPage'));
@@ -1206,6 +1207,7 @@ function ThemedApp() {
                 <Route path="agents" element={<AgentManagementPage />} />
                 <Route path="agents/approvals" element={<AgentApprovalsPage />} />
                 <Route path="agents/analytics" element={<AgentAnalyticsPage />} />
+                <Route path="providers" element={<ProvidersPage />} />
               </Route>
               <Route
                 path="/analytics"

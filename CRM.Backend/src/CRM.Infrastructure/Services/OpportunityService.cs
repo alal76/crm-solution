@@ -10,6 +10,7 @@ using CRM.Core.Entities.Workflow;
 using CRM.Core.Exceptions;
 using CRM.Core.Interfaces;
 using CRM.Core.Ports.Input;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 namespace CRM.Infrastructure.Services;
@@ -131,5 +132,109 @@ public class OpportunityService : IOpportunityService, IOpportunityInputPort
     {
         var opportunities = await GetOpenOpportunitiesAsync();
         return opportunities.Sum(o => o.Amount);
+    }
+
+    // --- Stage-to-Probability mapping (TODO-CRM003-02) ---
+
+    /// <summary>
+    /// Default probabilities per stage (percent).
+    /// </summary>
+    public static readonly Dictionary<OpportunityStage, int> StageProbabilityDefaults = new()
+    {
+        { OpportunityStage.Discovery,     10 },
+        { OpportunityStage.Qualification, 25 },
+        { OpportunityStage.Proposal,      50 },
+        { OpportunityStage.Negotiation,   75 },
+        { OpportunityStage.ClosedWon,    100 },
+        { OpportunityStage.ClosedLost,     0 },
+    };
+
+    // --- Product management (TODO-CRM003-04) ---
+
+    public async Task<IEnumerable<OpportunityProduct>> GetOpportunityProductsAsync(int opportunityId, CancellationToken ct = default)
+    {
+        return await _dbContext.Set<OpportunityProduct>()
+            .Include(p => p.Product)
+            .Where(p => p.OpportunityId == opportunityId && !p.IsDeleted)
+            .ToListAsync(ct);
+    }
+
+    public async Task<OpportunityProduct> AddOpportunityProductAsync(int opportunityId, OpportunityProduct product, CancellationToken ct = default)
+    {
+        product.OpportunityId = opportunityId;
+        product.CreatedAt = DateTime.UtcNow;
+        product.IsDeleted = false;
+        product.LineTotal = CalculateLineTotal(product);
+
+        _dbContext.Set<OpportunityProduct>().Add(product);
+        await _dbContext.SaveChangesAsync(ct);
+
+        await RecalculateOpportunityAmountAsync(opportunityId, ct);
+        return product;
+    }
+
+    public async Task<OpportunityProduct?> UpdateOpportunityProductAsync(int opportunityId, int productId, OpportunityProduct updated, CancellationToken ct = default)
+    {
+        var existing = await _dbContext.Set<OpportunityProduct>()
+            .FirstOrDefaultAsync(p => p.OpportunityId == opportunityId && p.ProductId == productId && !p.IsDeleted, ct);
+
+        if (existing == null)
+            return null;
+
+        existing.Quantity = updated.Quantity;
+        existing.UnitPrice = updated.UnitPrice;
+        existing.DiscountPercent = updated.DiscountPercent;
+        existing.Notes = updated.Notes;
+        existing.LineTotal = CalculateLineTotal(existing);
+
+        await _dbContext.SaveChangesAsync(ct);
+        await RecalculateOpportunityAmountAsync(opportunityId, ct);
+        return existing;
+    }
+
+    public async Task<bool> RemoveOpportunityProductAsync(int opportunityId, int productId, CancellationToken ct = default)
+    {
+        var product = await _dbContext.Set<OpportunityProduct>()
+            .FirstOrDefaultAsync(p => p.OpportunityId == opportunityId && p.ProductId == productId && !p.IsDeleted, ct);
+
+        if (product == null)
+            return false;
+
+        product.IsDeleted = true;
+        await _dbContext.SaveChangesAsync(ct);
+        await RecalculateOpportunityAmountAsync(opportunityId, ct);
+        return true;
+    }
+
+    private async Task RecalculateOpportunityAmountAsync(int opportunityId, CancellationToken ct)
+    {
+        var opportunity = await _repository.GetByIdAsync(opportunityId);
+        if (opportunity == null)
+            return;
+
+        var products = await _dbContext.Set<OpportunityProduct>()
+            .Where(p => p.OpportunityId == opportunityId && !p.IsDeleted)
+            .ToListAsync(ct);
+
+        var total = products.Sum(p => p.LineTotal ?? 0);
+        if (total > 0)
+        {
+            opportunity.Amount = total;
+            opportunity.UpdatedAt = DateTime.UtcNow;
+            await _repository.UpdateAsync(opportunity);
+            await _repository.SaveAsync();
+        }
+    }
+
+    private static decimal? CalculateLineTotal(OpportunityProduct p)
+    {
+        if (p.UnitPrice == null)
+            return null;
+
+        var lineTotal = p.Quantity * p.UnitPrice.Value;
+        if (p.DiscountPercent.HasValue && p.DiscountPercent.Value > 0)
+            lineTotal = lineTotal * (1 - p.DiscountPercent.Value / 100);
+
+        return Math.Round(lineTotal, 2);
     }
 }

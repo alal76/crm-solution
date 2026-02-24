@@ -9,6 +9,7 @@ using CRM.Core.DTOs;
 using CRM.Core.Exceptions;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
+using CRM.Infrastructure.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -186,6 +187,12 @@ public class OpportunitiesController : ControllerBase
                 return BadRequest(ModelState);
 
             var opportunity = MapFromCreateDto(dto);
+
+            // TODO-CRM003-02: Auto-set probability from stage when caller does not supply it explicitly
+            var stageEnum = (OpportunityStage)dto.Stage;
+            if (dto.Probability == 0 && OpportunityService.StageProbabilityDefaults.TryGetValue(stageEnum, out var defaultProb))
+                opportunity.Probability = defaultProb;
+
             var id = await _opportunityService.CreateOpportunityAsync(opportunity);
             opportunity.Id = id;
 
@@ -233,6 +240,16 @@ public class OpportunitiesController : ControllerBase
                 return NotFound();
 
             MapFromUpdateDto(dto, opportunity);
+
+            // TODO-CRM003-02: When stage changes and caller did NOT explicitly supply a new probability,
+            // auto-update probability based on the stage defaults.
+            if (dto.Stage.HasValue && !dto.Probability.HasValue)
+            {
+                var newStage = (OpportunityStage)dto.Stage.Value;
+                if (OpportunityService.StageProbabilityDefaults.TryGetValue(newStage, out var autoProb))
+                    opportunity.Probability = autoProb;
+            }
+
             await _opportunityService.UpdateOpportunityAsync(opportunity);
 
             // Notify connected clients about the update
@@ -247,6 +264,131 @@ public class OpportunitiesController : ControllerBase
             return StatusCode(500, "Internal server error");
         }
     }
+    // --- Opportunity Product Endpoints (TODO-CRM003-04) ---
+
+    /// <summary>
+    /// Lists all products on an opportunity.
+    /// </summary>
+    /// <param name="id">Opportunity ID</param>
+    [HttpGet("{id}/products")]
+    [ProducesResponseType(typeof(IEnumerable<OpportunityProductDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> GetProducts(int id)
+    {
+        try
+        {
+            var opportunity = await _opportunityService.GetOpportunityByIdAsync(id);
+            if (opportunity == null)
+                return NotFound(new { message = $"Opportunity {id} not found" });
+
+            var products = await _opportunityService.GetOpportunityProductsAsync(id);
+            return Ok(products.Select(MapProductToDto).ToList());
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving products for opportunity {Id}", id);
+            return StatusCode(500, "Internal server error");
+        }
+    }
+
+    /// <summary>
+    /// Adds a product to an opportunity.
+    /// </summary>
+    /// <param name="id">Opportunity ID</param>
+    /// <param name="dto">Product line item data</param>
+    [HttpPost("{id}/products")]
+    [ProducesResponseType(typeof(OpportunityProductDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> AddProduct(int id, [FromBody] CreateOpportunityProductDto dto)
+    {
+        try
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var opportunity = await _opportunityService.GetOpportunityByIdAsync(id);
+            if (opportunity == null)
+                return NotFound(new { message = $"Opportunity {id} not found" });
+
+            var product = MapProductFromCreateDto(dto);
+            var created = await _opportunityService.AddOpportunityProductAsync(id, product);
+            return CreatedAtAction(nameof(GetProducts), new { id }, MapProductToDto(created));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error adding product to opportunity {Id}", id);
+            return StatusCode(500, "Internal server error");
+        }
+    }
+
+    /// <summary>
+    /// Updates a product line item on an opportunity.
+    /// </summary>
+    /// <param name="id">Opportunity ID</param>
+    /// <param name="productId">Product ID</param>
+    /// <param name="dto">Updated line item data</param>
+    [HttpPut("{id}/products/{productId}")]
+    [ProducesResponseType(typeof(OpportunityProductDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> UpdateProduct(int id, int productId, [FromBody] UpdateOpportunityProductDto dto)
+    {
+        try
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var updated = new OpportunityProduct
+            {
+                Quantity = dto.Quantity ?? 1,
+                UnitPrice = dto.UnitPrice,
+                DiscountPercent = dto.DiscountPercent,
+                Notes = dto.Notes
+            };
+
+            var result = await _opportunityService.UpdateOpportunityProductAsync(id, productId, updated);
+            if (result == null)
+                return NotFound(new { message = $"Product {productId} not found on opportunity {id}" });
+
+            return Ok(MapProductToDto(result));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating product {ProductId} on opportunity {Id}", productId, id);
+            return StatusCode(500, "Internal server error");
+        }
+    }
+
+    /// <summary>
+    /// Removes a product from an opportunity.
+    /// </summary>
+    /// <param name="id">Opportunity ID</param>
+    /// <param name="productId">Product ID</param>
+    [HttpDelete("{id}/products/{productId}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> RemoveProduct(int id, int productId)
+    {
+        try
+        {
+            var removed = await _opportunityService.RemoveOpportunityProductAsync(id, productId);
+            if (!removed)
+                return NotFound(new { message = $"Product {productId} not found on opportunity {id}" });
+
+            return NoContent();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error removing product {ProductId} from opportunity {Id}", productId, id);
+            return StatusCode(500, "Internal server error");
+        }
+    }
+
     // --- Mapping helpers ---
     private static OpportunityDto MapToDto(Opportunity entity)
     {

@@ -202,7 +202,7 @@ public class SubscriptionsController : ControllerBase
     }
 
     /// <summary>
-    /// Pause a subscription.
+    /// Pause a subscription with optional scheduled auto-resume date.
     /// </summary>
     [HttpPost("{id:int}/pause")]
     [ProducesResponseType(typeof(Subscription), StatusCodes.Status200OK)]
@@ -213,11 +213,28 @@ public class SubscriptionsController : ControllerBase
         [FromBody] PauseRequest request,
         CancellationToken cancellationToken)
     {
-        return await ExecuteLifecycle(id, s => _subscriptionService.PauseAsync(s, request.Reason, cancellationToken));
+        try
+        {
+            var result = await _subscriptionService.PauseAsync(id, request.Reason, cancellationToken);
+
+            // Set scheduled auto-resume date if provided (TODO-SALES006-027)
+            if (request.PausedUntil.HasValue)
+            {
+                result.ResumeAt = request.PausedUntil;
+                result = await _subscriptionService.UpdateAsync(result, cancellationToken);
+            }
+
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Lifecycle operation failed for subscription {SubscriptionId}", id);
+            return HandleServiceException(ex);
+        }
     }
 
     /// <summary>
-    /// Resume a paused subscription.
+    /// Resume a paused subscription and clear the scheduled resume date.
     /// </summary>
     [HttpPost("{id:int}/resume")]
     [ProducesResponseType(typeof(Subscription), StatusCodes.Status200OK)]
@@ -225,7 +242,24 @@ public class SubscriptionsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<Subscription>> Resume(int id, CancellationToken cancellationToken)
     {
-        return await ExecuteLifecycle(id, s => _subscriptionService.ResumeAsync(s, cancellationToken));
+        try
+        {
+            var result = await _subscriptionService.ResumeAsync(id, cancellationToken);
+
+            // Clear the scheduled resume date on manual resume
+            if (result.ResumeAt.HasValue)
+            {
+                result.ResumeAt = null;
+                result = await _subscriptionService.UpdateAsync(result, cancellationToken);
+            }
+
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Lifecycle operation failed for subscription {SubscriptionId}", id);
+            return HandleServiceException(ex);
+        }
     }
 
     /// <summary>
@@ -537,6 +571,90 @@ public class SubscriptionsController : ControllerBase
 
     #endregion
 
+    #region Trial Conversion (TODO-SALES006-028)
+
+    /// <summary>
+    /// Convert a trial subscription to paid.
+    /// POST /api/subscriptions/{id}/convert-trial
+    /// </summary>
+    [HttpPost("{id:int}/convert-trial")]
+    [ProducesResponseType(typeof(Subscription), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<Subscription>> ConvertTrial(
+        int id,
+        [FromBody] ConvertTrialRequest request,
+        CancellationToken cancellationToken)
+    {
+        if (!ModelState.IsValid)
+            return ValidationProblem(ModelState);
+
+        try
+        {
+            var subscription = await _subscriptionService.GetByIdAsync(id, cancellationToken);
+            if (subscription == null)
+                return NotFound($"Subscription {id} not found.");
+
+            if (subscription.SubscriptionStatus != SubscriptionStatus.Trial)
+                return BadRequest($"Subscription {id} is not in Trial status (current: {subscription.SubscriptionStatus}).");
+
+            // Change plan if a new planId is specified
+            if (request.PlanId.HasValue)
+            {
+                subscription = await _subscriptionService.ChangePlanAsync(
+                    id, request.PlanId.Value, SubscriptionChangeType.Immediate, cancellationToken);
+            }
+
+            // Override billing cycle if specified
+            if (!string.IsNullOrWhiteSpace(request.BillingCycle)
+                && TryNormalizeBillingCycle(request.BillingCycle, out var normalizedCycle, out _))
+            {
+                subscription.BillingCycle = normalizedCycle;
+            }
+
+            // Activate and mark as converted from trial
+            var converted = await _subscriptionService.ActivateAsync(id, cancellationToken);
+            converted.UpdatedAt = DateTime.UtcNow;
+            var updated = await _subscriptionService.UpdateAsync(converted, cancellationToken);
+
+            _logger.LogInformation(
+                "Trial subscription {SubscriptionId} converted to paid, plan={PlanId}",
+                id, request.PlanId);
+
+            return Ok(updated);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error converting trial subscription {SubscriptionId}", id);
+            return HandleServiceException(ex);
+        }
+    }
+
+    /// <summary>
+    /// List recently converted trial subscriptions.
+    /// GET /api/subscriptions/trial-conversions
+    /// </summary>
+    [HttpGet("trial-conversions")]
+    [ProducesResponseType(typeof(IEnumerable<Subscription>), StatusCodes.Status200OK)]
+    public async Task<ActionResult<IEnumerable<Subscription>>> GetTrialConversions(
+        [FromQuery] int days = 30,
+        CancellationToken cancellationToken = default)
+    {
+        // Return active subscriptions that were updated in the last N days (proxy for recent conversions)
+        // TODO: Track trial conversion timestamps in a dedicated field for precise querying.
+        var fromDate = DateTime.UtcNow.AddDays(-days);
+        var subscriptions = await _subscriptionService.GetExpiringSubscriptionsAsync(
+            fromDate, DateTime.UtcNow, cancellationToken);
+
+        var active = subscriptions
+            .Where(s => s.SubscriptionStatus == SubscriptionStatus.Active)
+            .ToList();
+
+        return Ok(active);
+    }
+
+    #endregion
+
     #region Helpers
 
     private static Subscription MapToEntity(Subscription target, SubscriptionBaseRequest request, string normalizedBillingCycle)
@@ -708,6 +826,9 @@ public class SubscriptionsController : ControllerBase
     public class PauseRequest
     {
         public string? Reason { get; set; }
+
+        /// <summary>Optional scheduled auto-resume date. If set, subscription will automatically resume on this date.</summary>
+        public DateTime? PausedUntil { get; set; }
     }
 
     public class CancelRequest
@@ -763,6 +884,18 @@ public class SubscriptionsController : ControllerBase
         public decimal Quantity { get; set; }
 
         public DateTime? Timestamp { get; set; }
+    }
+
+    public class ConvertTrialRequest
+    {
+        /// <summary>New plan / product ID to switch to on conversion. If null, keeps current product.</summary>
+        public int? PlanId { get; set; }
+
+        /// <summary>New billing cycle (Monthly, Quarterly, Yearly). If null, retains existing cycle.</summary>
+        public string? BillingCycle { get; set; }
+
+        /// <summary>Payment method token/ID from the payment gateway (optional, for auto-charge).</summary>
+        public string? PaymentMethodId { get; set; }
     }
 
     #endregion

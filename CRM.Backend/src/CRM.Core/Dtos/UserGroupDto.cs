@@ -183,6 +183,13 @@ public class CreateUserGroupRequest
     public bool CanImportData { get; set; } = false;
     public bool CanBulkEdit { get; set; } = false;
     public bool CanBulkDelete { get; set; } = false;
+
+    /// <summary>
+    /// JSON array of accessible navigation menu keys.
+    /// Validated and normalized by UserGroupService (TODO-SYS003-002).
+    /// Example: ["Dashboard","Accounts","Contacts"]
+    /// </summary>
+    public string AccessibleMenuItems { get; set; } = "[]";
 }
 
 /// <summary>

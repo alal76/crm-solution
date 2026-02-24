@@ -11,7 +11,6 @@ using CRM.Core.Ports.Input;
 using CRM.Infrastructure.Validation;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-
 namespace CRM.Infrastructure.Services;
 
 /// <summary>
@@ -268,21 +267,30 @@ public class SystemSettingsService : ISystemSettingsService, ISystemSettingsInpu
             if (!string.IsNullOrEmpty(request.TimeFormat))
                 settings.TimeFormat = request.TimeFormat;
             if (!string.IsNullOrEmpty(request.DefaultCurrency))
+            {
+                LocalizationValidator.ValidateCurrency(request.DefaultCurrency);
                 settings.DefaultCurrency = request.DefaultCurrency;
+            }
             if (!string.IsNullOrEmpty(request.DefaultTimezone))
+            {
+                LocalizationValidator.ValidateTimezone(request.DefaultTimezone);
                 settings.DefaultTimezone = request.DefaultTimezone;
+            }
             if (!string.IsNullOrEmpty(request.DefaultLanguage))
+            {
+                LocalizationValidator.ValidateLanguage(request.DefaultLanguage);
                 settings.DefaultLanguage = request.DefaultLanguage;
+            }
 
             if (!string.IsNullOrEmpty(request.DateFormat))
                 settings.DateFormat = request.DateFormat;
             if (!string.IsNullOrEmpty(request.TimeFormat))
                 settings.TimeFormat = request.TimeFormat;
-            if (!string.IsNullOrEmpty(request.DefaultCurrency))
+            if (!string.IsNullOrEmpty(request.DefaultCurrency) && !settings.DefaultCurrency.Equals(request.DefaultCurrency, StringComparison.OrdinalIgnoreCase))
                 settings.DefaultCurrency = request.DefaultCurrency;
-            if (!string.IsNullOrEmpty(request.DefaultTimezone))
+            if (!string.IsNullOrEmpty(request.DefaultTimezone) && !settings.DefaultTimezone.Equals(request.DefaultTimezone, StringComparison.OrdinalIgnoreCase))
                 settings.DefaultTimezone = request.DefaultTimezone;
-            if (!string.IsNullOrEmpty(request.DefaultLanguage))
+            if (!string.IsNullOrEmpty(request.DefaultLanguage) && !settings.DefaultLanguage.Equals(request.DefaultLanguage, StringComparison.OrdinalIgnoreCase))
                 settings.DefaultLanguage = request.DefaultLanguage;
 
             settings.LastModified = DateTime.UtcNow;

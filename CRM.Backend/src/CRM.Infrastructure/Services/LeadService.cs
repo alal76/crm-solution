@@ -280,4 +280,48 @@ public class LeadService : ILeadService
         _eventDispatcher.DispatchEntityEvent("Lead", lead.Id, WorkflowTriggerType.OnUpdate);
         return true;
     }
+
+    /// <inheritdoc />
+    public async Task<(bool IsDuplicate, int? ExistingLeadId, string? MatchedOn)> CheckDuplicateAsync(
+        string? email,
+        string? firstName,
+        string? lastName,
+        string? company,
+        CancellationToken ct = default)
+    {
+        // Email check (highest priority)
+        if (!string.IsNullOrWhiteSpace(email))
+        {
+            var normalised = email.Trim().ToLowerInvariant();
+            var byEmail = await _context.Set<Lead>()
+                .Where(l => !l.IsDeleted && l.Email.ToLower() == normalised)
+                .Select(l => l.Id)
+                .FirstOrDefaultAsync(ct);
+
+            if (byEmail != 0)
+                return (true, byEmail, "email");
+        }
+
+        // Name + company check
+        if (!string.IsNullOrWhiteSpace(firstName) && !string.IsNullOrWhiteSpace(lastName))
+        {
+            var fn = firstName.Trim().ToLowerInvariant();
+            var ln = lastName.Trim().ToLowerInvariant();
+            var co = company?.Trim().ToLowerInvariant();
+
+            IQueryable<Lead> query = _context.Set<Lead>()
+                .Where(l => !l.IsDeleted
+                    && l.FirstName.ToLower() == fn
+                    && l.LastName.ToLower() == ln);
+
+            if (!string.IsNullOrWhiteSpace(co))
+                query = query.Where(l => (l.CompanyName ?? "").ToLower() == co);
+
+            var byName = await query.Select(l => l.Id).FirstOrDefaultAsync(ct);
+            if (byName != 0)
+                return (true, byName, "name");
+        }
+
+        return (false, null, null);
+    }
 }

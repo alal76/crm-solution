@@ -25,4 +25,17 @@ public interface ILeadService
     // Search and assignment helpers
     Task<IEnumerable<LeadSummaryDto>> SearchAsync(string searchTerm);
     Task<bool> AssignOwnerAsync(int leadId, int ownerId);
+
+    /// <summary>
+    /// Pre-flight duplicate check by email OR (firstName + lastName + company).
+    /// Soft-deleted leads are not considered.
+    /// TODO-CRM002-05
+    /// </summary>
+    /// <returns>(isDuplicate, existingLeadId, matchedOn) where matchedOn is "email" or "name"</returns>
+    Task<(bool IsDuplicate, int? ExistingLeadId, string? MatchedOn)> CheckDuplicateAsync(
+        string? email,
+        string? firstName,
+        string? lastName,
+        string? company,
+        CancellationToken ct = default);
 }

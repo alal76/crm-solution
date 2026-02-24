@@ -12,6 +12,7 @@ using CRM.Core.Interfaces;
 using CRM.Core.Validation;
 using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Services;
+using CRM.Infrastructure.Validation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -900,6 +901,44 @@ public class SystemSettingsController : ControllerBase
             _logger.LogError(ex, "Error updating features");
             return StatusCode(500, "Error updating features");
         }
+    }
+
+    // ─── Localization reference endpoints (TODO-SYS005-003) ──────────────────
+
+    /// <summary>
+    /// Returns the list of supported timezone identifiers.
+    /// GET /api/systemsettings/timezones
+    /// </summary>
+    [HttpGet("timezones")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(IEnumerable<string>), StatusCodes.Status200OK)]
+    public ActionResult<IEnumerable<string>> GetTimezones()
+    {
+        return Ok(LocalizationValidator.GetSupportedTimezones());
+    }
+
+    /// <summary>
+    /// Returns the list of supported ISO 4217 currency codes.
+    /// GET /api/systemsettings/currencies
+    /// </summary>
+    [HttpGet("currencies")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(IEnumerable<string>), StatusCodes.Status200OK)]
+    public ActionResult<IEnumerable<string>> GetCurrencies()
+    {
+        return Ok(LocalizationValidator.GetSupportedCurrencies());
+    }
+
+    /// <summary>
+    /// Returns the list of supported BCP-47 language codes.
+    /// GET /api/systemsettings/languages
+    /// </summary>
+    [HttpGet("languages")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(IEnumerable<string>), StatusCodes.Status200OK)]
+    public ActionResult<IEnumerable<string>> GetLanguages()
+    {
+        return Ok(LocalizationValidator.GetSupportedLanguages());
     }
 
     private static void ValidateNavigationOrderConfig(string navOrderConfig)

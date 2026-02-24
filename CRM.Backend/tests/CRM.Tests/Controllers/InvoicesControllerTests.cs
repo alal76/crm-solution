@@ -8,6 +8,8 @@ using CRM.Api.Controllers;
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
+using CRM.Core.Ports.Input;
+using CRM.Core.Ports.Input;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -30,7 +32,8 @@ public class InvoicesControllerTests
     {
         _mockInvoiceService = new Mock<IInvoiceService>();
         _mockLogger = new Mock<ILogger<InvoicesController>>();
-        _controller = new InvoicesController(_mockInvoiceService.Object, _mockLogger.Object);
+        var mockPdfService = new Mock<IPdfGenerationService>();
+        _controller = new InvoicesController(_mockInvoiceService.Object, mockPdfService.Object, _mockLogger.Object);
     }
 
     #region GetAll Tests

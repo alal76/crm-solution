@@ -462,6 +462,17 @@ builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IUserGroupService, UserGroupService>();
 
+// Auth/Security Services (TODO-AUTH-013 to TODO-AUTH-018)
+builder.Services.AddScoped<CRM.Core.Interfaces.ISessionManager, CRM.Infrastructure.Services.Auth.SessionManagerService>();
+builder.Services.AddScoped<CRM.Core.Interfaces.IPasswordHistoryService, CRM.Infrastructure.Services.PasswordHistoryService>();
+builder.Services.AddScoped<CRM.Core.Interfaces.IAuthAuditService, CRM.Infrastructure.Services.AuthAuditService>();
+builder.Services.AddScoped<CRM.Core.Interfaces.IMagicLinkService, CRM.Infrastructure.Services.MagicLinkService>();
+builder.Services.AddScoped<CRM.Core.Interfaces.IUserOAuthLinkService, CRM.Infrastructure.Services.UserOAuthLinkService>();
+
+// System Module Services (TODO-SYS005-001, TODO-SYS006-004)
+builder.Services.AddScoped<CRM.Core.Interfaces.IBusinessHoursConfigService, CRM.Infrastructure.Services.BusinessHoursConfigService>();
+builder.Services.AddScoped<CRM.Core.Ports.Input.IGdprService, CRM.Infrastructure.Services.GdprService>();
+
 // Phase 1: Social OAuth & OTP Providers
 // LinkedIn OAuth provider for enterprise sign-in
 builder.Services.Configure<CRM.Core.Options.LinkedInOAuthOptions>(builder.Configuration.GetSection("OAuth:LinkedIn"));
@@ -541,6 +552,9 @@ builder.Services.AddScoped<IRBACService, RBACService>();
 
 builder.Services.AddScoped<IProviderHealthService, ProviderHealthService>();
 
+// INT-002: Provider Registry Service — catalogue of all pluggable providers
+builder.Services.AddScoped<IProviderRegistryService, ProviderRegistryService>();
+
 // SYS-001: Admin Dashboard Service
 builder.Services.AddScoped<IAdminDashboardService, AdminDashboardService>();
 
@@ -549,6 +563,14 @@ builder.Services.AddScoped<IAdminDashboardService, AdminDashboardService>();
 // When enabled, tracks all entity changes, deletions, and user actions for compliance/audit purposes
 builder.Services.AddScoped<IOptionalAuditLoggingService, OptionalAuditLoggingService>();
 Log.Information("Optional Audit Logging Service registered (enabled via UseOptionalAuditLogging feature flag)");
+
+// TODO-INT003-006: Data Validator Service (import field validation)
+builder.Services.AddScoped<CRM.Core.Ports.Input.IDataValidator, CRM.Infrastructure.Services.DataValidatorService>();
+Log.Information("DataValidatorService registered (import field validation for accounts, contacts, leads, opportunities)");
+
+// TODO-INT003-007: Batch Processor Service (open-generic, per-type singleton-like scoped)
+builder.Services.AddScoped(typeof(CRM.Core.Ports.Input.IBatchProcessor<>), typeof(CRM.Infrastructure.Services.BatchProcessorService<>));
+Log.Information("BatchProcessorService<T> registered as open-generic scoped (import/export batch processing)");
 
 // ITSM Services - IT Service Management (Incident, Problem, Change, CMDB, Knowledge, SLA)
 // PHASE 1: Core critical services re-enabled (Feb 16, 2026)
@@ -890,6 +912,12 @@ builder.Services.AddScoped<IOpportunityInputPort, OpportunityService>();
 builder.Services.AddScoped<IProductInputPort, ProductService>();
 builder.Services.AddScoped<ICampaignInputPort, MarketingCampaignService>();
 builder.Services.AddScoped<IAuthInputPort, AuthenticationService>();
+
+// Multi-currency service (TODO-GAP-05)
+builder.Services.AddScoped<CRM.Core.Ports.Input.ICurrencyService, CRM.Infrastructure.Services.CurrencyService>();
+
+// PDF generation service stub (TODO-SALES003-010)
+builder.Services.AddScoped<CRM.Core.Ports.Input.IPdfGenerationService, CRM.Infrastructure.Services.PdfGenerationService>();
 builder.Services.AddScoped<IUserInputPort, UserService>();
 builder.Services.AddScoped<IUserGroupInputPort, UserGroupService>();
 builder.Services.AddScoped<ISystemSettingsInputPort, SystemSettingsService>();

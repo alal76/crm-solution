@@ -121,6 +121,9 @@ public interface ICrmDbContext
     DbSet<SubscriptionItem> SubscriptionItems { get; }
     DbSet<SubscriptionUsage> SubscriptionUsages { get; }
     DbSet<SubscriptionUsageLimit> SubscriptionUsageLimits { get; }
+    DbSet<SubscriptionRenewal> SubscriptionRenewals { get; }
+    DbSet<BillingHistory> BillingHistories { get; }
+    DbSet<DunningRecord> DunningRecords { get; }
     DbSet<Contract> Contracts { get; }
 
     // Credit Memos
@@ -196,6 +199,7 @@ public interface ICrmDbContext
     // SLA (Service Level Agreement) - Non-ITSM versions
     DbSet<CRM.Core.Entities.SLAPolicy> SLAPolicies { get; }
     DbSet<CRM.Core.Entities.KnowledgeBase.SLAInstance> SLAInstances { get; }
+    DbSet<BusinessHours> BusinessHoursConfigs { get; } // TODO-SYS005-001
     // DISABLED: Conflicts with ITSM.EscalationRule - both trying to use "EscalationRule" table
     // DbSet<CRM.Core.Entities.EscalationRule> EscalationRules { get; }
     DbSet<CRM.Core.Entities.ITSM.ServiceQueue> ServiceQueues { get; }
@@ -315,6 +319,16 @@ public interface ICrmDbContext
 
     // Field-level audit trail (TODO-SYS006-001)
     DbSet<FieldChangeLog> FieldChangeLogs { get; }
+
+    // GDPR access logs (TODO-SYS006-004)
+    DbSet<GdprAccessLog> GdprAccessLogs { get; }
+
+    // Auth / Security (TODO-AUTH-013 to TODO-AUTH-018)
+    DbSet<UserSession> UserSessions { get; }
+    DbSet<PasswordHistory> PasswordHistories { get; }
+    DbSet<AuthAuditLog> AuthAuditLogs { get; }
+    DbSet<MagicLinkToken> MagicLinkTokens { get; }
+    DbSet<UserOAuthLink> UserOAuthLinks { get; }
 
     DatabaseFacade Database { get; }
 

@@ -48,6 +48,11 @@ public class AuthControllerTests
         var mockOAuthStateService = new Mock<IOAuthStateService>();
         var mockTwoFactorPolicyService = new Mock<ITwoFactorPolicyService>();
         var mockTotpService = new Mock<CRM.Core.Interfaces.ITotpService>();
+        var mockSessionManager = new Mock<ISessionManager>();
+        var mockPasswordHistoryService = new Mock<IPasswordHistoryService>();
+        var mockAuthAuditService = new Mock<IAuthAuditService>();
+        var mockMagicLinkService = new Mock<IMagicLinkService>();
+        var mockUserOAuthLinkService = new Mock<IUserOAuthLinkService>();
 
         _controller = new AuthController(
             _mockAuthService.Object,
@@ -57,7 +62,12 @@ public class AuthControllerTests
             mockWebAuthnService.Object,
             mockOAuthStateService.Object,
             mockTwoFactorPolicyService.Object,
-            mockTotpService.Object);
+            mockTotpService.Object,
+            mockSessionManager.Object,
+            mockPasswordHistoryService.Object,
+            mockAuthAuditService.Object,
+            mockMagicLinkService.Object,
+            mockUserOAuthLinkService.Object);
     }
 
     #region Register Tests

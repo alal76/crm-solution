@@ -229,6 +229,45 @@ public class LeadsController : ControllerBase
     }
 
     /// <summary>
+    /// Pre-flight duplicate check before form submission.
+    /// Checks by email match OR (firstName + lastName + company) match.
+    /// Only non-deleted leads are considered.
+    /// TODO-CRM002-05
+    /// </summary>
+    /// <param name="email">Email to check (optional but recommended)</param>
+    /// <param name="firstName">First name (used in name-based check)</param>
+    /// <param name="lastName">Last name (used in name-based check)</param>
+    /// <param name="company">Company name (used in name-based check)</param>
+    [HttpGet("check-duplicate")]
+    [ProducesResponseType(typeof(CheckDuplicateLeadResponse), 200)]
+    [ProducesResponseType(500)]
+    public async Task<IActionResult> CheckDuplicate(
+        [FromQuery] string? email = null,
+        [FromQuery] string? firstName = null,
+        [FromQuery] string? lastName = null,
+        [FromQuery] string? company = null)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(email) && (string.IsNullOrWhiteSpace(firstName) || string.IsNullOrWhiteSpace(lastName)))
+                return BadRequest(new { message = "Provide at least 'email' or both 'firstName' and 'lastName'." });
+
+            var (isDuplicate, existingLeadId, matchedOn) = await _leadService.CheckDuplicateAsync(email, firstName, lastName, company);
+            return Ok(new CheckDuplicateLeadResponse
+            {
+                IsDuplicate = isDuplicate,
+                ExistingLeadId = existingLeadId,
+                MatchedOn = matchedOn
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error checking for duplicate leads");
+            return StatusCode(500, "Internal server error");
+        }
+    }
+
+    /// <summary>
     /// Get leads by status
     /// </summary>
     [HttpGet("status/{status}")]
@@ -318,6 +357,14 @@ public class ConvertLeadDto
     public int? AccountId { get; set; }
     public decimal? EstimatedValue { get; set; }
     public DateTime? ExpectedCloseDate { get; set; }
+}
+
+public class CheckDuplicateLeadResponse
+{
+    public bool IsDuplicate { get; set; }
+    public int? ExistingLeadId { get; set; }
+    /// <summary>"email" or "name" indicating which field(s) matched</summary>
+    public string? MatchedOn { get; set; }
 }
 
 #endregion

@@ -26,11 +26,13 @@ public class UserService : IUserService, IUserInputPort
 {
     private readonly ICrmDbContext _context;
     private readonly ILogger<UserService> _logger;
+    private readonly IAuditLogService? _auditLogService;
 
-    public UserService(ICrmDbContext context, ILogger<UserService> logger)
+    public UserService(ICrmDbContext context, ILogger<UserService> logger, IAuditLogService? auditLogService = null)
     {
         _context = context;
         _logger = logger;
+        _auditLogService = auditLogService;
     }
 
     public async Task<UserDto?> GetUserByIdAsync(int id)
@@ -152,6 +154,22 @@ public class UserService : IUserService, IUserInputPort
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
 
+            if (_auditLogService != null)
+            {
+                await _auditLogService.LogCreateAsync(
+                    entityType: "User",
+                    entityId: user.Id,
+                    entityName: user.Email,
+                    userId: null,
+                    newValues: new Dictionary<string, object>
+                    {
+                        ["Email"] = user.Email,
+                        ["Username"] = user.Username,
+                        ["Role"] = user.Role,
+                        ["IsActive"] = user.IsActive
+                    });
+            }
+
             return new UserDto
             {
                 Id = user.Id,
@@ -200,6 +218,23 @@ public class UserService : IUserService, IUserInputPort
 
             _logger.LogInformation($"Created user {email} without password - will require password setup on first login");
 
+            if (_auditLogService != null)
+            {
+                await _auditLogService.LogCreateAsync(
+                    entityType: "User",
+                    entityId: user.Id,
+                    entityName: user.Email,
+                    userId: null,
+                    newValues: new Dictionary<string, object>
+                    {
+                        ["Email"] = user.Email,
+                        ["Username"] = user.Username,
+                        ["Role"] = user.Role,
+                        ["IsActive"] = user.IsActive,
+                        ["PasswordNeverSet"] = true
+                    });
+            }
+
             return new UserDto
             {
                 Id = user.Id,
@@ -240,6 +275,24 @@ public class UserService : IUserService, IUserInputPort
             _context.Users.Update(user);
             await _context.SaveChangesAsync();
 
+            if (_auditLogService != null)
+            {
+                await _auditLogService.LogUpdateAsync(
+                    entityType: "User",
+                    entityId: id,
+                    entityName: user.Email,
+                    userId: null,
+                    oldValues: new Dictionary<string, object>(),
+                    newValues: new Dictionary<string, object>
+                    {
+                        ["FirstName"] = user.FirstName,
+                        ["LastName"] = user.LastName,
+                        ["IsActive"] = user.IsActive,
+                        ["Role"] = user.Role
+                    },
+                    changedProperties: new List<string> { "FirstName", "LastName", "IsActive", "Role" });
+            }
+
             return userDto;
         }
         catch (Exception ex)
@@ -259,6 +312,21 @@ public class UserService : IUserService, IUserInputPort
 
             _context.Users.Remove(user);
             await _context.SaveChangesAsync();
+
+            if (_auditLogService != null)
+            {
+                await _auditLogService.LogDeleteAsync(
+                    entityType: "User",
+                    entityId: id,
+                    entityName: user.Email,
+                    userId: null,
+                    oldValues: new Dictionary<string, object>
+                    {
+                        ["Email"] = user.Email,
+                        ["Username"] = user.Username,
+                        ["Role"] = user.Role
+                    });
+            }
         }
         catch (Exception ex)
         {
@@ -298,6 +366,16 @@ public class UserService : IUserService, IUserInputPort
             user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
             _context.Users.Update(user);
             await _context.SaveChangesAsync();
+
+            if (_auditLogService != null)
+            {
+                await _auditLogService.LogActionAsync(
+                    action: "PasswordChanged",
+                    entityType: "User",
+                    entityId: userId,
+                    userId: userId,
+                    details: $"{{\"userId\":{userId},\"changedAt\":\"{DateTime.UtcNow:O}\"}}");
+            }
         }
         catch (Exception ex)
         {

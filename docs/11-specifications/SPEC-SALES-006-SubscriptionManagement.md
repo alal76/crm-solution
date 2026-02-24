@@ -509,9 +509,9 @@ GET    /api/subscriptions/analytics/statistics     Summary statistics
 | SubscriptionRenewal entity | CRM.Core/Entities/SubscriptionRenewal.cs | Tracks renewal history and dates | TODO-SALES006-011 |
 | BillingHistory entity | CRM.Core/Entities/BillingHistory.cs | Audit trail for billing events | TODO-SALES006-012 |
 | DunningRecord entity | CRM.Core/Entities/DunningRecord.cs | Failed payment recovery tracking | TODO-SALES006-013 |
-| SubscriptionsController | CRM.Api/Controllers/SubscriptionsController.cs | 25+ endpoints for subscription management | TODO-SALES006-001 |
-| SubscriptionBillingController | CRM.Api/Controllers/SubscriptionBillingController.cs | Invoice, payment, billing endpoints | TODO-SALES006-002 |
-| SubscriptionUsageController | CRM.Api/Controllers/SubscriptionUsageController.cs | Usage tracking and limits | TODO-SALES006-003 |
+| SubscriptionsController | CRM.Api/Controllers/SubscriptionsController.cs | 25+ endpoints for subscription management | ✅ TODO-SALES006-001 |
+| SubscriptionBillingController | CRM.Api/Controllers/SubscriptionBillingController.cs | Invoice, payment, billing endpoints (11) | ✅ TODO-SALES006-002 — Completed Feb 24 |
+| SubscriptionUsageController | CRM.Api/Controllers/SubscriptionUsageController.cs | Usage tracking and limits (10) | ✅ TODO-SALES006-003 — Completed Feb 24 |
 | RecurringBillingEngine service | CRM.Infrastructure/Services/RecurringBillingEngine.cs | Automatic monthly/annual billing | TODO-SALES006-014 |
 | DunningManager service | CRM.Infrastructure/Services/DunningManager.cs | Retry logic for failed payments | TODO-SALES006-015 |
 | ProrateCalculator service | CRM.Infrastructure/Services/ProrateCalculator.cs | 4 proration algorithms | TODO-SALES006-016 |
@@ -552,9 +552,12 @@ GET    /api/subscriptions/analytics/statistics     Summary statistics
 
 | TODO ID | Description | Priority | Category |
 |---------|-------------|----------|----------|
-| TODO-SALES006-001 | Create SubscriptionsController with 25+ CRUD/lifecycle/plan/addon endpoints | P0 | Backend/API |
-| TODO-SALES006-002 | Create SubscriptionBillingController with invoice/payment/history endpoints (8+) | P0 | Backend/API |
-| TODO-SALES006-003 | Create SubscriptionUsageController with usage/limits/projection endpoints (10+) | P1 | Backend/API |
+| ~~TODO-SALES006-001~~ | Create SubscriptionsController with 25+ CRUD/lifecycle/plan/addon endpoints | P0 | Backend/API | ✅ Implemented |
+| ~~TODO-SALES006-002~~ | Create SubscriptionBillingController with invoice/payment/history endpoints (8+) | P0 | Backend/API | ✅ Completed Feb 24 — 11 endpoints |
+| ~~TODO-SALES006-003~~ | Create SubscriptionUsageController with usage/limits/projection endpoints (10+) | P1 | Backend/API | ✅ Completed Feb 24 — 10 endpoints |
+| ~~TODO-SALES006-027~~ | Implement subscription pause with scheduled resume | P1 | Backend/Feature | ✅ Completed Feb 24 — ResumeAt field + migration |
+| ~~TODO-SALES006-028~~ | Implement trial to paid conversion workflow | P1 | Backend/Feature | ✅ Completed Feb 24 — convert-trial endpoints |
+| ~~TODO-SALES006-040~~ | Create SubscriptionAnalyticsController (MRR/ARR/churn/growth) | P1 | Backend/Controller | ✅ Completed Feb 24 — 7 endpoints |
 | TODO-SALES006-010 | Create SubscriptionItem entity for tracking plan + add-ons within subscription | P0 | Entity |
 | TODO-SALES006-011 | Create SubscriptionRenewal entity for renewal history and dates | P0 | Entity |
 | TODO-SALES006-012 | Create BillingHistory entity for billing event audit trail | P0 | Entity |

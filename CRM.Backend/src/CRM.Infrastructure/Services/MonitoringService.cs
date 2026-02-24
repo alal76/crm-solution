@@ -266,8 +266,8 @@ public class PodHealth
     public List<ContainerHealth> Containers { get; set; } = new();
 }
 
-/// <summary>User session information</summary>
-public class UserSession
+/// <summary>User session information for monitoring dashboard (not the entity type)</summary>
+public class MonitoringUserSession
 {
     public string UserId { get; set; } = "";
     public string UserName { get; set; } = "";
@@ -289,7 +289,7 @@ public class MonitoringData
     public List<ServiceHealth> Services { get; set; } = new();
     public List<ContainerHealth> Containers { get; set; } = new();
     public List<PodHealth> Pods { get; set; } = new();
-    public List<UserSession> ActiveSessions { get; set; } = new();
+    public List<MonitoringUserSession> ActiveSessions { get; set; } = new();
 }
 
 #endregion
@@ -321,7 +321,7 @@ public interface IMonitoringService
     Task<MonitoringData> GetAllMonitoringDataAsync(CancellationToken ct = default);
 
     /// <summary>Get active user sessions</summary>
-    Task<List<UserSession>> GetActiveSessionsAsync(CancellationToken ct = default);
+    Task<List<MonitoringUserSession>> GetActiveSessionsAsync(CancellationToken ct = default);
 
     /// <summary>Get monitoring options</summary>
     MonitoringOptions GetMonitoringOptions();
@@ -1310,11 +1310,11 @@ public class MonitoringService : IMonitoringService
 
     #region Active Sessions
 
-    public async Task<List<UserSession>> GetActiveSessionsAsync(CancellationToken ct = default)
+    public async Task<List<MonitoringUserSession>> GetActiveSessionsAsync(CancellationToken ct = default)
     {
         // This would be implemented to query active user sessions
         // For now, return empty list - the controller will handle this via EF Core
-        return await Task.FromResult(new List<UserSession>());
+        return await Task.FromResult(new List<MonitoringUserSession>());
     }
 
     #endregion

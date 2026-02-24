@@ -4,6 +4,7 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
+using System.Text.Json;
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
@@ -239,6 +240,12 @@ public class UserGroupService : IUserGroupService, IUserGroupInputPort
         group.CanImportData = request.CanImportData;
         group.CanBulkEdit = request.CanBulkEdit;
         group.CanBulkDelete = request.CanBulkDelete;
+
+        // AccessibleMenuItems (TODO-SYS003-002) — only update if provided
+        if (!string.IsNullOrWhiteSpace(request.AccessibleMenuItems))
+        {
+            group.AccessibleMenuItems = request.AccessibleMenuItems;
+        }
     }
 
     public async Task<UserGroupDto> CreateGroupAsync(CreateUserGroupRequest request)
@@ -250,6 +257,31 @@ public class UserGroupService : IUserGroupService, IUserGroupInputPort
 
             if (existingGroup != null)
                 throw new InvalidOperationException("Group with this name already exists");
+
+            // TODO-SYS003-001: Enforce single default group rule
+            if (request.IsDefault)
+            {
+                await ClearExistingDefaultGroupAsync();
+            }
+
+            // TODO-SYS003-002: Validate AccessibleMenuItems JSON
+            if (!string.IsNullOrWhiteSpace(request.AccessibleMenuItems))
+            {
+                var (isValid, validItems, invalidItems) = ValidateMenuItems(request.AccessibleMenuItems);
+                if (!isValid)
+                {
+                    _logger.LogWarning(
+                        "CreateGroup '{Name}': AccessibleMenuItems JSON is malformed — defaulting to empty list",
+                        request.Name);
+                    request.AccessibleMenuItems = "[]";
+                }
+                else if (invalidItems.Count > 0)
+                {
+                    _logger.LogWarning(
+                        "CreateGroup '{Name}': Unknown menu keys [{Keys}] — they will be stored but may not render in the UI",
+                        request.Name, string.Join(", ", invalidItems));
+                }
+            }
 
             var group = new UserGroup();
             MapFromRequest(group, request);
@@ -273,6 +305,44 @@ public class UserGroupService : IUserGroupService, IUserGroupInputPort
             var group = await _context.UserGroups.FindAsync(id);
             if (group == null)
                 throw new KeyNotFoundException($"Group with ID {id} not found");
+
+            // TODO-SYS003-001: Enforce single default group rule
+            if (request.IsDefault && !group.IsDefault)
+            {
+                // Promoting this group to default — unset any existing default
+                await ClearExistingDefaultGroupAsync(excludeId: id);
+            }
+            else if (!request.IsDefault && group.IsDefault)
+            {
+                // Attempting to unset the current default — only allowed if another group will become default
+                var otherDefaultExists = await _context.UserGroups
+                    .AnyAsync(g => g.Id != id && g.IsDefault && !g.IsDeleted);
+                if (!otherDefaultExists)
+                {
+                    throw new InvalidOperationException(
+                        "Cannot unset the only default group. Promote another group to default first.");
+                }
+            }
+
+            // TODO-SYS003-002: Validate AccessibleMenuItems JSON
+            if (!string.IsNullOrWhiteSpace(request.AccessibleMenuItems))
+            {
+                var (isValid, validItems, invalidItems) = ValidateMenuItems(request.AccessibleMenuItems);
+                if (!isValid)
+                {
+                    _logger.LogWarning(
+                        "UpdateGroup {Id}: AccessibleMenuItems JSON is malformed — keeping previous value",
+                        id);
+                    // Preserve the existing value rather than corrupting it
+                    request.AccessibleMenuItems = group.AccessibleMenuItems;
+                }
+                else if (invalidItems.Count > 0)
+                {
+                    _logger.LogWarning(
+                        "UpdateGroup {Id}: Unknown menu keys [{Keys}] — they will be stored but may not render in the UI",
+                        id, string.Join(", ", invalidItems));
+                }
+            }
 
             MapFromRequest(group, request);
 
@@ -415,6 +485,62 @@ public class UserGroupService : IUserGroupService, IUserGroupInputPort
         {
             _logger.LogError(ex, "Error retrieving active user groups");
             throw;
+        }
+    }
+
+    // ─── Private helpers ─────────────────────────────────────────────────────
+
+    /// <summary>
+    /// TODO-SYS003-001: Ensures only one group is marked as IsDefault.
+    /// Unsets IsDefault on all groups except <paramref name="excludeId"/>.
+    /// </summary>
+    private async Task ClearExistingDefaultGroupAsync(int excludeId = 0)
+    {
+        var currentDefaults = await _context.UserGroups
+            .Where(g => g.IsDefault && !g.IsDeleted && g.Id != excludeId)
+            .ToListAsync();
+
+        foreach (var g in currentDefaults)
+        {
+            g.IsDefault = false;
+            _context.UserGroups.Update(g);
+        }
+        // Caller is responsible for calling SaveChangesAsync
+    }
+
+    /// <summary>
+    /// TODO-SYS003-002: Validates that AccessibleMenuItems is well-formed JSON containing known menu keys.
+    /// Returns:  isValid — whether the JSON could be parsed;
+    ///           validItems — keys that match known navigation items;
+    ///           invalidItems — keys that don't match any known navigation item.
+    /// </summary>
+    public static (bool isValid, List<string> validItems, List<string> invalidItems) ValidateMenuItems(string json)
+    {
+        // Known navigation keys (sourced from DbSeed + frontend navigation config)
+        var knownKeys = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "Dashboard", "Accounts", "Contacts", "Leads", "Opportunities",
+            "Products", "Services", "Campaigns", "Quotes", "Tasks",
+            "Activities", "Notes", "Workflows", "ServiceRequests",
+            "Reports", "Settings", "UserManagement", "Admin",
+            "ITSM", "Incidents", "Problems", "Changes", "CMDB",
+            "KnowledgeBase", "ServiceCatalog", "Contracts", "Invoices",
+            "Orders", "Payments", "Subscriptions"
+        };
+
+        try
+        {
+            var items = JsonSerializer.Deserialize<List<string>>(json);
+            if (items == null)
+                return (false, new List<string>(), new List<string>());
+
+            var valid = items.Where(k => knownKeys.Contains(k)).ToList();
+            var invalid = items.Where(k => !knownKeys.Contains(k)).ToList();
+            return (true, valid, invalid);
+        }
+        catch (JsonException)
+        {
+            return (false, new List<string>(), new List<string>());
         }
     }
 }

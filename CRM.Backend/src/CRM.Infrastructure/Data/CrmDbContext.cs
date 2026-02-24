@@ -468,6 +468,16 @@ public class CrmDbContext : DbContext, ICrmDbContext
     // Field-level audit trail (TODO-SYS006-001)
     public DbSet<FieldChangeLog> FieldChangeLogs { get; set; }
 
+    // GDPR access logs (TODO-SYS006-004)
+    public DbSet<GdprAccessLog> GdprAccessLogs { get; set; }
+
+    // Auth / Security (TODO-AUTH-013 to TODO-AUTH-018)
+    public DbSet<UserSession> UserSessions { get; set; }
+    public DbSet<PasswordHistory> PasswordHistories { get; set; }
+    public DbSet<AuthAuditLog> AuthAuditLogs { get; set; }
+    public DbSet<MagicLinkToken> MagicLinkTokens { get; set; }
+    public DbSet<UserOAuthLink> UserOAuthLinks { get; set; }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         if (!optionsBuilder.IsConfigured && _configuration != null)
@@ -4244,6 +4254,170 @@ public class CrmDbContext : DbContext, ICrmDbContext
 
             entity.HasIndex(e => e.Severity)
                 .HasDatabaseName("IX_ImportErrors_Severity");
+        });
+
+        // =========================================================================
+        // Auth / Security Entities (TODO-AUTH-013 to TODO-AUTH-018)
+        // =========================================================================
+
+        modelBuilder.Entity<UserSession>(entity =>
+        {
+            entity.ToTable("UserSessions");
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.SessionToken)
+                .IsRequired()
+                .HasMaxLength(512);
+
+            entity.Property(e => e.IpAddress)
+                .IsRequired()
+                .HasMaxLength(64);
+
+            entity.Property(e => e.UserAgent)
+                .IsRequired()
+                .HasMaxLength(512);
+
+            entity.Property(e => e.DeviceId)
+                .HasMaxLength(256);
+
+            entity.HasIndex(e => e.SessionToken)
+                .IsUnique()
+                .HasDatabaseName("IX_UserSessions_SessionToken");
+
+            entity.HasIndex(e => e.UserId)
+                .HasDatabaseName("IX_UserSessions_UserId");
+
+            entity.HasIndex(e => new { e.UserId, e.IsRevoked, e.ExpiresAt })
+                .HasDatabaseName("IX_UserSessions_UserId_Active");
+
+            entity.HasOne(e => e.User)
+                .WithMany()
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<PasswordHistory>(entity =>
+        {
+            entity.ToTable("PasswordHistories");
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.PasswordHash)
+                .IsRequired()
+                .HasMaxLength(256);
+
+            entity.HasIndex(e => e.UserId)
+                .HasDatabaseName("IX_PasswordHistories_UserId");
+
+            entity.HasIndex(e => new { e.UserId, e.CreatedAt })
+                .HasDatabaseName("IX_PasswordHistories_UserId_CreatedAt");
+
+            entity.HasOne(e => e.User)
+                .WithMany()
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<AuthAuditLog>(entity =>
+        {
+            entity.ToTable("AuthAuditLogs");
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.Action)
+                .IsRequired()
+                .HasMaxLength(100);
+
+            entity.Property(e => e.IpAddress)
+                .IsRequired()
+                .HasMaxLength(64);
+
+            entity.Property(e => e.UserAgent)
+                .IsRequired()
+                .HasMaxLength(512);
+
+            entity.Property(e => e.FailureReason)
+                .HasMaxLength(512);
+
+            entity.HasIndex(e => e.UserId)
+                .HasDatabaseName("IX_AuthAuditLogs_UserId");
+
+            entity.HasIndex(e => e.Action)
+                .HasDatabaseName("IX_AuthAuditLogs_Action");
+
+            entity.HasIndex(e => e.CreatedAt)
+                .HasDatabaseName("IX_AuthAuditLogs_CreatedAt");
+
+            entity.HasOne(e => e.User)
+                .WithMany()
+                .HasForeignKey(e => e.UserId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        modelBuilder.Entity<MagicLinkToken>(entity =>
+        {
+            entity.ToTable("MagicLinkTokens");
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.Token)
+                .IsRequired()
+                .HasMaxLength(256);
+
+            entity.Property(e => e.Email)
+                .IsRequired()
+                .HasMaxLength(256);
+
+            entity.HasIndex(e => e.Token)
+                .IsUnique()
+                .HasDatabaseName("IX_MagicLinkTokens_Token");
+
+            entity.HasIndex(e => e.Email)
+                .HasDatabaseName("IX_MagicLinkTokens_Email");
+
+            entity.HasIndex(e => new { e.Email, e.IsUsed, e.ExpiresAt })
+                .HasDatabaseName("IX_MagicLinkTokens_Email_Active");
+
+            entity.HasOne(e => e.User)
+                .WithMany()
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<UserOAuthLink>(entity =>
+        {
+            entity.ToTable("UserOAuthLinks");
+            entity.HasKey(e => e.Id);
+
+            entity.Property(e => e.Provider)
+                .IsRequired()
+                .HasMaxLength(64);
+
+            entity.Property(e => e.ProviderUserId)
+                .IsRequired()
+                .HasMaxLength(256);
+
+            entity.Property(e => e.ProviderEmail)
+                .HasMaxLength(256);
+
+            entity.Property(e => e.AccessToken)
+                .HasMaxLength(2048);
+
+            entity.HasIndex(e => e.UserId)
+                .HasDatabaseName("IX_UserOAuthLinks_UserId");
+
+            // Unique constraint: one link per provider per user
+            entity.HasIndex(e => new { e.UserId, e.Provider })
+                .IsUnique()
+                .HasDatabaseName("IX_UserOAuthLinks_UserId_Provider");
+
+            // Unique constraint: one CRM user per provider identity
+            entity.HasIndex(e => new { e.Provider, e.ProviderUserId })
+                .IsUnique()
+                .HasDatabaseName("IX_UserOAuthLinks_Provider_ProviderUserId");
+
+            entity.HasOne(e => e.User)
+                .WithMany()
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         // Apply provider-specific post-configuration using the Strategy Pattern

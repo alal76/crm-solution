@@ -653,7 +653,7 @@ public class MonitoringController : ControllerBase
     /// </summary>
     [HttpGet("sessions")]
     [Authorize(Roles = "Admin")]
-    public async Task<ActionResult<List<UserSession>>> GetSessions(CancellationToken ct)
+    public async Task<ActionResult<List<MonitoringUserSession>>> GetSessions(CancellationToken ct)
     {
         try
         {
@@ -733,7 +733,7 @@ public class MonitoringController : ControllerBase
 
     #region Private Methods
 
-    private async Task<List<UserSession>> GetActiveSessionsFromDb(CancellationToken ct)
+    private async Task<List<MonitoringUserSession>> GetActiveSessionsFromDb(CancellationToken ct)
     {
         var recentThreshold = DateTime.UtcNow.AddHours(-24);
 
@@ -755,7 +755,7 @@ public class MonitoringController : ControllerBase
                 })
                 .ToListAsync(ct);
 
-            return users.Select(u => new UserSession
+            return users.Select(u => new MonitoringUserSession
             {
                 UserId = u.Id.ToString(),
                 UserName = $"{u.FirstName} {u.LastName}",
@@ -770,7 +770,7 @@ public class MonitoringController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogWarning(ex, "Failed to get active sessions from database");
-            return new List<UserSession>();
+            return new List<MonitoringUserSession>();
         }
     }
 

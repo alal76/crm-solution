@@ -262,6 +262,9 @@ public class Subscription : BaseEntity
     /// <summary>Pause reason</summary>
     public string? PauseReason { get; set; }
 
+    /// <summary>Scheduled auto-resume date (null = manual resume only)</summary>
+    public DateTime? ResumeAt { get; set; }
+
     #endregion
 }
 

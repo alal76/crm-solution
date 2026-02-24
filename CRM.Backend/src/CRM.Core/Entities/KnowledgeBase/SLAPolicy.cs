@@ -240,6 +240,12 @@ public class BusinessHours : BaseEntity
     /// <summary>Is active</summary>
     public bool IsActive { get; set; } = true;
 
+    /// <summary>
+    /// Whether this is the default business hours configuration used when no explicit schedule is selected.
+    /// Only one configuration should be IsDefault = true at a time (enforced by IBusinessHoursConfigService).
+    /// </summary>
+    public bool IsDefault { get; set; } = false;
+
     /// <summary>Schedule (JSON - day of week: start/end times)</summary>
     public string ScheduleJson { get; set; } = "{}";
 

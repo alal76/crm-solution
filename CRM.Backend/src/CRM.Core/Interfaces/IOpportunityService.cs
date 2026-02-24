@@ -27,5 +27,20 @@ public interface IOpportunityService
     Task UpdateOpportunityAsync(Opportunity opportunity);
     Task DeleteOpportunityAsync(int id);
     Task<decimal> GetTotalPipelineAsync();
+
+    // --- Product management (TODO-CRM003-04) ---
+
+    /// <summary>Gets all products attached to an opportunity.</summary>
+    Task<IEnumerable<OpportunityProduct>> GetOpportunityProductsAsync(int opportunityId, CancellationToken ct = default);
+
+    /// <summary>Adds a product to an opportunity and recalculates TotalValue.</summary>
+    Task<OpportunityProduct> AddOpportunityProductAsync(int opportunityId, OpportunityProduct product, CancellationToken ct = default);
+
+    /// <summary>Updates a product line item on an opportunity and recalculates TotalValue.</summary>
+    Task<OpportunityProduct?> UpdateOpportunityProductAsync(int opportunityId, int productId, OpportunityProduct updated, CancellationToken ct = default);
+
+    /// <summary>Removes a product from an opportunity and recalculates TotalValue.</summary>
+    Task<bool> RemoveOpportunityProductAsync(int opportunityId, int productId, CancellationToken ct = default);
+
     // In future: switch to DTOs for all contracts
 }

@@ -32,6 +32,11 @@ public class AuthController : ControllerBase
     private readonly IOAuthStateService _oauthStateService;
     private readonly ITwoFactorPolicyService _twoFactorPolicyService;
     private readonly CRM.Core.Interfaces.ITotpService _totpService;
+    private readonly ISessionManager _sessionManager;
+    private readonly IPasswordHistoryService _passwordHistoryService;
+    private readonly IAuthAuditService _authAuditService;
+    private readonly IMagicLinkService _magicLinkService;
+    private readonly IUserOAuthLinkService _userOAuthLinkService;
 
     public AuthController(
         IAuthenticationService authenticationService,
@@ -41,7 +46,12 @@ public class AuthController : ControllerBase
         IWebAuthnService webAuthnService,
         IOAuthStateService oauthStateService,
         ITwoFactorPolicyService twoFactorPolicyService,
-        CRM.Core.Interfaces.ITotpService totpService)
+        CRM.Core.Interfaces.ITotpService totpService,
+        ISessionManager sessionManager,
+        IPasswordHistoryService passwordHistoryService,
+        IAuthAuditService authAuditService,
+        IMagicLinkService magicLinkService,
+        IUserOAuthLinkService userOAuthLinkService)
     {
         _authenticationService = authenticationService;
         _logger = logger;
@@ -51,6 +61,11 @@ public class AuthController : ControllerBase
         _oauthStateService = oauthStateService;
         _twoFactorPolicyService = twoFactorPolicyService;
         _totpService = totpService;
+        _sessionManager = sessionManager;
+        _passwordHistoryService = passwordHistoryService;
+        _authAuditService = authAuditService;
+        _magicLinkService = magicLinkService;
+        _userOAuthLinkService = userOAuthLinkService;
     }
 
     /// <summary>
@@ -110,17 +125,41 @@ public class AuthController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Login([FromBody] LoginRequest request)
     {
+        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        var userAgent = Request.Headers.UserAgent.ToString();
+
         try
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
             var response = await _authenticationService.LoginAsync(request);
+
+            // Enforce concurrent session limit and record session (TODO-AUTH-013)
+            try
+            {
+                await _sessionManager.EnforceSessionLimitAsync(response.UserId);
+                await _sessionManager.CreateSessionAsync(
+                    response.UserId,
+                    response.AccessToken,
+                    ipAddress,
+                    userAgent,
+                    response.ExpiresAt);
+            }
+            catch (Exception sessionEx)
+            {
+                _logger.LogWarning(sessionEx, "Session management error for user {UserId} — login proceeds", response.UserId);
+            }
+
+            // Audit log successful login (TODO-AUTH-016)
+            await _authAuditService.LogLoginAttemptAsync(response.UserId, ipAddress, userAgent, true);
+
             return Ok(response);
         }
         catch (UnauthorizedAccessException ex)
         {
             _logger.LogWarning($"Login failed: {ex.Message}");
+            await _authAuditService.LogLoginAttemptAsync(null, ipAddress, userAgent, false, ex.Message);
             return Unauthorized(new { message = ex.Message });
         }
         catch (Exception ex)
@@ -642,6 +681,9 @@ public class AuthController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> Logout()
     {
+        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        var userAgent = Request.Headers.UserAgent.ToString();
+
         try
         {
             var userIdClaim = User.FindFirst("sub") ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
@@ -651,6 +693,11 @@ public class AuthController : ControllerBase
             }
 
             var success = await _authenticationService.LogoutAsync(userId);
+
+            // Revoke all sessions and audit (TODO-AUTH-013, TODO-AUTH-016)
+            try { await _sessionManager.RevokeAllSessionsAsync(userId); } catch { /* non-critical */ }
+            await _authAuditService.LogLogoutAsync(userId, ipAddress, userAgent);
+
             if (success)
             {
                 return new OkObjectResult(new { message = "User logged out successfully" });
@@ -687,6 +734,9 @@ public class AuthController : ControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordRequest request)
     {
+        var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+        var userAgent = Request.Headers.UserAgent.ToString();
+
         try
         {
             if (!ModelState.IsValid)
@@ -698,11 +748,30 @@ public class AuthController : ControllerBase
                 return new UnauthorizedObjectResult(new { message = "User ID not found in token" });
             }
 
+            // Password history validation — reject reuse of last 5 passwords (TODO-AUTH-014)
+            var isReused = await _passwordHistoryService.IsPasswordReusedAsync(userId, request.NewPassword);
+            if (isReused)
+            {
+                await _authAuditService.LogPasswordChangeAsync(userId, ipAddress, userAgent, false,
+                    "Password reuse rejected (last 5 passwords)");
+                return new BadRequestObjectResult(new { message = "You cannot reuse one of your last 5 passwords. Please choose a different password." });
+            }
+
             var response = await _authenticationService.ChangePasswordAsync(userId, request.OldPassword, request.NewPassword);
+
+            // Record new password hash in history (TODO-AUTH-014)
+            await _passwordHistoryService.RecordNewPasswordAsync(userId, request.NewPassword);
+
+            // Audit log (TODO-AUTH-016)
+            await _authAuditService.LogPasswordChangeAsync(userId, ipAddress, userAgent, true);
+
             return new OkObjectResult(response);
         }
         catch (UnauthorizedAccessException ex)
         {
+            var userIdClaim2 = User.FindFirst("sub") ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
+            int.TryParse(userIdClaim2?.Value, out var uid2);
+            await _authAuditService.LogPasswordChangeAsync(uid2 > 0 ? uid2 : (int?)null ?? 0, ipAddress, userAgent, false, ex.Message);
             _logger.LogWarning($"Change password failed: {ex.Message}");
             return new UnauthorizedObjectResult(new { message = ex.Message });
         }
@@ -1499,6 +1568,251 @@ public class AuthController : ControllerBase
     // Supporting Request DTOs
     // ==========================================
 
+    // ==========================================
+    // Auth Audit Logs (TODO-AUTH-016)
+    // ==========================================
+
+    /// <summary>
+    /// Get paginated authentication audit logs. Admins can retrieve all users' logs; pass
+    /// userId query parameter to filter. Requires Admin role.
+    /// </summary>
+    [HttpGet("audit-logs")]
+    [Authorize(Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> GetAuditLogs(
+        [FromQuery] int? userId = null,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20,
+        CancellationToken ct = default)
+    {
+        try
+        {
+            pageSize = Math.Min(pageSize, 100);
+            page = Math.Max(page, 1);
+
+            var (items, total) = await _authAuditService.GetUserAuditLogsAsync(userId, page, pageSize, ct);
+
+            return Ok(new
+            {
+                items,
+                totalCount = total,
+                page,
+                pageSize,
+                totalPages = (int)Math.Ceiling((double)total / pageSize)
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving auth audit logs");
+            return StatusCode(500, new { message = "An error occurred retrieving audit logs" });
+        }
+    }
+
+    // ==========================================
+    // Magic Link Passwordless Login (TODO-AUTH-017)
+    // ==========================================
+
+    /// <summary>
+    /// Request a passwordless magic-link login email. Token expires in 15 minutes and
+    /// is single-use. Responds 200 even when the email is not found (to prevent enumeration).
+    /// </summary>
+    [HttpPost("magic-link/request")]
+    [AllowAnonymous]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> RequestMagicLink(
+        [FromBody] MagicLinkRequestDto request,
+        CancellationToken ct = default)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(request?.Email))
+                return BadRequest(new { message = "Email is required." });
+
+            MagicLinkToken? magic = null;
+            try
+            {
+                magic = await _magicLinkService.GenerateMagicLinkAsync(request.Email, ct);
+            }
+            catch (KeyNotFoundException)
+            {
+                // Do not reveal whether the email exists
+                return Ok(new { message = "If that email is registered, a magic link has been sent." });
+            }
+
+            // Build the link — front-end route handles the verification page
+            var baseUrl = $"{Request.Scheme}://{Request.Host}";
+            var magicLink = $"{baseUrl}/auth/magic-link?token={Uri.EscapeDataString(magic.Token)}";
+
+            await _magicLinkService.SendMagicLinkEmailAsync(request.Email, magicLink, ct);
+
+            _logger.LogInformation("Magic link sent to {Email}", request.Email);
+            return Ok(new { message = "If that email is registered, a magic link has been sent." });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error generating magic link for {Email}", request?.Email);
+            return StatusCode(500, new { message = "An error occurred processing the request." });
+        }
+    }
+
+    /// <summary>
+    /// Verify a magic-link token and exchange it for a JWT access token.
+    /// The token is invalidated on first use and expires in 15 minutes.
+    /// </summary>
+    [HttpPost("magic-link/verify")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> VerifyMagicLink(
+        [FromBody] MagicLinkVerifyDto request,
+        CancellationToken ct = default)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(request?.Token))
+                return BadRequest(new { message = "Token is required." });
+
+            var response = await _magicLinkService.ValidateMagicLinkAsync(request.Token, ct);
+            return Ok(response);
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            _logger.LogWarning("Magic link verification failed: {Message}", ex.Message);
+            return Unauthorized(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error verifying magic link");
+            return StatusCode(500, new { message = "An error occurred verifying the magic link." });
+        }
+    }
+
+    // ==========================================
+    // OAuth Account Linking (TODO-AUTH-018)
+    // ==========================================
+
+    /// <summary>
+    /// Get all linked OAuth providers for the current authenticated user.
+    /// </summary>
+    [HttpGet("oauth/links")]
+    [Authorize]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> GetOAuthLinks(CancellationToken ct = default)
+    {
+        try
+        {
+            var userIdClaim = User.FindFirst("sub") ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
+                return Unauthorized();
+
+            var links = await _userOAuthLinkService.GetLinksAsync(userId, ct);
+
+            return Ok(links.Select(l => new
+            {
+                l.Id,
+                l.Provider,
+                l.ProviderEmail,
+                l.CreatedAt
+            }));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving OAuth links");
+            return StatusCode(500, new { message = "An error occurred retrieving OAuth links." });
+        }
+    }
+
+    /// <summary>
+    /// Link an OAuth provider account to the current authenticated user.
+    /// </summary>
+    [HttpPost("oauth/link")]
+    [Authorize]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> LinkOAuthProvider(
+        [FromBody] OAuthLinkRequestDto request,
+        CancellationToken ct = default)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(request?.Provider) || string.IsNullOrWhiteSpace(request.ProviderUserId))
+                return BadRequest(new { message = "Provider and ProviderUserId are required." });
+
+            var userIdClaim = User.FindFirst("sub") ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
+                return Unauthorized();
+
+            var link = await _userOAuthLinkService.LinkProviderAsync(
+                userId, request.Provider, request.ProviderUserId,
+                request.ProviderEmail, request.AccessToken, ct);
+
+            _logger.LogInformation("OAuth provider '{Provider}' linked for user {UserId}", request.Provider, userId);
+            return Ok(new { link.Id, link.Provider, link.ProviderEmail, link.CreatedAt });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error linking OAuth provider");
+            return StatusCode(500, new { message = "An error occurred linking the OAuth provider." });
+        }
+    }
+
+    /// <summary>
+    /// Unlink an OAuth provider from the current authenticated user.
+    /// Fails if this is the user's only remaining authentication method.
+    /// </summary>
+    [HttpDelete("oauth/link/{provider}")]
+    [Authorize]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> UnlinkOAuthProvider(
+        string provider,
+        CancellationToken ct = default)
+    {
+        try
+        {
+            var userIdClaim = User.FindFirst("sub") ?? User.FindFirst("http://schemas.xmlsoap.org/ws/2005/05/identity/claims/nameidentifier");
+            if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
+                return Unauthorized();
+
+            await _userOAuthLinkService.UnlinkProviderAsync(userId, provider, ct);
+
+            _logger.LogInformation("OAuth provider '{Provider}' unlinked for user {UserId}", provider, userId);
+            return Ok(new { message = $"Provider '{provider}' successfully unlinked." });
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error unlinking OAuth provider");
+            return StatusCode(500, new { message = "An error occurred unlinking the OAuth provider." });
+        }
+    }
+
     /// <summary>
     /// Request DTO for validating an OAuth state token.
     /// </summary>
@@ -1506,5 +1820,37 @@ public class AuthController : ControllerBase
     {
         /// <summary>The state token to validate.</summary>
         public string State { get; set; } = string.Empty;
+    }
+
+    // ─── Supporting DTOs for new auth features ───────────────────────────────
+
+    /// <summary>Request DTO for magic link generation.</summary>
+    public class MagicLinkRequestDto
+    {
+        /// <summary>The email address to send the magic link to.</summary>
+        public string Email { get; set; } = string.Empty;
+    }
+
+    /// <summary>Request DTO for magic link token verification.</summary>
+    public class MagicLinkVerifyDto
+    {
+        /// <summary>The one-time token extracted from the magic link URL.</summary>
+        public string Token { get; set; } = string.Empty;
+    }
+
+    /// <summary>Request DTO for linking an OAuth provider account.</summary>
+    public class OAuthLinkRequestDto
+    {
+        /// <summary>Provider identifier: google | microsoft | github | linkedin | apple</summary>
+        public string Provider { get; set; } = string.Empty;
+
+        /// <summary>The unique user identifier returned by the OAuth provider.</summary>
+        public string ProviderUserId { get; set; } = string.Empty;
+
+        /// <summary>Optional email address from the OAuth provider.</summary>
+        public string? ProviderEmail { get; set; }
+
+        /// <summary>Optional OAuth access token.</summary>
+        public string? AccessToken { get; set; }
     }
 }

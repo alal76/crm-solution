@@ -8,6 +8,7 @@ using System.ComponentModel.DataAnnotations;
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
+using CRM.Core.Ports.Input;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -23,11 +24,16 @@ namespace CRM.Api.Controllers;
 public class InvoicesController : ControllerBase
 {
     private readonly IInvoiceService _invoiceService;
+    private readonly IPdfGenerationService _pdfGenerationService;
     private readonly ILogger<InvoicesController> _logger;
 
-    public InvoicesController(IInvoiceService invoiceService, ILogger<InvoicesController> logger)
+    public InvoicesController(
+        IInvoiceService invoiceService,
+        IPdfGenerationService pdfGenerationService,
+        ILogger<InvoicesController> logger)
     {
         _invoiceService = invoiceService ?? throw new ArgumentNullException(nameof(invoiceService));
+        _pdfGenerationService = pdfGenerationService ?? throw new ArgumentNullException(nameof(pdfGenerationService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
@@ -610,6 +616,38 @@ public class InvoicesController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error applying discount to invoice {InvoiceId}", id);
+            return HandleServiceException(ex);
+        }
+    }
+
+    #endregion
+
+    #region PDF Generation (TODO-SALES003-010)
+
+    /// <summary>
+    /// Generates and downloads a PDF for an invoice.
+    /// Returns a stub PDF if no PDF library is configured.
+    /// </summary>
+    /// <param name="id">Invoice ID</param>
+    /// <param name="ct">Cancellation token</param>
+    [HttpGet("{id}/pdf")]
+    [ProducesResponseType(typeof(FileContentResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> DownloadPdf(int id, CancellationToken ct = default)
+    {
+        try
+        {
+            var invoice = await _invoiceService.GetByIdAsync(id, ct);
+            if (invoice == null)
+                return NotFound($"Invoice {id} not found");
+
+            var pdfBytes = await _pdfGenerationService.GenerateInvoicePdfAsync(id, ct);
+            return File(pdfBytes, "application/pdf", $"invoice-{id}.pdf");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error generating PDF for invoice {InvoiceId}", id);
             return HandleServiceException(ex);
         }
     }
