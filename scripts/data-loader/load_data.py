@@ -755,7 +755,13 @@ def load_demo_data(api: APIClient):
                 api.track_created("contact", cid)
                 account_contacts[account_id].append(cid)
                 contact_count += 1
-            except:
+            except urllib.error.HTTPError as e:
+                # On 409 duplicate, capture the existing contact ID so linking still works
+                if e.code == 409:
+                    existing_id = getattr(e, "crm_response", {}).get("existingRecordId")
+                    if existing_id and existing_id not in account_contacts[account_id]:
+                        account_contacts[account_id].append(existing_id)
+            except Exception:
                 pass
     print(f"  ✓ Created {contact_count} contacts")
 
