@@ -64,7 +64,7 @@ public class CompetitorService : ICompetitorService
         existing.OurAdvantages = competitor.OurAdvantages;
         existing.PrimaryProducts = competitor.PrimaryProducts;
         existing.PricingTier = competitor.PricingTier;
-        existing.MarketShare = competitor.MarketShare;
+        existing.MarketSharePercent = competitor.MarketSharePercent;
         existing.IsActive = competitor.IsActive;
         existing.UpdatedAt = DateTime.UtcNow;
 
@@ -89,7 +89,7 @@ public class CompetitorService : ICompetitorService
     {
         return await _dbContext.OpportunityCompetitors
             .Include(oc => oc.Competitor)
-            .Where(oc => oc.OpportunityId == opportunityId && !oc.IsDeleted)
+            .Where(oc => oc.OpportunityId == opportunityId)
             .ToListAsync(cancellationToken);
     }
 
@@ -107,16 +107,10 @@ public class CompetitorService : ICompetitorService
 
         if (existing != null)
         {
-            // Reactivate if soft deleted
-            if (existing.IsDeleted)
-            {
-                existing.IsDeleted = false;
-                existing.IsPrimary = isPrimary;
-                existing.ThreatLevel = threatLevel;
-                existing.Notes = notes;
-                existing.UpdatedAt = DateTime.UtcNow;
-                await _dbContext.SaveChangesAsync(cancellationToken);
-            }
+            // Reactivate if needed
+            existing.ThreatLevel = threatLevel != null ? Enum.Parse<CompetitorThreatLevel>(threatLevel) : existing.ThreatLevel;
+            existing.Notes = notes;
+            await _dbContext.SaveChangesAsync(cancellationToken);
             return existing;
         }
 
@@ -124,10 +118,9 @@ public class CompetitorService : ICompetitorService
         {
             OpportunityId = opportunityId,
             CompetitorId = competitorId,
-            IsPrimary = isPrimary,
-            ThreatLevel = threatLevel,
+            ThreatLevel = threatLevel != null ? Enum.Parse<CompetitorThreatLevel>(threatLevel) : CompetitorThreatLevel.Medium,
             Notes = notes,
-            CreatedAt = DateTime.UtcNow
+            IdentifiedDate = DateTime.UtcNow
         };
 
         _dbContext.OpportunityCompetitors.Add(oppCompetitor);
@@ -140,12 +133,11 @@ public class CompetitorService : ICompetitorService
     public async Task<bool> RemoveFromOpportunityAsync(int opportunityId, int competitorId, CancellationToken cancellationToken = default)
     {
         var existing = await _dbContext.OpportunityCompetitors
-            .FirstOrDefaultAsync(oc => oc.OpportunityId == opportunityId && oc.CompetitorId == competitorId && !oc.IsDeleted, cancellationToken);
+            .FirstOrDefaultAsync(oc => oc.OpportunityId == opportunityId && oc.CompetitorId == competitorId, cancellationToken);
 
         if (existing == null) return false;
 
-        existing.IsDeleted = true;
-        existing.UpdatedAt = DateTime.UtcNow;
+        _dbContext.OpportunityCompetitors.Remove(existing);
         await _dbContext.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation("Removed competitor {CompetitorId} from opportunity {OpportunityId}", competitorId, opportunityId);

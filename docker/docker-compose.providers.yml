@@ -385,6 +385,9 @@ services:
       - superset-data:/app/superset_home
     ports:
       - "${SUPERSET_PORT:-8088}:8088"
+    networks:
+      - crm-network
+      - crm-db-network  # Access to crm-mariadb for datasource schema sync
     command: >
       bash -c "superset db upgrade &&
                superset fab create-admin --username admin --firstname Admin --lastname User --email admin@crm.local --password ${SUPERSET_ADMIN_PASSWORD:-admin123} || true &&
@@ -428,6 +431,7 @@ services:
       start_period: 60s
     networks:
       - crm-network
+      - crm-db-network
 
   # Superset Celery Beat (Scheduled tasks)
   superset-beat:
@@ -458,6 +462,7 @@ services:
       start_period: 60s
     networks:
       - crm-network
+      - crm-db-network
 
   # PostgreSQL for Superset (metadata storage)
   superset-postgres:
@@ -497,3 +502,7 @@ networks:
   crm-network:
     external: true
     name: docker_crm-network
+  # CRM database network — gives Superset direct access to crm-mariadb
+  crm-db-network:
+    external: true
+    name: crm_crm-network

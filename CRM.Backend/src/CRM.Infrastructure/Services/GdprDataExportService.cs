@@ -84,16 +84,15 @@ public class GdprDataExportService : IGdprDataExportService
             // 2. Contacts owned by user
             var contacts = await _context.Contacts
                 .AsNoTracking()
-                .Where(c => c.OwnerId == userId && !c.IsDeleted)
+                .Where(c => c.OwnerId == userId)
                 .Select(c => new
                 {
                     c.Id,
                     c.FirstName,
                     c.LastName,
-                    c.Email,
+                    Email = c.EmailPrimary,
                     c.PhonePrimary,
-                    c.JobTitle,
-                    c.CreatedAt
+                    c.JobTitle
                 })
                 .ToListAsync(cancellationToken);
 
@@ -110,7 +109,7 @@ public class GdprDataExportService : IGdprDataExportService
                     l.LastName,
                     l.Email,
                     l.Phone,
-                    l.Company,
+                    Company = l.CompanyName,
                     l.Status,
                     l.CreatedAt
                 })
@@ -121,7 +120,7 @@ public class GdprDataExportService : IGdprDataExportService
             // 4. Opportunities owned by user
             var opportunities = await _context.Opportunities
                 .AsNoTracking()
-                .Where(o => o.OwnerId == userId && !o.IsDeleted)
+                .Where(o => o.SalesOwnerId == userId && !o.IsDeleted)
                 .Select(o => new
                 {
                     o.Id,
@@ -136,13 +135,13 @@ public class GdprDataExportService : IGdprDataExportService
             export.Data["opportunities"] = opportunities;
 
             // 5. Accounts owned by user
-            var accounts = await _context.Customers
+            var accounts = await _context.Accounts
                 .AsNoTracking()
-                .Where(a => a.OwnerId == userId && !a.IsDeleted)
+                .Where(a => a.AssignedToUserId == userId && !a.IsDeleted)
                 .Select(a => new
                 {
                     a.Id,
-                    a.Name,
+                    Name = a.Company,
                     a.Industry,
                     a.Website,
                     a.CreatedAt
@@ -152,9 +151,9 @@ public class GdprDataExportService : IGdprDataExportService
             export.Data["accounts"] = accounts;
 
             // 6. Tasks assigned to user
-            var tasks = await _context.UserTasks
+            var tasks = await _context.CrmTasks
                 .AsNoTracking()
-                .Where(t => t.AssignedToId == userId && !t.IsDeleted)
+                .Where(t => t.AssignedToUserId == userId && !t.IsDeleted)
                 .Select(t => new
                 {
                     t.Id,
@@ -192,8 +191,8 @@ public class GdprDataExportService : IGdprDataExportService
                 .Select(a => new
                 {
                     a.Id,
-                    a.Type,
-                    a.Subject,
+                    Type = a.ActivityType,
+                    Subject = a.Title,
                     a.Description,
                     a.ActivityDate,
                     a.CreatedAt
@@ -222,14 +221,15 @@ public class GdprDataExportService : IGdprDataExportService
             export.Data["auditLogs"] = auditLogs;
 
             // 10. User preferences
-            var preferences = await _context.UserPreferences
+            var preferences = await _context.UIPreferences
                 .AsNoTracking()
                 .Where(p => p.UserId == userId && !p.IsDeleted)
                 .Select(p => new
                 {
                     p.Id,
-                    p.Key,
-                    p.Value,
+                    p.Theme,
+                    p.SidebarPosition,
+                    p.FontSize,
                     p.CreatedAt
                 })
                 .ToListAsync(cancellationToken);
@@ -245,7 +245,7 @@ public class GdprDataExportService : IGdprDataExportService
                 {
                     GroupId = ugm.UserGroupId,
                     GroupName = ugm.UserGroup != null ? ugm.UserGroup.Name : null,
-                    ugm.JoinedAt
+                    JoinedAt = ugm.CreatedAt
                 })
                 .ToListAsync(cancellationToken);
 

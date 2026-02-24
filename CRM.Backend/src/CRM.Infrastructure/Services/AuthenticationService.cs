@@ -438,6 +438,17 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
         return response;
     }
 
+    public async Task<AuthResponse?> GenerateTokensForUserAsync(int userId)
+    {
+        var user = await _userRepository.GetByIdAsync(userId);
+        if (user == null)
+            return null;
+
+        var response = GenerateAuthResponse(user);
+        await PersistRefreshTokenAsync(user, response.RefreshToken);
+        return response;
+    }
+
     public async Task<AuthResponse> RefreshTokenAsync(string refreshToken)
     {
         if (string.IsNullOrWhiteSpace(refreshToken))

@@ -6,7 +6,6 @@
 // See the LICENSE file in the root directory for full terms.
 using CRM.Core.Dtos.ITSM;
 using CRM.Core.Entities;
-using CRM.Core.Entities.ITSM;
 using CRM.Core.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -36,7 +35,7 @@ public interface ISlaMatchingService
     /// <param name="customerId">Optional customer ID for customer-specific SLAs</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>The matching SLA policy DTO</returns>
-    Task<SLAPolicyDto?> FindMatchingPolicyAsync(ServicePriority priority, int? categoryId, int? customerId = null, CancellationToken cancellationToken = default);
+    Task<SLAPolicyDto?> FindMatchingPolicyAsync(ServiceRequestPriority priority, int? categoryId, int? customerId = null, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets all policies that could potentially apply to a service request.
@@ -45,7 +44,7 @@ public interface ISlaMatchingService
     /// <param name="categoryId">Service request category ID</param>
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>List of applicable SLA policies</returns>
-    Task<List<SLAPolicyDto>> GetApplicablePoliciesAsync(ServicePriority priority, int? categoryId, CancellationToken cancellationToken = default);
+    Task<List<SLAPolicyDto>> GetApplicablePoliciesAsync(ServiceRequestPriority priority, int? categoryId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Gets the default SLA policy when no specific match is found.
@@ -83,13 +82,13 @@ public class SlaMatchingService : ISlaMatchingService
         return await FindMatchingPolicyAsync(
             serviceRequest.Priority,
             serviceRequest.CategoryId,
-            serviceRequest.CustomerId,
+            serviceRequest.AccountId,
             cancellationToken);
     }
 
     /// <inheritdoc />
     public async Task<SLAPolicyDto?> FindMatchingPolicyAsync(
-        ServicePriority priority,
+        ServiceRequestPriority priority,
         int? categoryId,
         int? customerId = null,
         CancellationToken cancellationToken = default)
@@ -102,13 +101,16 @@ public class SlaMatchingService : ISlaMatchingService
             // 3. Priority-only policy
             // 4. Default policy
 
+            // Map ServiceRequestPriority to ServicePriority for SLA policy lookup
+            var slaPriority = MapToServicePriority(priority);
+
             var query = _dbContext.SLAPolicies
                 .AsNoTracking()
                 .Where(p => p.IsActive && !p.IsDeleted);
 
             // Try to find exact match by priority first
             var policies = await query
-                .Where(p => p.Priority == priority)
+                .Where(p => p.Priority == slaPriority)
                 .OrderByDescending(p => p.CreatedAt)
                 .ToListAsync(cancellationToken);
 
@@ -133,19 +135,21 @@ public class SlaMatchingService : ISlaMatchingService
 
     /// <inheritdoc />
     public async Task<List<SLAPolicyDto>> GetApplicablePoliciesAsync(
-        ServicePriority priority,
+        ServiceRequestPriority priority,
         int? categoryId,
         CancellationToken cancellationToken = default)
     {
         try
         {
+            var slaPriority = MapToServicePriority(priority);
+
             var query = _dbContext.SLAPolicies
                 .AsNoTracking()
                 .Where(p => p.IsActive && !p.IsDeleted);
 
             // Get policies matching the priority or with no priority restriction (legacy policies)
             var policies = await query
-                .Where(p => p.Priority == priority)
+                .Where(p => p.Priority == slaPriority)
                 .OrderBy(p => p.Name)
                 .ToListAsync(cancellationToken);
 
@@ -205,6 +209,23 @@ public class SlaMatchingService : ISlaMatchingService
             IsActive = policy.IsActive,
             CreatedAt = policy.CreatedAt,
             UpdatedAt = policy.UpdatedAt
+        };
+    }
+
+    /// <summary>
+    /// Maps ServiceRequestPriority to ServicePriority for SLA policy lookup.
+    /// ServiceRequestPriority: Low=0, Medium=1, High=2, Critical=3
+    /// ServicePriority: Critical=0, High=1, Medium=2, Low=3
+    /// </summary>
+    private static ServicePriority MapToServicePriority(ServiceRequestPriority priority)
+    {
+        return priority switch
+        {
+            ServiceRequestPriority.Critical => ServicePriority.Critical,
+            ServiceRequestPriority.High => ServicePriority.High,
+            ServiceRequestPriority.Medium => ServicePriority.Medium,
+            ServiceRequestPriority.Low => ServicePriority.Low,
+            _ => ServicePriority.Medium
         };
     }
 }

@@ -44,7 +44,7 @@ with app.app_context():
             new_ds = SqlaTable(
                 table_name=tbl,
                 database_id=crm_db.id,
-                schema="crm_db",
+                schema=None,   # MariaDB uses no schema prefix; using database name causes column lookup failures
             )
             sadb.session.add(new_ds)
             sadb.session.flush()
@@ -52,6 +52,15 @@ with app.app_context():
             print(f"  Dataset '{tbl}' created (ID: {new_ds.id})")
 
     sadb.session.commit()
+
+    # Sync column metadata from live MariaDB schema for all datasets
+    print("\nSyncing column metadata from MariaDB (fetch_metadata)...")
+    for tbl, ds in dataset_map.items():
+        try:
+            ds.fetch_metadata(commit=True)
+            print(f"  ✓ {tbl}: {len(ds.columns)} columns synced")
+        except Exception as e:
+            print(f"  ✗ {tbl}: fetch_metadata failed — {e}")
 
     # Create Charts
     charts_config = [
@@ -74,7 +83,7 @@ with app.app_context():
             "datasource": "Customers",
             "params": {
                 "viz_type": "dist_bar",
-                "groupby": ["CompanyName"],
+                "groupby": ["Company"],
                 "metrics": [{"expressionType": "SIMPLE", "column": {"column_name": "AnnualRevenue"}, "aggregate": "SUM"}],
                 "adhoc_filters": [{"expressionType": "SIMPLE", "subject": "IsDeleted", "operator": "==", "comparator": "0", "clause": "WHERE"}],
                 "row_limit": 15,

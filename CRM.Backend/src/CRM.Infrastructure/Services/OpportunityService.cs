@@ -251,22 +251,18 @@ public class OpportunityService : IOpportunityService, IOpportunityInputPort
             .FirstOrDefaultAsync(o => o.Id == opportunityId && !o.IsDeleted, ct);
 
         if (original == null)
-            throw new NotFoundException($"Opportunity with ID {opportunityId} not found");
+            throw new EntityNotFoundException($"Opportunity with ID {opportunityId} not found");
 
         // Create the cloned opportunity
         var cloned = new Opportunity
         {
             Name = options.NewName ?? $"Copy of {original.Name}",
-            Description = original.Description,
             AccountId = options.NewAccountId ?? original.AccountId,
             Amount = original.Amount,
             Stage = options.ResetStage ? OpportunityStage.Discovery : original.Stage,
             Probability = options.ResetStage ? StageProbabilityDefaults[OpportunityStage.Discovery] : original.Probability,
             ExpectedCloseDate = options.NewExpectedCloseDate ?? original.ExpectedCloseDate,
-            OwnerId = original.OwnerId,
-            Source = original.Source,
-            Type = original.Type,
-            Priority = original.Priority,
+            SalesOwnerId = original.SalesOwnerId,
             ForecastCategory = options.ResetStage ? ForecastCategory.Pipeline : original.ForecastCategory,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
@@ -298,7 +294,6 @@ public class OpportunityService : IOpportunityService, IOpportunityInputPort
                     DiscountPercent = product.DiscountPercent,
                     LineTotal = product.LineTotal,
                     Notes = product.Notes,
-                    SortOrder = product.SortOrder,
                     CreatedAt = DateTime.UtcNow,
                     IsDeleted = false
                 };
@@ -351,10 +346,7 @@ public class OpportunityService : IOpportunityService, IOpportunityInputPort
                     OpportunityId = cloned.Id,
                     CompetitorId = competitor.CompetitorId,
                     ThreatLevel = competitor.ThreatLevel,
-                    Status = CompetitorStatus.Active, // Reset status for new opportunity
-                    StrengthsAgainstUs = competitor.StrengthsAgainstUs,
-                    WeaknessesAgainstUs = competitor.WeaknessesAgainstUs,
-                    Strategy = competitor.Strategy,
+                    Status = OpportunityCompetitorStatus.Active, // Reset status for new opportunity
                     Notes = competitor.Notes
                 };
                 _dbContext.OpportunityCompetitors.Add(clonedCompetitor);
@@ -388,7 +380,7 @@ public class OpportunityService : IOpportunityService, IOpportunityInputPort
             .FirstOrDefaultAsync(o => o.Id == opportunityId && !o.IsDeleted, ct);
 
         if (opportunity == null)
-            throw new NotFoundException($"Opportunity with ID {opportunityId} not found");
+            throw new EntityNotFoundException($"Opportunity with ID {opportunityId} not found");
 
         // If this is primary, remove primary flag from others
         if (member.IsPrimary)
@@ -489,7 +481,7 @@ public class OpportunityService : IOpportunityService, IOpportunityInputPort
             .FirstOrDefaultAsync(o => o.Id == opportunityId && !o.IsDeleted, ct);
 
         if (opportunity == null)
-            throw new NotFoundException($"Opportunity with ID {opportunityId} not found");
+            throw new EntityNotFoundException($"Opportunity with ID {opportunityId} not found");
 
         // Check if competitor already exists on this opportunity
         var existing = await _dbContext.OpportunityCompetitors
@@ -524,105 +516,4 @@ public class OpportunityService : IOpportunityService, IOpportunityInputPort
         return true;
     }
 
-    /// <inheritdoc />
-    public async Task<Opportunity> CloneAsync(int opportunityId, OpportunityCloneOptions? options = null, CancellationToken ct = default)
-    {
-        options ??= new OpportunityCloneOptions();
-
-        var original = await _dbContext.Opportunities
-            .Include(o => o.Products)
-            .Include(o => o.TeamMembers)
-            .Include(o => o.Competitors)
-            .FirstOrDefaultAsync(o => o.Id == opportunityId && !o.IsDeleted, ct);
-
-        if (original == null)
-            throw new NotFoundException($"Opportunity with ID {opportunityId} not found");
-
-        var cloned = new Opportunity
-        {
-            Name = options.NewName ?? $"Copy of {original.Name}",
-            AccountId = original.AccountId,
-            ContactId = original.ContactId,
-            OwnerId = original.OwnerId,
-            Amount = original.Amount,
-            Stage = OpportunityStage.Prospecting, // Reset to first stage
-            Probability = 10, // Reset probability
-            ExpectedCloseDate = DateTime.UtcNow.AddMonths(3), // New close date
-            Description = original.Description,
-            LeadSource = original.LeadSource,
-            Type = original.Type,
-            ForecastCategory = ForecastCategory.Pipeline,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow,
-            IsDeleted = false
-        };
-
-        _dbContext.Opportunities.Add(cloned);
-        await _dbContext.SaveChangesAsync(ct);
-
-        // Clone products if requested
-        if (options.CloneProducts && original.Products != null)
-        {
-            foreach (var product in original.Products.Where(p => !p.IsDeleted))
-            {
-                var clonedProduct = new OpportunityProduct
-                {
-                    OpportunityId = cloned.Id,
-                    ProductId = product.ProductId,
-                    Quantity = product.Quantity,
-                    UnitPrice = product.UnitPrice,
-                    Discount = product.Discount,
-                    TotalPrice = product.TotalPrice,
-                    Description = product.Description,
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow
-                };
-                _dbContext.OpportunityProducts.Add(clonedProduct);
-            }
-        }
-
-        // Clone team members if requested
-        if (options.CloneTeamMembers && original.TeamMembers != null)
-        {
-            foreach (var member in original.TeamMembers.Where(m => !m.IsDeleted))
-            {
-                var clonedMember = new OpportunityTeamMember
-                {
-                    OpportunityId = cloned.Id,
-                    UserId = member.UserId,
-                    Role = member.Role,
-                    AccessLevel = member.AccessLevel,
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow
-                };
-                _dbContext.OpportunityTeamMembers.Add(clonedMember);
-            }
-        }
-
-        // Clone competitors if requested
-        if (options.CloneCompetitors && original.Competitors != null)
-        {
-            foreach (var competitor in original.Competitors.Where(c => !c.IsDeleted))
-            {
-                var clonedCompetitor = new OpportunityCompetitor
-                {
-                    OpportunityId = cloned.Id,
-                    CompetitorId = competitor.CompetitorId,
-                    ThreatLevel = competitor.ThreatLevel,
-                    Strengths = competitor.Strengths,
-                    Weaknesses = competitor.Weaknesses,
-                    Notes = competitor.Notes,
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow
-                };
-                _dbContext.OpportunityCompetitors.Add(clonedCompetitor);
-            }
-        }
-
-        await _dbContext.SaveChangesAsync(ct);
-
-        _logger.LogInformation("Cloned opportunity {OriginalId} to new opportunity {ClonedId}", opportunityId, cloned.Id);
-
-        return cloned;
-    }
 }

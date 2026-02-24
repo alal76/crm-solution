@@ -467,7 +467,7 @@ def load_basic_data(api: APIClient):
                     api.track_created("quote", qres.get("id", 0))
                     print(f"    ✓ Created quote {qres.get('id')}")
 
-                    order = {"accountId": acct_id, "quoteId": qres.get("id", 0), "status": "Processing", "currency": "USD", "totalAmount": 5000,
+                    order = {"accountId": acct_id, "quoteId": qres.get("id", 0), "name": "Sales Order", "status": 3, "currency": "USD", "totalAmount": 5000,
                              "orderDate": datetime.now().strftime("%Y-%m-%d")}
                     ores = api.post("/orders", order)
                     api.track_created("order", ores.get("id", 0))
@@ -483,12 +483,12 @@ def load_basic_data(api: APIClient):
                     api.track_created("payment", pres.get("id", 0))
                     print(f"    ✓ Created payment for invoice {ires.get('id')}")
 
-                    contract = {"accountId": acct_id, "name": "Support Contract", "startDate": DataGenerator.date_in_past(30), "endDate": DataGenerator.date_in_future(365), "status": "Active", "totalValue": 12000, "currency": "USD"}
+                    contract = {"accountId": acct_id, "name": "Support Contract", "startDate": DataGenerator.date_in_past(30), "endDate": DataGenerator.date_in_future(365), "status": 3, "totalValue": 12000, "currency": "USD"}
                     cres = api.post("/contracts", contract)
                     api.track_created("contract", cres.get("id", 0))
                     print(f"    ✓ Created contract {cres.get('id')}")
 
-                    subscription = {"accountId": acct_id, "contractId": cres.get("id", 0), "productId": prod_id, "startDate": DataGenerator.date_in_past(30), "billingCycle": "Monthly", "status": "Active"}
+                    subscription = {"accountId": acct_id, "productId": prod_id, "billingStartDate": DataGenerator.date_in_past(30), "billingCycle": "Monthly"}
                     sres = api.post("/subscriptions", subscription)
                     api.track_created("subscription", sres.get("id", 0))
                     print(f"    ✓ Created subscription {sres.get('id')}")
@@ -520,21 +520,21 @@ def load_basic_data(api: APIClient):
             # Discovery stage
             {
                 "name": "CRM Implementation - Acme", "stage": 0, "probability": 10,
-                "amount": 25000, "currency": "USD",
+                "amount": 25000, "currency": "USD", "termLengthMonths": 12,
                 "expectedCloseDate": DataGenerator.date_in_future(90),
                 "accountId": customer_id
             },
             # Proposal stage
             {
                 "name": "Cloud Migration - Global", "stage": 2, "probability": 50,
-                "amount": 75000, "currency": "USD",
+                "amount": 75000, "currency": "USD", "termLengthMonths": 24,
                 "expectedCloseDate": DataGenerator.date_in_future(60),
                 "accountId": customer_id
             },
             # Negotiation stage
             {
                 "name": "Enterprise License Deal", "stage": 3, "probability": 75,
-                "amount": 150000, "currency": "USD",
+                "amount": 150000, "currency": "USD", "termLengthMonths": 36,
                 "expectedCloseDate": DataGenerator.date_in_future(30),
                 "accountId": customer_id
             },
@@ -585,7 +585,7 @@ def load_basic_data(api: APIClient):
             # add a recipient and metric to each
             rid = api.post(f"/campaigns/{result.get('id')}/recipients", {"accountId": api.get_random_id("account"), "contactId": api.get_random_id("contact")}).get("id",0)
             api.track_created("campaignrecipient", rid)
-            m = api.post(f"/campaigns/{result.get('id')}/metrics", {"metricType":"OpenRate","value":0.5})
+            m = api.post(f"/campaigns/{result.get('id')}/metrics", {"metricName":"OpenRate","metricValue":0.5})
             api.track_created("campaignmetric", m.get("id",0))
         except Exception as e:
             msg = str(e)
@@ -688,7 +688,7 @@ def load_demo_data(api: APIClient):
                     "quoteId": quote_id,
                     "name": quote.get("name", "Order from Quote"),
                     "orderDate": DataGenerator.date_in_past(30),
-                    "status": "Processing",
+                    "status": 3,
                     "totalAmount": 5000,
                     "currency": "USD",
                 }
@@ -719,7 +719,7 @@ def load_demo_data(api: APIClient):
                 return
             # create contract
             try:
-                con = {"accountId":acct,"name":"Demo Contract","startDate":DataGenerator.date_in_past(60),"endDate":DataGenerator.date_in_future(300),"status":"Active","totalValue":12000,"currency":"USD"}
+                con = {"accountId":acct,"name":"Demo Contract","startDate":DataGenerator.date_in_past(60),"endDate":DataGenerator.date_in_future(300),"status":3,"totalValue":12000,"currency":"USD"}
                 print(f"    ➤ Contract payload: {con}")
                 c = api.post("/contracts", con); api.track_created("contract", c.get("id",0))
                 print(f"    ✓ Contract created (id={c.get('id')})")
@@ -728,7 +728,7 @@ def load_demo_data(api: APIClient):
                 return
             # create subscription
             try:
-                sub = {"accountId":acct,"contractId":c.get("id",0),"productId":prod,"startDate":DataGenerator.date_in_past(60),"billingCycle":"Monthly","status":"Active"}
+                sub = {"accountId":acct,"productId":prod,"billingStartDate":DataGenerator.date_in_past(60),"billingCycle":"Monthly"}
                 print(f"    ➤ Subscription payload: {sub}")
                 api.post("/subscriptions", sub)
                 print(f"    ✓ Subscription created")

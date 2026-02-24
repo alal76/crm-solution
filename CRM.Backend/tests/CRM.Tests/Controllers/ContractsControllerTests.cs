@@ -23,14 +23,16 @@ namespace CRM.Tests.Controllers;
 public class ContractsControllerTests
 {
     private readonly Mock<IContractService> _mockContractService;
+    private readonly Mock<IContractExportService> _mockExportService;
     private readonly Mock<ILogger<ContractsController>> _mockLogger;
     private readonly ContractsController _controller;
 
     public ContractsControllerTests()
     {
         _mockContractService = new Mock<IContractService>();
+        _mockExportService = new Mock<IContractExportService>();
         _mockLogger = new Mock<ILogger<ContractsController>>();
-        _controller = new ContractsController(_mockContractService.Object, _mockLogger.Object);
+        _controller = new ContractsController(_mockContractService.Object, _mockExportService.Object, _mockLogger.Object);
     }
 
     private static Contract CreateContract(int id = 1, ContractStatus status = ContractStatus.Draft) => new()

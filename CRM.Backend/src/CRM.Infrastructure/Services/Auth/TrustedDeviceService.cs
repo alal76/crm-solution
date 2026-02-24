@@ -4,6 +4,7 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
+using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -38,14 +39,14 @@ public class TrustedDeviceService : ITrustedDeviceService
     {
         // Check if device already trusted (update instead of creating new)
         var existingDevice = await _db.TrustedDevices
-            .FirstOrDefaultAsync(d => d.UserId == userId && d.DeviceFingerprint == deviceFingerprint && !d.IsRevoked, ct);
+            .FirstOrDefaultAsync(d => d.UserId == userId && d.DeviceId == deviceFingerprint && !d.IsDeleted, ct);
 
         if (existingDevice != null)
         {
-            existingDevice.TrustedUntil = DateTime.UtcNow.AddDays(trustDurationDays);
+            existingDevice.ExpiresAt = DateTime.UtcNow.AddDays(trustDurationDays);
             existingDevice.LastUsedAt = DateTime.UtcNow;
             if (!string.IsNullOrEmpty(deviceName)) existingDevice.DeviceName = deviceName;
-            if (!string.IsNullOrEmpty(ipAddress)) existingDevice.TrustedFromIp = ipAddress;
+            if (!string.IsNullOrEmpty(ipAddress)) existingDevice.IpAddress = ipAddress;
             if (!string.IsNullOrEmpty(userAgent)) existingDevice.UserAgent = userAgent;
 
             await _db.SaveChangesAsync(ct);
@@ -59,18 +60,18 @@ public class TrustedDeviceService : ITrustedDeviceService
         var device = new TrustedDevice
         {
             UserId = userId,
-            DeviceFingerprint = deviceFingerprint,
+            DeviceId = deviceFingerprint,
             DeviceName = deviceName ?? DeriveDeviceName(userAgent),
-            TrustedFromIp = ipAddress,
+            IpAddress = ipAddress,
             UserAgent = userAgent,
-            TrustedUntil = DateTime.UtcNow.AddDays(trustDurationDays),
+            ExpiresAt = DateTime.UtcNow.AddDays(trustDurationDays),
             CreatedAt = DateTime.UtcNow,
         };
 
         _db.TrustedDevices.Add(device);
         await _db.SaveChangesAsync(ct);
 
-        _logger.LogInformation("Trusted device {DeviceId} created for user {UserId}, expires {Expiry}", device.Id, userId, device.TrustedUntil);
+        _logger.LogInformation("Trusted device {DeviceId} created for user {UserId}, expires {Expiry}", device.Id, userId, device.ExpiresAt);
 
         return MapToDto(device);
     }
@@ -80,16 +81,16 @@ public class TrustedDeviceService : ITrustedDeviceService
     {
         return await _db.TrustedDevices
             .AnyAsync(d => d.UserId == userId
-                        && d.DeviceFingerprint == deviceFingerprint
-                        && !d.IsRevoked
-                        && d.TrustedUntil > DateTime.UtcNow, ct);
+                        && d.DeviceId == deviceFingerprint
+                        && !d.IsDeleted
+                        && d.ExpiresAt > DateTime.UtcNow, ct);
     }
 
     /// <inheritdoc />
     public async Task UpdateLastUsedAsync(int userId, string deviceFingerprint, CancellationToken ct = default)
     {
         var device = await _db.TrustedDevices
-            .FirstOrDefaultAsync(d => d.UserId == userId && d.DeviceFingerprint == deviceFingerprint && !d.IsRevoked, ct);
+            .FirstOrDefaultAsync(d => d.UserId == userId && d.DeviceId == deviceFingerprint && !d.IsDeleted, ct);
 
         if (device != null)
         {
@@ -102,11 +103,11 @@ public class TrustedDeviceService : ITrustedDeviceService
     public async Task<IEnumerable<TrustedDeviceDto>> GetTrustedDevicesAsync(int userId, bool includeExpired = false, CancellationToken ct = default)
     {
         var query = _db.TrustedDevices
-            .Where(d => d.UserId == userId && !d.IsRevoked);
+            .Where(d => d.UserId == userId && !d.IsDeleted);
 
         if (!includeExpired)
         {
-            query = query.Where(d => d.TrustedUntil > DateTime.UtcNow);
+            query = query.Where(d => d.ExpiresAt > DateTime.UtcNow);
         }
 
         var devices = await query
@@ -124,8 +125,8 @@ public class TrustedDeviceService : ITrustedDeviceService
 
         if (device == null) return false;
 
-        device.IsRevoked = true;
-        device.RevokedAt = DateTime.UtcNow;
+        device.IsDeleted = true;
+        device.UpdatedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync(ct);
 
         _logger.LogInformation("Revoked trusted device {DeviceId} for user {UserId}", deviceId, userId);
@@ -136,13 +137,13 @@ public class TrustedDeviceService : ITrustedDeviceService
     public async Task<int> RevokeAllDevicesAsync(int userId, CancellationToken ct = default)
     {
         var devices = await _db.TrustedDevices
-            .Where(d => d.UserId == userId && !d.IsRevoked)
+            .Where(d => d.UserId == userId && !d.IsDeleted)
             .ToListAsync(ct);
 
         foreach (var device in devices)
         {
-            device.IsRevoked = true;
-            device.RevokedAt = DateTime.UtcNow;
+            device.IsDeleted = true;
+            device.UpdatedAt = DateTime.UtcNow;
         }
 
         await _db.SaveChangesAsync(ct);
@@ -157,7 +158,7 @@ public class TrustedDeviceService : ITrustedDeviceService
         var cutoffDate = DateTime.UtcNow.AddDays(-90); // Remove devices expired more than 90 days ago
 
         var expiredDevices = await _db.TrustedDevices
-            .Where(d => d.TrustedUntil < cutoffDate || (d.IsRevoked && d.RevokedAt < cutoffDate))
+            .Where(d => d.ExpiresAt < cutoffDate || (d.IsDeleted && d.UpdatedAt < cutoffDate))
             .ToListAsync(ct);
 
         foreach (var device in expiredDevices)
@@ -179,11 +180,11 @@ public class TrustedDeviceService : ITrustedDeviceService
     public async Task<bool> ExtendTrustAsync(int userId, string deviceFingerprint, int extensionDays = 30, CancellationToken ct = default)
     {
         var device = await _db.TrustedDevices
-            .FirstOrDefaultAsync(d => d.UserId == userId && d.DeviceFingerprint == deviceFingerprint && !d.IsRevoked, ct);
+            .FirstOrDefaultAsync(d => d.UserId == userId && d.DeviceId == deviceFingerprint && !d.IsDeleted, ct);
 
         if (device == null) return false;
 
-        device.TrustedUntil = DateTime.UtcNow.AddDays(extensionDays);
+        device.ExpiresAt = DateTime.UtcNow.AddDays(extensionDays);
         device.LastUsedAt = DateTime.UtcNow;
         await _db.SaveChangesAsync(ct);
 
@@ -194,10 +195,10 @@ public class TrustedDeviceService : ITrustedDeviceService
     private static TrustedDeviceDto MapToDto(TrustedDevice device) => new()
     {
         Id = device.Id,
-        DeviceFingerprint = device.DeviceFingerprint,
+        DeviceFingerprint = device.DeviceId,
         DeviceName = device.DeviceName,
-        TrustedFromIp = device.TrustedFromIp,
-        TrustedUntil = device.TrustedUntil,
+        TrustedFromIp = device.IpAddress,
+        TrustedUntil = device.ExpiresAt,
         CreatedAt = device.CreatedAt,
         LastUsedAt = device.LastUsedAt,
     };

@@ -63,7 +63,7 @@ public class CompetitorsController : ControllerBase
                     WinRateAgainst = c.WinRateAgainst,
                     Notes = c.Notes,
                     CreatedAt = c.CreatedAt,
-                    UpdatedAt = c.UpdatedAt
+                    UpdatedAt = c.UpdatedAt ?? c.CreatedAt
                 })
                 .ToListAsync(ct);
 
@@ -110,7 +110,7 @@ public class CompetitorsController : ControllerBase
                 WinRateAgainst = competitor.WinRateAgainst,
                 Notes = competitor.Notes,
                 CreatedAt = competitor.CreatedAt,
-                UpdatedAt = competitor.UpdatedAt
+                UpdatedAt = competitor.UpdatedAt ?? competitor.CreatedAt
             });
         }
         catch (Exception ex)
@@ -293,6 +293,131 @@ public class CompetitorsController : ControllerBase
             return StatusCode(500, "Internal server error");
         }
     }
+
+    /// <summary>
+    /// Links a competitor to an opportunity (TODO-CRM003-03).
+    /// </summary>
+    [HttpPost("{id}/opportunities/{opportunityId}")]
+    [ProducesResponseType(201)]
+    [ProducesResponseType(404)]
+    [ProducesResponseType(409)]
+    public async Task<IActionResult> LinkToOpportunity(
+        int id,
+        int opportunityId,
+        [FromBody] LinkCompetitorToOpportunityDto? dto = null,
+        CancellationToken ct = default)
+    {
+        try
+        {
+            var competitor = await _context.Competitors.FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted, ct);
+            if (competitor == null)
+                return NotFound(new { message = $"Competitor with ID {id} not found" });
+
+            var opportunity = await _context.Opportunities.FirstOrDefaultAsync(o => o.Id == opportunityId && !o.IsDeleted, ct);
+            if (opportunity == null)
+                return NotFound(new { message = $"Opportunity with ID {opportunityId} not found" });
+
+            // Check if already linked
+            var existing = await _context.OpportunityCompetitors
+                .FirstOrDefaultAsync(oc => oc.CompetitorId == id && oc.OpportunityId == opportunityId, ct);
+            if (existing != null)
+                return Conflict(new { message = "Competitor is already linked to this opportunity" });
+
+            var link = new OpportunityCompetitor
+            {
+                OpportunityId = opportunityId,
+                CompetitorId = id,
+                ThreatLevel = !string.IsNullOrEmpty(dto?.ThreatLevel) ? Enum.Parse<CompetitorThreatLevel>(dto.ThreatLevel) : CompetitorThreatLevel.Medium,
+                Status = !string.IsNullOrEmpty(dto?.Status) ? Enum.Parse<OpportunityCompetitorStatus>(dto.Status) : OpportunityCompetitorStatus.Identified,
+                CompetitorPrice = dto?.CompetitorPrice,
+                Notes = dto?.Notes
+            };
+
+            _context.OpportunityCompetitors.Add(link);
+            await (_context as DbContext)!.SaveChangesAsync(ct);
+
+            _logger.LogInformation("Linked competitor {CompetitorId} to opportunity {OpportunityId}", id, opportunityId);
+            return StatusCode(201, new { message = "Competitor linked to opportunity successfully" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error linking competitor {CompetitorId} to opportunity {OpportunityId}", id, opportunityId);
+            return StatusCode(500, "Internal server error");
+        }
+    }
+
+    /// <summary>
+    /// Unlinks a competitor from an opportunity.
+    /// </summary>
+    [HttpDelete("{id}/opportunities/{opportunityId}")]
+    [ProducesResponseType(204)]
+    [ProducesResponseType(404)]
+    public async Task<IActionResult> UnlinkFromOpportunity(int id, int opportunityId, CancellationToken ct = default)
+    {
+        try
+        {
+            var link = await _context.OpportunityCompetitors
+                .FirstOrDefaultAsync(oc => oc.CompetitorId == id && oc.OpportunityId == opportunityId, ct);
+
+            if (link == null)
+                return NotFound(new { message = "Competitor is not linked to this opportunity" });
+
+            _context.OpportunityCompetitors.Remove(link);
+            await (_context as DbContext)!.SaveChangesAsync(ct);
+
+            _logger.LogInformation("Unlinked competitor {CompetitorId} from opportunity {OpportunityId}", id, opportunityId);
+            return NoContent();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error unlinking competitor {CompetitorId} from opportunity {OpportunityId}", id, opportunityId);
+            return StatusCode(500, "Internal server error");
+        }
+    }
+
+    /// <summary>
+    /// Gets all opportunities linked to a competitor.
+    /// </summary>
+    [HttpGet("{id}/opportunities")]
+    [ProducesResponseType(typeof(IEnumerable<CompetitorOpportunityDto>), 200)]
+    [ProducesResponseType(404)]
+    public async Task<IActionResult> GetOpportunities(int id, CancellationToken ct = default)
+    {
+        try
+        {
+            var competitor = await _context.Competitors
+                .AsNoTracking()
+                .FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted, ct);
+
+            if (competitor == null)
+                return NotFound(new { message = $"Competitor with ID {id} not found" });
+
+            var opportunities = await _context.OpportunityCompetitors
+                .AsNoTracking()
+                .Include(oc => oc.Opportunity)
+                .Where(oc => oc.CompetitorId == id && !oc.Opportunity.IsDeleted)
+                .Select(oc => new CompetitorOpportunityDto
+                {
+                    OpportunityId = oc.OpportunityId,
+                    OpportunityName = oc.Opportunity.Name,
+                    Stage = oc.Opportunity.Stage.ToString(),
+                    Amount = oc.Opportunity.Amount,
+                    ThreatLevel = oc.ThreatLevel.ToString(),
+                    Status = oc.Status.ToString(),
+                    CompetitorPrice = oc.CompetitorPrice,
+                    WonAgainst = oc.WonAgainst ?? false,
+                    Notes = oc.Notes
+                })
+                .ToListAsync(ct);
+
+            return Ok(opportunities);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving opportunities for competitor {Id}", id);
+            return StatusCode(500, "Internal server error");
+        }
+    }
 }
 
 #region DTOs
@@ -361,6 +486,33 @@ public class CompetitorWinLossStats
     public decimal TotalDealValue { get; set; }
     public decimal WonDealValue { get; set; }
     public decimal LostDealValue { get; set; }
+}
+
+/// <summary>
+/// DTO for linking a competitor to an opportunity.
+/// </summary>
+public class LinkCompetitorToOpportunityDto
+{
+    public string? ThreatLevel { get; set; }
+    public string? Status { get; set; }
+    public decimal? CompetitorPrice { get; set; }
+    public string? Notes { get; set; }
+}
+
+/// <summary>
+/// DTO for a competitor's linked opportunity.
+/// </summary>
+public class CompetitorOpportunityDto
+{
+    public int OpportunityId { get; set; }
+    public string OpportunityName { get; set; } = string.Empty;
+    public string Stage { get; set; } = string.Empty;
+    public decimal Amount { get; set; }
+    public string? ThreatLevel { get; set; }
+    public string? Status { get; set; }
+    public decimal? CompetitorPrice { get; set; }
+    public bool WonAgainst { get; set; }
+    public string? Notes { get; set; }
 }
 
 #endregion

@@ -89,7 +89,7 @@ public class WebToLeadFormsController : ControllerBase
         if (!ModelState.IsValid)
             return BadRequest(ModelState);
 
-        var updated = await _service.UpdateAsync(form, cancellationToken);
+        var updated = await _service.UpdateAsync(id, form, cancellationToken);
         if (updated == null)
             return NotFound();
         return Ok(updated);
@@ -117,10 +117,16 @@ public class WebToLeadFormsController : ControllerBase
     {
         try
         {
-            var lead = await _service.SubmitFormAsync(embedKey, formData, cancellationToken);
-            if (lead == null)
-                return NotFound("Form not found or inactive");
-            return Ok(lead);
+            var submission = new WebToLeadSubmissionDto
+            {
+                FormEmbedKey = embedKey,
+                FieldValues = formData,
+                IpAddress = HttpContext.Connection.RemoteIpAddress?.ToString()
+            };
+            var result = await _service.ProcessSubmissionAsync(submission, cancellationToken);
+            if (!result.Success)
+                return result.ErrorMessage?.Contains("not found") == true ? NotFound(result.ErrorMessage) : BadRequest(result.ErrorMessage);
+            return Ok(new { leadId = result.LeadId, message = "Lead created successfully" });
         }
         catch (ArgumentException ex)
         {

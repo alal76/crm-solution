@@ -12,6 +12,8 @@ using CRM.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
+using CommissionTierDto = CRM.Core.Interfaces.CommissionTierDto;
+using CommissionTriggerEvent = CRM.Core.Enums.CommissionTriggerEvent;
 
 namespace CRM.Infrastructure.Services;
 
@@ -502,8 +504,16 @@ public class CommissionRulesEngine : ICommissionRulesEngine
 
     private async Task<bool> CheckSubscriptionActiveAsync(int opportunityId, CancellationToken cancellationToken)
     {
+        // Subscription links to Account, not Opportunity — find the opportunity's account first
+        var opportunity = await _context.Opportunities
+            .Where(o => o.Id == opportunityId)
+            .Select(o => new { o.AccountId })
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (opportunity == null) return false;
+
         return await _context.Subscriptions
-            .AnyAsync(s => s.OpportunityId == opportunityId && !s.IsDeleted && s.Status == SubscriptionStatus.Active, cancellationToken);
+            .AnyAsync(s => s.AccountId == opportunity.AccountId && !s.IsDeleted && s.SubscriptionStatus == SubscriptionStatus.Active, cancellationToken);
     }
 
     #endregion

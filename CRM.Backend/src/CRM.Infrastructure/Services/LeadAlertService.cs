@@ -55,7 +55,7 @@ public class LeadAlertService : ILeadAlertService
                 Company = l.CompanyName,
                 Status = l.Status,
                 OwnerId = l.OwnerId,
-                OwnerName = l.Owner?.UserName,
+                OwnerName = l.Owner?.Username,
                 LastContactedAt = l.LastContactedAt,
                 DaysSinceLastContact = daysSinceContact,
                 Score = l.Score,
@@ -90,7 +90,7 @@ public class LeadAlertService : ILeadAlertService
                 Company = l.CompanyName,
                 Status = l.Status,
                 OwnerId = l.OwnerId,
-                OwnerName = l.Owner?.UserName,
+                OwnerName = l.Owner?.Username,
                 CreatedAt = l.CreatedAt,
                 DaysInCurrentStatus = totalAgeDays, // Simplified: using total age
                 TotalAgeDays = totalAgeDays,
@@ -123,7 +123,7 @@ public class LeadAlertService : ILeadAlertService
             ScoreDropPercent = 10,
             RiskReason = l.Score < 30 ? "Very low engagement score" : "Declining engagement",
             OwnerId = l.OwnerId,
-            OwnerName = l.Owner?.UserName
+            OwnerName = l.Owner?.Username
         }).ToList();
     }
 

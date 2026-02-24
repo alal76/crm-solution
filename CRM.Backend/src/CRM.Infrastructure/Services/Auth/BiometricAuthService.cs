@@ -95,12 +95,12 @@ public class BiometricAuthService : IBiometricAuthService
             {
                 UserId = userId,
                 CredentialId = response.CredentialId,
-                PublicKey = response.AttestationObject, // Simplified - should extract pubkey
+                PublicKey = System.Text.Encoding.UTF8.GetBytes(response.AttestationObject), // Simplified - should extract pubkey
                 SignCount = 0,
                 DeviceName = deviceName ?? "Biometric Device",
                 DeviceType = "platform",
                 IsPlatformCredential = true,
-                Transports = response.Transports ?? "internal",
+                Transports = new List<string> { response.Transports ?? "internal" },
                 CreatedAt = DateTime.UtcNow,
                 LastUsedAt = null
             };

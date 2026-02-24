@@ -122,3 +122,46 @@
 - **File:** `CRM.Frontend/src/components/settings/FeatureManagementTab.tsx`
 - **Related:** Demo database deprecation per single database policy in copilot-instructions.md
 - **Where seen:** Admin settings → Features page after v0.560.7 demo database removal
+
+---
+
+## Superset shows no columns in datasets / "missing columns in datasource"
+
+**Symptoms:**
+- Superset dataset editor shows 0 columns for CRM tables
+- Charts fail with "column not found" or show empty results
+- Reports do not render despite data existing in MariaDB
+
+**Root Causes (4 compounding issues — all present simultaneously):**
+
+### 1. `fetch_metadata()` never called after dataset creation
+The original `setup-superset-crm.py` script created datasets but never called `fetch_metadata()`, so Superset had zero column definitions from day one.
+
+### 2. Malformed SQLAlchemy URI — `@` in password breaks host parsing
+Password `CrmPass@Dev2024` contains `@`. Plain string SQLAlchemy URI `mysql://crm_user:CrmPass@Dev2024@crm-mariadb` is parsed as host = `Dev2024@crm-mariadb`, causing connection failure. Fix: URL-encode with `urllib.parse.quote_plus()`, which converts `@` to `%40`.
+
+### 3. Wrong MySQL driver in URI
+`mysql+pymysql://` fails because `pymysql` is not installed in `apache/superset:3.1.0`. Use `mysql+mysqldb://` (backed by `mysqlclient 2.1.0` which is installed).
+
+### 4. Superset and MariaDB on different Docker networks
+`crm-superset` → `crm-solution_crm-network`; `crm-mariadb` → `crm_crm-network`. Fix: connect Superset to the DB network. Applied permanently in `docker/docker-compose.providers.yml` via external network `crm-db-network`.
+
+### 5. Wrong table names registered in Superset (after EF Core migrations)
+
+| Old Name (wrong) | Correct Name |
+|-----------------|--------------|
+| `Customers` | `Accounts` |
+| `SubscriptionUsage` | `SubscriptionUsages` |
+| `SalesForecastHistory` | `ForecastHistories` |
+| `EscalationRules` | `ITSMEscalationRules` |
+
+**Fix — run the refresh script (handles all issues automatically):**
+```bash
+scp scripts/superset-refresh-datasources.py root@192.168.0.9:/tmp/
+ssh root@192.168.0.9 "docker cp /tmp/superset-refresh-datasources.py crm-superset:/tmp/ && docker exec crm-superset python /tmp/superset-refresh-datasources.py"
+```
+
+**Run after every EF Core migration** to keep Superset column definitions in sync.
+
+- **Files modified:** `scripts/superset-refresh-datasources.py` (new helper), `scripts/setup-superset-crm.py` (added `fetch_metadata()`), `docker/docker-compose.providers.yml` (network + driver fix)
+- **Where seen:** v0.581.0, Feb 24 2026 — initial Superset setup via `setup-superset-crm.py`

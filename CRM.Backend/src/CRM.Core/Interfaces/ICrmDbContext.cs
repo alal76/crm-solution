@@ -121,6 +121,7 @@ public interface ICrmDbContext
     // Phase 4 - Sales & Billing
     DbSet<Order> Orders { get; }
     DbSet<OrderLineItem> OrderLineItems { get; }
+    DbSet<OrderReturn> OrderReturns { get; }
     DbSet<Invoice> Invoices { get; }
     DbSet<InvoiceLineItem> InvoiceLineItems { get; }
     DbSet<Payment> Payments { get; }
@@ -132,6 +133,7 @@ public interface ICrmDbContext
     DbSet<BillingHistory> BillingHistories { get; }
     DbSet<DunningRecord> DunningRecords { get; }
     DbSet<Contract> Contracts { get; }
+    DbSet<ContractVersion> ContractVersions { get; }
 
     // Credit Memos
     DbSet<CreditMemo> CreditMemos { get; }
@@ -292,6 +294,7 @@ public interface ICrmDbContext
     DbSet<CRM.Core.Entities.Reports.ReportSchedule> ReportSchedules { get; }
     DbSet<CRM.Core.Entities.Reports.ReportExecution> ReportExecutions { get; }
     DbSet<CRM.Core.Entities.Reports.ReportWidgetConfig> ReportWidgetConfigs { get; }
+    DbSet<ReportShare> ReportShares { get; }
 
     // AI Agent Entities (ADR-004 — Semantic Kernel Integration)
     DbSet<CRM.Core.Entities.AI.AIAgent> AIAgents { get; }
@@ -342,6 +345,12 @@ public interface ICrmDbContext
     DbSet<TrustedDevice> TrustedDevices { get; }
     DbSet<DeviceAuthorizationCode> DeviceAuthorizationCodes { get; }
     DbSet<LoginAttempt> LoginAttempts { get; }
+
+    // Navigation Configuration (TODO-SYS012-002)
+    DbSet<NavigationConfigEntity> NavigationConfigs { get; }
+
+    // Service Request Escalation Logs (TODO-SD005-011)
+    DbSet<EscalationLog> EscalationLogs { get; }
 
     DatabaseFacade Database { get; }
 

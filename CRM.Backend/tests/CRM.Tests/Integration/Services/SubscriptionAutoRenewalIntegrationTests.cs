@@ -10,6 +10,7 @@ using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Services;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
@@ -31,7 +32,7 @@ public class SubscriptionAutoRenewalIntegrationTests : IDisposable
             .UseInMemoryDatabase(databaseName: $"CrmTestDb_AutoRenewal_{Guid.NewGuid()}")
             .Options;
 
-        _context = new CrmDbContext(options);
+        _context = new CrmDbContext(options, new Mock<IConfiguration>().Object);
 
         var logger = new Mock<ILogger<SubscriptionService>>();
         _service = new SubscriptionService(_context, logger.Object);
@@ -45,12 +46,12 @@ public class SubscriptionAutoRenewalIntegrationTests : IDisposable
         var account = new Account
         {
             Id = 1,
-            Name = "Test Company",
+            LegalName = "Test Company",
             Email = "test@company.com",
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
-        _context.Customers.Add(account);
+        _context.Accounts.Add(account);
         _context.SaveChanges();
     }
 
@@ -152,7 +153,7 @@ public class SubscriptionAutoRenewalIntegrationTests : IDisposable
 
         // Assert
         var extendedDays = (renewed.ContractEndDate - renewed.ContractStartDate)!.Value.Days;
-        extendedDays.Should().BeApproximately(365, 1);
+        extendedDays.Should().BeCloseTo(365, 1);
     }
 
     [Fact]

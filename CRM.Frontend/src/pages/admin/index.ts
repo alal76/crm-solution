@@ -37,4 +37,6 @@ export { default as CRMConfigurationPage } from './CRMConfigurationPage';
 export { default as SalesConfigPage } from './SalesConfigPage';
 export { default as ServiceDeskConfigPage } from './ServiceDeskConfigPage';
 export { default as AuditLoggingPage } from './AuditLoggingPage';
+export { default as SessionActivityPage } from './SessionActivityPage';
+export { default as BusinessHoursConfigPage } from './BusinessHoursConfigPage';
 export { default as ProvidersPage } from './ProvidersPage';

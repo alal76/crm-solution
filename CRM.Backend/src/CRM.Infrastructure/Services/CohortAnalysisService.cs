@@ -4,6 +4,7 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
+using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -78,7 +79,7 @@ public class CohortAnalysisService : ICohortAnalysisService
         var endDate = criteria.EndDate ?? DateTime.UtcNow;
 
         // Group customers by acquisition month
-        var customers = await _context.Customers
+        var customers = await _context.Accounts
             .Where(c => !c.IsDeleted && c.CreatedAt >= startDate && c.CreatedAt <= endDate)
             .Select(c => new { c.Id, c.CreatedAt })
             .ToListAsync(cancellationToken);
@@ -102,8 +103,8 @@ public class CohortAnalysisService : ICohortAnalysisService
     {
         // Segment customers by total revenue
         var customerRevenue = await _context.Opportunities
-            .Where(o => !o.IsDeleted && o.Stage == "Closed Won" && o.AccountId.HasValue)
-            .GroupBy(o => o.AccountId!.Value)
+            .Where(o => !o.IsDeleted && o.Stage == OpportunityStage.ClosedWon)
+            .GroupBy(o => o.AccountId)
             .Select(g => new { CustomerId = g.Key, TotalRevenue = g.Sum(o => o.Amount) })
             .ToListAsync(cancellationToken);
 
@@ -143,8 +144,8 @@ public class CohortAnalysisService : ICohortAnalysisService
 
         // Get last activity date for each customer
         var customerActivity = await _context.Activities
-            .Where(a => !a.IsDeleted)
-            .GroupBy(a => a.EntityId)
+            .Where(a => !a.IsDeleted && a.EntityId.HasValue)
+            .GroupBy(a => a.EntityId!.Value)
             .Select(g => new { CustomerId = g.Key, LastActivity = g.Max(a => a.ActivityDate) })
             .ToListAsync(cancellationToken);
 
@@ -183,7 +184,7 @@ public class CohortAnalysisService : ICohortAnalysisService
         CohortCriteria criteria,
         CancellationToken cancellationToken)
     {
-        var customers = await _context.Customers
+        var customers = await _context.Accounts
             .Where(c => !c.IsDeleted)
             .GroupBy(c => c.Industry ?? "Unknown")
             .Select(g => new { Industry = g.Key, CustomerIds = g.Select(c => c.Id).ToList() })
@@ -204,9 +205,9 @@ public class CohortAnalysisService : ICohortAnalysisService
         CohortCriteria criteria,
         CancellationToken cancellationToken)
     {
-        var customers = await _context.Customers
+        var customers = await _context.Accounts
             .Where(c => !c.IsDeleted)
-            .GroupBy(c => c.BillingCountry ?? "Unknown")
+            .GroupBy(c => c.Country ?? "Unknown")
             .Select(g => new { Country = g.Key, CustomerIds = g.Select(c => c.Id).ToList() })
             .ToListAsync(cancellationToken);
 
@@ -239,16 +240,16 @@ public class CohortAnalysisService : ICohortAnalysisService
         try
         {
             // Get acquisition cohorts
-            var customers = await _context.Customers
-                .Where(c => !c.IsDeleted && c.CreatedAt >= startDate && c.CreatedAt <= endDate)
-                .Select(c => new { c.Id, c.CreatedAt })
-                .ToListAsync(cancellationToken);
+var customers = await _context.Accounts
+            .Where(c => !c.IsDeleted && c.CreatedAt >= startDate && c.CreatedAt <= endDate)
+            .Select(c => new { c.Id, c.CreatedAt })
+            .ToListAsync(cancellationToken);
 
             // Get all activities for these customers
             var customerIds = customers.Select(c => c.Id).ToList();
             var activities = await _context.Activities
-                .Where(a => !a.IsDeleted && customerIds.Contains(a.EntityId))
-                .Select(a => new { a.EntityId, a.ActivityDate })
+                .Where(a => !a.IsDeleted && a.EntityId.HasValue && customerIds.Contains(a.EntityId.Value))
+                .Select(a => new { EntityId = a.EntityId!.Value, a.ActivityDate })
                 .ToListAsync(cancellationToken);
 
             // Group by acquisition period

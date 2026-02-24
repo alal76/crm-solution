@@ -70,30 +70,7 @@ public enum QuotaMetric
     Custom = 9
 }
 
-/// <summary>
-/// FUNCTIONAL: Forecast category for opportunities.
-/// TECHNICAL: Used for pipeline analysis.
-/// </summary>
-public enum ForecastCategory
-{
-    /// <summary>In pipeline, uncertain</summary>
-    Pipeline = 0,
-
-    /// <summary>Best case - optimistic forecast</summary>
-    BestCase = 1,
-
-    /// <summary>Commit - high confidence forecast</summary>
-    Commit = 2,
-
-    /// <summary>Closed won - already won</summary>
-    ClosedWon = 3,
-
-    /// <summary>Omitted - excluded from forecast</summary>
-    Omitted = 4,
-
-    /// <summary>Most likely - expected outcome</summary>
-    MostLikely = 5
-}
+// ForecastCategory enum moved to Opportunity.cs (single definition)
 
 #endregion
 

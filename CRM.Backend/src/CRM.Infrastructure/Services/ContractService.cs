@@ -842,7 +842,7 @@ public class ContractService : IContractService
 
         _logger.LogInformation("Bulk updating {Count} contracts to status {Status}", ids.Count, status);
 
-        var contracts = await _dbContext.Contracts
+        var contracts = await _context.Contracts
             .Where(c => ids.Contains(c.Id) && !c.IsDeleted)
             .ToListAsync(cancellationToken);
 
@@ -852,7 +852,7 @@ public class ContractService : IContractService
             contract.UpdatedAt = DateTime.UtcNow;
         }
 
-        await _dbContext.SaveChangesAsync(cancellationToken);
+        await _context.SaveChangesAsync(cancellationToken);
         _logger.LogInformation("Bulk updated {Count} contracts to status {Status}", contracts.Count, status);
 
         return contracts.Count;
@@ -865,7 +865,7 @@ public class ContractService : IContractService
     /// <summary>Gets version history for a contract.</summary>
     public async Task<IEnumerable<ContractVersion>> GetVersionHistoryAsync(int contractId, CancellationToken cancellationToken = default)
     {
-        return await _dbContext.ContractVersions
+        return await _context.ContractVersions
             .Where(v => v.ContractId == contractId)
             .OrderByDescending(v => v.VersionNumber)
             .ToListAsync(cancellationToken);
@@ -881,7 +881,7 @@ public class ContractService : IContractService
         }
 
         // Mark previous versions as not current
-        var previousVersions = await _dbContext.ContractVersions
+        var previousVersions = await _context.ContractVersions
             .Where(v => v.ContractId == contractId && v.IsCurrent)
             .ToListAsync(cancellationToken);
 
@@ -891,7 +891,7 @@ public class ContractService : IContractService
         }
 
         // Get next version number
-        var lastVersion = await _dbContext.ContractVersions
+        var lastVersion = await _context.ContractVersions
             .Where(v => v.ContractId == contractId)
             .OrderByDescending(v => v.VersionNumber)
             .FirstOrDefaultAsync(cancellationToken);
@@ -904,16 +904,15 @@ public class ContractService : IContractService
             contract.Name,
             contract.ContractNumber,
             contract.Description,
-            contract.Type,
+            ContractType = contract.ContractType,
             contract.Status,
             contract.StartDate,
             contract.EndDate,
             contract.TotalValue,
             contract.TermsAndConditions,
             contract.PaymentTerms,
-            contract.SignatureRequired,
             contract.AutoRenew,
-            contract.RenewalTermMonths
+            contract.RenewalNoticeDays
         });
 
         var version = new ContractVersion
@@ -924,12 +923,12 @@ public class ContractService : IContractService
             ChangesJson = "[]", // Could be populated with actual diff
             SnapshotJson = snapshot,
             IsCurrent = true,
-            ModifiedByUserId = modifiedByUserId,
+            CreatedById = modifiedByUserId ?? 0,
             CreatedAt = DateTime.UtcNow
         };
 
-        _dbContext.ContractVersions.Add(version);
-        await _dbContext.SaveChangesAsync(cancellationToken);
+        _context.ContractVersions.Add(version);
+        await _context.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation("Created version {Version} for contract {ContractId}", nextVersionNumber, contractId);
         return version;
@@ -944,7 +943,7 @@ public class ContractService : IContractService
             throw new InvalidOperationException($"Contract {contractId} not found");
         }
 
-        var version = await _dbContext.ContractVersions
+        var version = await _context.ContractVersions
             .FirstOrDefaultAsync(v => v.Id == versionId && v.ContractId == contractId, cancellationToken);
 
         if (version == null)
@@ -977,7 +976,7 @@ public class ContractService : IContractService
         // Create a new version recording the restore
         await CreateVersionSnapshotAsync(contractId, $"Restored from version {version.VersionNumber}", null, cancellationToken);
 
-        await _dbContext.SaveChangesAsync(cancellationToken);
+        await _context.SaveChangesAsync(cancellationToken);
 
         _logger.LogInformation("Restored contract {ContractId} to version {VersionId}", contractId, versionId);
         return contract;

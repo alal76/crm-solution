@@ -326,8 +326,9 @@ public class AuditLogsController : ControllerBase
     /// <param name="entityType">Filter by entity type (optional).</param>
     /// <param name="fromDate">Filter by start date (optional).</param>
     /// <param name="toDate">Filter by end date (optional).</param>
+    /// <param name="format">Export format: csv (default), json, or pdf. TODO-SYS006-008</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>CSV file download.</returns>
+    /// <returns>File download in the requested format.</returns>
     [HttpGet("export")]
     [RequireRole(UserRole.Admin)]
     [ProducesResponseType(typeof(FileContentResult), StatusCodes.Status200OK)]
@@ -336,18 +337,19 @@ public class AuditLogsController : ControllerBase
         [FromQuery] string? entityType = null,
         [FromQuery] DateTime? fromDate = null,
         [FromQuery] DateTime? toDate = null,
+        [FromQuery] string format = "csv",
         CancellationToken cancellationToken = default)
     {
         try
         {
-            var csvBytes = await _auditLogService.ExportToCsvAsync(entityType, fromDate, toDate, cancellationToken);
-            var fileName = $"audit_logs_{DateTime.UtcNow:yyyyMMdd_HHmmss}.csv";
+            var (data, contentType, fileName) = await _auditLogService.ExportAuditLogsAsync(
+                format, entityType, fromDate, toDate, cancellationToken);
 
-            return File(csvBytes, "text/csv", fileName);
+            return File(data, contentType, fileName);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error exporting audit logs");
+            _logger.LogError(ex, "Error exporting audit logs in {Format} format", format);
             return StatusCode(500, new { error = "Failed to export audit logs" });
         }
     }

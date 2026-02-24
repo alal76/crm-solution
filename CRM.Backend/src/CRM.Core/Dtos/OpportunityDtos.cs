@@ -177,4 +177,86 @@ namespace CRM.Core.DTOs
         public string? Notes { get; set; }
         public bool? IsDeleted { get; set; }
     }
+
+    // --- Team Member DTOs (TODO-CRM003-08) ---
+
+    /// <summary>
+    /// DTO for opportunity team member.
+    /// </summary>
+    public class OpportunityTeamMemberDto
+    {
+        public int Id { get; set; }
+        public int OpportunityId { get; set; }
+        public int UserId { get; set; }
+        public string? UserName { get; set; }
+        public int Role { get; set; }
+        public string? RoleName { get; set; }
+        public decimal SplitPercentage { get; set; }
+        public bool IsPrimary { get; set; }
+        public int? CommissionPlanId { get; set; }
+        public string? Notes { get; set; }
+        public DateTime CreatedAt { get; set; }
+    }
+
+    /// <summary>
+    /// DTO for creating a team member on an opportunity.
+    /// </summary>
+    public class CreateTeamMemberDto
+    {
+        [Required]
+        public int UserId { get; set; }
+
+        public int Role { get; set; } // OpportunityTeamRole enum
+
+        [Range(0, 100)]
+        public decimal SplitPercentage { get; set; }
+
+        public bool IsPrimary { get; set; }
+        public int? CommissionPlanId { get; set; }
+        public string? Notes { get; set; }
+    }
+
+    /// <summary>
+    /// DTO for updating a team member on an opportunity.
+    /// </summary>
+    public class UpdateTeamMemberDto
+    {
+        public int? Role { get; set; }
+        public decimal? SplitPercentage { get; set; }
+        public bool? IsPrimary { get; set; }
+        public int? CommissionPlanId { get; set; }
+        public string? Notes { get; set; }
+    }
+
+    // --- Opportunity Competitor DTOs (TODO-CRM003-03) ---
+
+    /// <summary>
+    /// DTO for a competitor linked to an opportunity.
+    /// </summary>
+    public class OpportunityCompetitorDto
+    {
+        public int OpportunityId { get; set; }
+        public int CompetitorId { get; set; }
+        public string? CompetitorName { get; set; }
+        public string? ThreatLevel { get; set; }
+        public string? Status { get; set; }
+        public decimal? CompetitorPrice { get; set; }
+        public bool WonAgainst { get; set; }
+        public string? Notes { get; set; }
+        public DateTime CreatedAt { get; set; }
+    }
+
+    /// <summary>
+    /// DTO for adding a competitor to an opportunity.
+    /// </summary>
+    public class CreateOpportunityCompetitorDto
+    {
+        [Required]
+        public int CompetitorId { get; set; }
+
+        public string? ThreatLevel { get; set; }
+        public string? Status { get; set; }
+        public decimal? CompetitorPrice { get; set; }
+        public string? Notes { get; set; }
+    }
 }

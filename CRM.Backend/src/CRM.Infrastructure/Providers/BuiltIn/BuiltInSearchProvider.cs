@@ -298,7 +298,11 @@ public class BuiltInSearchProvider : ISearchPort
 
     private static IEnumerable<string> GetSearchableEntityTypes(string? requestedType)
     {
-        var allTypes = new[] { "Account", "Contact", "Opportunity", "Product", "KnowledgeArticle" };
+        var allTypes = new[]
+        {
+            "Account", "Contact", "Opportunity", "Product", "KnowledgeArticle",
+            "Lead", "ServiceRequest", "Campaign", "Order", "Invoice", "Contract"
+        };
 
         if (string.IsNullOrEmpty(requestedType))
         {
@@ -322,6 +326,12 @@ public class BuiltInSearchProvider : ISearchPort
             "Opportunity" => await SearchOpportunityHitsAsync(context, query, request.IncludeHighlights, cancellationToken),
             "Product" => await SearchProductHitsAsync(context, query, request.IncludeHighlights, cancellationToken),
             "KnowledgeArticle" => await SearchKnowledgeArticleHitsAsync(context, query, request.IncludeHighlights, cancellationToken),
+            "Lead" => await SearchLeadHitsAsync(context, query, request.IncludeHighlights, cancellationToken),
+            "ServiceRequest" => await SearchServiceRequestHitsAsync(context, query, request.IncludeHighlights, cancellationToken),
+            "Campaign" => await SearchCampaignHitsAsync(context, query, request.IncludeHighlights, cancellationToken),
+            "Order" => await SearchOrderHitsAsync(context, query, request.IncludeHighlights, cancellationToken),
+            "Invoice" => await SearchInvoiceHitsAsync(context, query, request.IncludeHighlights, cancellationToken),
+            "Contract" => await SearchContractHitsAsync(context, query, request.IncludeHighlights, cancellationToken),
             _ => new List<SearchHit>()
         };
     }
@@ -479,6 +489,189 @@ public class BuiltInSearchProvider : ISearchPort
             {
                 ["Number"] = a.Number ?? string.Empty,
                 ["ViewCount"] = a.ViewCount
+            }
+        }).ToList();
+    }
+
+    private async Task<List<SearchHit>> SearchLeadHitsAsync(
+        ICrmDbContext context,
+        string query,
+        bool includeHighlights,
+        CancellationToken cancellationToken)
+    {
+        var leads = await context.Leads
+            .Where(l => !l.IsDeleted && (
+                l.FirstName.ToLower().Contains(query) ||
+                l.LastName.ToLower().Contains(query) ||
+                l.Email.ToLower().Contains(query) ||
+                (l.CompanyName != null && l.CompanyName.ToLower().Contains(query))))
+            .Take(50)
+            .ToListAsync(cancellationToken);
+
+        return leads.Select(l => new SearchHit
+        {
+            Id = l.Id.ToString(),
+            EntityType = "Lead",
+            Title = $"{l.FirstName} {l.LastName}".Trim(),
+            Description = l.CompanyName ?? l.Email,
+            Score = CalculateScore(query, l.FirstName, l.LastName, l.Email, l.CompanyName ?? string.Empty),
+            Highlights = includeHighlights ? GetHighlights(query, $"{l.FirstName} {l.LastName}", l.Email) : null,
+            Metadata = new Dictionary<string, object>
+            {
+                ["Email"] = l.Email ?? string.Empty,
+                ["Status"] = l.Status.ToString(),
+                ["Score"] = l.Score
+            }
+        }).ToList();
+    }
+
+    private async Task<List<SearchHit>> SearchServiceRequestHitsAsync(
+        ICrmDbContext context,
+        string query,
+        bool includeHighlights,
+        CancellationToken cancellationToken)
+    {
+        var tickets = await context.ServiceRequests
+            .Where(sr => !sr.IsDeleted && (
+                sr.TicketNumber.ToLower().Contains(query) ||
+                sr.Subject.ToLower().Contains(query) ||
+                (sr.Description != null && sr.Description.ToLower().Contains(query))))
+            .Take(50)
+            .ToListAsync(cancellationToken);
+
+        return tickets.Select(sr => new SearchHit
+        {
+            Id = sr.Id.ToString(),
+            EntityType = "ServiceRequest",
+            Title = $"{sr.TicketNumber}: {sr.Subject}",
+            Description = sr.Description != null ? TruncateText(sr.Description, 200) : sr.Status.ToString(),
+            Score = CalculateScore(query, sr.TicketNumber, sr.Subject),
+            Highlights = includeHighlights ? GetHighlights(query, sr.Subject, sr.Description) : null,
+            Metadata = new Dictionary<string, object>
+            {
+                ["TicketNumber"] = sr.TicketNumber,
+                ["Status"] = sr.Status.ToString(),
+                ["Priority"] = sr.Priority.ToString()
+            }
+        }).ToList();
+    }
+
+    private async Task<List<SearchHit>> SearchCampaignHitsAsync(
+        ICrmDbContext context,
+        string query,
+        bool includeHighlights,
+        CancellationToken cancellationToken)
+    {
+        var campaigns = await context.MarketingCampaigns
+            .Where(c => !c.IsDeleted && (
+                c.Name.ToLower().Contains(query) ||
+                (c.CampaignCode != null && c.CampaignCode.ToLower().Contains(query)) ||
+                c.Description.ToLower().Contains(query)))
+            .Take(50)
+            .ToListAsync(cancellationToken);
+
+        return campaigns.Select(c => new SearchHit
+        {
+            Id = c.Id.ToString(),
+            EntityType = "Campaign",
+            Title = c.Name,
+            Description = c.CampaignCode ?? TruncateText(c.Description, 200),
+            Score = CalculateScore(query, c.Name, c.CampaignCode ?? string.Empty),
+            Highlights = includeHighlights ? GetHighlights(query, c.Name, c.Description) : null,
+            Metadata = new Dictionary<string, object>
+            {
+                ["CampaignCode"] = c.CampaignCode ?? string.Empty,
+                ["Type"] = c.CampaignType.ToString()
+            }
+        }).ToList();
+    }
+
+    private async Task<List<SearchHit>> SearchOrderHitsAsync(
+        ICrmDbContext context,
+        string query,
+        bool includeHighlights,
+        CancellationToken cancellationToken)
+    {
+        var orders = await context.Orders
+            .Where(o => !o.IsDeleted && (
+                o.OrderNumber.ToLower().Contains(query) ||
+                o.Name.ToLower().Contains(query) ||
+                (o.CustomerPONumber != null && o.CustomerPONumber.ToLower().Contains(query))))
+            .Take(50)
+            .ToListAsync(cancellationToken);
+
+        return orders.Select(o => new SearchHit
+        {
+            Id = o.Id.ToString(),
+            EntityType = "Order",
+            Title = $"{o.OrderNumber}: {o.Name}",
+            Description = o.Description ?? o.Status.ToString(),
+            Score = CalculateScore(query, o.OrderNumber, o.Name),
+            Highlights = includeHighlights ? GetHighlights(query, o.OrderNumber, o.Name) : null,
+            Metadata = new Dictionary<string, object>
+            {
+                ["OrderNumber"] = o.OrderNumber,
+                ["Status"] = o.Status.ToString()
+            }
+        }).ToList();
+    }
+
+    private async Task<List<SearchHit>> SearchInvoiceHitsAsync(
+        ICrmDbContext context,
+        string query,
+        bool includeHighlights,
+        CancellationToken cancellationToken)
+    {
+        var invoices = await context.Invoices
+            .Where(i => !i.IsDeleted && (
+                i.InvoiceNumber.ToLower().Contains(query) ||
+                (i.ReferenceNumber != null && i.ReferenceNumber.ToLower().Contains(query)) ||
+                (i.Description != null && i.Description.ToLower().Contains(query))))
+            .Take(50)
+            .ToListAsync(cancellationToken);
+
+        return invoices.Select(i => new SearchHit
+        {
+            Id = i.Id.ToString(),
+            EntityType = "Invoice",
+            Title = i.InvoiceNumber,
+            Description = i.Description ?? i.Status.ToString(),
+            Score = CalculateScore(query, i.InvoiceNumber, i.ReferenceNumber ?? string.Empty),
+            Highlights = includeHighlights ? GetHighlights(query, i.InvoiceNumber, i.Description) : null,
+            Metadata = new Dictionary<string, object>
+            {
+                ["InvoiceNumber"] = i.InvoiceNumber,
+                ["Status"] = i.Status.ToString()
+            }
+        }).ToList();
+    }
+
+    private async Task<List<SearchHit>> SearchContractHitsAsync(
+        ICrmDbContext context,
+        string query,
+        bool includeHighlights,
+        CancellationToken cancellationToken)
+    {
+        var contracts = await context.Contracts
+            .Where(c => !c.IsDeleted && (
+                c.ContractNumber.ToLower().Contains(query) ||
+                c.Name.ToLower().Contains(query) ||
+                (c.Description != null && c.Description.ToLower().Contains(query))))
+            .Take(50)
+            .ToListAsync(cancellationToken);
+
+        return contracts.Select(c => new SearchHit
+        {
+            Id = c.Id.ToString(),
+            EntityType = "Contract",
+            Title = $"{c.ContractNumber}: {c.Name}",
+            Description = c.Description ?? c.Status.ToString(),
+            Score = CalculateScore(query, c.ContractNumber, c.Name),
+            Highlights = includeHighlights ? GetHighlights(query, c.Name, c.Description) : null,
+            Metadata = new Dictionary<string, object>
+            {
+                ["ContractNumber"] = c.ContractNumber,
+                ["Status"] = c.Status.ToString()
             }
         }).ToList();
     }

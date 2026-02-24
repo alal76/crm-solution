@@ -221,6 +221,8 @@ const ServiceDeskConfigPage = lazy(() => import('./pages/admin/ServiceDeskConfig
 const AuditLoggingPage = lazy(() => import('./pages/admin/AuditLoggingPage'));
 const ApiUsersPage = lazy(() => import('./pages/admin/ApiUsersPage'));
 const UICustomizationPage = lazy(() => import('./pages/admin/UICustomizationPage'));
+const SessionActivityPage = lazy(() => import('./pages/admin/SessionActivityPage'));
+const BusinessHoursConfigPage = lazy(() => import('./pages/admin/BusinessHoursConfigPage'));
 
 // Analytics & Reports Pages (main navigation)
 const AnalyticsPage = lazy(() => import('./pages/AnalyticsPage'));
@@ -1200,6 +1202,8 @@ function ThemedApp() {
                 <Route path="settings/sales" element={<SalesConfigPage />} />
                 <Route path="settings/service-desk" element={<ServiceDeskConfigPage />} />
                 <Route path="audit" element={<AuditLoggingPage />} />
+                <Route path="sessions" element={<SessionActivityPage />} />
+                <Route path="business-hours" element={<BusinessHoursConfigPage />} />
                 <Route path="api-users" element={<ApiUsersPage />} />
                 <Route path="ui-customization" element={<UICustomizationPage />} />
                 <Route path="api-docs" element={<ApiDocumentationPage />} />

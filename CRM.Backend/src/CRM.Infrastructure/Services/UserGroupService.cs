@@ -415,7 +415,10 @@ public class UserGroupService : IUserGroupService, IUserGroupInputPort
                     entityName: group.Name,
                     userId: null,
                     oldValues: oldValues,
-                    newValues: newValues);
+                    newValues: newValues,
+                    changedProperties: newValues.Keys
+                        .Where(k => !oldValues.ContainsKey(k) || !Equals(oldValues[k], newValues[k]))
+                        .ToList());
             }
 
             return MapToDto(group);
@@ -497,6 +500,17 @@ public class UserGroupService : IUserGroupService, IUserGroupInputPort
 
             _context.UserGroupMembers.Add(member);
             await _context.SaveChangesAsync();
+
+            // TODO-SYS003-003: Audit log for group membership changes
+            if (_auditLogService != null)
+            {
+                await _auditLogService.LogActionAsync(
+                    "UserAddedToGroup",
+                    "UserGroup",
+                    groupId,
+                    userId,
+                    $"User {userId} added to group '{group.Name}' (ID: {groupId})");
+            }
         }
         catch (Exception ex)
         {
@@ -517,6 +531,18 @@ public class UserGroupService : IUserGroupService, IUserGroupInputPort
 
             _context.UserGroupMembers.Remove(member);
             await _context.SaveChangesAsync();
+
+            // TODO-SYS003-003: Audit log for group membership changes
+            if (_auditLogService != null)
+            {
+                var group = await _context.UserGroups.FindAsync(groupId);
+                await _auditLogService.LogActionAsync(
+                    "UserRemovedFromGroup",
+                    "UserGroup",
+                    groupId,
+                    userId,
+                    $"User {userId} removed from group '{group?.Name ?? "Unknown"}' (ID: {groupId})");
+            }
         }
         catch (Exception ex)
         {

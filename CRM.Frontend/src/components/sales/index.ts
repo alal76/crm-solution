@@ -28,3 +28,7 @@ export { default as PlanSelector } from './PlanSelector';
 export type { Plan } from './PlanSelector';
 export { default as SubscriptionTimeline } from './SubscriptionTimeline';
 export type { TimelineEvent } from './SubscriptionTimeline';
+
+// Product Bundle
+export { default as ProductBundleWizard } from './ProductBundleWizard';
+export type { BundleConfig, BundleLineItem, ProductBundleWizardProps } from './ProductBundleWizard';

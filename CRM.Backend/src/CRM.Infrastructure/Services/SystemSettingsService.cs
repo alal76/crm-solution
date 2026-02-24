@@ -221,6 +221,22 @@ public class SystemSettingsService : ISystemSettingsService, ISystemSettingsInpu
 
             if (!string.IsNullOrWhiteSpace(request.WorkerControlState))
             {
+                var allowed = new[]
+                {
+                    CRM.Core.Constants.WorkerControlStates.Running,
+                    CRM.Core.Constants.WorkerControlStates.Paused,
+                    CRM.Core.Constants.WorkerControlStates.StopRequested,
+                    CRM.Core.Constants.WorkerControlStates.RestartRequested,
+                    CRM.Core.Constants.WorkerControlStates.Stopped
+                };
+
+                if (!allowed.Contains(request.WorkerControlState, StringComparer.OrdinalIgnoreCase))
+                {
+                    throw new ArgumentException(
+                        $"WorkerControlState must be one of: {string.Join(", ", allowed)}. Got: '{request.WorkerControlState}'.",
+                        nameof(request.WorkerControlState));
+                }
+
                 settings.WorkerControlState = request.WorkerControlState;
             }
 

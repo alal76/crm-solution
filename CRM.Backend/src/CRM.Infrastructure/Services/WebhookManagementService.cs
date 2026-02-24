@@ -641,6 +641,8 @@ public class WebhookDispatcherService : IWebhookDispatcherService, IWebhookDispa
 
         _logger.LogInformation("Batch of {EventCount} events dispatched with correlation {CorrelationId}",
             events.Count, batchCorrelationId);
+    }
+
     public async Task ProcessQueueAsync(CancellationToken cancellationToken = default)
     {
         var pendingDeliveries = await _context.WebhookDeliveries

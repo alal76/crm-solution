@@ -25,7 +25,6 @@ import commissionService, {
 } from '../services/commissionService';
 import logger from '../services/logger';
 import { EnhancedEmptyState } from '../components/common';
-import logo from '../assets/logo.png';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
@@ -139,13 +138,13 @@ export default function CommissionStatementsPage() {
     switch (periodFilter) {
       case 'current':
         filtered = filtered.filter(s => {
-          const startDate = new Date(s.periodStart);
+          const startDate = new Date(s.periodStart || s.periodStartDate);
           return startDate.getMonth() === currentMonth && startDate.getFullYear() === currentYear;
         });
         break;
       case 'previous':
         filtered = filtered.filter(s => {
-          const startDate = new Date(s.periodStart);
+          const startDate = new Date(s.periodStart || s.periodStartDate);
           const prevMonth = currentMonth === 0 ? 11 : currentMonth - 1;
           const prevYear = currentMonth === 0 ? currentYear - 1 : currentYear;
           return startDate.getMonth() === prevMonth && startDate.getFullYear() === prevYear;
@@ -153,13 +152,13 @@ export default function CommissionStatementsPage() {
         break;
       case 'ytd':
         filtered = filtered.filter(s => {
-          const startDate = new Date(s.periodStart);
+          const startDate = new Date(s.periodStart || s.periodStartDate);
           return startDate.getFullYear() === currentYear;
         });
         break;
     }
     
-    return filtered.sort((a, b) => new Date(b.periodStart).getTime() - new Date(a.periodStart).getTime());
+    return filtered.sort((a, b) => new Date(b.periodStart || b.periodStartDate).getTime() - new Date(a.periodStart || a.periodStartDate).getTime());
   }, [statements, statusFilter, periodFilter]);
 
   // ============================================================================
@@ -167,16 +166,16 @@ export default function CommissionStatementsPage() {
   // ============================================================================
 
   const summaryStats = useMemo(() => {
-    const totalEarnings = filteredStatements.reduce((sum, s) => sum + s.totalAmount, 0);
+    const totalEarnings = filteredStatements.reduce((sum, s) => sum + (s.totalAmount ?? s.totalEarned ?? 0), 0);
     const pendingAmount = filteredStatements
       .filter(s => s.status === CommissionStatementStatus.PendingApproval)
-      .reduce((sum, s) => sum + s.totalAmount, 0);
+      .reduce((sum, s) => sum + (s.totalAmount ?? s.totalEarned ?? 0), 0);
     const paidAmount = filteredStatements
       .filter(s => s.status === CommissionStatementStatus.Paid)
-      .reduce((sum, s) => sum + s.totalAmount, 0);
+      .reduce((sum, s) => sum + (s.totalAmount ?? s.totalEarned ?? 0), 0);
     const approvedAmount = filteredStatements
       .filter(s => s.status === CommissionStatementStatus.Approved)
-      .reduce((sum, s) => sum + s.totalAmount, 0);
+      .reduce((sum, s) => sum + (s.totalAmount ?? s.totalEarned ?? 0), 0);
       
     return { totalEarnings, pendingAmount, paidAmount, approvedAmount };
   }, [filteredStatements]);
@@ -384,11 +383,11 @@ export default function CommissionStatementsPage() {
         <Box display="flex" justifyContent="center" p={4}><CircularProgress /></Box>
       ) : filteredStatements.length === 0 ? (
         <EnhancedEmptyState
-          logo={logo}
+          illustration="generic"
           title="No Commission Statements"
           description="No commission statements found for the selected filters."
-          actionLabel="Generate Statement"
-          onAction={() => setGenerateDialogOpen(true)}
+          primaryActionLabel="Generate Statement"
+          onPrimaryAction={() => setGenerateDialogOpen(true)}
         />
       ) : (
         <TableContainer component={Paper}>
@@ -408,12 +407,12 @@ export default function CommissionStatementsPage() {
               {filteredStatements.map((statement) => (
                 <TableRow key={statement.id} hover>
                   <TableCell>
-                    {formatDate(statement.periodStart)} - {formatDate(statement.periodEnd)}
+                    {formatDate(statement.periodStart || statement.periodStartDate)} - {formatDate(statement.periodEnd || statement.periodEndDate)}
                   </TableCell>
-                  <TableCell>{statement.userName || `User #${statement.userId}`}</TableCell>
-                  <TableCell align="right">{formatCurrency(statement.totalAmount)}</TableCell>
-                  <TableCell align="right">{formatCurrency(statement.adjustments || 0)}</TableCell>
-                  <TableCell align="right">{formatCurrency(statement.netAmount || statement.totalAmount)}</TableCell>
+                  <TableCell>{statement.userName || statement.user?.firstName ? `${statement.user?.firstName || ''} ${statement.user?.lastName || ''}`.trim() : `User #${statement.userId}`}</TableCell>
+                  <TableCell align="right">{formatCurrency(statement.totalAmount ?? statement.totalEarned ?? 0)}</TableCell>
+                  <TableCell align="right">{formatCurrency(statement.adjustments ?? statement.totalAdjustments ?? 0)}</TableCell>
+                  <TableCell align="right">{formatCurrency(statement.netAmount ?? statement.netPayout ?? statement.totalAmount ?? statement.totalEarned ?? 0)}</TableCell>
                   <TableCell align="center">
                     <Chip
                       label={getStatementStatusLabel(statement.status)}
@@ -460,7 +459,7 @@ export default function CommissionStatementsPage() {
           Commission Statement
           {selectedStatement && (
             <Typography variant="subtitle1" color="textSecondary">
-              {formatDate(selectedStatement.periodStart)} - {formatDate(selectedStatement.periodEnd)}
+              {formatDate(selectedStatement.periodStart || selectedStatement.periodStartDate)} - {formatDate(selectedStatement.periodEnd || selectedStatement.periodEndDate)}
             </Typography>
           )}
         </DialogTitle>
@@ -470,15 +469,15 @@ export default function CommissionStatementsPage() {
               <Grid container spacing={2} mb={3}>
                 <Grid item xs={4}>
                   <Typography variant="caption" color="textSecondary">Total Amount</Typography>
-                  <Typography variant="h6">{formatCurrency(selectedStatement.totalAmount)}</Typography>
+                  <Typography variant="h6">{formatCurrency(selectedStatement.totalAmount ?? selectedStatement.totalEarned ?? 0)}</Typography>
                 </Grid>
                 <Grid item xs={4}>
                   <Typography variant="caption" color="textSecondary">Adjustments</Typography>
-                  <Typography variant="h6">{formatCurrency(selectedStatement.adjustments || 0)}</Typography>
+                  <Typography variant="h6">{formatCurrency(selectedStatement.adjustments ?? selectedStatement.totalAdjustments ?? 0)}</Typography>
                 </Grid>
                 <Grid item xs={4}>
                   <Typography variant="caption" color="textSecondary">Net Amount</Typography>
-                  <Typography variant="h6">{formatCurrency(selectedStatement.netAmount || selectedStatement.totalAmount)}</Typography>
+                  <Typography variant="h6">{formatCurrency(selectedStatement.netAmount ?? selectedStatement.netPayout ?? selectedStatement.totalAmount ?? selectedStatement.totalEarned ?? 0)}</Typography>
                 </Grid>
               </Grid>
               
@@ -499,7 +498,7 @@ export default function CommissionStatementsPage() {
                   <TableBody>
                     {statementCommissions.map((comm) => (
                       <TableRow key={comm.id}>
-                        <TableCell>{comm.opportunityName || `Opportunity #${comm.opportunityId}`}</TableCell>
+                        <TableCell>{comm.opportunity?.name || `Opportunity #${comm.opportunityId}`}</TableCell>
                         <TableCell align="right">{formatCurrency(comm.dealAmount)}</TableCell>
                         <TableCell align="right">{comm.commissionRate}%</TableCell>
                         <TableCell align="right">{formatCurrency(comm.finalCommissionAmount)}</TableCell>

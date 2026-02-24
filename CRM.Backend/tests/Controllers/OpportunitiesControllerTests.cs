@@ -43,7 +43,7 @@ public class OpportunitiesControllerTests
         _mockNotificationService.Setup(x => x.NotifyRecordDeletedAsync(It.IsAny<string>(), It.IsAny<int>(), It.IsAny<string?>()))
             .Returns(Task.CompletedTask);
 
-        _controller = new OpportunitiesController(_mockOpportunityService.Object, _mockLogger.Object, _mockNotificationService.Object);
+        _controller = new OpportunitiesController(_mockOpportunityService.Object, Mock.Of<IWinLossAnalysisService>(), _mockLogger.Object, _mockNotificationService.Object);
 
         // Setup HttpContext with Response.Headers for ETag support
         var httpContext = new DefaultHttpContext();

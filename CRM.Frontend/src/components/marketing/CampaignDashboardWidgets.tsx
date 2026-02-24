@@ -44,6 +44,7 @@ import {
   Warning,
 } from '@mui/icons-material';
 import { campaignService, CampaignSummary } from '../../services/campaignService';
+import type { Campaign as CampaignType } from '../../types/marketing';
 
 // ============================================================================
 // Types
@@ -226,8 +227,8 @@ interface CampaignProgressProps {
 
 const CampaignProgress: React.FC<CampaignProgressProps> = ({ campaign }) => {
   // Calculate progress based on sent/total
-  const total = campaign.totalRecipients || 1;
-  const sent = campaign.sentCount || 0;
+  const total = (campaign.recipients?.length) || 1;
+  const sent = campaign.emailsDelivered || 0;
   const progress = Math.min((sent / total) * 100, 100);
 
   return (
@@ -269,19 +270,19 @@ export const CampaignDashboardWidgets: React.FC<CampaignDashboardWidgetsProps> =
       
       // Fetch campaign metrics
       const response = await campaignService.getAll();
-      const campaigns = response.items || [];
+      const campaigns: CampaignType[] = response.data?.items || [];
       
-      const active = campaigns.filter(c => 
+      const active = campaigns.filter((c: CampaignType) => 
         c.status?.toLowerCase() === 'active' || c.status?.toLowerCase() === 'running'
       );
       
-      setActiveCampaigns(active);
+      setActiveCampaigns(active as CampaignSummary[]);
       
       // Calculate aggregate metrics
-      const totalSent = campaigns.reduce((sum, c) => sum + (c.sentCount || 0), 0);
-      const totalDelivered = campaigns.reduce((sum, c) => sum + (c.deliveredCount || 0), 0);
-      const totalOpened = campaigns.reduce((sum, c) => sum + (c.openedCount || 0), 0);
-      const totalClicked = campaigns.reduce((sum, c) => sum + (c.clickedCount || 0), 0);
+      const totalSent = campaigns.reduce((sum: number, c: CampaignType) => sum + (c.emailsDelivered || 0), 0);
+      const totalDelivered = campaigns.reduce((sum: number, c: CampaignType) => sum + (c.emailsDelivered || 0), 0);
+      const totalOpened = campaigns.reduce((sum: number, c: CampaignType) => sum + (c.clicks || 0), 0);
+      const totalClicked = campaigns.reduce((sum: number, c: CampaignType) => sum + (c.clicks || 0), 0);
       
       const openRate = totalDelivered > 0 ? (totalOpened / totalDelivered) * 100 : 0;
       const clickRate = totalOpened > 0 ? (totalClicked / totalOpened) * 100 : 0;

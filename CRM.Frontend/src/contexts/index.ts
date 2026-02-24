@@ -3,13 +3,14 @@
  */
 
 // Authentication context
-export { AuthProvider, useAuth, AuthContext } from './AuthContext';
+export { AuthProvider, useAuth } from './AuthContext';
 
 // Theme context for light/dark/system mode
-export { ThemeContextProvider, useThemeContext } from './ThemeContext';
+export { AppThemeProvider as ThemeContextProvider, useTheme as useThemeContext } from './ThemeContext';
 
 // Font size adjustment context
-export { FontSizeProvider, useFontSize, FontSizeSelector } from './FontSizeContext';
+export { FontSizeProvider, useFontSize } from './FontSizeContext';
+export { FontSizeSelector } from '../components/accessibility/FontSizeSelector';
 export type { FontSize } from './FontSizeContext';
 
 // Recent items tracking context

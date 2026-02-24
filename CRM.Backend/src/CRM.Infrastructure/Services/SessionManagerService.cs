@@ -22,6 +22,7 @@ public class SessionManagerService : ISessionManager
     private readonly ICrmDbContext _dbContext;
     private readonly ILogger<SessionManagerService> _logger;
     private readonly int _maxSessions;
+    private readonly bool _enableIpBinding;
 
     public SessionManagerService(
         ICrmDbContext dbContext,
@@ -31,6 +32,7 @@ public class SessionManagerService : ISessionManager
         _dbContext = dbContext;
         _logger = logger;
         _maxSessions = configuration.GetValue<int>("Auth:MaxConcurrentSessions", 5);
+        _enableIpBinding = configuration.GetValue<bool>("Auth:EnableIpBinding", false);
     }
 
     /// <inheritdoc />
@@ -53,13 +55,15 @@ public class SessionManagerService : ISessionManager
             LastActivityAt = DateTime.UtcNow,
             ExpiresAt = expiresAt,
             IsRevoked = false,
-            DeviceId = deviceId
+            DeviceId = deviceId,
+            IpBindingEnabled = _enableIpBinding
         };
 
         _dbContext.UserSessions.Add(session);
         await _dbContext.SaveChangesAsync(cancellationToken);
 
-        _logger.LogDebug("Session created for user {UserId} from {IpAddress}", userId, ipAddress);
+        _logger.LogDebug("Session created for user {UserId} from {IpAddress} (IP binding: {IpBinding})",
+            userId, ipAddress, _enableIpBinding);
         return session;
     }
 
@@ -68,12 +72,55 @@ public class SessionManagerService : ISessionManager
         string sessionToken,
         CancellationToken cancellationToken = default)
     {
-        return await _dbContext.UserSessions
+        var session = await _dbContext.UserSessions
             .FirstOrDefaultAsync(
                 s => s.SessionToken == sessionToken
                      && !s.IsRevoked
                      && s.ExpiresAt > DateTime.UtcNow,
                 cancellationToken);
+
+        return session;
+    }
+
+    /// <summary>
+    /// Validates a session and checks IP binding if enabled (TODO-AUTH-015).
+    /// Returns the session if valid and IP matches (or IP binding is disabled), null otherwise.
+    /// </summary>
+    public async Task<UserSession?> ValidateSessionWithIpCheckAsync(
+        string sessionToken,
+        string currentIpAddress,
+        CancellationToken cancellationToken = default)
+    {
+        var session = await _dbContext.UserSessions
+            .FirstOrDefaultAsync(
+                s => s.SessionToken == sessionToken
+                     && !s.IsRevoked
+                     && s.ExpiresAt > DateTime.UtcNow,
+                cancellationToken);
+
+        if (session == null) return null;
+
+        // Enforce IP binding if enabled on this session
+        if (session.IpBindingEnabled && !string.IsNullOrEmpty(session.IpAddress)
+            && session.IpAddress != currentIpAddress)
+        {
+            _logger.LogWarning(
+                "Session {Token} for user {UserId} rejected: IP changed from {OriginalIp} to {CurrentIp}",
+                sessionToken[..Math.Min(8, sessionToken.Length)], session.UserId,
+                session.IpAddress, currentIpAddress);
+
+            // Revoke the session as a security measure
+            session.IsRevoked = true;
+            await _dbContext.SaveChangesAsync(cancellationToken);
+
+            return null;
+        }
+
+        // Update last activity
+        session.LastActivityAt = DateTime.UtcNow;
+        await _dbContext.SaveChangesAsync(cancellationToken);
+
+        return session;
     }
 
     /// <inheritdoc />

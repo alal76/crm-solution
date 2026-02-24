@@ -246,7 +246,7 @@ public class WinLossAnalysisService : IWinLossAnalysisService
                 return new WinLossBySalesRep
                 {
                     UserId = g.Key,
-                    UserName = g.First().SalesOwner?.UserName ?? "Unknown",
+                    UserName = g.First().SalesOwner?.Username ?? "Unknown",
                     TotalOpportunities = total,
                     Wins = wins,
                     Losses = losses,
@@ -298,13 +298,13 @@ public class WinLossAnalysisService : IWinLossAnalysisService
             {
                 OpportunityId = o.Id,
                 OpportunityName = o.Name,
-                AccountName = o.Account?.Name ?? "Unknown",
+                AccountName = o.Account?.DisplayName ?? "Unknown",
                 Amount = o.Amount,
                 ClosedDate = o.ClosedDate,
                 LossReasonCategory = o.LossReasonCategory,
                 LossReason = o.LossReason,
                 CompetitorWinner = o.CompetitorWinner?.Name,
-                SalesOwner = o.SalesOwner?.UserName
+                SalesOwner = o.SalesOwner?.Username
             }).ToList()
         };
     }

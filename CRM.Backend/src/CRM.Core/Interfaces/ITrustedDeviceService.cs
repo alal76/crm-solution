@@ -4,7 +4,7 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-using CRM.Core.Entities;
+using CRM.Core.Dtos;
 
 namespace CRM.Core.Interfaces;
 
@@ -17,84 +17,65 @@ public interface ITrustedDeviceService
     /// <summary>
     /// Registers a device as trusted for a user after successful 2FA.
     /// </summary>
-    /// <param name="userId">User ID</param>
-    /// <param name="deviceId">Unique device identifier</param>
-    /// <param name="deviceName">Friendly device name</param>
-    /// <param name="userAgent">User agent string</param>
-    /// <param name="ipAddress">IP address</param>
-    /// <param name="fingerprintHash">Optional device fingerprint hash</param>
-    /// <param name="trustDurationDays">How many days to trust the device (default: 30)</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>The created trusted device record</returns>
-    Task<TrustedDevice> TrustDeviceAsync(
+    Task<TrustedDeviceDto> TrustDeviceAsync(
         int userId,
-        string deviceId,
-        string? deviceName,
-        string? userAgent,
-        string? ipAddress,
-        string? fingerprintHash = null,
+        string deviceFingerprint,
+        string? deviceName = null,
+        string? ipAddress = null,
+        string? userAgent = null,
         int trustDurationDays = 30,
-        CancellationToken cancellationToken = default);
+        CancellationToken ct = default);
 
     /// <summary>
     /// Checks if a device is trusted for a user.
     /// </summary>
-    /// <param name="userId">User ID</param>
-    /// <param name="deviceId">Device identifier</param>
-    /// <param name="fingerprintHash">Optional fingerprint hash for additional verification</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>True if device is trusted and not expired</returns>
     Task<bool> IsDeviceTrustedAsync(
         int userId,
-        string deviceId,
-        string? fingerprintHash = null,
-        CancellationToken cancellationToken = default);
+        string deviceFingerprint,
+        CancellationToken ct = default);
 
     /// <summary>
     /// Updates the last used timestamp for a trusted device.
     /// </summary>
-    /// <param name="userId">User ID</param>
-    /// <param name="deviceId">Device identifier</param>
-    /// <param name="cancellationToken">Cancellation token</param>
     Task UpdateLastUsedAsync(
         int userId,
-        string deviceId,
-        CancellationToken cancellationToken = default);
+        string deviceFingerprint,
+        CancellationToken ct = default);
 
     /// <summary>
     /// Gets all trusted devices for a user.
     /// </summary>
-    /// <param name="userId">User ID</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>List of trusted devices</returns>
-    Task<IEnumerable<TrustedDevice>> GetTrustedDevicesAsync(
+    Task<IEnumerable<TrustedDeviceDto>> GetTrustedDevicesAsync(
         int userId,
-        CancellationToken cancellationToken = default);
+        bool includeExpired = false,
+        CancellationToken ct = default);
 
     /// <summary>
     /// Revokes trust for a specific device.
     /// </summary>
-    /// <param name="userId">User ID</param>
-    /// <param name="deviceId">Device identifier</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    Task RevokeDeviceTrustAsync(
+    Task<bool> RevokeDeviceAsync(
         int userId,
-        string deviceId,
-        CancellationToken cancellationToken = default);
+        int deviceId,
+        CancellationToken ct = default);
 
     /// <summary>
     /// Revokes trust for all devices of a user.
     /// </summary>
-    /// <param name="userId">User ID</param>
-    /// <param name="cancellationToken">Cancellation token</param>
-    Task RevokeAllDevicesAsync(
+    Task<int> RevokeAllDevicesAsync(
         int userId,
-        CancellationToken cancellationToken = default);
+        CancellationToken ct = default);
 
     /// <summary>
     /// Cleans up expired trusted device records.
     /// </summary>
-    /// <param name="cancellationToken">Cancellation token</param>
-    /// <returns>Number of records removed</returns>
-    Task<int> CleanupExpiredDevicesAsync(CancellationToken cancellationToken = default);
+    Task<int> CleanupExpiredDevicesAsync(CancellationToken ct = default);
+
+    /// <summary>
+    /// Extends trust for a specific device.
+    /// </summary>
+    Task<bool> ExtendTrustAsync(
+        int userId,
+        string deviceFingerprint,
+        int extensionDays = 30,
+        CancellationToken ct = default);
 }

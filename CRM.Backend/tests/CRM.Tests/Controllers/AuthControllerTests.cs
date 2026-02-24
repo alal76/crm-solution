@@ -67,7 +67,15 @@ public class AuthControllerTests
             mockPasswordHistoryService.Object,
             mockAuthAuditService.Object,
             mockMagicLinkService.Object,
-            mockUserOAuthLinkService.Object);
+            mockUserOAuthLinkService.Object,
+            Mock.Of<IOktaSsoService>(),
+            Mock.Of<ITrustedDeviceService>(),
+            Mock.Of<ILoginAnalyticsService>(),
+            Mock.Of<IRiskAssessmentService>(),
+            Mock.Of<IDeviceAuthorizationService>(),
+            Mock.Of<IGeoLocationService>(),
+            Mock.Of<IOpenIdConnectService>(),
+            Mock.Of<IBiometricAuthService>());
     }
 
     #region Register Tests

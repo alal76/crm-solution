@@ -26,7 +26,6 @@ import commissionService, {
 } from '../services/commissionService';
 import logger from '../services/logger';
 import { EnhancedEmptyState } from '../components/common';
-import logo from '../assets/logo.png';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
@@ -387,13 +386,13 @@ export default function CommissionPlansPage() {
     if (tier) {
       setEditingTierId(tier.id);
       setTierForm({
-        name: tier.name,
+        name: tier.name || '',
         tierOrder: tier.tierOrder,
-        minValue: tier.minValue,
+        minValue: tier.minValue ?? 0,
         maxValue: tier.maxValue || 0,
         minAttainmentPercent: tier.minAttainmentPercent || 0,
         maxAttainmentPercent: tier.maxAttainmentPercent || 100,
-        commissionRate: tier.commissionRate,
+        commissionRate: tier.commissionRate ?? 0,
         fixedAmount: tier.fixedAmount || 0,
         multiplier: tier.multiplier || 1,
       });
@@ -431,7 +430,7 @@ export default function CommissionPlansPage() {
       };
 
       if (editingTierId) {
-        await commissionService.updateTier(selectedPlan.id, editingTierId, request);
+        await commissionService.updateTier(editingTierId, request);
         setSuccessMessage('Tier updated');
       } else {
         await commissionService.createTier(selectedPlan.id, request);
@@ -514,11 +513,11 @@ export default function CommissionPlansPage() {
           <Box display="flex" justifyContent="center" p={4}><CircularProgress /></Box>
         ) : filteredPlans.length === 0 ? (
           <EnhancedEmptyState
-            logo={logo}
+            illustration="generic"
             title="No Commission Plans"
             description="Create your first commission plan to start managing sales incentives."
-            actionLabel="Create Plan"
-            onAction={() => handleOpenPlanDialog()}
+            primaryActionLabel="Create Plan"
+            onPrimaryAction={() => handleOpenPlanDialog()}
           />
         ) : (
           <TableContainer component={Paper}>
@@ -845,9 +844,9 @@ export default function CommissionPlansPage() {
                       <TableRow key={tier.id}>
                         <TableCell>{tier.tierOrder}</TableCell>
                         <TableCell>{tier.name}</TableCell>
-                        <TableCell align="right">{formatCurrency(tier.minValue)}</TableCell>
+                        <TableCell align="right">{formatCurrency(tier.minValue ?? 0)}</TableCell>
                         <TableCell align="right">{tier.maxValue ? formatCurrency(tier.maxValue) : 'Unlimited'}</TableCell>
-                        <TableCell align="right">{formatPercent(tier.commissionRate)}</TableCell>
+                        <TableCell align="right">{formatPercent(tier.commissionRate ?? 0)}</TableCell>
                         <TableCell align="right">{tier.fixedAmount ? formatCurrency(tier.fixedAmount) : '-'}</TableCell>
                         <TableCell align="center">
                           <IconButton size="small" onClick={() => handleOpenTierDialog(tier)}>

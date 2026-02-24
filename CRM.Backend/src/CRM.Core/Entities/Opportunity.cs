@@ -93,8 +93,14 @@ public enum ForecastCategory
     /// <summary>Deal has been won and closed</summary>
     Closed = 3,
 
+    /// <summary>Closed won - already won (alias for Closed)</summary>
+    ClosedWon = 3,
+
     /// <summary>Excluded from forecast</summary>
-    Omitted = 4
+    Omitted = 4,
+
+    /// <summary>Most likely - expected outcome</summary>
+    MostLikely = 5
 }
 
 /// <summary>

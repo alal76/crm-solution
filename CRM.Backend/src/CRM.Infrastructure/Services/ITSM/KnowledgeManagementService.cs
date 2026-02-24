@@ -384,7 +384,7 @@ public class KnowledgeManagementService : IKnowledgeManagementService
         article.Title = version.Title;
         article.ArticleBody = version.Content;
         article.Version = article.Version + 2;
-        article.UpdatedAt = DateTime.UtcNow;
+        article.ModifiedAt = DateTime.UtcNow;
 
         // Create a new version entry for the restored content
         var restoredVersion = new ArticleVersion

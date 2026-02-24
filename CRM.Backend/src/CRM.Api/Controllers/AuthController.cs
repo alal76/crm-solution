@@ -43,6 +43,8 @@ public class AuthController : ControllerBase
     private readonly IRiskAssessmentService _riskAssessmentService;
     private readonly IDeviceAuthorizationService _deviceAuthorizationService;
     private readonly IGeoLocationService _geoLocationService;
+    private readonly IOpenIdConnectService _openIdConnectService;
+    private readonly IBiometricAuthService _biometricAuthService;
 
     public AuthController(
         IAuthenticationService authenticationService,
@@ -63,7 +65,9 @@ public class AuthController : ControllerBase
         ILoginAnalyticsService loginAnalyticsService,
         IRiskAssessmentService riskAssessmentService,
         IDeviceAuthorizationService deviceAuthorizationService,
-        IGeoLocationService geoLocationService)
+        IGeoLocationService geoLocationService,
+        IOpenIdConnectService openIdConnectService,
+        IBiometricAuthService biometricAuthService)
     {
         _authenticationService = authenticationService;
         _logger = logger;
@@ -84,6 +88,8 @@ public class AuthController : ControllerBase
         _riskAssessmentService = riskAssessmentService;
         _deviceAuthorizationService = deviceAuthorizationService;
         _geoLocationService = geoLocationService;
+        _openIdConnectService = openIdConnectService;
+        _biometricAuthService = biometricAuthService;
     }
 
     /// <summary>
@@ -1832,6 +1838,245 @@ public class AuthController : ControllerBase
     }
 
     // =========================================================================
+    // Generic OIDC Endpoints (TODO-AUTH-004)
+    // =========================================================================
+
+    /// <summary>
+    /// Get the authorization URL for a configured OIDC provider.
+    /// </summary>
+    [HttpGet("oidc/authorize")]
+    [AllowAnonymous]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> OidcAuthorize(
+        [FromQuery] string provider,
+        [FromQuery] string? redirectUri = null,
+        CancellationToken ct = default)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(provider))
+                return BadRequest(new { message = "Provider name is required." });
+
+            if (!_openIdConnectService.IsProviderConfigured(provider))
+                return BadRequest(new { message = $"OIDC provider '{provider}' is not configured." });
+
+            var state = Guid.NewGuid().ToString("N");
+            var nonce = Guid.NewGuid().ToString("N");
+            var codeVerifier = _openIdConnectService.GenerateCodeVerifier();
+
+            // Store state/nonce/verifier in session or cache for callback validation
+            HttpContext.Session.SetString($"oidc_{state}_nonce", nonce);
+            HttpContext.Session.SetString($"oidc_{state}_verifier", codeVerifier);
+            HttpContext.Session.SetString($"oidc_{state}_provider", provider);
+
+            var authUrl = await _openIdConnectService.GetAuthorizationUrlAsync(provider, state, nonce, codeVerifier);
+
+            return Ok(new { authorizationUrl = authUrl, state });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error initiating OIDC authorization for {Provider}", provider);
+            return StatusCode(500, new { message = "An error occurred initiating OIDC authorization." });
+        }
+    }
+
+    /// <summary>
+    /// Handle OIDC provider callback with authorization code exchange.
+    /// </summary>
+    [HttpPost("oidc/callback")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> OidcCallback(
+        [FromBody] OidcCallbackDto dto,
+        CancellationToken ct = default)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(dto.Code))
+                return BadRequest(new { message = "Authorization code is required." });
+
+            // Retrieve stored state data
+            var provider = dto.Provider;
+            string? codeVerifier = null;
+            string? nonce = null;
+
+            if (!string.IsNullOrEmpty(dto.State))
+            {
+                nonce = HttpContext.Session.GetString($"oidc_{dto.State}_nonce");
+                codeVerifier = HttpContext.Session.GetString($"oidc_{dto.State}_verifier");
+                var storedProvider = HttpContext.Session.GetString($"oidc_{dto.State}_provider");
+
+                if (!string.IsNullOrEmpty(storedProvider))
+                    provider = storedProvider;
+
+                // Clean up session
+                HttpContext.Session.Remove($"oidc_{dto.State}_nonce");
+                HttpContext.Session.Remove($"oidc_{dto.State}_verifier");
+                HttpContext.Session.Remove($"oidc_{dto.State}_provider");
+            }
+
+            if (string.IsNullOrWhiteSpace(provider))
+                return BadRequest(new { message = "Provider name is required." });
+
+            var result = await _openIdConnectService.ExchangeCodeAsync(
+                provider, dto.Code, codeVerifier, nonce, ct);
+
+            if (!result.Success)
+                return BadRequest(new { message = result.ErrorDescription ?? result.Error ?? "OIDC authentication failed." });
+
+            if (result.UserProfile == null || string.IsNullOrEmpty(result.UserProfile.Email))
+                return BadRequest(new { message = "Email not returned from OIDC provider." });
+
+            // Auto-provision or login existing user
+            var response = await _authenticationService.OAuthLoginAsync(new OAuthLoginRequest
+            {
+                Provider = provider,
+                ProviderUserId = result.UserProfile.Sub,
+                Email = result.UserProfile.Email,
+                FirstName = result.UserProfile.GivenName,
+                LastName = result.UserProfile.FamilyName
+            });
+
+            return Ok(response);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error handling OIDC callback");
+            return StatusCode(500, new { message = "An error occurred during OIDC authentication." });
+        }
+    }
+
+    /// <summary>
+    /// List configured OIDC providers.
+    /// </summary>
+    [HttpGet("oidc/providers")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(IEnumerable<string>), StatusCodes.Status200OK)]
+    public IActionResult GetOidcProviders()
+    {
+        var providers = _openIdConnectService.GetConfiguredProviders();
+        return Ok(providers);
+    }
+
+    // =========================================================================
+    // Biometric Authentication Endpoints (TODO-AUTH-010)
+    // =========================================================================
+
+    /// <summary>
+    /// Get biometric authentication options (challenge) for verifying a credential.
+    /// </summary>
+    [HttpPost("biometric/options")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(BiometricAuthenticationOptions), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetBiometricAuthOptions(
+        [FromBody] BiometricAuthOptionsRequestDto? request = null,
+        CancellationToken ct = default)
+    {
+        try
+        {
+            var options = await _biometricAuthService.GetAuthenticationOptionsAsync(request?.UserId, ct);
+            return Ok(options);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting biometric authentication options");
+            return StatusCode(500, new { message = "An error occurred generating biometric options." });
+        }
+    }
+
+    /// <summary>
+    /// Verify biometric authentication (WebAuthn platform credential).
+    /// POST /api/auth/biometric/verify
+    /// </summary>
+    [HttpPost("biometric/verify")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(AuthResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> VerifyBiometric(
+        [FromBody] BiometricAuthenticationResponse request,
+        CancellationToken ct = default)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(request.CredentialId))
+                return BadRequest(new { message = "Credential ID is required." });
+
+            var result = await _biometricAuthService.ValidateAuthenticationAsync(request, ct);
+
+            if (!result.Success || !result.UserId.HasValue)
+            {
+                _logger.LogWarning("Biometric verification failed: {Error} ({Code})", result.Error, result.ErrorCode);
+                return Unauthorized(new { message = result.Error ?? "Biometric verification failed.", errorCode = result.ErrorCode });
+            }
+
+            // Generate auth tokens for the authenticated user
+            var response = await _authenticationService.GenerateTokensForUserAsync(result.UserId.Value);
+            if (response == null)
+                return Unauthorized(new { message = "User not found or inactive." });
+
+            // Record login analytics
+            var ipAddress = HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+            var userAgent = Request.Headers.UserAgent.ToString();
+            await _loginAnalyticsService.RecordLoginAttemptAsync(new LoginAttemptRecord
+            {
+                UserId = result.UserId,
+                Email = response.Email ?? "",
+                IpAddress = ipAddress,
+                UserAgent = userAgent,
+                Success = true,
+                DeviceFingerprint = request.CredentialId
+            }, ct);
+
+            return Ok(response);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error verifying biometric authentication");
+            return StatusCode(500, new { message = "An error occurred verifying biometric credentials." });
+        }
+    }
+
+    /// <summary>
+    /// Get biometric credentials for the current user.
+    /// </summary>
+    [HttpGet("biometric/credentials")]
+    [Authorize]
+    [ProducesResponseType(typeof(IEnumerable<BiometricCredentialInfo>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetBiometricCredentials(CancellationToken ct = default)
+    {
+        var userId = GetCurrentUserId();
+        if (userId == null) return Unauthorized();
+
+        var credentials = await _biometricAuthService.GetUserCredentialsAsync(userId.Value, ct);
+        return Ok(credentials);
+    }
+
+    /// <summary>
+    /// Register a new biometric credential for the current user.
+    /// </summary>
+    [HttpPost("biometric/register")]
+    [Authorize]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> RegisterBiometric(
+        [FromBody] BiometricRegistrationResponse response,
+        [FromQuery] string? deviceName = null,
+        CancellationToken ct = default)
+    {
+        var userId = GetCurrentUserId();
+        if (userId == null) return Unauthorized();
+
+        var success = await _biometricAuthService.CompleteRegistrationAsync(userId.Value, response, deviceName, ct);
+        if (!success)
+            return BadRequest(new { message = "Biometric registration failed." });
+
+        return Ok(new { message = "Biometric credential registered successfully." });
+    }
+
+    // =========================================================================
     // Okta SSO Endpoints (TODO-AUTH-003)
     // =========================================================================
 
@@ -1875,7 +2120,7 @@ public class AuthController : ControllerBase
             var response = await _authenticationService.OAuthLoginAsync(new OAuthLoginRequest
             {
                 Provider = "okta",
-                ProviderUserId = userInfo.Sub!,
+                ProviderUserId = userInfo.ProviderId,
                 Email = userInfo.Email,
                 FirstName = userInfo.GivenName,
                 LastName = userInfo.FamilyName
@@ -1905,15 +2150,15 @@ public class AuthController : ControllerBase
         var userId = GetCurrentUserId();
         if (userId == null) return Unauthorized();
 
-        var devices = await _trustedDeviceService.GetTrustedDevicesAsync(userId.Value, ct);
+        var devices = await _trustedDeviceService.GetTrustedDevicesAsync(userId.Value, false, ct);
         return Ok(devices.Select(d => new TrustedDeviceDto
         {
             Id = d.Id,
-            DeviceId = d.DeviceId,
+            DeviceFingerprint = d.DeviceFingerprint,
             DeviceName = d.DeviceName,
             LastUsedAt = d.LastUsedAt,
-            ExpiresAt = d.ExpiresAt,
-            IpAddress = d.IpAddress,
+            TrustedUntil = d.TrustedUntil,
+            TrustedFromIp = d.TrustedFromIp,
             CreatedAt = d.CreatedAt
         }));
     }
@@ -1938,18 +2183,19 @@ public class AuthController : ControllerBase
             userId.Value,
             request.DeviceId,
             request.DeviceName ?? userAgent,
-            userAgent,
             ipAddress,
+            userAgent,
+            30,
             ct);
 
         return Ok(new TrustedDeviceDto
         {
             Id = device.Id,
-            DeviceId = device.DeviceId,
+            DeviceFingerprint = device.DeviceFingerprint,
             DeviceName = device.DeviceName,
             LastUsedAt = device.LastUsedAt,
-            ExpiresAt = device.ExpiresAt,
-            IpAddress = device.IpAddress,
+            TrustedUntil = device.TrustedUntil,
+            TrustedFromIp = device.TrustedFromIp,
             CreatedAt = device.CreatedAt
         });
     }
@@ -1966,7 +2212,8 @@ public class AuthController : ControllerBase
         var userId = GetCurrentUserId();
         if (userId == null) return Unauthorized();
 
-        var revoked = await _trustedDeviceService.RevokeDeviceTrustAsync(userId.Value, deviceId, ct);
+        var deviceIdInt = int.TryParse(deviceId, out var did) ? did : 0;
+        var revoked = await _trustedDeviceService.RevokeDeviceAsync(userId.Value, deviceIdInt, ct);
         if (!revoked) return NotFound(new { message = "Device not found." });
 
         return Ok(new { message = "Device trust revoked." });
@@ -2029,7 +2276,7 @@ public class AuthController : ControllerBase
             UserId = request.UserId,
             IpAddress = request.IpAddress ?? HttpContext.Connection.RemoteIpAddress?.ToString() ?? "unknown",
             UserAgent = request.UserAgent ?? Request.Headers.UserAgent.ToString(),
-            DeviceId = request.DeviceId
+            DeviceFingerprint = request.DeviceId
         }, ct);
 
         return Ok(result);
@@ -2097,7 +2344,7 @@ public class AuthController : ControllerBase
         if (string.IsNullOrWhiteSpace(request.DeviceCode))
             return BadRequest(new { error = "invalid_request", error_description = "device_code is required." });
 
-        var response = await _deviceAuthorizationService.PollForTokenAsync(request.DeviceCode, ct);
+        var response = await _deviceAuthorizationService.PollForTokenAsync(request.DeviceCode, request.ClientId ?? "default", ct);
 
         if (response.Error != null)
         {
@@ -2153,7 +2400,7 @@ public class AuthController : ControllerBase
         CancellationToken ct = default)
     {
         var geoResult = await _geoLocationService.LookupAsync(request.IpAddress, ct);
-        var isNew = await _loginAnalyticsService.IsNewLocationAsync(request.UserId, request.IpAddress, ct);
+        var isNew = await _loginAnalyticsService.IsNewLocationAsync(request.UserId, geoResult?.CountryCode ?? "unknown", geoResult?.City ?? "unknown", ct);
 
         return Ok(new GeoLocationCheckResult
         {
@@ -2163,7 +2410,7 @@ public class AuthController : ControllerBase
             Latitude = geoResult?.Latitude,
             Longitude = geoResult?.Longitude,
             IsNewLocation = isNew,
-            IsVpnOrProxy = geoResult?.IsVpnOrProxy ?? false
+            IsVpnOrProxy = geoResult?.IsVpn ?? false
         });
     }
 
@@ -2187,6 +2434,21 @@ public class AuthController : ControllerBase
         public string? State { get; set; }
     }
 
+    /// <summary>OIDC callback request.</summary>
+    public class OidcCallbackDto
+    {
+        public string Code { get; set; } = string.Empty;
+        public string? Provider { get; set; }
+        public string? State { get; set; }
+        public string? RedirectUri { get; set; }
+    }
+
+    /// <summary>Biometric auth options request.</summary>
+    public class BiometricAuthOptionsRequestDto
+    {
+        public int? UserId { get; set; }
+    }
+
     /// <summary>Trust device request.</summary>
     public class TrustDeviceRequestDto
     {
@@ -2194,17 +2456,7 @@ public class AuthController : ControllerBase
         public string? DeviceName { get; set; }
     }
 
-    /// <summary>Trusted device response.</summary>
-    public class TrustedDeviceDto
-    {
-        public int Id { get; set; }
-        public string DeviceId { get; set; } = string.Empty;
-        public string? DeviceName { get; set; }
-        public DateTime? LastUsedAt { get; set; }
-        public DateTime? ExpiresAt { get; set; }
-        public string? IpAddress { get; set; }
-        public DateTime CreatedAt { get; set; }
-    }
+    // TrustedDeviceDto is defined in CRM.Core.Dtos
 
     /// <summary>Risk assessment request.</summary>
     public class RiskAssessmentRequestDto

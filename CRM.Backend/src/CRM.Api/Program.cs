@@ -24,6 +24,7 @@ using CRM.Infrastructure.Services.AI;
 using CRM.Infrastructure.Services.Authentication;
 using CRM.Infrastructure.Services.Configuration;
 using CRM.Infrastructure.Services.Authentication.OAuth;
+using CRM.Infrastructure.Jobs;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.DataProtection;
@@ -490,6 +491,17 @@ builder.Services.AddScoped<CRM.Core.Interfaces.IRateLimitingService, CRM.Infrast
 builder.Services.AddScoped<CRM.Core.Interfaces.IBusinessHoursConfigService, CRM.Infrastructure.Services.BusinessHoursConfigService>();
 builder.Services.AddScoped<CRM.Core.Ports.Input.IGdprService, CRM.Infrastructure.Services.GdprService>();
 
+// Audit Retention & Cleanup (TODO-SYS006-006, TODO-SYS006-007)
+builder.Services.AddScoped<CRM.Infrastructure.Services.IAuditRetentionService, CRM.Infrastructure.Services.AuditRetentionService>();
+builder.Services.AddAuditLogCleanupJob(options =>
+{
+    var section = builder.Configuration.GetSection("AuditLogCleanup");
+    options.Enabled = section.GetValue<bool>("Enabled", true);
+    options.IntervalHours = section.GetValue<int>("IntervalHours", 24);
+    options.ArchiveAfterDays = section.GetValue<int>("ArchiveAfterDays", 90);
+    options.PurgeAfterDays = section.GetValue<int>("PurgeAfterDays", 365);
+});
+
 // Phase 1: Social OAuth & OTP Providers
 // LinkedIn OAuth provider for enterprise sign-in
 builder.Services.Configure<CRM.Core.Options.LinkedInOAuthOptions>(builder.Configuration.GetSection("OAuth:LinkedIn"));
@@ -755,6 +767,7 @@ builder.Services.AddScoped<IWinLossAnalysisService, WinLossAnalysisService>();
 builder.Services.AddScoped<ITerritoryAssignmentService, TerritoryAssignmentService>();
 builder.Services.AddScoped<IDynamicPricingEngine, DynamicPricingEngine>();
 builder.Services.AddScoped<ICompetitorService, CompetitorService>();
+builder.Services.AddScoped<ILeadQualificationService, LeadQualificationService>();
 
 // Credit Memo service
 builder.Services.AddScoped<ICreditMemoService, CreditMemoService>();

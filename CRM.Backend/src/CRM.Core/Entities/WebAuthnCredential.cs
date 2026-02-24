@@ -19,4 +19,17 @@ public class WebAuthnCredential : BaseEntity
     public string AttestationFormat { get; set; } = string.Empty;
     public List<string>? Transports { get; set; }
     public string Name { get; set; } = string.Empty;
+
+    // Biometric auth properties (TODO-AUTH-010)
+    public bool IsRevoked { get; set; } = false;
+    public DateTime? RevokedAt { get; set; }
+    public bool IsPlatformCredential { get; set; } = false;
+    public string? DeviceName { get; set; }
+    public string? DeviceType { get; set; }
+    public DateTime? LastUsedAt { get; set; }
+    public long SignCount { get; set; }
+
+    // Navigation
+    [System.ComponentModel.DataAnnotations.Schema.ForeignKey("UserId")]
+    public virtual User? User { get; set; }
 }

@@ -165,6 +165,11 @@ export enum CommissionStatementStatus {
   PendingReview = 1,
   Finalized = 2,
   Paid = 3,
+  // Aliases used by UI components
+  PendingApproval = 1,
+  Approved = 2,
+  Disputed = 4,
+  Voided = 5,
 }
 
 // ============================================================================
@@ -271,10 +276,18 @@ export interface CommissionStatement {
   period?: string;
   periodStartDate: string;
   periodEndDate: string;
+  // Aliases used by UI
+  periodStart?: string;
+  periodEnd?: string;
   totalEarned: number;
   totalAdjustments: number;
   totalClawbacks: number;
   netPayout: number;
+  // Aliases used by UI
+  totalAmount?: number;
+  adjustments?: number;
+  netAmount?: number;
+  userName?: string;
   status: CommissionStatementStatus;
   finalizedAt?: string;
   finalizedBy?: number;
@@ -412,6 +425,7 @@ export interface CommissionPlanCreateRequest {
 
 export interface CommissionPlanUpdateRequest {
   name?: string;
+  code?: string;
   description?: string;
   status?: CommissionPlanStatus;
   effectiveStartDate?: string;
@@ -429,6 +443,7 @@ export interface CommissionPlanUpdateRequest {
 }
 
 export interface CommissionTierCreateRequest {
+  commissionPlanId?: number;
   name?: string;
   tierOrder?: number;
   minValue?: number;
@@ -455,8 +470,10 @@ export interface CommissionTierUpdateRequest {
 
 export interface CommissionStatementGenerateRequest {
   userId: number;
-  fromDate: string;
-  toDate: string;
+  fromDate?: string;
+  toDate?: string;
+  periodStart?: string;
+  periodEnd?: string;
 }
 
 // ============================================================================
@@ -839,12 +856,11 @@ export const generateStatement = async (
 };
 
 /**
- * Get statements for a user.
+ * Get statements, optionally filtered by user.
  */
-export const getStatements = async (userId: number): Promise<CommissionStatement[]> => {
-  const response = await apiClient.get<CommissionStatement[]>(
-    `${API_BASE}/statements/user/${userId}`
-  );
+export const getStatements = async (userId?: number): Promise<CommissionStatement[]> => {
+  const url = userId ? `${API_BASE}/statements/user/${userId}` : `${API_BASE}/statements`;
+  const response = await apiClient.get<CommissionStatement[]>(url);
   return (response.data || []).map(normalizeStatement);
 };
 
@@ -866,6 +882,68 @@ export const finalizeStatement = async (statementId: number): Promise<Commission
     `${API_BASE}/statements/${statementId}/finalize`
   );
   return normalizeStatement(response.data);
+};
+
+/**
+ * Clone a commission plan.
+ */
+export const clonePlan = async (planId: number): Promise<CommissionPlan> => {
+  const response = await apiClient.post<CommissionPlan>(`${API_BASE}/plans/${planId}/clone`);
+  return normalizePlan(response.data);
+};
+
+/**
+ * Update plan status.
+ */
+export const updatePlanStatus = async (planId: number, status: CommissionPlanStatus): Promise<CommissionPlan> => {
+  const response = await apiClient.patch<CommissionPlan>(`${API_BASE}/plans/${planId}/status`, { status });
+  return normalizePlan(response.data);
+};
+
+/**
+ * Create a tier for a plan (alias for addTier).
+ */
+export const createTier = async (planId: number, request: CommissionTierCreateRequest): Promise<CommissionTier> => {
+  return addTier(planId, request);
+};
+
+/**
+ * Delete a tier (alias for removeTier).
+ */
+export const deleteTier = async (_planId: number, tierId: number): Promise<void> => {
+  return removeTier(tierId);
+};
+
+/**
+ * Get commissions for a specific statement.
+ */
+export const getCommissionsForStatement = async (statementId: number): Promise<Commission[]> => {
+  const response = await apiClient.get<Commission[]>(`${API_BASE}/statements/${statementId}/commissions`);
+  return (response.data || []).map(normalizeCommission);
+};
+
+/**
+ * Update statement status.
+ */
+export const updateStatementStatus = async (
+  statementId: number,
+  status: CommissionStatementStatus
+): Promise<CommissionStatement> => {
+  const response = await apiClient.patch<CommissionStatement>(
+    `${API_BASE}/statements/${statementId}/status`,
+    { status }
+  );
+  return normalizeStatement(response.data);
+};
+
+/**
+ * Download statement as PDF.
+ */
+export const downloadStatementPdf = async (statementId: number): Promise<Blob> => {
+  const response = await apiClient.get(`${API_BASE}/statements/${statementId}/pdf`, {
+    responseType: 'blob',
+  });
+  return response.data as Blob;
 };
 
 // ============================================================================
@@ -915,12 +993,21 @@ const commissionService = {
   addTier,
   updateTier,
   removeTier,
+  createTier,
+  deleteTier,
   
   // Statements
   generateStatement,
   getStatements,
   getStatementById,
   finalizeStatement,
+  getCommissionsForStatement,
+  updateStatementStatus,
+  downloadStatementPdf,
+  
+  // Plan management
+  clonePlan,
+  updatePlanStatus,
 };
 
 export default commissionService;

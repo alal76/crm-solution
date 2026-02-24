@@ -261,7 +261,7 @@ export const LeadScoringWidget: React.FC<LeadScoringWidgetProps> = ({
       setLoading(true);
       
       const response = await leadService.getAll(1, 100);
-      const allLeads: Lead[] = response.items || [];
+      const allLeads: Lead[] = response.data?.items || [];
       
       // Map to LeadScoreData
       const scoredLeads: LeadScoreData[] = allLeads
@@ -270,7 +270,7 @@ export const LeadScoringWidget: React.FC<LeadScoringWidgetProps> = ({
           firstName: lead.firstName || '',
           lastName: lead.lastName || '',
           email: lead.email || '',
-          company: lead.company,
+          company: lead.companyName,
           score: lead.score || Math.floor(Math.random() * 100),
           status: lead.status || 'New',
           source: lead.source,

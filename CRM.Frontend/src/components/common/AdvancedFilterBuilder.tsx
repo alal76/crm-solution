@@ -600,4 +600,8 @@ export const AdvancedFilterBuilder: React.FC<AdvancedFilterBuilderProps> = ({
   return content;
 };
 
+// Type aliases for barrel exports
+export type SavedFilter = { name: string; filter: FilterGroup };
+export type LogicalOperator = 'AND' | 'OR';
+
 export default AdvancedFilterBuilder;

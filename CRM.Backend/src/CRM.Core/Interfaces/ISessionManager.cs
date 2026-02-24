@@ -52,4 +52,12 @@ public interface ISessionManager
     /// </summary>
     Task EnforceSessionLimitAsync(int userId,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Validates a session and enforces IP binding if enabled (TODO-AUTH-015).
+    /// If the session has IP binding enabled and the current IP differs from
+    /// the original IP, the session is revoked as a security measure.
+    /// </summary>
+    Task<UserSession?> ValidateSessionWithIpCheckAsync(string sessionToken,
+        string currentIpAddress, CancellationToken cancellationToken = default);
 }

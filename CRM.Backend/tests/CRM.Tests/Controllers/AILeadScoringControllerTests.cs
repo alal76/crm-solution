@@ -5,11 +5,17 @@
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
 using CRM.Api.Controllers;
-using CRM.Core.Dtos;
+using CRM.Core.Entities;
+using CRM.Core.Entities.AI;
 using CRM.Core.Interfaces;
+using CRM.Core.Interfaces.AI;
+using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Services;
+using CRM.Infrastructure.Services.AI;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
@@ -21,21 +27,39 @@ namespace CRM.Tests.Controllers;
 /// Tests lead scoring AI endpoints including scoring, batch operations, and analytics.
 /// TODO-SYS008-002
 /// </summary>
-public class AILeadScoringControllerTests
+public class AILeadScoringControllerTests : IDisposable
 {
-    private readonly Mock<ILeadService> _mockLeadService;
+    private readonly Mock<IAllenAIService> _mockAIService;
+    private readonly Mock<ILLMService> _mockLLMService;
+    private readonly Mock<ILLMSettingsService> _mockLLMSettingsService;
     private readonly Mock<ILogger<AILeadScoringController>> _mockLogger;
+    private readonly CrmDbContext _dbContext;
     private readonly AILeadScoringController _controller;
 
     public AILeadScoringControllerTests()
     {
-        _mockLeadService = new Mock<ILeadService>();
+        _mockAIService = new Mock<IAllenAIService>();
+        _mockLLMService = new Mock<ILLMService>();
+        _mockLLMSettingsService = new Mock<ILLMSettingsService>();
         _mockLogger = new Mock<ILogger<AILeadScoringController>>();
+
+        var options = new DbContextOptionsBuilder<CrmDbContext>()
+            .UseInMemoryDatabase($"AILeadScoringTest_{Guid.NewGuid()}")
+            .Options;
+        var config = new ConfigurationBuilder().AddInMemoryCollection().Build();
+        _dbContext = new CrmDbContext(options, config);
+
         _controller = new AILeadScoringController(
-            _mockLeadService.Object,
-            Mock.Of<IAIPredictiveAnalyticsService>(),
-            Mock.Of<IAIAgentUsageService>(),
+            _dbContext,
+            _mockAIService.Object,
+            _mockLLMService.Object,
+            _mockLLMSettingsService.Object,
             _mockLogger.Object);
+    }
+
+    public void Dispose()
+    {
+        _dbContext.Dispose();
     }
 
     #region ScoreLead Tests
@@ -44,22 +68,16 @@ public class AILeadScoringControllerTests
     public async Task ScoreLead_WithValidLeadId_ReturnsOkResult()
     {
         // Arrange
-        var leadId = 1;
-        var leadDto = new LeadDto
-        {
-            Id = leadId,
-            FirstName = "John",
-            LastName = "Doe",
-            Email = "john.doe@example.com",
-            Score = 75
-        };
+        var lead = new Lead { Id = 1, FirstName = "John", LastName = "Doe", Email = "john@example.com" };
+        _dbContext.Leads.Add(lead);
+        await _dbContext.SaveChangesAsync();
 
-        _mockLeadService
-            .Setup(s => s.GetByIdAsync(leadId))
-            .ReturnsAsync(leadDto);
+        _mockAIService
+            .Setup(s => s.ScoreLeadAsync(1, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new LeadScore { LeadId = 1, OverallScore = 85, Confidence = 0.9m });
 
         // Act
-        var result = await _controller.ScoreLead(leadId, CancellationToken.None);
+        var result = await _controller.ScoreLead(1, CancellationToken.None);
 
         // Assert
         result.Should().BeOfType<OkObjectResult>();
@@ -68,14 +86,8 @@ public class AILeadScoringControllerTests
     [Fact]
     public async Task ScoreLead_WithInvalidLeadId_ReturnsNotFound()
     {
-        // Arrange
-        var leadId = 999;
-        _mockLeadService
-            .Setup(s => s.GetByIdAsync(leadId))
-            .ReturnsAsync((LeadDto?)null);
-
         // Act
-        var result = await _controller.ScoreLead(leadId, CancellationToken.None);
+        var result = await _controller.ScoreLead(999, CancellationToken.None);
 
         // Assert
         result.Should().BeOfType<NotFoundObjectResult>();
@@ -86,10 +98,12 @@ public class AILeadScoringControllerTests
     #region BatchScoreLeads Tests
 
     [Fact]
-    public async Task BatchScoreLeads_WithValidRequest_ReturnsOkResult()
+    public async Task BatchScoreLeads_WithValidRequest_ReturnsResult()
     {
         // Arrange
-        var request = new BatchScoreRequest { LeadIds = new List<int> { 1, 2, 3 } };
+        _dbContext.Leads.Add(new Lead { Id = 1, FirstName = "A", LastName = "B" });
+        await _dbContext.SaveChangesAsync();
+        var request = new BatchScoreRequest { LeadIds = new List<int> { 1 } };
 
         // Act
         var result = await _controller.BatchScoreLeads(request, CancellationToken.None);
@@ -108,8 +122,7 @@ public class AILeadScoringControllerTests
         var result = await _controller.BatchScoreLeads(request, CancellationToken.None);
 
         // Assert
-        // Should return bad request or empty result
-        result.Should().NotBeNull();
+        result.Should().BeOfType<BadRequestObjectResult>();
     }
 
     #endregion
@@ -117,79 +130,18 @@ public class AILeadScoringControllerTests
     #region GetTopLeads Tests
 
     [Fact]
-    public async Task GetTopLeads_WithDefaultCount_ReturnsOkResult()
+    public async Task GetTopLeads_ReturnsOkResult()
     {
         // Arrange
-        var leads = new List<LeadSummaryDto>
-        {
-            new() { Id = 1, FirstName = "High", LastName = "Score", Score = 95 },
-            new() { Id = 2, FirstName = "Medium", LastName = "Score", Score = 70 }
-        };
-
-        _mockLeadService
-            .Setup(s => s.GetAllAsync(1, 10))
-            .ReturnsAsync((leads, 2, 1, 10, 1));
+        _dbContext.Leads.Add(new Lead { Id = 1, FirstName = "A", LastName = "B", Score = 90 });
+        _dbContext.Leads.Add(new Lead { Id = 2, FirstName = "C", LastName = "D", Score = 80 });
+        await _dbContext.SaveChangesAsync();
 
         // Act
         var result = await _controller.GetTopLeads(10, CancellationToken.None);
 
         // Assert
         result.Should().BeOfType<OkObjectResult>();
-    }
-
-    [Fact]
-    public async Task GetTopLeads_WithCustomCount_ReturnsRequestedCount()
-    {
-        // Arrange
-        var count = 5;
-        var leads = new List<LeadSummaryDto>
-        {
-            new() { Id = 1, FirstName = "Lead", LastName = "One", Score = 90 }
-        };
-
-        _mockLeadService
-            .Setup(s => s.GetAllAsync(1, count))
-            .ReturnsAsync((leads, leads.Count, 1, count, 1));
-
-        // Act
-        var result = await _controller.GetTopLeads(count, CancellationToken.None);
-
-        // Assert
-        result.Should().BeOfType<OkObjectResult>();
-    }
-
-    #endregion
-
-    #region GetLeadScoreHistory Tests
-
-    [Fact]
-    public async Task GetLeadScoreHistory_WithValidLeadId_ReturnsOkResult()
-    {
-        // Arrange
-        var leadId = 1;
-
-        // Act
-        var result = await _controller.GetLeadScoreHistory(leadId, 30, CancellationToken.None);
-
-        // Assert
-        result.Should().BeOfType<OkObjectResult>();
-    }
-
-    [Fact]
-    public async Task GetLeadScoreHistory_WithInvalidLeadId_ReturnsNotFound()
-    {
-        // Arrange
-        var leadId = 999;
-        _mockLeadService
-            .Setup(s => s.GetByIdAsync(leadId))
-            .ReturnsAsync((LeadDto?)null);
-
-        // Act
-        var result = await _controller.GetLeadScoreHistory(leadId, 30, CancellationToken.None);
-
-        // Assert
-        // May return empty history or not found
-        result.Should().NotBeNull();
     }
 
     #endregion

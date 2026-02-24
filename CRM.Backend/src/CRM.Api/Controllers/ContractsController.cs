@@ -24,14 +24,16 @@ namespace CRM.Api.Controllers;
 public class ContractsController : ControllerBase
 {
     private readonly IContractService _contractService;
+    private readonly IContractExportService _contractExportService;
     private readonly ILogger<ContractsController> _logger;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ContractsController"/> class.
     /// </summary>
-    public ContractsController(IContractService contractService, ILogger<ContractsController> logger)
+    public ContractsController(IContractService contractService, IContractExportService contractExportService, ILogger<ContractsController> logger)
     {
         _contractService = contractService ?? throw new ArgumentNullException(nameof(contractService));
+        _contractExportService = contractExportService ?? throw new ArgumentNullException(nameof(contractExportService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
@@ -819,6 +821,239 @@ public class ContractsController : ControllerBase
             _logger.LogError(ex, "Error creating contract from order {OrderId}", orderId);
             return StatusCode(500, new { message = "Error creating contract from order" });
         }
+    }
+
+    // ========================================================================
+    // Bulk Operations (TODO-SALES005-013)
+    // ========================================================================
+
+    /// <summary>Bulk updates the status of multiple contracts.</summary>
+    [HttpPost("bulk-status")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> BulkUpdateStatus([FromBody] BulkStatusUpdateRequest request, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            if (request.ContractIds == null || request.ContractIds.Count == 0)
+                return BadRequest(new { message = "At least one contract ID is required" });
+
+            if (!Enum.IsDefined(typeof(ContractStatus), request.Status))
+                return BadRequest(new { message = "Invalid contract status" });
+
+            var updatedCount = await _contractService.BulkUpdateStatusAsync(
+                request.ContractIds,
+                request.Status,
+                cancellationToken);
+
+            _logger.LogInformation("Bulk status update: {UpdatedCount}/{TotalCount} contracts updated to {Status}",
+                updatedCount, request.ContractIds.Count, request.Status);
+
+            return Ok(new
+            {
+                totalRequested = request.ContractIds.Count,
+                successCount = updatedCount,
+                failedCount = request.ContractIds.Count - updatedCount,
+                newStatus = request.Status.ToString()
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error performing bulk status update");
+            return StatusCode(500, new { message = "Error performing bulk status update" });
+        }
+    }
+
+    /// <summary>Request DTO for bulk status update.</summary>
+    public class BulkStatusUpdateRequest
+    {
+        public List<int> ContractIds { get; set; } = new();
+        public ContractStatus Status { get; set; }
+        public string? Reason { get; set; }
+    }
+
+    // ========================================================================
+    // Export Operations (TODO-SALES005-014)
+    // ========================================================================
+
+    /// <summary>Exports a contract to the specified format (PDF, Excel, Word).</summary>
+    [HttpGet("{id}/export")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> Export(int id, [FromQuery] string format = "pdf", CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var supportedFormats = _contractExportService.GetSupportedFormats();
+            if (!supportedFormats.Contains(format, StringComparer.OrdinalIgnoreCase))
+                return BadRequest(new { message = $"Unsupported format '{format}'. Supported formats: {string.Join(", ", supportedFormats)}" });
+
+            var result = await _contractExportService.ExportAsync(id, format, cancellationToken);
+            return File(result.Content, result.ContentType, result.FileName);
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound(new { message = $"Contract {id} not found" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error exporting contract {ContractId} to {Format}", id, format);
+            return StatusCode(500, new { message = "Error exporting contract" });
+        }
+    }
+
+    /// <summary>Exports multiple contracts in bulk.</summary>
+    [HttpPost("export-bulk")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> ExportBulk([FromBody] BulkExportRequest request, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            if (request.ContractIds == null || request.ContractIds.Length == 0)
+                return BadRequest(new { message = "At least one contract ID is required" });
+
+            var result = await _contractExportService.ExportBulkAsync(
+                request.ContractIds,
+                request.Format ?? "pdf",
+                cancellationToken);
+
+            return File(result.Content, result.ContentType, result.FileName);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error performing bulk export");
+            return StatusCode(500, new { message = "Error performing bulk export" });
+        }
+    }
+
+    /// <summary>Gets supported export formats.</summary>
+    [HttpGet("export-formats")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public IActionResult GetExportFormats()
+    {
+        var formats = _contractExportService.GetSupportedFormats();
+        return Ok(new { formats });
+    }
+
+    /// <summary>Request DTO for bulk export.</summary>
+    public class BulkExportRequest
+    {
+        public int[] ContractIds { get; set; } = Array.Empty<int>();
+        public string? Format { get; set; }
+    }
+
+    // ========================================================================
+    // Version History Operations (TODO-SALES005-016)
+    // ========================================================================
+
+    /// <summary>Gets the version history of a contract.</summary>
+    [HttpGet("{id}/versions")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> GetVersionHistory(int id, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var contract = await _contractService.GetByIdAsync(id, cancellationToken);
+            if (contract == null)
+                return NotFound(new { message = $"Contract {id} not found" });
+
+            var versions = await _contractService.GetVersionHistoryAsync(id, cancellationToken);
+            return Ok(new
+            {
+                contractId = id,
+                versions = versions.Select(v => new
+                {
+                    v.Id,
+                    v.VersionNumber,
+                    v.ChangeDescription,
+                    ModifiedByUserId = v.CreatedById,
+                    v.CreatedAt,
+                    SnapshotData = v.SnapshotJson
+                })
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving version history for contract {ContractId}", id);
+            return StatusCode(500, new { message = "Error retrieving version history" });
+        }
+    }
+
+    /// <summary>Creates a version snapshot of the current contract state.</summary>
+    [HttpPost("{id}/versions")]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> CreateVersionSnapshot(int id, [FromBody] CreateVersionRequest request, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var contract = await _contractService.GetByIdAsync(id, cancellationToken);
+            if (contract == null)
+                return NotFound(new { message = $"Contract {id} not found" });
+
+            var version = await _contractService.CreateVersionSnapshotAsync(
+                id,
+                request.ChangeDescription ?? "Manual snapshot",
+                request.ModifiedByUserId,
+                cancellationToken);
+
+            _logger.LogInformation("Created version snapshot {VersionId} for contract {ContractId}", version.Id, id);
+
+            return CreatedAtAction(nameof(GetVersionHistory), new { id }, new
+            {
+                version.Id,
+                version.VersionNumber,
+                version.ChangeDescription,
+                ModifiedByUserId = version.CreatedById,
+                version.CreatedAt
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating version snapshot for contract {ContractId}", id);
+            return StatusCode(500, new { message = "Error creating version snapshot" });
+        }
+    }
+
+    /// <summary>Restores a contract to a previous version.</summary>
+    [HttpPost("{id}/versions/{versionId}/restore")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> RestoreVersion(int id, int versionId, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var contract = await _contractService.RestoreVersionAsync(id, versionId, cancellationToken);
+
+            _logger.LogInformation("Restored contract {ContractId} to version {VersionId}", id, versionId);
+
+            return Ok(MapToDto(contract));
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error restoring contract {ContractId} to version {VersionId}", id, versionId);
+            return StatusCode(500, new { message = "Error restoring version" });
+        }
+    }
+
+    /// <summary>Request DTO for creating a version snapshot.</summary>
+    public class CreateVersionRequest
+    {
+        public string? ChangeDescription { get; set; }
+        public int? ModifiedByUserId { get; set; }
     }
 
     // ========================================================================

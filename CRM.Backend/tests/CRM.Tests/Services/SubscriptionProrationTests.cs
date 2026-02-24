@@ -124,7 +124,7 @@ public class SubscriptionProrationTests
         var newAmount = 200m;
 
         // Act
-        var prorated = await _service.CalculateProratedAmountAsync(subscription.Id, newAmount, changeDate);
+        var prorated = await _service.CalculateProratedAmountAsync(subscription.Id, changeDate, newAmount);
 
         // Assert - 15/30 * 200 = 100
         prorated.Should().BeApproximately(100m, 0.01m);
@@ -142,7 +142,7 @@ public class SubscriptionProrationTests
         var newAmount = 200m;
 
         // Act
-        var prorated = await _service.CalculateProratedAmountAsync(subscription.Id, newAmount, changeDate);
+        var prorated = await _service.CalculateProratedAmountAsync(subscription.Id, changeDate, newAmount);
 
         // Assert
         prorated.Should().Be(0m);
@@ -161,7 +161,7 @@ public class SubscriptionProrationTests
         var newAmount = 200m;
 
         // Act
-        var prorated = await _service.CalculateProratedAmountAsync(subscription.Id, newAmount, changeDate);
+        var prorated = await _service.CalculateProratedAmountAsync(subscription.Id, changeDate, newAmount);
 
         // Assert - Full 30 days remaining
         prorated.Should().BeApproximately(200m, 0.01m);
@@ -180,7 +180,7 @@ public class SubscriptionProrationTests
         var newAmount = 140m;
 
         // Act
-        var prorated = await _service.CalculateProratedAmountAsync(subscription.Id, newAmount, changeDate);
+        var prorated = await _service.CalculateProratedAmountAsync(subscription.Id, changeDate, newAmount);
 
         // Assert - 4/7 * 140 = 80
         prorated.Should().BeApproximately(80m, 0.01m);
@@ -199,7 +199,7 @@ public class SubscriptionProrationTests
         var newAmount = 1800m;
 
         // Act
-        var prorated = await _service.CalculateProratedAmountAsync(subscription.Id, newAmount, changeDate);
+        var prorated = await _service.CalculateProratedAmountAsync(subscription.Id, changeDate, newAmount);
 
         // Assert - 45/90 * 1800 = 900
         prorated.Should().BeApproximately(900m, 0.01m);
@@ -218,7 +218,7 @@ public class SubscriptionProrationTests
         var newAmount = 2400m;
 
         // Act
-        var prorated = await _service.CalculateProratedAmountAsync(subscription.Id, newAmount, changeDate);
+        var prorated = await _service.CalculateProratedAmountAsync(subscription.Id, changeDate, newAmount);
 
         // Assert - 183/365 * 2400 ≈ 1203
         prorated.Should().BeApproximately(1203.29m, 1m);
@@ -320,7 +320,7 @@ public class SubscriptionProrationTests
         var newAmount = 200m;
 
         // Act
-        var prorated = await _service.CalculateProratedAmountAsync(subscription.Id, newAmount, changeDate);
+        var prorated = await _service.CalculateProratedAmountAsync(subscription.Id, changeDate, newAmount);
 
         // Assert - Should handle 29 days correctly
         prorated.Should().BeGreaterThan(0);
@@ -339,7 +339,7 @@ public class SubscriptionProrationTests
         var newAmount = 200m;
 
         // Act
-        var prorated = await _service.CalculateProratedAmountAsync(subscription.Id, newAmount, changeDate);
+        var prorated = await _service.CalculateProratedAmountAsync(subscription.Id, changeDate, newAmount);
 
         // Assert - Should handle 28 days correctly
         prorated.Should().BeGreaterThan(0);
@@ -362,7 +362,7 @@ public class SubscriptionProrationTests
         var newAmount = 200m;
 
         // Act
-        var prorated = await _service.CalculateProratedAmountAsync(subscription.Id, newAmount, changeDate);
+        var prorated = await _service.CalculateProratedAmountAsync(subscription.Id, changeDate, newAmount);
 
         // Assert
         prorated.Should().BeGreaterThan(0);
@@ -381,7 +381,7 @@ public class SubscriptionProrationTests
         var newAmount = 200m;
 
         // Act
-        var prorated = await _service.CalculateProratedAmountAsync(subscription.Id, newAmount, changeDate);
+        var prorated = await _service.CalculateProratedAmountAsync(subscription.Id, changeDate, newAmount);
 
         // Assert - 15/30 * 200 = 100
         prorated.Should().BeApproximately(100m, 0.01m);

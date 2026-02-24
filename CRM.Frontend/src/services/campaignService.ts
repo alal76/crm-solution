@@ -84,4 +84,6 @@ const campaignService = {
   },
 };
 
+export { campaignService };
+export type CampaignSummary = Campaign;
 export default campaignService;

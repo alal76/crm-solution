@@ -201,12 +201,12 @@ public class OidcProviderService : IOidcProviderService
 
         return new OAuthUserInfoDto
         {
-            Id = GetStringClaim(userInfo, "sub") ?? string.Empty,
+            ProviderId = GetStringClaim(userInfo, "sub") ?? string.Empty,
             Email = GetStringClaim(userInfo, "email") ?? string.Empty,
             Name = GetStringClaim(userInfo, "name") ?? string.Empty,
             GivenName = GetStringClaim(userInfo, "given_name"),
             FamilyName = GetStringClaim(userInfo, "family_name"),
-            Picture = GetStringClaim(userInfo, "picture"),
+            PictureUrl = GetStringClaim(userInfo, "picture"),
             EmailVerified = GetBoolClaim(userInfo, "email_verified"),
             Provider = providerId
         };

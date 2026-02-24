@@ -61,7 +61,7 @@ public class LeadSourcesController : ControllerBase
                     TrackingUrl = ls.TrackingUrl,
                     ExternalPlatformId = ls.ExternalPlatformId,
                     CreatedAt = ls.CreatedAt,
-                    UpdatedAt = ls.UpdatedAt
+                    UpdatedAt = ls.UpdatedAt ?? ls.CreatedAt
                 })
                 .ToListAsync(ct);
 
@@ -106,7 +106,7 @@ public class LeadSourcesController : ControllerBase
                 TrackingUrl = source.TrackingUrl,
                 ExternalPlatformId = source.ExternalPlatformId,
                 CreatedAt = source.CreatedAt,
-                UpdatedAt = source.UpdatedAt
+                UpdatedAt = source.UpdatedAt ?? source.CreatedAt
             });
         }
         catch (Exception ex)
@@ -277,6 +277,68 @@ public class LeadSourcesController : ControllerBase
             return StatusCode(500, "Internal server error");
         }
     }
+
+    /// <summary>
+    /// Gets a lead source report: leads grouped by source with conversion metrics.
+    /// TODO-CRM002-03: Lead source tracking and attribution report.
+    /// </summary>
+    [HttpGet("report")]
+    [ProducesResponseType(typeof(LeadSourceReport), 200)]
+    public async Task<IActionResult> GetReport(
+        [FromQuery] DateTime? fromDate = null,
+        [FromQuery] DateTime? toDate = null,
+        CancellationToken ct = default)
+    {
+        try
+        {
+            var from = fromDate ?? DateTime.UtcNow.AddYears(-1);
+            var to = toDate ?? DateTime.UtcNow;
+
+            var sources = await _context.LeadSources
+                .AsNoTracking()
+                .Where(ls => !ls.IsDeleted)
+                .ToListAsync(ct);
+
+            var leads = await _context.Leads
+                .AsNoTracking()
+                .Where(l => !l.IsDeleted && l.CreatedAt >= from && l.CreatedAt <= to)
+                .ToListAsync(ct);
+
+            var report = new LeadSourceReport
+            {
+                FromDate = from,
+                ToDate = to,
+                TotalLeads = leads.Count,
+                SourceDetails = sources.Select(source =>
+                {
+                    var sourceLeads = leads.Where(l => l.LeadSourceId == source.Id).ToList();
+                    var converted = sourceLeads.Count(l => l.Status == LeadLifecycleStatus.Converted);
+                    var total = sourceLeads.Count;
+
+                    return new LeadSourceReportItem
+                    {
+                        SourceId = source.Id,
+                        SourceName = source.Name,
+                        Channel = source.Channel.ToString(),
+                        TotalLeads = total,
+                        ConvertedLeads = converted,
+                        ConversionRate = total > 0 ? Math.Round((decimal)converted / total * 100, 2) : 0,
+                        CostPerLead = source.CostPerLead ?? 0,
+                        TotalSpend = source.TotalSpend ?? 0,
+                        CostPerConversion = converted > 0 ? Math.Round((source.TotalSpend ?? 0) / converted, 2) : 0
+                    };
+                }).OrderByDescending(s => s.TotalLeads).ToList(),
+                UnattributedLeads = leads.Count(l => !l.LeadSourceId.HasValue)
+            };
+
+            return Ok(report);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error generating lead source report");
+            return StatusCode(500, "Internal server error");
+        }
+    }
 }
 
 #region DTOs
@@ -336,6 +398,34 @@ public class LeadSourceStatistics
     public decimal TotalSpend { get; set; }
     public decimal AverageCostPerLead { get; set; }
     public Dictionary<string, int> SourceBreakdown { get; set; } = new();
+}
+
+/// <summary>
+/// Lead source attribution report.
+/// </summary>
+public class LeadSourceReport
+{
+    public DateTime FromDate { get; set; }
+    public DateTime ToDate { get; set; }
+    public int TotalLeads { get; set; }
+    public int UnattributedLeads { get; set; }
+    public List<LeadSourceReportItem> SourceDetails { get; set; } = new();
+}
+
+/// <summary>
+/// Individual source detail in a lead source report.
+/// </summary>
+public class LeadSourceReportItem
+{
+    public int SourceId { get; set; }
+    public string SourceName { get; set; } = string.Empty;
+    public string Channel { get; set; } = string.Empty;
+    public int TotalLeads { get; set; }
+    public int ConvertedLeads { get; set; }
+    public decimal ConversionRate { get; set; }
+    public decimal CostPerLead { get; set; }
+    public decimal TotalSpend { get; set; }
+    public decimal CostPerConversion { get; set; }
 }
 
 #endregion

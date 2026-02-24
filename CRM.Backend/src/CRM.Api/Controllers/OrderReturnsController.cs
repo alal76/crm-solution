@@ -462,7 +462,7 @@ public class OrderReturnsController : ControllerBase
             ProcessedById = r.ProcessedById,
             ProcessedByName = r.ProcessedBy != null ? $"{r.ProcessedBy.FirstName} {r.ProcessedBy.LastName}" : null,
             CreatedAt = r.CreatedAt,
-            UpdatedAt = r.UpdatedAt
+            UpdatedAt = r.UpdatedAt ?? r.CreatedAt
         };
     }
 

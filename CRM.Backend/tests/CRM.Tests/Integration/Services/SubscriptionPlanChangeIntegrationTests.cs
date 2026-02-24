@@ -10,6 +10,7 @@ using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Services;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
@@ -31,7 +32,7 @@ public class SubscriptionPlanChangeIntegrationTests : IDisposable
             .UseInMemoryDatabase(databaseName: $"CrmTestDb_PlanChange_{Guid.NewGuid()}")
             .Options;
 
-        _context = new CrmDbContext(options);
+        _context = new CrmDbContext(options, new Mock<IConfiguration>().Object);
 
         var logger = new Mock<ILogger<SubscriptionService>>();
         _subscriptionService = new SubscriptionService(_context, logger.Object);
@@ -45,12 +46,12 @@ public class SubscriptionPlanChangeIntegrationTests : IDisposable
         var account = new Account
         {
             Id = 1,
-            Name = "Plan Change Test Company",
+            LegalName = "Plan Change Test Company",
             Email = "test@planchange.com",
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
-        _context.Customers.Add(account);
+        _context.Accounts.Add(account);
 
         // Create products/plans
         var basicPlan = new Product
@@ -58,7 +59,7 @@ public class SubscriptionPlanChangeIntegrationTests : IDisposable
             Id = 1,
             Name = "Basic Plan",
             UnitPrice = 50m,
-            ProductType = "Subscription",
+            ProductType = ProductType.Subscription,
             IsActive = true,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
@@ -69,7 +70,7 @@ public class SubscriptionPlanChangeIntegrationTests : IDisposable
             Id = 2,
             Name = "Standard Plan",
             UnitPrice = 100m,
-            ProductType = "Subscription",
+            ProductType = ProductType.Subscription,
             IsActive = true,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
@@ -80,7 +81,7 @@ public class SubscriptionPlanChangeIntegrationTests : IDisposable
             Id = 3,
             Name = "Premium Plan",
             UnitPrice = 200m,
-            ProductType = "Subscription",
+            ProductType = ProductType.Subscription,
             IsActive = true,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
@@ -91,7 +92,7 @@ public class SubscriptionPlanChangeIntegrationTests : IDisposable
             Id = 4,
             Name = "Enterprise Plan",
             UnitPrice = 500m,
-            ProductType = "Subscription",
+            ProductType = ProductType.Subscription,
             IsActive = true,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
@@ -282,7 +283,7 @@ public class SubscriptionPlanChangeIntegrationTests : IDisposable
             Id = 10,
             Name = "Extra Storage",
             UnitPrice = 25m,
-            ProductType = "Addon",
+            ProductType = ProductType.Service,
             IsActive = true,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
@@ -321,7 +322,7 @@ public class SubscriptionPlanChangeIntegrationTests : IDisposable
             Id = 11,
             Name = "Support Package",
             UnitPrice = 30m,
-            ProductType = "Addon",
+            ProductType = ProductType.Service,
             IsActive = true,
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
@@ -399,7 +400,7 @@ public class SubscriptionPlanChangeIntegrationTests : IDisposable
 
         // Act
         var proratedAmount = await _subscriptionService.CalculateProratedAmountAsync(
-            subscription.Id, 200m, DateTime.UtcNow);
+            subscription.Id, DateTime.UtcNow, 200m);
 
         // Assert - 15 days remaining of 30, new price 200
         proratedAmount.Should().BeApproximately(100m, 1m);

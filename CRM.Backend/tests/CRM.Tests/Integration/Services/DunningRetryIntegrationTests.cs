@@ -11,6 +11,7 @@ using CRM.Infrastructure.Data;
 using CRM.Infrastructure.Services;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
@@ -32,7 +33,7 @@ public class DunningRetryIntegrationTests : IDisposable
             .UseInMemoryDatabase(databaseName: $"CrmTestDb_Dunning_{Guid.NewGuid()}")
             .Options;
 
-        _context = new CrmDbContext(options);
+        _context = new CrmDbContext(options, new Mock<IConfiguration>().Object);
 
         var logger = new Mock<ILogger<DunningManager>>();
         _dunningManager = new DunningManager(_context, logger.Object);
@@ -46,12 +47,12 @@ public class DunningRetryIntegrationTests : IDisposable
         var account = new Account
         {
             Id = 1,
-            Name = "Dunning Test Company",
+            LegalName = "Dunning Test Company",
             Email = "test@dunning.com",
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
-        _context.Customers.Add(account);
+        _context.Accounts.Add(account);
 
         // Create test subscription
         var subscription = new Subscription

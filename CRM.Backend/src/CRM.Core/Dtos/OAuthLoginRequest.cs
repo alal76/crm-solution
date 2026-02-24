@@ -11,6 +11,10 @@ namespace CRM.Core.Dtos;
 /// </summary>
 public class OAuthLoginRequest
 {
-    public string Provider { get; set; } = string.Empty; // google, github, microsoft
+    public string Provider { get; set; } = string.Empty; // google, github, microsoft, okta, oidc
     public string Token { get; set; } = string.Empty; // ID token or access token from provider
+    public string? ProviderUserId { get; set; } // Unique user ID at the provider
+    public string? Email { get; set; } // User's email from provider
+    public string? FirstName { get; set; } // User's first name from provider
+    public string? LastName { get; set; } // User's last name from provider
 }

@@ -92,7 +92,7 @@ public class WebhookAnalyticsService : IWebhookAnalyticsService
                     .OrderByDescending(eg => eg.Count())
                     .Select(eg => eg.Key!)
                     .FirstOrDefault() ?? "Unknown error",
-                LastFailureAt = g.Max(d => d.UpdatedAt),
+                LastFailureAt = g.Max(d => d.UpdatedAt).GetValueOrDefault(),
                 ConsecutiveFailures = CalculateConsecutiveFailures(g.ToList()),
                 MostCommonResponseCode = g.Where(d => d.ResponseStatusCode.HasValue)
                     .GroupBy(d => d.ResponseStatusCode!.Value)

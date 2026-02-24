@@ -30,6 +30,11 @@ public interface IAuthenticationService
     Task<AuthResponse> OAuthLoginAsync(OAuthLoginRequest request);
 
     /// <summary>
+    /// Generate tokens for a user by ID (used after alternative auth methods like biometric/WebAuthn)
+    /// </summary>
+    Task<AuthResponse?> GenerateTokensForUserAsync(int userId);
+
+    /// <summary>
     /// Refresh JWT token
     /// </summary>
     Task<AuthResponse> RefreshTokenAsync(string refreshToken);

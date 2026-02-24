@@ -316,4 +316,14 @@ export const AccessibleChartWrapper: React.FC<AccessibleChartWrapperProps> = ({
   );
 };
 
+// Type aliases for barrel exports
+export type ChartType = ChartAccessibilityProps['chartType'];
+export type DataPoint = ChartDataPoint;
+export type ChartDescription = {
+  title: string;
+  description?: string;
+  chartType: ChartType;
+  summaryText?: string;
+};
+
 export default ChartAccessibility;

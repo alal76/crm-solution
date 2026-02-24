@@ -1,9 +1,9 @@
 {
   "major": 0,
-  "minor": 581,
+  "minor": 582,
   "patch": 0,
-  "lastUpdate": "2026-02-24",
-  "description": "Round 7 — 8 parallel subagents: Auth security (session limits, password history, audit logging, magic links, OAuth linking), Subscription controllers (billing/usage/analytics/pause/resume/trial-conversion), SD frontend components (Timeline/CustomField/AssignmentPanel/SLABadge/ContractForm), Provider registry+admin (ProviderRegistryService, AdminProvidersController, ProviderSelector, ProvidersPage), Import/export components (ColumnMapper/ImportPreview/DuplicateHandler/ImportProgress + IDataValidator/IBatchProcessor backends), CRM core gaps (auto-probability, opportunity products, duplicate lead detection, multi-currency, PDF stub), System/admin gaps (audit wiring, single default group, business hours, localization validation, GDPR logging), Testing (WebhookDispatcher 16 tests, EscalationRule 16 tests, SLA E2E 8, Escalation E2E 8, Contracts E2E 10, Invoices E2E 11, ITSM frontend 27 tests)",
+  "lastUpdate": "2026-02-25",
+  "description": "Round 8 — 8 parallel subagents + build error resolution: Auth enhancements (device authorization, biometric auth, OpenID Connect, trusted devices, risk assessment, login analytics), Subscription lifecycle (plan changes, proration, dunning/retry, auto-renewal, metrics), Duplicate detection controller tests rewrite, AI Lead Scoring controller tests rewrite, 92 frontend TypeScript errors fixed (EditableCell corruption repair, barrel export alignment, CampaignDashboardWidgets, CommissionPlans/Statements pages, LeadScoringWidget, contexts index), build error fixes across 20+ test files (254→0 errors)",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [

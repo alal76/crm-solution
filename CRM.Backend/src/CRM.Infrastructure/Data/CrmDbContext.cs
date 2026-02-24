@@ -376,6 +376,7 @@ public class CrmDbContext : DbContext, ICrmDbContext
     public DbSet<ReportSchedule> ReportSchedules { get; set; }
     public DbSet<ReportExecution> ReportExecutions { get; set; }
     public DbSet<ReportWidgetConfig> ReportWidgetConfigs { get; set; }
+    public DbSet<ReportShare> ReportShares { get; set; }
 
     // =============================================================================
     // Knowledge Base Entities (Articles, SLA)
@@ -500,6 +501,12 @@ public class CrmDbContext : DbContext, ICrmDbContext
     public DbSet<TrustedDevice> TrustedDevices { get; set; }
     public DbSet<DeviceAuthorizationCode> DeviceAuthorizationCodes { get; set; }
     public DbSet<LoginAttempt> LoginAttempts { get; set; }
+
+    // Navigation Configuration (TODO-SYS012-002)
+    public DbSet<NavigationConfigEntity> NavigationConfigs { get; set; }
+
+    // Service Request Escalation Logs (TODO-SD005-011)
+    public DbSet<EscalationLog> EscalationLogs { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {

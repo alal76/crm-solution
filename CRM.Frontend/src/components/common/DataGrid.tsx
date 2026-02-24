@@ -45,6 +45,13 @@ export interface DataGridColumn<T> {
 
 // Sort direction
 export type SortDirection = 'asc' | 'desc' | undefined;
+export type SortOrder = SortDirection;
+export interface PaginationInfo {
+  page: number;
+  pageSize: number;
+  totalCount: number;
+  totalPages: number;
+}
 
 // Props
 export interface DataGridProps<T extends { id: number | string }> {
@@ -492,7 +499,7 @@ export function DataGrid<T extends { id: number | string }>({
                       return (
                         <TableCell
                           key={cellKey}
-                          ref={(el) => {
+                          ref={(el: HTMLTableCellElement | null) => {
                             if (el) cellRefs.current.set(cellKey, el);
                           }}
                           align={column.align || 'left'}

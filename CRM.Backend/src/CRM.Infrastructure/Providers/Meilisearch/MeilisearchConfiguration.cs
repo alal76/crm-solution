@@ -71,43 +71,4 @@ public class MeilisearchConfiguration
     public int BatchSize { get; set; } = 1000;
 }
 
-/// <summary>
-/// Meilisearch index configuration for a specific entity type.
-/// </summary>
-public class MeilisearchIndexConfig
-{
-    /// <summary>
-    /// The index name (without prefix).
-    /// </summary>
-    public string IndexName { get; set; } = string.Empty;
-
-    /// <summary>
-    /// The primary key field name.
-    /// </summary>
-    public string PrimaryKey { get; set; } = "id";
-
-    /// <summary>
-    /// Fields that are searchable (indexed for full-text search).
-    /// </summary>
-    public List<string> SearchableAttributes { get; set; } = new();
-
-    /// <summary>
-    /// Fields that can be used for filtering.
-    /// </summary>
-    public List<string> FilterableAttributes { get; set; } = new();
-
-    /// <summary>
-    /// Fields that can be used for sorting.
-    /// </summary>
-    public List<string> SortableAttributes { get; set; } = new();
-
-    /// <summary>
-    /// Fields to display in results.
-    /// </summary>
-    public List<string> DisplayedAttributes { get; set; } = new();
-
-    /// <summary>
-    /// Custom ranking rules.
-    /// </summary>
-    public List<string> RankingRules { get; set; } = new();
-}
+// MeilisearchIndexConfig class is defined in MeilisearchIndexConfig.cs

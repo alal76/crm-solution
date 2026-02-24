@@ -39,22 +39,7 @@ public class OidcAuthResult
     public string? ErrorDescription { get; set; }
 }
 
-/// <summary>
-/// DTO for OIDC provider discovery metadata.
-/// </summary>
-public class OidcDiscoveryDocument
-{
-    public string Issuer { get; set; } = string.Empty;
-    public string AuthorizationEndpoint { get; set; } = string.Empty;
-    public string TokenEndpoint { get; set; } = string.Empty;
-    public string UserInfoEndpoint { get; set; } = string.Empty;
-    public string JwksUri { get; set; } = string.Empty;
-    public string? EndSessionEndpoint { get; set; }
-    public string? RevocationEndpoint { get; set; }
-    public string[]? ScopesSupported { get; set; }
-    public string[]? ResponseTypesSupported { get; set; }
-    public string[]? ClaimsSupported { get; set; }
-}
+// OidcDiscoveryDocument is defined in IOidcProviderService.cs
 
 /// <summary>
 /// Service interface for generic OpenID Connect provider support.

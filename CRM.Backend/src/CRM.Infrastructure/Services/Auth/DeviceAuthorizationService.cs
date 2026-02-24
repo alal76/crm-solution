@@ -164,7 +164,7 @@ public class DeviceAuthorizationService : IDeviceAuthorizationService
             };
         }
 
-        var accessToken = _jwtTokenService.GenerateToken(user.Id, user.Email, user.Role);
+        var accessToken = _jwtTokenService.GenerateAccessToken(user);
         var refreshToken = _jwtTokenService.GenerateRefreshToken();
 
         _logger.LogInformation("Device authorization completed for user {UserId}, client {ClientId}",

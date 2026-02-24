@@ -232,6 +232,23 @@ namespace CRM.Core.Interfaces
             DateTime? toDate = null,
             CancellationToken cancellationToken = default);
 
+        /// <summary>
+        /// Export audit logs in the specified format (csv, json, or pdf).
+        /// TODO-SYS006-008
+        /// </summary>
+        /// <param name="format">csv, json, or pdf</param>
+        /// <param name="entityType">Filter by entity type (optional)</param>
+        /// <param name="fromDate">Filter by start date (optional)</param>
+        /// <param name="toDate">Filter by end date (optional)</param>
+        /// <param name="cancellationToken">Cancellation token</param>
+        /// <returns>Tuple of (Data bytes, ContentType, FileName)</returns>
+        Task<(byte[] Data, string ContentType, string FileName)> ExportAuditLogsAsync(
+            string format,
+            string? entityType = null,
+            DateTime? fromDate = null,
+            DateTime? toDate = null,
+            CancellationToken cancellationToken = default);
+
         #endregion
 
         #region Cleanup & Maintenance
