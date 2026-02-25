@@ -1183,10 +1183,18 @@ using (var scope = app.Services.CreateScope())
     {
         if (!skipMigration)
         {
+            var useEnsureCreated = Environment.GetEnvironmentVariable("USE_ENSURE_CREATED") == "true";
+            
             if (!db.Database.IsRelational())
             {
                 // Non-relational providers (InMemory, etc.) — use EnsureCreated
                 Log.Information("Non-relational provider detected ({Provider}); using EnsureCreated", databaseProvider);
+                await db.Database.EnsureCreatedAsync();
+            }
+            else if (useEnsureCreated)
+            {
+                // Development mode: use EnsureCreated to avoid migration issues
+                Log.Information("USE_ENSURE_CREATED=true — using EnsureCreated for {Provider} (development mode)", databaseProvider);
                 await db.Database.EnsureCreatedAsync();
             }
             else
