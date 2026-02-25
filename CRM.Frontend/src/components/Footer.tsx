@@ -99,7 +99,7 @@ function Footer() {
 
       // Check AI service health (optional - don't treat as error if disabled)
       try {
-        const aiHealthUrl = getApiEndpoint('/api/ai/chatbot/health');
+        const aiHealthUrl = getApiEndpoint('/ai/chatbot/health');
         const aiResponse = await axios.get(aiHealthUrl, { timeout: 5000 });
         
         if (aiResponse.status === 200 && aiResponse.data) {
