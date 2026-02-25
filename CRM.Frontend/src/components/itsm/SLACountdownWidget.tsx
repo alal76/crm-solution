@@ -325,7 +325,7 @@ export const SLACountdownWidget: React.FC<SLACountdownWidgetProps> = ({
             SLA Status
           </Typography>
           <Chip
-            label={worstStatus.replace('-', ' ').toUpperCase()}
+            label={typeof worstStatus === 'string' ? worstStatus.replace('-', ' ').toUpperCase() : 'UNKNOWN'}
             size="small"
             sx={{
               backgroundColor: `${getStatusColor(worstStatus)}20`,

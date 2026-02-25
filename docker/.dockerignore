@@ -41,6 +41,8 @@ yarn.lock
 docs
 README.md
 *.md
+!docs/help/
+!docs/help/**
 
 # Tests
 *.test.js

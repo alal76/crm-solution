@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 593,
-  "patch": 6,
+  "patch": 7,
   "lastUpdate": "2026-02-26",
-  "description": "Fix schema drift from short-circuited InitialCreate migration: add ArchivedAt to AuditLogs, create AuthAuditLogs and UserSessions tables, apply AddAuthAuditLogs migration. Resolves /tasks/my-queue 400 error and audit archive warnings.",
+  "description": "Guard frontend status labels from non-string values to prevent TypeError in status.replace, plus ensure help docs packaged.",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [

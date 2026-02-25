@@ -1941,7 +1941,7 @@ echo "Frontend URL: http://localhost:3000"
               secondary={target.lastDeployed ? `Last deployed: ${new Date(target.lastDeployed).toLocaleString()}` : 'Not deployed'}
             />
             <Chip
-              label={target.status.replace('_', ' ')}
+              label={typeof target.status === 'string' ? target.status.replace('_', ' ') : 'unknown'}
               size="small"
               color={target.status === 'deployed' ? 'success' : target.status === 'error' ? 'error' : 'default'}
             />

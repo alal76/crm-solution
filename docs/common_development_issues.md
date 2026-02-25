@@ -109,6 +109,18 @@
 
 ---
 
+## Help docs missing from backend image
+
+- **Symptom:** `/app/docs/help` not present inside the `crm-api` container; help viewer/AI indexing cannot find markdown assets after deployment.
+- **Root Cause:** `.dockerignore` excluded `docs/` and `*.md`, so the Docker build context never contained `docs/help` even though `Dockerfile.backend` tries to copy it.
+- **Fix:** Add unignore patterns to `.dockerignore` and `docker/.dockerignore`:
+  - `!docs/help/`
+  - `!docs/help/**`
+  Then rebuild the backend image (`--platform linux/amd64`) and redeploy.
+- **Where seen:** v0.593.5 deployment (Feb 26, 2026) when help content failed to appear in the runtime image.
+
+---
+
 ## Frontend /admin/features page crashes: "Cannot read properties of undefined (reading 'isActive')"
 
 - **Symptom:** TypeError at `/admin/features` admin page: `Cannot read properties of undefined (reading 'isActive')`. Page fails to render.
