@@ -34,12 +34,32 @@ public class OktaSsoService : IOktaSsoService
         _logger = logger;
         _options = options.Value;
         _httpClient = httpClientFactory.CreateClient("OktaSso");
-        _httpClient.BaseAddress = new Uri($"https://{_options.Domain}/");
+        
+        // Only set BaseAddress if Domain is configured
+        if (!string.IsNullOrWhiteSpace(_options.Domain))
+        {
+            _httpClient.BaseAddress = new Uri($"https://{_options.Domain}/");
+        }
+        else
+        {
+            _logger.LogWarning("OktaSsoService: Domain not configured. SSO functionality will not be available.");
+        }
+    }
+
+    private void ValidateConfiguration()
+    {
+        if (string.IsNullOrWhiteSpace(_options.Domain))
+        {
+            throw new InvalidOperationException(
+                "Okta SSO is not configured. Please configure Okta settings before using SSO functionality.");
+        }
     }
 
     /// <inheritdoc />
     public string GetAuthorizationUrl(string state, string codeChallenge)
     {
+        ValidateConfiguration();
+        
         var authServer = _options.AuthorizationServerId;
         var baseUrl = $"https://{_options.Domain}/oauth2/{authServer}/v1/authorize";
 
@@ -66,6 +86,8 @@ public class OktaSsoService : IOktaSsoService
         string codeVerifier,
         CancellationToken cancellationToken = default)
     {
+        ValidateConfiguration();
+        
         var authServer = _options.AuthorizationServerId;
         var tokenEndpoint = $"oauth2/{authServer}/v1/token";
 
