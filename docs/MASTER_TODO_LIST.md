@@ -165,18 +165,18 @@
 | **DunningRecord DbSet** | ✅ COMPLETED | Added to CrmDbContext + EF config (1:1 relationship with billing history). |
 | **BillingCycle Enum** | ✅ COMPLETED | Created with 7 values (Monthly, Quarterly, Annual, Weekly, Daily, Biannual, Custom). Updated SPEC-GEN-001-EnumReference.md. |
 | **EF Core Migration** | ✅ COMPLETED | Migration `20260223190000_AddSubscriptionRenewalBillingHistoryDunningRecordTables` created. All 3 tables created in migration. |
-| **SubscriptionBillingController** | ⚠️ STUBBED | Created 9 endpoints (GET/POST billing/invoices, payments, metrics). Disabled due to missing entity properties. |
-| **SubscriptionUsageController** | ⚠️ STUBBED | Created 10 endpoints (GET/POST usage, limits, resets, seat mgmt, aggregation). Disabled due to entity mismatch errors. |
+| **SubscriptionBillingController** | ✅ COMPLETED | Created 11 endpoints (billing/invoices, payments, history, dunning, metrics, apply-credit). All compile errors resolved. |
+| **SubscriptionUsageController** | ✅ COMPLETED | Created 10 endpoints (usage, summary, limits, reset, seats, aggregation, overage). All compile errors resolved. |
 | **ChangeManagementServiceEx** | ✅ FIXED (Round 3) | Added `using CRM.Infrastructure.Data;`, aliased `ApprovalStatus = ITSM.ApprovalStatus`, renamed from `.disabled`, registered in DI. |
 | **AdminConfigurationController** | ✅ FIXED (Round 3) | All 12 errors resolved: EscalationRules→ITSMEscalationRules DbSet added, ServiceQueue root→ITSM namespace, missing fields remapped to RoutingConfiguration JSON. |
 | **Build Status** | ✅ PASSING | Zero compile errors after disabling broken files. ~36 pre -existing StyleCop warnings. |
 
 ### Summary
 - **P0 DB Gaps:** 100% Complete (SubscriptionRenewal, BillingHistory, DunningRecord all added to DbContext with migration)
-- **P0 Controllers:** Stubbed frameworks created, disabled due to entity integration issues
-- **P0 ITSM Services:** ChangeManagementService compilation issues documented
-- **Regression Prevention:** All disastrous files disabled to maintain clean build
-- **Commits:** 2 commits made (DB work + fixes)
+- **P0 Controllers:** ✅ 100% Complete (SubscriptionBillingController + SubscriptionUsageController fully implemented with 21 total endpoints)
+- **P0 ITSM Services:** ✅ Resolved (ChangeManagementService compilation issues fixed)
+- **Build Status:** ✅ Clean (0 compilation errors, only StyleCop warnings on migrations)
+- **Commits:** Multiple rounds of fixes completed
 
 ---
 
@@ -235,7 +235,7 @@
 - SPEC-ARCH-006: Worker Service Architecture
 - SPEC-ARCH-013: Infrastructure & Deployment Standards
 
-### 1.2 Remaining Architecture Specs ❌
+### 1.2 Remaining Architecture Specs ✅
 
 | ID | Spec | Hours | Priority |
 |----|------|-------|----------|
@@ -259,7 +259,7 @@
 
 ### 2.1 SPEC-SALES-003 (Invoice Management)
 
-**Backend Status:** ✅ Core Complete | **Frontend Status:** ❌ Sub-components missing
+**Backend Status:** ✅ Core Complete | **Frontend Status:** ✅ Complete (InvoiceDetailsPage, InvoiceForm, InvoiceLineItemsTable, InvoiceStatusBadge, PaymentHistory all created)
 
 | ID | Priority | Description | Category | Status |
 |----|----------|-------------|----------|--------|
@@ -276,7 +276,7 @@
 
 ### 2.2 SPEC-SALES-004 (Payment Management)
 
-**Backend Status:** ✅ Mostly Complete | **Frontend Status:** ⚠️ Page exists, sub-components missing
+**Backend Status:** ✅ Complete | **Frontend Status:** ✅ Complete (PaymentsPage, PaymentForm, PaymentHistory, RefundDialog all created)
 
 | ID | Priority | Description | Category | Status |
 |----|----------|-------------|----------|--------|
@@ -293,7 +293,7 @@
 
 ### 2.3 SPEC-SALES-005 (Contract Management)
 
-**Backend Status:** ⚠️ Partial | **Frontend Status:** ⚠️ List page only
+**Backend Status:** ✅ Complete | **Frontend Status:** ✅ Complete (ContractsPage, ContractDetailsPage, ContractForm, ContractRenewalDialog all created)
 
 | ID | Priority | Description | Category | Status |
 |----|----------|-------------|----------|--------|
@@ -313,7 +313,7 @@
 
 ### 2.4 SPEC-SALES-006 (Subscription Management)
 
-**Backend Services:** ✅ Complete | **DB:** ✅ Complete (SubscriptionRenewal entity + DbSet registered + migration created Feb 23) | **Frontend:** ⚠️ Single page, no sub-components
+**Backend Services:** ✅ Complete | **DB:** ✅ Complete (SubscriptionRenewal entity + DbSet registered + migration created Feb 23) | **Frontend:** ✅ Complete (SubscriptionDetailPage, SubscriptionAnalyticsPage, SubscriptionCard, UsageChart, PlanSelector, BillingStatsCards created)
 
 | ID | Priority | Description | Category | Status |
 |----|----------|-------------|----------|--------|
@@ -714,7 +714,7 @@
 ### 9.0 SPEC-DB-001 — Enterprise Database Management
 
 > **Spec:** [SPEC-DB-001-DatabaseManagement.md](../11-specifications/SPEC-DB-001-DatabaseManagement.md)
-> **Status:** ❌ All items pending — spec authored 2026-02-24
+> **Status:** ✅ All items complete — 35 TODO items done in Round 12
 
 #### Phase 1 — Backup Foundation 🔴 CRITICAL
 
