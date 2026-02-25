@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 593,
-  "patch": 2,
+  "patch": 3,
   "lastUpdate": "2026-02-25",
-  "description": "Fixed Redis connection configuration causing HTTP 500 errors on roles/permissions endpoints. Changed default REDIS_HOST from 'redis' to 'crm-redis', added AbortOnConnectFail=false for connection retries, increased timeout to 10s. Root cause: RolesController couldn't instantiate due to Redis connection failure during DI resolution. Data loader now completes with 0 server errors (previously 8 failures on roles/permissions). All 592 API calls now succeed (99.2% success rate).",
+  "description": "Added administrator help workflows and AI agent guides (RBAC, onboarding, integrations, health monitor, user-management assistant) to complete help system coverage. Maintains Redis/RBAC stability fixes; tests pending rerun due to remote environment constraints.",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [
