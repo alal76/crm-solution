@@ -1,10 +1,9 @@
 // CRM Solution - Customer Relationship Management System
 // Copyright (C) 2024-2026 Abhishek Lal
 //
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU Affero General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
+// This software is source-available. Non-commercial use is permitted under
+// the terms of the LICENSE file. Commercial use requires a separate license.
+// See the LICENSE file in the root directory for full terms.
 
 using CRM.Core.Dtos;
 using CRM.Core.Interfaces;

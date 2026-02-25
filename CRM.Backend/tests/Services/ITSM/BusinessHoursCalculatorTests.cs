@@ -674,7 +674,6 @@ public class BusinessHoursCalculatorTests
     ///   - Spring: March 9 at 2:00 AM ET
     ///   - Fall:   November 2 at 2:00 AM ET
     /// </summary>
-
     // ── UTC timezone: no DST, simple path ──────────────────────────────────────
 
     [Fact]
@@ -904,5 +903,4 @@ public class BusinessScheduleTests
         schedule.Holidays.Should().HaveCount(2);
         schedule.Holidays[0].IsRecurringYearly.Should().BeTrue();
     }
-
 }

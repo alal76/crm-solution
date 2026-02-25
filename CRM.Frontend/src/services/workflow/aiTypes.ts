@@ -422,4 +422,6 @@ export interface AIAnalyticsSummary {
     tokens: number;
     executions: number;
   }[];
+  /** Recent individual AI conversation executions (populated from the /summary endpoint). */
+  recentExecutions?: AINodeExecution[];
 }

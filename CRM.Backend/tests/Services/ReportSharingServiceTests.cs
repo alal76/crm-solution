@@ -4,7 +4,7 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-//
+
 // Spec: SPEC-RPT-03 (Report Sharing)
 // TODO-RPT-03: Report Sharing — unit tests
 //
@@ -18,11 +18,11 @@ using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using CRM.Infrastructure.Services;
 using CRM.Tests.Helpers;
-using ReportDefinition = CRM.Core.Entities.Reports.ReportDefinition;
 using FluentAssertions;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
+using ReportDefinition = CRM.Core.Entities.Reports.ReportDefinition;
 
 namespace CRM.Tests.Services;
 

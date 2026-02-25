@@ -1,14 +1,12 @@
-// TODO: Integration target — AI insights page
-// This component is currently orphaned (not imported by any page).
-
 /**
  * CRM Solution - Customer Relationship Management System
  * Copyright (C) 2024-2026 Abhishek Lal
  *
- * AI Analytics Dashboard - Cost tracking and performance analytics for AI workflow nodes
+ * AI Analytics Dashboard - Real-time cost tracking and performance analytics for AI agent executions.
+ * Data is sourced from the AgentConversations and AgentActions tables via GET /api/agents/analytics/summary.
  */
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Typography,
@@ -64,6 +62,7 @@ import {
   Schedule as ScheduleIcon,
 } from '@mui/icons-material';
 import { AINodeExecution, AIAnalyticsSummary } from '../../services/workflowService';
+import agentAnalyticsService from '../../services/agentAnalyticsService';
 
 // ============================================================================
 // Types
@@ -93,38 +92,18 @@ interface NodeTypeStats {
 }
 
 // ============================================================================
-// Mock Data (Replace with actual API calls)
+// Helpers
 // ============================================================================
 
-const mockExecutions: AINodeExecution[] = [
-  { nodeId: 1, nodeType: 'AIDecision', model: 'gpt-4o', inputTokens: 500, outputTokens: 100, totalTokens: 600, cost: 0.0054, latencyMs: 1200, success: true, timestamp: new Date().toISOString() },
-  { nodeId: 2, nodeType: 'AIContentGenerator', model: 'gpt-4o', inputTokens: 800, outputTokens: 1500, totalTokens: 2300, cost: 0.0265, latencyMs: 3500, success: true, timestamp: new Date().toISOString() },
-  { nodeId: 3, nodeType: 'AIAgent', model: 'gpt-4o', inputTokens: 2000, outputTokens: 800, totalTokens: 2800, cost: 0.022, latencyMs: 8500, success: true, timestamp: new Date().toISOString() },
-  { nodeId: 4, nodeType: 'AIClassifier', model: 'gpt-4o-mini', inputTokens: 200, outputTokens: 50, totalTokens: 250, cost: 0.00025, latencyMs: 400, success: true, timestamp: new Date().toISOString() },
-  { nodeId: 5, nodeType: 'AISentimentAnalyzer', model: 'gpt-4o-mini', inputTokens: 150, outputTokens: 80, totalTokens: 230, cost: 0.00023, latencyMs: 350, success: true, timestamp: new Date().toISOString() },
-  { nodeId: 6, nodeType: 'AIDataExtractor', model: 'gpt-4o', inputTokens: 1200, outputTokens: 300, totalTokens: 1500, cost: 0.0105, latencyMs: 2100, success: false, errorMessage: 'Invalid JSON response', timestamp: new Date().toISOString() },
-];
-
-const mockSummary: AIAnalyticsSummary = {
-  period: 'month',
-  totalCost: 45.67,
-  totalTokens: 1250000,
-  totalExecutions: 3456,
-  successRate: 97.8,
-  averageLatencyMs: 1850,
-  byModel: [
-    { model: 'gpt-4o', cost: 38.50, tokens: 850000, executions: 2100 },
-    { model: 'gpt-4o-mini', cost: 5.20, tokens: 320000, executions: 1100 },
-    { model: 'claude-3-sonnet', cost: 1.97, tokens: 80000, executions: 256 },
-  ],
-  byNodeType: [
-    { nodeType: 'AIContentGenerator', cost: 18.45, tokens: 520000, executions: 890 },
-    { nodeType: 'AIAgent', cost: 12.30, tokens: 380000, executions: 345 },
-    { nodeType: 'AIDecision', cost: 8.90, tokens: 200000, executions: 1200 },
-    { nodeType: 'AIClassifier', cost: 3.20, tokens: 90000, executions: 780 },
-    { nodeType: 'AISentimentAnalyzer', cost: 1.82, tokens: 40000, executions: 180 },
-    { nodeType: 'AIDataExtractor', cost: 1.00, tokens: 20000, executions: 61 },
-  ],
+/** Map dateRange label to number of days for the API query */
+const dateRangeToDays = (range: 'today' | 'week' | 'month' | 'quarter' | 'year'): number => {
+  switch (range) {
+    case 'today': return 1;
+    case 'week': return 7;
+    case 'month': return 30;
+    case 'quarter': return 90;
+    case 'year': return 365;
+  }
 };
 
 // ============================================================================
@@ -254,32 +233,57 @@ export const AIAnalyticsDashboard: React.FC<AIAnalyticsDashboardProps> = ({
 }) => {
   const [dateRange, setDateRange] = useState<'today' | 'week' | 'month' | 'quarter' | 'year'>(initialDateRange);
   const [loading, setLoading] = useState(false);
-  const [summary, setSummary] = useState<AIAnalyticsSummary | null>(mockSummary);
-  const [recentExecutions, setRecentExecutions] = useState<AINodeExecution[]>(mockExecutions);
+  const [error, setError] = useState<string | null>(null);
+  const [summary, setSummary] = useState<AIAnalyticsSummary | null>(null);
+  const [recentExecutions, setRecentExecutions] = useState<AINodeExecution[]>([]);
 
-  // In a real implementation, this would fetch data from the API
-  useEffect(() => {
+  const fetchData = async () => {
     setLoading(true);
-    // Simulated API call
-    setTimeout(() => {
-      setSummary(mockSummary);
-      setRecentExecutions(mockExecutions);
+    setError(null);
+    try {
+      const days = dateRangeToDays(dateRange);
+      const response = await agentAnalyticsService.getSummary(days);
+      const data = response.data;
+      // Separate recentExecutions from the summary payload
+      const { recentExecutions: executions, ...summaryMeta } = data;
+      setSummary(summaryMeta as AIAnalyticsSummary);
+      setRecentExecutions(executions ?? []);
+    } catch (err: unknown) {
+      const msg = (err as { response?: { data?: { message?: string } }; message?: string })
+        ?.response?.data?.message ?? (err as { message?: string })?.message ?? 'Failed to load AI analytics';
+      setError(msg);
+    } finally {
       setLoading(false);
-    }, 500);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dateRange, workflowId]);
 
-  const handleRefresh = () => {
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-    }, 500);
-  };
+  const handleRefresh = () => { fetchData(); };
 
   if (loading && !summary) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', p: 4 }}>
         <CircularProgress />
       </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Alert
+        severity="error"
+        action={
+          <Button color="inherit" size="small" onClick={handleRefresh}>
+            Retry
+          </Button>
+        }
+      >
+        {error}
+      </Alert>
     );
   }
 
@@ -343,8 +347,6 @@ export const AIAnalyticsDashboard: React.FC<AIAnalyticsDashboardProps> = ({
             value={formatCost(summary.totalCost)}
             subtitle={`${summary.totalExecutions.toLocaleString()} executions`}
             icon={<CostIcon />}
-            trend={-12}
-            trendLabel="vs last month"
             color="#4CAF50"
           />
         </Grid>
@@ -354,7 +356,6 @@ export const AIAnalyticsDashboard: React.FC<AIAnalyticsDashboardProps> = ({
             value={formatTokens(summary.totalTokens)}
             subtitle="Input + Output"
             icon={<TokenIcon />}
-            trend={8}
             color="#2196F3"
           />
         </Grid>
@@ -373,7 +374,6 @@ export const AIAnalyticsDashboard: React.FC<AIAnalyticsDashboardProps> = ({
             value={formatLatency(summary.averageLatencyMs)}
             subtitle="Average response time"
             icon={<SpeedIcon />}
-            trend={-5}
             color="#9C27B0"
           />
         </Grid>

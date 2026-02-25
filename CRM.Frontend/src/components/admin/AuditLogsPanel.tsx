@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   Box,
   Card,
@@ -20,63 +20,55 @@ import {
 } from '@mui/material';
 import { Search as SearchIcon, FileDownload as DownloadIcon } from '@mui/icons-material';
 import logger from '../../services/logger';
-
-interface AuditLog {
-  id: number;
-  timestamp: string;
-  userId: number;
-  userName: string;
-  action: string;
-  entityType: string;
-  entityId: number;
-  changes: Record<string, any>;
-  ipAddress: string;
-}
+import auditLogService, { AuditLogDto } from '../../services/auditLogService';
 
 /**
  * Audit Logs Panel - View system activity and changes
  */
 const AuditLogsPanel: React.FC = () => {
-  const [logs, setLogs] = useState<AuditLog[]>([]);
+  const [logs, setLogs] = useState<AuditLogDto[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [page, setPage] = useState(1);
   const [pageSize] = useState(20);
+  const [totalPages, setTotalPages] = useState(1);
 
-  useEffect(() => {
-    loadAuditLogs();
-  }, [page, searchTerm]);
-
-  const loadAuditLogs = async () => {
+  const loadAuditLogs = useCallback(async () => {
     try {
       setLoading(true);
-      // TODO: Call API to load audit logs
-      // For now, show sample data
-      setLogs([
-        {
-          id: 1,
-          timestamp: new Date().toISOString(),
-          userId: 1,
-          userName: 'Admin User',
-          action: 'UPDATE',
-          entityType: 'SystemSettings',
-          entityId: 1,
-          changes: { smtpHost: ['old.host.com', 'new.host.com'] },
-          ipAddress: '192.168.1.1',
-        }
-      ]);
+      setError(null);
+      let result;
+      if (searchTerm.trim()) {
+        result = await auditLogService.searchAuditLogs(searchTerm.trim(), page, pageSize);
+      } else {
+        result = await auditLogService.getAuditLogs({ pageNumber: page, pageSize });
+      }
+      setLogs(result.items);
+      setTotalPages(result.totalPages || 1);
       logger.info('Audit logs loaded');
     } catch (err) {
       logger.error('Failed to load audit logs', err);
+      setError('Failed to load audit logs. Please try again.');
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, pageSize, searchTerm]);
+
+  useEffect(() => {
+    loadAuditLogs();
+  }, [loadAuditLogs]);
 
   const handleExport = async () => {
     try {
-      // TODO: Implement CSV export
       logger.info('Exporting audit logs');
+      const blob = await auditLogService.exportAuditLogs();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `audit-logs-${new Date().toISOString().slice(0, 10)}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
     } catch (err) {
       logger.error('Failed to export audit logs', err);
     }
@@ -103,6 +95,12 @@ const AuditLogsPanel: React.FC = () => {
           <Alert severity="info" sx={{ mb: 2 }}>
             This audit log tracks all system changes made by administrators. Logs are retained for 90 days.
           </Alert>
+
+          {error && (
+            <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
+              {error}
+            </Alert>
+          )}
 
           <TextField
             fullWidth
@@ -188,7 +186,7 @@ const AuditLogsPanel: React.FC = () => {
 
               <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
                 <Pagination
-                  count={Math.ceil(100 / pageSize)}
+                  count={totalPages}
                   page={page}
                   onChange={(e, p) => setPage(p)}
                 />

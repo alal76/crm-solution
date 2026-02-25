@@ -466,6 +466,16 @@ CRM.Frontend/
 
 ---
 
+## Module Architecture Diagrams
+
+Detailed service, data-flow, and component-map diagrams for individual modules:
+
+| Module | Document |
+|--------|----------|
+| **ITSM / Service Desk** | [ITSM_ARCHITECTURE.md](ITSM_ARCHITECTURE.md) |
+
+---
+
 ## Related Documentation
 
 - [Backend Details](../03-backend/README.md)

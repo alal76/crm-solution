@@ -4,7 +4,7 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-//
+
 // Spec: SPEC-CRM002-07 (Lead Aging Alerts)
 // TODO-CRM002-07: Lead Aging Alerts — unit tests
 //

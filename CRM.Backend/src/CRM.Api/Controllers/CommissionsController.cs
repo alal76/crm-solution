@@ -5,6 +5,7 @@
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
 using System.ComponentModel.DataAnnotations;
+using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -58,10 +59,10 @@ public class CommissionsController : ControllerBase
     /// Get a commission by ID.
     /// </summary>
     [HttpGet("{id:int}")]
-    [ProducesResponseType(typeof(Commission), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(CommissionDetailsDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<ActionResult<Commission>> GetById(int id, CancellationToken cancellationToken)
+    public async Task<ActionResult<CommissionDetailsDto>> GetById(int id, CancellationToken cancellationToken)
     {
         var commission = await _commissionService.GetByIdAsync(id, cancellationToken);
         if (commission == null)
@@ -69,7 +70,61 @@ public class CommissionsController : ControllerBase
             return NotFound($"Commission {id} not found.");
         }
 
-        return Ok(commission);
+        var agentFirstName = commission.User?.FirstName ?? string.Empty;
+        var agentLastName = commission.User?.LastName ?? string.Empty;
+        var agentName = $"{agentFirstName} {agentLastName}".Trim();
+        if (string.IsNullOrEmpty(agentName))
+        {
+            agentName = commission.User?.Username ?? $"User #{commission.UserId}";
+        }
+
+        var dto = new CommissionDetailsDto
+        {
+            Id = commission.Id,
+            CommissionNumber = commission.CommissionNumber ?? string.Empty,
+            UserId = commission.UserId,
+            UserName = commission.User?.Username,
+            CommissionPlanId = commission.CommissionPlanId,
+            PlanName = commission.CommissionPlan?.Name,
+            OpportunityId = commission.OpportunityId,
+            OrderId = commission.OrderId,
+            InvoiceId = commission.InvoiceId,
+            SubscriptionId = commission.SubscriptionId,
+            DealAmount = commission.DealAmount,
+            CommissionableAmount = commission.CommissionableAmount,
+            CommissionRate = commission.CommissionRate,
+            CommissionAmount = commission.CommissionAmount,
+            SplitPercent = commission.SplitPercent,
+            FinalCommissionAmount = commission.FinalCommissionAmount,
+            Status = (int)commission.Status,
+            StatusName = commission.Status.ToString(),
+            CurrencyCode = commission.CurrencyCode,
+            PaidDate = commission.PaidAt,
+            ClawbackDate = commission.ClawbackDate,
+            ClawbackReason = commission.ClawbackReason,
+            Notes = commission.Notes,
+            ApprovedById = commission.ApprovedById,
+            ApprovedAt = commission.ApprovedAt,
+            CreatedAt = commission.CreatedAt,
+            UpdatedAt = commission.UpdatedAt,
+            AgentName = agentName,
+            CommissionPeriod = commission.CommissionPeriod,
+            PeriodStartDate = commission.PeriodStartDate,
+            PeriodEndDate = commission.PeriodEndDate,
+            CommissionPlanName = commission.CommissionPlan?.Name,
+            Tiers = commission.CommissionPlan?.Tiers?
+                .OrderBy(t => t.MinAttainmentPercent)
+                .Select(t => new CommissionTierDetailDto
+                {
+                    MinAmount = t.MinAttainmentPercent,
+                    MaxAmount = t.MaxAttainmentPercent,
+                    Rate = t.CommissionRate,
+                    IsApplied = commission.CommissionRate == t.CommissionRate,
+                })
+                .ToList() ?? new List<CommissionTierDetailDto>(),
+        };
+
+        return Ok(dto);
     }
 
     /// <summary>

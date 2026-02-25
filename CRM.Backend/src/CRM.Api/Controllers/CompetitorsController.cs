@@ -40,7 +40,7 @@ public class CompetitorsController : ControllerBase
         try
         {
             var query = _context.Competitors.AsNoTracking().Where(c => !c.IsDeleted);
-            
+
             if (activeOnly)
                 query = query.Where(c => c.IsActive);
 

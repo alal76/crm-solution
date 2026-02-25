@@ -40,7 +40,7 @@ public class LeadSourcesController : ControllerBase
         try
         {
             var query = _context.LeadSources.AsNoTracking().Where(ls => !ls.IsDeleted);
-            
+
             if (activeOnly)
                 query = query.Where(ls => ls.IsActive);
 

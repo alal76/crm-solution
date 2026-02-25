@@ -1,11 +1,13 @@
 /**
  * CommissionDetailsPanel - Displays commission breakdown for a deal,
- * including tier structure, bonuses, and payment status.
+ * including agent info, period, tier structure, bonuses, payment status,
+ * and export capability.
  */
 
 import React from 'react';
 import {
   Box,
+  Button,
   Card,
   CardContent,
   Typography,
@@ -19,6 +21,11 @@ import {
   Divider,
   Paper,
 } from '@mui/material';
+import {
+  FileDownload as ExportIcon,
+  Person as PersonIcon,
+  DateRange as PeriodIcon,
+} from '@mui/icons-material';
 
 interface CommissionTier {
   tierName: string;
@@ -42,6 +49,12 @@ interface CommissionDetailsPanelProps {
   status: string;
   paidDate?: string;
   currency?: string;
+  /** Agent / sales rep name */
+  agentName?: string;
+  /** Commission period label, e.g. "2024-Q1" or month name */
+  period?: string;
+  /** Called when the user clicks the Export button */
+  onExport?: () => void;
 }
 
 const formatCurrency = (value: number, currency?: string | null) =>
@@ -65,6 +78,9 @@ const CommissionDetailsPanel: React.FC<CommissionDetailsPanelProps> = ({
   status,
   paidDate,
   currency = 'USD',
+  agentName,
+  period,
+  onExport,
 }) => {
   const totalBonuses = bonuses?.reduce((sum, b) => sum + b.amount, 0) ?? 0;
   const totalEarnings = commissionAmount + totalBonuses;
@@ -72,6 +88,30 @@ const CommissionDetailsPanel: React.FC<CommissionDetailsPanelProps> = ({
   return (
     <Card variant="outlined">
       <CardContent>
+        {/* Agent & Period meta row */}
+        {(agentName || period) && (
+          <Box display="flex" gap={1} flexWrap="wrap" mb={1.5}>
+            {agentName && (
+              <Chip
+                icon={<PersonIcon fontSize="small" />}
+                label={agentName}
+                size="small"
+                variant="outlined"
+                sx={{ fontWeight: 500 }}
+              />
+            )}
+            {period && (
+              <Chip
+                icon={<PeriodIcon fontSize="small" />}
+                label={period}
+                size="small"
+                color="primary"
+                variant="outlined"
+              />
+            )}
+          </Box>
+        )}
+
         {/* Header: total commission */}
         <Box display="flex" justifyContent="space-between" alignItems="flex-start" mb={2}>
           <Box>
@@ -159,6 +199,20 @@ const CommissionDetailsPanel: React.FC<CommissionDetailsPanelProps> = ({
                 {formatCurrency(totalEarnings, currency)}
               </Typography>
             </Box>
+          </Box>
+        )}
+
+        {/* Export button */}
+        {onExport && (
+          <Box mt={2} display="flex" justifyContent="flex-end">
+            <Button
+              size="small"
+              variant="outlined"
+              startIcon={<ExportIcon />}
+              onClick={onExport}
+            >
+              Export
+            </Button>
           </Box>
         )}
       </CardContent>

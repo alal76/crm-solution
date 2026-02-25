@@ -187,7 +187,7 @@ public class SLAEnforcementHostedServiceTests
     {
         // Arrange
         var service = new SLAEnforcementHostedService(_mockServiceProvider.Object, _mockLogger.Object);
-        
+
         // Setup mock to handle GetService calls - use callback to return appropriate service
         var scopeServiceProvider = new Mock<IServiceProvider>();
         scopeServiceProvider.Setup(x => x.GetService(It.IsAny<Type>()))
@@ -199,13 +199,13 @@ public class SLAEnforcementHostedServiceTests
                     return _mockEscalationRuleService.Object;
                 return null;
             });
-        
+
         var mockScope = new Mock<IServiceScope>();
         mockScope.Setup(x => x.ServiceProvider).Returns(scopeServiceProvider.Object);
-        
+
         var mockScopeFactory = new Mock<IServiceScopeFactory>();
         mockScopeFactory.Setup(x => x.CreateScope()).Returns(mockScope.Object);
-        
+
         var mockServiceProvider = new Mock<IServiceProvider>();
         mockServiceProvider.Setup(x => x.GetService(It.IsAny<Type>()))
             .Returns((Type serviceType) =>

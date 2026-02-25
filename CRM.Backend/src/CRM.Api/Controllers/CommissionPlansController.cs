@@ -6,10 +6,11 @@
 // See the LICENSE file in the root directory for full terms.
 using CRM.Core.Dtos;
 using CRM.Core.Interfaces;
-using CommissionTierDto = CRM.Core.Dtos.CommissionTierDto;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+
+using CommissionTierDto = CRM.Core.Dtos.CommissionTierDto;
 
 namespace CRM.Api.Controllers;
 

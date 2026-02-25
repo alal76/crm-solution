@@ -1644,6 +1644,35 @@ function CommissionsPage() {
             status={getStatusLabel(detailCommission.status)}
             paidDate={detailCommission.paidAt}
             currency={detailCommission.currencyCode}
+            agentName={
+              detailCommission.user
+                ? `${detailCommission.user.firstName ?? ''} ${detailCommission.user.lastName ?? ''}`.trim() ||
+                  detailCommission.user.username ||
+                  `User #${detailCommission.userId}`
+                : `User #${detailCommission.userId}`
+            }
+            period={detailCommission.commissionPeriod || detailCommission.quotaPeriod}
+            onExport={() => {
+              const rows = [
+                ['Field', 'Value'],
+                ['Agent', detailCommission.user?.username ?? `User #${detailCommission.userId}`],
+                ['Period', detailCommission.commissionPeriod ?? detailCommission.quotaPeriod ?? ''],
+                ['Deal Amount', detailCommission.dealAmount.toString()],
+                ['Commission Rate', `${detailCommission.commissionRate}%`],
+                ['Commission Amount', detailCommission.commissionAmount.toString()],
+                ['Final Amount', detailCommission.finalCommissionAmount.toString()],
+                ['Status', getStatusLabel(detailCommission.status)],
+                ['Paid At', detailCommission.paidAt ?? ''],
+              ];
+              const csv = rows.map((r) => r.map((c) => `"${c}"`).join(',')).join('\n');
+              const blob = new Blob([csv], { type: 'text/csv' });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement('a');
+              a.href = url;
+              a.download = `commission-${detailCommission.id}.csv`;
+              a.click();
+              URL.revokeObjectURL(url);
+            }}
             tiers={
               detailCommission.commissionPlan?.tiers && detailCommission.commissionPlan.tiers.length > 0
                 ? detailCommission.commissionPlan.tiers.map((tier) => ({

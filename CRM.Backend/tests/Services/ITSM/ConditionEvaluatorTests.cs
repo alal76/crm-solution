@@ -4,11 +4,11 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-using CRM.Infrastructure.Services.ITSM;
-using CoreServiceRequest = CRM.Core.Entities.ServiceRequest;
 using CRM.Core.Entities;
+using CRM.Infrastructure.Services.ITSM;
 using FluentAssertions;
 using Xunit;
+using CoreServiceRequest = CRM.Core.Entities.ServiceRequest;
 
 namespace CRM.Tests.Services.ITSM;
 

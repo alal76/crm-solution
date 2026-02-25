@@ -221,8 +221,8 @@ public class DashboardHub : Hub
 
     private string GetUserId()
     {
-        return Context.User?.FindFirst("sub")?.Value 
-            ?? Context.User?.FindFirst("userId")?.Value 
+        return Context.User?.FindFirst("sub")?.Value
+            ?? Context.User?.FindFirst("userId")?.Value
             ?? "unknown";
     }
 

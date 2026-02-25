@@ -302,17 +302,46 @@ function WorkflowDesignerPage() {
       const workflowData = await workflowService.getWorkflow(parseInt(id));
       setWorkflow(workflowData);
 
-      // Get the draft version or latest
-      const draftVersion = workflowData.versions.find(v => v.status === 'Draft');
-      if (draftVersion) {
-        const versionData = await workflowService.getVersion(draftVersion.id);
+      // Sort versions newest-first (versions are already ordered desc by versionNumber from backend,
+      // but sort explicitly to be safe)
+      const sortedVersions = [...workflowData.versions].sort((a, b) => b.versionNumber - a.versionNumber);
+
+      // Find the latest draft and the latest active version
+      const latestDraft = sortedVersions.find(v => v.status === 'Draft');
+      const latestActive = sortedVersions.find(v => v.status === 'Active');
+
+      if (latestDraft) {
+        const versionData = await workflowService.getVersion(latestDraft.id);
+
+        if (versionData.nodes.length > 0) {
+          // Draft has content — use it directly
+          setVersion(versionData);
+          setNodes(versionData.nodes.map(n => ({ ...n, selected: false })));
+          setTransitions(versionData.transitions.map(t => ({ ...t, selected: false })));
+        } else if (latestActive) {
+          // Draft exists but is empty (e.g. auto-created when workflow was first saved).
+          // Show the active (published) version so the user can see the real nodes.
+          // A new editable draft will be created automatically if the user makes a change.
+          const activeData = await workflowService.getVersion(latestActive.id);
+          setVersion(activeData);
+          setNodes(activeData.nodes.map(n => ({ ...n, selected: false })));
+          setTransitions(activeData.transitions.map(t => ({ ...t, selected: false })));
+        } else {
+          // Empty draft and no published version — show the empty draft
+          setVersion(versionData);
+          setNodes([]);
+          setTransitions([]);
+        }
+      } else if (latestActive) {
+        // No draft at all — create a new draft cloned from the active version
+        const newVersion = await workflowService.createVersion(parseInt(id), latestActive.id);
+        const versionData = await workflowService.getVersion(newVersion.id);
         setVersion(versionData);
         setNodes(versionData.nodes.map(n => ({ ...n, selected: false })));
         setTransitions(versionData.transitions.map(t => ({ ...t, selected: false })));
-      } else if (workflowData.versions.length > 0) {
-        // Create a new draft version from the latest
-        const latestVersion = workflowData.versions[0];
-        const newVersion = await workflowService.createVersion(parseInt(id), latestVersion.id);
+      } else if (sortedVersions.length > 0) {
+        // Only deprecated versions remain — create a new draft from the most recent one
+        const newVersion = await workflowService.createVersion(parseInt(id), sortedVersions[0].id);
         const versionData = await workflowService.getVersion(newVersion.id);
         setVersion(versionData);
         setNodes(versionData.nodes.map(n => ({ ...n, selected: false })));

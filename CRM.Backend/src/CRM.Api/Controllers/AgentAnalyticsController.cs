@@ -6,6 +6,7 @@
 // See the LICENSE file in the root directory for full terms.
 #nullable enable
 
+using CRM.Core.Entities.AI;
 using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -96,6 +97,26 @@ public class AgentAnalyticsController : ControllerBase
     /// <param name="Date">The date.</param>
     /// <param name="ActionCount">Number of actions on this date.</param>
     public record DailyCost(DateTime Date, int ActionCount);
+
+    /// <summary>DTO for model-level cost/token breakdown used in the AI analytics summary.</summary>
+    public record ModelBreakdown(string Model, decimal Cost, long Tokens, int Executions);
+
+    /// <summary>DTO for agent-type-level breakdown used in the AI analytics summary.</summary>
+    public record NodeTypeBreakdown(string NodeType, decimal Cost, long Tokens, int Executions);
+
+    /// <summary>DTO for a single recent AI conversation execution row.</summary>
+    public record RecentExecution(
+        int NodeId,
+        string NodeType,
+        string Model,
+        int InputTokens,
+        int OutputTokens,
+        int TotalTokens,
+        decimal Cost,
+        long LatencyMs,
+        bool Success,
+        string? ErrorMessage,
+        DateTime Timestamp);
 
     #endregion
 
@@ -292,6 +313,150 @@ public class AgentAnalyticsController : ControllerBase
         {
             _logger.LogError(ex, "Error getting cost analytics");
             return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while retrieving cost analytics.");
+        }
+    }
+
+    /// <summary>
+    /// Gets a unified AI analytics summary combining cost, token usage, success rate,
+    /// latency, and recent conversation executions. Powers the AI Analytics Dashboard UI.
+    /// </summary>
+    /// <param name="days">Number of days to look back (default: 30).</param>
+    /// <returns>Aggregated AI analytics summary.</returns>
+    [HttpGet("summary")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetAnalyticsSummary([FromQuery] int days = 30)
+    {
+        try
+        {
+            var lookback = Math.Max(1, Math.Abs(days));
+            var fromDate = DateTime.UtcNow.AddDays(-lookback);
+            var toDate = DateTime.UtcNow;
+            var period = lookback <= 1 ? "today" : lookback <= 7 ? "week" : lookback <= 31 ? "month" : lookback <= 93 ? "quarter" : "year";
+
+            // ── Load reference data ──────────────────────────────────────────────
+            var agents = await _dbContext.AIAgents
+                .AsNoTracking()
+                .Where(a => !a.IsDeleted)
+                .ToListAsync(HttpContext.RequestAborted);
+
+            var agentLookup = agents.ToDictionary(a => a.Id);
+
+            // ── Conversations in the period ──────────────────────────────────────
+            var conversations = await _dbContext.AgentConversations
+                .AsNoTracking()
+                .Where(c => !c.IsDeleted && c.CreatedAt >= fromDate && c.CreatedAt <= toDate)
+                .OrderByDescending(c => c.CreatedAt)
+                .ToListAsync(HttpContext.RequestAborted);
+
+            // ── Actions for latency and recent-execution detail ──────────────────
+            var recentConvIds = conversations.Take(50).Select(c => c.Id).ToHashSet();
+
+            var recentActions = await _dbContext.AgentActions
+                .AsNoTracking()
+                .Where(a => !a.IsDeleted && recentConvIds.Contains(a.ConversationId))
+                .ToListAsync(HttpContext.RequestAborted);
+
+            // Actions across the full period (for overall avg latency)
+            var allPeriodActions = await _dbContext.AgentActions
+                .AsNoTracking()
+                .Where(a => !a.IsDeleted && a.CreatedAt >= fromDate && a.CreatedAt <= toDate && a.ExecutionTimeMs > 0)
+                .Select(a => (long)a.ExecutionTimeMs)
+                .ToListAsync(HttpContext.RequestAborted);
+
+            // ── Summary totals ───────────────────────────────────────────────────
+            var totalCost = conversations.Sum(c => c.EstimatedCost);
+            var totalTokens = conversations.Sum(c => (long)c.TotalTokensUsed);
+            var totalExecutions = conversations.Count;
+            var completedCount = conversations.Count(c =>
+                c.Status == ConversationStatus.Completed || c.Status == ConversationStatus.Active);
+            var successRate = totalExecutions > 0
+                ? Math.Round((double)completedCount / totalExecutions * 100, 1)
+                : 0.0;
+            var averageLatencyMs = allPeriodActions.Count > 0
+                ? Math.Round(allPeriodActions.Average(ms => (double)ms), 1)
+                : 0.0;
+
+            // ── Group by model ───────────────────────────────────────────────────
+            var byModel = conversations
+                .GroupBy(c =>
+                {
+                    var agent = agentLookup.TryGetValue(c.AgentId, out var ag) ? ag : null;
+                    return agent?.ModelOverride ?? "System Default";
+                })
+                .Select(g => new ModelBreakdown(
+                    g.Key,
+                    g.Sum(c => c.EstimatedCost),
+                    g.Sum(c => (long)c.TotalTokensUsed),
+                    g.Count()))
+                .OrderByDescending(m => m.Cost)
+                .ToList();
+
+            // ── Group by agent type (node type) ──────────────────────────────────
+            var byNodeType = conversations
+                .GroupBy(c =>
+                {
+                    var agent = agentLookup.TryGetValue(c.AgentId, out var ag) ? ag : null;
+                    return agent != null ? agent.AgentType.ToString() : "Unknown";
+                })
+                .Select(g => new NodeTypeBreakdown(
+                    g.Key,
+                    g.Sum(c => c.EstimatedCost),
+                    g.Sum(c => (long)c.TotalTokensUsed),
+                    g.Count()))
+                .OrderByDescending(n => n.Cost)
+                .ToList();
+
+            // ── Recent executions (last 20 conversations) ─────────────────────────
+            var actionsByConversation = recentActions
+                .GroupBy(a => a.ConversationId)
+                .ToDictionary(g => g.Key, g => g.ToList());
+
+            var recentExecutions = conversations
+                .Take(20)
+                .Select(c =>
+                {
+                    var agent = agentLookup.TryGetValue(c.AgentId, out var ag) ? ag : null;
+                    var convActions = actionsByConversation.TryGetValue(c.Id, out var ca) ? ca : new List<AgentAction>();
+                    var latencyMs = convActions.Count > 0
+                        ? (long)convActions.Average(a => (double)a.ExecutionTimeMs)
+                        : 0L;
+                    var inputTokens = (int)(c.TotalTokensUsed * 0.75);
+                    var outputTokens = c.TotalTokensUsed - inputTokens;
+                    var success = c.Status is ConversationStatus.Completed or ConversationStatus.Active;
+                    var errorMsg = c.Status == ConversationStatus.Failed ? "Conversation failed" : (string?)null;
+
+                    return new RecentExecution(
+                        c.Id,
+                        agent?.AgentType.ToString() ?? "Unknown",
+                        agent?.ModelOverride ?? "System Default",
+                        inputTokens,
+                        outputTokens,
+                        c.TotalTokensUsed,
+                        c.EstimatedCost,
+                        latencyMs,
+                        success,
+                        errorMsg,
+                        c.CreatedAt);
+                })
+                .ToList();
+
+            return Ok(new
+            {
+                Period = period,
+                TotalCost = totalCost,
+                TotalTokens = totalTokens,
+                TotalExecutions = totalExecutions,
+                SuccessRate = successRate,
+                AverageLatencyMs = averageLatencyMs,
+                ByModel = byModel,
+                ByNodeType = byNodeType,
+                RecentExecutions = recentExecutions,
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting AI analytics summary");
+            return StatusCode(StatusCodes.Status500InternalServerError, "An error occurred while retrieving AI analytics summary.");
         }
     }
 

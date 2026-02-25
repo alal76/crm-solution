@@ -224,6 +224,9 @@ export interface Commission {
   adjustmentReason?: string;
   originalAmount?: number;
   notes?: string;
+  commissionPeriod?: string;
+  periodStartDate?: string;
+  periodEndDate?: string;
   createdAt?: string;
   updatedAt?: string;
 }

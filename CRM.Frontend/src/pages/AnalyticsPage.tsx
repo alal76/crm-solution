@@ -22,6 +22,7 @@ import {
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import { AnalyticsEmbed } from '../components/common';
+import { AIAnalyticsDashboard } from '../components/workflow';
 import { dashboardDataService, DashboardStats, DashboardSummary } from '../services/dashboardService';
 
 interface TabPanelProps {
@@ -299,31 +300,7 @@ const AnalyticsPage: React.FC = () => {
             </TabPanel>
 
             <TabPanel value={activeTab} index={3}>
-              <CardContent>
-                <Typography variant="h6" gutterBottom>
-                  AI Insights
-                </Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                  Machine learning-powered insights and recommendations.
-                </Typography>
-                <Grid container spacing={2}>
-                  <Grid item xs={12}>
-                    <Alert severity="success" sx={{ mb: 1 }}>
-                      <strong>Opportunity Alert:</strong> 3 high-value opportunities are approaching their expected close date.
-                    </Alert>
-                  </Grid>
-                  <Grid item xs={12}>
-                    <Alert severity="warning" sx={{ mb: 1 }}>
-                      <strong>Churn Risk:</strong> 5 accounts show declining engagement patterns.
-                    </Alert>
-                  </Grid>
-                  <Grid item xs={12}>
-                    <Alert severity="info">
-                      <strong>Recommendation:</strong> Focus on leads from the Technology sector - they show 2x higher conversion rates.
-                    </Alert>
-                  </Grid>
-                </Grid>
-              </CardContent>
+              <AIAnalyticsDashboard />
             </TabPanel>
           </Card>
         </>

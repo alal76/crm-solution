@@ -563,3 +563,46 @@ public class CommissionListDto
     public int PageSize { get; set; }
     public int TotalPages { get; set; }
 }
+
+/// <summary>
+/// Detailed commission DTO returned by GET /api/commissions/{id}.
+/// Extends CommissionDto with computed agent name, period metadata, and tier breakdown.
+/// </summary>
+public class CommissionDetailsDto : CommissionDto
+{
+    /// <summary>Gets or sets the full name of the commission agent.</summary>
+    public string AgentName { get; set; } = string.Empty;
+
+    /// <summary>Gets or sets the commission period label (e.g. "Q1 2025", "January 2025").</summary>
+    public string? CommissionPeriod { get; set; }
+
+    /// <summary>Gets or sets the start of the commission period.</summary>
+    public DateTime? PeriodStartDate { get; set; }
+
+    /// <summary>Gets or sets the end of the commission period.</summary>
+    public DateTime? PeriodEndDate { get; set; }
+
+    /// <summary>Gets or sets the tier breakdown used to arrive at the final rate.</summary>
+    public List<CommissionTierDetailDto> Tiers { get; set; } = new();
+
+    /// <summary>Gets or sets the name of the commission plan applied.</summary>
+    public string? CommissionPlanName { get; set; }
+}
+
+/// <summary>
+/// A single tier row used inside CommissionDetailsDto.
+/// </summary>
+public class CommissionTierDetailDto
+{
+    /// <summary>Gets or sets the lower bound of the tier range.</summary>
+    public decimal MinAmount { get; set; }
+
+    /// <summary>Gets or sets the upper bound of the tier range (null = unlimited).</summary>
+    public decimal? MaxAmount { get; set; }
+
+    /// <summary>Gets or sets the commission rate for this tier in percent.</summary>
+    public decimal Rate { get; set; }
+
+    /// <summary>Gets or sets whether this tier was the one applied to the deal.</summary>
+    public bool IsApplied { get; set; }
+}
