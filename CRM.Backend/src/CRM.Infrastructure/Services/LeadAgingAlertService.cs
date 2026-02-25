@@ -87,4 +87,46 @@ public class LeadAgingAlertService : ILeadAgingAlertService
 
         return stats;
     }
+
+    /// <inheritdoc />
+    public async Task<IEnumerable<LeadAgingAlertDto>> GetStaledLeadsAsync(
+        int staleDaysThreshold,
+        CancellationToken ct = default)
+    {
+        var thresholdDate = DateTime.UtcNow.AddDays(-staleDaysThreshold);
+        var criticalDays = Math.Max(30, staleDaysThreshold * 2);
+
+        var staleLeads = await _dbContext.Leads
+            .Where(l => !l.IsDeleted)
+            .Where(l => l.Status != LeadLifecycleStatus.Converted && l.Status != LeadLifecycleStatus.Disqualified)
+            .Where(l => l.LastActivityDate == null || l.LastActivityDate < thresholdDate)
+            .OrderBy(l => l.LastActivityDate ?? l.CreatedAt)
+            .Select(l => new
+            {
+                l.Id,
+                l.FirstName,
+                l.LastName,
+                l.OwnerId,
+                l.LastActivityDate,
+                l.CreatedAt
+            })
+            .ToListAsync(ct);
+
+        var now = DateTime.UtcNow;
+
+        return staleLeads.Select(l =>
+        {
+            var refDate = l.LastActivityDate ?? l.CreatedAt;
+            var daysSince = (int)(now - refDate).TotalDays;
+            return new LeadAgingAlertDto
+            {
+                LeadId = l.Id,
+                LeadName = $"{l.FirstName} {l.LastName}".Trim(),
+                AssignedToUserId = l.OwnerId,
+                DaysSinceLastActivity = daysSince,
+                LastActivityDate = l.LastActivityDate,
+                StalenessLevel = daysSince >= criticalDays ? "Critical" : "Warning"
+            };
+        }).ToList();
+    }
 }

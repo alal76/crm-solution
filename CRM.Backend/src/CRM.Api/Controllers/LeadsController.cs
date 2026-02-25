@@ -24,11 +24,16 @@ namespace CRM.Api.Controllers;
 public class LeadsController : ControllerBase
 {
     private readonly ILeadService _leadService;
+    private readonly ILeadAgingAlertService _leadAgingAlertService;
     private readonly ILogger<LeadsController> _logger;
 
-    public LeadsController(ILeadService leadService, ILogger<LeadsController> logger)
+    public LeadsController(
+        ILeadService leadService,
+        ILeadAgingAlertService leadAgingAlertService,
+        ILogger<LeadsController> logger)
     {
         _leadService = leadService;
+        _leadAgingAlertService = leadAgingAlertService;
         _logger = logger;
     }
 
@@ -350,6 +355,123 @@ public class LeadsController : ControllerBase
             return StatusCode(500, "Internal server error");
         }
     }
+
+    // =========================================================================
+    // Lead Aging Alerts (TODO-CRM002-07)
+    // =========================================================================
+
+    /// <summary>
+    /// Returns stale leads with a Warning or Critical staleness level.
+    /// "Warning" = ≥ staleDays since last activity; "Critical" = ≥ 30 days (or 2× staleDays when ≥ 30).
+    /// </summary>
+    /// <param name="staleDays">Minimum days of inactivity to include (default = 14).</param>
+    /// <param name="ct">Cancellation token.</param>
+    [HttpGet("aging-alerts")]
+    [ProducesResponseType(typeof(IEnumerable<LeadAgingAlertDto>), 200)]
+    [ProducesResponseType(500)]
+    public async Task<IActionResult> GetAgingAlerts(
+        [FromQuery] int staleDays = 14,
+        CancellationToken ct = default)
+    {
+        try
+        {
+            var alerts = await _leadAgingAlertService.GetStaledLeadsAsync(staleDays, ct);
+            return Ok(alerts);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving lead aging alerts");
+            return StatusCode(500, "Internal server error");
+        }
+    }
+
+    // =========================================================================
+    // Lead Nurture Campaign Integration (TODO-CRM002-06)
+    // =========================================================================
+
+    /// <summary>
+    /// Enrols a lead in a nurture campaign.
+    /// </summary>
+    [HttpPost("{id}/nurture")]
+    [ProducesResponseType(200)]
+    [ProducesResponseType(400)]
+    [ProducesResponseType(404)]
+    [ProducesResponseType(500)]
+    public async Task<IActionResult> AssignNurtureCampaign(
+        int id,
+        [FromBody] AssignNurtureCampaignDto request,
+        CancellationToken ct = default)
+    {
+        try
+        {
+            var result = await _leadService.AssignToNurtureCampaignAsync(id, request.CampaignId, ct);
+            if (!result)
+                return NotFound(new { message = $"Lead {id} or campaign {request.CampaignId} not found." });
+
+            return Ok(new { message = "Lead enrolled in nurture campaign.", leadId = id, campaignId = request.CampaignId });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error assigning lead {LeadId} to nurture campaign", id);
+            return StatusCode(500, "Internal server error");
+        }
+    }
+
+    /// <summary>
+    /// Returns the nurture campaign the lead is currently enrolled in (single entry or empty array).
+    /// </summary>
+    [HttpGet("{id}/nurture-campaigns")]
+    [ProducesResponseType(200)]
+    [ProducesResponseType(404)]
+    [ProducesResponseType(500)]
+    public async Task<IActionResult> GetNurtureCampaigns(int id, CancellationToken ct = default)
+    {
+        try
+        {
+            var lead = await _leadService.GetByIdAsync(id);
+            if (lead == null)
+                return NotFound(new { message = $"Lead {id} not found." });
+
+            var campaign = await _leadService.GetNurtureCampaignAsync(id, ct);
+            var result = campaign != null
+                ? new[] { new { campaign.Id, campaign.Name } }
+                : Array.Empty<object>();
+
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving nurture campaigns for lead {LeadId}", id);
+            return StatusCode(500, "Internal server error");
+        }
+    }
+
+    /// <summary>
+    /// Removes a lead from its nurture campaign.
+    /// </summary>
+    [HttpDelete("{id}/nurture-campaigns/{campaignId}")]
+    [ProducesResponseType(200)]
+    [ProducesResponseType(404)]
+    [ProducesResponseType(500)]
+    public async Task<IActionResult> RemoveFromNurtureCampaign(
+        int id,
+        int campaignId,
+        CancellationToken ct = default)
+    {
+        try
+        {
+            var result = await _leadService.RemoveFromNurtureCampaignAsync(id, campaignId, ct);
+            if (!result)
+                return NotFound(new { message = $"Lead {id} is not enrolled in campaign {campaignId}." });
+
+            return Ok(new { message = "Lead removed from nurture campaign.", leadId = id, campaignId });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error removing lead {LeadId} from nurture campaign {CampaignId}", id, campaignId);
+            return StatusCode(500, "Internal server error");
+        }
+    }
 }
 
 #region Request DTOs
@@ -405,6 +527,13 @@ public class CheckDuplicateLeadResponse
     public int? ExistingLeadId { get; set; }
     /// <summary>"email" or "name" indicating which field(s) matched</summary>
     public string? MatchedOn { get; set; }
+}
+
+/// <summary>Request body for nurture campaign assignment (TODO-CRM002-06).</summary>
+public class AssignNurtureCampaignDto
+{
+    /// <summary>ID of the marketing campaign to enrol the lead in.</summary>
+    public int CampaignId { get; set; }
 }
 
 #endregion

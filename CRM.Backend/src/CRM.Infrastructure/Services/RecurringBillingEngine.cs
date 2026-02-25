@@ -29,14 +29,17 @@ public class RecurringBillingEngine : IRecurringBillingEngine
 {
     private readonly ICrmDbContext _context;
     private readonly ILogger<RecurringBillingEngine> _logger;
+    private readonly IBillingTimezoneService _timezoneService;
     private const int BatchSize = 1000;
 
     public RecurringBillingEngine(
         ICrmDbContext context,
-        ILogger<RecurringBillingEngine> logger)
+        ILogger<RecurringBillingEngine> logger,
+        IBillingTimezoneService timezoneService)
     {
         _context = context ?? throw new ArgumentNullException(nameof(context));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _timezoneService = timezoneService ?? throw new ArgumentNullException(nameof(timezoneService));
     }
 
     public async Task<BillingCycleResultDto> ProcessBillingCyclesAsync(
@@ -147,8 +150,12 @@ public class RecurringBillingEngine : IRecurringBillingEngine
             UpdatedAt = DateTime.UtcNow
         });
 
-        // Update subscription's next billing date
-        sub.NextBillingDate = sub.NextBillingDate?.AddMonths(1) ?? DateTime.UtcNow.AddMonths(1);
+        // Update subscription's next billing date (TODO-SALES006-023: timezone-aware)
+        var billingTimezone = sub.BillingTimezone ?? "UTC";
+        sub.NextBillingDate = _timezoneService.GetNextBillingDate(
+            sub.NextBillingDate ?? DateTime.UtcNow,
+            billingTimezone,
+            sub.BillingPeriod);
         _context.Subscriptions.Update(sub);
 
         await _context.SaveChangesAsync(cancellationToken);

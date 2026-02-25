@@ -353,6 +353,46 @@ public class LeadService : ILeadService
     }
 
     /// <inheritdoc />
+    public async Task<CRM.Core.Entities.MarketingCampaign?> GetNurtureCampaignAsync(
+        int leadId,
+        CancellationToken ct = default)
+    {
+        var lead = await _context.Set<Lead>()
+            .AsNoTracking()
+            .FirstOrDefaultAsync(l => l.Id == leadId && !l.IsDeleted, ct);
+
+        if (lead?.NurtureCampaignId == null)
+            return null;
+
+        return await _context.MarketingCampaigns
+            .AsNoTracking()
+            .FirstOrDefaultAsync(c => c.Id == lead.NurtureCampaignId.Value && !c.IsDeleted, ct);
+    }
+
+    /// <inheritdoc />
+    public async Task<bool> RemoveFromNurtureCampaignAsync(
+        int leadId,
+        int campaignId,
+        CancellationToken ct = default)
+    {
+        var lead = await _context.Set<Lead>()
+            .FirstOrDefaultAsync(l => l.Id == leadId && !l.IsDeleted, ct);
+
+        if (lead == null || lead.NurtureCampaignId != campaignId)
+            return false;
+
+        lead.NurtureCampaignId = null;
+        lead.UpdatedAt = DateTime.UtcNow;
+
+        await _context.SaveChangesAsync(ct);
+
+        _logger.LogInformation("Lead {LeadId} removed from nurture campaign {CampaignId}", leadId, campaignId);
+        _eventDispatcher.DispatchEntityEvent("Lead", lead.Id, WorkflowTriggerType.OnUpdate);
+
+        return true;
+    }
+
+    /// <inheritdoc />
     public async Task<IEnumerable<LeadSourceAnalyticsDto>> GetSourceAnalyticsAsync(CancellationToken ct = default)
     {
         var leads = await _context.Set<Lead>()

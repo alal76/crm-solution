@@ -1413,6 +1413,7 @@ public class CrmDbContext : DbContext, ICrmDbContext
         });
 
         // TODO-SALES006-004: Configure SubscriptionUsage with decimal(18,4) precision
+        // Standardized decimal precision: (18,4) per TODO-SALES006-004
         modelBuilder.Entity<SubscriptionUsage>(entity =>
         {
             entity.HasKey(e => e.Id);
@@ -4118,11 +4119,12 @@ public class CrmDbContext : DbContext, ICrmDbContext
         {
             entity.ToTable("BillingHistory");
             entity.HasKey(e => e.Id);
-            entity.Property(e => e.Amount).HasColumnType("DECIMAL(18,4)");
-            entity.Property(e => e.ProratedAmount).HasColumnType("DECIMAL(18,4)");
-            entity.Property(e => e.UsageCharges).HasColumnType("DECIMAL(18,4)");
-            entity.Property(e => e.DiscountAmount).HasColumnType("DECIMAL(18,4)");
-            entity.Property(e => e.TaxAmount).HasColumnType("DECIMAL(18,4)");
+            // Standardized decimal precision: (18,4) per TODO-SALES006-004
+            entity.Property(e => e.Amount).HasPrecision(18, 4);
+            entity.Property(e => e.ProratedAmount).HasPrecision(18, 4);
+            entity.Property(e => e.UsageCharges).HasPrecision(18, 4);
+            entity.Property(e => e.DiscountAmount).HasPrecision(18, 4);
+            entity.Property(e => e.TaxAmount).HasPrecision(18, 4);
             entity.Property(e => e.EventDetails).HasMaxLength(500);
             entity.Property(e => e.Status).HasMaxLength(50);
 
@@ -4159,8 +4161,9 @@ public class CrmDbContext : DbContext, ICrmDbContext
         {
             entity.ToTable("DunningRecords");
             entity.HasKey(e => e.Id);
-            entity.Property(e => e.OutstandingAmount).HasColumnType("DECIMAL(18,4)");
-            entity.Property(e => e.RecoveredAmount).HasColumnType("DECIMAL(18,4)");
+            // Standardized decimal precision: (18,4) per TODO-SALES006-004
+            entity.Property(e => e.OutstandingAmount).HasPrecision(18, 4);
+            entity.Property(e => e.RecoveredAmount).HasPrecision(18, 4);
             entity.Property(e => e.Reason).HasMaxLength(200);
             entity.Property(e => e.LastErrorMessage).HasMaxLength(500);
             entity.Property(e => e.NotificationEmail).HasMaxLength(255);
@@ -4666,6 +4669,13 @@ public class CrmDbContext : DbContext, ICrmDbContext
                 .HasForeignKey(e => e.UserId)
                 .IsRequired(false)
                 .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        // AuditLog index for cleanup job performance (TODO-SYS006-007)
+        modelBuilder.Entity<AuditLog>(entity =>
+        {
+            entity.HasIndex(e => e.CreatedAt)
+                .HasDatabaseName("IX_AuditLogs_CreatedAt");
         });
 
         // Apply provider-specific post-configuration using the Strategy Pattern

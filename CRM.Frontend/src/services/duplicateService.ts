@@ -311,7 +311,18 @@ export function formatMatchScore(score: number): string {
 /**
  * Build field values object from entity for duplicate check
  */
-export function buildFieldValuesFromLead(lead: any): Record<string, string | null> {
+/** Minimal shape required to extract duplicate-check field values from a Lead record. */
+export interface LeadFieldValues {
+  firstName?: string | null;
+  lastName?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  companyName?: string | null;
+  title?: string | null;
+  website?: string | null;
+}
+
+export function buildFieldValuesFromLead(lead: LeadFieldValues): Record<string, string | null> {
   return {
     FirstName: lead.firstName || null,
     LastName: lead.lastName || null,
@@ -323,7 +334,23 @@ export function buildFieldValuesFromLead(lead: any): Record<string, string | nul
   };
 }
 
-export function buildFieldValuesFromContact(contact: any): Record<string, string | null> {
+/** Minimal shape required to extract duplicate-check field values from a Contact record. */
+export interface ContactFieldValues {
+  firstName?: string | null;
+  lastName?: string | null;
+  emailPrimary?: string | null;
+  email?: string | null;
+  phonePrimary?: string | null;
+  phone?: string | null;
+  company?: string | null;
+  jobTitle?: string | null;
+  address?: string | null;
+  city?: string | null;
+  state?: string | null;
+  zipCode?: string | null;
+}
+
+export function buildFieldValuesFromContact(contact: ContactFieldValues): Record<string, string | null> {
   return {
     FirstName: contact.firstName || null,
     LastName: contact.lastName || null,
@@ -338,7 +365,22 @@ export function buildFieldValuesFromContact(contact: any): Record<string, string
   };
 }
 
-export function buildFieldValuesFromAccount(account: any): Record<string, string | null> {
+/** Minimal shape required to extract duplicate-check field values from an Account record. */
+export interface AccountFieldValues {
+  firstName?: string | null;
+  lastName?: string | null;
+  company?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  website?: string | null;
+  address?: string | null;
+  city?: string | null;
+  state?: string | null;
+  zipCode?: string | null;
+  industry?: string | null;
+}
+
+export function buildFieldValuesFromAccount(account: AccountFieldValues): Record<string, string | null> {
   return {
     FirstName: account.firstName || null,
     LastName: account.lastName || null,

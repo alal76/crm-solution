@@ -15,10 +15,15 @@ import {
   Stepper,
   Step,
   StepLabel,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
 } from '@mui/material';
-import { Visibility, VisibilityOff, Check as CheckIcon } from '@mui/icons-material';
+import { Visibility, VisibilityOff, Check as CheckIcon, Close as CloseIcon } from '@mui/icons-material';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { usePasswordRequirements } from '../hooks/usePasswordRequirements';
 import logo from '../assets/logo.png';
 
 function RegisterPage() {
@@ -39,6 +44,8 @@ function RegisterPage() {
   const navigate = useNavigate();
 
   const steps = ['Enter Details', 'Set Password', 'Confirm'];
+
+  const { validate, hintLines, isLoading: reqLoading } = usePasswordRequirements();
 
   const handleNext = () => {
     if (validateStep()) {
@@ -68,8 +75,9 @@ function RegisterPage() {
         setError('Please enter a password');
         return false;
       }
-      if (password.length < 8) {
-        setError('Password must be at least 8 characters long');
+      const validation = validate(password);
+      if (!validation.valid) {
+        setError(validation.errors[0] || 'Password does not meet requirements');
         return false;
       }
       // Use strict string comparison - passwords should match exactly
@@ -100,8 +108,9 @@ function RegisterPage() {
           navigate('/login');
         }, 2000);
       }
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Registration failed');
+    } catch (err: unknown) {
+      const apiErr = err as { response?: { data?: { message?: string } } };
+      setError(apiErr.response?.data?.message || 'Registration failed');
     } finally {
       setLoading(false);
     }
@@ -264,6 +273,29 @@ function RegisterPage() {
               {/* Step 1: Password */}
               {activeStep === 1 && (
                 <Box>
+                  {/* Dynamic requirements hint */}
+                  {!reqLoading && (
+                    <List dense disablePadding sx={{ mb: 1 }}>
+                      {hintLines.map((line) => {
+                        const check = password.length > 0 ? validate(password) : null;
+                        const passed = check ? Object.values(check.checks)[hintLines.indexOf(line)] : undefined;
+                        return (
+                          <ListItem key={line} disablePadding sx={{ py: 0 }}>
+                            <ListItemIcon sx={{ minWidth: 28 }}>
+                              {passed === true ? (
+                                <CheckIcon sx={{ fontSize: 16, color: 'success.main' }} />
+                              ) : passed === false ? (
+                                <CloseIcon sx={{ fontSize: 16, color: 'error.main' }} />
+                              ) : (
+                                <CheckIcon sx={{ fontSize: 16, color: 'text.disabled' }} />
+                              )}
+                            </ListItemIcon>
+                            <ListItemText primary={line} primaryTypographyProps={{ variant: 'caption', color: passed === false ? 'error' : passed === true ? 'success.main' : 'text.secondary' }} />
+                          </ListItem>
+                        );
+                      })}
+                    </List>
+                  )}
                   <TextField
                     fullWidth
                     label="Password"
@@ -274,8 +306,8 @@ function RegisterPage() {
                     margin="normal"
                     required
                     autoComplete="new-password"
-                    error={password.length > 0 && password.length < 8}
-                    helperText={password.length > 0 && password.length < 8 ? 'Must be at least 8 characters' : ''}
+                    error={password.length > 0 && !validate(password).valid}
+                    helperText={password.length > 0 && !validate(password).valid ? validate(password).errors[0] : ''}
                     InputProps={{
                       endAdornment: (
                         <InputAdornment position="end">

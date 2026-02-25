@@ -57,6 +57,18 @@ global note: `Clawback` is an alias for `ClawedBack`.
 ### 2.6 Additional enums
 List additional enums similarly as they are discovered (e.g. `AddressType`, `PaymentStatus`, etc.).
 
+### 2.7 ReportDtos.cs — Cohort Analysis (TODO-RPT-07)
+
+| Enum | Values (int) | Description |
+|------|--------------|-------------|
+| `ReportCohortType` | Monthly (0), Quarterly (1) | Cohort grouping granularity for cohort analysis requests (`CohortAnalysisRequestDto.CohortType`). Renamed from the conflicting `CohortType` to avoid clash with `CRM.Infrastructure.Services.CohortType` (Acquisition/Revenue/Activity/etc.). Defined in `CRM.Core.Dtos.Reports`. |
+| `CohortMetricType` | Retention (0), Revenue (1), Activity (2) | Which metric to measure per cohort period. Defined in `CRM.Core.Dtos.Reports`. |
+| `SegmentBy` | Industry (0), Region (1), Revenue (2), Lifecycle (3) | Dimension used for customer segmentation (`SegmentationCriteria.SegmentBy`). Defined in `CRM.Core.Dtos.Reports`. |
+
+> **Note:** `SegmentBy.Region` (value 1) uses annual revenue tiers as a geographic proxy since `Account` uses a polymorphic address model (no `BillingState` column). Bands: Small Market (<$100K), Mid Market ($100K–$1M), Enterprise ($1M–$10M), Strategic (>$10M).
+
+> **Share permission levels** for `ReportShare` are stored as plain strings (`"View"`, `"Edit"`, `"Admin"`) in `ReportShares.Permission` — no enum type; validated in service layer.
+
 ## 3. Maintenance
 
 - **New enum added:** update this document and the corresponding feature spec.

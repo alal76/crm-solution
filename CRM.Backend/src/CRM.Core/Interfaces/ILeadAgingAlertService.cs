@@ -37,6 +37,40 @@ public interface ILeadAgingAlertService
     /// <param name="cancellationToken">Cancellation token</param>
     /// <returns>Aging statistics</returns>
     Task<LeadAgingStatistics> GetAgingStatisticsAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Gets stale leads as alert DTOs with staleness classification.
+    /// "Warning" = ≥ staleDaysThreshold days, "Critical" = ≥ 30 days (or 2× threshold when threshold ≥ 30).
+    /// TODO-CRM002-07
+    /// </summary>
+    /// <param name="staleDaysThreshold">Days since last activity to consider a lead stale (minimum for Warning)</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>Collection of <see cref="LeadAgingAlertDto"/> for all stale leads</returns>
+    Task<IEnumerable<LeadAgingAlertDto>> GetStaledLeadsAsync(int staleDaysThreshold, CancellationToken ct = default);
+}
+
+/// <summary>
+/// DTO returned by the lead aging alert endpoint (TODO-CRM002-07).
+/// </summary>
+public class LeadAgingAlertDto
+{
+    /// <summary>Lead identifier</summary>
+    public int LeadId { get; set; }
+
+    /// <summary>Full name of the lead</summary>
+    public string LeadName { get; set; } = string.Empty;
+
+    /// <summary>Assigned owner user ID (nullable)</summary>
+    public int? AssignedToUserId { get; set; }
+
+    /// <summary>Number of days since the lead's last activity</summary>
+    public int DaysSinceLastActivity { get; set; }
+
+    /// <summary>Date of last recorded activity (null if never active)</summary>
+    public DateTime? LastActivityDate { get; set; }
+
+    /// <summary>"Warning" (≥ threshold) or "Critical" (≥ critical threshold)</summary>
+    public string StalenessLevel { get; set; } = "Warning";
 }
 
 /// <summary>

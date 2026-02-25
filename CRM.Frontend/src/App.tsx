@@ -19,6 +19,7 @@ import { BrandingProvider } from './contexts/BrandingContext';
 import { AccountContextProvider } from './contexts/AccountContextProvider';
 import { EntityContextProvider } from './contexts/EntityContext';
 import { UIPreferencesProvider } from './contexts/UIPreferencesContext';
+import { RecentItemsProvider } from './contexts/RecentItemsContext';
 import { AppThemeProvider, useTheme } from './contexts/ThemeContext';
 import { SignalRProvider } from './contexts/SignalRContext';
 import Navigation from './components/Navigation';
@@ -279,6 +280,7 @@ function ThemedApp() {
                   <AccountContextProvider>
                     <EntityContextProvider>
                       <UIPreferencesProvider>
+                        <RecentItemsProvider trackNavigation={true}>
                         <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
                         <a href="#main-content" className="skip-link">
                           Skip to main content
@@ -1314,6 +1316,7 @@ function ThemedApp() {
                       <Footer />
                       <ContextFlyout />
                     </Box>
+                        </RecentItemsProvider>
                       </UIPreferencesProvider>
                     </EntityContextProvider>
                   </AccountContextProvider>

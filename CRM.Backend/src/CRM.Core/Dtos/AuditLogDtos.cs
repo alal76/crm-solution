@@ -43,6 +43,27 @@ namespace CRM.Core.Dtos
     }
 
     /// <summary>
+    /// Request DTO for audit log export operations.
+    /// </summary>
+    public class AuditLogExportRequestDto
+    {
+        /// <summary>Filter: start date (inclusive).</summary>
+        public DateTime? DateFrom { get; set; }
+
+        /// <summary>Filter: end date (inclusive).</summary>
+        public DateTime? DateTo { get; set; }
+
+        /// <summary>Filter by entity type (e.g. "Account", "UserGroup").</summary>
+        public string? EntityType { get; set; }
+
+        /// <summary>Filter by user ID.</summary>
+        public int? UserId { get; set; }
+
+        /// <summary>Maximum records to export (capped at 10 000).</summary>
+        public int PageSize { get; set; } = 5000;
+    }
+
+    /// <summary>
     /// Audit statistics summary.
     /// </summary>
     public class AuditStatsDto

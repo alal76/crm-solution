@@ -23,4 +23,9 @@ public interface IUserGroupService
     Task RemoveUserFromGroupAsync(int groupId, int userId);
     Task<bool> IsUserInGroupAsync(int userId, int groupId, CancellationToken cancellationToken = default);
     Task<IEnumerable<UserGroupDto>> GetActiveGroupsAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Validates and normalizes the accessible menu items for a group, removing any unrecognized keys. (TODO-SYS012-002)
+    /// </summary>
+    Task<UserGroupDto?> ValidateAndNormalizeGroupPermissionsAsync(int groupId, CancellationToken cancellationToken = default);
 }

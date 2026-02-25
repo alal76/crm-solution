@@ -15,6 +15,7 @@ using CRM.Core.Dtos;
 using CRM.Core.Dtos.Reports;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
+using CRM.Infrastructure.Services;
 using FluentAssertions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -43,6 +44,7 @@ public class ReportsControllerTests
             _mockReportService.Object,
             Mock.Of<IWinLossAnalysisService>(),
             Mock.Of<IOpportunityService>(),
+            Mock.Of<IReportSharingService>(),
             _mockLogger.Object);
 
         var httpContext = new DefaultHttpContext();

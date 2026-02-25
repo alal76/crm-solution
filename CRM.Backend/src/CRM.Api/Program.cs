@@ -763,6 +763,7 @@ builder.Services.AddScoped<IWebhookDispatcherService, WebhookDispatcherService>(
 // Analytics, Audit, ITSM services (previously unregistered + new)
 builder.Services.AddScoped<CRM.Core.Interfaces.IAnalyticsEventService, CRM.Infrastructure.Services.AnalyticsEventService>();
 builder.Services.AddScoped<CRM.Core.Interfaces.IAuditLogService, CRM.Infrastructure.Services.AuditLogService>();
+builder.Services.AddScoped<CRM.Core.Interfaces.IAuditLogExportService, CRM.Infrastructure.Services.AuditLogExportService>(); // TODO-SYS006-008
 builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.ICITypeService, CRM.Infrastructure.Services.ITSM.CITypeService>();
 builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IChangeTypeService, CRM.Infrastructure.Services.ITSM.ChangeTypeService>();
 builder.Services.AddScoped<CRM.Core.Interfaces.IAIAgentUsageService, CRM.Infrastructure.Services.AIAgentUsageService>();
@@ -810,6 +811,8 @@ builder.Services.AddScoped<IDunningManager, DunningManager>();
 builder.Services.AddHostedService<DunningSchedulerService>();
 // Proration Calculator - 4 proration algorithms (ProRata, FullPrice, OneMonth, None)
 builder.Services.AddScoped<CRM.Infrastructure.Services.IProrateCalculator, ProrateCalculator>();
+// Billing Timezone Service - timezone-aware billing date calculations (TODO-SALES006-023)
+builder.Services.AddScoped<CRM.Core.Interfaces.IBillingTimezoneService, CRM.Infrastructure.Services.BillingTimezoneService>();
 // Subscription Metrics Aggregator - MRR/ARR/churn/NRR calculations
 builder.Services.AddScoped<CRM.Infrastructure.Services.ISubscriptionMetricsAggregator, SubscriptionMetricsAggregator>();
 // Master data - Field-to-master-data linking service
@@ -904,6 +907,8 @@ builder.Services.AddScoped<IAIOpportunityScoringService, AIOpportunityScoringSer
 builder.Services.AddScoped<IDashboardBuilderService, DashboardBuilderService>();
 builder.Services.AddScoped<IReportBuilderService, ReportBuilderService>();
 builder.Services.AddScoped<IReportService, ReportService>();
+builder.Services.AddScoped<CRM.Infrastructure.Services.IReportSharingService, CRM.Infrastructure.Services.ReportSharingService>();
+builder.Services.AddScoped<CRM.Api.Hubs.IDashboardHubService, CRM.Api.Hubs.DashboardHubService>();
 builder.Services.AddScoped<IAIPredictiveAnalyticsService, AIPredictiveAnalyticsService>();
 
 // Allen AI Services (OLMo/Tulu models for lead scoring, insights, churn prediction)
@@ -1304,6 +1309,7 @@ app.MapControllers();
 app.MapHub<CRM.Api.Hubs.CrmNotificationHub>("/hubs/notifications");
 app.MapHub<CRM.Api.Hubs.AgentApprovalHub>("/hubs/agent-approvals");
 app.MapHub<CRM.Api.Hubs.SLACountdownHub>("/hubs/sla");
+app.MapHub<CRM.Api.Hubs.DashboardHub>("/hubs/dashboard");
 
 // SPA fallback - serve index.html for unmatched routes (only if frontend build exists)
 if (Directory.Exists(frontendBuildPath))

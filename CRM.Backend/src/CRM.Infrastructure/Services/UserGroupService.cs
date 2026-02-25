@@ -587,6 +587,39 @@ public class UserGroupService : IUserGroupService, IUserGroupInputPort
 
     /// <summary>
     /// TODO-SYS003-001: Ensures only one group is marked as IsDefault.
+    /// <summary>
+    /// TODO-SYS012-002: Validates and normalizes the accessible menu items for a group,
+    /// removing any unrecognized menu keys and persisting the cleaned result.
+    /// </summary>
+    public async Task<UserGroupDto?> ValidateAndNormalizeGroupPermissionsAsync(int groupId, CancellationToken cancellationToken = default)
+    {
+        var group = await _context.UserGroups
+            .FirstOrDefaultAsync(g => g.Id == groupId && !g.IsDeleted, cancellationToken);
+
+        if (group == null)
+            return null;
+
+        var (isValid, validItems, _) = ValidateMenuItems(group.AccessibleMenuItems);
+
+        if (!isValid)
+        {
+            // Malformed JSON – reset to empty list
+            group.AccessibleMenuItems = "[]";
+        }
+        else
+        {
+            group.AccessibleMenuItems = JsonSerializer.Serialize(validItems);
+        }
+
+        group.UpdatedAt = DateTime.UtcNow;
+        _context.UserGroups.Update(group);
+        await _context.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation("Normalized menu permissions for group {GroupId}: {ValidCount} item(s) kept", groupId, validItems.Count);
+        return MapToDto(group);
+    }
+
+    /// <summary>
     /// Unsets IsDefault on all groups except <paramref name="excludeId"/>.
     /// </summary>
     private async Task ClearExistingDefaultGroupAsync(int excludeId = 0)

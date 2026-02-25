@@ -21,3 +21,15 @@ export {
 // SLA real-time countdown hooks
 export { useSLACountdown, useSLADashboardUpdates } from './useSLACountdown';
 export type { SLACountdown, SLABreachEvent, SLAWarningEvent } from './useSLACountdown';
+
+// Password requirements hook (fetches backend policy)
+export { usePasswordRequirements } from './usePasswordRequirements';
+export type { PasswordRequirements, PasswordValidationResult, UsePasswordRequirementsReturn } from './usePasswordRequirements';
+
+// Navigation preferences hook (persists sidebar state to localStorage)
+export { useNavigationPreferences } from './useNavigationPreferences';
+export type { NavigationPreferences, UseNavigationPreferencesReturn } from './useNavigationPreferences';
+
+// Recent items hooks (re-exports from RecentItemsContext for convenience)
+export { useRecentItems, useTrackRecentItem } from './useRecentItems';
+export type { RecentItem, RecentItemType } from './useRecentItems';

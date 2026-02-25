@@ -1,9 +1,9 @@
 {
   "major": 0,
-  "minor": 587,
+  "minor": 589,
   "patch": 0,
-  "lastUpdate": "2026-02-27",
-  "description": "Round 9 — 8 parallel subagents completed 32 TODO items. Sales: order returns workflow, commission details UI, dunning scheduler (4h interval), subscription validation/optimistic-locking/grace-period. CRM: lead source attribution, competitor tracking, win/loss reports, forecast categories. ITSM: ProblemManagementService completion, SMS notifications, escalation analytics, complex condition evaluator. Infra: extended search to all entities + highlights/facets, territory-based lead assignment, dynamic pricing rules engine. Frontend: dark mode, WCAG accessibility, TypeScript any-type fixes, sidebar customizer, CPQ bundle wizard. Integrations: Teams+Slack notification providers, webhook feature gate, import/export E2E tests. Admin/Tests: 62 unit tests + 10 E2E tests for admin controllers, commission rules engine. Config: Chatwoot enabled as default chat provider, desktop notifications enabled by default.",
+  "lastUpdate": "2026-03-01",
+  "description": "Round 11 — 6 parallel subagents: 28 TODOs completed covering audit log export/perf, billing timezone DST-aware service, worker state validation, lead aging alerts, lead nurture campaigns, territory lead assignment, opportunity cloning, password form alignment, 15 any-type fixes, sidebar customisation, recent items, report sharing + SignalR dashboard + cohort analysis, campaign/lead-score widgets, role-based nav E2E tests, analytics E2E tests, ITSM user guide expansion, admin endpoints reference, TypeScript errors fixed.",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [
@@ -15,12 +15,26 @@
     "TODO-GAP-07/GAP-06: Dynamic pricing rules engine (PricingRulesController, volume/promo/customer pricing), CPQ Bundle Wizard 5-step UI",
     "TODO-UX-11/01/02/12/GAP-FRONTEND-001: Dark mode toggle, WCAG ARIA labels, keyboard nav, sidebar customizer, TypeScript any-type fixes",
     "TODO-INT-05/06/001-15/003-018: Teams notification provider (Adaptive Cards), Slack notification provider (Block Kit), webhook feature gate, import/export E2E tests",
-    "TODO-SYS008-001/002/014/SYS009-002: Admin E2E tests, controller unit tests, commission rule tests, navigation/settings tests",
-    "Config: UseExternalChat=true, Providers.Chat.Type=Chatwoot in appsettings; desktopNotifications default=true in UserSettingsDialog.tsx"
+    "Round 11 — TODO-SYS006-007/008: AuditLogExportService (CSV/JSON, 10k cap), IX_AuditLogs_CreatedAt index, AuditLogCleanupJob tests",
+    "Round 11 — TODO-SYS009-004/SYS012-002/003: Admin settings audit trail, group permission normalisation, RBAC audit logging",
+    "Round 11 — TODO-SALES006-004/023: DecimalPrecision(18,4) migration, BillingTimezoneService (DST-aware, ConvertBillingDateToUtc)",
+    "Round 11 — TODO-ARCH-013-004: WorkerControlStateValidator prevents invalid worker state strings",
+    "Round 11 — TODO-CRM002-06/07/CRM003-06/GAP-04: Lead nurture campaigns, lead aging alerts, opportunity cloning, territory lead assignment",
+    "Round 11 — TODO-SYS001-001/GAP-FRONTEND-001: Password forms use backend policy, 15 any-type fixes across 6 service files",
+    "Round 11 — TODO-UX-12/15: Sidebar collapse persisted to localStorage, Recent Items dropdown in AppBar",
+    "Round 11 — TODO-RPT-03/06/07/GAP-MARKETING-001: Report sharing dialog+API, SignalR dashboard hub, cohort/segment endpoints, campaign+lead-score widgets",
+    "Round 11 — TODO-SYS007-002/SYS008-003/005/AI005-FE-001/005: Nav RBAC E2E (12 tests), admin endpoints ref doc, sales E2E, analytics E2E (13 tests), route audit",
+    "Round 11 — TODO-DOC-01/02/04: ITSM guide to 916 lines, README link fixed, Swagger verified",
+    "Config: UseExternalChat=true, Providers.Chat.Type=Chatwoot in appsettings; desktopNotifications default=true in UserSettingsDialog.tsx",
+    "TODO-RPT-03: Report sharing — POST/GET/DELETE /api/reports/{id}/shares, ReportShareDialog.tsx, 5 unit tests (ReportSharingServiceTests.cs), EF migration AddReportSharesTable",
+    "TODO-RPT-06: SignalR live dashboard — DashboardHub mapped at /hubs/dashboard, IDashboardHubService registered, useDashboardRealtime.ts hook, Live/Offline Chip in DashboardPage header",
+    "TODO-RPT-07: Cohort analysis — POST /api/reports/cohort-analysis + /customer-segments, ReportCohortType/CohortMetricType/SegmentBy enums, 4 unit tests (CohortAnalysisTests.cs)",
+    "TODO-GAP-MARKETING-001: CampaignMetricsWidget.tsx + LeadScoreDistributionWidget.tsx added to DashboardPage fallback grid",
+    "TODO-AI005-FE-005: Analytics frontend route audit — confirmed aligned, no changes needed"
   ],
   "git": {
     "branch": "main",
-    "commit": "round9-8-subagents-32-todos-chatwoot-default-v0.587.0"
+    "commit": "feat-rpt-03-06-07-gap-marketing-001-v0.588.0"
   },
   "environment": "production",
   "architecture": "monolith",

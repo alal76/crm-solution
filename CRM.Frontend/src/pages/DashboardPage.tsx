@@ -80,6 +80,9 @@ import { opportunityService, campaignService, accountService, Opportunity, Accou
 import { useProfile } from '../contexts/ProfileContext';
 import { DashboardBuilder } from '../components/analytics';
 import { AnalyticsEmbed } from '../components/common';
+import CampaignMetricsWidget from '../components/dashboard/CampaignMetricsWidget';
+import LeadScoreDistributionWidget from '../components/dashboard/LeadScoreDistributionWidget';
+import { useDashboardRealtime } from '../hooks/useDashboardRealtime';
 
 // Icon mapping for dynamic icons
 const iconMap: Record<string, React.ElementType> = {
@@ -212,7 +215,12 @@ const StatCard = ({ title, value, icon: Icon, color, loading, onClick, clickable
 function DashboardPage() {
   const navigate = useNavigate();
   const { canAccessMenu } = useProfile();
-  
+
+  // SignalR real-time dashboard updates (TODO-RPT-06)
+  const { isConnected: realtimeConnected } = useDashboardRealtime(
+    localStorage.getItem('accessToken')
+  );
+
   // Dashboard configuration state
   const [dashboards, setDashboards] = useState<DashboardDetail[]>([]);
   const [activeDashboardIndex, setActiveDashboardIndex] = useState(0);
@@ -802,6 +810,16 @@ function DashboardPage() {
             </Card>
           </Grid>
         </Grid>
+
+        {/* Marketing & Lead Intelligence Row (TODO-GAP-MARKETING-001) */}
+        <Grid container spacing={3} sx={{ mt: 1 }}>
+          <Grid item xs={12} md={6}>
+            <CampaignMetricsWidget />
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <LeadScoreDistributionWidget />
+          </Grid>
+        </Grid>
       </>
     );
   };
@@ -824,6 +842,14 @@ function DashboardPage() {
           </Box>
         </Box>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Tooltip title={realtimeConnected ? 'Live updates active' : 'Live updates offline'}>
+            <Chip
+              size="small"
+              label={realtimeConnected ? 'Live' : 'Offline'}
+              color={realtimeConnected ? 'success' : 'default'}
+              sx={{ fontSize: '0.7rem', height: 20 }}
+            />
+          </Tooltip>
           <Tooltip title="Embedded Analytics">
             <IconButton
               onClick={() => setAnalyticsEmbedOpen((prev) => !prev)}

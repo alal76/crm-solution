@@ -50,6 +50,19 @@ public interface ILeadService
     Task<bool> AssignToNurtureCampaignAsync(int leadId, int campaignId, CancellationToken ct = default);
 
     /// <summary>
+    /// Returns the nurture campaign a lead is currently enrolled in (TODO-CRM002-06).
+    /// Returns null when no campaign is assigned.
+    /// </summary>
+    Task<CRM.Core.Entities.MarketingCampaign?> GetNurtureCampaignAsync(int leadId, CancellationToken ct = default);
+
+    /// <summary>
+    /// Removes a lead from a nurture campaign (TODO-CRM002-06).
+    /// Clears NurtureCampaignId when it matches campaignId.
+    /// </summary>
+    /// <returns>True when cleared, false when the lead does not exist or is enrolled in a different campaign.</returns>
+    Task<bool> RemoveFromNurtureCampaignAsync(int leadId, int campaignId, CancellationToken ct = default);
+
+    /// <summary>
     /// Gets lead counts grouped by source channel with conversion rates (TODO-CRM002-03).
     /// </summary>
     Task<IEnumerable<LeadSourceAnalyticsDto>> GetSourceAnalyticsAsync(CancellationToken ct = default);

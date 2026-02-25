@@ -100,8 +100,10 @@ class Logger {
     // For now, just ensure errors are captured
     if (typeof window !== 'undefined' && 'Sentry' in window) {
       // Sentry integration would go here
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (window as any).Sentry?.captureMessage?.(entry.message, { extra: entry });
+      type WindowWithSentry = Window & typeof globalThis & {
+        Sentry?: { captureMessage?: (msg: string, opts?: object) => void };
+      };
+      (window as WindowWithSentry).Sentry?.captureMessage?.(entry.message, { extra: entry });
     }
   }
 }

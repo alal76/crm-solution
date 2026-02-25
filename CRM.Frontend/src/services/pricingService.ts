@@ -1,6 +1,17 @@
 import api from './apiClient';
 
-type Params = Record<string, any>;
+type Params = Record<string, string | number | boolean | undefined>;
+
+export interface PricingCalculationRequest {
+  productId?: number;
+  priceBookId?: number;
+  quantity?: number;
+  currency?: string;
+  discountPercent?: number;
+  discountAmount?: number;
+  overrides?: Record<string, unknown>;
+  [key: string]: unknown;
+}
 
 export const getPriceBooks = (params?: Params) => api.get('/pricebooks', { params }).then((res) => res.data);
 
@@ -12,7 +23,7 @@ export const getPriceBookEntries = (priceBookId: number, params?: Params) =>
 export const getPriceForProduct = (productId: number, priceBookId?: number) =>
   api.get('/pricing/product', { params: { productId, priceBookId } }).then((res) => res.data);
 
-export const calculatePrice = (payload: any) => api.post('/pricing/calculate', payload).then((res) => res.data);
+export const calculatePrice = (payload: PricingCalculationRequest) => api.post('/pricing/calculate', payload).then((res) => res.data);
 
 export const applyDiscount = (orderId: number, discountAmount: number, reason?: string) =>
   api.post(`/api/pricing/${orderId}/apply-discount`, { discountAmount, reason }).then((res) => res.data);

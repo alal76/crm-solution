@@ -107,7 +107,7 @@ export interface CreateAccountDto {
   notes?: string;
   internalNotes?: string;
   description?: string;
-  customFields?: string | Record<string, any>;
+  customFields?: string | Record<string, unknown>;
   displayName?: string;
   contacts?: AccountContact[];
   contactCount?: number;
@@ -116,7 +116,7 @@ export interface CreateAccountDto {
   addresses?: LinkedAddress[];
   socialMediaAccounts?: LinkedSocialMedia[];
   isDeleted?: boolean;
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 export interface UpdateAccountDto extends Partial<CreateAccountDto> {}

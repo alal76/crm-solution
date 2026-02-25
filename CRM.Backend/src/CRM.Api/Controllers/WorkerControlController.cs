@@ -7,8 +7,10 @@
 using CRM.Core.Constants;
 using CRM.Core.Dtos;
 using CRM.Core.Interfaces;
+using CRM.Infrastructure.Validation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
 
 namespace CRM.Api.Controllers;
 
@@ -91,6 +93,41 @@ public class WorkerControlController : ControllerBase
         });
 
         _logger.LogWarning("Worker restart requested");
+        return Ok(ToStatusDto(updated));
+    }
+
+    /// <summary>
+    /// Set state for a specific named worker (TODO-ARCH-013-004).
+    /// Valid worker names: RecurringBillingWorker, DunningWorker, EmailSequenceWorker,
+    ///   EscalationWorker, SLAEnforcementWorker.
+    /// Valid states: Running, Paused, Stopped.
+    /// </summary>
+    [HttpPut("{workerName}/state")]
+    [ProducesResponseType(typeof(WorkerControlStatusDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<WorkerControlStatusDto>> SetWorkerState(
+        string workerName,
+        [FromBody] WorkerStateUpdateRequest request)
+    {
+        try
+        {
+            WorkerControlStateValidator.Validate(workerName, request.State);
+        }
+        catch (ValidationException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
+
+        // Map the per-worker state to the global control state understood by
+        // SystemSettingsService (Running → Running, Paused → Paused, Stopped → Stopped).
+        var updated = await _settingsService.UpdateSettingsAsync(new UpdateSystemSettingsRequest
+        {
+            WorkerControlState = request.State
+        });
+
+        _logger.LogInformation(
+            "Worker {WorkerName} state set to {State}", workerName, request.State);
+
         return Ok(ToStatusDto(updated));
     }
 

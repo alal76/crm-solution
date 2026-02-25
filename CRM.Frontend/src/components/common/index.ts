@@ -109,3 +109,7 @@ export type {
 // Recent items component and context
 export { RecentItems } from './RecentItems';
 export type { RecentItemsProps } from './RecentItems';
+
+// Recent items dropdown for AppBar quick access
+export { RecentItemsDropdown } from './RecentItemsDropdown';
+export type { RecentItemsDropdownProps } from './RecentItemsDropdown';

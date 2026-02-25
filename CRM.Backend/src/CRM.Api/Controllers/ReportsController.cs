@@ -8,6 +8,7 @@ using System.Security.Claims;
 using CRM.Core.DTOs;
 using CRM.Core.Dtos.Reports;
 using CRM.Core.Interfaces;
+using CRM.Infrastructure.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -26,6 +27,7 @@ public class ReportsController : ControllerBase
     private readonly IReportService _reportService;
     private readonly IWinLossAnalysisService _winLossService;
     private readonly IOpportunityService _opportunityService;
+    private readonly IReportSharingService _sharingService;
     private readonly ILogger<ReportsController> _logger;
 
     /// <summary>
@@ -35,11 +37,13 @@ public class ReportsController : ControllerBase
         IReportService reportService,
         IWinLossAnalysisService winLossService,
         IOpportunityService opportunityService,
+        IReportSharingService sharingService,
         ILogger<ReportsController> logger)
     {
         _reportService = reportService ?? throw new ArgumentNullException(nameof(reportService));
         _winLossService = winLossService ?? throw new ArgumentNullException(nameof(winLossService));
         _opportunityService = opportunityService ?? throw new ArgumentNullException(nameof(opportunityService));
+        _sharingService = sharingService ?? throw new ArgumentNullException(nameof(sharingService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
@@ -656,6 +660,158 @@ public class ReportsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving forecast summary");
+            return StatusCode(500, "Internal server error");
+        }
+    }
+
+    #endregion
+
+    #region Report Sharing (TODO-RPT-03)
+
+    /// <summary>
+    /// Shares a report with one or more users.
+    /// </summary>
+    /// <param name="id">The report identifier.</param>
+    /// <param name="dto">Share request with user IDs and permission level.</param>
+    /// <param name="ct">Cancellation token.</param>
+    [HttpPost("{id:int}/shares")]
+    [ProducesResponseType(typeof(ReportShareResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> ShareReport(
+        int id,
+        [FromBody] ShareReportDto dto,
+        CancellationToken ct = default)
+    {
+        try
+        {
+            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (!int.TryParse(userIdClaim, out var currentUserId))
+            {
+                return Unauthorized();
+            }
+
+            if (dto.UserIds == null || dto.UserIds.Count == 0)
+            {
+                return BadRequest("At least one user ID must be provided.");
+            }
+
+            var permission = Enum.TryParse<ReportSharePermission>(dto.Permission, ignoreCase: true, out var p)
+                ? p
+                : ReportSharePermission.View;
+
+            var result = await _sharingService.ShareReportAsync(id, dto.UserIds, permission, currentUserId, ct);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error sharing report {ReportId}", id);
+            return StatusCode(500, "Internal server error");
+        }
+    }
+
+    /// <summary>
+    /// Gets the list of users a report is shared with.
+    /// </summary>
+    /// <param name="id">The report identifier.</param>
+    /// <param name="ct">Cancellation token.</param>
+    [HttpGet("{id:int}/shares")]
+    [ProducesResponseType(typeof(IEnumerable<ReportShareInfo>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetReportShares(int id, CancellationToken ct = default)
+    {
+        try
+        {
+            var shares = await _sharingService.GetReportShareInfoAsync(id, ct);
+            return Ok(shares);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving shares for report {ReportId}", id);
+            return StatusCode(500, "Internal server error");
+        }
+    }
+
+    /// <summary>
+    /// Revokes a report share for a specific user.
+    /// </summary>
+    /// <param name="id">The report identifier.</param>
+    /// <param name="userId">The user whose access should be revoked.</param>
+    /// <param name="ct">Cancellation token.</param>
+    [HttpDelete("{id:int}/shares/{userId:int}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> RevokeReportShare(int id, int userId, CancellationToken ct = default)
+    {
+        try
+        {
+            var revoked = await _sharingService.RevokeShareAsync(id, userId, ct);
+            if (!revoked)
+            {
+                return NotFound();
+            }
+
+            return NoContent();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error revoking share for report {ReportId}, user {UserId}", id, userId);
+            return StatusCode(500, "Internal server error");
+        }
+    }
+
+    #endregion
+
+    #region Cohort Analysis (TODO-RPT-07)
+
+    /// <summary>
+    /// Executes a cohort analysis over customers and returns cohort retention/revenue data.
+    /// </summary>
+    /// <param name="dto">Cohort analysis parameters.</param>
+    /// <param name="ct">Cancellation token.</param>
+    [HttpPost("cohort-analysis")]
+    [ProducesResponseType(typeof(CohortAnalysisDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> GetCohortAnalysis(
+        [FromBody] CohortAnalysisRequestDto dto,
+        CancellationToken ct = default)
+    {
+        try
+        {
+            if (dto.StartDate >= dto.EndDate)
+            {
+                return BadRequest("StartDate must be before EndDate.");
+            }
+
+            var result = await _reportService.GetCohortAnalysisAsync(dto, ct);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error executing cohort analysis");
+            return StatusCode(500, "Internal server error");
+        }
+    }
+
+    /// <summary>
+    /// Segments customers by industry, region, revenue band, or lifecycle stage.
+    /// </summary>
+    /// <param name="dto">Segmentation criteria.</param>
+    /// <param name="ct">Cancellation token.</param>
+    [HttpPost("customer-segments")]
+    [ProducesResponseType(typeof(IEnumerable<CustomerSegmentDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> GetCustomerSegments(
+        [FromBody] SegmentationCriteria dto,
+        CancellationToken ct = default)
+    {
+        try
+        {
+            var result = await _reportService.GetCustomerSegmentsAsync(dto, ct);
+            return Ok(result);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving customer segments");
             return StatusCode(500, "Internal server error");
         }
     }

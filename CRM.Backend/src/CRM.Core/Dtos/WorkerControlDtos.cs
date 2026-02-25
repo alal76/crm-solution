@@ -18,3 +18,12 @@ public class UpdateWorkerMaxInstancesRequest
 {
     public int MaxWorkers { get; set; }
 }
+
+/// <summary>
+/// Request body for per-worker state update (TODO-ARCH-013-004).
+/// </summary>
+public class WorkerStateUpdateRequest
+{
+    /// <summary>Desired state: Running, Paused, or Stopped.</summary>
+    public string State { get; set; } = string.Empty;
+}

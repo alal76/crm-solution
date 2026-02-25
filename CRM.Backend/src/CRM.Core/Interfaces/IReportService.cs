@@ -291,4 +291,24 @@ public interface IReportService
     Task<IEnumerable<ReportDefinitionDto>> GetFavoritesAsync(int userId, CancellationToken cancellationToken = default);
 
     #endregion
+
+    #region Cohort Analysis & Segmentation (TODO-RPT-07)
+
+    /// <summary>
+    /// Runs a cohort analysis over the specified date range.
+    /// </summary>
+    /// <param name="request">Request parameters including date range, cohort type, and metric.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>A cohort matrix with period labels and per-cohort row data.</returns>
+    Task<CohortAnalysisDto> GetCohortAnalysisAsync(CohortAnalysisRequestDto request, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Segments customers by the criteria and returns summary statistics per segment.
+    /// </summary>
+    /// <param name="criteria">Segmentation dimension and optional date range.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Ordered collection of customer segment summaries.</returns>
+    Task<IEnumerable<CustomerSegmentDto>> GetCustomerSegmentsAsync(SegmentationCriteria criteria, CancellationToken cancellationToken = default);
+
+    #endregion
 }

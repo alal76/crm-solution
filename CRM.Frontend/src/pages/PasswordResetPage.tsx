@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { useSearchParams } from 'react-router-dom';
 import logo from '../assets/logo.png';
 import apiClient from '../services/apiClient';
+import { usePasswordRequirements } from '../hooks/usePasswordRequirements';
 
 function PasswordResetPage() {
   const [searchParams] = useSearchParams();
@@ -17,6 +18,8 @@ function PasswordResetPage() {
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [step] = useState<'request' | 'reset'>(token ? 'reset' : 'request');
+
+  const { validate } = usePasswordRequirements();
 
   const handleRequestReset = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -35,8 +38,9 @@ function PasswordResetPage() {
         setSuccess(false);
         navigate('/login');
       }, 3000);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to send reset email');
+    } catch (err: unknown) {
+      const apiErr = err as { response?: { data?: { message?: string } } };
+      setError(apiErr.response?.data?.message || 'Failed to send reset email');
       console.error('Error requesting password reset:', err);
     } finally {
       setLoading(false);
@@ -56,8 +60,9 @@ function PasswordResetPage() {
       return;
     }
 
-    if (newPassword.length < 8) {
-      setError('Password must be at least 8 characters');
+    const validation = validate(newPassword);
+    if (!validation.valid) {
+      setError(validation.errors[0] || 'Password does not meet requirements');
       return;
     }
 
@@ -74,8 +79,9 @@ function PasswordResetPage() {
       setTimeout(() => {
         navigate('/login');
       }, 3000);
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to reset password');
+    } catch (err: unknown) {
+      const apiErr = err as { response?: { data?: { message?: string } } };
+      setError(apiErr.response?.data?.message || 'Failed to reset password');
       console.error('Error resetting password:', err);
     } finally {
       setLoading(false);

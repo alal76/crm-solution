@@ -45,6 +45,7 @@ namespace CRM.Api.Controllers;
 public class AuditLogsController : ControllerBase
 {
     private readonly IAuditLogService _auditLogService;
+    private readonly IAuditLogExportService? _exportService;
     private readonly ILogger<AuditLogsController> _logger;
 
     /// <summary>
@@ -52,12 +53,15 @@ public class AuditLogsController : ControllerBase
     /// </summary>
     /// <param name="auditLogService">Service for audit log business logic.</param>
     /// <param name="logger">Logger for error and audit logging.</param>
+    /// <param name="exportService">Dedicated export service (optional).</param>
     public AuditLogsController(
         IAuditLogService auditLogService,
-        ILogger<AuditLogsController> logger)
+        ILogger<AuditLogsController> logger,
+        IAuditLogExportService? exportService = null)
     {
         _auditLogService = auditLogService;
         _logger = logger;
+        _exportService = exportService;
     }
 
     /// <summary>
@@ -350,6 +354,61 @@ public class AuditLogsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error exporting audit logs in {Format} format", format);
+            return StatusCode(500, new { error = "Failed to export audit logs" });
+        }
+    }
+
+    /// <summary>
+    /// Export audit logs via POST with rich filter body.
+    /// Returns CSV by default; pass <c>?format=json</c> for JSON.
+    /// TODO-SYS006-008
+    /// </summary>
+    /// <param name="request">Export filter and page-size parameters.</param>
+    /// <param name="format">Output format: csv (default) or json.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>File download.</returns>
+    [HttpPost("export")]
+    [RequireRole(UserRole.Admin)]
+    [ProducesResponseType(typeof(FileContentResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> ExportPost(
+        [FromBody] AuditLogExportRequestDto request,
+        [FromQuery] string format = "csv",
+        CancellationToken cancellationToken = default)
+    {
+        if (request == null)
+            return BadRequest(new { error = "Request body is required" });
+
+        if (_exportService == null)
+            return StatusCode(501, new { error = "Export service is not configured" });
+
+        try
+        {
+            var timestamp = DateTime.UtcNow.ToString("yyyyMMdd-HHmmss");
+
+            byte[] data;
+            string contentType;
+            string fileName;
+
+            if (string.Equals(format, "json", StringComparison.OrdinalIgnoreCase))
+            {
+                data = await _exportService.ExportToJsonAsync(request, cancellationToken);
+                contentType = "application/json";
+                fileName = $"audit-logs-{timestamp}.json";
+            }
+            else
+            {
+                data = await _exportService.ExportToCsvAsync(request, cancellationToken);
+                contentType = "text/csv";
+                fileName = $"audit-logs-{timestamp}.csv";
+            }
+
+            return File(data, contentType, fileName);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error exporting audit logs (POST) in {Format} format", format);
             return StatusCode(500, new { error = "Failed to export audit logs" });
         }
     }

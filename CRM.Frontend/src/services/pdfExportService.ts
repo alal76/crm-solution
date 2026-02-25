@@ -29,7 +29,7 @@ export interface PDFSection {
   content?: string;
   table?: {
     columns: TableColumn[];
-    data: any[];
+    data: Record<string, unknown>[];
   };
   fields?: { label: string; value: string | number | undefined }[];
 }
@@ -347,19 +347,19 @@ export const generatePDF = (
  */
 export const exportEntityToPDF = (
   entityType: string,
-  entityData: Record<string, any>,
+  entityData: Record<string, unknown>,
   fieldMappings: { label: string; field: string; format?: (val: any) => string }[],
   options?: Partial<PDFExportOptions>
 ): Window | null => {
   const fields = fieldMappings.map(m => ({
     label: m.label,
-    value: m.format ? m.format(entityData[m.field]) : entityData[m.field],
+    value: m.format ? m.format(entityData[m.field]) : String(entityData[m.field] ?? ''),
   }));
   
   return generatePDF(
     {
       title: `${entityType} Details`,
-      subtitle: entityData.name || entityData.title || `#${entityData.id}`,
+      subtitle: String(entityData['name'] || entityData['title'] || `#${entityData['id']}`),
       includeDate: true,
       ...options,
     },
@@ -373,7 +373,7 @@ export const exportEntityToPDF = (
 export const exportTableToPDF = (
   title: string,
   columns: TableColumn[],
-  data: any[],
+  data: Record<string, unknown>[],  
   options?: Partial<PDFExportOptions>
 ): Window | null => {
   return generatePDF(

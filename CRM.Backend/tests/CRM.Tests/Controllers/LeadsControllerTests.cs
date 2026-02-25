@@ -23,14 +23,16 @@ namespace CRM.Tests.Controllers;
 public class LeadsControllerTests
 {
     private readonly Mock<ILeadService> _mockLeadService;
+    private readonly Mock<ILeadAgingAlertService> _mockLeadAgingAlertService;
     private readonly Mock<ILogger<LeadsController>> _mockLogger;
     private readonly LeadsController _controller;
 
     public LeadsControllerTests()
     {
         _mockLeadService = new Mock<ILeadService>();
+        _mockLeadAgingAlertService = new Mock<ILeadAgingAlertService>();
         _mockLogger = new Mock<ILogger<LeadsController>>();
-        _controller = new LeadsController(_mockLeadService.Object, _mockLogger.Object);
+        _controller = new LeadsController(_mockLeadService.Object, _mockLeadAgingAlertService.Object, _mockLogger.Object);
     }
 
     private static LeadSummaryDto CreateLeadSummary(int id = 1) => new()

@@ -131,7 +131,7 @@ This is a hobby side project not related to my day job - and built on weekends -
 
 The ITSM (IT Service Management) module provides ITIL-aligned processes for managing IT services. It was implemented as part of the Phase 1 remediation plan and is fully operational.
 
-> 📖 **Full user guide:** [ITSM User Guide](docs/ITSM_USER_GUIDE.md)
+> 📖 **Full user guide:** [ITSM User Guide](docs/guides/ITSM_USER_GUIDE.md)
 
 ### ITSM Capabilities
 

@@ -9,6 +9,7 @@ using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace CRM.Api.Controllers;
 
@@ -721,6 +722,82 @@ public class TerritoriesController : ControllerBase
     }
 
     #endregion
+
+    // =========================================================================
+    // Lead Territory Assignment (TODO-GAP-04)
+    // =========================================================================
+
+    /// <summary>
+    /// Assigns a lead to this territory and optionally changes its owner.
+    /// </summary>
+    [HttpPost("{id:int}/assign-lead")]
+    [ProducesResponseType(typeof(Lead), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> AssignLead(
+        int id,
+        [FromBody] AssignLeadToTerritoryRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var updated = await _territoryService.AssignLeadToTerritoryAsync(
+                request.LeadId,
+                id,
+                request.UserId,
+                cancellationToken);
+
+            return Ok(updated);
+        }
+        catch (InvalidOperationException ex) when (ex.Message.Contains("not found"))
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error assigning lead {LeadId} to territory {TerritoryId}", request.LeadId, id);
+            return StatusCode(500, "Internal server error");
+        }
+    }
+
+    /// <summary>
+    /// Returns all open leads assigned to this territory.
+    /// </summary>
+    [HttpGet("{id:int}/leads")]
+    [ProducesResponseType(typeof(IEnumerable<object>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> GetLeadsByTerritory(
+        int id,
+        [FromServices] CRM.Core.Interfaces.ICrmDbContext dbContext,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var leads = await dbContext.Leads
+                .Where(l => !l.IsDeleted && l.TerritoryId == id)
+                .Select(l => new
+                {
+                    l.Id,
+                    l.FirstName,
+                    l.LastName,
+                    l.Email,
+                    l.CompanyName,
+                    Status = l.Status.ToString(),
+                    l.OwnerId,
+                    l.TerritoryId,
+                    l.CreatedAt
+                })
+                .OrderByDescending(l => l.CreatedAt)
+                .ToListAsync(cancellationToken);
+
+            return Ok(leads);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving leads for territory {TerritoryId}", id);
+            return StatusCode(500, "Internal server error");
+        }
+    }
 }
 
 #region Request DTOs
@@ -761,6 +838,16 @@ public class SetQuotaRequest
 {
     public decimal Quota { get; set; }
     public string Currency { get; set; } = "USD";
+}
+
+/// <summary>Request body for assigning a lead to a territory (TODO-GAP-04).</summary>
+public class AssignLeadToTerritoryRequest
+{
+    /// <summary>ID of the lead to assign.</summary>
+    public int LeadId { get; set; }
+
+    /// <summary>Optional user ID to set as lead owner after assignment.</summary>
+    public int? UserId { get; set; }
 }
 
 public class TerritoryHierarchyDto

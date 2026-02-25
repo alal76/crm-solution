@@ -291,6 +291,9 @@ public class ShareReportDto
 
     /// <summary>Gets or sets the list of group IDs to share with.</summary>
     public List<int> GroupIds { get; set; } = new();
+
+    /// <summary>Gets or sets the permission level (View, Edit, Admin). Defaults to "View".</summary>
+    public string Permission { get; set; } = "View";
 }
 
 /// <summary>
@@ -303,4 +306,125 @@ public class ReportSharingDto
 
     /// <summary>Gets or sets the groups the report is shared with.</summary>
     public List<UserGroupDto> Groups { get; set; } = new();
+}
+
+// ---------------------------------------------------------------------------
+// Cohort Analysis (TODO-RPT-07)
+// ---------------------------------------------------------------------------
+
+/// <summary>Cohort grouping granularity.</summary>
+public enum ReportCohortType
+{
+    /// <summary>Monthly cohorts.</summary>
+    Monthly = 0,
+
+    /// <summary>Quarterly cohorts.</summary>
+    Quarterly = 1
+}
+
+/// <summary>Metric measured per cohort period.</summary>
+public enum CohortMetricType
+{
+    /// <summary>Retention rate over time.</summary>
+    Retention = 0,
+
+    /// <summary>Revenue generated over time.</summary>
+    Revenue = 1,
+
+    /// <summary>Activity (interactions) over time.</summary>
+    Activity = 2
+}
+
+/// <summary>Dimension used for customer segmentation.</summary>
+public enum SegmentBy
+{
+    /// <summary>Segment by industry vertical.</summary>
+    Industry = 0,
+
+    /// <summary>Segment by geographic region.</summary>
+    Region = 1,
+
+    /// <summary>Segment by revenue band.</summary>
+    Revenue = 2,
+
+    /// <summary>Segment by lifecycle stage.</summary>
+    Lifecycle = 3
+}
+
+/// <summary>
+/// Request DTO for cohort analysis.
+/// </summary>
+public class CohortAnalysisRequestDto
+{
+    /// <summary>Gets or sets the cohort window start date.</summary>
+    public DateTime StartDate { get; set; }
+
+    /// <summary>Gets or sets the cohort window end date.</summary>
+    public DateTime EndDate { get; set; }
+
+    /// <summary>Gets or sets whether to group cohorts monthly or quarterly.</summary>
+    public ReportCohortType CohortType { get; set; } = ReportCohortType.Monthly;
+
+    /// <summary>Gets or sets which metric to measure per period.</summary>
+    public CohortMetricType MetricType { get; set; } = CohortMetricType.Retention;
+}
+
+/// <summary>
+/// A single cohort row in the analysis matrix.
+/// </summary>
+public class CohortRowDto
+{
+    /// <summary>Label for this cohort (e.g. "Jan 2025").</summary>
+    public string CohortLabel { get; set; } = string.Empty;
+
+    /// <summary>Number of customers in the cohort at period 0.</summary>
+    public int InitialCount { get; set; }
+
+    /// <summary>Per-period metric values (retention %, revenue, or activity count).</summary>
+    public List<decimal> Values { get; set; } = new();
+}
+
+/// <summary>
+/// Full cohort analysis result.
+/// </summary>
+public class CohortAnalysisDto
+{
+    /// <summary>Period labels (e.g. "Month +0", "Month +1", …).</summary>
+    public List<string> Periods { get; set; } = new();
+
+    /// <summary>One row per cohort.</summary>
+    public List<CohortRowDto> Cohorts { get; set; } = new();
+}
+
+/// <summary>
+/// Criteria for customer segmentation.
+/// </summary>
+public class SegmentationCriteria
+{
+    /// <summary>Dimension to segment customers by.</summary>
+    public SegmentBy SegmentBy { get; set; } = SegmentBy.Industry;
+
+    /// <summary>Optional start of the date range for activity filtering.</summary>
+    public DateTime? StartDate { get; set; }
+
+    /// <summary>Optional end of the date range for activity filtering.</summary>
+    public DateTime? EndDate { get; set; }
+}
+
+/// <summary>
+/// A single customer segment summary.
+/// </summary>
+public class CustomerSegmentDto
+{
+    /// <summary>Segment name (e.g. "Technology", "Northeast").</summary>
+    public string SegmentName { get; set; } = string.Empty;
+
+    /// <summary>Number of customers in this segment.</summary>
+    public int CustomerCount { get; set; }
+
+    /// <summary>Average revenue per customer in the segment.</summary>
+    public decimal AverageRevenue { get; set; }
+
+    /// <summary>Retention rate for the segment (0–100).</summary>
+    public decimal RetentionRate { get; set; }
 }

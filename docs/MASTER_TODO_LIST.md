@@ -1,8 +1,8 @@
 # CRM Solution - Master TODO List (Reviewed & Updated)
 
-> **Last Updated:** February 27, 2026 - 8 parallel subagents completed 32 TODO items; Chatwoot enabled as default chat provider; desktop notifications enabled by default
-> **Version:** 0.587.0
-> **Progress:** ✅ 370 Done | ⚠️ 8 Partial | ❌ 118 Remaining
+> **Last Updated:** February 25, 2026 — 6 parallel subagents completed 28 TODO items (Round 11); frontend TypeScript errors fixed
+> **Version:** 0.589.0
+> **Progress:** ✅ 398 Done | ⚠️ 6 Partial | ❌ 90 Remaining
 > **Purpose:** Master list of all pending, partial, and completed items — validated against actual code
 > **Audit Method:** 6 parallel sub-agent code reviews across Backend, Frontend, Database/DTOs, Integration/Tests, Auth/SYS, and UX/CRM + Manual Fixes
 > **Prior Update:** February 27, 2026 (Round 9 — 8 Subagents)
@@ -251,7 +251,7 @@
 | ID | Priority | Description | Status |
 |----|----------|-------------|--------|
 | TODO-ARCH-013-003 | P1 | Add secrets manager guidance (Vault/AWS/Azure/GCP) — documented as gap in SPEC-ARCH-013 | ❌ Not Started |
-| TODO-ARCH-013-004 | P2 | Validate WorkerControlState values in API (SystemSettingsService accepts any string) | ❌ Not Started |
+| TODO-ARCH-013-004 | P2 | Validate WorkerControlState values in API (SystemSettingsService accepts any string) | ✅ Done (Round 11) |
 
 ---
 
@@ -328,7 +328,7 @@
 | ~~TODO-SALES006-019~~ | P2 | Add validation for trial dates, proration type, usage limits | Validation | ✅ Completed — 9 tests in SubscriptionServiceTests.cs (trial date ordering, TrialEndDate requires TrialStartDate, DunningGracePeriodDays >= 0, both create+update paths) |
 | ~~TODO-SALES006-020~~ | P2 | Add validation: auto-renewal/cancelled mutual exclusion | Validation | ✅ Done (Round 4) |
 | ~~TODO-SALES006-022~~ | P1 | Implement optimistic locking (RowVersion) on Subscriptions | Concurrency | ✅ Completed — RowVersion confirmed in CrmDbContext; DbUpdateConcurrencyException handled in UpdateAsync; 3 unit tests in SubscriptionServiceTests.cs verifying message, ID inclusion, and InnerException type |
-| TODO-SALES006-023 | P2 | Add timezone support for billing date calculations | Feature | ❌ Not Started |
+| TODO-SALES006-023 | P2 | Add timezone support for billing date calculations | Feature | ✅ Done (Round 11) |
 | TODO-SALES006-024 | P2 | Implement usage record batching for performance | Performance | ❌ Not Started |
 | ~~TODO-SALES006-025~~ | P2 | Add dunning grace period + escalation emails | Feature | ✅ Completed — DunningManager.RetryFailedPaymentAsync: skips dunning within grace period (SkippedDueToGracePeriod=true), tracks DunningAttemptCount+LastDunningDate, calls SendDunningEmailAsync when SendDunningEscalationEmails=true; SkippedDueToGracePeriod added to DunningRetryResultDto; 4 integration tests in DunningRetryIntegrationTests.cs |
 | ~~TODO-SALES006-027~~ | P1 | Implement subscription pause with scheduled resume | Feature | ✅ Completed Feb 24 — ResumeAt field, Pause/Resume endpoints updated, migration AddSubscriptionPauseFields |
@@ -338,7 +338,7 @@
 | ~~TODO-SALES006-031~~ | P0 | Create 10 subscription components (SubscriptionCard, BillingStats, UsageChart, etc.) | Frontend/Component | ✅ Done (Round 5) — SubscriptionCard, SubscriptionTimeline, UsageChart, PlanSelector, BillingStatsCards, OrderStatusTimeline + more |
 | ~~TODO-SALES006-033~~ | P1 | Create billingService.ts frontend API client | Frontend/Service | ✅ Done (Round 5) — 84 lines |
 | ~~TODO-SALES006-040~~ | P1 | Create SubscriptionAnalyticsController (6+ endpoints) | Backend/Controller | ✅ Done (Round 7) — 7 endpoints: mrr, arr, churn, growth, cohorts, revenue-breakdown, dashboard |
-| TODO-SALES006-004 | P1 | Standardize usage quantity precision (18,4 vs 18,2) | Data/Quality | ❌ Not Started |
+| TODO-SALES006-004 | P1 | Standardize usage quantity precision (18,4 vs 18,2) | Data/Quality | ✅ Done (Round 11) |
 | ~~TODO-SALES006-041~~ | P0 | Unit tests: Proration accuracy (20+ scenarios) | Testing | ✅ Done (Feb 24) — SubscriptionProrationTests.cs |
 | ~~TODO-SALES006-042~~ | P0 | Unit tests: Usage billing accuracy (15+ scenarios) | Testing | ✅ Done (Feb 24) — SubscriptionUsageBillingTests.cs |
 | ~~TODO-SALES006-043~~ | P0 | Unit tests: MRR/ARR calculation precision | Testing | ✅ Done (Feb 24) — SubscriptionMrrArrTests.cs |
@@ -590,7 +590,7 @@
 
 | ID | Priority | Description | Status |
 |----|----------|-------------|--------|
-| TODO-SYS001-001 | P2 | Align ALL password forms with backend policy (only SetupPasswordPage fetches requirements; login/profile change use hardcoded defaults) | ⚠️ Partial |
+| TODO-SYS001-001 | P2 | Align ALL password forms with backend policy (only SetupPasswordPage fetches requirements; login/profile change use hardcoded defaults) | ✅ Done (Round 11) |
 | ~~TODO-SYS001-002~~ | P2 | Wire IAuditLogService into UserService for create/update/delete events (service exists, not wired) | ✅ Done (Round 7) — audit on Create/Update/Delete/PasswordChange |
 
 *Completed: Centralized role-to-permission mapping (RBACService) ✅*
@@ -612,8 +612,8 @@
 | ~~TODO-SYS006-004~~ | P2 | Implement GDPR data access logging (Article 15) | ✅ Done (Round 7) — GdprAccessLog entity, GdprService, GdprController (3 endpoints) |
 | ~~TODO-SYS006-005~~ | P2 | Create GDPR data export workflow | ✅ Done (Feb 24) — IGdprDataExportService + GdprDataExportService.cs + GdprController export endpoints |
 | ~~TODO-SYS006-006~~ | P2 | Implement audit retention policy and archival | ✅ Done (Feb 24) — AuditRetentionPolicyDto + GetRetentionPolicyAsync/SetRetentionPolicyAsync in OptionalAuditLoggingService |
-| TODO-SYS006-007 | P2 | Add audit log performance optimization (partitioning, cleanup jobs) | ❌ Not Started |
-| TODO-SYS006-008 | P3 | Create audit log export (CSV/PDF/JSON) | ❌ Not Started |
+| TODO-SYS006-007 | P2 | Add audit log performance optimization (partitioning, cleanup jobs) | ✅ Done (Round 11) |
+| TODO-SYS006-008 | P3 | Create audit log export (CSV/PDF/JSON) | ✅ Done (Round 11) |
 
 *Completed: AuditLogService (entity-level) ✅, AuditLogsController ✅, AuditLoggingPage.tsx ✅*
 
@@ -621,7 +621,7 @@
 
 | ID | Priority | Description | Status |
 |----|----------|-------------|--------|
-| TODO-SYS007-002 | P2 | Add role-based navigation filtering E2E tests | ❌ Not Started |
+| TODO-SYS007-002 | P2 | Add role-based navigation filtering E2E tests | ✅ Done (Round 11) |
 | TODO-SYS007-003 | P3 | Implement dynamic navigation reordering with drag-and-drop | ❌ Not Started |
 
 *Completed: Audit logging for navigation changes ✅*
@@ -632,9 +632,9 @@
 |----|----------|-------------|--------|
 | TODO-SYS008-001 | P2 | Add admin settings navigation E2E tests | ✅ Implemented — 5 @smoke + 5 advanced tests in `e2e-tests/tests/admin/admin-settings.spec.ts` |
 | TODO-SYS008-002 | P2 | Add unit tests for database/duplicate/lead-score controllers | ✅ Implemented — AdminConfigurationControllerTests (11), LeadScoreRulesControllerTests (11), DuplicateDetectionControllerTests (8) |
-| TODO-SYS008-003 | P2 | Validate admin pages against API contract | ❌ Not Started |
+| TODO-SYS008-003 | P2 | Validate admin pages against API contract | ✅ Done (Round 11) |
 | TODO-SYS008-004 | P3 | Add missing UI empty states + loading UX | ❌ Not Started |
-| TODO-SYS008-005 | P2 | Add sales settings (commission/discount) E2E tests | ❌ Not Started |
+| TODO-SYS008-005 | P2 | Add sales settings (commission/discount) E2E tests | ✅ Done (Round 11) |
 | TODO-SYS008-014 | P2 | Add commission rule unit tests for caps/splits/triggers | ✅ Implemented — CommissionRulesEngineTests (13 tests: ApplyCap, CalculateSplit, CalculateTiered) |
 
 ### 7.6 SPEC-SYS-009 (Administration Module)
@@ -644,7 +644,7 @@
 | TODO-SYS009-001 | P2 | Add admin settings E2E tests | ❌ Not Started |
 | TODO-SYS009-002 | P2 | Add unit tests for navigation + system settings | ✅ Implemented — NavigationControllerTests (11), SystemSettingsControllerTests (8) |
 | TODO-SYS009-003 | P2 | Complete provider-aware navigation merge | ❌ Not Started |
-| TODO-SYS009-004 | P3 | Add audit logging for admin changes | ❌ Not Started |
+| TODO-SYS009-004 | P3 | Add audit logging for admin changes | ✅ Done (Round 11) |
 
 ### 7.7 SPEC-SYS-005 (System Settings)
 
@@ -659,8 +659,8 @@
 
 | ID | Priority | Description | Status |
 |----|----------|-------------|--------|
-| TODO-SYS012-002 | P2 | Normalize group permission flags with navigation filtering | ❌ Not Started |
-| TODO-SYS012-003 | P2 | Add audit logging for RBAC permission changes | ❌ Not Started |
+| TODO-SYS012-002 | P2 | Normalize group permission flags with navigation filtering | ✅ Done (Round 11) |
+| TODO-SYS012-003 | P2 | Add audit logging for RBAC permission changes | ✅ Done (Round 11) |
 
 *Completed: Centralized role/permission mapping (RBACService) ✅*
 
@@ -677,8 +677,8 @@
 | ~~TODO-CRM002-03~~ | ✅ DONE | Add lead source tracking and attribution | ✅ Done — `GET /api/leads/analytics/sources` + `GET /api/leads/analytics/attribution` with `LeadSourceAnalyticsDto` + `LeadAttributionDto`; 7 unit tests passing |
 | TODO-CRM002-04 | P2 | Implement web-to-lead form builder integration | ❌ Not Started |
 | ~~TODO-CRM002-05~~ | P2 | Add duplicate lead detection during creation | ✅ Done (Round 7) — 409 Conflict on create, GET /api/leads/check-duplicate |
-| TODO-CRM002-06 | P2 | Implement lead nurturing campaign integration | ❌ Not Started |
-| TODO-CRM002-07 | P3 | Add lead aging alerts and stale lead notifications | ❌ Not Started |
+| TODO-CRM002-06 | P2 | Implement lead nurturing campaign integration | ✅ Done (Round 11) |
+| TODO-CRM002-07 | P3 | Add lead aging alerts and stale lead notifications | ✅ Done (Round 11) |
 | TODO-CRM002-08 | P3 | Implement lead qualification matrix (BANT/MEDDIC) | ❌ Not Started |
 
 ### 8.2 Opportunity Management (SPEC-CRM-003)
@@ -690,7 +690,7 @@
 | ~~TODO-CRM003-03~~ | ✅ DONE | Implement competitor tracking on opportunities | ✅ Done — `PUT /api/opportunities/{id}/competitors/{competitorId}` added (`UpdateCompetitorAsync`); 5 unit tests passing |
 | ~~TODO-CRM003-04~~ | P2 | Add POST/DELETE /api/opportunities/{id}/products endpoints for post-creation line item management | ✅ Done (Round 7) — GET/POST/PUT/DELETE + TotalValue recalc |
 | ~~TODO-CRM003-05~~ | ✅ DONE | Implement win/loss analysis reports | ✅ Done — `GET /api/reports/win-loss` returning `WinLossReportDto` (Summary, ByReason, ByCompetitor, Trends); 6 unit tests passing |
-| TODO-CRM003-06 | P3 | Add opportunity cloning functionality | ❌ Not Started |
+| TODO-CRM003-06 | P3 | Add opportunity cloning functionality | ✅ Done (Round 11) |
 | ~~TODO-CRM003-07~~ | ✅ DONE | Implement forecast category assignment | ✅ Done — `PATCH /api/opportunities/{id}/forecast-category` + `GET /api/reports/forecast-summary` returning `ForecastSummaryDto`; 9 unit tests passing |
 | TODO-CRM003-08 | P2 | Add opportunity team/split commission tracking | ❌ Not Started |
 
@@ -699,7 +699,7 @@
 | ID | Priority | Description | Status |
 |----|----------|-------------|--------|
 | TODO-GAP-03 | ✅ DONE | Sales forecasting service (SalesForecastService + SalesForecastsController) | ✅ Done |
-| TODO-GAP-04 | P2 | Implement territory-based lead assignment | ❌ Not Started |
+| TODO-GAP-04 | P2 | Implement territory-based lead assignment | ✅ Done (Round 11) |
 | ~~TODO-GAP-05~~ | P2 | Add full multi-currency service (ExchangeRate fields exist, no CurrencyService or live rates) | ✅ Done (Round 7) — ICurrencyService, CurrencyService (20 rates), CurrenciesController |
 | TODO-GAP-06 | P2 | CPQ bundle wizard UI (ProductBundle entity + controller exist, no frontend wizard) | ⚠️ Partial |
 | TODO-GAP-07 | P2 | Dynamic pricing rules engine | ✅ Done |
@@ -815,7 +815,7 @@
 
 | ID | Priority | Description | Status |
 |----|----------|-------------|--------|
-| TODO-GAP-FRONTEND-001 | P2 | Fix remaining `any` type usages in service files (53 instances found — significantly fewer than Feb 16 estimate of 200+) | ⚠️ Partial |
+| TODO-GAP-FRONTEND-001 | P2 | Fix remaining `any` type usages in service files (53 instances found — significantly fewer than Feb 16 estimate of 200+) | ✅ Done (Round 11) |
 
 ### 10.3 Accessibility (WCAG 2.1 AA)
 
@@ -832,9 +832,9 @@
 | ID | Priority | Description | Status |
 |----|----------|-------------|--------|
 | TODO-UX-11 | P3 | Dark mode toggle | ✅ Done |
-| TODO-UX-12 | P3 | Customizable sidebar navigation | ❌ Not Started |
+| TODO-UX-12 | P3 | Customizable sidebar navigation | ✅ Done (Round 11) |
 | TODO-UX-13 | P3 | Split view for comparing records | ❌ Not Started |
-| TODO-UX-15 | P3 | Recent items quick access | ❌ Not Started |
+| TODO-UX-15 | P3 | Recent items quick access | ✅ Done (Round 11) |
 
 *Completed: Breadcrumbs.tsx ✅, PipelineKanban drag-and-drop ✅*
 
@@ -844,17 +844,17 @@
 
 | ID | Priority | Description | Status |
 |----|----------|-------------|--------|
-| TODO-AI005-FE-001 | P2 | Add end-to-end analytics tests for dashboards and reports | ❌ Not Started |
+| TODO-AI005-FE-001 | P2 | Add end-to-end analytics tests for dashboards and reports | ✅ Done (Round 11) |
 | TODO-AI005-FE-002 | P2 | Define JSON schema versioning for report query payloads | ❌ Not Started |
-| TODO-AI005-FE-005 | P2 | Align analytics embed API routes with backend controllers | ❌ Not Started |
+| TODO-AI005-FE-005 | P2 | Align analytics embed API routes with backend controllers | ✅ Done (Round 11) |
 | TODO-AI005-FE-006 | P3 | Validate filter value types in ReportDesigner | ❌ Not Started |
-| TODO-RPT-03 | P2 | Report sharing and permissions | ❌ Not Started |
+| TODO-RPT-03 | P2 | Report sharing and permissions | ✅ Done (Round 11) |
 | TODO-RPT-04 | P3 | Report templates marketplace | ❌ Not Started |
-| TODO-RPT-06 | P2 | Real-time dashboard with WebSocket live updates | ❌ Not Started |
-| TODO-RPT-07 | P2 | Cohort analysis and customer segmentation | ❌ Not Started |
+| TODO-RPT-06 | P2 | Real-time dashboard with WebSocket live updates | ✅ Done (Round 11) |
+| TODO-RPT-07 | P2 | Cohort analysis and customer segmentation | ✅ Done (Round 11) |
 | TODO-RPT-08 | P3 | Funnel visualization with stage conversion rates | ❌ Not Started |
 | TODO-RPT-09 | P3 | Geographic data visualization (map charts) | ❌ Not Started |
-| TODO-GAP-MARKETING-001 | P2 | Campaign & lead scoring widgets for dashboard | ❌ Not Started |
+| TODO-GAP-MARKETING-001 | P2 | Campaign & lead scoring widgets for dashboard | ✅ Done (Round 11) |
 
 *Completed: ReportDesigner.tsx ✅, DashboardBuilder.tsx ✅, DashboardBuilder save flow wired ✅, report scheduling/export UI ✅*
 
@@ -934,10 +934,10 @@
 
 | ID | Priority | Description | Status |
 |----|----------|-------------|--------|
-| TODO-DOC-01 | P2 | Create ITSM User Guide | ❌ Not Started |
-| TODO-DOC-02 | P2 | Update README.md with ITSM module section | ❌ Not Started |
+| TODO-DOC-01 | P2 | Create ITSM User Guide | ✅ Done (Round 11) |
+| TODO-DOC-02 | P2 | Update README.md with ITSM module section | ✅ Done (Round 11) |
 | TODO-DOC-03 | P2 | Update architecture diagrams for ITSM services | ❌ Not Started |
-| TODO-DOC-04 | P2 | Update Swagger/OpenAPI documentation for all new endpoints | ❌ Not Started |
+| TODO-DOC-04 | P2 | Update Swagger/OpenAPI documentation for all new endpoints | ✅ Done (Round 11) |
 | TODO-DOC-05 | P3 | Fix remaining StyleCop warnings | ❌ Not Started |
 | TODO-DOC-06 | P3 | Add missing XML documentation to public APIs | ❌ Not Started |
 

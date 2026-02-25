@@ -1,8 +1,8 @@
 # ITSM User Guide
 
 > **CRM Solution - IT Service Management Module**  
-> **Last Updated:** February 24, 2026  
-> **Version:** 0.581.0
+> **Last Updated:** February 25, 2026  
+> **Version:** 0.587.0
 
 ## Overview
 
@@ -17,8 +17,12 @@ The IT Service Management (ITSM) module provides a comprehensive framework for m
 5. [Service Requests](#service-requests)
 6. [Knowledge Base](#knowledge-base)
 7. [SLA Management](#sla-management)
-8. [Dashboards & Reporting](#dashboards--reporting)
-9. [Best Practices](#best-practices)
+8. [Escalation Rules](#escalation-rules)
+9. [Service Queues](#service-queues)
+10. [CMDB (Configuration Management Database)](#cmdb-configuration-management-database)
+11. [Dashboards & Reporting](#dashboards--reporting)
+12. [API Quick Reference](#api-quick-reference)
+13. [Best Practices](#best-practices)
 
 ---
 
@@ -307,6 +311,292 @@ Monitor SLA performance in real-time:
 
 ---
 
+## Escalation Rules
+
+### What are Escalation Rules?
+
+Escalation rules define automated actions taken when a ticket is at risk of or has breached an SLA. They ensure issues are surfaced to the right stakeholders in a timely manner.
+
+### Configuring Escalation Rules
+
+Escalation rules are configured under **Admin → Escalation Rules** (`/admin/escalation-rules`).
+
+| Field | Description |
+|-------|-------------|
+| **Name** | Descriptive label for the rule |
+| **Trigger** | Percentage of SLA elapsed (e.g., 50 %, 75 %, 90 %) or on breach |
+| **Target** | Who to notify (assigned agent, team lead, manager, director) |
+| **Action** | Notification, reassignment, or priority change |
+| **Applies To** | Specific categories, priorities, or all tickets |
+
+### Escalation Levels
+
+| Level | Default Trigger | Default Action |
+|-------|----------------|----------------|
+| 1 | 50 % SLA elapsed | Notify assigned agent |
+| 2 | 75 % SLA elapsed | Notify team lead |
+| 3 | 90 % SLA elapsed | Notify service manager |
+| 4 | SLA breached | Notify director, change priority to Critical |
+
+### Creating an Escalation Rule
+
+1. Navigate to **Admin → Escalation Rules**
+2. Click **Create Rule**
+3. Enter name, select trigger condition
+4. Choose notification recipient (role or specific user)
+5. Set optional actions (reassign, change priority)
+6. Define scope (all tickets or specific category/priority)
+7. Click **Save**
+
+> **API:** `POST /api/escalation-rules` — see [API Quick Reference](#api-quick-reference)
+
+---
+
+## Service Queues
+
+### What are Service Queues?
+
+Service queues organise incoming tickets into logical work groups, enabling teams to efficiently triage and distribute workload. Each queue can have its own assignment rules, SLA policies, and team membership.
+
+### Configuring Service Queues
+
+Queues are managed under **Admin → Service Queues** or via `AdminConfigurationController`.
+
+| Field | Description |
+|-------|-------------|
+| **Name** | Queue name (e.g., "Hardware Support", "Security Incidents") |
+| **Description** | Purpose of the queue |
+| **Members** | Users/groups assigned to the queue |
+| **SLA Policy** | Default SLA applied to tickets in this queue |
+| **Auto-Assignment** | Round-robin, load-balanced, or manual |
+| **Categories** | Ticket categories automatically routed to this queue |
+| **Business Hours** | Override global business hours for this queue |
+
+### Creating a Service Queue
+
+1. Navigate to **Admin → Configuration → Service Queues**
+2. Click **New Queue**
+3. Enter queue name and description
+4. Assign team members
+5. Link an SLA policy
+6. Configure routing rules (category-based, priority-based)
+7. Set auto-assignment method
+8. Click **Save**
+
+### Queue-Based Routing
+
+When a ticket is created, the system evaluates routing rules in order:
+
+1. **Category match** — route to queue owning that category
+2. **Priority match** — critical tickets may route to specialist queues
+3. **Keyword match** — subject/description pattern matching
+4. **Default queue** — fallback if no rule matches
+
+> **API:** `GET /api/adminconfiguration/service-queues` — see [API Quick Reference](#api-quick-reference)
+
+---
+
+## CMDB (Configuration Management Database)
+
+### What is the CMDB?
+
+The Configuration Management Database tracks all IT assets (Configuration Items or CIs) and their relationships, enabling impact analysis and change planning.
+
+### Configuration Items (CIs)
+
+| CI Type | Examples |
+|---------|----------|
+| **Hardware** | Servers, workstations, network switches |
+| **Software** | Applications, OS licenses, middleware |
+| **Services** | Business services, IT services |
+| **Infrastructure** | Virtual machines, containers, cloud resources |
+| **Documents** | Runbooks, architecture diagrams |
+
+### Creating a CI
+
+1. Navigate to **ITSM → CMDB**
+2. Click **New CI**
+3. Select CI Type
+4. Enter CI name, version, and owner
+5. Add attributes (IP address, location, vendor, etc.)
+6. Set status (`Active`, `Retired`, `Maintenance`)
+7. Click **Save**
+
+### CI Relationships
+
+CIs can be linked to show dependencies:
+
+| Relationship Type | Description |
+|-------------------|-------------|
+| `depends-on` | CI requires another CI to function |
+| `hosts` | Server hosts an application |
+| `connects-to` | Network relationship |
+| `part-of` | Logical grouping |
+| `impacts` | Failure of CI affects another |
+
+### Impact Analysis
+
+Before raising a change, run an impact analysis:
+
+1. Open the CI in CMDB
+2. Click **Impact Analysis**
+3. Review the dependency graph
+4. Export affected services for stakeholder notification
+
+### Linking CIs to Incidents/Changes
+
+- On the **Incident** form, select **Affected CIs** from the CMDB
+- On the **Change Request** form, select **Impacted CIs**
+- The CMDB record will show all linked incidents and changes
+
+> **API:** `GET /api/itsm/cmdb` — see [API Quick Reference](#api-quick-reference)
+
+
+---
+
+## Escalation Rules
+
+### What are Escalation Rules?
+
+Escalation rules define automated actions taken when a ticket is at risk of or has breached an SLA. They ensure issues are surfaced to the right stakeholders in a timely manner.
+
+### Configuring Escalation Rules
+
+Escalation rules are configured under **Admin → Escalation Rules** (`/admin/escalation-rules`).
+
+| Field | Description |
+|-------|-------------|
+| **Name** | Descriptive label for the rule |
+| **Trigger** | Percentage of SLA elapsed (e.g., 50 %, 75 %, 90 %) or on breach |
+| **Target** | Who to notify (assigned agent, team lead, manager, director) |
+| **Action** | Notification, reassignment, or priority change |
+| **Applies To** | Specific categories, priorities, or all tickets |
+
+### Escalation Levels
+
+| Level | Default Trigger | Default Action |
+|-------|----------------|----------------|
+| 1 | 50 % SLA elapsed | Notify assigned agent |
+| 2 | 75 % SLA elapsed | Notify team lead |
+| 3 | 90 % SLA elapsed | Notify service manager |
+| 4 | SLA breached | Notify director, change priority to Critical |
+
+### Creating an Escalation Rule
+
+1. Navigate to **Admin → Escalation Rules**
+2. Click **Create Rule**
+3. Enter name, select trigger condition
+4. Choose notification recipient (role or specific user)
+5. Set optional actions (reassign, change priority)
+6. Define scope (all tickets or specific category/priority)
+7. Click **Save**
+
+> **API:** `POST /api/escalation-rules` — see [API Quick Reference](#api-quick-reference)
+
+---
+
+## Service Queues
+
+### What are Service Queues?
+
+Service queues organise incoming tickets into logical work groups, enabling teams to efficiently triage and distribute workload. Each queue can have its own assignment rules, SLA policies, and team membership.
+
+### Configuring Service Queues
+
+Queues are managed under **Admin → Service Queues** or via `AdminConfigurationController`.
+
+| Field | Description |
+|-------|-------------|
+| **Name** | Queue name (e.g., "Hardware Support", "Security Incidents") |
+| **Description** | Purpose of the queue |
+| **Members** | Users/groups assigned to the queue |
+| **SLA Policy** | Default SLA applied to tickets in this queue |
+| **Auto-Assignment** | Round-robin, load-balanced, or manual |
+| **Categories** | Ticket categories automatically routed to this queue |
+| **Business Hours** | Override global business hours for this queue |
+
+### Creating a Service Queue
+
+1. Navigate to **Admin → Configuration → Service Queues**
+2. Click **New Queue**
+3. Enter queue name and description
+4. Assign team members
+5. Link an SLA policy
+6. Configure routing rules (category-based, priority-based)
+7. Set auto-assignment method
+8. Click **Save**
+
+### Queue-Based Routing
+
+When a ticket is created, the system evaluates routing rules in order:
+
+1. **Category match** — route to queue owning that category
+2. **Priority match** — critical tickets may route to specialist queues
+3. **Keyword match** — subject/description pattern matching
+4. **Default queue** — fallback if no rule matches
+
+> **API:** `GET /api/adminconfiguration/service-queues` — see [API Quick Reference](#api-quick-reference)
+
+---
+
+## CMDB (Configuration Management Database)
+
+### What is the CMDB?
+
+The Configuration Management Database tracks all IT assets (Configuration Items or CIs) and their relationships, enabling impact analysis and change planning.
+
+### Configuration Items (CIs)
+
+| CI Type | Examples |
+|---------|----------|
+| **Hardware** | Servers, workstations, network switches |
+| **Software** | Applications, OS licenses, middleware |
+| **Services** | Business services, IT services |
+| **Infrastructure** | Virtual machines, containers, cloud resources |
+| **Documents** | Runbooks, architecture diagrams |
+
+### Creating a CI
+
+1. Navigate to **ITSM → CMDB**
+2. Click **New CI**
+3. Select CI Type
+4. Enter CI name, version, and owner
+5. Add attributes (IP address, location, vendor, etc.)
+6. Set status (`Active`, `Retired`, `Maintenance`)
+7. Click **Save**
+
+### CI Relationships
+
+CIs can be linked to show dependencies:
+
+| Relationship Type | Description |
+|-------------------|-------------|
+| `depends-on` | CI requires another CI to function |
+| `hosts` | Server hosts an application |
+| `connects-to` | Network relationship |
+| `part-of` | Logical grouping |
+| `impacts` | Failure of CI affects another |
+
+### Impact Analysis
+
+Before raising a change, run an impact analysis:
+
+1. Open the CI in CMDB
+2. Click **Impact Analysis**
+3. Review the dependency graph
+4. Export affected services for stakeholder notification
+
+### Linking CIs to Incidents/Changes
+
+- On the **Incident** form, select **Affected CIs** from the CMDB
+- On the **Change Request** form, select **Impacted CIs**
+- The CMDB record will show all linked incidents and changes
+
+> **API:** `GET /api/itsm/cmdb` — see [API Quick Reference](#api-quick-reference)
+
+
+---
+
 ## Dashboards & Reporting
 
 ### ITSM Dashboard
@@ -335,6 +625,242 @@ The main ITSM dashboard provides:
 2. Apply date range and filters
 3. Click **Export**
 4. Select format (PDF, Excel, CSV)
+
+---
+
+## API Quick Reference
+
+> Full interactive documentation: **Swagger UI** at `http://<host>:5000/swagger`
+> All endpoints require `Authorization: Bearer <JWT>` unless marked public.
+
+### Incidents
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/itsm/incidents` | List incidents (paginated) |
+| `GET` | `/api/itsm/incidents/{id}` | Get incident by ID |
+| `POST` | `/api/itsm/incidents` | Create incident |
+| `PUT` | `/api/itsm/incidents/{id}` | Update incident |
+| `POST` | `/api/itsm/incidents/{id}/assign` | Assign to agent |
+| `POST` | `/api/itsm/incidents/{id}/escalate` | Escalate incident |
+| `POST` | `/api/itsm/incidents/{id}/resolve` | Resolve incident |
+| `POST` | `/api/itsm/incidents/{id}/close` | Close incident |
+| `POST` | `/api/itsm/incidents/{id}/reopen` | Reopen closed incident |
+| `GET` | `/api/itsm/incidents/{id}/comments` | List comments |
+| `POST` | `/api/itsm/incidents/{id}/comments` | Add comment |
+
+### Problems
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/itsm/problems` | List problems |
+| `POST` | `/api/itsm/problems` | Create problem |
+| `PUT` | `/api/itsm/problems/{id}` | Update problem |
+| `POST` | `/api/itsm/problems/{id}/link-incident` | Link incident to problem |
+| `POST` | `/api/itsm/problems/{id}/mark-known-error` | Mark as known error |
+| `GET` | `/api/itsm/problems/{id}/related-incidents` | List linked incidents |
+
+### Changes
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/itsm/changes` | List change requests |
+| `POST` | `/api/itsm/changes` | Create change request |
+| `POST` | `/api/itsm/changes/{id}/submit-approval` | Submit for approval |
+| `POST` | `/api/itsm/changes/{id}/approve` | Approve change |
+| `POST` | `/api/itsm/changes/{id}/reject` | Reject change |
+| `POST` | `/api/itsm/changes/{id}/schedule` | Schedule change |
+| `GET` | `/api/itsm/changes/{id}/conflicts` | Check scheduling conflicts |
+| `GET` | `/api/itsm/changes/{id}/impacted-cis` | List impacted CIs |
+| `GET` | `/api/itsm/changes/blackout-periods` | Get blackout periods |
+
+### CMDB
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/itsm/cmdb` | List configuration items |
+| `GET` | `/api/itsm/cmdb/{id}` | Get CI by ID |
+| `POST` | `/api/itsm/cmdb` | Create CI |
+| `PUT` | `/api/itsm/cmdb/{id}` | Update CI |
+| `GET` | `/api/itsm/cmdb/{id}/relationships` | List CI relationships |
+| `POST` | `/api/itsm/cmdb/{id}/relationships` | Add CI relationship |
+| `GET` | `/api/itsm/cmdb/{id}/impact-analysis` | Run impact analysis |
+
+### Knowledge Base
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/itsm/knowledge` | List articles |
+| `POST` | `/api/itsm/knowledge` | Create article |
+| `POST` | `/api/itsm/knowledge/{id}/publish` | Publish article |
+| `POST` | `/api/itsm/knowledge/{id}/retire` | Retire article |
+| `POST` | `/api/itsm/knowledge/{id}/feedback` | Submit feedback/rating |
+| `GET` | `/api/itsm/knowledge/suggested` | Suggested articles |
+| `GET` | `/api/itsm/knowledge/popular` | Popular articles |
+
+### SLA
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/itsm/sla/policies` | List SLA policies |
+| `POST` | `/api/itsm/sla/policies` | Create SLA policy |
+| `GET` | `/api/itsm/sla/instances` | List SLA instances |
+| `POST` | `/api/itsm/sla/{id}/pause` | Pause SLA |
+| `POST` | `/api/itsm/sla/{id}/resume` | Resume SLA |
+| `GET` | `/api/itsm/sla/breached` | List breached SLAs |
+| `GET` | `/api/itsm/sla/dashboard` | SLA compliance dashboard |
+| `GET` | `/api/itsm/sla/at-risk` | At-risk items |
+
+### Escalation Rules (Admin)
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/escalation-rules` | List escalation rules |
+| `GET` | `/api/escalation-rules/{id}` | Get rule by ID |
+| `POST` | `/api/escalation-rules` | Create rule |
+| `PUT` | `/api/escalation-rules/{id}` | Update rule |
+| `DELETE` | `/api/escalation-rules/{id}` | Delete rule |
+
+### Service Queues (Admin)
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/adminconfiguration/service-queues` | List service queues |
+| `GET` | `/api/adminconfiguration/service-queues/{id}` | Get queue by ID |
+| `POST` | `/api/adminconfiguration/service-queues` | Create queue |
+| `PUT` | `/api/adminconfiguration/service-queues/{id}` | Update queue |
+| `DELETE` | `/api/adminconfiguration/service-queues/{id}` | Delete queue |
+
+### ITSM Dashboard Analytics
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/itsm/dashboard` | Full ITSM dashboard |
+| `GET` | `/api/itsm/dashboard/incident-trends` | Incident volume trends |
+| `GET` | `/api/itsm/dashboard/problem-analysis` | Problem metrics |
+| `GET` | `/api/itsm/dashboard/change-metrics` | Change success metrics |
+| `GET` | `/api/itsm/dashboard/sla-compliance` | SLA compliance overview |
+| `GET` | `/api/itsm/dashboard/team-performance` | Team performance stats |
+| `GET` | `/api/itsm/dashboard/service-health` | Overall service health |
+
+
+---
+
+## API Quick Reference
+
+> Full interactive documentation: **Swagger UI** at `http://<host>:5000/swagger`
+> All endpoints require `Authorization: Bearer <JWT>` unless marked public.
+
+### Incidents
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/itsm/incidents` | List incidents (paginated) |
+| `GET` | `/api/itsm/incidents/{id}` | Get incident by ID |
+| `POST` | `/api/itsm/incidents` | Create incident |
+| `PUT` | `/api/itsm/incidents/{id}` | Update incident |
+| `POST` | `/api/itsm/incidents/{id}/assign` | Assign to agent |
+| `POST` | `/api/itsm/incidents/{id}/escalate` | Escalate incident |
+| `POST` | `/api/itsm/incidents/{id}/resolve` | Resolve incident |
+| `POST` | `/api/itsm/incidents/{id}/close` | Close incident |
+| `POST` | `/api/itsm/incidents/{id}/reopen` | Reopen closed incident |
+| `GET` | `/api/itsm/incidents/{id}/comments` | List comments |
+| `POST` | `/api/itsm/incidents/{id}/comments` | Add comment |
+
+### Problems
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/itsm/problems` | List problems |
+| `POST` | `/api/itsm/problems` | Create problem |
+| `PUT` | `/api/itsm/problems/{id}` | Update problem |
+| `POST` | `/api/itsm/problems/{id}/link-incident` | Link incident to problem |
+| `POST` | `/api/itsm/problems/{id}/mark-known-error` | Mark as known error |
+| `GET` | `/api/itsm/problems/{id}/related-incidents` | List linked incidents |
+
+### Changes
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/itsm/changes` | List change requests |
+| `POST` | `/api/itsm/changes` | Create change request |
+| `POST` | `/api/itsm/changes/{id}/submit-approval` | Submit for approval |
+| `POST` | `/api/itsm/changes/{id}/approve` | Approve change |
+| `POST` | `/api/itsm/changes/{id}/reject` | Reject change |
+| `POST` | `/api/itsm/changes/{id}/schedule` | Schedule change |
+| `GET` | `/api/itsm/changes/{id}/conflicts` | Check scheduling conflicts |
+| `GET` | `/api/itsm/changes/{id}/impacted-cis` | List impacted CIs |
+| `GET` | `/api/itsm/changes/blackout-periods` | Get blackout periods |
+
+### CMDB
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/itsm/cmdb` | List configuration items |
+| `GET` | `/api/itsm/cmdb/{id}` | Get CI by ID |
+| `POST` | `/api/itsm/cmdb` | Create CI |
+| `PUT` | `/api/itsm/cmdb/{id}` | Update CI |
+| `GET` | `/api/itsm/cmdb/{id}/relationships` | List CI relationships |
+| `POST` | `/api/itsm/cmdb/{id}/relationships` | Add CI relationship |
+| `GET` | `/api/itsm/cmdb/{id}/impact-analysis` | Run impact analysis |
+
+### Knowledge Base
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/itsm/knowledge` | List articles |
+| `POST` | `/api/itsm/knowledge` | Create article |
+| `POST` | `/api/itsm/knowledge/{id}/publish` | Publish article |
+| `POST` | `/api/itsm/knowledge/{id}/retire` | Retire article |
+| `POST` | `/api/itsm/knowledge/{id}/feedback` | Submit feedback/rating |
+| `GET` | `/api/itsm/knowledge/suggested` | Suggested articles |
+| `GET` | `/api/itsm/knowledge/popular` | Popular articles |
+
+### SLA
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/itsm/sla/policies` | List SLA policies |
+| `POST` | `/api/itsm/sla/policies` | Create SLA policy |
+| `GET` | `/api/itsm/sla/instances` | List SLA instances |
+| `POST` | `/api/itsm/sla/{id}/pause` | Pause SLA |
+| `POST` | `/api/itsm/sla/{id}/resume` | Resume SLA |
+| `GET` | `/api/itsm/sla/breached` | List breached SLAs |
+| `GET` | `/api/itsm/sla/dashboard` | SLA compliance dashboard |
+| `GET` | `/api/itsm/sla/at-risk` | At-risk items |
+
+### Escalation Rules (Admin)
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/escalation-rules` | List escalation rules |
+| `GET` | `/api/escalation-rules/{id}` | Get rule by ID |
+| `POST` | `/api/escalation-rules` | Create rule |
+| `PUT` | `/api/escalation-rules/{id}` | Update rule |
+| `DELETE` | `/api/escalation-rules/{id}` | Delete rule |
+
+### Service Queues (Admin)
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/adminconfiguration/service-queues` | List service queues |
+| `GET` | `/api/adminconfiguration/service-queues/{id}` | Get queue by ID |
+| `POST` | `/api/adminconfiguration/service-queues` | Create queue |
+| `PUT` | `/api/adminconfiguration/service-queues/{id}` | Update queue |
+| `DELETE` | `/api/adminconfiguration/service-queues/{id}` | Delete queue |
+
+### ITSM Dashboard Analytics
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/itsm/dashboard` | Full ITSM dashboard |
+| `GET` | `/api/itsm/dashboard/incident-trends` | Incident volume trends |
+| `GET` | `/api/itsm/dashboard/problem-analysis` | Problem metrics |
+| `GET` | `/api/itsm/dashboard/change-metrics` | Change success metrics |
+| `GET` | `/api/itsm/dashboard/sla-compliance` | SLA compliance overview |
+| `GET` | `/api/itsm/dashboard/team-performance` | Team performance stats |
+| `GET` | `/api/itsm/dashboard/service-health` | Overall service health |
+
 
 ---
 

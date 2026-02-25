@@ -33,6 +33,7 @@ public class SystemSettingsController : ControllerBase
     private readonly IDatabaseSyncService? _databaseSyncService;
     private readonly IWebHostEnvironment _environment;
     private readonly IConfiguration _configuration;
+    private readonly IAuditLogService? _auditLogService;
     private readonly string _defaultCertPassword;
 
     public SystemSettingsController(
@@ -41,7 +42,8 @@ public class SystemSettingsController : ControllerBase
         IWebHostEnvironment environment,
         IConfiguration configuration,
         IDbContextResolver? contextResolver = null,
-        IDatabaseSyncService? databaseSyncService = null)
+        IDatabaseSyncService? databaseSyncService = null,
+        IAuditLogService? auditLogService = null) // TODO-SYS009-004
     {
         _settingsService = settingsService;
         _logger = logger;
@@ -50,6 +52,7 @@ public class SystemSettingsController : ControllerBase
         _defaultCertPassword = configuration["SSL_CERT_PASSWORD"] ?? "CHANGE_IN_PRODUCTION";
         _contextResolver = contextResolver;
         _databaseSyncService = databaseSyncService;
+        _auditLogService = auditLogService;
     }
 
     /// <summary>
@@ -106,6 +109,18 @@ public class SystemSettingsController : ControllerBase
             int? userId = int.TryParse(userIdClaim, out int parsedId) ? parsedId : null;
 
             var settings = await _settingsService.UpdateSettingsAsync(request, userId);
+
+            // TODO-SYS009-004: Audit trail for settings changes
+            if (_auditLogService != null)
+            {
+                await _auditLogService.LogActionAsync(
+                    action: "Update",
+                    entityType: "SystemSettings",
+                    entityId: null,
+                    userId: userId,
+                    details: "System settings updated by admin");
+            }
+
             return Ok(settings);
         }
         catch (Exception ex)
