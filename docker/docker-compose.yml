@@ -107,7 +107,7 @@ services:
       # Rate Limiting (set to false for dev/testing, true for production)
       - RateLimiting__EnableEndpointRateLimiting=${RATE_LIMITING_ENABLED:-true}
       # Redis cache configuration
-      - Redis__ConnectionString=${REDIS_HOST:-redis}:${REDIS_PORT:-6379}
+      - Redis__ConnectionString=${REDIS_HOST:-crm-redis}:${REDIS_PORT:-6379}
       - Redis__InstanceName=${REDIS_INSTANCE:-crm_}
       - Redis__Enabled=${REDIS_ENABLED:-true}
       # Monitoring configuration

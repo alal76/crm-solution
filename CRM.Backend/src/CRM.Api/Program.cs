@@ -154,6 +154,9 @@ if (redisEnabled && !string.IsNullOrEmpty(redisConnectionString))
     builder.Services.AddSingleton<StackExchange.Redis.IConnectionMultiplexer>(sp =>
     {
         var configOptions = StackExchange.Redis.ConfigurationOptions.Parse(redisConnectionString);
+        configOptions.AbortOnConnectFail = false; // Allow retries on connection failure
+        configOptions.ConnectTimeout = 10000; // 10 second timeout
+        configOptions.SyncTimeout = 10000;
         return StackExchange.Redis.ConnectionMultiplexer.Connect(configOptions);
     });
 
