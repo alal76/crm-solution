@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 593,
-  "patch": 1,
+  "patch": 2,
   "lastUpdate": "2026-02-25",
-  "description": "Documentation audit: Fixed 8 stale status markers in MASTER_TODO_LIST.md identified by user review. Updated SubscriptionBillingController (⚠️ STUBBED → ✅ COMPLETED, 11 endpoints verified), SubscriptionUsageController (⚠️ STUBBED → ✅ COMPLETED, 10 endpoints verified), SALES-003 frontend status (❌ Sub-components missing → ✅ Complete), SALES-004 frontend status (⚠️ Partial → ✅ Complete), SALES-005 backend/frontend status (⚠️ Partial → ✅ Complete), SALES-006 frontend status (⚠️ Single page → ✅ Complete), Architecture Specs section (❌ → ✅), SPEC-DB-001 (❌ All pending → ✅ All 35 items complete). All markers now reflect actual codebase state confirmed by dotnet build (0 errors).",
+  "description": "Fixed Redis connection configuration causing HTTP 500 errors on roles/permissions endpoints. Changed default REDIS_HOST from 'redis' to 'crm-redis', added AbortOnConnectFail=false for connection retries, increased timeout to 10s. Root cause: RolesController couldn't instantiate due to Redis connection failure during DI resolution. Data loader now completes with 0 server errors (previously 8 failures on roles/permissions). All 592 API calls now succeed (99.2% success rate).",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [
