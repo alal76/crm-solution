@@ -33,6 +33,9 @@ RUN dotnet restore CRM.sln
 # Copy all source files
 COPY CRM.Backend/src/ ./src/
 
+# Include help documentation in the image for offline/AI help
+COPY docs/help/ ./docs/help/
+
 # Build and publish (only the API project, skip tests)
 RUN dotnet publish "src/CRM.Api/CRM.Api.csproj" -c Release -o /app/publish
 
@@ -60,6 +63,9 @@ RUN mkdir -p /app/data /app/ssl /app/wwwroot/uploads/logos /app/wwwroot/uploads/
 
 # Copy published application
 COPY --from=builder /app/publish .
+
+# Copy help docs into runtime image
+COPY --from=builder /src/docs/help /app/docs/help
 
 # Note: SSL certificate should be mounted via Kubernetes secret, not baked into image
 # Example K8s volume mount: /app/ssl/server.pfx
