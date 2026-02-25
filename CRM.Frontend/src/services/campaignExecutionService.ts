@@ -357,7 +357,8 @@ export const getCampaignConversions = async (
   campaignId: number
 ): Promise<CampaignConversion[]> => {
   const response = await apiClient.get(`/campaign-conversions/campaign/${campaignId}`);
-  return response.data;
+  // Backend returns paginated response { items, totalCount, campaignId }
+  return response.data?.items ?? response.data;
 };
 
 export const recordConversion = async (
