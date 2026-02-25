@@ -3,7 +3,19 @@
 # Phase 3 Week 12: Added Chatwoot for live chat
 # Phase 4 Week 17: Added DocuSeal for e-signatures
 # Phase 5 Week 21: Added Apache Superset for analytics
-# 
+#
+# TODO-DB-030/031/032/033: SHARED POSTGRESQL MIGRATION PATH
+#   Each provider currently runs its own dedicated postgres container.
+#   To consolidate onto a single PostgreSQL instance (crm-postgresql from
+#   docker-compose.databases.yml), run the shared init SQL once:
+#
+#     docker exec -i crm-postgresql psql -U postgres \
+#       < database/schema/init-shared-postgresql.sql
+#
+#   Then update each service's POSTGRES_HOST env var to "crm-postgresql"
+#   and remove the per-service postgres containers below.
+#   See database/schema/init-shared-postgresql.sql for details.
+#
 # Usage: docker-compose -f docker-compose.yml -f docker-compose.providers.yml up -d
 #
 # These services are OPTIONAL and only needed when:
@@ -255,6 +267,10 @@ services:
       - crm-network
 
   # PostgreSQL for Chatwoot
+  # TODO-DB-031: SHARED POSTGRES MIGRATION — replace this dedicated container by:
+  #   1. Running database/schema/init-shared-postgresql.sql on crm-postgresql
+  #   2. Changing POSTGRES_HOST above from "chatwoot-postgres" to "crm-postgresql"
+  #   3. Removing this service definition
   chatwoot-postgres:
     image: postgres:15-alpine
     container_name: crm-chatwoot-postgres
@@ -329,6 +345,10 @@ services:
       - crm-network
 
   # PostgreSQL for DocuSeal
+  # TODO-DB-032: SHARED POSTGRES MIGRATION — replace this dedicated container by:
+  #   1. Running database/schema/init-shared-postgresql.sql on crm-postgresql
+  #   2. Changing DATABASE_URL host from "docuseal-postgres" to "crm-postgresql"
+  #   3. Removing this service definition
   docuseal-postgres:
     image: postgres:15-alpine
     container_name: crm-docuseal-postgres
@@ -399,8 +419,6 @@ services:
       timeout: 10s
       retries: 5
       start_period: 120s
-    networks:
-      - crm-network
 
   # Superset Celery Worker (Background jobs)
   superset-worker:
@@ -465,6 +483,10 @@ services:
       - crm-db-network
 
   # PostgreSQL for Superset (metadata storage)
+  # TODO-DB-033: SHARED POSTGRES MIGRATION — replace this dedicated container by:
+  #   1. Running database/schema/init-shared-postgresql.sql on crm-postgresql
+  #   2. Changing DATABASE_HOST from "superset-postgres" to "crm-postgresql"
+  #   3. Removing this service definition
   superset-postgres:
     image: postgres:15-alpine
     container_name: crm-superset-postgres

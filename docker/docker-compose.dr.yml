@@ -1,0 +1,175 @@
+# CRM Solution — Disaster Recovery Deployment Stack
+# TODO-DB-022/023/024/025: DR site deployment with GTID replication
+#
+# Architecture:
+#   DR site runs on a secondary server/region.
+#   crm-mariadb-dr    — MariaDB DR replica (GTID-based replication from primary)
+#   crm-postgresql-dr — PostgreSQL DR replica (streaming replication)
+#   crm-redis-dr      — Redis DR instance (replica of primary Redis)
+#
+# Setup:
+#   1. Deploy this stack on the DR server
+#   2. Run: scripts/setup-dr-replication.sh
+#   3. Verify: scripts/monitor-replication-lag.sh (adjust REPLICA_PORT as needed)
+#
+# Failover:
+#   See docs/09-operations/DR_FAILOVER_RUNBOOK.md
+
+version: '3.8'
+
+volumes:
+  dr-mariadb-data:
+    driver: local
+  dr-postgresql-data:
+    driver: local
+  dr-redis-data:
+    driver: local
+
+networks:
+  crm-dr-network:
+    driver: bridge
+    name: crm-dr-network
+
+services:
+  # ============================================================
+  # TODO-DB-022 — MariaDB DR Replica (GTID-based)
+  # Replicates from the primary MariaDB at PRIMARY_HOST.
+  # server-id must be unique across ALL MariaDB instances.
+  # ============================================================
+  crm-mariadb-dr:
+    image: mariadb:11.2
+    container_name: crm-mariadb-dr
+    restart: unless-stopped
+    ports:
+      - "${DR_MARIADB_PORT:-3306}:3306"
+    environment:
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:-RootPass@Dev2024}
+    volumes:
+      - dr-mariadb-data:/var/lib/mysql
+    command: >
+      --server-id=100
+      --gtid-strict-mode=1
+      --log-bin=mysql-bin
+      --binlog-format=ROW
+      --relay-log=relay-bin
+      --log-slave-updates=1
+      --read-only=1
+      --super-read-only=1
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+      --max-connections=300
+      --innodb-buffer-pool-size=1G
+      --long-query-time=2
+      --slow-query-log=1
+    healthcheck:
+      test: ["CMD", "mariadb-admin", "ping", "-h", "localhost",
+             "-u", "root", "-p${MARIADB_ROOT_PASSWORD:-RootPass@Dev2024}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - crm-dr-network
+    labels:
+      - "com.crm.dr.role=mariadb-replica"
+      - "com.crm.dr.replication=gtid"
+
+  # ============================================================
+  # TODO-DB-023 — PostgreSQL DR Replica (streaming replication)
+  # Replicates from primary PostgreSQL at POSTGRES_PRIMARY_HOST.
+  # ============================================================
+  crm-postgresql-dr:
+    image: postgres:16
+    container_name: crm-postgresql-dr
+    restart: unless-stopped
+    ports:
+      - "${DR_POSTGRES_PORT:-5432}:5432"
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-crm_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-CrmPass@Dev2024!}
+      POSTGRES_DB: ${POSTGRES_DB:-crm_db}
+      # Standby mode — automatically connects to primary
+      POSTGRES_REPLICATION_USER: ${REPL_USER:-repl_user}
+      POSTGRES_REPLICATION_PASSWORD: ${REPL_PASSWORD:-ReplPass@Dev2024}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - dr-postgresql-data:/var/lib/postgresql/data
+    command: >
+      postgres
+      -c wal_level=replica
+      -c hot_standby=on
+      -c max_wal_senders=5
+      -c wal_keep_size=1GB
+      -c hot_standby_feedback=on
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-crm_user} -d ${POSTGRES_DB:-crm_db}"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - crm-dr-network
+    labels:
+      - "com.crm.dr.role=postgresql-standby"
+      - "com.crm.dr.replication=streaming"
+
+  # ============================================================
+  # TODO-DB-024 — Redis DR Replica
+  # ============================================================
+  crm-redis-dr:
+    image: redis:7-alpine
+    container_name: crm-redis-dr
+    restart: unless-stopped
+    ports:
+      - "${DR_REDIS_PORT:-6379}:6379"
+    command: >
+      redis-server
+      --requirepass ${REDIS_PASSWORD:-RedisPass@Dev2024}
+      --masterauth ${REDIS_PASSWORD:-RedisPass@Dev2024}
+      --replicaof ${REDIS_PRIMARY_HOST:-192.168.0.9} ${REDIS_PRIMARY_PORT:-6379}
+      --replica-read-only yes
+      --appendonly yes
+    volumes:
+      - dr-redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-RedisPass@Dev2024}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - crm-dr-network
+    labels:
+      - "com.crm.dr.role=redis-replica"
+
+  # ============================================================
+  # TODO-DB-025 — DR API instance (application tier — read-only mode)
+  # Starts the CRM API connected to DR databases in read-only mode.
+  # Use for warm standby verifications — not production traffic.
+  # ============================================================
+  crm-api-dr:
+    image: crm-api:latest
+    container_name: crm-api-dr
+    restart: unless-stopped
+    depends_on:
+      crm-mariadb-dr:
+        condition: service_healthy
+      crm-redis-dr:
+        condition: service_healthy
+    ports:
+      - "${DR_API_PORT:-5001}:5000"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      DatabaseProvider: mariadb
+      ConnectionStrings__DefaultConnection: >
+        Server=crm-mariadb-dr;Port=3306;Database=${MARIADB_DATABASE:-crm_db};
+        User=${MARIADB_USER:-crm_user};Password=${MARIADB_PASSWORD:-CrmPass@Dev2024};
+      Redis__ConnectionString: "crm-redis-dr:6379,password=${REDIS_PASSWORD:-RedisPass@Dev2024}"
+      DR_MODE: "true"
+      Jwt__Secret: ${JWT_SECRET:-must-be-at-least-32-characters-long!}
+      Jwt__Issuer: CRM.Api
+      Jwt__Audience: CRM.Client
+    networks:
+      - crm-dr-network
+    labels:
+      - "com.crm.dr.role=api-standby"

@@ -123,6 +123,32 @@ public class CrmDbContext : DbContext, ICrmDbContext
     public DbSet<CRM.Core.Entities.EntityTag> EntityTags { get; set; }
     public DbSet<CRM.Core.Entities.CustomField> CustomFields { get; set; }
 
+    // Custom actions (CUST-09)
+    public DbSet<CRM.Core.Entities.CustomAction> CustomActions { get; set; }
+
+    // Custom field schema & validation (CUST-01/02)
+    public DbSet<CRM.Core.Entities.CustomFieldDefinition> CustomFieldDefinitions { get; set; }
+    public DbSet<CRM.Core.Entities.CustomFieldValidationRule> CustomFieldValidationRules { get; set; }
+    public DbSet<CRM.Core.Entities.FormulaField> FormulaFields { get; set; }
+    public DbSet<CRM.Core.Entities.RollupField> RollupFields { get; set; }
+    public DbSet<CRM.Core.Entities.UserListViewPreference> UserListViewPreferences { get; set; }
+    public DbSet<CRM.Core.Entities.PageLayout> PageLayouts { get; set; }
+
+    // Community forum (PORTAL-09)
+    public DbSet<CRM.Core.Entities.ForumPost> ForumPosts { get; set; }
+
+    // Event sourcing (INFRA-04)
+    public DbSet<CRM.Core.Entities.DomainEvent> DomainEvents { get; set; }
+
+    // Saga persistence (INFRA-05)
+    public DbSet<CRM.Core.Entities.SagaInstance> SagaInstances { get; set; }
+
+    // Search analytics (INFRA-08)
+    public DbSet<CRM.Core.Entities.SearchLog> SearchLogs { get; set; }
+
+    // Dead-letter queue (INFRA-09)
+    public DbSet<CRM.Core.Entities.DeadLetterEntry> DeadLetterEntries { get; set; }
+
     // Service Request entities
     public DbSet<ServiceRequest> ServiceRequests { get; set; }
     public DbSet<ServiceRequestCategory> ServiceRequestCategories { get; set; }
@@ -507,6 +533,15 @@ public class CrmDbContext : DbContext, ICrmDbContext
 
     // Service Request Escalation Logs (TODO-SD005-011)
     public DbSet<EscalationLog> EscalationLogs { get; set; }
+
+    // Portal: Saved Search Presets (TODO-PORTAL-06)
+    public DbSet<SavedFilter> SavedFilters { get; set; }
+
+    // Portal: User Dashboard Layouts (TODO-PORTAL-05)
+    public DbSet<UserDashboardLayout> UserDashboardLayouts { get; set; }
+
+    // Portal: Notification Preferences (TODO-PORTAL-07)
+    public DbSet<NotificationPreference> NotificationPreferences { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -4676,6 +4711,127 @@ public class CrmDbContext : DbContext, ICrmDbContext
         {
             entity.HasIndex(e => e.CreatedAt)
                 .HasDatabaseName("IX_AuditLogs_CreatedAt");
+        });
+
+        // ── Custom Field Definitions (CUST-01/02) ──────────────────────────
+        modelBuilder.Entity<CRM.Core.Entities.CustomFieldDefinition>(entity =>
+        {
+            entity.HasIndex(e => new { e.EntityType, e.FieldKey }).IsUnique().HasDatabaseName("IX_CustomFieldDefinitions_EntityType_FieldKey");
+            entity.Property(e => e.FieldType).HasMaxLength(50);
+            entity.Property(e => e.EntityType).HasMaxLength(100);
+            entity.Property(e => e.FieldKey).HasMaxLength(100);
+            entity.Property(e => e.Label).HasMaxLength(200);
+            entity.Property(e => e.GroupName).HasMaxLength(100);
+            entity.Property(e => e.DefaultValue).HasColumnType("TEXT");
+            entity.Property(e => e.OptionsJson).HasColumnType("TEXT");
+        });
+
+        modelBuilder.Entity<CRM.Core.Entities.CustomFieldValidationRule>(entity =>
+        {
+            entity.Property(e => e.RuleType).HasMaxLength(50);
+            entity.Property(e => e.RuleValue).HasColumnType("TEXT");
+            entity.Property(e => e.ErrorMessage).HasMaxLength(500);
+            entity.HasOne(e => e.CustomFieldDefinition)
+                .WithMany(d => d.ValidationRules)
+                .HasForeignKey(e => e.CustomFieldDefinitionId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<CRM.Core.Entities.FormulaField>(entity =>
+        {
+            entity.Property(e => e.Formula).HasColumnType("TEXT");
+            entity.Property(e => e.ResultType).HasMaxLength(50);
+            entity.HasOne(e => e.CustomFieldDefinition)
+                .WithMany()
+                .HasForeignKey(e => e.CustomFieldDefinitionId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        modelBuilder.Entity<CRM.Core.Entities.RollupField>(entity =>
+        {
+            entity.Property(e => e.ParentEntityType).HasMaxLength(100);
+            entity.Property(e => e.ChildEntityType).HasMaxLength(100);
+            entity.Property(e => e.RelationshipField).HasMaxLength(100);
+            entity.Property(e => e.AggregateField).HasMaxLength(100);
+            entity.Property(e => e.AggregateFunction).HasMaxLength(50);
+            entity.Property(e => e.FilterCondition).HasColumnType("TEXT");
+        });
+
+        modelBuilder.Entity<CRM.Core.Entities.UserListViewPreference>(entity =>
+        {
+            entity.HasIndex(e => new { e.UserId, e.EntityType }).IsUnique().HasDatabaseName("IX_UserListViewPreferences_UserId_EntityType");
+            entity.Property(e => e.EntityType).HasMaxLength(100);
+            entity.Property(e => e.ColumnsJson).HasColumnType("TEXT");
+        });
+
+        modelBuilder.Entity<CRM.Core.Entities.PageLayout>(entity =>
+        {
+            entity.Property(e => e.EntityType).HasMaxLength(100);
+            entity.Property(e => e.Name).HasMaxLength(200);
+            entity.Property(e => e.LayoutJson).HasColumnType("TEXT");
+        });
+
+        // ── Forum Posts (PORTAL-09) ────────────────────────────────────────
+        modelBuilder.Entity<CRM.Core.Entities.ForumPost>(entity =>
+        {
+            entity.Property(e => e.Title).HasMaxLength(500);
+            entity.Property(e => e.Body).HasColumnType("TEXT");
+            entity.Property(e => e.BodyMarkdown).HasColumnType("TEXT");
+            entity.Property(e => e.Category).HasMaxLength(100);
+            entity.Property(e => e.Visibility).HasMaxLength(50);
+            entity.Property(e => e.TagsJson).HasColumnType("TEXT");
+            entity.HasIndex(e => e.Category).HasDatabaseName("IX_ForumPosts_Category");
+            entity.HasIndex(e => e.IsApproved).HasDatabaseName("IX_ForumPosts_IsApproved");
+        });
+
+        // ── Domain Events (INFRA-04) ───────────────────────────────────────
+        modelBuilder.Entity<CRM.Core.Entities.DomainEvent>(entity =>
+        {
+            entity.Property(e => e.EventId).IsRequired();
+            entity.Property(e => e.AggregateType).HasMaxLength(100);
+            entity.Property(e => e.AggregateId).HasMaxLength(200);
+            entity.Property(e => e.EventType).HasMaxLength(200);
+            entity.Property(e => e.Payload).HasColumnType("TEXT");
+            entity.Property(e => e.CorrelationId).HasMaxLength(200);
+            entity.HasIndex(e => new { e.AggregateType, e.AggregateId }).HasDatabaseName("IX_DomainEvents_Aggregate");
+            entity.HasIndex(e => e.OccurredAt).HasDatabaseName("IX_DomainEvents_OccurredAt");
+        });
+
+        // ── Saga Instances (INFRA-05) ─────────────────────────────────────
+        modelBuilder.Entity<CRM.Core.Entities.SagaInstance>(entity =>
+        {
+            entity.Property(e => e.SagaId).IsRequired();
+            entity.Property(e => e.SagaType).HasMaxLength(200);
+            entity.Property(e => e.CurrentStep).HasMaxLength(200);
+            entity.Property(e => e.Status).HasMaxLength(50);
+            entity.Property(e => e.StateJson).HasColumnType("TEXT");
+            entity.Property(e => e.ErrorMessage).HasColumnType("TEXT");
+            entity.Property(e => e.CorrelationId).HasMaxLength(200);
+            entity.HasIndex(e => e.SagaId).IsUnique().HasDatabaseName("IX_SagaInstances_SagaId");
+            entity.HasIndex(e => e.Status).HasDatabaseName("IX_SagaInstances_Status");
+        });
+
+        // ── Search Logs (INFRA-08) ────────────────────────────────────────
+        modelBuilder.Entity<CRM.Core.Entities.SearchLog>(entity =>
+        {
+            entity.Property(e => e.Query).HasMaxLength(500);
+            entity.Property(e => e.Provider).HasMaxLength(100);
+            entity.Property(e => e.EntityTypes).HasMaxLength(500);
+            entity.HasIndex(e => e.SearchedAt).HasDatabaseName("IX_SearchLogs_SearchedAt");
+        });
+
+        // ── Dead-Letter Entries (INFRA-09) ────────────────────────────────
+        modelBuilder.Entity<CRM.Core.Entities.DeadLetterEntry>(entity =>
+        {
+            entity.Property(e => e.MessageId).IsRequired();
+            entity.Property(e => e.Topic).HasMaxLength(500);
+            entity.Property(e => e.Payload).HasColumnType("TEXT");
+            entity.Property(e => e.ErrorMessage).HasColumnType("TEXT");
+            entity.Property(e => e.StackTrace).HasColumnType("TEXT");
+            entity.Property(e => e.Source).HasMaxLength(200);
+            entity.Property(e => e.ResolvedBy).HasMaxLength(200);
+            entity.HasIndex(e => e.IsResolved).HasDatabaseName("IX_DeadLetterEntries_IsResolved");
+            entity.HasIndex(e => e.Topic).HasDatabaseName("IX_DeadLetterEntries_Topic");
         });
 
         // Apply provider-specific post-configuration using the Strategy Pattern

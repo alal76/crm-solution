@@ -1,0 +1,161 @@
+# CRM Solution — Prometheus Database Exporters
+# TODO-DB-034: Prometheus exporters for MariaDB and PostgreSQL monitoring
+#
+# Exposes /metrics endpoints consumed by Prometheus (or docker-compose.grafana.yml).
+#
+# Services:
+#   crm-mysqld-exporter    — MariaDB/MySQL metrics on port 9104
+#   crm-postgres-exporter  — PostgreSQL metrics on port 9187
+#   crm-redis-exporter     — Redis metrics on port 9121
+#
+# Usage:
+#   docker-compose -f docker/docker-compose.databases.yml \
+#                  -f docker/docker-compose.monitoring.yml up -d
+#
+# Prometheus scrape config (prometheus.yml):
+#   - job_name: 'crm-mariadb'
+#     static_configs:
+#       - targets: ['crm-mysqld-exporter:9104']
+#   - job_name: 'crm-postgresql'
+#     static_configs:
+#       - targets: ['crm-postgres-exporter:9187']
+#   - job_name: 'crm-redis'
+#     static_configs:
+#       - targets: ['crm-redis-exporter:9121']
+
+version: '3.8'
+
+networks:
+  crm-database-network:
+    external: true
+    name: crm_crm-database-network
+  crm-monitoring-network:
+    driver: bridge
+    name: crm-monitoring-network
+
+services:
+  # ─────────────────────────────────────────────────────────────────────────
+  # TODO-DB-034a — MariaDB / MySQL Exporter
+  # Exposes InnoDB, query, replication, and connection metrics
+  # ─────────────────────────────────────────────────────────────────────────
+  crm-mysqld-exporter:
+    image: prom/mysqld-exporter:v0.15.1
+    container_name: crm-mysqld-exporter
+    restart: unless-stopped
+    ports:
+      - "${MYSQLD_EXPORTER_PORT:-9104}:9104"
+    environment:
+      # DSN format: user:password@(host:port)/
+      MYSQLD_EXPORTER_PASSWORD: ${MARIADB_ROOT_PASSWORD:-RootPass@Dev2024}
+    command:
+      - "--mysqld.username=root:${MARIADB_ROOT_PASSWORD:-RootPass@Dev2024}"
+      - "--mysqld.address=crm-mariadb:3306"
+      - "--collect.info_schema.innodb_metrics"
+      - "--collect.info_schema.processlist"
+      - "--collect.info_schema.query_response_time"
+      - "--collect.info_schema.tables"
+      - "--collect.info_schema.tablestats"
+      - "--collect.perf_schema.eventsstatements"
+      - "--collect.perf_schema.eventsstatementssum"
+      - "--collect.perf_schema.eventswaits"
+      - "--collect.perf_schema.file_events"
+      - "--collect.perf_schema.indexiowaits"
+      - "--collect.perf_schema.tableiowaits"
+      - "--collect.slave_status"
+      - "--collect.engine_innodb_status"
+      - "--web.listen-address=:9104"
+      - "--web.telemetry-path=/metrics"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:9104/metrics"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - crm-database-network
+      - crm-monitoring-network
+    labels:
+      - "prometheus.scrape=true"
+      - "prometheus.port=9104"
+      - "prometheus.path=/metrics"
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # TODO-DB-034b — PostgreSQL Exporter
+  # Exposes connection, lock, replication, bgwriter, and table metrics
+  # ─────────────────────────────────────────────────────────────────────────
+  crm-postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:v0.15.0
+    container_name: crm-postgres-exporter
+    restart: unless-stopped
+    ports:
+      - "${POSTGRES_EXPORTER_PORT:-9187}:9187"
+    environment:
+      DATA_SOURCE_NAME: "postgresql://${POSTGRES_USER:-crm_user}:${POSTGRES_PASSWORD:-CrmPass@Dev2024!}@crm-postgresql:5432/${POSTGRES_DB:-crm_db}?sslmode=disable"
+      PG_EXPORTER_EXTEND_QUERY_PATH: /etc/postgres_exporter/queries.yaml
+    volumes:
+      - ./monitoring/postgres-queries.yaml:/etc/postgres_exporter/queries.yaml:ro
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:9187/metrics"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - crm-database-network
+      - crm-monitoring-network
+    labels:
+      - "prometheus.scrape=true"
+      - "prometheus.port=9187"
+      - "prometheus.path=/metrics"
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # TODO-DB-034c — Redis Exporter
+  # Exposes memory, keyspace, replication, and command metrics
+  # ─────────────────────────────────────────────────────────────────────────
+  crm-redis-exporter:
+    image: oliver006/redis_exporter:v1.58.0-alpine
+    container_name: crm-redis-exporter
+    restart: unless-stopped
+    ports:
+      - "${REDIS_EXPORTER_PORT:-9121}:9121"
+    environment:
+      REDIS_ADDR: "redis://crm-redis:6379"
+      REDIS_PASSWORD: "${REDIS_PASSWORD:-RedisPass@Dev2024}"
+      REDIS_EXPORTER_LOG_FORMAT: "json"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:9121/metrics"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - crm-database-network
+      - crm-monitoring-network
+    labels:
+      - "prometheus.scrape=true"
+      - "prometheus.port=9121"
+      - "prometheus.path=/metrics"
+
+  # ─────────────────────────────────────────────────────────────────────────
+  # Prometheus (bundled — optional, skip if you have a central Prometheus)
+  # Remove this service if you already have Prometheus running
+  # ─────────────────────────────────────────────────────────────────────────
+  crm-prometheus:
+    image: prom/prometheus:v2.50.1
+    container_name: crm-prometheus
+    restart: unless-stopped
+    ports:
+      - "${PROMETHEUS_PORT:-9090}:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - crm-prometheus-data:/prometheus
+    command:
+      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "--storage.tsdb.path=/prometheus"
+      - "--storage.tsdb.retention.time=30d"
+      - "--web.enable-lifecycle"
+    networks:
+      - crm-monitoring-network
+    labels:
+      - "com.crm.component=monitoring"
+
+volumes:
+  crm-prometheus-data:
+    driver: local

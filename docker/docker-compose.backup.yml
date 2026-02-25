@@ -1,0 +1,157 @@
+# CRM Solution - Backup Infrastructure
+# TODO-DB-001: Backup agent container (mariadb:10.11 base)
+# TODO-DB-002: MinIO S3-compatible backup storage
+#
+# Usage:
+#   docker-compose -f docker-compose.databases.yml -f docker-compose.backup.yml up -d
+#
+# Services:
+#   crm-backup-agent  – Scheduled backup runner (cron + mysqldump/mariabackup + pg_dump)
+#   crm-minio         – S3-compatible object storage for backup retention
+#
+# Ports:
+#   MinIO API:     9000
+#   MinIO Console: 9001
+
+version: '3.8'
+
+volumes:
+  minio-data:
+    driver: local
+  backup-staging:
+    driver: local
+
+networks:
+  crm-backup-network:
+    driver: bridge
+    name: crm-backup-network
+  # Join existing DB network so the backup agent can reach databases
+  crm-database-network:
+    external: true
+
+services:
+  # ============================================================
+  # TODO-DB-002: MinIO — S3-compatible local backup object store
+  # Stores compressed, encrypted backup archives with lifecycle
+  # policies applied via scripts/configure-s3-lifecycle.sh
+  # ============================================================
+  crm-minio:
+    image: minio/minio:latest
+    container_name: crm-minio
+    restart: unless-stopped
+    ports:
+      - "9000:9000"   # S3 API endpoint
+      - "9001:9001"   # MinIO web console
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minio_admin}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-MinioPass@Dev2024}
+      MINIO_VOLUMES: /data
+    volumes:
+      - minio-data:/data
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+    networks:
+      - crm-backup-network
+    labels:
+      - "com.crm.service.type=backup-storage"
+      - "com.crm.service.port=9000"
+
+  # ============================================================
+  # MinIO bucket initialisation — runs once, creates required
+  # buckets and then exits (init container pattern)
+  # ============================================================
+  crm-minio-init:
+    image: minio/mc:latest
+    container_name: crm-minio-init
+    depends_on:
+      crm-minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+        mc alias set local http://crm-minio:9000 ${MINIO_ROOT_USER:-minio_admin} ${MINIO_ROOT_PASSWORD:-MinioPass@Dev2024};
+        mc mb --ignore-existing local/crm-backups-daily;
+        mc mb --ignore-existing local/crm-backups-weekly;
+        mc mb --ignore-existing local/crm-backups-monthly;
+        echo 'MinIO buckets initialised.';
+        exit 0;
+      "
+    networks:
+      - crm-backup-network
+    labels:
+      - "com.crm.service.type=backup-init"
+
+  # ============================================================
+  # TODO-DB-001: Backup Agent
+  # Uses mariadb:10.11 as base (bundles mysqldump + mariabackup).
+  # Runs both MariaDB and PostgreSQL backup scripts on a cron
+  # schedule and ships results to MinIO.
+  # ============================================================
+  crm-backup-agent:
+    image: mariadb:10.11
+    container_name: crm-backup-agent
+    restart: unless-stopped
+    depends_on:
+      crm-minio:
+        condition: service_healthy
+    environment:
+      # MariaDB connection
+      MARIADB_HOST: ${MARIADB_HOST:-crm-mariadb}
+      MARIADB_PORT: ${MARIADB_PORT:-3306}
+      MARIADB_USER: ${MARIADB_USER:-crm_user}
+      MARIADB_PASSWORD: ${MARIADB_PASSWORD:-CrmPass@Dev2024}
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:-RootPass@Dev2024}
+      MARIADB_DATABASE: ${MARIADB_DATABASE:-crm_db}
+      # PostgreSQL connection (optional)
+      POSTGRES_HOST: ${POSTGRES_HOST:-crm-postgresql}
+      POSTGRES_PORT: ${POSTGRES_PORT:-5432}
+      POSTGRES_USER: ${POSTGRES_USER:-crm_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-CrmPass@Dev2024!}
+      POSTGRES_DB: ${POSTGRES_DB:-crm_db}
+      # MinIO / S3 settings
+      MINIO_ENDPOINT: http://crm-minio:9000
+      MINIO_ACCESS_KEY: ${MINIO_ROOT_USER:-minio_admin}
+      MINIO_SECRET_KEY: ${MINIO_ROOT_PASSWORD:-MinioPass@Dev2024}
+      MINIO_BUCKET_DAILY: crm-backups-daily
+      MINIO_BUCKET_WEEKLY: crm-backups-weekly
+      MINIO_BUCKET_MONTHLY: crm-backups-monthly
+      # Backup encryption key (used by backup-encrypt.sh)
+      BACKUP_ENCRYPTION_KEY: ${BACKUP_ENCRYPTION_KEY:-change-me-in-production-32chars}
+      # Local staging area
+      BACKUP_STAGING_DIR: /backup-staging
+      # Retention: keep N most-recent local copies
+      LOCAL_BACKUP_RETENTION: ${LOCAL_BACKUP_RETENTION:-3}
+      # Cron schedule (default: daily at 02:00)
+      BACKUP_CRON_SCHEDULE: ${BACKUP_CRON_SCHEDULE:-0 2 * * *}
+    volumes:
+      - backup-staging:/backup-staging
+      # Mount backup scripts from host
+      - ../scripts/backup-mariadb.sh:/usr/local/bin/backup-mariadb.sh:ro
+      - ../scripts/backup-postgresql.sh:/usr/local/bin/backup-postgresql.sh:ro
+      - ../scripts/backup-encrypt.sh:/usr/local/bin/backup-encrypt.sh:ro
+      - ../scripts/verify-backup-integrity.sh:/usr/local/bin/verify-backup-integrity.sh:ro
+    # Install mc (MinIO client), pg_dump, openssl, then set up cron
+    command: >
+      bash -c "
+        apt-get update -qq &&
+        apt-get install -y --no-install-recommends wget postgresql-client openssl gnupg cron ca-certificates &&
+        wget -q https://dl.min.io/client/mc/release/linux-amd64/mc -O /usr/local/bin/mc &&
+        chmod +x /usr/local/bin/mc &&
+        chmod +x /usr/local/bin/backup-mariadb.sh /usr/local/bin/backup-postgresql.sh /usr/local/bin/backup-encrypt.sh /usr/local/bin/verify-backup-integrity.sh &&
+        echo \"$${BACKUP_CRON_SCHEDULE} /usr/local/bin/backup-mariadb.sh >> /var/log/backup-mariadb.log 2>&1\" > /etc/cron.d/crm-backup &&
+        echo \"$${BACKUP_CRON_SCHEDULE} /usr/local/bin/backup-postgresql.sh >> /var/log/backup-postgresql.log 2>&1\" >> /etc/cron.d/crm-backup &&
+        chmod 0644 /etc/cron.d/crm-backup &&
+        crontab /etc/cron.d/crm-backup &&
+        touch /var/log/backup-mariadb.log /var/log/backup-postgresql.log &&
+        echo 'Backup agent started. Cron schedule: '\"$${BACKUP_CRON_SCHEDULE}\" &&
+        cron -f
+      "
+    networks:
+      - crm-backup-network
+      - crm-database-network
+    labels:
+      - "com.crm.service.type=backup-agent"

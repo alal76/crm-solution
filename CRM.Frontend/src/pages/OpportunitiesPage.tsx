@@ -65,6 +65,7 @@ import {
   DialogHeader,
   RelatedEntitiesPanel,
   EnhancedEmptyState,
+  LoadingSkeleton,
 } from '../components/common';
 import { useApiState } from '../hooks/useApiState';
 import { usePagination } from '../hooks/usePagination';
@@ -536,8 +537,8 @@ function OpportunitiesPage() {
 
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', py: 10 }}>
-        <CircularProgress />
+      <Box sx={{ py: 4, px: 2 }}>
+        <LoadingSkeleton rows={8} columns={5} ariaLabel="Loading opportunities…" />
       </Box>
     );
   }

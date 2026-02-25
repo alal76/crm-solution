@@ -42,7 +42,7 @@ public class SLAEnforcementHostedService : BackgroundService
                 using (var scope = _serviceProvider.CreateScope())
                 {
                     var dbContext = scope.ServiceProvider.GetRequiredService<ICrmDbContext>();
-                    var escalationRuleService = scope.ServiceProvider.GetRequiredService<IEscalationRuleService>();
+                    var escalationRuleService = scope.ServiceProvider.GetRequiredService<IEscalationRulePolicyService>();
 
                     // Check for breached SLAs and trigger escalations
                     await CheckSLABreachesAsync(dbContext, escalationRuleService, stoppingToken);
@@ -73,7 +73,7 @@ public class SLAEnforcementHostedService : BackgroundService
     /// </summary>
     private async Task CheckSLABreachesAsync(
         ICrmDbContext dbContext,
-        IEscalationRuleService escalationRuleService,
+        IEscalationRulePolicyService escalationRuleService,
         CancellationToken cancellationToken)
     {
         try

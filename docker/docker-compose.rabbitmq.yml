@@ -1,0 +1,49 @@
+# CRM Solution — RabbitMQ Docker Compose
+# Provides RabbitMQ message broker with management UI for async messaging.
+#
+# Usage:
+#   docker compose -f docker/docker-compose.rabbitmq.yml up -d
+#
+# Management UI: http://localhost:15672  (user: crm / crm_password)
+# AMQP endpoint:  amqp://crm:crm_password@localhost:5672
+
+name: crm-rabbitmq
+
+services:
+  crm-rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: crm-rabbitmq
+    restart: unless-stopped
+    hostname: crm-rabbitmq
+    ports:
+      - "5672:5672"    # AMQP protocol
+      - "15672:15672"  # Management UI
+    environment:
+      RABBITMQ_DEFAULT_USER: crm
+      RABBITMQ_DEFAULT_PASS: crm_password
+      RABBITMQ_DEFAULT_VHOST: crm_vhost
+      RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS: "-rabbit log_levels [{connection,error},{default,warning}]"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+      - ./rabbitmq/rabbitmq.conf:/etc/rabbitmq/rabbitmq.conf:ro
+      - ./rabbitmq/definitions.json:/etc/rabbitmq/definitions.json:ro
+    networks:
+      - crm-components-network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 45s
+    labels:
+      - "com.crm.service=rabbitmq"
+      - "com.crm.stack=components"
+
+volumes:
+  rabbitmq_data:
+    name: crm_rabbitmq_data
+
+networks:
+  crm-components-network:
+    name: crm-components-network
+    external: true

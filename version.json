@@ -1,9 +1,9 @@
 {
   "major": 0,
-  "minor": 589,
+  "minor": 592,
   "patch": 0,
-  "lastUpdate": "2026-03-01",
-  "description": "Round 11 — 6 parallel subagents: 28 TODOs completed covering audit log export/perf, billing timezone DST-aware service, worker state validation, lead aging alerts, lead nurture campaigns, territory lead assignment, opportunity cloning, password form alignment, 15 any-type fixes, sidebar customisation, recent items, report sharing + SignalR dashboard + cohort analysis, campaign/lead-score widgets, role-based nav E2E tests, analytics E2E tests, ITSM user guide expansion, admin endpoints reference, TypeScript errors fixed.",
+  "lastUpdate": "2026-02-25",
+  "description": "Round 12 — 6 parallel subagents: 93 TODOs completed. Covers: IEscalationRuleService rename, KB Meilisearch index, Slack/Teams ITSM channels, membership audit logs, usage record batching, OpportunityTeamMember, provider-aware nav; web-to-lead forms, lead qualification BANT/MEDDIC, CPQ bundle wizard, report schema versioning; UX accessibility (ARIA, keyboard nav, high contrast, font size, split view, DnD nav, empty states, loading skeletons, admin E2E); all 35 DB infra scripts/configs (backup, Galera HA, ProxySQL, Redis Sentinel, analytics replica, DR, shared PG, Grafana/Prometheus); 6 AI services (churn, NBA, sentiment, meeting summary, deal risk, revenue forecast), 5 integration stubs (Twilio/QB/Mailchimp/LinkedIn/Calendly), 3 portal entity preferences; 9 custom field entities + wizard UI + portal pages (customer/partner/KB/forum/PWA/mobile); event bus, event sourcing, DLQ, saga pattern, search analytics, secrets manager guide. Backend 0 errors, Frontend tsc 0 errors.",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [
@@ -30,16 +30,23 @@
     "TODO-RPT-06: SignalR live dashboard — DashboardHub mapped at /hubs/dashboard, IDashboardHubService registered, useDashboardRealtime.ts hook, Live/Offline Chip in DashboardPage header",
     "TODO-RPT-07: Cohort analysis — POST /api/reports/cohort-analysis + /customer-segments, ReportCohortType/CohortMetricType/SegmentBy enums, 4 unit tests (CohortAnalysisTests.cs)",
     "TODO-GAP-MARKETING-001: CampaignMetricsWidget.tsx + LeadScoreDistributionWidget.tsx added to DashboardPage fallback grid",
-    "TODO-AI005-FE-005: Analytics frontend route audit — confirmed aligned, no changes needed"
+    "TODO-AI005-FE-005: Analytics frontend route audit — confirmed aligned, no changes needed",
+    "TODO-SD005-003: IEscalationRuleService renamed — IEscalationRulePolicyService (SLA enforcement), new canonical IEscalationRuleService (admin CRUD 7 methods), IEscalationRuleAdminService kept as [Obsolete] shim; EscalationRuleAdminService implements both; 5 unit tests (EscalationRuleInterfaceRenameTests.cs)",
+    "TODO-SD002-012: KnowledgeBaseSearchIndexService registered as Scoped; ConfigureIndexAsync called at startup (feature-gated + try/catch); crm_knowledge_articles schema: 6 searchable, 9 filterable, 6 sortable attrs + custom ranking rules; 5 unit tests (KnowledgeBaseSearchIndexServiceTests.cs)",
+    "TODO-SD005-010: SlackItsmNotificationService (Incoming Webhook, Block Kit) + TeamsItsmNotificationService (Adaptive Cards); ItsmNotificationDispatcher fans out to IEnumerable<IItsmNotificationChannel> via Task.WhenAll with per-channel error isolation; 7 unit tests (ItsmNotificationTests.cs)",
+    "TODO-SYS003-003: UserGroup membership audit logs confirmed — AddUserToGroupAsync/RemoveUserFromGroupAsync call IAuditLogService.LogActionAsync with action=UserAddedToGroup/UserRemovedFromGroup; null audit service handled gracefully; 5 unit tests (UserGroupMembershipAuditTests.cs)",
+    "TODO-SALES006-024: UsageRecordBatchBuffer (ConcurrentQueue<T>, Singleton) + UsageRecordBatchHostedService (BackgroundService, 30s flush interval, BatchSize=100); re-queues on ISubscriptionService failure to prevent data loss; 6 unit tests (UsageRecordBatchTests.cs)",
+    "TODO-CRM003-08: OpportunityTeamMember entity confirmed (OpportunityTeamRole enum: AccountExecutive=0..Other=99, SplitPercentage [Range(0,100)], default Role=Other); CreateTeamMemberDto + OpportunityTeamMemberDto verified; 5 unit tests (OpportunityTeamMemberTests.cs)",
+    "TODO-SYS009-003: NavigationConfigService conditionally adds ITSM/Marketing nav items via IFeatureManager.IsEnabledAsync(FeatureFlags.EnableITSM/EnableMarketing); core items (dashboard/accounts/contacts) always included; 5 unit tests (NavigationConfigServiceTests.cs)"
   ],
   "git": {
     "branch": "main",
-    "commit": "feat-rpt-03-06-07-gap-marketing-001-v0.588.0"
+    "commit": "feat-todo-round-8-todos-v0.591.0"
   },
   "environment": "production",
   "architecture": "monolith",
   "buildServer": "azure-devops",
-  "buildTime": "2026-02-27T00:00:00",
+  "buildTime": "2026-03-02T00:00:00",
   "testingImprovements": {
     "frameworkVersion": "0.561.1",
     "xunitVersion": "2.6.2+",

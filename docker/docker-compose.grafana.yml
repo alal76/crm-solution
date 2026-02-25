@@ -1,0 +1,60 @@
+# CRM Solution — Grafana & DB Health Dashboards
+# TODO-DB-035: Grafana for database health visualization
+#
+# Provisions two dashboards automatically at startup:
+#   1. db-health.json    — MariaDB / MySQL health panel
+#   2. pg-health.json    — PostgreSQL health panel
+#   3. redis-health.json — Redis health panel
+#
+# Usage:
+#   docker-compose -f docker/docker-compose.databases.yml \
+#                  -f docker/docker-compose.monitoring.yml \
+#                  -f docker/docker-compose.grafana.yml up -d
+#
+# Access Grafana: http://localhost:3030 (admin / GrafanaAdmin@Dev2024)
+
+version: '3.8'
+
+volumes:
+  crm-grafana-data:
+    driver: local
+
+networks:
+  crm-monitoring-network:
+    external: true
+    name: crm-monitoring-network
+
+services:
+  crm-grafana:
+    image: grafana/grafana-oss:10.3.3
+    container_name: crm-grafana
+    restart: unless-stopped
+    ports:
+      - "${GRAFANA_PORT:-3030}:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: ${GRAFANA_ADMIN_USER:-admin}
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-GrafanaAdmin@Dev2024}
+      GF_USERS_ALLOW_SIGN_UP: "false"
+      GF_INSTALL_PLUGINS: "grafana-clock-panel,grafana-piechart-panel"
+      # Provisioning paths
+      GF_PATHS_PROVISIONING: /etc/grafana/provisioning
+      # Feature toggles
+      GF_FEATURE_TOGGLES_ENABLE: "publicDashboards"
+    volumes:
+      - crm-grafana-data:/var/lib/grafana
+      # Datasource auto-provisioning
+      - ./grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
+      # Dashboard auto-provisioning config
+      - ./grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
+      # Dashboard JSON files
+      - ./grafana/dashboards:/var/lib/grafana/dashboards:ro
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    networks:
+      - crm-monitoring-network
+    labels:
+      - "com.crm.component=grafana"

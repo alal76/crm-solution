@@ -18,6 +18,7 @@ import {
   AddressListComponent,
   AddressFormComponent,
   AddressModalComponent,
+  LoadingSkeleton,
 } from '../components/common';
 import {
   LIFECYCLE_STAGE_OPTIONS,
@@ -985,8 +986,8 @@ function AccountsPage() {
 
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', py: 10 }}>
-        <CircularProgress />
+      <Box sx={{ py: 4, px: 2 }}>
+        <LoadingSkeleton rows={8} columns={5} ariaLabel="Loading accounts…" />
       </Box>
     );
   }

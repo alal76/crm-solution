@@ -1,0 +1,54 @@
+# CRM Solution — ProxySQL with Read/Write Splitting
+# TODO-DB-012: ProxySQL service definition
+# TODO-DB-013: R/W split config — hostgroup 10 (write), 20 (read)
+#
+# Architecture:
+#   - Port 6033: MySQL protocol (application connections)
+#   - Port 6032: ProxySQL admin interface
+#   - Hostgroup 10: Write → node1 (crm-mariadb-node1)
+#   - Hostgroup 20: Read  → node2 + node3 (load-balanced)
+#
+# Usage:
+#   docker-compose -f docker-compose.galera.yml -f docker-compose.proxysql.yml up -d
+#   Then run: scripts/configure-proxysql.sh
+
+version: '3.8'
+
+networks:
+  crm-galera-network:
+    external: true
+  crm-database-network:
+    external: true
+
+services:
+  # ============================================================
+  # TODO-DB-012 — ProxySQL load balancer + R/W splitter
+  # ============================================================
+  crm-proxysql:
+    image: proxysql/proxysql:latest
+    container_name: crm-proxysql
+    restart: unless-stopped
+    depends_on:
+      - crm-mariadb-node1
+      - crm-mariadb-node2
+      - crm-mariadb-node3
+    ports:
+      - "6033:6033"    # MySQL protocol — point applications here
+      - "6032:6032"    # ProxySQL admin (use proxysql-admin client)
+    volumes:
+      - ./proxysql.cnf:/etc/proxysql.cnf:ro
+    networks:
+      - crm-galera-network
+      - crm-database-network
+    healthcheck:
+      test: ["CMD", "mysql", "-h", "127.0.0.1", "-P", "6032",
+             "-u", "admin", "-padmin",
+             "-e", "SELECT 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    labels:
+      - "com.crm.service.type=proxy"
+      - "com.crm.service.port=6033"
+      - "com.crm.service.admin.port=6032"

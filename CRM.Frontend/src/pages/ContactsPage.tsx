@@ -75,6 +75,7 @@ import {
   DialogHeader,
   RelatedEntitiesPanel,
   EnhancedEmptyState,
+  LoadingSkeleton,
 } from '../components/common';
 import { useApiState } from '../hooks/useApiState';
 import { usePagination } from '../hooks/usePagination';
@@ -720,8 +721,8 @@ function ContactsPage() {
         </Collapse>
 
         {loading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-            <CircularProgress />
+          <Box sx={{ py: 2 }}>
+            <LoadingSkeleton rows={8} columns={5} ariaLabel="Loading contacts…" />
           </Box>
         ) : (
           <Card>

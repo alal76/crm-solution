@@ -311,4 +311,19 @@ public interface IReportService
     Task<IEnumerable<CustomerSegmentDto>> GetCustomerSegmentsAsync(SegmentationCriteria criteria, CancellationToken cancellationToken = default);
 
     #endregion
+
+    #region Schema Migration (TODO-AI005-FE-002)
+
+    /// <summary>
+    /// Migrates a report query payload from an older schema version to the current
+    /// version (<see cref="CRM.Core.Enums.ReportQuerySchemaVersion.V2"/>).
+    /// V1 → V2: converts flat <c>Filters</c> dictionary into typed
+    /// <c>FilterGroups</c> descriptors; preserves date range fields.
+    /// </summary>
+    /// <param name="query">The report query to migrate (mutated in-place).</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The migrated query with <c>SchemaVersion</c> set to V2.</returns>
+    Task<ReportQueryDto> MigrateReportQueryAsync(ReportQueryDto query, CancellationToken cancellationToken = default);
+
+    #endregion
 }

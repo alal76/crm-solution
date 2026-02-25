@@ -13,9 +13,13 @@ using Microsoft.Extensions.Logging;
 namespace CRM.Infrastructure.Services.ITSM;
 
 /// <summary>
-/// Admin service for managing escalation rules
+/// Admin service for managing escalation rules.
+/// Implements IEscalationRuleService (primary) and IEscalationRuleAdminService (backward compat).
+/// TODO-SD005-003: Renamed from IEscalationRuleAdminService to IEscalationRuleService.
 /// </summary>
-public class EscalationRuleAdminService : IEscalationRuleAdminService
+#pragma warning disable CS0618 // IEscalationRuleAdminService is intentionally obsolete
+public class EscalationRuleAdminService : IEscalationRuleService, IEscalationRuleAdminService
+#pragma warning restore CS0618
 {
     private readonly IRepository<CRM.Core.Entities.ITSM.EscalationRule> _ruleRepository;
     private readonly IRepository<ServiceRequest> _srRepository;

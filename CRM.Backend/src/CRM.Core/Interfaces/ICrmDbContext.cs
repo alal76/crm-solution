@@ -102,6 +102,32 @@ public interface ICrmDbContext
     DbSet<CRM.Core.Entities.CustomField> CustomFields { get; }
     DbSet<ModuleUIConfig> ModuleUIConfigs { get; }
 
+    // Custom actions (CUST-09)
+    DbSet<CRM.Core.Entities.CustomAction> CustomActions { get; }
+
+    // Custom field schema & validation (CUST-01/02)
+    DbSet<CRM.Core.Entities.CustomFieldDefinition> CustomFieldDefinitions { get; }
+    DbSet<CRM.Core.Entities.CustomFieldValidationRule> CustomFieldValidationRules { get; }
+    DbSet<CRM.Core.Entities.FormulaField> FormulaFields { get; }
+    DbSet<CRM.Core.Entities.RollupField> RollupFields { get; }
+    DbSet<CRM.Core.Entities.UserListViewPreference> UserListViewPreferences { get; }
+    DbSet<CRM.Core.Entities.PageLayout> PageLayouts { get; }
+
+    // Community forum (PORTAL-09)
+    DbSet<CRM.Core.Entities.ForumPost> ForumPosts { get; }
+
+    // Event sourcing (INFRA-04)
+    DbSet<CRM.Core.Entities.DomainEvent> DomainEvents { get; }
+
+    // Saga persistence (INFRA-05)
+    DbSet<CRM.Core.Entities.SagaInstance> SagaInstances { get; }
+
+    // Search analytics (INFRA-08)
+    DbSet<CRM.Core.Entities.SearchLog> SearchLogs { get; }
+
+    // Dead-letter queue (INFRA-09)
+    DbSet<CRM.Core.Entities.DeadLetterEntry> DeadLetterEntries { get; }
+
     // Contact-level social media links
     DbSet<SocialMediaLink> SocialMediaLinks { get; }
 
@@ -351,6 +377,19 @@ public interface ICrmDbContext
 
     // Service Request Escalation Logs (TODO-SD005-011)
     DbSet<EscalationLog> EscalationLogs { get; }
+
+    // Portal: Saved Search Presets (TODO-PORTAL-06)
+    DbSet<SavedFilter> SavedFilters { get; }
+
+    // Portal: User Dashboard Layouts (TODO-PORTAL-05)
+    DbSet<UserDashboardLayout> UserDashboardLayouts { get; }
+
+    // Portal: Notification Preferences (TODO-PORTAL-07)
+    DbSet<NotificationPreference> NotificationPreferences { get; }
+
+    // KnowledgeBase entities (separate from ITSM variants)
+    DbSet<CRM.Core.Entities.KnowledgeBase.KnowledgeArticle> KnowledgeArticles { get; }
+    DbSet<CRM.Core.Entities.KnowledgeBase.ArticleFeedback> ArticleFeedbacks { get; }
 
     DatabaseFacade Database { get; }
 

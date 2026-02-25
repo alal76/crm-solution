@@ -1,0 +1,219 @@
+# CRM Solution — Redis Sentinel High Availability
+# TODO-DB-014: 1 Redis master + 2 replicas + 3 Sentinel instances
+#
+# Architecture:
+#   crm-redis-master     — primary Redis node (port 6379)
+#   crm-redis-replica-1  — synchronous replica (port 6380)
+#   crm-redis-replica-2  — synchronous replica (port 6381)
+#   crm-redis-sentinel-1 — Sentinel (port 26379)  |
+#   crm-redis-sentinel-2 — Sentinel (port 26380)  | quorum = 2
+#   crm-redis-sentinel-3 — Sentinel (port 26381)  |
+#
+# Automatic failover: If master fails and ≥2 sentinels agree → promotes replica.
+#
+# Application connection (StackExchange.Redis Sentinel):
+#   ConnectionMultiplexer.Connect("crm-redis-sentinel-1:26379,
+#                                  crm-redis-sentinel-2:26380,
+#                                  crm-redis-sentinel-3:26381,
+#                                  serviceName=crm-redis")
+#
+# Usage: docker-compose -f docker-compose.redis-sentinel.yml up -d
+# Config: docker/redis-sentinel.conf
+
+version: '3.8'
+
+volumes:
+  redis-master-data:
+    driver: local
+  redis-replica-1-data:
+    driver: local
+  redis-replica-2-data:
+    driver: local
+
+networks:
+  crm-redis-network:
+    driver: bridge
+    name: crm-redis-sentinel-network
+
+services:
+  # ============================================================
+  # Redis Master
+  # ============================================================
+  crm-redis-master:
+    image: redis:7-alpine
+    container_name: crm-redis-master
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    command: >
+      redis-server
+      --requirepass ${REDIS_PASSWORD:-RedisPass@Dev2024}
+      --appendonly yes
+      --appendfsync everysec
+      --save "900 1"
+      --save "300 10"
+      --save "60 10000"
+      --loglevel notice
+    volumes:
+      - redis-master-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-RedisPass@Dev2024}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    networks:
+      - crm-redis-network
+    labels:
+      - "com.crm.redis.role=master"
+
+  # ============================================================
+  # Redis Replica 1
+  # ============================================================
+  crm-redis-replica-1:
+    image: redis:7-alpine
+    container_name: crm-redis-replica-1
+    restart: unless-stopped
+    depends_on:
+      crm-redis-master:
+        condition: service_healthy
+    ports:
+      - "6380:6379"
+    command: >
+      redis-server
+      --requirepass ${REDIS_PASSWORD:-RedisPass@Dev2024}
+      --masterauth ${REDIS_PASSWORD:-RedisPass@Dev2024}
+      --replicaof crm-redis-master 6379
+      --appendonly yes
+      --appendfsync everysec
+      --replica-read-only yes
+      --loglevel notice
+    volumes:
+      - redis-replica-1-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-RedisPass@Dev2024}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    networks:
+      - crm-redis-network
+    labels:
+      - "com.crm.redis.role=replica"
+      - "com.crm.redis.replica.id=1"
+
+  # ============================================================
+  # Redis Replica 2
+  # ============================================================
+  crm-redis-replica-2:
+    image: redis:7-alpine
+    container_name: crm-redis-replica-2
+    restart: unless-stopped
+    depends_on:
+      crm-redis-master:
+        condition: service_healthy
+    ports:
+      - "6381:6379"
+    command: >
+      redis-server
+      --requirepass ${REDIS_PASSWORD:-RedisPass@Dev2024}
+      --masterauth ${REDIS_PASSWORD:-RedisPass@Dev2024}
+      --replicaof crm-redis-master 6379
+      --appendonly yes
+      --appendfsync everysec
+      --replica-read-only yes
+      --loglevel notice
+    volumes:
+      - redis-replica-2-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-RedisPass@Dev2024}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    networks:
+      - crm-redis-network
+    labels:
+      - "com.crm.redis.role=replica"
+      - "com.crm.redis.replica.id=2"
+
+  # ============================================================
+  # Redis Sentinel 1
+  # ============================================================
+  crm-redis-sentinel-1:
+    image: redis:7-alpine
+    container_name: crm-redis-sentinel-1
+    restart: unless-stopped
+    depends_on:
+      crm-redis-master:
+        condition: service_healthy
+    ports:
+      - "26379:26379"
+    volumes:
+      - ./redis-sentinel.conf:/etc/redis/sentinel.conf:ro
+    command: redis-sentinel /etc/redis/sentinel.conf
+    healthcheck:
+      test: ["CMD", "redis-cli", "-p", "26379", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    networks:
+      - crm-redis-network
+    labels:
+      - "com.crm.redis.role=sentinel"
+      - "com.crm.redis.sentinel.id=1"
+
+  # ============================================================
+  # Redis Sentinel 2
+  # ============================================================
+  crm-redis-sentinel-2:
+    image: redis:7-alpine
+    container_name: crm-redis-sentinel-2
+    restart: unless-stopped
+    depends_on:
+      crm-redis-master:
+        condition: service_healthy
+    ports:
+      - "26380:26379"
+    volumes:
+      - ./redis-sentinel.conf:/etc/redis/sentinel.conf:ro
+    command: redis-sentinel /etc/redis/sentinel.conf
+    healthcheck:
+      test: ["CMD", "redis-cli", "-p", "26379", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    networks:
+      - crm-redis-network
+    labels:
+      - "com.crm.redis.role=sentinel"
+      - "com.crm.redis.sentinel.id=2"
+
+  # ============================================================
+  # Redis Sentinel 3
+  # ============================================================
+  crm-redis-sentinel-3:
+    image: redis:7-alpine
+    container_name: crm-redis-sentinel-3
+    restart: unless-stopped
+    depends_on:
+      crm-redis-master:
+        condition: service_healthy
+    ports:
+      - "26381:26379"
+    volumes:
+      - ./redis-sentinel.conf:/etc/redis/sentinel.conf:ro
+    command: redis-sentinel /etc/redis/sentinel.conf
+    healthcheck:
+      test: ["CMD", "redis-cli", "-p", "26379", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+    networks:
+      - crm-redis-network
+    labels:
+      - "com.crm.redis.role=sentinel"
+      - "com.crm.redis.sentinel.id=3"

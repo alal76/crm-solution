@@ -121,21 +121,33 @@ const LeadScoreDistributionWidget: React.FC = () => {
         )}
 
         {!loading && !error && (
-          <ResponsiveContainer width="100%" height={180}>
-            <BarChart data={bands} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} />
-              <XAxis dataKey="label" tick={{ fontSize: 12 }} />
-              <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />
-              <Tooltip
-                formatter={(value: number) => [`${value} leads`, 'Count']}
-              />
-              <Bar dataKey="count" radius={[4, 4, 0, 0]}>
-                {bands.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
+          // role="img" on the wrapper + aria-label gives screen readers a summary
+          // of the chart without forcing them to navigate the SVG internals.
+          <Box
+            role="img"
+            aria-label={`Bar chart: Lead score distribution across ${bands.length} score bands — ${bands.map((b) => `${b.label}: ${b.count} leads`).join(', ')}`}
+          >
+            <ResponsiveContainer width="100%" height={180}>
+              <BarChart data={bands} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
+                {/* SVG accessible title + description read by assistive technology */}
+                <title>Lead Score Distribution</title>
+                <desc>
+                  {`Bar chart showing lead score distribution. ${bands.map((b) => `${b.label}: ${b.count} leads`).join('. ')}.`}
+                </desc>
+                <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                <XAxis dataKey="label" tick={{ fontSize: 12 }} />
+                <YAxis allowDecimals={false} tick={{ fontSize: 12 }} />
+                <Tooltip
+                  formatter={(value: number) => [`${value} leads`, 'Count']}
+                />
+                <Bar dataKey="count" radius={[4, 4, 0, 0]}>
+                  {bands.map((entry, index) => (
+                    <Cell key={`cell-${index}`} fill={entry.color} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </Box>
         )}
 
         {/* Legend */}

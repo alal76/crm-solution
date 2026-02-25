@@ -1,0 +1,38 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    environment: 'crm-dev'
+
+scrape_configs:
+  # MariaDB metrics (mysqld_exporter)
+  - job_name: 'crm-mariadb'
+    static_configs:
+      - targets: ['crm-mysqld-exporter:9104']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'crm-mariadb'
+
+  # PostgreSQL metrics
+  - job_name: 'crm-postgresql'
+    static_configs:
+      - targets: ['crm-postgres-exporter:9187']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'crm-postgresql'
+
+  # Redis metrics
+  - job_name: 'crm-redis'
+    static_configs:
+      - targets: ['crm-redis-exporter:9121']
+    relabel_configs:
+      - source_labels: [__address__]
+        target_label: instance
+        replacement: 'crm-redis'
+
+  # Prometheus self-monitoring
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']

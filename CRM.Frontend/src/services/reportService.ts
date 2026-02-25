@@ -1,5 +1,8 @@
 import apiClient from './apiClient';
 
+/** Current report query schema version – V2 uses structured FilterGroups (TODO-AI005-FE-002). */
+export const REPORT_SCHEMA_VERSION = 2;
+
 export interface ReportDefinitionDto {
   id: number;
   name: string;
@@ -37,6 +40,8 @@ export interface ReportParametersDto {
   startDate?: string;
   endDate?: string;
   filters?: Record<string, object>;
+  /** Schema version for structured query migration (TODO-AI005-FE-002). */
+  schemaVersion?: number;
 }
 
 export const reportService = {
@@ -46,7 +51,10 @@ export const reportService = {
   updateReport: (id: number, dto: UpdateReportDefinitionDto) => apiClient.put<ReportDefinitionDto>(`/reports/${id}`, dto),
   deleteReport: (id: number) => apiClient.delete(`/reports/${id}`),
   executeReport: (id: number, parameters?: ReportParametersDto) =>
-    apiClient.post<ReportExecutionResultDto>(`/reports/${id}/execute`, parameters ?? {}),
+    apiClient.post<ReportExecutionResultDto>(`/reports/${id}/execute`, {
+      schemaVersion: REPORT_SCHEMA_VERSION,
+      ...parameters,
+    }),
   previewReport: (id: number, limit = 10) =>
     apiClient.get<ReportExecutionResultDto>(`/reports/${id}/preview?limit=${limit}`),
   exportReport: (id: number, format: string, parameters?: ReportParametersDto) =>

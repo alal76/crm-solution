@@ -1,0 +1,175 @@
+/* CRM Solution — Responsive / Mobile Styles */
+
+/* ============================================================
+   Breakpoints:
+     Mobile  : max-width 767px
+     Tablet  : 768px – 1023px
+     Desktop : 1024px+
+   ============================================================ */
+
+/* --- Base adjustments shared across breakpoints ------------ */
+
+html, body {
+  -webkit-text-size-adjust: 100%;
+}
+
+/* --- Mobile (≤ 767px) -------------------------------------- */
+@media (max-width: 767px) {
+  /* Layout */
+  .crm-sidebar {
+    display: none;
+  }
+
+  .crm-main-content {
+    margin-left: 0 !important;
+    padding: 8px !important;
+  }
+
+  .crm-page-header {
+    flex-direction: column;
+    align-items: flex-start !important;
+    gap: 8px;
+  }
+
+  /* Tables: convert to card layout on mobile */
+  .crm-data-table table,
+  .crm-data-table tbody,
+  .crm-data-table tr,
+  .crm-data-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .crm-data-table thead {
+    display: none;
+  }
+
+  .crm-data-table td {
+    padding: 6px 8px;
+    border: none;
+    border-bottom: 1px solid #e0e0e0;
+    text-align: left;
+  }
+
+  .crm-data-table td::before {
+    content: attr(data-label) ": ";
+    font-weight: 600;
+    color: #555;
+  }
+
+  /* Cards: full width */
+  .crm-card-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Dialogs: full screen on mobile */
+  .MuiDialog-paper {
+    margin: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    height: 100% !important;
+    max-height: 100% !important;
+    border-radius: 0 !important;
+  }
+
+  /* Buttons: full width in forms */
+  .crm-form-actions {
+    flex-direction: column;
+  }
+
+  .crm-form-actions .MuiButton-root {
+    width: 100%;
+  }
+
+  /* Typography: reduce heading sizes */
+  .MuiTypography-h4 {
+    font-size: 1.25rem !important;
+  }
+
+  .MuiTypography-h5 {
+    font-size: 1.1rem !important;
+  }
+
+  /* Fab: adjust position */
+  .crm-mobile-fab {
+    bottom: 72px !important;
+    right: 16px !important;
+  }
+
+  /* Bottom navigation */
+  .crm-bottom-nav {
+    display: flex !important;
+  }
+}
+
+/* --- Tablet (768px – 1023px) -------------------------------- */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .crm-sidebar {
+    width: 60px !important;
+    overflow: hidden;
+  }
+
+  .crm-sidebar .crm-nav-label {
+    display: none;
+  }
+
+  .crm-main-content {
+    margin-left: 60px !important;
+    padding: 16px !important;
+  }
+
+  /* Cards: 2-column grid on tablet */
+  .crm-card-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* Data table: allow horizontal scroll */
+  .crm-data-table {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* --- Desktop (≥ 1024px) ------------------------------------- */
+@media (min-width: 1024px) {
+  .crm-bottom-nav {
+    display: none !important;
+  }
+
+  .crm-sidebar {
+    width: 240px;
+  }
+
+  .crm-main-content {
+    margin-left: 240px;
+  }
+}
+
+/* --- Touch & pointer improvements --------------------------- */
+@media (hover: none) and (pointer: coarse) {
+  /* Increase tap targets on touch devices */
+  .MuiIconButton-root {
+    padding: 10px !important;
+  }
+
+  .MuiTableRow-root td {
+    padding-top: 12px !important;
+    padding-bottom: 12px !important;
+  }
+}
+
+/* --- Print -------------------------------------------------- */
+@media print {
+  .crm-sidebar,
+  .crm-bottom-nav,
+  .crm-toolbar,
+  .crm-fab-button,
+  .no-print {
+    display: none !important;
+  }
+
+  .crm-main-content {
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+}

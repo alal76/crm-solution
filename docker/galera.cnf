@@ -1,0 +1,72 @@
+# =============================================================================
+# CRM Solution — Galera Cluster Custom MariaDB Configuration
+# TODO-DB-009/010/011: wsrep settings for all 3 Galera nodes
+#
+# Mount path: /opt/bitnami/mariadb/conf/my_custom.cnf (in bitnami image)
+# =============================================================================
+
+[mysqld]
+# ── Galera / WSREP provider ────────────────────────────────────────────────
+wsrep_on                     = ON
+wsrep_provider               = /opt/bitnami/mariadb/lib/galera/libgalera_smm.so
+
+# Cluster member addresses (all 3 nodes) — separated by commas, no spaces
+wsrep_cluster_address        = gcomm://crm-mariadb-node1,crm-mariadb-node2,crm-mariadb-node3
+wsrep_cluster_name           = crm_galera_cluster
+
+# Node identity — these are overridden per-node via environment variables
+# wsrep_node_address          = 192.168.0.9    # Set per node
+# wsrep_node_name             = node1           # Set per node
+
+# ── State Snapshot Transfer (SST) ──────────────────────────────────────────
+# mariabackup is preferred (non-blocking hotcopy)
+wsrep_sst_method             = mariabackup
+wsrep_sst_auth               = sst_user:SstPass@Dev2024
+
+# ── Consistency & synchronisation ─────────────────────────────────────────
+# wsrep_sync_wait = 1  ensures reads see all writes committed before them
+wsrep_sync_wait              = 1
+wsrep_retry_autocommit       = 3
+
+# ── Certification / replication ───────────────────────────────────────────
+wsrep_slave_threads          = 4
+wsrep_certify_nonPK          = 1
+wsrep_max_ws_rows            = 131072
+wsrep_max_ws_size            = 1073741824    # 1 GB
+
+# ── Binary logging (required for Galera) ──────────────────────────────────
+binlog_format                = ROW
+log_bin                      = /var/log/mysql/mysql-bin
+expire_logs_days             = 7
+
+# ── InnoDB (Galera-optimised settings) ────────────────────────────────────
+default_storage_engine       = InnoDB
+innodb_autoinc_lock_mode     = 2     # Required for Galera parallel inserts
+innodb_flush_log_at_trx_commit = 0  # Relaxed — Galera handles durability
+innodb_buffer_pool_size      = 512M
+innodb_log_file_size         = 128M
+innodb_log_buffer_size       = 64M
+innodb_doublewrite           = 1
+innodb_locks_unsafe_for_binlog = 1   # Needed for Galera
+
+# ── Deadlock / flow-control ───────────────────────────────────────────────
+# Flow control prevents slow nodes from falling behind
+wsrep_provider_options       = "gcs.fc_limit=16; gcs.fc_factor=1.0; gcs.fc_master_slave=no"
+
+# ── Networking ────────────────────────────────────────────────────────────
+bind-address                 = 0.0.0.0
+max_connections              = 500
+connect_timeout              = 10
+wait_timeout                 = 28800
+interactive_timeout          = 28800
+
+# ── Character set ─────────────────────────────────────────────────────────
+character-set-server         = utf8mb4
+collation-server             = utf8mb4_unicode_ci
+init-connect                 = 'SET NAMES utf8mb4'
+
+[client]
+default-character-set        = utf8mb4
+
+[mysql]
+default-character-set        = utf8mb4

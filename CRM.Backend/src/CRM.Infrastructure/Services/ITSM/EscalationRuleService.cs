@@ -16,9 +16,11 @@ using EscalationRule = CRM.Core.Entities.ITSM.EscalationRule;
 namespace CRM.Infrastructure.Services.ITSM;
 
 /// <summary>
-/// Service for managing escalation rules within SLA policies.
+/// Service for managing escalation rules within SLA policies (SLA query/evaluation focused).
+/// Implements IEscalationRulePolicyService (renamed from IEscalationRuleService to avoid
+/// conflict with the admin CRUD interface IEscalationRuleService).
 /// </summary>
-public class EscalationRuleService : IEscalationRuleService
+public class EscalationRuleService : IEscalationRulePolicyService
 {
     private readonly ICrmDbContext _dbContext;
     private readonly ILogger<EscalationRuleService> _logger;

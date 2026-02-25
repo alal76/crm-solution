@@ -49,6 +49,7 @@ BATCHES = [
     (11, "batch_11_infrastructure",   "Monitoring, Config, MasterData"),
     (12, "batch_12_misc",             "Files, Tags, CustomFields, Misc"),
     (13, "batch_13_integration",      "Integration-Dependent Endpoints (probe & skip)"),
+    (14, "batch_14_rules_workflows",  "Rules, Rulesets & Full Workflow E2E"),
 ]
 
 

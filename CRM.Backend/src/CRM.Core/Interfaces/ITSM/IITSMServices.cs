@@ -179,13 +179,17 @@ public class SLAMetricsInfo
 }
 
 // ============================================================================
-// Escalation Rule Service
+// Escalation Rule Policy Service (SLA-focused escalation query/management)
+// NOTE: IEscalationRuleService has been renamed to IEscalationRulePolicyService
+//       to free the name "IEscalationRuleService" for the admin CRUD interface.
+//       See CRM.Core.Interfaces.ITSM.IEscalationRuleService for admin CRUD.
 // ============================================================================
 
 /// <summary>
-/// Service for managing escalation rules within SLA policies.
+/// Service for managing escalation rules within SLA policies (filter/query focused).
+/// Renamed from IEscalationRuleService — see IEscalationRuleService.cs for admin CRUD.
 /// </summary>
-public interface IEscalationRuleService
+public interface IEscalationRulePolicyService
 {
     /// <summary>Get all escalation rules with optional filtering.</summary>
     Task<(IEnumerable<EscalationRuleDto> Items, int TotalCount)> GetRulesAsync(EscalationRuleFilterDto filter);

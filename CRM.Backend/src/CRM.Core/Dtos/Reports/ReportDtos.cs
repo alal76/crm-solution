@@ -411,6 +411,108 @@ public class SegmentationCriteria
     public DateTime? EndDate { get; set; }
 }
 
+// ──────────────────────────────────────────────────────────────────────────────
+// TODO-AI005-FE-002: JSON schema versioning for report query payloads
+// ──────────────────────────────────────────────────────────────────────────────
+
+/// <summary>
+/// Typed filter operator for structured report queries (V2 schema).
+/// </summary>
+public enum FilterOperator
+{
+    /// <summary>Exact equality.</summary>
+    Equals = 0,
+    /// <summary>Not equal.</summary>
+    NotEquals = 1,
+    /// <summary>Contains substring (case-insensitive).</summary>
+    Contains = 2,
+    /// <summary>Greater than.</summary>
+    GreaterThan = 3,
+    /// <summary>Less than.</summary>
+    LessThan = 4,
+    /// <summary>Between two values (inclusive).</summary>
+    Between = 5,
+    /// <summary>Value is in a list.</summary>
+    In = 6,
+    /// <summary>Field is null or not set.</summary>
+    IsNull = 7,
+}
+
+/// <summary>
+/// A single structured filter descriptor used in V2 report queries.
+/// </summary>
+public class ReportFilterDescriptor
+{
+    /// <summary>The field / column name to filter on.</summary>
+    public string Field { get; set; } = string.Empty;
+
+    /// <summary>The comparison operator.</summary>
+    public FilterOperator Operator { get; set; } = FilterOperator.Equals;
+
+    /// <summary>Primary value (or lower bound for Between).</summary>
+    public object? Value { get; set; }
+
+    /// <summary>Upper bound value — used only when Operator is Between.</summary>
+    public object? ValueTo { get; set; }
+}
+
+/// <summary>
+/// A sort descriptor for report queries.
+/// </summary>
+public class ReportSortDescriptor
+{
+    /// <summary>Field to sort by.</summary>
+    public string Field { get; set; } = string.Empty;
+
+    /// <summary>True for ascending; false for descending.</summary>
+    public bool Ascending { get; set; } = true;
+}
+
+/// <summary>
+/// Versioned report query payload (TODO-AI005-FE-002).
+/// Supports V1 (legacy flat filters) and V2 (structured filter array).
+/// </summary>
+public class ReportQueryDto
+{
+    /// <summary>
+    /// Schema version of this payload.
+    /// Consumers should call MigrateReportQueryAsync if this is below the
+    /// current supported version.
+    /// </summary>
+    public CRM.Core.Enums.ReportQuerySchemaVersion SchemaVersion { get; set; }
+        = CRM.Core.Enums.ReportQuerySchemaVersion.V2;
+
+    // ── V1 legacy fields (flat) ──────────────────────────────────────────────
+
+    /// <summary>[V1] Optional start date filter.</summary>
+    public DateTime? StartDate { get; set; }
+
+    /// <summary>[V1] Optional end date filter.</summary>
+    public DateTime? EndDate { get; set; }
+
+    /// <summary>[V1] Free-form filter map (field → value strings).</summary>
+    public Dictionary<string, object>? Filters { get; set; }
+
+    // ── V2 structured fields ─────────────────────────────────────────────────
+
+    /// <summary>[V2] Typed filter descriptors replacing the flat Filters map.</summary>
+    public List<ReportFilterDescriptor>? FilterGroups { get; set; }
+
+    /// <summary>[V2] Ordered list of sort descriptors.</summary>
+    public List<ReportSortDescriptor>? SortDescriptors { get; set; }
+
+    /// <summary>[V2] Column visibility map (column name → visible).</summary>
+    public Dictionary<string, bool>? ColumnVisibility { get; set; }
+
+    // ── Shared fields ────────────────────────────────────────────────────────
+
+    /// <summary>Maximum number of rows to return (0 = unlimited).</summary>
+    public int Limit { get; set; } = 0;
+
+    /// <summary>Zero-based page offset for paginated results.</summary>
+    public int PageOffset { get; set; } = 0;
+}
+
 /// <summary>
 /// A single customer segment summary.
 /// </summary>

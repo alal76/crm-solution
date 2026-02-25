@@ -33,3 +33,7 @@ export type { NavigationPreferences, UseNavigationPreferencesReturn } from './us
 // Recent items hooks (re-exports from RecentItemsContext for convenience)
 export { useRecentItems, useTrackRecentItem } from './useRecentItems';
 export type { RecentItem, RecentItemType } from './useRecentItems';
+
+// Font size preference hook (TODO-UX-05) — writes to both crm_font_size_preference and crm-font-size
+export { useFontSize, FONT_SIZE_STORAGE_KEY } from './useFontSize';
+export type { FontSize, UseFontSizeReturn } from './useFontSize';

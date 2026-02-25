@@ -1,0 +1,156 @@
+# =============================================================================
+# CRM Solution — ProxySQL Initial Configuration
+# TODO-DB-013: R/W split — hostgroup 10 (write), hostgroup 20 (read)
+#
+# This file is mounted at /etc/proxysql.cnf inside the crm-proxysql container.
+# After container start, run scripts/configure-proxysql.sh to load runtime config.
+# =============================================================================
+
+datadir="/var/lib/proxysql"
+
+# ── Admin credentials ────────────────────────────────────────────────────────
+admin_variables =
+{
+    admin_credentials = "admin:admin;radmin:radmin"
+    mysql_ifaces      = "0.0.0.0:6032"
+    refresh_interval  = 2000
+    stats_credentials = "stats:stats"
+}
+
+# ── MySQL global variables ────────────────────────────────────────────────────
+mysql_variables =
+{
+    threads                = 4
+    max_connections        = 2048
+    default_query_delay    = 0
+    default_query_timeout  = 36000000
+    have_compress          = true
+    poll_timeout           = 2000
+    interfaces             = "0.0.0.0:6033;/tmp/proxysql.sock"
+    default_schema         = "crm_db"
+    stacksize              = 1048576
+    server_version         = "10.11.0 (ProxySQL)"
+    connect_timeout_server = 3000
+    monitor_history        = 600000
+    monitor_connect_interval = 20000
+    monitor_ping_interval  = 8000
+    ping_interval_server_msec = 10000
+    ping_timeout_server    = 500
+    commands_stats         = true
+    sessions_sort          = true
+    # Monitor user (needs USAGE privilege on all Galera nodes)
+    monitor_username       = "proxysql_monitor"
+    monitor_password       = "MonitorPass@Dev2024"
+    # Connection pool
+    connection_max_age_ms  = 0
+}
+
+# ── Backend servers ───────────────────────────────────────────────────────────
+# Hostgroup 10 = WRITE (node1 only — follows Galera primary writer)
+# Hostgroup 20 = READ  (node2 + node3 — load balanced)
+mysql_servers =
+(
+    {
+        address          = "crm-mariadb-node1"
+        port             = 3306
+        hostgroup        = 10
+        status           = "ONLINE"
+        weight           = 1
+        compression      = 0
+        max_connections  = 200
+        max_latency_ms   = 700
+        comment          = "Galera node1 — WRITE hostgroup"
+    },
+    {
+        address          = "crm-mariadb-node2"
+        port             = 3306
+        hostgroup        = 20
+        status           = "ONLINE"
+        weight           = 1
+        compression      = 0
+        max_connections  = 200
+        max_latency_ms   = 700
+        comment          = "Galera node2 — READ hostgroup"
+    },
+    {
+        address          = "crm-mariadb-node3"
+        port             = 3306
+        hostgroup        = 20
+        status           = "ONLINE"
+        weight           = 1
+        compression      = 0
+        max_connections  = 200
+        max_latency_ms   = 700
+        comment          = "Galera node3 — READ hostgroup"
+    }
+)
+
+# ── Application users ─────────────────────────────────────────────────────────
+mysql_users =
+(
+    {
+        username              = "crm_user"
+        password              = "CrmPass@Dev2024"
+        default_hostgroup     = 10        # Writes go to hostgroup 10 by default
+        default_schema        = "crm_db"
+        active                = 1
+        transaction_persistent = 1        # Keep txn on same backend
+    },
+    {
+        username              = "crm_readonly"
+        password              = "ReadOnlyPass@Dev2024"
+        default_hostgroup     = 20        # Always routes to READ hostgroup
+        default_schema        = "crm_db"
+        active                = 1
+        transaction_persistent = 0
+    }
+)
+
+# ── Query routing rules ───────────────────────────────────────────────────────
+# Rule 1: SELECT ... FOR UPDATE → write hostgroup (must be consistent)
+# Rule 2: BEGIN / COMMIT / ROLLBACK → write hostgroup
+# Rule 3: All other SELECT → read hostgroup
+# Rule 4: Everything else (INSERT/UPDATE/DELETE) → write hostgroup (fallthrough)
+mysql_query_rules =
+(
+    {
+        rule_id              = 1
+        active               = 1
+        match_pattern        = "^SELECT .* FOR UPDATE"
+        destination_hostgroup = 10
+        apply                = 1
+        comment              = "SELECT FOR UPDATE → write"
+    },
+    {
+        rule_id              = 2
+        active               = 1
+        match_pattern        = "^(BEGIN|COMMIT|ROLLBACK|START TRANSACTION)"
+        destination_hostgroup = 10
+        apply                = 1
+        comment              = "Transaction control → write"
+    },
+    {
+        rule_id              = 3
+        active               = 1
+        match_pattern        = "^SELECT"
+        destination_hostgroup = 20
+        apply                = 1
+        comment              = "SELECTs → read hostgroup"
+    }
+)
+
+# ── Galera-specific cluster monitoring ───────────────────────────────────────
+# Checks wsrep_local_state_comment = 'Synced' before routing reads
+mysql_galera_hostgroups =
+(
+    {
+        writer_hostgroup      = 10
+        reader_hostgroup      = 20
+        backup_writer_hostgroup = 30
+        offline_hostgroup     = 9999
+        active                = 1
+        max_writers           = 1
+        writer_is_also_reader = 0
+        max_transactions_behind = 10
+    }
+)

@@ -9,33 +9,14 @@ using CRM.Core.Dtos.ITSM;
 namespace CRM.Core.Interfaces.ITSM;
 
 /// <summary>
-/// Admin service interface for managing escalation rules
+/// Admin service interface for managing escalation rules.
 /// </summary>
-public interface IEscalationRuleAdminService
+/// <remarks>
+/// DEPRECATED: Use <see cref="IEscalationRuleService"/> instead.
+/// This interface is kept for backward compatibility only. New code should inject IEscalationRuleService.
+/// TODO-SD005-003: Renamed to IEscalationRuleService.
+/// </remarks>
+[Obsolete("Use IEscalationRuleService. IEscalationRuleAdminService will be removed in a future release.")]
+public interface IEscalationRuleAdminService : IEscalationRuleService
 {
-    /// <summary>Creates a new escalation rule</summary>
-    Task<EscalationRuleDto> CreateAsync(CreateEscalationRuleDto dto, CancellationToken ct = default);
-
-    /// <summary>Updates an existing escalation rule</summary>
-    Task<EscalationRuleDto> UpdateAsync(int id, UpdateEscalationRuleDto dto, CancellationToken ct = default);
-
-    /// <summary>Gets an escalation rule by ID</summary>
-    Task<EscalationRuleDto?> GetByIdAsync(int id, CancellationToken ct = default);
-
-    /// <summary>Gets all escalation rules</summary>
-    Task<List<EscalationRuleDto>> GetAllAsync(CancellationToken ct = default);
-
-    /// <summary>Deletes an escalation rule (soft delete)</summary>
-    Task DeleteAsync(int id, CancellationToken ct = default);
-
-    /// <summary>Tests if a rule would apply to a service request</summary>
-    Task<EscalationRuleTestResultDto> TestRuleAsync(
-        int ruleId,
-        int serviceRequestId,
-        CancellationToken ct = default);
-
-    /// <summary>Gets applicable escalation rules for given priority</summary>
-    Task<List<EscalationRuleDto>> GetApplicableRulesAsync(
-        string priority,
-        CancellationToken ct = default);
 }

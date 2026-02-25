@@ -113,3 +113,18 @@ export type { RecentItemsProps } from './RecentItems';
 // Recent items dropdown for AppBar quick access
 export { RecentItemsDropdown } from './RecentItemsDropdown';
 export type { RecentItemsDropdownProps } from './RecentItemsDropdown';
+
+// ── Accessibility ──────────────────────────────────────────────────────────────
+// AccessibilityWrapper HOC + helpers (TODO-UX-01)
+// NOTE: EmptyStateProps conflict handled below — new component exported as BaseEmptyState
+export { AccessibilityWrapper, AccessibleRegion, LiveRegion, withAccessibility, buildAriaProps } from './AccessibilityWrapper';
+export type { AccessibilityProps, AccessibilityWrapperProps, AccessibleRegionProps, LiveRegionProps, WithAccessibilityProps } from './AccessibilityWrapper';
+
+// Loading skeleton for list / table placeholders (TODO-SYS008-004)
+export { LoadingSkeleton, TableSkeleton, CardSkeleton, ListSkeleton } from './LoadingSkeleton';
+export type { LoadingSkeletonProps, TableSkeletonProps, CardSkeletonProps, ListSkeletonProps } from './LoadingSkeleton';
+
+// BaseEmptyState — simplified empty state component (TODO-SYS008-004)
+// Exported as BaseEmptyState to avoid name collision with StatusComponents.EmptyState
+export { EmptyState as BaseEmptyState } from './EmptyState';
+export type { EmptyStateProps as BaseEmptyStateProps, EmptyStateAction } from './EmptyState';

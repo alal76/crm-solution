@@ -25,15 +25,18 @@ public class LeadsController : ControllerBase
 {
     private readonly ILeadService _leadService;
     private readonly ILeadAgingAlertService _leadAgingAlertService;
+    private readonly ILeadQualificationService _qualificationService;
     private readonly ILogger<LeadsController> _logger;
 
     public LeadsController(
         ILeadService leadService,
         ILeadAgingAlertService leadAgingAlertService,
+        ILeadQualificationService qualificationService,
         ILogger<LeadsController> logger)
     {
         _leadService = leadService;
         _leadAgingAlertService = leadAgingAlertService;
+        _qualificationService = qualificationService;
         _logger = logger;
     }
 
@@ -472,6 +475,71 @@ public class LeadsController : ControllerBase
             return StatusCode(500, "Internal server error");
         }
     }
+
+    /// <summary>
+    /// Qualifies a lead using the BANT/MEDDIC matrix (TODO-CRM002-08).
+    /// Accepts boolean BANT dimensions and string MEDDIC dimensions,
+    /// converts them to 0-100 scores, and persists the qualification result.
+    /// </summary>
+    /// <param name="id">Lead ID to qualify.</param>
+    /// <param name="dto">BANT + MEDDIC qualification data.</param>
+    /// <param name="ct">Cancellation token.</param>
+    [HttpPost("{id:int}/qualify")]
+    [ProducesResponseType(typeof(LeadQualificationResult), 200)]
+    [ProducesResponseType(404)]
+    [ProducesResponseType(500)]
+    public async Task<IActionResult> QualifyLead(
+        int id,
+        [FromBody] LeadQualificationDto dto,
+        CancellationToken ct = default)
+    {
+        try
+        {
+            // Determine which framework to use based on which fields are populated.
+            var meddicFilled = !string.IsNullOrWhiteSpace(dto.Metrics)
+                || !string.IsNullOrWhiteSpace(dto.EconomicBuyer)
+                || !string.IsNullOrWhiteSpace(dto.DecisionCriteria)
+                || !string.IsNullOrWhiteSpace(dto.DecisionProcess)
+                || !string.IsNullOrWhiteSpace(dto.IdentifyPain)
+                || !string.IsNullOrWhiteSpace(dto.Champion);
+
+            if (meddicFilled)
+            {
+                // Score using MEDDIC — string presence = 100, absent = 0.
+                var meddicScores = new MEDDICScores
+                {
+                    MetricsScore = string.IsNullOrWhiteSpace(dto.Metrics) ? 0 : 100,
+                    EconomicBuyerScore = string.IsNullOrWhiteSpace(dto.EconomicBuyer) ? 0 : 100,
+                    DecisionCriteriaScore = string.IsNullOrWhiteSpace(dto.DecisionCriteria) ? 0 : 100,
+                    DecisionProcessScore = string.IsNullOrWhiteSpace(dto.DecisionProcess) ? 0 : 100,
+                    IdentifyPainScore = string.IsNullOrWhiteSpace(dto.IdentifyPain) ? 0 : 100,
+                    ChampionScore = string.IsNullOrWhiteSpace(dto.Champion) ? 0 : 100,
+                };
+                var meddicResult = await _qualificationService.ScoreWithMEDDICAsync(id, meddicScores, ct);
+                return Ok(meddicResult);
+            }
+
+            // Default: BANT — boolean true = 100, false = 0.
+            var bantResult = await _qualificationService.ScoreWithBANTAsync(
+                id,
+                dto.HasBudget ? 100 : 0,
+                dto.HasAuthority ? 100 : 0,
+                dto.HasNeed ? 100 : 0,
+                dto.HasTimeline ? 100 : 0,
+                ct);
+
+            return Ok(bantResult);
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound(new { message = $"Lead {id} not found." });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error qualifying lead {LeadId}", id);
+            return StatusCode(500, "Internal server error");
+        }
+    }
 }
 
 #region Request DTOs
@@ -534,6 +602,48 @@ public class AssignNurtureCampaignDto
 {
     /// <summary>ID of the marketing campaign to enrol the lead in.</summary>
     public int CampaignId { get; set; }
+}
+
+/// <summary>
+/// Request body for BANT/MEDDIC lead qualification (TODO-CRM002-08).
+/// If any MEDDIC string field is provided the MEDDIC framework is used;
+/// otherwise BANT boolean scores are applied.
+/// </summary>
+public class LeadQualificationDto
+{
+    // ── BANT fields ──────────────────────────────────────────────────────────
+
+    /// <summary>Budget confirmed or clearly identifiable.</summary>
+    public bool HasBudget { get; set; }
+
+    /// <summary>Decision-maker or budget holder identified and engaged.</summary>
+    public bool HasAuthority { get; set; }
+
+    /// <summary>Pain point / business need clearly articulated.</summary>
+    public bool HasNeed { get; set; }
+
+    /// <summary>Purchase timeline is defined and near-term.</summary>
+    public bool HasTimeline { get; set; }
+
+    // ── MEDDIC fields ────────────────────────────────────────────────────────
+
+    /// <summary>Quantified business metrics / ROI expected.</summary>
+    public string? Metrics { get; set; }
+
+    /// <summary>Economic buyer identified and their priorities known.</summary>
+    public string? EconomicBuyer { get; set; }
+
+    /// <summary>Decision criteria the prospect will use to choose a vendor.</summary>
+    public string? DecisionCriteria { get; set; }
+
+    /// <summary>Decision process (steps, people, timeline) mapped out.</summary>
+    public string? DecisionProcess { get; set; }
+
+    /// <summary>Root cause pain / problem the prospect is experiencing.</summary>
+    public string? IdentifyPain { get; set; }
+
+    /// <summary>Internal champion advocating for the solution.</summary>
+    public string? Champion { get; set; }
 }
 
 #endregion

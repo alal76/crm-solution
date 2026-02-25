@@ -16,6 +16,10 @@ using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
+// Disambiguate types that exist in both CRM.Core.Entities.AI and CRM.Core.Interfaces (from global using)
+using ChurnRiskLevel = CRM.Core.Entities.AI.ChurnRiskLevel;
+using NextBestActionType = CRM.Core.Entities.AI.NextBestActionType;
+
 namespace CRM.Infrastructure.Services.AI;
 
 /// <summary>

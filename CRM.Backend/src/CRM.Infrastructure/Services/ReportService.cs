@@ -1946,4 +1946,44 @@ public class ReportService : IReportService
     }
 
     #endregion
+
+    #region Schema Migration (TODO-AI005-FE-002)
+
+    /// <inheritdoc />
+    public Task<ReportQueryDto> MigrateReportQueryAsync(ReportQueryDto query, CancellationToken cancellationToken = default)
+    {
+        if (query.SchemaVersion >= CRM.Core.Enums.ReportQuerySchemaVersion.V2)
+        {
+            // Already at current version — nothing to do.
+            return Task.FromResult(query);
+        }
+
+        // V1 → V2: promote flat Filters dictionary into structured FilterGroups.
+        if (query.Filters != null && query.Filters.Count > 0)
+        {
+            query.FilterGroups ??= new List<ReportFilterDescriptor>();
+            foreach (var kv in query.Filters)
+            {
+                query.FilterGroups.Add(new ReportFilterDescriptor
+                {
+                    Field = kv.Key,
+                    Operator = FilterOperator.Equals,
+                    Value = kv.Value,
+                });
+            }
+
+            query.Filters = null; // clear V1 field after migration
+        }
+
+        // Ensure SortDescriptors is initialised.
+        query.SortDescriptors ??= new List<ReportSortDescriptor>();
+
+        query.SchemaVersion = CRM.Core.Enums.ReportQuerySchemaVersion.V2;
+
+        _logger.LogDebug("Migrated report query schema from V1 to V2.");
+
+        return Task.FromResult(query);
+    }
+
+    #endregion
 }

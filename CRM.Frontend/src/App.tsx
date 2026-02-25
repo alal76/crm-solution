@@ -85,6 +85,7 @@ const ApprovalsPage = lazy(() => import('./pages/ApprovalsPage'));
 // Marketing Module - Lazy Loaded
 // ----------------------------------------------------------------------------
 const LeadsPage = lazy(() => import('./pages/LeadsPage'));
+const WebToLeadFormsPage = lazy(() => import('./pages/WebToLeadFormsPage'));
 const CampaignsPage = lazy(() => import('./pages/CampaignsPage'));
 const CampaignExecutionPage = lazy(() => import('./pages/CampaignExecutionPage'));
 const EmailTemplatesPage = lazy(() => import('./pages/EmailTemplatesPage'));
@@ -469,6 +470,17 @@ function ThemedApp() {
                   </ProtectedRoute>
                 }
               />
+              {/* Web-to-Lead Form Builder (TODO-CRM002-04) */}
+              <Route
+                path="/leads/web-forms"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute requiredPage="Leads">
+                      <WebToLeadFormsPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
               <Route
                 path="/services"
                 element={
@@ -583,6 +595,17 @@ function ThemedApp() {
               />
               <Route
                 path="/quotes/bundle-wizard"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute requiredPage="Quotes">
+                      <CPQBundleWizardPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              {/* Alias: /quotes/bundles → CPQ Bundle Wizard (TODO-GAP-06) */}
+              <Route
+                path="/quotes/bundles"
                 element={
                   <ProtectedRoute>
                     <RoleBasedRoute requiredPage="Quotes">

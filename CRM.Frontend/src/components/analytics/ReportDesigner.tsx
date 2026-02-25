@@ -334,9 +334,75 @@ export const ReportDesigner: React.FC<ReportDesignerProps> = ({
     message: '',
     severity: 'success',
   });
+  // TODO-AI005-FE-006: per-filter inline validation errors
+  const [filterErrors, setFilterErrors] = useState<Record<string, string>>({});
 
   // Get available columns for current data source
   const availableColumns = DATA_SOURCE_COLUMNS[config.dataSource] || [];
+
+  /**
+   * TODO-AI005-FE-006: Validate a raw string value against a column type.
+   * Returns an error message string, or empty string if valid.
+   */
+  const validateFilterValue = useCallback(
+    (value: string, columnType: string): string => {
+      if (!value || !value.toString().trim()) return '';
+
+      if (columnType === 'date') {
+        // Accept ISO-8601 date strings: YYYY-MM-DD or full ISO datetime
+        const iso8601 = /^\d{4}-\d{2}-\d{2}(T\d{2}:\d{2}(:\d{2}(\.\d+)?)?(Z|[+-]\d{2}:\d{2})?)?$/;
+        if (!iso8601.test(value.trim())) {
+          return 'Please enter a valid date (YYYY-MM-DD or ISO 8601)';
+        }
+        const parsed = new Date(value.trim());
+        if (isNaN(parsed.getTime())) {
+          return 'Invalid date — check day, month and year values';
+        }
+      }
+
+      if (columnType === 'number' || columnType === 'currency' || columnType === 'percent') {
+        if (!/^-?\d+(\.\d+)?$/.test(value.trim())) {
+          return 'Please enter a numeric value';
+        }
+      }
+
+      return '';
+    },
+    [],
+  );
+
+  /** Update a filter field and re-validate the value if the value changed */
+  const handleUpdateFilterWithValidation = useCallback(
+    (filterId: string, patch: Partial<ReportFilter>) => {
+      setConfig((prev) => ({
+        ...prev,
+        filters: prev.filters.map((f) =>
+          f.id === filterId ? { ...f, ...patch } : f,
+        ),
+      }));
+
+      // Validate on value change
+      if ('value' in patch && typeof patch.value === 'string') {
+        const filter = config.filters.find((f) => f.id === filterId);
+        const columnDef = availableColumns.find((c) => c.field === (patch.field ?? filter?.field));
+        if (columnDef) {
+          const errorMsg = validateFilterValue(patch.value as string, columnDef.type);
+          setFilterErrors((prev) => ({ ...prev, [filterId]: errorMsg }));
+        }
+      }
+
+      // Clear error when operator changes to null-check variants
+      if ('operator' in patch && ['is_null', 'is_not_null'].includes(patch.operator as string)) {
+        setFilterErrors((prev) => ({ ...prev, [filterId]: '' }));
+      }
+
+      // Clear error when field changes (new column, reset validation)
+      if ('field' in patch) {
+        setFilterErrors((prev) => ({ ...prev, [filterId]: '' }));
+      }
+    },
+    [config.filters, availableColumns, validateFilterValue],
+  );
 
   // Handle data source change
   const handleDataSourceChange = useCallback((newSource: ReportDataSource) => {
@@ -589,7 +655,7 @@ export const ReportDesigner: React.FC<ReportDesignerProps> = ({
                   control={
                     <Checkbox
                       checked={filter.isActive}
-                      onChange={(e) => handleUpdateFilter(filter.id, { isActive: e.target.checked })}
+                      onChange={(e) => handleUpdateFilterWithValidation(filter.id, { isActive: e.target.checked })}
                       size="small"
                     />
                   }
@@ -598,7 +664,7 @@ export const ReportDesigner: React.FC<ReportDesignerProps> = ({
                 <FormControl size="small" sx={{ minWidth: 120 }}>
                   <Select
                     value={filter.field}
-                    onChange={(e) => handleUpdateFilter(filter.id, { field: e.target.value })}
+                    onChange={(e) => handleUpdateFilterWithValidation(filter.id, { field: e.target.value })}
                   >
                     {availableColumns.map(col => (
                       <MenuItem key={col.field} value={col.field}>{col.label}</MenuItem>
@@ -608,22 +674,97 @@ export const ReportDesigner: React.FC<ReportDesignerProps> = ({
                 <FormControl size="small" sx={{ minWidth: 120 }}>
                   <Select
                     value={filter.operator}
-                    onChange={(e) => handleUpdateFilter(filter.id, { operator: e.target.value as FilterOperator })}
+                    onChange={(e) => handleUpdateFilterWithValidation(filter.id, { operator: e.target.value as FilterOperator })}
                   >
                     {operators.map(op => (
                       <MenuItem key={op.operator} value={op.operator}>{op.label}</MenuItem>
                     ))}
                   </Select>
                 </FormControl>
-                {!['is_null', 'is_not_null'].includes(filter.operator) && (
-                  <TextField
-                    size="small"
-                    placeholder="Value"
-                    value={filter.value}
-                    onChange={(e) => handleUpdateFilter(filter.id, { value: e.target.value })}
-                    sx={{ minWidth: 150 }}
-                  />
-                )}
+                {/* TODO-AI005-FE-006: type-aware validated filter value input */}
+                {!['is_null', 'is_not_null'].includes(filter.operator) && (() => {
+                  const colType = columnDef?.type ?? 'string';
+                  const errorMsg = filterErrors[filter.id] ?? '';
+
+                  // Date column — use HTML5 date input + ISO validation
+                  if (colType === 'date') {
+                    return (
+                      <TextField
+                        size="small"
+                        type="date"
+                        placeholder="YYYY-MM-DD"
+                        value={filter.value}
+                        onChange={(e) =>
+                          handleUpdateFilterWithValidation(filter.id, { value: e.target.value })
+                        }
+                        onBlur={(e) => {
+                          const msg = validateFilterValue(e.target.value, 'date');
+                          setFilterErrors((prev) => ({ ...prev, [filter.id]: msg }));
+                        }}
+                        error={!!errorMsg}
+                        helperText={errorMsg || undefined}
+                        sx={{ minWidth: 165 }}
+                        inputProps={{ 'aria-label': 'Filter date value', 'aria-invalid': !!errorMsg }}
+                        InputLabelProps={{ shrink: true }}
+                      />
+                    );
+                  }
+
+                  // Numeric column — use number input + numeric validation
+                  if (colType === 'number' || colType === 'currency' || colType === 'percent') {
+                    return (
+                      <TextField
+                        size="small"
+                        type="number"
+                        placeholder="Numeric value"
+                        value={filter.value}
+                        onChange={(e) =>
+                          handleUpdateFilterWithValidation(filter.id, { value: e.target.value })
+                        }
+                        onBlur={(e) => {
+                          const msg = validateFilterValue(e.target.value, colType);
+                          setFilterErrors((prev) => ({ ...prev, [filter.id]: msg }));
+                        }}
+                        error={!!errorMsg}
+                        helperText={errorMsg || undefined}
+                        sx={{ minWidth: 150 }}
+                        inputProps={{ 'aria-label': 'Filter numeric value', 'aria-invalid': !!errorMsg }}
+                      />
+                    );
+                  }
+
+                  // Boolean — not applicable for non-null operators; show nothing for custom operators
+                  if (colType === 'boolean') {
+                    return (
+                      <FormControl size="small" sx={{ minWidth: 120 }}>
+                        <Select
+                          value={filter.value?.toString() ?? 'true'}
+                          onChange={(e) =>
+                            handleUpdateFilterWithValidation(filter.id, { value: e.target.value })
+                          }
+                          inputProps={{ 'aria-label': 'Filter boolean value' }}
+                        >
+                          <MenuItem value="true">True</MenuItem>
+                          <MenuItem value="false">False</MenuItem>
+                        </Select>
+                      </FormControl>
+                    );
+                  }
+
+                  // Default — plain text input (string / enum)
+                  return (
+                    <TextField
+                      size="small"
+                      placeholder="Value"
+                      value={filter.value}
+                      onChange={(e) =>
+                        handleUpdateFilterWithValidation(filter.id, { value: e.target.value })
+                      }
+                      sx={{ minWidth: 150 }}
+                      inputProps={{ 'aria-label': 'Filter text value' }}
+                    />
+                  );
+                })()}
                 <IconButton size="small" onClick={() => handleRemoveFilter(filter.id)}>
                   <DeleteIcon fontSize="small" />
                 </IconButton>

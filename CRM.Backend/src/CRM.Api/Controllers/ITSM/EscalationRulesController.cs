@@ -23,13 +23,13 @@ namespace CRM.Api.Controllers.ITSM;
 [Tags("ITSM - Escalation Rules")]
 public class EscalationRulesController : ControllerBase
 {
-    private readonly IEscalationRuleAdminService _escalationRuleService;
+    private readonly IEscalationRuleService _escalationRuleService; // TODO-SD005-003: renamed from IEscalationRuleAdminService
     private readonly ILogger<EscalationRulesController> _logger;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="EscalationRulesController"/> class.
     /// </summary>
-    public EscalationRulesController(IEscalationRuleAdminService escalationRuleService, ILogger<EscalationRulesController> logger)
+    public EscalationRulesController(IEscalationRuleService escalationRuleService, ILogger<EscalationRulesController> logger)
     {
         _escalationRuleService = escalationRuleService ?? throw new ArgumentNullException(nameof(escalationRuleService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));

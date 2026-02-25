@@ -22,10 +22,10 @@ namespace CRM.Api.Controllers;
 [Produces("application/json")]
 public class EscalationRulesController : ControllerBase
 {
-    private readonly IEscalationRuleAdminService _service;
+    private readonly IEscalationRuleService _service; // TODO-SD005-003: renamed from IEscalationRuleAdminService
     private readonly ILogger<EscalationRulesController> _logger;
 
-    public EscalationRulesController(IEscalationRuleAdminService service, ILogger<EscalationRulesController> logger)
+    public EscalationRulesController(IEscalationRuleService service, ILogger<EscalationRulesController> logger)
     {
         _service = service;
         _logger = logger;

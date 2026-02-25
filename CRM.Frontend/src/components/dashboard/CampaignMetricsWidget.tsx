@@ -86,9 +86,9 @@ const CampaignMetricsWidget: React.FC = () => {
   };
 
   return (
-    <Card sx={{ height: '100%' }}>
+    <Card sx={{ height: '100%' }} aria-label="Active Campaigns widget">
       <CardHeader
-        avatar={<CampaignIcon color="primary" />}
+        avatar={<CampaignIcon color="primary" aria-hidden="true" />}
         title="Active Campaigns"
         subheader="Top 5 by activity"
         titleTypographyProps={{ variant: 'h6' }}
@@ -116,7 +116,7 @@ const CampaignMetricsWidget: React.FC = () => {
         {!loading &&
           !error &&
           campaigns.map((c) => (
-            <Box key={c.id} sx={{ mb: 2 }}>
+            <Box key={c.id} sx={{ mb: 2 }} role="listitem" aria-label={`Campaign: ${c.name}, status: ${c.status}`}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
                 <Typography variant="body2" fontWeight={500} noWrap sx={{ maxWidth: '60%' }}>
                   {c.name}
@@ -126,6 +126,7 @@ const CampaignMetricsWidget: React.FC = () => {
                   size="small"
                   color={statusColor(c.status)}
                   sx={{ height: 20, fontSize: '0.7rem' }}
+                  aria-label={`Status: ${c.status}`}
                 />
               </Box>
 
@@ -145,6 +146,10 @@ const CampaignMetricsWidget: React.FC = () => {
                     value={budgetPct(c)}
                     color={budgetPct(c) >= 90 ? 'error' : budgetPct(c) >= 70 ? 'warning' : 'primary'}
                     sx={{ height: 5, borderRadius: 1 }}
+                    aria-label={`${c.name} budget utilisation: ${budgetPct(c)}%`}
+                    aria-valuenow={budgetPct(c)}
+                    aria-valuemin={0}
+                    aria-valuemax={100}
                   />
                 </Box>
               )}

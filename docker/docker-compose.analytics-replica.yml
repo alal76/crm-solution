@@ -1,0 +1,68 @@
+# CRM Solution — Analytics Read Replica
+# TODO-DB-016: Dedicated MariaDB replica for analytics workloads (port 3307)
+#
+# Architecture:
+#   crm-mariadb-analytics — asynchronous replica of crm-mariadb (primary)
+#   Accepts only SELECT queries (crm_readonly user only)
+#   Superset connects to this replica for dashboards — isolates analytics load
+#
+# Setup steps:
+#   1. Start primary: docker-compose -f docker/docker-compose.databases.yml up -d
+#   2. Start replica: docker-compose -f docker/docker-compose.analytics-replica.yml up -d
+#   3. Run:          scripts/setup-analytics-replica.sh
+#
+# Config: scripts/setup-analytics-replica.sh
+# Readonly user: database/schema/create-readonly-user.sql
+
+version: '3.8'
+
+volumes:
+  analytics-replica-data:
+    driver: local
+
+networks:
+  crm-database-network:
+    external: true
+
+services:
+  crm-mariadb-analytics:
+    image: mariadb:11.2
+    container_name: crm-mariadb-analytics
+    restart: unless-stopped
+    ports:
+      - "3307:3306"     # Exposed separately from primary (3306)
+    environment:
+      MARIADB_ROOT_PASSWORD: ${MARIADB_ROOT_PASSWORD:-RootPass@Dev2024}
+      # This replica is read-only; application should use crm_readonly user
+    volumes:
+      - analytics-replica-data:/var/lib/mysql
+    command: >
+      --server-id=2
+      --read-only=1
+      --log-bin=mysql-bin
+      --binlog-format=ROW
+      --relay-log=relay-bin
+      --log-slave-updates=1
+      --super-read-only=1
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+      --max-connections=200
+      --innodb-buffer-pool-size=512M
+      --innodb-read-io-threads=8
+      --max-allowed-packet=256M
+      --long-query-time=2
+      --slow-query-log=1
+    healthcheck:
+      test: ["CMD", "mariadb-admin", "ping", "-h", "localhost",
+             "-u", "root", "-p${MARIADB_ROOT_PASSWORD:-RootPass@Dev2024}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks:
+      - crm-database-network
+    labels:
+      - "com.crm.database.type=analytics-replica"
+      - "com.crm.database.port=3307"
+      - "com.crm.database.role=analytics-read-replica"
+      - "com.crm.database.readonly=true"

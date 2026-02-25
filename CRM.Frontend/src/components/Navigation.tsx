@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { DragDropContext, Droppable, Draggable, type DropResult } from '@hello-pangea/dnd';
 import { getApiBaseUrl } from '../config/ports';
 import {
   AppBar,
@@ -154,6 +155,17 @@ function NavigationContent() {
   const [customizerOpen, setCustomizerOpen] = useState(false);
   // Demo mode feature removed - using production database only
   const [navRefreshKey, setNavRefreshKey] = useState(0); // Force re-render on nav update
+
+  // TODO-SYS007-003: DnD category order — persisted to localStorage
+  const NAV_ORDER_KEY = 'crm-nav-order';
+  const [navCategoryOrder, setNavCategoryOrder] = useState<string[]>(() => {
+    try {
+      const stored = localStorage.getItem('crm-nav-order');
+      return stored ? (JSON.parse(stored) as string[]) : [];
+    } catch {
+      return [];
+    }
+  });
   
   // Collapsible categories & admin sections — persisted to localStorage via hook
   const {
@@ -831,6 +843,17 @@ function NavigationContent() {
     return (navConfig?.categories || defaultCategories).sort((a: { order: number }, b: { order: number }) => a.order - b.order);
   }, [navConfig, defaultCategories]);
 
+  // TODO-SYS007-003: Apply user's drag-reorder on top of navConfig category order
+  const sortedCategories = useMemo(() => {
+    if (navCategoryOrder.length === 0) return categories;
+    const orderMap = new Map(navCategoryOrder.map((id: string, idx: number) => [id, idx]));
+    return [...categories].sort(
+      (a: { id: string }, b: { id: string }) =>
+        (orderMap.has(a.id) ? (orderMap.get(a.id) as number) : 9999) -
+        (orderMap.has(b.id) ? (orderMap.get(b.id) as number) : 9999)
+    );
+  }, [categories, navCategoryOrder]);
+
   // Build ordered nav items (legacy - used for simple list)
   const navItems = useMemo(() => {
     const order = navConfig?.navItems || defaultNavItemsWithCategory;
@@ -920,6 +943,26 @@ function NavigationContent() {
   if (!isAuthenticated) {
     return null;
   }
+
+  // TODO-SYS007-003: Handle category drag-end — update order state + persist
+  const handleNavDragEnd = (result: DropResult) => {
+    if (!result.destination || result.destination.index === result.source.index) return;
+    const isAdminUser = user?.role === 'Admin' || String(user?.role) === '0' || hasPermission('canManageUsers');
+    const visibleCats = sortedCategories.filter((category: { id: string }) => {
+      if (category.id === 'admin') return isAdminUser;
+      const items = navItemsWithCategory.filter(
+        (item: { category?: string; menuName: string }) =>
+          item.category === category.id && canAccessMenu(item.menuName)
+      );
+      return items.length > 0;
+    });
+    const reordered: Array<{ id: string }> = Array.from(visibleCats) as Array<{ id: string }>;
+    const [moved] = reordered.splice(result.source.index, 1);
+    reordered.splice(result.destination.index, 0, moved);
+    const newOrder = reordered.map((c: { id: string }) => c.id);
+    setNavCategoryOrder(newOrder);
+    try { localStorage.setItem(NAV_ORDER_KEY, JSON.stringify(newOrder)); } catch { /* ignore */ }
+  };
   
   // Filter nav items based on group permissions and module status
   const visibleNavItems = navItems.filter((item: { menuName: string }) => canAccessMenu(item.menuName));
@@ -1054,202 +1097,235 @@ function NavigationContent() {
         {/* Scrollable Content */}
         <Box sx={{ flex: 1, overflow: 'auto' }}>
         
-        {/* Render items grouped by category */}
-        {categories.map((category: { id: string; label: string; order: number }, catIdx: number) => {
-          // Skip admin category for non-admin users
-          if (category.id === 'admin' && !(user?.role === 'Admin' || String(user?.role) === '0' || hasPermission('canManageUsers'))) {
-            return null;
-          }
-          
-          // For admin category, render collapsible subcategories
-          if (category.id === 'admin') {
-            const isAdminExpanded = expandedCategories['admin'] ?? true;
-            return (
-              <React.Fragment key={category.id}>
-                {catIdx > 0 && <Divider sx={{ my: 0.5 }} />}
-                <ListItemButton
-                  onClick={() => toggleCategory('admin')}
-                  sx={{ 
-                    py: 0.5, 
-                    px: 1.5,
-                    bgcolor: 'warning.light',
-                    '&:hover': { bgcolor: 'warning.200' },
-                    minHeight: 36,
-                  }}
-                >
-                  <ListItemIcon sx={{ minWidth: 28 }}>
-                    <SettingsIcon fontSize="small" sx={{ color: 'warning.dark' }} />
-                  </ListItemIcon>
-                  <ListItemText 
-                    primary={category.label}
-                    primaryTypographyProps={{ 
-                      sx: { color: 'warning.dark', fontWeight: 600, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: 0.5 } 
-                    }}
-                  />
-                  {isAdminExpanded ? <ExpandLess fontSize="small" sx={{ color: 'warning.dark' }} /> : <ExpandMore fontSize="small" sx={{ color: 'warning.dark' }} />}
-                </ListItemButton>
-                <Collapse in={isAdminExpanded} timeout="auto" unmountOnExit>
-                <List dense sx={{ py: 0 }}>
-                  {adminSubcategories.map((subcat: { id: string; label: string; icon: string; order: number }) => {
-                    // Get items for this subcategory from navConfig
-                    const subcatItems = (navConfig?.navItems || defaultNavItemsWithCategory)
-                      .filter((item: { id: string; visible: boolean; category?: string; adminSubcategory?: string }) => 
-                        item.visible && 
-                        item.category === 'admin' && 
-                        item.adminSubcategory === subcat.id && 
-                        effectiveAdminItemsConfig[item.id]
-                      )
-                      .map((item: { id: string; customLabel?: string }) => ({
-                        ...effectiveAdminItemsConfig[item.id],
-                        id: item.id,
-                        customLabel: item.customLabel,
-                      }))
-                      .filter((item: { menuName: string }) => canAccessMenu(item.menuName));
-                    
-                    if (subcatItems.length === 0) return null;
-                    
-                    const SubcatIcon = adminSubcategoryIconMap[subcat.icon] || SettingsIcon;
-                    const isExpanded = expandedAdminSections[subcat.id];
-                    
-                    return (
-                      <React.Fragment key={subcat.id}>
-                        <ListItemButton
-                          onClick={() => toggleAdminSection(subcat.id)}
-                          sx={{
-                            py: 0.25,
-                            pl: 2,
-                            minHeight: 32,
-                            bgcolor: isExpanded ? 'grey.100' : 'transparent',
-                            '&:hover': { bgcolor: 'grey.100' },
-                          }}
-                        >
-                          <ListItemIcon sx={{ minWidth: 24 }}>
-                            <SubcatIcon sx={{ fontSize: '1rem', color: 'text.secondary' }} />
-                          </ListItemIcon>
-                          <ListItemText 
-                            primary={subcat.label} 
-                            primaryTypographyProps={{ fontSize: '0.8rem', fontWeight: 500, color: 'text.primary' }} 
-                          />
-                          {isExpanded ? <ExpandLess sx={{ fontSize: '1rem' }} /> : <ExpandMore sx={{ fontSize: '1rem' }} />}
-                        </ListItemButton>
-                        <Collapse in={isExpanded} timeout="auto" unmountOnExit>
-                          <List component="div" disablePadding dense sx={{ bgcolor: 'grey.50' }}>
-                            {subcatItems.map((item: { id: string; path: string; icon: React.ElementType; label: string; customLabel?: string }) => (
+        {/* Render items grouped by category — TODO-SYS007-003: DnD reorderable */}
+        {(() => {
+          // Pre-filter visible categories so Draggable indices are always consistent (no null renders)
+          const isAdminUser = user?.role === 'Admin' || String(user?.role) === '0' || hasPermission('canManageUsers');
+          const visibleCategories = sortedCategories.filter((cat: { id: string }) => {
+            if (cat.id === 'admin') return isAdminUser;
+            const catItems = navItemsWithCategory.filter(
+              (item: { category?: string; menuName: string }) =>
+                item.category === cat.id && canAccessMenu(item.menuName)
+            );
+            return catItems.length > 0;
+          });
+          return (
+            <DragDropContext onDragEnd={handleNavDragEnd}>
+              <Droppable droppableId="nav-categories">
+                {(droppableProvided) => (
+                  <div ref={droppableProvided.innerRef} {...droppableProvided.droppableProps}>
+                    {visibleCategories.map((category: { id: string; label: string; order: number }, catIdx: number) => {
+                      if (category.id === 'admin') {
+                        const isAdminExpanded = expandedCategories['admin'] ?? true;
+                        return (
+                          <Draggable key={category.id} draggableId={category.id} index={catIdx}>
+                            {(dragProvided, dragSnapshot) => (
+                              <div
+                                ref={dragProvided.innerRef}
+                                {...dragProvided.draggableProps}
+                                style={{ ...dragProvided.draggableProps.style, opacity: dragSnapshot.isDragging ? 0.8 : 1 }}
+                              >
+                                {catIdx > 0 && <Divider sx={{ my: 0.5 }} />}
+                                <ListItemButton
+                                  onClick={() => toggleCategory('admin')}
+                                  {...dragProvided.dragHandleProps}
+                                  sx={{ 
+                                    py: 0.5, 
+                                    px: 1.5,
+                                    bgcolor: 'warning.light',
+                                    '&:hover': { bgcolor: 'warning.200' },
+                                    minHeight: 36,
+                                  }}
+                                >
+                                  <ListItemIcon sx={{ minWidth: 28 }}>
+                                    <SettingsIcon fontSize="small" sx={{ color: 'warning.dark' }} />
+                                  </ListItemIcon>
+                                  <ListItemText 
+                                    primary={category.label}
+                                    primaryTypographyProps={{ 
+                                      sx: { color: 'warning.dark', fontWeight: 600, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: 0.5 } 
+                                    }}
+                                  />
+                                  {isAdminExpanded ? <ExpandLess fontSize="small" sx={{ color: 'warning.dark' }} /> : <ExpandMore fontSize="small" sx={{ color: 'warning.dark' }} />}
+                                </ListItemButton>
+                                <Collapse in={isAdminExpanded} timeout="auto" unmountOnExit>
+                                <List dense sx={{ py: 0 }}>
+                                  {adminSubcategories.map((subcat: { id: string; label: string; icon: string; order: number }) => {
+                                    // Get items for this subcategory from navConfig
+                                    const subcatItems = (navConfig?.navItems || defaultNavItemsWithCategory)
+                                      .filter((item: { id: string; visible: boolean; category?: string; adminSubcategory?: string }) => 
+                                        item.visible && 
+                                        item.category === 'admin' && 
+                                        item.adminSubcategory === subcat.id && 
+                                        effectiveAdminItemsConfig[item.id]
+                                      )
+                                      .map((item: { id: string; customLabel?: string }) => ({
+                                        ...effectiveAdminItemsConfig[item.id],
+                                        id: item.id,
+                                        customLabel: item.customLabel,
+                                      }))
+                                      .filter((item: { menuName: string }) => canAccessMenu(item.menuName));
+                                    
+                                    if (subcatItems.length === 0) return null;
+                                    
+                                    const SubcatIcon = adminSubcategoryIconMap[subcat.icon] || SettingsIcon;
+                                    const isExpanded = expandedAdminSections[subcat.id];
+                                    
+                                    return (
+                                      <React.Fragment key={subcat.id}>
+                                        <ListItemButton
+                                          onClick={() => toggleAdminSection(subcat.id)}
+                                          sx={{
+                                            py: 0.25,
+                                            pl: 2,
+                                            minHeight: 32,
+                                            bgcolor: isExpanded ? 'grey.100' : 'transparent',
+                                            '&:hover': { bgcolor: 'grey.100' },
+                                          }}
+                                        >
+                                          <ListItemIcon sx={{ minWidth: 24 }}>
+                                            <SubcatIcon sx={{ fontSize: '1rem', color: 'text.secondary' }} />
+                                          </ListItemIcon>
+                                          <ListItemText 
+                                            primary={subcat.label} 
+                                            primaryTypographyProps={{ fontSize: '0.8rem', fontWeight: 500, color: 'text.primary' }} 
+                                          />
+                                          {isExpanded ? <ExpandLess sx={{ fontSize: '1rem' }} /> : <ExpandMore sx={{ fontSize: '1rem' }} />}
+                                        </ListItemButton>
+                                        <Collapse in={isExpanded} timeout="auto" unmountOnExit>
+                                          <List component="div" disablePadding dense sx={{ bgcolor: 'grey.50' }}>
+                                            {subcatItems.map((item: { id: string; path: string; icon: React.ElementType; label: string; customLabel?: string }) => (
+                                              <ListItemButton
+                                                key={item.id}
+                                                component={RouterLink}
+                                                to={item.path}
+                                                onClick={() => setDrawerOpen(false)}
+                                                sx={{
+                                                  pl: 5,
+                                                  py: 0.25,
+                                                  minHeight: 28,
+                                                  bgcolor: location.pathname === item.path ? 'primary.light' : 'transparent',
+                                                  '&:hover': { bgcolor: 'grey.200' },
+                                                  borderLeft: location.pathname === item.path ? '3px solid' : '3px solid transparent',
+                                                  borderLeftColor: location.pathname === item.path ? 'primary.main' : 'transparent',
+                                                }}
+                                              >
+                                                <ListItemIcon sx={{ minWidth: 22 }}>
+                                                  <item.icon sx={{ fontSize: '0.9rem', color: location.pathname === item.path ? 'primary.main' : 'text.secondary' }} />
+                                                </ListItemIcon>
+                                                <ListItemText 
+                                                  primary={item.customLabel || item.label} 
+                                                  primaryTypographyProps={{ 
+                                                    fontSize: '0.75rem', 
+                                                    color: location.pathname === item.path ? 'primary.main' : 'text.primary',
+                                                    fontWeight: location.pathname === item.path ? 600 : 400,
+                                                  }} 
+                                                />
+                                              </ListItemButton>
+                                            ))}
+                                          </List>
+                                        </Collapse>
+                                      </React.Fragment>
+                                    );
+                                  })}
+                                </List>
+                                </Collapse>
+                              </div>
+                            )}
+                          </Draggable>
+                        );
+                      }
+
+                      const categoryItems = navItemsWithCategory.filter(
+                        (item: { category?: string; menuName: string }) => 
+                          item.category === category.id && canAccessMenu(item.menuName)
+                      );
+
+                      const isCategoryExpanded = expandedCategories[category.id] ?? true;
+
+                      return (
+                        <Draggable key={category.id} draggableId={category.id} index={catIdx}>
+                          {(dragProvided, dragSnapshot) => (
+                            <div
+                              ref={dragProvided.innerRef}
+                              {...dragProvided.draggableProps}
+                              style={{ ...dragProvided.draggableProps.style, opacity: dragSnapshot.isDragging ? 0.8 : 1 }}
+                            >
+                              {catIdx > 0 && <Divider sx={{ my: 0.5 }} />}
                               <ListItemButton
-                                key={item.id}
-                                component={RouterLink}
-                                to={item.path}
-                                onClick={() => setDrawerOpen(false)}
-                                sx={{
-                                  pl: 5,
-                                  py: 0.25,
-                                  minHeight: 28,
-                                  bgcolor: location.pathname === item.path ? 'primary.light' : 'transparent',
+                                onClick={() => toggleCategory(category.id)}
+                                {...dragProvided.dragHandleProps}
+                                sx={{ 
+                                  py: 0.5, 
+                                  px: 1.5,
+                                  bgcolor: 'grey.100',
                                   '&:hover': { bgcolor: 'grey.200' },
-                                  borderLeft: location.pathname === item.path ? '3px solid' : '3px solid transparent',
-                                  borderLeftColor: location.pathname === item.path ? 'primary.main' : 'transparent',
+                                  minHeight: 36,
                                 }}
                               >
-                                <ListItemIcon sx={{ minWidth: 22 }}>
-                                  <item.icon sx={{ fontSize: '0.9rem', color: location.pathname === item.path ? 'primary.main' : 'text.secondary' }} />
+                                <ListItemIcon sx={{ minWidth: 28 }}>
+                                  {category.id === 'main' && <DashboardIcon fontSize="small" sx={{ color: 'primary.main' }} />}
+                                  {category.id === 'sales' && <TrendingUpIcon fontSize="small" sx={{ color: 'success.main' }} />}
+                                  {category.id === 'marketing' && <MegaphoneIcon fontSize="small" sx={{ color: 'warning.main' }} />}
+                                  {category.id === 'support' && <SupportAgentIcon fontSize="small" sx={{ color: 'info.main' }} />}
+                                  {category.id === 'itsm' && <SettingsIcon fontSize="small" sx={{ color: 'error.main' }} />}
+                                  {category.id === 'productivity' && <TaskIcon fontSize="small" sx={{ color: 'secondary.main' }} />}
+                                  {category.id === 'agents' && <SmartToyIcon fontSize="small" sx={{ color: 'secondary.dark' }} />}
+                                  {category.id === 'info' && <InfoIcon fontSize="small" sx={{ color: 'text.secondary' }} />}
                                 </ListItemIcon>
                                 <ListItemText 
-                                  primary={item.customLabel || item.label} 
+                                  primary={category.label}
                                   primaryTypographyProps={{ 
-                                    fontSize: '0.75rem', 
-                                    color: location.pathname === item.path ? 'primary.main' : 'text.primary',
-                                    fontWeight: location.pathname === item.path ? 600 : 400,
-                                  }} 
+                                    sx: { color: 'text.primary', fontWeight: 600, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: 0.5 } 
+                                  }}
                                 />
+                                {isCategoryExpanded ? <ExpandLess fontSize="small" sx={{ color: 'text.secondary' }} /> : <ExpandMore fontSize="small" sx={{ color: 'text.secondary' }} />}
                               </ListItemButton>
-                            ))}
-                          </List>
-                        </Collapse>
-                      </React.Fragment>
-                    );
-                  })}
-                </List>
-                </Collapse>
-              </React.Fragment>
-            );
-          }
-          
-          const categoryItems = navItemsWithCategory.filter(
-            (item: { category?: string; menuName: string }) => 
-              item.category === category.id && canAccessMenu(item.menuName)
+                              <Collapse in={isCategoryExpanded} timeout={200} unmountOnExit>
+                                <List dense sx={{ py: 0, bgcolor: 'background.paper' }}>
+                                  {categoryItems.map((item: { id: string; path: string; icon: typeof DashboardIcon; label: string; customLabel?: string }) => (
+                                    <ListItemButton
+                                      key={item.id || item.path}
+                                      component={RouterLink}
+                                      to={item.path}
+                                      onClick={() => setDrawerOpen(false)}
+                                      sx={{
+                                        py: 0.35,
+                                        pl: 5,
+                                        minHeight: 32,
+                                        bgcolor: location.pathname === item.path ? 'primary.light' : 'transparent',
+                                        '&:hover': { bgcolor: 'grey.100' },
+                                        borderLeft: location.pathname === item.path ? '3px solid' : '3px solid transparent',
+                                        borderLeftColor: location.pathname === item.path ? 'primary.main' : 'transparent',
+                                      }}
+                                    >
+                                      <ListItemIcon sx={{ minWidth: 24 }}>
+                                        <item.icon sx={{ fontSize: '1rem', color: location.pathname === item.path ? 'primary.main' : 'text.secondary' }} />
+                                      </ListItemIcon>
+                                      <ListItemText 
+                                        primary={item.customLabel || item.label} 
+                                        primaryTypographyProps={{ 
+                                          fontSize: '0.8rem',
+                                          color: location.pathname === item.path ? 'primary.main' : 'text.primary',
+                                          fontWeight: location.pathname === item.path ? 600 : 400,
+                                        }} 
+                                      />
+                                    </ListItemButton>
+                                  ))}
+                                </List>
+                              </Collapse>
+                            </div>
+                          )}
+                        </Draggable>
+                      );
+                    })}
+                    {droppableProvided.placeholder}
+                  </div>
+                )}
+              </Droppable>
+            </DragDropContext>
           );
-          
-          if (categoryItems.length === 0) return null;
-          
-          const isCategoryExpanded = expandedCategories[category.id] ?? true;
-          
-          return (
-            <React.Fragment key={category.id}>
-              {catIdx > 0 && <Divider sx={{ my: 0.5 }} />}
-              <ListItemButton
-                onClick={() => toggleCategory(category.id)}
-                sx={{ 
-                  py: 0.5, 
-                  px: 1.5,
-                  bgcolor: 'grey.100',
-                  '&:hover': { bgcolor: 'grey.200' },
-                  minHeight: 36,
-                }}
-              >
-                <ListItemIcon sx={{ minWidth: 28 }}>
-                  {category.id === 'main' && <DashboardIcon fontSize="small" sx={{ color: 'primary.main' }} />}
-                  {category.id === 'sales' && <TrendingUpIcon fontSize="small" sx={{ color: 'success.main' }} />}
-                  {category.id === 'marketing' && <MegaphoneIcon fontSize="small" sx={{ color: 'warning.main' }} />}
-                  {category.id === 'support' && <SupportAgentIcon fontSize="small" sx={{ color: 'info.main' }} />}
-                  {category.id === 'itsm' && <SettingsIcon fontSize="small" sx={{ color: 'error.main' }} />}
-                  {category.id === 'productivity' && <TaskIcon fontSize="small" sx={{ color: 'secondary.main' }} />}
-                  {category.id === 'agents' && <SmartToyIcon fontSize="small" sx={{ color: 'secondary.dark' }} />}
-                  {category.id === 'info' && <InfoIcon fontSize="small" sx={{ color: 'text.secondary' }} />}
-                </ListItemIcon>
-                <ListItemText 
-                  primary={category.label}
-                  primaryTypographyProps={{ 
-                    sx: { color: 'text.primary', fontWeight: 600, fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: 0.5 } 
-                  }}
-                />
-                {isCategoryExpanded ? <ExpandLess fontSize="small" sx={{ color: 'text.secondary' }} /> : <ExpandMore fontSize="small" sx={{ color: 'text.secondary' }} />}
-              </ListItemButton>
-              <Collapse in={isCategoryExpanded} timeout={200} unmountOnExit>
-                <List dense sx={{ py: 0, bgcolor: 'background.paper' }}>
-                  {categoryItems.map((item: { id: string; path: string; icon: typeof DashboardIcon; label: string; customLabel?: string }) => (
-                    <ListItemButton
-                      key={item.id || item.path}
-                      component={RouterLink}
-                      to={item.path}
-                      onClick={() => setDrawerOpen(false)}
-                      sx={{
-                        py: 0.35,
-                        pl: 5,
-                        minHeight: 32,
-                        bgcolor: location.pathname === item.path ? 'primary.light' : 'transparent',
-                        '&:hover': { bgcolor: 'grey.100' },
-                        borderLeft: location.pathname === item.path ? '3px solid' : '3px solid transparent',
-                        borderLeftColor: location.pathname === item.path ? 'primary.main' : 'transparent',
-                      }}
-                    >
-                      <ListItemIcon sx={{ minWidth: 24 }}>
-                        <item.icon sx={{ fontSize: '1rem', color: location.pathname === item.path ? 'primary.main' : 'text.secondary' }} />
-                      </ListItemIcon>
-                      <ListItemText 
-                        primary={item.customLabel || item.label} 
-                        primaryTypographyProps={{ 
-                          fontSize: '0.8rem',
-                          color: location.pathname === item.path ? 'primary.main' : 'text.primary',
-                          fontWeight: location.pathname === item.path ? 600 : 400,
-                        }} 
-                      />
-                    </ListItemButton>
-                  ))}
-                </List>
-              </Collapse>
-            </React.Fragment>
-          );
-        })}
+        })()}
         </Box>
 
         {/* Drawer footer: Customize Navigation */}

@@ -447,6 +447,25 @@ builder.Services.AddDbContext<CrmDbContext>(options =>
     }
 });
 
+// TODO-DB-019: Optional read-only DbContext for analytics replica
+// Only registered when ConnectionStrings__ReadOnlyConnection is set.
+// Points to crm-mariadb-analytics:3307 with crm_readonly user.
+// See CRM.Infrastructure/Data/CrmReadOnlyDbContext.cs for details.
+var readOnlyConnectionString = builder.Configuration.GetConnectionString("ReadOnlyConnection");
+if (!string.IsNullOrWhiteSpace(readOnlyConnectionString))
+{
+    builder.Services.AddDbContext<CrmReadOnlyDbContext>(options =>
+    {
+        // Always use MariaDB/MySQL for the analytics replica
+        options.UseMySql(
+            readOnlyConnectionString,
+            new MariaDbServerVersion(new Version(11, 0, 0)),
+            mySqlOptions => mySqlOptions.EnableRetryOnFailure(3));
+        options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);
+    });
+    builder.Services.AddScoped<CrmReadOnlyDbContext>();
+}
+
 // Register ICrmDbContext interface with dynamic resolution
 builder.Services.AddScoped<IDbContextResolver, DynamicDbContextResolver>();
 builder.Services.AddScoped<ICrmDbContext>(provider =>
@@ -618,8 +637,12 @@ builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IChangeManagementService, CR
 builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IChangeManagementServiceEx, CRM.Infrastructure.Services.ITSM.ChangeManagementServiceEx>();
 builder.Services.AddScoped<CRM.Core.Interfaces.IChangeService, CRM.Infrastructure.Services.ChangeService>();
 builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IKnowledgeManagementService, CRM.Infrastructure.Services.ITSM.KnowledgeManagementService>();
+// TODO-SD002-012: Configure dedicated KB search index schema via KnowledgeBaseSearchIndexService
+builder.Services.AddScoped<CRM.Infrastructure.Services.Search.IKnowledgeBaseSearchIndexService, CRM.Infrastructure.Services.Search.KnowledgeBaseSearchIndexService>();
 builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IServiceCatalogService, CRM.Infrastructure.Services.ITSM.ServiceCatalogService>();
-// builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IEscalationRuleService, CRM.Infrastructure.Services.ITSM.EscalationRuleService>(); // DISABLED for System Module isolation
+// TODO-SD005-003: IEscalationRuleService is now the admin CRUD interface (renamed from IEscalationRuleAdminService)
+// IEscalationRulePolicyService is the SLA-focused service (renamed from IEscalationRuleService)
+builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IEscalationRulePolicyService, CRM.Infrastructure.Services.ITSM.EscalationRuleService>(); // Renamed from IEscalationRuleService
 builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IEscalationPolicyService, CRM.Infrastructure.Services.ITSM.EscalationPolicyService>();
 // ITSM Escalation Analytics (TODO-SD005-011)
 builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IEscalationAnalyticsService, CRM.Infrastructure.Services.ITSM.EscalationAnalyticsService>();
@@ -646,7 +669,16 @@ builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IITSMDashboardService, CRM.I
 builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IMonitoringIntegrationService, CRM.Infrastructure.Services.ITSM.MonitoringIntegrationService>();
 builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.ICICDIntegrationService, CRM.Infrastructure.Services.ITSM.CICDIntegrationService>();
 builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.ISelfServiceChatbotService, CRM.Infrastructure.Services.ITSM.SelfServiceChatbotService>();
-// #if ITSM_ADVANCED
+// TODO-SD005-010: Slack/Teams ITSM notification channels + dispatcher
+builder.Services.AddHttpClient<CRM.Infrastructure.Services.ITSM.SlackItsmNotificationService>();
+builder.Services.AddHttpClient<CRM.Infrastructure.Services.ITSM.TeamsItsmNotificationService>();
+builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IItsmNotificationChannel>(sp =>
+    sp.GetRequiredService<CRM.Infrastructure.Services.ITSM.SlackItsmNotificationService>());
+builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IItsmNotificationChannel>(sp =>
+    sp.GetRequiredService<CRM.Infrastructure.Services.ITSM.TeamsItsmNotificationService>());
+builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IItsmNotificationDispatcher,
+    CRM.Infrastructure.Services.ITSM.ItsmNotificationDispatcher>();
+Log.Information("ITSM notification channels registered: Slack, Teams (TODO-SD005-010)");
 // SLA Enforcement Background Service - runs continuously to monitor and enforce SLAs
 // builder.Services.AddHostedService<CRM.Infrastructure.Services.ITSM.SLAEnforcementHostedService>(); // DISABLED for System Module isolation
 // Auto-close resolved items background service (auto-closes incidents, service requests, changes, problems)
@@ -711,6 +743,11 @@ builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<IContractService, ContractService>();
 builder.Services.AddScoped<ISubscriptionService, SubscriptionService>();
+// TODO-SALES006-024: Usage record batching — singleton buffer + hosted service flusher
+builder.Services.AddSingleton<CRM.Core.Interfaces.IUsageRecordBatchBuffer,
+    CRM.Infrastructure.Services.Billing.UsageRecordBatchBuffer>();
+builder.Services.AddHostedService<CRM.Infrastructure.Services.Billing.UsageRecordBatchHostedService>();
+Log.Information("UsageRecordBatchBuffer (singleton) and UsageRecordBatchHostedService registered (TODO-SALES006-024)");
 builder.Services.AddScoped<ITeamService, TeamService>();
 builder.Services.AddScoped<ICommissionService, CommissionService>();
 builder.Services.AddScoped<IEmailTemplateService, EmailTemplateService>();
@@ -720,7 +757,14 @@ builder.Services.AddScoped<IEmailTemplateService, EmailTemplateService>();
 builder.Services.AddScoped<ICommissionRuleService, CommissionRuleService>();
 builder.Services.AddScoped<IDiscountRuleService, DiscountRuleService>();
 builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.ISLAPolicyAdminService, CRM.Infrastructure.Services.ITSM.SLAPolicyAdminService>();
-builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IEscalationRuleAdminService, CRM.Infrastructure.Services.ITSM.EscalationRuleAdminService>();
+// TODO-SD005-003: Register IEscalationRuleService (new canonical name) + IEscalationRuleAdminService (backward compat)
+builder.Services.AddScoped<CRM.Infrastructure.Services.ITSM.EscalationRuleAdminService>(); // concrete registration
+builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IEscalationRuleService>(sp =>
+    sp.GetRequiredService<CRM.Infrastructure.Services.ITSM.EscalationRuleAdminService>());
+#pragma warning disable CS0618 // Intentional backward compat registration
+builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IEscalationRuleAdminService>(sp =>
+    sp.GetRequiredService<CRM.Infrastructure.Services.ITSM.EscalationRuleAdminService>());
+#pragma warning restore CS0618
 builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IServiceQueueService, CRM.Infrastructure.Services.ITSM.ServiceQueueService>();
 builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IAutoAssignmentService, CRM.Infrastructure.Services.ITSM.AutoAssignmentService>();
 Log.Information("Admin Configuration Services registered: CommissionRule, DiscountRule, SLAPolicy, EscalationRule, ServiceQueue, AutoAssignment");
@@ -920,7 +964,19 @@ builder.Services.AddHttpClient("AllenAI", client =>
 });
 builder.Services.AddScoped<IAllenAIService, AllenAIService>();
 
-// News and Social Media Feed service (NewsAPI, Twitter, LinkedIn integration)
+// AI Insight Services (TODO-AI-03, AI-04, AI-07, AI-08, AI-09, AI-10)
+builder.Services.AddScoped<CRM.Core.Interfaces.IChurnPredictionService, CRM.Infrastructure.Services.AI.ChurnPredictionService>();
+builder.Services.AddScoped<CRM.Core.Interfaces.INextBestActionService, CRM.Infrastructure.Services.AI.NextBestActionService>();
+builder.Services.AddScoped<CRM.Core.Interfaces.IEmailSentimentService, CRM.Infrastructure.Services.AI.EmailSentimentService>();
+builder.Services.AddScoped<CRM.Core.Interfaces.IMeetingSummaryService, CRM.Infrastructure.Services.AI.MeetingSummaryService>();
+builder.Services.AddScoped<CRM.Core.Interfaces.IDealRiskService, CRM.Infrastructure.Services.AI.DealRiskService>();
+builder.Services.AddScoped<CRM.Core.Interfaces.IRevenueForecastService, CRM.Infrastructure.Services.AI.RevenueForecastService>();
+
+// Integration Services (TODO-INT-08, INT-09, INT-10, INT-11)
+builder.Services.AddScoped<CRM.Core.Ports.Input.IAccountingSyncService, CRM.Infrastructure.Services.Integrations.AccountingSyncService>();
+builder.Services.AddScoped<CRM.Core.Ports.Input.IMarketingSyncService, CRM.Infrastructure.Services.Integrations.MarketingSyncService>();
+builder.Services.AddScoped<CRM.Core.Ports.Input.ILinkedInSalesNavService, CRM.Infrastructure.Services.Integrations.LinkedInSalesNavService>();
+builder.Services.AddScoped<CRM.Core.Ports.Input.ISchedulingIntegrationService, CRM.Infrastructure.Services.Integrations.SchedulingIntegrationService>();
 builder.Services.Configure<NewsSocialOptions>(builder.Configuration.GetSection("NewsSocial"));
 builder.Services.AddHttpClient<INewsSocialService, NewsSocialService>();
 
@@ -996,6 +1052,22 @@ builder.Services.AddScoped<ISystemSettingsInputPort, SystemSettingsService>();
 builder.Services.AddScoped<IServiceRequestInputPort, ServiceRequestService>();
 builder.Services.AddScoped<IAccountInputPort, AccountService>();
 builder.Services.AddScoped<IDatabaseBackupInputPort, DatabaseBackupService>();
+
+// Custom Fields, Formula Engine & Rollup Fields (CUST-01/02/07/08/09)
+builder.Services.AddScoped<CRM.Infrastructure.Services.ICustomFieldValidationService, CRM.Infrastructure.Services.CustomFieldValidationService>();
+builder.Services.AddScoped<CRM.Infrastructure.Services.IFormulaFieldEngine, CRM.Infrastructure.Services.FormulaFieldEngine>();
+builder.Services.AddScoped<CRM.Infrastructure.Services.IRollupFieldService, CRM.Infrastructure.Services.RollupFieldService>();
+
+// Event Sourcing & Saga Orchestration (INFRA-04/05)
+builder.Services.AddScoped<CRM.Infrastructure.Services.EventSourcing.IEventStore, CRM.Infrastructure.Services.EventSourcing.EventStore>();
+builder.Services.AddSingleton<CRM.Infrastructure.Services.Saga.ISagaOrchestrator, CRM.Infrastructure.Services.Saga.SagaOrchestrator>();
+
+// Messaging Infrastructure - Redis Streams & Dead Letter Queue (INFRA-06/07)
+builder.Services.AddScoped<CRM.Infrastructure.Services.Messaging.IRedisStreamService, CRM.Infrastructure.Services.Messaging.RedisStreamService>();
+builder.Services.AddScoped<CRM.Infrastructure.Services.Messaging.IDeadLetterQueueService, CRM.Infrastructure.Services.Messaging.DeadLetterQueueService>();
+
+// Search Analytics (INFRA-10)
+builder.Services.AddSingleton<CRM.Infrastructure.Services.Search.ISearchAnalyticsService, CRM.Infrastructure.Services.Search.SearchAnalyticsService>();
 
 // Configure JWT Authentication
 var jwtSecret = builder.Configuration["Jwt:Secret"];
@@ -1319,6 +1391,29 @@ if (Directory.Exists(frontendBuildPath))
         context.Response.ContentType = "text/html";
         return context.Response.SendFileAsync(Path.Combine(frontendBuildPath, "index.html"));
     });
+}
+
+// TODO-SD002-012: Initialize KB Meilisearch index schema on startup (if Meilisearch provider is enabled)
+try
+{
+    using var startupScope = app.Services.CreateScope();
+    var isSearchEnabled = await startupScope.ServiceProvider
+        .GetRequiredService<Microsoft.FeatureManagement.IFeatureManager>()
+        .IsEnabledAsync(CRM.Core.Features.FeatureFlags.UseExternalSearch);
+    if (isSearchEnabled)
+    {
+        var kbIndexService = startupScope.ServiceProvider
+            .GetService<CRM.Infrastructure.Services.Search.IKnowledgeBaseSearchIndexService>();
+        if (kbIndexService != null)
+        {
+            await kbIndexService.ConfigureIndexAsync();
+            Log.Information("KB Meilisearch search index configured on startup (TODO-SD002-012)");
+        }
+    }
+}
+catch (Exception kbEx)
+{
+    Log.Warning(kbEx, "KB search index configuration on startup failed (non-fatal) — will retry on next article index");
 }
 
 app.Run();
