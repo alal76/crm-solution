@@ -160,3 +160,19 @@ dotnet_diagnostic.SA1129.severity = none
 # xUnit1026: Theory methods should use all of their parameters
 # Rationale: Parameterized tests may not use all data in every assertion
 dotnet_diagnostic.xUnit1026.severity = none
+# ============================================================================
+# EF Core Migrations - Auto-generated files, suppress all StyleCop
+# ============================================================================
+[src/**/Migrations/**.cs]
+# SA1633: File headers are not required for EF Core auto-generated migration files
+dotnet_diagnostic.SA1633.severity = none
+# SA1505: Opening brace blank lines occur in EF Core scaffolded empty Up/Down methods
+dotnet_diagnostic.SA1505.severity = none
+# SA1508: Closing brace blank lines occur in EF Core scaffolded empty Up/Down methods
+dotnet_diagnostic.SA1508.severity = none
+# SA1210: Using directives order varies in generated migrations
+dotnet_diagnostic.SA1210.severity = none
+# SA1208: System using directives must be placed before other using directives
+dotnet_diagnostic.SA1208.severity = none
+# SA1602: Enumeration items should be documented (generated partial classes)
+dotnet_diagnostic.SA1602.severity = none

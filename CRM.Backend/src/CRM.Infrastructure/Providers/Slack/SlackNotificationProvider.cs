@@ -483,7 +483,7 @@ public class SlackNotificationProvider : INotificationPort
     private static string Truncate(string text, int maxLength)
     {
         if (string.IsNullOrEmpty(text)) return string.Empty;
-        return text.Length <= maxLength ? text : text[..(maxLength - 3)] + "...";
+        return text.Length <= maxLength ? text : text[.. (maxLength - 3)] + "...";
     }
 
     private NotificationResult NotConfiguredResult(string channel) =>

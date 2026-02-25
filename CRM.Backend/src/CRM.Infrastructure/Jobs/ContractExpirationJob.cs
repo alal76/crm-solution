@@ -115,7 +115,7 @@ public class ContractExpirationJob
             .OrderBy(c => c.EndDate)
             .ToListAsync(cancellationToken);
 
-        _logger.LogInformation("Found {Count} contracts expiring within {Days} days", 
+        _logger.LogInformation("Found {Count} contracts expiring within {Days} days",
             contracts.Count, withinDays);
 
         return contracts;

@@ -75,7 +75,7 @@ public static class SearchIndexConfiguration
             "attribute",
             "sort",
             "exactness",
-            "viewCount:desc"  // Popular articles ranked higher
+            "viewCount:desc" // Popular articles ranked higher
         }
     };
 
