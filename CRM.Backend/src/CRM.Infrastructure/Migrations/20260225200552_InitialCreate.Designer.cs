@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CRM.Infrastructure.Migrations
 {
     [DbContext(typeof(CrmDbContext))]
-    [Migration("20260223230337_AddWebhookAndImportEntities")]
-    partial class AddWebhookAndImportEntities
+    [Migration("20260225200552_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -3134,6 +3134,9 @@ namespace CRM.Infrastructure.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("VARCHAR(100)");
 
+                    b.Property<DateTime?>("ArchivedAt")
+                        .HasColumnType("datetime(6)");
+
                     b.Property<string>("ChangedProperties")
                         .HasMaxLength(2000)
                         .HasColumnType("VARCHAR(2000)");
@@ -3185,9 +3188,62 @@ namespace CRM.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("CreatedAt")
+                        .HasDatabaseName("IX_AuditLogs_CreatedAt");
+
                     b.HasIndex("UserId");
 
                     b.ToTable("AuditLogs");
+                });
+
+            modelBuilder.Entity("CRM.Core.Entities.AuthAuditLog", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("VARCHAR(100)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("FailureReason")
+                        .HasMaxLength(512)
+                        .HasColumnType("VARCHAR(512)");
+
+                    b.Property<string>("IpAddress")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("VARCHAR(64)");
+
+                    b.Property<bool>("Success")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("UserAgent")
+                        .IsRequired()
+                        .HasMaxLength(512)
+                        .HasColumnType("VARCHAR(512)");
+
+                    b.Property<int?>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Action")
+                        .HasDatabaseName("IX_AuthAuditLogs_Action");
+
+                    b.HasIndex("CreatedAt")
+                        .HasDatabaseName("IX_AuthAuditLogs_CreatedAt");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("IX_AuthAuditLogs_UserId");
+
+                    b.ToTable("AuthAuditLogs", (string)null);
                 });
 
             modelBuilder.Entity("CRM.Core.Entities.BackupSchedule", b =>
@@ -3269,6 +3325,7 @@ namespace CRM.Infrastructure.Migrations
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<decimal>("Amount")
+                        .HasPrecision(18, 4)
                         .HasColumnType("DECIMAL(18,4)");
 
                     b.Property<DateTime?>("BilledDate")
@@ -3284,6 +3341,7 @@ namespace CRM.Infrastructure.Migrations
                         .HasColumnType("datetime(6)");
 
                     b.Property<decimal?>("DiscountAmount")
+                        .HasPrecision(18, 4)
                         .HasColumnType("DECIMAL(18,4)");
 
                     b.Property<int?>("DunningRecordId")
@@ -3309,6 +3367,7 @@ namespace CRM.Infrastructure.Migrations
                         .HasColumnType("datetime(6)");
 
                     b.Property<decimal?>("ProratedAmount")
+                        .HasPrecision(18, 4)
                         .HasColumnType("DECIMAL(18,4)");
 
                     b.Property<byte[]>("RowVersion")
@@ -3325,12 +3384,14 @@ namespace CRM.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     b.Property<decimal?>("TaxAmount")
+                        .HasPrecision(18, 4)
                         .HasColumnType("DECIMAL(18,4)");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime(6)");
 
                     b.Property<decimal?>("UsageCharges")
+                        .HasPrecision(18, 4)
                         .HasColumnType("DECIMAL(18,4)");
 
                     b.Property<int?>("UserId")
@@ -5071,6 +5132,9 @@ namespace CRM.Infrastructure.Migrations
 
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<bool>("AllowStacking")
+                        .HasColumnType("tinyint(1)");
+
                     b.Property<string>("ApplicableProductIds")
                         .HasColumnType("TEXT");
 
@@ -5079,6 +5143,9 @@ namespace CRM.Infrastructure.Migrations
 
                     b.Property<decimal>("BaseRate")
                         .HasColumnType("decimal(65,30)");
+
+                    b.Property<int?>("CommissionPlanId")
+                        .HasColumnType("int");
 
                     b.Property<string>("Configuration")
                         .HasColumnType("TEXT");
@@ -5104,12 +5171,21 @@ namespace CRM.Infrastructure.Migrations
                     b.Property<decimal?>("MaxAmount")
                         .HasColumnType("decimal(65,30)");
 
+                    b.Property<decimal?>("MaxCommissionAmount")
+                        .HasColumnType("decimal(65,30)");
+
                     b.Property<decimal?>("MinAmount")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.Property<decimal?>("MinDealSize")
                         .HasColumnType("decimal(65,30)");
 
                     b.Property<string>("Name")
                         .IsRequired()
                         .HasColumnType("TEXT");
+
+                    b.Property<int>("Priority")
+                        .HasColumnType("int");
 
                     b.Property<decimal>("Rate")
                         .HasColumnType("decimal(65,30)");
@@ -5125,6 +5201,12 @@ namespace CRM.Infrastructure.Migrations
                     b.Property<string>("SaleType")
                         .IsRequired()
                         .HasColumnType("TEXT");
+
+                    b.Property<decimal?>("SplitPercentage")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.Property<int>("TriggerEvent")
+                        .HasColumnType("int");
 
                     b.Property<int>("Type")
                         .HasColumnType("int");
@@ -5648,6 +5730,83 @@ namespace CRM.Infrastructure.Migrations
                     b.ToTable("CommunicationMessages");
                 });
 
+            modelBuilder.Entity("CRM.Core.Entities.Competitor", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(1000)
+                        .HasColumnType("VARCHAR(1000)");
+
+                    b.Property<string>("Industry")
+                        .HasMaxLength(100)
+                        .HasColumnType("VARCHAR(100)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<decimal?>("MarketSharePercent")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("VARCHAR(255)");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(4000)
+                        .HasColumnType("VARCHAR(4000)");
+
+                    b.Property<string>("OurAdvantages")
+                        .HasMaxLength(2000)
+                        .HasColumnType("VARCHAR(2000)");
+
+                    b.Property<string>("PricingTier")
+                        .HasMaxLength(50)
+                        .HasColumnType("VARCHAR(50)");
+
+                    b.Property<string>("PrimaryProducts")
+                        .HasMaxLength(1000)
+                        .HasColumnType("VARCHAR(1000)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("BINARY(8)");
+
+                    b.Property<string>("Strengths")
+                        .HasMaxLength(2000)
+                        .HasColumnType("VARCHAR(2000)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Weaknesses")
+                        .HasMaxLength(2000)
+                        .HasColumnType("VARCHAR(2000)");
+
+                    b.Property<string>("Website")
+                        .HasMaxLength(500)
+                        .HasColumnType("VARCHAR(500)");
+
+                    b.Property<decimal?>("WinRateAgainst")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Competitors");
+                });
+
             modelBuilder.Entity("CRM.Core.Entities.ConfigurationChangeLog", b =>
                 {
                     b.Property<int>("Id")
@@ -5987,6 +6146,70 @@ namespace CRM.Infrastructure.Migrations
                     b.HasIndex("QuoteId");
 
                     b.ToTable("Contracts");
+                });
+
+            modelBuilder.Entity("CRM.Core.Entities.ContractVersion", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ChangeDescription")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ChangesJson")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ContentHash")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("ContractId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("CreatedById")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsArchived")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsCurrent")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("Reason")
+                        .HasColumnType("TEXT");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("BINARY(8)");
+
+                    b.Property<string>("SnapshotJson")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("VersionLabel")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("VersionNumber")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ContractId");
+
+                    b.HasIndex("CreatedById");
+
+                    b.ToTable("ContractVersions");
                 });
 
             modelBuilder.Entity("CRM.Core.Entities.Conversation", b =>
@@ -6467,6 +6690,100 @@ namespace CRM.Infrastructure.Migrations
                     b.ToTable("CrmTasks");
                 });
 
+            modelBuilder.Entity("CRM.Core.Entities.CustomAction", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ActionType")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Color")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("VARCHAR(20)");
+
+                    b.Property<string>("ConfirmationMessage")
+                        .HasMaxLength(500)
+                        .HasColumnType("VARCHAR(500)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("EntityType")
+                        .HasMaxLength(50)
+                        .HasColumnType("VARCHAR(50)");
+
+                    b.Property<string>("HttpMethod")
+                        .HasMaxLength(10)
+                        .HasColumnType("VARCHAR(10)");
+
+                    b.Property<string>("IconName")
+                        .HasMaxLength(50)
+                        .HasColumnType("VARCHAR(50)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("Label")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("VARCHAR(100)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("VARCHAR(100)");
+
+                    b.Property<string>("RequestBodyTemplate")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("RequiredPermission")
+                        .HasMaxLength(100)
+                        .HasColumnType("VARCHAR(100)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("BINARY(8)");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SuccessMessage")
+                        .HasMaxLength(500)
+                        .HasColumnType("VARCHAR(500)");
+
+                    b.Property<string>("TargetUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("VARCHAR(500)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Variant")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("VARCHAR(20)");
+
+                    b.Property<string>("VisibilityCondition")
+                        .HasMaxLength(1000)
+                        .HasColumnType("VARCHAR(1000)");
+
+                    b.Property<int?>("WorkflowDefinitionId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("CustomActions");
+                });
+
             modelBuilder.Entity("CRM.Core.Entities.CustomField", b =>
                 {
                     b.Property<int>("Id")
@@ -6509,6 +6826,120 @@ namespace CRM.Infrastructure.Migrations
                     b.HasIndex("EntityType", "EntityId");
 
                     b.ToTable("CustomFields");
+                });
+
+            modelBuilder.Entity("CRM.Core.Entities.CustomFieldDefinition", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("DefaultValue")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("int");
+
+                    b.Property<string>("EntityType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("VARCHAR(100)");
+
+                    b.Property<string>("FieldKey")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("VARCHAR(100)");
+
+                    b.Property<string>("FieldType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("VARCHAR(50)");
+
+                    b.Property<string>("GroupName")
+                        .HasMaxLength(100)
+                        .HasColumnType("VARCHAR(100)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsRequired")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("Label")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("VARCHAR(200)");
+
+                    b.Property<string>("OptionsJson")
+                        .HasColumnType("TEXT");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("BINARY(8)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EntityType", "FieldKey")
+                        .IsUnique()
+                        .HasDatabaseName("IX_CustomFieldDefinitions_EntityType_FieldKey");
+
+                    b.ToTable("CustomFieldDefinitions");
+                });
+
+            modelBuilder.Entity("CRM.Core.Entities.CustomFieldValidationRule", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("CustomFieldDefinitionId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ErrorMessage")
+                        .HasMaxLength(500)
+                        .HasColumnType("VARCHAR(500)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("BINARY(8)");
+
+                    b.Property<string>("RuleType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("VARCHAR(50)");
+
+                    b.Property<string>("RuleValue")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CustomFieldDefinitionId");
+
+                    b.ToTable("CustomFieldValidationRules");
                 });
 
             modelBuilder.Entity("CRM.Core.Entities.Dashboard", b =>
@@ -6808,6 +7239,80 @@ namespace CRM.Infrastructure.Migrations
                     b.ToTable("DatabaseBackups");
                 });
 
+            modelBuilder.Entity("CRM.Core.Entities.DeadLetterEntry", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("ErrorMessage")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("FailedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsResolved")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<DateTime?>("LastRetryAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<Guid>("MessageId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("Payload")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("ResolvedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("ResolvedBy")
+                        .HasMaxLength(200)
+                        .HasColumnType("VARCHAR(200)");
+
+                    b.Property<int>("RetryCount")
+                        .HasColumnType("int");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("BINARY(8)");
+
+                    b.Property<string>("Source")
+                        .HasMaxLength(200)
+                        .HasColumnType("VARCHAR(200)");
+
+                    b.Property<string>("StackTrace")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Topic")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("VARCHAR(500)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IsResolved")
+                        .HasDatabaseName("IX_DeadLetterEntries_IsResolved");
+
+                    b.HasIndex("Topic")
+                        .HasDatabaseName("IX_DeadLetterEntries_Topic");
+
+                    b.ToTable("DeadLetterEntries");
+                });
+
             modelBuilder.Entity("CRM.Core.Entities.Department", b =>
                 {
                     b.Property<int>("Id")
@@ -6948,6 +7453,86 @@ namespace CRM.Infrastructure.Migrations
                     b.HasIndex("Status");
 
                     b.ToTable("DeploymentAttempts");
+                });
+
+            modelBuilder.Entity("CRM.Core.Entities.DeviceAuthorizationCode", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("AuthorizedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("AuthorizedUserId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ClientId")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("VARCHAR(256)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("DeviceCode")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("VARCHAR(128)");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("Interval")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsAuthorized")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsDenied")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsUsed")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("BINARY(8)");
+
+                    b.Property<string>("Scope")
+                        .HasMaxLength(1024)
+                        .HasColumnType("VARCHAR(1024)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("UserCode")
+                        .IsRequired()
+                        .HasMaxLength(32)
+                        .HasColumnType("VARCHAR(32)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AuthorizedUserId");
+
+                    b.HasIndex("DeviceCode")
+                        .IsUnique()
+                        .HasDatabaseName("IX_DeviceAuthorizationCodes_DeviceCode");
+
+                    b.HasIndex("ExpiresAt")
+                        .HasDatabaseName("IX_DeviceAuthorizationCodes_ExpiresAt");
+
+                    b.HasIndex("UserCode")
+                        .IsUnique()
+                        .HasDatabaseName("IX_DeviceAuthorizationCodes_UserCode");
+
+                    b.ToTable("DeviceAuthorizationCodes", (string)null);
                 });
 
             modelBuilder.Entity("CRM.Core.Entities.DiscountApprovalMatrix", b =>
@@ -7162,6 +7747,71 @@ namespace CRM.Infrastructure.Migrations
                     b.ToTable("DiscountRules");
                 });
 
+            modelBuilder.Entity("CRM.Core.Entities.DomainEvent", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AggregateId")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("VARCHAR(200)");
+
+                    b.Property<string>("AggregateType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("VARCHAR(100)");
+
+                    b.Property<string>("CorrelationId")
+                        .HasMaxLength(200)
+                        .HasColumnType("VARCHAR(200)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<Guid>("EventId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("EventType")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("VARCHAR(200)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<DateTime>("OccurredAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Payload")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("BINARY(8)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<long>("Version")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OccurredAt")
+                        .HasDatabaseName("IX_DomainEvents_OccurredAt");
+
+                    b.HasIndex("AggregateType", "AggregateId")
+                        .HasDatabaseName("IX_DomainEvents_Aggregate");
+
+                    b.ToTable("DomainEvents");
+                });
+
             modelBuilder.Entity("CRM.Core.Entities.DunningRecord", b =>
                 {
                     b.Property<int>("Id")
@@ -7210,6 +7860,7 @@ namespace CRM.Infrastructure.Migrations
                         .HasColumnType("VARCHAR(255)");
 
                     b.Property<decimal>("OutstandingAmount")
+                        .HasPrecision(18, 4)
                         .HasColumnType("DECIMAL(18,4)");
 
                     b.Property<string>("Reason")
@@ -7217,6 +7868,7 @@ namespace CRM.Infrastructure.Migrations
                         .HasColumnType("VARCHAR(200)");
 
                     b.Property<decimal?>("RecoveredAmount")
+                        .HasPrecision(18, 4)
                         .HasColumnType("DECIMAL(18,4)");
 
                     b.Property<int>("RetryAttempt")
@@ -9372,6 +10024,55 @@ namespace CRM.Infrastructure.Migrations
                     b.ToTable("EntityTags");
                 });
 
+            modelBuilder.Entity("CRM.Core.Entities.EscalationLog", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime>("EscalatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("EscalatedByUserId")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<int>("LevelNumber")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Reason")
+                        .HasColumnType("TEXT");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("BINARY(8)");
+
+                    b.Property<int>("ServiceRequestId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("EscalatedByUserId");
+
+                    b.HasIndex("ServiceRequestId");
+
+                    b.ToTable("EscalationLogs");
+                });
+
             modelBuilder.Entity("CRM.Core.Entities.EventAttendee", b =>
                 {
                     b.Property<int>("Id")
@@ -9683,6 +10384,62 @@ namespace CRM.Infrastructure.Migrations
                     b.HasIndex("FeatureFlagId");
 
                     b.ToTable("FeatureFlagVariants");
+                });
+
+            modelBuilder.Entity("CRM.Core.Entities.FieldChangeLog", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ChangedByUserId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("DataType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("VARCHAR(100)");
+
+                    b.Property<int>("EntityId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("EntityType")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("VARCHAR(200)");
+
+                    b.Property<string>("FieldName")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("VARCHAR(200)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("NewValue")
+                        .HasMaxLength(2000)
+                        .HasColumnType("VARCHAR(2000)");
+
+                    b.Property<string>("OldValue")
+                        .HasMaxLength(2000)
+                        .HasColumnType("VARCHAR(2000)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("BINARY(8)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("FieldChangeLogs");
                 });
 
             modelBuilder.Entity("CRM.Core.Entities.FieldMasterDataLink", b =>
@@ -10256,6 +11013,171 @@ namespace CRM.Infrastructure.Migrations
                     b.ToTable("FormSubmissions");
                 });
 
+            modelBuilder.Entity("CRM.Core.Entities.FormulaField", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("CustomFieldDefinitionId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Formula")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("ResultType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("VARCHAR(50)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("BINARY(8)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CustomFieldDefinitionId");
+
+                    b.ToTable("FormulaFields");
+                });
+
+            modelBuilder.Entity("CRM.Core.Entities.ForumPost", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("AuthorId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Body")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("BodyMarkdown")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("VARCHAR(100)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<bool>("IsApproved")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsPinned")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<int>("ReplyCount")
+                        .HasColumnType("int");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("BINARY(8)");
+
+                    b.Property<string>("TagsJson")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("VARCHAR(500)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("ViewCount")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Visibility")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("VARCHAR(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Category")
+                        .HasDatabaseName("IX_ForumPosts_Category");
+
+                    b.HasIndex("IsApproved")
+                        .HasDatabaseName("IX_ForumPosts_IsApproved");
+
+                    b.ToTable("ForumPosts");
+                });
+
+            modelBuilder.Entity("CRM.Core.Entities.GdprAccessLog", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Action")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("IpAddress")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("RequestedByUserId")
+                        .HasColumnType("int");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("BINARY(8)");
+
+                    b.Property<int>("SubjectId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SubjectType")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("GdprAccessLogs");
+                });
+
             modelBuilder.Entity("CRM.Core.Entities.HealthCheckLog", b =>
                 {
                     b.Property<int>("Id")
@@ -10485,6 +11407,55 @@ namespace CRM.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("ArticleRelationships");
+                });
+
+            modelBuilder.Entity("CRM.Core.Entities.ITSM.ArticleVersion", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("ArticleId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ChangeNote")
+                        .HasMaxLength(500)
+                        .HasColumnType("VARCHAR(500)");
+
+                    b.Property<DateTime>("ChangedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("ChangedById")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("ShortDescription")
+                        .HasMaxLength(500)
+                        .HasColumnType("VARCHAR(500)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("VARCHAR(200)");
+
+                    b.Property<int>("VersionNumber")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ArticleId");
+
+                    b.HasIndex("ChangedById");
+
+                    b.ToTable("ArticleVersions");
                 });
 
             modelBuilder.Entity("CRM.Core.Entities.ITSM.BusinessHoursSchedule", b =>
@@ -12910,8 +13881,17 @@ namespace CRM.Infrastructure.Migrations
                         .HasColumnType("int")
                         .HasDefaultValue(1);
 
+                    b.Property<int?>("ChunkNumber")
+                        .HasColumnType("int");
+
                     b.Property<DateTime?>("CompletedAt")
                         .HasColumnType("datetime(6)");
+
+                    b.Property<string>("ContinuationToken")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("CorrelationId")
+                        .HasColumnType("TEXT");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
@@ -12932,6 +13912,15 @@ namespace CRM.Infrastructure.Migrations
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("tinyint(1)");
+
+                    b.Property<DateTime?>("NextRetryAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("ParentEventId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("PayloadSizeBytes")
+                        .HasColumnType("int");
 
                     b.Property<string>("RequestBody")
                         .HasColumnType("TEXT");
@@ -12956,6 +13945,9 @@ namespace CRM.Infrastructure.Migrations
                         .IsRequired()
                         .HasMaxLength(500)
                         .HasColumnType("VARCHAR(500)");
+
+                    b.Property<int?>("TotalChunks")
+                        .HasColumnType("int");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime(6)");
@@ -13988,6 +14980,9 @@ namespace CRM.Infrastructure.Migrations
                     b.Property<bool>("IsActive")
                         .HasColumnType("tinyint(1)");
 
+                    b.Property<bool>("IsDefault")
+                        .HasColumnType("tinyint(1)");
+
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("tinyint(1)");
 
@@ -15011,7 +16006,16 @@ namespace CRM.Infrastructure.Migrations
                         .HasColumnType("int")
                         .HasColumnName("AccountId");
 
+                    b.Property<int?>("AuthorityScore")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("BudgetScore")
+                        .HasColumnType("int");
+
                     b.Property<int?>("CampaignId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ChampionScore")
                         .HasColumnType("int");
 
                     b.Property<string>("CompanyName")
@@ -15023,6 +16027,19 @@ namespace CRM.Infrastructure.Migrations
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
+
+                    b.Property<string>("CustomQualificationJson")
+                        .HasMaxLength(4000)
+                        .HasColumnType("VARCHAR(4000)");
+
+                    b.Property<int?>("DecisionCriteriaScore")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("DecisionProcessScore")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("EconomicBuyerScore")
+                        .HasColumnType("int");
 
                     b.Property<string>("Email")
                         .IsRequired()
@@ -15037,7 +16054,13 @@ namespace CRM.Infrastructure.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("VARCHAR(100)");
 
+                    b.Property<DateTime?>("FirstTouchDate")
+                        .HasColumnType("datetime(6)");
+
                     b.Property<int>("FitScore")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("IdentifyPainScore")
                         .HasColumnType("int");
 
                     b.Property<bool>("IsDeleted")
@@ -15049,6 +16072,9 @@ namespace CRM.Infrastructure.Migrations
                     b.Property<DateTime?>("LastActivityDate")
                         .HasColumnType("datetime(6)");
 
+                    b.Property<DateTime?>("LastContactedAt")
+                        .HasColumnType("datetime(6)");
+
                     b.Property<string>("LastName")
                         .IsRequired()
                         .HasMaxLength(100)
@@ -15056,6 +16082,12 @@ namespace CRM.Infrastructure.Migrations
 
                     b.Property<DateTime?>("LastScoreDecayDate")
                         .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("LeadSourceConfigId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("LeadSourceId")
+                        .HasColumnType("int");
 
                     b.Property<int?>("MergeGroupId")
                         .HasColumnType("int");
@@ -15066,8 +16098,24 @@ namespace CRM.Infrastructure.Migrations
                     b.Property<int?>("MergedIntoId")
                         .HasColumnType("int");
 
+                    b.Property<int?>("MetricsScore")
+                        .HasColumnType("int");
+
                     b.Property<DateTime?>("MqlDate")
                         .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("NeedScore")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("NurtureCampaignEnrolledAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("NurtureCampaignId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("OriginalSource")
+                        .HasMaxLength(500)
+                        .HasColumnType("VARCHAR(500)");
 
                     b.Property<int?>("OwnerId")
                         .HasColumnType("int");
@@ -15075,6 +16123,9 @@ namespace CRM.Infrastructure.Migrations
                     b.Property<string>("Phone")
                         .HasMaxLength(50)
                         .HasColumnType("VARCHAR(50)");
+
+                    b.Property<int>("QualificationFrameworkType")
+                        .HasColumnType("int");
 
                     b.Property<string>("QualificationNotes")
                         .HasMaxLength(4000)
@@ -15105,12 +16156,30 @@ namespace CRM.Infrastructure.Migrations
                         .HasMaxLength(2000)
                         .HasColumnType("VARCHAR(2000)");
 
+                    b.Property<int?>("TerritoryId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("TimelineScore")
+                        .HasColumnType("int");
+
                     b.Property<string>("Title")
                         .HasMaxLength(100)
                         .HasColumnType("VARCHAR(100)");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime(6)");
+
+                    b.Property<string>("UtmCampaign")
+                        .HasMaxLength(255)
+                        .HasColumnType("VARCHAR(255)");
+
+                    b.Property<string>("UtmMedium")
+                        .HasMaxLength(255)
+                        .HasColumnType("VARCHAR(255)");
+
+                    b.Property<string>("UtmSource")
+                        .HasMaxLength(255)
+                        .HasColumnType("VARCHAR(255)");
 
                     b.Property<string>("Website")
                         .HasMaxLength(500)
@@ -15126,11 +16195,19 @@ namespace CRM.Infrastructure.Migrations
 
                     b.HasIndex("Email");
 
+                    b.HasIndex("LeadSourceConfigId");
+
+                    b.HasIndex("LeadSourceId");
+
+                    b.HasIndex("NurtureCampaignId");
+
                     b.HasIndex("OwnerId");
 
                     b.HasIndex("Score");
 
                     b.HasIndex("Status");
+
+                    b.HasIndex("TerritoryId");
 
                     b.ToTable("Leads");
                 });
@@ -15511,6 +16588,129 @@ namespace CRM.Infrastructure.Migrations
                     b.ToTable("LeadScoreRules");
                 });
 
+            modelBuilder.Entity("CRM.Core.Entities.LeadSourceConfig", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("CampaignId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Category")
+                        .HasMaxLength(100)
+                        .HasColumnType("VARCHAR(100)");
+
+                    b.Property<decimal?>("CostPerLead")
+                        .HasColumnType("decimal(18,4)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(1000)
+                        .HasColumnType("VARCHAR(1000)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("VARCHAR(255)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("BINARY(8)");
+
+                    b.Property<string>("TrackingCode")
+                        .HasMaxLength(100)
+                        .HasColumnType("VARCHAR(100)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CampaignId");
+
+                    b.ToTable("LeadSourceConfigs");
+                });
+
+            modelBuilder.Entity("CRM.Core.Entities.LeadSourceEntity", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("CampaignName")
+                        .HasMaxLength(255)
+                        .HasColumnType("VARCHAR(255)");
+
+                    b.Property<int>("Channel")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Code")
+                        .HasMaxLength(50)
+                        .HasColumnType("VARCHAR(50)");
+
+                    b.Property<decimal?>("CostPerLead")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(1000)
+                        .HasColumnType("VARCHAR(1000)");
+
+                    b.Property<string>("ExternalPlatformId")
+                        .HasMaxLength(100)
+                        .HasColumnType("VARCHAR(100)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("Medium")
+                        .HasMaxLength(100)
+                        .HasColumnType("VARCHAR(100)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("VARCHAR(255)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("BINARY(8)");
+
+                    b.Property<decimal?>("TotalSpend")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("TrackingUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("VARCHAR(500)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("LeadSources");
+                });
+
             modelBuilder.Entity("CRM.Core.Entities.Locality", b =>
                 {
                     b.Property<int>("Id")
@@ -15588,6 +16788,112 @@ namespace CRM.Infrastructure.Migrations
                     b.HasIndex("City", "CountryCode");
 
                     b.ToTable("Localities");
+                });
+
+            modelBuilder.Entity("CRM.Core.Entities.LoginAttempt", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("AlertSent")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("City")
+                        .HasMaxLength(128)
+                        .HasColumnType("VARCHAR(128)");
+
+                    b.Property<string>("CountryCode")
+                        .HasMaxLength(2)
+                        .HasColumnType("VARCHAR(2)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("DayOfWeek")
+                        .HasColumnType("int");
+
+                    b.Property<string>("DeviceFingerprint")
+                        .HasMaxLength(128)
+                        .HasColumnType("VARCHAR(128)");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("VARCHAR(256)");
+
+                    b.Property<string>("FailureReason")
+                        .HasMaxLength(256)
+                        .HasColumnType("VARCHAR(256)");
+
+                    b.Property<int>("HourOfDay")
+                        .HasColumnType("int");
+
+                    b.Property<string>("IpAddress")
+                        .IsRequired()
+                        .HasMaxLength(45)
+                        .HasColumnType("VARCHAR(45)");
+
+                    b.Property<bool>("IsAnomalous")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<double?>("Latitude")
+                        .HasColumnType("double");
+
+                    b.Property<double?>("Longitude")
+                        .HasColumnType("double");
+
+                    b.Property<string>("RiskFactors")
+                        .HasMaxLength(1024)
+                        .HasColumnType("VARCHAR(1024)");
+
+                    b.Property<int>("RiskScore")
+                        .HasColumnType("int");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("BINARY(8)");
+
+                    b.Property<bool>("Success")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("UserAgent")
+                        .HasMaxLength(512)
+                        .HasColumnType("VARCHAR(512)");
+
+                    b.Property<int?>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedAt")
+                        .HasDatabaseName("IX_LoginAttempts_CreatedAt");
+
+                    b.HasIndex("Email")
+                        .HasDatabaseName("IX_LoginAttempts_Email");
+
+                    b.HasIndex("IpAddress")
+                        .HasDatabaseName("IX_LoginAttempts_IpAddress");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("IX_LoginAttempts_UserId");
+
+                    b.HasIndex("Email", "Success", "CreatedAt")
+                        .HasDatabaseName("IX_LoginAttempts_Email_Success_CreatedAt");
+
+                    b.HasIndex("IpAddress", "Success", "CreatedAt")
+                        .HasDatabaseName("IX_LoginAttempts_IpAddress_Success_CreatedAt");
+
+                    b.ToTable("LoginAttempts", (string)null);
                 });
 
             modelBuilder.Entity("CRM.Core.Entities.LookupCategory", b =>
@@ -15677,6 +16983,53 @@ namespace CRM.Infrastructure.Migrations
                     b.HasIndex("LookupCategoryId", "SortOrder");
 
                     b.ToTable("LookupItems");
+                });
+
+            modelBuilder.Entity("CRM.Core.Entities.MagicLinkToken", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("VARCHAR(256)");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<bool>("IsUsed")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("Token")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("VARCHAR(256)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Email")
+                        .HasDatabaseName("IX_MagicLinkTokens_Email");
+
+                    b.HasIndex("Token")
+                        .IsUnique()
+                        .HasDatabaseName("IX_MagicLinkTokens_Token");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("Email", "IsUsed", "ExpiresAt")
+                        .HasDatabaseName("IX_MagicLinkTokens_Email_Active");
+
+                    b.ToTable("MagicLinkTokens", (string)null);
                 });
 
             modelBuilder.Entity("CRM.Core.Entities.MarketingCampaign", b =>
@@ -16457,6 +17810,65 @@ namespace CRM.Infrastructure.Migrations
                     b.ToTable("ModuleUIConfigs");
                 });
 
+            modelBuilder.Entity("CRM.Core.Entities.NavigationConfigEntity", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Icon")
+                        .HasMaxLength(100)
+                        .HasColumnType("VARCHAR(100)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("Key")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("VARCHAR(100)");
+
+                    b.Property<string>("Label")
+                        .HasMaxLength(200)
+                        .HasColumnType("VARCHAR(200)");
+
+                    b.Property<int?>("ParentId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("RequiredRoles")
+                        .HasMaxLength(500)
+                        .HasColumnType("VARCHAR(500)");
+
+                    b.Property<string>("Route")
+                        .HasMaxLength(500)
+                        .HasColumnType("VARCHAR(500)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("BINARY(8)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ParentId");
+
+                    b.ToTable("NavigationConfigs");
+                });
+
             modelBuilder.Entity("CRM.Core.Entities.Note", b =>
                 {
                     b.Property<int>("Id")
@@ -16594,6 +18006,52 @@ namespace CRM.Infrastructure.Migrations
                     b.ToTable("Notes");
                 });
 
+            modelBuilder.Entity("CRM.Core.Entities.NotificationPreference", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Channel")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("EntityType")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("EventType")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsEnabled")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("BINARY(8)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("NotificationPreferences");
+                });
+
             modelBuilder.Entity("CRM.Core.Entities.OAuthToken", b =>
                 {
                     b.Property<int>("Id")
@@ -16660,6 +18118,12 @@ namespace CRM.Infrastructure.Migrations
                         .HasPrecision(18, 2)
                         .HasColumnType("decimal(18,2)");
 
+                    b.Property<DateTime?>("ClosedDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("CompetitorWinnerId")
+                        .HasColumnType("int");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
 
@@ -16671,10 +18135,20 @@ namespace CRM.Infrastructure.Migrations
                     b.Property<DateTime?>("ExpectedCloseDate")
                         .HasColumnType("datetime(6)");
 
+                    b.Property<int>("ForecastCategory")
+                        .HasColumnType("int");
+
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("tinyint(1)");
 
                     b.Property<int?>("LeadId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("LossReason")
+                        .HasMaxLength(2000)
+                        .HasColumnType("VARCHAR(2000)");
+
+                    b.Property<int?>("LossReasonCategory")
                         .HasColumnType("int");
 
                     b.Property<string>("Name")
@@ -16723,9 +18197,15 @@ namespace CRM.Infrastructure.Migrations
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime(6)");
 
+                    b.Property<string>("WinLossNotes")
+                        .HasMaxLength(4000)
+                        .HasColumnType("VARCHAR(4000)");
+
                     b.HasKey("Id");
 
                     b.HasIndex("AccountId");
+
+                    b.HasIndex("CompetitorWinnerId");
 
                     b.HasIndex("ExpectedCloseDate");
 
@@ -16738,6 +18218,51 @@ namespace CRM.Infrastructure.Migrations
                     b.HasIndex("Stage");
 
                     b.ToTable("Opportunities");
+                });
+
+            modelBuilder.Entity("CRM.Core.Entities.OpportunityCompetitor", b =>
+                {
+                    b.Property<int>("OpportunityId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("CompetitorId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("CompetitorId1")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("CompetitorPrice")
+                        .HasPrecision(18, 2)
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime>("IdentifiedDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(2000)
+                        .HasColumnType("VARCHAR(2000)");
+
+                    b.Property<int?>("OpportunityId1")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ThreatLevel")
+                        .HasColumnType("int");
+
+                    b.Property<bool?>("WonAgainst")
+                        .HasColumnType("tinyint(1)");
+
+                    b.HasKey("OpportunityId", "CompetitorId");
+
+                    b.HasIndex("CompetitorId");
+
+                    b.HasIndex("CompetitorId1");
+
+                    b.HasIndex("OpportunityId1");
+
+                    b.ToTable("OpportunityCompetitors");
                 });
 
             modelBuilder.Entity("CRM.Core.Entities.OpportunityProduct", b =>
@@ -16778,6 +18303,71 @@ namespace CRM.Infrastructure.Migrations
                     b.HasIndex("ProductId");
 
                     b.ToTable("OpportunityProducts");
+                });
+
+            modelBuilder.Entity("CRM.Core.Entities.OpportunityTeamMember", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("CommissionPlanId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime>("DateAdded")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime?>("DateRemoved")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsPrimary")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(2000)
+                        .HasColumnType("VARCHAR(2000)");
+
+                    b.Property<int>("OpportunityId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Reason")
+                        .HasMaxLength(500)
+                        .HasColumnType("VARCHAR(500)");
+
+                    b.Property<int>("Role")
+                        .HasColumnType("int");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("BINARY(8)");
+
+                    b.Property<decimal>("SplitPercentage")
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CommissionPlanId");
+
+                    b.HasIndex("OpportunityId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("OpportunityTeamMembers");
                 });
 
             modelBuilder.Entity("CRM.Core.Entities.Order", b =>
@@ -16888,6 +18478,9 @@ namespace CRM.Infrastructure.Migrations
                     b.Property<string>("DiscountReason")
                         .HasColumnType("TEXT");
 
+                    b.Property<int?>("ExchangeOrderId")
+                        .HasColumnType("int");
+
                     b.Property<decimal?>("ExchangeRate")
                         .HasColumnType("decimal(65,30)");
 
@@ -16913,6 +18506,9 @@ namespace CRM.Infrastructure.Migrations
                         .HasColumnType("TEXT");
 
                     b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsEligibleForExchange")
                         .HasColumnType("tinyint(1)");
 
                     b.Property<decimal?>("MRR")
@@ -16959,6 +18555,10 @@ namespace CRM.Infrastructure.Migrations
                     b.Property<DateTime?>("PromisedDeliveryDate")
                         .HasColumnType("datetime(6)");
 
+                    b.Property<string>("QualityInspectionNotes")
+                        .HasMaxLength(2000)
+                        .HasColumnType("VARCHAR(2000)");
+
                     b.Property<int?>("QuoteId")
                         .HasColumnType("int");
 
@@ -16968,14 +18568,47 @@ namespace CRM.Infrastructure.Migrations
                     b.Property<string>("ReferenceNumber")
                         .HasColumnType("TEXT");
 
+                    b.Property<decimal?>("RefundAmount")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<string>("RejectionReason")
                         .HasColumnType("TEXT");
 
                     b.Property<DateTime?>("RequestedDeliveryDate")
                         .HasColumnType("datetime(6)");
 
+                    b.Property<decimal?>("RestockingFee")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<DateTime?>("ReturnApprovedDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("ReturnAuthorizationNumber")
+                        .HasMaxLength(100)
+                        .HasColumnType("VARCHAR(100)");
+
+                    b.Property<DateTime?>("ReturnProcessedDate")
+                        .HasColumnType("datetime(6)");
+
                     b.Property<string>("ReturnReason")
-                        .HasColumnType("TEXT");
+                        .HasMaxLength(2000)
+                        .HasColumnType("VARCHAR(2000)");
+
+                    b.Property<int?>("ReturnReasonCategory")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("ReturnReceivedDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime?>("ReturnRequestedDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("ReturnStatus")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ReturnTrackingNumber")
+                        .HasMaxLength(255)
+                        .HasColumnType("VARCHAR(255)");
 
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
@@ -17230,6 +18863,192 @@ namespace CRM.Infrastructure.Migrations
                     b.HasIndex("QuoteLineItemId");
 
                     b.ToTable("OrderLineItems");
+                });
+
+            modelBuilder.Entity("CRM.Core.Entities.OrderReturn", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int?>("AccountId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("ApprovedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Currency")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("InitiatedById")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("LineItemsJson")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Notes")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("OrderId")
+                        .HasColumnType("int");
+
+                    b.Property<decimal>("OriginalAmount")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.Property<int?>("ProcessedById")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Reason")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ReasonDescription")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("ReceivedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<decimal>("RefundAmount")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.Property<string>("RefundTransactionId")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("RefundedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime>("RequestedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<decimal>("RestockingFee")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.Property<string>("ReturnCarrier")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ReturnNumber")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ReturnTrackingNumber")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("RmaNumber")
+                        .HasColumnType("TEXT");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("BINARY(8)");
+
+                    b.Property<decimal>("ShippingRefund")
+                        .HasColumnType("decimal(65,30)");
+
+                    b.Property<int>("Status")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AccountId");
+
+                    b.HasIndex("InitiatedById");
+
+                    b.HasIndex("OrderId");
+
+                    b.HasIndex("ProcessedById");
+
+                    b.ToTable("OrderReturns");
+                });
+
+            modelBuilder.Entity("CRM.Core.Entities.PageLayout", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("EntityType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("VARCHAR(100)");
+
+                    b.Property<bool>("IsDefault")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("LayoutJson")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("VARCHAR(200)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("BINARY(8)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("UserGroupId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("PageLayouts");
+                });
+
+            modelBuilder.Entity("CRM.Core.Entities.PasswordHistory", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("PasswordHash")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("VARCHAR(256)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("IX_PasswordHistories_UserId");
+
+                    b.HasIndex("UserId", "CreatedAt")
+                        .HasDatabaseName("IX_PasswordHistories_UserId_CreatedAt");
+
+                    b.ToTable("PasswordHistories", (string)null);
                 });
 
             modelBuilder.Entity("CRM.Core.Entities.Payment", b =>
@@ -19701,6 +21520,60 @@ namespace CRM.Infrastructure.Migrations
                     b.ToTable("RelationshipTypes");
                 });
 
+            modelBuilder.Entity("CRM.Core.Entities.ReportShare", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime?>("ExpiresAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(500)
+                        .HasColumnType("VARCHAR(500)");
+
+                    b.Property<string>("Permission")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("VARCHAR(50)");
+
+                    b.Property<int>("ReportId")
+                        .HasColumnType("int");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("BINARY(8)");
+
+                    b.Property<int>("SharedByUserId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ReportId");
+
+                    b.HasIndex("SharedByUserId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("ReportShares");
+                });
+
             modelBuilder.Entity("CRM.Core.Entities.Reports.ReportDefinition", b =>
                 {
                     b.Property<int>("Id")
@@ -20315,6 +22188,67 @@ namespace CRM.Infrastructure.Migrations
                     b.ToTable("RolePermissions");
                 });
 
+            modelBuilder.Entity("CRM.Core.Entities.RollupField", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AggregateField")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("VARCHAR(100)");
+
+                    b.Property<string>("AggregateFunction")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("VARCHAR(50)");
+
+                    b.Property<string>("ChildEntityType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("VARCHAR(100)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("FilterCondition")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("ParentEntityType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("VARCHAR(100)");
+
+                    b.Property<string>("RelationshipField")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("VARCHAR(100)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("BINARY(8)");
+
+                    b.Property<int?>("TargetCustomFieldDefinitionId")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("RollupFields");
+                });
+
             modelBuilder.Entity("CRM.Core.Entities.SLAPolicy", b =>
                 {
                     b.Property<int>("Id")
@@ -20395,6 +22329,78 @@ namespace CRM.Infrastructure.Migrations
                     b.HasIndex("Priority");
 
                     b.ToTable("SLAPolicies");
+                });
+
+            modelBuilder.Entity("CRM.Core.Entities.SagaInstance", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("CorrelationId")
+                        .HasMaxLength(200)
+                        .HasColumnType("VARCHAR(200)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("CurrentStep")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("VARCHAR(200)");
+
+                    b.Property<string>("ErrorMessage")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<int>("RetryCount")
+                        .HasColumnType("int");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("BINARY(8)");
+
+                    b.Property<Guid>("SagaId")
+                        .HasColumnType("char(36)");
+
+                    b.Property<string>("SagaType")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("VARCHAR(200)");
+
+                    b.Property<DateTime>("StartedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("StateJson")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("VARCHAR(50)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SagaId")
+                        .IsUnique()
+                        .HasDatabaseName("IX_SagaInstances_SagaId");
+
+                    b.HasIndex("Status")
+                        .HasDatabaseName("IX_SagaInstances_Status");
+
+                    b.ToTable("SagaInstances");
                 });
 
             modelBuilder.Entity("CRM.Core.Entities.SalesConfiguration", b =>
@@ -20676,6 +22682,126 @@ namespace CRM.Infrastructure.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("SalesQuotas");
+                });
+
+            modelBuilder.Entity("CRM.Core.Entities.SavedFilter", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("VARCHAR(500)");
+
+                    b.Property<string>("EntityType")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("VARCHAR(50)");
+
+                    b.Property<string>("FilterCriteriaJson")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsPinned")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsPublic")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<DateTime?>("LastUsedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("VARCHAR(200)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("BINARY(8)");
+
+                    b.Property<string>("SortConfigJson")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("UsageCount")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("SavedFilters");
+                });
+
+            modelBuilder.Entity("CRM.Core.Entities.SearchLog", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<long>("DurationMs")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("EntityTypes")
+                        .HasMaxLength(500)
+                        .HasColumnType("VARCHAR(500)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("Provider")
+                        .HasMaxLength(100)
+                        .HasColumnType("VARCHAR(100)");
+
+                    b.Property<string>("Query")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("VARCHAR(500)");
+
+                    b.Property<int>("ResultCount")
+                        .HasColumnType("int");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("BINARY(8)");
+
+                    b.Property<DateTime>("SearchedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SearchedAt")
+                        .HasDatabaseName("IX_SearchLogs_SearchedAt");
+
+                    b.ToTable("SearchLogs");
                 });
 
             modelBuilder.Entity("CRM.Core.Entities.ServiceRequest", b =>
@@ -21490,13 +23616,15 @@ namespace CRM.Infrastructure.Migrations
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<decimal?>("ARR")
-                        .HasColumnType("decimal(65,30)");
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
 
                     b.Property<int>("AccountId")
                         .HasColumnType("int");
 
                     b.Property<decimal>("Amount")
-                        .HasColumnType("decimal(65,30)");
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
 
                     b.Property<string>("BillingAddress")
                         .HasMaxLength(255)
@@ -21533,6 +23661,10 @@ namespace CRM.Infrastructure.Migrations
                         .HasColumnType("datetime(6)");
 
                     b.Property<string>("BillingState")
+                        .HasMaxLength(100)
+                        .HasColumnType("VARCHAR(100)");
+
+                    b.Property<string>("BillingTimezone")
                         .HasMaxLength(100)
                         .HasColumnType("VARCHAR(100)");
 
@@ -21593,6 +23725,16 @@ namespace CRM.Infrastructure.Migrations
                     b.Property<DateTime?>("CurrentPeriodStart")
                         .HasColumnType("datetime(6)");
 
+                    b.Property<int>("DunningAttemptCount")
+                        .HasColumnType("int");
+
+                    b.Property<int>("DunningGracePeriodDays")
+                        .HasColumnType("int");
+
+                    b.Property<string>("DunningNotificationEmails")
+                        .HasMaxLength(500)
+                        .HasColumnType("VARCHAR(500)");
+
                     b.Property<DateTime?>("EndDate")
                         .HasColumnType("datetime(6)");
 
@@ -21609,14 +23751,19 @@ namespace CRM.Infrastructure.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("tinyint(1)");
 
+                    b.Property<DateTime?>("LastDunningDate")
+                        .HasColumnType("datetime(6)");
+
                     b.Property<decimal?>("MRR")
-                        .HasColumnType("decimal(65,30)");
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
 
                     b.Property<DateTime?>("NextBillingDate")
                         .HasColumnType("datetime(6)");
 
                     b.Property<decimal?>("OneTimeFee")
-                        .HasColumnType("decimal(65,30)");
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
 
                     b.Property<int?>("OrderId")
                         .HasColumnType("int");
@@ -21630,7 +23777,13 @@ namespace CRM.Infrastructure.Migrations
                     b.Property<int?>("ProductId")
                         .HasColumnType("int");
 
+                    b.Property<int>("ProrationType")
+                        .HasColumnType("int");
+
                     b.Property<DateTime?>("RenewalDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime?>("ResumeAt")
                         .HasColumnType("datetime(6)");
 
                     b.Property<byte[]>("RowVersion")
@@ -21641,6 +23794,9 @@ namespace CRM.Infrastructure.Migrations
                     b.Property<string>("SLA")
                         .HasMaxLength(255)
                         .HasColumnType("VARCHAR(255)");
+
+                    b.Property<bool>("SendDunningEscalationEmails")
+                        .HasColumnType("tinyint(1)");
 
                     b.Property<int?>("ServiceTier")
                         .HasColumnType("int");
@@ -21669,6 +23825,12 @@ namespace CRM.Infrastructure.Migrations
 
                     b.Property<int?>("TermCategory")
                         .HasColumnType("int");
+
+                    b.Property<DateTime?>("TrialEndDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime?>("TrialStartDate")
+                        .HasColumnType("datetime(6)");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime(6)");
@@ -21699,13 +23861,15 @@ namespace CRM.Infrastructure.Migrations
                     MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<decimal>("Amount")
-                        .HasColumnType("decimal(65,30)");
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
 
                     b.Property<string>("Description")
-                        .HasColumnType("TEXT");
+                        .HasMaxLength(1000)
+                        .HasColumnType("VARCHAR(1000)");
 
                     b.Property<DateTime?>("EndDate")
                         .HasColumnType("datetime(6)");
@@ -21714,13 +23878,15 @@ namespace CRM.Infrastructure.Migrations
                         .HasColumnType("tinyint(1)");
 
                     b.Property<string>("ItemName")
-                        .HasColumnType("TEXT");
+                        .HasMaxLength(255)
+                        .HasColumnType("VARCHAR(255)");
 
                     b.Property<int?>("ProductId")
                         .HasColumnType("int");
 
                     b.Property<decimal>("Quantity")
-                        .HasColumnType("decimal(65,30)");
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
 
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
@@ -21734,7 +23900,8 @@ namespace CRM.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     b.Property<decimal>("UnitPrice")
-                        .HasColumnType("decimal(65,30)");
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("datetime(6)");
@@ -21823,17 +23990,20 @@ namespace CRM.Infrastructure.Migrations
                         .HasColumnType("datetime(6)");
 
                     b.Property<string>("Description")
-                        .HasColumnType("TEXT");
+                        .HasMaxLength(500)
+                        .HasColumnType("VARCHAR(500)");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("tinyint(1)");
 
                     b.Property<string>("MetricName")
                         .IsRequired()
-                        .HasColumnType("TEXT");
+                        .HasMaxLength(100)
+                        .HasColumnType("VARCHAR(100)");
 
                     b.Property<decimal>("Quantity")
-                        .HasColumnType("decimal(65,30)");
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
 
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
@@ -21856,7 +24026,8 @@ namespace CRM.Infrastructure.Migrations
                         .HasColumnType("datetime(6)");
 
                     b.Property<string>("UsageType")
-                        .HasColumnType("TEXT");
+                        .HasMaxLength(100)
+                        .HasColumnType("VARCHAR(100)");
 
                     b.HasKey("Id");
 
@@ -21885,7 +24056,8 @@ namespace CRM.Infrastructure.Migrations
                         .HasColumnType("tinyint(1)");
 
                     b.Property<decimal>("Limit")
-                        .HasColumnType("decimal(65,30)");
+                        .HasPrecision(18, 4)
+                        .HasColumnType("decimal(18,4)");
 
                     b.Property<string>("MetricName")
                         .IsRequired()
@@ -22443,6 +24615,164 @@ namespace CRM.Infrastructure.Migrations
                     b.ToTable("TeamMembers");
                 });
 
+            modelBuilder.Entity("CRM.Core.Entities.Territory", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AssignmentRulesJson")
+                        .HasMaxLength(4000)
+                        .HasColumnType("VARCHAR(4000)");
+
+                    b.Property<string>("Cities")
+                        .HasMaxLength(2000)
+                        .HasColumnType("VARCHAR(2000)");
+
+                    b.Property<string>("Code")
+                        .HasMaxLength(50)
+                        .HasColumnType("VARCHAR(50)");
+
+                    b.Property<string>("Countries")
+                        .HasMaxLength(1000)
+                        .HasColumnType("VARCHAR(1000)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(1000)
+                        .HasColumnType("VARCHAR(1000)");
+
+                    b.Property<string>("Industries")
+                        .HasMaxLength(1000)
+                        .HasColumnType("VARCHAR(1000)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<int?>("MaxCompanySize")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("MaxRevenue")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int?>("MinCompanySize")
+                        .HasColumnType("int");
+
+                    b.Property<decimal?>("MinRevenue")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("VARCHAR(255)");
+
+                    b.Property<int?>("OwnerUserId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ParentTerritoryId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PostalCodePatterns")
+                        .HasMaxLength(2000)
+                        .HasColumnType("VARCHAR(2000)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("BINARY(8)");
+
+                    b.Property<string>("States")
+                        .HasMaxLength(2000)
+                        .HasColumnType("VARCHAR(2000)");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("OwnerUserId");
+
+                    b.HasIndex("ParentTerritoryId");
+
+                    b.ToTable("Territories");
+                });
+
+            modelBuilder.Entity("CRM.Core.Entities.TrustedDevice", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("DeviceId")
+                        .IsRequired()
+                        .HasMaxLength(128)
+                        .HasColumnType("VARCHAR(128)");
+
+                    b.Property<string>("DeviceName")
+                        .HasMaxLength(256)
+                        .HasColumnType("VARCHAR(256)");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("FingerprintHash")
+                        .HasMaxLength(256)
+                        .HasColumnType("VARCHAR(256)");
+
+                    b.Property<string>("IpAddress")
+                        .HasMaxLength(45)
+                        .HasColumnType("VARCHAR(45)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<DateTime?>("LastUsedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("BINARY(8)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("UserAgent")
+                        .HasMaxLength(512)
+                        .HasColumnType("VARCHAR(512)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("IX_TrustedDevices_UserId");
+
+                    b.HasIndex("UserId", "DeviceId")
+                        .HasDatabaseName("IX_TrustedDevices_UserId_DeviceId");
+
+                    b.HasIndex("UserId", "ExpiresAt")
+                        .HasDatabaseName("IX_TrustedDevices_UserId_ExpiresAt");
+
+                    b.ToTable("TrustedDevices", (string)null);
+                });
+
             modelBuilder.Entity("CRM.Core.Entities.UICustomization", b =>
                 {
                     b.Property<int>("Id")
@@ -22844,6 +25174,49 @@ namespace CRM.Infrastructure.Migrations
                     b.ToTable("UserApprovalRequests");
                 });
 
+            modelBuilder.Entity("CRM.Core.Entities.UserDashboardLayout", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<bool>("IsDefault")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("LayoutJson")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("BINARY(8)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("UserDashboardLayouts");
+                });
+
             modelBuilder.Entity("CRM.Core.Entities.UserGroup", b =>
                 {
                     b.Property<int>("Id")
@@ -23135,6 +25508,97 @@ namespace CRM.Infrastructure.Migrations
                     b.ToTable("UserGroupMembers");
                 });
 
+            modelBuilder.Entity("CRM.Core.Entities.UserListViewPreference", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("ColumnsJson")
+                        .IsRequired()
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("EntityType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("VARCHAR(100)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("BINARY(8)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "EntityType")
+                        .IsUnique()
+                        .HasDatabaseName("IX_UserListViewPreferences_UserId_EntityType");
+
+                    b.ToTable("UserListViewPreferences");
+                });
+
+            modelBuilder.Entity("CRM.Core.Entities.UserOAuthLink", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AccessToken")
+                        .HasMaxLength(2048)
+                        .HasColumnType("VARCHAR(2048)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Provider")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("VARCHAR(64)");
+
+                    b.Property<string>("ProviderEmail")
+                        .HasMaxLength(256)
+                        .HasColumnType("VARCHAR(256)");
+
+                    b.Property<string>("ProviderUserId")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("VARCHAR(256)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("IX_UserOAuthLinks_UserId");
+
+                    b.HasIndex("Provider", "ProviderUserId")
+                        .IsUnique()
+                        .HasDatabaseName("IX_UserOAuthLinks_Provider_ProviderUserId");
+
+                    b.HasIndex("UserId", "Provider")
+                        .IsUnique()
+                        .HasDatabaseName("IX_UserOAuthLinks_UserId_Provider");
+
+                    b.ToTable("UserOAuthLinks", (string)null);
+                });
+
             modelBuilder.Entity("CRM.Core.Entities.UserProfile", b =>
                 {
                     b.Property<int>("Id")
@@ -23281,6 +25745,66 @@ namespace CRM.Infrastructure.Migrations
                     b.ToTable("UserRoleAssignment");
                 });
 
+            modelBuilder.Entity("CRM.Core.Entities.UserSession", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("DeviceId")
+                        .HasMaxLength(256)
+                        .HasColumnType("VARCHAR(256)");
+
+                    b.Property<DateTime>("ExpiresAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("IpAddress")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("VARCHAR(64)");
+
+                    b.Property<bool>("IpBindingEnabled")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsRevoked")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<DateTime>("LastActivityAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("SessionToken")
+                        .IsRequired()
+                        .HasMaxLength(512)
+                        .HasColumnType("VARCHAR(512)");
+
+                    b.Property<string>("UserAgent")
+                        .IsRequired()
+                        .HasMaxLength(512)
+                        .HasColumnType("VARCHAR(512)");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SessionToken")
+                        .IsUnique()
+                        .HasDatabaseName("IX_UserSessions_SessionToken");
+
+                    b.HasIndex("UserId")
+                        .HasDatabaseName("IX_UserSessions_UserId");
+
+                    b.HasIndex("UserId", "IsRevoked", "ExpiresAt")
+                        .HasDatabaseName("IX_UserSessions_UserId_Active");
+
+                    b.ToTable("UserSessions", (string)null);
+                });
+
             modelBuilder.Entity("CRM.Core.Entities.WebAuthnCredential", b =>
                 {
                     b.Property<int>("Id")
@@ -23304,8 +25828,23 @@ namespace CRM.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("longblob");
 
+                    b.Property<string>("DeviceName")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("DeviceType")
+                        .HasColumnType("TEXT");
+
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsPlatformCredential")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsRevoked")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<DateTime?>("LastUsedAt")
+                        .HasColumnType("datetime(6)");
 
                     b.Property<string>("Name")
                         .IsRequired()
@@ -23315,10 +25854,16 @@ namespace CRM.Infrastructure.Migrations
                         .IsRequired()
                         .HasColumnType("longblob");
 
+                    b.Property<DateTime?>("RevokedAt")
+                        .HasColumnType("datetime(6)");
+
                     b.Property<byte[]>("RowVersion")
                         .IsConcurrencyToken()
                         .ValueGeneratedOnAddOrUpdate()
                         .HasColumnType("BINARY(8)");
+
+                    b.Property<long>("SignCount")
+                        .HasColumnType("bigint");
 
                     b.Property<long>("SignatureCounter")
                         .HasColumnType("bigint");
@@ -23333,6 +25878,8 @@ namespace CRM.Infrastructure.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("WebAuthnCredentials");
                 });
@@ -23490,6 +26037,90 @@ namespace CRM.Infrastructure.Migrations
                         .HasDatabaseName("IX_WebSessions_WebVisitorId_StartedAt");
 
                     b.ToTable("WebSessions");
+                });
+
+            modelBuilder.Entity("CRM.Core.Entities.WebToLeadForm", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("CaptchaEnabled")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("CustomStyling")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int?>("DefaultOwnerId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(1000)
+                        .HasColumnType("VARCHAR(1000)");
+
+                    b.Property<string>("EmbedKey")
+                        .HasMaxLength(100)
+                        .HasColumnType("VARCHAR(100)");
+
+                    b.Property<string>("FieldsJson")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("tinyint(1)");
+
+                    b.Property<DateTime?>("LastSubmissionAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("VARCHAR(255)");
+
+                    b.Property<string>("NotifyEmail")
+                        .HasMaxLength(255)
+                        .HasColumnType("VARCHAR(255)");
+
+                    b.Property<string>("NotifyEmails")
+                        .HasMaxLength(1000)
+                        .HasColumnType("VARCHAR(1000)");
+
+                    b.Property<string>("RedirectUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("VARCHAR(500)");
+
+                    b.Property<byte[]>("RowVersion")
+                        .IsConcurrencyToken()
+                        .ValueGeneratedOnAddOrUpdate()
+                        .HasColumnType("BINARY(8)");
+
+                    b.Property<int>("SubmissionCount")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("TargetLeadSourceId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ThankYouMessage")
+                        .HasMaxLength(2000)
+                        .HasColumnType("VARCHAR(2000)");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("datetime(6)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("DefaultOwnerId");
+
+                    b.HasIndex("TargetLeadSourceId");
+
+                    b.ToTable("WebToLeadForms");
                 });
 
             modelBuilder.Entity("CRM.Core.Entities.WebVisitor", b =>
@@ -23732,6 +26363,13 @@ namespace CRM.Infrastructure.Migrations
                     b.Property<int>("AttemptNumber")
                         .HasColumnType("int");
 
+                    b.Property<int>("ChainDepth")
+                        .HasColumnType("int");
+
+                    b.Property<string>("CorrelationId")
+                        .HasMaxLength(100)
+                        .HasColumnType("VARCHAR(100)");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime(6)");
 
@@ -23740,6 +26378,13 @@ namespace CRM.Infrastructure.Migrations
 
                     b.Property<long?>("DurationMs")
                         .HasColumnType("bigint");
+
+                    b.Property<int?>("EntityId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("EntityType")
+                        .HasMaxLength(100)
+                        .HasColumnType("VARCHAR(100)");
 
                     b.Property<string>("ErrorMessage")
                         .HasMaxLength(1000)
@@ -23753,6 +26398,9 @@ namespace CRM.Infrastructure.Migrations
 
                     b.Property<DateTime?>("NextRetryAt")
                         .HasColumnType("datetime(6)");
+
+                    b.Property<int?>("ParentEventId")
+                        .HasColumnType("int");
 
                     b.Property<string>("ResponseBody")
                         .HasMaxLength(2000)
@@ -23783,6 +26431,8 @@ namespace CRM.Infrastructure.Migrations
 
                     b.HasIndex("NextRetryAt")
                         .HasDatabaseName("IX_WebhookDeliveriesGeneral_NextRetryAt");
+
+                    b.HasIndex("ParentEventId");
 
                     b.HasIndex("Status")
                         .HasDatabaseName("IX_WebhookDeliveriesGeneral_Status");
@@ -26499,6 +29149,16 @@ namespace CRM.Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("CRM.Core.Entities.AuthAuditLog", b =>
+                {
+                    b.HasOne("CRM.Core.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("CRM.Core.Entities.BillingHistory", b =>
                 {
                     b.HasOne("CRM.Core.Entities.DunningRecord", "DunningRecord")
@@ -26984,6 +29644,25 @@ namespace CRM.Infrastructure.Migrations
                     b.Navigation("Quote");
                 });
 
+            modelBuilder.Entity("CRM.Core.Entities.ContractVersion", b =>
+                {
+                    b.HasOne("CRM.Core.Entities.Contract", "Contract")
+                        .WithMany()
+                        .HasForeignKey("ContractId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("CRM.Core.Entities.User", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedById")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Contract");
+
+                    b.Navigation("CreatedByUser");
+                });
+
             modelBuilder.Entity("CRM.Core.Entities.CreditApplication", b =>
                 {
                     b.HasOne("CRM.Core.Entities.User", "AppliedBy")
@@ -27117,6 +29796,17 @@ namespace CRM.Infrastructure.Migrations
                     b.Navigation("ParentTask");
                 });
 
+            modelBuilder.Entity("CRM.Core.Entities.CustomFieldValidationRule", b =>
+                {
+                    b.HasOne("CRM.Core.Entities.CustomFieldDefinition", "CustomFieldDefinition")
+                        .WithMany("ValidationRules")
+                        .HasForeignKey("CustomFieldDefinitionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CustomFieldDefinition");
+                });
+
             modelBuilder.Entity("CRM.Core.Entities.Dashboard", b =>
                 {
                     b.HasOne("CRM.Core.Entities.User", "Owner")
@@ -27177,6 +29867,16 @@ namespace CRM.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("CloudDeployment");
+                });
+
+            modelBuilder.Entity("CRM.Core.Entities.DeviceAuthorizationCode", b =>
+                {
+                    b.HasOne("CRM.Core.Entities.User", "AuthorizedUser")
+                        .WithMany()
+                        .HasForeignKey("AuthorizedUserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("AuthorizedUser");
                 });
 
             modelBuilder.Entity("CRM.Core.Entities.DunningRecord", b =>
@@ -27589,6 +30289,23 @@ namespace CRM.Infrastructure.Migrations
                     b.Navigation("Tag");
                 });
 
+            modelBuilder.Entity("CRM.Core.Entities.EscalationLog", b =>
+                {
+                    b.HasOne("CRM.Core.Entities.User", "EscalatedByUser")
+                        .WithMany()
+                        .HasForeignKey("EscalatedByUserId");
+
+                    b.HasOne("CRM.Core.Entities.ServiceRequest", "ServiceRequest")
+                        .WithMany()
+                        .HasForeignKey("ServiceRequestId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("EscalatedByUser");
+
+                    b.Navigation("ServiceRequest");
+                });
+
             modelBuilder.Entity("CRM.Core.Entities.EventAttendee", b =>
                 {
                     b.HasOne("CRM.Core.Entities.Activity", "Activity")
@@ -27732,6 +30449,17 @@ namespace CRM.Infrastructure.Migrations
                     b.Navigation("WebVisitor");
                 });
 
+            modelBuilder.Entity("CRM.Core.Entities.FormulaField", b =>
+                {
+                    b.HasOne("CRM.Core.Entities.CustomFieldDefinition", "CustomFieldDefinition")
+                        .WithMany()
+                        .HasForeignKey("CustomFieldDefinitionId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CustomFieldDefinition");
+                });
+
             modelBuilder.Entity("CRM.Core.Entities.HealthCheckLog", b =>
                 {
                     b.HasOne("CRM.Core.Entities.CloudDeployment", "CloudDeployment")
@@ -27825,6 +30553,25 @@ namespace CRM.Infrastructure.Migrations
                     b.Navigation("Article");
 
                     b.Navigation("RelatedArticle");
+                });
+
+            modelBuilder.Entity("CRM.Core.Entities.ITSM.ArticleVersion", b =>
+                {
+                    b.HasOne("CRM.Core.Entities.ITSM.KnowledgeArticle", "Article")
+                        .WithMany()
+                        .HasForeignKey("ArticleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("CRM.Core.Entities.User", "ChangedBy")
+                        .WithMany()
+                        .HasForeignKey("ChangedById")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Article");
+
+                    b.Navigation("ChangedBy");
                 });
 
             modelBuilder.Entity("CRM.Core.Entities.ITSM.CIRelationship", b =>
@@ -28956,10 +31703,26 @@ namespace CRM.Infrastructure.Migrations
                         .HasForeignKey("ContactId")
                         .OnDelete(DeleteBehavior.SetNull);
 
+                    b.HasOne("CRM.Core.Entities.LeadSourceConfig", null)
+                        .WithMany("Leads")
+                        .HasForeignKey("LeadSourceConfigId");
+
+                    b.HasOne("CRM.Core.Entities.LeadSourceEntity", "LeadSourceEntity")
+                        .WithMany("Leads")
+                        .HasForeignKey("LeadSourceId");
+
+                    b.HasOne("CRM.Core.Entities.MarketingCampaign", "NurtureCampaign")
+                        .WithMany()
+                        .HasForeignKey("NurtureCampaignId");
+
                     b.HasOne("CRM.Core.Entities.User", "Owner")
                         .WithMany()
                         .HasForeignKey("OwnerId")
                         .OnDelete(DeleteBehavior.SetNull);
+
+                    b.HasOne("CRM.Core.Entities.Territory", "Territory")
+                        .WithMany("Leads")
+                        .HasForeignKey("TerritoryId");
 
                     b.Navigation("Account");
 
@@ -28967,7 +31730,13 @@ namespace CRM.Infrastructure.Migrations
 
                     b.Navigation("Contact");
 
+                    b.Navigation("LeadSourceEntity");
+
+                    b.Navigation("NurtureCampaign");
+
                     b.Navigation("Owner");
+
+                    b.Navigation("Territory");
                 });
 
             modelBuilder.Entity("CRM.Core.Entities.LeadProductInterest", b =>
@@ -29057,6 +31826,15 @@ namespace CRM.Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("CRM.Core.Entities.LeadSourceConfig", b =>
+                {
+                    b.HasOne("CRM.Core.Entities.MarketingCampaign", "Campaign")
+                        .WithMany()
+                        .HasForeignKey("CampaignId");
+
+                    b.Navigation("Campaign");
+                });
+
             modelBuilder.Entity("CRM.Core.Entities.Locality", b =>
                 {
                     b.HasOne("CRM.Core.Entities.ZipCode", "ZipCode")
@@ -29065,6 +31843,16 @@ namespace CRM.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("ZipCode");
+                });
+
+            modelBuilder.Entity("CRM.Core.Entities.LoginAttempt", b =>
+                {
+                    b.HasOne("CRM.Core.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.SetNull);
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("CRM.Core.Entities.LookupItem", b =>
@@ -29076,6 +31864,17 @@ namespace CRM.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Category");
+                });
+
+            modelBuilder.Entity("CRM.Core.Entities.MagicLinkToken", b =>
+                {
+                    b.HasOne("CRM.Core.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("CRM.Core.Entities.MarketingCampaign", b =>
@@ -29103,6 +31902,15 @@ namespace CRM.Infrastructure.Migrations
                     b.Navigation("Owner");
 
                     b.Navigation("ParentCampaign");
+                });
+
+            modelBuilder.Entity("CRM.Core.Entities.NavigationConfigEntity", b =>
+                {
+                    b.HasOne("CRM.Core.Entities.NavigationConfigEntity", "Parent")
+                        .WithMany()
+                        .HasForeignKey("ParentId");
+
+                    b.Navigation("Parent");
                 });
 
             modelBuilder.Entity("CRM.Core.Entities.Note", b =>
@@ -29172,6 +31980,17 @@ namespace CRM.Infrastructure.Migrations
                     b.Navigation("ServiceRequest");
                 });
 
+            modelBuilder.Entity("CRM.Core.Entities.NotificationPreference", b =>
+                {
+                    b.HasOne("CRM.Core.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("CRM.Core.Entities.OAuthToken", b =>
                 {
                     b.HasOne("CRM.Core.Entities.User", "User")
@@ -29191,6 +32010,10 @@ namespace CRM.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("CRM.Core.Entities.Competitor", "CompetitorWinner")
+                        .WithMany()
+                        .HasForeignKey("CompetitorWinnerId");
+
                     b.HasOne("CRM.Core.Entities.Lead", "Lead")
                         .WithMany("Opportunities")
                         .HasForeignKey("LeadId")
@@ -29208,11 +32031,40 @@ namespace CRM.Infrastructure.Migrations
 
                     b.Navigation("Account");
 
+                    b.Navigation("CompetitorWinner");
+
                     b.Navigation("Lead");
 
                     b.Navigation("PrimaryContact");
 
                     b.Navigation("SalesOwner");
+                });
+
+            modelBuilder.Entity("CRM.Core.Entities.OpportunityCompetitor", b =>
+                {
+                    b.HasOne("CRM.Core.Entities.Competitor", "Competitor")
+                        .WithMany()
+                        .HasForeignKey("CompetitorId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("CRM.Core.Entities.Competitor", null)
+                        .WithMany("OpportunityCompetitors")
+                        .HasForeignKey("CompetitorId1");
+
+                    b.HasOne("CRM.Core.Entities.Opportunity", "Opportunity")
+                        .WithMany()
+                        .HasForeignKey("OpportunityId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("CRM.Core.Entities.Opportunity", null)
+                        .WithMany("Competitors")
+                        .HasForeignKey("OpportunityId1");
+
+                    b.Navigation("Competitor");
+
+                    b.Navigation("Opportunity");
                 });
 
             modelBuilder.Entity("CRM.Core.Entities.OpportunityProduct", b =>
@@ -29232,6 +32084,31 @@ namespace CRM.Infrastructure.Migrations
                     b.Navigation("Opportunity");
 
                     b.Navigation("Product");
+                });
+
+            modelBuilder.Entity("CRM.Core.Entities.OpportunityTeamMember", b =>
+                {
+                    b.HasOne("CRM.Core.Entities.CommissionPlan", "CommissionPlan")
+                        .WithMany()
+                        .HasForeignKey("CommissionPlanId");
+
+                    b.HasOne("CRM.Core.Entities.Opportunity", "Opportunity")
+                        .WithMany("TeamMembers")
+                        .HasForeignKey("OpportunityId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("CRM.Core.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CommissionPlan");
+
+                    b.Navigation("Opportunity");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("CRM.Core.Entities.Order", b =>
@@ -29308,6 +32185,46 @@ namespace CRM.Infrastructure.Migrations
                     b.Navigation("Product");
 
                     b.Navigation("QuoteLineItem");
+                });
+
+            modelBuilder.Entity("CRM.Core.Entities.OrderReturn", b =>
+                {
+                    b.HasOne("CRM.Core.Entities.Account", "Account")
+                        .WithMany()
+                        .HasForeignKey("AccountId");
+
+                    b.HasOne("CRM.Core.Entities.User", "InitiatedBy")
+                        .WithMany()
+                        .HasForeignKey("InitiatedById");
+
+                    b.HasOne("CRM.Core.Entities.Order", "Order")
+                        .WithMany()
+                        .HasForeignKey("OrderId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("CRM.Core.Entities.User", "ProcessedBy")
+                        .WithMany()
+                        .HasForeignKey("ProcessedById");
+
+                    b.Navigation("Account");
+
+                    b.Navigation("InitiatedBy");
+
+                    b.Navigation("Order");
+
+                    b.Navigation("ProcessedBy");
+                });
+
+            modelBuilder.Entity("CRM.Core.Entities.PasswordHistory", b =>
+                {
+                    b.HasOne("CRM.Core.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("CRM.Core.Entities.Payment", b =>
@@ -29583,6 +32500,33 @@ namespace CRM.Infrastructure.Migrations
                     b.Navigation("CentralAccount");
                 });
 
+            modelBuilder.Entity("CRM.Core.Entities.ReportShare", b =>
+                {
+                    b.HasOne("CRM.Core.Entities.Reports.ReportDefinition", "Report")
+                        .WithMany()
+                        .HasForeignKey("ReportId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("CRM.Core.Entities.User", "SharedByUser")
+                        .WithMany()
+                        .HasForeignKey("SharedByUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("CRM.Core.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Report");
+
+                    b.Navigation("SharedByUser");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("CRM.Core.Entities.Reports.ReportDefinition", b =>
                 {
                     b.HasOne("CRM.Core.Entities.User", "CreatedByUser")
@@ -29745,6 +32689,17 @@ namespace CRM.Infrastructure.Migrations
                     b.Navigation("ParentQuota");
 
                     b.Navigation("Team");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("CRM.Core.Entities.SavedFilter", b =>
+                {
+                    b.HasOne("CRM.Core.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("User");
                 });
@@ -29957,7 +32912,8 @@ namespace CRM.Infrastructure.Migrations
                 {
                     b.HasOne("CRM.Core.Entities.Product", "Product")
                         .WithMany()
-                        .HasForeignKey("ProductId");
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.HasOne("CRM.Core.Entities.Subscription", "Subscription")
                         .WithMany()
@@ -29998,7 +32954,8 @@ namespace CRM.Infrastructure.Migrations
 
                     b.HasOne("CRM.Core.Entities.SubscriptionItem", "SubscriptionItem")
                         .WithMany()
-                        .HasForeignKey("SubscriptionItemId");
+                        .HasForeignKey("SubscriptionItemId")
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Subscription");
 
@@ -30056,6 +33013,32 @@ namespace CRM.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Team");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("CRM.Core.Entities.Territory", b =>
+                {
+                    b.HasOne("CRM.Core.Entities.User", "Owner")
+                        .WithMany()
+                        .HasForeignKey("OwnerUserId");
+
+                    b.HasOne("CRM.Core.Entities.Territory", "ParentTerritory")
+                        .WithMany("ChildTerritories")
+                        .HasForeignKey("ParentTerritoryId");
+
+                    b.Navigation("Owner");
+
+                    b.Navigation("ParentTerritory");
+                });
+
+            modelBuilder.Entity("CRM.Core.Entities.TrustedDevice", b =>
+                {
+                    b.HasOne("CRM.Core.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("User");
                 });
@@ -30121,6 +33104,17 @@ namespace CRM.Infrastructure.Migrations
                     b.Navigation("ReviewedByUser");
                 });
 
+            modelBuilder.Entity("CRM.Core.Entities.UserDashboardLayout", b =>
+                {
+                    b.HasOne("CRM.Core.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("CRM.Core.Entities.UserGroupMember", b =>
                 {
                     b.HasOne("CRM.Core.Entities.UserGroup", "UserGroup")
@@ -30138,6 +33132,17 @@ namespace CRM.Infrastructure.Migrations
                     b.Navigation("User");
 
                     b.Navigation("UserGroup");
+                });
+
+            modelBuilder.Entity("CRM.Core.Entities.UserOAuthLink", b =>
+                {
+                    b.HasOne("CRM.Core.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("CRM.Core.Entities.UserProfile", b =>
@@ -30166,6 +33171,28 @@ namespace CRM.Infrastructure.Migrations
                         .IsRequired();
 
                     b.Navigation("Role");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("CRM.Core.Entities.UserSession", b =>
+                {
+                    b.HasOne("CRM.Core.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("CRM.Core.Entities.WebAuthnCredential", b =>
+                {
+                    b.HasOne("CRM.Core.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.Navigation("User");
                 });
@@ -30199,6 +33226,21 @@ namespace CRM.Infrastructure.Migrations
                     b.Navigation("WebVisitor");
                 });
 
+            modelBuilder.Entity("CRM.Core.Entities.WebToLeadForm", b =>
+                {
+                    b.HasOne("CRM.Core.Entities.User", "DefaultOwner")
+                        .WithMany()
+                        .HasForeignKey("DefaultOwnerId");
+
+                    b.HasOne("CRM.Core.Entities.LeadSourceConfig", "TargetLeadSource")
+                        .WithMany()
+                        .HasForeignKey("TargetLeadSourceId");
+
+                    b.Navigation("DefaultOwner");
+
+                    b.Navigation("TargetLeadSource");
+                });
+
             modelBuilder.Entity("CRM.Core.Entities.WebVisitor", b =>
                 {
                     b.HasOne("CRM.Core.Entities.Account", "Account")
@@ -30224,6 +33266,10 @@ namespace CRM.Infrastructure.Migrations
 
             modelBuilder.Entity("CRM.Core.Entities.WebhookDeliveryGeneral", b =>
                 {
+                    b.HasOne("CRM.Core.Entities.WebhookEvent", "ParentEvent")
+                        .WithMany()
+                        .HasForeignKey("ParentEventId");
+
                     b.HasOne("CRM.Core.Entities.WebhookEndpoint", "WebhookEndpoint")
                         .WithMany()
                         .HasForeignKey("WebhookEndpointId")
@@ -30235,6 +33281,8 @@ namespace CRM.Infrastructure.Migrations
                         .HasForeignKey("WebhookEventId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("ParentEvent");
 
                     b.Navigation("WebhookEndpoint");
 
@@ -30685,6 +33733,11 @@ namespace CRM.Infrastructure.Migrations
                     b.Navigation("Replies");
                 });
 
+            modelBuilder.Entity("CRM.Core.Entities.Competitor", b =>
+                {
+                    b.Navigation("OpportunityCompetitors");
+                });
+
             modelBuilder.Entity("CRM.Core.Entities.Contract", b =>
                 {
                     b.Navigation("ChildContracts");
@@ -30700,6 +33753,11 @@ namespace CRM.Infrastructure.Migrations
             modelBuilder.Entity("CRM.Core.Entities.CrmTask", b =>
                 {
                     b.Navigation("SubTasks");
+                });
+
+            modelBuilder.Entity("CRM.Core.Entities.CustomFieldDefinition", b =>
+                {
+                    b.Navigation("ValidationRules");
                 });
 
             modelBuilder.Entity("CRM.Core.Entities.Dashboard", b =>
@@ -30955,6 +34013,16 @@ namespace CRM.Infrastructure.Migrations
                     b.Navigation("Targets");
                 });
 
+            modelBuilder.Entity("CRM.Core.Entities.LeadSourceConfig", b =>
+                {
+                    b.Navigation("Leads");
+                });
+
+            modelBuilder.Entity("CRM.Core.Entities.LeadSourceEntity", b =>
+                {
+                    b.Navigation("Leads");
+                });
+
             modelBuilder.Entity("CRM.Core.Entities.LookupCategory", b =>
                 {
                     b.Navigation("Items");
@@ -30971,7 +34039,11 @@ namespace CRM.Infrastructure.Migrations
 
             modelBuilder.Entity("CRM.Core.Entities.Opportunity", b =>
                 {
+                    b.Navigation("Competitors");
+
                     b.Navigation("Products");
+
+                    b.Navigation("TeamMembers");
                 });
 
             modelBuilder.Entity("CRM.Core.Entities.Order", b =>
@@ -31146,6 +34218,13 @@ namespace CRM.Infrastructure.Migrations
                     b.Navigation("Members");
 
                     b.Navigation("Quotas");
+                });
+
+            modelBuilder.Entity("CRM.Core.Entities.Territory", b =>
+                {
+                    b.Navigation("ChildTerritories");
+
+                    b.Navigation("Leads");
                 });
 
             modelBuilder.Entity("CRM.Core.Entities.User", b =>
