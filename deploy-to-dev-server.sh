@@ -359,12 +359,12 @@ docker images | grep -E "crm-api|crm-frontend"
 
 # Stop and remove existing containers if any
 echo "[3/5] Stopping existing containers (if any)..."
-docker-compose down 2>/dev/null || true
+docker-compose down --remove-orphans 2>/dev/null || true
 sleep 2
 
-# Start services
+# Start services (force recreate to pick up config changes)
 echo "[4/5] Starting services with Docker Compose..."
-docker-compose -f docker-compose.yml up -d
+docker-compose -f docker-compose.yml up -d --force-recreate
 
 # Wait for services to initialize
 echo "[5/5] Waiting for services to be ready..."
