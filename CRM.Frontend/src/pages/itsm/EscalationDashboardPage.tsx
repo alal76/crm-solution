@@ -23,31 +23,6 @@ import ListIcon from '@mui/icons-material/List';
 import TrendingUpIcon from '@mui/icons-material/TrendingUp';
 import escalationService, { EscalationRuleDto } from '../../services/escalationService';
 
-interface EscalationEvent {
-  time: string;
-  serviceRequestId: number;
-  ruleApplied: string;
-  escalatedTo: string;
-  status: 'Pending' | 'Acknowledged' | 'Resolved';
-}
-
-// TODO: Connect to real-time escalation events API when available
-const MOCK_EVENTS: EscalationEvent[] = [
-  { time: '10 min ago', serviceRequestId: 1042, ruleApplied: 'Critical SLA Breach', escalatedTo: 'Support Lead', status: 'Pending' },
-  { time: '35 min ago', serviceRequestId: 1038, ruleApplied: 'High Priority Unassigned', escalatedTo: 'Tier 2 Group', status: 'Acknowledged' },
-  { time: '1h ago', serviceRequestId: 1031, ruleApplied: 'Customer Tier A Overdue', escalatedTo: 'Account Manager', status: 'Resolved' },
-  { time: '2h ago', serviceRequestId: 1027, ruleApplied: 'Critical SLA Breach', escalatedTo: 'Support Lead', status: 'Resolved' },
-  { time: '3h ago', serviceRequestId: 1019, ruleApplied: 'Time Elapsed 4h', escalatedTo: 'Manager', status: 'Resolved' },
-];
-
-const statusColor = (status: EscalationEvent['status']): 'error' | 'warning' | 'success' => {
-  switch (status) {
-    case 'Pending': return 'error';
-    case 'Acknowledged': return 'warning';
-    case 'Resolved': return 'success';
-  }
-};
-
 interface PriorityRow {
   priority: string;
   total: number;
@@ -79,7 +54,7 @@ const EscalationDashboardPage: React.FC = () => {
   }, [loadRules]);
 
   const activeCount = rules.filter(r => r.isActive).length;
-  const pendingCount = MOCK_EVENTS.filter(e => e.status === 'Pending').length;
+  const inactiveCount = rules.length - activeCount;
 
   const priorityRows: PriorityRow[] = ['Critical', 'High', 'Medium', 'Low'].map((priority) => ({
     priority,
@@ -88,10 +63,10 @@ const EscalationDashboardPage: React.FC = () => {
   }));
 
   const summaryCards = [
-    { label: 'Total Escalated Today', value: MOCK_EVENTS.length, color: 'primary.main', subtitle: 'last 24 hours' },
-    { label: 'Pending Escalations', value: pendingCount, color: 'error.main', subtitle: 'awaiting action' },
-    { label: 'Avg Response Time', value: '18 min', color: 'warning.main', subtitle: 'this week' },
-    { label: 'Escalation Rate', value: `${rules.length > 0 ? Math.round((activeCount / rules.length) * 100) : 0}%`, color: 'success.main', subtitle: 'active rules ratio' },
+    { label: 'Total Rules', value: rules.length, color: 'primary.main', subtitle: 'configured' },
+    { label: 'Active Rules', value: activeCount, color: 'success.main', subtitle: 'currently enabled' },
+    { label: 'Inactive Rules', value: inactiveCount, color: 'text.secondary', subtitle: 'disabled' },
+    { label: 'Active Ratio', value: `${rules.length > 0 ? Math.round((activeCount / rules.length) * 100) : 0}%`, color: 'warning.main', subtitle: 'of rules are active' },
   ];
 
   return (
@@ -198,54 +173,13 @@ const EscalationDashboardPage: React.FC = () => {
         {/* Recent Events */}
         <Grid item xs={12} md={8}>
           <Paper variant="outlined" sx={{ p: 2 }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-              <Typography variant="h6" fontWeight={600}>
-                Recent Escalation Events
-              </Typography>
-              <Typography variant="caption" color="text.secondary">
-                {/* TODO: Connect to real-time escalation events API */}
-                Sample data — connect to live API
-              </Typography>
-            </Box>
-            <TableContainer>
-              <Table size="small">
-                <TableHead>
-                  <TableRow>
-                    <TableCell><strong>Time</strong></TableCell>
-                    <TableCell><strong>SR #</strong></TableCell>
-                    <TableCell><strong>Rule Applied</strong></TableCell>
-                    <TableCell><strong>Escalated To</strong></TableCell>
-                    <TableCell><strong>Status</strong></TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {MOCK_EVENTS.map((event, idx) => (
-                    <TableRow key={idx} hover>
-                      <TableCell>
-                        <Typography variant="caption" color="text.secondary">
-                          {event.time}
-                        </Typography>
-                      </TableCell>
-                      <TableCell>
-                        <Typography fontWeight={500} color="primary.main">
-                          #{event.serviceRequestId}
-                        </Typography>
-                      </TableCell>
-                      <TableCell>{event.ruleApplied}</TableCell>
-                      <TableCell>{event.escalatedTo}</TableCell>
-                      <TableCell>
-                        <Chip
-                          label={event.status}
-                          size="small"
-                          color={statusColor(event.status)}
-                          variant="outlined"
-                        />
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
+            <Typography variant="h6" fontWeight={600} sx={{ mb: 2 }}>
+              Recent Escalation Events
+            </Typography>
+            <Alert severity="info">
+              Real-time escalation event tracking is coming soon. Once the escalation events API is available,
+              triggered escalations — including which rule fired, the target, and current status — will appear here.
+            </Alert>
           </Paper>
         </Grid>
       </Grid>

@@ -2,7 +2,7 @@
  * IncidentAssignmentModal - Dialog for assigning incidents to users or groups
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Dialog,
   DialogTitle,
@@ -20,6 +20,18 @@ import {
   CircularProgress,
 } from '@mui/material';
 import { useApiState } from '../../hooks/useApiState';
+import apiClient from '../../services/apiClient';
+
+interface UserBrief {
+  id: number;
+  name: string;
+  email?: string;
+}
+
+interface GroupBrief {
+  id: number;
+  name: string;
+}
 
 export interface AssignmentModalProps {
   open: boolean;
@@ -38,25 +50,41 @@ export const IncidentAssignmentModal: React.FC<AssignmentModalProps> = ({
   onAssign,
   onClose,
 }) => {
-  const { loading, error: apiError, setError } = useApiState();
+  const { loading, error: apiError } = useApiState();
   const [assignmentType, setAssignmentType] = useState<'user' | 'group'>('user');
   const [selectedId, setSelectedId] = useState<number | undefined>(currentAssigneeId);
   const [userSearch, setUserSearch] = useState('');
+  const [users, setUsers] = useState<UserBrief[]>([]);
+  const [groups, setGroups] = useState<GroupBrief[]>([]);
+  const [listLoading, setListLoading] = useState(false);
 
-  // Mock user/group data - replace with API call
-  const mockUsers = [
-    { id: 1, name: 'John Doe', email: 'john.doe@example.com' },
-    { id: 2, name: 'Jane Smith', email: 'jane.smith@example.com' },
-    { id: 3, name: 'Bob Johnson', email: 'bob.johnson@example.com' },
-  ];
+  useEffect(() => {
+    if (!open) return;
+    const loadOptions = async () => {
+      setListLoading(true);
+      try {
+        const [usersRes, groupsRes] = await Promise.all([
+          apiClient.get<{ id: number; firstName: string; lastName: string; email: string }[]>('/users'),
+          apiClient.get<{ id: number; name: string }[]>('/usergroups'),
+        ]);
+        setUsers(
+          usersRes.data.map((u) => ({
+            id: u.id,
+            name: `${u.firstName} ${u.lastName}`.trim(),
+            email: u.email,
+          }))
+        );
+        setGroups(groupsRes.data.map((g) => ({ id: g.id, name: g.name })));
+      } catch {
+        // non-critical — keep empty lists and let user retry
+      } finally {
+        setListLoading(false);
+      }
+    };
+    loadOptions();
+  }, [open]);
 
-  const mockGroups = [
-    { id: 10, name: 'Support Team' },
-    { id: 11, name: 'Engineering Team' },
-    { id: 12, name: 'Operations Team' },
-  ];
-
-  const items = assignmentType === 'user' ? mockUsers : mockGroups;
+  const items: (UserBrief | GroupBrief)[] = assignmentType === 'user' ? users : groups;
   const filteredItems = items.filter((item) =>
     item.name.toLowerCase().includes(userSearch.toLowerCase())
   );
@@ -102,31 +130,42 @@ export const IncidentAssignmentModal: React.FC<AssignmentModalProps> = ({
           value={userSearch}
           onChange={(e) => setUserSearch(e.target.value)}
           sx={{ mb: 2 }}
-          disabled={loading}
+          disabled={loading || listLoading}
         />
 
-        <FormControl component="fieldset" fullWidth>
-          <RadioGroup
-            value={selectedId || ''}
-            onChange={(e) => setSelectedId(Number(e.target.value))}
-          >
-            {filteredItems.map((item) => (
-              <FormControlLabel
-                key={item.id}
-                value={item.id}
-                control={<Radio />}
-                label={
-                  <Box>
-                    <div>{item.name}</div>
-                    {'email' in item && (
-                      <div style={{ fontSize: '0.875rem', color: '#666' }}>{String((item as any).email)}</div>
-                    )}
-                  </Box>
-                }
-              />
-            ))}
-          </RadioGroup>
-        </FormControl>
+        {listLoading ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
+            <CircularProgress size={24} />
+          </Box>
+        ) : (
+          <FormControl component="fieldset" fullWidth>
+            <RadioGroup
+              value={selectedId || ''}
+              onChange={(e) => setSelectedId(Number(e.target.value))}
+            >
+              {filteredItems.map((item) => (
+                <FormControlLabel
+                  key={item.id}
+                  value={item.id}
+                  control={<Radio />}
+                  label={
+                    <Box>
+                      <div>{item.name}</div>
+                      {'email' in item && (
+                        <div style={{ fontSize: '0.875rem', color: '#666' }}>{String((item as any).email)}</div>
+                      )}
+                    </Box>
+                  }
+                />
+              ))}
+              {filteredItems.length === 0 && (
+                <Box sx={{ py: 1, color: 'text.secondary', fontSize: '0.875rem' }}>
+                  No {assignmentType}s found.
+                </Box>
+              )}
+            </RadioGroup>
+          </FormControl>
+        )}
 
         {currentAssigneeName && (
           <Alert severity="info" sx={{ mt: 2 }}>
