@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 593,
-  "patch": 3,
+  "patch": 5,
   "lastUpdate": "2026-02-25",
-  "description": "Added administrator help workflows and AI agent guides (RBAC, onboarding, integrations, health monitor, user-management assistant) to complete help system coverage. Maintains Redis/RBAC stability fixes; tests pending rerun due to remote environment constraints.",
+  "description": "Fix SignalR WebSocket transport failures: add UseWebSockets() middleware, skip security headers for hub/WS connections, disable nginx proxy buffering for /hubs/.",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [

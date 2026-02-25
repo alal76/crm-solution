@@ -22,6 +22,16 @@ public class SecurityHeadersMiddleware
 
     public async Task InvokeAsync(HttpContext context)
     {
+        // Skip security headers for WebSocket connections and SignalR hubs.
+        // Adding response headers during a WebSocket 101 upgrade can corrupt the
+        // handshake and cause the client to report "connection not found on server".
+        if (context.WebSockets.IsWebSocketRequest ||
+            context.Request.Path.StartsWithSegments("/hubs", StringComparison.OrdinalIgnoreCase))
+        {
+            await _next(context);
+            return;
+        }
+
         // X-Content-Type-Options: Prevents MIME type sniffing
         context.Response.Headers["X-Content-Type-Options"] = "nosniff";
 

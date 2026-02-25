@@ -1378,6 +1378,14 @@ if (Directory.Exists(frontendBuildPath))
     app.UseStaticFiles(new StaticFileOptions { FileProvider = new PhysicalFileProvider(Path.GetFullPath(frontendBuildPath)) });
 }
 
+// Enable WebSocket support — MUST be before UseRouting() so Kestrel can handle
+// WebSocket upgrade requests from nginx before the routing middleware processes them.
+// Without this, SignalR's WebSocket transport fails with "connection not found on server".
+app.UseWebSockets(new WebSocketOptions
+{
+    KeepAliveInterval = TimeSpan.FromSeconds(15)
+});
+
 app.UseRouting();
 // Use the default CORS policy globally
 app.UseCors();
