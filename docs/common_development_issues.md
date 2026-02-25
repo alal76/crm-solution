@@ -165,3 +165,66 @@ ssh root@192.168.0.9 "docker cp /tmp/superset-refresh-datasources.py crm-superse
 
 - **Files modified:** `scripts/superset-refresh-datasources.py` (new helper), `scripts/setup-superset-crm.py` (added `fetch_metadata()`), `docker/docker-compose.providers.yml` (network + driver fix)
 - **Where seen:** v0.581.0, Feb 24 2026 — initial Superset setup via `setup-superset-crm.py`
+
+---
+
+## Category: Database / EF Core Migrations
+
+### 6. MariaDB partial migration — "Table already exists" prevents API startup
+
+**Symptom:** API container exits with code 139 (or an unhandled `MySqlException`) immediately at startup. Logs show:
+```
+[ERR] Failed executing DbCommand: CREATE TABLE `AIAgents` (...)
+MySqlConnector.MySqlException: Table 'AIAgents' already exists
+[FTL] Error during database setup. Startup aborted.
+```
+EF Core reports one pending migration (e.g. `20260225200552_InitialCreate`) even though the tables were already created.
+
+**Root cause:** MariaDB/MySQL DDL statements (`CREATE TABLE`, `ALTER TABLE`, etc.) are **auto-committed** and cannot be rolled back. If a previous migration run failed partway through, some tables were created but the migration was never inserted into `__EFMigrationsHistory`. On the next startup EF tries to re-run the same `CREATE TABLE` statements and they fail.
+
+**Fix — mark the migration as applied:**
+```bash
+docker exec crm-mariadb mariadb -u crm_user -pCrmPass@Dev2024 crm_db \
+  -e "INSERT IGNORE INTO __EFMigrationsHistory (MigrationId, ProductVersion) \
+      VALUES ('20260225200552_InitialCreate', '9.0.1');"
+```
+Replace `20260225200552_InitialCreate` and `9.0.1` with the pending migration ID and the .NET SDK version reported in the existing history rows. Then restart the API container.
+
+**Helper script:** `scripts/fix-migration-state.sh` (created to automate this)
+
+**Prevention:** The startup logs include an explicit warning:
+> _"For MariaDB/MySQL, use scripts/apply-migrations.sh to generate and apply idempotent SQL."_
+Use `dotnet ef migrations script --idempotent` to generate `IF NOT EXISTS`-style SQL rather than relying on `MigrateAsync()` in production.
+
+- **Where seen:** v0.593.5, Feb 25 2026 — API crashed after MariaDB container was first started with schema already populated from a prior session.
+
+---
+
+## Category: SignalR / WebSockets
+
+### 7. SignalR WebSocket fails: "connection not found on server"
+
+**Symptom:** Browser console shows:
+```
+Error: Failed to start the transport 'WebSockets': Error: WebSocket failed to connect.
+The connection could not be found on the server, either the endpoint may not be a
+SignalR endpoint, the connection ID is not present on the server, or there is a
+proxy blocking WebSockets.
+```
+
+**Root causes (three separate issues — all must be fixed):**
+
+| # | Cause | Fix |
+|---|-------|-----|
+| 1 | `app.UseWebSockets()` missing from the middleware pipeline — Kestrel won't accept the 101 Switching Protocols handshake | Add `app.UseWebSockets(new WebSocketOptions { KeepAliveInterval = TimeSpan.FromSeconds(15) })` **before** `app.UseRouting()` in `Program.cs` |
+| 2 | `SecurityHeadersMiddleware` adds response headers to all requests, including the WebSocket 101 upgrade, corrupting the handshake | Add early return in `InvokeAsync` when `context.WebSockets.IsWebSocketRequest` or path starts with `/hubs` |
+| 3 | nginx `/hubs/` location has no `proxy_buffering off` — nginx buffers prevent real-time WebSocket frame streaming | Add `proxy_buffering off; proxy_no_cache 1; proxy_cache_bypass 1;` to the `/hubs/` location in `nginx-frontend.conf` |
+
+**Files modified:** `CRM.Backend/src/CRM.Api/Program.cs`, `CRM.Backend/src/CRM.Api/Middleware/SecurityHeadersMiddleware.cs`, `nginx-frontend.conf`
+
+**After nginx config change, reload without downtime:**
+```bash
+docker exec crm-frontend nginx -s reload
+```
+
+- **Where seen:** v0.593.5, Feb 25 2026 — reported as browser console error after deployment to dev server.
