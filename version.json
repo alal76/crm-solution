@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 593,
-  "patch": 5,
-  "lastUpdate": "2026-02-25",
-  "description": "Fix SignalR WebSocket transport failures: add UseWebSockets() middleware, skip security headers for hub/WS connections, disable nginx proxy buffering for /hubs/.",
+  "patch": 6,
+  "lastUpdate": "2026-02-26",
+  "description": "Fix schema drift from short-circuited InitialCreate migration: add ArchivedAt to AuditLogs, create AuthAuditLogs and UserSessions tables, apply AddAuthAuditLogs migration. Resolves /tasks/my-queue 400 error and audit archive warnings.",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [

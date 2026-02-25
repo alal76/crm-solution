@@ -228,3 +228,66 @@ docker exec crm-frontend nginx -s reload
 ```
 
 - **Where seen:** v0.593.5, Feb 25 2026 — reported as browser console error after deployment to dev server.
+
+---
+
+## Category: Database / Migrations
+
+### 8. Schema drift from short-circuited InitialCreate migration
+
+**Symptom:** API endpoints return HTTP 400 (or 500) with generic error messages. Real error in container logs is:
+```
+MySqlException: Unknown column 'o.ClosedDate' in 'SELECT'
+MySqlException: Table 'crm_db.AuthAuditLogs' doesn't exist
+MySqlException: Table 'crm_db.UserSessions' doesn't exist
+[WRN] Archive operation failed: Unknown column 'a.ArchivedAt' in 'SELECT'
+```
+
+**Root cause:** The `InitialCreate` migration was generated against an empty DB but the DB already had tables from earlier migrations. On startup it crashed with `Table 'AIAgents' already exists` and was manually marked as applied in `__EFMigrationsHistory` without executing. This left new columns and tables defined in the entity model missing from the live database:
+
+| Missing Object | Table/Column | Type |
+|---|---|---|
+| `Opportunities.ClosedDate` | `Opportunities` | Column (plus 5 others) |
+| `Competitors` | new table | Table |
+| `OpportunityCompetitors` | new table | Table |
+| `AuditLogs.ArchivedAt` | `AuditLogs` | Column |
+| `AuthAuditLogs` | new table | Table (in unapplied `AddAuthAuditLogs` migration) |
+| `UserSessions` | new table | Table |
+
+**Fix — apply schema directly to DB:**
+```bash
+# 1. Create the fix SQL locally, scp to server, cp into container, execute
+scp /tmp/fix-schema.sql root@192.168.0.9:/tmp/
+ssh root@192.168.0.9 'docker cp /tmp/fix-schema.sql crm-mariadb:/tmp/ && docker exec crm-mariadb mariadb -u crm_user -pCrmPass@Dev2024 crm_db -e "source /tmp/fix-schema.sql"'
+```
+
+Fix SQL pattern:
+```sql
+-- For missing columns:
+ALTER TABLE Opportunities ADD COLUMN IF NOT EXISTS ClosedDate datetime(6) NULL;
+ALTER TABLE AuditLogs ADD COLUMN IF NOT EXISTS ArchivedAt datetime(6) NULL;
+
+-- For missing tables:
+CREATE TABLE IF NOT EXISTS AuthAuditLogs ( Id int NOT NULL AUTO_INCREMENT, ... );
+CREATE TABLE IF NOT EXISTS UserSessions ( Id int NOT NULL AUTO_INCREMENT, ... );
+
+-- For FKs (MariaDB does NOT support ADD CONSTRAINT IF NOT EXISTS — must use standard):
+ALTER TABLE Opportunities ADD CONSTRAINT FK_Opportunities_Competitors
+    FOREIGN KEY (CompetitorWinnerId) REFERENCES Competitors(Id);
+
+-- Register unapplied migration:
+INSERT IGNORE INTO __EFMigrationsHistory (MigrationId, ProductVersion)
+VALUES ('20260225222952_AddAuthAuditLogs', '9.0.1');
+```
+
+**Key MariaDB DDL quirks:**
+- `ALTER TABLE ... ADD COLUMN IF NOT EXISTS` — ✅ supported (MariaDB 10.x+)
+- `CREATE TABLE IF NOT EXISTS` — ✅ supported
+- `CREATE INDEX IF NOT EXISTS` — ✅ supported (MariaDB 10.1.4+)
+- `ADD CONSTRAINT IF NOT EXISTS` — ❌ NOT supported (MySQL 8.0+ only); use plain `ADD CONSTRAINT` after checking existence manually
+
+**Prevention:** When a migration crashes on startup with `Table X already exists`, DO NOT just mark it applied in `__EFMigrationsHistory`. Instead:
+1. Drop the partially-created tables EF made before the crash
+2. Re-run `dotnet ef database update` so the full migration executes cleanly
+   
+**Where seen:** v0.593.5-0.593.6, Feb 25-26 2026 — `/api/tasks/my-queue` returned 400; audit archive warnings logged.
