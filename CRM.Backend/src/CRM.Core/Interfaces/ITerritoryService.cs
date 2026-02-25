@@ -279,6 +279,31 @@ public interface ITerritoryService
         CancellationToken cancellationToken = default);
 
     #endregion
+
+    #region Lead Territory Assignment
+
+    /// <summary>
+    /// Finds the best-matching <see cref="Territory"/> for a lead by comparing the
+    /// lead's <c>Region</c> field against the territory's Countries and States rules.
+    /// Returns <c>null</c> when no active territory matches.
+    /// </summary>
+    Task<Territory?> FindMatchingTerritoryForLeadAsync(Lead lead, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Assigns (or clears) the territory for a lead and optionally changes its owner.
+    /// </summary>
+    /// <param name="leadId">ID of the lead to update.</param>
+    /// <param name="territoryId">Territory ID to assign, or <c>null</c> to clear.</param>
+    /// <param name="userId">User ID to set as lead owner, or <c>null</c> to leave unchanged.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The updated <see cref="Lead"/> entity.</returns>
+    Task<Lead> AssignLeadToTerritoryAsync(
+        int leadId,
+        int? territoryId,
+        int? userId,
+        CancellationToken cancellationToken = default);
+
+    #endregion
 }
 
 #region Supporting Types

@@ -8,7 +8,7 @@ import { useState, useEffect } from 'react';
 import { createSafeHtml } from '../utils/sanitize';
 import {
   Box, Container, Typography, Card, CardContent, Table, TableBody, TableCell,
-  TableHead, TableRow, Button, Dialog, DialogTitle, DialogContent, DialogActions,
+  TableHead, TableRow, TablePagination, Button, Dialog, DialogTitle, DialogContent, DialogActions,
   TextField, MenuItem, Stack, Chip, IconButton, Tooltip, CircularProgress,
   Alert, Grid, Tabs, Tab, FormControl, InputLabel, Select, SelectChangeEvent,
   Paper, InputAdornment, CardActionArea, Rating, Divider,
@@ -21,6 +21,7 @@ import {
   LocalOffer as TagIcon,
 } from '@mui/icons-material';
 import { DialogError, ActionButton, TabPanel } from '../components/common';
+import { usePagination } from '../hooks/usePagination';
 import { useApiState } from '../hooks/useApiState';
 import { useProfile } from '../contexts/ProfileContext';
 import apiClient from '../services/apiClient';
@@ -419,6 +420,7 @@ function KnowledgeBasePage() {
 
     return matchesSearch && matchesCategory && matchesStatus;
   });
+  const { paginatedData: paginatedArticles, page, pageSize, handlePageChange, handlePageSizeChange, pageSizeOptions } = usePagination(filteredArticles, { defaultPageSize: 25 });
 
   // ==================== RENDER ====================
 
@@ -569,7 +571,7 @@ function KnowledgeBasePage() {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredArticles.map((article) => {
+                  paginatedArticles.map((article) => {
                     const statusInfo = getStatusInfo(article.status);
                     const helpfulPercent = article.helpfulCount + article.notHelpfulCount > 0
                       ? Math.round((article.helpfulCount / (article.helpfulCount + article.notHelpfulCount)) * 100)
@@ -632,6 +634,15 @@ function KnowledgeBasePage() {
                 )}
               </TableBody>
             </Table>
+            <TablePagination
+              component="div"
+              count={filteredArticles.length}
+              page={page}
+              onPageChange={handlePageChange}
+              rowsPerPage={pageSize}
+              onRowsPerPageChange={handlePageSizeChange}
+              rowsPerPageOptions={pageSizeOptions}
+            />
           </CardContent>
         </Card>
       </Box>

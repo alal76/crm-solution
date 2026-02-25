@@ -12,7 +12,7 @@ import {
   Alert, Grid, Tabs, Tab, FormControl, InputLabel, Select, MenuItem,
   Paper, LinearProgress, Accordion, AccordionSummary, AccordionDetails,
   List, ListItem, ListItemText, ListItemIcon, FormControlLabel, Switch,
-  SelectChangeEvent,
+  SelectChangeEvent, TablePagination,
 } from '@mui/material';
 import {
   Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon,
@@ -28,6 +28,7 @@ import territoryService, {
   Territory, TerritoryStatistics, TerritoryHierarchy, TerritoryRule, TerritoryQuota
 } from '../services/territoryService';
 import logo from '../assets/logo.png';
+import { usePagination } from '../hooks/usePagination';
 
 // ==================== DATA NORMALIZATION ====================
 // Backend returns AccountTerritory entity with different property names.
@@ -271,6 +272,9 @@ const TerritoriesPage = () => {
     </Card>
   );
 
+  const { paginatedData: paginatedTerritories, page, pageSize, handlePageChange, handlePageSizeChange, pageSizeOptions } =
+    usePagination(territories, { defaultPageSize: 25 });
+
   return (
     <Box sx={{ minHeight: '100vh', backgroundColor: '#f5f5f5' }}>
       {/* Header */}
@@ -379,7 +383,7 @@ const TerritoriesPage = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {territories.map(territory => (
+                  {paginatedTerritories.map(territory => (
                     <TableRow key={territory.id}>
                       <TableCell>
                         <Typography fontWeight={500}>{territory.name}</Typography>
@@ -421,6 +425,15 @@ const TerritoriesPage = () => {
                   )}
                 </TableBody>
               </Table>
+              <TablePagination
+                component="div"
+                count={territories.length}
+                page={page}
+                onPageChange={handlePageChange}
+                rowsPerPage={pageSize}
+                onRowsPerPageChange={handlePageSizeChange}
+                rowsPerPageOptions={pageSizeOptions}
+              />
             </Box>
           </TabPanel>
 

@@ -97,6 +97,14 @@ public interface ISearchPort
     Task RebuildIndexAsync<T>(IEnumerable<T> documents, Func<T, string> idSelector, CancellationToken cancellationToken = default) where T : class;
 
     /// <summary>
+    /// Rebuilds all search indexes from the current database state.
+    /// For providers that maintain a separate index (e.g., Meilisearch), this triggers
+    /// a full re-index of all entities. For BuiltIn, this is a no-op.
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    Task RebuildAllIndexesAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Gets the health status of the search provider.
     /// </summary>
     /// <param name="cancellationToken">Cancellation token.</param>
@@ -162,6 +170,20 @@ public class SearchRequest
     /// Fields to include in the result (null = all fields).
     /// </summary>
     public List<string>? AttributesToRetrieve { get; set; }
+
+    /// <summary>
+    /// Fields to generate highlighted snippets for. When specified, matching terms
+    /// in these fields will be wrapped in &lt;mark&gt; tags in the result highlights.
+    /// If null, all fields are eligible for highlighting.
+    /// </summary>
+    public List<string>? HighlightFields { get; set; }
+
+    /// <summary>
+    /// Fields to compute facet (aggregate) counts for.
+    /// Each specified field will appear in <see cref="SearchResult.Facets"/> with
+    /// value counts. Use "EntityType" to always get per-entity-type counts.
+    /// </summary>
+    public List<string>? FacetFields { get; set; }
 }
 
 /// <summary>
@@ -226,9 +248,23 @@ public class SearchResult
     public string Query { get; set; } = string.Empty;
 
     /// <summary>
-    /// Facet counts if faceting was requested.
+    /// Facet counts keyed by field name. Each entry maps a field name to an ordered
+    /// list of <see cref="FacetValue"/> items (value + document count).
+    /// "EntityType" is always populated when results span multiple entity types.
     /// </summary>
-    public Dictionary<string, Dictionary<string, int>>? Facets { get; set; }
+    public Dictionary<string, List<FacetValue>>? Facets { get; set; }
+}
+
+/// <summary>
+/// A single facet value with its document count.
+/// </summary>
+public class FacetValue
+{
+    /// <summary>The facet value string (e.g. "Account", "Active", "US").</summary>
+    public string Value { get; set; } = string.Empty;
+
+    /// <summary>Number of documents that have this value.</summary>
+    public int Count { get; set; }
 }
 
 /// <summary>

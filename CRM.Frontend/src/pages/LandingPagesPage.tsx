@@ -5,13 +5,14 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
+import { usePagination } from '../hooks/usePagination';
 import {
   Box, Container, Typography, Card, CardContent, Table, TableBody, TableCell,
   TableHead, TableRow, Button, Dialog, DialogTitle, DialogContent, DialogActions,
   TextField, MenuItem, Stack, Chip, IconButton, Tooltip, CircularProgress,
   Alert, Grid, Tabs, Tab, FormControl, InputLabel, Select, FormControlLabel,
   Checkbox, Divider, Paper, SelectChangeEvent, LinearProgress,
-  List, ListItem, ListItemIcon, ListItemText, ListItemButton,
+  List, ListItem, ListItemIcon, ListItemText, ListItemButton, TablePagination,
 } from '@mui/material';
 import {
   Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon,
@@ -1218,6 +1219,9 @@ function LandingPageTable({
   onPreview,
   onAnalytics,
 }: LandingPageTableProps) {
+  const { paginatedData: paginatedLandingPages, page: currentPage, pageSize, handlePageChange, handlePageSizeChange, pageSizeOptions } =
+    usePagination(pages, { defaultPageSize: 25 });
+
   if (pages.length === 0) {
     return (
       <Paper variant="outlined" sx={{ p: 4, textAlign: 'center' }}>
@@ -1244,7 +1248,7 @@ function LandingPageTable({
           </TableRow>
         </TableHead>
         <TableBody>
-          {pages.map(page => (
+          {paginatedLandingPages.map(page => (
             <TableRow key={page.id} hover>
               <TableCell>
                 <Stack direction="row" alignItems="center" spacing={1}>
@@ -1319,6 +1323,15 @@ function LandingPageTable({
           ))}
         </TableBody>
       </Table>
+      <TablePagination
+        component="div"
+        count={pages.length}
+        page={currentPage}
+        onPageChange={handlePageChange}
+        rowsPerPage={pageSize}
+        onRowsPerPageChange={handlePageSizeChange}
+        rowsPerPageOptions={pageSizeOptions}
+      />
     </Card>
   );
 }

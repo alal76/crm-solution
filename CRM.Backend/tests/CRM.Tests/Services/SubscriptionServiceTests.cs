@@ -9,6 +9,7 @@ using CRM.Core.Interfaces;
 using CRM.Infrastructure.Services;
 using CRM.Tests.Helpers;
 using FluentAssertions;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Moq;
 using Xunit;
@@ -419,5 +420,339 @@ public class SubscriptionServiceTests
         // Assert
         result.Should().NotBeNull();
         result!.ContractNotes.Should().NotBeNullOrEmpty();
+    }
+
+    // ========================================================================
+    // TODO-SALES006-019: Trial Date Validation Tests
+    // ========================================================================
+
+    [Fact]
+    public async Task CreateAsync_ShouldThrow_WhenTrialEndDateIsBeforeTrialStartDate()
+    {
+        // Arrange
+        var subscription = new Subscription
+        {
+            AccountId = 1,
+            Amount = 100m,
+            BillingCycle = "Monthly",
+            TrialStartDate = new DateTime(2026, 3, 10, 0, 0, 0, DateTimeKind.Utc),
+            TrialEndDate = new DateTime(2026, 3, 5, 0, 0, 0, DateTimeKind.Utc)  // Before start
+        };
+
+        // Act
+        var act = async () => await _service.CreateAsync(subscription);
+
+        // Assert
+        await act.Should().ThrowAsync<ArgumentException>()
+            .WithMessage("*TrialEndDate must be greater than TrialStartDate*");
+    }
+
+    [Fact]
+    public async Task CreateAsync_ShouldThrow_WhenTrialEndDateEqualsTrialStartDate()
+    {
+        // Arrange
+        var trialDate = new DateTime(2026, 3, 10, 0, 0, 0, DateTimeKind.Utc);
+        var subscription = new Subscription
+        {
+            AccountId = 1,
+            Amount = 100m,
+            BillingCycle = "Monthly",
+            TrialStartDate = trialDate,
+            TrialEndDate = trialDate  // Same as start — not strictly greater
+        };
+
+        // Act
+        var act = async () => await _service.CreateAsync(subscription);
+
+        // Assert
+        await act.Should().ThrowAsync<ArgumentException>()
+            .WithMessage("*TrialEndDate must be greater than TrialStartDate*");
+    }
+
+    [Fact]
+    public async Task CreateAsync_ShouldThrow_WhenTrialEndDateSetWithoutTrialStartDate()
+    {
+        // Arrange
+        var subscription = new Subscription
+        {
+            AccountId = 1,
+            Amount = 100m,
+            BillingCycle = "Monthly",
+            TrialStartDate = null,
+            TrialEndDate = new DateTime(2026, 4, 1, 0, 0, 0, DateTimeKind.Utc)
+        };
+
+        // Act
+        var act = async () => await _service.CreateAsync(subscription);
+
+        // Assert
+        await act.Should().ThrowAsync<ArgumentException>()
+            .WithMessage("*TrialStartDate is required when TrialEndDate is set*");
+    }
+
+    [Fact]
+    public async Task CreateAsync_ShouldSucceed_WhenValidTrialDatesProvided()
+    {
+        // Arrange
+        var subscription = new Subscription
+        {
+            AccountId = 1,
+            Amount = 100m,
+            BillingCycle = "Monthly",
+            TrialStartDate = new DateTime(2026, 3, 1, 0, 0, 0, DateTimeKind.Utc),
+            TrialEndDate = new DateTime(2026, 3, 31, 0, 0, 0, DateTimeKind.Utc)
+        };
+
+        // Act
+        var result = await _service.CreateAsync(subscription);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.TrialStartDate.Should().Be(subscription.TrialStartDate);
+        result.TrialEndDate.Should().Be(subscription.TrialEndDate);
+    }
+
+    [Fact]
+    public async Task CreateAsync_ShouldSucceed_WhenBothTrialDatesAreNull()
+    {
+        // Arrange — no trial dates, should pass validation
+        var subscription = new Subscription
+        {
+            AccountId = 1,
+            Amount = 50m,
+            BillingCycle = "Monthly",
+            TrialStartDate = null,
+            TrialEndDate = null
+        };
+
+        // Act
+        var result = await _service.CreateAsync(subscription);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.TrialStartDate.Should().BeNull();
+        result.TrialEndDate.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task UpdateAsync_ShouldThrow_WhenTrialEndDateIsBeforeTrialStartDate()
+    {
+        // Arrange
+        _subscriptions.Add(new Subscription
+        {
+            Id = 10,
+            AccountId = 1,
+            SubscriptionNumber = "SUB-010",
+            BillingCycle = "Monthly",
+            IsDeleted = false
+        });
+
+        var update = new Subscription
+        {
+            Id = 10,
+            AccountId = 1,
+            SubscriptionNumber = "SUB-010",
+            Amount = 100m,
+            BillingCycle = "Monthly",
+            TrialStartDate = new DateTime(2026, 5, 10, 0, 0, 0, DateTimeKind.Utc),
+            TrialEndDate = new DateTime(2026, 5, 5, 0, 0, 0, DateTimeKind.Utc)  // Before start
+        };
+
+        // Act
+        var act = async () => await _service.UpdateAsync(update);
+
+        // Assert
+        await act.Should().ThrowAsync<ArgumentException>()
+            .WithMessage("*TrialEndDate must be greater than TrialStartDate*");
+    }
+
+    [Fact]
+    public async Task UpdateAsync_ShouldThrow_WhenTrialEndDateSetWithoutTrialStartDate()
+    {
+        // Arrange
+        _subscriptions.Add(new Subscription
+        {
+            Id = 11,
+            AccountId = 1,
+            SubscriptionNumber = "SUB-011",
+            BillingCycle = "Monthly",
+            IsDeleted = false
+        });
+
+        var update = new Subscription
+        {
+            Id = 11,
+            AccountId = 1,
+            SubscriptionNumber = "SUB-011",
+            Amount = 100m,
+            BillingCycle = "Monthly",
+            TrialStartDate = null,
+            TrialEndDate = new DateTime(2026, 6, 1, 0, 0, 0, DateTimeKind.Utc)
+        };
+
+        // Act
+        var act = async () => await _service.UpdateAsync(update);
+
+        // Assert
+        await act.Should().ThrowAsync<ArgumentException>()
+            .WithMessage("*TrialStartDate is required when TrialEndDate is set*");
+    }
+
+    [Fact]
+    public async Task CreateAsync_ShouldThrow_WhenDunningGracePeriodDaysIsNegative()
+    {
+        // Arrange
+        var subscription = new Subscription
+        {
+            AccountId = 1,
+            Amount = 100m,
+            BillingCycle = "Monthly",
+            DunningGracePeriodDays = -1
+        };
+
+        // Act
+        var act = async () => await _service.CreateAsync(subscription);
+
+        // Assert
+        await act.Should().ThrowAsync<ArgumentException>()
+            .WithMessage("*DunningGracePeriodDays must be greater than or equal to zero*");
+    }
+
+    [Fact]
+    public async Task UpdateAsync_ShouldThrow_WhenDunningGracePeriodDaysIsNegative()
+    {
+        // Arrange
+        _subscriptions.Add(new Subscription
+        {
+            Id = 12,
+            AccountId = 1,
+            SubscriptionNumber = "SUB-012",
+            BillingCycle = "Monthly",
+            IsDeleted = false
+        });
+
+        var update = new Subscription
+        {
+            Id = 12,
+            AccountId = 1,
+            SubscriptionNumber = "SUB-012",
+            Amount = 100m,
+            BillingCycle = "Monthly",
+            DunningGracePeriodDays = -5
+        };
+
+        // Act
+        var act = async () => await _service.UpdateAsync(update);
+
+        // Assert
+        await act.Should().ThrowAsync<ArgumentException>()
+            .WithMessage("*DunningGracePeriodDays must be greater than or equal to zero*");
+    }
+
+    // ========================================================================
+    // TODO-SALES006-022: Optimistic Concurrency Tests
+    // ========================================================================
+
+    [Fact]
+    public async Task UpdateAsync_ShouldThrowInvalidOperationException_WhenConcurrencyConflictOccurs()
+    {
+        // Arrange
+        _subscriptions.Add(new Subscription
+        {
+            Id = 20,
+            AccountId = 1,
+            SubscriptionNumber = "SUB-020",
+            BillingCycle = "Monthly",
+            IsDeleted = false
+        });
+
+        // Make SaveChangesAsync throw DbUpdateConcurrencyException
+        _mockContext
+            .Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new DbUpdateConcurrencyException("Simulated concurrency conflict"));
+
+        var update = new Subscription
+        {
+            Id = 20,
+            AccountId = 1,
+            SubscriptionNumber = "SUB-020",
+            Amount = 200m,
+            BillingCycle = "Monthly"
+        };
+
+        // Act
+        var act = async () => await _service.UpdateAsync(update);
+
+        // Assert
+        await act.Should().ThrowAsync<InvalidOperationException>();
+    }
+
+    [Fact]
+    public async Task UpdateAsync_ShouldIncludeSubscriptionIdInMessage_WhenConcurrencyConflictOccurs()
+    {
+        // Arrange
+        _subscriptions.Add(new Subscription
+        {
+            Id = 21,
+            AccountId = 1,
+            SubscriptionNumber = "SUB-021",
+            BillingCycle = "Monthly",
+            IsDeleted = false
+        });
+
+        _mockContext
+            .Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new DbUpdateConcurrencyException("Conflict"));
+
+        var update = new Subscription
+        {
+            Id = 21,
+            AccountId = 1,
+            SubscriptionNumber = "SUB-021",
+            Amount = 200m,
+            BillingCycle = "Monthly"
+        };
+
+        // Act
+        var act = async () => await _service.UpdateAsync(update);
+
+        // Assert
+        var ex = await act.Should().ThrowAsync<InvalidOperationException>();
+        ex.Which.Message.Should().Contain("21");
+    }
+
+    [Fact]
+    public async Task UpdateAsync_ShouldPreserveOriginalException_WhenConcurrencyConflictOccurs()
+    {
+        // Arrange
+        _subscriptions.Add(new Subscription
+        {
+            Id = 22,
+            AccountId = 1,
+            SubscriptionNumber = "SUB-022",
+            BillingCycle = "Monthly",
+            IsDeleted = false
+        });
+
+        var dbException = new DbUpdateConcurrencyException("Root concurrency cause");
+        _mockContext
+            .Setup(c => c.SaveChangesAsync(It.IsAny<CancellationToken>()))
+            .ThrowsAsync(dbException);
+
+        var update = new Subscription
+        {
+            Id = 22,
+            AccountId = 1,
+            SubscriptionNumber = "SUB-022",
+            Amount = 200m,
+            BillingCycle = "Monthly"
+        };
+
+        // Act
+        var act = async () => await _service.UpdateAsync(update);
+
+        // Assert
+        var ex = await act.Should().ThrowAsync<InvalidOperationException>();
+        ex.Which.InnerException.Should().BeOfType<DbUpdateConcurrencyException>();
     }
 }

@@ -1,37 +1,31 @@
 {
   "major": 0,
-  "minor": 582,
+  "minor": 587,
   "patch": 0,
-  "lastUpdate": "2026-02-25",
-  "description": "Round 8 — 8 parallel subagents + build error resolution: Auth enhancements (device authorization, biometric auth, OpenID Connect, trusted devices, risk assessment, login analytics), Subscription lifecycle (plan changes, proration, dunning/retry, auto-renewal, metrics), Duplicate detection controller tests rewrite, AI Lead Scoring controller tests rewrite, 92 frontend TypeScript errors fixed (EditableCell corruption repair, barrel export alignment, CampaignDashboardWidgets, CommissionPlans/Statements pages, LeadScoringWidget, contexts index), build error fixes across 20+ test files (254→0 errors)",
+  "lastUpdate": "2026-02-27",
+  "description": "Round 9 — 8 parallel subagents completed 32 TODO items. Sales: order returns workflow, commission details UI, dunning scheduler (4h interval), subscription validation/optimistic-locking/grace-period. CRM: lead source attribution, competitor tracking, win/loss reports, forecast categories. ITSM: ProblemManagementService completion, SMS notifications, escalation analytics, complex condition evaluator. Infra: extended search to all entities + highlights/facets, territory-based lead assignment, dynamic pricing rules engine. Frontend: dark mode, WCAG accessibility, TypeScript any-type fixes, sidebar customizer, CPQ bundle wizard. Integrations: Teams+Slack notification providers, webhook feature gate, import/export E2E tests. Admin/Tests: 62 unit tests + 10 E2E tests for admin controllers, commission rules engine. Config: Chatwoot enabled as default chat provider, desktop notifications enabled by default.",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [
-    "TODO-AUTH-013: UserSession entity + ISessionManager + SessionManagerService — max 5 concurrent sessions, enforced on login",
-    "TODO-AUTH-014: PasswordHistory entity + IPasswordHistoryService + PasswordHistoryService — blocks reuse of last 5 passwords in ChangePassword",
-    "TODO-AUTH-016: AuthAuditLog entity + IAuthAuditService + AuthAuditService — Login/Logout/ChangePassword audit; GET /api/auth/audit-logs (Admin)",
-    "TODO-AUTH-017: MagicLinkToken entity + IMagicLinkService + MagicLinkService — 15-min single-use tokens; POST /api/auth/magic-link/request + /verify",
-    "TODO-AUTH-018: UserOAuthLink entity + IUserOAuthLinkService + UserOAuthLinkService — GET+POST /api/auth/oauth/link + DELETE /api/auth/oauth/link/{provider}",
-    "EF Core migration: AddAuthSecurityTables (UserSessions, PasswordHistories, AuthAuditLogs, MagicLinkTokens, UserOAuthLinks)",
-    "Test fixes: AuthControllerTests (both), InvoicesControllerTests, WebhookDispatcherTests compilation errors resolved"
-  ],
-    "LoggedTestBase abstract class for automatic try-catch wrapping",
-    "LoggingTestFramework custom xUnit framework with transparent test interception",
-    "TestResultsController API endpoints for result retrieval",
-    "TestResultsPage interactive React dashboard with filtering and drill-down",
-    "process-test-results.sh result aggregator and report generator",
-    "recover-disabled-tests.sh automated disabled test recovery",
-    "Enhanced run-tests.sh with integrated result processing",
-    "Comprehensive TEST_LOGGING_FRAMEWORK.md and TEST_AUTOMATION_INTEGRATION.md documentation"
+    "TODO-SALES003-012: DunningSchedulerService — IHostedService, 4h interval, IServiceScopeFactory pattern, 10 unit tests",
+    "TODO-SALES006-019/022/025: Subscription validation (trial dates, grace period), optimistic locking (RowVersion), dunning grace period + escalation emails",
+    "TODO-CRM002-03/CRM003-03/05/07: Lead source attribution, competitor tracking endpoints, win/loss analysis reports, forecast category assignment",
+    "TODO-ITSM-02/SD005-009/011/012: ProblemManagementService completion, SMS notifications (BuiltIn+Twilio), escalation analytics, compound condition evaluator",
+    "TODO-INFRA-08/09/GAP-04: Extended search to Leads/ServiceRequests/Contracts/Invoices/Subscriptions/Users/Campaigns, highlights+facets, territory-based assignment",
+    "TODO-GAP-07/GAP-06: Dynamic pricing rules engine (PricingRulesController, volume/promo/customer pricing), CPQ Bundle Wizard 5-step UI",
+    "TODO-UX-11/01/02/12/GAP-FRONTEND-001: Dark mode toggle, WCAG ARIA labels, keyboard nav, sidebar customizer, TypeScript any-type fixes",
+    "TODO-INT-05/06/001-15/003-018: Teams notification provider (Adaptive Cards), Slack notification provider (Block Kit), webhook feature gate, import/export E2E tests",
+    "TODO-SYS008-001/002/014/SYS009-002: Admin E2E tests, controller unit tests, commission rule tests, navigation/settings tests",
+    "Config: UseExternalChat=true, Providers.Chat.Type=Chatwoot in appsettings; desktopNotifications default=true in UserSettingsDialog.tsx"
   ],
   "git": {
     "branch": "main",
-    "commit": "implement-test-logging-framework"
+    "commit": "round9-8-subagents-32-todos-chatwoot-default-v0.587.0"
   },
   "environment": "production",
   "architecture": "monolith",
   "buildServer": "azure-devops",
-  "buildTime": "2026-02-17T23:30:00",
+  "buildTime": "2026-02-27T00:00:00",
   "testingImprovements": {
     "frameworkVersion": "0.561.1",
     "xunitVersion": "2.6.2+",

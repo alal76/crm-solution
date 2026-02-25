@@ -9,7 +9,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import {
   Box, Card, CardContent, Typography, Button, Table, TableBody, TableCell, TableContainer, TableHead,
-  TableRow, Dialog, DialogTitle, DialogContent, DialogActions, Alert, CircularProgress,
+  TableRow, TablePagination, Dialog, DialogTitle, DialogContent, DialogActions, Alert, CircularProgress,
   TextField, Container, FormControl, InputLabel, Select, MenuItem, Chip, Grid,
   IconButton, Tooltip, Paper, Divider, LinearProgress, Accordion, AccordionSummary, AccordionDetails
 } from '@mui/material';
@@ -25,6 +25,7 @@ import commissionService, {
 } from '../services/commissionService';
 import logger from '../services/logger';
 import { EnhancedEmptyState } from '../components/common';
+import { usePagination } from '../hooks/usePagination';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
@@ -58,8 +59,8 @@ const getStatementStatusColor = (status: CommissionStatementStatus): 'default' |
   return colors[status] || 'default';
 };
 
-const formatCurrency = (amount: number, currencyCode: string = 'USD'): string => {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: currencyCode }).format(amount);
+const formatCurrency = (amount: number, currencyCode?: string | null): string => {
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency: currencyCode || 'USD' }).format(amount);
 };
 
 const formatDate = (date: string | Date | null | undefined): string => {
@@ -179,6 +180,7 @@ export default function CommissionStatementsPage() {
       
     return { totalEarnings, pendingAmount, paidAmount, approvedAmount };
   }, [filteredStatements]);
+  const { paginatedData: paginatedStatements, page, pageSize, handlePageChange, handlePageSizeChange, pageSizeOptions } = usePagination(filteredStatements, { defaultPageSize: 25 });
 
   // ============================================================================
   // Actions
@@ -404,7 +406,7 @@ export default function CommissionStatementsPage() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {filteredStatements.map((statement) => (
+              {paginatedStatements.map((statement) => (
                 <TableRow key={statement.id} hover>
                   <TableCell>
                     {formatDate(statement.periodStart || statement.periodStartDate)} - {formatDate(statement.periodEnd || statement.periodEndDate)}
@@ -450,6 +452,15 @@ export default function CommissionStatementsPage() {
               ))}
             </TableBody>
           </Table>
+          <TablePagination
+            component="div"
+            count={filteredStatements.length}
+            page={page}
+            onPageChange={handlePageChange}
+            rowsPerPage={pageSize}
+            onRowsPerPageChange={handlePageSizeChange}
+            rowsPerPageOptions={pageSizeOptions}
+          />
         </TableContainer>
       )}
 

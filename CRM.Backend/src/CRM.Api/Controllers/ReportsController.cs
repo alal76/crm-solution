@@ -5,6 +5,7 @@
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
 using System.Security.Claims;
+using CRM.Core.DTOs;
 using CRM.Core.Dtos.Reports;
 using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -23,16 +24,22 @@ namespace CRM.Api.Controllers;
 public class ReportsController : ControllerBase
 {
     private readonly IReportService _reportService;
+    private readonly IWinLossAnalysisService _winLossService;
+    private readonly IOpportunityService _opportunityService;
     private readonly ILogger<ReportsController> _logger;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ReportsController"/> class.
     /// </summary>
-    /// <param name="reportService">The report service.</param>
-    /// <param name="logger">The logger.</param>
-    public ReportsController(IReportService reportService, ILogger<ReportsController> logger)
+    public ReportsController(
+        IReportService reportService,
+        IWinLossAnalysisService winLossService,
+        IOpportunityService opportunityService,
+        ILogger<ReportsController> logger)
     {
         _reportService = reportService ?? throw new ArgumentNullException(nameof(reportService));
+        _winLossService = winLossService ?? throw new ArgumentNullException(nameof(winLossService));
+        _opportunityService = opportunityService ?? throw new ArgumentNullException(nameof(opportunityService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
@@ -579,6 +586,78 @@ public class ReportsController : ControllerBase
     {
         var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         return int.TryParse(userIdClaim, out var userId) ? userId : 0;
+    }
+
+    #endregion
+
+    #region Analytics Reports (TODO-CRM003-05, TODO-CRM003-07)
+
+    /// <summary>
+    /// Returns a consolidated Win/Loss report for the specified date range (TODO-CRM003-05).
+    /// Includes summary, loss by reason, loss by competitor, and trend breakdown.
+    /// </summary>
+    /// <param name="fromDate">Start date filter (ISO 8601). Defaults to 1 year ago.</param>
+    /// <param name="toDate">End date filter (ISO 8601). Defaults to today.</param>
+    /// <param name="period">Trend grouping period: "month" or "quarter".</param>
+    /// <param name="ct">Cancellation token.</param>
+    [HttpGet("win-loss")]
+    [ProducesResponseType(typeof(WinLossReportDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> GetWinLossReport(
+        [FromQuery] DateTime? fromDate = null,
+        [FromQuery] DateTime? toDate = null,
+        [FromQuery] string period = "month",
+        CancellationToken ct = default)
+    {
+        try
+        {
+            var from = fromDate ?? DateTime.UtcNow.AddYears(-1);
+            var to = toDate ?? DateTime.UtcNow;
+
+            var summary = await _winLossService.GetSummaryAsync(from, to, ct);
+            var byReason = await _winLossService.GetByReasonAsync(from, to, ct);
+            var byCompetitor = await _winLossService.GetByCompetitorAsync(from, to, ct);
+            var trends = await _winLossService.GetWinRateTrendsAsync(from, to, period, ct);
+
+            var report = new WinLossReportDto
+            {
+                Summary = summary,
+                ByReason = byReason,
+                ByCompetitor = byCompetitor,
+                Trends = trends,
+                FromDate = from,
+                ToDate = to
+            };
+
+            return Ok(report);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving win/loss report");
+            return StatusCode(500, "Internal server error");
+        }
+    }
+
+    /// <summary>
+    /// Returns a forecast summary report grouped by ForecastCategory bucket (TODO-CRM003-07).
+    /// Includes MRR, ARR, weighted pipeline, and per-category breakdowns.
+    /// </summary>
+    /// <param name="ct">Cancellation token.</param>
+    [HttpGet("forecast-summary")]
+    [ProducesResponseType(typeof(ForecastSummaryDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> GetForecastSummary(CancellationToken ct = default)
+    {
+        try
+        {
+            var summary = await _opportunityService.GetForecastSummaryAsync(ct);
+            return Ok(summary);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving forecast summary");
+            return StatusCode(500, "Internal server error");
+        }
     }
 
     #endregion

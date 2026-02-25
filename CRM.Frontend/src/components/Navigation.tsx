@@ -17,6 +17,7 @@ import {
   Typography,
   Collapse,
   ListItemButton,
+  Tooltip,
 } from '@mui/material';
 import {
   Dashboard as DashboardIcon,
@@ -121,14 +122,18 @@ import {
   Widgets as UiCustomIcon,
   FileCopy as TemplateIcon,
   Person as PersonIcon,
+  Brightness4 as DarkModeToggleIcon,
+  Brightness7 as LightModeToggleIcon,
 } from '@mui/icons-material';
 import { Link as RouterLink, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { useProfile } from '../contexts/ProfileContext';
 import { useBranding } from '../contexts/BrandingContext';
+import { useTheme as useCrmTheme } from '../contexts/ThemeContext';
 import { LogoDisplay } from './common';
 import { getApiEndpoint } from '../config/ports';
 import UserSettingsDialog from './UserSettingsDialog';
+import SidebarCustomizer from './layout/SidebarCustomizer';
 import logo from '../assets/logo.png';
 import logger from '../services/logger';
 import navigationConfigService, { NavigationItemConfig } from '../services/navigationConfigService';
@@ -138,11 +143,13 @@ function NavigationContent() {
   const { isAuthenticated, user, logout } = useAuth();
   const { profile, hasPermission, canAccessMenu } = useProfile();
   const { branding } = useBranding();
+  const { effectiveTheme, setThemeMode: setCrmThemeMode } = useCrmTheme();
   const navigate = useNavigate();
   const location = useLocation();
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [userSettingsOpen, setUserSettingsOpen] = useState(false);
+  const [customizerOpen, setCustomizerOpen] = useState(false);
   // Demo mode feature removed - using production database only
   const [navRefreshKey, setNavRefreshKey] = useState(0); // Force re-render on nav update
   
@@ -877,6 +884,23 @@ function NavigationContent() {
       }));
   }, [navConfig, defaultNavItemsWithCategory, effectiveAdminItemsConfig]);
 
+  // Build label map for SidebarCustomizer
+  const navItemLabels = useMemo(() => {
+    const labels: Record<string, string> = {};
+    Object.entries(effectiveNavItemsConfig).forEach(([id, config]) => {
+      labels[id] = config.label;
+    });
+    Object.entries(effectiveAdminItemsConfig).forEach(([id, config]) => {
+      labels[id] = config.label;
+    });
+    return labels;
+  }, [effectiveNavItemsConfig, effectiveAdminItemsConfig]);
+
+  // Quick dark/light mode toggle handler
+  const handleThemeToggle = useCallback(() => {
+    setCrmThemeMode(effectiveTheme === 'dark' ? 'light' : 'dark');
+  }, [effectiveTheme, setCrmThemeMode]);
+
   // Get header color: user's custom color, or red for admin, or primary color
   const getHeaderColor = () => {
     if (user?.headerColor) return user.headerColor;
@@ -953,6 +977,16 @@ function NavigationContent() {
           </Box>
 
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Tooltip title={effectiveTheme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}>
+              <IconButton
+                color="inherit"
+                onClick={handleThemeToggle}
+                aria-label={effectiveTheme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+                size="small"
+              >
+                {effectiveTheme === 'dark' ? <LightModeToggleIcon /> : <DarkModeToggleIcon />}
+              </IconButton>
+            </Tooltip>
             <IconButton color="inherit" onClick={handleMenuOpen} aria-label="Open user menu">
               <Avatar 
                 src={user?.photoUrl || undefined}
@@ -1245,6 +1279,29 @@ function NavigationContent() {
           );
         })}
         </Box>
+
+        {/* Drawer footer: Customize Navigation */}
+        <Box
+          sx={{
+            flexShrink: 0,
+            borderTop: 1,
+            borderColor: 'divider',
+            p: 1,
+            bgcolor: 'background.paper',
+          }}
+        >
+          <MenuItem
+            onClick={() => { setDrawerOpen(false); setCustomizerOpen(true); }}
+            sx={{ borderRadius: 1, py: 0.75 }}
+          >
+            <ListItemIcon sx={{ minWidth: 28 }}>
+              <CRMConfigIcon fontSize="small" sx={{ color: 'text.secondary' }} />
+            </ListItemIcon>
+            <ListItemText
+              primary={<Typography variant="caption" sx={{ color: 'text.secondary' }}>Customize Navigation</Typography>}
+            />
+          </MenuItem>
+        </Box>
       </Drawer>
       
       {/* User Settings Dialog */}
@@ -1257,6 +1314,15 @@ function NavigationContent() {
           // Force page reload to apply theme (simple approach)
           // In a more sophisticated implementation, this would update a theme context
         }}
+      />
+
+      {/* Sidebar Customizer */}
+      <SidebarCustomizer
+        open={customizerOpen}
+        onClose={() => setCustomizerOpen(false)}
+        categories={categories}
+        navItems={navConfig?.navItems || defaultNavItemsWithCategory}
+        itemLabels={navItemLabels}
       />
     </>
   );

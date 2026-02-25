@@ -351,4 +351,56 @@ public class LeadService : ILeadService
 
         return true;
     }
+
+    /// <inheritdoc />
+    public async Task<IEnumerable<LeadSourceAnalyticsDto>> GetSourceAnalyticsAsync(CancellationToken ct = default)
+    {
+        var leads = await _context.Set<Lead>()
+            .Where(l => !l.IsDeleted)
+            .Select(l => new { l.Source, l.Status, l.Score })
+            .ToListAsync(ct);
+
+        return leads
+            .GroupBy(l => l.Source)
+            .Select(g => new LeadSourceAnalyticsDto
+            {
+                Source = g.Key.ToString(),
+                TotalLeads = g.Count(),
+                ConvertedLeads = g.Count(l => l.Status == LeadLifecycleStatus.Converted),
+                QualifiedLeads = g.Count(l => l.Status == LeadLifecycleStatus.Qualified),
+                DisqualifiedLeads = g.Count(l => l.Status == LeadLifecycleStatus.Disqualified),
+                ConversionRate = g.Count() > 0
+                    ? Math.Round((decimal)g.Count(l => l.Status == LeadLifecycleStatus.Converted) / g.Count() * 100, 2)
+                    : 0,
+                AverageScore = g.Any() ? g.Average(l => (double)l.Score) : 0
+            })
+            .OrderByDescending(s => s.TotalLeads)
+            .ToList();
+    }
+
+    /// <inheritdoc />
+    public async Task<IEnumerable<LeadAttributionDto>> GetAttributionAnalyticsAsync(CancellationToken ct = default)
+    {
+        var leads = await _context.Set<Lead>()
+            .Where(l => !l.IsDeleted)
+            .Select(l => new { l.UtmSource, l.UtmMedium, l.UtmCampaign, l.Status, l.Score })
+            .ToListAsync(ct);
+
+        return leads
+            .GroupBy(l => new { l.UtmSource, l.UtmMedium, l.UtmCampaign })
+            .Select(g => new LeadAttributionDto
+            {
+                UtmSource = g.Key.UtmSource,
+                UtmMedium = g.Key.UtmMedium,
+                UtmCampaign = g.Key.UtmCampaign,
+                TotalLeads = g.Count(),
+                ConvertedLeads = g.Count(l => l.Status == LeadLifecycleStatus.Converted),
+                ConversionRate = g.Count() > 0
+                    ? Math.Round((decimal)g.Count(l => l.Status == LeadLifecycleStatus.Converted) / g.Count() * 100, 2)
+                    : 0,
+                AverageScore = g.Any() ? g.Average(l => (double)l.Score) : 0
+            })
+            .OrderByDescending(a => a.TotalLeads)
+            .ToList();
+    }
 }

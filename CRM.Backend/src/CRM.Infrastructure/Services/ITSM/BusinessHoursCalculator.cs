@@ -174,8 +174,8 @@ public class BusinessHoursCalculator : IBusinessHoursCalculator
                 businessMinutes, startTime);
         }
 
-        // Convert back to UTC
-        return TimeZoneInfo.ConvertTimeToUtc(currentTime, tz);
+        // Convert back to UTC — use safe helper to handle DST ambiguous/invalid edge cases (TODO-SD003-008).
+        return SafeConvertLocalToUtc(currentTime, tz);
     }
 
     public async Task<int> GetElapsedBusinessMinutesAsync(DateTime startTime, DateTime endTime, int? scheduleId = null)
@@ -258,7 +258,8 @@ public class BusinessHoursCalculator : IBusinessHoursCalculator
         var localTime = TimeZoneInfo.ConvertTimeFromUtc(fromDate.ToUniversalTime(), tz);
         var nextStart = GetNextWorkingDayStart(schedule, localTime);
 
-        return TimeZoneInfo.ConvertTimeToUtc(nextStart, tz);
+        // Use safe helper to handle DST ambiguous/invalid edge cases (TODO-SD003-008).
+        return SafeConvertLocalToUtc(nextStart, tz);
     }
 
     public async Task<bool> IsHolidayAsync(DateTime date, int? scheduleId = null)
@@ -476,6 +477,64 @@ public class BusinessHoursCalculator : IBusinessHoursCalculator
             // Fallback to UTC if timezone not found
             return TimeZoneInfo.Utc;
         }
+    }
+
+    /// <summary>
+    /// Safely converts a local <see cref="DateTime"/> to UTC, correctly handling DST edge cases
+    /// (TODO-SD003-008).
+    /// <list type="bullet">
+    ///   <item><description>
+    ///     <b>Ambiguous time</b> (clock falls back — same local time occurs twice): resolves to
+    ///     the <em>standard-time</em> occurrence (i.e. the first occurrence, larger UTC offset).
+    ///   </description></item>
+    ///   <item><description>
+    ///     <b>Invalid time</b> (clock springs forward — local time does not exist): advances
+    ///     minute-by-minute until a valid local time is found, then converts that.
+    ///   </description></item>
+    /// </list>
+    /// </summary>
+    /// <param name="localTime">A local <see cref="DateTime"/> (Kind should be Unspecified or Local).</param>
+    /// <param name="tz">The timezone to convert from.</param>
+    /// <returns>The corresponding UTC <see cref="DateTime"/>.</returns>
+    internal static DateTime SafeConvertLocalToUtc(DateTime localTime, TimeZoneInfo tz)
+    {
+        // UTC timezone — no conversion needed.
+        if (tz.Equals(TimeZoneInfo.Utc))
+        {
+            return DateTime.SpecifyKind(localTime, DateTimeKind.Utc);
+        }
+
+        // Ensure DateTimeKind is Unspecified so that TimeZoneInfo treats it as local to 'tz'.
+        var unspecified = localTime.Kind == DateTimeKind.Unspecified
+            ? localTime
+            : DateTime.SpecifyKind(localTime, DateTimeKind.Unspecified);
+
+        // Handle ambiguous time (fall-back DST transition: same local time occurs twice).
+        if (tz.IsAmbiguousTime(unspecified))
+        {
+            // GetAmbiguousTimeOffsets returns both possible UTC offsets for the ambiguous local time.
+            // Standard time has the more-negative (smaller) offset (e.g. EST = -5 hours vs EDT = -4 hours).
+            // Using Min resolves the ambiguous time to standard time (the second / post fall-back occurrence),
+            // which is the conservative choice for SLA calculations.
+            var offsets = tz.GetAmbiguousTimeOffsets(unspecified);
+            var standardOffset = offsets.Min();
+            return DateTime.SpecifyKind(unspecified - standardOffset, DateTimeKind.Utc);
+        }
+
+        // Handle invalid time (spring-forward DST gap: local time does not exist).
+        if (tz.IsInvalidTime(unspecified))
+        {
+            // Advance in 1-minute steps until we land on a valid local time after the gap.
+            var adjusted = unspecified;
+            const int maxMinutes = 120; // DST gaps are at most 60 minutes; guard against infinite loops.
+            for (var i = 0; i < maxMinutes && tz.IsInvalidTime(adjusted); i++)
+            {
+                adjusted = adjusted.AddMinutes(1);
+            }
+            return TimeZoneInfo.ConvertTimeToUtc(adjusted, tz);
+        }
+
+        return TimeZoneInfo.ConvertTimeToUtc(unspecified, tz);
     }
 }
 

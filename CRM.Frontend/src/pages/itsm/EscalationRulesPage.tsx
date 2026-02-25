@@ -28,6 +28,7 @@ import {
   TableCell,
   TableContainer,
   TableHead,
+  TablePagination,
   TableRow,
   TextField,
   Tooltip,
@@ -46,6 +47,7 @@ import escalationService, {
   CreateEscalationRuleDto,
   EscalationRuleTestResultDto,
 } from '../../services/escalationService';
+import { usePagination } from '../../hooks/usePagination';
 
 const PRIORITY_OPTIONS = ['Critical', 'High', 'Medium', 'Low'];
 const CONDITION_TYPES = ['TimeElapsed', 'PriorityLevel', 'Unassigned', 'CustomerTier', 'Overdue'];
@@ -239,6 +241,9 @@ const EscalationRulesPage: React.FC = () => {
     { label: 'Last 24h Escalations', value: 0, color: 'warning.main' },
   ];
 
+  const { paginatedData: paginatedRules, page, pageSize, handlePageChange, handlePageSizeChange, pageSizeOptions } =
+    usePagination(filteredRules, { defaultPageSize: 25 });
+
   return (
     <Box sx={{ p: 3 }}>
       {/* Header */}
@@ -300,6 +305,7 @@ const EscalationRulesPage: React.FC = () => {
           <CircularProgress />
         </Box>
       ) : (
+        <>
         <TableContainer component={Paper} variant="outlined">
           <Table>
             <TableHead>
@@ -325,7 +331,7 @@ const EscalationRulesPage: React.FC = () => {
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredRules.map((rule) => (
+                paginatedRules.map((rule) => (
                   <TableRow key={rule.id} hover>
                     <TableCell>
                       <Typography fontWeight={500} color="primary.main">
@@ -380,6 +386,16 @@ const EscalationRulesPage: React.FC = () => {
             </TableBody>
           </Table>
         </TableContainer>
+        <TablePagination
+          component="div"
+          count={filteredRules.length}
+          page={page}
+          onPageChange={handlePageChange}
+          rowsPerPage={pageSize}
+          onRowsPerPageChange={handlePageSizeChange}
+          rowsPerPageOptions={pageSizeOptions}
+        />
+        </>
       )}
 
       {/* Create / Edit Dialog */}

@@ -20,6 +20,7 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  TablePagination,
   Paper,
   Button,
   IconButton,
@@ -98,6 +99,7 @@ import {
 } from '@mui/icons-material';
 import apiClient from '../services/apiClient';
 import logo from '../assets/logo.png';
+import { usePagination } from '../hooks/usePagination';
 
 // Types
 interface Interaction extends BaseEntity {
@@ -331,6 +333,8 @@ function InteractionsPage() {
       interaction.phoneNumber?.includes(query)
     );
   });
+
+  const { paginatedData: paginatedInteractions, page, pageSize, handlePageChange, handlePageSizeChange, pageSizeOptions } = usePagination(filteredInteractions, { defaultPageSize: 25 });
 
   // Handlers
   const handleRefresh = () => {
@@ -1246,7 +1250,16 @@ function InteractionsPage() {
         {/* Tab Panels */}
         <TabPanel value={tabValue} index={0}>
           {renderFilters()}
-          {renderInteractionsTable(filteredInteractions)}
+          {renderInteractionsTable(paginatedInteractions)}
+          <TablePagination
+            component="div"
+            count={filteredInteractions.length}
+            page={page}
+            onPageChange={handlePageChange}
+            rowsPerPage={pageSize}
+            onRowsPerPageChange={handlePageSizeChange}
+            rowsPerPageOptions={pageSizeOptions}
+          />
         </TabPanel>
 
         <TabPanel value={tabValue} index={1}>

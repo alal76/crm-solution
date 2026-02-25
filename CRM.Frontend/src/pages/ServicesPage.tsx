@@ -33,6 +33,7 @@ import {
   MenuItem,
   IconButton,
   Tooltip,
+  TablePagination,
 } from '@mui/material';
 import {
   Add as AddIcon,
@@ -43,6 +44,7 @@ import {
 import apiClient from '../services/apiClient';
 import { DialogError } from '../components/common';
 import logo from '../assets/logo.png';
+import { usePagination } from '../hooks/usePagination';
 
 // Service types that are considered "Services" (subset of ProductType enum)
 enum ServiceType {
@@ -257,6 +259,9 @@ function ServicesPage() {
     return PRODUCT_STATUSES.find(s => s.value === status) || PRODUCT_STATUSES[0];
   };
 
+  const { paginatedData: paginatedServices, page, pageSize, handlePageChange, handlePageSizeChange, pageSizeOptions } =
+    usePagination(services, { defaultPageSize: 25 });
+
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', py: 10 }}>
@@ -311,7 +316,7 @@ function ServicesPage() {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {services.map((service) => {
+                {paginatedServices.map((service) => {
                   const statusInfo = getStatusInfo(service.status);
                   return (
                     <TableRow key={service.id} hover>
@@ -367,6 +372,15 @@ function ServicesPage() {
                 })}
               </TableBody>
             </Table>
+            <TablePagination
+              component="div"
+              count={services.length}
+              page={page}
+              onPageChange={handlePageChange}
+              rowsPerPage={pageSize}
+              onRowsPerPageChange={handlePageSizeChange}
+              rowsPerPageOptions={pageSizeOptions}
+            />
             {services.length === 0 && (
               <Typography sx={{ textAlign: 'center', py: 4, color: 'text.secondary' }}>
                 No services found. Click "Add Service" to create your first service.

@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import {
   Box, Card, CardContent, Typography, Button, Table, TableBody, TableCell, TableContainer, TableHead,
-  TableRow, Dialog, DialogContent, DialogActions, Alert, CircularProgress,
+  TableRow, TablePagination, Dialog, DialogContent, DialogActions, Alert, CircularProgress,
   Container, Chip,
   IconButton, Tooltip, Divider
 } from '@mui/material';
@@ -15,6 +15,7 @@ import apiClient from '../services/apiClient';
 import logger from '../services/logger';
 import { DialogError, DialogSuccess, ActionButton, DialogHeader, RelatedEntitiesPanel, EnhancedEmptyState } from '../components/common';
 import { useApiState } from '../hooks/useApiState';
+import { usePagination } from '../hooks/usePagination';
 import { BaseEntity } from '../types';
 import logo from '../assets/logo.png';
 import ImportExportButtons from '../components/ImportExportButtons';
@@ -170,6 +171,8 @@ function QuotesPage() {
     () => filterData(quotes, searchFilters, searchText, SEARCHABLE_FIELDS),
     [quotes, searchFilters, searchText]
   );
+
+  const { paginatedData: paginatedQuotes, page, pageSize, handlePageChange, handlePageSizeChange, pageSizeOptions } = usePagination(filteredQuotes, { defaultPageSize: 25 });
 
   const emptyForm: QuoteForm = {
     name: '', description: '', accountId: '', opportunityId: '', status: 0,
@@ -481,7 +484,7 @@ function QuotesPage() {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {filteredQuotes.map((quote) => {
+                {paginatedQuotes.map((quote) => {
                   const status = getStatus(quote.status);
                   const expired = isExpired(quote);
 
@@ -587,6 +590,15 @@ function QuotesPage() {
                 })}
               </TableBody>
               </Table>
+              <TablePagination
+                component="div"
+                count={filteredQuotes.length}
+                page={page}
+                onPageChange={handlePageChange}
+                rowsPerPage={pageSize}
+                onRowsPerPageChange={handlePageSizeChange}
+                rowsPerPageOptions={pageSizeOptions}
+              />
             </TableContainer>
             {quotes.length === 0 && (
               <EnhancedEmptyState

@@ -11,7 +11,9 @@ import TableCell from '@mui/material/TableCell';
 import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
+import TablePagination from '@mui/material/TablePagination';
 import apiClient from '../../services/apiClient';
+import { usePagination } from '../../hooks/usePagination';
 
 interface SLAPolicy {
   slaPolicyId: number;
@@ -42,6 +44,9 @@ const SLAPolicyListPage: React.FC = () => {
     load();
   }, []);
 
+  const { paginatedData: paginatedItems, page, pageSize, handlePageChange, handlePageSizeChange, pageSizeOptions } =
+    usePagination(items, { defaultPageSize: 25 });
+
   return (
     <Box sx={{ p: 3 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
@@ -52,6 +57,7 @@ const SLAPolicyListPage: React.FC = () => {
       {loading ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}><CircularProgress /></Box>
       ) : (
+        <>
         <TableContainer component={Paper}>
           <Table>
             <TableHead>
@@ -64,7 +70,7 @@ const SLAPolicyListPage: React.FC = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {items.map((policy) => (
+              {paginatedItems.map((policy) => (
                 <TableRow key={policy.slaPolicyId} hover>
                   <TableCell sx={{ color: 'primary.main', fontWeight: 500 }}>{policy.name}</TableCell>
                   <TableCell>Type {policy.targetType}</TableCell>
@@ -76,6 +82,16 @@ const SLAPolicyListPage: React.FC = () => {
             </TableBody>
           </Table>
         </TableContainer>
+        <TablePagination
+          component="div"
+          count={items.length}
+          page={page}
+          onPageChange={handlePageChange}
+          rowsPerPage={pageSize}
+          onRowsPerPageChange={handlePageSizeChange}
+          rowsPerPageOptions={pageSizeOptions}
+        />
+        </>
       )}
     </Box>
   );

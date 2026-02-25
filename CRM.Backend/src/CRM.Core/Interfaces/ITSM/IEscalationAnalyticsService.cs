@@ -92,6 +92,17 @@ public interface IEscalationAnalyticsService
         DateTime startDate,
         DateTime endDate,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Returns a pre-built 30-day analytics summary suitable for dasboard widgets.
+    /// Includes: total escalations, avg time-to-escalate by severity,
+    /// escalation rate by category, top-5 request types, resolution rate.
+    /// TODO-SD005-011: GET /api/escalationanalytics/summary
+    /// </summary>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Consolidated 30-day escalation summary.</returns>
+    Task<EscalationAnalyticsSummaryDto> GetAnalyticsSummaryAsync(
+        CancellationToken cancellationToken = default);
 }
 
 /// <summary>

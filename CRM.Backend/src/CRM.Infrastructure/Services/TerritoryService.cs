@@ -857,6 +857,74 @@ public class TerritoryService : ITerritoryService
 
     #endregion
 
+    #region Lead Territory Assignment
+
+    /// <inheritdoc />
+    public async Task<Territory?> FindMatchingTerritoryForLeadAsync(Lead lead, CancellationToken cancellationToken = default)
+    {
+        if (lead == null)
+            throw new ArgumentNullException(nameof(lead));
+
+        var territories = await _context.Territories
+            .Where(t => !t.IsDeleted && t.IsActive)
+            .OrderBy(t => t.Name)
+            .ToListAsync(cancellationToken);
+
+        return territories.FirstOrDefault(t => LeadMatchesTerritory(lead, t));
+    }
+
+    /// <inheritdoc />
+    public async Task<Lead> AssignLeadToTerritoryAsync(
+        int leadId,
+        int? territoryId,
+        int? userId,
+        CancellationToken cancellationToken = default)
+    {
+        var lead = await _context.Leads
+            .FirstOrDefaultAsync(l => l.Id == leadId && !l.IsDeleted, cancellationToken);
+
+        if (lead == null)
+            throw new InvalidOperationException($"Lead {leadId} not found.");
+
+        lead.TerritoryId = territoryId;
+
+        if (userId.HasValue)
+            lead.OwnerId = userId;
+
+        lead.UpdatedAt = DateTime.UtcNow;
+        await _context.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation(
+            "Assigned lead {LeadId} to territory {TerritoryId}, owner {UserId}",
+            leadId, territoryId, userId);
+
+        return lead;
+    }
+
+    /// <summary>
+    /// Checks whether a lead's <c>Region</c> value matches a territory's Countries or States rules.
+    /// An empty JSON array (or null) is treated as "match all".
+    /// </summary>
+    private bool LeadMatchesTerritory(Lead lead, Territory territory)
+    {
+        if (string.IsNullOrEmpty(lead.Region))
+            return false; // Cannot match without geographic data
+
+        // Try matching Region against territory Countries list
+        if (!string.IsNullOrEmpty(territory.Countries) &&
+            ContainsInJsonArray(territory.Countries, lead.Region))
+            return true;
+
+        // Try matching Region against territory States list
+        if (!string.IsNullOrEmpty(territory.States) &&
+            ContainsInJsonArray(territory.States, lead.Region))
+            return true;
+
+        return false;
+    }
+
+    #endregion
+
     #region Private Methods
 
     private bool TerritoryMatchesCriteria(AccountTerritory territory, TerritoryMatchCriteria criteria)

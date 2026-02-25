@@ -2,9 +2,10 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   Box, Typography, Button, TextField, CircularProgress,
-  TableContainer, Table, TableHead, TableBody, TableRow, TableCell, Paper
+  TableContainer, Table, TableHead, TableBody, TableRow, TableCell, Paper, TablePagination
 } from '@mui/material';
 import apiClient from '../../services/apiClient';
+import { usePagination } from '../../hooks/usePagination';
 
 interface ConfigurationItem {
   ciId: number;
@@ -41,6 +42,9 @@ const CMDBListPage: React.FC = () => {
     load();
   }, [searchTerm]);
 
+  const { paginatedData: paginatedItems, page, pageSize, handlePageChange, handlePageSizeChange, pageSizeOptions } =
+    usePagination(items, { defaultPageSize: 25 });
+
   return (
     <Box sx={{ p: 3 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
@@ -63,6 +67,7 @@ const CMDBListPage: React.FC = () => {
       ) : items.length === 0 ? (
         <Typography color="text.secondary">No configuration items found.</Typography>
       ) : (
+        <>
         <TableContainer component={Paper}>
           <Table>
             <TableHead>
@@ -74,7 +79,7 @@ const CMDBListPage: React.FC = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {items.map((ci) => (
+              {paginatedItems.map((ci) => (
                 <TableRow
                   key={ci.ciId}
                   hover
@@ -90,6 +95,16 @@ const CMDBListPage: React.FC = () => {
             </TableBody>
           </Table>
         </TableContainer>
+        <TablePagination
+          component="div"
+          count={items.length}
+          page={page}
+          onPageChange={handlePageChange}
+          rowsPerPage={pageSize}
+          onRowsPerPageChange={handlePageSizeChange}
+          rowsPerPageOptions={pageSizeOptions}
+        />
+        </>
       )}
     </Box>
   );

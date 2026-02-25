@@ -13,7 +13,9 @@ import TableCell from '@mui/material/TableCell';
 import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
+import TablePagination from '@mui/material/TablePagination';
 import apiClient from '../../services/apiClient';
+import { usePagination } from '../../hooks/usePagination';
 
 interface CatalogAdminItem {
   catalogItemId: number;
@@ -56,6 +58,9 @@ const ServiceCatalogAdminPage: React.FC = () => {
     return { total, featured, active, totalRequests };
   }, [items]);
 
+  const { paginatedData: paginatedItems, page, pageSize, handlePageChange, handlePageSizeChange, pageSizeOptions } =
+    usePagination(items, { defaultPageSize: 25 });
+
   return (
     <Box sx={{ p: 3 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
@@ -97,6 +102,7 @@ const ServiceCatalogAdminPage: React.FC = () => {
             {items.length === 0 ? (
               <Typography color="text.secondary">No catalog items available.</Typography>
             ) : (
+              <>
               <TableContainer>
                 <Table>
                   <TableHead>
@@ -109,7 +115,7 @@ const ServiceCatalogAdminPage: React.FC = () => {
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {items.map((item) => (
+                    {paginatedItems.map((item) => (
                       <TableRow key={item.catalogItemId} hover>
                         <TableCell>
                           <Typography variant="body2" fontWeight="medium">{item.name}</Typography>
@@ -129,6 +135,16 @@ const ServiceCatalogAdminPage: React.FC = () => {
                   </TableBody>
                 </Table>
               </TableContainer>
+              <TablePagination
+                component="div"
+                count={items.length}
+                page={page}
+                onPageChange={handlePageChange}
+                rowsPerPage={pageSize}
+                onRowsPerPageChange={handlePageSizeChange}
+                rowsPerPageOptions={pageSizeOptions}
+              />
+              </>
             )}
           </>
         )}

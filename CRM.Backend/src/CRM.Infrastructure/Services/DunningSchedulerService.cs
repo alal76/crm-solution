@@ -6,6 +6,7 @@
 // See the LICENSE file in the root directory for full terms.
 using CRM.Core.Dtos;
 using CRM.Core.Interfaces;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
@@ -18,39 +19,50 @@ namespace CRM.Infrastructure.Services;
 /// TODO-SALES003-012: DunningSchedulerService implementation.
 ///
 /// Scheduling:
-/// - Runs twice daily (default: 6 AM and 6 PM UTC)
+/// - Runs every 4 hours (six times daily) by default
 /// - Processes all due dunning records
 /// - Sends escalation emails based on retry attempt level
+///
+/// Exponential back-off (managed inside DunningManager.RetryFailedPaymentAsync):
+///   Attempt 1: same day   | Attempt 2: +3 days
+///   Attempt 3: +7 days    | Attempt 4+: +14 days
+///
+/// Uses IServiceScopeFactory to resolve IDunningManager per cycle,
+/// avoiding the captive-dependency problem (scoped inside singleton).
 ///
 /// SPEC: PHASE 6 - Subscription Billing Services
 /// </summary>
 public class DunningSchedulerService : BackgroundService
 {
-    private readonly IDunningManager _dunningManager;
+    private readonly IServiceScopeFactory _scopeFactory;
     private readonly ILogger<DunningSchedulerService> _logger;
     private readonly TimeSpan _runInterval;
     private readonly TimeSpan[] _scheduledTimes;
 
     /// <summary>
-    /// Creates a new DunningSchedulerService.
+    /// Creates a new DunningSchedulerService (production constructor — uses IServiceScopeFactory).
     /// </summary>
-    /// <param name="dunningManager">Dunning manager for processing payments</param>
+    /// <param name="scopeFactory">Service scope factory to resolve scoped IDunningManager per cycle</param>
     /// <param name="logger">Logger instance</param>
-    /// <param name="runIntervalHours">Hours between runs (default: 12h = twice daily)</param>
+    /// <param name="runIntervalHours">Hours between runs (default: 4h = six times daily)</param>
     public DunningSchedulerService(
-        IDunningManager dunningManager,
+        IServiceScopeFactory scopeFactory,
         ILogger<DunningSchedulerService> logger,
-        int runIntervalHours = 12)
+        int runIntervalHours = 4)
     {
-        _dunningManager = dunningManager ?? throw new ArgumentNullException(nameof(dunningManager));
+        _scopeFactory = scopeFactory ?? throw new ArgumentNullException(nameof(scopeFactory));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _runInterval = TimeSpan.FromHours(runIntervalHours);
 
-        // Default scheduled times: 6 AM and 6 PM UTC
+        // Default scheduled times: every 4 hours (6 runs/day) UTC
         _scheduledTimes = new[]
         {
-            TimeSpan.FromHours(6),  // 6:00 AM UTC
-            TimeSpan.FromHours(18)  // 6:00 PM UTC
+            TimeSpan.FromHours(0),  //  0:00 UTC (midnight)
+            TimeSpan.FromHours(4),  //  4:00 UTC
+            TimeSpan.FromHours(8),  //  8:00 UTC
+            TimeSpan.FromHours(12), // 12:00 UTC (noon)
+            TimeSpan.FromHours(16), // 16:00 UTC
+            TimeSpan.FromHours(20), // 20:00 UTC
         };
     }
 
@@ -95,13 +107,17 @@ public class DunningSchedulerService : BackgroundService
     }
 
     /// <summary>
-    /// Runs a dunning cycle: processes all due payments and sends escalation emails.
+    /// Runs a dunning cycle: resolves IDunningManager in a fresh scope, processes all due payments,
+    /// and sends escalation emails.  Each cycle gets its own EF Core DbContext (via scoped IDunningManager).
     /// </summary>
     public async Task<DunningCycleResultDto> RunDunningCycleAsync(CancellationToken cancellationToken)
     {
         _logger.LogInformation("Starting scheduled dunning cycle at {Time}", DateTime.UtcNow);
 
-        var result = await _dunningManager.ProcessDunningAsync(cancellationToken);
+        using var scope = _scopeFactory.CreateScope();
+        var dunningManager = scope.ServiceProvider.GetRequiredService<IDunningManager>();
+
+        var result = await dunningManager.ProcessDunningAsync(cancellationToken);
 
         _logger.LogInformation(
             "Dunning cycle completed: {Processed} processed, {Success} succeeded, {Escalated} escalated, {Paused} paused, {Cancelled} cancelled",

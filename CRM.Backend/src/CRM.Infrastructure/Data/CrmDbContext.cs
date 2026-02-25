@@ -1773,6 +1773,24 @@ public class CrmDbContext : DbContext, ICrmDbContext
                 .OnDelete(DeleteBehavior.Cascade);
         });
 
+        // Configure OpportunityCompetitor (junction table)
+        modelBuilder.Entity<OpportunityCompetitor>(entity =>
+        {
+            entity.HasKey(e => new { e.OpportunityId, e.CompetitorId });
+            entity.Property(e => e.CompetitorPrice).HasPrecision(18, 2);
+            entity.Property(e => e.Notes).HasMaxLength(2000);
+
+            entity.HasOne(e => e.Opportunity)
+                .WithMany()
+                .HasForeignKey(e => e.OpportunityId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.Competitor)
+                .WithMany()
+                .HasForeignKey(e => e.CompetitorId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
         // Configure Customer -> Lead relationship (ConvertedFromLead)
         modelBuilder.Entity<Account>(entity =>
         {

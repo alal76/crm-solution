@@ -36,11 +36,11 @@ const statusChipColor = (status: string): 'success' | 'info' | 'error' | 'warnin
   return 'default';
 };
 
-const formatCurrency = (amount: number, currency: string): string => {
+const formatCurrency = (amount: number, currency?: string | null): string => {
   try {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(amount);
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: currency || 'USD' }).format(amount);
   } catch {
-    return `${currency} ${amount.toFixed(2)}`;
+    return `${currency || 'USD'} ${amount.toFixed(2)}`;
   }
 };
 

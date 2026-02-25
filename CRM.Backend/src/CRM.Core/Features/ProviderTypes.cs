@@ -94,6 +94,12 @@ public static class ProviderTypes
 
         /// <summary>AWS SNS - Amazon Simple Notification Service</summary>
         public const string AwsSns = "AwsSns";
+
+        /// <summary>Microsoft Teams - Incoming Webhook notification to a Teams channel</summary>
+        public const string Teams = "Teams";
+
+        /// <summary>Slack - Incoming Webhook notification to a Slack channel</summary>
+        public const string Slack = "Slack";
     }
 
     /// <summary>

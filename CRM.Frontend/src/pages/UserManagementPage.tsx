@@ -1,9 +1,10 @@
-import { Box, Container, Typography, Card, CardContent, Table, TableBody, TableCell, TableHead, TableRow, CircularProgress, Alert, Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Select, MenuItem, FormControl, InputLabel, Chip, IconButton, Tooltip, Autocomplete, Switch, FormControlLabel } from '@mui/material';
+import { Box, Container, Typography, Card, CardContent, Table, TableBody, TableCell, TableHead, TableRow, TablePagination, CircularProgress, Alert, Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField, Select, MenuItem, FormControl, InputLabel, Chip, IconButton, Tooltip, Autocomplete, Switch, FormControlLabel } from '@mui/material';
 import { useState, useEffect } from 'react';
 import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, Lock as LockIcon, Link as LinkIcon, LinkOff as LinkOffIcon, Person as PersonIcon } from '@mui/icons-material';
 import apiClient from '../services/apiClient';
 import logo from '../assets/logo.png';
 import LookupSelect from '../components/LookupSelect';
+import { usePagination } from '../hooks/usePagination';
 
 interface User {
   id: number;
@@ -325,9 +326,12 @@ function UserManagementPage() {
     return contacts.filter(c => !linkedContactIds.includes(c.id));
   };
 
+  const { paginatedData: paginatedUsers, page, pageSize, handlePageChange, handlePageSizeChange, pageSizeOptions } =
+    usePagination(users, { defaultPageSize: 25 });
+
   if (loading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', py: 10 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
         <CircularProgress />
       </Box>
     );
@@ -370,7 +374,7 @@ function UserManagementPage() {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {users.map((user) => (
+                {paginatedUsers.map((user) => (
                   <TableRow key={user.id}>
                     <TableCell>{user.firstName} {user.lastName}</TableCell>
                     <TableCell>{user.email}</TableCell>
@@ -457,6 +461,15 @@ function UserManagementPage() {
                 ))}
               </TableBody>
             </Table>
+            <TablePagination
+              component="div"
+              count={users.length}
+              page={page}
+              onPageChange={handlePageChange}
+              rowsPerPage={pageSize}
+              onRowsPerPageChange={handlePageSizeChange}
+              rowsPerPageOptions={pageSizeOptions}
+            />
             {users.length === 0 && (
               <Typography sx={{ textAlign: 'center', py: 2, color: 'textSecondary' }}>
                 No users found

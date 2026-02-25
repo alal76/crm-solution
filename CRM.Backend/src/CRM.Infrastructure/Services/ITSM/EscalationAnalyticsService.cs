@@ -8,6 +8,7 @@ using CRM.Core.Entities;
 using CRM.Core.Entities.ITSM;
 using CRM.Core.Interfaces;
 using CRM.Core.Interfaces.ITSM;
+using CRM.Core.DTOs.ITSM;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
@@ -330,6 +331,134 @@ public class EscalationAnalyticsService : IEscalationAnalyticsService
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting escalation dashboard");
+            throw;
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task<EscalationAnalyticsSummaryDto> GetAnalyticsSummaryAsync(
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var endDate = DateTime.UtcNow;
+            var startDate = endDate.AddDays(-30);
+
+            // --- Raw escalation logs in the window ---
+            var logs = await _dbContext.Set<EscalationLog>()
+                .Where(e => e.EscalatedAt >= startDate && e.EscalatedAt <= endDate)
+                .Include(e => e.ServiceRequest)
+                    .ThenInclude(sr => sr!.Category)
+                .ToListAsync(cancellationToken);
+
+            // --- Total service requests ---
+            var totalRequests = await _dbContext.ServiceRequests
+                .CountAsync(sr => sr.CreatedAt >= startDate && sr.CreatedAt <= endDate && !sr.IsDeleted, cancellationToken);
+
+            // --- Avg time-to-escalate by severity ---
+            var bySeverity = logs
+                .Where(e => e.ServiceRequest != null)
+                .GroupBy(e => e.ServiceRequest!.Priority.ToString())
+                .Select(g => new EscalationTimeBySeverityDto
+                {
+                    Priority = g.Key,
+                    EscalationCount = g.Count(),
+                    AverageMinutesToEscalate = Math.Round(
+                        g.Average(e => (e.EscalatedAt - e.ServiceRequest!.CreatedAt).TotalMinutes), 2)
+                })
+                .OrderByDescending(x => x.EscalationCount)
+                .ToList();
+
+            // --- Escalation rate by category ---
+            var categoryRequests = await _dbContext.ServiceRequests
+                .Where(sr => sr.CreatedAt >= startDate && sr.CreatedAt <= endDate && !sr.IsDeleted && sr.CategoryId != null)
+                .Include(sr => sr.Category)
+                .ToListAsync(cancellationToken);
+
+            var escalationsByCategory = logs
+                .Where(e => e.ServiceRequest?.CategoryId != null)
+                .GroupBy(e => e.ServiceRequest!.CategoryId ?? 0)
+                .ToDictionary(g => g.Key, g => g.Count());
+
+            var categoryGroups = categoryRequests
+                .GroupBy(sr => new { sr.CategoryId, CategoryName = sr.Category != null ? sr.Category.Name : "Uncategorized" });
+
+            var byCategory = categoryGroups
+                .Select(g =>
+                {
+                    var escaped = escalationsByCategory.TryGetValue(g.Key.CategoryId ?? 0, out var ec) ? ec : 0;
+                    return new EscalationRateByCategoryDto
+                    {
+                        CategoryId = g.Key.CategoryId ?? 0,
+                        CategoryName = g.Key.CategoryName,
+                        TotalRequests = g.Count(),
+                        EscalatedRequests = escaped,
+                        EscalationRate = g.Count() > 0 ? Math.Round((double)escaped / g.Count() * 100, 2) : 0
+                    };
+                })
+                .OrderByDescending(x => x.EscalatedRequests)
+                .ToList();
+
+            // --- Top 5 most-escalated request types (by category) ---
+            var top5 = logs
+                .Where(e => e.ServiceRequest != null)
+                .GroupBy(e => new
+                {
+                    CategoryId = e.ServiceRequest!.CategoryId ?? 0,
+                    CategoryName = e.ServiceRequest.Category?.Name ?? "Uncategorized"
+                })
+                .OrderByDescending(g => g.Count())
+                .Take(5)
+                .Select((g, i) => new TopEscalatedRequestTypeDto
+                {
+                    Rank = i + 1,
+                    CategoryName = g.Key.CategoryName,
+                    EscalationCount = g.Count(),
+                    PercentageOfTotal = logs.Count > 0
+                        ? Math.Round((double)g.Count() / logs.Count * 100, 2)
+                        : 0
+                })
+                .ToList();
+
+            // --- Resolution rate after escalation ---
+            var escalatedSrIds = logs.Select(e => e.ServiceRequestId).Distinct().ToList();
+            double resolutionRate = 0;
+            if (escalatedSrIds.Count > 0)
+            {
+                var resolvedCount = await _dbContext.ServiceRequests
+                    .CountAsync(sr =>
+                        escalatedSrIds.Contains(sr.Id) &&
+                        (sr.Status == ServiceRequestStatus.Resolved || sr.Status == ServiceRequestStatus.Closed),
+                        cancellationToken);
+
+                resolutionRate = Math.Round((double)resolvedCount / escalatedSrIds.Count * 100, 2);
+            }
+
+            var summary = new EscalationAnalyticsSummaryDto
+            {
+                PeriodStart = startDate,
+                PeriodEnd = endDate,
+                TotalEscalations = logs.Count,
+                TotalServiceRequests = totalRequests,
+                OverallEscalationRate = totalRequests > 0
+                    ? Math.Round((double)logs.Count / totalRequests * 100, 2)
+                    : 0,
+                AverageTimeToEscalateBySeverity = bySeverity,
+                EscalationRateByCategory = byCategory,
+                TopEscalatedRequestTypes = top5,
+                ResolutionRateAfterEscalation = resolutionRate,
+                GeneratedAt = DateTime.UtcNow
+            };
+
+            _logger.LogInformation(
+                "Escalation analytics summary generated: {Total} escalations / {TotalSR} SRs in last 30 days",
+                summary.TotalEscalations, summary.TotalServiceRequests);
+
+            return summary;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error generating escalation analytics summary");
             throw;
         }
     }

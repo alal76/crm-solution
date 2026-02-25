@@ -9,6 +9,8 @@ using CRM.Core.Interfaces;
 using CRM.Core.Ports.Output.Providers;
 using CRM.Infrastructure.Providers.Novu;
 using CRM.Infrastructure.Providers.SendGrid;
+using CRM.Infrastructure.Providers.Slack;
+using CRM.Infrastructure.Providers.Teams;
 using CRM.Infrastructure.Providers.Twilio;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -84,6 +86,8 @@ public class NotificationProviderFactory : IProviderFactory<INotificationPort>
             "sendgrid" => GetProviderOrFallback<INotificationPort>("SendGridProvider"),
             "onesignal" => GetProviderOrFallback<INotificationPort>("OneSignalProvider"),
             "awssns" => GetProviderOrFallback<INotificationPort>("AwsSnsProvider"),
+            "teams" => GetProviderOrFallback<INotificationPort>("TeamsNotificationProvider"),
+            "slack" => GetProviderOrFallback<INotificationPort>("SlackNotificationProvider"),
             _ => throw new InvalidOperationException($"Unknown notification provider: {providerName}")
         };
     }
@@ -98,7 +102,9 @@ public class NotificationProviderFactory : IProviderFactory<INotificationPort>
             ProviderTypes.Notifications.Twilio,
             ProviderTypes.Notifications.SendGrid,
             ProviderTypes.Notifications.OneSignal,
-            ProviderTypes.Notifications.AwsSns
+            ProviderTypes.Notifications.AwsSns,
+            ProviderTypes.Notifications.Teams,
+            ProviderTypes.Notifications.Slack
         };
     }
 

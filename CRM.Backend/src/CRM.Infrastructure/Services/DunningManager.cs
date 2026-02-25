@@ -104,6 +104,46 @@ public class DunningManager : IDunningManager
         if (payment == null)
             throw new InvalidOperationException($"Payment {paymentId} not found");
 
+        // --- TODO-SALES006-025: Load invoice + subscription early for grace period check ---
+        Invoice? linkedInvoice = null;
+        Subscription? linkedSubscription = null;
+
+        if (payment.InvoiceId.HasValue)
+        {
+            linkedInvoice = await _context.Invoices
+                .FirstOrDefaultAsync(i => i.Id == payment.InvoiceId, cancellationToken);
+
+            if (linkedInvoice?.SubscriptionId.HasValue == true)
+            {
+                linkedSubscription = await _context.Subscriptions
+                    .FirstOrDefaultAsync(s => s.Id == linkedInvoice.SubscriptionId && !s.IsDeleted, cancellationToken);
+            }
+        }
+
+        // --- TODO-SALES006-025: Grace Period Check ---
+        // If the subscription has an active grace period, skip dunning until it expires.
+        if (linkedSubscription != null && linkedInvoice != null && linkedSubscription.DunningGracePeriodDays > 0)
+        {
+            var gracePeriodEnd = linkedInvoice.DueDate.AddDays(linkedSubscription.DunningGracePeriodDays);
+            if (DateTime.UtcNow.Date <= gracePeriodEnd.Date)
+            {
+                _logger.LogInformation(
+                    "Dunning skipped for payment {PaymentId} — subscription {SubId} is within grace period until {GraceEnd:yyyy-MM-dd}",
+                    paymentId, linkedSubscription.Id, gracePeriodEnd);
+
+                return new DunningRetryResultDto
+                {
+                    PaymentId = paymentId,
+                    AttemptNumber = 0,
+                    PaymentSucceeded = false,
+                    Status = "GracePeriod",
+                    Message = $"Dunning skipped. Grace period expires {gracePeriodEnd:yyyy-MM-dd}.",
+                    EscalationLevel = DunningEscalationLevel.Soft,
+                    SkippedDueToGracePeriod = true
+                };
+            }
+        }
+
         var attemptNumber = payment.RetryCount + 1;
         var escalationLevel = attemptNumber switch
         {
@@ -135,50 +175,59 @@ public class DunningManager : IDunningManager
             payment.RetryCount = attemptNumber;
             payment.ScheduledDate = DateTime.UtcNow.AddDays(nextDays);
 
-            // Handle escalation
+            // Handle escalation — reuse already-loaded subscription where available
             if (escalationLevel == DunningEscalationLevel.Final)
             {
-                // Pause subscription
-                var invoice = await _context.Invoices
-                    .FirstOrDefaultAsync(i => i.Id == payment.InvoiceId, cancellationToken);
-
-                if (invoice != null)
+                var sub = linkedSubscription ?? await ResolveSubscriptionFromPaymentAsync(payment, cancellationToken);
+                if (sub != null)
                 {
-                    var subscription = await _context.Subscriptions
-                        .FirstOrDefaultAsync(s => s.Id == invoice.SubscriptionId && !s.IsDeleted, cancellationToken);
-
-                    if (subscription != null)
-                    {
-                        subscription.SubscriptionStatus = SubscriptionStatus.Paused;
-                        _context.Subscriptions.Update(subscription);
-                        _logger.LogInformation("Subscription {SubId} paused due to dunning", subscription.Id);
-                    }
+                    sub.SubscriptionStatus = SubscriptionStatus.Paused;
+                    _context.Subscriptions.Update(sub);
+                    linkedSubscription = sub;
+                    _logger.LogInformation("Subscription {SubId} paused due to dunning", sub.Id);
                 }
             }
             else if (escalationLevel == DunningEscalationLevel.Exhausted)
             {
-                // Cancel subscription
-                var invoice = await _context.Invoices
-                    .FirstOrDefaultAsync(i => i.Id == payment.InvoiceId, cancellationToken);
-
-                if (invoice != null)
+                var sub = linkedSubscription ?? await ResolveSubscriptionFromPaymentAsync(payment, cancellationToken);
+                if (sub != null)
                 {
-                    var subscription = await _context.Subscriptions
-                        .FirstOrDefaultAsync(s => s.Id == invoice.SubscriptionId && !s.IsDeleted, cancellationToken);
-
-                    if (subscription != null)
-                    {
-                        subscription.SubscriptionStatus = SubscriptionStatus.Cancelled;
-                        subscription.EndDate = DateTime.UtcNow;
-                        _context.Subscriptions.Update(subscription);
-                        _logger.LogInformation("Subscription {SubId} cancelled due to exhausted dunning", subscription.Id);
-                    }
+                    sub.SubscriptionStatus = SubscriptionStatus.Cancelled;
+                    sub.EndDate = DateTime.UtcNow;
+                    _context.Subscriptions.Update(sub);
+                    linkedSubscription = sub;
+                    _logger.LogInformation("Subscription {SubId} cancelled due to exhausted dunning", sub.Id);
                 }
+            }
+
+            // --- TODO-SALES006-025: Track dunning attempt on subscription ---
+            if (linkedSubscription != null)
+            {
+                linkedSubscription.LastDunningDate = DateTime.UtcNow;
+                linkedSubscription.DunningAttemptCount = attemptNumber;
+                _context.Subscriptions.Update(linkedSubscription);
             }
         }
 
         _context.Payments.Update(payment);
         await _context.SaveChangesAsync(cancellationToken);
+
+        // --- TODO-SALES006-025: Send dunning escalation email after each failed retry ---
+        if (linkedSubscription?.SendDunningEscalationEmails == true && !paymentSucceeded)
+        {
+            try
+            {
+                await SendDunningEmailAsync(paymentId, attemptNumber, cancellationToken);
+                _logger.LogInformation(
+                    "Dunning escalation email sent for payment {PaymentId}, attempt {Attempt}",
+                    paymentId, attemptNumber);
+            }
+            catch (Exception emailEx)
+            {
+                // Email failure must not block the dunning workflow
+                _logger.LogWarning(emailEx, "Failed to send dunning escalation email for payment {PaymentId}", paymentId);
+            }
+        }
 
         var nextRetryDate = payment.ScheduledDate;
         if (payment.RetryCount > 3)
@@ -195,6 +244,27 @@ public class DunningManager : IDunningManager
             EscalationLevel = escalationLevel,
             IsExhausted = attemptNumber > 3
         };
+    }
+
+    /// <summary>
+    /// Helper: resolves the subscription linked to a payment via its invoice.
+    /// Used as a fallback when the subscription was not pre-loaded (e.g. no invoice link).
+    /// </summary>
+    private async Task<Subscription?> ResolveSubscriptionFromPaymentAsync(
+        Payment payment,
+        CancellationToken cancellationToken)
+    {
+        if (!payment.InvoiceId.HasValue)
+            return null;
+
+        var invoice = await _context.Invoices
+            .FirstOrDefaultAsync(i => i.Id == payment.InvoiceId, cancellationToken);
+
+        if (invoice?.SubscriptionId.HasValue != true)
+            return null;
+
+        return await _context.Subscriptions
+            .FirstOrDefaultAsync(s => s.Id == invoice.SubscriptionId && !s.IsDeleted, cancellationToken);
     }
 
     public async Task<DunningEmailResultDto> SendDunningEmailAsync(

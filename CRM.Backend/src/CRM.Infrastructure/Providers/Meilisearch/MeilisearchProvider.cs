@@ -675,5 +675,26 @@ public class MeilisearchProvider : ISearchPort
         return dict;
     }
 
+    /// <inheritdoc />
+    public async Task RebuildAllIndexesAsync(CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Meilisearch: RebuildAllIndexesAsync - triggering full re-index");
+        var indexes = new[] { "accounts", "contacts", "leads", "opportunities", "products" };
+        foreach (var indexName in indexes)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            try
+            {
+                var indexRef = _client.Index(_config.IndexPrefix + indexName);
+                await indexRef.DeleteAllDocumentsAsync();
+                _logger.LogDebug("Meilisearch: cleared index {Index}", indexName);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Meilisearch: RebuildAllIndexesAsync failed for index {Index}", indexName);
+            }
+        }
+    }
+
     #endregion
 }

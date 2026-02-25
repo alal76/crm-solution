@@ -11,112 +11,117 @@
  */
 import apiClient from './apiClient';
 
+// Raw API response data type (JSON object with unknown field types)
+type RawApiData = Record<string, unknown>;
+
 // ============================================================================
 // DATA NORMALIZATION
 // ============================================================================
 // Backend returns different property names. These helpers ensure safe data access.
 
-const normalizeCommission = (c: any): Commission => ({
-  ...c,
-  quotaAttainmentAtTime: c.quotaAttainmentAtTime ?? c.attainmentPercent ?? 0,
-  tierLevel: c.tierLevel ?? 0,
-  quotaPeriod: c.quotaPeriod ?? '',
-  originalAmount: c.originalAmount ?? 0,
-  commissionRate: c.commissionRate ?? 0,
-  commissionAmount: c.commissionAmount ?? 0,
-  dealAmount: c.dealAmount ?? 0,
-  commissionableAmount: c.commissionableAmount ?? 0,
-  finalCommissionAmount: c.finalCommissionAmount ?? 0,
-  splitPercent: c.splitPercent ?? 100,
+const normalizeCommission = (raw: RawApiData): Commission => ({
+  ...(raw as unknown as Commission),
+  quotaAttainmentAtTime: ((raw['quotaAttainmentAtTime'] ?? raw['attainmentPercent']) ?? 0) as number,
+  tierLevel: (raw['tierLevel'] ?? 0) as number,
+  quotaPeriod: (raw['quotaPeriod'] ?? '') as string,
+  originalAmount: (raw['originalAmount'] ?? 0) as number,
+  commissionRate: (raw['commissionRate'] ?? 0) as number,
+  commissionAmount: (raw['commissionAmount'] ?? 0) as number,
+  dealAmount: (raw['dealAmount'] ?? 0) as number,
+  commissionableAmount: (raw['commissionableAmount'] ?? 0) as number,
+  finalCommissionAmount: (raw['finalCommissionAmount'] ?? 0) as number,
+  splitPercent: (raw['splitPercent'] ?? 100) as number,
 });
 
-const normalizeCommissionTier = (t: any): CommissionTier => ({
-  ...t,
-  maxValue: t.maxValue ?? t.maxAttainmentPercent ?? 100,
-  minValue: t.minValue ?? t.minAttainmentPercent ?? 0,
-  commissionRate: t.commissionRate ?? 0,
-  fixedAmount: t.fixedAmount ?? 0,
-  multiplier: t.multiplier ?? 1,
-  tierOrder: t.tierOrder ?? 0,
+const normalizeCommissionTier = (raw: RawApiData): CommissionTier => ({
+  ...(raw as unknown as CommissionTier),
+  maxValue: ((raw['maxValue'] ?? raw['maxAttainmentPercent']) ?? 100) as number,
+  minValue: ((raw['minValue'] ?? raw['minAttainmentPercent']) ?? 0) as number,
+  commissionRate: (raw['commissionRate'] ?? 0) as number,
+  fixedAmount: (raw['fixedAmount'] ?? 0) as number,
+  multiplier: (raw['multiplier'] ?? 1) as number,
+  tierOrder: (raw['tierOrder'] ?? 0) as number,
 });
 
-const normalizeStatement = (s: any): CommissionStatement => ({
-  ...s,
-  finalizedBy: s.finalizedBy ?? null,
-  notes: s.notes ?? '',
-  totalEarned: s.totalEarned ?? 0,
-  totalAmount: s.totalAmount ?? s.totalEarned ?? 0,
-  totalAdjustments: s.totalAdjustments ?? 0,
-  totalClawbacks: s.totalClawbacks ?? 0,
-  netPayout: s.netPayout ?? 0,
+const normalizeStatement = (raw: RawApiData): CommissionStatement => ({
+  ...(raw as unknown as CommissionStatement),
+  finalizedBy: (raw['finalizedBy'] ?? undefined) as number | undefined,
+  notes: (raw['notes'] ?? '') as string,
+  totalEarned: (raw['totalEarned'] ?? 0) as number,
+  totalAmount: ((raw['totalAmount'] ?? raw['totalEarned']) ?? 0) as number,
+  totalAdjustments: (raw['totalAdjustments'] ?? 0) as number,
+  totalClawbacks: (raw['totalClawbacks'] ?? 0) as number,
+  netPayout: (raw['netPayout'] ?? 0) as number,
 });
 
-const normalizePlan = (p: any): CommissionPlan => ({
-  ...p,
-  baseRate: p.baseRate ?? 0,
-  tiers: (p.tiers || []).map(normalizeCommissionTier),
+const normalizePlan = (raw: RawApiData): CommissionPlan => ({
+  ...(raw as unknown as CommissionPlan),
+  baseRate: (raw['baseRate'] ?? 0) as number,
+  tiers: ((raw['tiers'] as RawApiData[] | undefined) || []).map(normalizeCommissionTier),
 });
 
-const normalizeStatistics = (s: any): CommissionStatistics => ({
-  ...s,
-  totalCommissions: s.totalCommissions ?? 0,
-  totalPaid: s.totalPaid ?? 0,
-  totalPending: s.totalPending ?? 0,
-  totalRecords: s.totalRecords ?? 0,
-  pendingApprovals: s.pendingApprovals ?? 0,
-  averageCommission: s.averageCommission ?? 0,
-  activePlans: s.activePlans ?? 0,
-  commissionsByPlan: s.commissionsByPlan ?? {},
+const normalizeStatistics = (raw: RawApiData): CommissionStatistics => ({
+  ...(raw as unknown as CommissionStatistics),
+  totalCommissions: (raw['totalCommissions'] ?? 0) as number,
+  totalPaid: (raw['totalPaid'] ?? 0) as number,
+  totalPending: (raw['totalPending'] ?? 0) as number,
+  totalRecords: (raw['totalRecords'] ?? 0) as number,
+  pendingApprovals: (raw['pendingApprovals'] ?? 0) as number,
+  averageCommission: (raw['averageCommission'] ?? 0) as number,
+  activePlans: (raw['activePlans'] ?? 0) as number,
+  commissionsByPlan: (raw['commissionsByPlan'] ?? {}) as Record<string, number>,
 });
 
-const normalizeLeaderboard = (l: any): CommissionLeaderboard => ({
-  ...l,
-  rank: l.rank ?? 0,
-  totalEarned: l.totalEarned ?? 0,
-  dealCount: l.dealCount ?? 0,
-  averageDealSize: l.averageDealSize ?? 0,
+const normalizeLeaderboard = (raw: RawApiData): CommissionLeaderboard => ({
+  ...(raw as unknown as CommissionLeaderboard),
+  rank: (raw['rank'] ?? 0) as number,
+  totalEarned: (raw['totalEarned'] ?? 0) as number,
+  dealCount: (raw['dealCount'] ?? 0) as number,
+  averageDealSize: (raw['averageDealSize'] ?? 0) as number,
 });
 
-const normalizeCommissionSummary = (s: any): CommissionSummary => ({
-  ...s,
-  totalEarned: s.totalEarned ?? 0,
-  totalPaid: s.totalPaid ?? 0,
-  totalPending: s.totalPending ?? 0,
-  totalClawedBack: s.totalClawedBack ?? 0,
-  dealCount: s.dealCount ?? 0,
-  averageCommission: s.averageCommission ?? 0,
-  commissions: (s.commissions || []).map(normalizeCommission),
+const normalizeCommissionSummary = (raw: RawApiData): CommissionSummary => ({
+  ...(raw as unknown as CommissionSummary),
+  totalEarned: (raw['totalEarned'] ?? 0) as number,
+  totalPaid: (raw['totalPaid'] ?? 0) as number,
+  totalPending: (raw['totalPending'] ?? 0) as number,
+  totalClawedBack: (raw['totalClawedBack'] ?? 0) as number,
+  dealCount: (raw['dealCount'] ?? 0) as number,
+  averageCommission: (raw['averageCommission'] ?? 0) as number,
+  commissions: ((raw['commissions'] as RawApiData[] | undefined) || []).map(normalizeCommission),
 });
 
-const normalizeForecast = (f: any): CommissionForecast => ({
-  ...f,
-  currentEarned: f.currentEarned ?? 0,
-  forecastedEarnings: f.forecastedEarnings ?? 0,
-  pipelineValue: f.pipelineValue ?? 0,
-  expectedFromPipeline: f.expectedFromPipeline ?? 0,
-  quotaProgress: f.quotaProgress ?? 0,
-  projectedQuotaAttainment: f.projectedQuotaAttainment ?? 0,
-  forecastedDeals: (f.forecastedDeals || []).map((d: any) => ({
-    ...d,
-    dealValue: d.dealValue ?? 0,
-    expectedCommission: d.expectedCommission ?? 0,
-    probability: d.probability ?? 0,
+const normalizeForecast = (raw: RawApiData): CommissionForecast => ({
+  ...(raw as unknown as CommissionForecast),
+  currentEarned: (raw['currentEarned'] ?? 0) as number,
+  forecastedEarnings: (raw['forecastedEarnings'] ?? 0) as number,
+  pipelineValue: (raw['pipelineValue'] ?? 0) as number,
+  expectedFromPipeline: (raw['expectedFromPipeline'] ?? 0) as number,
+  quotaProgress: (raw['quotaProgress'] ?? 0) as number,
+  projectedQuotaAttainment: (raw['projectedQuotaAttainment'] ?? 0) as number,
+  forecastedDeals: ((raw['forecastedDeals'] as RawApiData[] | undefined) || []).map((d) => ({
+    opportunityId: (d['opportunityId'] ?? 0) as number,
+    opportunityName: (d['opportunityName'] ?? '') as string,
+    dealValue: (d['dealValue'] ?? 0) as number,
+    expectedCommission: (d['expectedCommission'] ?? 0) as number,
+    probability: (d['probability'] ?? 0) as number,
+    expectedCloseDate: d['expectedCloseDate'] as string | undefined,
   })),
 });
 
-const normalizeCalculation = (c: any): CommissionCalculation => ({
-  ...c,
-  baseAmount: c.baseAmount ?? 0,
-  commissionRate: c.commissionRate ?? 0,
-  calculatedAmount: c.calculatedAmount ?? 0,
-  accelerator: c.accelerator ?? 1,
-  finalAmount: c.finalAmount ?? 0,
-  tierLevel: c.tierLevel ?? 0,
-  breakdown: (c.breakdown || []).map((b: any) => ({
-    ...b,
-    amount: b.amount ?? 0,
-    rate: b.rate ?? 0,
-    result: b.result ?? 0,
+const normalizeCalculation = (raw: RawApiData): CommissionCalculation => ({
+  ...(raw as unknown as CommissionCalculation),
+  baseAmount: (raw['baseAmount'] ?? 0) as number,
+  commissionRate: (raw['commissionRate'] ?? 0) as number,
+  calculatedAmount: (raw['calculatedAmount'] ?? 0) as number,
+  accelerator: (raw['accelerator'] ?? 1) as number,
+  finalAmount: (raw['finalAmount'] ?? 0) as number,
+  tierLevel: (raw['tierLevel'] ?? 0) as number,
+  breakdown: ((raw['breakdown'] as RawApiData[] | undefined) || []).map((b) => ({
+    description: (b['description'] ?? '') as string,
+    amount: (b['amount'] ?? 0) as number,
+    rate: (b['rate'] ?? 0) as number,
+    result: (b['result'] ?? 0) as number,
   })),
 });
 
@@ -493,7 +498,7 @@ export const getCommissions = async (
   if (userId !== undefined) params.append('userId', userId.toString());
   if (status !== undefined) params.append('status', status.toString());
   
-  const response = await apiClient.get<Commission[]>(`${API_BASE}?${params}`);
+  const response = await apiClient.get<RawApiData[]>(`${API_BASE}?${params}`);
   return (response.data || []).map(normalizeCommission);
 };
 
@@ -501,7 +506,7 @@ export const getCommissions = async (
  * Get a commission by ID.
  */
 export const getCommissionById = async (id: number): Promise<Commission> => {
-  const response = await apiClient.get<Commission>(`${API_BASE}/${id}`);
+  const response = await apiClient.get<RawApiData>(`${API_BASE}/${id}`);
   return normalizeCommission(response.data);
 };
 
@@ -511,7 +516,7 @@ export const getCommissionById = async (id: number): Promise<Commission> => {
 export const createCommission = async (
   request: CommissionCreateRequest
 ): Promise<Commission> => {
-  const response = await apiClient.post<Commission>(API_BASE, request);
+  const response = await apiClient.post<RawApiData>(API_BASE, request);
   return normalizeCommission(response.data);
 };
 
@@ -522,7 +527,7 @@ export const updateCommission = async (
   id: number,
   request: CommissionUpdateRequest
 ): Promise<Commission> => {
-  const response = await apiClient.put<Commission>(`${API_BASE}/${id}`, request);
+  const response = await apiClient.put<RawApiData>(`${API_BASE}/${id}`, request);
   return normalizeCommission(response.data);
 };
 
@@ -544,7 +549,7 @@ export const updateCommissionStatus = async (
   id: number,
   status: CommissionStatus
 ): Promise<Commission> => {
-  const response = await apiClient.patch<Commission>(`${API_BASE}/${id}/status`, { status });
+  const response = await apiClient.patch<RawApiData>(`${API_BASE}/${id}/status`, { status });
   return normalizeCommission(response.data);
 };
 
@@ -555,7 +560,7 @@ export const approveCommission = async (
   id: number,
   approvedById: number
 ): Promise<Commission> => {
-  const response = await apiClient.post<Commission>(`${API_BASE}/${id}/approve`, { approvedById });
+  const response = await apiClient.post<RawApiData>(`${API_BASE}/${id}/approve`, { approvedById });
   return normalizeCommission(response.data);
 };
 
@@ -566,7 +571,7 @@ export const rejectCommission = async (
   id: number,
   reason: string
 ): Promise<Commission> => {
-  const response = await apiClient.post<Commission>(`${API_BASE}/${id}/reject`, { reason });
+  const response = await apiClient.post<RawApiData>(`${API_BASE}/${id}/reject`, { reason });
   return normalizeCommission(response.data);
 };
 
@@ -577,7 +582,7 @@ export const markCommissionPaid = async (
   id: number,
   paidDate?: string
 ): Promise<Commission> => {
-  const response = await apiClient.post<Commission>(`${API_BASE}/${id}/mark-paid`, { paidDate });
+  const response = await apiClient.post<RawApiData>(`${API_BASE}/${id}/mark-paid`, { paidDate });
   return normalizeCommission(response.data);
 };
 
@@ -588,7 +593,7 @@ export const clawbackCommission = async (
   id: number,
   reason: string
 ): Promise<Commission> => {
-  const response = await apiClient.post<Commission>(`${API_BASE}/${id}/clawback`, { reason });
+  const response = await apiClient.post<RawApiData>(`${API_BASE}/${id}/clawback`, { reason });
   return normalizeCommission(response.data);
 };
 
@@ -600,7 +605,7 @@ export const clawbackCommission = async (
  * Calculate commission for a deal/opportunity.
  */
 export const calculateForDeal = async (opportunityId: number): Promise<CommissionCalculation> => {
-  const response = await apiClient.get<CommissionCalculation>(
+  const response = await apiClient.get<RawApiData>(
     `${API_BASE}/calculate/deal/${opportunityId}`
   );
   return normalizeCalculation(response.data);
@@ -610,7 +615,7 @@ export const calculateForDeal = async (opportunityId: number): Promise<Commissio
  * Calculate commission for an order.
  */
 export const calculateForOrder = async (orderId: number): Promise<CommissionCalculation> => {
-  const response = await apiClient.get<CommissionCalculation>(
+  const response = await apiClient.get<RawApiData>(
     `${API_BASE}/calculate/order/${orderId}`
   );
   return normalizeCalculation(response.data);
@@ -620,7 +625,7 @@ export const calculateForOrder = async (orderId: number): Promise<CommissionCalc
  * Recalculate a commission after changes.
  */
 export const recalculateCommission = async (id: number): Promise<Commission> => {
-  const response = await apiClient.post<Commission>(`${API_BASE}/${id}/recalculate`);
+  const response = await apiClient.post<RawApiData>(`${API_BASE}/${id}/recalculate`);
   return normalizeCommission(response.data);
 };
 
@@ -640,7 +645,7 @@ export const getCommissionsByUser = async (
   if (fromDate) params.append('fromDate', fromDate);
   if (toDate) params.append('toDate', toDate);
   
-  const response = await apiClient.get<Commission[]>(`${API_BASE}/user/${userId}?${params}`);
+  const response = await apiClient.get<RawApiData[]>(`${API_BASE}/user/${userId}?${params}`);
   return (response.data || []).map(normalizeCommission);
 };
 
@@ -648,7 +653,7 @@ export const getCommissionsByUser = async (
  * Get pending commissions awaiting approval.
  */
 export const getPendingApprovals = async (): Promise<Commission[]> => {
-  const response = await apiClient.get<Commission[]>(`${API_BASE}/pending-approvals`);
+  const response = await apiClient.get<RawApiData[]>(`${API_BASE}/pending-approvals`);
   return (response.data || []).map(normalizeCommission);
 };
 
@@ -656,7 +661,7 @@ export const getPendingApprovals = async (): Promise<Commission[]> => {
  * Get commissions ready for payout.
  */
 export const getReadyForPayout = async (): Promise<Commission[]> => {
-  const response = await apiClient.get<Commission[]>(`${API_BASE}/ready-for-payout`);
+  const response = await apiClient.get<RawApiData[]>(`${API_BASE}/ready-for-payout`);
   return (response.data || []).map(normalizeCommission);
 };
 
@@ -671,7 +676,7 @@ export const getStatistics = async (
   if (fromDate) params.append('fromDate', fromDate);
   if (toDate) params.append('toDate', toDate);
   
-  const response = await apiClient.get<CommissionStatistics>(`${API_BASE}/statistics?${params}`);
+  const response = await apiClient.get<RawApiData>(`${API_BASE}/statistics?${params}`);
   return normalizeStatistics(response.data);
 };
 
@@ -688,7 +693,7 @@ export const getLeaderboard = async (
   if (fromDate) params.append('fromDate', fromDate);
   if (toDate) params.append('toDate', toDate);
   
-  const response = await apiClient.get<CommissionLeaderboard[]>(`${API_BASE}/leaderboard?${params}`);
+  const response = await apiClient.get<RawApiData[]>(`${API_BASE}/leaderboard?${params}`);
   return (response.data || []).map(normalizeLeaderboard);
 };
 
@@ -702,7 +707,7 @@ export const getForecast = async (
   const params = new URLSearchParams();
   if (asOfDate) params.append('asOfDate', asOfDate);
   
-  const response = await apiClient.get<CommissionForecast>(`${API_BASE}/forecast/${userId}?${params}`);
+  const response = await apiClient.get<RawApiData>(`${API_BASE}/forecast/${userId}?${params}`);
   return normalizeForecast(response.data);
 };
 
@@ -718,7 +723,7 @@ export const getPeriodSummary = async (
   params.append('fromDate', fromDate);
   params.append('toDate', toDate);
   
-  const response = await apiClient.get<CommissionSummary>(`${API_BASE}/summary/${userId}?${params}`);
+  const response = await apiClient.get<RawApiData>(`${API_BASE}/summary/${userId}?${params}`);
   return normalizeCommissionSummary(response.data);
 };
 
@@ -733,7 +738,7 @@ export const getPlans = async (isActive?: boolean): Promise<CommissionPlan[]> =>
   const params = new URLSearchParams();
   if (isActive !== undefined) params.append('isActive', isActive.toString());
   
-  const response = await apiClient.get<CommissionPlan[]>(`${API_BASE}/plans?${params}`);
+  const response = await apiClient.get<RawApiData[]>(`${API_BASE}/plans?${params}`);
   return (response.data || []).map(normalizePlan);
 };
 
@@ -741,7 +746,7 @@ export const getPlans = async (isActive?: boolean): Promise<CommissionPlan[]> =>
  * Get a commission plan by ID.
  */
 export const getPlanById = async (planId: number): Promise<CommissionPlan> => {
-  const response = await apiClient.get<CommissionPlan>(`${API_BASE}/plans/${planId}`);
+  const response = await apiClient.get<RawApiData>(`${API_BASE}/plans/${planId}`);
   return normalizePlan(response.data);
 };
 
@@ -749,7 +754,7 @@ export const getPlanById = async (planId: number): Promise<CommissionPlan> => {
  * Create a commission plan.
  */
 export const createPlan = async (request: CommissionPlanCreateRequest): Promise<CommissionPlan> => {
-  const response = await apiClient.post<CommissionPlan>(`${API_BASE}/plans`, request);
+  const response = await apiClient.post<RawApiData>(`${API_BASE}/plans`, request);
   return normalizePlan(response.data);
 };
 
@@ -760,7 +765,7 @@ export const updatePlan = async (
   planId: number,
   request: CommissionPlanUpdateRequest
 ): Promise<CommissionPlan> => {
-  const response = await apiClient.put<CommissionPlan>(`${API_BASE}/plans/${planId}`, request);
+  const response = await apiClient.put<RawApiData>(`${API_BASE}/plans/${planId}`, request);
   return normalizePlan(response.data);
 };
 
@@ -790,7 +795,7 @@ export const assignPlanToUser = async (
  * Get the active plan for a user.
  */
 export const getUserPlan = async (userId: number): Promise<CommissionPlan> => {
-  const response = await apiClient.get<CommissionPlan>(`${API_BASE}/plans/user/${userId}`);
+  const response = await apiClient.get<RawApiData>(`${API_BASE}/plans/user/${userId}`);
   return normalizePlan(response.data);
 };
 
@@ -802,7 +807,7 @@ export const getUserPlan = async (userId: number): Promise<CommissionPlan> => {
  * Get tiers for a commission plan.
  */
 export const getTiers = async (planId: number): Promise<CommissionTier[]> => {
-  const response = await apiClient.get<CommissionTier[]>(`${API_BASE}/plans/${planId}/tiers`);
+  const response = await apiClient.get<RawApiData[]>(`${API_BASE}/plans/${planId}/tiers`);
   return (response.data || []).map(normalizeCommissionTier);
 };
 
@@ -813,7 +818,7 @@ export const addTier = async (
   planId: number,
   request: CommissionTierCreateRequest
 ): Promise<CommissionTier> => {
-  const response = await apiClient.post<CommissionTier>(
+  const response = await apiClient.post<RawApiData>(
     `${API_BASE}/plans/${planId}/tiers`,
     request
   );
@@ -827,7 +832,7 @@ export const updateTier = async (
   tierId: number,
   request: CommissionTierUpdateRequest
 ): Promise<CommissionTier> => {
-  const response = await apiClient.put<CommissionTier>(`${API_BASE}/tiers/${tierId}`, request);
+  const response = await apiClient.put<RawApiData>(`${API_BASE}/tiers/${tierId}`, request);
   return normalizeCommissionTier(response.data);
 };
 
@@ -848,7 +853,7 @@ export const removeTier = async (tierId: number): Promise<void> => {
 export const generateStatement = async (
   request: CommissionStatementGenerateRequest
 ): Promise<CommissionStatement> => {
-  const response = await apiClient.post<CommissionStatement>(
+  const response = await apiClient.post<RawApiData>(
     `${API_BASE}/statements/generate`,
     request
   );
@@ -860,7 +865,7 @@ export const generateStatement = async (
  */
 export const getStatements = async (userId?: number): Promise<CommissionStatement[]> => {
   const url = userId ? `${API_BASE}/statements/user/${userId}` : `${API_BASE}/statements`;
-  const response = await apiClient.get<CommissionStatement[]>(url);
+  const response = await apiClient.get<RawApiData[]>(url);
   return (response.data || []).map(normalizeStatement);
 };
 
@@ -868,7 +873,7 @@ export const getStatements = async (userId?: number): Promise<CommissionStatemen
  * Get a statement by ID.
  */
 export const getStatementById = async (statementId: number): Promise<CommissionStatement> => {
-  const response = await apiClient.get<CommissionStatement>(
+  const response = await apiClient.get<RawApiData>(
     `${API_BASE}/statements/${statementId}`
   );
   return normalizeStatement(response.data);
@@ -878,7 +883,7 @@ export const getStatementById = async (statementId: number): Promise<CommissionS
  * Finalize a statement for payout.
  */
 export const finalizeStatement = async (statementId: number): Promise<CommissionStatement> => {
-  const response = await apiClient.post<CommissionStatement>(
+  const response = await apiClient.post<RawApiData>(
     `${API_BASE}/statements/${statementId}/finalize`
   );
   return normalizeStatement(response.data);
@@ -888,7 +893,7 @@ export const finalizeStatement = async (statementId: number): Promise<Commission
  * Clone a commission plan.
  */
 export const clonePlan = async (planId: number): Promise<CommissionPlan> => {
-  const response = await apiClient.post<CommissionPlan>(`${API_BASE}/plans/${planId}/clone`);
+  const response = await apiClient.post<RawApiData>(`${API_BASE}/plans/${planId}/clone`);
   return normalizePlan(response.data);
 };
 
@@ -896,7 +901,7 @@ export const clonePlan = async (planId: number): Promise<CommissionPlan> => {
  * Update plan status.
  */
 export const updatePlanStatus = async (planId: number, status: CommissionPlanStatus): Promise<CommissionPlan> => {
-  const response = await apiClient.patch<CommissionPlan>(`${API_BASE}/plans/${planId}/status`, { status });
+  const response = await apiClient.patch<RawApiData>(`${API_BASE}/plans/${planId}/status`, { status });
   return normalizePlan(response.data);
 };
 
@@ -918,7 +923,7 @@ export const deleteTier = async (_planId: number, tierId: number): Promise<void>
  * Get commissions for a specific statement.
  */
 export const getCommissionsForStatement = async (statementId: number): Promise<Commission[]> => {
-  const response = await apiClient.get<Commission[]>(`${API_BASE}/statements/${statementId}/commissions`);
+  const response = await apiClient.get<RawApiData[]>(`${API_BASE}/statements/${statementId}/commissions`);
   return (response.data || []).map(normalizeCommission);
 };
 
@@ -929,7 +934,7 @@ export const updateStatementStatus = async (
   statementId: number,
   status: CommissionStatementStatus
 ): Promise<CommissionStatement> => {
-  const response = await apiClient.patch<CommissionStatement>(
+  const response = await apiClient.patch<RawApiData>(
     `${API_BASE}/statements/${statementId}/status`,
     { status }
   );

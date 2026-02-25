@@ -12,7 +12,9 @@ import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
 import Paper from '@mui/material/Paper';
+import TablePagination from '@mui/material/TablePagination';
 import apiClient from '../../services/apiClient';
+import { usePagination } from '../../hooks/usePagination';
 
 interface ChangeItem {
   changeId: number;
@@ -50,6 +52,9 @@ const ChangeListPage: React.FC = () => {
     load();
   }, [searchTerm]);
 
+  const { paginatedData: paginatedItems, page, pageSize, handlePageChange, handlePageSizeChange, pageSizeOptions } =
+    usePagination(items, { defaultPageSize: 25 });
+
   return (
     <Box sx={{ p: 3 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
@@ -81,6 +86,7 @@ const ChangeListPage: React.FC = () => {
       ) : items.length === 0 ? (
         <Typography color="text.secondary">No changes found.</Typography>
       ) : (
+        <>
         <TableContainer component={Paper}>
           <Table>
             <TableHead>
@@ -92,7 +98,7 @@ const ChangeListPage: React.FC = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {items.map((change) => (
+              {paginatedItems.map((change) => (
                 <TableRow
                   key={change.changeId}
                   hover
@@ -108,6 +114,16 @@ const ChangeListPage: React.FC = () => {
             </TableBody>
           </Table>
         </TableContainer>
+        <TablePagination
+          component="div"
+          count={items.length}
+          page={page}
+          onPageChange={handlePageChange}
+          rowsPerPage={pageSize}
+          onRowsPerPageChange={handlePageSizeChange}
+          rowsPerPageOptions={pageSizeOptions}
+        />
+        </>
       )}
     </Box>
   );

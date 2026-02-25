@@ -329,8 +329,8 @@ GET  /api/ai/providers
 
 | ID | Description | Priority | Category |
 |----|-------------|----------|----------|
-| TODO-SYS008-001 | Add admin settings navigation E2E tests | P2 | Testing |
-| TODO-SYS008-002 | Add unit tests for database/duplicate/lead-score controllers | P2 | Testing |
+| TODO-SYS008-001 | ✅ Add admin settings navigation E2E tests | P2 | Testing — 5 @smoke + 5 advanced tests in `e2e-tests/tests/admin/admin-settings.spec.ts` |
+| TODO-SYS008-002 | ✅ Add unit tests for database/duplicate/lead-score controllers | P2 | Testing — AdminConfigurationControllerTests (11), LeadScoreRulesControllerTests (11), DuplicateDetectionControllerTests (8) |
 | TODO-SYS008-003 | Validate admin pages against API contract | P2 | Backend |
 | TODO-SYS008-004 | Add missing UI empty states + loading UX | P3 | Frontend |
 
@@ -347,7 +347,7 @@ GET  /api/ai/providers
 | TODO-SYS008-011 | Create DiscountRulesPanel React component | P1 | Frontend |
 | TODO-SYS008-012 | Integrate SalesSettingsPage into admin navigation | P2 | Frontend |
 | TODO-SYS008-013 | Add sales settings E2E tests | P2 | Testing |
-| TODO-SYS008-014 | Add commission rule unit tests | P2 | Testing |
+| TODO-SYS008-014 | ✅ Add commission rule unit tests | P2 | Testing — CommissionRulesEngineTests (13 tests: ApplyCap, CalculateSplit, CalculateTieredCommission) |
 
 ### New TODO Items - Service Desk Admin
 
@@ -389,8 +389,8 @@ GET  /api/ai/providers
 
 | ID | Description | Priority | Category |
 |----|-------------|----------|----------|
-| TODO-SYS008-001 | Add admin settings navigation E2E tests | P2 | Testing |
-| TODO-SYS008-002 | Add unit tests for database/duplicate/lead-score controllers | P2 | Testing |
+| TODO-SYS008-001 | ✅ Add admin settings navigation E2E tests | P2 | Testing — 5 @smoke + 5 advanced tests added |
+| TODO-SYS008-002 | ✅ Add unit tests for database/duplicate/lead-score controllers | P2 | Testing — AdminConfigurationControllerTests (11), DuplicateDetectionControllerTests (8) |
 | TODO-SYS008-003 | Validate admin pages against API contract | P2 | Backend |
 | TODO-SYS008-004 | Add missing UI empty states + loading UX | P3 | Frontend |
 

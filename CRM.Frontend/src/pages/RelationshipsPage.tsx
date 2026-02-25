@@ -10,7 +10,7 @@ import {
   Box, Card, CardContent, Typography, Button, Table, TableBody, TableCell, TableHead,
   TableRow, Dialog, DialogTitle, DialogContent, DialogActions, Alert, CircularProgress,
   TextField, Container, FormControl, InputLabel, Select, MenuItem, Chip, Tabs, Tab,
-  Grid, IconButton, Tooltip, LinearProgress, Paper, Stack, Autocomplete
+  Grid, IconButton, Tooltip, LinearProgress, Paper, Stack, Autocomplete, TablePagination
 } from '@mui/material';
 import {
   Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon,
@@ -21,6 +21,7 @@ import {
 import { useApiState } from '../hooks/useApiState';
 import { useProfile } from '../contexts/ProfileContext';
 import apiClient from '../services/apiClient';
+import { usePagination } from '../hooks/usePagination';
 import relationshipService, {
   RelationshipType, AccountRelationship, RelationshipInteraction,
   AccountHealthSnapshot, RelationshipMapVisualization,
@@ -546,6 +547,9 @@ function RelationshipsPage() {
     return '➡️';
   };
 
+  const { paginatedData: paginatedRelationships, page, pageSize, handlePageChange, handlePageSizeChange, pageSizeOptions } =
+    usePagination(relationships, { defaultPageSize: 25 });
+
   if (loading && relationships.length === 0) {
     return (
       <Container maxWidth="xl">
@@ -618,7 +622,7 @@ function RelationshipsPage() {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {relationships.map((rel) => (
+                {paginatedRelationships.map((rel) => (
                   <TableRow key={rel.id}>
                     <TableCell>
                       {rel.sourceAccountName || getAccountName(rel.sourceAccountId)}
@@ -697,6 +701,15 @@ function RelationshipsPage() {
                 )}
               </TableBody>
             </Table>
+            <TablePagination
+              component="div"
+              count={relationships.length}
+              page={page}
+              onPageChange={handlePageChange}
+              rowsPerPage={pageSize}
+              onRowsPerPageChange={handlePageSizeChange}
+              rowsPerPageOptions={pageSizeOptions}
+            />
           </CardContent>
         </Card>
       </TabPanel>

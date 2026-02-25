@@ -48,4 +48,14 @@ public interface ILeadService
     /// <param name="ct">Cancellation token.</param>
     /// <returns>True if successful.</returns>
     Task<bool> AssignToNurtureCampaignAsync(int leadId, int campaignId, CancellationToken ct = default);
+
+    /// <summary>
+    /// Gets lead counts grouped by source channel with conversion rates (TODO-CRM002-03).
+    /// </summary>
+    Task<IEnumerable<LeadSourceAnalyticsDto>> GetSourceAnalyticsAsync(CancellationToken ct = default);
+
+    /// <summary>
+    /// Gets UTM campaign attribution breakdown grouped by source/medium/campaign (TODO-CRM002-03).
+    /// </summary>
+    Task<IEnumerable<LeadAttributionDto>> GetAttributionAnalyticsAsync(CancellationToken ct = default);
 }

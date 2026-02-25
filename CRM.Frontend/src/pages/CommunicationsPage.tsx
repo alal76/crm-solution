@@ -17,6 +17,7 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  TablePagination,
   Paper,
   Button,
   IconButton,
@@ -70,6 +71,7 @@ import {
 } from '@mui/icons-material';
 import apiClient from '../services/apiClient';
 import EmailAIAssist from '../components/common/EmailAIAssist';
+import { usePagination } from '../hooks/usePagination';
 
 // Types
 interface Message extends BaseEntity {
@@ -307,6 +309,9 @@ function CommunicationsPage() {
     }
   };
 
+  const inboxMessages = messages.filter(m => m.direction === 'Inbound');
+  const { paginatedData: paginatedInboxMessages, page, pageSize, handlePageChange, handlePageSizeChange, pageSizeOptions } = usePagination(inboxMessages, { defaultPageSize: 25 });
+
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
@@ -450,7 +455,7 @@ function CommunicationsPage() {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {messages.filter(m => m.direction === 'Inbound').map((message) => (
+                  {paginatedInboxMessages.map((message) => (
                     <TableRow 
                       key={message.id} 
                       hover 
@@ -515,7 +520,7 @@ function CommunicationsPage() {
                       </TableCell>
                     </TableRow>
                   ))}
-                  {messages.filter(m => m.direction === 'Inbound').length === 0 && (
+                  {inboxMessages.length === 0 && (
                     <TableRow>
                       <TableCell colSpan={7} align="center" sx={{ py: 4 }}>
                         <Typography color="text.secondary">No messages in inbox</Typography>
@@ -524,6 +529,17 @@ function CommunicationsPage() {
                   )}
                 </TableBody>
               </Table>
+              {inboxMessages.length > 0 && (
+                <TablePagination
+                  component="div"
+                  count={inboxMessages.length}
+                  page={page}
+                  onPageChange={handlePageChange}
+                  rowsPerPage={pageSize}
+                  onRowsPerPageChange={handlePageSizeChange}
+                  rowsPerPageOptions={pageSizeOptions}
+                />
+              )}
             </TableContainer>
           </TabPanel>
 

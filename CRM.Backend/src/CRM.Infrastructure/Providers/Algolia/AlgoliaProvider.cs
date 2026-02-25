@@ -507,6 +507,14 @@ public class AlgoliaProvider : ISearchPort
             return $"{firstName} {lastName}".Trim();
         return "";
     }
+    /// <inheritdoc />
+    public async Task RebuildAllIndexesAsync(CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Algolia: RebuildAllIndexesAsync - no-op for Algolia provider (use Algolia dashboard to reindex).");
+        // Algolia v2 SDK does not support bulk index clearing via the search client.
+        // A full rebuild should be triggered via re-indexing all entities through IndexAsync().
+        await Task.CompletedTask;
+    }
 
     #endregion
 }

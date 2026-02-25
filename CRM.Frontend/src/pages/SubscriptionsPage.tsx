@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import {
   Box, Card, CardContent, Typography, Button, Table, TableBody, TableCell, TableContainer, TableHead,
-  TableRow, Dialog, DialogTitle, DialogContent, DialogActions, Alert, CircularProgress,
+  TableRow, TablePagination, Dialog, DialogTitle, DialogContent, DialogActions, Alert, CircularProgress,
   TextField, Container, FormControl, InputLabel, Select, MenuItem, Chip, Grid,
   IconButton, Tooltip, Tabs, Tab, SelectChangeEvent, Divider, Paper
 } from '@mui/material';
@@ -19,6 +19,7 @@ import subscriptionService, {
 import logger from '../services/logger';
 import { TabPanel, DialogError, DialogSuccess, ActionButton, DialogHeader, EnhancedEmptyState } from '../components/common';
 import { useApiState } from '../hooks/useApiState';
+import { usePagination } from '../hooks/usePagination';
 import { BaseEntity } from '../types';
 import logo from '../assets/logo.png';
 import EntitySelect from '../components/EntitySelect';
@@ -99,6 +100,8 @@ function SubscriptionsPage() {
     () => filterData(subscriptions, searchFilters, searchText, SEARCHABLE_FIELDS),
     [subscriptions, searchFilters, searchText]
   );
+
+  const { paginatedData: paginatedSubscriptions, page, pageSize, handlePageChange, handlePageSizeChange, pageSizeOptions } = usePagination(filteredSubscriptions, { defaultPageSize: 25 });
 
   const emptyForm: SubscriptionForm = {
     accountId: '', productId: '', amount: 0, billingCycle: 'Monthly',
@@ -335,8 +338,8 @@ function SubscriptionsPage() {
     }
   };
 
-  const formatCurrency = (amount: number, currency: string = 'USD') => {
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(amount);
+  const formatCurrency = (amount: number, currency?: string | null) => {
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: currency || 'USD' }).format(amount);
   };
 
   const formatDate = (dateStr?: string) => {
@@ -446,7 +449,7 @@ function SubscriptionsPage() {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredSubscriptions.map((sub) => (
+                  paginatedSubscriptions.map((sub) => (
                     <TableRow key={sub.id} hover>
                       <TableCell>
                         <Typography fontWeight="medium">{sub.subscriptionNumber}</Typography>
@@ -548,6 +551,15 @@ function SubscriptionsPage() {
                 )}
               </TableBody>
             </Table>
+            <TablePagination
+              component="div"
+              count={filteredSubscriptions.length}
+              page={page}
+              onPageChange={handlePageChange}
+              rowsPerPage={pageSize}
+              onRowsPerPageChange={handlePageSizeChange}
+              rowsPerPageOptions={pageSizeOptions}
+            />
           </TableContainer>
         </Card>
 

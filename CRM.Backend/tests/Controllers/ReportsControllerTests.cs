@@ -39,7 +39,11 @@ public class ReportsControllerTests
         _mockReportService = new Mock<IReportService>();
         _mockLogger = new Mock<ILogger<ReportsController>>();
 
-        _controller = new ReportsController(_mockReportService.Object, _mockLogger.Object);
+        _controller = new ReportsController(
+            _mockReportService.Object,
+            Mock.Of<IWinLossAnalysisService>(),
+            Mock.Of<IOpportunityService>(),
+            _mockLogger.Object);
 
         var httpContext = new DefaultHttpContext();
         var claims = new List<Claim>

@@ -46,3 +46,59 @@ public class LeadDto : LeadSummaryDto
     public DateTime? SqlDate { get; set; }
     public DateTime? LastActivityDate { get; set; }
 }
+
+/// <summary>
+/// Analytics for a single lead source channel.
+/// Returns lead counts grouped by source with conversion rates (TODO-CRM002-03).
+/// </summary>
+public class LeadSourceAnalyticsDto
+{
+    /// <summary>Display name of the source channel (e.g. "Web", "Referral").</summary>
+    public string Source { get; set; } = string.Empty;
+
+    /// <summary>Total non-deleted leads from this source.</summary>
+    public int TotalLeads { get; set; }
+
+    /// <summary>Leads that reached Converted status.</summary>
+    public int ConvertedLeads { get; set; }
+
+    /// <summary>Leads that reached Qualified status.</summary>
+    public int QualifiedLeads { get; set; }
+
+    /// <summary>Leads that were Disqualified.</summary>
+    public int DisqualifiedLeads { get; set; }
+
+    /// <summary>Percentage of leads converted (0–100).</summary>
+    public decimal ConversionRate { get; set; }
+
+    /// <summary>Average lead score for this source.</summary>
+    public double AverageScore { get; set; }
+}
+
+/// <summary>
+/// UTM attribution breakdown for lead acquisition.
+/// Groups leads by UTM source / medium / campaign (TODO-CRM002-03).
+/// </summary>
+public class LeadAttributionDto
+{
+    /// <summary>UTM source parameter value (may be null for direct/unattributed).</summary>
+    public string? UtmSource { get; set; }
+
+    /// <summary>UTM medium parameter value.</summary>
+    public string? UtmMedium { get; set; }
+
+    /// <summary>UTM campaign parameter value.</summary>
+    public string? UtmCampaign { get; set; }
+
+    /// <summary>Total leads with this attribution combination.</summary>
+    public int TotalLeads { get; set; }
+
+    /// <summary>Leads that reached Converted status.</summary>
+    public int ConvertedLeads { get; set; }
+
+    /// <summary>Percentage of leads converted (0–100).</summary>
+    public decimal ConversionRate { get; set; }
+
+    /// <summary>Average lead score for this attribution group.</summary>
+    public double AverageScore { get; set; }
+}

@@ -7,7 +7,7 @@
 import { useState, useEffect } from 'react';
 import {
   Box, Container, Typography, Card, CardContent, Table, TableBody, TableCell,
-  TableHead, TableRow, Button, Dialog, DialogTitle, DialogContent, DialogActions,
+  TableHead, TableRow, TablePagination, Button, Dialog, DialogTitle, DialogContent, DialogActions,
   MenuItem, Stack, Chip, IconButton, Tooltip, CircularProgress,
   Alert, FormControl, InputLabel, Select,
   SelectChangeEvent,
@@ -21,6 +21,7 @@ import {
 } from '@mui/icons-material';
 import { DialogError, ActionButton, TabPanel, DialogHeader, RelatedEntitiesPanel, EnhancedEmptyState } from '../components/common';
 import { useApiState } from '../hooks/useApiState';
+import { usePagination } from '../hooks/usePagination';
 import { useProfile } from '../contexts/ProfileContext';
 import NotesTab from '../components/NotesTab';
 import DynamicEntityForm, { ExtraTab } from '../components/DynamicEntityForm';
@@ -509,6 +510,8 @@ function ContractsPage() {
     ? contracts 
     : contracts.filter(c => c.status === filterStatus);
 
+  const { paginatedData: paginatedContracts, page, pageSize, handlePageChange, handlePageSizeChange, pageSizeOptions } = usePagination(filteredContracts, { defaultPageSize: 25 });
+
   // ==================== RENDER ====================
 
   if (loading) {
@@ -596,7 +599,7 @@ function ContractsPage() {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredContracts.map((contract) => {
+                  paginatedContracts.map((contract) => {
                     const statusInfo = getStatusInfo(contract.status);
                     const expiringSoon = contract.status === ContractStatus.Active && isExpiringSoon(contract.endDate);
                     const daysLeft = getDaysUntilExpiry(contract.endDate);
@@ -667,6 +670,15 @@ function ContractsPage() {
                 )}
               </TableBody>
             </Table>
+            <TablePagination
+              component="div"
+              count={filteredContracts.length}
+              page={page}
+              onPageChange={handlePageChange}
+              rowsPerPage={pageSize}
+              onRowsPerPageChange={handlePageSizeChange}
+              rowsPerPageOptions={pageSizeOptions}
+            />
           </CardContent>
         </Card>
       </Box>

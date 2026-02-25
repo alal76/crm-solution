@@ -310,6 +310,46 @@ public class LeadsController : ControllerBase
             return StatusCode(500, "Internal server error");
         }
     }
+
+    /// <summary>
+    /// Gets lead counts grouped by source channel with conversion rates (TODO-CRM002-03).
+    /// </summary>
+    [HttpGet("analytics/sources")]
+    [ProducesResponseType(typeof(IEnumerable<LeadSourceAnalyticsDto>), 200)]
+    [ProducesResponseType(500)]
+    public async Task<IActionResult> GetSourceAnalytics(CancellationToken ct = default)
+    {
+        try
+        {
+            var analytics = await _leadService.GetSourceAnalyticsAsync(ct);
+            return Ok(analytics);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving lead source analytics");
+            return StatusCode(500, "Internal server error");
+        }
+    }
+
+    /// <summary>
+    /// Gets UTM campaign attribution breakdown grouped by source/medium/campaign (TODO-CRM002-03).
+    /// </summary>
+    [HttpGet("analytics/attribution")]
+    [ProducesResponseType(typeof(IEnumerable<LeadAttributionDto>), 200)]
+    [ProducesResponseType(500)]
+    public async Task<IActionResult> GetAttributionAnalytics(CancellationToken ct = default)
+    {
+        try
+        {
+            var analytics = await _leadService.GetAttributionAnalyticsAsync(ct);
+            return Ok(analytics);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving lead attribution analytics");
+            return StatusCode(500, "Internal server error");
+        }
+    }
 }
 
 #region Request DTOs

@@ -761,4 +761,263 @@ public class TerritoryServiceTests : IDisposable
     }
 
     #endregion
+
+    #region Lead Territory Assignment Tests (TODO-GAP-04)
+
+    [Fact]
+    public async Task FindMatchingTerritoryForLeadAsync_WhenLeadRegionMatchesCountry_ReturnsTerritory()
+    {
+        // Arrange
+        var territory = new Territory
+        {
+            Name = "North America",
+            Code = "NA",
+            Type = TerritoryType.Geographic,
+            Countries = "[\"US\", \"CA\", \"MX\"]",
+            IsActive = true,
+            IsDeleted = false,
+            CreatedAt = DateTime.UtcNow
+        };
+        _dbContext.Territories.Add(territory);
+        await _dbContext.SaveChangesAsync();
+
+        var lead = new Lead
+        {
+            FirstName = "Alice",
+            LastName = "Smith",
+            Email = "alice@example.com",
+            Region = "US",
+            IsDeleted = false,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        // Act
+        var result = await _service.FindMatchingTerritoryForLeadAsync(lead);
+
+        // Assert
+        result.Should().NotBeNull();
+        result!.Name.Should().Be("North America");
+    }
+
+    [Fact]
+    public async Task FindMatchingTerritoryForLeadAsync_WhenLeadRegionMatchesState_ReturnsTerritory()
+    {
+        // Arrange
+        var territory = new Territory
+        {
+            Name = "West Coast",
+            Code = "WC",
+            Type = TerritoryType.Geographic,
+            States = "[\"California\", \"Oregon\", \"Washington\"]",
+            IsActive = true,
+            IsDeleted = false,
+            CreatedAt = DateTime.UtcNow
+        };
+        _dbContext.Territories.Add(territory);
+        await _dbContext.SaveChangesAsync();
+
+        var lead = new Lead
+        {
+            FirstName = "Bob",
+            LastName = "Jones",
+            Email = "bob@example.com",
+            Region = "California",
+            IsDeleted = false,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        // Act
+        var result = await _service.FindMatchingTerritoryForLeadAsync(lead);
+
+        // Assert
+        result.Should().NotBeNull();
+        result!.Name.Should().Be("West Coast");
+    }
+
+    [Fact]
+    public async Task FindMatchingTerritoryForLeadAsync_WhenNoMatchingTerritory_ReturnsNull()
+    {
+        // Arrange
+        var territory = new Territory
+        {
+            Name = "Europe",
+            Code = "EU",
+            Type = TerritoryType.Geographic,
+            Countries = "[\"DE\", \"FR\", \"GB\"]",
+            IsActive = true,
+            IsDeleted = false,
+            CreatedAt = DateTime.UtcNow
+        };
+        _dbContext.Territories.Add(territory);
+        await _dbContext.SaveChangesAsync();
+
+        var lead = new Lead
+        {
+            FirstName = "Carlos",
+            LastName = "Gomez",
+            Email = "carlos@example.com",
+            Region = "US", // Not in Europe territory
+            IsDeleted = false,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        // Act
+        var result = await _service.FindMatchingTerritoryForLeadAsync(lead);
+
+        // Assert
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task FindMatchingTerritoryForLeadAsync_WhenTerritoryIsInactive_IsSkipped()
+    {
+        // Arrange
+        var inactiveTerritory = new Territory
+        {
+            Name = "Inactive US",
+            Code = "IUS",
+            Type = TerritoryType.Geographic,
+            Countries = "[\"US\"]",
+            IsActive = false, // Inactive — should not match
+            IsDeleted = false,
+            CreatedAt = DateTime.UtcNow
+        };
+        _dbContext.Territories.Add(inactiveTerritory);
+        await _dbContext.SaveChangesAsync();
+
+        var lead = new Lead
+        {
+            FirstName = "Dana",
+            LastName = "White",
+            Email = "dana@example.com",
+            Region = "US",
+            IsDeleted = false,
+            CreatedAt = DateTime.UtcNow
+        };
+
+        // Act
+        var result = await _service.FindMatchingTerritoryForLeadAsync(lead);
+
+        // Assert
+        result.Should().BeNull("inactive territories should not be matched");
+    }
+
+    [Fact]
+    public async Task AssignLeadToTerritoryAsync_SetsLeadTerritoryId()
+    {
+        // Arrange
+        var territory = new Territory
+        {
+            Name = "South",
+            Code = "SO",
+            Type = TerritoryType.Geographic,
+            IsActive = true,
+            IsDeleted = false,
+            CreatedAt = DateTime.UtcNow
+        };
+        _dbContext.Territories.Add(territory);
+
+        var lead = new Lead
+        {
+            FirstName = "Eve",
+            LastName = "Adams",
+            Email = "eve@example.com",
+            IsDeleted = false,
+            CreatedAt = DateTime.UtcNow
+        };
+        _dbContext.Leads.Add(lead);
+        await _dbContext.SaveChangesAsync();
+
+        // Act
+        var updated = await _service.AssignLeadToTerritoryAsync(lead.Id, territory.Id, null);
+
+        // Assert
+        updated.Should().NotBeNull();
+        updated.TerritoryId.Should().Be(territory.Id);
+        updated.OwnerId.Should().BeNull("no user was specified");
+    }
+
+    [Fact]
+    public async Task AssignLeadToTerritoryAsync_WithUserId_SetsLeadOwner()
+    {
+        // Arrange
+        var user = new User
+        {
+            Username = "salesrep",
+            FirstName = "Frank",
+            LastName = "Miller",
+            Email = "frank@example.com",
+            PasswordHash = "hashed",
+            IsDeleted = false,
+            CreatedAt = DateTime.UtcNow
+        };
+        _dbContext.Users.Add(user);
+
+        var lead = new Lead
+        {
+            FirstName = "Grace",
+            LastName = "Hall",
+            Email = "grace@example.com",
+            IsDeleted = false,
+            CreatedAt = DateTime.UtcNow
+        };
+        _dbContext.Leads.Add(lead);
+        await _dbContext.SaveChangesAsync();
+
+        // Act
+        var updated = await _service.AssignLeadToTerritoryAsync(lead.Id, null, user.Id);
+
+        // Assert
+        updated.Should().NotBeNull();
+        updated.OwnerId.Should().Be(user.Id);
+    }
+
+    [Fact]
+    public async Task AssignLeadToTerritoryAsync_WithNonExistentLead_ThrowsInvalidOperationException()
+    {
+        // Act
+        var act = async () => await _service.AssignLeadToTerritoryAsync(9999, null, null);
+
+        // Assert
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("*9999*");
+    }
+
+    [Fact]
+    public async Task AssignLeadToTerritoryAsync_ClearsTerritoryWhenNullPassed()
+    {
+        // Arrange — lead with existing territory assignment
+        var territory = new Territory
+        {
+            Name = "Old Territory",
+            Code = "OT",
+            Type = TerritoryType.Geographic,
+            IsActive = true,
+            IsDeleted = false,
+            CreatedAt = DateTime.UtcNow
+        };
+        _dbContext.Territories.Add(territory);
+
+        var lead = new Lead
+        {
+            FirstName = "Henry",
+            LastName = "Brown",
+            Email = "henry@example.com",
+            IsDeleted = false,
+            CreatedAt = DateTime.UtcNow
+        };
+        _dbContext.Leads.Add(lead);
+        await _dbContext.SaveChangesAsync();
+
+        // First assign
+        await _service.AssignLeadToTerritoryAsync(lead.Id, territory.Id, null);
+
+        // Now clear
+        var updated = await _service.AssignLeadToTerritoryAsync(lead.Id, null, null);
+
+        // Assert
+        updated.TerritoryId.Should().BeNull();
+    }
+
+    #endregion
 }

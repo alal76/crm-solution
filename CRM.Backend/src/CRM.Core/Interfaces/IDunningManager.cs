@@ -131,6 +131,12 @@ public class DunningRetryResultDto
     public DateTime? NextRetryDate { get; set; }
     public DunningEscalationLevel EscalationLevel { get; set; }
     public bool IsExhausted { get; set; }
+
+    /// <summary>
+    /// True when dunning was skipped because the subscription is still within its
+    /// configured grace period (TODO-SALES006-025).
+    /// </summary>
+    public bool SkippedDueToGracePeriod { get; set; }
 }
 
 /// <summary>

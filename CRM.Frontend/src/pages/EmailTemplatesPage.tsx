@@ -29,6 +29,7 @@ import {
   Tabs,
   Container,
   TableContainer,
+  TablePagination,
   Stack,
   Tooltip,
   Paper,
@@ -51,6 +52,7 @@ import { DialogError, ActionButton, DialogHeader, EnhancedEmptyState } from '../
 import { useApiState } from '../hooks/useApiState';
 import { useProfile } from '../contexts/ProfileContext';
 import { TabPanel } from '../components/common';
+import { usePagination } from '../hooks/usePagination';
 
 // Template categories
 const TEMPLATE_CATEGORIES = [
@@ -258,6 +260,8 @@ function EmailTemplatesPage() {
     return cat ? { color: cat.color } : { color: '#6750A4' };
   };
 
+  const { paginatedData: paginatedTemplates, page, pageSize, handlePageChange, handlePageSizeChange, pageSizeOptions } = usePagination(templates, { defaultPageSize: 25 });
+
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', py: 10 }}>
@@ -327,7 +331,7 @@ function EmailTemplatesPage() {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {templates.map(template => {
+                {paginatedTemplates.map(template => {
                   const catStyle = getCategoryStyle(template.category);
                   return (
                     <TableRow key={template.id} hover>
@@ -437,6 +441,15 @@ function EmailTemplatesPage() {
                 )}
               </TableBody>
             </Table>
+            <TablePagination
+              component="div"
+              count={templates.length}
+              page={page}
+              onPageChange={handlePageChange}
+              rowsPerPage={pageSize}
+              onRowsPerPageChange={handlePageSizeChange}
+              rowsPerPageOptions={pageSizeOptions}
+            />
           </TableContainer>
         </CardContent>
       </Card>

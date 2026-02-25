@@ -33,6 +33,7 @@ import {
   ListItemAvatar,
   ListItemText,
   Avatar,
+  TablePagination,
 } from '@mui/material';
 import type { SelectChangeEvent } from '@mui/material';
 import {
@@ -52,6 +53,7 @@ import { EnhancedEmptyState } from '../components/common/EnhancedEmptyState';
 import { useApiState } from '../hooks/useApiState';
 import apiClient from '../services/apiClient';
 import logo from '../assets/logo.png';
+import { usePagination } from '../hooks/usePagination';
 
 // ==================== ENUMS ====================
 
@@ -301,6 +303,9 @@ function TeamsPage() {
 
   // ==================== RENDER ====================
 
+  const { paginatedData: paginatedTeams, page, pageSize, handlePageChange, handlePageSizeChange, pageSizeOptions } =
+    usePagination(teams, { defaultPageSize: 25 });
+
   if (loading) {
     return (
       <Container maxWidth="lg">
@@ -363,7 +368,7 @@ function TeamsPage() {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  teams.map((team) => (
+                  paginatedTeams.map((team) => (
                     <TableRow key={team.id} hover>
                       <TableCell>
                         <Box display="flex" alignItems="center" gap={1}>
@@ -409,6 +414,15 @@ function TeamsPage() {
                 )}
               </TableBody>
             </Table>
+            <TablePagination
+              component="div"
+              count={teams.length}
+              page={page}
+              onPageChange={handlePageChange}
+              rowsPerPage={pageSize}
+              onRowsPerPageChange={handlePageSizeChange}
+              rowsPerPageOptions={pageSizeOptions}
+            />
           </CardContent>
         </Card>
       </Box>

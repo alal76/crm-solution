@@ -402,6 +402,7 @@ export function DataGrid<T extends { id: number | string }>({
           aria-label={ariaLabel}
           aria-describedby={ariaDescribedBy}
           aria-rowcount={totalCount ?? rows.length}
+          aria-colcount={visibleColumns.length}
           onKeyDown={handleKeyDown}
         >
           <TableHead>

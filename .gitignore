@@ -2,6 +2,8 @@
 LOCAL_DEVELOPMENT_ENVIRONMENT.md
 # GitHub Copilot helper instructions (workspace-specific, auto-generated)
 .github/copilot-instructions.md
+# Documentation folder (local specs, guides, and internal docs — not tracked in repo)
+docs/
 # Git configuration for CRM project
 [core]
     ignorecase = true

@@ -11,6 +11,7 @@ import {
   TableRow,
   TableCell,
   TableBody,
+  TablePagination,
   Chip,
   IconButton,
   Tooltip,
@@ -35,13 +36,16 @@ import {
   Cancel as CancelIcon,
   LocalShipping as ShippingIcon,
   Warning as WarningIcon,
+  AssignmentReturn as ReturnIcon,
 } from '@mui/icons-material';
+import OrderReturnDialog from '../components/sales/OrderReturnDialog';
 import { DialogError } from '../components/common/DialogError';
 import ActionButton from '../components/common/ActionButton';
 import { DialogHeader } from '../components/common/DialogHeader';
 import DynamicEntityForm, { ExtraTab } from '../components/DynamicEntityForm';
 import { EnhancedEmptyState } from '../components/common/EnhancedEmptyState';
 import { useApiState } from '../hooks/useApiState';
+import { usePagination } from '../hooks/usePagination';
 import apiClient from '../services/apiClient';
 import logo from '../assets/logo.png';
 
@@ -183,6 +187,8 @@ function OrdersPage() {
   const [dialogTab, setDialogTab] = useState(0);
   const [filterStatus, setFilterStatus] = useState<OrderStatus | 'all'>('all');
   const [lineItems, setLineItems] = useState<OrderLineItem[]>([]);
+  const [returnDialogOpen, setReturnDialogOpen] = useState(false);
+  const [returnOrderId, setReturnOrderId] = useState<number | null>(null);
 
   const emptyForm: OrderForm = {
     accountId: null,
@@ -412,6 +418,8 @@ function OrdersPage() {
     ? orders
     : orders.filter(o => o.status === filterStatus);
 
+  const { paginatedData: paginatedOrders, page, pageSize, handlePageChange, handlePageSizeChange, pageSizeOptions } = usePagination(filteredOrders, { defaultPageSize: 25 });
+
   // ==================== RENDER ====================
 
   if (loading) {
@@ -497,7 +505,7 @@ function OrdersPage() {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredOrders.map((order) => {
+                  paginatedOrders.map((order) => {
                     const statusInfo = getStatusInfo(order.status);
 
                     return (
@@ -541,6 +549,22 @@ function OrdersPage() {
                               </IconButton>
                             </Tooltip>
                           )}
+                          {(order.status === OrderStatus.Fulfilled ||
+                            order.status === OrderStatus.Delivered ||
+                            order.status === OrderStatus.Completed) && (
+                            <Tooltip title="Return Items">
+                              <IconButton
+                                size="small"
+                                color="secondary"
+                                onClick={() => {
+                                  setReturnOrderId(order.id);
+                                  setReturnDialogOpen(true);
+                                }}
+                              >
+                                <ReturnIcon />
+                              </IconButton>
+                            </Tooltip>
+                          )}
                           <Tooltip title="Delete">
                             <IconButton size="small" color="error" onClick={() => handleDeleteOrder(order.id)}>
                               <DeleteIcon />
@@ -553,6 +577,15 @@ function OrdersPage() {
                 )}
               </TableBody>
             </Table>
+            <TablePagination
+              component="div"
+              count={filteredOrders.length}
+              page={page}
+              onPageChange={handlePageChange}
+              rowsPerPage={pageSize}
+              onRowsPerPageChange={handlePageSizeChange}
+              rowsPerPageOptions={pageSizeOptions}
+            />
           </CardContent>
         </Card>
       </Box>
@@ -646,6 +679,28 @@ function OrdersPage() {
           </ActionButton>
         </DialogActions>
       </Dialog>
+
+      {/* Order Return Dialog */}
+      {returnOrderId !== null && (
+        <OrderReturnDialog
+          open={returnDialogOpen}
+          onClose={() => {
+            setReturnDialogOpen(false);
+            setReturnOrderId(null);
+          }}
+          orderId={returnOrderId}
+          orderNumber={
+            orders.find(o => o.id === returnOrderId)?.orderNumber
+          }
+          lineItems={lineItems}
+          onSuccess={(msg) => {
+            setSuccessMessage(msg);
+            setReturnDialogOpen(false);
+            setReturnOrderId(null);
+            fetchOrders();
+          }}
+        />
+      )}
     </Container>
   );
 }

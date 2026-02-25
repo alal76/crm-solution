@@ -2,16 +2,18 @@ import { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import {
   Box, Card, CardContent, Typography, Button, Table, TableBody, TableCell, TableContainer, TableHead,
-  TableRow, Dialog, DialogTitle, DialogContent, DialogActions, Alert, CircularProgress,
+  TableRow, TablePagination, Dialog, DialogTitle, DialogContent, DialogActions, Alert, CircularProgress,
   TextField, Container, FormControl, InputLabel, Select, MenuItem, Chip, Grid,
-  IconButton, Tooltip, Tabs, Tab, SelectChangeEvent, Divider, Paper, LinearProgress
+  IconButton, Tooltip, Tabs, Tab, SelectChangeEvent, Divider, Paper, LinearProgress,
+  Drawer
 } from '@mui/material';
 import {
   Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, 
   CheckCircle as ApproveIcon, Cancel as RejectIcon, Payment as PaidIcon,
   Undo as ClawbackIcon, Calculate as CalculateIcon, Assessment as StatsIcon,
   EmojiEvents as LeaderboardIcon, TrendingUp as ForecastIcon,
-  Description as StatementIcon, Settings as PlanIcon
+  Description as StatementIcon, Settings as PlanIcon,
+  InfoOutlined as DetailsIcon, Close as CloseIcon
 } from '@mui/icons-material';
 import commissionService, { 
   Commission, CommissionPlan, CommissionTier, CommissionStatement,
@@ -27,6 +29,8 @@ import { useApiState } from '../hooks/useApiState';
 import logo from '../assets/logo.png';
 import EntitySelect from '../components/EntitySelect';
 import AdvancedSearch, { SearchField, SearchFilter, filterData } from '../components/AdvancedSearch';
+import CommissionDetailsPanel from '../components/sales/CommissionDetailsPanel';
+import { usePagination } from '../hooks/usePagination';
 
 // ============================================================================
 // Helper Functions
@@ -210,12 +214,27 @@ function CommissionsPage() {
   const [statementUserId, setStatementUserId] = useState<number | ''>('');
   const [statementFromDate, setStatementFromDate] = useState('');
   const [statementToDate, setStatementToDate] = useState('');
+
+  // Commission details drawer
+  const [detailDrawerOpen, setDetailDrawerOpen] = useState(false);
+  const [detailCommission, setDetailCommission] = useState<Commission | null>(null);
+
+  const openDetailsPanel = (commission: Commission) => {
+    setDetailCommission(commission);
+    setDetailDrawerOpen(true);
+  };
+
+  const closeDetailsPanel = () => {
+    setDetailDrawerOpen(false);
+    setDetailCommission(null);
+  };
   
   // Filtered commissions
   const filteredCommissions = useMemo(
     () => filterData(commissions, searchFilters, searchText, SEARCHABLE_FIELDS),
     [commissions, searchFilters, searchText]
   );
+  const { paginatedData: paginatedCommissions, page, pageSize, handlePageChange, handlePageSizeChange, pageSizeOptions } = usePagination(filteredCommissions, { defaultPageSize: 25 });
 
   // Empty forms
   const emptyCommissionForm: CommissionForm = {
@@ -735,9 +754,9 @@ function CommissionsPage() {
   // Render Functions
   // ============================================================================
 
-  const formatCurrency = (amount?: number | null, currency: string = 'USD') => {
+  const formatCurrency = (amount?: number | null, currency?: string | null) => {
     if (amount == null) return '-';
-    return new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(amount);
+    return new Intl.NumberFormat('en-US', { style: 'currency', currency: currency || 'USD' }).format(amount);
   };
 
   const formatPercent = (value?: number | null) => {
@@ -862,7 +881,7 @@ function CommissionsPage() {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {filteredCommissions.map((commission) => (
+                  {paginatedCommissions.map((commission) => (
                     <TableRow key={commission.id} hover>
                       <TableCell>
                         {commission.user?.firstName} {commission.user?.lastName}
@@ -931,12 +950,26 @@ function CommissionsPage() {
                               <DeleteIcon fontSize="small" />
                             </IconButton>
                           </Tooltip>
+                          <Tooltip title="View Details">
+                            <IconButton size="small" color="info" onClick={() => openDetailsPanel(commission)}>
+                              <DetailsIcon fontSize="small" />
+                            </IconButton>
+                          </Tooltip>
                         </Box>
                       </TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
               </Table>
+              <TablePagination
+                component="div"
+                count={filteredCommissions.length}
+                page={page}
+                onPageChange={handlePageChange}
+                rowsPerPage={pageSize}
+                onRowsPerPageChange={handlePageSizeChange}
+                rowsPerPageOptions={pageSizeOptions}
+              />
             </TableContainer>
           )}
         </TabPanel>
@@ -1581,6 +1614,69 @@ function CommissionsPage() {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* Commission Details Drawer */}
+      <Drawer
+        anchor="right"
+        open={detailDrawerOpen}
+        onClose={closeDetailsPanel}
+        PaperProps={{ sx: { width: { xs: '100%', sm: 480 }, p: 2 } }}
+      >
+        <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
+          <Typography variant="h6" fontWeight={700}>
+            Commission Details
+            {detailCommission?.opportunity?.name
+              ? ` — ${detailCommission.opportunity.name}`
+              : detailCommission?.orderId
+              ? ` — Order #${detailCommission.orderId}`
+              : ''}
+          </Typography>
+          <IconButton onClick={closeDetailsPanel} size="small">
+            <CloseIcon />
+          </IconButton>
+        </Box>
+
+        {detailCommission && (
+          <CommissionDetailsPanel
+            dealValue={detailCommission.dealAmount}
+            commissionRate={detailCommission.commissionRate}
+            commissionAmount={detailCommission.commissionAmount}
+            status={getStatusLabel(detailCommission.status)}
+            paidDate={detailCommission.paidAt}
+            currency={detailCommission.currencyCode}
+            tiers={
+              detailCommission.commissionPlan?.tiers && detailCommission.commissionPlan.tiers.length > 0
+                ? detailCommission.commissionPlan.tiers.map((tier) => ({
+                    tierName: tier.name ?? `Tier ${tier.tierOrder}`,
+                    from: tier.minValue ?? tier.minAttainmentPercent ?? 0,
+                    to: tier.maxValue ?? tier.maxAttainmentPercent ?? 100,
+                    rate: tier.commissionRate ?? 0,
+                    amount: (
+                      ((tier.commissionRate ?? 0) / 100) *
+                      Math.max(
+                        0,
+                        Math.min(
+                          detailCommission.commissionableAmount,
+                          tier.maxValue ?? tier.maxAttainmentPercent ?? Infinity
+                        ) - (tier.minValue ?? tier.minAttainmentPercent ?? 0)
+                      )
+                    ),
+                  }))
+                : undefined
+            }
+          />
+        )}
+
+        {/* Plan info below the panel */}
+        {detailCommission?.commissionPlan && (
+          <Box mt={2}>
+            <Typography variant="caption" color="text.secondary">Commission Plan</Typography>
+            <Typography variant="body2" fontWeight={600}>
+              {detailCommission.commissionPlan.name}
+            </Typography>
+          </Box>
+        )}
+      </Drawer>
     </Container>
   );
 }

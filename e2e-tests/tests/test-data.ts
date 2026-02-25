@@ -394,3 +394,16 @@ export function uniqueTestData<T extends Record<string, any>>(data: T): T {
 export function isTestData(value: string): boolean {
   return value.includes('TEST_') || value.includes('_TEST') || value.includes('test_');
 }
+
+/**
+ * Generate a random alphanumeric string of the given length (default 8).
+ * Useful for creating unique names in E2E tests.
+ */
+export function randomString(length = 8): string {
+  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+  let result = '';
+  for (let i = 0; i < length; i++) {
+    result += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return result;
+}

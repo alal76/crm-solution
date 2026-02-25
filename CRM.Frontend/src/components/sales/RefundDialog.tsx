@@ -45,8 +45,8 @@ const REFUND_REASONS = [
   'Other',
 ];
 
-const formatCurrency = (value: number, currency: string) =>
-  new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(value);
+const formatCurrency = (value: number, currency?: string | null) =>
+  new Intl.NumberFormat('en-US', { style: 'currency', currency: currency || 'USD' }).format(value);
 
 const RefundDialog: React.FC<RefundDialogProps> = ({
   open,

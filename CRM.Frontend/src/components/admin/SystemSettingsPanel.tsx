@@ -20,6 +20,7 @@ import {
 } from '@mui/material';
 import { Save as SaveIcon, RestartAlt as ResetIcon } from '@mui/icons-material';
 import settingsService from '../../services/settingsService';
+import { useSettings } from '../../contexts/SettingsContext';
 import logger from '../../services/logger';
 
 interface SystemSettings {
@@ -57,6 +58,7 @@ const SystemSettingsPanel: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
   const [changes, setChanges] = useState<Partial<SystemSettings>>({});
+  const { refresh: refreshGlobalSettings } = useSettings();
 
   useEffect(() => {
     loadSettings();
@@ -90,6 +92,7 @@ const SystemSettingsPanel: React.FC = () => {
       setError(null);
       await settingsService.updateSettings(changes);
       await loadSettings();
+      await refreshGlobalSettings();
       setChanges({});
       setSuccess(true);
       setTimeout(() => setSuccess(false), 5000);
@@ -251,15 +254,54 @@ const SystemSettingsPanel: React.FC = () => {
                   label="Default Timezone"
                 >
                   <MenuItem value="UTC">UTC</MenuItem>
-                  <MenuItem value="America/New_York">America/New_York</MenuItem>
-                  <MenuItem value="America/Chicago">America/Chicago</MenuItem>
-                  <MenuItem value="America/Denver">America/Denver</MenuItem>
-                  <MenuItem value="America/Los_Angeles">America/Los_Angeles</MenuItem>
-                  <MenuItem value="Europe/London">Europe/London</MenuItem>
-                  <MenuItem value="Europe/Paris">Europe/Paris</MenuItem>
-                  <MenuItem value="Asia/Tokyo">Asia/Tokyo</MenuItem>
-                  <MenuItem value="Asia/Shanghai">Asia/Shanghai</MenuItem>
-                  <MenuItem value="Australia/Sydney">Australia/Sydney</MenuItem>
+                  <MenuItem value="America/New_York">America/New_York (ET)</MenuItem>
+                  <MenuItem value="America/Chicago">America/Chicago (CT)</MenuItem>
+                  <MenuItem value="America/Denver">America/Denver (MT)</MenuItem>
+                  <MenuItem value="America/Los_Angeles">America/Los_Angeles (PT)</MenuItem>
+                  <MenuItem value="America/Phoenix">America/Phoenix (AZ)</MenuItem>
+                  <MenuItem value="America/Anchorage">America/Anchorage (AK)</MenuItem>
+                  <MenuItem value="America/Honolulu">America/Honolulu (HI)</MenuItem>
+                  <MenuItem value="America/Toronto">America/Toronto (Canada ET)</MenuItem>
+                  <MenuItem value="America/Vancouver">America/Vancouver (Canada PT)</MenuItem>
+                  <MenuItem value="America/Mexico_City">America/Mexico_City</MenuItem>
+                  <MenuItem value="America/Sao_Paulo">America/Sao_Paulo</MenuItem>
+                  <MenuItem value="America/Buenos_Aires">America/Buenos_Aires</MenuItem>
+                  <MenuItem value="Europe/London">Europe/London (GMT/BST)</MenuItem>
+                  <MenuItem value="Europe/Dublin">Europe/Dublin</MenuItem>
+                  <MenuItem value="Europe/Lisbon">Europe/Lisbon</MenuItem>
+                  <MenuItem value="Europe/Paris">Europe/Paris (CET)</MenuItem>
+                  <MenuItem value="Europe/Berlin">Europe/Berlin</MenuItem>
+                  <MenuItem value="Europe/Amsterdam">Europe/Amsterdam</MenuItem>
+                  <MenuItem value="Europe/Madrid">Europe/Madrid</MenuItem>
+                  <MenuItem value="Europe/Rome">Europe/Rome</MenuItem>
+                  <MenuItem value="Europe/Warsaw">Europe/Warsaw</MenuItem>
+                  <MenuItem value="Europe/Stockholm">Europe/Stockholm</MenuItem>
+                  <MenuItem value="Europe/Helsinki">Europe/Helsinki (EET)</MenuItem>
+                  <MenuItem value="Europe/Athens">Europe/Athens</MenuItem>
+                  <MenuItem value="Europe/Istanbul">Europe/Istanbul</MenuItem>
+                  <MenuItem value="Europe/Moscow">Europe/Moscow</MenuItem>
+                  <MenuItem value="Africa/Cairo">Africa/Cairo</MenuItem>
+                  <MenuItem value="Africa/Johannesburg">Africa/Johannesburg</MenuItem>
+                  <MenuItem value="Africa/Lagos">Africa/Lagos</MenuItem>
+                  <MenuItem value="Asia/Dubai">Asia/Dubai (GST)</MenuItem>
+                  <MenuItem value="Asia/Karachi">Asia/Karachi</MenuItem>
+                  <MenuItem value="Asia/Kolkata">Asia/Kolkata (IST)</MenuItem>
+                  <MenuItem value="Asia/Dhaka">Asia/Dhaka</MenuItem>
+                  <MenuItem value="Asia/Bangkok">Asia/Bangkok</MenuItem>
+                  <MenuItem value="Asia/Singapore">Asia/Singapore (SGT)</MenuItem>
+                  <MenuItem value="Asia/Kuala_Lumpur">Asia/Kuala_Lumpur</MenuItem>
+                  <MenuItem value="Asia/Hong_Kong">Asia/Hong_Kong</MenuItem>
+                  <MenuItem value="Asia/Shanghai">Asia/Shanghai (CST)</MenuItem>
+                  <MenuItem value="Asia/Taipei">Asia/Taipei</MenuItem>
+                  <MenuItem value="Asia/Seoul">Asia/Seoul (KST)</MenuItem>
+                  <MenuItem value="Asia/Tokyo">Asia/Tokyo (JST)</MenuItem>
+                  <MenuItem value="Australia/Perth">Australia/Perth</MenuItem>
+                  <MenuItem value="Australia/Darwin">Australia/Darwin</MenuItem>
+                  <MenuItem value="Australia/Adelaide">Australia/Adelaide</MenuItem>
+                  <MenuItem value="Australia/Sydney">Australia/Sydney (AEDT)</MenuItem>
+                  <MenuItem value="Australia/Brisbane">Australia/Brisbane</MenuItem>
+                  <MenuItem value="Pacific/Auckland">Pacific/Auckland (NZST)</MenuItem>
+                  <MenuItem value="Pacific/Honolulu">Pacific/Honolulu (HST)</MenuItem>
                 </Select>
               </FormControl>
             </Grid>
@@ -271,15 +313,33 @@ const SystemSettingsPanel: React.FC = () => {
                   onChange={(e) => handleChange('defaultCurrency', e.target.value)}
                   label="Default Currency"
                 >
-                  <MenuItem value="USD">USD - US Dollar</MenuItem>
-                  <MenuItem value="EUR">EUR - Euro</MenuItem>
-                  <MenuItem value="GBP">GBP - British Pound</MenuItem>
-                  <MenuItem value="JPY">JPY - Japanese Yen</MenuItem>
-                  <MenuItem value="AUD">AUD - Australian Dollar</MenuItem>
-                  <MenuItem value="CAD">CAD - Canadian Dollar</MenuItem>
-                  <MenuItem value="CHF">CHF - Swiss Franc</MenuItem>
-                  <MenuItem value="CNY">CNY - Chinese Yuan</MenuItem>
-                  <MenuItem value="INR">INR - Indian Rupee</MenuItem>
+                  <MenuItem value="USD">USD — US Dollar</MenuItem>
+                  <MenuItem value="EUR">EUR — Euro</MenuItem>
+                  <MenuItem value="GBP">GBP — British Pound</MenuItem>
+                  <MenuItem value="JPY">JPY — Japanese Yen</MenuItem>
+                  <MenuItem value="AUD">AUD — Australian Dollar</MenuItem>
+                  <MenuItem value="CAD">CAD — Canadian Dollar</MenuItem>
+                  <MenuItem value="CHF">CHF — Swiss Franc</MenuItem>
+                  <MenuItem value="CNY">CNY — Chinese Yuan</MenuItem>
+                  <MenuItem value="INR">INR — Indian Rupee</MenuItem>
+                  <MenuItem value="BRL">BRL — Brazilian Real</MenuItem>
+                  <MenuItem value="MXN">MXN — Mexican Peso</MenuItem>
+                  <MenuItem value="SGD">SGD — Singapore Dollar</MenuItem>
+                  <MenuItem value="HKD">HKD — Hong Kong Dollar</MenuItem>
+                  <MenuItem value="NOK">NOK — Norwegian Krone</MenuItem>
+                  <MenuItem value="SEK">SEK — Swedish Krona</MenuItem>
+                  <MenuItem value="DKK">DKK — Danish Krone</MenuItem>
+                  <MenuItem value="NZD">NZD — New Zealand Dollar</MenuItem>
+                  <MenuItem value="ZAR">ZAR — South African Rand</MenuItem>
+                  <MenuItem value="AED">AED — UAE Dirham</MenuItem>
+                  <MenuItem value="SAR">SAR — Saudi Riyal</MenuItem>
+                  <MenuItem value="KRW">KRW — South Korean Won</MenuItem>
+                  <MenuItem value="TRY">TRY — Turkish Lira</MenuItem>
+                  <MenuItem value="PLN">PLN — Polish Złoty</MenuItem>
+                  <MenuItem value="THB">THB — Thai Baht</MenuItem>
+                  <MenuItem value="IDR">IDR — Indonesian Rupiah</MenuItem>
+                  <MenuItem value="MYR">MYR — Malaysian Ringgit</MenuItem>
+                  <MenuItem value="PHP">PHP — Philippine Peso</MenuItem>
                 </Select>
               </FormControl>
             </Grid>
@@ -293,24 +353,55 @@ const SystemSettingsPanel: React.FC = () => {
                 >
                   <MenuItem value="en-US">English (US)</MenuItem>
                   <MenuItem value="en-GB">English (UK)</MenuItem>
-                  <MenuItem value="es-ES">Spanish</MenuItem>
+                  <MenuItem value="es-ES">Spanish (Spain)</MenuItem>
+                  <MenuItem value="es-MX">Spanish (Mexico)</MenuItem>
                   <MenuItem value="fr-FR">French</MenuItem>
                   <MenuItem value="de-DE">German</MenuItem>
+                  <MenuItem value="it-IT">Italian</MenuItem>
+                  <MenuItem value="pt-BR">Portuguese (Brazil)</MenuItem>
+                  <MenuItem value="pt-PT">Portuguese (Portugal)</MenuItem>
+                  <MenuItem value="nl-NL">Dutch</MenuItem>
+                  <MenuItem value="pl-PL">Polish</MenuItem>
+                  <MenuItem value="ru-RU">Russian</MenuItem>
+                  <MenuItem value="tr-TR">Turkish</MenuItem>
+                  <MenuItem value="ar-SA">Arabic</MenuItem>
                   <MenuItem value="ja-JP">Japanese</MenuItem>
                   <MenuItem value="zh-CN">Chinese (Simplified)</MenuItem>
+                  <MenuItem value="zh-TW">Chinese (Traditional)</MenuItem>
+                  <MenuItem value="ko-KR">Korean</MenuItem>
+                  <MenuItem value="hi-IN">Hindi</MenuItem>
                 </Select>
               </FormControl>
             </Grid>
             <Grid item xs={12} sm={6}>
-              <TextField
-                fullWidth
-                label="Date Format"
-                value={changes.dateFormat !== undefined ? changes.dateFormat : settings.dateFormat}
-                onChange={(e) => handleChange('dateFormat', e.target.value)}
-                variant="outlined"
-                size="small"
-                helperText="e.g., MM/DD/YYYY"
-              />
+              <FormControl fullWidth size="small">
+                <InputLabel>Date Format</InputLabel>
+                <Select
+                  value={changes.dateFormat !== undefined ? changes.dateFormat : settings.dateFormat}
+                  onChange={(e) => handleChange('dateFormat', e.target.value)}
+                  label="Date Format"
+                >
+                  <MenuItem value="MM/dd/yyyy">MM/DD/YYYY (e.g. 02/24/2026)</MenuItem>
+                  <MenuItem value="dd/MM/yyyy">DD/MM/YYYY (e.g. 24/02/2026)</MenuItem>
+                  <MenuItem value="yyyy-MM-dd">YYYY-MM-DD (e.g. 2026-02-24)</MenuItem>
+                  <MenuItem value="dd-MM-yyyy">DD-MM-YYYY (e.g. 24-02-2026)</MenuItem>
+                  <MenuItem value="dd.MM.yyyy">DD.MM.YYYY (e.g. 24.02.2026)</MenuItem>
+                  <MenuItem value="MMMM d, yyyy">Month D, YYYY (e.g. February 24, 2026)</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <FormControl fullWidth size="small">
+                <InputLabel>Time Format</InputLabel>
+                <Select
+                  value={changes.timeFormat !== undefined ? changes.timeFormat : (settings.timeFormat || '12h')}
+                  onChange={(e) => handleChange('timeFormat', e.target.value)}
+                  label="Time Format"
+                >
+                  <MenuItem value="12h">12-hour (e.g. 2:30 PM)</MenuItem>
+                  <MenuItem value="24h">24-hour (e.g. 14:30)</MenuItem>
+                </Select>
+              </FormControl>
             </Grid>
           </Grid>
         </CardContent>

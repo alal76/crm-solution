@@ -695,4 +695,427 @@ public class BuiltInSearchProviderIntegrationTests : IDisposable
     }
 
     #endregion
+
+    #region Extended Entity Search Tests (INFRA-08)
+
+    [Fact]
+    [Trait("Category", "Integration")]
+    [Trait("Category", "Search")]
+    public async Task SearchAsync_WithMatchingLeadName_ReturnsLeadResults()
+    {
+        // Arrange
+        var lead = new Lead
+        {
+            Id = 1,
+            FirstName = "Prospect",
+            LastName = "Jones",
+            Email = "prospect.jones@example.com",
+            CompanyName = "Big Prospect Corp",
+            Status = LeadLifecycleStatus.New,
+            IsDeleted = false,
+            CreatedAt = DateTime.UtcNow
+        };
+        _dbContext.Leads.Add(lead);
+        await _dbContext.SaveChangesAsync();
+
+        var request = new SearchRequest { Query = "Prospect", EntityType = "Lead", Take = 10 };
+
+        // Act
+        var result = await _provider.SearchAsync(request);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Hits.Should().NotBeEmpty();
+        result.Hits.Should().OnlyContain(h => h.EntityType == "Lead");
+        result.Hits.First().Title.Should().Contain("Prospect");
+    }
+
+    [Fact]
+    [Trait("Category", "Integration")]
+    [Trait("Category", "Search")]
+    public async Task SearchAsync_WithDeletedLead_DoesNotReturnDeletedLead()
+    {
+        // Arrange
+        var activeLead = new Lead
+        {
+            Id = 1,
+            FirstName = "Active",
+            LastName = "Lead",
+            Email = "active@example.com",
+            Status = LeadLifecycleStatus.Working,
+            IsDeleted = false,
+            CreatedAt = DateTime.UtcNow
+        };
+        var deletedLead = new Lead
+        {
+            Id = 2,
+            FirstName = "Deleted",
+            LastName = "Lead",
+            Email = "deleted@example.com",
+            Status = LeadLifecycleStatus.Disqualified,
+            IsDeleted = true,
+            CreatedAt = DateTime.UtcNow
+        };
+        _dbContext.Leads.AddRange(activeLead, deletedLead);
+        await _dbContext.SaveChangesAsync();
+
+        var request = new SearchRequest { Query = "Lead", EntityType = "Lead", Take = 10 };
+
+        // Act
+        var result = await _provider.SearchAsync(request);
+
+        // Assert
+        result.Should().NotBeNull();
+        var leadHits = result.Hits.Where(h => h.EntityType == "Lead").ToList();
+        leadHits.Should().HaveCount(1);
+        leadHits.First().Title.Should().Contain("Active");
+    }
+
+    [Fact]
+    [Trait("Category", "Integration")]
+    [Trait("Category", "Search")]
+    public async Task SearchAsync_WithMatchingServiceRequestSubject_ReturnsServiceRequestResults()
+    {
+        // Arrange
+        var ticket = new ServiceRequest
+        {
+            Id = 1,
+            TicketNumber = "SR-2026-001",
+            Subject = "Network connectivity outage in office",
+            Status = ServiceRequestStatus.New,
+            Priority = ServiceRequestPriority.High,
+            IsDeleted = false,
+            CreatedAt = DateTime.UtcNow
+        };
+        _dbContext.ServiceRequests.Add(ticket);
+        await _dbContext.SaveChangesAsync();
+
+        var request = new SearchRequest { Query = "connectivity", EntityType = "ServiceRequest", Take = 10 };
+
+        // Act
+        var result = await _provider.SearchAsync(request);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Hits.Should().NotBeEmpty();
+        result.Hits.Should().OnlyContain(h => h.EntityType == "ServiceRequest");
+        result.Hits.First().Title.Should().Contain("SR-2026-001");
+    }
+
+    [Fact]
+    [Trait("Category", "Integration")]
+    [Trait("Category", "Search")]
+    public async Task SearchAsync_WithMatchingCampaignName_ReturnsCampaignResults()
+    {
+        // Arrange
+        var campaign = new MarketingCampaign
+        {
+            Id = 1,
+            Name = "Spring Launch 2026",
+            CampaignCode = "SPRING26",
+            Description = "Promotional spring campaign",
+            CampaignType = CampaignType.Email,
+            IsDeleted = false,
+            CreatedAt = DateTime.UtcNow
+        };
+        _dbContext.MarketingCampaigns.Add(campaign);
+        await _dbContext.SaveChangesAsync();
+
+        var request = new SearchRequest { Query = "Spring", EntityType = "Campaign", Take = 10 };
+
+        // Act
+        var result = await _provider.SearchAsync(request);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Hits.Should().NotBeEmpty();
+        result.Hits.Should().OnlyContain(h => h.EntityType == "Campaign");
+        result.Hits.First().Title.Should().Contain("Spring");
+    }
+
+    [Fact]
+    [Trait("Category", "Integration")]
+    [Trait("Category", "Search")]
+    public async Task SearchAsync_WithMatchingContractName_ReturnsContractResults()
+    {
+        // Arrange
+        var contract = new Contract
+        {
+            Id = 1,
+            ContractNumber = "CON-20260224-1001",
+            Name = "Enterprise Service Agreement",
+            Status = ContractStatus.Draft,
+            IsDeleted = false,
+            CreatedAt = DateTime.UtcNow
+        };
+        _dbContext.Contracts.Add(contract);
+        await _dbContext.SaveChangesAsync();
+
+        var request = new SearchRequest { Query = "Enterprise", EntityType = "Contract", Take = 10 };
+
+        // Act
+        var result = await _provider.SearchAsync(request);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Hits.Should().NotBeEmpty();
+        result.Hits.Should().OnlyContain(h => h.EntityType == "Contract");
+        result.Hits.First().Title.Should().Contain("Enterprise");
+    }
+
+    [Fact]
+    [Trait("Category", "Integration")]
+    [Trait("Category", "Search")]
+    public async Task SearchAsync_WithMatchingInvoiceNumber_ReturnsInvoiceResults()
+    {
+        // Arrange
+        var invoice = new Invoice
+        {
+            Id = 1,
+            InvoiceNumber = "INV-2026-0042",
+            Status = InvoiceStatus.Draft,
+            IsDeleted = false,
+            CreatedAt = DateTime.UtcNow
+        };
+        _dbContext.Invoices.Add(invoice);
+        await _dbContext.SaveChangesAsync();
+
+        var request = new SearchRequest { Query = "INV-2026", EntityType = "Invoice", Take = 10 };
+
+        // Act
+        var result = await _provider.SearchAsync(request);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Hits.Should().NotBeEmpty();
+        result.Hits.Should().OnlyContain(h => h.EntityType == "Invoice");
+        result.Hits.First().Title.Should().Be("INV-2026-0042");
+    }
+
+    [Fact]
+    [Trait("Category", "Integration")]
+    [Trait("Category", "Search")]
+    public async Task SearchAsync_WithMatchingUserName_ReturnsUserResults()
+    {
+        // Arrange
+        var user = new User
+        {
+            Id = 1,
+            Username = "jdoe",
+            FirstName = "John",
+            LastName = "Doe",
+            Email = "john.doe@example.com",
+            PasswordHash = "hashed",
+            IsDeleted = false,
+            CreatedAt = DateTime.UtcNow
+        };
+        _dbContext.Users.Add(user);
+        await _dbContext.SaveChangesAsync();
+
+        var request = new SearchRequest { Query = "jdoe", EntityType = "User", Take = 10 };
+
+        // Act
+        var result = await _provider.SearchAsync(request);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Hits.Should().NotBeEmpty();
+        result.Hits.Should().OnlyContain(h => h.EntityType == "User");
+        result.Hits.First().Title.Should().Contain("John");
+    }
+
+    [Fact]
+    [Trait("Category", "Integration")]
+    [Trait("Category", "Search")]
+    public async Task RebuildAllIndexesAsync_Completes_WithoutError()
+    {
+        // Act & Assert — BuiltIn is a no-op; must not throw
+        var act = async () => await _provider.RebuildAllIndexesAsync();
+        await act.Should().NotThrowAsync();
+    }
+
+    #endregion
+
+    #region Highlight and Facet Tests (INFRA-09)
+
+    [Fact]
+    [Trait("Category", "Integration")]
+    [Trait("Category", "Search")]
+    public async Task SearchAsync_WithHighlightsEnabled_ReturnsMarkTagsInHighlights()
+    {
+        // Arrange
+        var account = new Account
+        {
+            Id = 1,
+            Company = "Highlightable Corp",
+            FirstName = "Highlightable",
+            LastName = "Corp",
+            LegalName = "Highlightable Corporation",
+            Category = AccountCategory.Organization,
+            Email = "info@highlightable.com",
+            Phone = "555-0200",
+            IsDeleted = false,
+            CreatedAt = DateTime.UtcNow
+        };
+        _dbContext.Accounts.Add(account);
+        await _dbContext.SaveChangesAsync();
+
+        var request = new SearchRequest { Query = "Highlightable", IncludeHighlights = true, Take = 10 };
+
+        // Act
+        var result = await _provider.SearchAsync(request);
+
+        // Assert
+        result.Should().NotBeNull();
+        var hit = result.Hits.FirstOrDefault(h => h.EntityType == "Account");
+        hit.Should().NotBeNull();
+        hit!.Highlights.Should().NotBeNull();
+        // Verify <mark> tags are used (not <em>)
+        var highlightText = string.Join(" ", hit.Highlights!.Values);
+        highlightText.Should().Contain("<mark>Highlightable</mark>");
+        highlightText.Should().NotContain("<em>");
+    }
+
+    [Fact]
+    [Trait("Category", "Integration")]
+    [Trait("Category", "Search")]
+    public async Task SearchAsync_WithHighlightsDisabled_DoesNotReturnHighlights()
+    {
+        // Arrange
+        var contact = new Contact
+        {
+            Id = 1,
+            FirstName = "Nohighlight",
+            LastName = "Test",
+            EmailPrimary = "nohighlight@example.com",
+            Status = ContactStatus.Active,
+            DateAdded = DateTime.UtcNow
+        };
+        _dbContext.Contacts.Add(contact);
+        await _dbContext.SaveChangesAsync();
+
+        var request = new SearchRequest { Query = "Nohighlight", IncludeHighlights = false, Take = 10 };
+
+        // Act
+        var result = await _provider.SearchAsync(request);
+
+        // Assert
+        result.Should().NotBeNull();
+        var hit = result.Hits.FirstOrDefault(h => h.EntityType == "Contact");
+        hit.Should().NotBeNull();
+        hit!.Highlights.Should().BeNull();
+    }
+
+    [Fact]
+    [Trait("Category", "Integration")]
+    [Trait("Category", "Search")]
+    public async Task SearchAsync_WithMultipleEntityTypes_ReturnsFacetsByEntityType()
+    {
+        // Arrange — add one account and one contact that both match the query
+        var account = new Account
+        {
+            Id = 1,
+            Company = "FacetTest Corp",
+            FirstName = "FacetTest",
+            LastName = "Corp",
+            LegalName = "FacetTest Corporation",
+            Category = AccountCategory.Organization,
+            Email = "info@facettest.com",
+            Phone = "555-0300",
+            IsDeleted = false,
+            CreatedAt = DateTime.UtcNow
+        };
+        var contact = new Contact
+        {
+            Id = 1,
+            FirstName = "FacetTest",
+            LastName = "User",
+            EmailPrimary = "facettest@example.com",
+            Status = ContactStatus.Active,
+            DateAdded = DateTime.UtcNow
+        };
+        _dbContext.Accounts.Add(account);
+        _dbContext.Contacts.Add(contact);
+        await _dbContext.SaveChangesAsync();
+
+        var request = new SearchRequest { Query = "FacetTest", Take = 20 };
+
+        // Act
+        var result = await _provider.SearchAsync(request);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Facets.Should().NotBeNull();
+        result.Facets!.Should().ContainKey("EntityType");
+        var entityTypeFacets = result.Facets["EntityType"];
+        entityTypeFacets.Should().NotBeEmpty();
+        entityTypeFacets.Should().Contain(f => f.Value == "Account");
+        entityTypeFacets.Should().Contain(f => f.Value == "Contact");
+    }
+
+    [Fact]
+    [Trait("Category", "Integration")]
+    [Trait("Category", "Search")]
+    public async Task SearchAsync_WithFacetFieldsRequested_ReturnsFacetCountsForMetadataField()
+    {
+        // Arrange — two service requests with different priorities
+        _dbContext.ServiceRequests.AddRange(
+            new ServiceRequest
+            {
+                Id = 1,
+                TicketNumber = "SR-META-001",
+                Subject = "Metadata facet urgent ticket",
+                Priority = ServiceRequestPriority.High,
+                Status = ServiceRequestStatus.New,
+                IsDeleted = false,
+                CreatedAt = DateTime.UtcNow
+            },
+            new ServiceRequest
+            {
+                Id = 2,
+                TicketNumber = "SR-META-002",
+                Subject = "Metadata facet normal ticket",
+                Priority = ServiceRequestPriority.Medium,
+                Status = ServiceRequestStatus.InProgress,
+                IsDeleted = false,
+                CreatedAt = DateTime.UtcNow
+            });
+        await _dbContext.SaveChangesAsync();
+
+        var request = new SearchRequest
+        {
+            Query = "Metadata",
+            EntityType = "ServiceRequest",
+            FacetFields = new List<string> { "Priority" },
+            Take = 20
+        };
+
+        // Act
+        var result = await _provider.SearchAsync(request);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Facets.Should().NotBeNull();
+        result.Facets!.Should().ContainKey("Priority");
+        result.Facets["Priority"].Should().HaveCountGreaterOrEqualTo(1);
+    }
+
+    [Fact]
+    [Trait("Category", "Integration")]
+    [Trait("Category", "Search")]
+    public async Task SearchAsync_WhenNoResults_FacetsAreNull()
+    {
+        // Arrange — empty database
+        var request = new SearchRequest { Query = "NonExistentXYZ999", Take = 10 };
+
+        // Act
+        var result = await _provider.SearchAsync(request);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Hits.Should().BeEmpty();
+        result.Facets.Should().BeNull();
+    }
+
+    #endregion
 }

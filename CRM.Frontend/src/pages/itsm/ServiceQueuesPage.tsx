@@ -25,6 +25,7 @@ import {
   TableCell,
   TableContainer,
   TableHead,
+  TablePagination,
   TableRow,
   TextField,
   Tooltip,
@@ -40,6 +41,7 @@ import serviceQueueService, {
   CreateServiceQueueDto,
   ServiceRequestQueueItemDto,
 } from '../../services/serviceQueueService';
+import { usePagination } from '../../hooks/usePagination';
 
 const DEFAULT_FORM: CreateServiceQueueDto = {
   name: '',
@@ -202,6 +204,9 @@ const ServiceQueuesPage: React.FC = () => {
     return 'default';
   };
 
+  const { paginatedData: paginatedQueues, page, pageSize, handlePageChange, handlePageSizeChange, pageSizeOptions } =
+    usePagination(queues, { defaultPageSize: 25 });
+
   return (
     <Box sx={{ p: 3 }}>
       {/* Header */}
@@ -250,6 +255,7 @@ const ServiceQueuesPage: React.FC = () => {
           <CircularProgress />
         </Box>
       ) : (
+        <>
         <TableContainer component={Paper} variant="outlined">
           <Table>
             <TableHead>
@@ -273,7 +279,7 @@ const ServiceQueuesPage: React.FC = () => {
                   </TableCell>
                 </TableRow>
               ) : (
-                queues.map((queue) => (
+                paginatedQueues.map((queue) => (
                   <TableRow key={queue.id} hover>
                     <TableCell>
                       <Typography fontWeight={500} color="primary.main">
@@ -326,6 +332,16 @@ const ServiceQueuesPage: React.FC = () => {
             </TableBody>
           </Table>
         </TableContainer>
+        <TablePagination
+          component="div"
+          count={queues.length}
+          page={page}
+          onPageChange={handlePageChange}
+          rowsPerPage={pageSize}
+          onRowsPerPageChange={handlePageSizeChange}
+          rowsPerPageOptions={pageSizeOptions}
+        />
+        </>
       )}
 
       {/* Create / Edit Dialog */}

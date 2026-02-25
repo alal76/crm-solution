@@ -536,4 +536,153 @@ public class LeadServiceTests
         _mockContext.Setup(c => c.Set<Lead>()).Returns(mockLeads.Object);
         _mockContext.Setup(c => c.Set<Opportunity>()).Returns(mockOpportunities.Object);
     }
+
+    // ========================================================================
+    // GetSourceAnalyticsAsync Tests (TODO-CRM002-03)
+    // ========================================================================
+
+    [Fact]
+    public async Task GetSourceAnalyticsAsync_ShouldReturnGroupedBySource_WhenLeadsExist()
+    {
+        // Arrange
+        _leads.AddRange(new[]
+        {
+            new Lead { Id = 1, Source = LeadSource.Web, Status = LeadLifecycleStatus.New, Score = 60, IsDeleted = false },
+            new Lead { Id = 2, Source = LeadSource.Web, Status = LeadLifecycleStatus.Converted, Score = 80, IsDeleted = false },
+            new Lead { Id = 3, Source = LeadSource.Referral, Status = LeadLifecycleStatus.Qualified, Score = 90, IsDeleted = false },
+            new Lead { Id = 4, Source = LeadSource.Referral, Status = LeadLifecycleStatus.Converted, Score = 70, IsDeleted = false }
+        });
+        RefreshMockDbSet();
+
+        // Act
+        var result = (await _service.GetSourceAnalyticsAsync()).ToList();
+
+        // Assert
+        result.Should().HaveCount(2);
+        var web = result.First(r => r.Source == "Web");
+        web.TotalLeads.Should().Be(2);
+        web.ConvertedLeads.Should().Be(1);
+        web.ConversionRate.Should().Be(50m);
+    }
+
+    [Fact]
+    public async Task GetSourceAnalyticsAsync_ShouldExcludeDeletedLeads()
+    {
+        // Arrange
+        _leads.AddRange(new[]
+        {
+            new Lead { Id = 1, Source = LeadSource.Web, Status = LeadLifecycleStatus.Converted, IsDeleted = false },
+            new Lead { Id = 2, Source = LeadSource.Web, Status = LeadLifecycleStatus.Converted, IsDeleted = true }
+        });
+        RefreshMockDbSet();
+
+        // Act
+        var result = (await _service.GetSourceAnalyticsAsync()).ToList();
+
+        // Assert: only the non-deleted lead should appear
+        result.Should().HaveCount(1);
+        result[0].TotalLeads.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task GetSourceAnalyticsAsync_ShouldReturnEmptyList_WhenNoLeads()
+    {
+        // Arrange — _leads is empty
+        RefreshMockDbSet();
+
+        // Act
+        var result = await _service.GetSourceAnalyticsAsync();
+
+        // Assert
+        result.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task GetSourceAnalyticsAsync_ShouldComputeConversionRateCorrectly()
+    {
+        // Arrange — 3 leads from same source, 1 converted → 33.33%
+        _leads.AddRange(new[]
+        {
+            new Lead { Id = 1, Source = LeadSource.Manual, Status = LeadLifecycleStatus.New, Score = 50, IsDeleted = false },
+            new Lead { Id = 2, Source = LeadSource.Manual, Status = LeadLifecycleStatus.Qualified, Score = 55, IsDeleted = false },
+            new Lead { Id = 3, Source = LeadSource.Manual, Status = LeadLifecycleStatus.Converted, Score = 75, IsDeleted = false }
+        });
+        RefreshMockDbSet();
+
+        // Act
+        var result = (await _service.GetSourceAnalyticsAsync()).ToList();
+
+        // Assert
+        result.Should().HaveCount(1);
+        result[0].TotalLeads.Should().Be(3);
+        result[0].ConvertedLeads.Should().Be(1);
+        result[0].ConversionRate.Should().BeApproximately(33.33m, 0.01m);
+    }
+
+    // ========================================================================
+    // GetAttributionAnalyticsAsync Tests (TODO-CRM002-03)
+    // ========================================================================
+
+    [Fact]
+    public async Task GetAttributionAnalyticsAsync_ShouldGroupByUtmTriple()
+    {
+        // Arrange
+        _leads.AddRange(new[]
+        {
+            new Lead { Id = 1, UtmSource = "google", UtmMedium = "cpc", UtmCampaign = "q1", Status = LeadLifecycleStatus.Converted, Score = 70, IsDeleted = false },
+            new Lead { Id = 2, UtmSource = "google", UtmMedium = "cpc", UtmCampaign = "q1", Status = LeadLifecycleStatus.New, Score = 50, IsDeleted = false },
+            new Lead { Id = 3, UtmSource = "linkedin", UtmMedium = "organic", UtmCampaign = "brand", Status = LeadLifecycleStatus.Qualified, Score = 65, IsDeleted = false }
+        });
+        RefreshMockDbSet();
+
+        // Act
+        var result = (await _service.GetAttributionAnalyticsAsync()).ToList();
+
+        // Assert
+        result.Should().HaveCount(2);
+        var googleCpc = result.First(r => r.UtmSource == "google");
+        googleCpc.TotalLeads.Should().Be(2);
+        googleCpc.ConvertedLeads.Should().Be(1);
+        googleCpc.ConversionRate.Should().Be(50m);
+    }
+
+    [Fact]
+    public async Task GetAttributionAnalyticsAsync_ShouldIncludeNullUtmGroup_WhenLeadsHaveNoUtm()
+    {
+        // Arrange — leads without UTM parameters
+        _leads.AddRange(new[]
+        {
+            new Lead { Id = 1, UtmSource = null, UtmMedium = null, UtmCampaign = null, Status = LeadLifecycleStatus.New, Score = 40, IsDeleted = false },
+            new Lead { Id = 2, UtmSource = null, UtmMedium = null, UtmCampaign = null, Status = LeadLifecycleStatus.Qualified, Score = 60, IsDeleted = false }
+        });
+        RefreshMockDbSet();
+
+        // Act
+        var result = (await _service.GetAttributionAnalyticsAsync()).ToList();
+
+        // Assert
+        result.Should().HaveCount(1);
+        result[0].UtmSource.Should().BeNull();
+        result[0].TotalLeads.Should().Be(2);
+        result[0].ConversionRate.Should().Be(0m);
+    }
+
+    [Fact]
+    public async Task GetAttributionAnalyticsAsync_ShouldExcludeDeletedLeads()
+    {
+        // Arrange
+        _leads.AddRange(new[]
+        {
+            new Lead { Id = 1, UtmCampaign = "spring", Status = LeadLifecycleStatus.New, IsDeleted = false },
+            new Lead { Id = 2, UtmCampaign = "spring", Status = LeadLifecycleStatus.New, IsDeleted = true }
+        });
+        RefreshMockDbSet();
+
+        // Act
+        var result = (await _service.GetAttributionAnalyticsAsync()).ToList();
+
+        // Assert: only 1 active lead
+        result.Should().HaveCount(1);
+        result[0].TotalLeads.Should().Be(1);
+    }
 }

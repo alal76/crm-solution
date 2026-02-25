@@ -248,4 +248,139 @@ public class DunningRetryIntegrationTests : IDisposable
         result.ProcessedCount.Should().Be(0);
         result.Errors.Should().BeEmpty();
     }
+
+    // ========================================================================
+    // TODO-SALES006-025: Grace Period Tests
+    // ========================================================================
+
+    [Fact]
+    public async Task RetryFailedPayment_ShouldSkipDunning_WhenWithinGracePeriod()
+    {
+        // Arrange — invoice due date is today, grace period is 3 days → still within grace
+        var invoice = await _context.Invoices.FindAsync(1);
+        invoice!.DueDate = DateTime.UtcNow.Date;  // Due today → grace expires today+3
+        await _context.SaveChangesAsync();
+
+        var failedPayment = new Payment
+        {
+            InvoiceId = 1,
+            SubscriptionId = 1,
+            AccountId = 1,
+            Amount = 100m,
+            Status = PaymentStatus.Failed,
+            ScheduledDate = DateTime.UtcNow.AddDays(-1),
+            RetryCount = 0,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        _context.Payments.Add(failedPayment);
+        await _context.SaveChangesAsync();
+
+        // Act
+        var result = await _dunningManager.RetryFailedPaymentAsync(failedPayment.Id, CancellationToken.None);
+
+        // Assert
+        result.SkippedDueToGracePeriod.Should().BeTrue();
+        result.Status.Should().Be("GracePeriod");
+        result.AttemptNumber.Should().Be(0);  // No attempt was made
+
+        // Verify payment was NOT modified
+        var payment = await _context.Payments.FindAsync(failedPayment.Id);
+        payment!.RetryCount.Should().Be(0);
+    }
+
+    [Fact]
+    public async Task RetryFailedPayment_ShouldProcessDunning_WhenGracePeriodExpired()
+    {
+        // Arrange — invoice due 10 days ago, grace period is 3 days → expired 7 days ago
+        var invoice = await _context.Invoices.FindAsync(1);
+        invoice!.DueDate = DateTime.UtcNow.AddDays(-10);
+        await _context.SaveChangesAsync();
+
+        var failedPayment = new Payment
+        {
+            InvoiceId = 1,
+            SubscriptionId = 1,
+            AccountId = 1,
+            Amount = 100m,
+            Status = PaymentStatus.Failed,
+            ScheduledDate = DateTime.UtcNow.AddDays(-1),
+            RetryCount = 0,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        _context.Payments.Add(failedPayment);
+        await _context.SaveChangesAsync();
+
+        // Act
+        var result = await _dunningManager.RetryFailedPaymentAsync(failedPayment.Id, CancellationToken.None);
+
+        // Assert
+        result.SkippedDueToGracePeriod.Should().BeFalse();
+        result.AttemptNumber.Should().Be(1);  // First actual attempt
+        result.EscalationLevel.Should().Be(DunningEscalationLevel.Soft);
+    }
+
+    [Fact]
+    public async Task RetryFailedPayment_ShouldSkipDunning_WhenGracePeriodEndsExactlyToday()
+    {
+        // Arrange — due date + grace period = today → still within period (boundary inclusive)
+        var invoice = await _context.Invoices.FindAsync(1);
+        invoice!.DueDate = DateTime.UtcNow.AddDays(-3);  // 3 days ago + 3 grace = today
+        await _context.SaveChangesAsync();
+
+        var failedPayment = new Payment
+        {
+            InvoiceId = 1,
+            SubscriptionId = 1,
+            AccountId = 1,
+            Amount = 100m,
+            Status = PaymentStatus.Failed,
+            ScheduledDate = DateTime.UtcNow.AddDays(-1),
+            RetryCount = 0,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        _context.Payments.Add(failedPayment);
+        await _context.SaveChangesAsync();
+
+        // Act
+        var result = await _dunningManager.RetryFailedPaymentAsync(failedPayment.Id, CancellationToken.None);
+
+        // Assert — grace period inclusive of boundary date
+        result.SkippedDueToGracePeriod.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task RetryFailedPayment_ShouldUpdateDunningTracking_AfterSuccessfulAttempt()
+    {
+        // Arrange — invoice overdue so grace period is expired
+        var invoice = await _context.Invoices.FindAsync(1);
+        invoice!.DueDate = DateTime.UtcNow.AddDays(-20);
+        await _context.SaveChangesAsync();
+
+        var failedPayment = new Payment
+        {
+            InvoiceId = 1,
+            SubscriptionId = 1,
+            AccountId = 1,
+            Amount = 100m,
+            Status = PaymentStatus.Failed,
+            ScheduledDate = DateTime.UtcNow.AddDays(-1),
+            RetryCount = 0,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        _context.Payments.Add(failedPayment);
+        await _context.SaveChangesAsync();
+
+        // Act
+        await _dunningManager.RetryFailedPaymentAsync(failedPayment.Id, CancellationToken.None);
+
+        // Assert — subscription tracking fields are updated
+        var subscription = await _context.Subscriptions.FindAsync(1);
+        subscription!.LastDunningDate.Should().NotBeNull();
+        subscription.LastDunningDate!.Value.Date.Should().Be(DateTime.UtcNow.Date);
+        subscription.DunningAttemptCount.Should().Be(1);
+    }
 }

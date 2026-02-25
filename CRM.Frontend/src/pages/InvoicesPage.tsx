@@ -11,6 +11,7 @@ import {
   TableRow,
   TableCell,
   TableBody,
+  TablePagination,
   Chip,
   IconButton,
   Tooltip,
@@ -41,6 +42,7 @@ import { DialogHeader } from '../components/common/DialogHeader';
 import { EnhancedEmptyState } from '../components/common/EnhancedEmptyState';
 import DynamicEntityForm, { ExtraTab } from '../components/DynamicEntityForm';
 import { useApiState } from '../hooks/useApiState';
+import { usePagination } from '../hooks/usePagination';
 import apiClient from '../services/apiClient';
 import logo from '../assets/logo.png';
 
@@ -434,6 +436,8 @@ function InvoicesPage() {
     ? invoices
     : invoices.filter(i => i.status === filterStatus);
 
+  const { paginatedData: paginatedInvoices, page, pageSize, handlePageChange, handlePageSizeChange, pageSizeOptions } = usePagination(filteredInvoices, { defaultPageSize: 25 });
+
   // ==================== RENDER ====================
 
   if (loading) {
@@ -520,7 +524,7 @@ function InvoicesPage() {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredInvoices.map((invoice) => {
+                  paginatedInvoices.map((invoice) => {
                     const statusInfo = getStatusInfo(invoice.status);
                     const overdue = isOverdue(invoice.dueDate, invoice.status);
 
@@ -580,6 +584,15 @@ function InvoicesPage() {
                 )}
               </TableBody>
             </Table>
+            <TablePagination
+              component="div"
+              count={filteredInvoices.length}
+              page={page}
+              onPageChange={handlePageChange}
+              rowsPerPage={pageSize}
+              onRowsPerPageChange={handlePageSizeChange}
+              rowsPerPageOptions={pageSizeOptions}
+            />
           </CardContent>
         </Card>
       </Box>

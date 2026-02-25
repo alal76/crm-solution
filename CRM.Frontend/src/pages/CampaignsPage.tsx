@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { DialogHeader, RelatedEntitiesPanel, EnhancedEmptyState } from '../components/common';
 import {
   Box, Card, CardContent, Typography, Button, Table, TableBody, TableCell, TableHead,
-  TableRow, Dialog, DialogTitle, DialogContent, DialogActions, Alert, CircularProgress,
+  TableRow, TablePagination, Dialog, DialogTitle, DialogContent, DialogActions, Alert, CircularProgress,
   Container, FormControl, InputLabel, Select, MenuItem, Chip,
   IconButton, Tooltip, Checkbox, LinearProgress,
   SelectChangeEvent, Paper, Collapse, Stack
@@ -30,6 +30,7 @@ import {
   getLabelByValue,
   getColorByValue
 } from '../utils/constants';
+import { usePagination } from '../hooks/usePagination';
 
 // Use shared constants - aliased for backward compatibility
 const CAMPAIGN_TYPES = CAMPAIGN_TYPE_OPTIONS;
@@ -189,6 +190,8 @@ function CampaignsPage() {
     costCenter: '', parentCampaignId: 0, externalId: '', abTestMetric: '',
   };
   const [formData, setFormData] = useState<CampaignForm>(emptyForm);
+
+  const { paginatedData: paginatedCampaigns, page, pageSize, handlePageChange, handlePageSizeChange, pageSizeOptions } = usePagination(campaigns, { defaultPageSize: 25 });
 
   useEffect(() => { fetchCampaigns(); }, []);
 
@@ -500,7 +503,7 @@ function CampaignsPage() {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {campaigns.map((campaign) => {
+                {paginatedCampaigns.map((campaign) => {
                   const status = getStatus(campaign.status);
                   const type = getType(campaign.campaignType);
                   const priority = getPriority(campaign.priority);
@@ -597,6 +600,15 @@ function CampaignsPage() {
                 })}
               </TableBody>
             </Table>
+            <TablePagination
+              component="div"
+              count={campaigns.length}
+              page={page}
+              onPageChange={handlePageChange}
+              rowsPerPage={pageSize}
+              onRowsPerPageChange={handlePageSizeChange}
+              rowsPerPageOptions={pageSizeOptions}
+            />
             {campaigns.length === 0 && (
               <EnhancedEmptyState
                 illustration="campaigns"

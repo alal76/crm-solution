@@ -7,10 +7,12 @@
 using System.Text.Json;
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
+using CRM.Core.Features;
 using CRM.Infrastructure.Data;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.FeatureManagement.Mvc;
 
 namespace CRM.Api.Controllers;
 
@@ -20,6 +22,7 @@ namespace CRM.Api.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/webhooks")]
+[FeatureGate(FeatureFlags.EnableWebhooks)]
 public class WebhooksController : ControllerBase
 {
     private readonly CrmDbContext _context;

@@ -9,7 +9,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import {
   Box, Card, CardContent, Typography, Button, Table, TableBody, TableCell, TableContainer, TableHead,
-  TableRow, Dialog, DialogTitle, DialogContent, DialogActions, Alert, CircularProgress,
+  TableRow, TablePagination, Dialog, DialogTitle, DialogContent, DialogActions, Alert, CircularProgress,
   TextField, Container, FormControl, InputLabel, Select, MenuItem, Chip, Grid,
   IconButton, Tooltip, Paper, Divider, Switch, FormControlLabel, Accordion, AccordionSummary,
   AccordionDetails, List, ListItem, ListItemText, ListItemSecondaryAction
@@ -26,6 +26,7 @@ import commissionService, {
 } from '../services/commissionService';
 import logger from '../services/logger';
 import { EnhancedEmptyState } from '../components/common';
+import { usePagination } from '../hooks/usePagination';
 import { DatePicker } from '@mui/x-date-pickers/DatePicker';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
@@ -233,6 +234,7 @@ export default function CommissionPlansPage() {
     
     return filtered.sort((a, b) => a.name.localeCompare(b.name));
   }, [plans, statusFilter]);
+  const { paginatedData: paginatedPlans, page, pageSize, handlePageChange, handlePageSizeChange, pageSizeOptions } = usePagination(filteredPlans, { defaultPageSize: 25 });
 
   // ============================================================================
   // Plan CRUD
@@ -535,7 +537,7 @@ export default function CommissionPlansPage() {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {filteredPlans.map((plan) => (
+                {paginatedPlans.map((plan) => (
                   <TableRow key={plan.id} hover>
                     <TableCell>
                       <Typography variant="body2" fontWeight="medium">{plan.name}</Typography>
@@ -607,6 +609,15 @@ export default function CommissionPlansPage() {
                 ))}
               </TableBody>
             </Table>
+            <TablePagination
+              component="div"
+              count={filteredPlans.length}
+              page={page}
+              onPageChange={handlePageChange}
+              rowsPerPage={pageSize}
+              onRowsPerPageChange={handlePageSizeChange}
+              rowsPerPageOptions={pageSizeOptions}
+            />
           </TableContainer>
         )}
 

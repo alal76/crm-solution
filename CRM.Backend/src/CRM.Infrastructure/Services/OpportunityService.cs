@@ -516,4 +516,93 @@ public class OpportunityService : IOpportunityService, IOpportunityInputPort
         return true;
     }
 
+    public async Task<OpportunityCompetitor?> UpdateCompetitorAsync(int opportunityId, int competitorId, OpportunityCompetitor updated, CancellationToken ct = default)
+    {
+        var existing = await _dbContext.OpportunityCompetitors
+            .Include(c => c.Competitor)
+            .FirstOrDefaultAsync(c => c.OpportunityId == opportunityId && c.CompetitorId == competitorId, ct);
+
+        if (existing == null)
+            return null;
+
+        existing.ThreatLevel = updated.ThreatLevel;
+        existing.Status = updated.Status;
+        if (updated.CompetitorPrice.HasValue)
+            existing.CompetitorPrice = updated.CompetitorPrice;
+        if (updated.Notes != null)
+            existing.Notes = updated.Notes;
+        if (updated.WonAgainst.HasValue)
+            existing.WonAgainst = updated.WonAgainst;
+
+        await _dbContext.SaveChangesAsync(ct);
+
+        _logger.LogInformation("Updated competitor {CompetitorId} on opportunity {OpportunityId}", competitorId, opportunityId);
+
+        return existing;
+    }
+
+    // =============================================================================
+    // Forecast Category (TODO-CRM003-07)
+    // =============================================================================
+
+    public async Task<bool> PatchForecastCategoryAsync(int opportunityId, ForecastCategory category, CancellationToken ct = default)
+    {
+        var opportunity = await _dbContext.Opportunities
+            .FirstOrDefaultAsync(o => o.Id == opportunityId && !o.IsDeleted, ct);
+
+        if (opportunity == null)
+            return false;
+
+        opportunity.ForecastCategory = category;
+        opportunity.UpdatedAt = DateTime.UtcNow;
+        await _dbContext.SaveChangesAsync(ct);
+
+        _logger.LogInformation("Updated forecast category for opportunity {OpportunityId} to {Category}", opportunityId, category);
+        return true;
+    }
+
+    public async Task<ForecastSummaryDto> GetForecastSummaryAsync(CancellationToken ct = default)
+    {
+        var opps = await _dbContext.Opportunities
+            .AsNoTracking()
+            .Where(o => !o.IsDeleted)
+            .Select(o => new { o.ForecastCategory, o.Amount, o.Probability, o.TermLengthMonths, o.PricingModel })
+            .ToListAsync(ct);
+
+        var categories = opps
+            .GroupBy(o => o.ForecastCategory)
+            .Select(g =>
+            {
+                var totalAmount = g.Sum(o => o.Amount);
+                var weightedAmount = g.Sum(o => o.Amount * o.Probability / 100);
+                var mrr = g
+                    .Where(o => o.PricingModel == OpportunityPricingModel.Subscription ||
+                                o.PricingModel == OpportunityPricingModel.Hybrid)
+                    .Sum(o => o.TermLengthMonths > 0 ? o.Amount / o.TermLengthMonths : 0);
+                return new ForecastCategoryLineDto
+                {
+                    CategoryValue = (int)g.Key,
+                    CategoryName = g.Key.ToString(),
+                    Count = g.Count(),
+                    TotalAmount = totalAmount,
+                    WeightedAmount = Math.Round(weightedAmount, 2),
+                    Mrr = Math.Round(mrr, 2),
+                    Arr = Math.Round(mrr * 12, 2)
+                };
+            })
+            .OrderBy(c => c.CategoryValue)
+            .ToList();
+
+        var totalMrr = categories.Sum(c => c.Mrr);
+        return new ForecastSummaryDto
+        {
+            Categories = categories,
+            TotalPipelineAmount = opps.Sum(o => o.Amount),
+            TotalWeightedAmount = Math.Round(opps.Sum(o => o.Amount * o.Probability / 100), 2),
+            TotalMrr = Math.Round(totalMrr, 2),
+            TotalArr = Math.Round(totalMrr * 12, 2),
+            AsOf = DateTime.UtcNow
+        };
+    }
+
 }

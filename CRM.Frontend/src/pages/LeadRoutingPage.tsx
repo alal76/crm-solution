@@ -12,7 +12,7 @@ import {
   Alert, Grid, Tabs, Tab, FormControl, InputLabel, Select, MenuItem,
   Paper, LinearProgress, List, ListItem, ListItemText, ListItemIcon,
   FormControlLabel, Switch, Divider, Accordion, AccordionSummary, AccordionDetails,
-  SelectChangeEvent,
+  SelectChangeEvent, TablePagination,
 } from '@mui/material';
 import {
   Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon,
@@ -30,6 +30,7 @@ import leadRoutingService, {
   RoutingLog, RoutingStatistics, RoutingCriteria
 } from '../services/leadRoutingService';
 import logo from '../assets/logo.png';
+import { usePagination } from '../hooks/usePagination';
 
 // ==================== HELPER FUNCTIONS ====================
 
@@ -266,6 +267,9 @@ const LeadRoutingPage = () => {
     </Card>
   );
 
+  const { paginatedData: paginatedRules, page, pageSize, handlePageChange, handlePageSizeChange, pageSizeOptions } =
+    usePagination(rules, { defaultPageSize: 25 });
+
   return (
     <Box sx={{ minHeight: '100vh', backgroundColor: '#f5f5f5' }}>
       {/* Header */}
@@ -380,7 +384,7 @@ const LeadRoutingPage = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {rules.map(rule => (
+                  {paginatedRules.map(rule => (
                     <TableRow key={rule.id}>
                       <TableCell>
                         <Chip label={rule.priority} size="small" color="primary" variant="outlined" />
@@ -454,6 +458,15 @@ const LeadRoutingPage = () => {
                   )}
                 </TableBody>
               </Table>
+              <TablePagination
+                component="div"
+                count={rules.length}
+                page={page}
+                onPageChange={handlePageChange}
+                rowsPerPage={pageSize}
+                onRowsPerPageChange={handlePageSizeChange}
+                rowsPerPageOptions={pageSizeOptions}
+              />
             </Box>
           </TabPanel>
 

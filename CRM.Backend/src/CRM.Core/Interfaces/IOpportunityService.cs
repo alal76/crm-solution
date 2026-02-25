@@ -75,8 +75,19 @@ public interface IOpportunityService
     /// <summary>Adds a competitor to an opportunity.</summary>
     Task<OpportunityCompetitor> AddCompetitorAsync(int opportunityId, OpportunityCompetitor competitor, CancellationToken ct = default);
 
+    /// <summary>Updates competitor details on an opportunity (TODO-CRM003-03).</summary>
+    Task<OpportunityCompetitor?> UpdateCompetitorAsync(int opportunityId, int competitorId, OpportunityCompetitor updated, CancellationToken ct = default);
+
     /// <summary>Removes a competitor from an opportunity.</summary>
     Task<bool> RemoveCompetitorAsync(int opportunityId, int competitorId, CancellationToken ct = default);
+
+    // --- Forecast Category (TODO-CRM003-07) ---
+
+    /// <summary>Patches the forecast category of a single opportunity.</summary>
+    Task<bool> PatchForecastCategoryAsync(int opportunityId, ForecastCategory category, CancellationToken ct = default);
+
+    /// <summary>Returns a forecast summary grouped by forecast category bucket.</summary>
+    Task<ForecastSummaryDto> GetForecastSummaryAsync(CancellationToken ct = default);
 
     // In future: switch to DTOs for all contracts
 }

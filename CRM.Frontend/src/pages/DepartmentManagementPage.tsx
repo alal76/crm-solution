@@ -1,8 +1,9 @@
-import { Box, Container, Typography, Card, CardContent, Table, TableBody, TableCell, TableHead, TableRow, CircularProgress, Alert, Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField, FormControlLabel, Checkbox, FormControl, InputLabel, Select, MenuItem, SelectChangeEvent, Chip } from '@mui/material';
+import { Box, Container, Typography, Card, CardContent, Table, TableBody, TableCell, TableHead, TableRow, TablePagination, CircularProgress, Alert, Button, Dialog, DialogTitle, DialogContent, DialogActions, TextField, FormControlLabel, Checkbox, FormControl, InputLabel, Select, MenuItem, SelectChangeEvent, Chip } from '@mui/material';
 import { useState, useEffect } from 'react';
 import { Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon, AccountTree as TreeIcon } from '@mui/icons-material';
 import apiClient from '../services/apiClient';
 import logo from '../assets/logo.png';
+import { usePagination } from '../hooks/usePagination';
 
 interface Department {
   id: number;
@@ -139,6 +140,9 @@ function DepartmentManagementPage() {
     }
   };
 
+  const { paginatedData: paginatedDepartments, page, pageSize, handlePageChange, handlePageSizeChange, pageSizeOptions } =
+    usePagination(departments, { defaultPageSize: 25 });
+
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', py: 10 }}>
@@ -184,7 +188,7 @@ function DepartmentManagementPage() {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {departments.map((dept) => {
+                {paginatedDepartments.map((dept) => {
                   const parentName = getParentDepartmentName(dept.parentDepartmentId);
                   return (
                     <TableRow key={dept.id}>
@@ -236,6 +240,15 @@ function DepartmentManagementPage() {
                 })}
               </TableBody>
             </Table>
+            <TablePagination
+              component="div"
+              count={departments.length}
+              page={page}
+              onPageChange={handlePageChange}
+              rowsPerPage={pageSize}
+              onRowsPerPageChange={handlePageSizeChange}
+              rowsPerPageOptions={pageSizeOptions}
+            />
             {departments.length === 0 && (
               <Typography sx={{ textAlign: 'center', py: 2, color: 'textSecondary' }}>
                 No departments found

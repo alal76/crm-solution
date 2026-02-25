@@ -19,8 +19,8 @@ public interface IConditionExpressionParser
     /// Parses a condition expression string into an evaluatable expression tree.
     /// </summary>
     /// <param name="expression">The condition expression to parse</param>
-    /// <returns>Parsed condition node</returns>
-    ConditionNode Parse(string expression);
+    /// <returns>Parsed expression node</returns>
+    ExpressionNode Parse(string expression);
 
     /// <summary>
     /// Evaluates a condition expression against provided context values.
@@ -40,8 +40,9 @@ public interface IConditionExpressionParser
 
 /// <summary>
 /// Represents a node in the condition expression tree.
+/// (Named ExpressionNode to avoid collision with ConditionEvaluator.ConditionNode JSON DSL model.)
 /// </summary>
-public abstract class ConditionNode
+public abstract class ExpressionNode
 {
     public abstract bool Evaluate(Dictionary<string, object> context);
 }
@@ -49,7 +50,7 @@ public abstract class ConditionNode
 /// <summary>
 /// Represents a comparison condition (e.g., "Priority = High").
 /// </summary>
-public class ComparisonNode : ConditionNode
+public class ComparisonNode : ExpressionNode
 {
     public string FieldName { get; set; } = string.Empty;
     public ComparisonOperator Operator { get; set; }
@@ -96,11 +97,11 @@ public class ComparisonNode : ConditionNode
 /// <summary>
 /// Represents a logical AND/OR combination of conditions.
 /// </summary>
-public class LogicalNode : ConditionNode
+public class LogicalNode : ExpressionNode
 {
     public LogicalOperator Operator { get; set; }
-    public ConditionNode Left { get; set; } = null!;
-    public ConditionNode Right { get; set; } = null!;
+    public ExpressionNode Left { get; set; } = null!;
+    public ExpressionNode Right { get; set; } = null!;
 
     public override bool Evaluate(Dictionary<string, object> context)
     {
@@ -116,9 +117,9 @@ public class LogicalNode : ConditionNode
 /// <summary>
 /// Represents a NOT condition.
 /// </summary>
-public class NotNode : ConditionNode
+public class NotNode : ExpressionNode
 {
-    public ConditionNode Inner { get; set; } = null!;
+    public ExpressionNode Inner { get; set; } = null!;
 
     public override bool Evaluate(Dictionary<string, object> context)
     {
@@ -166,7 +167,7 @@ public class ConditionExpressionParser : IConditionExpressionParser
     private static readonly Regex TimeUnitPattern = new(@"^(\d+)([hmdw])$", RegexOptions.IgnoreCase | RegexOptions.Compiled);
 
     /// <inheritdoc />
-    public ConditionNode Parse(string expression)
+    public ExpressionNode Parse(string expression)
     {
         if (string.IsNullOrWhiteSpace(expression))
             throw new ArgumentException("Expression cannot be empty", nameof(expression));
@@ -233,7 +234,7 @@ public class ConditionExpressionParser : IConditionExpressionParser
         return matches.Select(m => m.Value).ToList();
     }
 
-    private ConditionNode ParseExpression(List<string> tokens, ref int index)
+    private ExpressionNode ParseExpression(List<string> tokens, ref int index)
     {
         var left = ParseTerm(tokens, ref index);
 
@@ -272,7 +273,7 @@ public class ConditionExpressionParser : IConditionExpressionParser
         return left;
     }
 
-    private ConditionNode ParseTerm(List<string> tokens, ref int index)
+    private ExpressionNode ParseTerm(List<string> tokens, ref int index)
     {
         if (index >= tokens.Count)
             throw new ArgumentException("Unexpected end of expression");

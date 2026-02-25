@@ -10,7 +10,9 @@ import TableCell from '@mui/material/TableCell';
 import TableContainer from '@mui/material/TableContainer';
 import TableHead from '@mui/material/TableHead';
 import TableRow from '@mui/material/TableRow';
+import TablePagination from '@mui/material/TablePagination';
 import apiClient from '../../services/apiClient';
+import { usePagination } from '../../hooks/usePagination';
 
 interface CatalogRequestItem {
   requestId: number;
@@ -49,12 +51,16 @@ const ServiceCatalogRequestListPage: React.FC = () => {
     load();
   }, []);
 
+  const { paginatedData: paginatedItems, page, pageSize, handlePageChange, handlePageSizeChange, pageSizeOptions } =
+    usePagination(items, { defaultPageSize: 25 });
+
   return (
     <Box sx={{ p: 3 }}>
       <Typography variant="h4" component="h1" fontWeight="bold" sx={{ mb: 3 }}>Catalog Requests</Typography>
       {loading ? (
         <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}><CircularProgress /></Box>
       ) : (
+        <>
         <TableContainer component={Paper}>
           <Table>
             <TableHead>
@@ -65,7 +71,7 @@ const ServiceCatalogRequestListPage: React.FC = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {items.map((request) => (
+              {paginatedItems.map((request) => (
                 <TableRow
                   key={request.requestId}
                   hover
@@ -82,6 +88,16 @@ const ServiceCatalogRequestListPage: React.FC = () => {
             </TableBody>
           </Table>
         </TableContainer>
+        <TablePagination
+          component="div"
+          count={items.length}
+          page={page}
+          onPageChange={handlePageChange}
+          rowsPerPage={pageSize}
+          onRowsPerPageChange={handlePageSizeChange}
+          rowsPerPageOptions={pageSizeOptions}
+        />
+        </>
       )}
     </Box>
   );

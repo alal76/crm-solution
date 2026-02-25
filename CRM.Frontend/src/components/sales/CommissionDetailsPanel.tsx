@@ -44,8 +44,8 @@ interface CommissionDetailsPanelProps {
   currency?: string;
 }
 
-const formatCurrency = (value: number, currency: string) =>
-  new Intl.NumberFormat('en-US', { style: 'currency', currency }).format(value);
+const formatCurrency = (value: number, currency?: string | null) =>
+  new Intl.NumberFormat('en-US', { style: 'currency', currency: currency || 'USD' }).format(value);
 
 const statusChipColor = (status: string): 'default' | 'warning' | 'info' | 'success' => {
   switch (status.toLowerCase()) {

@@ -200,4 +200,29 @@ public class WinLossByDealSize
     public decimal TotalLostAmount { get; set; }
 }
 
+/// <summary>
+/// Consolidated win/loss report for GET /api/reports/win-loss (TODO-CRM003-05).
+/// Combines summary, by-stage, by-competitor, and time-period breakdown.
+/// </summary>
+public class WinLossReportDto
+{
+    /// <summary>Overall summary statistics.</summary>
+    public WinLossSummary Summary { get; set; } = new();
+
+    /// <summary>Win/loss counts and rates per loss reason category.</summary>
+    public IEnumerable<WinLossByReason> ByReason { get; set; } = Enumerable.Empty<WinLossByReason>();
+
+    /// <summary>Win/loss counts per competitor.</summary>
+    public IEnumerable<WinLossByCompetitor> ByCompetitor { get; set; } = Enumerable.Empty<WinLossByCompetitor>();
+
+    /// <summary>Monthly / quarterly win rate trend.</summary>
+    public IEnumerable<WinRateTrend> Trends { get; set; } = Enumerable.Empty<WinRateTrend>();
+
+    /// <summary>Date range used for this report.</summary>
+    public DateTime FromDate { get; set; }
+
+    /// <summary>Date range used for this report.</summary>
+    public DateTime ToDate { get; set; }
+}
+
 #endregion

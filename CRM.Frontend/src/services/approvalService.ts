@@ -226,44 +226,48 @@ export interface DelegateDto {
 // ============================================================================
 // Backend uses Quote-specific approval while frontend expects generic. These helpers bridge the gap.
 
-const normalizeApprovalRequest = (r: any): ApprovalRequest => ({
-  ...r,
-  id: r.id,
-  entityType: r.entityType ?? 'quote',
-  entityId: r.entityId ?? r.quoteId,
-  entityName: r.entityName ?? r.quoteName ?? '',
-  requestedById: r.requestedById ?? r.submitterId,
-  requestedByName: r.requestedByName ?? r.submitterName ?? '',
-  requestedAt: r.requestedAt ?? r.submittedAt,
-  totalAmount: r.totalAmount ?? r.dealAmount ?? 0,
-  discountPercentage: r.discountPercentage ?? r.discountPercent ?? 0,
-  reason: r.reason ?? r.justification ?? '',
-  totalLevels: r.totalLevels ?? r.maxLevelRequired ?? 1,
-  status: r.status ?? 'pending',
-  urgency: r.urgency ?? 'normal',
-  currentLevel: r.currentLevel ?? 1,
-  approvers: r.approvers ?? r.steps ?? [],
-  history: r.history ?? [],
-  comments: r.comments ?? '',
-  attachments: r.attachments ?? [],
+/** Raw API response data - JSON object with unknown field types */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type RawApiData = any;
+
+const normalizeApprovalRequest = (raw: RawApiData): ApprovalRequest => ({
+  ...(raw as unknown as ApprovalRequest),
+  id: raw['id'] as number | undefined,
+  entityType: ((raw['entityType']) ?? 'quote') as ApprovalEntityType,
+  entityId: ((raw['entityId']) ?? raw['quoteId']) as number,
+  entityName: ((raw['entityName'] ?? raw['quoteName']) ?? '') as string,
+  requestedById: ((raw['requestedById']) ?? raw['submitterId']) as number,
+  requestedByName: ((raw['requestedByName'] ?? raw['submitterName']) ?? '') as string,
+  requestedAt: ((raw['requestedAt']) ?? raw['submittedAt']) as string,
+  totalAmount: ((raw['totalAmount'] ?? raw['dealAmount']) ?? 0) as number,
+  discountPercentage: ((raw['discountPercentage'] ?? raw['discountPercent']) ?? 0) as number,
+  reason: ((raw['reason'] ?? raw['justification']) ?? '') as string,
+  totalLevels: ((raw['totalLevels'] ?? raw['maxLevelRequired']) ?? 1) as number,
+  status: ((raw['status']) ?? 'pending') as ApprovalStatus,
+  urgency: ((raw['urgency']) ?? 'normal') as ApprovalUrgency,
+  currentLevel: ((raw['currentLevel']) ?? 1) as number,
+  approvers: ((raw['approvers'] ?? raw['steps']) ?? []) as ApprovalApprover[],
+  history: ((raw['history']) ?? []) as ApprovalHistoryEntry[],
+  comments: ((raw['comments']) ?? '') as string,
+  attachments: ((raw['attachments']) ?? []) as ApprovalAttachment[],
 });
 
-const normalizeStatistics = (s: any): ApprovalStatistics => ({
-  ...s,
-  totalRequests: s.totalRequests ?? 0,
-  pendingRequests: s.pendingRequests ?? 0,
-  approvedRequests: s.approvedRequests ?? 0,
-  rejectedRequests: s.rejectedRequests ?? 0,
-  avgApprovalTimeHours: s.avgApprovalTimeHours ?? s.averageTimeToApprovalHours ?? 0,
-  avgLevelsRequired: s.avgLevelsRequired ?? 0,
-  requestsByType: s.requestsByType ?? [],
-  requestsByStatus: s.requestsByStatus ?? [],
-  topApprovers: s.topApprovers ?? [],
-  dailyTrend: s.dailyTrend ?? [],
-  bottlenecks: s.bottlenecks ?? [],
+const normalizeStatistics = (raw: RawApiData): ApprovalStatistics => ({
+  ...(raw as unknown as ApprovalStatistics),
+  totalRequests: ((raw['totalRequests']) ?? 0) as number,
+  pendingRequests: ((raw['pendingRequests']) ?? 0) as number,
+  approvedRequests: ((raw['approvedRequests']) ?? 0) as number,
+  rejectedRequests: ((raw['rejectedRequests']) ?? 0) as number,
+  avgApprovalTimeHours: ((raw['avgApprovalTimeHours'] ?? raw['averageTimeToApprovalHours']) ?? 0) as number,
+  avgLevelsRequired: ((raw['avgLevelsRequired']) ?? 0) as number,
+  requestsByType: ((raw['requestsByType']) ?? []) as ApprovalStatistics['requestsByType'],
+  requestsByStatus: ((raw['requestsByStatus']) ?? []) as ApprovalStatistics['requestsByStatus'],
+  topApprovers: ((raw['topApprovers']) ?? []) as ApprovalStatistics['topApprovers'],
+  dailyTrend: ((raw['dailyTrend']) ?? []) as ApprovalStatistics['dailyTrend'],
+  bottlenecks: ((raw['bottlenecks']) ?? []) as ApprovalStatistics['bottlenecks'],
 });
 
-const normalizeRequestList = (items: any[]): ApprovalRequest[] => 
+const normalizeRequestList = (items: RawApiData[]): ApprovalRequest[] =>
   (items ?? []).map(normalizeApprovalRequest);
 
 // ============================================================================
@@ -289,7 +293,7 @@ const approvalService = {
     if (status) params.append('status', status);
     if (entityType) params.append('entityType', entityType);
     try {
-      const res = await apiClient.get<{ items: any[]; totalCount: number }>(
+      const res = await apiClient.get<{ items: RawApiData[]; totalCount: number }>(
         `/approvals/requests?${params.toString()}`
       );
       return { ...res, data: { items: normalizeRequestList(res.data?.items), totalCount: res.data?.totalCount ?? 0 } };
@@ -303,7 +307,7 @@ const approvalService = {
    */
   getMyPendingApprovals: async (page: number = 1, pageSize: number = 20) => {
     try {
-      const res = await apiClient.get<{ items: any[]; totalCount: number }>(
+      const res = await apiClient.get<{ items: RawApiData[]; totalCount: number }>(
         `/approvals/requests/pending?page=${page}&pageSize=${pageSize}`
       );
       return { ...res, data: { items: normalizeRequestList(res.data?.items), totalCount: res.data?.totalCount ?? 0 } };
@@ -322,7 +326,7 @@ const approvalService = {
     });
     if (status) params.append('status', status);
     try {
-      const res = await apiClient.get<{ items: any[]; totalCount: number }>(
+      const res = await apiClient.get<{ items: RawApiData[]; totalCount: number }>(
         `/approvals/requests/submitted?${params.toString()}`
       );
       return { ...res, data: { items: normalizeRequestList(res.data?.items), totalCount: res.data?.totalCount ?? 0 } };
@@ -336,7 +340,7 @@ const approvalService = {
    */
   getRequestById: async (id: number) => {
     try {
-      const res = await apiClient.get<any>(`/approvals/requests/${id}`);
+      const res = await apiClient.get<RawApiData>(`/approvals/requests/${id}`);
       return { ...res, data: normalizeApprovalRequest(res.data) };
     } catch {
       return { data: null as ApprovalRequest | null };
@@ -357,7 +361,7 @@ const approvalService = {
    */
   createRequest: async (data: CreateApprovalRequestDto) => {
     try {
-      const res = await apiClient.post<any>('/approvals/requests', data);
+      const res = await apiClient.post<RawApiData>('/approvals/requests', data);
       return { ...res, data: normalizeApprovalRequest(res.data) };
     } catch (err) {
       throw err;
@@ -369,7 +373,7 @@ const approvalService = {
    */
   cancelRequest: async (id: number, reason?: string) => {
     try {
-      const res = await apiClient.post<any>(`/approvals/requests/${id}/recall`, { reason });
+      const res = await apiClient.post<RawApiData>(`/approvals/requests/${id}/recall`, { reason });
       return { ...res, data: normalizeApprovalRequest(res.data) };
     } catch (err) {
       throw err;
@@ -381,7 +385,7 @@ const approvalService = {
    */
   resubmitRequest: async (id: number, comments?: string) => {
     try {
-      const res = await apiClient.post<any>(`/approvals/requests/${id}/resubmit`, { comments });
+      const res = await apiClient.post<RawApiData>(`/approvals/requests/${id}/resubmit`, { comments });
       return { ...res, data: normalizeApprovalRequest(res.data) };
     } catch (err) {
       throw err;
@@ -395,7 +399,7 @@ const approvalService = {
    */
   approve: async (id: number, data?: ApprovalActionDto) => {
     try {
-      const res = await apiClient.post<any>(`/approvals/requests/${id}/approve`, data || {});
+      const res = await apiClient.post<RawApiData>(`/approvals/requests/${id}/approve`, data || {});
       return { ...res, data: normalizeApprovalRequest(res.data) };
     } catch (err) {
       throw err;
@@ -407,7 +411,7 @@ const approvalService = {
    */
   reject: async (id: number, data: ApprovalActionDto) => {
     try {
-      const res = await apiClient.post<any>(`/approvals/requests/${id}/reject`, data);
+      const res = await apiClient.post<RawApiData>(`/approvals/requests/${id}/reject`, data);
       return { ...res, data: normalizeApprovalRequest(res.data) };
     } catch (err) {
       throw err;
@@ -419,7 +423,7 @@ const approvalService = {
    */
   delegate: async (id: number, data: DelegateDto) => {
     try {
-      const res = await apiClient.post<any>(`/approvals/requests/${id}/delegate`, data);
+      const res = await apiClient.post<RawApiData>(`/approvals/requests/${id}/delegate`, data);
       return { ...res, data: normalizeApprovalRequest(res.data) };
     } catch (err) {
       throw err;
@@ -592,7 +596,7 @@ const approvalService = {
     if (entityType) params.append('entityType', entityType);
     const query = params.toString();
     try {
-      const res = await apiClient.get<any>(`/approvals/requests/statistics${query ? `?${query}` : ''}`);
+      const res = await apiClient.get<RawApiData>(`/approvals/requests/statistics${query ? `?${query}` : ''}`);
       return { ...res, data: normalizeStatistics(res.data ?? {}) };
     } catch {
       return { data: normalizeStatistics({}) };

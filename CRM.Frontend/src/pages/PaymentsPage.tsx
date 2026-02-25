@@ -11,6 +11,7 @@ import {
   TableRow,
   TableCell,
   TableBody,
+  TablePagination,
   Chip,
   IconButton,
   Tooltip,
@@ -40,6 +41,7 @@ import ActionButton from '../components/common/ActionButton';
 import { DialogHeader } from '../components/common/DialogHeader';
 import { EnhancedEmptyState } from '../components/common/EnhancedEmptyState';
 import { useApiState } from '../hooks/useApiState';
+import { usePagination } from '../hooks/usePagination';
 import apiClient from '../services/apiClient';
 import logo from '../assets/logo.png';
 
@@ -341,6 +343,8 @@ function PaymentsPage() {
     ? payments
     : payments.filter(p => p.status === filterStatus);
 
+  const { paginatedData: paginatedPayments, page, pageSize, handlePageChange, handlePageSizeChange, pageSizeOptions } = usePagination(filteredPayments, { defaultPageSize: 25 });
+
   // ==================== RENDER ====================
 
   if (loading) {
@@ -427,7 +431,7 @@ function PaymentsPage() {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  filteredPayments.map((payment) => {
+                  paginatedPayments.map((payment) => {
                     const statusInfo = getStatusInfo(payment.status);
 
                     return (
@@ -474,6 +478,15 @@ function PaymentsPage() {
                 )}
               </TableBody>
             </Table>
+            <TablePagination
+              component="div"
+              count={filteredPayments.length}
+              page={page}
+              onPageChange={handlePageChange}
+              rowsPerPage={pageSize}
+              onRowsPerPageChange={handlePageSizeChange}
+              rowsPerPageOptions={pageSizeOptions}
+            />
           </CardContent>
         </Card>
       </Box>

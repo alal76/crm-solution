@@ -12,10 +12,12 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  TablePagination,
   CircularProgress,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import apiClient from '../../services/apiClient';
+import { usePagination } from '../../hooks/usePagination';
 
 interface Incident {
   incidentId: number;
@@ -55,6 +57,9 @@ export const IncidentListPage: React.FC = () => {
     loadIncidents();
   }, [searchTerm, pageNumber]);
 
+  const { paginatedData: paginatedIncidents, page, pageSize, handlePageChange, handlePageSizeChange, pageSizeOptions } =
+    usePagination(incidents, { defaultPageSize: 25 });
+
   return (
     <Box sx={{ p: 3 }}>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
@@ -86,6 +91,7 @@ export const IncidentListPage: React.FC = () => {
       ) : incidents.length === 0 ? (
         <Typography color="text.secondary">No incidents found.</Typography>
       ) : (
+        <>
         <TableContainer component={Paper}>
           <Table>
             <TableHead>
@@ -98,7 +104,7 @@ export const IncidentListPage: React.FC = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {incidents.map((incident) => (
+              {paginatedIncidents.map((incident) => (
                 <TableRow
                   key={incident.incidentId}
                   hover
@@ -115,6 +121,16 @@ export const IncidentListPage: React.FC = () => {
             </TableBody>
           </Table>
         </TableContainer>
+        <TablePagination
+          component="div"
+          count={incidents.length}
+          page={page}
+          onPageChange={handlePageChange}
+          rowsPerPage={pageSize}
+          onRowsPerPageChange={handlePageSizeChange}
+          rowsPerPageOptions={pageSizeOptions}
+        />
+        </>
       )}
     </Box>
   );

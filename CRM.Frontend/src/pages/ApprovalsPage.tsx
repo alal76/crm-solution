@@ -11,7 +11,7 @@ import {
   TextField, Stack, Chip, IconButton, Tooltip, CircularProgress,
   Alert, Grid, Tabs, Tab, FormControl, InputLabel, Select, MenuItem,
   Paper, LinearProgress, Badge, List, ListItem, ListItemText, ListItemIcon,
-  ListItemSecondaryAction, Avatar, Divider, Checkbox, SelectChangeEvent,
+  ListItemSecondaryAction, Avatar, Divider, Checkbox, SelectChangeEvent, TablePagination,
 } from '@mui/material';
 import {
   Add as AddIcon, Edit as EditIcon, Delete as DeleteIcon,
@@ -28,6 +28,7 @@ import approvalService, {
   ApprovalEntityType, ApprovalStatus, ApprovalUrgency, ApproverStatus
 } from '../services/approvalService';
 import logo from '../assets/logo.png';
+import { usePagination } from '../hooks/usePagination';
 
 // ==================== HELPER FUNCTIONS ====================
 
@@ -309,6 +310,9 @@ const ApprovalsPage = () => {
     </Card>
   );
 
+  const { paginatedData: paginatedPendingApprovals, page, pageSize, handlePageChange, handlePageSizeChange, pageSizeOptions } =
+    usePagination(pendingApprovals, { defaultPageSize: 25 });
+
   return (
     <Box sx={{ minHeight: '100vh', backgroundColor: '#f5f5f5' }}>
       {/* Header */}
@@ -436,7 +440,7 @@ const ApprovalsPage = () => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {pendingApprovals.map(request => (
+                  {paginatedPendingApprovals.map(request => (
                     <TableRow key={request.id}>
                       <TableCell padding="checkbox">
                         <Checkbox
@@ -537,6 +541,15 @@ const ApprovalsPage = () => {
                   )}
                 </TableBody>
               </Table>
+              <TablePagination
+                component="div"
+                count={pendingApprovals.length}
+                page={page}
+                onPageChange={handlePageChange}
+                rowsPerPage={pageSize}
+                onRowsPerPageChange={handlePageSizeChange}
+                rowsPerPageOptions={pageSizeOptions}
+              />
             </Box>
           </TabPanel>
 

@@ -1,13 +1,14 @@
 # GitHub Copilot Instructions - CRM Solution
 
-> **Last Updated:** February 23, 2026  
-> **Current Version:** 0.569.0  
+> **Last Updated:** February 27, 2026  
+> **Current Version:** 0.587.0  
 > **Load this file at the start of every agent session**
 
 Copilot usage
 - Use Claude Opus 4.6 subagents for all tasks in particular for research/analysis and test authoring when tasks are complex or multi-step
 - Update documentation as you proceed (specs, remediation plan, and related docs).
 - **Enum changes:** whenever you introduce a new public enum or modify existing ones, update the relevant feature spec and the centralized enum reference (`docs/11-specifications/SPEC-GEN-001-EnumReference.md`), and ensure corresponding unit tests (enum value counts/values) are added or updated. Record enum field gaps in FIELD_GAP_REMEDIATION_PLAN.md.
+- **Test authoring — MANDATORY rule:** Write unit/integration tests ONLY after first reading and verifying the actual code being tested. Before writing any test, confirm: (1) the exact class name, namespace, and constructor signature of the service/class under test, (2) the exact method signatures and parameter names, (3) which interfaces are injected and their concrete implementations, (4) what DTOs/entities are used including nullable fields. Never write tests based on assumed or inferred method signatures — always grep/read the real code first. Failing to do this causes compilation errors and wasted effort.
 - Write and validate unit tests at the end of the task to ensure code quality and correctness.
 - Clean up terminals when done to maintain an organized workspace..
 - Where possible, use the provided documentation and 11-specifications to guide your implementation and ensure consistency with the project's standards and requirements.

@@ -171,7 +171,7 @@ const UserSettingsDialog: React.FC<UserSettingsDialogProps> = ({ open, onClose, 
     timeFormat: '12h',
     rowsPerPage: 20,
     emailNotifications: true,
-    desktopNotifications: false,
+    desktopNotifications: true,
     compactMode: false,
   });
 
@@ -548,7 +548,7 @@ const UserSettingsDialog: React.FC<UserSettingsDialogProps> = ({ open, onClose, 
                     </Box>
                   </Box>
                   <Switch
-                    checked={preferences.desktopNotifications || false}
+                    checked={preferences.desktopNotifications !== false}
                     onChange={(e) => handlePreferenceChange('desktopNotifications', e.target.checked)}
                   />
                 </Box>

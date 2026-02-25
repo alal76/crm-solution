@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import {
   Box, Card, CardContent, Typography, Button, Table, TableBody, TableCell, TableContainer, TableHead,
-  TableRow, Dialog, DialogTitle, DialogContent, DialogActions, Alert, CircularProgress,
+  TableRow, TablePagination, Dialog, DialogTitle, DialogContent, DialogActions, Alert, CircularProgress,
   TextField, Container, FormControl, InputLabel, Select, MenuItem, Chip, Grid,
   IconButton, Tooltip, Tabs, Tab, SelectChangeEvent, Badge, Switch, FormControlLabel, Accordion, AccordionSummary, AccordionDetails
 } from '@mui/material';
@@ -30,6 +30,8 @@ import LookupSelect from '../components/LookupSelect';
 import EntitySelect from '../components/EntitySelect';
 import ImportExportButtons from '../components/ImportExportButtons';
 import AdvancedSearch, { SearchField, SearchFilter, filterData } from '../components/AdvancedSearch';
+import { useNavigate } from 'react-router-dom';
+import { usePagination } from '../hooks/usePagination';
 
 // Search fields for Advanced Search
 const SEARCH_FIELDS: SearchField[] = [
@@ -356,6 +358,16 @@ function TasksPage() {
     [statusFilteredItems, searchFilters, searchText]
   );
 
+  const navigate = useNavigate();
+  const {
+    paginatedData: paginatedQueueItems,
+    page: queuePage,
+    pageSize: queuePageSize,
+    handlePageChange: handleQueuePageChange,
+    handlePageSizeChange: handleQueuePageSizeChange,
+    pageSizeOptions,
+  } = usePagination(filteredQueueItems, { defaultPageSize: 25 });
+
   if (loading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', py: 10 }}>
@@ -499,11 +511,13 @@ function TasksPage() {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {filteredQueueItems.map((item) => (
+                {paginatedQueueItems.map((item) => (
                   <TableRow 
                     key={item.id} 
                     hover 
+                    onClick={() => navigate(`/tasks/${item.id}`)}
                     sx={{ 
+                      cursor: 'pointer',
                       backgroundColor: item.isOverdue ? '#fff3e0' : 'inherit',
                       opacity: item.status === 'Completed' || item.status === 'Cancelled' ? 0.6 : 1
                     }}
@@ -584,13 +598,14 @@ function TasksPage() {
                     <TableCell align="center">
                       {item.status !== 'Completed' && (
                         <Tooltip title="Mark Complete">
-                          <IconButton size="small" onClick={() => handleCompleteTask(item.id)} sx={{ color: '#4caf50' }}>
+                          <IconButton size="small" onClick={(e) => { e.stopPropagation(); handleCompleteTask(item.id); }} sx={{ color: '#4caf50' }}>
                             <CheckIcon fontSize="small" />
                           </IconButton>
                         </Tooltip>
                       )}
                       <Tooltip title="View/Edit">
-                        <IconButton size="small" onClick={() => {
+                        <IconButton size="small" onClick={(e) => {
+                          e.stopPropagation();
                           // Fetch the full task and open dialog
                           apiClient.get(`/tasks/${item.id}`).then(res => {
                             const task = res.data;
@@ -632,7 +647,7 @@ function TasksPage() {
                         </IconButton>
                       </Tooltip>
                       <Tooltip title="Delete">
-                        <IconButton size="small" onClick={() => handleDeleteTask(item.id)} sx={{ color: '#f44336' }}>
+                        <IconButton size="small" onClick={(e) => { e.stopPropagation(); handleDeleteTask(item.id); }} sx={{ color: '#f44336' }}>
                           <DeleteIcon fontSize="small" />
                         </IconButton>
                       </Tooltip>
@@ -642,6 +657,15 @@ function TasksPage() {
               </TableBody>
               </Table>
             </TableContainer>
+            <TablePagination
+              component="div"
+              count={filteredQueueItems.length}
+              page={queuePage}
+              onPageChange={handleQueuePageChange}
+              rowsPerPage={queuePageSize}
+              onRowsPerPageChange={handleQueuePageSizeChange}
+              rowsPerPageOptions={pageSizeOptions}
+            />
             {filteredQueueItems.length === 0 && (
               <Typography sx={{ textAlign: 'center', py: 4, color: 'textSecondary' }}>
                 {statusFilter === 'pending' 

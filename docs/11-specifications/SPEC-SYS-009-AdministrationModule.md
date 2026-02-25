@@ -198,7 +198,7 @@ GET  /api/workflows
 | ID | Description | Priority | Category |
 |----|-------------|----------|----------|
 | TODO-SYS009-001 | Add admin settings end-to-end tests | P2 | Testing |
-| TODO-SYS009-002 | Add unit tests for navigation + system settings | P2 | Testing |
+| TODO-SYS009-002 | ✅ Add unit tests for navigation + system settings | P2 | Testing — NavigationControllerTests (11 tests), SystemSettingsControllerTests (8 tests) |
 | TODO-SYS009-003 | Complete provider-aware navigation merge | P2 | Frontend |
 | TODO-SYS009-004 | Add audit logging for admin changes | P3 | Backend |
 

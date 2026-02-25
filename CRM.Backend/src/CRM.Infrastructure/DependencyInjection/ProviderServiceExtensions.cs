@@ -20,8 +20,10 @@ using CRM.Infrastructure.Providers.Meilisearch;
 using CRM.Infrastructure.Providers.Novu;
 using CRM.Infrastructure.Providers.PowerBI;
 using CRM.Infrastructure.Providers.SendGrid;
+using CRM.Infrastructure.Providers.Slack;
 using CRM.Infrastructure.Providers.Stripe;
 using CRM.Infrastructure.Providers.Superset;
+using CRM.Infrastructure.Providers.Teams;
 using CRM.Infrastructure.Providers.Twilio;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -302,6 +304,33 @@ public static class ProviderServiceExtensions
             // Register SendGrid configuration and provider
             services.Configure<SendGridConfiguration>(sendGridConfig);
             services.AddScoped<SendGridProvider>();
+        }
+
+        // Microsoft Teams (Incoming Webhook)
+        var teamsConfig = config.GetSection("Teams");
+        if (!string.IsNullOrEmpty(teamsConfig["WebhookUrl"]))
+        {
+            services.Configure<TeamsConfiguration>(teamsConfig);
+            var webhookUrl = teamsConfig["WebhookUrl"]!;
+            var teamsTimeout = int.TryParse(teamsConfig["TimeoutSeconds"], out var tt) ? tt : 30;
+            services.AddHttpClient<TeamsNotificationProvider>(client =>
+            {
+                client.Timeout = TimeSpan.FromSeconds(teamsTimeout);
+            });
+            services.AddScoped<TeamsNotificationProvider>();
+        }
+
+        // Slack (Incoming Webhook)
+        var slackConfig = config.GetSection("Slack");
+        if (!string.IsNullOrEmpty(slackConfig["WebhookUrl"]))
+        {
+            services.Configure<SlackConfiguration>(slackConfig);
+            var slackTimeout = int.TryParse(slackConfig["TimeoutSeconds"], out var st) ? st : 30;
+            services.AddHttpClient<SlackNotificationProvider>(client =>
+            {
+                client.Timeout = TimeSpan.FromSeconds(slackTimeout);
+            });
+            services.AddScoped<SlackNotificationProvider>();
         }
     }
 

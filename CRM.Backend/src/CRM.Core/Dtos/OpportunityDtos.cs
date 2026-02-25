@@ -259,4 +259,69 @@ namespace CRM.Core.DTOs
         public decimal? CompetitorPrice { get; set; }
         public string? Notes { get; set; }
     }
+
+    /// <summary>
+    /// DTO for updating a competitor linked to an opportunity (TODO-CRM003-03).
+    /// All fields are optional for PATCH-style semantics.
+    /// </summary>
+    public class UpdateOpportunityCompetitorDto
+    {
+        /// <summary>Threat level string (Unknown | Low | Medium | High | Critical).</summary>
+        public string? ThreatLevel { get; set; }
+
+        /// <summary>Status string (Identified | Active | Leading | Eliminated | Won).</summary>
+        public string? Status { get; set; }
+
+        /// <summary>Competitor's quoted price for this deal.</summary>
+        public decimal? CompetitorPrice { get; set; }
+
+        /// <summary>Deal-specific notes about this competitor.</summary>
+        public string? Notes { get; set; }
+
+        /// <summary>Whether we won against this competitor.</summary>
+        public bool? WonAgainst { get; set; }
+    }
+
+    // --- Forecast Category DTOs (TODO-CRM003-07) ---
+
+    /// <summary>
+    /// Request body for PATCH /api/opportunities/{id}/forecast-category.
+    /// </summary>
+    public class ForecastCategoryPatchDto
+    {
+        /// <summary>Numeric value of the ForecastCategory enum.</summary>
+        [Required]
+        public int ForecastCategory { get; set; }
+    }
+
+    /// <summary>
+    /// One row in the forecast summary — a single ForecastCategory bucket.
+    /// </summary>
+    public class ForecastCategoryLineDto
+    {
+        public int CategoryValue { get; set; }
+        public string CategoryName { get; set; } = string.Empty;
+        public int Count { get; set; }
+        public decimal TotalAmount { get; set; }
+        public decimal WeightedAmount { get; set; }
+
+        /// <summary>Monthly Recurring Revenue estimate (subscription deals only).</summary>
+        public decimal Mrr { get; set; }
+
+        /// <summary>Annual Recurring Revenue (MRR * 12).</summary>
+        public decimal Arr { get; set; }
+    }
+
+    /// <summary>
+    /// Forecast summary report (TODO-CRM003-07).
+    /// </summary>
+    public class ForecastSummaryDto
+    {
+        public List<ForecastCategoryLineDto> Categories { get; set; } = new();
+        public decimal TotalPipelineAmount { get; set; }
+        public decimal TotalWeightedAmount { get; set; }
+        public decimal TotalMrr { get; set; }
+        public decimal TotalArr { get; set; }
+        public DateTime AsOf { get; set; }
+    }
 }

@@ -89,12 +89,15 @@ public class BuiltInSearchProvider : ISearchPort
 
         stopwatch.Stop();
 
+        var facets = BuildFacets(hits, request.FacetFields);
+
         return new SearchResult
         {
             Query = request.Query ?? string.Empty,
             Hits = sortedHits,
             TotalCount = hits.Count,
-            ProcessingTimeMs = stopwatch.ElapsedMilliseconds
+            ProcessingTimeMs = stopwatch.ElapsedMilliseconds,
+            Facets = facets
         };
     }
 
@@ -243,6 +246,18 @@ public class BuiltInSearchProvider : ISearchPort
     }
 
     /// <inheritdoc />
+    public Task RebuildAllIndexesAsync(CancellationToken cancellationToken = default)
+    {
+        // BuiltIn provider queries the database directly — there is no separate index store
+        // to rebuild. Log the supported entity types and return immediately.
+        var entityTypes = GetSearchableEntityTypes(null);
+        _logger.LogInformation(
+            "BuiltIn search provider: RebuildAllIndexesAsync - no-op (DB-direct). Indexed entity types: {Types}",
+            string.Join(", ", entityTypes));
+        return Task.CompletedTask;
+    }
+
+    /// <inheritdoc />
     public async Task<ProviderHealthResult> HealthCheckAsync(CancellationToken cancellationToken = default)
     {
         var stopwatch = Stopwatch.StartNew();
@@ -301,7 +316,8 @@ public class BuiltInSearchProvider : ISearchPort
         var allTypes = new[]
         {
             "Account", "Contact", "Opportunity", "Product", "KnowledgeArticle",
-            "Lead", "ServiceRequest", "Campaign", "Order", "Invoice", "Contract"
+            "Lead", "ServiceRequest", "Campaign", "Order", "Invoice", "Contract",
+            "Subscription", "User"
         };
 
         if (string.IsNullOrEmpty(requestedType))
@@ -332,6 +348,8 @@ public class BuiltInSearchProvider : ISearchPort
             "Order" => await SearchOrderHitsAsync(context, query, request.IncludeHighlights, cancellationToken),
             "Invoice" => await SearchInvoiceHitsAsync(context, query, request.IncludeHighlights, cancellationToken),
             "Contract" => await SearchContractHitsAsync(context, query, request.IncludeHighlights, cancellationToken),
+            "Subscription" => await SearchSubscriptionHitsAsync(context, query, request.IncludeHighlights, cancellationToken),
+            "User" => await SearchUserHitsAsync(context, query, request.IncludeHighlights, cancellationToken),
             _ => new List<SearchHit>()
         };
     }
@@ -676,6 +694,66 @@ public class BuiltInSearchProvider : ISearchPort
         }).ToList();
     }
 
+    private async Task<List<SearchHit>> SearchSubscriptionHitsAsync(
+        ICrmDbContext context,
+        string query,
+        bool includeHighlights,
+        CancellationToken cancellationToken)
+    {
+        var subscriptions = await context.Subscriptions
+            .Where(s => !s.IsDeleted && (
+                s.SubscriptionNumber.ToLower().Contains(query) ||
+                (s.BillingCycle != null && s.BillingCycle.ToLower().Contains(query))))
+            .Take(50)
+            .ToListAsync(cancellationToken);
+
+        return subscriptions.Select(s => new SearchHit
+        {
+            Id = s.Id.ToString(),
+            EntityType = "Subscription",
+            Title = s.SubscriptionNumber,
+            Description = $"{s.BillingCycle ?? "Monthly"} - {s.SubscriptionStatus}",
+            Score = CalculateScore(query, s.SubscriptionNumber, s.BillingCycle ?? string.Empty),
+            Highlights = includeHighlights ? GetHighlights(query, s.SubscriptionNumber, s.BillingCycle) : null,
+            Metadata = new Dictionary<string, object>
+            {
+                ["SubscriptionNumber"] = s.SubscriptionNumber,
+                ["Status"] = s.SubscriptionStatus.ToString()
+            }
+        }).ToList();
+    }
+
+    private async Task<List<SearchHit>> SearchUserHitsAsync(
+        ICrmDbContext context,
+        string query,
+        bool includeHighlights,
+        CancellationToken cancellationToken)
+    {
+        var users = await context.Users
+            .Where(u => !u.IsDeleted && (
+                u.Username.ToLower().Contains(query) ||
+                u.Email.ToLower().Contains(query) ||
+                u.FirstName.ToLower().Contains(query) ||
+                u.LastName.ToLower().Contains(query)))
+            .Take(50)
+            .ToListAsync(cancellationToken);
+
+        return users.Select(u => new SearchHit
+        {
+            Id = u.Id.ToString(),
+            EntityType = "User",
+            Title = $"{u.FirstName} {u.LastName}".Trim(),
+            Description = u.Email,
+            Score = CalculateScore(query, u.Username, u.FirstName, u.LastName, u.Email),
+            Highlights = includeHighlights ? GetHighlights(query, u.Username, u.Email) : null,
+            Metadata = new Dictionary<string, object>
+            {
+                ["Username"] = u.Username,
+                ["Email"] = u.Email
+            }
+        }).ToList();
+    }
+
     #endregion
 
     #region Typed Search Methods (for generic SearchAsync<T>)
@@ -811,7 +889,7 @@ public class BuiltInSearchProvider : ISearchPort
                 // Simple highlight: wrap matched text with <em> tags
                 var highlightedText = field.Replace(
                     query,
-                    $"<em>{query}</em>",
+                    $"<mark>{query}</mark>",
                     StringComparison.OrdinalIgnoreCase);
                 highlights[$"field_{i}"] = highlightedText;
             }
@@ -835,6 +913,51 @@ public class BuiltInSearchProvider : ISearchPort
         }
 
         return text[..maxLength] + "...";
+    }
+
+    /// <summary>
+    /// Builds facet aggregations from a list of search hits.
+    /// The "EntityType" facet is always computed. Additional facets are built from
+    /// hit <see cref="SearchHit.Metadata"/> values for each field in <paramref name="facetFields"/>.
+    /// </summary>
+    private static Dictionary<string, List<FacetValue>>? BuildFacets(
+        List<SearchHit> hits,
+        List<string>? facetFields)
+    {
+        if (hits.Count == 0)
+            return null;
+
+        var facets = new Dictionary<string, List<FacetValue>>();
+
+        // EntityType facet — always computed when results span multiple types
+        var entityTypeCounts = hits
+            .GroupBy(h => h.EntityType)
+            .Select(g => new FacetValue { Value = g.Key, Count = g.Count() })
+            .OrderByDescending(f => f.Count)
+            .ToList();
+
+        if (entityTypeCounts.Count > 0)
+            facets["EntityType"] = entityTypeCounts;
+
+        // Additional metadata-driven facets
+        if (facetFields != null)
+        {
+            foreach (var field in facetFields
+                .Where(f => !f.Equals("EntityType", StringComparison.OrdinalIgnoreCase)))
+            {
+                var fieldCounts = hits
+                    .Where(h => h.Metadata != null && h.Metadata.ContainsKey(field))
+                    .GroupBy(h => h.Metadata![field]?.ToString() ?? "Unknown")
+                    .Select(g => new FacetValue { Value = g.Key, Count = g.Count() })
+                    .OrderByDescending(f => f.Count)
+                    .ToList();
+
+                if (fieldCounts.Count > 0)
+                    facets[field] = fieldCounts;
+            }
+        }
+
+        return facets.Count > 0 ? facets : null;
     }
 
     #endregion

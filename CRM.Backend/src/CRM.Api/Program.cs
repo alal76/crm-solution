@@ -25,6 +25,8 @@ using CRM.Infrastructure.Services.Authentication;
 using CRM.Infrastructure.Services.Configuration;
 using CRM.Infrastructure.Services.Authentication.OAuth;
 using CRM.Infrastructure.Jobs;
+using Hangfire;
+using Hangfire.InMemory;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.DataProtection;
@@ -619,6 +621,24 @@ builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IKnowledgeManagementService,
 builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IServiceCatalogService, CRM.Infrastructure.Services.ITSM.ServiceCatalogService>();
 // builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IEscalationRuleService, CRM.Infrastructure.Services.ITSM.EscalationRuleService>(); // DISABLED for System Module isolation
 builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IEscalationPolicyService, CRM.Infrastructure.Services.ITSM.EscalationPolicyService>();
+// ITSM Escalation Analytics (TODO-SD005-011)
+builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IEscalationAnalyticsService, CRM.Infrastructure.Services.ITSM.EscalationAnalyticsService>();
+// SMS Notification Service (TODO-SD005-009) — use Twilio when config present, else built-in stub
+var twilioAccountSid = builder.Configuration["Providers:Notifications:Twilio:AccountSid"];
+if (!string.IsNullOrWhiteSpace(twilioAccountSid))
+{
+    builder.Services.Configure<CRM.Infrastructure.Providers.Twilio.TwilioConfiguration>(
+        builder.Configuration.GetSection(CRM.Infrastructure.Providers.Twilio.TwilioConfiguration.SectionName));
+    builder.Services.AddScoped<CRM.Core.Interfaces.Notifications.ISmsNotificationService,
+        CRM.Infrastructure.Providers.Twilio.TwilioSmsService>();
+    Log.Information("SMS notification service: TwilioSmsService");
+}
+else
+{
+    builder.Services.AddScoped<CRM.Core.Interfaces.Notifications.ISmsNotificationService,
+        CRM.Infrastructure.Services.Notifications.SmsNotificationService>();
+    Log.Information("SMS notification service: SmsNotificationService (stub)");
+}
 // ITSM Phase 4 - Advanced Automation & Integration Services
 builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IWebhookNotificationService, CRM.Infrastructure.Services.ITSM.WebhookNotificationService>();
 builder.Services.AddScoped<CRM.Core.Interfaces.ITSM.IEmailToTicketService, CRM.Infrastructure.Services.ITSM.EmailToTicketService>();
@@ -766,6 +786,7 @@ builder.Services.AddScoped<ILeadAgingAlertService, LeadAgingAlertService>();
 builder.Services.AddScoped<IWinLossAnalysisService, WinLossAnalysisService>();
 builder.Services.AddScoped<ITerritoryAssignmentService, TerritoryAssignmentService>();
 builder.Services.AddScoped<IDynamicPricingEngine, DynamicPricingEngine>();
+builder.Services.AddScoped<IPricingRulesService, PricingRulesService>();
 builder.Services.AddScoped<ICompetitorService, CompetitorService>();
 builder.Services.AddScoped<ILeadQualificationService, LeadQualificationService>();
 
@@ -783,8 +804,10 @@ Log.Information("Commission & Contract Enhancement Services registered: Commissi
 // Subscription Billing Services (SPEC-SALES-006)
 // Recurring Billing Engine - background job for hourly subscription billing cycles
 // builder.Services.AddScoped<IRecurringBillingEngine, RecurringBillingEngine>(); // DISABLED for System Module isolation
-// Dunning Manager - payment failure recovery with 3-retry escalation
-// builder.Services.AddScoped<IDunningManager, DunningManager>(); // DISABLED for System Module isolation
+// Dunning Manager - payment failure recovery with 3-retry escalation (TODO-SALES003-012)
+builder.Services.AddScoped<IDunningManager, DunningManager>();
+// Dunning Scheduler - runs every 4 hours, uses IServiceScopeFactory for scoped IDunningManager (TODO-SALES003-012)
+builder.Services.AddHostedService<DunningSchedulerService>();
 // Proration Calculator - 4 proration algorithms (ProRata, FullPrice, OneMonth, None)
 builder.Services.AddScoped<CRM.Infrastructure.Services.IProrateCalculator, ProrateCalculator>();
 // Subscription Metrics Aggregator - MRR/ARR/churn/NRR calculations
@@ -799,59 +822,54 @@ builder.Services.AddScoped<ICoreDataSeederService, CoreDataSeederService>();
 builder.Services.AddScoped<ICloudDeploymentService, CloudDeploymentService>();
 builder.Services.AddHttpClient();
 
-// Hangfire Background Job Processing (SPEC-SALES-006) - DISABLED FOR SYSTEM MODULE ISOLATION
+// Hangfire Background Job Processing (SPEC-SALES-006 / TODO-INFRA-01)
 // Hangfire provides reliable background job processing with retry logic,
 // scheduling, and persistence - critical for recurring billing and dunning.
-// TEMPORARILY DISABLED: Remove .disabled suffix from services when re-enabling
-// var hangfireEnabled = builder.Configuration.GetValue<bool>("Hangfire:Enabled", true);
-// if (hangfireEnabled)
-// {
-//     var hangfireConnectionString = builder.Configuration.GetConnectionString("HangfireConnection")
-//         ?? connectionString; // Fall back to main connection string
-//
-//     Log.Information("Configuring Hangfire for background job processing");
-//
-//     builder.Services.AddHangfire(config =>
-//     {
-//         // Use the same database provider as main app for consistency
-//         switch (databaseProvider.ToLowerInvariant())
-//         {
-//             case "sqlserver":
-//                 config.UseSqlServerStorage(hangfireConnectionString);
-//                 break;
-//             case "mysql":
-//             case "mariadb":
-//                 // MySqlStorage requires MySqlConnector.Core - for now fallback to SqlServer compatibility mode
-//                 // In production, consider MariaDB-specific Hangfire storage
-//                 config.UseSqlServerStorage(hangfireConnectionString);
-//                 break;
-//             case "postgresql":
-//                 // PostgreSQL storage requires Hangfire.PostgreSql package
-//                 config.UseSqlServerStorage(hangfireConnectionString);
-//                 break;
-//             default:
-//                 // In-memory storage for SQLite/dev builds (jobs lost on restart)
-//                 config.UseMemoryStorage();
-//                 Log.Warning("Using in-memory Hangfire storage for {Provider} - jobs will be lost on restart", databaseProvider);
-//                 break;
-//         }
-//
-//         config.SetDataCompatibilityLevel(CompatibilityLevel.Version_180);
-//         config.UseSerializerSettings(new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-//     });
-//
-//     // Hangfire server - processes background jobs
-//     builder.Services.AddHangfireServer(options =>
-//     {
-//         options.WorkerCount = builder.Configuration.GetValue<int>("Hangfire:WorkerCount", Environment.ProcessorCount);
-//         options.Queues = new[] { "recurring-billing", "dunning", "default" };
-//         options.SchedulePollingInterval = TimeSpan.FromSeconds(30); // Check for scheduled jobs every 30s
-//     });
-// }
-// else
-// {
-//     Log.Warning("Hangfire disabled (Hangfire:Enabled=false) - background jobs will not be processed");
-// }
+var hangfireEnabled = builder.Configuration.GetValue<bool>("Hangfire:Enabled", true);
+if (hangfireEnabled)
+{
+    var hangfireConnectionString = builder.Configuration.GetConnectionString("HangfireConnection")
+        ?? connectionString; // Fall back to main connection string
+
+    Log.Information("Configuring Hangfire for background job processing (provider: {Provider})", databaseProvider);
+
+    builder.Services.AddHangfire(config =>
+    {
+        config.SetDataCompatibilityLevel(Hangfire.CompatibilityLevel.Version_180)
+              .UseSimpleAssemblyNameTypeSerializer()
+              .UseRecommendedSerializerSettings();
+
+        // Use SQL Server persistent storage when available; in-memory for all other providers
+        // (jobs will be lost on restart with in-memory storage — acceptable for dev/non-SQL-Server deploys).
+        switch (databaseProvider.ToLowerInvariant())
+        {
+            case "sqlserver":
+                config.UseSqlServerStorage(hangfireConnectionString);
+                Log.Information("Hangfire using SQL Server persistent storage");
+                break;
+            default:
+                // MariaDB/MySQL, PostgreSQL, SQLite, InMemory — use Hangfire.InMemory storage.
+                // For production MariaDB deployments, consider adding Hangfire.MySqlStorage.
+                config.UseInMemoryStorage();
+                Log.Warning("Hangfire using in-memory storage for '{Provider}' — jobs will not persist across restarts", databaseProvider);
+                break;
+        }
+    });
+
+    // Hangfire server — processes background jobs
+    builder.Services.AddHangfireServer(options =>
+    {
+        options.WorkerCount = builder.Configuration.GetValue<int>("Hangfire:WorkerCount", Environment.ProcessorCount);
+        options.Queues = ["recurring-billing", "dunning", "default"];
+        options.SchedulePollingInterval = TimeSpan.FromSeconds(30); // Check for scheduled jobs every 30s
+    });
+
+    Log.Information("Hangfire server registered with {Workers} worker(s)", Environment.ProcessorCount);
+}
+else
+{
+    Log.Warning("Hangfire disabled (Hangfire:Enabled=false) — background jobs will not be processed");
+}
 
 // Workflow management services
 builder.Services.AddScoped<IWorkflowService, WorkflowService>();
@@ -1051,47 +1069,25 @@ builder.Services.AddAuthorization(options =>
 
 var app = builder.Build();
 
-// Configure Hangfire Dashboard and background job scheduling
-// if (hangfireEnabled)
-// {
-//     Log.Information("Configuring Hangfire background job scheduling");
-//
-//     // Hangfire Dashboard (admin-only, requires authentication)
-//     app.UseHangfireDashboard("/hangfire", new DashboardOptions
-//     {
-//         Authorization = new[] { new HangfireAuthorizationFilter() },
-//         IgnoreAntiforgeryToken = true, // SignalR/CORS friendly
-//         DashboardTitle = "CRM Subscription Billing Dashboard"
-//     });
-//
-//     // Schedule recurring background jobs
-//     using (var scope = app.Services.CreateScope())
-//     {
-//         var recurringJobManager = scope.ServiceProvider.GetRequiredService<IRecurringJobManager>();
-//
-//         // Recurring Billing Engine - process subscriptions due for billing
-//         // Runs every hour at :00 (12 times per day)
-//         recurringJobManager.AddOrUpdate(
-//             "recurring-billing-engine",
-//             () => scope.ServiceProvider.GetRequiredService<IRecurringBillingEngine>()
-//                 .ProcessBillingCyclesAsync(CancellationToken.None),
-//             Cron.Hourly(0), // Every hour at :00
-//             new RecurringJobOptions { TimeZone = TimeZoneInfo.Utc }
-//         );
-//
-//         // Dunning Manager - retry failed payments
-//         // Runs twice daily at 2 AM and 2 PM UTC
-//         recurringJobManager.AddOrUpdate(
-//             "dunning-manager",
-//             () => scope.ServiceProvider.GetRequiredService<IDunningManager>()
-//                 .ProcessDunningAsync(CancellationToken.None),
-//             Cron.Daily(2, 14), // 2 AM and 2 PM UTC
-//             new RecurringJobOptions { TimeZone = TimeZoneInfo.Utc }
-//         );
-//
-//         Log.Information("Hangfire background jobs scheduled successfully");
-//     }
-// }
+// Configure Hangfire Dashboard (TODO-INFRA-01)
+if (hangfireEnabled)
+{
+    Log.Information("Enabling Hangfire dashboard at /hangfire");
+
+    // Hangfire Dashboard — restricted to local requests in all environments.
+    // For production admin access, replace LocalRequestsOnlyAuthorizationFilter with
+    // a custom IDashboardAuthorizationFilter that enforces the Admin role.
+    app.UseHangfireDashboard("/hangfire", new DashboardOptions
+    {
+        Authorization = [new Hangfire.Dashboard.LocalRequestsOnlyAuthorizationFilter()],
+        IgnoreAntiforgeryToken = true, // Required for SignalR/CORS compatibility
+        DashboardTitle = "CRM Background Jobs"
+    });
+
+    // Recurring billing/dunning jobs are wired here once RecurringBillingEngine
+    // and DunningManager are re-enabled (see SOLUTION_GAPS_REMEDIATION_PLAN.md).
+    // TODO-INFRA-01: Schedule IRecurringBillingEngine and IDunningManager when re-enabled.
+}
 
 // ADR-002: Unified EF Core Schema Management
 // IMPORTANT: For MariaDB/MySQL, use scripts/apply-migrations.sh instead of relying

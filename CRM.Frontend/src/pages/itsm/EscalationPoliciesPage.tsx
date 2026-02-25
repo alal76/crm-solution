@@ -25,6 +25,7 @@ import {
   TableRow,
   TextField,
   Tooltip,
+  TablePagination,
   Typography,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
@@ -38,6 +39,7 @@ import escalationPolicyService, {
   EscalationLevelDto,
   CreateEscalationPolicyDto,
 } from '../../services/escalationPolicyService';
+import { usePagination } from '../../hooks/usePagination';
 
 // -- Constants ----------------------------------------------------------------
 
@@ -307,6 +309,9 @@ const EscalationPoliciesPage: React.FC = () => {
   // Render
   // ===========================================================================
 
+  const { paginatedData: paginatedPolicies, page, pageSize, handlePageChange, handlePageSizeChange, pageSizeOptions } =
+    usePagination(policies, { defaultPageSize: 25 });
+
   return (
     <Box sx={{ p: 3 }}>
       {/* ---- Header ---- */}
@@ -355,6 +360,7 @@ const EscalationPoliciesPage: React.FC = () => {
           <CircularProgress />
         </Box>
       ) : (
+        <>
         <TableContainer component={Paper} variant="outlined">
           <Table>
             <TableHead>
@@ -376,7 +382,7 @@ const EscalationPoliciesPage: React.FC = () => {
                   </TableCell>
                 </TableRow>
               ) : (
-                policies.map(policy => (
+                paginatedPolicies.map(policy => (
                   <TableRow key={policy.id} hover>
                     <TableCell>
                       <Typography fontWeight={500} color="primary.main">
@@ -425,6 +431,16 @@ const EscalationPoliciesPage: React.FC = () => {
             </TableBody>
           </Table>
         </TableContainer>
+        <TablePagination
+          component="div"
+          count={policies.length}
+          page={page}
+          onPageChange={handlePageChange}
+          rowsPerPage={pageSize}
+          onRowsPerPageChange={handlePageSizeChange}
+          rowsPerPageOptions={pageSizeOptions}
+        />
+        </>
       )}
 
       {/* ================================================================== */}

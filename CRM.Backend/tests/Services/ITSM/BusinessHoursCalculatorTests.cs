@@ -660,6 +660,170 @@ public class BusinessHoursCalculatorTests
     }
 
     #endregion
+
+    #region DST Handling Tests (TODO-SD003-008)
+
+    /// <summary>
+    /// Tests for <see cref="BusinessHoursCalculator.SafeConvertLocalToUtc"/>,
+    /// which handles DST ambiguous and invalid times (TODO-SD003-008).
+    /// Eastern Time (UTC-5 EST / UTC-4 EDT) is used because its DST transitions
+    /// are predictable and well-documented:
+    ///   - Spring forward: 2nd Sunday of March  2:00 AM ET → 3:00 AM ET (gap: 2:00-2:59 AM doesn't exist)
+    ///   - Fall back:      1st Sunday of November 2:00 AM ET → 1:00 AM ET (ambiguous: 1:00-1:59 AM occurs twice)
+    /// 2025 transitions:
+    ///   - Spring: March 9 at 2:00 AM ET
+    ///   - Fall:   November 2 at 2:00 AM ET
+    /// </summary>
+
+    // ── UTC timezone: no DST, simple path ──────────────────────────────────────
+
+    [Fact]
+    public void SafeConvertLocalToUtc_UtcTimezone_ReturnsSameInstant()
+    {
+        // Arrange
+        var localTime = new DateTime(2025, 6, 15, 14, 30, 0);
+        var tz = TimeZoneInfo.Utc;
+
+        // Act
+        var result = BusinessHoursCalculator.SafeConvertLocalToUtc(localTime, tz);
+
+        // Assert
+        result.Should().Be(new DateTime(2025, 6, 15, 14, 30, 0, DateTimeKind.Utc));
+        result.Kind.Should().Be(DateTimeKind.Utc);
+    }
+
+    [Fact]
+    public void SafeConvertLocalToUtc_NormalEasternSummerTime_ConvertsCorrectly()
+    {
+        // Arrange — July 4, 2025 1:00 PM EDT (UTC-4), no DST edge case
+        var easternTz = TryGetEasternTimezone();
+        var localTime = new DateTime(2025, 7, 4, 13, 0, 0);
+
+        // Act
+        var result = BusinessHoursCalculator.SafeConvertLocalToUtc(localTime, easternTz);
+
+        // Assert: EDT = UTC-4, 1 PM EDT → 5 PM UTC
+        result.Should().Be(new DateTime(2025, 7, 4, 17, 0, 0, DateTimeKind.Utc));
+    }
+
+    [Fact]
+    public void SafeConvertLocalToUtc_NormalEasternWinterTime_ConvertsCorrectly()
+    {
+        // Arrange — January 15, 2025 9:00 AM EST (UTC-5)
+        var easternTz = TryGetEasternTimezone();
+        var localTime = new DateTime(2025, 1, 15, 9, 0, 0);
+
+        // Act
+        var result = BusinessHoursCalculator.SafeConvertLocalToUtc(localTime, easternTz);
+
+        // Assert: EST = UTC-5, 9 AM EST → 2 PM UTC
+        result.Should().Be(new DateTime(2025, 1, 15, 14, 0, 0, DateTimeKind.Utc));
+    }
+
+    // ── Spring-forward: invalid local time (gap) ────────────────────────────────
+
+    [Fact]
+    public void SafeConvertLocalToUtc_InvalidTime_SpringForward_AdvancesToNextValidTime()
+    {
+        // Arrange — March 9, 2025: 2:30 AM ET does NOT exist (spring-forward gap).
+        var easternTz = TryGetEasternTimezone();
+        var invalidLocalTime = new DateTime(2025, 3, 9, 2, 30, 0);
+
+        easternTz.IsInvalidTime(invalidLocalTime).Should().BeTrue(
+            "2:30 AM Eastern on spring-forward day should be in the DST gap");
+
+        // Act
+        var result = BusinessHoursCalculator.SafeConvertLocalToUtc(invalidLocalTime, easternTz);
+
+        // Assert: should resolve to a time at or after 3:00 AM EDT = 7:00 AM UTC
+        result.Kind.Should().Be(DateTimeKind.Utc);
+        result.Should().BeOnOrAfter(new DateTime(2025, 3, 9, 7, 0, 0, DateTimeKind.Utc),
+            "time in the spring-forward gap should resolve to 3:00 AM EDT or later");
+    }
+
+    [Fact]
+    public void SafeConvertLocalToUtc_InvalidTime_ExactGapStart_AdvancesToNextValidTime()
+    {
+        // Arrange — exactly 2:00 AM ET (first invalid minute of the gap)
+        var easternTz = TryGetEasternTimezone();
+        var gapStart = new DateTime(2025, 3, 9, 2, 0, 0);
+
+        easternTz.IsInvalidTime(gapStart).Should().BeTrue("2:00 AM ET is the start of the spring-forward gap");
+
+        // Act
+        var result = BusinessHoursCalculator.SafeConvertLocalToUtc(gapStart, easternTz);
+
+        // Assert
+        result.Kind.Should().Be(DateTimeKind.Utc);
+        result.Should().BeOnOrAfter(new DateTime(2025, 3, 9, 7, 0, 0, DateTimeKind.Utc));
+    }
+
+    // ── Fall-back: ambiguous local time ─────────────────────────────────────────
+
+    [Fact]
+    public void SafeConvertLocalToUtc_AmbiguousTime_FallBack_UsesStandardTimeOffset()
+    {
+        // Arrange — November 2, 2025: 1:30 AM ET is ambiguous (occurs twice).
+        var easternTz = TryGetEasternTimezone();
+        var ambiguousLocalTime = new DateTime(2025, 11, 2, 1, 30, 0);
+
+        easternTz.IsAmbiguousTime(ambiguousLocalTime).Should().BeTrue(
+            "1:30 AM Eastern on fall-back day should be ambiguous");
+
+        // Act
+        var result = BusinessHoursCalculator.SafeConvertLocalToUtc(ambiguousLocalTime, easternTz);
+
+        // Assert: resolves to standard time (EST = UTC-5), so 1:30 AM EST → 6:30 AM UTC
+        result.Kind.Should().Be(DateTimeKind.Utc);
+        result.Should().Be(new DateTime(2025, 11, 2, 6, 30, 0, DateTimeKind.Utc),
+            "ambiguous 1:30 AM should resolve to standard-time offset = 6:30 AM UTC");
+    }
+
+    [Fact]
+    public void SafeConvertLocalToUtc_AmbiguousTime_ReturnsDeterministicResult()
+    {
+        // Repeated calls with the same ambiguous time should return the same UTC instant.
+        var easternTz = TryGetEasternTimezone();
+        var ambiguousLocalTime = new DateTime(2025, 11, 2, 1, 0, 0);
+
+        easternTz.IsAmbiguousTime(ambiguousLocalTime).Should().BeTrue();
+
+        var result1 = BusinessHoursCalculator.SafeConvertLocalToUtc(ambiguousLocalTime, easternTz);
+        var result2 = BusinessHoursCalculator.SafeConvertLocalToUtc(ambiguousLocalTime, easternTz);
+
+        result1.Should().Be(result2, "conversion of an ambiguous time should be deterministic");
+    }
+
+    // ── Integration: AddBusinessMinutesAsync does not throw around DST ──────────
+
+    [Fact]
+    public async Task AddBusinessMinutesAsync_AroundSpringForward_DoesNotThrow()
+    {
+        // Default UTC schedule — no DST; exercises SafeConvertLocalToUtc code path.
+        var startTimeUtc = new DateTime(2025, 3, 9, 1, 0, 0, DateTimeKind.Utc);
+        Func<Task> act = async () => await _calculator.AddBusinessMinutesAsync(startTimeUtc, 60);
+        await act.Should().NotThrowAsync();
+    }
+
+    // ── Helper ───────────────────────────────────────────────────────────────────
+
+    /// <summary>
+    /// Returns Eastern <see cref="TimeZoneInfo"/> using the IANA id (Linux/macOS)
+    /// then the Windows id as a fallback.
+    /// </summary>
+    private static TimeZoneInfo TryGetEasternTimezone()
+    {
+        foreach (var id in new[] { "America/New_York", "Eastern Standard Time" })
+        {
+            try { return TimeZoneInfo.FindSystemTimeZoneById(id); }
+            catch (TimeZoneNotFoundException) { /* try next */ }
+        }
+
+        throw new InvalidOperationException(
+            "Eastern Time zone not found. Install tzdata (Linux) or run on macOS/Windows.");
+    }
+
+    #endregion
 }
 
 /// <summary>
@@ -740,4 +904,5 @@ public class BusinessScheduleTests
         schedule.Holidays.Should().HaveCount(2);
         schedule.Holidays[0].IsRecurringYearly.Should().BeTrue();
     }
+
 }

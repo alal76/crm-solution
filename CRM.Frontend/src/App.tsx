@@ -12,6 +12,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-d
 import { ThemeProvider } from '@mui/material/styles';
 import { Container, CssBaseline, Box, CircularProgress, Typography } from '@mui/material';
 import { AuthProvider } from './contexts/AuthContext';
+import { SettingsProvider } from './contexts/SettingsContext';
 import { LayoutProvider } from './contexts/LayoutContext';
 import { ProfileProvider } from './contexts/ProfileContext';
 import { BrandingProvider } from './contexts/BrandingContext';
@@ -63,6 +64,7 @@ const LoadingFallback = () => (
 // ----------------------------------------------------------------------------
 const OpportunitiesPage = lazy(() => import('./pages/OpportunitiesPage'));
 const QuotesPage = lazy(() => import('./pages/QuotesPage'));
+const CPQBundleWizardPage = lazy(() => import('./pages/CPQBundleWizardPage'));
 const ProductsPage = lazy(() => import('./pages/ProductsPage'));
 const ContractsPage = lazy(() => import('./pages/ContractsPage'));
 const ContractDetailsPage = lazy(() => import('./pages/ContractDetailsPage'));
@@ -156,6 +158,7 @@ const ChannelSettingsPage = lazy(() => import('./pages/ChannelSettingsPage'));
 // ----------------------------------------------------------------------------
 const DashboardPage = lazy(() => import('./pages/DashboardPage'));
 const TasksPage = lazy(() => import('./pages/TasksPage'));
+const TaskDetailPage = lazy(() => import('./pages/TaskDetailPage'));
 const NotesPage = lazy(() => import('./pages/NotesPage'));
 const ActivitiesPage = lazy(() => import('./pages/ActivitiesPage'));
 const ReportsPage = lazy(() => import('./pages/ReportsPage'));
@@ -269,6 +272,7 @@ function ThemedApp() {
         <Router>
           <AuthProvider>
             <SignalRProvider>
+            <SettingsProvider>
             <ProfileProvider>
               <BrandingProvider>
                 <LayoutProvider>
@@ -556,11 +560,31 @@ function ThemedApp() {
                 }
               />
               <Route
+                path="/tasks/:id"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute requiredPage="Tasks">
+                      <TaskDetailPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
                 path="/quotes"
                 element={
                   <ProtectedRoute>
                     <RoleBasedRoute requiredPage="Quotes">
                       <QuotesPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/quotes/bundle-wizard"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute requiredPage="Quotes">
+                      <CPQBundleWizardPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
                 }
@@ -1296,6 +1320,7 @@ function ThemedApp() {
                 </LayoutProvider>
               </BrandingProvider>
             </ProfileProvider>
+            </SettingsProvider>
             </SignalRProvider>
           </AuthProvider>
         </Router>

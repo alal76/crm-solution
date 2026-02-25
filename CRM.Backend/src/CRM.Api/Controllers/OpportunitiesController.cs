@@ -934,6 +934,76 @@ public class OpportunitiesController : ControllerBase
     }
 
     /// <summary>
+    /// Updates competitor details on an opportunity (TODO-CRM003-03).
+    /// </summary>
+    [HttpPut("{id}/competitors/{competitorId}")]
+    [ProducesResponseType(typeof(OpportunityCompetitorDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> UpdateCompetitor(int id, int competitorId, [FromBody] UpdateOpportunityCompetitorDto dto, CancellationToken ct = default)
+    {
+        try
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var updated = new OpportunityCompetitor
+            {
+                ThreatLevel = !string.IsNullOrEmpty(dto.ThreatLevel) ? Enum.Parse<CompetitorThreatLevel>(dto.ThreatLevel) : CompetitorThreatLevel.Medium,
+                Status = !string.IsNullOrEmpty(dto.Status) ? Enum.Parse<OpportunityCompetitorStatus>(dto.Status) : OpportunityCompetitorStatus.Active,
+                CompetitorPrice = dto.CompetitorPrice,
+                Notes = dto.Notes,
+                WonAgainst = dto.WonAgainst
+            };
+
+            var result = await _opportunityService.UpdateCompetitorAsync(id, competitorId, updated, ct);
+            if (result == null)
+                return NotFound(new { message = $"Competitor {competitorId} not found on opportunity {id}" });
+
+            return Ok(MapOpportunityCompetitorToDto(result));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating competitor {CompetitorId} on opportunity {Id}", competitorId, id);
+            return StatusCode(500, "Internal server error");
+        }
+    }
+
+    // --- Forecast Category (TODO-CRM003-07) ---
+
+    /// <summary>
+    /// Updates the forecast category of an opportunity (TODO-CRM003-07).
+    /// </summary>
+    [HttpPatch("{id}/forecast-category")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> PatchForecastCategory(int id, [FromBody] ForecastCategoryPatchDto dto, CancellationToken ct = default)
+    {
+        try
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            if (!Enum.IsDefined(typeof(ForecastCategory), dto.ForecastCategory))
+                return BadRequest(new { message = $"Invalid ForecastCategory value: {dto.ForecastCategory}" });
+
+            var updated = await _opportunityService.PatchForecastCategoryAsync(id, (ForecastCategory)dto.ForecastCategory, ct);
+            if (!updated)
+                return NotFound(new { message = $"Opportunity with ID {id} not found" });
+
+            return NoContent();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error patching forecast category for opportunity {Id}", id);
+            return StatusCode(500, "Internal server error");
+        }
+    }
+
+    /// <summary>
     /// Deletes an opportunity (soft delete).
     /// </summary>
     /// <param name="id">The opportunity ID</param>
