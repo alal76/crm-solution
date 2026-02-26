@@ -1,0 +1,103 @@
+version: '3.8'
+
+services:
+  # Superset metadata database
+  crm-superset-postgres:
+    image: postgres:15-alpine
+    container_name: crm-superset-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: superset
+      POSTGRES_USER: superset
+      POSTGRES_PASSWORD: "${SUPERSET_DB_PASSWORD}"
+    volumes:
+      - superset-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U superset -d superset"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+    networks:
+      - crm-network
+
+  # Superset web server
+  crm-superset:
+    image: apache/superset:3.1.0
+    container_name: crm-superset
+    hostname: superset
+    restart: unless-stopped
+    depends_on:
+      crm-superset-postgres:
+        condition: service_healthy
+    environment:
+      SUPERSET_SECRET_KEY: "${SUPERSET_SECRET_KEY}"
+      SUPERSET_LOAD_EXAMPLES: "false"
+      DATABASE_DIALECT: "postgresql"
+      DATABASE_HOST: "crm-superset-postgres"
+      DATABASE_PORT: "5432"
+      DATABASE_DB: "superset"
+      DATABASE_USER: "superset"
+      DATABASE_PASSWORD: "${SUPERSET_DB_PASSWORD}"
+      REDIS_HOST: "crm-redis"
+      REDIS_PORT: "6379"
+      REDIS_RESULTS_DB: "1"
+      GUEST_TOKEN_JWT_SECRET: "${SUPERSET_GUEST_TOKEN_SECRET}"
+      GUEST_TOKEN_JWT_EXP_SECONDS: "3600"
+      TALISMAN_ENABLED: "false"
+      WTF_CSRF_ENABLED: "false"
+      ENABLE_PROXY_FIX: "true"
+      FEATURE_FLAGS: '{"EMBEDDED_SUPERSET": true, "DASHBOARD_RBAC": true}'
+    volumes:
+      - superset-data:/app/superset_home
+    ports:
+      - "8088:8088"
+    networks:
+      - crm-network
+    command: bash -c "superset db upgrade && superset fab create-admin --username admin --firstname Admin --lastname User --email admin@crm.local --password $${SUPERSET_ADMIN_PASSWORD} || true && superset init && gunicorn --bind 0.0.0.0:8088 --workers 4 --timeout 120 --limit-request-line 0 --limit-request-field_size 0 'superset.app:create_app()'"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8088/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 120s
+
+  # Superset Celery worker (background queries / alerts)
+  crm-superset-worker:
+    image: apache/superset:3.1.0
+    container_name: crm-superset-worker
+    restart: unless-stopped
+    depends_on:
+      crm-superset-postgres:
+        condition: service_healthy
+    environment:
+      SUPERSET_SECRET_KEY: "${SUPERSET_SECRET_KEY}"
+      DATABASE_DIALECT: "postgresql"
+      DATABASE_HOST: "crm-superset-postgres"
+      DATABASE_PORT: "5432"
+      DATABASE_DB: "superset"
+      DATABASE_USER: "superset"
+      DATABASE_PASSWORD: "${SUPERSET_DB_PASSWORD}"
+      REDIS_HOST: "crm-redis"
+      REDIS_PORT: "6379"
+      REDIS_RESULTS_DB: "1"
+    command: celery --app=superset.tasks.celery_app:app worker --pool=prefork -O fair -c 2
+    healthcheck:
+      test: ["CMD-SHELL", "celery -A superset.tasks.celery_app:app inspect ping -d celery@$$HOSTNAME || exit 1"]
+      interval: 60s
+      timeout: 15s
+      retries: 3
+      start_period: 60s
+    networks:
+      - crm-network
+
+volumes:
+  superset-data:
+    name: crm-superset-data
+  superset-postgres-data:
+    name: crm-superset-postgres-data
+
+networks:
+  crm-network:
+    external: true
+    name: crm_crm-network
