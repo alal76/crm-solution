@@ -48,8 +48,14 @@ while [[ "$#" -gt 0 ]]; do
         --service-requests) TEST_SUITE="service-requests" ;;
         --campaigns) TEST_SUITE="campaigns" ;;
         --workflows) TEST_SUITE="workflows" ;;
+        --workflows-admin) TEST_SUITE="workflows-admin" ;;
+        --agents) TEST_SUITE="agents" ;;
+        --agents-and-llm) TEST_SUITE="agents" ;;
+        --workflows-and-agents) TEST_SUITE="workflows-and-agents" ;;
         --admin) TEST_SUITE="admin" ;;
         --dashboard) TEST_SUITE="dashboard" ;;
+        --crud) TEST_SUITE="crud" ;;
+        --pages) TEST_SUITE="pages" ;;
         --headed) HEADED=true ;;
         --debug) DEBUG=true ;;
         --url) BASE_URL="$2"; shift ;;
@@ -64,9 +70,15 @@ while [[ "$#" -gt 0 ]]; do
             echo "  --leads             Run lead tests only"
             echo "  --service-requests  Run service request tests only"
             echo "  --campaigns         Run campaign tests only"
-            echo "  --workflows         Run workflow tests only"
-            echo "  --admin             Run admin tests only"
+            echo "  --workflows         Run workflow tests only (tests/workflows/)"
+            echo "  --workflows-admin   Run admin workflow & rules tests (tests/admin/workflows-and-rules.spec.ts)"
+            echo "  --agents            Run AI agents & LLM tests (tests/admin/agents-and-llm.spec.ts)"
+            echo "  --agents-and-llm    Alias for --agents"
+            echo "  --workflows-and-agents  Run both workflows-and-rules + agents-and-llm tests"
+            echo "  --admin             Run all admin tests only"
             echo "  --dashboard         Run dashboard tests only"
+            echo "  --crud              Run all CRUD tests"
+            echo "  --pages             Run full-page-coverage tests"
             echo "  --headed            Run tests in headed mode (not in container)"
             echo "  --debug             Run tests in debug mode"
             echo "  --url <url>         Set base URL (default: http://192.168.0.9)"
@@ -91,6 +103,14 @@ if [ "$HEADED" = true ]; then
     
     if [ "$TEST_SUITE" = "all" ]; then
         npm run test:headed
+    elif [ "$TEST_SUITE" = "workflows-admin" ]; then
+        npx playwright test tests/admin/workflows-and-rules.spec.ts --headed
+    elif [ "$TEST_SUITE" = "agents" ]; then
+        npx playwright test tests/admin/agents-and-llm.spec.ts --headed
+    elif [ "$TEST_SUITE" = "workflows-and-agents" ]; then
+        npx playwright test tests/admin/workflows-and-rules.spec.ts tests/admin/agents-and-llm.spec.ts --headed
+    elif [ "$TEST_SUITE" = "pages" ]; then
+        npx playwright test tests/full-page-coverage.spec.ts --headed
     else
         npx playwright test tests/$TEST_SUITE --headed
     fi
@@ -126,6 +146,50 @@ else
             -v "$(pwd)/test-logs:/app/e2e-tests/test-logs" \
             --network host \
             crm-e2e-tests
+    elif [ "$TEST_SUITE" = "workflows-admin" ]; then
+        docker run --rm \
+            -e CI=true \
+            -e BASE_URL="$BASE_URL" \
+            -e TEST_USERNAME="$TEST_USERNAME" \
+            -e TEST_PASSWORD="$TEST_PASSWORD" \
+            -v "$(pwd)/test-results:/app/e2e-tests/test-results" \
+            -v "$(pwd)/playwright-report:/app/e2e-tests/playwright-report" \
+            -v "$(pwd)/test-logs:/app/e2e-tests/test-logs" \
+            --network host \
+            crm-e2e-tests npx playwright test "tests/admin/workflows-and-rules.spec.ts"
+    elif [ "$TEST_SUITE" = "agents" ]; then
+        docker run --rm \
+            -e CI=true \
+            -e BASE_URL="$BASE_URL" \
+            -e TEST_USERNAME="$TEST_USERNAME" \
+            -e TEST_PASSWORD="$TEST_PASSWORD" \
+            -v "$(pwd)/test-results:/app/e2e-tests/test-results" \
+            -v "$(pwd)/playwright-report:/app/e2e-tests/playwright-report" \
+            -v "$(pwd)/test-logs:/app/e2e-tests/test-logs" \
+            --network host \
+            crm-e2e-tests npx playwright test "tests/admin/agents-and-llm.spec.ts"
+    elif [ "$TEST_SUITE" = "workflows-and-agents" ]; then
+        docker run --rm \
+            -e CI=true \
+            -e BASE_URL="$BASE_URL" \
+            -e TEST_USERNAME="$TEST_USERNAME" \
+            -e TEST_PASSWORD="$TEST_PASSWORD" \
+            -v "$(pwd)/test-results:/app/e2e-tests/test-results" \
+            -v "$(pwd)/playwright-report:/app/e2e-tests/playwright-report" \
+            -v "$(pwd)/test-logs:/app/e2e-tests/test-logs" \
+            --network host \
+            crm-e2e-tests npx playwright test "tests/admin/workflows-and-rules.spec.ts" "tests/admin/agents-and-llm.spec.ts"
+    elif [ "$TEST_SUITE" = "pages" ]; then
+        docker run --rm \
+            -e CI=true \
+            -e BASE_URL="$BASE_URL" \
+            -e TEST_USERNAME="$TEST_USERNAME" \
+            -e TEST_PASSWORD="$TEST_PASSWORD" \
+            -v "$(pwd)/test-results:/app/e2e-tests/test-results" \
+            -v "$(pwd)/playwright-report:/app/e2e-tests/playwright-report" \
+            -v "$(pwd)/test-logs:/app/e2e-tests/test-logs" \
+            --network host \
+            crm-e2e-tests npx playwright test "tests/full-page-coverage.spec.ts"
     else
         docker run --rm \
             -e CI=true \
