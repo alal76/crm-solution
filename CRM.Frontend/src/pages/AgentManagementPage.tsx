@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Editor from '@monaco-editor/react';
 import {
   Box,
   Typography,
@@ -36,6 +37,7 @@ import {
   StarOutlined,
   CheckCircleOutline,
   AddOutlined,
+  Code as ScriptIcon,
 } from '@mui/icons-material';
 import {
   Agent,
@@ -111,6 +113,7 @@ const AgentManagementPage: React.FC = () => {
 
   // edit form state
   const [editSystemPrompt, setEditSystemPrompt] = useState('');
+  const [showEditScriptView, setShowEditScriptView] = useState(false);
   const [editTemperature, setEditTemperature] = useState(0.3);
   const [editMaxTokens, setEditMaxTokens] = useState(4096);
   const [editAllowedPlugins, setEditAllowedPlugins] = useState('');
@@ -180,6 +183,7 @@ const AgentManagementPage: React.FC = () => {
   const handleEdit = (agent: Agent) => {
     setSelectedAgent(agent);
     setEditSystemPrompt(agent.systemPrompt ?? '');
+    setShowEditScriptView(false);
     setEditTemperature(agent.temperature ?? 0.3);
     setEditMaxTokens(agent.maxTokens ?? 4096);
     setEditAllowedPlugins(agent.allowedPlugins ?? '');
@@ -619,16 +623,54 @@ const AgentManagementPage: React.FC = () => {
                   minRows={2}
                   size="small"
                 />
-                <TextField
-                  label="System Prompt"
-                  value={editSystemPrompt}
-                  onChange={(e) => setEditSystemPrompt(e.target.value)}
-                  fullWidth
-                  multiline
-                  minRows={6}
-                  size="small"
-                  helperText="Defines the agent's personality, instructions, and constraints."
-                />
+                <Box>
+                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+                    <Typography variant="body2" sx={{ fontWeight: 500, color: 'text.secondary' }}>System Prompt</Typography>
+                    <Tooltip title={showEditScriptView ? 'Switch to plain text editor' : 'Open in script / code editor (Monaco)'}>
+                      <IconButton
+                        size="small"
+                        onClick={() => setShowEditScriptView(v => !v)}
+                        color={showEditScriptView ? 'primary' : 'default'}
+                        sx={showEditScriptView ? { backgroundColor: 'action.selected', borderRadius: 1 } : {}}
+                      >
+                        <ScriptIcon fontSize="small" />
+                      </IconButton>
+                    </Tooltip>
+                  </Box>
+                  {showEditScriptView ? (
+                    <Box sx={{ border: '1px solid', borderColor: 'divider', borderRadius: 2, overflow: 'hidden' }}>
+                      <Box sx={{ px: 1.5, py: 0.5, backgroundColor: '#2d2d2d', borderBottom: '1px solid rgba(255,255,255,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                        <Typography variant="caption" sx={{ color: '#ccc', fontFamily: 'monospace', fontWeight: 600 }}>SYSTEM PROMPT — script editor</Typography>
+                        <Typography variant="caption" sx={{ color: '#888', fontFamily: 'monospace' }}>{editSystemPrompt.length} chars</Typography>
+                      </Box>
+                      <Editor
+                        height="240px"
+                        language="plaintext"
+                        value={editSystemPrompt}
+                        onChange={(val) => setEditSystemPrompt(val ?? '')}
+                        theme="vs-dark"
+                        options={{
+                          minimap: { enabled: false },
+                          fontSize: 13,
+                          wordWrap: 'on',
+                          lineNumbers: 'on',
+                          scrollBeyondLastLine: false,
+                          automaticLayout: true,
+                        }}
+                      />
+                    </Box>
+                  ) : (
+                    <TextField
+                      value={editSystemPrompt}
+                      onChange={(e) => setEditSystemPrompt(e.target.value)}
+                      fullWidth
+                      multiline
+                      minRows={6}
+                      size="small"
+                      helperText={`${editSystemPrompt.length} chars · defines the agent's personality, instructions, and constraints.`}
+                    />
+                  )}
+                </Box>
               </Box>
             </TabPanel>
 
