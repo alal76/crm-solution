@@ -46,11 +46,11 @@
 
 | ID | Spec Ref | Priority | Description | Status |
 |----|----------|----------|-------------|--------|
-| SCRIPT-001 | AI006-TODO01 / SD004-TODO01 | P0 | Create `IScriptEngine` interface + `ScriptExecutionResult` + `ScriptDiagnostic` records in `CRM.Core/Interfaces/Scripting/` | Not Started |
-| SCRIPT-002 | AI006-TODO05 / SD004-TODO04 | P0 | Create `ScriptLanguage` enum at `CRM.Core/Enums/ScriptLanguage.cs` (JavaScript=0, Python=1, CSharp=2) | Not Started |
-| SCRIPT-003 | AI006-TODO04 / SD004-TODO08 | P0 | Implement `ScriptEngineFactory` resolving `IScriptEngine` by `ScriptLanguage` from DI | Not Started |
-| SCRIPT-004 | SD004-TODO02 | P0 | Refactor `ExecuteScriptAction` call-site in `WorkflowWorkerService` to resolve and invoke `IScriptEngine` via `ScriptEngineFactory` | Not Started |
-| SCRIPT-005 | AI006-TODO02 / SD004-TODO03 | P0 | Extract existing inline Jint JavaScript logic from `WorkflowWorkerService` into `JintScriptEngine : IScriptEngine` (preserving timeout/memory sandbox) | Not Started |
+| SCRIPT-001 | AI006-TODO01 / SD004-TODO01 | P0 | Create `IScriptEngine` interface + `ScriptExecutionResult` + `ScriptDiagnostic` records in `CRM.Core/Interfaces/Scripting/` | Completed |
+| SCRIPT-002 | AI006-TODO05 / SD004-TODO04 | P0 | Create `ScriptLanguage` enum at `CRM.Core/Enums/ScriptLanguage.cs` (JavaScript=0, Python=1, CSharp=2) | Completed |
+| SCRIPT-003 | AI006-TODO04 / SD004-TODO08 | P0 | Implement `ScriptEngineFactory` resolving `IScriptEngine` by `ScriptLanguage` from DI | Completed |
+| SCRIPT-004 | SD004-TODO02 | P0 | Refactor `ExecuteScriptAction` call-site in `WorkflowWorkerService` to resolve and invoke `IScriptEngine` via `ScriptEngineFactory` | Completed |
+| SCRIPT-005 | AI006-TODO02 / SD004-TODO03 | P0 | Extract existing inline Jint JavaScript logic from `WorkflowWorkerService` into `JintScriptEngine : IScriptEngine` (preserving timeout/memory sandbox) | Completed |
 
 ### Group 2 — Backend Engine Implementations (P1)
 

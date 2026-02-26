@@ -107,7 +107,7 @@ internal class OllamaChatRequest
     public OllamaOptions? Options { get; set; }
 
     [JsonPropertyName("keep_alive")]
-    public string? KeepAlive { get; set; } // e.g., "5m" or "-1" for forever
+    public string? KeepAlive { get; set; } // e.g., "5m" or "24h"
 }
 
 internal class OllamaMessage
@@ -356,7 +356,7 @@ public class OllamaProvider : IAIPort
                 NumPredict = request.MaxTokens ?? _config.DefaultMaxTokens,
                 Stop = request.StopSequences
             },
-            KeepAlive = _config.KeepAlive ? "-1" : "5m"
+            KeepAlive = _config.KeepAlive ? "24h" : "5m"
         };
 
         var response = await SendRequestAsync<OllamaGenerateResponse>("/api/generate", ollamaRequest, cancellationToken);
@@ -410,7 +410,7 @@ public class OllamaProvider : IAIPort
                 TopP = request.TopP,
                 NumPredict = request.MaxTokens ?? _config.DefaultMaxTokens
             },
-            KeepAlive = _config.KeepAlive ? "-1" : "5m"
+            KeepAlive = _config.KeepAlive ? "24h" : "5m"
         };
 
         var response = await SendRequestAsync<OllamaChatResponse>("/api/chat", ollamaRequest, cancellationToken);
@@ -468,7 +468,7 @@ public class OllamaProvider : IAIPort
                 TopP = request.TopP,
                 NumPredict = request.MaxTokens ?? _config.DefaultMaxTokens
             },
-            KeepAlive = _config.KeepAlive ? "-1" : "5m"
+            KeepAlive = _config.KeepAlive ? "24h" : "5m"
         };
 
         var content = new StringContent(

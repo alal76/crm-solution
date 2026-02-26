@@ -78,7 +78,7 @@ List additional enums similarly as they are discovered (e.g. `AddressType`, `Pay
 | `WorkflowInstanceStatus` | `CRM.Core/Enums/WorkflowInstanceStatus.cs` | Running (0), Completed (1), Cancelled (2), Failed (3), Paused (4), Waiting (5) | Execution state of a workflow instance |
 | `WorkflowTaskStatus` | `CRM.Core/Enums/WorkflowTaskStatus.cs` | Pending (0), InProgress (1), Completed (2), Rejected (3), Cancelled (4), Expired (5) | State of a human task within a workflow |
 | `WorkflowTriggerType` | `CRM.Core/Enums/WorkflowTriggerType.cs` | Manual (0), OnCreate (1), OnUpdate (2), OnStatusChange (3), Scheduled (4), OnEvent (5) | Event that starts a workflow |
-| `ScriptLanguage` | `CRM.Core/Enums/ScriptLanguage.cs` ❌ Not Implemented | JavaScript (0), Python (1), CSharp (2) | Scripting language for Workflow Script nodes and Agent ScriptPlugins. `JavaScript` uses Jint engine (always available). `Python` requires CPython 3.11+ and `FeatureManagement:EnablePythonScripting=true`. `CSharp` reserved for future developer tooling. |
+| `ScriptLanguage` | `CRM.Core/Enums/ScriptLanguage.cs` ✅ Implemented | JavaScript (0), Python (1), CSharp (2) | Scripting language for Workflow Script nodes and Agent ScriptPlugins. `JavaScript` uses Jint engine (always available). `Python` requires CPython 3.11+ and `FeatureManagement:EnablePythonScripting=true`. `CSharp` reserved for future developer tooling. |
 
 > **Note:** `ScriptLanguage` must be added to `CRM.Core/Enums/ScriptLanguage.cs` as part of SPEC-AI-006. Add corresponding unit test in `ScriptLanguageEnumTests`.
 

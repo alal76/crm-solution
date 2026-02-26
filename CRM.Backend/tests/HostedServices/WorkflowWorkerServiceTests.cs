@@ -4,6 +4,9 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
+using CRM.Core.Enums;
+using CRM.Core.Interfaces.Scripting;
+using CRM.Infrastructure.Factories;
 using CRM.Infrastructure.Services;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
@@ -23,6 +26,7 @@ public class WorkflowWorkerServiceTests
     private readonly Mock<IServiceProvider> _mockServiceProvider;
     private readonly Mock<ILogger<WorkflowWorkerService>> _mockLogger;
     private readonly Mock<IHttpClientFactory> _mockHttpClientFactory;
+    private readonly ScriptEngineFactory _scriptEngineFactory;
 
     public WorkflowWorkerServiceTests()
     {
@@ -34,6 +38,16 @@ public class WorkflowWorkerServiceTests
         _mockHttpClientFactory
             .Setup(f => f.CreateClient(It.IsAny<string>()))
             .Returns(new HttpClient());
+        
+        // Create a mock JintScriptEngine
+        var mockJintEngine = new Mock<IScriptEngine>();
+        mockJintEngine.Setup(e => e.Language).Returns(ScriptLanguage.JavaScript);
+        mockJintEngine.Setup(e => e.IsAvailable).Returns(true);
+        
+        // Initialize ScriptEngineFactory with mock engines and separate factory logger mock
+        var mockFactoryLogger = new Mock<ILogger<ScriptEngineFactory>>();
+        var mockEngines = new List<IScriptEngine> { mockJintEngine.Object };
+        _scriptEngineFactory = new ScriptEngineFactory(mockEngines, mockFactoryLogger.Object);
     }
 
     private WorkflowWorkerService CreateService(WorkflowWorkerOptions? options = null)
@@ -42,6 +56,7 @@ public class WorkflowWorkerServiceTests
             _mockServiceProvider.Object,
             _mockLogger.Object,
             _mockHttpClientFactory.Object,
+            _scriptEngineFactory,
             options);
     }
 

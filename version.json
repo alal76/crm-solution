@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 593,
-  "patch": 10,
-  "lastUpdate": "2026-02-27",
-  "description": "Fix appsettings.Production.json configuration binding: remove ${VAR:default} template syntax which isn't expanded by default ASP.NET Core config provider — use plain defaults ('Type': 'Ollama', 'DefaultModel': 'olmo2:7b') which are then correctly overridden by Providers__AI__Ollama__* env vars from .env file.",
+  "patch": 11,
+  "lastUpdate": "2026-03-02",
+  "description": "Add scripting foundation: ScriptLanguage enum, IScriptEngine contracts, JintScriptEngine implementation, ScriptEngineFactory, WorkflowWorkerService refactor to use factory, DI registration, enum test and docs updates.",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [

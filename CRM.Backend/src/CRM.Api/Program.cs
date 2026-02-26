@@ -108,6 +108,10 @@ Log.Information("Feature Management configured - Provider selection flags loaded
 builder.Services.AddPluggableProviders(builder.Configuration);
 Log.Information("Pluggable Providers configured - Factory pattern enabled for provider resolution");
 
+// Add scripting engines (Jint by default; extensible for Python/others)
+builder.Services.AddScriptingEngines(builder.Configuration);
+Log.Information("Scripting engines configured - ScriptEngineFactory ready");
+
 // Configure options from appsettings.json - Phase 1 through Phase 4 Authentication
 builder.Services.Configure<CRM.Core.Options.LinkedInOAuthOptions>(builder.Configuration.GetSection("Phase1:LinkedIn"));
 builder.Services.Configure<CRM.Core.Options.AppleOAuthOptions>(builder.Configuration.GetSection("Phase1:Apple"));

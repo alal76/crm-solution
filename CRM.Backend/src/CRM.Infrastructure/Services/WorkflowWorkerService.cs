@@ -15,9 +15,11 @@
 using System.Reflection;
 using System.Text.Json;
 using CRM.Core.Entities.Workflow;
+using CRM.Core.Enums;
+using CRM.Core.Interfaces.Scripting;
 using CRM.Core.Ports.Output.Providers;
 using CRM.Infrastructure.Data;
-using Jint;
+using CRM.Infrastructure.Factories;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -48,6 +50,7 @@ public class WorkflowWorkerService : BackgroundService
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<WorkflowWorkerService> _logger;
     private readonly IHttpClientFactory _httpClientFactory;
+    private readonly ScriptEngineFactory _scriptEngineFactory;
     private readonly WorkflowWorkerOptions _options;
     private readonly SemaphoreSlim _semaphore;
     private int _activeTaskCount = 0;
@@ -57,11 +60,13 @@ public class WorkflowWorkerService : BackgroundService
         IServiceProvider serviceProvider,
         ILogger<WorkflowWorkerService> logger,
         IHttpClientFactory httpClientFactory,
+        ScriptEngineFactory scriptEngineFactory,
         WorkflowWorkerOptions? options = null)
     {
         _serviceProvider = serviceProvider;
         _logger = logger;
         _httpClientFactory = httpClientFactory;
+        _scriptEngineFactory = scriptEngineFactory;
         _options = options ?? new WorkflowWorkerOptions();
         _semaphore = new SemaphoreSlim(_options.MaxConcurrentTasks, _options.MaxConcurrentTasks);
         _actionHandlers = InitializeActionHandlers();
@@ -1670,10 +1675,11 @@ public class WorkflowWorkerService : BackgroundService
     }
 
     /// <summary>
-    /// Execute a JavaScript script using the Jint engine (sandboxed).
+    /// Execute a script using the registered script engine (default: Jint for JavaScript).
     /// Configuration in task.InputData JSON:
-    ///   - script: (string) The JavaScript code to execute
-    ///   - variables: (object) Optional key-value pairs to inject as JS variables
+    ///   - script: (string) The code to execute
+    ///   - language: (string|number) Optional language selector (JavaScript, Python, CSharp)
+    ///   - variables: (object) Optional key-value pairs injected as variables
     ///   - context: (object) Optional context data available as 'context' variable
     /// </summary>
     private async Task<TaskResult> ExecuteScriptAction(WorkflowTask task, CrmDbContext dbContext, CancellationToken ct)
@@ -1682,12 +1688,29 @@ public class WorkflowWorkerService : BackgroundService
 
         try
         {
-            var config = new Dictionary<string, object>();
-            if (!string.IsNullOrEmpty(task.InputData))
+            var script = string.Empty;
+            var language = ScriptLanguage.JavaScript;
+            var variables = new Dictionary<string, object?>();
+            var context = new Dictionary<string, object?>();
+
+            if (!string.IsNullOrWhiteSpace(task.InputData))
             {
                 try
                 {
-                    config = JsonSerializer.Deserialize<Dictionary<string, object>>(task.InputData) ?? new Dictionary<string, object>();
+                    using var doc = JsonDocument.Parse(task.InputData);
+                    var root = doc.RootElement;
+
+                    if (root.ValueKind == JsonValueKind.Object)
+                    {
+                        if (root.TryGetProperty("script", out var scriptElement) && scriptElement.ValueKind == JsonValueKind.String)
+                        {
+                            script = scriptElement.GetString() ?? string.Empty;
+                        }
+
+                        language = ParseScriptLanguage(root);
+                        variables = ExtractObjectDictionary(root, "variables");
+                        context = ExtractObjectDictionary(root, "context");
+                    }
                 }
                 catch (JsonException ex)
                 {
@@ -1695,85 +1718,35 @@ public class WorkflowWorkerService : BackgroundService
                 }
             }
 
-            var script = config.GetValueOrDefault("script")?.ToString();
             if (string.IsNullOrWhiteSpace(script))
             {
                 return new TaskResult { Success = false, ErrorMessage = "Script is required but was empty or missing" };
             }
 
-            // Create sandboxed Jint engine with resource limits
-            var engine = new Engine(options =>
+            IScriptEngine engine;
+            try
             {
-                options.TimeoutInterval(TimeSpan.FromSeconds(10));
-                options.LimitMemory(16 * 1024 * 1024); // 16 MB
-                options.Strict();
-            });
-
-            // Inject variables from config
-            if (config.TryGetValue("variables", out var varsObj) && varsObj is JsonElement varsElement)
+                engine = _scriptEngineFactory.GetEngine(language);
+            }
+            catch (Exception ex)
             {
-                if (varsElement.ValueKind == JsonValueKind.Object)
+                _logger.LogWarning(ex, "No available script engine for {Language}", language);
+                return new TaskResult
                 {
-                    foreach (var prop in varsElement.EnumerateObject())
-                    {
-                        engine.SetValue(prop.Name, ConvertJsonElementToClr(prop.Value));
-                    }
-                }
+                    Success = false,
+                    ErrorMessage = $"Script engine unavailable for {language}: {ex.Message}"
+                };
             }
 
-            // Inject context data if available
-            if (config.TryGetValue("context", out var ctxObj) && ctxObj is JsonElement ctxElement)
-            {
-                engine.SetValue("context", ConvertJsonElementToClr(ctxElement));
-            }
-
-            // Provide a basic console.log that captures output
-            var logOutput = new List<string>();
-            engine.SetValue("log", new Action<object?>(msg => logOutput.Add(msg?.ToString() ?? "null")));
-
-            // Execute the script
-            var jsResult = await Task.Run(() => engine.Evaluate(script), ct);
-
-            // Capture result: prefer explicit return value, fall back to 'result' variable
-            object? resultValue = null;
-            if (jsResult != null && !jsResult.IsUndefined() && !jsResult.IsNull())
-            {
-                resultValue = jsResult.ToObject();
-            }
-            else
-            {
-                // Check if script defined a 'result' variable
-                var resultVar = engine.GetValue("result");
-                if (resultVar != null && !resultVar.IsUndefined() && !resultVar.IsNull())
-                {
-                    resultValue = resultVar.ToObject();
-                }
-            }
-
-            var output = new Dictionary<string, object?>
-            {
-                ["scriptCompleted"] = true,
-                ["result"] = resultValue,
-                ["logs"] = logOutput.Count > 0 ? logOutput : null
-            };
-
-            _logger.LogInformation("Script action completed for task {TaskId} with {LogCount} log entries", task.Id, logOutput.Count);
+            var executionResult = await engine.ExecuteAsync(script, variables, context, cancellationToken: ct);
+            var serialized = SerializeScriptResult(executionResult);
 
             return new TaskResult
             {
-                Success = true,
-                ResultData = JsonSerializer.Serialize(output)
+                Success = executionResult.Success,
+                ResultData = serialized,
+                ErrorMessage = executionResult.Success ? null : executionResult.ErrorMessage
             };
-        }
-        catch (TimeoutException)
-        {
-            _logger.LogWarning("Script execution timed out for task {TaskId} (10s limit)", task.Id);
-            return new TaskResult { Success = false, ErrorMessage = "Script execution timed out (10 second limit)" };
-        }
-        catch (Jint.Runtime.JavaScriptException jsEx)
-        {
-            _logger.LogWarning(jsEx, "JavaScript error in script for task {TaskId}: {Error}", task.Id, jsEx.Message);
-            return new TaskResult { Success = false, ErrorMessage = $"JavaScript error: {jsEx.Message}" };
         }
         catch (Exception ex)
         {
@@ -1782,8 +1755,54 @@ public class WorkflowWorkerService : BackgroundService
         }
     }
 
+    private static ScriptLanguage ParseScriptLanguage(JsonElement root)
+    {
+        if (root.TryGetProperty("language", out var langElement))
+        {
+            if (langElement.ValueKind == JsonValueKind.Number && langElement.TryGetInt32(out var langValue) && Enum.IsDefined(typeof(ScriptLanguage), langValue))
+            {
+                return (ScriptLanguage)langValue;
+            }
+
+            if (langElement.ValueKind == JsonValueKind.String)
+            {
+                var langText = langElement.GetString();
+                if (!string.IsNullOrWhiteSpace(langText) && Enum.TryParse<ScriptLanguage>(langText, true, out var parsed))
+                {
+                    return parsed;
+                }
+            }
+        }
+
+        return ScriptLanguage.JavaScript;
+    }
+
+    private static Dictionary<string, object?> ExtractObjectDictionary(JsonElement root, string propertyName)
+    {
+        if (root.TryGetProperty(propertyName, out var element) && element.ValueKind == JsonValueKind.Object)
+        {
+            return element.EnumerateObject().ToDictionary(p => p.Name, p => ConvertJsonElementToClr(p.Value));
+        }
+
+        return new Dictionary<string, object?>();
+    }
+
+    private static string SerializeScriptResult(ScriptExecutionResult executionResult)
+    {
+        var output = new Dictionary<string, object?>
+        {
+            ["scriptCompleted"] = executionResult.Success,
+            ["result"] = executionResult.ReturnValue,
+            ["logs"] = executionResult.Logs?.Count > 0 ? executionResult.Logs : null,
+            ["error"] = executionResult.Success ? null : executionResult.ErrorMessage,
+            ["durationMs"] = executionResult.ExecutionTime.TotalMilliseconds
+        };
+
+        return JsonSerializer.Serialize(output);
+    }
+
     /// <summary>
-    /// Converts a JsonElement to a CLR object suitable for the Jint engine.
+    /// Converts a JsonElement to a CLR object suitable for injection into script engines.
     /// </summary>
     private static object? ConvertJsonElementToClr(JsonElement element)
     {

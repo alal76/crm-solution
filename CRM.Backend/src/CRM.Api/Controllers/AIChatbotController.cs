@@ -121,10 +121,10 @@ public class AIChatbotController : ControllerBase
                 _logger.LogWarning(ex, "AI health check probe failed");
                 return Ok(new
                 {
-                    isHealthy = true, // Service is configured, just can't do inference now
+                    isHealthy = false,
                     provider = provider,
                     model = model,
-                    message = "AI service configured (inference test skipped)",
+                    message = $"AI inference failed: {ex.Message}",
                     timestamp = DateTime.UtcNow
                 });
             }

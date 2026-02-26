@@ -38,8 +38,6 @@ yarn.lock
 .env.*.local
 
 # Documentation
-docs
-README.md
 *.md
 !docs/help/
 !docs/help/**

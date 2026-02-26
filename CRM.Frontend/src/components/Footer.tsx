@@ -35,6 +35,7 @@ function Footer() {
   const [apiStatus, setApiStatus] = useState<HealthStatus>({ status: 'down' });
   const [dbStatus, setDbStatus] = useState<HealthStatus>({ status: 'down' });
   const [aiStatus, setAiStatus] = useState<AIHealthStatus>({ status: 'down' });
+  const [environment, setEnvironment] = useState<string>('');
   const [ports, setPorts] = useState(getServicePorts());
   const { branding } = useBranding();
   const { effectiveContext } = useEntityContext();
@@ -87,6 +88,9 @@ function Footer() {
           setApiStatus({ status: 'up', timestamp: response.data.timestamp });
           // If API is up, database is also up (API checks DB health)
           setDbStatus({ status: 'up' });
+          if (response.data.environment) {
+            setEnvironment(response.data.environment);
+          }
         }
       } catch (error: any) {
         debugError('Health check failed:', {
@@ -97,16 +101,16 @@ function Footer() {
         setDbStatus({ status: 'down' });
       }
 
-      // Check AI service health (optional - don't treat as error if disabled)
+      // Check AI provider health using the provider health endpoint
       try {
-        const aiHealthUrl = getApiEndpoint('/ai/chatbot/health');
-        const aiResponse = await axios.get(aiHealthUrl, { timeout: 5000 });
+        const aiHealthUrl = getApiEndpoint('/health/providers/ai');
+        const aiResponse = await axios.get(aiHealthUrl, { timeout: 8000 });
         
         if (aiResponse.status === 200 && aiResponse.data) {
           setAiStatus({
             status: aiResponse.data.isHealthy ? 'up' : 'down',
-            model: aiResponse.data.model,
-            provider: aiResponse.data.provider,
+            model: aiResponse.data.activeProvider,
+            provider: aiResponse.data.activeProvider,
           });
         }
       } catch (aiError: any) {
@@ -145,6 +149,17 @@ function Footer() {
               <span className="separator">|</span>
               <span className="git-info" title={`Branch: ${versionInfo.git.branch}`}>
                 #{versionInfo.git.commit}
+              </span>
+            </>
+          )}
+          {environment && (
+            <>
+              <span className="separator">|</span>
+              <span
+                className={`env-badge env-badge-${environment.toLowerCase()}`}
+                title={`Environment: ${environment}`}
+              >
+                {environment}
               </span>
             </>
           )}

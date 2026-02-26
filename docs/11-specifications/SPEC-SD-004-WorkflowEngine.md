@@ -4,7 +4,7 @@
 > **Feature:** Workflow Engine  
 > **Version:** 1.1  
 > **Last Updated:** 2026-02-26  
-> **Status:** ⚠️ Partial — Script Language Support Pending  
+> **Status:** ⚠️ Partial — JavaScript scripting implemented; Python scripting pending  
 > **Dependencies:** SD-001 (Service Request Management), SPEC-AI-006 (Agent Scripting)
 
 ---
@@ -715,22 +715,22 @@ public enum ScriptLanguage
 
 ## 7. TODO Items
 
-| ID | Description | Priority | Category |
-|----|-------------|----------|----------|
-| SD004-TODO01 | Define `IScriptEngine` interface in `CRM.Core/Interfaces/Scripting/` | P0 | Backend |
-| SD004-TODO02 | Refactor `ExecuteScriptAction` in `WorkflowWorkerService` to use `IScriptEngine` via factory | P0 | Backend |
-| SD004-TODO03 | Register `JintScriptEngine` implementing `IScriptEngine` (extract from current inline code) | P0 | Backend |
-| SD004-TODO04 | Add `ScriptLanguage` enum to `CRM.Core/Enums/` and update `SPEC-GEN-001-EnumReference.md` | P0 | Backend |
-| SD004-TODO05 | Add `language` field to `ScriptNodeConfigDto` and persist in `WorkflowNodes.ConfigurationJson` | P1 | Backend |
-| SD004-TODO06 | Implement `PythonScriptEngine` via Python.NET behind `EnablePythonScripting` feature flag | P1 | Backend |
-| SD004-TODO07 | Apply `RestrictedPython` or equivalent for Python sandbox enforcement | P1 | Backend |
-| SD004-TODO08 | Create `ScriptEngineFactory` resolving by `ScriptLanguage` from DI | P1 | Backend |
-| SD004-TODO09 | Build `ScriptNodeEditor` React component with Monaco editor and language switch | P1 | Frontend |
-| SD004-TODO10 | Implement `ScriptTestPanel` — inline test runner with mock context JSON input | P2 | Frontend |
-| SD004-TODO11 | Implement `ScriptVariableInspector` — sidebar listing context variables | P2 | Frontend |
-| SD004-TODO12 | Write unit tests for `JintScriptEngine` (timeout, memory, context injection) | P1 | Testing |
-| SD004-TODO13 | Write unit tests for `PythonScriptEngine` (sandbox enforcement, basic evaluation) | P1 | Testing |
-| SD004-TODO14 | Add `ScriptLanguage` enum unit test to `ScriptLanguageEnumTests` | P0 | Testing |
+| ID | Description | Priority | Category | Status |
+|----|-------------|----------|----------|--------|
+| SD004-TODO01 | Define `IScriptEngine` interface in `CRM.Core/Interfaces/Scripting/` | P0 | Backend | ✅ Implemented |
+| SD004-TODO02 | Refactor `ExecuteScriptAction` in `WorkflowWorkerService` to use `IScriptEngine` via factory | P0 | Backend | ✅ Implemented |
+| SD004-TODO03 | Register `JintScriptEngine` implementing `IScriptEngine` (extract from current inline code) | P0 | Backend | ✅ Implemented |
+| SD004-TODO04 | Add `ScriptLanguage` enum to `CRM.Core/Enums/` and update `SPEC-GEN-001-EnumReference.md` | P0 | Backend | ✅ Implemented |
+| SD004-TODO05 | Add `language` field to `ScriptNodeConfigDto` and persist in `WorkflowNodes.ConfigurationJson` | P1 | Backend | ✅ Implemented |
+| SD004-TODO06 | Implement `PythonScriptEngine` via Python.NET behind `EnablePythonScripting` feature flag | P1 | Backend | ⚠️ Pending |
+| SD004-TODO07 | Apply `RestrictedPython` or equivalent for Python sandbox enforcement | P1 | Backend | ⚠️ Pending |
+| SD004-TODO08 | Create `ScriptEngineFactory` resolving by `ScriptLanguage` from DI | P1 | Backend | ✅ Implemented |
+| SD004-TODO09 | Build `ScriptNodeEditor` React component with Monaco editor and language switch | P1 | Frontend | ❌ Not Implemented |
+| SD004-TODO10 | Implement `ScriptTestPanel` — inline test runner with mock context JSON input | P2 | Frontend | ❌ Not Implemented |
+| SD004-TODO11 | Implement `ScriptVariableInspector` — sidebar listing context variables | P2 | Frontend | ❌ Not Implemented |
+| SD004-TODO12 | Write unit tests for `JintScriptEngine` (timeout, memory, context injection) | P1 | Testing | ❌ Not Written |
+| SD004-TODO13 | Write unit tests for `PythonScriptEngine` (sandbox enforcement, basic evaluation) | P1 | Testing | ❌ Not Written |
+| SD004-TODO14 | Add `ScriptLanguage` enum unit test to `ScriptLanguageEnumTests` | P0 | Testing | ❌ Not Written |
 
 ### 7.1 Detailed Task Breakdown (Pending)
 

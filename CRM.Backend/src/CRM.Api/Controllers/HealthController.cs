@@ -6,6 +6,7 @@
 // See the LICENSE file in the root directory for full terms.
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CRM.Api.Controllers;
@@ -21,10 +22,12 @@ namespace CRM.Api.Controllers;
 public class HealthController : ControllerBase
 {
     private readonly ILogger<HealthController> _logger;
+    private readonly IWebHostEnvironment _environment;
 
-    public HealthController(ILogger<HealthController> logger)
+    public HealthController(ILogger<HealthController> logger, IWebHostEnvironment environment)
     {
         _logger = logger;
+        _environment = environment;
     }
 
     /// <summary>
@@ -36,7 +39,7 @@ public class HealthController : ControllerBase
     public IActionResult Health()
     {
         _logger.LogInformation("Health check endpoint called");
-        return Ok(new { status = "healthy", timestamp = DateTime.UtcNow });
+        return Ok(new { status = "healthy", timestamp = DateTime.UtcNow, environment = _environment.EnvironmentName });
     }
 
     /// <summary>
