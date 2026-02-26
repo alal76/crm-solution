@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 600,
-  "patch": 5,
+  "patch": 6,
   "lastUpdate": "2026-02-27",
-  "description": "FIX: Approval settings (RequiresApproval, ApprovalTier) are now fully editable in the Edit Agent dialog — added fields to UpdateAgentRequest (frontend type + backend DTO + handler). Previously read-only.",
+  "description": "feat: Monaco editor (script) toggle added to System Prompt in Edit Agent dialog — matching the same toggle already in AgentCreatorPage Behavior tab.",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [
