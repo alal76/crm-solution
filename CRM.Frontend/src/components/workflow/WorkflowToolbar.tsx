@@ -29,6 +29,7 @@ import {
   Save as SaveIcon,
   Publish as PublishIcon,
   ContentCopy as CloneIcon,
+  Code as ScriptIcon,
 } from '@mui/icons-material';
 
 interface WorkflowToolbarProps {
@@ -54,6 +55,8 @@ interface WorkflowToolbarProps {
   onClone?: () => void;
   hasChanges?: boolean;
   isDraftVersion?: boolean;
+  showScriptPanel?: boolean;
+  onToggleScriptPanel?: () => void;
 }
 
 const WorkflowToolbar: React.FC<WorkflowToolbarProps> = ({
@@ -79,6 +82,8 @@ const WorkflowToolbar: React.FC<WorkflowToolbarProps> = ({
   onClone,
   hasChanges = false,
   isDraftVersion = true,
+  showScriptPanel = false,
+  onToggleScriptPanel,
 }) => {
   return (
     <Paper sx={{ p: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -134,6 +139,21 @@ const WorkflowToolbar: React.FC<WorkflowToolbarProps> = ({
       )}
       <Divider orientation="vertical" flexItem sx={{ mx: 0.5 }} />
       <Box sx={{ flex: 1 }} />
+      {onToggleScriptPanel && (
+        <>
+          <Tooltip title={showScriptPanel ? 'Hide JSON script panel' : 'Show live JSON script panel'}>
+            <IconButton
+              size="small"
+              onClick={onToggleScriptPanel}
+              color={showScriptPanel ? 'primary' : 'default'}
+              sx={showScriptPanel ? { backgroundColor: 'action.selected', borderRadius: 1 } : {}}
+            >
+              <ScriptIcon />
+            </IconButton>
+          </Tooltip>
+          <Divider orientation="vertical" flexItem sx={{ mx: 0.5 }} />
+        </>
+      )}
       <Tooltip title="Zoom Out">
         <IconButton size="small" onClick={onZoomOut}>
           <ZoomOutIcon />

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import Editor from '@monaco-editor/react';
 import {
   Box,
   Typography,
@@ -33,6 +34,7 @@ import {
   Settings as SettingsIcon,
   Psychology as PsychologyIcon,
   Security as SecurityIcon,
+  Code as ScriptIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 import agentAdminService from '../services/agentAdminService';
@@ -85,6 +87,7 @@ const AgentCreatorPage = () => {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+  const [showScriptView, setShowScriptView] = useState(false);
 
   // Auto-generate Name from DisplayName
   const handleDisplayNameChange = (val: string) => {
@@ -220,18 +223,59 @@ const AgentCreatorPage = () => {
         <PsychologyIcon sx={{ color: '#6750A4', fontSize: 20 }} /> Behavior & Configuration
       </Typography>
 
-      <TextField
-        label="System Prompt *"
-        fullWidth
-        multiline
-        minRows={4}
-        maxRows={10}
-        value={systemPrompt}
-        onChange={(e) => setSystemPrompt(e.target.value)}
-        placeholder="You are a helpful CRM assistant that…"
-        helperText={`${systemPrompt.length} characters`}
-        sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
-      />
+      {/* System Prompt with Script/Monaco editor toggle */}
+      <Box>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
+          <Typography variant="body2" sx={{ fontWeight: 500, color: '#49454F' }}>System Prompt *</Typography>
+          <Tooltip title={showScriptView ? 'Switch to plain text editor' : 'Open in script / code editor (Monaco)'}>
+            <IconButton
+              size="small"
+              onClick={() => setShowScriptView(v => !v)}
+              color={showScriptView ? 'primary' : 'default'}
+              sx={showScriptView ? { backgroundColor: 'action.selected', borderRadius: 1 } : {}}
+            >
+              <ScriptIcon fontSize="small" />
+            </IconButton>
+          </Tooltip>
+        </Box>
+
+        {showScriptView ? (
+          <Box sx={{ border: '1px solid #CAC4D0', borderRadius: 2, overflow: 'hidden' }}>
+            <Box sx={{ px: 1.5, py: 0.5, backgroundColor: '#2d2d2d', borderBottom: '1px solid rgba(255,255,255,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Typography variant="caption" sx={{ color: '#ccc', fontFamily: 'monospace', fontWeight: 600 }}>SYSTEM PROMPT — script editor</Typography>
+              <Typography variant="caption" sx={{ color: '#888', fontFamily: 'monospace' }}>{systemPrompt.length} chars</Typography>
+            </Box>
+            <Editor
+              height="220px"
+              language="plaintext"
+              value={systemPrompt}
+              onChange={(val) => setSystemPrompt(val ?? '')}
+              theme="vs-dark"
+              options={{
+                minimap: { enabled: false },
+                fontSize: 13,
+                wordWrap: 'on',
+                lineNumbers: 'on',
+                scrollBeyondLastLine: false,
+                automaticLayout: true,
+                tabSize: 2,
+              }}
+            />
+          </Box>
+        ) : (
+          <TextField
+            fullWidth
+            multiline
+            minRows={4}
+            maxRows={10}
+            value={systemPrompt}
+            onChange={(e) => setSystemPrompt(e.target.value)}
+            placeholder="You are a helpful CRM assistant that…"
+            helperText={`${systemPrompt.length} characters`}
+            sx={{ '& .MuiOutlinedInput-root': { borderRadius: 2 } }}
+          />
+        )}
+      </Box>
 
       <Box>
         <Typography variant="body2" sx={{ fontWeight: 500, mb: 1, color: '#49454F' }}>

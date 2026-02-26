@@ -47,7 +47,7 @@ import {
   SentimentSatisfied as AISentimentIcon,
   RateReview as HumanReviewIcon,
   BuildCircle as AIToolIcon,
-  Code as ScriptPanelIcon,
+  Code as ScriptPanelIcon, // keep for potential future node use
 } from '@mui/icons-material';
 import {
   RuleBuilder,
@@ -976,25 +976,9 @@ function WorkflowDesignerPage() {
           } : undefined}
           hasChanges={hasChanges}
           isDraftVersion={version?.status === 'Draft'}
+          showScriptPanel={showScriptPanel}
+          onToggleScriptPanel={() => setShowScriptPanel(p => !p)}
         />
-
-        {/* Script Panel Toggle Bar */}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, px: 1.5, py: 0.5, borderBottom: 1, borderColor: 'divider', backgroundColor: 'background.paper', flexShrink: 0 }}>
-          <Tooltip title={showScriptPanel ? 'Hide script panel' : 'Open side-by-side JSON script view — edit script to update canvas live'}>
-            <Button
-              size="small"
-              startIcon={<ScriptPanelIcon />}
-              variant={showScriptPanel ? 'contained' : 'outlined'}
-              onClick={() => setShowScriptPanel(p => !p)}
-              sx={{ textTransform: 'none', fontSize: '0.75rem' }}
-            >
-              Script
-            </Button>
-          </Tooltip>
-          {scriptError && (
-            <Typography variant="caption" color="error" sx={{ ml: 1 }}>⚠ {scriptError}</Typography>
-          )}
-        </Box>
 
         {/* Canvas + Script Split View */}
         <Box sx={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
@@ -1174,10 +1158,15 @@ function WorkflowDesignerPage() {
           {/* Script Panel */}
           {showScriptPanel && (
             <Box sx={{ flexBasis: '40%', flexShrink: 0, flexGrow: 0, minWidth: 300, maxWidth: 700, display: 'flex', flexDirection: 'column', minHeight: 0, borderLeft: '1px solid', borderColor: 'divider', backgroundColor: '#1e1e1e' }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 1.5, py: 0.75, backgroundColor: '#2d2d2d', borderBottom: '1px solid rgba(255,255,255,0.12)', flexShrink: 0 }}>
-                <Typography variant="caption" sx={{ color: '#ccc', fontFamily: 'monospace', fontWeight: 600, letterSpacing: 0.5 }}>
-                  WORKFLOW JSON — edit to update canvas
-                </Typography>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 1.5, py: 0.75, backgroundColor: '#2d2d2d', borderBottom: '1px solid rgba(255,255,255,0.12)', flexShrink: 0 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Typography variant="caption" sx={{ color: '#ccc', fontFamily: 'monospace', fontWeight: 600, letterSpacing: 0.5 }}>
+                    WORKFLOW JSON — edit to update canvas
+                  </Typography>
+                  {scriptError && (
+                    <Typography variant="caption" sx={{ color: '#f48fb1', fontFamily: 'monospace' }}>⚠ {scriptError}</Typography>
+                  )}
+                </Box>
                 <IconButton size="small" onClick={() => setShowScriptPanel(false)} sx={{ color: '#999' }}>
                   <CloseIcon fontSize="small" />
                 </IconButton>
