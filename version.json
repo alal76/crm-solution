@@ -1,9 +1,9 @@
 {
   "major": 0,
-  "minor": 597,
+  "minor": 598,
   "patch": 0,
-  "lastUpdate": "2026-03-02",
-  "description": "FEAT-COLLAB: Record Comments & @Mentions \u2014 RecordComment entity, migration, RecordCommentService, RecordCommentsController, RecordComments React component, recordCommentService.ts, unit tests",
+  "lastUpdate": "2026-02-26",
+  "description": "FEAT-REVENUE: Revenue Analytics ARR/MRR system",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [

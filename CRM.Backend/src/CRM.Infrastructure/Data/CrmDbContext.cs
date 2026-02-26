@@ -90,6 +90,9 @@ public class CrmDbContext : DbContext, ICrmDbContext
     // Satisfaction surveys (CSAT / NPS / CES)
     public DbSet<SatisfactionSurvey> SatisfactionSurveys { get; set; }
     public DbSet<SatisfactionResponse> SatisfactionResponses { get; set; }
+
+    // Revenue Analytics (FEAT-REVENUE)
+    public DbSet<RevenueSnapshot> RevenueSnapshots { get; set; }
     public DbSet<QuoteLineItem> QuoteLineItems { get; set; }
     public DbSet<Activity> Activities { get; set; }
     public DbSet<EventAttendee> EventAttendees { get; set; }
@@ -4916,6 +4919,24 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.Property(e => e.Comment).HasMaxLength(1000);
             entity.Property(e => e.IpAddress).HasMaxLength(50);
             entity.Property(e => e.UserAgent).HasMaxLength(500);
+        });
+
+        // Revenue Analytics (FEAT-REVENUE)
+        modelBuilder.Entity<RevenueSnapshot>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.MRR).HasPrecision(18, 4);
+            entity.Property(e => e.ARR).HasPrecision(18, 4);
+            entity.Property(e => e.NewMRR).HasPrecision(18, 4);
+            entity.Property(e => e.ExpansionMRR).HasPrecision(18, 4);
+            entity.Property(e => e.ContractionMRR).HasPrecision(18, 4);
+            entity.Property(e => e.ChurnMRR).HasPrecision(18, 4);
+            entity.Property(e => e.NetNewMRR).HasPrecision(18, 4);
+            entity.Property(e => e.Notes).HasMaxLength(500);
+            entity.Property(e => e.SnapshotType).HasMaxLength(20).HasDefaultValue("Monthly");
+            entity.HasIndex(e => e.SnapshotDate)
+                .HasDatabaseName("IX_RevenueSnapshots_SnapshotDate");
+            entity.HasQueryFilter(e => !e.IsDeleted);
         });
 
         // Apply provider-specific post-configuration using the Strategy Pattern

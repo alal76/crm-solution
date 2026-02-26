@@ -730,6 +730,8 @@ builder.Services.AddScoped<IRecordCommentService, RecordCommentService>();
 builder.Services.AddScoped<ITaskService, TaskService>();
 builder.Services.AddScoped<IQuoteService, QuoteService>();
 builder.Services.AddScoped<ISatisfactionService, SatisfactionService>();
+// Revenue Analytics (FEAT-REVENUE)
+builder.Services.AddScoped<IRevenueAnalyticsService, RevenueAnalyticsService>();
 // Phase 2 services - Dashboard, Pipeline, Interaction (Gap Fix Implementation)
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<IPipelineService, PipelineService>();

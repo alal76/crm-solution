@@ -400,6 +400,9 @@ public interface ICrmDbContext
     DbSet<SatisfactionSurvey> SatisfactionSurveys { get; }
     DbSet<SatisfactionResponse> SatisfactionResponses { get; }
 
+    // Revenue Analytics (FEAT-REVENUE)
+    DbSet<RevenueSnapshot> RevenueSnapshots { get; }
+
     DatabaseFacade Database { get; }
 
     /// <summary>
