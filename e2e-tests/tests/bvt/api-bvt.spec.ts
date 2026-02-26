@@ -63,7 +63,7 @@ test.describe('BVT - Build Verification Tests', () => {
           lastName: 'Customer',
           company: 'BVT Test Corp',
           email: `bvt-${Date.now()}@example.com`,
-          phone: '555-BVT1'
+          phone: '555-1234'
         }
       });
       expect(response.ok()).toBeTruthy();
@@ -90,7 +90,7 @@ test.describe('BVT - Build Verification Tests', () => {
           lastName: 'Customer',
           company: 'BVT Updated Corp',
           email: `bvt-updated-${Date.now()}@example.com`,
-          phone: '555-BVT2'
+          phone: '555-5678'
         }
       });
       expect(response.ok()).toBeTruthy();
@@ -230,6 +230,7 @@ test.describe('BVT - Build Verification Tests', () => {
           probability: 50,
           stage: 0, // Discovery
           currency: 'USD',
+          termLengthMonths: 12,
           expectedCloseDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
         }
       });
