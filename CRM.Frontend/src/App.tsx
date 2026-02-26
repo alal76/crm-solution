@@ -253,6 +253,12 @@ const ScriptPluginEditorPage = lazy(() => import('./pages/ScriptPluginEditorPage
 const ImportWizardPage = lazy(() => import('./pages/ImportWizardPage'));
 const ExportWizardPage = lazy(() => import('./pages/ExportWizardPage'));
 
+// ----------------------------------------------------------------------------
+// Customer Satisfaction Module - Lazy Loaded
+// ----------------------------------------------------------------------------
+const SatisfactionDashboardPage = lazy(() => import('./pages/SatisfactionDashboardPage'));
+const SurveyResponsePage = lazy(() => import('./pages/SurveyResponsePage'));
+
 // Inner component that can access the theme context
 function ThemedApp() {
   const { theme } = useTheme();
@@ -1367,6 +1373,16 @@ function ThemedApp() {
               <Route path="/help" element={<HelpPage />} />
               <Route path="/help/api" element={<ApiDocumentationPage />} />
               <Route path="/licenses" element={<LicensesPage />} />
+              {/* Satisfaction / CSAT / NPS */}
+              <Route
+                path="/satisfaction"
+                element={
+                  <ProtectedRoute>
+                    <SatisfactionDashboardPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route path="/survey/:token" element={<SurveyResponsePage />} />
                         </Routes>
                         </Suspense>
                         </Container>

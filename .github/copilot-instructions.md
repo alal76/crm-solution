@@ -1,7 +1,7 @@
 # GitHub Copilot Instructions - CRM Solution
 
 > **Last Updated:** March 2, 2026  
-> **Current Version:** 0.593.0  
+> **Current Version:** 0.596.0  
 > **Load this file at the start of every agent session**
 
 Copilot usage
@@ -1400,7 +1400,7 @@ cd CRM.Backend && dotnet test --collect:"XPlat Code Coverage"
 # E2E tests
 cd e2e-tests && npx playwright test
 ```
-
+On every first build and deploy after merging code to mail - run the github cicd script and select the option to run all tests. This will help ensure that all tests are passing and that the new code is properly integrated with the existing codebase. Fix issues as needed and repeat until all tests pass successfully. Github CICD should be kept clean on the main branch to ensure stability.
 ---
 
 ## 11. Documentation References

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { TabPanel, ChatTimelineItem } from '../components/common';
+import { RecordComments } from '../components/common/RecordComments';
 import type { ChatMessageActivity } from '../components/common/ChatTimelineItem';
 import MergeHistoryPanel from '../components/duplicates/MergeHistoryPanel';
 import ConcurrencyConflictDialog from '../components/common/ConcurrencyConflictDialog';
@@ -630,6 +631,7 @@ function AccountOverviewPage() {
                     <Tab label="News & Social" />
                     <Tab label="Merge History" />
                     <Tab label="Activity" />
+                    <Tab label="Comments" />
                   </Tabs>
 
                   {loadingDetails ? (
@@ -974,6 +976,16 @@ function AccountOverviewPage() {
                               />
                             ))}
                           </List>
+                        )}
+                      </TabPanel>
+
+                      {/* Comments Tab */}
+                      <TabPanel value={tabValue} index={5}>
+                        {selectedCustomer && (
+                          <RecordComments
+                            entityType="Account"
+                            entityId={selectedCustomer.id}
+                          />
                         )}
                       </TabPanel>
                     </>

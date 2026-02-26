@@ -729,6 +729,7 @@ builder.Services.AddScoped<INoteService, NoteService>();
 builder.Services.AddScoped<IRecordCommentService, RecordCommentService>();
 builder.Services.AddScoped<ITaskService, TaskService>();
 builder.Services.AddScoped<IQuoteService, QuoteService>();
+builder.Services.AddScoped<ISatisfactionService, SatisfactionService>();
 // Phase 2 services - Dashboard, Pipeline, Interaction (Gap Fix Implementation)
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<IPipelineService, PipelineService>();

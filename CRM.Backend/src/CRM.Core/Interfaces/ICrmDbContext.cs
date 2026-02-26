@@ -78,6 +78,7 @@ public interface ICrmDbContext
     DbSet<BrandingConfig> BrandingConfigs { get; }
     DbSet<CrmTask> CrmTasks { get; }
     DbSet<Note> Notes { get; }
+    DbSet<RecordComment> RecordComments { get; }
     DbSet<Activity> Activities { get; }
     DbSet<Quote> Quotes { get; }
 
@@ -394,6 +395,10 @@ public interface ICrmDbContext
 
     // AI Script Plugins
     DbSet<ScriptPlugin> ScriptPlugins { get; }
+
+    // Satisfaction surveys (CSAT / NPS / CES)
+    DbSet<SatisfactionSurvey> SatisfactionSurveys { get; }
+    DbSet<SatisfactionResponse> SatisfactionResponses { get; }
 
     DatabaseFacade Database { get; }
 

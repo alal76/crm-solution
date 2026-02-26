@@ -6,6 +6,7 @@
 // See the LICENSE file in the root directory for full terms.
 using System.Text;
 using System.Text.Json;
+using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using CRM.Infrastructure.Data;
@@ -29,6 +30,7 @@ public class MasterDataController : ControllerBase
     private readonly CrmDbContext _dbContext;
     private readonly ILogger<MasterDataController> _logger;
     private readonly IMasterDataSeederService _masterDataSeeder;
+    private readonly ISystemSettingsService _settingsService;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="MasterDataController"/> class.
@@ -37,16 +39,19 @@ public class MasterDataController : ControllerBase
     /// <param name="dbContext">The CRM database context.</param>
     /// <param name="logger">The logger instance.</param>
     /// <param name="masterDataSeeder">The master data seeder service.</param>
+    /// <param name="settingsService">The system settings service.</param>
     public MasterDataController(
         ICrmDbContext context,
         CrmDbContext dbContext,
         ILogger<MasterDataController> logger,
-        IMasterDataSeederService masterDataSeeder)
+        IMasterDataSeederService masterDataSeeder,
+        ISystemSettingsService settingsService)
     {
         _context = context;
         _dbContext = dbContext;
         _logger = logger;
         _masterDataSeeder = masterDataSeeder;
+        _settingsService = settingsService;
     }
 
     /// <summary>
@@ -71,8 +76,18 @@ public class MasterDataController : ControllerBase
                     count = stats.ColorPaletteCount,
                     populated = stats.ColorPalettesPopulated
                 },
-                allPopulated = stats.ZipCodesPopulated && stats.ColorPalettesPopulated,
-                message = stats.ZipCodesPopulated && stats.ColorPalettesPopulated
+                currencies = new
+                {
+                    count = stats.CurrencyCount,
+                    populated = stats.CurrenciesPopulated
+                },
+                timezones = new
+                {
+                    count = stats.TimezoneCount,
+                    populated = stats.TimezonesPopulated
+                },
+                allPopulated = stats.ZipCodesPopulated && stats.ColorPalettesPopulated && stats.CurrenciesPopulated && stats.TimezonesPopulated,
+                message = stats.ZipCodesPopulated && stats.ColorPalettesPopulated && stats.CurrenciesPopulated && stats.TimezonesPopulated
                     ? "All master data is populated and will persist across deployments."
                     : "Some master data needs to be seeded. Data persists in the database across deployments."
             });
@@ -684,11 +699,320 @@ public class MasterDataController : ControllerBase
 
     #endregion
 
-    #region Export
+    #region Branding & Company Profile
 
     /// <summary>
-    /// Export master data
+    /// Get company branding and customization settings
     /// </summary>
+    [HttpGet("branding")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetBranding()
+    {
+        try
+        {
+            var settings = await _dbContext.SystemSettings.AsNoTracking().FirstOrDefaultAsync();
+            if (settings == null) return Ok(new { });
+            return Ok(new
+            {
+                // Company Identity
+                companyName = settings.CompanyName,
+                companyFullName = settings.CompanyFullName,
+                companyLegalName = settings.CompanyLegalName,
+                companyWebsite = settings.CompanyWebsite,
+                companyEmail = settings.CompanyEmail,
+                companyPhone = settings.CompanyPhone,
+                companyTaxId = settings.CompanyTaxId,
+                companyRegistrationNumber = settings.CompanyRegistrationNumber,
+                companyIndustry = settings.CompanyIndustry,
+                companyDescription = settings.CompanyDescription,
+                // Logos
+                companyLogoUrl = settings.CompanyLogoUrl,
+                companyLoginLogoUrl = settings.CompanyLoginLogoUrl,
+                // Theme
+                primaryColor = settings.PrimaryColor,
+                secondaryColor = settings.SecondaryColor,
+                tertiaryColor = settings.TertiaryColor,
+                surfaceColor = settings.SurfaceColor,
+                backgroundColor = settings.BackgroundColor,
+                selectedPaletteId = settings.SelectedPaletteId,
+                selectedPaletteName = settings.SelectedPaletteName,
+                // Customization / Localization
+                defaultCurrency = settings.DefaultCurrency,
+                defaultTimezone = settings.DefaultTimezone,
+                defaultLanguage = settings.DefaultLanguage,
+                dateFormat = settings.DateFormat,
+                timeFormat = settings.TimeFormat,
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting branding settings");
+            return StatusCode(500, new { message = "Error getting branding settings" });
+        }
+    }
+
+    /// <summary>
+    /// Update company branding and customization settings
+    /// </summary>
+    [HttpPut("branding")]
+    [Authorize(Roles = "Admin,SysAdmin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> UpdateBranding([FromBody] UpdateBrandingRequest request)
+    {
+        try
+        {
+            var settings = await _dbContext.SystemSettings.FirstOrDefaultAsync();
+            if (settings == null) return NotFound(new { message = "System settings not found" });
+
+            // Update company identity fields (not in UpdateSystemSettingsRequest)
+            if (request.CompanyFullName != null) settings.CompanyFullName = request.CompanyFullName;
+            if (request.CompanyLegalName != null) settings.CompanyLegalName = request.CompanyLegalName;
+            if (request.CompanyWebsite != null) settings.CompanyWebsite = request.CompanyWebsite;
+            if (request.CompanyEmail != null) settings.CompanyEmail = request.CompanyEmail;
+            if (request.CompanyPhone != null) settings.CompanyPhone = request.CompanyPhone;
+            if (request.CompanyTaxId != null) settings.CompanyTaxId = request.CompanyTaxId;
+            if (request.CompanyRegistrationNumber != null) settings.CompanyRegistrationNumber = request.CompanyRegistrationNumber;
+            if (request.CompanyIndustry != null) settings.CompanyIndustry = request.CompanyIndustry;
+            if (request.CompanyDescription != null) settings.CompanyDescription = request.CompanyDescription;
+            settings.LastModified = DateTime.UtcNow;
+            await _dbContext.SaveChangesAsync();
+
+            // Delegate standard settings (name, logo, colors, currency, timezone) to settings service
+            var stdRequest = new UpdateSystemSettingsRequest
+            {
+                CompanyName = request.CompanyName,
+                CompanyLogoUrl = request.CompanyLogoUrl,
+                CompanyLoginLogoUrl = request.CompanyLoginLogoUrl,
+                PrimaryColor = request.PrimaryColor,
+                SecondaryColor = request.SecondaryColor,
+                TertiaryColor = request.TertiaryColor,
+                SurfaceColor = request.SurfaceColor,
+                BackgroundColor = request.BackgroundColor,
+                DefaultCurrency = request.DefaultCurrency,
+                DefaultTimezone = request.DefaultTimezone,
+                DefaultLanguage = request.DefaultLanguage,
+                DateFormat = request.DateFormat,
+                TimeFormat = request.TimeFormat,
+            };
+            await _settingsService.UpdateSettingsAsync(stdRequest);
+
+            return Ok(new { message = "Branding updated successfully" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating branding settings");
+            return StatusCode(500, new { message = "Error updating branding settings", error = ex.Message });
+        }
+    }
+
+    #endregion
+
+    #region Currencies & Timezones
+
+    /// <summary>
+    /// Get all available currencies (from LookupCategory "Currencies")
+    /// </summary>
+    [HttpGet("currencies")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetCurrencies([FromQuery] string? search = null)
+    {
+        try
+        {
+            var category = await _context.LookupCategories
+                .Include(c => c.Items.OrderBy(i => i.SortOrder))
+                .FirstOrDefaultAsync(c => c.Name == "Currencies");
+
+            if (category == null || category.Items.Count == 0)
+            {
+                return Ok(new { items = Array.Empty<object>(), seeded = false, message = "Currencies not yet seeded. POST /api/masterdata/seed/currencies to seed." });
+            }
+
+            var items = category.Items.AsEnumerable();
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var term = search.Trim().ToLower();
+                items = items.Where(i => i.Key.ToLower().Contains(term) || i.Value.ToLower().Contains(term));
+            }
+
+            // Get default currency from settings
+            var settings = await _dbContext.SystemSettings.AsNoTracking().FirstOrDefaultAsync();
+            var defaultCurrency = settings?.DefaultCurrency ?? "USD";
+
+            return Ok(new
+            {
+                items = items.Select(i =>
+                {
+                    var meta = i.Meta != null ? JsonSerializer.Deserialize<JsonElement>(i.Meta) : default;
+                    return new
+                    {
+                        code = i.Key,
+                        name = i.Value,
+                        symbol = meta.ValueKind == JsonValueKind.Object && meta.TryGetProperty("symbol", out var sym) ? sym.GetString() : "",
+                        numericCode = meta.ValueKind == JsonValueKind.Object && meta.TryGetProperty("numericCode", out var nc) ? nc.GetString() : "",
+                        isDefault = i.Key == defaultCurrency
+                    };
+                }).ToList(),
+                defaultCurrency,
+                seeded = true,
+                totalCount = category.Items.Count
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting currencies");
+            return StatusCode(500, new { message = "Error getting currencies" });
+        }
+    }
+
+    /// <summary>
+    /// Set the default currency for the system
+    /// </summary>
+    [HttpPut("currencies/default")]
+    [Authorize(Roles = "Admin,SysAdmin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> SetDefaultCurrency([FromBody] SetDefaultValueRequest request)
+    {
+        try
+        {
+            await _settingsService.UpdateSettingsAsync(new UpdateSystemSettingsRequest { DefaultCurrency = request.Value });
+            return Ok(new { message = $"Default currency set to {request.Value}" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error setting default currency");
+            return StatusCode(500, new { message = "Error setting default currency" });
+        }
+    }
+
+    /// <summary>
+    /// Get all available timezones (from LookupCategory "Timezones")
+    /// </summary>
+    [HttpGet("timezones")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetTimezones([FromQuery] string? search = null, [FromQuery] string? region = null)
+    {
+        try
+        {
+            var category = await _context.LookupCategories
+                .Include(c => c.Items.OrderBy(i => i.SortOrder))
+                .FirstOrDefaultAsync(c => c.Name == "Timezones");
+
+            if (category == null || category.Items.Count == 0)
+            {
+                return Ok(new { items = Array.Empty<object>(), seeded = false, message = "Timezones not yet seeded. POST /api/masterdata/seed/timezones to seed." });
+            }
+
+            var items = category.Items.AsEnumerable();
+            if (!string.IsNullOrWhiteSpace(region))
+            {
+                var regionLower = region.ToLower();
+                items = items.Where(i =>
+                {
+                    if (i.Meta == null) return false;
+                    try { var m = JsonSerializer.Deserialize<JsonElement>(i.Meta); return m.TryGetProperty("region", out var r) && (r.GetString() ?? "").ToLower() == regionLower; }
+                    catch { return false; }
+                });
+            }
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                var term = search.Trim().ToLower();
+                items = items.Where(i => i.Key.ToLower().Contains(term) || i.Value.ToLower().Contains(term));
+            }
+
+            var settings = await _dbContext.SystemSettings.AsNoTracking().FirstOrDefaultAsync();
+            var defaultTz = settings?.DefaultTimezone ?? "America/New_York";
+
+            return Ok(new
+            {
+                items = items.Select(i =>
+                {
+                    var meta = i.Meta != null ? JsonSerializer.Deserialize<JsonElement>(i.Meta) : default;
+                    return new
+                    {
+                        ianaId = i.Key,
+                        displayName = i.Value,
+                        utcOffset = meta.ValueKind == JsonValueKind.Object && meta.TryGetProperty("utcOffset", out var off) ? off.GetString() : "",
+                        region = meta.ValueKind == JsonValueKind.Object && meta.TryGetProperty("region", out var rgn) ? rgn.GetString() : "",
+                        isDefault = i.Key == defaultTz
+                    };
+                }).ToList(),
+                defaultTimezone = defaultTz,
+                seeded = true,
+                totalCount = category.Items.Count
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting timezones");
+            return StatusCode(500, new { message = "Error getting timezones" });
+        }
+    }
+
+    /// <summary>
+    /// Set the default timezone for the system
+    /// </summary>
+    [HttpPut("timezones/default")]
+    [Authorize(Roles = "Admin,SysAdmin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> SetDefaultTimezone([FromBody] SetDefaultValueRequest request)
+    {
+        try
+        {
+            await _settingsService.UpdateSettingsAsync(new UpdateSystemSettingsRequest { DefaultTimezone = request.Value });
+            return Ok(new { message = $"Default timezone set to {request.Value}" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error setting default timezone");
+            return StatusCode(500, new { message = "Error setting default timezone" });
+        }
+    }
+
+    /// <summary>
+    /// Seed currencies into the Currencies lookup category
+    /// </summary>
+    [HttpPost("seed/currencies")]
+    [Authorize(Roles = "Admin,SysAdmin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> SeedCurrencies([FromQuery] bool force = false)
+    {
+        try
+        {
+            await _masterDataSeeder.SeedCurrenciesAsync(force);
+            var stats = await _masterDataSeeder.GetStatsAsync();
+            return Ok(new { message = $"Currencies seeded. Total: {stats.CurrencyCount}", count = stats.CurrencyCount });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error seeding currencies");
+            return StatusCode(500, new { message = "Error seeding currencies", error = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Seed timezones into the Timezones lookup category
+    /// </summary>
+    [HttpPost("seed/timezones")]
+    [Authorize(Roles = "Admin,SysAdmin")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> SeedTimezones([FromQuery] bool force = false)
+    {
+        try
+        {
+            await _masterDataSeeder.SeedTimeZonesAsync(force);
+            var stats = await _masterDataSeeder.GetStatsAsync();
+            return Ok(new { message = $"Timezones seeded. Total: {stats.TimezoneCount}", count = stats.TimezoneCount });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error seeding timezones");
+            return StatusCode(500, new { message = "Error seeding timezones", error = ex.Message });
+        }
+    }
+
+    #endregion
+
+    #region Export
     [HttpGet("export/{dataType}")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -757,6 +1081,48 @@ public class CreateColorPaletteRequest
     public string? Color3 { get; set; }
     public string? Color4 { get; set; }
     public string? Color5 { get; set; }
+}
+
+/// <summary>
+/// Request DTO for updating company branding and customization settings.
+/// </summary>
+public class UpdateBrandingRequest
+{
+    // Company Identity
+    public string? CompanyName { get; set; }
+    public string? CompanyFullName { get; set; }
+    public string? CompanyLegalName { get; set; }
+    public string? CompanyWebsite { get; set; }
+    public string? CompanyEmail { get; set; }
+    public string? CompanyPhone { get; set; }
+    public string? CompanyTaxId { get; set; }
+    public string? CompanyRegistrationNumber { get; set; }
+    public string? CompanyIndustry { get; set; }
+    public string? CompanyDescription { get; set; }
+    // Logos
+    public string? CompanyLogoUrl { get; set; }
+    public string? CompanyLoginLogoUrl { get; set; }
+    // Theme
+    public string? PrimaryColor { get; set; }
+    public string? SecondaryColor { get; set; }
+    public string? TertiaryColor { get; set; }
+    public string? SurfaceColor { get; set; }
+    public string? BackgroundColor { get; set; }
+    // Localization
+    public string? DefaultCurrency { get; set; }
+    public string? DefaultTimezone { get; set; }
+    public string? DefaultLanguage { get; set; }
+    public string? DateFormat { get; set; }
+    public string? TimeFormat { get; set; }
+}
+
+/// <summary>
+/// Simple request DTO for setting a single default value.
+/// </summary>
+public class SetDefaultValueRequest
+{
+    /// <summary>Gets or sets the value to set as default (e.g. currency code "USD" or timezone IANA id).</summary>
+    public string Value { get; set; } = string.Empty;
 }
 
 #endregion

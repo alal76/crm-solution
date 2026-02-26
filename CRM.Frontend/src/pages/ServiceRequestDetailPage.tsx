@@ -31,6 +31,7 @@ import {
 import { useParams, useNavigate } from 'react-router-dom';
 import itsmService from '../services/itsmService';
 import { Incident, IncidentStatus, IncidentPriority } from '../types/itsm';
+import { RecordComments } from '../components/common/RecordComments';
 
 /**
  * Service Request Detail Page Component
@@ -283,6 +284,13 @@ export const ServiceRequestDetailPage: React.FC = () => {
           </Card>
         </Grid>
       </Grid>
+
+      {/* Comments Section */}
+      {incident && (
+        <Box sx={{ mt: 4 }}>
+          <RecordComments entityType="ServiceRequest" entityId={incident.id} />
+        </Box>
+      )}
 
       {/* Resolution Dialog */}
       <Dialog open={resolutionDialogOpen} onClose={() => setResolutionDialogOpen(false)} maxWidth="sm" fullWidth>

@@ -4,6 +4,7 @@ using CRM.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace CRM.Infrastructure.Migrations
 {
     [DbContext(typeof(CrmDbContext))]
-    partial class CrmDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260226135607_AddRecordComments")]
+    partial class AddRecordComments
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -22809,135 +22812,6 @@ namespace CRM.Infrastructure.Migrations
                     b.ToTable("SalesQuotas");
                 });
 
-            modelBuilder.Entity("CRM.Core.Entities.SatisfactionResponse", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Comment")
-                        .HasMaxLength(1000)
-                        .HasColumnType("VARCHAR(1000)");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("IpAddress")
-                        .HasMaxLength(50)
-                        .HasColumnType("VARCHAR(50)");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<DateTime>("RespondedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<byte[]>("RowVersion")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("BINARY(8)");
-
-                    b.Property<int>("Score")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Sentiment")
-                        .HasColumnType("int");
-
-                    b.Property<int>("SurveyId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("UserAgent")
-                        .HasMaxLength(500)
-                        .HasColumnType("VARCHAR(500)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("SurveyId")
-                        .IsUnique();
-
-                    b.ToTable("SatisfactionResponses");
-                });
-
-            modelBuilder.Entity("CRM.Core.Entities.SatisfactionSurvey", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    MySqlPropertyBuilderExtensions.UseMySqlIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int?>("AccountId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("ContactId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int>("EntityId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("EntityType")
-                        .IsRequired()
-                        .HasMaxLength(50)
-                        .HasColumnType("VARCHAR(50)");
-
-                    b.Property<DateTime?>("ExpiresAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("ExternalToken")
-                        .HasMaxLength(100)
-                        .HasColumnType("VARCHAR(100)");
-
-                    b.Property<bool>("IsDeleted")
-                        .HasColumnType("tinyint(1)");
-
-                    b.Property<DateTime?>("ResponseReceivedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<byte[]>("RowVersion")
-                        .IsConcurrencyToken()
-                        .ValueGeneratedOnAddOrUpdate()
-                        .HasColumnType("BINARY(8)");
-
-                    b.Property<DateTime?>("SentAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<int>("Status")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Subject")
-                        .HasMaxLength(200)
-                        .HasColumnType("VARCHAR(200)");
-
-                    b.Property<int>("Type")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime?>("UpdatedAt")
-                        .HasColumnType("datetime(6)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("AccountId");
-
-                    b.HasIndex("ContactId");
-
-                    b.HasIndex("ExternalToken")
-                        .IsUnique()
-                        .HasDatabaseName("IX_SatisfactionSurveys_ExternalToken");
-
-                    b.HasIndex("EntityType", "EntityId")
-                        .HasDatabaseName("IX_SatisfactionSurveys_EntityType_EntityId");
-
-                    b.ToTable("SatisfactionSurveys");
-                });
-
             modelBuilder.Entity("CRM.Core.Entities.SavedFilter", b =>
                 {
                     b.Property<int>("Id")
@@ -32965,34 +32839,6 @@ namespace CRM.Infrastructure.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("CRM.Core.Entities.SatisfactionResponse", b =>
-                {
-                    b.HasOne("CRM.Core.Entities.SatisfactionSurvey", "Survey")
-                        .WithOne("Response")
-                        .HasForeignKey("CRM.Core.Entities.SatisfactionResponse", "SurveyId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Survey");
-                });
-
-            modelBuilder.Entity("CRM.Core.Entities.SatisfactionSurvey", b =>
-                {
-                    b.HasOne("CRM.Core.Entities.Account", "Account")
-                        .WithMany()
-                        .HasForeignKey("AccountId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.HasOne("CRM.Core.Models.Contact", "Contact")
-                        .WithMany()
-                        .HasForeignKey("ContactId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.Navigation("Account");
-
-                    b.Navigation("Contact");
-                });
-
             modelBuilder.Entity("CRM.Core.Entities.SavedFilter", b =>
                 {
                     b.HasOne("CRM.Core.Entities.User", "User")
@@ -34468,11 +34314,6 @@ namespace CRM.Infrastructure.Migrations
             modelBuilder.Entity("CRM.Core.Entities.SalesQuota", b =>
                 {
                     b.Navigation("ChildQuotas");
-                });
-
-            modelBuilder.Entity("CRM.Core.Entities.SatisfactionSurvey", b =>
-                {
-                    b.Navigation("Response");
                 });
 
             modelBuilder.Entity("CRM.Core.Entities.ServiceRequest", b =>

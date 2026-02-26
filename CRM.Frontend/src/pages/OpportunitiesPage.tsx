@@ -44,6 +44,7 @@ import {
   Link as LinkIcon,
   ViewModule as ViewModuleIcon,
   TableChart as TableChartIcon,
+  Comment as CommentIcon,
 } from '@mui/icons-material';
 import PipelineKanban from '../components/sales/PipelineKanban';
 import apiClient from '../services/apiClient';
@@ -58,6 +59,7 @@ import { useAccountContext } from '../contexts/AccountContextProvider';
 import { useProfile } from '../contexts/ProfileContext';
 import { BaseEntity } from '../types';
 import { Opportunity } from '../types/crm';
+import { RecordComments } from '../components/common/RecordComments';
 import {
   DialogError,
   DialogSuccess,
@@ -822,6 +824,16 @@ function OpportunitiesPage() {
                   <NotesTab entityType="Opportunity" entityId={editingId} entityName={formData.name || 'Opportunity'} />
                 ) : (
                   <Alert severity="info" sx={{ mt: 2 }}>Please save the opportunity first to add notes.</Alert>
+                ),
+              },
+              {
+                index: 102,
+                name: 'Comments',
+                icon: <CommentIcon fontSize="small" />,
+                render: () => editingId ? (
+                  <RecordComments entityType="Opportunity" entityId={editingId} />
+                ) : (
+                  <Alert severity="info" sx={{ mt: 2 }}>Please save the opportunity first to add comments.</Alert>
                 ),
               },
             ]}

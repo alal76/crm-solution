@@ -21,6 +21,7 @@ import {
   Table,
   TableBody,
   TableCell,
+  TableContainer,
   TableHead,
   TableRow,
   TablePagination,
@@ -64,6 +65,10 @@ import {
   CloudDownload as CloudDownloadIcon,
   CheckCircle as CheckCircleIcon,
   Error as ErrorIcon,
+  Business as BusinessIcon,
+  CurrencyExchange as CurrencyExchangeIcon,
+  Schedule as ScheduleIcon,
+  Public as PublicIcon,
 } from '@mui/icons-material';
 import { LinearProgress } from '@mui/material';
 import apiClient from '../../services/apiClient';
@@ -167,6 +172,44 @@ interface ZipImportStatus {
   currentCountry?: string;
 }
 
+interface BrandingData {
+  companyName?: string;
+  companyFullName?: string;
+  companyLegalName?: string;
+  companyWebsite?: string;
+  companyEmail?: string;
+  companyPhone?: string;
+  companyTaxId?: string;
+  companyRegistrationNumber?: string;
+  companyIndustry?: string;
+  companyDescription?: string;
+  companyLogoUrl?: string;
+  companyLoginLogoUrl?: string;
+  primaryColor?: string;
+  secondaryColor?: string;
+  defaultCurrency?: string;
+  defaultTimezone?: string;
+  defaultLanguage?: string;
+  dateFormat?: string;
+  timeFormat?: string;
+}
+
+interface CurrencyItem {
+  code: string;
+  name: string;
+  symbol: string;
+  numericCode: string;
+  isDefault: boolean;
+}
+
+interface TimezoneItem {
+  ianaId: string;
+  displayName: string;
+  utcOffset: string;
+  region: string;
+  isDefault: boolean;
+}
+
 function MasterDataSettingsTab() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -212,7 +255,29 @@ function MasterDataSettingsTab() {
   const [quickSearchLoading, setQuickSearchLoading] = useState(false);
   const [showQuickSearch, setShowQuickSearch] = useState(true);
   const quickSearchDebounceRef = React.useRef<NodeJS.Timeout | null>(null);
-  
+
+  // Branding
+  const [branding, setBranding] = useState<BrandingData | null>(null);
+  const [brandingLoading, setBrandingLoading] = useState(false);
+  const [brandingForm, setBrandingForm] = useState<BrandingData>({});
+  const [brandingSaving, setBrandingSaving] = useState(false);
+  const [brandingMessage, setBrandingMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  // Currencies
+  const [currencies, setCurrencies] = useState<CurrencyItem[]>([]);
+  const [currenciesLoading, setCurrenciesLoading] = useState(false);
+  const [currencySearch, setCurrencySearch] = useState('');
+  const [defaultCurrency, setDefaultCurrency] = useState('USD');
+  const [currenciesSeeded, setCurrenciesSeeded] = useState(false);
+
+  // Timezones
+  const [timezones, setTimezones] = useState<TimezoneItem[]>([]);
+  const [timezonesLoading, setTimezonesLoading] = useState(false);
+  const [timezoneSearch, setTimezoneSearch] = useState('');
+  const [timezoneRegion, setTimezoneRegion] = useState('');
+  const [defaultTimezone, setDefaultTimezone] = useState('America/New_York');
+  const [timezonesSeeded, setTimezonesSeeded] = useState(false);
+
   // Dialogs
   const [categoryDialogOpen, setCategoryDialogOpen] = useState(false);
   const [itemDialogOpen, setItemDialogOpen] = useState(false);
@@ -401,6 +466,127 @@ function MasterDataSettingsTab() {
     if (selectedTab === 3) loadImportStatus();
   }, [selectedTab, loadImportStatus]);
 
+  // ─── Branding ────────────────────────────────────────────────────────────
+
+  const loadBranding = useCallback(async () => {
+    setBrandingLoading(true);
+    try {
+      const res = await apiClient.get('/api/masterdata/branding');
+      setBranding(res.data);
+      setBrandingForm(res.data);
+      if (res.data.defaultCurrency) setDefaultCurrency(res.data.defaultCurrency);
+      if (res.data.defaultTimezone) setDefaultTimezone(res.data.defaultTimezone);
+    } catch (e) {
+      console.error('Failed to load branding', e);
+    } finally {
+      setBrandingLoading(false);
+    }
+  }, []);
+
+  const saveBranding = useCallback(async () => {
+    setBrandingSaving(true);
+    setBrandingMessage(null);
+    try {
+      await apiClient.put('/api/masterdata/branding', brandingForm);
+      setBrandingMessage({ type: 'success', text: 'Branding saved successfully.' });
+      setBranding({ ...brandingForm });
+    } catch (e: any) {
+      setBrandingMessage({ type: 'error', text: e.response?.data?.message || 'Failed to save branding.' });
+    } finally {
+      setBrandingSaving(false);
+    }
+  }, [brandingForm]);
+
+  useEffect(() => {
+    if (selectedTab === 4) loadBranding();
+  }, [selectedTab, loadBranding]);
+
+  // ─── Currencies ──────────────────────────────────────────────────────────
+
+  const loadCurrencies = useCallback(async () => {
+    setCurrenciesLoading(true);
+    try {
+      const res = await apiClient.get('/api/masterdata/currencies');
+      setCurrencies(res.data.items ?? []);
+      setCurrenciesSeeded(res.data.seeded ?? false);
+      if (res.data.defaultCurrency) setDefaultCurrency(res.data.defaultCurrency);
+    } catch (e) {
+      console.error('Failed to load currencies', e);
+    } finally {
+      setCurrenciesLoading(false);
+    }
+  }, []);
+
+  const seedCurrencies = useCallback(async (force = false) => {
+    setCurrenciesLoading(true);
+    try {
+      await apiClient.post(`/api/masterdata/seed/currencies?force=${force}`);
+      await loadCurrencies();
+    } catch (e) {
+      console.error('Failed to seed currencies', e);
+    } finally {
+      setCurrenciesLoading(false);
+    }
+  }, [loadCurrencies]);
+
+  const setDefaultCurrencyHandler = useCallback(async (code: string) => {
+    try {
+      await apiClient.put('/api/masterdata/currencies/default', { value: code });
+      setDefaultCurrency(code);
+      setCurrencies(prev => prev.map(c => ({ ...c, isDefault: c.code === code })));
+    } catch (e) {
+      console.error('Failed to set default currency', e);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (selectedTab === 5) loadCurrencies();
+  }, [selectedTab, loadCurrencies]);
+
+  // ─── Timezones ───────────────────────────────────────────────────────────
+
+  const loadTimezones = useCallback(async () => {
+    setTimezonesLoading(true);
+    try {
+      const params = new URLSearchParams();
+      if (timezoneRegion) params.append('region', timezoneRegion);
+      const res = await apiClient.get(`/api/masterdata/timezones?${params.toString()}`);
+      setTimezones(res.data.items ?? []);
+      setTimezonesSeeded(res.data.seeded ?? false);
+      if (res.data.defaultTimezone) setDefaultTimezone(res.data.defaultTimezone);
+    } catch (e) {
+      console.error('Failed to load timezones', e);
+    } finally {
+      setTimezonesLoading(false);
+    }
+  }, [timezoneRegion]);
+
+  const seedTimezones = useCallback(async (force = false) => {
+    setTimezonesLoading(true);
+    try {
+      await apiClient.post(`/api/masterdata/seed/timezones?force=${force}`);
+      await loadTimezones();
+    } catch (e) {
+      console.error('Failed to seed timezones', e);
+    } finally {
+      setTimezonesLoading(false);
+    }
+  }, [loadTimezones]);
+
+  const setDefaultTimezoneHandler = useCallback(async (ianaId: string) => {
+    try {
+      await apiClient.put('/api/masterdata/timezones/default', { value: ianaId });
+      setDefaultTimezone(ianaId);
+      setTimezones(prev => prev.map(t => ({ ...t, isDefault: t.ianaId === ianaId })));
+    } catch (e) {
+      console.error('Failed to set default timezone', e);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (selectedTab === 6) loadTimezones();
+  }, [selectedTab, loadTimezones]);
+
   // Cleanup polling on unmount
   useEffect(() => () => {
     if (importPollRef.current) clearInterval(importPollRef.current);
@@ -580,6 +766,9 @@ function MasterDataSettingsTab() {
           <Tab icon={<CategoryIcon />} label="Lookups" iconPosition="start" />
           <Tab icon={<PaletteIcon />} label="Color Palettes" iconPosition="start" />
           <Tab icon={<LocationIcon />} label="ZIP Codes" iconPosition="start" />
+          <Tab icon={<BusinessIcon />} label="Branding" iconPosition="start" />
+          <Tab icon={<CurrencyExchangeIcon />} label="Currencies" iconPosition="start" />
+          <Tab icon={<ScheduleIcon />} label="Timezones" iconPosition="start" />
         </Tabs>
       </Paper>
 
@@ -1168,6 +1357,270 @@ function MasterDataSettingsTab() {
           </Button>
         </DialogActions>
       </Dialog>
+
+      {/* ── Branding Tab ─────────────────────────────────────────────── */}
+      <TabPanel value={selectedTab} index={4}>
+        <Box sx={{ maxWidth: 860 }}>
+          <Typography variant="h6" gutterBottom sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <BusinessIcon color="primary" /> Company Branding &amp; Profile
+          </Typography>
+          <Typography variant="body2" color="textSecondary" sx={{ mb: 3 }}>
+            Configure your company identity, contact information, and system-wide localization defaults.
+            These settings are seeded as master data and used across the CRM.
+          </Typography>
+
+          {brandingLoading ? <LinearProgress sx={{ mb: 2 }} /> : null}
+          {brandingMessage && (
+            <Alert severity={brandingMessage.type} sx={{ mb: 2 }} onClose={() => setBrandingMessage(null)}>
+              {brandingMessage.text}
+            </Alert>
+          )}
+
+          <Grid container spacing={3}>
+            {/* Company Identity */}
+            <Grid item xs={12}><Typography variant="subtitle1" fontWeight={600}>Company Identity</Typography></Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField fullWidth label="Company Name (Short)" value={brandingForm.companyName ?? ''} onChange={(e) => setBrandingForm(f => ({ ...f, companyName: e.target.value }))} />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField fullWidth label="Company Full Legal Name" value={brandingForm.companyFullName ?? ''} onChange={(e) => setBrandingForm(f => ({ ...f, companyFullName: e.target.value }))} />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField fullWidth label="Legal Name (for contracts)" value={brandingForm.companyLegalName ?? ''} onChange={(e) => setBrandingForm(f => ({ ...f, companyLegalName: e.target.value }))} />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField fullWidth label="Industry" value={brandingForm.companyIndustry ?? ''} onChange={(e) => setBrandingForm(f => ({ ...f, companyIndustry: e.target.value }))} />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField fullWidth multiline rows={2} label="Company Description" value={brandingForm.companyDescription ?? ''} onChange={(e) => setBrandingForm(f => ({ ...f, companyDescription: e.target.value }))} />
+            </Grid>
+
+            {/* Contact */}
+            <Grid item xs={12}><Divider /><Typography variant="subtitle1" fontWeight={600} sx={{ mt: 1 }}>Contact &amp; Web</Typography></Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField fullWidth label="Website" value={brandingForm.companyWebsite ?? ''} onChange={(e) => setBrandingForm(f => ({ ...f, companyWebsite: e.target.value }))} />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField fullWidth label="Company Email" type="email" value={brandingForm.companyEmail ?? ''} onChange={(e) => setBrandingForm(f => ({ ...f, companyEmail: e.target.value }))} />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField fullWidth label="Phone" value={brandingForm.companyPhone ?? ''} onChange={(e) => setBrandingForm(f => ({ ...f, companyPhone: e.target.value }))} />
+            </Grid>
+
+            {/* Registration */}
+            <Grid item xs={12}><Divider /><Typography variant="subtitle1" fontWeight={600} sx={{ mt: 1 }}>Registration &amp; Tax</Typography></Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField fullWidth label="Tax ID / VAT Number" value={brandingForm.companyTaxId ?? ''} onChange={(e) => setBrandingForm(f => ({ ...f, companyTaxId: e.target.value }))} />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField fullWidth label="Company Registration Number" value={brandingForm.companyRegistrationNumber ?? ''} onChange={(e) => setBrandingForm(f => ({ ...f, companyRegistrationNumber: e.target.value }))} />
+            </Grid>
+
+            {/* Logos */}
+            <Grid item xs={12}><Divider /><Typography variant="subtitle1" fontWeight={600} sx={{ mt: 1 }}>Logos</Typography></Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField fullWidth label="Logo URL (header/dashboard)" value={brandingForm.companyLogoUrl ?? ''} onChange={(e) => setBrandingForm(f => ({ ...f, companyLogoUrl: e.target.value }))} />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField fullWidth label="Login Page Logo URL" value={brandingForm.companyLoginLogoUrl ?? ''} onChange={(e) => setBrandingForm(f => ({ ...f, companyLoginLogoUrl: e.target.value }))} />
+            </Grid>
+
+            {/* Localization */}
+            <Grid item xs={12}><Divider /><Typography variant="subtitle1" fontWeight={600} sx={{ mt: 1 }}>Localization Defaults</Typography></Grid>
+            <Grid item xs={12} sm={4}>
+              <TextField fullWidth label="Default Currency (ISO code)" helperText="e.g. USD, EUR, GBP" value={brandingForm.defaultCurrency ?? ''} onChange={(e) => setBrandingForm(f => ({ ...f, defaultCurrency: e.target.value.toUpperCase() }))} inputProps={{ maxLength: 3 }} />
+            </Grid>
+            <Grid item xs={12} sm={4}>
+              <TextField fullWidth label="Default Timezone (IANA)" helperText="e.g. America/New_York" value={brandingForm.defaultTimezone ?? ''} onChange={(e) => setBrandingForm(f => ({ ...f, defaultTimezone: e.target.value }))} />
+            </Grid>
+            <Grid item xs={12} sm={4}>
+              <TextField fullWidth label="Default Language" helperText="e.g. en, fr, de" value={brandingForm.defaultLanguage ?? ''} onChange={(e) => setBrandingForm(f => ({ ...f, defaultLanguage: e.target.value }))} />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField fullWidth label="Date Format" helperText="e.g. MM/DD/YYYY" value={brandingForm.dateFormat ?? ''} onChange={(e) => setBrandingForm(f => ({ ...f, dateFormat: e.target.value }))} />
+            </Grid>
+            <Grid item xs={12} sm={6}>
+              <TextField fullWidth label="Time Format" helperText="e.g. HH:mm, h:mm a" value={brandingForm.timeFormat ?? ''} onChange={(e) => setBrandingForm(f => ({ ...f, timeFormat: e.target.value }))} />
+            </Grid>
+
+            <Grid item xs={12}>
+              <Box sx={{ display: 'flex', gap: 2, mt: 1 }}>
+                <Button variant="contained" onClick={saveBranding} disabled={brandingSaving} startIcon={brandingSaving ? <CircularProgress size={16} /> : undefined}>
+                  {brandingSaving ? 'Saving…' : 'Save Branding'}
+                </Button>
+                <Button variant="outlined" onClick={loadBranding} disabled={brandingLoading}>Refresh</Button>
+              </Box>
+            </Grid>
+          </Grid>
+        </Box>
+      </TabPanel>
+
+      {/* ── Currencies Tab ───────────────────────────────────────────── */}
+      <TabPanel value={selectedTab} index={5}>
+        <Box>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+            <Box>
+              <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <CurrencyExchangeIcon color="primary" /> World Currencies
+              </Typography>
+              <Typography variant="body2" color="textSecondary">
+                {currencies.length > 0 ? `${currencies.length} currencies loaded.` : 'Currencies not yet seeded.'}
+                {defaultCurrency && ` Default: ${defaultCurrency}`}
+              </Typography>
+            </Box>
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <Button variant="outlined" size="small" onClick={() => seedCurrencies(false)} disabled={currenciesLoading || currenciesSeeded}>
+                Seed Currencies
+              </Button>
+              <Button variant="outlined" size="small" color="warning" onClick={() => seedCurrencies(true)} disabled={currenciesLoading}>
+                Re-seed (Force)
+              </Button>
+            </Box>
+          </Box>
+
+          {currenciesLoading && <LinearProgress sx={{ mb: 2 }} />}
+
+          <TextField
+            size="small"
+            placeholder="Search by code or name…"
+            value={currencySearch}
+            onChange={(e) => setCurrencySearch(e.target.value)}
+            sx={{ mb: 2, width: 320 }}
+            InputProps={{ startAdornment: <SearchIcon sx={{ mr: 1, color: 'text.secondary' }} fontSize="small" /> }}
+          />
+
+          {currencies.length === 0 && !currenciesLoading ? (
+            <Alert severity="info">
+              No currencies loaded yet. Click "Seed Currencies" to populate {`>160`} world currencies.
+            </Alert>
+          ) : (
+            <TableContainer component={Paper} variant="outlined" sx={{ maxHeight: 520 }}>
+              <Table stickyHeader size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell><strong>Code</strong></TableCell>
+                    <TableCell><strong>Symbol</strong></TableCell>
+                    <TableCell><strong>Name</strong></TableCell>
+                    <TableCell><strong>Numeric</strong></TableCell>
+                    <TableCell><strong>Default</strong></TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {currencies
+                    .filter(c => !currencySearch || c.code.toLowerCase().includes(currencySearch.toLowerCase()) || c.name.toLowerCase().includes(currencySearch.toLowerCase()))
+                    .map(c => (
+                      <TableRow key={c.code} sx={c.isDefault ? { bgcolor: 'action.selected' } : undefined}>
+                        <TableCell><Chip label={c.code} size="small" color={c.isDefault ? 'primary' : 'default'} /></TableCell>
+                        <TableCell><Typography fontFamily="monospace">{c.symbol}</Typography></TableCell>
+                        <TableCell>{c.name}</TableCell>
+                        <TableCell><Typography variant="caption" color="textSecondary">{c.numericCode}</Typography></TableCell>
+                        <TableCell>
+                          {c.isDefault ? (
+                            <Chip label="Default" color="success" size="small" />
+                          ) : (
+                            <Button size="small" variant="text" onClick={() => setDefaultCurrencyHandler(c.code)}>Set Default</Button>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          )}
+        </Box>
+      </TabPanel>
+
+      {/* ── Timezones Tab ────────────────────────────────────────────── */}
+      <TabPanel value={selectedTab} index={6}>
+        <Box>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+            <Box>
+              <Typography variant="h6" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                <ScheduleIcon color="primary" /> World Timezones
+              </Typography>
+              <Typography variant="body2" color="textSecondary">
+                {timezones.length > 0 ? `${timezones.length} timezones loaded.` : 'Timezones not yet seeded.'}
+                {defaultTimezone && ` Default: ${defaultTimezone}`}
+              </Typography>
+            </Box>
+            <Box sx={{ display: 'flex', gap: 1 }}>
+              <Button variant="outlined" size="small" onClick={() => seedTimezones(false)} disabled={timezonesLoading || timezonesSeeded}>
+                Seed Timezones
+              </Button>
+              <Button variant="outlined" size="small" color="warning" onClick={() => seedTimezones(true)} disabled={timezonesLoading}>
+                Re-seed (Force)
+              </Button>
+            </Box>
+          </Box>
+
+          {timezonesLoading && <LinearProgress sx={{ mb: 2 }} />}
+
+          <Box sx={{ display: 'flex', gap: 2, mb: 2, flexWrap: 'wrap' }}>
+            <TextField
+              size="small"
+              placeholder="Search timezone…"
+              value={timezoneSearch}
+              onChange={(e) => setTimezoneSearch(e.target.value)}
+              sx={{ width: 280 }}
+              InputProps={{ startAdornment: <SearchIcon sx={{ mr: 1, color: 'text.secondary' }} fontSize="small" /> }}
+            />
+            <TextField
+              select
+              size="small"
+              label="Region"
+              value={timezoneRegion}
+              onChange={(e) => setTimezoneRegion(e.target.value)}
+              sx={{ width: 180 }}
+              SelectProps={{ native: true }}
+            >
+              <option value="">All Regions</option>
+              {['Americas', 'Europe', 'Asia', 'Pacific', 'Africa', 'Middle East', 'Atlantic', 'UTC'].map(r => (
+                <option key={r} value={r}>{r}</option>
+              ))}
+            </TextField>
+          </Box>
+
+          {timezones.length === 0 && !timezonesLoading ? (
+            <Alert severity="info">
+              No timezones loaded yet. Click "Seed Timezones" to populate IANA timezones.
+            </Alert>
+          ) : (
+            <TableContainer component={Paper} variant="outlined" sx={{ maxHeight: 520 }}>
+              <Table stickyHeader size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell><strong>IANA ID</strong></TableCell>
+                    <TableCell><strong>Display Name</strong></TableCell>
+                    <TableCell><strong>UTC Offset</strong></TableCell>
+                    <TableCell><strong>Region</strong></TableCell>
+                    <TableCell><strong>Default</strong></TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {timezones
+                    .filter(t => !timezoneSearch || t.ianaId.toLowerCase().includes(timezoneSearch.toLowerCase()) || t.displayName.toLowerCase().includes(timezoneSearch.toLowerCase()))
+                    .map(t => (
+                      <TableRow key={t.ianaId} sx={t.isDefault ? { bgcolor: 'action.selected' } : undefined}>
+                        <TableCell><Typography variant="caption" fontFamily="monospace">{t.ianaId}</Typography></TableCell>
+                        <TableCell>{t.displayName}</TableCell>
+                        <TableCell><Chip label={t.utcOffset} size="small" variant="outlined" /></TableCell>
+                        <TableCell><Typography variant="caption" color="textSecondary">{t.region}</Typography></TableCell>
+                        <TableCell>
+                          {t.isDefault ? (
+                            <Chip label="Default" color="success" size="small" />
+                          ) : (
+                            <Button size="small" variant="text" onClick={() => setDefaultTimezoneHandler(t.ianaId)}>Set Default</Button>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          )}
+        </Box>
+      </TabPanel>
+
     </Box>
   );
 }

@@ -84,7 +84,12 @@ public class CrmDbContext : DbContext, ICrmDbContext
     // New comprehensive entities
     public DbSet<CrmTask> CrmTasks { get; set; }
     public DbSet<Note> Notes { get; set; }
+    public DbSet<RecordComment> RecordComments { get; set; }
     public DbSet<Quote> Quotes { get; set; }
+
+    // Satisfaction surveys (CSAT / NPS / CES)
+    public DbSet<SatisfactionSurvey> SatisfactionSurveys { get; set; }
+    public DbSet<SatisfactionResponse> SatisfactionResponses { get; set; }
     public DbSet<QuoteLineItem> QuoteLineItems { get; set; }
     public DbSet<Activity> Activities { get; set; }
     public DbSet<EventAttendee> EventAttendees { get; set; }
@@ -1569,6 +1574,30 @@ public class CrmDbContext : DbContext, ICrmDbContext
                 .OnDelete(DeleteBehavior.SetNull);
 
             entity.HasIndex(e => e.IsPinned);
+        });
+
+        // Configure RecordComment
+        modelBuilder.Entity<RecordComment>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.EntityType).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.Content).IsRequired().HasMaxLength(2000);
+            entity.Property(e => e.MentionedUserIds).HasMaxLength(500);
+
+            entity.HasOne(e => e.Author)
+                .WithMany()
+                .HasForeignKey(e => e.AuthorId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.ParentComment)
+                .WithMany(e => e.Replies)
+                .HasForeignKey(e => e.ParentCommentId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(e => new { e.EntityType, e.EntityId });
+            entity.HasIndex(e => e.AuthorId);
+
+            entity.HasQueryFilter(rc => !rc.IsDeleted);
         });
 
         // Configure Quote
@@ -4847,6 +4876,46 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.Property(e => e.ResolvedBy).HasMaxLength(200);
             entity.HasIndex(e => e.IsResolved).HasDatabaseName("IX_DeadLetterEntries_IsResolved");
             entity.HasIndex(e => e.Topic).HasDatabaseName("IX_DeadLetterEntries_Topic");
+        });
+
+        // ── Satisfaction Surveys (CSAT / NPS / CES) ──────────────────────────
+        modelBuilder.Entity<SatisfactionSurvey>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.EntityType).IsRequired().HasMaxLength(50);
+            entity.Property(e => e.ExternalToken).HasMaxLength(100);
+            entity.Property(e => e.Subject).HasMaxLength(200);
+
+            entity.HasOne(e => e.Contact)
+                .WithMany()
+                .HasForeignKey(e => e.ContactId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasOne(e => e.Account)
+                .WithMany()
+                .HasForeignKey(e => e.AccountId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            entity.HasOne(e => e.Response)
+                .WithOne(r => r.Survey)
+                .HasForeignKey<SatisfactionResponse>(r => r.SurveyId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(e => new { e.EntityType, e.EntityId })
+                .HasDatabaseName("IX_SatisfactionSurveys_EntityType_EntityId");
+            entity.HasIndex(e => e.ExternalToken)
+                .IsUnique()
+                .HasDatabaseName("IX_SatisfactionSurveys_ExternalToken");
+
+            entity.HasQueryFilter(s => !s.IsDeleted);
+        });
+
+        modelBuilder.Entity<SatisfactionResponse>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Comment).HasMaxLength(1000);
+            entity.Property(e => e.IpAddress).HasMaxLength(50);
+            entity.Property(e => e.UserAgent).HasMaxLength(500);
         });
 
         // Apply provider-specific post-configuration using the Strategy Pattern

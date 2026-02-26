@@ -45,7 +45,9 @@ import {
   TrendingUp as TrendingUpIcon,
   Psychology as PsychologyIcon,
   Refresh as RefreshIcon,
+  Comment as CommentIcon,
 } from '@mui/icons-material';
+import { RecordComments } from '../components/common/RecordComments';
 import {
   Grid,
 } from '@mui/material';
@@ -1092,6 +1094,18 @@ function LeadsPage() {
                     placeholder="Add any initial notes about this lead..."
                     sx={{ mt: 2 }}
                   />
+                ),
+              },
+              {
+                index: 103,
+                name: 'Comments',
+                icon: <CommentIcon fontSize="small" />,
+                render: () => editingId ? (
+                  <RecordComments entityType="Lead" entityId={editingId} />
+                ) : (
+                  <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
+                    Save the lead first to add comments.
+                  </Typography>
                 ),
               },
             ]}

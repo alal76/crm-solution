@@ -1,9 +1,9 @@
 {
   "major": 0,
-  "minor": 594,
-  "patch": 1,
-  "lastUpdate": "2026-02-26",
-  "description": "ZIP import worker queue: IZipCodeImportQueue (Channel<T>/WaitToReadAsync), fire-and-forget 202 endpoints, POST import/trigger, CsvUrl source with DownloadAndImportCsvAsync. All import endpoints non-blocking.",
+  "minor": 596,
+  "patch": 0,
+  "lastUpdate": "2026-03-02",
+  "description": "FEAT-CSAT: Customer Satisfaction (CSAT/NPS/CES) — SatisfactionSurvey+SatisfactionResponse entities, ISatisfactionService/SatisfactionService (NPS formula, CSAT formula, sentiment calc), SatisfactionController (8 endpoints), EF migration AddSatisfactionTracking applied, SatisfactionWidget+SurveyResponseForm+SatisfactionDashboardPage+SurveyResponsePage React components, satisfactionService.ts, 15 unit tests (SatisfactionServiceTests.cs), AppTsx routes /satisfaction + /survey/:token",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [
@@ -38,7 +38,9 @@
     "TODO-SALES006-024: UsageRecordBatchBuffer (ConcurrentQueue<T>, Singleton) + UsageRecordBatchHostedService (BackgroundService, 30s flush interval, BatchSize=100); re-queues on ISubscriptionService failure to prevent data loss; 6 unit tests (UsageRecordBatchTests.cs)",
     "TODO-CRM003-08: OpportunityTeamMember entity confirmed (OpportunityTeamRole enum: AccountExecutive=0..Other=99, SplitPercentage [Range(0,100)], default Role=Other); CreateTeamMemberDto + OpportunityTeamMemberDto verified; 5 unit tests (OpportunityTeamMemberTests.cs)",
     "TODO-SYS009-003: NavigationConfigService conditionally adds ITSM/Marketing nav items via IFeatureManager.IsEnabledAsync(FeatureFlags.EnableITSM/EnableMarketing); core items (dashboard/accounts/contacts) always included; 5 unit tests (NavigationConfigServiceTests.cs)",
-    "v0.594.0: ZIP import — ImportFromCsvStreamAsync (Zeeshanahmad4 CSV/TSV header-aware parser), POST /api/zipcodes/import/csv-upload (multipart Admin-only), Admin Master Data ZIP tab import panel (GeoNames all, GeoNames per-country, CSV upload) with progress bar + polling + last-result summary; convert_geonames.py updated to document both data sources"
+    "v0.594.0: ZIP import — ImportFromCsvStreamAsync (Zeeshanahmad4 CSV/TSV header-aware parser), POST /api/zipcodes/import/csv-upload (multipart Admin-only), Admin Master Data ZIP tab import panel (GeoNames all, GeoNames per-country, CSV upload) with progress bar + polling + last-result summary; convert_geonames.py updated to document both data sources",
+    "v0.595.0: FEAT-COLLAB Record Comments & @Mentions — RecordComment entity (EntityType/EntityId polymorphic, ParentCommentId self-ref, MentionedUserIds), IRecordCommentService/RecordCommentService (2-query author-map pattern, soft-delete, owner/admin auth), RecordCommentsController (GET/POST/PUT/DELETE at /api/comments), EF migration AddRecordComments applied to dev server, RecordComments.tsx (CommentCompose @mention autocomplete, CommentRow nested replies, avatar hsl colours), recordCommentService.ts, Comments tabs on Account/Lead/Opportunity/ServiceRequest pages, 18 unit tests (RecordCommentServiceTests.cs)",
+    "v0.596.0: FEAT-CSAT Customer Satisfaction (CSAT/NPS/CES) — SurveyType/SurveyStatus/SentimentType enums, SatisfactionSurvey entity (EntityType polymorphic, ExternalToken, ContactId/AccountId FKs), SatisfactionResponse entity (Score, Comment, SentimentType, RespondedAt), ISatisfactionService interface, SatisfactionService (NPS=(promoters-detractors)/total*100, CSAT=satisfied/total*100 where satisfied>=4, sentiment thresholds 9/7/5/3), SatisfactionController (8 endpoints: CRUD + token lookup + metrics + NPS + CSAT), EF migration AddSatisfactionTracking applied to dev server, SatisfactionWidget.tsx dashboard widget, SurveyResponseForm.tsx (NPS pill 0-10 + CSAT star 1-5), SatisfactionDashboardPage.tsx, SurveyResponsePage.tsx at /survey/:token, satisfactionService.ts TypeScript API, 15 unit tests (SatisfactionServiceTests.cs) all passing"
   ],
   "git": {
     "branch": "main",

@@ -40,6 +40,16 @@ public interface IMasterDataSeederService
     Task ReseedAllAsync();
 
     /// <summary>
+    /// Seed world currencies into the Currencies lookup category.
+    /// </summary>
+    Task SeedCurrenciesAsync(bool force = false);
+
+    /// <summary>
+    /// Seed system timezones into the Timezones lookup category.
+    /// </summary>
+    Task SeedTimeZonesAsync(bool force = false);
+
+    /// <summary>
     /// Get the count of seeded master data records
     /// </summary>
     Task<MasterDataStats> GetStatsAsync();
@@ -49,8 +59,12 @@ public class MasterDataStats
 {
     public int ZipCodeCount { get; set; }
     public int ColorPaletteCount { get; set; }
+    public int CurrencyCount { get; set; }
+    public int TimezoneCount { get; set; }
     public bool ZipCodesPopulated => ZipCodeCount > 0;
     public bool ColorPalettesPopulated => ColorPaletteCount > 0;
+    public bool CurrenciesPopulated => CurrencyCount > 0;
+    public bool TimezonesPopulated => TimezoneCount > 0;
     public DateTime? LastSeededAt { get; set; }
 }
 
@@ -93,6 +107,10 @@ public class MasterDataSeederService : IMasterDataSeederService
             {
                 _logger.LogInformation("ZipCodes table has {Count} records. Skipping seed.", zipCodeCount);
             }
+
+            // Seed currencies and timezones into LookupCategories if empty
+            await SeedCurrenciesAsync(force: false);
+            await SeedTimeZonesAsync(force: false);
         }
         catch (Exception ex)
         {
@@ -115,6 +133,10 @@ public class MasterDataSeederService : IMasterDataSeederService
             await _context.Database.ExecuteSqlRawAsync("DELETE FROM ZipCodes WHERE IsActive = 1");
             await SeedZipCodesAsync();
 
+            // Reseed currencies and timezones
+            await SeedCurrenciesAsync(force: true);
+            await SeedTimeZonesAsync(force: true);
+
             _logger.LogInformation("Master data re-seeding completed.");
         }
         catch (Exception ex)
@@ -127,12 +149,414 @@ public class MasterDataSeederService : IMasterDataSeederService
     /// <inheritdoc />
     public async Task<MasterDataStats> GetStatsAsync()
     {
+        var currencyCategory = await _context.LookupCategories
+            .Include(c => c.Items)
+            .FirstOrDefaultAsync(c => c.Name == "Currencies");
+        var timezoneCategory = await _context.LookupCategories
+            .Include(c => c.Items)
+            .FirstOrDefaultAsync(c => c.Name == "Timezones");
         return new MasterDataStats
         {
             ZipCodeCount = await _context.ZipCodes.CountAsync(),
-            ColorPaletteCount = await _context.ColorPalettes.CountAsync()
+            ColorPaletteCount = await _context.ColorPalettes.CountAsync(),
+            CurrencyCount = currencyCategory?.Items.Count ?? 0,
+            TimezoneCount = timezoneCategory?.Items.Count ?? 0
         };
     }
+
+    /// <inheritdoc />
+    public async Task SeedCurrenciesAsync(bool force = false)
+    {
+        try
+        {
+            var category = await _context.LookupCategories
+                .Include(c => c.Items)
+                .FirstOrDefaultAsync(c => c.Name == "Currencies");
+
+            if (category != null && category.Items.Count > 0 && !force)
+            {
+                _logger.LogInformation("Currencies already seeded ({Count} records). Skipping.", category.Items.Count);
+                return;
+            }
+
+            if (category == null)
+            {
+                category = new LookupCategory { Name = "Currencies", IsActive = true };
+                _context.LookupCategories.Add(category);
+                await _context.SaveChangesAsync();
+            }
+            else if (force)
+            {
+                _context.LookupItems.RemoveRange(category.Items);
+                await _context.SaveChangesAsync();
+            }
+
+            var currencies = GetWorldCurrencies();
+            int sort = 0;
+            foreach (var c in currencies)
+            {
+                _context.LookupItems.Add(new LookupItem
+                {
+                    LookupCategoryId = category.Id,
+                    Key = c.Code,
+                    Value = c.Name,
+                    Meta = System.Text.Json.JsonSerializer.Serialize(new { symbol = c.Symbol, numericCode = c.NumericCode }),
+                    SortOrder = sort++,
+                    IsActive = true
+                });
+            }
+
+            await _context.SaveChangesAsync();
+            _logger.LogInformation("Seeded {Count} currencies.", currencies.Count);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error seeding currencies");
+        }
+    }
+
+    /// <inheritdoc />
+    public async Task SeedTimeZonesAsync(bool force = false)
+    {
+        try
+        {
+            var category = await _context.LookupCategories
+                .Include(c => c.Items)
+                .FirstOrDefaultAsync(c => c.Name == "Timezones");
+
+            if (category != null && category.Items.Count > 0 && !force)
+            {
+                _logger.LogInformation("Timezones already seeded ({Count} records). Skipping.", category.Items.Count);
+                return;
+            }
+
+            if (category == null)
+            {
+                category = new LookupCategory { Name = "Timezones", IsActive = true };
+                _context.LookupCategories.Add(category);
+                await _context.SaveChangesAsync();
+            }
+            else if (force)
+            {
+                _context.LookupItems.RemoveRange(category.Items);
+                await _context.SaveChangesAsync();
+            }
+
+            var tzList = GetIanaTimezones();
+            int sort = 0;
+            foreach (var tz in tzList)
+            {
+                _context.LookupItems.Add(new LookupItem
+                {
+                    LookupCategoryId = category.Id,
+                    Key = tz.IanaId,
+                    Value = tz.DisplayName,
+                    Meta = System.Text.Json.JsonSerializer.Serialize(new { utcOffset = tz.UtcOffset, region = tz.Region }),
+                    SortOrder = sort++,
+                    IsActive = true
+                });
+            }
+
+            await _context.SaveChangesAsync();
+            _logger.LogInformation("Seeded {Count} timezones.", tzList.Count);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error seeding timezones");
+        }
+    }
+
+    private sealed record CurrencyInfo(string Code, string Name, string Symbol, string NumericCode);
+    private sealed record TimezoneInfo(string IanaId, string DisplayName, string UtcOffset, string Region);
+
+    private static List<CurrencyInfo> GetWorldCurrencies() => new()
+    {
+        new("AED", "UAE Dirham", "د.إ", "784"),
+        new("AFN", "Afghan Afghani", "؋", "971"),
+        new("ALL", "Albanian Lek", "L", "008"),
+        new("AMD", "Armenian Dram", "֏", "051"),
+        new("ANG", "Netherlands Antillean Guilder", "ƒ", "532"),
+        new("AOA", "Angolan Kwanza", "Kz", "973"),
+        new("ARS", "Argentine Peso", "$", "032"),
+        new("AUD", "Australian Dollar", "A$", "036"),
+        new("AWG", "Aruban Florin", "ƒ", "533"),
+        new("AZN", "Azerbaijani Manat", "₼", "944"),
+        new("BAM", "Bosnia-Herzegovina Convertible Mark", "KM", "977"),
+        new("BBD", "Barbadian Dollar", "$", "052"),
+        new("BDT", "Bangladeshi Taka", "৳", "050"),
+        new("BGN", "Bulgarian Lev", "лв", "975"),
+        new("BHD", "Bahraini Dinar", "BD", "048"),
+        new("BIF", "Burundian Franc", "Fr", "108"),
+        new("BMD", "Bermudian Dollar", "$", "060"),
+        new("BND", "Brunei Dollar", "$", "096"),
+        new("BOB", "Bolivian Boliviano", "Bs.", "068"),
+        new("BRL", "Brazilian Real", "R$", "986"),
+        new("BSD", "Bahamian Dollar", "$", "044"),
+        new("BTN", "Bhutanese Ngultrum", "Nu", "064"),
+        new("BWP", "Botswanan Pula", "P", "072"),
+        new("BYN", "Belarusian Ruble", "Br", "933"),
+        new("BZD", "Belize Dollar", "$", "084"),
+        new("CAD", "Canadian Dollar", "C$", "124"),
+        new("CDF", "Congolese Franc", "Fr", "976"),
+        new("CHF", "Swiss Franc", "Fr", "756"),
+        new("CLP", "Chilean Peso", "$", "152"),
+        new("CNY", "Chinese Yuan", "¥", "156"),
+        new("COP", "Colombian Peso", "$", "170"),
+        new("CRC", "Costa Rican Colón", "₡", "188"),
+        new("CUP", "Cuban Peso", "$", "192"),
+        new("CVE", "Cape Verdean Escudo", "$", "132"),
+        new("CZK", "Czech Koruna", "Kč", "203"),
+        new("DJF", "Djiboutian Franc", "Fr", "262"),
+        new("DKK", "Danish Krone", "kr", "208"),
+        new("DOP", "Dominican Peso", "$", "214"),
+        new("DZD", "Algerian Dinar", "دج", "012"),
+        new("EGP", "Egyptian Pound", "£", "818"),
+        new("ERN", "Eritrean Nakfa", "Nfk", "232"),
+        new("ETB", "Ethiopian Birr", "Br", "230"),
+        new("EUR", "Euro", "€", "978"),
+        new("FJD", "Fijian Dollar", "$", "242"),
+        new("FKP", "Falkland Islands Pound", "£", "238"),
+        new("GBP", "British Pound Sterling", "£", "826"),
+        new("GEL", "Georgian Lari", "₾", "981"),
+        new("GHS", "Ghanaian Cedi", "₵", "936"),
+        new("GIP", "Gibraltar Pound", "£", "292"),
+        new("GMD", "Gambian Dalasi", "D", "270"),
+        new("GNF", "Guinean Franc", "Fr", "324"),
+        new("GTQ", "Guatemalan Quetzal", "Q", "320"),
+        new("GYD", "Guyanaese Dollar", "$", "328"),
+        new("HKD", "Hong Kong Dollar", "HK$", "344"),
+        new("HNL", "Honduran Lempira", "L", "340"),
+        new("HRK", "Croatian Kuna", "kn", "191"),
+        new("HTG", "Haitian Gourde", "G", "332"),
+        new("HUF", "Hungarian Forint", "Ft", "348"),
+        new("IDR", "Indonesian Rupiah", "Rp", "360"),
+        new("ILS", "Israeli New Shekel", "₪", "376"),
+        new("INR", "Indian Rupee", "₹", "356"),
+        new("IQD", "Iraqi Dinar", "ع.د", "368"),
+        new("IRR", "Iranian Rial", "﷼", "364"),
+        new("ISK", "Icelandic Króna", "kr", "352"),
+        new("JMD", "Jamaican Dollar", "$", "388"),
+        new("JOD", "Jordanian Dinar", "JD", "400"),
+        new("JPY", "Japanese Yen", "¥", "392"),
+        new("KES", "Kenyan Shilling", "KSh", "404"),
+        new("KGS", "Kyrgystani Som", "с", "417"),
+        new("KHR", "Cambodian Riel", "៛", "116"),
+        new("KMF", "Comorian Franc", "Fr", "174"),
+        new("KPW", "North Korean Won", "₩", "408"),
+        new("KRW", "South Korean Won", "₩", "410"),
+        new("KWD", "Kuwaiti Dinar", "KD", "414"),
+        new("KYD", "Cayman Islands Dollar", "$", "136"),
+        new("KZT", "Kazakhstani Tenge", "₸", "398"),
+        new("LAK", "Laotian Kip", "₭", "418"),
+        new("LBP", "Lebanese Pound", "L£", "422"),
+        new("LKR", "Sri Lankan Rupee", "₨", "144"),
+        new("LRD", "Liberian Dollar", "$", "430"),
+        new("LSL", "Lesotho Loti", "L", "426"),
+        new("LYD", "Libyan Dinar", "LD", "434"),
+        new("MAD", "Moroccan Dirham", "MAD", "504"),
+        new("MDL", "Moldovan Leu", "L", "498"),
+        new("MGA", "Malagasy Ariary", "Ar", "969"),
+        new("MKD", "Macedonian Denar", "ден", "807"),
+        new("MMK", "Myanmar Kyat", "K", "104"),
+        new("MNT", "Mongolian Tögrög", "₮", "496"),
+        new("MOP", "Macanese Pataca", "P", "446"),
+        new("MRU", "Mauritanian Ouguiya", "UM", "929"),
+        new("MUR", "Mauritian Rupee", "₨", "480"),
+        new("MVR", "Maldivian Rufiyaa", "Rf", "462"),
+        new("MWK", "Malawian Kwacha", "MK", "454"),
+        new("MXN", "Mexican Peso", "$", "484"),
+        new("MYR", "Malaysian Ringgit", "RM", "458"),
+        new("MZN", "Mozambican Metical", "MT", "943"),
+        new("NAD", "Namibian Dollar", "$", "516"),
+        new("NGN", "Nigerian Naira", "₦", "566"),
+        new("NIO", "Nicaraguan Córdoba", "C$", "558"),
+        new("NOK", "Norwegian Krone", "kr", "578"),
+        new("NPR", "Nepalese Rupee", "₨", "524"),
+        new("NZD", "New Zealand Dollar", "NZ$", "554"),
+        new("OMR", "Omani Rial", "ر.ع.", "512"),
+        new("PAB", "Panamanian Balboa", "B/.", "590"),
+        new("PEN", "Peruvian Sol", "S/.", "604"),
+        new("PGK", "Papua New Guinean Kina", "K", "598"),
+        new("PHP", "Philippine Peso", "₱", "608"),
+        new("PKR", "Pakistani Rupee", "₨", "586"),
+        new("PLN", "Polish Zloty", "zł", "985"),
+        new("PYG", "Paraguayan Guaraní", "₲", "600"),
+        new("QAR", "Qatari Riyal", "ر.ق", "634"),
+        new("RON", "Romanian Leu", "lei", "946"),
+        new("RSD", "Serbian Dinar", "дин", "941"),
+        new("RUB", "Russian Ruble", "₽", "643"),
+        new("RWF", "Rwandan Franc", "Fr", "646"),
+        new("SAR", "Saudi Riyal", "ر.س", "682"),
+        new("SBD", "Solomon Islands Dollar", "$", "090"),
+        new("SCR", "Seychellois Rupee", "₨", "690"),
+        new("SDG", "Sudanese Pound", "ج.س.", "938"),
+        new("SEK", "Swedish Krona", "kr", "752"),
+        new("SGD", "Singapore Dollar", "S$", "702"),
+        new("SHP", "Saint Helenian Pound", "£", "654"),
+        new("SLL", "Sierra Leonean Leone", "Le", "694"),
+        new("SOS", "Somali Shilling", "Sh", "706"),
+        new("SRD", "Surinamese Dollar", "$", "968"),
+        new("STN", "São Tomé and Príncipe Dobra", "Db", "930"),
+        new("SVC", "Salvadoran Colón", "₡", "222"),
+        new("SYP", "Syrian Pound", "£", "760"),
+        new("SZL", "Swazi Lilangeni", "L", "748"),
+        new("THB", "Thai Baht", "฿", "764"),
+        new("TJS", "Tajikistani Somoni", "SM", "972"),
+        new("TMT", "Turkmenistani Manat", "T", "934"),
+        new("TND", "Tunisian Dinar", "DT", "788"),
+        new("TOP", "Tongan Paʻanga", "T$", "776"),
+        new("TRY", "Turkish Lira", "₺", "949"),
+        new("TTD", "Trinidad and Tobago Dollar", "$", "780"),
+        new("TWD", "New Taiwan Dollar", "NT$", "901"),
+        new("TZS", "Tanzanian Shilling", "Sh", "834"),
+        new("UAH", "Ukrainian Hryvnia", "₴", "980"),
+        new("UGX", "Ugandan Shilling", "Sh", "800"),
+        new("USD", "US Dollar", "$", "840"),
+        new("UYU", "Uruguayan Peso", "$", "858"),
+        new("UZS", "Uzbekistani Som", "so'm", "860"),
+        new("VES", "Venezuelan Bolívar", "Bs.S", "928"),
+        new("VND", "Vietnamese Dong", "₫", "704"),
+        new("VUV", "Vanuatu Vatu", "Vt", "548"),
+        new("WST", "Samoan Tala", "T", "882"),
+        new("XAF", "Central African CFA Franc", "Fr", "950"),
+        new("XCD", "East Caribbean Dollar", "$", "951"),
+        new("XOF", "West African CFA Franc", "Fr", "952"),
+        new("XPF", "CFP Franc", "Fr", "953"),
+        new("YER", "Yemeni Rial", "﷼", "886"),
+        new("ZAR", "South African Rand", "R", "710"),
+        new("ZMW", "Zambian Kwacha", "ZK", "967"),
+        new("ZWL", "Zimbabwean Dollar", "$", "932"),
+    };
+
+    private static List<TimezoneInfo> GetIanaTimezones() => new()
+    {
+        // Americas
+        new("America/New_York", "Eastern Time (US & Canada)", "-05:00", "Americas"),
+        new("America/Chicago", "Central Time (US & Canada)", "-06:00", "Americas"),
+        new("America/Denver", "Mountain Time (US & Canada)", "-07:00", "Americas"),
+        new("America/Los_Angeles", "Pacific Time (US & Canada)", "-08:00", "Americas"),
+        new("America/Anchorage", "Alaska Time", "-09:00", "Americas"),
+        new("Pacific/Honolulu", "Hawaii Time", "-10:00", "Americas"),
+        new("America/Phoenix", "Arizona (No DST)", "-07:00", "Americas"),
+        new("America/Indiana/Indianapolis", "Indiana (East)", "-05:00", "Americas"),
+        new("America/Toronto", "Eastern Time - Toronto", "-05:00", "Americas"),
+        new("America/Vancouver", "Pacific Time - Vancouver", "-08:00", "Americas"),
+        new("America/Winnipeg", "Central Time - Winnipeg", "-06:00", "Americas"),
+        new("America/Edmonton", "Mountain Time - Edmonton", "-07:00", "Americas"),
+        new("America/Halifax", "Atlantic Time - Halifax", "-04:00", "Americas"),
+        new("America/St_Johns", "Newfoundland Time", "-03:30", "Americas"),
+        new("America/Mexico_City", "Mexico City", "-06:00", "Americas"),
+        new("America/Monterrey", "Monterrey", "-06:00", "Americas"),
+        new("America/Tijuana", "Tijuana", "-08:00", "Americas"),
+        new("America/Bogota", "Bogota", "-05:00", "Americas"),
+        new("America/Lima", "Lima", "-05:00", "Americas"),
+        new("America/Caracas", "Caracas", "-04:00", "Americas"),
+        new("America/La_Paz", "La Paz", "-04:00", "Americas"),
+        new("America/Santiago", "Santiago", "-04:00", "Americas"),
+        new("America/Sao_Paulo", "Brasilia", "-03:00", "Americas"),
+        new("America/Argentina/Buenos_Aires", "Buenos Aires", "-03:00", "Americas"),
+        new("America/Montevideo", "Montevideo", "-03:00", "Americas"),
+        new("America/Guyana", "Georgetown", "-04:00", "Americas"),
+        new("America/Asuncion", "Asuncion", "-04:00", "Americas"),
+        new("America/Manaus", "Manaus", "-04:00", "Americas"),
+        new("America/Havana", "Havana", "-05:00", "Americas"),
+        new("America/Santo_Domingo", "Santo Domingo", "-04:00", "Americas"),
+        new("America/Port-au-Prince", "Port-au-Prince", "-05:00", "Americas"),
+        new("America/Panama", "Panama", "-05:00", "Americas"),
+        new("America/Costa_Rica", "Costa Rica", "-06:00", "Americas"),
+        new("America/Guatemala", "Guatemala", "-06:00", "Americas"),
+        new("America/Tegucigalpa", "Tegucigalpa", "-06:00", "Americas"),
+        new("America/Managua", "Managua", "-06:00", "Americas"),
+        new("America/El_Salvador", "El Salvador", "-06:00", "Americas"),
+        // Europe
+        new("Europe/London", "London (GMT)", "+00:00", "Europe"),
+        new("Europe/Dublin", "Dublin", "+00:00", "Europe"),
+        new("Europe/Lisbon", "Lisbon", "+00:00", "Europe"),
+        new("Europe/Paris", "Paris", "+01:00", "Europe"),
+        new("Europe/Berlin", "Berlin", "+01:00", "Europe"),
+        new("Europe/Rome", "Rome", "+01:00", "Europe"),
+        new("Europe/Madrid", "Madrid", "+01:00", "Europe"),
+        new("Europe/Amsterdam", "Amsterdam", "+01:00", "Europe"),
+        new("Europe/Brussels", "Brussels", "+01:00", "Europe"),
+        new("Europe/Vienna", "Vienna", "+01:00", "Europe"),
+        new("Europe/Zurich", "Zurich", "+01:00", "Europe"),
+        new("Europe/Stockholm", "Stockholm", "+01:00", "Europe"),
+        new("Europe/Oslo", "Oslo", "+01:00", "Europe"),
+        new("Europe/Copenhagen", "Copenhagen", "+01:00", "Europe"),
+        new("Europe/Warsaw", "Warsaw", "+01:00", "Europe"),
+        new("Europe/Prague", "Prague", "+01:00", "Europe"),
+        new("Europe/Budapest", "Budapest", "+01:00", "Europe"),
+        new("Europe/Bucharest", "Bucharest", "+02:00", "Europe"),
+        new("Europe/Helsinki", "Helsinki", "+02:00", "Europe"),
+        new("Europe/Riga", "Riga", "+02:00", "Europe"),
+        new("Europe/Tallinn", "Tallinn", "+02:00", "Europe"),
+        new("Europe/Vilnius", "Vilnius", "+02:00", "Europe"),
+        new("Europe/Athens", "Athens", "+02:00", "Europe"),
+        new("Europe/Sofia", "Sofia", "+02:00", "Europe"),
+        new("Europe/Kyiv", "Kyiv", "+02:00", "Europe"),
+        new("Europe/Minsk", "Minsk", "+03:00", "Europe"),
+        new("Europe/Moscow", "Moscow", "+03:00", "Europe"),
+        new("Europe/Istanbul", "Istanbul", "+03:00", "Europe"),
+        // Asia/Pacific
+        new("Asia/Dubai", "Dubai", "+04:00", "Asia"),
+        new("Asia/Kabul", "Kabul", "+04:30", "Asia"),
+        new("Asia/Karachi", "Karachi", "+05:00", "Asia"),
+        new("Asia/Kolkata", "Mumbai/Kolkata/New Delhi", "+05:30", "Asia"),
+        new("Asia/Colombo", "Sri Jayawardenepura", "+05:30", "Asia"),
+        new("Asia/Kathmandu", "Kathmandu", "+05:45", "Asia"),
+        new("Asia/Dhaka", "Dhaka", "+06:00", "Asia"),
+        new("Asia/Rangoon", "Yangon (Rangoon)", "+06:30", "Asia"),
+        new("Asia/Bangkok", "Bangkok/Hanoi/Jakarta", "+07:00", "Asia"),
+        new("Asia/Singapore", "Singapore", "+08:00", "Asia"),
+        new("Asia/Hong_Kong", "Hong Kong", "+08:00", "Asia"),
+        new("Asia/Taipei", "Taipei", "+08:00", "Asia"),
+        new("Asia/Shanghai", "Beijing/Shanghai", "+08:00", "Asia"),
+        new("Asia/Kuala_Lumpur", "Kuala Lumpur", "+08:00", "Asia"),
+        new("Asia/Manila", "Manila", "+08:00", "Asia"),
+        new("Asia/Tokyo", "Tokyo", "+09:00", "Asia"),
+        new("Asia/Seoul", "Seoul", "+09:00", "Asia"),
+        new("Australia/Adelaide", "Adelaide", "+09:30", "Pacific"),
+        new("Australia/Darwin", "Darwin", "+09:30", "Pacific"),
+        new("Australia/Brisbane", "Brisbane", "+10:00", "Pacific"),
+        new("Australia/Sydney", "Sydney/Canberra/Melbourne", "+10:00", "Pacific"),
+        new("Australia/Perth", "Perth", "+08:00", "Pacific"),
+        new("Pacific/Auckland", "Auckland/Wellington", "+12:00", "Pacific"),
+        new("Pacific/Fiji", "Fiji", "+12:00", "Pacific"),
+        new("Pacific/Guam", "Guam", "+10:00", "Pacific"),
+        // Middle East / Africa
+        new("Asia/Riyadh", "Riyadh", "+03:00", "Middle East"),
+        new("Asia/Kuwait", "Kuwait", "+03:00", "Middle East"),
+        new("Asia/Baghdad", "Baghdad", "+03:00", "Middle East"),
+        new("Asia/Tehran", "Tehran", "+03:30", "Middle East"),
+        new("Asia/Baku", "Baku", "+04:00", "Middle East"),
+        new("Asia/Tbilisi", "Tbilisi", "+04:00", "Middle East"),
+        new("Asia/Yerevan", "Yerevan", "+04:00", "Middle East"),
+        new("Asia/Muscat", "Muscat", "+04:00", "Middle East"),
+        new("Asia/Nicosia", "Nicosia", "+02:00", "Middle East"),
+        new("Asia/Beirut", "Beirut", "+02:00", "Middle East"),
+        new("Asia/Jerusalem", "Jerusalem", "+02:00", "Middle East"),
+        new("Asia/Amman", "Amman", "+02:00", "Middle East"),
+        new("Asia/Damascus", "Damascus", "+02:00", "Middle East"),
+        new("Africa/Cairo", "Cairo", "+02:00", "Africa"),
+        new("Africa/Casablanca", "Casablanca", "+01:00", "Africa"),
+        new("Africa/Nairobi", "Nairobi", "+03:00", "Africa"),
+        new("Africa/Lagos", "Lagos", "+01:00", "Africa"),
+        new("Africa/Johannesburg", "Pretoria/Johannesburg", "+02:00", "Africa"),
+        new("Africa/Harare", "Harare", "+02:00", "Africa"),
+        new("Africa/Accra", "Accra", "+00:00", "Africa"),
+        new("Africa/Dakar", "Dakar", "+00:00", "Africa"),
+        new("Africa/Abidjan", "Abidjan", "+00:00", "Africa"),
+        new("Africa/Addis_Ababa", "Addis Ababa", "+03:00", "Africa"),
+        new("Africa/Khartoum", "Khartoum", "+03:00", "Africa"),
+        new("Africa/Dar_es_Salaam", "Dar es Salaam", "+03:00", "Africa"),
+        new("Africa/Kampala", "Kampala", "+03:00", "Africa"),
+        new("Africa/Lusaka", "Lusaka", "+02:00", "Africa"),
+        new("Africa/Maputo", "Maputo", "+02:00", "Africa"),
+        new("Africa/Algiers", "Algiers", "+01:00", "Africa"),
+        new("Africa/Tunis", "Tunis", "+01:00", "Africa"),
+        new("Atlantic/Reykjavik", "Reykjavik", "+00:00", "Atlantic"),
+        new("UTC", "Coordinated Universal Time (UTC)", "+00:00", "UTC"),
+    };
 
     /// <summary>
     /// Seeds color palettes into the database
