@@ -39,6 +39,14 @@ public interface IZipCodeImportService
     Task<ZipCodeImportResult> ImportFromGitHubAsync(string? repositoryUrl = null, CancellationToken cancellationToken = default);
 
     /// <summary>
+    /// Import ZIP codes from an uploaded CSV file (Zeeshanahmad4 format or standard GeoNames-compatible CSV).
+    /// Expected CSV headers (case-insensitive): COUNTRY, POSTAL_CODE, CITY, STATE, SHORT_STATE,
+    /// COUNTY, SHORT_COUNTY, COMMUNITY, SHORT_COMMUNITY, LATITUDE, LONGITUDE, ACCURACY
+    /// Source: https://github.com/Zeeshanahmad4/Zip-code-of-all-countries-cities-in-the-world-CSV-TXT-SQL-DATABASE
+    /// </summary>
+    Task<ZipCodeImportResult> ImportFromCsvStreamAsync(Stream csvStream, string? sourceName = null, CancellationToken cancellationToken = default);
+
+    /// <summary>
     /// Get import status and statistics
     /// </summary>
     Task<ZipCodeImportStatus> GetImportStatusAsync();
@@ -370,6 +378,220 @@ public class ZipCodeImportService : IZipCodeImportService
             _isRunning = false;
             _currentSource = null;
         }
+    }
+
+    public async Task<ZipCodeImportResult> ImportFromCsvStreamAsync(Stream csvStream, string? sourceName = null, CancellationToken cancellationToken = default)
+    {
+        if (_isRunning)
+        {
+            return new ZipCodeImportResult
+            {
+                Success = false,
+                ErrorMessage = "An import is already in progress"
+            };
+        }
+
+        var displaySource = sourceName ?? "CSV Upload (Zeeshanahmad4 format)";
+        var startTime = DateTime.UtcNow;
+        _isRunning = true;
+        _currentSource = displaySource;
+        _totalRecords = 0;
+        _processedRecords = 0;
+
+        try
+        {
+            _logger.LogInformation("Starting ZIP code import from CSV: {Source}", displaySource);
+
+            var records = await ParseZeeshanahmadCsvAsync(csvStream, cancellationToken);
+            if (records.Count == 0)
+            {
+                return new ZipCodeImportResult
+                {
+                    Success = false,
+                    ErrorMessage = "No valid records found in the uploaded CSV file. " +
+                                   "Expected headers: COUNTRY, POSTAL_CODE, CITY, STATE, SHORT_STATE, " +
+                                   "COUNTY, SHORT_COUNTY, COMMUNITY, SHORT_COMMUNITY, LATITUDE, LONGITUDE, ACCURACY",
+                    Source = displaySource,
+                    Duration = DateTime.UtcNow - startTime
+                };
+            }
+
+            _totalRecords = records.Count;
+            _logger.LogInformation("Parsed {Count:N0} ZIP code records from CSV", _totalRecords);
+
+            var result = await ImportRecordsAsync(records, cancellationToken);
+            result.Source = displaySource;
+            result.Duration = DateTime.UtcNow - startTime;
+
+            _lastResult = result;
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error importing ZIP codes from CSV file");
+            _lastResult = new ZipCodeImportResult
+            {
+                Success = false,
+                ErrorMessage = ex.Message,
+                Duration = DateTime.UtcNow - startTime,
+                Source = displaySource
+            };
+            return _lastResult;
+        }
+        finally
+        {
+            _isRunning = false;
+            _currentSource = null;
+        }
+    }
+
+    /// <summary>
+    /// Parses a CSV in Zeeshanahmad4 format.
+    /// Expected headers (case-insensitive, comma-separated):
+    ///   COUNTRY, POSTAL_CODE, CITY, STATE, SHORT_STATE, COUNTY, SHORT_COUNTY,
+    ///   COMMUNITY, SHORT_COMMUNITY, LATITUDE, LONGITUDE, ACCURACY
+    /// Source: https://github.com/Zeeshanahmad4/Zip-code-of-all-countries-cities-in-the-world-CSV-TXT-SQL-DATABASE
+    /// </summary>
+    private async Task<List<ZipCode>> ParseZeeshanahmadCsvAsync(Stream csvStream, CancellationToken cancellationToken)
+    {
+        var records = new List<ZipCode>();
+
+        // Build reverse country name → code lookup
+        var codeByName = CountryNames.ToDictionary(
+            kv => kv.Value.ToUpperInvariant(),
+            kv => kv.Key,
+            StringComparer.OrdinalIgnoreCase);
+
+        using var reader = new StreamReader(csvStream, leaveOpen: true);
+
+        // Parse header row to map column indices
+        var headerLine = await reader.ReadLineAsync(cancellationToken);
+        if (string.IsNullOrWhiteSpace(headerLine))
+            return records;
+
+        // Support both comma and tab delimiters
+        var delimiter = headerLine.Contains('\t') ? '\t' : ',';
+        var headers = SplitCsvLine(headerLine, delimiter);
+        var headerMap = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        for (var i = 0; i < headers.Count; i++)
+            headerMap[headers[i].Trim().ToUpperInvariant()] = i;
+
+        // Validate required columns exist
+        if (!headerMap.ContainsKey("POSTAL_CODE") && !headerMap.ContainsKey("POSTALCODE"))
+        {
+            _logger.LogWarning("CSV file is missing POSTAL_CODE column. Valid headers: {Headers}", headerLine);
+            return records;
+        }
+
+        int GetIdx(params string[] names)
+        {
+            foreach (var n in names)
+                if (headerMap.TryGetValue(n, out var idx)) return idx;
+            return -1;
+        }
+
+        static string? NullIfEmpty(string s) => string.IsNullOrWhiteSpace(s) ? null : s;
+
+        var idxCountry     = GetIdx("COUNTRY");
+        var idxPostal      = GetIdx("POSTAL_CODE", "POSTALCODE", "ZIP", "ZIP_CODE");
+        var idxCity        = GetIdx("CITY", "PLACE_NAME", "PLACENAME");
+        var idxState       = GetIdx("STATE", "ADMIN_NAME1");
+        var idxStateCode   = GetIdx("SHORT_STATE", "STATE_CODE");
+        var idxCounty      = GetIdx("COUNTY", "ADMIN_NAME2");
+        var idxCountyCode  = GetIdx("SHORT_COUNTY", "COUNTY_CODE");
+        var idxCommunity   = GetIdx("COMMUNITY", "ADMIN_NAME3");
+        var idxCommCode    = GetIdx("SHORT_COMMUNITY", "COMMUNITY_CODE");
+        var idxLat         = GetIdx("LATITUDE", "LAT");
+        var idxLon         = GetIdx("LONGITUDE", "LON", "LNG");
+        var idxAccuracy    = GetIdx("ACCURACY");
+
+        string? line;
+        while ((line = await reader.ReadLineAsync(cancellationToken)) != null)
+        {
+            if (cancellationToken.IsCancellationRequested) break;
+            if (string.IsNullOrWhiteSpace(line)) continue;
+
+            var parts = SplitCsvLine(line, delimiter);
+
+            string GetField(int idx) =>
+                idx >= 0 && idx < parts.Count ? parts[idx].Trim() : "";
+
+            var postalCode = GetField(idxPostal);
+            var city       = GetField(idxCity);
+
+            if (string.IsNullOrWhiteSpace(postalCode) || string.IsNullOrWhiteSpace(city))
+                continue;
+
+            var countryName = GetField(idxCountry);
+            // Derive country code from name if we can; fall back to first 2 chars of name
+            var countryCode = codeByName.TryGetValue(countryName.ToUpperInvariant(), out var code)
+                ? code
+                : (countryName.Length >= 2 ? countryName[..2].ToUpper() : "XX");
+
+            decimal.TryParse(GetField(idxLat), System.Globalization.NumberStyles.Any,
+                System.Globalization.CultureInfo.InvariantCulture, out var latitude);
+            decimal.TryParse(GetField(idxLon), System.Globalization.NumberStyles.Any,
+                System.Globalization.CultureInfo.InvariantCulture, out var longitude);
+            int.TryParse(GetField(idxAccuracy), out var accuracy);
+
+            records.Add(new ZipCode
+            {
+                Country      = string.IsNullOrWhiteSpace(countryName) ? GetCountryName(countryCode) : countryName,
+                CountryCode  = countryCode,
+                PostalCode   = postalCode,
+                City         = city,
+                State        = NullIfEmpty(GetField(idxState)),
+                StateCode    = NullIfEmpty(GetField(idxStateCode)),
+                County       = NullIfEmpty(GetField(idxCounty)),
+                CountyCode   = NullIfEmpty(GetField(idxCountyCode)),
+                Community    = NullIfEmpty(GetField(idxCommunity)),
+                CommunityCode = NullIfEmpty(GetField(idxCommCode)),
+                Latitude     = latitude,
+                Longitude    = longitude,
+                Accuracy     = accuracy > 0 ? accuracy : 1,
+                IsActive     = true
+            });
+        }
+
+        return records;
+    }
+
+    /// <summary>
+    /// Splits a CSV/TSV line respecting double-quoted fields.
+    /// </summary>
+    private static List<string> SplitCsvLine(string line, char delimiter)
+    {
+        var fields = new List<string>();
+        var sb = new System.Text.StringBuilder();
+        var inQuotes = false;
+
+        for (var i = 0; i < line.Length; i++)
+        {
+            var ch = line[i];
+            if (ch == '"')
+            {
+                if (inQuotes && i + 1 < line.Length && line[i + 1] == '"')
+                {
+                    sb.Append('"');
+                    i++; // skip escaped quote
+                }
+                else
+                {
+                    inQuotes = !inQuotes;
+                }
+            }
+            else if (ch == delimiter && !inQuotes)
+            {
+                fields.Add(sb.ToString());
+                sb.Clear();
+            }
+            else
+            {
+                sb.Append(ch);
+            }
+        }
+        fields.Add(sb.ToString());
+        return fields;
     }
 
     private async Task<List<ZipCode>> ParseGeoNamesZipAsync(Stream zipStream, CancellationToken cancellationToken)

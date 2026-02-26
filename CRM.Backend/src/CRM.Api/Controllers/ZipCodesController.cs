@@ -384,6 +384,59 @@ public class ZipCodesController : ControllerBase
     }
 
     /// <summary>
+    /// Import ZIP codes from an uploaded CSV file.
+    /// Accepts the Zeeshanahmad4 format (COUNTRY, POSTAL_CODE, CITY, STATE, SHORT_STATE,
+    /// COUNTY, SHORT_COUNTY, COMMUNITY, SHORT_COMMUNITY, LATITUDE, LONGITUDE, ACCURACY)
+    /// or any header-based CSV/TSV file with at least POSTAL_CODE and CITY columns.
+    /// Download the dataset from:
+    /// https://github.com/Zeeshanahmad4/Zip-code-of-all-countries-cities-in-the-world-CSV-TXT-SQL-DATABASE
+    /// </summary>
+    /// <param name="file">CSV file to import</param>
+    /// <returns>Import result</returns>
+    [HttpPost("import/csv-upload")]
+    [Authorize(Roles = "Admin")]
+    [Consumes("multipart/form-data")]
+    [ProducesResponseType(typeof(ZipCodeImportResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ZipCodeImportResult>> ImportFromCsvUpload(IFormFile file)
+    {
+        if (_zipCodeImportService == null)
+        {
+            return NotFound("ZIP code import service is not configured");
+        }
+
+        if (_zipCodeImportService.IsImportRunning)
+        {
+            return Conflict("An import is already in progress");
+        }
+
+        if (file == null || file.Length == 0)
+        {
+            return BadRequest("A non-empty CSV file is required");
+        }
+
+        var extension = System.IO.Path.GetExtension(file.FileName).ToLowerInvariant();
+        if (extension != ".csv" && extension != ".txt" && extension != ".tsv")
+        {
+            return BadRequest("Only .csv, .txt, and .tsv files are accepted");
+        }
+
+        _logger.LogInformation("Admin uploaded ZIP code CSV file: {FileName} ({Size:N0} bytes)",
+            file.FileName, file.Length);
+
+        using var stream = file.OpenReadStream();
+        var sourceName = $"CSV Upload ({file.FileName})";
+        var result = await _zipCodeImportService.ImportFromCsvStreamAsync(stream, sourceName);
+
+        if (result.Success)
+        {
+            return Ok(result);
+        }
+        return StatusCode(500, result);
+    }
+
+    /// <summary>
     /// Get ZIP code statistics
     /// </summary>
     /// <returns>Statistics about ZIP code data</returns>

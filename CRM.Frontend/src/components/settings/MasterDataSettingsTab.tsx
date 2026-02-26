@@ -61,7 +61,11 @@ import {
   ExpandMore as ExpandMoreIcon,
   Settings as SettingsIcon,
   Storage as StorageIcon,
+  CloudDownload as CloudDownloadIcon,
+  CheckCircle as CheckCircleIcon,
+  Error as ErrorIcon,
 } from '@mui/icons-material';
+import { LinearProgress } from '@mui/material';
 import apiClient from '../../services/apiClient';
 
 interface MasterDataOverview {
@@ -140,6 +144,29 @@ interface QuickSearchResult {
   display: string;
 }
 
+interface ZipImportResult {
+  success: boolean;
+  recordsImported: number;
+  recordsSkipped: number;
+  recordsUpdated: number;
+  recordsFailed: number;
+  errorMessage?: string;
+  duration: string;
+  completedAt: string;
+  source?: string;
+}
+
+interface ZipImportStatus {
+  isRunning: boolean;
+  totalRecords: number;
+  processedRecords: number;
+  progressPercent: number;
+  lastImportAt?: string;
+  lastResult?: ZipImportResult;
+  currentSource?: string;
+  currentCountry?: string;
+}
+
 function MasterDataSettingsTab() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -170,6 +197,15 @@ function MasterDataSettingsTab() {
   const [zipRowsPerPage, setZipRowsPerPage] = useState(25);
   const [zipTotalCount, setZipTotalCount] = useState(0);
   
+  // ZIP import state
+  const [importStatus, setImportStatus] = useState<ZipImportStatus | null>(null);
+  const [importLoading, setImportLoading] = useState(false);
+  const [importMessage, setImportMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [importCountryCode, setImportCountryCode] = useState('');
+  const [csvFile, setCsvFile] = useState<File | null>(null);
+  const csvInputRef = React.useRef<HTMLInputElement>(null);
+  const importPollRef = React.useRef<NodeJS.Timeout | null>(null);
+
   // Quick search for global ZIP lookup
   const [quickSearch, setQuickSearch] = useState('');
   const [quickSearchResults, setQuickSearchResults] = useState<QuickSearchResult[]>([]);
@@ -262,6 +298,112 @@ function MasterDataSettingsTab() {
     } catch (err) {
       console.error('Failed to load ZIP countries', err);
     }
+  }, []);
+
+  // ---- ZIP Import helpers ----
+  const loadImportStatus = useCallback(async () => {
+    try {
+      const res = await apiClient.get('/api/zipcodes/import/status');
+      setImportStatus(res.data);
+      return res.data as ZipImportStatus;
+    } catch {
+      return null;
+    }
+  }, []);
+
+  const startImportPoll = useCallback(() => {
+    if (importPollRef.current) clearInterval(importPollRef.current);
+    importPollRef.current = setInterval(async () => {
+      const status = await loadImportStatus();
+      if (status && !status.isRunning) {
+        clearInterval(importPollRef.current!);
+        importPollRef.current = null;
+        setImportLoading(false);
+        if (status.lastResult?.success) {
+          setImportMessage({ type: 'success', text: `Import complete: ${status.lastResult.recordsImported.toLocaleString()} imported, ${status.lastResult.recordsSkipped.toLocaleString()} skipped.` });
+          loadOverview();
+        } else if (status.lastResult) {
+          setImportMessage({ type: 'error', text: status.lastResult.errorMessage || 'Import failed.' });
+        }
+      }
+    }, 2000);
+  }, [loadImportStatus, loadOverview]);
+
+  const triggerGeoNamesAll = useCallback(async () => {
+    setImportLoading(true);
+    setImportMessage(null);
+    try {
+      await apiClient.post('/api/zipcodes/import/geonames');
+    } catch (e: any) {
+      if (e.response?.status !== 409) {
+        setImportMessage({ type: 'error', text: e.response?.data?.message || 'Failed to start import.' });
+        setImportLoading(false);
+        return;
+      }
+    }
+    await loadImportStatus();
+    startImportPoll();
+  }, [loadImportStatus, startImportPoll]);
+
+  const triggerGeoNamesCountry = useCallback(async () => {
+    const cc = importCountryCode.trim().toUpperCase();
+    if (!cc || cc.length !== 2) {
+      setImportMessage({ type: 'error', text: 'Enter a valid 2-letter ISO country code (e.g. US, GB, DE).' });
+      return;
+    }
+    setImportLoading(true);
+    setImportMessage(null);
+    try {
+      await apiClient.post(`/api/zipcodes/import/geonames/${cc}`);
+    } catch (e: any) {
+      if (e.response?.status !== 409) {
+        setImportMessage({ type: 'error', text: e.response?.data?.message || 'Failed to start import.' });
+        setImportLoading(false);
+        return;
+      }
+    }
+    await loadImportStatus();
+    startImportPoll();
+  }, [importCountryCode, loadImportStatus, startImportPoll]);
+
+  const triggerCsvUpload = useCallback(async () => {
+    if (!csvFile) {
+      setImportMessage({ type: 'error', text: 'Please select a CSV file first.' });
+      return;
+    }
+    setImportLoading(true);
+    setImportMessage(null);
+    const formData = new FormData();
+    formData.append('file', csvFile);
+    try {
+      const res = await apiClient.post('/api/zipcodes/import/csv-upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      setImportLoading(false);
+      const result: ZipImportResult = res.data;
+      if (result.success) {
+        setImportMessage({ type: 'success', text: `Import complete: ${result.recordsImported.toLocaleString()} imported, ${result.recordsSkipped.toLocaleString()} skipped.` });
+        loadOverview();
+      } else {
+        setImportMessage({ type: 'error', text: result.errorMessage || 'Import failed.' });
+      }
+      setCsvFile(null);
+      if (csvInputRef.current) csvInputRef.current.value = '';
+      await loadImportStatus();
+    } catch (e: any) {
+      setImportLoading(false);
+      setImportMessage({ type: 'error', text: e.response?.data?.message || 'Failed to upload file.' });
+    }
+  }, [csvFile, loadImportStatus, loadOverview]);
+
+  // Load import status when ZIP tab is active
+  useEffect(() => {
+    if (selectedTab === 3) loadImportStatus();
+  }, [selectedTab, loadImportStatus]);
+
+  // Cleanup polling on unmount
+  useEffect(() => () => {
+    if (importPollRef.current) clearInterval(importPollRef.current);
   }, []);
 
   // Quick search for global ZIP lookup with debounce
@@ -671,6 +813,147 @@ function MasterDataSettingsTab() {
 
       {/* ZIP Codes Tab */}
       <TabPanel value={selectedTab} index={3}>
+        {/* ---- Import / Update ZIP Data ---- */}
+        <Paper sx={{ p: 2, mb: 3, borderRadius: 2, border: '1px solid', borderColor: 'divider' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <CloudDownloadIcon color="primary" />
+              <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>Import / Update ZIP Data</Typography>
+            </Box>
+            <Chip
+              size="small"
+              label={importStatus?.isRunning ? 'Importing…' : (importStatus?.lastResult ? 'Last import done' : 'No imports yet')}
+              color={importStatus?.isRunning ? 'warning' : (importStatus?.lastResult?.success ? 'success' : 'default')}
+            />
+          </Box>
+
+          {importStatus?.isRunning && (
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
+                {importStatus.currentSource} — {importStatus.processedRecords.toLocaleString()} / {importStatus.totalRecords.toLocaleString() || '?'} records
+                {importStatus.currentCountry && ` (${importStatus.currentCountry})`}
+              </Typography>
+              <LinearProgress variant={importStatus.totalRecords > 0 ? 'determinate' : 'indeterminate'} value={importStatus.progressPercent} />
+            </Box>
+          )}
+
+          {importMessage && (
+            <Alert
+              severity={importMessage.type}
+              sx={{ mb: 2, borderRadius: 1 }}
+              icon={importMessage.type === 'success' ? <CheckCircleIcon /> : <ErrorIcon />}
+              onClose={() => setImportMessage(null)}
+            >
+              {importMessage.text}
+            </Alert>
+          )}
+
+          {importStatus?.lastResult && !importStatus.isRunning && (
+            <Box sx={{ mb: 2, p: 1.5, bgcolor: 'grey.50', borderRadius: 1 }}>
+              <Typography variant="caption" color="text.secondary">
+                Last import: <strong>{importStatus.lastResult.source || 'Unknown'}</strong>
+                {importStatus.lastImportAt && ` · ${new Date(importStatus.lastImportAt).toLocaleString()}`}
+                {' · '}{importStatus.lastResult.recordsImported.toLocaleString()} imported
+                {' · '}{importStatus.lastResult.recordsSkipped.toLocaleString()} skipped
+              </Typography>
+            </Box>
+          )}
+
+          <Grid container spacing={2}>
+            {/* GeoNames — All Countries */}
+            <Grid item xs={12} md={4}>
+              <Paper variant="outlined" sx={{ p: 2, borderRadius: 2, height: '100%' }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>🌍 GeoNames — All Countries</Typography>
+                <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 1.5 }}>
+                  Downloads the complete world postal code dataset (~11M records) from
+                  {' '}<a href="https://www.geonames.org/" target="_blank" rel="noreferrer">geonames.org</a>.
+                  License: CC Attribution 4.0. This may take 15–30 minutes.
+                </Typography>
+                <Button
+                  fullWidth
+                  variant="contained"
+                  size="small"
+                  startIcon={<CloudDownloadIcon />}
+                  onClick={triggerGeoNamesAll}
+                  disabled={importLoading || importStatus?.isRunning}
+                >
+                  Start Full Import
+                </Button>
+              </Paper>
+            </Grid>
+
+            {/* GeoNames — Single Country */}
+            <Grid item xs={12} md={4}>
+              <Paper variant="outlined" sx={{ p: 2, borderRadius: 2, height: '100%' }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>🏳 GeoNames — Single Country</Typography>
+                <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 1 }}>
+                  Import postal codes for one country only. Enter the ISO 2-letter code (e.g. US, GB, DE, AU).
+                </Typography>
+                <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                  <TextField
+                    size="small"
+                    placeholder="US"
+                    value={importCountryCode}
+                    onChange={(e) => setImportCountryCode(e.target.value.slice(0, 2).toUpperCase())}
+                    inputProps={{ maxLength: 2, style: { textTransform: 'uppercase', width: 32, textAlign: 'center' } }}
+                    sx={{ width: 72 }}
+                  />
+                  <Button
+                    variant="contained"
+                    size="small"
+                    startIcon={<CloudDownloadIcon />}
+                    onClick={triggerGeoNamesCountry}
+                    disabled={importLoading || importStatus?.isRunning || importCountryCode.length !== 2}
+                    sx={{ flex: 1 }}
+                  >
+                    Import Country
+                  </Button>
+                </Box>
+              </Paper>
+            </Grid>
+
+            {/* Zeeshanahmad4 CSV Upload */}
+            <Grid item xs={12} md={4}>
+              <Paper variant="outlined" sx={{ p: 2, borderRadius: 2, height: '100%' }}>
+                <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 0.5 }}>📁 CSV Upload (Zeeshanahmad4 format)</Typography>
+                <Typography variant="caption" color="text.secondary" display="block" sx={{ mb: 1 }}>
+                  Download the dataset from{' '}
+                  <a href="https://github.com/Zeeshanahmad4/Zip-code-of-all-countries-cities-in-the-world-CSV-TXT-SQL-DATABASE" target="_blank" rel="noreferrer">this GitHub repo</a>
+                  {' '}(Google Drive link in README), then upload the CSV here.
+                  Columns: COUNTRY, POSTAL_CODE, CITY, STATE, SHORT_STATE, COUNTY, SHORT_COUNTY, COMMUNITY, SHORT_COMMUNITY, LATITUDE, LONGITUDE, ACCURACY.
+                </Typography>
+                <input
+                  type="file"
+                  accept=".csv,.txt,.tsv"
+                  ref={csvInputRef}
+                  style={{ display: 'none' }}
+                  onChange={(e) => setCsvFile(e.target.files?.[0] || null)}
+                />
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    startIcon={<UploadIcon />}
+                    onClick={() => csvInputRef.current?.click()}
+                    disabled={importLoading || importStatus?.isRunning}
+                  >
+                    {csvFile ? csvFile.name : 'Choose CSV File'}
+                  </Button>
+                  <Button
+                    variant="contained"
+                    size="small"
+                    startIcon={importLoading ? <CircularProgress size={14} color="inherit" /> : <CloudDownloadIcon />}
+                    onClick={triggerCsvUpload}
+                    disabled={!csvFile || importLoading || importStatus?.isRunning}
+                  >
+                    Upload & Import
+                  </Button>
+                </Box>
+              </Paper>
+            </Grid>
+          </Grid>
+        </Paper>
+
         {/* Quick Global Search */}
         <Paper sx={{ p: 2, mb: 3, bgcolor: 'primary.50', borderRadius: 2 }}>
           <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600, color: 'primary.main' }}>

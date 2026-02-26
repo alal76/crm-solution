@@ -1,19 +1,37 @@
 #!/usr/bin/env python3
 """
-Convert GeoNames ZIP code data to SQL insert statements for the CRM database.
-GeoNames format (tab-separated):
-  0: country code
-  1: postal code
-  2: place name (city)
-  3: admin name 1 (state)
-  4: admin code 1 (state code)
-  5: admin name 2 (county)
-  6: admin code 2 (county code)
-  7: admin name 3 (community)
-  8: admin code 3 (community code)
-  9: latitude
-  10: longitude
-  11: accuracy
+Convert ZIP/postal code data to SQL insert statements for the CRM database.
+
+=== Source 1: GeoNames (primary, tab-separated) ===
+  URL: https://download.geonames.org/export/zip/allCountries.zip
+  License: Creative Commons Attribution 4.0
+  Column order (tab-separated, no header row):
+    0: country code
+    1: postal code
+    2: place name (city)
+    3: admin name 1 (state)
+    4: admin code 1 (state code)
+    5: admin name 2 (county)
+    6: admin code 2 (county code)
+    7: admin name 3 (community)
+    8: admin code 3 (community code)
+    9: latitude
+    10: longitude
+    11: accuracy
+
+=== Source 2: Zeeshanahmad4 GitHub (CSV, use backend CSV upload endpoint) ===
+  Repo: https://github.com/Zeeshanahmad4/Zip-code-of-all-countries-cities-in-the-world-CSV-TXT-SQL-DATABASE
+  Data: Available via the Google Drive link in the README (CSV, TXT, SQL formats)
+  License: MIT
+  CSV headers (comma-separated, with header row):
+    COUNTRY, POSTAL_CODE, CITY, STATE, SHORT_STATE, COUNTY, SHORT_COUNTY,
+    COMMUNITY, SHORT_COMMUNITY, LATITUDE, LONGITUDE, ACCURACY
+  Import method: Use the CRM Admin > Master Data > ZIP Codes > Import panel
+                 (POST /api/zipcodes/import/csv-upload endpoint)
+
+This script handles Source 1 (GeoNames) only.
+For Source 2, download the CSV from Google Drive and upload it via the
+Admin panel's "CSV Upload" section.
 """
 
 import sys
