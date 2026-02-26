@@ -4,9 +4,12 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
+using CRM.Core.Interfaces;
 using CRM.Core.Interfaces.Scripting;
+using CRM.Infrastructure.AI.SK.Plugins;
 using CRM.Infrastructure.Factories;
 using CRM.Infrastructure.Scripting;
+using CRM.Infrastructure.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -23,6 +26,8 @@ public static class ScriptingServiceExtensions
     {
         services.AddSingleton<IScriptEngine, JintScriptEngine>();
         services.AddSingleton<ScriptEngineFactory>();
+        services.AddScoped<IScriptPluginService, ScriptPluginService>();
+        services.AddScoped<ScriptPluginLoader>();
         return services;
     }
 }

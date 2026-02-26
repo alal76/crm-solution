@@ -4,12 +4,8 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-// CRM Solution - Customer Relationship Management System
-// Copyright (C) 2024-2026 Abhishek Lal
-//
-// This software is source-available. Non-commercial use is permitted under
-// the terms of the LICENSE file. Commercial use requires a separate license.
-// See the LICENSE file in the root directory for full terms.
+using System.Security.Claims;
+using CRM.Core.Enums;
 using CRM.Core.Interfaces;
 using CRM.Core.Interfaces.Scripting;
 using CRM.Infrastructure.Factories;
@@ -28,13 +24,26 @@ namespace CRM.Api.Controllers;
 public class ScriptingController : ControllerBase
 {
     private readonly ScriptEngineFactory _scriptEngineFactory;
+    private readonly IEnumerable<IScriptEngine> _scriptEngines;
+    private readonly IScriptPluginService _scriptPluginService;
     private readonly ILogger<ScriptingController> _logger;
 
+    /// <summary>
+    /// Initializes a new instance of the <see cref="ScriptingController"/> class.
+    /// </summary>
+    /// <param name="scriptEngineFactory">Factory for resolving script engines by language.</param>
+    /// <param name="scriptEngines">All registered script engine implementations.</param>
+    /// <param name="scriptPluginService">Service for managing persisted script plugins.</param>
+    /// <param name="logger">Logger for error and audit logging.</param>
     public ScriptingController(
         ScriptEngineFactory scriptEngineFactory,
+        IEnumerable<IScriptEngine> scriptEngines,
+        IScriptPluginService scriptPluginService,
         ILogger<ScriptingController> logger)
     {
         _scriptEngineFactory = scriptEngineFactory;
+        _scriptEngines = scriptEngines;
+        _scriptPluginService = scriptPluginService;
         _logger = logger;
     }
 
@@ -43,10 +52,11 @@ public class ScriptingController : ControllerBase
     // ================================================================= //
 
     /// <summary>
-    /// Lists all available script engines with their details (name, language, timeout limits, availability status).
+    /// Lists all registered script engines with their name, language enum value,
+    /// availability status, and configured timeout.
     /// </summary>
     /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>Collection of engine details.</returns>
+    /// <returns>Collection of engine summary objects.</returns>
     /// <response code="200">Returns list of available script engines.</response>
     /// <response code="401">Unauthorized access.</response>
     /// <response code="500">Internal server error.</response>
@@ -58,7 +68,14 @@ public class ScriptingController : ControllerBase
     {
         try
         {
-            throw new NotImplementedException("Scripting engine listing not yet implemented (TODO-SCRIPT-001)");
+            var engines = _scriptEngines.Select(e => new
+            {
+                name = e.Language.ToString(),
+                language = (int)e.Language,
+                isAvailable = e.IsAvailable
+            });
+
+            return Ok(engines);
         }
         catch (Exception ex)
         {
@@ -72,11 +89,12 @@ public class ScriptingController : ControllerBase
     // ================================================================= //
 
     /// <summary>
-    /// Validates script syntax without execution. Returns validation diagnostics.
+    /// Validates script syntax without execution. Returns a flag and any
+    /// compiler/parser diagnostics produced by the target engine.
     /// </summary>
-    /// <param name="request">Validation request containing language and code.</param>
+    /// <param name="request">Validation request containing the numeric language enum value and source code.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>Validation result with diagnostics.</returns>
+    /// <returns>Validation result with <c>isValid</c> flag and <c>diagnostics</c> array.</returns>
     /// <response code="200">Returns validation result.</response>
     /// <response code="400">Bad request (invalid language or missing code).</response>
     /// <response code="401">Unauthorized access.</response>
@@ -92,7 +110,34 @@ public class ScriptingController : ControllerBase
     {
         try
         {
-            throw new NotImplementedException("Script validation not yet implemented (TODO-SCRIPT-002)");
+            if (request == null || string.IsNullOrWhiteSpace(request.Code))
+                return BadRequest(new { message = "Code is required" });
+
+            var language = (ScriptLanguage)request.Language;
+            IScriptEngine engine;
+
+            try
+            {
+                engine = _scriptEngineFactory.GetEngine(language);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+
+            var diagnostics = await engine.ValidateSyntaxAsync(request.Code, cancellationToken);
+
+            return Ok(new
+            {
+                isValid = !diagnostics.Any(d => d.Severity == DiagnosticSeverity.Error),
+                diagnostics = diagnostics.Select(d => new
+                {
+                    line = d.Line,
+                    column = d.Column,
+                    message = d.Message,
+                    severity = d.Severity.ToString()
+                })
+            });
         }
         catch (Exception ex)
         {
@@ -106,12 +151,14 @@ public class ScriptingController : ControllerBase
     // ================================================================= //
 
     /// <summary>
-    /// Executes a script synchronously with optional variable context and timeout.
+    /// Executes a script synchronously inside the sandboxed engine with optional
+    /// variable context and timeout override. The response always returns HTTP 200;
+    /// check <c>success</c> in the body for script-level failures.
     /// </summary>
-    /// <param name="request">Execution request containing language, code, variables, and timeout.</param>
+    /// <param name="request">Execution request containing language, code, variables, and optional timeout (ms).</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>Execution result with success status, output, logs, and duration.</returns>
-    /// <response code="200">Returns execution result (may indicate script error in result.success).</response>
+    /// <returns>Execution result with success status, return value, logs, and duration.</returns>
+    /// <response code="200">Returns execution result (check <c>success</c> for script-level errors).</response>
     /// <response code="400">Bad request (invalid language, missing code, or invalid timeout).</response>
     /// <response code="401">Unauthorized access.</response>
     /// <response code="500">Internal server error.</response>
@@ -126,7 +173,45 @@ public class ScriptingController : ControllerBase
     {
         try
         {
-            throw new NotImplementedException("Script execution not yet implemented (TODO-SCRIPT-003)");
+            if (request == null || string.IsNullOrWhiteSpace(request.Code))
+                return BadRequest(new { message = "Code is required" });
+
+            if (request.Timeout.HasValue && request.Timeout.Value <= 0)
+                return BadRequest(new { message = "Timeout must be a positive value in milliseconds" });
+
+            var language = (ScriptLanguage)request.Language;
+            IScriptEngine engine;
+
+            try
+            {
+                engine = _scriptEngineFactory.GetEngine(language);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+
+            var variables = request.Variables ?? new Dictionary<string, object?>();
+            var context = request.Context ?? new Dictionary<string, object?>();
+            var timeout = request.Timeout.HasValue
+                ? TimeSpan.FromMilliseconds(request.Timeout.Value)
+                : (TimeSpan?)null;
+
+            var result = await engine.ExecuteAsync(
+                request.Code,
+                variables,
+                context,
+                timeout,
+                cancellationToken);
+
+            return Ok(new
+            {
+                success = result.Success,
+                returnValue = result.ReturnValue,
+                logs = result.Logs,
+                errorMessage = result.ErrorMessage,
+                executionTimeMs = result.ExecutionTime.TotalMilliseconds
+            });
         }
         catch (Exception ex)
         {
@@ -136,63 +221,33 @@ public class ScriptingController : ControllerBase
     }
 
     // ================================================================= //
-    //  TODO-SCRIPT-007: Script Plugin Management (FUTURE)
+    //  TODO-SCRIPT-007: Script Plugin Management
     // ================================================================= //
 
     /// <summary>
-    /// Creates a new script plugin with metadata and code.
-    /// [FUTURE - SCRIPT-007]
+    /// Returns all persisted script plugins, optionally including inactive ones.
+    /// Results are ordered by <c>Name</c> ascending.
     /// </summary>
-    /// <param name="request">Plugin creation request.</param>
+    /// <param name="includeInactive">
+    /// When <c>true</c>, inactive plugins are included. Defaults to <c>false</c>.
+    /// </param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>Created plugin with ID and metadata.</returns>
-    /// <response code="201">Plugin created successfully.</response>
-    /// <response code="400">Bad request (invalid plugin data).</response>
-    /// <response code="401">Unauthorized access.</response>
-    /// <response code="500">Internal server error.</response>
-    [HttpPost("plugins")]
-    [ProducesResponseType(StatusCodes.Status201Created)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-    public async Task<ActionResult> CreatePlugin(
-        [FromBody] CreateScriptPluginRequest request,
-        CancellationToken cancellationToken = default)
-    {
-        try
-        {
-            throw new NotImplementedException("Script plugin creation not yet implemented (FUTURE - TODO-SCRIPT-007)");
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Error creating script plugin {PluginName}", request?.Name);
-            return StatusCode(500, new { message = "Failed to create plugin", error = ex.Message });
-        }
-    }
-
-    /// <summary>
-    /// Lists all script plugins with pagination support.
-    /// [FUTURE - SCRIPT-007]
-    /// </summary>
-    /// <param name="page">Page number (1-indexed).</param>
-    /// <param name="pageSize">Number of items per page.</param>
-    /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>Paginated list of plugins.</returns>
+    /// <returns>Ordered list of <see cref="ScriptPluginDto"/> objects.</returns>
     /// <response code="200">Returns list of plugins.</response>
     /// <response code="401">Unauthorized access.</response>
     /// <response code="500">Internal server error.</response>
     [HttpGet("plugins")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(IReadOnlyList<ScriptPluginDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> ListPlugins(
-        [FromQuery] int page = 1,
-        [FromQuery] int pageSize = 20,
+        [FromQuery] bool includeInactive = false,
         CancellationToken cancellationToken = default)
     {
         try
         {
-            throw new NotImplementedException("Script plugin listing not yet implemented (FUTURE - TODO-SCRIPT-007)");
+            var plugins = await _scriptPluginService.GetAllAsync(includeInactive, cancellationToken);
+            return Ok(plugins);
         }
         catch (Exception ex)
         {
@@ -202,18 +257,17 @@ public class ScriptingController : ControllerBase
     }
 
     /// <summary>
-    /// Retrieves a specific script plugin by ID.
-    /// [FUTURE - SCRIPT-007]
+    /// Returns a single script plugin by its primary key.
     /// </summary>
-    /// <param name="id">Plugin ID.</param>
+    /// <param name="id">Primary key of the plugin record.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>Plugin details including code and metadata.</returns>
+    /// <returns>The matching <see cref="ScriptPluginDto"/>, or 404 when not found.</returns>
     /// <response code="200">Returns plugin details.</response>
     /// <response code="401">Unauthorized access.</response>
-    /// <response code="404">Plugin not found.</response>
+    /// <response code="404">Plugin not found or has been deleted.</response>
     /// <response code="500">Internal server error.</response>
     [HttpGet("plugins/{id:int}")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ScriptPluginDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -223,7 +277,12 @@ public class ScriptingController : ControllerBase
     {
         try
         {
-            throw new NotImplementedException("Script plugin retrieval not yet implemented (FUTURE - TODO-SCRIPT-007)");
+            var plugin = await _scriptPluginService.GetByIdAsync(id, cancellationToken);
+
+            if (plugin == null)
+                return NotFound(new { message = $"Script plugin {id} not found" });
+
+            return Ok(plugin);
         }
         catch (Exception ex)
         {
@@ -233,32 +292,81 @@ public class ScriptingController : ControllerBase
     }
 
     /// <summary>
-    /// Updates an existing script plugin.
-    /// [FUTURE - SCRIPT-007]
+    /// Creates a new script plugin with the supplied metadata and source code.
+    /// The authenticated user is recorded as the author.
     /// </summary>
-    /// <param name="id">Plugin ID.</param>
-    /// <param name="request">Plugin update request.</param>
+    /// <param name="dto">Creation payload — name, language, and code are required.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>Updated plugin details.</returns>
-    /// <response code="200">Plugin updated successfully.</response>
-    /// <response code="400">Bad request (invalid plugin data).</response>
+    /// <returns>The created <see cref="ScriptPluginDto"/> with its assigned <c>Id</c>.</returns>
+    /// <response code="201">Plugin created successfully. Location header points to the new resource.</response>
+    /// <response code="400">Bad request (validation failure).</response>
     /// <response code="401">Unauthorized access.</response>
-    /// <response code="404">Plugin not found.</response>
+    /// <response code="500">Internal server error.</response>
+    [HttpPost("plugins")]
+    [ProducesResponseType(typeof(ScriptPluginDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult> CreatePlugin(
+        [FromBody] CreateScriptPluginDto dto,
+        CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var userId = GetCurrentUserId();
+            var created = await _scriptPluginService.CreateAsync(dto, userId, cancellationToken);
+            return CreatedAtAction(nameof(GetPluginById), new { id = created.Id }, created);
+        }
+        catch (System.ComponentModel.DataAnnotations.ValidationException ex)
+        {
+            _logger.LogWarning(ex, "Validation error creating script plugin");
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error creating script plugin {PluginName}", dto?.Name);
+            return StatusCode(500, new { message = "Failed to create plugin", error = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Applies a full replacement update to an existing script plugin.
+    /// All mutable fields (name, description, code, schema, active flag) are overwritten.
+    /// </summary>
+    /// <param name="id">Primary key of the plugin to update.</param>
+    /// <param name="dto">Replacement values payload.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>The updated <see cref="ScriptPluginDto"/>.</returns>
+    /// <response code="200">Plugin updated successfully.</response>
+    /// <response code="400">Bad request (validation failure).</response>
+    /// <response code="401">Unauthorized access.</response>
+    /// <response code="404">Plugin not found or has been deleted.</response>
     /// <response code="500">Internal server error.</response>
     [HttpPut("plugins/{id:int}")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ScriptPluginDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> UpdatePlugin(
         int id,
-        [FromBody] UpdateScriptPluginRequest request,
+        [FromBody] UpdateScriptPluginDto dto,
         CancellationToken cancellationToken = default)
     {
         try
         {
-            throw new NotImplementedException("Script plugin update not yet implemented (FUTURE - TODO-SCRIPT-007)");
+            var updated = await _scriptPluginService.UpdateAsync(id, dto, cancellationToken);
+            return Ok(updated);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            _logger.LogWarning(ex, "Script plugin {PluginId} not found for update", id);
+            return NotFound(new { message = ex.Message });
+        }
+        catch (System.ComponentModel.DataAnnotations.ValidationException ex)
+        {
+            _logger.LogWarning(ex, "Validation error updating script plugin {PluginId}", id);
+            return BadRequest(new { message = ex.Message });
         }
         catch (Exception ex)
         {
@@ -268,18 +376,18 @@ public class ScriptingController : ControllerBase
     }
 
     /// <summary>
-    /// Deletes a script plugin.
-    /// [FUTURE - SCRIPT-007]
+    /// Soft-deletes a script plugin. The record is retained in the database for
+    /// audit purposes but is excluded from all future queries.
     /// </summary>
-    /// <param name="id">Plugin ID.</param>
+    /// <param name="id">Primary key of the plugin to delete.</param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>Deletion confirmation.</returns>
-    /// <response code="200">Plugin deleted successfully.</response>
+    /// <returns>HTTP 204 No Content on success.</returns>
+    /// <response code="204">Plugin deleted successfully.</response>
     /// <response code="401">Unauthorized access.</response>
-    /// <response code="404">Plugin not found.</response>
+    /// <response code="404">Plugin not found or already deleted.</response>
     /// <response code="500">Internal server error.</response>
     [HttpDelete("plugins/{id:int}")]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -289,7 +397,13 @@ public class ScriptingController : ControllerBase
     {
         try
         {
-            throw new NotImplementedException("Script plugin deletion not yet implemented (FUTURE - TODO-SCRIPT-007)");
+            await _scriptPluginService.DeleteAsync(id, cancellationToken);
+            return NoContent();
+        }
+        catch (KeyNotFoundException ex)
+        {
+            _logger.LogWarning(ex, "Script plugin {PluginId} not found for deletion", id);
+            return NotFound(new { message = ex.Message });
         }
         catch (Exception ex)
         {
@@ -299,34 +413,50 @@ public class ScriptingController : ControllerBase
     }
 
     /// <summary>
-    /// Executes a plugin script synchronously with optional variable context.
-    /// Rate-limited endpoint for testing without authorization checks.
-    /// [FUTURE - SCRIPT-007]
+    /// Executes a script plugin inside a sandboxed runtime using the supplied
+    /// test variables and context, and returns a detailed result including captured
+    /// logs, return value, and wall-clock execution time.
+    /// Also updates <c>LastTestedAt</c> and <c>LastTestResult</c> on the plugin record.
     /// </summary>
-    /// <param name="id">Plugin ID.</param>
-    /// <param name="request">Execution request with variables and timeout.</param>
+    /// <param name="id">Primary key of the plugin to execute.</param>
+    /// <param name="request">
+    /// Input variables, ambient context, and an optional timeout override.
+    /// </param>
     /// <param name="cancellationToken">Cancellation token.</param>
-    /// <returns>Execution result with success status, output, and logs.</returns>
-    /// <response code="200">Returns execution result (may indicate script error in result.success).</response>
+    /// <returns>A <see cref="ScriptPluginTestResult"/> describing the execution outcome.</returns>
+    /// <response code="200">Returns execution result (check <c>success</c> for script-level errors).</response>
     /// <response code="400">Bad request (invalid plugin or execution parameters).</response>
-    /// <response code="404">Plugin not found.</response>
-    /// <response code="429">Too Many Requests (rate limited).</response>
+    /// <response code="401">Unauthorized access.</response>
+    /// <response code="404">Plugin not found or has been deleted.</response>
     /// <response code="500">Internal server error.</response>
     [HttpPost("plugins/{id:int}/test")]
-    [AllowAnonymous]
-    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ScriptPluginTestResult), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status429TooManyRequests)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult> TestExecutePlugin(
         int id,
-        [FromBody] PluginTestExecutionRequest request,
+        [FromBody] ScriptPluginTestRequest request,
         CancellationToken cancellationToken = default)
     {
         try
         {
-            throw new NotImplementedException("Plugin test execution not yet implemented (FUTURE - TODO-SCRIPT-007)");
+            if (request == null)
+                return BadRequest(new { message = "Request body is required" });
+
+            var result = await _scriptPluginService.TestExecuteAsync(id, request, cancellationToken);
+            return Ok(result);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            _logger.LogWarning(ex, "Script plugin {PluginId} not found for test execution", id);
+            return NotFound(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogWarning(ex, "Invalid operation during plugin test execution for plugin {PluginId}", id);
+            return NotFound(new { message = ex.Message });
         }
         catch (Exception ex)
         {
@@ -334,138 +464,71 @@ public class ScriptingController : ControllerBase
             return StatusCode(500, new { message = "Failed to execute plugin test", error = ex.Message });
         }
     }
+
+    // ================================================================= //
+    //  Helpers
+    // ================================================================= //
+
+    /// <summary>
+    /// Extracts the authenticated user's numeric ID from JWT claims.
+    /// Returns 0 when the claim is absent or cannot be parsed.
+    /// </summary>
+    private int GetCurrentUserId()
+    {
+        var claim = User.FindFirst(ClaimTypes.NameIdentifier);
+        return claim != null && int.TryParse(claim.Value, out var userId) ? userId : 0;
+    }
 }
 
 // ================================================================= //
-//  Request/Response DTOs (Stubbed for Controller)
+//  Request DTOs (controller-layer, separate from service-layer DTOs)
 // ================================================================= //
 
 /// <summary>
-/// Request for validating script syntax.
+/// Request body for the <c>POST /api/scripting/validate</c> endpoint.
 /// </summary>
 public class ScriptValidationRequest
 {
     /// <summary>
-    /// Script language (e.g., "javascript", "python", "csharp").
+    /// Numeric value of the <see cref="ScriptLanguage"/> enum
+    /// (0 = JavaScript, 1 = Python, 2 = C#).
     /// </summary>
-    public string? Language { get; set; }
+    public int Language { get; set; }
 
     /// <summary>
-    /// Script code to validate.
+    /// Source code to validate.
     /// </summary>
     public string? Code { get; set; }
 }
 
 /// <summary>
-/// Request for executing a script.
+/// Request body for the <c>POST /api/scripting/execute</c> endpoint.
 /// </summary>
 public class ScriptExecutionRequest
 {
     /// <summary>
-    /// Script language (e.g., "javascript", "python", "csharp").
+    /// Numeric value of the <see cref="ScriptLanguage"/> enum
+    /// (0 = JavaScript, 1 = Python, 2 = C#).
     /// </summary>
-    public string? Language { get; set; }
+    public int Language { get; set; }
 
     /// <summary>
-    /// Script code to execute.
+    /// Source code to execute.
     /// </summary>
     public string? Code { get; set; }
 
     /// <summary>
-    /// Optional variables/context passed to the script.
+    /// Named variables injected into the script's execution context.
     /// </summary>
-    public Dictionary<string, object>? Variables { get; set; }
+    public Dictionary<string, object?>? Variables { get; set; }
 
     /// <summary>
-    /// Execution timeout in milliseconds. Default: 5000.
+    /// Ambient context entries (e.g., <c>currentUserId</c>) passed through to the sandbox.
     /// </summary>
-    public int Timeout { get; set; } = 5000;
-}
-
-/// <summary>
-/// Request for creating a script plugin.
-/// </summary>
-public class CreateScriptPluginRequest
-{
-    /// <summary>
-    /// Plugin name.
-    /// </summary>
-    public string? Name { get; set; }
+    public Dictionary<string, object?>? Context { get; set; }
 
     /// <summary>
-    /// Plugin description.
+    /// Execution timeout in milliseconds. When <c>null</c> the engine applies its default.
     /// </summary>
-    public string? Description { get; set; }
-
-    /// <summary>
-    /// Script language.
-    /// </summary>
-    public string? Language { get; set; }
-
-    /// <summary>
-    /// Plugin script code.
-    /// </summary>
-    public string? Code { get; set; }
-
-    /// <summary>
-    /// Optional input schema (JSON schema for variables).
-    /// </summary>
-    public string? InputSchema { get; set; }
-
-    /// <summary>
-    /// Optional output schema.
-    /// </summary>
-    public string? OutputSchema { get; set; }
-}
-
-/// <summary>
-/// Request for updating a script plugin.
-/// </summary>
-public class UpdateScriptPluginRequest
-{
-    /// <summary>
-    /// Plugin name.
-    /// </summary>
-    public string? Name { get; set; }
-
-    /// <summary>
-    /// Plugin description.
-    /// </summary>
-    public string? Description { get; set; }
-
-    /// <summary>
-    /// Plugin script code.
-    /// </summary>
-    public string? Code { get; set; }
-
-    /// <summary>
-    /// Optional input schema.
-    /// </summary>
-    public string? InputSchema { get; set; }
-
-    /// <summary>
-    /// Optional output schema.
-    /// </summary>
-    public string? OutputSchema { get; set; }
-
-    /// <summary>
-    /// Plugin enabled status.
-    /// </summary>
-    public bool IsEnabled { get; set; } = true;
-}
-
-/// <summary>
-/// Request for testing a script plugin execution.
-/// </summary>
-public class PluginTestExecutionRequest
-{
-    /// <summary>
-    /// Optional variables/context passed to the plugin.
-    /// </summary>
-    public Dictionary<string, object>? Variables { get; set; }
-
-    /// <summary>
-    /// Execution timeout in milliseconds. Default: 5000.
-    /// </summary>
-    public int Timeout { get; set; } = 5000;
+    public int? Timeout { get; set; }
 }

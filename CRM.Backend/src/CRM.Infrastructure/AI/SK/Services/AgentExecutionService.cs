@@ -102,8 +102,8 @@ public class AgentExecutionService
         // Add the new user message
         chatHistory.AddUserMessage(message);
 
-        // Create a kernel scoped to this agent's allowed plugins
-        var kernel = _kernelFactory.CreateKernelForAgent(agent);
+        // Create a kernel scoped to this agent's allowed plugins (includes script plugins)
+        var kernel = await _kernelFactory.CreateKernelForAgentAsync(agent, cancellationToken).ConfigureAwait(false);
 
         // Execute LLM call
         var responseContent = await ExecuteChatAsync(kernel, chatHistory, agent, cancellationToken);

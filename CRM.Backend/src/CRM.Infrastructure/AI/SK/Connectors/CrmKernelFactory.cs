@@ -8,6 +8,7 @@ using System.Text.Json;
 using CRM.Core.Entities.AI;
 using CRM.Infrastructure.AI.SK.Configuration;
 using CRM.Infrastructure.AI.SK.Filters;
+using CRM.Infrastructure.AI.SK.Plugins;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -92,6 +93,50 @@ public class CrmKernelFactory
 
         _logger.LogInformation("Semantic Kernel created with {PluginCount} plugin(s)",
             kernel.Plugins.Count);
+
+        return kernel;
+    }
+
+    /// <summary>
+    /// Async version of <see cref="CreateKernel"/> that additionally imports any active
+    /// user-authored <c>ScriptPlugin</c> records via <see cref="ScriptPluginLoader"/>.
+    /// </summary>
+    /// <param name="pluginNames">Optional list of plugin names to import.</param>
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns>A fully configured Semantic Kernel instance with script plugins loaded.</returns>
+    public async Task<Kernel> CreateKernelAsync(
+        IEnumerable<string>? pluginNames = null,
+        CancellationToken ct = default)
+    {
+        var kernel = CreateKernel(pluginNames);
+
+        var scriptLoader = _serviceProvider.GetService<ScriptPluginLoader>();
+        if (scriptLoader != null)
+        {
+            await scriptLoader.ImportPluginsIntoKernelAsync(kernel, ct).ConfigureAwait(false);
+        }
+
+        return kernel;
+    }
+
+    /// <summary>
+    /// Async version of <see cref="CreateKernelForAgent"/> that additionally imports any
+    /// active user-authored <c>ScriptPlugin</c> records via <see cref="ScriptPluginLoader"/>.
+    /// </summary>
+    /// <param name="agent">The AI agent definition.</param>
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns>A Kernel scoped to the agent's allowed plugins, with script plugins loaded.</returns>
+    public async Task<Kernel> CreateKernelForAgentAsync(AIAgent agent, CancellationToken ct = default)
+    {
+        ArgumentNullException.ThrowIfNull(agent);
+
+        var kernel = CreateKernelForAgent(agent);
+
+        var scriptLoader = _serviceProvider.GetService<ScriptPluginLoader>();
+        if (scriptLoader != null)
+        {
+            await scriptLoader.ImportPluginsIntoKernelAsync(kernel, ct).ConfigureAwait(false);
+        }
 
         return kernel;
     }

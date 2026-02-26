@@ -5,6 +5,7 @@
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
 using CRM.Core.Entities;
+using CRM.Core.Entities.AI;
 using CRM.Core.Entities.Integration;
 using CRM.Core.Entities.KnowledgeBase;
 using CRM.Core.Entities.Workers;
@@ -390,6 +391,9 @@ public interface ICrmDbContext
     // KnowledgeBase entities (separate from ITSM variants)
     DbSet<CRM.Core.Entities.KnowledgeBase.KnowledgeArticle> KnowledgeArticles { get; }
     DbSet<CRM.Core.Entities.KnowledgeBase.ArticleFeedback> ArticleFeedbacks { get; }
+
+    // AI Script Plugins
+    DbSet<ScriptPlugin> ScriptPlugins { get; }
 
     DatabaseFacade Database { get; }
 

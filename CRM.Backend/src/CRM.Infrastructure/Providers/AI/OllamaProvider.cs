@@ -270,6 +270,8 @@ internal class OllamaModelDetails
 /// </summary>
 public class OllamaProvider : IAIPort
 {
+    private const int MaxPredictTokensCap = 256;
+
     private readonly HttpClient _httpClient;
     private readonly OllamaConfiguration _config;
     private readonly ILogger<OllamaProvider> _logger;
@@ -344,6 +346,12 @@ public class OllamaProvider : IAIPort
             model = "olmo2:7b";
         }
 
+        var numPredict = request.MaxTokens ?? _config.DefaultMaxTokens;
+        if (numPredict > MaxPredictTokensCap)
+        {
+            numPredict = MaxPredictTokensCap;
+        }
+
         var ollamaRequest = new OllamaGenerateRequest
         {
             Model = model,
@@ -353,7 +361,7 @@ public class OllamaProvider : IAIPort
             {
                 Temperature = request.Temperature ?? _config.DefaultTemperature,
                 TopP = request.TopP,
-                NumPredict = request.MaxTokens ?? _config.DefaultMaxTokens,
+                NumPredict = numPredict,
                 Stop = request.StopSequences
             },
             KeepAlive = _config.KeepAlive ? "24h" : "5m"
@@ -385,6 +393,12 @@ public class OllamaProvider : IAIPort
             model = "olmo2:7b";
         }
 
+        var numPredict = request.MaxTokens ?? _config.DefaultMaxTokens;
+        if (numPredict > MaxPredictTokensCap)
+        {
+            numPredict = MaxPredictTokensCap;
+        }
+
         var messages = new List<OllamaMessage>();
 
         if (!string.IsNullOrEmpty(request.SystemPrompt))
@@ -408,7 +422,7 @@ public class OllamaProvider : IAIPort
             {
                 Temperature = request.Temperature ?? _config.DefaultTemperature,
                 TopP = request.TopP,
-                NumPredict = request.MaxTokens ?? _config.DefaultMaxTokens
+                NumPredict = numPredict
             },
             KeepAlive = _config.KeepAlive ? "24h" : "5m"
         };
@@ -443,6 +457,12 @@ public class OllamaProvider : IAIPort
             model = "olmo2:7b";
         }
 
+        var numPredict = request.MaxTokens ?? _config.DefaultMaxTokens;
+        if (numPredict > MaxPredictTokensCap)
+        {
+            numPredict = MaxPredictTokensCap;
+        }
+
         var messages = new List<OllamaMessage>();
 
         if (!string.IsNullOrEmpty(request.SystemPrompt))
@@ -466,7 +486,7 @@ public class OllamaProvider : IAIPort
             {
                 Temperature = request.Temperature ?? _config.DefaultTemperature,
                 TopP = request.TopP,
-                NumPredict = request.MaxTokens ?? _config.DefaultMaxTokens
+                NumPredict = numPredict
             },
             KeepAlive = _config.KeepAlive ? "24h" : "5m"
         };

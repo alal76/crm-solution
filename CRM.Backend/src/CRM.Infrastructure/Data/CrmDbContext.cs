@@ -234,6 +234,7 @@ public class CrmDbContext : DbContext, ICrmDbContext
     public DbSet<WorkflowMetric> WorkflowMetrics { get; set; }
     public DbSet<WorkflowLlmUsage> WorkflowLlmUsages { get; set; }
     public DbSet<WorkflowCircuitBreakerState> WorkflowCircuitBreakerStates { get; set; }
+    public DbSet<ScriptPlugin> ScriptPlugins { get; set; }
 
     // Relationship Management entities
     public DbSet<CRM.Core.Entities.RelationshipType> RelationshipTypes { get; set; }
@@ -2682,6 +2683,20 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.Property(e => e.ServiceName).IsRequired().HasMaxLength(200);
             entity.Property(e => e.State).IsRequired().HasMaxLength(50);
             entity.HasIndex(e => e.ServiceName).IsUnique();
+        });
+
+        // ScriptPlugin
+        modelBuilder.Entity<ScriptPlugin>(e =>
+        {
+            e.Property(p => p.Name).HasMaxLength(200).IsRequired();
+            e.Property(p => p.Description).HasMaxLength(2000);
+            e.Property(p => p.Code).HasColumnType("LONGTEXT");
+            e.Property(p => p.ParameterSchema).HasMaxLength(5000);
+            e.Property(p => p.ReturnValueDescription).HasMaxLength(1000);
+            e.Property(p => p.LastTestResult).HasMaxLength(2000);
+            e.HasIndex(p => p.Language);
+            e.HasIndex(p => p.IsActive);
+            e.HasQueryFilter(p => !p.IsDeleted);
         });
 
         // ===================================================================

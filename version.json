@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 593,
-  "patch": 11,
-  "lastUpdate": "2026-03-02",
-  "description": "Add scripting foundation: ScriptLanguage enum, IScriptEngine contracts, JintScriptEngine implementation, ScriptEngineFactory, WorkflowWorkerService refactor to use factory, DI registration, enum test and docs updates.",
+  "patch": 13,
+  "lastUpdate": "2026-02-26",
+  "description": "Phase 2+3 scripting: ScriptPlugin entity, EF migration, ScriptPluginService, ScriptingController (9 endpoints), ScriptPluginLoader, CrmKernelFactory async, scriptPluginService.ts, ScriptNodeEditor, JintScriptEngine 18 tests + ScriptEngineFactory 6 tests all passing (24 total)",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [

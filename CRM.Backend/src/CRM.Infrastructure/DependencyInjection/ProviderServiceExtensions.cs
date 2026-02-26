@@ -487,7 +487,7 @@ public static class ProviderServiceExtensions
             services.Configure<OllamaConfiguration>(ollamaConfig);
 
             var baseUrl = ollamaConfig["BaseUrl"]!;
-            var timeoutSeconds = int.TryParse(ollamaConfig["TimeoutSeconds"], out var t) ? t : 120;
+            var timeoutSeconds = int.TryParse(ollamaConfig["TimeoutSeconds"], out var t) ? t : 300;
 
             services.AddHttpClient<OllamaProvider>(client =>
             {
