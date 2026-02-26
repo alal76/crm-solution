@@ -123,6 +123,7 @@ import {
   Widgets as UiCustomIcon,
   FileCopy as TemplateIcon,
   Person as PersonIcon,
+  Terminal as TerminalIcon,
   Brightness4 as DarkModeToggleIcon,
   Brightness7 as LightModeToggleIcon,
 } from '@mui/icons-material';
@@ -386,6 +387,9 @@ function NavigationContent() {
     'workflow-settings': { label: 'Workflow List', icon: WorkflowIcon, path: '/admin/workflows', menuName: 'WorkflowSettings' },
     'workflow-monitor': { label: 'Monitor', icon: WorkflowMonitorIcon, path: '/admin/workflows/monitor', menuName: 'WorkflowMonitor' },
     'workflow-templates': { label: 'Templates', icon: TemplateIcon as typeof DashboardIcon, path: '/admin/workflows/templates', menuName: 'WorkflowTemplates' },
+    // Scripting
+    'script-plugin-library': { label: 'Script Library', icon: TerminalIcon as typeof DashboardIcon, path: '/scripting/plugins', menuName: 'ScriptPluginLibrary' },
+    'script-plugin-new': { label: 'New Script', icon: TerminalIcon as typeof DashboardIcon, path: '/scripting/plugins/new', menuName: 'ScriptPluginNew' },
     // Developer Tools
     'api-docs': { label: 'API Docs', icon: ApiIcon, path: '/admin/api-docs', menuName: 'ApiDocs' },
     'test-results': { label: 'Test Results', icon: TestResultsIcon, path: '/admin/test-results', menuName: 'TestResults' },
@@ -575,6 +579,7 @@ function NavigationContent() {
     { id: 'infrastructure', label: 'Infrastructure', icon: 'StorageIcon', order: 4 },
     { id: 'customization', label: 'Customization', icon: 'PaletteIcon', order: 5 },
     { id: 'workflows', label: 'Workflows', icon: 'DashboardAdminIcon', order: 6 },
+    { id: 'scripting', label: 'Scripting', icon: 'TerminalIcon', order: 6.5 },
     { id: 'developer-tools', label: 'Developer Tools', icon: 'ServiceReqIcon', order: 7 },
   ], []);
 
@@ -599,6 +604,7 @@ function NavigationContent() {
     AccountTree: WorkflowIcon,
     Forum: CommunicationsIcon,
     SubcategoryIcon: ViewQuiltIcon,
+    TerminalIcon,
   }), []);
 
   // Default nav items with their proper categories (matching NavigationSettingsTab)
@@ -703,6 +709,9 @@ function NavigationContent() {
     { id: 'workflow-settings', order: 89, visible: true, category: 'admin', adminSubcategory: 'workflows' },
     { id: 'workflow-monitor', order: 90, visible: true, category: 'admin', adminSubcategory: 'workflows' },
     { id: 'workflow-templates', order: 91, visible: true, category: 'admin', adminSubcategory: 'workflows' },
+    // Scripting
+    { id: 'script-plugin-library', order: 91.5, visible: true, category: 'admin', adminSubcategory: 'scripting' },
+    { id: 'script-plugin-new', order: 91.6, visible: true, category: 'admin', adminSubcategory: 'scripting' },
     // Developer Tools
     { id: 'api-docs', order: 92, visible: true, category: 'admin', adminSubcategory: 'developer-tools' },
     { id: 'test-results', order: 93, visible: true, category: 'admin', adminSubcategory: 'developer-tools' },
@@ -777,7 +786,7 @@ function NavigationContent() {
 
   // Clear stale localStorage nav config when admin subcategory IDs have changed
   useEffect(() => {
-    const NAV_CONFIG_VERSION = 'v2-2026-02-23';
+    const NAV_CONFIG_VERSION = 'v3-2026-02-26';
     const storedVersion = localStorage.getItem('crm_nav_config_version');
     if (storedVersion !== NAV_CONFIG_VERSION) {
       localStorage.removeItem('crm_nav_order');

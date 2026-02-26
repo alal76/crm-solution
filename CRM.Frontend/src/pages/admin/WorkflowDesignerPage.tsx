@@ -17,6 +17,7 @@ import {
   Divider,
   CircularProgress,
   Chip,
+  Tooltip,
 } from '@mui/material';
 import {
   Delete as DeleteIcon,
@@ -46,6 +47,7 @@ import {
   SentimentSatisfied as AISentimentIcon,
   RateReview as HumanReviewIcon,
   BuildCircle as AIToolIcon,
+  Code as ScriptPanelIcon,
 } from '@mui/icons-material';
 import {
   RuleBuilder,
@@ -70,6 +72,7 @@ import {
   nodeTypeInfo,
   WorkflowNodeType,
 } from '../../services/workflowService';
+import Editor from '@monaco-editor/react';
 
 const DRAWER_WIDTH = 280;
 const PROPERTIES_WIDTH = 420;
@@ -220,6 +223,13 @@ function WorkflowDesignerPage() {
   const [historyIndex, setHistoryIndex] = useState(-1);
   const isUndoRedoRef = useRef(false);
 
+  // Script panel
+  const [showScriptPanel, setShowScriptPanel] = useState(false);
+  const [scriptContent, setScriptContent] = useState('');
+  const [scriptError, setScriptError] = useState('');
+  const isEditingScriptRef = useRef(false);
+  const scriptUpdateTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const pushHistory = useCallback((currentNodes: CanvasNode[], currentTransitions: CanvasTransition[]) => {
     if (isUndoRedoRef.current) return;
     setHistory(prev => {
@@ -236,6 +246,103 @@ function WorkflowDesignerPage() {
 
   const canUndo = historyIndex > 0;
   const canRedo = historyIndex < history.length - 1;
+
+  // Sync nodes/transitions → script (visual → script direction)
+  useEffect(() => {
+    if (!isEditingScriptRef.current) {
+      setScriptContent(
+        JSON.stringify({
+          workflow: {
+            name: workflow?.name ?? '',
+            entityType: workflow?.entityType ?? '',
+            description: workflow?.description ?? '',
+            category: workflow?.category ?? '',
+          },
+          nodes: nodes.map(n => ({
+            id: n.id,
+            key: n.nodeKey,
+            name: n.name,
+            type: n.nodeType,
+            position: { x: n.positionX, y: n.positionY },
+            isStartNode: n.isStartNode,
+            isEndNode: n.isEndNode,
+            ...(n.nodeSubType ? { subType: n.nodeSubType } : {}),
+            ...(n.description ? { description: n.description } : {}),
+            ...(n.configuration ? { configuration: n.configuration } : {}),
+          })),
+          transitions: transitions.map(t => ({
+            id: t.id,
+            from: t.sourceNodeId,
+            to: t.targetNodeId,
+            conditionType: t.conditionType,
+            isDefault: t.isDefault,
+            priority: t.priority,
+            ...(t.label ? { label: t.label } : {}),
+            ...(t.conditionExpression ? { condition: t.conditionExpression } : {}),
+          })),
+        }, null, 2)
+      );
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [nodes, transitions, workflow]);
+
+  // Script → canvas: debounced parse on editor change
+  const handleScriptChange = useCallback((value: string | undefined) => {
+    const val = value ?? '';
+    setScriptContent(val);
+    isEditingScriptRef.current = true;
+    if (scriptUpdateTimerRef.current) clearTimeout(scriptUpdateTimerRef.current);
+    scriptUpdateTimerRef.current = setTimeout(() => {
+      try {
+        const parsed = JSON.parse(val) as { nodes?: unknown[]; transitions?: unknown[] };
+        if (!Array.isArray(parsed?.nodes) || !Array.isArray(parsed?.transitions)) {
+          throw new Error('Root must have "nodes" and "transitions" arrays');
+        }
+        type RN = Record<string, unknown>;
+        const newNodes: CanvasNode[] = (parsed.nodes as RN[]).map(n => ({
+          ...(nodes.find(x => x.id === (n.id as number)) ?? ({} as CanvasNode)),
+          id: (n.id as number) ?? 0,
+          nodeKey: (n.key as string) ?? '',
+          name: (n.name as string) ?? 'Unnamed',
+          nodeType: ((n.type as string) ?? 'Action') as WorkflowNodeType,
+          nodeSubType: (n.subType as string) ?? undefined,
+          positionX: ((n.position as RN)?.x as number) ?? 100,
+          positionY: ((n.position as RN)?.y as number) ?? 100,
+          width: ((n.size as RN)?.width as number) ?? 160,
+          height: ((n.size as RN)?.height as number) ?? 60,
+          isStartNode: (n.isStartNode as boolean) ?? false,
+          isEndNode: (n.isEndNode as boolean) ?? false,
+          description: (n.description as string) ?? undefined,
+          configuration: (n.configuration as string) ?? undefined,
+          timeoutMinutes: 0,
+          retryCount: 0,
+          executionOrder: 0,
+          selected: false,
+        }));
+        const newTransitions: CanvasTransition[] = (parsed.transitions as RN[]).map(t => ({
+          ...(transitions.find(x => x.id === (t.id as number)) ?? ({} as CanvasTransition)),
+          id: (t.id as number) ?? 0,
+          transitionKey: (t.key as string) ?? undefined,
+          sourceNodeId: (t.from as number) ?? 0,
+          targetNodeId: (t.to as number) ?? 0,
+          label: (t.label as string) ?? undefined,
+          conditionType: ((t.conditionType as string) ?? 'None'),
+          conditionExpression: (t.condition as string) ?? undefined,
+          isDefault: (t.isDefault as boolean) ?? false,
+          priority: (t.priority as number) ?? 0,
+          lineStyle: 'solid',
+          selected: false,
+        }));
+        setNodes(newNodes);
+        setTransitions(newTransitions);
+        setHasChanges(true);
+        setScriptError('');
+      } catch (e: unknown) {
+        setScriptError(e instanceof Error ? e.message.slice(0, 90) : 'Invalid JSON');
+      }
+      isEditingScriptRef.current = false;
+    }, 600);
+  }, [nodes, transitions]);
 
   const handleUndo = useCallback(() => {
     if (!canUndo) return;
@@ -871,19 +978,39 @@ function WorkflowDesignerPage() {
           isDraftVersion={version?.status === 'Draft'}
         />
 
-        {/* Canvas */}
-        <WorkflowCanvas
-          canvasRef={canvasRef}
-          showGrid={showGrid}
-          zoom={zoom}
-          pan={pan}
-          isPanning={isPanning}
-          onMouseDown={handleCanvasMouseDown}
-          onMouseMove={handleCanvasMouseMove}
-          onMouseUp={handleCanvasMouseUp}
-          onMouseLeave={handleCanvasMouseUp}
-          gridSize={GRID_SIZE}
-        >
+        {/* Script Panel Toggle Bar */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, px: 1.5, py: 0.5, borderBottom: 1, borderColor: 'divider', backgroundColor: 'background.paper', flexShrink: 0 }}>
+          <Tooltip title={showScriptPanel ? 'Hide script panel' : 'Open side-by-side JSON script view — edit script to update canvas live'}>
+            <Button
+              size="small"
+              startIcon={<ScriptPanelIcon />}
+              variant={showScriptPanel ? 'contained' : 'outlined'}
+              onClick={() => setShowScriptPanel(p => !p)}
+              sx={{ textTransform: 'none', fontSize: '0.75rem' }}
+            >
+              Script
+            </Button>
+          </Tooltip>
+          {scriptError && (
+            <Typography variant="caption" color="error" sx={{ ml: 1 }}>⚠ {scriptError}</Typography>
+          )}
+        </Box>
+
+        {/* Canvas + Script Split View */}
+        <Box sx={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+          {/* Canvas */}
+          <WorkflowCanvas
+            canvasRef={canvasRef}
+            showGrid={showGrid}
+            zoom={zoom}
+            pan={pan}
+            isPanning={isPanning}
+            onMouseDown={handleCanvasMouseDown}
+            onMouseMove={handleCanvasMouseMove}
+            onMouseUp={handleCanvasMouseUp}
+            onMouseLeave={handleCanvasMouseUp}
+            gridSize={GRID_SIZE}
+          >
 
           {/* SVG Layer for Transitions */}
           <svg
@@ -1042,7 +1169,40 @@ function WorkflowDesignerPage() {
               </Paper>
             ))}
           </Box>
-        </WorkflowCanvas>
+          </WorkflowCanvas>
+
+          {/* Script Panel */}
+          {showScriptPanel && (
+            <Box sx={{ width: '40%', display: 'flex', flexDirection: 'column', borderLeft: '1px solid', borderColor: 'divider', backgroundColor: '#1e1e1e', minWidth: 300, maxWidth: 700, flexShrink: 0 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 1.5, py: 0.75, backgroundColor: '#2d2d2d', borderBottom: '1px solid rgba(255,255,255,0.12)', flexShrink: 0 }}>
+                <Typography variant="caption" sx={{ color: '#ccc', fontFamily: 'monospace', fontWeight: 600, letterSpacing: 0.5 }}>
+                  WORKFLOW JSON — edit to update canvas
+                </Typography>
+                <IconButton size="small" onClick={() => setShowScriptPanel(false)} sx={{ color: '#999' }}>
+                  <CloseIcon fontSize="small" />
+                </IconButton>
+              </Box>
+              <Box sx={{ flex: 1, overflow: 'hidden' }}>
+                <Editor
+                  language="json"
+                  value={scriptContent}
+                  onChange={handleScriptChange}
+                  theme="vs-dark"
+                  height="100%"
+                  options={{
+                    minimap: { enabled: false },
+                    fontSize: 12,
+                    wordWrap: 'on',
+                    scrollBeyondLastLine: false,
+                    formatOnPaste: true,
+                    automaticLayout: true,
+                    tabSize: 2,
+                  }}
+                />
+              </Box>
+            </Box>
+          )}
+        </Box>
       </Box>
 
       {/* Right Drawer - Properties Panel */}

@@ -3,7 +3,7 @@
 > **Last Updated:** March 2, 2026  
 > **Version:** 0.593.14  
 > **Status:** 🔄 ACTIVE — 6 NEW FEATURE TASKS (Batch 2)  
-> **Historical Completion:** 525 items completed (502 historical + 23 scripting Phases 1–5)
+> **Historical Completion:** 527 items completed (502 historical + 23 scripting Phases 1–5 + 2 scripting Phase 6)
 
 **Scripting tasks COMPLETE. New batch: 6 feature tasks (Batch 2 — Collaboration, Analytics, CSAT, Portal, AI Scoring, E2E).**
 
@@ -293,6 +293,10 @@ Phase 5 — Frontend (✅ COMPLETE — Feb 26, 2026):
   ✅ SCRIPT-016  ScriptPluginLibraryPage (437 lines) + ScriptPluginEditorPage (714 lines)
   ✅ SCRIPT-018  ScriptTestPanel (392 lines, variables + context + timeout + result panel)
   ✅ SCRIPT-019  ScriptVariableInspector (298 lines, table + compact chip modes)
+
+Phase 6 — Designer Integration & Navigation (✅ COMPLETE — Feb 26, 2026):
+  ✅ SCRIPT-020  Workflow Designer split JSON script panel — Monaco editor alongside canvas, bidirectional live sync (visual→JSON + JSON→canvas with 600ms debounce); toggle button in toolbar; parse errors shown inline (WorkflowDesignerPage.tsx)
+  ✅ SCRIPT-021  Scripting section added to Navigation — Admin > Scripting subcategory with "Script Library" (/scripting/plugins) and "New Script" (/scripting/plugins/new) items; nav config version bumped to v3-2026-02-26
 
 ---
 

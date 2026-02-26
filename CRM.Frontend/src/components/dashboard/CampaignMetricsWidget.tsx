@@ -77,7 +77,8 @@ const CampaignMetricsWidget: React.FC = () => {
     return Math.min(100, Math.round((c.actualCost / c.budget) * 100));
   };
 
-  const statusColor = (status: string): 'success' | 'primary' | 'warning' | 'default' => {
+  const statusColor = (status: string | number | null | undefined): 'success' | 'primary' | 'warning' | 'default' => {
+    if (status === null || status === undefined || typeof status !== 'string') return 'default';
     const s = status.toLowerCase();
     if (s === 'active') return 'success';
     if (s === 'planned') return 'primary';

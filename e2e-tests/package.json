@@ -31,8 +31,8 @@
     "test:admin:config": "playwright test tests/admin/admin-config.spec.ts",
     "test:admin:workflows": "playwright test tests/admin/workflows-and-rules.spec.ts",
     "test:admin:agents": "playwright test tests/admin/agents-and-llm.spec.ts",
-    "test:comprehensive": "playwright test tests/full-page-coverage.spec.ts tests/crud/ tests/admin/admin-config.spec.ts tests/admin/workflows-and-rules.spec.ts tests/admin/agents-and-llm.spec.ts",
-    "test:comprehensive:headed": "playwright test --headed tests/full-page-coverage.spec.ts tests/crud/ tests/admin/admin-config.spec.ts tests/admin/workflows-and-rules.spec.ts tests/admin/agents-and-llm.spec.ts",
+    "test:comprehensive": "playwright test --config=playwright.comprehensive.config.ts tests/full-page-coverage.spec.ts tests/crud/ tests/admin/admin-config.spec.ts tests/admin/workflows-and-rules.spec.ts tests/admin/agents-and-llm.spec.ts",
+    "test:comprehensive:headed": "playwright test --config=playwright.comprehensive.config.ts --headed tests/full-page-coverage.spec.ts tests/crud/ tests/admin/admin-config.spec.ts tests/admin/workflows-and-rules.spec.ts tests/admin/agents-and-llm.spec.ts",
     "test:itsm": "playwright test tests/itsm/ tests/crud/crud-itsm.spec.ts"
   },
   "devDependencies": {
