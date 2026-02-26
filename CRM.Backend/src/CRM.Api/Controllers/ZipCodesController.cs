@@ -23,16 +23,19 @@ public class ZipCodesController : ControllerBase
 {
     private readonly IZipCodeService _zipCodeService;
     private readonly IZipCodeImportService? _zipCodeImportService;
+    private readonly IZipCodeImportQueue? _importQueue;
     private readonly ILogger<ZipCodesController> _logger;
 
     public ZipCodesController(
         IZipCodeService zipCodeService,
         ILogger<ZipCodesController> logger,
-        IZipCodeImportService? zipCodeImportService = null)
+        IZipCodeImportService? zipCodeImportService = null,
+        IZipCodeImportQueue? importQueue = null)
     {
         _zipCodeService = zipCodeService;
         _logger = logger;
         _zipCodeImportService = zipCodeImportService;
+        _importQueue = importQueue;
     }
 
     /// <summary>
@@ -268,6 +271,46 @@ public class ZipCodesController : ControllerBase
     #region Import Endpoints
 
     /// <summary>
+    /// Trigger a background ZIP code import job.
+    /// Returns 202 Accepted immediately; poll GET import/status for progress.
+    /// </summary>
+    /// <param name="request">Trigger request specifying source, optional country code, and optional CSV URL</param>
+    [HttpPost("import/trigger")]
+    [Authorize(Roles = "Admin")]
+    [ProducesResponseType(StatusCodes.Status202Accepted)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public IActionResult TriggerImport([FromBody] ImportTriggerRequest? request = null)
+    {
+        if (_importQueue == null)
+            return NotFound("Import queue is not available. Ensure the import worker service is registered.");
+
+        if (_zipCodeImportService?.IsImportRunning == true)
+            return Conflict(new { message = "An import is already in progress", hint = "Poll GET import/status for progress" });
+
+        var source = request?.Source ?? "GeoNames";
+        var importRequest = new ZipCodeImportRequest(
+            Source: source,
+            CountryCode: request?.CountryCode?.ToUpperInvariant(),
+            Url: request?.Url,
+            RequestedBy: User.Identity?.Name ?? "admin");
+
+        _importQueue.TryEnqueue(importRequest);
+
+        _logger.LogInformation(
+            "ZIP import queued (source={Source}, country={Country}) by {User}",
+            source, request?.CountryCode ?? "all", User.Identity?.Name ?? "admin");
+
+        return Accepted(new
+        {
+            message = $"Import job queued (source={source}). Poll GET api/zipcodes/import/status for progress.",
+            source,
+            countryCode = request?.CountryCode,
+            statusUrl = Url.Action(nameof(GetImportStatus))
+        });
+    }
+
+    /// <summary>
     /// Get the current ZIP code import status
     /// </summary>
     /// <returns>Import status including progress if running</returns>
@@ -287,100 +330,67 @@ public class ZipCodesController : ControllerBase
     }
 
     /// <summary>
-    /// Import ZIP codes from GeoNames for all countries
+    /// Queue a background import of all countries from GeoNames.
+    /// Returns 202 immediately; poll GET import/status for progress.
     /// </summary>
-    /// <returns>Import result</returns>
     [HttpPost("import/geonames")]
     [Authorize(Roles = "Admin")]
-    [ProducesResponseType(typeof(ZipCodeImportResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status202Accepted)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<ZipCodeImportResult>> ImportFromGeoNames()
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public IActionResult ImportFromGeoNames()
     {
-        if (_zipCodeImportService == null)
-        {
-            return NotFound("ZIP code import service is not configured");
-        }
+        if (_importQueue == null)
+            return NotFound("Import worker is not available");
+        if (_zipCodeImportService?.IsImportRunning == true)
+            return Conflict(new { message = "An import is already in progress" });
 
-        if (_zipCodeImportService.IsImportRunning)
-        {
-            return Conflict("An import is already in progress");
-        }
-
-        _logger.LogInformation("Admin triggered ZIP code import from GeoNames (all countries)");
-        var result = await _zipCodeImportService.ImportFromGeoNamesAsync();
-
-        if (result.Success)
-        {
-            return Ok(result);
-        }
-        return StatusCode(500, result);
+        _importQueue.TryEnqueue(new ZipCodeImportRequest("GeoNames", RequestedBy: User.Identity?.Name ?? "admin"));
+        _logger.LogInformation("Admin queued GeoNames all-countries ZIP import");
+        return Accepted(new { message = "GeoNames all-countries import queued.", statusUrl = Url.Action(nameof(GetImportStatus)) });
     }
 
     /// <summary>
-    /// Import ZIP codes from GeoNames for a specific country
+    /// Queue a background import of a single country from GeoNames.
+    /// Returns 202 immediately; poll GET import/status for progress.
     /// </summary>
-    /// <param name="countryCode">ISO 2-letter country code (e.g., US, CA, GB)</param>
-    /// <returns>Import result</returns>
     [HttpPost("import/geonames/{countryCode}")]
     [Authorize(Roles = "Admin")]
-    [ProducesResponseType(typeof(ZipCodeImportResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status202Accepted)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    public async Task<ActionResult<ZipCodeImportResult>> ImportCountryFromGeoNames(string countryCode)
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public IActionResult ImportCountryFromGeoNames(string countryCode)
     {
-        if (_zipCodeImportService == null)
-        {
-            return NotFound("ZIP code import service is not configured");
-        }
-
-        if (_zipCodeImportService.IsImportRunning)
-        {
-            return Conflict("An import is already in progress");
-        }
-
+        if (_importQueue == null)
+            return NotFound("Import worker is not available");
         if (string.IsNullOrWhiteSpace(countryCode) || countryCode.Length != 2)
-        {
             return BadRequest("Country code must be a 2-letter ISO code");
-        }
+        if (_zipCodeImportService?.IsImportRunning == true)
+            return Conflict(new { message = "An import is already in progress" });
 
-        _logger.LogInformation("Admin triggered ZIP code import from GeoNames for {Country}", countryCode);
-        var result = await _zipCodeImportService.ImportCountryFromGeoNamesAsync(countryCode.ToUpperInvariant());
-
-        if (result.Success)
-        {
-            return Ok(result);
-        }
-        return StatusCode(500, result);
+        _importQueue.TryEnqueue(new ZipCodeImportRequest("GeoNames-Country", CountryCode: countryCode.ToUpperInvariant(), RequestedBy: User.Identity?.Name ?? "admin"));
+        _logger.LogInformation("Admin queued GeoNames ZIP import for {Country}", countryCode.ToUpperInvariant());
+        return Accepted(new { message = $"GeoNames import for {countryCode.ToUpperInvariant()} queued.", statusUrl = Url.Action(nameof(GetImportStatus)) });
     }
 
     /// <summary>
-    /// Import ZIP codes from a GitHub repository
+    /// Queue a background import from a GitHub repository.
+    /// Returns 202 immediately; poll GET import/status for progress.
     /// </summary>
-    /// <param name="request">Import request with optional custom URL</param>
-    /// <returns>Import result</returns>
     [HttpPost("import/github")]
     [Authorize(Roles = "Admin")]
-    [ProducesResponseType(typeof(ZipCodeImportResult), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    public async Task<ActionResult<ZipCodeImportResult>> ImportFromGitHub([FromBody] GitHubImportRequest? request = null)
+    [ProducesResponseType(StatusCodes.Status202Accepted)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public IActionResult ImportFromGitHub([FromBody] GitHubImportRequest? request = null)
     {
-        if (_zipCodeImportService == null)
-        {
-            return NotFound("ZIP code import service is not configured");
-        }
+        if (_importQueue == null)
+            return NotFound("Import worker is not available");
+        if (_zipCodeImportService?.IsImportRunning == true)
+            return Conflict(new { message = "An import is already in progress" });
 
-        if (_zipCodeImportService.IsImportRunning)
-        {
-            return Conflict("An import is already in progress");
-        }
-
-        _logger.LogInformation("Admin triggered ZIP code import from GitHub: {Url}", request?.Url ?? "default");
-        var result = await _zipCodeImportService.ImportFromGitHubAsync(request?.Url);
-
-        if (result.Success)
-        {
-            return Ok(result);
-        }
-        return StatusCode(500, result);
+        _importQueue.TryEnqueue(new ZipCodeImportRequest("GitHub", Url: request?.Url, RequestedBy: User.Identity?.Name ?? "admin"));
+        _logger.LogInformation("Admin queued GitHub ZIP import from {Url}", request?.Url ?? "default");
+        return Accepted(new { message = "GitHub ZIP import queued.", statusUrl = Url.Action(nameof(GetImportStatus)) });
     }
 
     /// <summary>
@@ -466,6 +476,25 @@ public class GitHubImportRequest
     /// <summary>
     /// Custom GitHub raw URL for ZIP code data JSON file
     /// </summary>
+    public string? Url { get; set; }
+}
+
+/// <summary>
+/// Request for on-demand background ZIP code import via POST import/trigger
+/// </summary>
+public class ImportTriggerRequest
+{
+    /// <summary>
+    /// Import source: "GeoNames" (all countries), "GeoNames-Country" (single country),
+    /// "GitHub" (JSON format), or "CsvUrl" (CSV download URL).
+    /// Defaults to "GeoNames".
+    /// </summary>
+    public string Source { get; set; } = "GeoNames";
+
+    /// <summary>ISO 2-letter country code – required when Source=GeoNames-Country</summary>
+    public string? CountryCode { get; set; }
+
+    /// <summary>Direct download URL – used for Source=CsvUrl or Source=GitHub</summary>
     public string? Url { get; set; }
 }
 

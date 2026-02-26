@@ -715,6 +715,8 @@ builder.Services.AddScoped<IZipCodeService>(sp =>
 });
 // ZIP code import service - pull from GeoNames/GitHub
 builder.Services.AddScoped<IZipCodeImportService, ZipCodeImportService>();
+// ZIP code import queue - singleton so controller can fire-and-forget to the worker
+builder.Services.AddSingleton<IZipCodeImportQueue, ZipCodeImportQueue>();
 // ZIP code import options
 builder.Services.Configure<ZipCodeImportOptions>(
     builder.Configuration.GetSection(ZipCodeImportOptions.SectionName));
@@ -724,6 +726,7 @@ builder.Services.AddHostedService<ZipCodeImportHostedService>();
 builder.Services.AddScoped<IContactInfoValidationService, ContactInfoValidationService>();
 // Phase 1 services - Notes, Tasks, Quotes (Gap Fix Implementation)
 builder.Services.AddScoped<INoteService, NoteService>();
+builder.Services.AddScoped<IRecordCommentService, RecordCommentService>();
 builder.Services.AddScoped<ITaskService, TaskService>();
 builder.Services.AddScoped<IQuoteService, QuoteService>();
 // Phase 2 services - Dashboard, Pipeline, Interaction (Gap Fix Implementation)

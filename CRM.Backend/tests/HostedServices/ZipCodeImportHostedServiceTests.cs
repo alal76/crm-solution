@@ -50,7 +50,8 @@ public class ZipCodeImportHostedServiceTests
         return new ZipCodeImportHostedService(
             _mockServiceProvider.Object,
             _mockLogger.Object,
-            options ?? CreateOptions());
+            options ?? CreateOptions(),
+            new ZipCodeImportQueue());
     }
 
     [Fact]
@@ -198,7 +199,8 @@ public class ZipCodeImportHostedServiceTests
         var service = new ZipCodeImportHostedService(
             mockSP.Object,
             _mockLogger.Object,
-            options);
+            options,
+            new ZipCodeImportQueue());
 
         using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
 

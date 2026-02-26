@@ -4,12 +4,74 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
+using System.Net.Http.Headers;
+using System.Threading.Channels;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
 namespace CRM.Infrastructure.Services;
+
+// ---------------------------------------------------------------------------
+// On-demand import queue — lets the controller fire-and-forget without waiting
+// for a potentially 30-minute GeoNames download.
+// ---------------------------------------------------------------------------
+
+/// <summary>
+/// Represents an on-demand ZIP code import request queued by the API layer.
+/// </summary>
+public record ZipCodeImportRequest(
+    /// <summary>"GeoNames", "GeoNames-Country", "GitHub", or "CsvUrl"</summary>
+    string Source,
+    /// <summary>ISO 2-letter country code – only used for Source=GeoNames-Country</summary>
+    string? CountryCode = null,
+    /// <summary>URL for GitHub JSON or CSV download sources</summary>
+    string? Url = null,
+    /// <summary>Friendly name for logging/status</summary>
+    string? RequestedBy = null);
+
+/// <summary>
+/// Singleton queue for on-demand import requests. The background worker drains
+/// this queue between its schedule ticks.
+/// </summary>
+public interface IZipCodeImportQueue
+{
+    /// <summary>Enqueue an import request. Returns false if the queue is full.</summary>
+    bool TryEnqueue(ZipCodeImportRequest request);
+
+    /// <summary>True if there is at least one pending request.</summary>
+    bool HasPendingRequests { get; }
+
+    /// <summary>Read the next request (resolves when one is available or token is cancelled).</summary>
+    ValueTask<ZipCodeImportRequest> DequeueAsync(CancellationToken cancellationToken);
+
+    /// <summary>Wait until at least one request is available without consuming it. Returns true if an item is ready.</summary>
+    Task<bool> WaitToReadAsync(CancellationToken cancellationToken);
+}
+
+/// <summary>Default implementation backed by a bounded <see cref="Channel{T}"/>.</summary>
+public sealed class ZipCodeImportQueue : IZipCodeImportQueue
+{
+    // Capacity=10 — more than enough; concurrent imports are guarded by _isRunning.
+    private readonly Channel<ZipCodeImportRequest> _channel =
+        Channel.CreateBounded<ZipCodeImportRequest>(new BoundedChannelOptions(10)
+        {
+            FullMode = BoundedChannelFullMode.DropOldest,
+            SingleReader = true,
+        });
+
+    public bool TryEnqueue(ZipCodeImportRequest request) =>
+        _channel.Writer.TryWrite(request);
+
+    public bool HasPendingRequests => _channel.Reader.Count > 0;
+
+    public ValueTask<ZipCodeImportRequest> DequeueAsync(CancellationToken cancellationToken) =>
+        _channel.Reader.ReadAsync(cancellationToken);
+
+    public Task<bool> WaitToReadAsync(CancellationToken cancellationToken) =>
+        _channel.Reader.WaitToReadAsync(cancellationToken).AsTask();
+}
 
 /// <summary>
 /// Configuration options for ZIP code import scheduling
@@ -29,14 +91,21 @@ public class ZipCodeImportOptions
     public string CronExpression { get; set; } = "0 0 1 * *"; // Monthly at midnight on the 1st
 
     /// <summary>
-    /// Import source: "GeoNames", "GitHub", or custom URL
+    /// Import source for scheduled/startup imports: "GeoNames", "GitHub", or "CsvUrl"
     /// </summary>
     public string ImportSource { get; set; } = "GeoNames";
 
     /// <summary>
-    /// Custom GitHub URL for ZIP code data
+    /// Custom GitHub URL for ZIP code data (used when ImportSource = "GitHub")
     /// </summary>
     public string? GitHubUrl { get; set; }
+
+    /// <summary>
+    /// Direct HTTP(S) URL to a CSV file to download (used when ImportSource = "CsvUrl").
+    /// The file must be a directly accessible URL (no authentication redirects).
+    /// Supports the Zeeshanahmad4 CSV format and any header-based CSV/TSV.
+    /// </summary>
+    public string? CsvDownloadUrl { get; set; }
 
     /// <summary>
     /// List of country codes to import (empty = all countries)
@@ -55,30 +124,32 @@ public class ZipCodeImportOptions
 }
 
 /// <summary>
-/// Background service for scheduled ZIP code imports from GeoNames/GitHub
+/// Background service for scheduled and on-demand ZIP code imports.
+/// Drains <see cref="IZipCodeImportQueue"/> for API-triggered requests and also
+/// runs a cron-based scheduled import when <see cref="ZipCodeImportOptions.EnableScheduledImport"/> is true.
 /// </summary>
 public class ZipCodeImportHostedService : BackgroundService
 {
     private readonly IServiceProvider _serviceProvider;
     private readonly ILogger<ZipCodeImportHostedService> _logger;
     private readonly ZipCodeImportOptions _options;
+    private readonly IZipCodeImportQueue _queue;
     private DateTime? _lastImportTime;
     private bool _initialImportDone = false;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ZipCodeImportHostedService"/> class.
     /// </summary>
-    /// <param name="serviceProvider">The service provider.</param>
-    /// <param name="logger">The logger instance.</param>
-    /// <param name="options">The ZIP code import options.</param>
     public ZipCodeImportHostedService(
         IServiceProvider serviceProvider,
         ILogger<ZipCodeImportHostedService> logger,
-        IOptions<ZipCodeImportOptions> options)
+        IOptions<ZipCodeImportOptions> options,
+        IZipCodeImportQueue queue)
     {
         _serviceProvider = serviceProvider;
         _logger = logger;
         _options = options.Value;
+        _queue = queue;
     }
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -102,11 +173,40 @@ public class ZipCodeImportHostedService : BackgroundService
             _initialImportDone = true;
         }
 
-        // Main scheduling loop
+        // Main loop — drain on-demand queue and run scheduled imports
         while (!stoppingToken.IsCancellationRequested)
         {
             try
             {
+                // --- On-demand queue: process all pending requests first ---
+                while (_queue.HasPendingRequests && !stoppingToken.IsCancellationRequested)
+                {
+                    ZipCodeImportRequest request;
+                    try
+                    {
+                        using var shortCts = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken);
+                        shortCts.CancelAfter(TimeSpan.FromSeconds(5));
+                        request = await _queue.DequeueAsync(shortCts.Token);
+                    }
+                    catch (OperationCanceledException)
+                    {
+                        break;
+                    }
+
+                    _logger.LogInformation(
+                        "Processing on-demand ZIP import (source={Source}, country={Country}, requestedBy={By})",
+                        request.Source, request.CountryCode ?? "all", request.RequestedBy ?? "admin");
+                    try
+                    {
+                        await RunImportFromRequestAsync(request, stoppingToken);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "On-demand ZIP import failed (source={Source})", request.Source);
+                    }
+                }
+
+                // --- Scheduled import ---
                 if (_options.EnableScheduledImport)
                 {
                     await CheckAndRunScheduledImportAsync(stoppingToken);
@@ -114,11 +214,21 @@ public class ZipCodeImportHostedService : BackgroundService
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error in ZIP code import scheduler");
+                _logger.LogError(ex, "Error in ZIP code import worker loop");
             }
 
-            // Check every hour
-            await Task.Delay(TimeSpan.FromHours(1), stoppingToken);
+            // Wait up to 60 s, but wake immediately when a request is queued
+            try
+            {
+                using var wakeCts = CancellationTokenSource.CreateLinkedTokenSource(stoppingToken);
+                wakeCts.CancelAfter(TimeSpan.FromMinutes(1));
+                await _queue.WaitToReadAsync(wakeCts.Token);
+                // Item is available — loop will pick it up at the top of the while.
+            }
+            catch (OperationCanceledException)
+            {
+                // Timeout or service stopping — both are normal
+            }
         }
 
         _logger.LogInformation("ZIP Code Import Service stopping...");
@@ -194,70 +304,116 @@ public class ZipCodeImportHostedService : BackgroundService
         return true;
     }
 
-    private async Task RunImportAsync(CancellationToken cancellationToken)
+    // Runs the scheduled import using options-configured source/countries.
+    private Task RunImportAsync(CancellationToken cancellationToken)
+    {
+        var request = _options.ImportSource.Equals("CsvUrl", StringComparison.OrdinalIgnoreCase)
+            ? new ZipCodeImportRequest("CsvUrl", Url: _options.CsvDownloadUrl, RequestedBy: "scheduler")
+            : _options.ImportSource.Equals("GitHub", StringComparison.OrdinalIgnoreCase)
+                ? new ZipCodeImportRequest("GitHub", Url: _options.GitHubUrl, RequestedBy: "scheduler")
+                : _options.CountryCodes.Count == 1
+                    ? new ZipCodeImportRequest("GeoNames-Country", CountryCode: _options.CountryCodes[0], RequestedBy: "scheduler")
+                    : _options.CountryCodes.Count > 1
+                        ? new ZipCodeImportRequest("GeoNames-Multi", RequestedBy: "scheduler")
+                        : new ZipCodeImportRequest("GeoNames", RequestedBy: "scheduler");
+
+        return RunImportFromRequestAsync(request, cancellationToken);
+    }
+
+    // Core dispatcher — resolves the right import method for any request.
+    private async Task RunImportFromRequestAsync(ZipCodeImportRequest request, CancellationToken cancellationToken)
     {
         using var scope = _serviceProvider.CreateScope();
         var importService = scope.ServiceProvider.GetRequiredService<IZipCodeImportService>();
 
         ZipCodeImportResult result;
 
-        if (_options.ImportSource.Equals("GitHub", StringComparison.OrdinalIgnoreCase))
+        switch (request.Source.ToUpperInvariant())
         {
-            result = await importService.ImportFromGitHubAsync(_options.GitHubUrl, cancellationToken);
-        }
-        else if (_options.CountryCodes.Count == 1)
-        {
-            // Import single country
-            result = await importService.ImportCountryFromGeoNamesAsync(_options.CountryCodes[0], cancellationToken);
-        }
-        else if (_options.CountryCodes.Count > 1)
-        {
-            // Import multiple countries
-            var totalImported = 0;
-            var totalSkipped = 0;
-            var errors = new List<string>();
+            case "GITHUB":
+                result = await importService.ImportFromGitHubAsync(request.Url, cancellationToken);
+                break;
 
-            foreach (var countryCode in _options.CountryCodes)
-            {
-                if (cancellationToken.IsCancellationRequested)
-                    break;
+            case "CSVURL":
+                result = await DownloadAndImportCsvAsync(importService, request.Url, cancellationToken);
+                break;
 
-                var countryResult = await importService.ImportCountryFromGeoNamesAsync(countryCode, cancellationToken);
-                totalImported += countryResult.RecordsImported;
-                totalSkipped += countryResult.RecordsSkipped;
+            case "GEONAMES-COUNTRY":
+                if (string.IsNullOrEmpty(request.CountryCode))
+                    goto default;
+                result = await importService.ImportCountryFromGeoNamesAsync(request.CountryCode, cancellationToken);
+                break;
 
-                if (!countryResult.Success && !string.IsNullOrEmpty(countryResult.ErrorMessage))
+            case "GEONAMES-MULTI":
+                // Multi-country scheduled import driven by options.CountryCodes
+                var totalImported = 0;
+                var totalSkipped = 0;
+                var errors = new List<string>();
+                foreach (var cc in _options.CountryCodes)
                 {
-                    errors.Add($"{countryCode}: {countryResult.ErrorMessage}");
+                    if (cancellationToken.IsCancellationRequested) break;
+                    var cr = await importService.ImportCountryFromGeoNamesAsync(cc, cancellationToken);
+                    totalImported += cr.RecordsImported;
+                    totalSkipped  += cr.RecordsSkipped;
+                    if (!cr.Success && !string.IsNullOrEmpty(cr.ErrorMessage))
+                        errors.Add($"{cc}: {cr.ErrorMessage}");
                 }
-            }
+                result = new ZipCodeImportResult
+                {
+                    Success          = errors.Count == 0,
+                    RecordsImported  = totalImported,
+                    RecordsSkipped   = totalSkipped,
+                    ErrorMessage     = errors.Count > 0 ? string.Join("; ", errors) : null,
+                    Source           = $"GeoNames ({string.Join(", ", _options.CountryCodes)})"
+                };
+                break;
 
-            result = new ZipCodeImportResult
-            {
-                Success = errors.Count == 0,
-                RecordsImported = totalImported,
-                RecordsSkipped = totalSkipped,
-                ErrorMessage = errors.Count > 0 ? string.Join("; ", errors) : null,
-                Source = $"GeoNames ({string.Join(", ", _options.CountryCodes)})"
-            };
-        }
-        else
-        {
-            // Import all countries
-            result = await importService.ImportFromGeoNamesAsync(cancellationToken);
+            default:
+                result = await importService.ImportFromGeoNamesAsync(cancellationToken);
+                break;
         }
 
         _lastImportTime = DateTime.UtcNow;
 
         if (result.Success)
-        {
-            _logger.LogInformation("Scheduled import completed: {Imported:N0} imported, {Skipped:N0} skipped",
-                result.RecordsImported, result.RecordsSkipped);
-        }
+            _logger.LogInformation(
+                "ZIP import completed (source={Source}): {Imported:N0} imported, {Skipped:N0} skipped",
+                request.Source, result.RecordsImported, result.RecordsSkipped);
         else
+            _logger.LogError("ZIP import failed (source={Source}): {Error}", request.Source, result.ErrorMessage);
+    }
+
+    // Downloads a CSV file from an arbitrary URL and pipes it into ImportFromCsvStreamAsync.
+    private async Task<ZipCodeImportResult> DownloadAndImportCsvAsync(
+        IZipCodeImportService importService,
+        string? url,
+        CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(url))
         {
-            _logger.LogError("Scheduled import failed: {Error}", result.ErrorMessage);
+            return new ZipCodeImportResult
+            {
+                Success = false,
+                ErrorMessage = "CsvDownloadUrl is not configured. Set ZipCodeImport:CsvDownloadUrl in appsettings."
+            };
         }
+
+        _logger.LogInformation("Downloading ZIP CSV from {Url}", url);
+
+        using var http = new HttpClient();
+        http.Timeout = TimeSpan.FromMinutes(30);
+        http.DefaultRequestHeaders.UserAgent.Add(
+            new ProductInfoHeaderValue("CRM-ZipImporter", "1.0"));
+
+        using var response = await http.GetAsync(url, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+        response.EnsureSuccessStatusCode();
+
+        // Derive a friendly source name from the URL filename
+        var fileName = System.IO.Path.GetFileName(new Uri(url).AbsolutePath);
+        var sourceName = $"CSV auto-download ({fileName})";
+
+        await using var stream = await response.Content.ReadAsStreamAsync(cancellationToken);
+        return await importService.ImportFromCsvStreamAsync(stream, sourceName, cancellationToken);
     }
 }
 
