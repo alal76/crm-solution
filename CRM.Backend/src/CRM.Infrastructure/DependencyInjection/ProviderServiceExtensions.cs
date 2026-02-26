@@ -317,7 +317,6 @@ public static class ProviderServiceExtensions
             {
                 client.Timeout = TimeSpan.FromSeconds(teamsTimeout);
             });
-            services.AddScoped<TeamsNotificationProvider>();
         }
 
         // Slack (Incoming Webhook)
@@ -330,7 +329,6 @@ public static class ProviderServiceExtensions
             {
                 client.Timeout = TimeSpan.FromSeconds(slackTimeout);
             });
-            services.AddScoped<SlackNotificationProvider>();
         }
     }
 
@@ -355,8 +353,6 @@ public static class ProviderServiceExtensions
                 client.Timeout = TimeSpan.FromSeconds(timeoutSeconds);
             });
 
-            services.AddScoped<SupersetProvider>();
-
             // Register as IAnalyticsPort for factory resolution
             services.AddScoped<IAnalyticsPort, SupersetProvider>();
         }
@@ -376,8 +372,6 @@ public static class ProviderServiceExtensions
                 client.BaseAddress = new Uri("https://api.powerbi.com/v1.0/myorg/");
                 client.Timeout = TimeSpan.FromSeconds(timeoutSeconds);
             });
-
-            services.AddScoped<PowerBIProvider>();
 
             // Register as IAnalyticsPort for factory resolution
             services.AddScoped<IAnalyticsPort, PowerBIProvider>();
@@ -406,8 +400,6 @@ public static class ProviderServiceExtensions
                 var timeout = int.TryParse(docuSealConfig["TimeoutSeconds"], out var t) ? t : 30;
                 client.Timeout = TimeSpan.FromSeconds(timeout);
             });
-            services.AddScoped<DocuSealProvider>();
-
             // Register as ISignaturePort for factory resolution
             services.AddScoped<ISignaturePort, DocuSealProvider>();
         }
@@ -431,7 +423,6 @@ public static class ProviderServiceExtensions
         // BuiltIn Integration Provider (webhook-based)
         services.Configure<BuiltInIntegrationConfiguration>(config.GetSection("BuiltIn"));
         services.AddHttpClient<BuiltInIntegrationProvider>();
-        services.AddScoped<BuiltInIntegrationProvider>();
         services.AddScoped<IIntegrationPort, BuiltInIntegrationProvider>();
 
         // n8n
@@ -454,7 +445,6 @@ public static class ProviderServiceExtensions
                 client.Timeout = TimeSpan.FromSeconds(timeoutSeconds);
             });
 
-            services.AddScoped<N8nProvider>();
             services.AddScoped<IIntegrationPort, N8nProvider>();
         }
 
@@ -472,7 +462,6 @@ public static class ProviderServiceExtensions
                 client.Timeout = TimeSpan.FromSeconds(timeoutSeconds);
             });
 
-            services.AddScoped<ZapierProvider>();
             services.AddScoped<IIntegrationPort, ZapierProvider>();
         }
     }
@@ -506,7 +495,6 @@ public static class ProviderServiceExtensions
                 client.Timeout = TimeSpan.FromSeconds(timeoutSeconds);
             });
 
-            services.AddScoped<OllamaProvider>();
             services.AddScoped<IAIPort, OllamaProvider>();
         }
 
@@ -530,7 +518,6 @@ public static class ProviderServiceExtensions
                 client.Timeout = TimeSpan.FromSeconds(timeoutSeconds);
             });
 
-            services.AddScoped<AzureOpenAIProvider>();
             services.AddScoped<IAIPort, AzureOpenAIProvider>();
         }
 
@@ -552,7 +539,6 @@ public static class ProviderServiceExtensions
                 client.Timeout = TimeSpan.FromSeconds(timeoutSeconds);
             });
 
-            services.AddScoped<BedrockProvider>();
             services.AddScoped<IAIPort, BedrockProvider>();
         }
 
@@ -573,7 +559,6 @@ public static class ProviderServiceExtensions
                 client.Timeout = TimeSpan.FromSeconds(timeoutSeconds);
             });
 
-            services.AddScoped<OpenRouterProvider>();
             services.AddScoped<IAIPort, OpenRouterProvider>();
         }
     }

@@ -4,6 +4,7 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
+using System.Text.Json;
 using CRM.Core.Entities.AI;
 using CRM.Infrastructure.AI.SK.Configuration;
 using CRM.Infrastructure.AI.SK.Filters;
@@ -105,8 +106,32 @@ public class CrmKernelFactory
     {
         ArgumentNullException.ThrowIfNull(agent);
 
-        var allowedPlugins = agent.AllowedPlugins?
-            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        // AllowedPlugins may be stored as a JSON array (e.g. '["LeadPlugin","AccountPlugin"]')
+        // or as a plain comma-separated string (e.g. 'Lead,Account').
+        // GetPluginType appends 'Plugin' suffix, so strip it here if already present.
+        string[]? allowedPlugins = null;
+        if (!string.IsNullOrWhiteSpace(agent.AllowedPlugins))
+        {
+            var raw = agent.AllowedPlugins.Trim();
+            string[] rawNames;
+            if (raw.StartsWith('['))
+            {
+                rawNames = JsonSerializer.Deserialize<string[]>(raw)
+                    ?? Array.Empty<string>();
+            }
+            else
+            {
+                rawNames = raw.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            }
+
+            // Strip trailing 'Plugin' suffix so GetPluginType can re-append it correctly.
+            allowedPlugins = rawNames
+                .Select(n => n.EndsWith("Plugin", StringComparison.OrdinalIgnoreCase)
+                    ? n[..^"Plugin".Length]
+                    : n)
+                .Where(n => !string.IsNullOrWhiteSpace(n))
+                .ToArray();
+        }
 
         _logger.LogDebug("Creating kernel for agent '{AgentName}' with plugins: [{Plugins}]",
             agent.Name,

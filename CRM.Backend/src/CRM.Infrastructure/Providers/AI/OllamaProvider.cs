@@ -337,7 +337,12 @@ public class OllamaProvider : IAIPort
     /// <inheritdoc />
     public async Task<AICompletionResponse> CompleteAsync(AICompletionRequest request, CancellationToken cancellationToken = default)
     {
-        var model = request.Model ?? _config.DefaultModel;
+        var model = string.IsNullOrWhiteSpace(request.Model) ? _config.DefaultModel : request.Model;
+        if (string.IsNullOrWhiteSpace(model))
+        {
+            _logger.LogWarning("Ollama model resolved to empty in CompleteAsync — falling back to 'olmo2:7b'");
+            model = "olmo2:7b";
+        }
 
         var ollamaRequest = new OllamaGenerateRequest
         {
@@ -373,7 +378,12 @@ public class OllamaProvider : IAIPort
     /// <inheritdoc />
     public async Task<AIChatResponse> ChatAsync(AIChatRequest request, CancellationToken cancellationToken = default)
     {
-        var model = request.Model ?? _config.DefaultModel;
+        var model = string.IsNullOrWhiteSpace(request.Model) ? _config.DefaultModel : request.Model;
+        if (string.IsNullOrWhiteSpace(model))
+        {
+            _logger.LogWarning("Ollama model resolved to empty in ChatAsync — falling back to 'olmo2:7b'");
+            model = "olmo2:7b";
+        }
 
         var messages = new List<OllamaMessage>();
 
@@ -426,7 +436,12 @@ public class OllamaProvider : IAIPort
     /// <inheritdoc />
     public async Task<AIChatResponse> StreamChatAsync(AIChatRequest request, Action<string> onToken, CancellationToken cancellationToken = default)
     {
-        var model = request.Model ?? _config.DefaultModel;
+        var model = string.IsNullOrWhiteSpace(request.Model) ? _config.DefaultModel : request.Model;
+        if (string.IsNullOrWhiteSpace(model))
+        {
+            _logger.LogWarning("Ollama model resolved to empty in StreamChatAsync — falling back to 'olmo2:7b'");
+            model = "olmo2:7b";
+        }
 
         var messages = new List<OllamaMessage>();
 

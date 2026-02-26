@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 593,
-  "patch": 7,
-  "lastUpdate": "2026-02-26",
-  "description": "Guard frontend status labels from non-string values to prevent TypeError in status.replace, plus ensure help docs packaged.",
+  "patch": 9,
+  "lastUpdate": "2026-02-27",
+  "description": "Fix agent chat HTTP 500: (1) OllamaProvider DI — remove plain AddScoped<OllamaProvider>() so AddHttpClient typed-client registration is used by ProviderResolution, ensuring correct IOptions<OllamaConfiguration> binding and DefaultModel; (2) OllamaProvider defensive model fallback — use IsNullOrWhiteSpace guard + hardcoded 'olmo2:7b' fallback in ChatAsync/CompleteAsync/StreamChatAsync; (3) CrmKernelFactory plugin JSON array parsing — detect JSON array format e.g. ['LeadPlugin','AccountPlugin'] and strip Plugin suffix before GetPluginType adds it back, fixing 0-plugin kernel; (4) appsettings.Production.json — AI Type changed from Groq to Ollama env-var-driven, DefaultModel olmo2:7b, Groq API key moved to env var.",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [
