@@ -1,9 +1,9 @@
 {
   "major": 0,
-  "minor": 599,
+  "minor": 600,
   "patch": 0,
   "lastUpdate": "2026-02-26",
-  "description": "FEAT-PORTAL: Customer Portal Foundation",
+  "description": "FEAT-AISCORING: AI Lead Scoring Real-time Triggers — LeadScoreHistory entity, service, decay background job, score history chart, explanation drawer",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [

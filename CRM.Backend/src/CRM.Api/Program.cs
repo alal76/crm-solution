@@ -960,6 +960,9 @@ builder.Services.AddSingleton<IResilienceService, ResilienceService>();
 // Phase 7 services - AI/Analytics Enhancements (KB search, Lead scoring, Opportunity scoring, Dashboards, Reports)
 builder.Services.AddScoped<IAIKnowledgeSearchService, AIKnowledgeSearchService>();
 builder.Services.AddScoped<IAILeadScoringService, AILeadScoringService>();
+// FEAT-AISCORING: Lead Score History service
+builder.Services.AddScoped<ILeadScoreHistoryService, CRM.Infrastructure.Services.LeadScoreHistoryService>();
+builder.Services.AddHostedService<CRM.Infrastructure.Services.LeadScoreHistoryDecayBackgroundService>();
 builder.Services.AddScoped<IAIOpportunityScoringService, AIOpportunityScoringService>();
 builder.Services.AddScoped<IDashboardBuilderService, DashboardBuilderService>();
 builder.Services.AddScoped<IReportBuilderService, ReportBuilderService>();

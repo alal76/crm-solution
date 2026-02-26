@@ -20,13 +20,21 @@ public class LeadService : ILeadService
     private readonly IEntityEventDispatcher _eventDispatcher;
     private readonly ILogger<LeadService> _logger;
     private readonly IDuplicateDetectionService _duplicateDetection;
+    // FEAT-AISCORING: optional — null-safe, injected when registered
+    private readonly ILeadScoreHistoryService? _scoreHistory;
 
-    public LeadService(ICrmDbContext context, IEntityEventDispatcher eventDispatcher, ILogger<LeadService> logger, IDuplicateDetectionService duplicateDetection)
+    public LeadService(
+        ICrmDbContext context,
+        IEntityEventDispatcher eventDispatcher,
+        ILogger<LeadService> logger,
+        IDuplicateDetectionService duplicateDetection,
+        ILeadScoreHistoryService? scoreHistory = null)
     {
         _context = context;
         _eventDispatcher = eventDispatcher;
         _logger = logger;
         _duplicateDetection = duplicateDetection;
+        _scoreHistory = scoreHistory;
     }
 
     public async Task<(IEnumerable<LeadSummaryDto> Items, int TotalCount, int Page, int PageSize, int TotalPages)> GetAllAsync(int page = 1, int pageSize = 25)
@@ -123,6 +131,20 @@ public class LeadService : ILeadService
         // Fire workflow triggers for entity creation
         _eventDispatcher.DispatchEntityEvent("Lead", lead.Id, WorkflowTriggerType.OnCreate);
 
+        // FEAT-AISCORING: record initial score history entry when lead has a score
+        if (_scoreHistory != null && lead.FitScore > 0)
+        {
+            try
+            {
+                await _scoreHistory.RecordScoreAsync(
+                    lead.Id, lead.FitScore, 0, "auto_score", "system");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to record initial score history for Lead {LeadId}", lead.Id);
+            }
+        }
+
         return lead.Id;
     }
 
@@ -132,11 +154,29 @@ public class LeadService : ILeadService
         if (lead == null)
             return false;
 
+        // FEAT-AISCORING: capture score before changes to detect drift
+        var previousFitScore = lead.FitScore;
+
         applyChanges(lead);
         lead.UpdatedAt = DateTime.UtcNow;
         await _context.SaveChangesAsync();
 
         _eventDispatcher.DispatchEntityEvent("Lead", lead.Id, WorkflowTriggerType.OnUpdate);
+
+        // FEAT-AISCORING: record history entry when FitScore changed
+        if (_scoreHistory != null && lead.FitScore != previousFitScore)
+        {
+            try
+            {
+                await _scoreHistory.RecordScoreAsync(
+                    lead.Id, lead.FitScore, previousFitScore, "lead_updated", "system");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to record score history update for Lead {LeadId}", lead.Id);
+            }
+        }
+
         return true;
     }
 

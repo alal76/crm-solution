@@ -46,6 +46,7 @@ import {
   Psychology as PsychologyIcon,
   Refresh as RefreshIcon,
   Comment as CommentIcon,
+  QueryStats as QueryStatsIcon,
 } from '@mui/icons-material';
 import { RecordComments } from '../components/common/RecordComments';
 import {
@@ -72,6 +73,8 @@ import { usePagination } from '../hooks/usePagination';
 import { useEntityTypeSubscription } from '../hooks/useSignalR';
 import AdvancedSearch, { SearchField, SearchFilter, filterData } from '../components/AdvancedSearch';
 import DynamicEntityForm, { ExtraTab } from '../components/DynamicEntityForm';
+// FEAT-AISCORING: Score analysis drawer
+import LeadScoreExplanationDrawer from '../components/leads/LeadScoreExplanationDrawer';
 
 // Lead sources for the dropdown
 const LEAD_SOURCES = [
@@ -232,6 +235,9 @@ function LeadsPage() {
   // Lead conversion dialog state
   const [convertDialogOpen, setConvertDialogOpen] = useState(false);
   const [convertingLead, setConvertingLead] = useState<Lead | null>(null);
+  // FEAT-AISCORING: Score analysis drawer state
+  const [scoreDrawerLeadId, setScoreDrawerLeadId] = useState<number | null>(null);
+  const [scoreDrawerOpen, setScoreDrawerOpen] = useState(false);
   const [convertFormData, setConvertFormData] = useState({
     createOpportunity: false,
     opportunityName: '',
@@ -926,6 +932,21 @@ function LeadsPage() {
                           <Typography variant="caption" sx={{ color: getScoreColor(lead.score), fontWeight: 500 }}>
                             {getScoreLabel(lead.score)}
                           </Typography>
+                          {/* FEAT-AISCORING: Score trend indicator */}
+                          <Typography
+                            variant="caption"
+                            title="Score trend"
+                            sx={{
+                              fontSize: '0.65rem',
+                              fontWeight: 700,
+                              color:
+                                (lead.score ?? 0) >= 70 ? '#2e7d32'
+                                : (lead.score ?? 0) >= 40 ? '#757575'
+                                : '#c62828',
+                            }}
+                          >
+                            {(lead.score ?? 0) >= 70 ? '⬆' : (lead.score ?? 0) >= 40 ? '→' : '⬇'}
+                          </Typography>
                         </Box>
                       </TableCell>
                       <TableCell>
@@ -947,6 +968,15 @@ function LeadsPage() {
                             )}
                           </IconButton>
                         )}
+                        {/* FEAT-AISCORING: View Score Analysis button */}
+                        <IconButton
+                          size="small"
+                          onClick={() => { setScoreDrawerLeadId(lead.id); setScoreDrawerOpen(true); }}
+                          sx={{ color: '#7b1fa2' }}
+                          title="View Score Analysis"
+                        >
+                          <QueryStatsIcon fontSize="small" />
+                        </IconButton>
                         {lead.status !== 'converted' && (
                           <IconButton
                             size="small"
@@ -1286,6 +1316,13 @@ function LeadsPage() {
           />
         </DialogActions>
       </Dialog>
+
+      {/* FEAT-AISCORING: Lead Score Analysis Side Drawer */}
+      <LeadScoreExplanationDrawer
+        leadId={scoreDrawerLeadId}
+        open={scoreDrawerOpen}
+        onClose={() => setScoreDrawerOpen(false)}
+      />
     </Container>
   );
 }

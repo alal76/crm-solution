@@ -407,6 +407,9 @@ public interface ICrmDbContext
     DbSet<PortalUser> PortalUsers { get; }
     DbSet<PortalConfig> PortalConfigs { get; }
 
+    // FEAT-AISCORING: Lead Score History
+    DbSet<LeadScoreHistory> LeadScoreHistories { get; }
+
     DatabaseFacade Database { get; }
 
     /// <summary>

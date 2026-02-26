@@ -391,6 +391,8 @@ public class CrmDbContext : DbContext, ICrmDbContext
     public DbSet<AIModel> AIModels { get; set; }
     public DbSet<Prediction> Predictions { get; set; }
     public DbSet<LeadScore> LeadScores { get; set; }
+    // FEAT-AISCORING: Lead Score History (append-only change log)
+    public DbSet<LeadScoreHistory> LeadScoreHistories { get; set; }
     public DbSet<OpportunityInsight> OpportunityInsights { get; set; }
     public DbSet<ChurnRisk> ChurnRisks { get; set; }
     public DbSet<ActionRecommendation> ActionRecommendations { get; set; }
@@ -4971,6 +4973,22 @@ public class CrmDbContext : DbContext, ICrmDbContext
         // Apply provider-specific post-configuration using the Strategy Pattern
         // For SQL Server: Sets all FKs to NoAction to avoid cascade path issues
         // For MySQL/MariaDB: Converts LONGTEXT columns to TEXT to avoid row size limits
+
+        // FEAT-AISCORING: Lead Score History (append-only, no soft-delete/RowVersion)
+        modelBuilder.Entity<LeadScoreHistory>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasIndex(e => e.LeadId).HasDatabaseName("IX_LeadScoreHistories_LeadId");
+            entity.HasIndex(e => e.ScoredAt).HasDatabaseName("IX_LeadScoreHistories_ScoredAt");
+            entity.Property(e => e.Reason).HasMaxLength(200);
+            entity.Property(e => e.ScoredBy).HasMaxLength(20).HasDefaultValue("system");
+            entity.Property(e => e.ScoreComponentsJson).HasMaxLength(2000);
+            entity.HasOne(e => e.Lead)
+                  .WithMany()
+                  .HasForeignKey(e => e.LeadId)
+                  .OnDelete(DeleteBehavior.Cascade);
+        });
+
         providerStrategy.ApplyPostConfiguration(modelBuilder);
     }
 }
