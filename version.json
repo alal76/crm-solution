@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 600,
-  "patch": 6,
+  "patch": 7,
   "lastUpdate": "2026-02-27",
-  "description": "feat: Monaco editor (script) toggle added to System Prompt in Edit Agent dialog — matching the same toggle already in AgentCreatorPage Behavior tab.",
+  "description": "fix: workflow script panel shows workflow definition (steps/transitions, no canvas positions) instead of raw canvas JSON. Configuration objects shown as parsed JSON. Bidirectional editing preserved.",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [
