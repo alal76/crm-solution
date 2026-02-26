@@ -5,6 +5,7 @@
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using CRM.Core.Entities.AI;
 using CRM.Core.Interfaces;
 using CRM.Infrastructure.AI.SK.Configuration;
@@ -34,6 +35,7 @@ public class AgentExecutionService
     private static readonly JsonSerializerOptions _jsonOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        PropertyNameCaseInsensitive = true,
         WriteIndented = false
     };
 
@@ -338,7 +340,7 @@ public class AgentExecutionService
 
         try
         {
-            return JsonSerializer.Deserialize<List<ChatMessageRecord>>(messagesJson) ?? new List<ChatMessageRecord>();
+            return JsonSerializer.Deserialize<List<ChatMessageRecord>>(messagesJson, _jsonOptions) ?? new List<ChatMessageRecord>();
         }
         catch
         {
@@ -354,4 +356,6 @@ public class AgentExecutionService
 /// </summary>
 /// <param name="Role">The message role: "system", "user", or "assistant".</param>
 /// <param name="Content">The message text content.</param>
-public record ChatMessageRecord(string Role, string Content);
+public record ChatMessageRecord(
+    [property: JsonPropertyName("role")] string Role,
+    [property: JsonPropertyName("content")] string Content);

@@ -38,6 +38,13 @@ public class AgentController : ControllerBase
     private readonly ILogger<AgentController> _logger;
     private readonly IFeatureManager _featureManager;
 
+    private static readonly JsonSerializerOptions _jsonOptions = new()
+    {
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        PropertyNameCaseInsensitive = true,
+        WriteIndented = false
+    };
+
     #endregion
 
     #region Constructor
@@ -818,7 +825,7 @@ public class AgentController : ControllerBase
 
         try
         {
-            return JsonSerializer.Deserialize<List<ChatMessageRecord>>(messagesJson)
+            return JsonSerializer.Deserialize<List<ChatMessageRecord>>(messagesJson, _jsonOptions)
                 ?? new List<ChatMessageRecord>();
         }
         catch
