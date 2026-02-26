@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 600,
-  "patch": 1,
+  "patch": 2,
   "lastUpdate": "2026-03-02",
-  "description": "FIX: Route SK agent chat through ILLMService to support Groq as default LLM provider — CrmChatCompletionConnector now uses ILLMService instead of IAIPort",
+  "description": "FIX: Agent chat response now populated — resolved JSON camelCase deserialization mismatch in ChatMessageRecord (role/content were always null). Added [JsonPropertyName] attributes and PropertyNameCaseInsensitive to both DeserializeMessages implementations.",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [
