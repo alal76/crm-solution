@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 594,
-  "patch": 0,
-  "lastUpdate": "2026-03-03",
-  "description": "ZIP code import: CSV upload endpoint (Zeeshanahmad4 format), header-aware CSV/TSV parser, import UI panel in Admin Master Data with GeoNames all-countries, GeoNames per-country, CSV upload source cards + progress bar + status polling. Backend 0 errors, frontend 0 TS errors.",
+  "patch": 1,
+  "lastUpdate": "2026-02-26",
+  "description": "ZIP import worker queue: IZipCodeImportQueue (Channel<T>/WaitToReadAsync), fire-and-forget 202 endpoints, POST import/trigger, CsvUrl source with DownloadAndImportCsvAsync. All import endpoints non-blocking.",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [
