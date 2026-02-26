@@ -1,11 +1,155 @@
 # CRM Solution — Master TODO List
 
-> **Last Updated:** February 26, 2026  
+> **Last Updated:** March 2, 2026  
 > **Version:** 0.593.14  
-> **Status:** ✅ ALL 23 SCRIPT-* ITEMS COMPLETE | 0 Pending  
+> **Status:** 🔄 ACTIVE — 6 NEW FEATURE TASKS (Batch 2)  
 > **Historical Completion:** 525 items completed (502 historical + 23 scripting Phases 1–5)
 
-**All scripting tasks COMPLETE. No remaining items.**
+**Scripting tasks COMPLETE. New batch: 6 feature tasks (Batch 2 — Collaboration, Analytics, CSAT, Portal, AI Scoring, E2E).**
+
+---
+
+## Deployment Status (March 2, 2026)
+
+| Item | Status |
+|------|--------|
+| Dev server (192.168.0.9) | ✅ Deployed — crm-api + crm-frontend running |
+| BVT suite | ✅ 118/118 passing |
+| DB schema drift (Leads) | ✅ Fixed — 12 missing columns added |
+| Dockerfile.backend | ✅ Fixed — CRM.Tests.Unit.csproj added |
+| E2E BVT phone validation | ✅ Fixed — `555-BVT1/2` → `555-1234/5678` |
+| E2E termLengthMonths | ✅ Fixed — added to opportunity creation test |
+| Rate limiting | ✅ Disabled on dev server for testing |
+| Mobile Safari e2e failures | ⚠️ Known macOS WebKit networking limitation (not a solution bug) |
+
+---
+
+## Batch 2 — New Feature Tasks
+
+### FEAT-COLLAB: Record Comments & @Mentions
+
+**Goal:** Add threaded comments with @mention support to all major CRM entities (Accounts, Contacts, Leads, Opportunities, Service Requests).
+
+| ID | Priority | Description | Status |
+|----|----------|-------------|--------|
+| COLLAB-001 | P0 | Create `RecordComment` entity (Id, EntityType, EntityId, Content, AuthorId, ParentCommentId, MentionedUserIds JSON, CreatedAt, UpdatedAt, IsDeleted, RowVersion) | Not Started |
+| COLLAB-002 | P0 | Add `DbSet<RecordComment>` to `CrmDbContext` + `OnModelCreating` config | Not Started |
+| COLLAB-003 | P0 | Create EF Core migration `AddRecordComments` and apply to `crm_db` | Not Started |
+| COLLAB-004 | P0 | Implement `IRecordCommentService` / `RecordCommentService` (GetByEntity, Create, Update, Delete, GetThread) | Not Started |
+| COLLAB-005 | P0 | Register `IRecordCommentService` in `Program.cs` DI | Not Started |
+| COLLAB-006 | P0 | Implement `RecordCommentsController` (GET `/api/{entityType}/{id}/comments`, POST, PUT `/{commentId}`, DELETE `/{commentId}`) | Not Started |
+| COLLAB-007 | P1 | Build `RecordComments` React component (threaded list + compose box with @mention autocomplete) | Not Started |
+| COLLAB-008 | P1 | Add `recordCommentService.ts` TypeScript service | Not Started |
+| COLLAB-009 | P1 | Integrate `RecordComments` component into Account, Contact, Lead, Opportunity, ServiceRequest detail pages | Not Started |
+| COLLAB-010 | P1 | Unit tests for `RecordCommentService` (10+ test cases) | Not Started |
+
+---
+
+### FEAT-CSAT: Customer Satisfaction (CSAT/NPS)
+
+**Goal:** Enable CSAT surveys after service request resolution and periodic NPS score collection.
+
+| ID | Priority | Description | Status |
+|----|----------|-------------|--------|
+| CSAT-001 | P0 | Create `SatisfactionSurvey` entity (Id, EntityType, EntityId, Type [CSAT/NPS/CES], Status, SentAt, ResponseReceivedAt, ContactId, CreatedAt, UpdatedAt, IsDeleted, RowVersion) | Not Started |
+| CSAT-002 | P0 | Create `SatisfactionResponse` entity (Id, SurveyId, Score, Comment, Sentiment, SubmittedAt) | Not Started |
+| CSAT-003 | P0 | Add `DbSet` + migration `AddSatisfactionTracking` | Not Started |
+| CSAT-004 | P0 | Implement `ISatisfactionService` / `SatisfactionService` (SendSurvey, RecordResponse, GetMetrics, GetNPSScore, GetCSATScore) | Not Started |
+| CSAT-005 | P0 | Implement `SatisfactionController` (CRUD + metrics endpoints + `/api/satisfaction/nps` + `/api/satisfaction/csat`) | Not Started |
+| CSAT-006 | P1 | Frontend: `SatisfactionDashboard` page + NPS trend chart + CSAT score widget + response log table | Not Started |
+| CSAT-007 | P1 | Frontend: `SurveyResponseForm` component (public-facing survey form for email links) | Not Started |
+| CSAT-008 | P1 | Add `satisfactionService.ts` TypeScript service | Not Started |
+| CSAT-009 | P1 | Unit tests for `SatisfactionService` (8+ test cases) | Not Started |
+
+---
+
+### FEAT-REVENUE: Revenue Analytics (ARR/MRR)
+
+**Goal:** Track Monthly Recurring Revenue (MRR) and Annual Recurring Revenue (ARR) with movement analysis (new, expansion, churn, contraction).
+
+| ID | Priority | Description | Status |
+|----|----------|-------------|--------|
+| REVENUE-001 | P0 | Create `RevenueSnapshot` entity (Id, SnapshotDate, MRR, ARR, NewMRR, ExpansionMRR, ContractionMRR, ChurnMRR, NetNewMRR, CustomerCount, CreatedAt) | Not Started |
+| REVENUE-002 | P0 | Add `DbSet<RevenueSnapshot>` + migration `AddRevenueSnapshots` | Not Started |
+| REVENUE-003 | P0 | Implement `IRevenueAnalyticsService` / `RevenueAnalyticsService` (CalculateMRR, GetARRTrend, GetMRRMovements, GetChurnRate, GetExpansionRevenue) using existing `Subscription`/`Contract`/`Invoice` entities | Not Started |
+| REVENUE-004 | P0 | Implement `RevenueAnalyticsController` (GET `/api/revenue/mrr`, `/api/revenue/arr`, `/api/revenue/movements`, `/api/revenue/churn-rate`, `/api/revenue/cohorts`) | Not Started |
+| REVENUE-005 | P1 | Frontend: `RevenueAnalyticsPage` with MRR/ARR trend chart, waterfall MRR movement chart, churn rate gauge | Not Started |
+| REVENUE-006 | P1 | Frontend: `RevenueDashboardWidget` — embed key metrics in main dashboard | Not Started |
+| REVENUE-007 | P1 | Add `revenueAnalyticsService.ts` TypeScript service | Not Started |
+| REVENUE-008 | P1 | Unit tests for `RevenueAnalyticsService` (8+ test cases) | Not Started |
+
+---
+
+### FEAT-PORTAL: Customer Portal Foundation
+
+**Goal:** Allow external customers to log in, view their tickets, submit new requests, and browse the knowledge base without a CRM user account.
+
+| ID | Priority | Description | Status |
+|----|----------|-------------|--------|
+| PORTAL-001 | P0 | Create `PortalUser` entity (Id, Email, PasswordHash, ContactId, AccountId, IsActive, LastLoginAt, EmailVerifiedAt, CreatedAt, UpdatedAt, IsDeleted, RowVersion) | Not Started |
+| PORTAL-002 | P0 | Create `PortalSession` entity (Id, PortalUserId, Token, ExpiresAt, CreatedAt, IpAddress) | Not Started |
+| PORTAL-003 | P0 | Create `PortalConfig` entity (Id, IsEnabled, AllowSelfRegistration, WelcomeMessage, LogoUrl, PrimaryColor, AllowedDomains, CreatedAt, UpdatedAt) | Not Started |
+| PORTAL-004 | P0 | Add `DbSet` entries + migration `AddCustomerPortal` | Not Started |
+| PORTAL-005 | P0 | Implement `IPortalAuthService` (Register, Login, ForgotPassword, ResetPassword, VerifyEmail) | Not Started |
+| PORTAL-006 | P0 | Implement `IPortalService` (GetMyTickets, CreateTicket, GetTicketDetails, AddComment, GetKnowledgeArticles) | Not Started |
+| PORTAL-007 | P0 | Implement `PortalAuthController` (`/api/portal/auth/login`, `/register`, `/forgot-password`, `/reset-password`) | Not Started |
+| PORTAL-008 | P0 | Implement `PortalController` (`/api/portal/tickets`, `/{id}`, `/tickets/{id}/comments`, `/knowledge-base`) | Not Started |
+| PORTAL-009 | P1 | Frontend: `PortalLoginPage`, `PortalRegisterPage`, `PortalDashboardPage`, `PortalTicketListPage`, `PortalTicketDetailPage`, `PortalKBPage` | Not Started |
+| PORTAL-010 | P1 | Add `portalService.ts` + `portalAuthService.ts` TypeScript services | Not Started |
+| PORTAL-011 | P1 | Admin UI: Portal configuration page (enable/disable portal, branding settings) | Not Started |
+| PORTAL-012 | P1 | Unit tests for `PortalAuthService` + `PortalService` (10+ test cases) | Not Started |
+
+---
+
+### FEAT-AISCORING: AI Lead Scoring Real-time Triggers
+
+**Goal:** Auto-score leads on create/update using existing scoring rules, implement score decay for stale leads, add score history tracking.
+
+| ID | Priority | Description | Status |
+|----|----------|-------------|--------|
+| AISCORING-001 | P0 | Create `LeadScoreHistory` entity (Id, LeadId, Score, PreviousScore, Delta, Reason, ScoreComponents JSON, ScoredAt, ScoredBy [user/system/decay]) | Not Started |
+| AISCORING-002 | P0 | Add `DbSet<LeadScoreHistory>` + migration `AddLeadScoreHistory` | Not Started |
+| AISCORING-003 | P0 | Implement `LeadScoringBackgroundService : BackgroundService` — runs every 6h, applies score decay to leads inactive for 14+ days using existing `LastScoreDecayDate` | Not Started |
+| AISCORING-004 | P0 | Modify `LeadService.CreateAsync` + `UpdateAsync` to auto-trigger lead scoring via `IAILeadScoringService` and persist `LeadScoreHistory` entry | Not Started |
+| AISCORING-005 | P0 | Add endpoints to existing `AILeadScoringController`: GET `/api/aileadscoring/leads/{id}/history`, GET `/api/aileadscoring/leads/{id}/explanation` | Not Started |
+| AISCORING-006 | P1 | Frontend: `LeadScoreHistoryChart` — sparkline or mini trend chart showing score over time on Lead detail page | Not Started |
+| AISCORING-007 | P1 | Frontend: `LeadScoreExplanation` drawer — shows score breakdown by component (BANT/MEDDIC/activity/engagement) | Not Started |
+| AISCORING-008 | P1 | Frontend: Update `LeadsPage` to show score trend indicator (⬆️ improving / ⬇️ declining / ➡️ stable) next to score badge | Not Started |
+| AISCORING-009 | P1 | Unit tests for `LeadScoringBackgroundService` + score history (8+ test cases) | Not Started |
+
+---
+
+### FEAT-E2E: E2E Test Suite Stabilization
+
+**Goal:** Fix CRUD UI test failures (selector/navigation issues) and eliminate Mobile Safari false negatives so the full e2e suite runs green on chromium + firefox.
+
+| ID | Priority | Description | Status |
+|----|----------|-------------|--------|
+| E2E-001 | P0 | Fix `crud-accounts.spec.ts` TC-ACC-001 to TC-ACC-016 — update navigation selectors to match the current MUI sidebar structure | Not Started |
+| E2E-002 | P0 | Fix auth registration tests TC-AUTH-011 + TC-AUTH-013 — either update expected behavior (if registration is disabled) or fix the form selectors | Not Started |
+| E2E-003 | P0 | Update `playwright.config.ts` to exclude `Mobile Safari` project from standard `test:comprehensive` run (add `--project=chromium --project=firefox` constraint) | Not Started |
+| E2E-004 | P1 | Fix `crud-contacts.spec.ts` selector issues (if any) | Not Started |
+| E2E-005 | P1 | Fix `crud-opportunities.spec.ts` selector issues (if any) | Not Started |
+| E2E-006 | P1 | Add BVT test cases for COLLAB, CSAT, REVENUE, and PORTAL API endpoints | Not Started |
+| E2E-007 | P1 | Ensure `npm run test:comprehensive` exits with 0 failures on chromium+firefox | Not Started |
+
+---
+
+## Summary — Batch 2
+
+| Feature Group | Total Items | Priority |
+|--------------|-------------|----------|
+| FEAT-COLLAB (Record Comments) | 10 | P0/P1 |
+| FEAT-CSAT (Satisfaction) | 9 | P0/P1 |
+| FEAT-REVENUE (ARR/MRR) | 8 | P0/P1 |
+| FEAT-PORTAL (Customer Portal) | 12 | P0/P1 |
+| FEAT-AISCORING (Lead Scoring) | 9 | P0/P1 |
+| FEAT-E2E (Test Stabilization) | 7 | P0/P1 |
+| **Total** | **55** | — |
+
+---
+
+
 
 ---
 
