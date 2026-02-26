@@ -26,6 +26,7 @@ COPY CRM.Backend/tests/CRM.Tests.csproj ./tests/
 COPY CRM.Backend/tests/CRM.Tests/CRM.Tests.csproj ./tests/CRM.Tests/
 COPY CRM.Backend/tests/CRM.SystemModule.Tests/CRM.SystemModule.Tests.csproj ./tests/CRM.SystemModule.Tests/
 COPY CRM.Backend/tests/Unit/Core/CRM.Tests.Unit.Core.csproj ./tests/Unit/Core/
+COPY CRM.Backend/tests/Unit/CRM.Tests.Unit.csproj ./tests/Unit/
 
 # Restore dependencies (this layer is cached unless project files change)
 RUN dotnet restore CRM.sln
