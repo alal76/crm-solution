@@ -72,8 +72,14 @@ export interface TriggerConfiguration {
   
   // Scheduled Triggers
   scheduleType?: 'cron' | 'interval';
+  schedulePreset?: 'interval' | 'hourly' | 'daily' | 'weekly' | 'monthly' | 'custom_cron';
   cronExpression?: string;
   intervalMinutes?: number;
+  scheduleHour?: number;
+  scheduleMinute?: number;
+  scheduleDaysOfWeek?: number[];
+  scheduleDayOfMonth?: number;
+  timeZone?: string;
   
   // Webhook Triggers
   webhookSecret?: string;
@@ -119,6 +125,54 @@ const TabPanel: React.FC<TabPanelProps> = ({ children, value, index }) => (
     {value === index && <Box sx={{ pt: 2 }}>{children}</Box>}
   </div>
 );
+
+// ============================================================================
+// Schedule helpers
+// ============================================================================
+
+const COMMON_TIMEZONES = [
+  'UTC',
+  'America/New_York', 'America/Chicago', 'America/Denver', 'America/Los_Angeles',
+  'America/Toronto', 'America/Vancouver', 'America/Mexico_City', 'America/Sao_Paulo',
+  'Europe/London', 'Europe/Paris', 'Europe/Berlin', 'Europe/Amsterdam',
+  'Europe/Moscow', 'Africa/Cairo', 'Asia/Dubai', 'Asia/Kolkata',
+  'Asia/Singapore', 'Asia/Shanghai', 'Asia/Tokyo', 'Australia/Sydney', 'Pacific/Auckland',
+];
+
+const buildCronFromConfig = (cfg: TriggerConfiguration): string => {
+  const h = cfg.scheduleHour ?? 9;
+  const m = cfg.scheduleMinute ?? 0;
+  const dow = (cfg.scheduleDaysOfWeek ?? [1]).slice().sort((a, b) => a - b).join(',');
+  const dom = cfg.scheduleDayOfMonth ?? 1;
+  switch (cfg.schedulePreset) {
+    case 'hourly': return `${m} * * * *`;
+    case 'daily': return `${m} ${h} * * *`;
+    case 'weekly': return `${m} ${h} * * ${dow}`;
+    case 'monthly': return `${m} ${h} ${dom} * *`;
+    case 'custom_cron': return cfg.cronExpression || '0 9 * * *';
+    default: return '';
+  }
+};
+
+const describeCronConfig = (cfg: TriggerConfiguration): string => {
+  const h = cfg.scheduleHour ?? 9;
+  const m = cfg.scheduleMinute ?? 0;
+  const timeStr = `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+  const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const tz = cfg.timeZone || 'UTC';
+  switch (cfg.schedulePreset) {
+    case 'interval': return `Runs every ${cfg.intervalMinutes || 60} minute(s)`;
+    case 'hourly': return `Runs every hour at :${String(m).padStart(2, '0')} (${tz})`;
+    case 'daily': return `Runs every day at ${timeStr} (${tz})`;
+    case 'weekly': {
+      const days = (cfg.scheduleDaysOfWeek ?? [1]).slice().sort((a, b) => a - b).map(d => dayNames[d]).join(', ');
+      return `Runs every week on ${days} at ${timeStr} (${tz})`;
+    }
+    case 'monthly': return `Runs on day ${cfg.scheduleDayOfMonth ?? 1} of every month at ${timeStr} (${tz})`;
+    case 'custom_cron': return `Custom schedule: ${cfg.cronExpression || '—'}`;
+    default: return 'Choose a schedule pattern above';
+  }
+};
 
 // ============================================================================
 // Main Component
@@ -187,8 +241,14 @@ export const TriggerPropertiesPanel: React.FC<TriggerPropertiesPanelProps> = ({
         watchedFields: parsed.watchedFields || [],
         fieldConditions: parsed.fieldConditions || [],
         scheduleType: parsed.scheduleType,
+        schedulePreset: parsed.schedulePreset ?? (parsed.scheduleType === 'interval' ? 'interval' : parsed.scheduleType === 'cron' ? 'custom_cron' : undefined),
         cronExpression: parsed.cronExpression,
         intervalMinutes: parsed.intervalMinutes,
+        scheduleHour: parsed.scheduleHour ?? 9,
+        scheduleMinute: parsed.scheduleMinute ?? 0,
+        scheduleDaysOfWeek: parsed.scheduleDaysOfWeek ?? [1],
+        scheduleDayOfMonth: parsed.scheduleDayOfMonth ?? 1,
+        timeZone: parsed.timeZone ?? 'UTC',
         webhookSecret: parsed.webhookSecret,
         webhookPayloadSchema: parsed.webhookPayloadSchema,
         runOnce: parsed.runOnce,
@@ -206,6 +266,19 @@ export const TriggerPropertiesPanel: React.FC<TriggerPropertiesPanelProps> = ({
     const newConfig = { ...config, ...updates };
     setConfig(newConfig);
     onChange('configuration', JSON.stringify(newConfig));
+  };
+
+  // Schedule wrapper — auto-recomputes cron expression when visual fields change
+  const updateSchedule = (updates: Partial<TriggerConfiguration>) => {
+    const merged = { ...config, ...updates };
+    const preset = merged.schedulePreset;
+    if (preset && preset !== 'interval' && preset !== 'custom_cron') {
+      const cron = buildCronFromConfig(merged);
+      updates = { ...updates, cronExpression: cron, scheduleType: 'cron' };
+    } else if (preset === 'interval') {
+      updates = { ...updates, scheduleType: 'interval', cronExpression: undefined };
+    }
+    updateConfig(updates);
   };
 
   // Add field condition
@@ -430,46 +503,171 @@ export const TriggerPropertiesPanel: React.FC<TriggerPropertiesPanelProps> = ({
             </Box>
           )}
 
-          {/* Scheduled - Cron or Interval */}
+          {/* Scheduled - Enhanced Schedule Builder */}
           {config.triggerType === 'Scheduled' && (
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+
+              {/* Pattern preset */}
               <FormControl fullWidth size="small">
-                <InputLabel>Schedule Type</InputLabel>
+                <InputLabel>Schedule Pattern</InputLabel>
                 <Select
-                  value={config.scheduleType || 'interval'}
-                  label="Schedule Type"
-                  onChange={(e) => updateConfig({ scheduleType: e.target.value as 'cron' | 'interval' })}
+                  value={config.schedulePreset || 'daily'}
+                  label="Schedule Pattern"
+                  onChange={(e) => updateSchedule({ schedulePreset: e.target.value as TriggerConfiguration['schedulePreset'] })}
                   disabled={readonly}
                 >
-                  <MenuItem value="interval">Interval (Every X minutes)</MenuItem>
-                  <MenuItem value="cron">Cron Expression</MenuItem>
+                  <MenuItem value="interval">Every X minutes</MenuItem>
+                  <MenuItem value="hourly">Every hour</MenuItem>
+                  <MenuItem value="daily">Every day</MenuItem>
+                  <MenuItem value="weekly">Every week</MenuItem>
+                  <MenuItem value="monthly">Every month</MenuItem>
+                  <MenuItem value="custom_cron">Custom cron expression</MenuItem>
                 </Select>
               </FormControl>
 
-              {config.scheduleType === 'interval' && (
+              {/* Interval */}
+              {(config.schedulePreset === 'interval' || (!config.schedulePreset && config.scheduleType === 'interval')) && (
+                <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                  <Typography variant="body2" sx={{ color: 'text.secondary', whiteSpace: 'nowrap' }}>Every</Typography>
+                  <TextField
+                    size="small"
+                    type="number"
+                    value={config.intervalMinutes || 60}
+                    onChange={(e) => updateSchedule({ intervalMinutes: Math.max(1, parseInt(e.target.value) || 60) })}
+                    disabled={readonly}
+                    inputProps={{ min: 1, style: { textAlign: 'center' } }}
+                    sx={{ width: 90 }}
+                  />
+                  <Typography variant="body2" sx={{ color: 'text.secondary' }}>minutes</Typography>
+                </Box>
+              )}
+
+              {/* Time of day — hour + minute — for hourly/daily/weekly/monthly */}
+              {['hourly', 'daily', 'weekly', 'monthly'].includes(config.schedulePreset || '') && (
+                <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center' }}>
+                  <ScheduleIcon fontSize="small" sx={{ color: 'text.secondary' }} />
+                  <Typography variant="body2" sx={{ color: 'text.secondary' }}>At</Typography>
+                  {config.schedulePreset !== 'hourly' && (
+                    <FormControl size="small" sx={{ minWidth: 90 }}>
+                      <InputLabel>Hour</InputLabel>
+                      <Select
+                        value={config.scheduleHour ?? 9}
+                        label="Hour"
+                        onChange={(e) => updateSchedule({ scheduleHour: e.target.value as number })}
+                        disabled={readonly}
+                      >
+                        {Array.from({ length: 24 }, (_, i) => (
+                          <MenuItem key={i} value={i}>{String(i).padStart(2, '0')}h</MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  )}
+                  <FormControl size="small" sx={{ minWidth: 90 }}>
+                    <InputLabel>Minute</InputLabel>
+                    <Select
+                      value={config.scheduleMinute ?? 0}
+                      label="Minute"
+                      onChange={(e) => updateSchedule({ scheduleMinute: e.target.value as number })}
+                      disabled={readonly}
+                    >
+                      {[0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55].map(m => (
+                        <MenuItem key={m} value={m}>:{String(m).padStart(2, '0')}</MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </Box>
+              )}
+
+              {/* Day-of-week chip picker for weekly */}
+              {config.schedulePreset === 'weekly' && (
+                <Box>
+                  <Typography variant="caption" sx={{ color: 'text.secondary', mb: 0.75, display: 'block' }}>Days of Week</Typography>
+                  <Box sx={{ display: 'flex', gap: 0.5 }}>
+                    {([['Mon', 1], ['Tue', 2], ['Wed', 3], ['Thu', 4], ['Fri', 5], ['Sat', 6], ['Sun', 0]] as [string, number][]).map(([label, val]) => {
+                      const dow = config.scheduleDaysOfWeek ?? [1];
+                      const active = dow.includes(val);
+                      return (
+                        <Chip
+                          key={val}
+                          label={label}
+                          size="small"
+                          onClick={readonly ? undefined : () => {
+                            const next = active ? dow.filter(d => d !== val) : [...dow, val];
+                            updateSchedule({ scheduleDaysOfWeek: next.length > 0 ? next : [val] });
+                          }}
+                          sx={{
+                            cursor: readonly ? 'default' : 'pointer',
+                            fontWeight: 600,
+                            backgroundColor: active ? 'primary.main' : 'action.hover',
+                            color: active ? 'primary.contrastText' : 'text.secondary',
+                          }}
+                        />
+                      );
+                    })}
+                  </Box>
+                </Box>
+              )}
+
+              {/* Day of month for monthly */}
+              {config.schedulePreset === 'monthly' && (
                 <TextField
                   fullWidth
                   size="small"
                   type="number"
-                  label="Interval (minutes)"
-                  value={config.intervalMinutes || 60}
-                  onChange={(e) => updateConfig({ intervalMinutes: parseInt(e.target.value) || 60 })}
+                  label="Day of month (1–28)"
+                  value={config.scheduleDayOfMonth ?? 1}
+                  onChange={(e) => updateSchedule({ scheduleDayOfMonth: Math.min(28, Math.max(1, parseInt(e.target.value) || 1)) })}
                   disabled={readonly}
-                  inputProps={{ min: 1 }}
+                  inputProps={{ min: 1, max: 28 }}
+                  helperText="Use 1 for first day · max 28 avoids month-end issues"
                 />
               )}
 
-              {config.scheduleType === 'cron' && (
+              {/* Custom cron */}
+              {(config.schedulePreset === 'custom_cron' || (!config.schedulePreset && config.scheduleType === 'cron')) && (
                 <TextField
                   fullWidth
                   size="small"
                   label="Cron Expression"
-                  value={config.cronExpression || '0 0 * * *'}
-                  onChange={(e) => updateConfig({ cronExpression: e.target.value })}
+                  value={config.cronExpression || '0 9 * * *'}
+                  onChange={(e) => updateSchedule({ cronExpression: e.target.value })}
                   disabled={readonly}
-                  helperText="e.g., 0 9 * * 1-5 (9 AM Mon-Fri)"
+                  helperText="Format: min hour dom month dow  —  e.g., 0 9 * * 1-5 (weekdays at 9 AM)"
+                  sx={{ '& .MuiInputBase-input': { fontFamily: 'monospace' } }}
                 />
               )}
+
+              {/* Timezone */}
+              {config.schedulePreset !== 'interval' && (
+                <FormControl fullWidth size="small">
+                  <InputLabel>Timezone</InputLabel>
+                  <Select
+                    value={config.timeZone || 'UTC'}
+                    label="Timezone"
+                    onChange={(e) => updateSchedule({ timeZone: e.target.value })}
+                    disabled={readonly}
+                  >
+                    {COMMON_TIMEZONES.map(tz => (
+                      <MenuItem key={tz} value={tz}>{tz.replace(/_/g, ' ')}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              )}
+
+              {/* Human-readable summary */}
+              <Alert
+                severity="info"
+                icon={<ScheduleIcon fontSize="small" />}
+                sx={{ '& .MuiAlert-message': { fontSize: 13 } }}
+              >
+                {describeCronConfig(config)}
+                {config.schedulePreset && config.schedulePreset !== 'interval' && (
+                  <Typography variant="caption" sx={{ display: 'block', fontFamily: 'monospace', color: 'text.secondary', mt: 0.5 }}>
+                    cron: {buildCronFromConfig(config)}
+                  </Typography>
+                )}
+              </Alert>
+
             </Box>
           )}
 
