@@ -101,10 +101,13 @@ public class CrmChatCompletionConnector : IChatCompletionService
             }
         }
 
+        // Leave Model empty so each provider picks its own configured default model.
+        // Passing a model name here causes cross-provider mismatches during fallback
+        // (e.g. a Groq model name being sent to Ollama).
         var request = new LLMRequest
         {
             Provider = provider,
-            Model = GetDefaultModelForProvider(provider),
+            Model = string.Empty,
             Messages = messages,
             Temperature = temperature,
             MaxTokens = maxTokens
