@@ -151,6 +151,7 @@ This index provides a centralized catalog of all feature 11-specifications in th
 | [SPEC-AI-004](SPEC-AI-004-EmailIntelligence.md) | Email Intelligence | ⚠️ Partial | P3 | MKT-001 | **TBD - Scorer framework** |
 | [SPEC-AI-005](SPEC-AI-005-ReportingAnalytics.md) | Reporting & Analytics | ✅ Complete | P1 | SYS-005 | **100% - Full dashboard** |
 | [SPEC-AI-005-FE](SPEC-AI-005-FrontendAnalyticsUI.md) | Frontend Analytics & Reporting UI | ✅ Complete | P1 | AI-005 | **100% - BI embedding** |
+| [SPEC-AI-006](SPEC-AI-006-AgentScripting.md) | Agent & Workflow Script Authoring | ❌ Not Implemented | P1 | SD-004, ARCH-008 | **0% - Dual-language (JS/Python) scripting; IScriptEngine; ScriptPlugin entity; SK dynamic plugin loader** |
 
 ### Database Management Module
 | Spec ID | Feature | Status | Priority | Dependencies | Implementation |
@@ -188,10 +189,10 @@ This index provides a centralized catalog of all feature 11-specifications in th
 | Marketing | 5 | 0 | 2 | 3 | **55%** | 75% | 40% | 65% |
 | ITSM | 4 | 1 | 3 | 0 | **85%+** | **100%** | **85%** | **70%** |
 | **System** | **12** | **12** | **0** | **0** | **100%** ✅ | **100%** | **100%** | **100%** |
-| AI & Analytics | 6 | 4 | 2 | 0 | **72%** | 80% | 60% | 75% |
+| AI & Analytics | 7 | 4 | 2 | 1 | **65%** | 75% | 55% | 70% |
 | Integration | 3 | 0 | 3 | 0 | **40%** | 50% | 30% | 40% |
 | UX/UI | 1 | 1 | 0 | 0 | **100%** | 85% | 100% | 80% |
-| **Total** | **49** | **35** | **13** | **3** | **71.4%** | **84.2%** | **62.2%** | **73.9%** |
+| **Total** | **50** | **35** | **13** | **4** | **70.0%** | **83.0%** | **61.0%** | **73.0%** |
 
 ### TODO Items Summary (Updated Feb 15, 2026)
 | Priority | Count | Breakdown | Status |

@@ -2,10 +2,10 @@
 
 > **Module:** Service Desk  
 > **Feature:** Workflow Engine  
-> **Version:** 1.0  
-> **Last Updated:** 2026-02-12  
-> **Status:** ✅ Complete  
-> **Dependencies:** SD-001 (Service Request Management)
+> **Version:** 1.1  
+> **Last Updated:** 2026-02-26  
+> **Status:** ⚠️ Partial — Script Language Support Pending  
+> **Dependencies:** SD-001 (Service Request Management), SPEC-AI-006 (Agent Scripting)
 
 ---
 
@@ -29,6 +29,7 @@ Workflow Engine provides a visual workflow designer and execution engine for aut
 | SD004-SF08 | Version Control | Workflow versioning | P2 |
 | SD004-SF09 | Workflow Monitoring | Execution tracking dashboard | P1 |
 | SD004-SF10 | Workflow Templates | Reusable workflow templates | P2 |
+| SD004-SF11 | Script Language Support | Multi-language scripting for Script nodes | P1 |
 
 ### 1.3 Functionalities
 
@@ -60,6 +61,11 @@ Workflow Engine provides a visual workflow designer and execution engine for aut
 | SD004-F24 | View Instance Detail | SF09 | See execution details |
 | SD004-F25 | Import Template | SF10 | Load workflow template |
 | SD004-F26 | Export Template | SF10 | Save as template |
+| SD004-F27 | Select Script Language | SF11 | Choose scripting language per Script node |
+| SD004-F28 | Edit Script (JS) | SF11 | Write/edit JavaScript in code editor |
+| SD004-F29 | Edit Script (Python) | SF11 | Write/edit Python in code editor |
+| SD004-F30 | Script Test Runner | SF11 | Run script with test context inline |
+| SD004-F31 | Script Variable Inspector | SF11 | View available context variables |
 
 ### 1.4 Use Cases
 
@@ -158,6 +164,7 @@ Workflow Engine provides a visual workflow designer and execution engine for aut
 | WorkflowInstanceStatus | Running, Completed, Cancelled, Failed, Paused, Waiting | Instance status |
 | WorkflowTaskStatus | Pending, InProgress, Completed, Rejected, Cancelled, Expired | Task status |
 | WorkflowTriggerType | Manual, OnCreate, OnUpdate, OnStatusChange, Scheduled, OnEvent | Trigger types |
+| ScriptLanguage | JavaScript = 0, Python = 1, CSharp = 2 | Scripting language for Script nodes |
 
 ### 3.3 DTOs
 
@@ -176,6 +183,8 @@ Workflow Engine provides a visual workflow designer and execution engine for aut
 | CompleteTaskDto | Task completion | CRM.Core/Dtos/ |
 | WorkflowLogDto | Log entry data | CRM.Core/Dtos/ |
 | WorkflowExecutionDto | Execution context | CRM.Core/Dtos/ |
+| ScriptNodeConfigDto | Script node configuration (language, code, variables) | CRM.Core/Dtos/Workflow/ |
+| ScriptExecutionResultDto | Result of a script execution | CRM.Core/Dtos/Workflow/ |
 
 ### 3.4 Service Interfaces
 
@@ -286,6 +295,171 @@ Workflow Engine provides a visual workflow designer and execution engine for aut
 | Action Config | Valid JSON | Invalid action configuration |
 | Task Assignee | Must exist | Assignee not found |
 | Instance Status | Valid transitions | Invalid status transition |
+
+---
+
+## 3.9 Script Engine Architecture
+
+### 3.9.1 Language Evaluation
+
+The workflow engine currently supports **JavaScript (Jint)** for `Script` nodes. The following table evaluates candidate scripting languages for multi-language support:
+
+| Language | Engine (.NET) | Sandbox Quality | Ecosystem | Startup | Dependency | Verdict |
+|----------|--------------|-----------------|-----------|---------|------------|---------|
+| **JavaScript** | Jint v3 | ✅ Full (memory + timeout) | Limited (no npm) | ⚡ Fast (~1ms) | None (embedded) | ✅ **Default — keep** |
+| **Python (CPython)** | Python.NET (pythonnet) | ⚠️ Manual sandbox required | ✅ Full (pip/stdlib) | 🐢 Slow (~200ms per init) | Python 3.x runtime on host | ✅ **Recommended for power users** |
+| **Python (IronPython)** | IronPython 3.4 | ✅ Managed sandbox | ❌ Python 3.4 subset only | ⚡ Fast | None (NuGet) | ⚠️ Not recommended — too limited |
+| **C# Script** | Roslyn Scripting API | ⚠️ No isolation without AppDomain | ✅ Full .NET | 🐢 Slow (compile+run ~500ms) | Microsoft.CodeAnalysis NuGet | ⚠️ Developer-only, not end-user |
+| **Lua** | MoonSharp | ✅ Full sandbox | ❌ Minimal stdlib | ⚡ Fast | None (NuGet) | ⚠️ Niche — low familiarity |
+
+### 3.9.2 Recommendation
+
+**Strategy: Dual-Language via Pluggable `IScriptEngine`**
+
+Follow the existing pluggable provider architecture pattern (Section 5 of copilot-instructions):
+
+| Role | Language | Engine | When Available |
+|------|----------|--------|----------------|
+| **Default** | JavaScript (ES2020) | Jint 3.x | Always — zero dependencies |
+| **Optional** | Python 3.x | Python.NET (pythonnet) | When `FeatureManagement:EnablePythonScripting=true` AND Python 3.x runtime installed on host |
+
+**Why Python as the optional language:**
+- Most widely known language for automation and data processing among CRM administrators
+- Rich standard library (`json`, `datetime`, `re`, `math`) — covers 90% of workflow script use-cases without pip packages
+- Natural fit for AI-adjacent workflows (data transforms before/after agent calls)
+- Semantic Kernel Python SDK alignment (see SPEC-AI-006)
+- Practical sandboxing via `RestrictedPython` library restricting builtins
+
+**Why NOT IronPython:**
+- Frozen at Python 3.4 — no f-strings, no `typing`, no `dataclasses`, no walrus operator
+- Users will immediately hit missing features, creating confusion
+
+**Python sandbox rules (via RestrictedPython + Python.NET):**
+- ✅ Allowed: `json`, `re`, `math`, `datetime`, `collections`, `itertools`, `functools`
+- ❌ Blocked: `os`, `sys`, `subprocess`, `socket`, `importlib`, `open`, all file I/O
+- ❌ Blocked: `__import__`, `eval`, `exec`, `compile`
+- Resource limits: 15s timeout (slightly higher than JS due to init overhead), 32MB memory cap
+
+### 3.9.3 `IScriptEngine` Interface
+
+```csharp
+// CRM.Core/Interfaces/Scripting/IScriptEngine.cs
+public interface IScriptEngine
+{
+    /// <summary>Language identifier this engine handles.</summary>
+    ScriptLanguage Language { get; }
+
+    /// <summary>Returns true when the engine is available (dependencies installed).</summary>
+    bool IsAvailable { get; }
+
+    /// <summary>Execute a script with optional variable injection. Returns execution result.</summary>
+    Task<ScriptExecutionResult> ExecuteAsync(
+        string code,
+        Dictionary<string, object?> variables,
+        Dictionary<string, object?> context,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>Validate script syntax without executing. Returns list of errors (empty = valid).</summary>
+    Task<IReadOnlyList<string>> ValidateSyntaxAsync(string code, CancellationToken cancellationToken = default);
+}
+
+public record ScriptExecutionResult(
+    bool Success,
+    object? ReturnValue,
+    IReadOnlyList<string> Logs,
+    string? ErrorMessage,
+    TimeSpan ExecutionTime);
+```
+
+### 3.9.4 `ScriptEngineFactory` (provider resolver)
+
+```csharp
+// CRM.Infrastructure/Scripting/ScriptEngineFactory.cs
+public class ScriptEngineFactory
+{
+    private readonly IEnumerable<IScriptEngine> _engines;
+
+    public IScriptEngine GetEngine(ScriptLanguage language)
+    {
+        var engine = _engines.FirstOrDefault(e => e.Language == language && e.IsAvailable)
+            ?? throw new NotSupportedException(
+                $"Script language '{language}' is not available. " +
+                $"Enable it via FeatureManagement:EnablePythonScripting or install required runtime.");
+        return engine;
+    }
+}
+```
+
+### 3.9.5 `ScriptNodeConfigDto` Schema
+
+```json
+{
+  "language": "JavaScript",        // "JavaScript" | "Python" | "CSharp"
+  "script": "return context.ticketId * 2;",
+  "variables": {
+    "threshold": 10,
+    "statusLabel": "Open"
+  },
+  "context": {},
+  "timeout": 10,                  // seconds (max: JS=10, Python=15, CSharp=30)
+  "memoryLimitMb": 16             // MB (max: JS=16, Python=32)
+}
+```
+
+### 3.9.6 Script Context Variables (available in all languages)
+
+| Variable | Type | Description |
+|----------|------|-------------|
+| `context` | object | Full workflow execution context |
+| `context.entityType` | string | Associated entity type (e.g. `"ServiceRequest"`) |
+| `context.entityId` | int | Associated entity ID |
+| `context.ticketId` | int | Ticket ID if applicable |
+| `context.assigneeId` | int | Current assignee user ID |
+| `context.status` | string | Current entity status string |
+| `context.priority` | int | Priority level |
+| `context.createdAt` | string | ISO 8601 creation timestamp |
+| `log(msg)` | function | Capture output to execution log |
+| `result` | any | Set this variable to define the node output |
+
+**Python equivalent:**
+```python
+# Variables injected as top-level names — no import needed
+log(f"Processing ticket {context['entityId']}")
+result = {"approved": context["priority"] < 3, "label": context["status"]}
+```
+
+**JavaScript equivalent:**
+```javascript
+log(`Processing ticket ${context.entityId}`);
+result = { approved: context.priority < 3, label: context.status };
+```
+
+### 3.9.7 Frontend: Script Editor Component (New)
+
+| Component | Description | Status |
+|-----------|-------------|--------|
+| `ScriptNodeEditor` | Monaco-based code editor with language switching | ❌ Not Implemented |
+| `ScriptLanguageSelector` | Dropdown to choose JS/Python per node | ❌ Not Implemented |
+| `ScriptTestPanel` | Inline test runner with mock context input | ❌ Not Implemented |
+| `ScriptVariableInspector` | Sidebar listing available context variables | ❌ Not Implemented |
+
+**Monaco Editor language mappings:**
+- `ScriptLanguage.JavaScript` → Monaco language `"javascript"`
+- `ScriptLanguage.Python` → Monaco language `"python"`
+
+### 3.9.8 Enum Reference Update
+
+> ⚠️ Add `ScriptLanguage` to `SPEC-GEN-001-EnumReference.md` under the Workflow section.
+
+```csharp
+// CRM.Core/Enums/ScriptLanguage.cs
+public enum ScriptLanguage
+{
+    JavaScript = 0,   // Default — Jint engine, always available
+    Python = 1,       // Python.NET + CPython 3.x, requires feature flag
+    CSharp = 2        // Roslyn, reserved for future developer tooling
+}
+```
 
 ---
 
@@ -497,6 +671,17 @@ Workflow Engine provides a visual workflow designer and execution engine for aut
 | WorkflowExecutionTests | StartWorkflow_ValidWorkflow_CreatesInstance | Start instance | ⚠️ Partial |
 | WorkflowExecutionTests | AdvanceWorkflow_DecisionNode_FollowsCorrectPath | Decision logic | ⚠️ Partial |
 | WorkflowTaskTests | CompleteTask_ValidCompletion_AdvancesWorkflow | Task completion | ❌ Not Found |
+| JintScriptEngineTests | Execute_SimpleExpression_ReturnsResult | JS engine basic | ❌ Not Implemented |
+| JintScriptEngineTests | Execute_WithContextVariables_AccessesContext | JS context injection | ❌ Not Implemented |
+| JintScriptEngineTests | Execute_ExceedsTimeout_ReturnsTimeoutError | JS timeout enforcement | ❌ Not Implemented |
+| JintScriptEngineTests | Execute_ExceedsMemoryLimit_ReturnsError | JS memory limit | ❌ Not Implemented |
+| PythonScriptEngineTests | Execute_SimpleExpression_ReturnsResult | Python engine basic | ❌ Not Implemented |
+| PythonScriptEngineTests | Execute_WithContextVariables_AccessesContext | Python context injection | ❌ Not Implemented |
+| PythonScriptEngineTests | Execute_ForbiddenImport_IsBlocked | Python sandbox enforcement | ❌ Not Implemented |
+| PythonScriptEngineTests | Execute_ExceedsTimeout_ReturnsTimeoutError | Python timeout | ❌ Not Implemented |
+| ScriptEngineFactoryTests | GetEngine_JavaScript_ReturnsJintEngine | Factory resolution | ❌ Not Implemented |
+| ScriptEngineFactoryTests | GetEngine_Python_WhenDisabled_Throws | Feature flag guard | ❌ Not Implemented |
+| ScriptLanguageEnumTests | ScriptLanguage_HasExpectedValues | Enum integrity | ❌ Not Implemented |
 
 ### 5.2 Integration Tests
 
@@ -532,7 +717,20 @@ Workflow Engine provides a visual workflow designer and execution engine for aut
 
 | ID | Description | Priority | Category |
 |----|-------------|----------|----------|
-| *(All SD004 TODOs completed in this update)* | | | |
+| SD004-TODO01 | Define `IScriptEngine` interface in `CRM.Core/Interfaces/Scripting/` | P0 | Backend |
+| SD004-TODO02 | Refactor `ExecuteScriptAction` in `WorkflowWorkerService` to use `IScriptEngine` via factory | P0 | Backend |
+| SD004-TODO03 | Register `JintScriptEngine` implementing `IScriptEngine` (extract from current inline code) | P0 | Backend |
+| SD004-TODO04 | Add `ScriptLanguage` enum to `CRM.Core/Enums/` and update `SPEC-GEN-001-EnumReference.md` | P0 | Backend |
+| SD004-TODO05 | Add `language` field to `ScriptNodeConfigDto` and persist in `WorkflowNodes.ConfigurationJson` | P1 | Backend |
+| SD004-TODO06 | Implement `PythonScriptEngine` via Python.NET behind `EnablePythonScripting` feature flag | P1 | Backend |
+| SD004-TODO07 | Apply `RestrictedPython` or equivalent for Python sandbox enforcement | P1 | Backend |
+| SD004-TODO08 | Create `ScriptEngineFactory` resolving by `ScriptLanguage` from DI | P1 | Backend |
+| SD004-TODO09 | Build `ScriptNodeEditor` React component with Monaco editor and language switch | P1 | Frontend |
+| SD004-TODO10 | Implement `ScriptTestPanel` — inline test runner with mock context JSON input | P2 | Frontend |
+| SD004-TODO11 | Implement `ScriptVariableInspector` — sidebar listing context variables | P2 | Frontend |
+| SD004-TODO12 | Write unit tests for `JintScriptEngine` (timeout, memory, context injection) | P1 | Testing |
+| SD004-TODO13 | Write unit tests for `PythonScriptEngine` (sandbox enforcement, basic evaluation) | P1 | Testing |
+| SD004-TODO14 | Add `ScriptLanguage` enum unit test to `ScriptLanguageEnumTests` | P0 | Testing |
 
 ### 7.1 Detailed Task Breakdown (Pending)
 
@@ -569,6 +767,7 @@ Workflow Engine provides a visual workflow designer and execution engine for aut
 | 2026-02-12 | 1.0 | System | Initial specification |
 | 2026-02-13 | 1.1 | System | Implemented missing pages, components, tasks controller, and updated endpoints |
 | 2026-02-13 | 1.2 | System | Completed workflow designer components and aligned execution service naming |
+| 2026-02-26 | 1.3 | Copilot | Added SD004-SF11 Script Language Support; scripting language evaluation (JS vs Python); `IScriptEngine` interface; `ScriptEngineFactory`; `ScriptLanguage` enum; `ScriptNodeConfigDto`; frontend editor components; 14 new TODO items; test coverage for script engines |
 
 ---
 

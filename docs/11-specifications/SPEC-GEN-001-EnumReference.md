@@ -69,6 +69,19 @@ List additional enums similarly as they are discovered (e.g. `AddressType`, `Pay
 
 > **Share permission levels** for `ReportShare` are stored as plain strings (`"View"`, `"Edit"`, `"Admin"`) in `ReportShares.Permission` — no enum type; validated in service layer.
 
+### 2.8 Workflow Engine & Scripting (SPEC-SD-004, SPEC-AI-006)
+
+| Enum | File | Values (int) | Description |
+|------|------|--------------|-------------|
+| `WorkflowNodeType` | `CRM.Core/Enums/WorkflowNodeType.cs` | Start (0), End (1), Action (2), Decision (3), Fork (4), Join (5), Task (6), Approval (7), Notification (8), Wait (9), Script (10), Subprocess (11) | Type of node in a workflow definition |
+| `WorkflowStatus` | `CRM.Core/Enums/WorkflowStatus.cs` | Draft (0), Active (1), Inactive (2), Archived (3) | Publication state of a workflow definition |
+| `WorkflowInstanceStatus` | `CRM.Core/Enums/WorkflowInstanceStatus.cs` | Running (0), Completed (1), Cancelled (2), Failed (3), Paused (4), Waiting (5) | Execution state of a workflow instance |
+| `WorkflowTaskStatus` | `CRM.Core/Enums/WorkflowTaskStatus.cs` | Pending (0), InProgress (1), Completed (2), Rejected (3), Cancelled (4), Expired (5) | State of a human task within a workflow |
+| `WorkflowTriggerType` | `CRM.Core/Enums/WorkflowTriggerType.cs` | Manual (0), OnCreate (1), OnUpdate (2), OnStatusChange (3), Scheduled (4), OnEvent (5) | Event that starts a workflow |
+| `ScriptLanguage` | `CRM.Core/Enums/ScriptLanguage.cs` ❌ Not Implemented | JavaScript (0), Python (1), CSharp (2) | Scripting language for Workflow Script nodes and Agent ScriptPlugins. `JavaScript` uses Jint engine (always available). `Python` requires CPython 3.11+ and `FeatureManagement:EnablePythonScripting=true`. `CSharp` reserved for future developer tooling. |
+
+> **Note:** `ScriptLanguage` must be added to `CRM.Core/Enums/ScriptLanguage.cs` as part of SPEC-AI-006. Add corresponding unit test in `ScriptLanguageEnumTests`.
+
 ## 3. Maintenance
 
 - **New enum added:** update this document and the corresponding feature spec.
