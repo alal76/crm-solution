@@ -951,7 +951,9 @@ builder.Services.AddScoped<CampaignExecutionService>();
 // LLM and Resilience services
 builder.Services.Configure<LLMProviderOptions>(builder.Configuration.GetSection("LLMProviders"));
 builder.Services.Configure<ResilienceOptions>(builder.Configuration.GetSection("Resilience"));
-builder.Services.AddDataProtection();
+builder.Services.AddDataProtection()
+    .PersistKeysToFileSystem(new DirectoryInfo("/app/data/dp-keys"))
+    .SetApplicationName("CrmSolution");
 builder.Services.AddSingleton<IEncryptionService, CRM.Infrastructure.Services.EncryptionService>();
 builder.Services.AddScoped<ILLMSettingsService, LLMSettingsService>();
 builder.Services.AddHttpClient<ILLMService, LLMService>();
