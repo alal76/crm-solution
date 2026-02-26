@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 600,
-  "patch": 3,
-  "lastUpdate": "2026-03-02",
-  "description": "FIX: Workflow Designer script panel now visible — CSS flex layout fixes so Monaco editor side panel appears correctly next to the canvas (minWidth:0 on canvas, flexBasis/minHeight on panel, minHeight:0 on Monaco wrapper).",
+  "patch": 4,
+  "lastUpdate": "2026-02-26",
+  "description": "FIX: Script button now in main toolbar row (WorkflowToolbar) — no longer hidden in a separate strip below toolbar. Added Monaco editor toggle (Code icon) for System Prompt field in AgentCreatorPage step 2 (Behavior).",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [
