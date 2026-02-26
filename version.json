@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 600,
-  "patch": 2,
+  "patch": 3,
   "lastUpdate": "2026-03-02",
-  "description": "FIX: Agent chat response now populated — resolved JSON camelCase deserialization mismatch in ChatMessageRecord (role/content were always null). Added [JsonPropertyName] attributes and PropertyNameCaseInsensitive to both DeserializeMessages implementations.",
+  "description": "FIX: Workflow Designer script panel now visible — CSS flex layout fixes so Monaco editor side panel appears correctly next to the canvas (minWidth:0 on canvas, flexBasis/minHeight on panel, minHeight:0 on Monaco wrapper).",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [
