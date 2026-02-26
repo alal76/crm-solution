@@ -39,7 +39,10 @@ const WorkflowCanvas: React.FC<WorkflowCanvasProps> = ({
     <Box
       ref={canvasRef}
       sx={{
-        flex: 1,
+        flexGrow: 1,
+        flexShrink: 1,
+        flexBasis: 0,
+        minWidth: 0,        // prevents canvas from blocking shrink when script panel opens
         overflow: 'hidden',
         position: 'relative',
         backgroundColor: '#f5f5f5',

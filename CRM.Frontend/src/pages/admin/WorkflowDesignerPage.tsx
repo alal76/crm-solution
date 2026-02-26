@@ -1173,7 +1173,7 @@ function WorkflowDesignerPage() {
 
           {/* Script Panel */}
           {showScriptPanel && (
-            <Box sx={{ width: '40%', display: 'flex', flexDirection: 'column', borderLeft: '1px solid', borderColor: 'divider', backgroundColor: '#1e1e1e', minWidth: 300, maxWidth: 700, flexShrink: 0 }}>
+            <Box sx={{ flexBasis: '40%', flexShrink: 0, flexGrow: 0, minWidth: 300, maxWidth: 700, display: 'flex', flexDirection: 'column', minHeight: 0, borderLeft: '1px solid', borderColor: 'divider', backgroundColor: '#1e1e1e' }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 1.5, py: 0.75, backgroundColor: '#2d2d2d', borderBottom: '1px solid rgba(255,255,255,0.12)', flexShrink: 0 }}>
                 <Typography variant="caption" sx={{ color: '#ccc', fontFamily: 'monospace', fontWeight: 600, letterSpacing: 0.5 }}>
                   WORKFLOW JSON — edit to update canvas
@@ -1182,7 +1182,7 @@ function WorkflowDesignerPage() {
                   <CloseIcon fontSize="small" />
                 </IconButton>
               </Box>
-              <Box sx={{ flex: 1, overflow: 'hidden' }}>
+              <Box sx={{ flex: 1, minHeight: 0, position: 'relative', overflow: 'hidden' }}>
                 <Editor
                   language="json"
                   value={scriptContent}
