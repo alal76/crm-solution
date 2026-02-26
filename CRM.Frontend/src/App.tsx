@@ -259,6 +259,13 @@ const ExportWizardPage = lazy(() => import('./pages/ExportWizardPage'));
 // ----------------------------------------------------------------------------
 const SatisfactionDashboardPage = lazy(() => import('./pages/SatisfactionDashboardPage'));
 const SurveyResponsePage = lazy(() => import('./pages/SurveyResponsePage'));
+// Customer Portal (FEAT-PORTAL)
+const PortalLoginPage = lazy(() => import('./pages/portal/PortalLoginPage'));
+const PortalRegisterPage = lazy(() => import('./pages/portal/PortalRegisterPage'));
+const PortalDashboardPage = lazy(() => import('./pages/portal/PortalDashboardPage'));
+const PortalTicketListPage = lazy(() => import('./pages/portal/PortalTicketListPage'));
+const PortalKBPage = lazy(() => import('./pages/portal/PortalKBPage'));
+const PortalConfigPage = lazy(() => import('./pages/PortalConfigPage'));
 
 // Inner component that can access the theme context
 function ThemedApp() {
@@ -1393,6 +1400,13 @@ function ThemedApp() {
                   </ProtectedRoute>
                 }
               />
+              {/* Customer Portal Routes (FEAT-PORTAL) - public-facing, no CRM auth */}
+              <Route path="/portal/login" element={<PortalLoginPage />} />
+              <Route path="/portal/register" element={<PortalRegisterPage />} />
+              <Route path="/portal/dashboard" element={<PortalDashboardPage />} />
+              <Route path="/portal/tickets" element={<PortalTicketListPage />} />
+              <Route path="/portal/knowledge-base" element={<PortalKBPage />} />
+              <Route path="/admin/portal" element={<ProtectedRoute><PortalConfigPage /></ProtectedRoute>} />
               <Route path="/survey/:token" element={<SurveyResponsePage />} />
                         </Routes>
                         </Suspense>

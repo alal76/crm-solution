@@ -381,6 +381,7 @@ function NavigationContent() {
     'branding-settings': { label: 'Branding', icon: PaletteIcon, path: '/admin/branding', menuName: 'BrandingSettings' },
     'dashboard-settings': { label: 'Dashboards', icon: DashboardIcon, path: '/admin/dashboards', menuName: 'DashboardSettings' },
     'ui-customization': { label: 'UI Custom', icon: UiCustomIcon as typeof DashboardIcon, path: '/admin/ui-customization', menuName: 'UICustomization' },
+    'portal-config': { label: 'Customer Portal', icon: WebIcon as typeof DashboardIcon, path: '/admin/portal', menuName: 'CustomerPortal' },
     // Workflows
     'workflow-settings': { label: 'Workflow List', icon: WorkflowIcon, path: '/admin/workflows', menuName: 'WorkflowSettings' },
     'workflow-monitor': { label: 'Monitor', icon: WorkflowMonitorIcon, path: '/admin/workflows/monitor', menuName: 'WorkflowMonitor' },
@@ -547,7 +548,7 @@ function NavigationContent() {
     'crm-config-page', 'sales-config', 'service-desk-config', 'module-fields', 'master-data', 'duplicate-rules', 'lead-score-rules', 'sr-definitions',
     'llm-settings', 'integrations', 'analytics-settings', 'agent-management', 'agent-approvals', 'agent-analytics',
     'database-settings', 'monitoring-settings', 'deployment-settings', 'worker-ops',
-    'branding-settings', 'dashboard-settings', 'ui-customization',
+    'branding-settings', 'dashboard-settings', 'ui-customization', 'portal-config',
     'workflow-settings', 'workflow-monitor', 'workflow-templates',
     'api-docs', 'test-results', 'audit-logging',
   ], []);
@@ -697,6 +698,7 @@ function NavigationContent() {
     { id: 'branding-settings', order: 86, visible: true, category: 'admin', adminSubcategory: 'customization' },
     { id: 'dashboard-settings', order: 87, visible: true, category: 'admin', adminSubcategory: 'customization' },
     { id: 'ui-customization', order: 88, visible: true, category: 'admin', adminSubcategory: 'customization' },
+    { id: 'portal-config', order: 89, visible: true, category: 'admin', adminSubcategory: 'customization' },
     // Workflows
     { id: 'workflow-settings', order: 89, visible: true, category: 'admin', adminSubcategory: 'workflows' },
     { id: 'workflow-monitor', order: 90, visible: true, category: 'admin', adminSubcategory: 'workflows' },

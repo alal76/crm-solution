@@ -1082,6 +1082,11 @@ builder.Services.AddScoped<CRM.Infrastructure.Services.Messaging.IDeadLetterQueu
 // Search Analytics (INFRA-10)
 builder.Services.AddSingleton<CRM.Infrastructure.Services.Search.ISearchAnalyticsService, CRM.Infrastructure.Services.Search.SearchAnalyticsService>();
 
+// Customer Portal (FEAT-PORTAL)
+builder.Services.AddScoped<IPortalAuthService, PortalAuthService>();
+builder.Services.AddScoped<IPortalService, PortalService>();
+builder.Services.AddScoped<IPortalAdminService, PortalAdminService>();
+
 // Configure JWT Authentication
 var jwtSecret = builder.Configuration["Jwt:Secret"];
 if (string.IsNullOrEmpty(jwtSecret) || jwtSecret.Length < 32)

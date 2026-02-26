@@ -403,6 +403,10 @@ public interface ICrmDbContext
     // Revenue Analytics (FEAT-REVENUE)
     DbSet<RevenueSnapshot> RevenueSnapshots { get; }
 
+    // Customer Portal (FEAT-PORTAL)
+    DbSet<PortalUser> PortalUsers { get; }
+    DbSet<PortalConfig> PortalConfigs { get; }
+
     DatabaseFacade Database { get; }
 
     /// <summary>

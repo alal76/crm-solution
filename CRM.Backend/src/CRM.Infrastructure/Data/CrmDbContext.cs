@@ -552,6 +552,10 @@ public class CrmDbContext : DbContext, ICrmDbContext
     // Portal: Notification Preferences (TODO-PORTAL-07)
     public DbSet<NotificationPreference> NotificationPreferences { get; set; }
 
+    // Customer Portal (FEAT-PORTAL)
+    public DbSet<PortalUser> PortalUsers { get; set; }
+    public DbSet<PortalConfig> PortalConfigs { get; set; }
+
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
         if (!optionsBuilder.IsConfigured && _configuration != null)
@@ -4937,6 +4941,31 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.HasIndex(e => e.SnapshotDate)
                 .HasDatabaseName("IX_RevenueSnapshots_SnapshotDate");
             entity.HasQueryFilter(e => !e.IsDeleted);
+        });
+
+        // Customer Portal (FEAT-PORTAL)
+        modelBuilder.Entity<PortalUser>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasQueryFilter(e => !e.IsDeleted);
+            entity.Property(e => e.Email).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.PasswordHash).IsRequired().HasMaxLength(500);
+            entity.Property(e => e.EmailVerificationToken).HasMaxLength(100);
+            entity.Property(e => e.PasswordResetToken).HasMaxLength(100);
+            entity.Property(e => e.DisplayName).HasMaxLength(100);
+            entity.HasIndex(e => e.Email).IsUnique().HasDatabaseName("UX_PortalUsers_Email");
+        });
+
+        modelBuilder.Entity<PortalConfig>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.HasQueryFilter(e => !e.IsDeleted);
+            entity.Property(e => e.WelcomeMessage).HasMaxLength(500);
+            entity.Property(e => e.SupportEmail).HasMaxLength(200);
+            entity.Property(e => e.LogoUrl).HasMaxLength(500);
+            entity.Property(e => e.PrimaryColor).HasMaxLength(20);
+            entity.Property(e => e.AllowedDomains).HasMaxLength(500);
+            entity.Property(e => e.PortalTitle).HasMaxLength(100);
         });
 
         // Apply provider-specific post-configuration using the Strategy Pattern
