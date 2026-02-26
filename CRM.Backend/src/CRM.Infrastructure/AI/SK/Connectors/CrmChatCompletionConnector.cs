@@ -5,8 +5,9 @@
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
 using System.Runtime.CompilerServices;
-using CRM.Core.Ports.Output.Providers;
+using CRM.Infrastructure.Services;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
@@ -14,15 +15,17 @@ using Microsoft.SemanticKernel.Connectors.OpenAI;
 namespace CRM.Infrastructure.AI.SK.Connectors;
 
 /// <summary>
-/// Bridges the CRM <see cref="IAIPort"/> to Semantic Kernel's <see cref="IChatCompletionService"/>.
+/// Bridges the CRM <see cref="ILLMService"/> to Semantic Kernel's <see cref="IChatCompletionService"/>.
 /// This allows SK agents and plugins to use whichever AI provider is configured
-/// via the CRM's pluggable provider architecture (Ollama, OpenAI, Azure, Anthropic, etc.).
+/// via the CRM's LLM settings (Groq, OpenAI, Azure, Anthropic, Ollama, etc.).
+/// The active provider is determined by <see cref="LLMProviderOptions.DefaultProvider"/>.
 /// </summary>
 public class CrmChatCompletionConnector : IChatCompletionService
 {
     #region Fields
 
-    private readonly IAIPort _aiPort;
+    private readonly ILLMService _llmService;
+    private readonly LLMProviderOptions _llmOptions;
     private readonly ILogger<CrmChatCompletionConnector> _logger;
 
     #endregion
@@ -39,11 +42,16 @@ public class CrmChatCompletionConnector : IChatCompletionService
     /// <summary>
     /// Initializes a new instance of the <see cref="CrmChatCompletionConnector"/> class.
     /// </summary>
-    /// <param name="aiPort">The CRM AI port providing the underlying LLM implementation.</param>
+    /// <param name="llmService">The CRM LLM service providing multi-provider AI access.</param>
+    /// <param name="llmOptions">LLM provider options containing the default provider and models.</param>
     /// <param name="logger">Logger instance.</param>
-    public CrmChatCompletionConnector(IAIPort aiPort, ILogger<CrmChatCompletionConnector> logger)
+    public CrmChatCompletionConnector(
+        ILLMService llmService,
+        IOptions<LLMProviderOptions> llmOptions,
+        ILogger<CrmChatCompletionConnector> logger)
     {
-        _aiPort = aiPort ?? throw new ArgumentNullException(nameof(aiPort));
+        _llmService = llmService ?? throw new ArgumentNullException(nameof(llmService));
+        _llmOptions = llmOptions?.Value ?? throw new ArgumentNullException(nameof(llmOptions));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
@@ -58,24 +66,27 @@ public class CrmChatCompletionConnector : IChatCompletionService
         Kernel? kernel = null,
         CancellationToken cancellationToken = default)
     {
-        _logger.LogDebug("Converting SK ChatHistory ({MessageCount} messages) to IAIPort request", chatHistory.Count);
+        var provider = _llmOptions.DefaultProvider;
+        _logger.LogDebug(
+            "Converting SK ChatHistory ({MessageCount} messages) to ILLMService request (provider: {Provider})",
+            chatHistory.Count,
+            provider);
 
-        var messages = chatHistory.Select(m => new AIChatMessage
+        // Convert SK ChatHistory to LLMRequest messages
+        var messages = chatHistory.Select(m => new LLMMessage
         {
             Role = m.Role.ToString().ToLowerInvariant(),
             Content = m.Content ?? string.Empty
         }).ToList();
 
-        // Extract temperature and max tokens from execution settings with safe defaults
-        var temperature = 0.3;
-        var maxTokens = 4096;
-        string? modelOverride = null;
+        // Extract execution settings with safe defaults
+        var temperature = _llmOptions.DefaultTemperature;
+        var maxTokens = _llmOptions.DefaultMaxTokens;
 
         if (executionSettings is OpenAIPromptExecutionSettings openAiSettings)
         {
-            temperature = openAiSettings.Temperature ?? 0.3;
-            maxTokens = openAiSettings.MaxTokens ?? 4096;
-            modelOverride = openAiSettings.ModelId;
+            temperature = openAiSettings.Temperature ?? temperature;
+            maxTokens = openAiSettings.MaxTokens ?? maxTokens;
         }
         else if (executionSettings?.ExtensionData != null)
         {
@@ -90,40 +101,56 @@ public class CrmChatCompletionConnector : IChatCompletionService
             }
         }
 
-        var request = new AIChatRequest
+        var request = new LLMRequest
         {
+            Provider = provider,
+            Model = GetDefaultModelForProvider(provider),
             Messages = messages,
             Temperature = temperature,
-            MaxTokens = maxTokens,
-            Model = modelOverride
+            MaxTokens = maxTokens
         };
 
         try
         {
-            var response = await _aiPort.ChatAsync(request, cancellationToken);
+            var response = await _llmService.ChatAsync(request, cancellationToken);
+
+            if (!response.Success)
+            {
+                _logger.LogError(
+                    "ILLMService chat failed (provider: {Provider}): {Error}",
+                    response.Provider,
+                    response.Error);
+                throw new InvalidOperationException($"LLM call failed ({response.Provider}): {response.Error}");
+            }
 
             _logger.LogDebug(
-                "IAIPort returned response ({TokensUsed} tokens, model: {Model})",
-                response.Usage?.TotalTokens ?? 0,
-                response.Model ?? "unknown");
+                "ILLMService returned response ({TokensUsed} tokens, provider: {Provider}, model: {Model})",
+                response.TotalTokens,
+                response.Provider,
+                response.Model);
 
-            var result = new ChatMessageContent(AuthorRole.Assistant, response.Message?.Content ?? string.Empty);
+            var result = new ChatMessageContent(AuthorRole.Assistant, response.Content);
 
-            // Store token usage in metadata if available
-            if (response.Usage?.TotalTokens > 0)
+            if (response.TotalTokens > 0)
             {
                 result.Metadata = new Dictionary<string, object?>
                 {
-                    ["TokensUsed"] = response.Usage.TotalTokens,
-                    ["ModelUsed"] = response.Model
+                    ["TokensUsed"] = response.TotalTokens,
+                    ["ModelUsed"] = response.Model,
+                    ["Provider"] = response.Provider
                 };
             }
 
             return new List<ChatMessageContent> { result };
         }
+        catch (InvalidOperationException)
+        {
+            // Already logged above, re-throw as-is
+            throw;
+        }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "IAIPort ChatAsync failed for {MessageCount} messages", messages.Count);
+            _logger.LogError(ex, "ILLMService ChatAsync failed (provider: {Provider}) for {MessageCount} messages", provider, messages.Count);
             throw;
         }
     }
@@ -135,9 +162,9 @@ public class CrmChatCompletionConnector : IChatCompletionService
         Kernel? kernel = null,
         [EnumeratorCancellation] CancellationToken cancellationToken = default)
     {
-        // Fallback to non-streaming since IAIPort may not support streaming natively.
-        // The full response is returned as a single streaming chunk.
-        _logger.LogDebug("Streaming requested — falling back to non-streaming via IAIPort");
+        // Fallback to non-streaming since ILLMService does not natively expose streaming to SK.
+        // The full response is yielded as a single streaming chunk.
+        _logger.LogDebug("Streaming requested — falling back to non-streaming via ILLMService");
 
         var results = await GetChatMessageContentsAsync(chatHistory, executionSettings, kernel, cancellationToken);
 
@@ -145,6 +172,30 @@ public class CrmChatCompletionConnector : IChatCompletionService
         {
             yield return new StreamingChatMessageContent(result.Role, result.Content);
         }
+    }
+
+    #endregion
+
+    #region Private Helpers
+
+    /// <summary>
+    /// Returns the default model name for the specified provider from LLM options.
+    /// </summary>
+    private string GetDefaultModelForProvider(string provider)
+    {
+        return provider.ToLowerInvariant() switch
+        {
+            "openai" => _llmOptions.OpenAI?.DefaultModel ?? "gpt-4o-mini",
+            "azure" or "azureopenai" => _llmOptions.AzureOpenAI?.DefaultModel ?? "gpt-4o",
+            "anthropic" => _llmOptions.Anthropic?.DefaultModel ?? "claude-3-5-sonnet-20241022",
+            "google" or "gemini" or "vertexai" => _llmOptions.GoogleCloud?.DefaultModel ?? "gemini-1.5-pro",
+            "aws" or "bedrock" => _llmOptions.AWSBedrock?.DefaultModel ?? "anthropic.claude-3-sonnet-20240229-v1:0",
+            "deepseek" => _llmOptions.DeepSeek?.DefaultModel ?? "deepseek-chat",
+            "groq" => _llmOptions.Groq?.DefaultModel ?? "llama-3.3-70b-versatile",
+            "allenai" or "ai2" => _llmOptions.AllenAI?.DefaultModel ?? "allenai/OLMo-7B-Instruct",
+            "local" or "ollama" or "lmstudio" or "vllm" => _llmOptions.LocalLLM?.DefaultModel ?? "llama3",
+            _ => _llmOptions.OpenAI?.DefaultModel ?? "gpt-4o-mini"
+        };
     }
 
     #endregion

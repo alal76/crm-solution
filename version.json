@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 600,
-  "patch": 0,
-  "lastUpdate": "2026-02-26",
-  "description": "FEAT-AISCORING: AI Lead Scoring Real-time Triggers — LeadScoreHistory entity, service, decay background job, score history chart, explanation drawer",
+  "patch": 1,
+  "lastUpdate": "2026-03-02",
+  "description": "FIX: Route SK agent chat through ILLMService to support Groq as default LLM provider — CrmChatCompletionConnector now uses ILLMService instead of IAIPort",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [
@@ -40,6 +40,7 @@
     "TODO-SYS009-003: NavigationConfigService conditionally adds ITSM/Marketing nav items via IFeatureManager.IsEnabledAsync(FeatureFlags.EnableITSM/EnableMarketing); core items (dashboard/accounts/contacts) always included; 5 unit tests (NavigationConfigServiceTests.cs)",
     "v0.594.0: ZIP import \u2014 ImportFromCsvStreamAsync (Zeeshanahmad4 CSV/TSV header-aware parser), POST /api/zipcodes/import/csv-upload (multipart Admin-only), Admin Master Data ZIP tab import panel (GeoNames all, GeoNames per-country, CSV upload) with progress bar + polling + last-result summary; convert_geonames.py updated to document both data sources",
     "v0.595.0: FEAT-COLLAB Record Comments & @Mentions \u2014 RecordComment entity (EntityType/EntityId polymorphic, ParentCommentId self-ref, MentionedUserIds), IRecordCommentService/RecordCommentService (2-query author-map pattern, soft-delete, owner/admin auth), RecordCommentsController (GET/POST/PUT/DELETE at /api/comments), EF migration AddRecordComments applied to dev server, RecordComments.tsx (CommentCompose @mention autocomplete, CommentRow nested replies, avatar hsl colours), recordCommentService.ts, Comments tabs on Account/Lead/Opportunity/ServiceRequest pages, 18 unit tests (RecordCommentServiceTests.cs)",
+    "v0.600.1: FIX-AGENTS: CrmChatCompletionConnector replaced IAIPort with ILLMService — agents now respect LLMProviders.DefaultProvider=groq; GetDefaultModelForProvider() resolves model from LLMProviderOptions; fixes 'Failed to send message' error in lead scoring agent when Groq is configured as default provider",
     "v0.596.0: FEAT-CSAT Customer Satisfaction (CSAT/NPS/CES) \u2014 SurveyType/SurveyStatus/SentimentType enums, SatisfactionSurvey entity (EntityType polymorphic, ExternalToken, ContactId/AccountId FKs), SatisfactionResponse entity (Score, Comment, SentimentType, RespondedAt), ISatisfactionService interface, SatisfactionService (NPS=(promoters-detractors)/total*100, CSAT=satisfied/total*100 where satisfied>=4, sentiment thresholds 9/7/5/3), SatisfactionController (8 endpoints: CRUD + token lookup + metrics + NPS + CSAT), EF migration AddSatisfactionTracking applied to dev server, SatisfactionWidget.tsx dashboard widget, SurveyResponseForm.tsx (NPS pill 0-10 + CSAT star 1-5), SatisfactionDashboardPage.tsx, SurveyResponsePage.tsx at /survey/:token, satisfactionService.ts TypeScript API, 15 unit tests (SatisfactionServiceTests.cs) all passing"
   ],
   "git": {
