@@ -16,6 +16,7 @@
     "@emotion/styled": "^11.11.0",
     "@hello-pangea/dnd": "^18.0.1",
     "@microsoft/signalr": "^8.0.17",
+    "@monaco-editor/react": "^4.7.0",
     "@mui/icons-material": "^5.14.15",
     "@mui/lab": "^5.0.0-alpha.61",
     "@mui/material": "^5.14.15",

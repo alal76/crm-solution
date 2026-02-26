@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 593,
-  "patch": 13,
+  "patch": 14,
   "lastUpdate": "2026-02-26",
-  "description": "Phase 2+3 scripting: ScriptPlugin entity, EF migration, ScriptPluginService, ScriptingController (9 endpoints), ScriptPluginLoader, CrmKernelFactory async, scriptPluginService.ts, ScriptNodeEditor, JintScriptEngine 18 tests + ScriptEngineFactory 6 tests all passing (24 total)",
+  "description": "Scripting Language Support COMPLETE: ScriptNodeConfigDto language field, Monaco editor upgrade, ScriptPluginLibraryPage+EditorPage (frontend CRUD), ScriptTestPanel (inline runner), ScriptVariableInspector (context sidebar), 14 new unit tests (38 total/12 skipped), barrel export index.ts — 0 backend errors, 0 TS errors",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [

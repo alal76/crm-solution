@@ -14,6 +14,7 @@
 
 using System.Reflection;
 using System.Text.Json;
+using CRM.Core.DTOs.Workflow;
 using CRM.Core.Entities.Workflow;
 using CRM.Core.Enums;
 using CRM.Core.Interfaces.Scripting;
@@ -1690,6 +1691,7 @@ public class WorkflowWorkerService : BackgroundService
         {
             var script = string.Empty;
             var language = ScriptLanguage.JavaScript;
+            var languageExplicit = false; // tracks whether language was supplied via task.InputData
             var variables = new Dictionary<string, object?>();
             var context = new Dictionary<string, object?>();
 
@@ -1707,6 +1709,7 @@ public class WorkflowWorkerService : BackgroundService
                             script = scriptElement.GetString() ?? string.Empty;
                         }
 
+                        languageExplicit = root.TryGetProperty("language", out _);
                         language = ParseScriptLanguage(root);
                         variables = ExtractObjectDictionary(root, "variables");
                         context = ExtractObjectDictionary(root, "context");
@@ -1715,6 +1718,33 @@ public class WorkflowWorkerService : BackgroundService
                 catch (JsonException ex)
                 {
                     _logger.LogWarning(ex, "Failed to parse script config for task {TaskId}", task.Id);
+                }
+            }
+
+            // Fallback: if language was not explicitly set in InputData, check WorkflowNode.Configuration
+            if (!languageExplicit && task.WorkflowNodeId > 0)
+            {
+                try
+                {
+                    var node = await dbContext.WorkflowNodes.AsNoTracking()
+                        .FirstOrDefaultAsync(n => n.Id == task.WorkflowNodeId, ct);
+                    if (node?.Configuration != null)
+                    {
+                        var nodeConfig = JsonSerializer.Deserialize<ScriptNodeConfigDto>(
+                            node.Configuration,
+                            new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                        if (nodeConfig != null && Enum.IsDefined(typeof(ScriptLanguage), nodeConfig.Language))
+                        {
+                            language = (ScriptLanguage)nodeConfig.Language;
+                            _logger.LogDebug(
+                                "Script language {Language} resolved from node Configuration for task {TaskId}",
+                                language, task.Id);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Could not read node Configuration for language fallback, task {TaskId}", task.Id);
                 }
             }
 

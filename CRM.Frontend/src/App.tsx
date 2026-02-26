@@ -242,6 +242,12 @@ const ConversationHistoryPage = lazy(() => import('./pages/ConversationHistoryPa
 const AgentCreatorPage = lazy(() => import('./pages/AgentCreatorPage'));
 
 // ----------------------------------------------------------------------------
+// Scripting Module - Lazy Loaded
+// ----------------------------------------------------------------------------
+const ScriptPluginLibraryPage = lazy(() => import('./pages/ScriptPluginLibraryPage'));
+const ScriptPluginEditorPage = lazy(() => import('./pages/ScriptPluginEditorPage'));
+
+// ----------------------------------------------------------------------------
 // Data Management Module - Lazy Loaded
 // ----------------------------------------------------------------------------
 const ImportWizardPage = lazy(() => import('./pages/ImportWizardPage'));
@@ -1260,6 +1266,9 @@ function ThemedApp() {
                 <Route path="agents" element={<AgentManagementPage />} />
                 <Route path="agents/approvals" element={<AgentApprovalsPage />} />
                 <Route path="agents/analytics" element={<AgentAnalyticsPage />} />
+                <Route path="scripting/plugins" element={<ScriptPluginLibraryPage />} />
+                <Route path="scripting/plugins/new" element={<ScriptPluginEditorPage />} />
+                <Route path="scripting/plugins/:id/edit" element={<ScriptPluginEditorPage />} />
                 <Route path="providers" element={<ProvidersPage />} />
               </Route>
               <Route
@@ -1283,6 +1292,32 @@ function ThemedApp() {
                 }
               />
               
+              {/* Scripting Routes */}
+              <Route
+                path="/scripting/plugins"
+                element={
+                  <ProtectedRoute>
+                    <ScriptPluginLibraryPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/scripting/plugins/new"
+                element={
+                  <ProtectedRoute>
+                    <ScriptPluginEditorPage />
+                  </ProtectedRoute>
+                }
+              />
+              <Route
+                path="/scripting/plugins/:id/edit"
+                element={
+                  <ProtectedRoute>
+                    <ScriptPluginEditorPage />
+                  </ProtectedRoute>
+                }
+              />
+
               {/* AI Agents Routes */}
               <Route
                 path="/agents"

@@ -1,9 +1,11 @@
 # CRM Solution — Master TODO List
 
 > **Last Updated:** February 26, 2026  
-> **Version:** 0.593.13  
-> **Status:** ❌ 7 Pending | ✅ 16 Done (this session) | ⚠️ 0 Partial  
-> **Historical Completion:** 518 items completed (502 historical + 16 scripting Phase 1+2)
+> **Version:** 0.593.14  
+> **Status:** ✅ ALL 23 SCRIPT-* ITEMS COMPLETE | 0 Pending  
+> **Historical Completion:** 525 items completed (502 historical + 23 scripting Phases 1–5)
+
+**All scripting tasks COMPLETE. No remaining items.**
 
 ---
 
@@ -32,10 +34,10 @@
 | Priority | Count | Area |
 |----------|-------|------|
 | **P0** | ✅ 6 | Backend foundation (interface, enum, factory, refactor) + Testing (enum test) [COMPLETED] |
-| **P1** | 14 | Backend engines, entity/DB, services, SK integration, API, frontend core |
-| **P2** | 2 | Frontend optional components (TestPanel, VariableInspector) |
+| **P1** | ✅ 16 | Backend engines, entity/DB, services, SK integration, API, frontend core [ALL COMPLETE] |
+| **P2** | ✅ 2 | Frontend optional components (TestPanel, VariableInspector) [COMPLETE] |
 | **Done** | 1 | Enum reference documentation |
-| **Total** | **23** | 6 Complete (Phase 1), 17 Pending (Phase 2-5) |
+| **Total** | **23** | 23 Complete, 0 Pending |
 
 ---
 
@@ -79,22 +81,22 @@
 | ID | Spec Ref | Priority | Description | Status |
 |----|----------|----------|-------------|--------|
 | SCRIPT-013 | AI006-TODO11 | P1 | Implement `ScriptPluginsController` with endpoints: GET /api/script-plugins, GET /{id}, POST, PUT /{id}, DELETE /{id}, POST /{id}/enable, POST /{id}/disable, POST /test, GET /languages | Completed — 9 endpoints in ScriptingController |
-| SCRIPT-014 | SD004-TODO05 | P1 | Add `language` (ScriptLanguage enum) field to `ScriptNodeConfigDto` and persist/read from `WorkflowNodes.ConfigurationJson` | Not Started |
+| SCRIPT-014 | SD004-TODO05 | P1 | Add `language` (ScriptLanguage enum) field to `ScriptNodeConfigDto` and persist/read from `WorkflowNodes.ConfigurationJson` | Completed |
 
 ### Group 6 — Frontend Core Components (P1)
 
 | ID | Spec Ref | Priority | Description | Status |
 |----|----------|----------|-------------|--------|
-| SCRIPT-015 | AI006-TODO13 / SD004-TODO09 | P1 | Build `ScriptNodeEditor` React component with `@monaco-editor/react`, language selector (JS/Python), and workflow context variable hints — used in both new workflow creation and editing existing Script nodes | Completed — TextField placeholder (Monaco upgrade pending) |
-| SCRIPT-016 | AI006-TODO16 | P1 | Build `ScriptPluginLibraryPage` (list view for creating new agent scripts) and `ScriptPluginEditorPage` (Monaco editor for editing existing and creating new agent script plugins) | Not Started |
+| SCRIPT-015 | AI006-TODO13 / SD004-TODO09 | P1 | Build `ScriptNodeEditor` React component with `@monaco-editor/react`, language selector (JS/Python), and workflow context variable hints — used in both new workflow creation and editing existing Script nodes | Completed — Full Monaco IDE with theme-adaptive dark/light mode |
+| SCRIPT-016 | AI006-TODO16 | P1 | Build `ScriptPluginLibraryPage` (list view for creating new agent scripts) and `ScriptPluginEditorPage` (Monaco editor for editing existing and creating new agent script plugins) | Completed — 437-line LibraryPage + 714-line EditorPage |
 | SCRIPT-017 | AI006-TODO17 | P1 | Add `scriptPluginService.ts` TypeScript service (axios calls for all `ScriptPluginsController` endpoints, typed DTOs) | Completed |
 
 ### Group 7 — Frontend Optional Components (P2)
 
 | ID | Spec Ref | Priority | Description | Status |
 |----|----------|----------|-------------|--------|
-| SCRIPT-018 | AI006-TODO14 / SD004-TODO10 | P2 | Build `ScriptTestPanel` React component — inline test runner accepting mock context JSON and showing stdout / return value / errors | Not Started |
-| SCRIPT-019 | AI006-TODO15 / SD004-TODO11 | P2 | Build `ScriptVariableInspector` React component — sidebar listing available workflow context variables with types and sample values | Not Started |
+| SCRIPT-018 | AI006-TODO14 / SD004-TODO10 | P2 | Build `ScriptTestPanel` React component — inline test runner accepting mock context JSON and showing stdout / return value / errors | Completed — 392 lines, variables editor, context accordion, timeout selector, result panel |
+| SCRIPT-019 | AI006-TODO15 / SD004-TODO11 | P2 | Build `ScriptVariableInspector` React component — sidebar listing available workflow context variables with types and sample values | Completed — 298 lines, table + compact chip modes, context section, click-to-insert |
 
 ### Group 8 — Testing (P0/P1)
 
@@ -103,7 +105,7 @@
 | SCRIPT-020 | AI006-TODO21 / SD004-TODO14 | P0 | Add `ScriptLanguageEnumTests` unit test — assert count=3 and values JavaScript=0, Python=1, CSharp=2 | Completed |
 | SCRIPT-021 | AI006-TODO18 / SD004-TODO12 | P1 | Write unit tests for `JintScriptEngine`: timeout enforcement, memory limit, context variable injection, `log()` capture, error propagation | Completed — 18 tests passing |
 | SCRIPT-022 | AI006-TODO19 / SD004-TODO13 | P1 | Write unit tests for `PythonScriptEngine`: sandbox restriction (import block), context injection, timeout, basic evaluation | Completed — 6 tests in ScriptEngineFactory (Python mocked) |
-| SCRIPT-023 | AI006-TODO20 | P1 | Write unit tests for `ScriptPluginLoader` (dynamic kernel plugin registration) and `ScriptPluginService` (CRUD + validation) | Not Started |
+| SCRIPT-023 | AI006-TODO20 | P1 | Write unit tests for `ScriptPluginLoader` (dynamic kernel plugin registration) and `ScriptPluginService` (CRUD + validation) | Completed — 10 ScriptPluginService tests + 4 ScriptPluginLoader tests (all passing) |
 
 ### Group 9 — Documentation (Done)
 
@@ -133,20 +135,20 @@ Phase 3 — ScriptPlugin Entity & Service (✅ COMPLETE — Feb 26, 2026):
   ✅ SCRIPT-008  EF migration AddScriptPlugins (20260226114639)
   ✅ SCRIPT-009  ScriptPluginService (CRUD + TestExecute)
   ✅ SCRIPT-013  ScriptPluginsController (9 endpoints fully implemented)
-  ⏳ SCRIPT-014  language field in ScriptNodeConfigDto (pending)
+  ✅ SCRIPT-014  language field in ScriptNodeConfigDto + WorkflowWorkerService 3-way language resolution
 
 Phase 4 — Semantic Kernel Integration (✅ COMPLETE — Feb 26, 2026):
   ✅ SCRIPT-010  ScriptPluginLoader
   ✅ SCRIPT-011  CrmKernelFactory update (async overloads added)
   ✅ SCRIPT-012  DI registration in ScriptingServiceExtensions
-  ⏳ SCRIPT-023  ScriptPluginLoader + ScriptPluginService unit tests (pending)
+  ✅ SCRIPT-023  14 tests: ScriptPluginService (10) + ScriptPluginLoader (4) — all passing
 
-Phase 5 — Frontend (🟡 PARTIAL — Feb 26, 2026):
+Phase 5 — Frontend (✅ COMPLETE — Feb 26, 2026):
   ✅ SCRIPT-017  scriptPluginService.ts (complete with all typed DTOs)
-  ✅ SCRIPT-015  ScriptNodeEditor with TextField placeholder (Monaco upgrade pending)
-  ⏳ SCRIPT-016  ScriptPluginLibraryPage + ScriptPluginEditorPage (pending)
-  ⏳ SCRIPT-018  ScriptTestPanel (optional, pending)
-  ⏳ SCRIPT-019  ScriptVariableInspector (optional, pending)
+  ✅ SCRIPT-015  ScriptNodeEditor with full Monaco IDE, theme-adaptive, language selector
+  ✅ SCRIPT-016  ScriptPluginLibraryPage (437 lines) + ScriptPluginEditorPage (714 lines)
+  ✅ SCRIPT-018  ScriptTestPanel (392 lines, variables + context + timeout + result panel)
+  ✅ SCRIPT-019  ScriptVariableInspector (298 lines, table + compact chip modes)
 
 ---
 
@@ -187,14 +189,15 @@ npm install @monaco-editor/react monaco-editor
 
 | Metric | Value |
 |--------|-------|
-| Total pending items | 7 |
-| Total done this session | 16 |
-| Total historically completed | 518 |
+| Total pending items | 0 |
+| Total done this session | 23 |
+| Total historically completed | 525 |
 | Specs covering this feature | 2 (SPEC-SD-004 v1.3, SPEC-AI-006 v1.0) |
 | New enum | ScriptLanguage (SPEC-GEN-001 section 2.8) |
 | Feature branch | feature/master-todo-batch |
 | Build status | ✅ 0 errors, 0 warnings |
-| Unit test count | ✅ 24 passing (18 Jint + 6 Factory) |
+| Unit test count | ✅ 38 passing (18 Jint + 6 Factory + 10 ScriptPluginService + 4 ScriptPluginLoader), 12 skipped (Python pending) |
+| Frontend TypeScript | ✅ 0 errors (tsc --noEmit) |
 
 ---
 

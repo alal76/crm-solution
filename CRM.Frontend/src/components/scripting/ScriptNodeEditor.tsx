@@ -3,11 +3,12 @@
  * Copyright (C) 2024-2026 Abhishek Lal
  *
  * ScriptNodeEditor — inline code editor for script workflow nodes.
- * Uses a MUI TextField (multiline) as a Monaco placeholder.
+ * Uses @monaco-editor/react for full IDE-quality code editing.
  * Supports JavaScript, Python, and C# via the backend scripting engine.
  */
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
+import Editor, { OnMount } from '@monaco-editor/react';
 import {
   Alert,
   Box,
@@ -20,9 +21,10 @@ import {
   Paper,
   Select,
   SelectChangeEvent,
+  Skeleton,
   Stack,
-  TextField,
   Typography,
+  useTheme,
 } from '@mui/material';
 import {
   Code as CodeIcon,
@@ -43,6 +45,13 @@ import {
 // Constants
 // ---------------------------------------------------------------------------
 
+/** Monaco language id per ScriptLanguage enum value */
+const MONACO_LANG: Record<ScriptLanguage, string> = {
+  0: 'javascript',
+  1: 'python',
+  2: 'csharp',
+};
+
 const LANGUAGE_OPTIONS: { value: ScriptLanguage; label: string; placeholder: string }[] = [
   {
     value: 0,
@@ -54,7 +63,7 @@ const LANGUAGE_OPTIONS: { value: ScriptLanguage; label: string; placeholder: str
     value: 1,
     label: 'Python',
     placeholder:
-      '# Python — variables available via: variables[\'myVar\']\n# Return a value with: result = {"value": 42}\n',
+      "# Python — variables available via: variables['myVar']\n# Return a value with: result = {'value': 42}\n",
   },
   {
     value: 2,
@@ -81,7 +90,27 @@ export interface ScriptNodeEditorProps {
   onCancel?: () => void;
   /** Prevent editing */
   readOnly?: boolean;
+  /** Editor height (default: '400px') */
+  height?: string;
+  /** Show toolbar with language selector and action buttons (default: true) */
+  showToolbar?: boolean;
+  /** Show the test/run result panel below (default: true) */
+  showTestPanel?: boolean;
 }
+
+// ---------------------------------------------------------------------------
+// Monaco editor options (built per readOnly flag)
+// ---------------------------------------------------------------------------
+
+const buildMonacoOptions = (ro: boolean) =>
+  ({
+    fontSize: 13,
+    minimap: { enabled: false },
+    scrollBeyondLastLine: false,
+    wordWrap: 'on' as const,
+    readOnly: ro,
+    automaticLayout: true,
+  }) as const;
 
 // ---------------------------------------------------------------------------
 // Component
@@ -94,10 +123,20 @@ const ScriptNodeEditor: React.FC<ScriptNodeEditorProps> = ({
   onSave,
   onCancel,
   readOnly = false,
+  height = '400px',
+  showToolbar = true,
+  showTestPanel = true,
 }) => {
+  const muiTheme = useTheme();
+  const monacoTheme = muiTheme.palette.mode === 'dark' ? 'vs-dark' : 'vs';
+
   // Editor state
   const [code, setCode] = useState<string>(initialCode);
   const [language, setLanguage] = useState<ScriptLanguage>(initialLanguage);
+  const [editorLoaded, setEditorLoaded] = useState(false);
+
+  // Keep a ref to the Monaco editor instance for future imperative use
+  const editorRef = useRef<Parameters<OnMount>[0] | null>(null);
 
   // Operation states
   const [validating, setValidating] = useState(false);
@@ -117,19 +156,27 @@ const ScriptNodeEditor: React.FC<ScriptNodeEditorProps> = ({
     setError(null);
   }, []);
 
-  const selectedLanguage = LANGUAGE_OPTIONS.find((l) => l.value === language)!;
+  const monacoOptions = buildMonacoOptions(readOnly);
 
   // ---------------------------------------------------------------------------
   // Handlers
   // ---------------------------------------------------------------------------
 
-  const handleLanguageChange = (event: SelectChangeEvent<number>) => {
-    setLanguage(event.target.value as ScriptLanguage);
-    clearResults();
+  const handleEditorMount: OnMount = (editor) => {
+    editorRef.current = editor;
+    setEditorLoaded(true);
   };
 
-  const handleCodeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setCode(event.target.value);
+  const handleEditorChange = useCallback(
+    (value: string | undefined) => {
+      setCode(value ?? '');
+      clearResults();
+    },
+    [clearResults],
+  );
+
+  const handleLanguageChange = (event: SelectChangeEvent<number>) => {
+    setLanguage(event.target.value as ScriptLanguage);
     clearResults();
   };
 
@@ -218,7 +265,7 @@ const ScriptNodeEditor: React.FC<ScriptNodeEditorProps> = ({
         <Alert severity={runResult.success ? 'success' : 'error'} sx={{ mb: 0.5 }}>
           {runResult.success
             ? `Executed in ${runResult.executionTimeMs} ms`
-            : runResult.errorMessage ?? 'Execution failed'}
+            : (runResult.errorMessage ?? 'Execution failed')}
         </Alert>
 
         {/* Return value */}
@@ -270,6 +317,7 @@ const ScriptNodeEditor: React.FC<ScriptNodeEditorProps> = ({
   // ---------------------------------------------------------------------------
 
   const isBusy = validating || running;
+  const currentLangOption = LANGUAGE_OPTIONS.find((l) => l.value === language)!;
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
@@ -284,110 +332,144 @@ const ScriptNodeEditor: React.FC<ScriptNodeEditorProps> = ({
 
       <Divider />
 
-      {/* Language selector */}
-      <FormControl size="small" disabled={readOnly || isBusy} sx={{ width: 200 }}>
-        <InputLabel id="script-language-label">Language</InputLabel>
-        <Select
-          labelId="script-language-label"
-          value={language}
-          label="Language"
-          onChange={handleLanguageChange}
-        >
-          {LANGUAGE_OPTIONS.map((opt) => (
-            <MenuItem key={opt.value} value={opt.value}>
-              {opt.label}
-            </MenuItem>
-          ))}
-        </Select>
-      </FormControl>
-
-      {/* Code editor (TextField multiline — Monaco placeholder) */}
-      <TextField
-        label={`${selectedLanguage.label} script`}
-        placeholder={selectedLanguage.placeholder}
-        multiline
-        minRows={12}
-        maxRows={28}
-        fullWidth
-        value={code}
-        onChange={handleCodeChange}
-        disabled={readOnly || isBusy}
-        InputProps={{
-          sx: {
-            fontFamily: 'monospace',
-            fontSize: '0.82rem',
-            lineHeight: 1.6,
-            alignItems: 'flex-start',
-          },
-        }}
-        inputProps={{ spellCheck: false }}
-        variant="outlined"
-        size="small"
-      />
-
-      {/* Action buttons */}
-      <Stack direction="row" spacing={1} flexWrap="wrap">
-        <Button
-          variant="outlined"
-          size="small"
-          startIcon={validating ? <CircularProgress size={14} /> : <ValidateIcon />}
-          onClick={handleValidate}
-          disabled={readOnly || isBusy || !code.trim()}
-        >
-          Validate
-        </Button>
-
-        <Button
-          variant="outlined"
-          size="small"
-          color="secondary"
-          startIcon={running ? <CircularProgress size={14} /> : <RunIcon />}
-          onClick={handleRun}
-          disabled={readOnly || isBusy || !code.trim()}
-        >
-          Run
-        </Button>
-
-        {!readOnly && (
-          <>
-            <Box sx={{ flex: 1 }} />
-            <Button
-              variant="contained"
-              size="small"
-              startIcon={<SaveIcon />}
-              onClick={handleSave}
-              disabled={isBusy}
-            >
-              Save
-            </Button>
-            {onCancel && (
-              <Button
-                variant="outlined"
-                size="small"
-                color="inherit"
-                startIcon={<CancelIcon />}
-                onClick={onCancel}
-                disabled={isBusy}
+      {/* Toolbar */}
+      {showToolbar && (
+        <>
+          {/* Language selector — hidden in readOnly mode */}
+          {!readOnly && (
+            <FormControl size="small" disabled={isBusy} sx={{ width: 200 }}>
+              <InputLabel id="script-language-label">Language</InputLabel>
+              <Select
+                labelId="script-language-label"
+                value={language}
+                label="Language"
+                onChange={handleLanguageChange}
               >
-                Cancel
-              </Button>
-            )}
-          </>
-        )}
-      </Stack>
+                {LANGUAGE_OPTIONS.map((opt) => (
+                  <MenuItem key={opt.value} value={opt.value}>
+                    {opt.label}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+          )}
 
-      {/* Global error */}
-      {error && (
-        <Alert severity="error" onClose={() => setError(null)}>
-          {error}
-        </Alert>
+          {/* Action buttons */}
+          <Stack direction="row" spacing={1} flexWrap="wrap">
+            <Button
+              variant="outlined"
+              size="small"
+              startIcon={validating ? <CircularProgress size={14} /> : <ValidateIcon />}
+              onClick={handleValidate}
+              disabled={readOnly || isBusy || !code.trim()}
+            >
+              Validate
+            </Button>
+
+            <Button
+              variant="outlined"
+              size="small"
+              color="secondary"
+              startIcon={running ? <CircularProgress size={14} /> : <RunIcon />}
+              onClick={handleRun}
+              disabled={readOnly || isBusy || !code.trim()}
+            >
+              Run
+            </Button>
+
+            {!readOnly && (onSave || onCancel) && (
+              <>
+                <Box sx={{ flex: 1 }} />
+                {onSave && (
+                  <Button
+                    variant="contained"
+                    size="small"
+                    startIcon={<SaveIcon />}
+                    onClick={handleSave}
+                    disabled={isBusy}
+                  >
+                    Save
+                  </Button>
+                )}
+                {onCancel && (
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    color="inherit"
+                    startIcon={<CancelIcon />}
+                    onClick={onCancel}
+                    disabled={isBusy}
+                  >
+                    Cancel
+                  </Button>
+                )}
+              </>
+            )}
+          </Stack>
+        </>
       )}
 
-      {/* Validation diagnostics */}
-      {renderDiagnostics()}
+      {/* Monaco Editor with loading skeleton */}
+      <Box sx={{ position: 'relative', border: 1, borderColor: 'divider', borderRadius: 1 }}>
+        {/* Skeleton shown while Monaco bundle loads */}
+        {!editorLoaded && (
+          <Skeleton
+            variant="rectangular"
+            width="100%"
+            height={height}
+            animation="wave"
+            sx={{ borderRadius: 1 }}
+          />
+        )}
 
-      {/* Execution result */}
-      {renderRunResult()}
+        {/* Busy overlay */}
+        {isBusy && editorLoaded && (
+          <Box
+            sx={{
+              position: 'absolute',
+              inset: 0,
+              zIndex: 10,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              bgcolor: 'action.disabledBackground',
+              borderRadius: 1,
+            }}
+          >
+            <CircularProgress size={32} />
+          </Box>
+        )}
+
+        <Editor
+          height={height}
+          language={MONACO_LANG[language]}
+          value={code}
+          theme={monacoTheme}
+          options={monacoOptions}
+          onChange={handleEditorChange}
+          onMount={handleEditorMount}
+          loading={null}
+          defaultValue={currentLangOption.placeholder}
+        />
+      </Box>
+
+      {/* Test / result panel */}
+      {showTestPanel && (
+        <>
+          {/* Global error */}
+          {error && (
+            <Alert severity="error" onClose={() => setError(null)}>
+              {error}
+            </Alert>
+          )}
+
+          {/* Validation diagnostics */}
+          {renderDiagnostics()}
+
+          {/* Execution result */}
+          {renderRunResult()}
+        </>
+      )}
     </Box>
   );
 };
