@@ -115,6 +115,8 @@ const AgentManagementPage: React.FC = () => {
   const [editMaxTokens, setEditMaxTokens] = useState(4096);
   const [editAllowedPlugins, setEditAllowedPlugins] = useState('');
   const [editModelOverride, setEditModelOverride] = useState('');
+  const [editRequiresApproval, setEditRequiresApproval] = useState(false);
+  const [editApprovalTier, setEditApprovalTier] = useState('');
 
   // ── data fetching ───────────────────────────────────────────────────────
   const loadAgents = useCallback(async () => {
@@ -182,6 +184,8 @@ const AgentManagementPage: React.FC = () => {
     setEditMaxTokens(agent.maxTokens ?? 4096);
     setEditAllowedPlugins(agent.allowedPlugins ?? '');
     setEditModelOverride(agent.modelOverride ?? '');
+    setEditRequiresApproval(agent.requiresApproval ?? false);
+    setEditApprovalTier(agent.approvalTier ?? '');
     setActiveTab(0);
     setEditDialogOpen(true);
   };
@@ -205,6 +209,8 @@ const AgentManagementPage: React.FC = () => {
         maxTokens: editMaxTokens,
         allowedPlugins: editAllowedPlugins,
         modelOverride: editModelOverride || undefined,
+        requiresApproval: editRequiresApproval,
+        approvalTier: editApprovalTier || undefined,
       };
 
       await agentAdminService.updateConfig(selectedAgent.id, request);
@@ -741,34 +747,28 @@ const AgentManagementPage: React.FC = () => {
                       Requires Approval
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
-                      Whether actions taken by this agent need human approval
-                      before execution.
+                      When enabled, the agent will pause before executing write
+                      operations and wait for a human to approve or reject via
+                      the Approval Hub.
                     </Typography>
                   </Box>
                   <Switch
-                    checked={selectedAgent?.requiresApproval ?? false}
-                    disabled
+                    checked={editRequiresApproval}
+                    onChange={(e) => setEditRequiresApproval(e.target.checked)}
                     color="primary"
                   />
                 </Box>
 
                 <TextField
                   label="Approval Tier"
-                  value={selectedAgent?.approvalTier ?? 'N/A'}
-                  disabled
+                  value={editApprovalTier}
+                  onChange={(e) => setEditApprovalTier(e.target.value)}
                   fullWidth
                   size="small"
+                  disabled={!editRequiresApproval}
+                  placeholder="e.g. Tier1, Tier2, Manager"
+                  helperText={editRequiresApproval ? 'Approval group that handles this agent\'s action requests.' : 'Enable \'Requires Approval\' to set a tier.'}
                 />
-
-                <Alert severity="info" variant="outlined" sx={{ mt: 1 }}>
-                  <Typography variant="body2">
-                    Approval settings are defined at the agent seed level and
-                    cannot be changed through this interface. When approval is
-                    required, the agent will pause before executing write
-                    operations and wait for a human to approve or reject the
-                    action via the Approval Hub.
-                  </Typography>
-                </Alert>
               </Box>
             </TabPanel>
           </Box>
