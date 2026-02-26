@@ -250,6 +250,10 @@ function WorkflowDesignerPage() {
   // Sync nodes/transitions → script (visual → script direction)
   useEffect(() => {
     if (!isEditingScriptRef.current) {
+      // Build a key→id lookup so transitions can use readable keys
+      const idToKey: Record<number, string> = {};
+      nodes.forEach(n => { idToKey[n.id] = n.nodeKey; });
+
       setScriptContent(
         JSON.stringify({
           workflow: {
@@ -258,27 +262,30 @@ function WorkflowDesignerPage() {
             description: workflow?.description ?? '',
             category: workflow?.category ?? '',
           },
-          nodes: nodes.map(n => ({
-            id: n.id,
-            key: n.nodeKey,
-            name: n.name,
-            type: n.nodeType,
-            position: { x: n.positionX, y: n.positionY },
-            isStartNode: n.isStartNode,
-            isEndNode: n.isEndNode,
-            ...(n.nodeSubType ? { subType: n.nodeSubType } : {}),
-            ...(n.description ? { description: n.description } : {}),
-            ...(n.configuration ? { configuration: n.configuration } : {}),
-          })),
+          steps: nodes.map(n => {
+            let configObj: unknown = undefined;
+            if (n.configuration) {
+              try { configObj = JSON.parse(n.configuration); } catch { configObj = n.configuration; }
+            }
+            return {
+              id: n.nodeKey || n.id,
+              name: n.name,
+              type: n.nodeType,
+              ...(n.nodeSubType ? { subType: n.nodeSubType } : {}),
+              ...(n.isStartNode ? { isStart: true } : {}),
+              ...(n.isEndNode ? { isEnd: true } : {}),
+              ...(n.description ? { description: n.description } : {}),
+              ...(configObj !== undefined ? { configuration: configObj } : {}),
+            };
+          }),
           transitions: transitions.map(t => ({
-            id: t.id,
-            from: t.sourceNodeId,
-            to: t.targetNodeId,
-            conditionType: t.conditionType,
-            isDefault: t.isDefault,
-            priority: t.priority,
+            from: idToKey[t.sourceNodeId] ?? t.sourceNodeId,
+            to: idToKey[t.targetNodeId] ?? t.targetNodeId,
             ...(t.label ? { label: t.label } : {}),
+            conditionType: t.conditionType,
             ...(t.conditionExpression ? { condition: t.conditionExpression } : {}),
+            ...(t.isDefault ? { isDefault: true } : {}),
+            ...(t.priority !== 0 && t.priority !== 100 ? { priority: t.priority } : {}),
           })),
         }, null, 2)
       );
@@ -294,45 +301,77 @@ function WorkflowDesignerPage() {
     if (scriptUpdateTimerRef.current) clearTimeout(scriptUpdateTimerRef.current);
     scriptUpdateTimerRef.current = setTimeout(() => {
       try {
-        const parsed = JSON.parse(val) as { nodes?: unknown[]; transitions?: unknown[] };
-        if (!Array.isArray(parsed?.nodes) || !Array.isArray(parsed?.transitions)) {
-          throw new Error('Root must have "nodes" and "transitions" arrays');
-        }
         type RN = Record<string, unknown>;
-        const newNodes: CanvasNode[] = (parsed.nodes as RN[]).map(n => ({
-          ...(nodes.find(x => x.id === (n.id as number)) ?? ({} as CanvasNode)),
-          id: (n.id as number) ?? 0,
-          nodeKey: (n.key as string) ?? '',
-          name: (n.name as string) ?? 'Unnamed',
-          nodeType: ((n.type as string) ?? 'Action') as WorkflowNodeType,
-          nodeSubType: (n.subType as string) ?? undefined,
-          positionX: ((n.position as RN)?.x as number) ?? 100,
-          positionY: ((n.position as RN)?.y as number) ?? 100,
-          width: ((n.size as RN)?.width as number) ?? 160,
-          height: ((n.size as RN)?.height as number) ?? 60,
-          isStartNode: (n.isStartNode as boolean) ?? false,
-          isEndNode: (n.isEndNode as boolean) ?? false,
-          description: (n.description as string) ?? undefined,
-          configuration: (n.configuration as string) ?? undefined,
-          timeoutMinutes: 0,
-          retryCount: 0,
-          executionOrder: 0,
-          selected: false,
-        }));
-        const newTransitions: CanvasTransition[] = (parsed.transitions as RN[]).map(t => ({
-          ...(transitions.find(x => x.id === (t.id as number)) ?? ({} as CanvasTransition)),
-          id: (t.id as number) ?? 0,
-          transitionKey: (t.key as string) ?? undefined,
-          sourceNodeId: (t.from as number) ?? 0,
-          targetNodeId: (t.to as number) ?? 0,
-          label: (t.label as string) ?? undefined,
-          conditionType: ((t.conditionType as string) ?? 'None'),
-          conditionExpression: (t.condition as string) ?? undefined,
-          isDefault: (t.isDefault as boolean) ?? false,
-          priority: (t.priority as number) ?? 0,
-          lineStyle: 'solid',
-          selected: false,
-        }));
+        const parsed = JSON.parse(val) as { steps?: unknown[]; nodes?: unknown[]; transitions?: unknown[] };
+        const rawSteps = parsed?.steps ?? parsed?.nodes;
+        if (!Array.isArray(rawSteps) || !Array.isArray(parsed?.transitions)) {
+          throw new Error('Root must have "steps" (or "nodes") and "transitions" arrays');
+        }
+
+        // Build key→existingNode lookup for position/size preservation
+        const keyToExisting: Record<string, CanvasNode> = {};
+        const idToExisting: Record<number, CanvasNode> = {};
+        nodes.forEach(n => {
+          if (n.nodeKey) keyToExisting[n.nodeKey] = n;
+          idToExisting[n.id] = n;
+        });
+
+        const newNodes: CanvasNode[] = (rawSteps as RN[]).map((n, idx) => {
+          const keyOrId = n.id as string | number;
+          const existing = (typeof keyOrId === 'string'
+            ? keyToExisting[keyOrId]
+            : idToExisting[keyOrId as number]) ?? ({} as CanvasNode);
+          const config = n.configuration;
+          return {
+            ...existing,
+            id: existing.id ?? 0,
+            nodeKey: (typeof keyOrId === 'string' ? keyOrId : (n.key as string)) ?? '',
+            name: (n.name as string) ?? 'Unnamed',
+            nodeType: ((n.type as string) ?? 'Action') as WorkflowNodeType,
+            nodeSubType: (n.subType as string) ?? undefined,
+            positionX: existing.positionX ?? (100 + idx * 200),
+            positionY: existing.positionY ?? 100,
+            width: existing.width ?? 160,
+            height: existing.height ?? 60,
+            isStartNode: (n.isStart as boolean) ?? (n.isStartNode as boolean) ?? false,
+            isEndNode: (n.isEnd as boolean) ?? (n.isEndNode as boolean) ?? false,
+            description: (n.description as string) ?? undefined,
+            configuration: config
+              ? (typeof config === 'string' ? config : JSON.stringify(config))
+              : undefined,
+            timeoutMinutes: existing.timeoutMinutes ?? 0,
+            retryCount: existing.retryCount ?? 0,
+            executionOrder: existing.executionOrder ?? 0,
+            selected: false,
+          };
+        });
+
+        // Build key→newNode id lookup for transition resolution
+        const keyToNewId: Record<string, number> = {};
+        newNodes.forEach(n => { if (n.nodeKey) keyToNewId[n.nodeKey] = n.id; });
+
+        const newTransitions: CanvasTransition[] = (parsed.transitions as RN[]).map(t => {
+          const fromRaw = t.from as string | number;
+          const toRaw = t.to as string | number;
+          const sourceNodeId = (typeof fromRaw === 'string' ? keyToNewId[fromRaw] : fromRaw as number) ?? 0;
+          const targetNodeId = (typeof toRaw === 'string' ? keyToNewId[toRaw] : toRaw as number) ?? 0;
+          const existing = transitions.find(x => x.sourceNodeId === sourceNodeId && x.targetNodeId === targetNodeId) ?? ({} as CanvasTransition);
+          return {
+            ...existing,
+            id: existing.id ?? 0,
+            transitionKey: existing.transitionKey ?? undefined,
+            sourceNodeId,
+            targetNodeId,
+            label: (t.label as string) ?? undefined,
+            conditionType: ((t.conditionType as string) ?? 'None'),
+            conditionExpression: (t.condition as string) ?? undefined,
+            isDefault: (t.isDefault as boolean) ?? false,
+            priority: (t.priority as number) ?? 100,
+            lineStyle: existing.lineStyle ?? 'solid',
+            selected: false,
+          };
+        });
+
         setNodes(newNodes);
         setTransitions(newTransitions);
         setHasChanges(true);
@@ -1161,7 +1200,7 @@ function WorkflowDesignerPage() {
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 1.5, py: 0.75, backgroundColor: '#2d2d2d', borderBottom: '1px solid rgba(255,255,255,0.12)', flexShrink: 0 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <Typography variant="caption" sx={{ color: '#ccc', fontFamily: 'monospace', fontWeight: 600, letterSpacing: 0.5 }}>
-                    WORKFLOW JSON — edit to update canvas
+                    WORKFLOW DEFINITION — steps &amp; transitions · edits update canvas
                   </Typography>
                   {scriptError && (
                     <Typography variant="caption" sx={{ color: '#f48fb1', fontFamily: 'monospace' }}>⚠ {scriptError}</Typography>
