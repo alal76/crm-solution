@@ -64,7 +64,9 @@ public class AgentAdminController : ControllerBase
         double? Temperature = null,
         int? MaxTokens = null,
         string? AllowedPlugins = null,
-        string? ModelOverride = null);
+        string? ModelOverride = null,
+        bool? RequiresApproval = null,
+        string? ApprovalTier = null);
 
     #endregion
 
@@ -170,6 +172,16 @@ public class AgentAdminController : ControllerBase
             if (request.AllowedPlugins is not null)
             {
                 agent.AllowedPlugins = request.AllowedPlugins;
+            }
+
+            if (request.RequiresApproval.HasValue)
+            {
+                agent.RequiresApproval = request.RequiresApproval.Value;
+            }
+
+            if (request.ApprovalTier is not null)
+            {
+                agent.ApprovalTier = request.ApprovalTier;
             }
 
             agent.UpdatedAt = DateTime.UtcNow;

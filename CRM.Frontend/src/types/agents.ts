@@ -204,6 +204,8 @@ export interface UpdateAgentRequest {
   maxTokens?: number;
   allowedPlugins?: string;
   modelOverride?: string;
+  requiresApproval?: boolean;
+  approvalTier?: string;
 }
 
 export interface CreateAgentRequest {
