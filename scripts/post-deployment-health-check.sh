@@ -67,7 +67,7 @@ declare -a FAILED_ITEMS=()
 # =============================================================================
 
 print_header() {
-    if [ "$JSON_OUTPUT" = false ]; then
+    if [[ "$JSON_OUTPUT" = false ]]; then
         echo ""
         echo -e "${BLUE}═══════════════════════════════════════════════════════════════════${NC}"
         echo -e "${BLUE}  $1${NC}"
@@ -76,7 +76,7 @@ print_header() {
 }
 
 print_section() {
-    if [ "$JSON_OUTPUT" = false ]; then
+    if [[ "$JSON_OUTPUT" = false ]]; then
         echo ""
         echo -e "${CYAN}▶ $1${NC}"
         echo -e "${CYAN}───────────────────────────────────────────────────────────────────${NC}"
@@ -89,30 +89,30 @@ log_check() {
     local details="$3"
     TOTAL_CHECKS=$((TOTAL_CHECKS + 1))
     
-    if [ "$status" = "PASS" ]; then
+    if [[ "$status" = "PASS" ]]; then
         PASSED_CHECKS=$((PASSED_CHECKS + 1))
-        if [ "$JSON_OUTPUT" = false ]; then
+        if [[ "$JSON_OUTPUT" = false ]]; then
             echo -e "  ${GREEN}✓${NC} $message"
-            [ "$VERBOSE" = true ] && [ -n "$details" ] && echo -e "    ${CYAN}$details${NC}"
+            [[ "$VERBOSE" = true ]] && [[ -n "$details" ]] && echo -e "    ${CYAN}$details${NC}"
         fi
         RESULTS+=("{\"check\":\"$message\",\"status\":\"pass\",\"details\":\"$details\"}")
-    elif [ "$status" = "FAIL" ]; then
+    elif [[ "$status" = "FAIL" ]]; then
         FAILED_CHECKS=$((FAILED_CHECKS + 1))
-        if [ "$JSON_OUTPUT" = false ]; then
+        if [[ "$JSON_OUTPUT" = false ]]; then
             echo -e "  ${RED}✗${NC} $message"
             [ -n "$details" ] && echo -e "    ${RED}$details${NC}"
         fi
         RESULTS+=("{\"check\":\"$message\",\"status\":\"fail\",\"details\":\"$details\"}")
         FAILED_ITEMS+=("$message: $details")
-    elif [ "$status" = "WARN" ]; then
+    elif [[ "$status" = "WARN" ]]; then
         WARNINGS=$((WARNINGS + 1))
-        if [ "$JSON_OUTPUT" = false ]; then
+        if [[ "$JSON_OUTPUT" = false ]]; then
             echo -e "  ${YELLOW}⚠${NC} $message"
             [ -n "$details" ] && echo -e "    ${YELLOW}$details${NC}"
         fi
         RESULTS+=("{\"check\":\"$message\",\"status\":\"warning\",\"details\":\"$details\"}")
-    elif [ "$status" = "SKIP" ]; then
-        if [ "$JSON_OUTPUT" = false ]; then
+    elif [[ "$status" = "SKIP" ]]; then
+        if [[ "$JSON_OUTPUT" = false ]]; then
             echo -e "  ${YELLOW}○${NC} $message (skipped)"
         fi
         RESULTS+=("{\"check\":\"$message\",\"status\":\"skipped\",\"details\":\"$details\"}")
@@ -120,7 +120,7 @@ log_check() {
 }
 
 run_cmd() {
-    if [ -n "$SSH_TARGET" ]; then
+    if [[ -n "$SSH_TARGET" ]]; then
         ssh "$SSH_TARGET" "$1"
     else
         eval "$1"
@@ -221,15 +221,15 @@ check_containers() {
         local status
         status=$(run_cmd "docker inspect -f '{{.State.Status}}' $container 2>/dev/null" || echo "not_found")
         
-        if [ "$status" = "running" ]; then
+        if [[ "$status" = "running" ]]; then
             local health
             health=$(run_cmd "docker inspect -f '{{.State.Health.Status}}' $container 2>/dev/null" || echo "none")
-            if [ "$health" = "healthy" ] || [ "$health" = "none" ]; then
+            if [[ "$health" = "healthy" ]] || [[ "$health" = "none" ]]; then
                 log_check "PASS" "Container $container" "Status: $status, Health: $health"
             else
                 log_check "WARN" "Container $container" "Status: $status, Health: $health"
             fi
-        elif [ "$status" = "not_found" ]; then
+        elif [[ "$status" = "not_found" ]]; then
             log_check "FAIL" "Container $container" "Container not found"
         else
             log_check "FAIL" "Container $container" "Status: $status"
@@ -290,7 +290,7 @@ check_redis_connectivity() {
 # Check: Schema Completion
 # =============================================================================
 check_schema_completion() {
-    if [ "$SKIP_SCHEMA" = true ]; then
+    if [[ "$SKIP_SCHEMA" = true ]]; then
         print_section "Schema Validation (SKIPPED)"
         log_check "SKIP" "Schema validation" "Skipped by user request"
         return 0
@@ -364,7 +364,7 @@ check_schema_completion() {
     local db_tables
     db_tables=$(run_cmd "docker exec crm-mariadb mariadb -u $DB_USER -p'$DB_PASS' $DB_NAME -e 'SHOW TABLES' -s -N 2>/dev/null" || echo "")
     
-    if [ -z "$db_tables" ]; then
+    if [[ -z "$db_tables" ]]; then
         log_check "FAIL" "Schema tables" "Could not retrieve table list"
         return 1
     fi
@@ -384,7 +384,7 @@ check_schema_completion() {
         fi
     done
     
-    if [ ${#missing_tables[@]} -eq 0 ]; then
+    if [[ ${#missing_tables[@]} -eq 0 ]]; then
         log_check "PASS" "Core tables present" "All ${#expected_tables[@]} required tables exist"
     else
         log_check "FAIL" "Missing tables" "${missing_tables[*]}"
@@ -394,7 +394,7 @@ check_schema_completion() {
     local migrations
     migrations=$(run_cmd "docker exec crm-mariadb mariadb -u $DB_USER -p'$DB_PASS' $DB_NAME -e 'SELECT COUNT(*) FROM __EFMigrationsHistory' -s -N 2>/dev/null" || echo "0")
     
-    if [ "$migrations" -gt 0 ]; then
+    if [[ "$migrations" -gt 0 ]]; then
         log_check "PASS" "EF Migrations applied" "$migrations migration(s) recorded"
     else
         log_check "WARN" "EF Migrations" "No migrations recorded in __EFMigrationsHistory"
@@ -412,7 +412,7 @@ check_api_endpoints() {
     local base_url="http://${API_HOST}:${API_PORT}"
     
     # Use curl directly for SSH targets
-    if [ -n "$SSH_TARGET" ]; then
+    if [[ -n "$SSH_TARGET" ]]; then
         base_url="http://localhost:${API_PORT}"
     fi
     
@@ -432,17 +432,17 @@ check_api_endpoints() {
         local response
         local http_code
         
-        if [ -n "$SSH_TARGET" ]; then
+        if [[ -n "$SSH_TARGET" ]]; then
             http_code=$(ssh "$SSH_TARGET" "curl -s -o /dev/null -w '%{http_code}' '$url' 2>/dev/null" || echo "000")
         else
             http_code=$(curl -s -o /dev/null -w '%{http_code}' "$url" 2>/dev/null || echo "000")
         fi
         
-        if [ "$http_code" = "200" ]; then
+        if [[ "$http_code" = "200" ]]; then
             log_check "PASS" "$name" "HTTP $http_code"
-        elif [ "$http_code" = "503" ]; then
+        elif [[ "$http_code" = "503" ]]; then
             log_check "WARN" "$name" "HTTP $http_code (degraded)"
-        elif [ "$http_code" = "000" ]; then
+        elif [[ "$http_code" = "000" ]]; then
             log_check "FAIL" "$name" "Connection failed"
         else
             log_check "FAIL" "$name" "HTTP $http_code"
@@ -460,7 +460,7 @@ check_api_crud_endpoints() {
     
     local base_url="http://${API_HOST}:${API_PORT}"
     
-    if [ -n "$SSH_TARGET" ]; then
+    if [[ -n "$SSH_TARGET" ]]; then
         base_url="http://localhost:${API_PORT}"
     fi
     
@@ -486,18 +486,18 @@ check_api_crud_endpoints() {
         
         local http_code
         
-        if [ -n "$SSH_TARGET" ]; then
+        if [[ -n "$SSH_TARGET" ]]; then
             http_code=$(ssh "$SSH_TARGET" "curl -s -o /dev/null -w '%{http_code}' '$url' 2>/dev/null" || echo "000")
         else
             http_code=$(curl -s -o /dev/null -w '%{http_code}' "$url" 2>/dev/null || echo "000")
         fi
         
         # 401 Unauthorized is acceptable - means endpoint exists but requires auth
-        if [ "$http_code" = "200" ] || [ "$http_code" = "401" ]; then
+        if [[ "$http_code" = "200" ]] || [[ "$http_code" = "401" ]]; then
             log_check "PASS" "$name" "HTTP $http_code"
-        elif [ "$http_code" = "404" ]; then
+        elif [[ "$http_code" = "404" ]]; then
             log_check "FAIL" "$name" "HTTP $http_code (not found)"
-        elif [ "$http_code" = "000" ]; then
+        elif [[ "$http_code" = "000" ]]; then
             log_check "FAIL" "$name" "Connection failed"
         else
             log_check "WARN" "$name" "HTTP $http_code"
@@ -511,7 +511,7 @@ check_api_crud_endpoints() {
 # Check: Provider Health
 # =============================================================================
 check_provider_health() {
-    if [ "$SKIP_PROVIDERS" = true ]; then
+    if [[ "$SKIP_PROVIDERS" = true ]]; then
         print_section "Provider Health (SKIPPED)"
         log_check "SKIP" "Provider health" "Skipped by user request"
         return 0
@@ -521,12 +521,12 @@ check_provider_health() {
     
     local base_url="http://${API_HOST}:${API_PORT}"
     
-    if [ -n "$SSH_TARGET" ]; then
+    if [[ -n "$SSH_TARGET" ]]; then
         base_url="http://localhost:${API_PORT}"
     fi
     
     local response
-    if [ -n "$SSH_TARGET" ]; then
+    if [[ -n "$SSH_TARGET" ]]; then
         response=$(ssh "$SSH_TARGET" "curl -s '${base_url}/api/health/providers' 2>/dev/null" || echo "{}")
     else
         response=$(curl -s "${base_url}/api/health/providers" 2>/dev/null || echo "{}")
@@ -551,12 +551,12 @@ except Exception as e:
 " 2>/dev/null || echo "ERROR:parse:Python parsing failed")
     
     while IFS=':' read -r name status provider; do
-        if [ "$name" = "ERROR" ]; then
+        if [[ "$name" = "ERROR" ]]; then
             log_check "WARN" "Provider health parsing" "$provider"
             continue
         fi
         
-        if [ "$status" = "healthy" ]; then
+        if [[ "$status" = "healthy" ]]; then
             log_check "PASS" "Provider: $name" "$provider"
         else
             log_check "FAIL" "Provider: $name" "$provider - $status"
@@ -574,9 +574,9 @@ except:
     print('unknown')
 " 2>/dev/null || echo "unknown")
     
-    if [ "$overall" = "healthy" ]; then
+    if [[ "$overall" = "healthy" ]]; then
         log_check "PASS" "Overall provider health" "All providers healthy"
-    elif [ "$overall" = "unhealthy" ]; then
+    elif [[ "$overall" = "unhealthy" ]]; then
         log_check "WARN" "Overall provider health" "Some providers unhealthy"
     else
         log_check "WARN" "Overall provider health" "Unable to determine"
@@ -595,7 +595,7 @@ check_seed_data() {
     local admin_count
     admin_count=$(run_cmd "docker exec crm-mariadb mariadb -u $DB_USER -p'$DB_PASS' $DB_NAME -e \"SELECT COUNT(*) FROM Users WHERE Role = 0 AND IsDeleted = 0\" -s -N 2>/dev/null" || echo "0")
     
-    if [ "$admin_count" -gt 0 ]; then
+    if [[ "$admin_count" -gt 0 ]]; then
         log_check "PASS" "Admin user exists" "$admin_count admin user(s) found"
     else
         log_check "FAIL" "Admin user" "No admin user found - seeding may be required"
@@ -605,7 +605,7 @@ check_seed_data() {
     local sysadmin_count
     sysadmin_count=$(run_cmd "docker exec crm-mariadb mariadb -u $DB_USER -p'$DB_PASS' $DB_NAME -e \"SELECT COUNT(*) FROM UserGroups WHERE IsSystemAdmin = 1 AND IsDeleted = 0\" -s -N 2>/dev/null" || echo "0")
     
-    if [ "$sysadmin_count" -gt 0 ]; then
+    if [[ "$sysadmin_count" -gt 0 ]]; then
         log_check "PASS" "SysAdmin group exists" "$sysadmin_count SysAdmin group(s) found"
     else
         log_check "FAIL" "SysAdmin group" "No SysAdmin group found - seeding may be required"
@@ -615,7 +615,7 @@ check_seed_data() {
     local settings_count
     settings_count=$(run_cmd "docker exec crm-mariadb mariadb -u $DB_USER -p'$DB_PASS' $DB_NAME -e \"SELECT COUNT(*) FROM SystemSettings WHERE IsDeleted = 0\" -s -N 2>/dev/null" || echo "0")
     
-    if [ "$settings_count" -gt 0 ]; then
+    if [[ "$settings_count" -gt 0 ]]; then
         log_check "PASS" "System settings" "$settings_count setting(s) configured"
     else
         log_check "WARN" "System settings" "No system settings found"
@@ -625,7 +625,7 @@ check_seed_data() {
     local category_count
     category_count=$(run_cmd "docker exec crm-mariadb mariadb -u $DB_USER -p'$DB_PASS' $DB_NAME -e \"SELECT COUNT(*) FROM ServiceRequestCategories WHERE IsDeleted = 0\" -s -N 2>/dev/null" || echo "0")
     
-    if [ "$category_count" -gt 0 ]; then
+    if [[ "$category_count" -gt 0 ]]; then
         log_check "PASS" "Service request categories" "$category_count category(ies) defined"
     else
         log_check "WARN" "Service request categories" "No categories found"
@@ -642,7 +642,7 @@ check_authentication() {
     
     local base_url="http://${API_HOST}:${API_PORT}"
     
-    if [ -n "$SSH_TARGET" ]; then
+    if [[ -n "$SSH_TARGET" ]]; then
         base_url="http://localhost:${API_PORT}"
     fi
     
@@ -650,7 +650,7 @@ check_authentication() {
     local login_url="${base_url}/api/auth/login"
     local response
     
-    if [ -n "$SSH_TARGET" ]; then
+    if [[ -n "$SSH_TARGET" ]]; then
         response=$(ssh "$SSH_TARGET" "curl -s -X POST '$login_url' -H 'Content-Type: application/json' -d '{\"email\":\"test@test.com\",\"password\":\"test\"}' 2>/dev/null" || echo "{}")
     else
         response=$(curl -s -X POST "$login_url" -H 'Content-Type: application/json' -d '{"email":"test@test.com","password":"test"}' 2>/dev/null || echo "{}")
@@ -666,7 +666,7 @@ check_authentication() {
     fi
     
     # Test with actual admin credentials (optional)
-    if [ -n "$SSH_TARGET" ]; then
+    if [[ -n "$SSH_TARGET" ]]; then
         response=$(ssh "$SSH_TARGET" "curl -s -X POST '$login_url' -H 'Content-Type: application/json' -d '{\"email\":\"admin@crm.local\",\"password\":\"Admin@123\"}' 2>/dev/null" || echo "{}")
     else
         response=$(curl -s -X POST "$login_url" -H 'Content-Type: application/json' -d '{"email":"admin@crm.local","password":"Admin@123"}' 2>/dev/null || echo "{}")
@@ -711,7 +711,7 @@ check_network_connectivity() {
     local network_info
     network_info=$(run_cmd "docker network ls | grep -E 'crm.*network'" || echo "")
     
-    if [ -n "$network_info" ]; then
+    if [[ -n "$network_info" ]]; then
         log_check "PASS" "Docker network" "CRM network exists"
     else
         log_check "WARN" "Docker network" "CRM network not found by name pattern"
@@ -728,20 +728,20 @@ check_api_documentation() {
     
     local base_url="http://${API_HOST}:${API_PORT}"
     
-    if [ -n "$SSH_TARGET" ]; then
+    if [[ -n "$SSH_TARGET" ]]; then
         base_url="http://localhost:${API_PORT}"
     fi
     
     local swagger_url="${base_url}/swagger/index.html"
     local http_code
     
-    if [ -n "$SSH_TARGET" ]; then
+    if [[ -n "$SSH_TARGET" ]]; then
         http_code=$(ssh "$SSH_TARGET" "curl -s -o /dev/null -w '%{http_code}' '$swagger_url' 2>/dev/null" || echo "000")
     else
         http_code=$(curl -s -o /dev/null -w '%{http_code}' "$swagger_url" 2>/dev/null || echo "000")
     fi
     
-    if [ "$http_code" = "200" ]; then
+    if [[ "$http_code" = "200" ]]; then
         log_check "PASS" "Swagger UI" "Available at /swagger"
     else
         log_check "WARN" "Swagger UI" "HTTP $http_code (may be disabled in production)"
@@ -750,13 +750,13 @@ check_api_documentation() {
     # Check OpenAPI spec
     local openapi_url="${base_url}/swagger/v1/swagger.json"
     
-    if [ -n "$SSH_TARGET" ]; then
+    if [[ -n "$SSH_TARGET" ]]; then
         http_code=$(ssh "$SSH_TARGET" "curl -s -o /dev/null -w '%{http_code}' '$openapi_url' 2>/dev/null" || echo "000")
     else
         http_code=$(curl -s -o /dev/null -w '%{http_code}' "$openapi_url" 2>/dev/null || echo "000")
     fi
     
-    if [ "$http_code" = "200" ]; then
+    if [[ "$http_code" = "200" ]]; then
         log_check "PASS" "OpenAPI spec" "Available at /swagger/v1/swagger.json"
     else
         log_check "WARN" "OpenAPI spec" "HTTP $http_code"
@@ -769,7 +769,7 @@ check_api_documentation() {
 # Generate Summary Report
 # =============================================================================
 generate_report() {
-    if [ "$JSON_OUTPUT" = true ]; then
+    if [[ "$JSON_OUTPUT" = true ]]; then
         echo "{"
         echo "  \"timestamp\": \"$(date -u +"%Y-%m-%dT%H:%M:%SZ")\","
         echo "  \"target\": \"${SSH_TARGET:-$API_HOST:$API_PORT}\","
@@ -783,7 +783,7 @@ generate_report() {
         echo "  \"results\": ["
         local first=true
         for result in "${RESULTS[@]}"; do
-            if [ "$first" = true ]; then
+            if [[ "$first" = true ]]; then
                 first=false
             else
                 echo ","
@@ -805,7 +805,7 @@ generate_report() {
         echo -e "  ${BLUE}Total:${NC}    $TOTAL_CHECKS"
         echo ""
         
-        if [ $FAILED_CHECKS -eq 0 ]; then
+        if [[ $FAILED_CHECKS -eq 0 ]]; then
             echo -e "  ${GREEN}═══════════════════════════════════════════════════════════════════${NC}"
             echo -e "  ${GREEN}  ✓ ALL HEALTH CHECKS PASSED - Deployment is healthy!${NC}"
             echo -e "  ${GREEN}═══════════════════════════════════════════════════════════════════${NC}"
@@ -829,7 +829,7 @@ generate_report() {
 main() {
     parse_args "$@"
     
-    if [ "$JSON_OUTPUT" = false ]; then
+    if [[ "$JSON_OUTPUT" = false ]]; then
         print_header "CRM Solution - Post-Deployment Health Check"
         echo ""
         echo -e "  ${CYAN}Target:${NC} ${SSH_TARGET:-$API_HOST:$API_PORT}"
@@ -854,7 +854,7 @@ main() {
     generate_report
     
     # Exit with appropriate code
-    if [ $FAILED_CHECKS -eq 0 ]; then
+    if [[ $FAILED_CHECKS -eq 0 ]]; then
         exit 0
     else
         exit 1

@@ -63,7 +63,7 @@ BACKEND_BUILD_LOG="$TMPDIR_LOGS/backend-build.log"
 BACKEND_BUILD_RC=0
 (cd "$REPO_ROOT/CRM.Backend" && dotnet restore CRM.sln 2>&1 && dotnet build CRM.sln -c Release --no-restore 2>&1) > "$BACKEND_BUILD_LOG" 2>&1 || BACKEND_BUILD_RC=$?
 
-if [ $BACKEND_BUILD_RC -ne 0 ]; then
+if [[ $BACKEND_BUILD_RC -ne 0 ]]; then
   log "❌ Backend build FAILED (exit $BACKEND_BUILD_RC)"
   cat "$BACKEND_BUILD_LOG" >> "$LOG_FILE"
   echo "BACKEND BUILD FAILED" > "$SUMMARY_FILE"
@@ -77,7 +77,7 @@ FRONTEND_INSTALL_LOG="$TMPDIR_LOGS/frontend-install.log"
 FRONTEND_INSTALL_RC=0
 (cd "$REPO_ROOT/CRM.Frontend" && npm ci --legacy-peer-deps 2>&1) > "$FRONTEND_INSTALL_LOG" 2>&1 || FRONTEND_INSTALL_RC=$?
 
-if [ $FRONTEND_INSTALL_RC -ne 0 ]; then
+if [[ $FRONTEND_INSTALL_RC -ne 0 ]]; then
   log "❌ Frontend npm ci FAILED (exit $FRONTEND_INSTALL_RC)"
   cat "$FRONTEND_INSTALL_LOG" >> "$LOG_FILE"
   echo "FRONTEND INSTALL FAILED" > "$SUMMARY_FILE"
@@ -154,7 +154,7 @@ log "  Started ${SUITE_NAMES[3]} (PID ${SUITE_PIDS[3]})"
   CI=true npm run test:ci 2>&1 || TEST_RC=$?
   echo ""
   echo "=== Unit Tests exit code: $TEST_RC ==="
-  if [ $TSC_RC -ne 0 ] || [ $TEST_RC -ne 0 ]; then exit 1; fi
+  if [[ $TSC_RC -ne 0 ]] || [[ $TEST_RC -ne 0 ]]; then exit 1; fi
 ) > "$TMPDIR_LOGS/frontend-tests.log" 2>&1 &
 SUITE_PIDS[4]=$!
 log "  Started ${SUITE_NAMES[4]} (PID ${SUITE_PIDS[4]})"
@@ -199,13 +199,13 @@ for i in $(seq 0 $((NUM_SUITES - 1))); do
   FE_TESTS=$(grep -oE 'Tests:.*total' "$SLOG" 2>/dev/null | tail -1 || true)
 
   COUNTS=""
-  if [ -n "$TOTAL_LINE" ]; then
+  if [[ -n "$TOTAL_LINE" ]]; then
     COUNTS="[$TOTAL_LINE]"
-  elif [ -n "$FE_TESTS" ]; then
+  elif [[ -n "$FE_TESTS" ]]; then
     COUNTS="[$FE_SUITES | $FE_TESTS]"
   fi
 
-  if [ $RC -eq 0 ]; then
+  if [[ $RC -eq 0 ]]; then
     log "  ✅ $SNAME — PASSED $COUNTS"
     TOTAL_PASS=$((TOTAL_PASS + 1))
   else
@@ -225,7 +225,7 @@ log "=========================================================="
 
 > "$ERRORS_FILE"
 
-if [ ${#FAILED_INDICES[@]} -eq 0 ]; then
+if [[ ${#FAILED_INDICES[@]} -eq 0 ]]; then
   log "No failures — skipping error extraction."
 else
   for i in "${FAILED_INDICES[@]}"; do
@@ -270,7 +270,7 @@ log "Failed:       $TOTAL_FAIL"
 log ""
 log "Full log:     $LOG_FILE"
 log "Summary:      $SUMMARY_FILE"
-if [ $TOTAL_FAIL -gt 0 ]; then
+if [[ $TOTAL_FAIL -gt 0 ]]; then
   log "Errors file:  $ERRORS_FILE"
 fi
 
@@ -293,7 +293,7 @@ fi
 } > "$SUMMARY_FILE"
 
 log ""
-if [ $TOTAL_FAIL -gt 0 ]; then
+if [[ $TOTAL_FAIL -gt 0 ]]; then
   log "❌ $TOTAL_FAIL suite(s) failed — see $ERRORS_FILE for details"
   exit 1
 else

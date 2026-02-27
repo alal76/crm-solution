@@ -20,6 +20,7 @@ spec:
         tier: service
         domain: servicedesk
     spec:
+      automountServiceAccountToken: false
       securityContext:
         runAsNonRoot: true
         runAsUser: 1000

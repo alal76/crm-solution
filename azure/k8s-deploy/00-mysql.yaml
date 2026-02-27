@@ -42,6 +42,7 @@ spec:
       labels:
         app: mysql
     spec:
+      automountServiceAccountToken: false
       containers:
         - name: mysql
           image: mariadb:10.11

@@ -18,6 +18,7 @@ spec:
         app: crm-db
         tier: data
     spec:
+      automountServiceAccountToken: false
       containers:
       - name: mariadb
         image: mariadb:10.11

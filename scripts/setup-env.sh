@@ -98,7 +98,7 @@ echo "=============================================="
 echo ""
 
 # Check if .env already exists
-if [ -f "$ENV_FILE" ]; then
+if [[ -f "$ENV_FILE" ]]; then
     log_warning ".env file already exists!"
     read -p "Do you want to overwrite it? (y/N): " confirm
     if [[ ! "$confirm" =~ ^[Yy]$ ]]; then
@@ -111,7 +111,7 @@ if [ -f "$ENV_FILE" ]; then
 fi
 
 # Check if .env.example exists
-if [ ! -f "$ENV_EXAMPLE" ]; then
+if [[ ! -f "$ENV_EXAMPLE" ]]; then
     log_error ".env.example not found at $ENV_EXAMPLE"
     exit 1
 fi
@@ -124,7 +124,7 @@ log_info "Created .env from template"
 # GENERATE/SET VALUES
 # =============================================================================
 
-if [ "$MODE" = "dev" ]; then
+if [[ "$MODE" = "dev" ]]; then
     log_info "Setting up for DEVELOPMENT mode..."
     
     # Use development defaults
@@ -138,7 +138,7 @@ if [ "$MODE" = "dev" ]; then
     rm -f "$ENV_FILE.bak"
     log_success "Development environment configured!"
     
-elif [ "$MODE" = "auto" ]; then
+elif [[ "$MODE" = "auto" ]]; then
     log_info "Auto-generating secure secrets..."
     
     JWT_KEY=$(generate_secret 48)
@@ -212,7 +212,7 @@ else
     sed -i.bak "s/ADMIN_USERNAME=admin/ADMIN_USERNAME=$admin_user/" "$ENV_FILE"
     
     read -p "Admin email (leave empty for admin@crm.local): " admin_email
-    if [ -n "$admin_email" ]; then
+    if [[ -n "$admin_email" ]]; then
         sed -i.bak "s/ADMIN_EMAIL=/ADMIN_EMAIL=$admin_email/" "$ENV_FILE"
     fi
     
@@ -228,7 +228,7 @@ else
     # Deployment host (optional)
     echo ""
     read -p "Remote deployment host (leave empty for local only): " deploy_host
-    if [ -n "$deploy_host" ]; then
+    if [[ -n "$deploy_host" ]]; then
         sed -i.bak "s/DEPLOY_HOST=/DEPLOY_HOST=$deploy_host/" "$ENV_FILE"
     fi
     

@@ -18,6 +18,7 @@ spec:
         {{- include "crm-microservices.selectorLabels" . | nindent 8 }}
         app.kubernetes.io/component: customer
     spec:
+      automountServiceAccountToken: false
       securityContext:
         runAsNonRoot: true
         runAsUser: 1000

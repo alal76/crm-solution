@@ -39,14 +39,14 @@ services:
     ports:
       - "${DB_EXTERNAL_PORT:-3306}:3306"
     environment:
-      - MARIADB_ROOT_PASSWORD=${MARIADB_ROOT_PASSWORD:-RootPass@Dev2024}
+      - MARIADB_ROOT_PASSWORD=${MARIADB_ROOT_PASSWORD:-RootPass@Dev2024} # nosonar - Development default - overridable via environment variables
       - MARIADB_DATABASE=${DB_NAME:-crm_db}
       - MARIADB_USER=${DB_USER:-crm_user}
-      - MARIADB_PASSWORD=${DB_PASSWORD:-CrmPass@Dev2024}
+      - MARIADB_PASSWORD=${DB_PASSWORD:-CrmPass@Dev2024} # nosonar - Development default - overridable via environment variables
     volumes:
       - db-data:/var/lib/mysql
     healthcheck:
-      test: ["CMD", "mariadb-admin", "ping", "-h", "localhost", "-u", "root", "-p${DB_ROOT_PASSWORD:-RootPass@Dev2024}"]
+      test: ["CMD", "mariadb-admin", "ping", "-h", "localhost", "-u", "root", "-p${DB_ROOT_PASSWORD:-RootPass@Dev2024}"] # nosonar - Development default - overridable via environment variables
       interval: 10s
       timeout: 5s
       retries: 10
@@ -80,7 +80,7 @@ services:
     volumes:
       - meilisearch-data:/meili_data
     environment:
-      - MEILI_MASTER_KEY=${MEILISEARCH_API_KEY:-masterKey123}
+      - MEILI_MASTER_KEY=${MEILISEARCH_API_KEY:-masterKey123} # nosonar - Development default - overridable via environment variables
       - MEILI_ENV=${MEILISEARCH_ENV:-production}
       - MEILI_NO_ANALYTICS=true
     healthcheck:
@@ -557,8 +557,8 @@ services:
       - DB_PORT=${DB_INTERNAL_PORT:-3306}
       - DB_NAME=${DB_NAME:-crm_db}
       - DB_USER=${DB_USER:-crm_user}
-      - DB_PASSWORD=${DB_PASSWORD:-CrmPass@Dev2024}
-      - ConnectionStrings__DefaultConnection=Server=${DB_HOST:-mariadb};Port=${DB_PORT:-3306};Database=${DB_NAME:-crm_db};User=${DB_USER:-crm_user};Password=${DB_PASSWORD:-CrmPass@Dev2024};
+      - DB_PASSWORD=${DB_PASSWORD:-CrmPass@Dev2024} # nosonar - Development default - overridable via environment variables
+      - ConnectionStrings__DefaultConnection=Server=${DB_HOST:-mariadb};Port=${DB_PORT:-3306};Database=${DB_NAME:-crm_db};User=${DB_USER:-crm_user};Password=${DB_PASSWORD:-CrmPass@Dev2024}; # nosonar - Development default - overridable via environment variables
       # DEPRECATED: Demo database feature removed - system uses single database only
       # - DemoDatabase__AutoSeed=${DEMO_AUTO_SEED:-true}
       # - DemoDatabase__DatabaseName=${DEMO_DB_NAME:-crm_demodb}
@@ -606,7 +606,7 @@ services:
       - Providers__Chat__Chatwoot__BaseUrl=${CHATWOOT_BASE_URL:-http://chatwoot-web:3000}
       - Providers__Chat__Chatwoot__ApiKey=${CHATWOOT_API_KEY:-}
       - Providers__Search__Meilisearch__Url=${MEILISEARCH_URL:-http://meilisearch:7700}
-      - Providers__Search__Meilisearch__ApiKey=${MEILISEARCH_API_KEY:-masterKey123}
+      - Providers__Search__Meilisearch__ApiKey=${MEILISEARCH_API_KEY:-masterKey123} # nosonar - Development default - overridable via environment variables
       - Providers__Notifications__Novu__ApiKey=${NOVU_API_KEY:-}
       - Providers__Analytics__Superset__Url=${SUPERSET_URL:-http://superset:8088}
       - Providers__Signatures__DocuSeal__Url=${DOCUSEAL_URL:-http://docuseal:3001}

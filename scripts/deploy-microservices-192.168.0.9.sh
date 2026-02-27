@@ -155,7 +155,7 @@ wait_for_health() {
     local wait_time=0
     local interval=10
     
-    while [ $wait_time -lt $max_wait ]; do
+    while [[ $wait_time -lt $max_wait ]]; do
         log_info "Checking service health (${wait_time}s / ${max_wait}s)..."
         
         local healthy_count=$(ssh "${REMOTE_USER}@${REMOTE_HOST}" "
@@ -168,7 +168,7 @@ wait_for_health() {
         
         log_info "Healthy: ${healthy_count} / Running: ${total_count}"
         
-        if [ "$healthy_count" -ge 8 ]; then
+        if [[ "$healthy_count" -ge 8 ]]; then
             log_success "All core services are healthy!"
             return 0
         fi

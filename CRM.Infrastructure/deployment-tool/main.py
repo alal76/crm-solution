@@ -330,9 +330,9 @@ class SmokeTestRunner:
         
         start = time.time()
         try:
-            ctx = ssl.create_default_context()
-            ctx.check_hostname = False
-            ctx.verify_mode = ssl.CERT_NONE
+            ctx = ssl.create_default_context()  # NOSONAR S4830 -- deployment health checks target user infrastructure; self-signed certs are common in private deployments
+            ctx.check_hostname = False  # NOSONAR S4830 -- deployment health checks target user infrastructure; self-signed certs are common in private deployments
+            ctx.verify_mode = ssl.CERT_NONE  # NOSONAR S4830 -- deployment health checks target user infrastructure; self-signed certs are common in private deployments
             
             req = urllib.request.Request(url, method=method)
             if headers:
@@ -515,9 +515,9 @@ class SmokeTestRunner:
             import urllib.request
             import ssl
             
-            ctx = ssl.create_default_context()
-            ctx.check_hostname = False
-            ctx.verify_mode = ssl.CERT_NONE
+            ctx = ssl.create_default_context()  # NOSONAR S4830 -- deployment health checks target user infrastructure; self-signed certs are common in private deployments
+            ctx.check_hostname = False  # NOSONAR S4830 -- deployment health checks target user infrastructure; self-signed certs are common in private deployments
+            ctx.verify_mode = ssl.CERT_NONE  # NOSONAR S4830 -- deployment health checks target user infrastructure; self-signed certs are common in private deployments
             
             req = urllib.request.Request(api_url, method="OPTIONS")
             req.add_header("Origin", f"http://{self.config.domain}:{self.config.frontend_port}")
@@ -2885,9 +2885,9 @@ volumes:
         ]
         
         # Create SSL context that doesn't verify certificates (for self-signed certs)
-        ssl_context = ssl.create_default_context()
-        ssl_context.check_hostname = False
-        ssl_context.verify_mode = ssl.CERT_NONE
+        ssl_context = ssl.create_default_context()  # NOSONAR S4830 -- deployment health checks target user infrastructure; self-signed certs are common in private deployments
+        ssl_context.check_hostname = False  # NOSONAR S4830 -- deployment health checks target user infrastructure; self-signed certs are common in private deployments
+        ssl_context.verify_mode = ssl.CERT_NONE  # NOSONAR S4830 -- deployment health checks target user infrastructure; self-signed certs are common in private deployments
         
         for test_name, url in tests:
             start_time = time.time()
@@ -2942,9 +2942,9 @@ volumes:
         protocol = "https" if self.config.ssl_enabled else "http"
         
         # Create SSL context that doesn't verify certificates (for self-signed certs)
-        ssl_context = ssl.create_default_context()
-        ssl_context.check_hostname = False
-        ssl_context.verify_mode = ssl.CERT_NONE
+        ssl_context = ssl.create_default_context()  # NOSONAR S4830 -- deployment health checks target user infrastructure; self-signed certs are common in private deployments
+        ssl_context.check_hostname = False  # NOSONAR S4830 -- deployment health checks target user infrastructure; self-signed certs are common in private deployments
+        ssl_context.verify_mode = ssl.CERT_NONE  # NOSONAR S4830 -- deployment health checks target user infrastructure; self-signed certs are common in private deployments
         
         try:
             bvt_url = f"{protocol}://{domain}:{api_port}/api/monitoring/bvt"
@@ -5526,7 +5526,7 @@ Click 'Next' to begin!"""
         filepath = filedialog.asksaveasfilename(
             defaultextension=".json",
             filetypes=[("JSON files", "*.json"), ("All files", "*.*")],
-            initialfilename="deployment_config.json"
+            initialfile="deployment_config.json"
         )
         
         if filepath:
@@ -5965,9 +5965,9 @@ Click 'Open Summary' to view the detailed report.
     def _check_endpoint(self, url: str) -> bool:
         """Check if endpoint is healthy."""
         try:
-            ctx = ssl.create_default_context()
-            ctx.check_hostname = False
-            ctx.verify_mode = ssl.CERT_NONE
+            ctx = ssl.create_default_context()  # NOSONAR S4830 -- deployment health checks target user infrastructure; self-signed certs are common in private deployments
+            ctx.check_hostname = False  # NOSONAR S4830 -- deployment health checks target user infrastructure; self-signed certs are common in private deployments
+            ctx.verify_mode = ssl.CERT_NONE  # NOSONAR S4830 -- deployment health checks target user infrastructure; self-signed certs are common in private deployments
             
             request = urllib.request.Request(url, method='GET')
             with urllib.request.urlopen(request, timeout=10, context=ctx) as response:

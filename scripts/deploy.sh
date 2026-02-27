@@ -34,7 +34,7 @@ echo ""
 
 # Step 1: Build Release Binary
 echo "[1/7] Building CRM.Api in Release mode..."
-if [ ! -d "$REPO_DIR/CRM.Backend" ]; then
+if [[ ! -d "$REPO_DIR/CRM.Backend" ]]; then
     echo "ERROR: Repository not found at $REPO_DIR"
     echo "Please git clone the repository to $REPO_DIR first"
     exit 1
@@ -47,7 +47,7 @@ dotnet build src/CRM.Api/CRM.Api.csproj -c Release --no-restore || {
 }
 
 API_DLL="$REPO_DIR/CRM.Backend/src/CRM.Api/bin/Release/net10.0/CRM.Api.dll"
-if [ ! -f "$API_DLL" ]; then
+if [[ ! -f "$API_DLL" ]]; then
     echo "ERROR: API DLL not found at $API_DLL"
     exit 1
 fi
@@ -113,7 +113,7 @@ for i in {1..10}; do
     sleep 2
 done
 
-if [ "$HEALTH_CHECK_PASSED" = false ]; then
+if [[ "$HEALTH_CHECK_PASSED" = false ]]; then
     echo "⚠️  API health check failed after 10 attempts"
     echo "Logs:"
     docker logs $API_CONTAINER | tail -20

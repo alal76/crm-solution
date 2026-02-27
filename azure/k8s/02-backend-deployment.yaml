@@ -20,6 +20,7 @@ spec:
         app: crm-api
         tier: backend
     spec:
+      automountServiceAccountToken: false
       containers:
         - name: crm-api
           image: ${ACR_LOGIN_SERVER}/crm-api:${IMAGE_TAG}

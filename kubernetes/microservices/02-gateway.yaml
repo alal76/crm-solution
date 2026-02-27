@@ -18,6 +18,7 @@ spec:
         app: crm-gateway
         tier: gateway
     spec:
+      automountServiceAccountToken: false
       securityContext:
         runAsNonRoot: true
         runAsUser: 1000

@@ -37,7 +37,7 @@ create_index() {
     sleep 1
 
     # Update searchable attributes
-    if [ -n "$searchable_attrs" ]; then
+    if [[ -n "$searchable_attrs" ]]; then
         echo "  Setting searchable attributes..."
         curl -s -X PUT "${MEILISEARCH_HOST}/indexes/${index_name}/settings/searchable-attributes" \
             -H "Authorization: Bearer ${MEILISEARCH_API_KEY}" \
@@ -46,7 +46,7 @@ create_index() {
     fi
 
     # Update filterable attributes
-    if [ -n "$filterable_attrs" ]; then
+    if [[ -n "$filterable_attrs" ]]; then
         echo "  Setting filterable attributes..."
         curl -s -X PUT "${MEILISEARCH_HOST}/indexes/${index_name}/settings/filterable-attributes" \
             -H "Authorization: Bearer ${MEILISEARCH_API_KEY}" \
@@ -55,7 +55,7 @@ create_index() {
     fi
 
     # Update sortable attributes
-    if [ -n "$sortable_attrs" ]; then
+    if [[ -n "$sortable_attrs" ]]; then
         echo "  Setting sortable attributes..."
         curl -s -X PUT "${MEILISEARCH_HOST}/indexes/${index_name}/settings/sortable-attributes" \
             -H "Authorization: Bearer ${MEILISEARCH_API_KEY}" \

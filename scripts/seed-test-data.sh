@@ -64,7 +64,7 @@ api_call() {
     local endpoint=$2
     local data=$3
     
-    if [ -n "$data" ]; then
+    if [[ -n "$data" ]]; then
         curl -s -X "$method" "${API_BASE}${endpoint}" \
             -H "Authorization: Bearer $AUTH_TOKEN" \
             -H "Content-Type: application/json" \
@@ -139,7 +139,7 @@ EOF
         local response=$(api_call POST "/customers" "$data")
         local customer_id=$(echo "$response" | jq -r '.id // empty')
         
-        if [ -n "$customer_id" ]; then
+        if [[ -n "$customer_id" ]]; then
             CUSTOMER_IDS+=("$customer_id")
             log_info "  Created customer #$i: $company (ID: $customer_id)"
         else
@@ -241,7 +241,7 @@ EOF
         local response=$(api_call POST "/campaigns" "$data")
         local campaign_id=$(echo "$response" | jq -r '.id // empty')
         
-        if [ -n "$campaign_id" ]; then
+        if [[ -n "$campaign_id" ]]; then
             CAMPAIGN_IDS+=("$campaign_id")
             log_info "  Created campaign: ${campaign_names[$i]} (ID: $campaign_id)"
         fi
@@ -303,7 +303,7 @@ EOF
 )
         api_call POST "/servicerequests" "$data" > /dev/null
         
-        if [ $((i % 10)) -eq 0 ]; then
+        if [[ $((i % 10)) -eq 0 ]]; then
             log_info "  Created $i service requests..."
         fi
     done
@@ -341,7 +341,7 @@ EOF
 )
         api_call POST "/quotes" "$data" > /dev/null
         
-        if [ $((i % 25)) -eq 0 ]; then
+        if [[ $((i % 25)) -eq 0 ]]; then
             log_info "  Created $i quotes..."
         fi
     done
@@ -374,7 +374,7 @@ EOF
 )
         api_call POST "/interactions" "$data" > /dev/null
         
-        if [ $((i % 50)) -eq 0 ]; then
+        if [[ $((i % 50)) -eq 0 ]]; then
             log_info "  Created $i interactions..."
         fi
     done

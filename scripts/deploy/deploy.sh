@@ -39,13 +39,13 @@ print_warning() {
 }
 
 prompt_registry() {
-    if [ -z "$REGISTRY" ]; then
+    if [[ -z "$REGISTRY" ]]; then
         echo ""
         echo -e "${YELLOW}Docker Registry Configuration${NC}"
         echo "Please enter your Docker registry address (examples: docker.io/username, ghcr.io/username, myregistry.azurecr.io)"
         read -p "Docker Registry Address: " REGISTRY
         
-        if [ -z "$REGISTRY" ]; then
+        if [[ -z "$REGISTRY" ]]; then
             print_error "Docker registry address is required"
             exit 1
         fi
@@ -212,14 +212,14 @@ main() {
             verify_deployment
             ;;
         logs)
-            if [ -z "$2" ]; then
+            if [[ -z "$2" ]]; then
                 print_error "Usage: $0 logs [api|frontend]"
                 exit 1
             fi
             show_logs "$2" "${3:-100}"
             ;;
         scale)
-            if [ -z "$2" ] || [ -z "$3" ]; then
+            if [[ -z "$2" ]] || [[ -z "$3" ]]; then
                 print_error "Usage: $0 scale [api|frontend] <replicas>"
                 exit 1
             fi

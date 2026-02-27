@@ -28,7 +28,7 @@ echo -e "${YELLOW}Logs directory: $LOGS_DIR${NC}"
 # Function to clean old logs
 clean_logs() {
     local log_file=$1
-    if [ -f "$log_file" ]; then
+    if [[ -f "$log_file" ]]; then
         rm -f "$log_file"
         echo -e "${YELLOW}Removed old log: $(basename $log_file)${NC}"
     fi
@@ -87,7 +87,7 @@ BUILD_API=0
 BUILD_FRONTEND=0
 TAIL_LOGS=0
 
-if [ $# -eq 0 ]; then
+if [[ $# -eq 0 ]]; then
     BUILD_API=1
     BUILD_FRONTEND=1
 else
@@ -122,11 +122,11 @@ fi
 # Execute builds
 BUILD_FAILED=0
 
-if [ $BUILD_API -eq 1 ]; then
+if [[ $BUILD_API -eq 1 ]]; then
     build_api || BUILD_FAILED=1
 fi
 
-if [ $BUILD_FRONTEND -eq 1 ]; then
+if [[ $BUILD_FRONTEND -eq 1 ]]; then
     build_frontend || BUILD_FAILED=1
 fi
 
@@ -136,18 +136,18 @@ echo -e "${BLUE}================================${NC}"
 echo -e "${BLUE}Build Summary${NC}"
 echo -e "${BLUE}================================${NC}"
 
-if [ -f "$API_LOG" ]; then
+if [[ -f "$API_LOG" ]]; then
     status=$(tail -1 "$API_LOG" | grep -q FAILED && echo "FAILED" || echo "OK")
     echo -e "API Log:      $API_LOG ${status}"
 fi
 
-if [ -f "$FRONTEND_LOG" ]; then
+if [[ -f "$FRONTEND_LOG" ]]; then
     status=$(tail -1 "$FRONTEND_LOG" | grep -q FAILED && echo "FAILED" || echo "OK")
     echo -e "Frontend Log: $FRONTEND_LOG ${status}"
 fi
 
 # Tail logs if requested
-if [ $TAIL_LOGS -eq 1 ]; then
+if [[ $TAIL_LOGS -eq 1 ]]; then
     echo
     echo -e "${BLUE}Latest log entries:${NC}"
     [ -f "$API_LOG" ] && echo "=== API ===" && tail -20 "$API_LOG"

@@ -79,7 +79,7 @@ python3 "$PYTHON_SCRIPT" \
 
 exit_code=$?
 
-if [ $exit_code -eq 0 ]; then
+if [[ $exit_code -eq 0 ]]; then
     echo -e "${GREEN}✓ Data loading completed successfully${NC}"
 else
     echo -e "${RED}✗ Data loading failed with exit code $exit_code${NC}"

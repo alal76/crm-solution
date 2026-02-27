@@ -96,20 +96,20 @@ mkdir -p test-results playwright-report test-logs
 # Define CRM source root for copying logs
 CRM_SOURCE_ROOT="$(dirname "$(pwd)")"
 
-if [ "$HEADED" = true ]; then
+if [[ "$HEADED" = true ]]; then
     echo -e "${YELLOW}Running tests in headed mode (locally)...${NC}"
     npm install
     npx playwright install
     
-    if [ "$TEST_SUITE" = "all" ]; then
+    if [[ "$TEST_SUITE" = "all" ]]; then
         npm run test:headed
-    elif [ "$TEST_SUITE" = "workflows-admin" ]; then
+    elif [[ "$TEST_SUITE" = "workflows-admin" ]]; then
         npx playwright test tests/admin/workflows-and-rules.spec.ts --headed
-    elif [ "$TEST_SUITE" = "agents" ]; then
+    elif [[ "$TEST_SUITE" = "agents" ]]; then
         npx playwright test tests/admin/agents-and-llm.spec.ts --headed
-    elif [ "$TEST_SUITE" = "workflows-and-agents" ]; then
+    elif [[ "$TEST_SUITE" = "workflows-and-agents" ]]; then
         npx playwright test tests/admin/workflows-and-rules.spec.ts tests/admin/agents-and-llm.spec.ts --headed
-    elif [ "$TEST_SUITE" = "pages" ]; then
+    elif [[ "$TEST_SUITE" = "pages" ]]; then
         npx playwright test tests/full-page-coverage.spec.ts --headed
     else
         npx playwright test tests/$TEST_SUITE --headed
@@ -123,7 +123,7 @@ else
     echo -e "${YELLOW}Running E2E tests...${NC}"
     echo ""
 
-    if [ "$DEBUG" = true ]; then
+    if [[ "$DEBUG" = true ]]; then
         docker run --rm \
             -e CI=true \
             -e BASE_URL="$BASE_URL" \
@@ -135,7 +135,7 @@ else
             -v "$(pwd)/test-logs:/app/e2e-tests/test-logs" \
             --network host \
             crm-e2e-tests npm run test:debug
-    elif [ "$TEST_SUITE" = "all" ]; then
+    elif [[ "$TEST_SUITE" = "all" ]]; then
         docker run --rm \
             -e CI=true \
             -e BASE_URL="$BASE_URL" \
@@ -146,7 +146,7 @@ else
             -v "$(pwd)/test-logs:/app/e2e-tests/test-logs" \
             --network host \
             crm-e2e-tests
-    elif [ "$TEST_SUITE" = "workflows-admin" ]; then
+    elif [[ "$TEST_SUITE" = "workflows-admin" ]]; then
         docker run --rm \
             -e CI=true \
             -e BASE_URL="$BASE_URL" \
@@ -157,7 +157,7 @@ else
             -v "$(pwd)/test-logs:/app/e2e-tests/test-logs" \
             --network host \
             crm-e2e-tests npx playwright test "tests/admin/workflows-and-rules.spec.ts"
-    elif [ "$TEST_SUITE" = "agents" ]; then
+    elif [[ "$TEST_SUITE" = "agents" ]]; then
         docker run --rm \
             -e CI=true \
             -e BASE_URL="$BASE_URL" \
@@ -168,7 +168,7 @@ else
             -v "$(pwd)/test-logs:/app/e2e-tests/test-logs" \
             --network host \
             crm-e2e-tests npx playwright test "tests/admin/agents-and-llm.spec.ts"
-    elif [ "$TEST_SUITE" = "workflows-and-agents" ]; then
+    elif [[ "$TEST_SUITE" = "workflows-and-agents" ]]; then
         docker run --rm \
             -e CI=true \
             -e BASE_URL="$BASE_URL" \
@@ -179,7 +179,7 @@ else
             -v "$(pwd)/test-logs:/app/e2e-tests/test-logs" \
             --network host \
             crm-e2e-tests npx playwright test "tests/admin/workflows-and-rules.spec.ts" "tests/admin/agents-and-llm.spec.ts"
-    elif [ "$TEST_SUITE" = "pages" ]; then
+    elif [[ "$TEST_SUITE" = "pages" ]]; then
         docker run --rm \
             -e CI=true \
             -e BASE_URL="$BASE_URL" \
@@ -207,7 +207,7 @@ fi
 # Copy logs to CRM source root
 echo ""
 echo -e "${YELLOW}Copying test logs to CRM source root...${NC}"
-if [ -d "test-logs" ] && [ "$(ls -A test-logs 2>/dev/null)" ]; then
+if [[ -d "test-logs" ]] && [[ "$(ls -A test-logs 2>/dev/null)" ]]; then
     mkdir -p "${CRM_SOURCE_ROOT}/test-logs"
     cp -r test-logs/* "${CRM_SOURCE_ROOT}/test-logs/"
     echo -e "${GREEN}Test logs copied to: ${CRM_SOURCE_ROOT}/test-logs/${NC}"
@@ -217,7 +217,7 @@ fi
 EXIT_CODE=$?
 
 echo ""
-if [ $EXIT_CODE -eq 0 ]; then
+if [[ $EXIT_CODE -eq 0 ]]; then
     echo -e "${GREEN}========================================${NC}"
     echo -e "${GREEN}All tests passed!${NC}"
     echo -e "${GREEN}========================================${NC}"

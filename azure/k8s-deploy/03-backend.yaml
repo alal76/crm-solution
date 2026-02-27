@@ -20,6 +20,7 @@ spec:
         app: crm-api
         tier: backend
     spec:
+      automountServiceAccountToken: false
       containers:
         - name: crm-api
           image: crmdevacrdev.azurecr.io/crm-backend:v2

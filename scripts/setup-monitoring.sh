@@ -27,7 +27,7 @@ PROJECT_DIR="$(dirname "$SCRIPT_DIR")"
 
 # Load configuration
 CONFIG_FILE="${PROJECT_DIR}/config/infrastructure.env"
-if [ -f "$CONFIG_FILE" ]; then
+if [[ -f "$CONFIG_FILE" ]]; then
     set -a
     source "$CONFIG_FILE"
     set +a
@@ -116,7 +116,7 @@ setup_portainer() {
     # Wait for Portainer to be ready
     local max_wait=30
     local waited=0
-    while [ $waited -lt $max_wait ]; do
+    while [[ $waited -lt $max_wait ]]; do
         local status=$(curl -s -o /dev/null -w '%{http_code}' "${portainer_url}/api/status" 2>/dev/null || echo "000")
         if [[ "$status" =~ ^(200|307)$ ]]; then
             break
@@ -144,7 +144,7 @@ setup_portainer() {
             
             local token=$(echo "$auth" | grep -o '"jwt":"[^"]*"' | cut -d'"' -f4)
             
-            if [ -n "$token" ]; then
+            if [[ -n "$token" ]]; then
                 curl -s -X POST "${portainer_url}/api/endpoints" \
                     -H "Authorization: Bearer $token" \
                     -F "Name=local" \
@@ -177,7 +177,7 @@ setup_uptime_kuma() {
     # Wait for Uptime Kuma to be ready
     local max_wait=30
     local waited=0
-    while [ $waited -lt $max_wait ]; do
+    while [[ $waited -lt $max_wait ]]; do
         local status=$(curl -s -o /dev/null -w '%{http_code}' "${uptime_url}" 2>/dev/null || echo "000")
         if [[ "$status" =~ ^(200|302)$ ]]; then
             break

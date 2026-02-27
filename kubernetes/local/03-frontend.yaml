@@ -18,6 +18,7 @@ spec:
         tier: presentation
         app: crm
     spec:
+      automountServiceAccountToken: false
       securityContext:
         runAsNonRoot: true
         runAsUser: 1000

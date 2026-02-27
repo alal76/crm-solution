@@ -181,7 +181,7 @@ DAEMON_EOF
 
 stop_daemon() {
     log_info "Stopping daemon..."
-    if [ -f /tmp/crm-daemon.pid ]; then
+    if [[ -f /tmp/crm-daemon.pid ]]; then
         kill $(cat /tmp/crm-daemon.pid) 2>/dev/null || true
         rm -f /tmp/crm-daemon.pid
     fi
@@ -207,7 +207,7 @@ verify_access() {
         sleep 2
     done
     
-    if [ "$api_ok" = true ]; then
+    if [[ "$api_ok" = true ]]; then
         log_success "API accessible at http://localhost:${API_PORT}"
     else
         log_warn "API health check failed - may need more time to start"
@@ -222,7 +222,7 @@ verify_access() {
         sleep 2
     done
     
-    if [ "$frontend_ok" = true ]; then
+    if [[ "$frontend_ok" = true ]]; then
         log_success "Frontend accessible at http://localhost:${FRONTEND_PORT}"
     else
         log_warn "Frontend check failed - may need more time to start"

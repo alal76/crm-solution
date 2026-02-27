@@ -100,7 +100,7 @@ if $DEPLOY_INFRA; then
     # STEP 2: Generate SSH Key if needed
     # =============================================================================
     print_header "Step 2: Check SSH Key"
-    if [ ! -f "$SSH_KEY_PATH" ]; then
+    if [[ ! -f "$SSH_KEY_PATH" ]]; then
         print_msg $YELLOW "Generating SSH key..."
         ssh-keygen -t rsa -b 4096 -f "${SSH_KEY_PATH%.pub}" -N ""
     fi
@@ -172,7 +172,7 @@ if $DEPLOY_APP; then
     print_header "Step 5: Build and Push Docker Images"
     
     # Load deployment info if not from infra step
-    if [ -f ".azure-deployment-$ENVIRONMENT.json" ]; then
+    if [[ -f ".azure-deployment-$ENVIRONMENT.json" ]]; then
         ACR_SERVER=$(jq -r '.acrServer' .azure-deployment-$ENVIRONMENT.json)
         LLM_VM_IP=$(jq -r '.llmVmIp' .azure-deployment-$ENVIRONMENT.json)
         MYSQL_SERVER=$(jq -r '.mysqlServer' .azure-deployment-$ENVIRONMENT.json)
@@ -241,7 +241,7 @@ if $DEPLOY_APP; then
     envsubst < azure/k8s/03-frontend-deployment.yaml | kubectl apply -f -
     envsubst < azure/k8s/04-ingress.yaml | kubectl apply -f -
     
-    if [ "$ENVIRONMENT" == "prod" ]; then
+    if [[ "$ENVIRONMENT" == "prod" ]]; then
         kubectl apply -f azure/k8s/05-autoscaling.yaml
     fi
     
@@ -260,7 +260,7 @@ fi
 if $DEPLOY_DB; then
     print_header "Step 7: Database Initialization"
     
-    if [ -f ".azure-deployment-$ENVIRONMENT.json" ]; then
+    if [[ -f ".azure-deployment-$ENVIRONMENT.json" ]]; then
         MYSQL_SERVER=$(jq -r '.mysqlServer' .azure-deployment-$ENVIRONMENT.json)
         MYSQL_PASSWORD=$(jq -r '.mysqlPassword' .azure-deployment-$ENVIRONMENT.json)
     fi
@@ -276,7 +276,7 @@ fi
 # =============================================================================
 print_header "Deployment Complete!"
 
-if [ -f ".azure-deployment-$ENVIRONMENT.json" ]; then
+if [[ -f ".azure-deployment-$ENVIRONMENT.json" ]]; then
     print_msg $GREEN "Access URLs:"
     
     # Get LoadBalancer IPs

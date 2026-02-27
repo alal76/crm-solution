@@ -20,6 +20,7 @@ spec:
         app: crm-frontend
         tier: frontend
     spec:
+      automountServiceAccountToken: false
       containers:
         - name: crm-frontend
           image: crmdevacrdev.azurecr.io/crm-frontend:v2

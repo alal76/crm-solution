@@ -116,19 +116,19 @@ echo -e "${YELLOW}════════════════════�
 echo -e "${YELLOW}                        TEST SUMMARY${NC}"
 echo -e "${YELLOW}════════════════════════════════════════════════════════════════════${NC}"
 
-if [ "$FRONTEND_PASSED" = true ]; then
+if [[ "$FRONTEND_PASSED" = true ]]; then
   echo -e "${GREEN}✅ Frontend Tests: PASSED${NC}"
 else
   echo -e "${RED}❌ Frontend Tests: FAILED${NC}"
 fi
 
-if [ "$BACKEND_PASSED" = true ]; then
+if [[ "$BACKEND_PASSED" = true ]]; then
   echo -e "${GREEN}✅ Backend Tests: PASSED${NC}"
 else
   echo -e "${RED}⚠️  Backend Tests: CHECK LOGS${NC}"
 fi
 
-if [ "$BUILD_PASSED" = true ]; then
+if [[ "$BUILD_PASSED" = true ]]; then
   echo -e "${GREEN}✅ Build Verification: PASSED${NC}"
 else
   echo -e "${RED}❌ Build Verification: FAILED${NC}"
@@ -142,7 +142,7 @@ echo "   • Backend: /tmp/backend-test.log"
 echo ""
 
 # Final status
-if [ "$FRONTEND_PASSED" = true ] && [ "$BUILD_PASSED" = true ]; then
+if [[ "$FRONTEND_PASSED" = true ]] && [[ "$BUILD_PASSED" = true ]]; then
   echo -e "${GREEN}════════════════════════════════════════════════════════════════════${NC}"
   echo -e "${GREEN}✅ ALL TESTS COMPLETED SUCCESSFULLY${NC}"
   echo -e "${GREEN}════════════════════════════════════════════════════════════════════${NC}"

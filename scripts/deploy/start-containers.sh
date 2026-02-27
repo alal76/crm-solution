@@ -19,7 +19,7 @@ echo "Current directory: $(pwd)"
 echo ""
 
 echo "Checking docker compose file..."
-if [ -f docker-compose.yml ]; then
+if [[ -f docker-compose.yml ]]; then
     echo "✅ docker-compose.yml found"
 else
     echo "❌ docker-compose.yml NOT found"

@@ -46,7 +46,7 @@ report_success() {
 }
 
 # Check if build directory exists
-if [ ! -d "$BUILD_DIR" ]; then
+if [[ ! -d "$BUILD_DIR" ]]; then
     report_error "Build directory not found: $BUILD_DIR"
     echo "Run 'npm run build' first."
     exit 1
@@ -54,7 +54,7 @@ fi
 
 # Check if JS bundles exist
 JS_FILES=$(find "$BUILD_DIR/static/js" -name "main.*.js" 2>/dev/null | head -1)
-if [ -z "$JS_FILES" ]; then
+if [[ -z "$JS_FILES" ]]; then
     report_error "No main.*.js bundle found in build output"
     exit 1
 fi
@@ -67,7 +67,7 @@ echo ""
 # ============================================
 echo "1. Checking for hardcoded localhost URLs..."
 LOCALHOST_COUNT=$(grep -rE 'localhost:[0-9]{4}' "$BUILD_DIR/static/js/"*.js 2>/dev/null | grep -v '//.*localhost' | wc -l | tr -d ' ')
-if [ "$LOCALHOST_COUNT" -gt 0 ]; then
+if [[ "$LOCALHOST_COUNT" -gt 0 ]]; then
     report_error "Found hardcoded localhost URLs in bundle ($LOCALHOST_COUNT occurrences)"
     grep -rE 'localhost:[0-9]{4}' "$BUILD_DIR/static/js/"*.js 2>/dev/null | head -3
 else
@@ -82,7 +82,7 @@ echo "2. Checking for hardcoded private network IPs as API URLs..."
 # Look for IPs with ports that indicate API endpoints (not placeholder text)
 # Exclude common placeholder patterns like "192.168.1.100" or "192.168.1.1" which are examples
 PRIVATE_IP_COUNT=$(grep -rE 'http://(192\.168\.[0-9]+\.[0-9]+|10\.[0-9]+\.[0-9]+\.[0-9]+):[0-9]+/api' "$BUILD_DIR/static/js/"*.js 2>/dev/null | wc -l | tr -d ' ')
-if [ "$PRIVATE_IP_COUNT" -gt 0 ]; then
+if [[ "$PRIVATE_IP_COUNT" -gt 0 ]]; then
     report_error "Found hardcoded private network API URLs in bundle ($PRIVATE_IP_COUNT occurrences)"
     grep -rE 'http://(192\.168|10\.)[0-9.]+:[0-9]+/api' "$BUILD_DIR/static/js/"*.js 2>/dev/null | head -3
 else
@@ -91,7 +91,7 @@ fi
 
 # Additional check: Look for specific patterns that are known safe (placeholders)
 PLACEHOLDER_COUNT=$(grep -rE 'placeholder.*192\.168\.[0-9]+\.[0-9]+' "$BUILD_DIR/static/js/"*.js 2>/dev/null | wc -l | tr -d ' ')
-if [ "$PLACEHOLDER_COUNT" -gt 0 ]; then
+if [[ "$PLACEHOLDER_COUNT" -gt 0 ]]; then
     echo -e "  ${BLUE}ℹ${NC} Note: $PLACEHOLDER_COUNT occurrences are UI placeholder text (safe)"
 fi
 
@@ -102,7 +102,7 @@ echo ""
 echo "3. Checking REACT_APP_API_URL configuration..."
 # Look for the pattern REACT_APP_API_URL:"something" where something is NOT empty
 API_URL_VALUE=$(grep -oE 'REACT_APP_API_URL:"[^"]*"' "$BUILD_DIR/static/js/"*.js 2>/dev/null | head -1)
-if [ -n "$API_URL_VALUE" ]; then
+if [[ -n "$API_URL_VALUE" ]]; then
     if echo "$API_URL_VALUE" | grep -q 'REACT_APP_API_URL:""'; then
         report_success "REACT_APP_API_URL is correctly empty in bundle"
     else
@@ -119,12 +119,12 @@ fi
 echo ""
 echo "4. Validating .env.production file..."
 ENV_PROD="$FRONTEND_DIR/.env.production"
-if [ -f "$ENV_PROD" ]; then
+if [[ -f "$ENV_PROD" ]]; then
     # Check if REACT_APP_API_URL is set to empty
     API_LINE=$(grep -E "^REACT_APP_API_URL=" "$ENV_PROD" 2>/dev/null || echo "")
-    if [ -z "$API_LINE" ]; then
+    if [[ -z "$API_LINE" ]]; then
         report_warning "REACT_APP_API_URL not found in .env.production"
-    elif [ "$API_LINE" = "REACT_APP_API_URL=" ]; then
+    elif [[ "$API_LINE" = "REACT_APP_API_URL=" ]]; then
         report_success ".env.production has REACT_APP_API_URL correctly set to empty"
     else
         report_error ".env.production has hardcoded REACT_APP_API_URL: $API_LINE"
@@ -142,7 +142,7 @@ echo "5. Checking for potential secrets in bundle..."
 # Look for hardcoded secrets, but exclude common library patterns (SignalR Bearer header construction, etc.)
 SECRET_PATTERNS="(api[_-]?key|secret[_-]?key)['\"]?\s*[:=]\s*['\"][a-zA-Z0-9_-]{20,}"
 SECRET_COUNT=$(grep -riE "$SECRET_PATTERNS" "$BUILD_DIR/static/js/"*.js 2>/dev/null | grep -v 'accessTokenFactory' | grep -v 'Authorization.*Bearer' | wc -l | tr -d ' ')
-if [ "$SECRET_COUNT" -gt 0 ]; then
+if [[ "$SECRET_COUNT" -gt 0 ]]; then
     report_warning "Found potential secrets/keys in bundle ($SECRET_COUNT matches)"
     echo "  Review these carefully - may be false positives"
 else
@@ -155,7 +155,7 @@ fi
 echo ""
 echo "6. Checking nginx configuration..."
 NGINX_CONF="$PROJECT_DIR/docker/nginx-frontend.conf"
-if [ -f "$NGINX_CONF" ]; then
+if [[ -f "$NGINX_CONF" ]]; then
     if grep -q 'location.*\/api\/' "$NGINX_CONF"; then
         report_success "nginx config has /api/ proxy route"
     else
@@ -173,7 +173,7 @@ echo -e "${BLUE}============================================${NC}"
 echo -e "${BLUE}  Validation Summary${NC}"
 echo -e "${BLUE}============================================${NC}"
 
-if [ $ERRORS -gt 0 ]; then
+if [[ $ERRORS -gt 0 ]]; then
     echo -e "${RED}✗ $ERRORS error(s) found${NC}"
     echo ""
     echo "The production build contains hardcoded values that will cause"
@@ -185,7 +185,7 @@ if [ $ERRORS -gt 0 ]; then
     echo "  3. Use the centralized config in src/config/ports.ts"
     echo ""
     exit 1
-elif [ $WARNINGS -gt 0 ]; then
+elif [[ $WARNINGS -gt 0 ]]; then
     echo -e "${YELLOW}⚠ $WARNINGS warning(s) found${NC}"
     echo "Review warnings above, but build may still work."
     exit 0

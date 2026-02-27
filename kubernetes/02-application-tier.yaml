@@ -26,6 +26,7 @@ spec:
         prometheus.io/scrape: "true"
         prometheus.io/port: "5000"
     spec:
+      automountServiceAccountToken: false
       serviceAccountName: crm-api
       securityContext:
         runAsNonRoot: true

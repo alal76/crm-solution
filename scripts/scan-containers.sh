@@ -154,16 +154,16 @@ scan_image() {
     # Build scan arguments
     scan_args+=(--severity "$SEVERITY")
 
-    if [ "$SHOW_FIX" = true ]; then
+    if [[ "$SHOW_FIX" = true ]]; then
         scan_args+=(--show-fixed)
     fi
 
-    if [ "$IGNORE_UNFIXED" = true ]; then
+    if [[ "$IGNORE_UNFIXED" = true ]]; then
         scan_args+=(--ignore-unfixed)
     fi
 
     # CI mode: set exit code
-    if [ "$CI_MODE" = true ]; then
+    if [[ "$CI_MODE" = true ]]; then
         scan_args+=(--exit-code 1)
     fi
 
@@ -177,7 +177,7 @@ scan_image() {
             ;;
         table)
             # Table goes to stdout; also save JSON for CI
-            if [ "$CI_MODE" = true ]; then
+            if [[ "$CI_MODE" = true ]]; then
                 # Run twice: table for display, JSON for artifacts
                 trivy image "${scan_args[@]}" --format json --output "${report_file}.json" "$image" 2>/dev/null || true
             fi
@@ -189,7 +189,7 @@ scan_image() {
         log_success "No ${SEVERITY} vulnerabilities found in $image"
     else
         local result=$?
-        if [ "$CI_MODE" = true ] && [ $result -ne 0 ]; then
+        if [[ "$CI_MODE" = true ]] && [[ $result -ne 0 ]]; then
             log_error "Vulnerabilities found in $image (exit code: $result)"
             EXIT_CODE=1
         fi
@@ -202,7 +202,7 @@ scan_dockerfile() {
     local dockerfile="$1"
     local name="$(basename "$dockerfile")"
 
-    if [ ! -f "$dockerfile" ]; then
+    if [[ ! -f "$dockerfile" ]]; then
         return 0
     fi
 
@@ -210,7 +210,7 @@ scan_dockerfile() {
 
     local scan_args=(--severity "$SEVERITY")
 
-    if [ "$CI_MODE" = true ]; then
+    if [[ "$CI_MODE" = true ]]; then
         scan_args+=(--exit-code 1)
     fi
 
@@ -218,7 +218,7 @@ scan_dockerfile() {
         log_success "No misconfigurations found in $name"
     else
         local result=$?
-        if [ "$CI_MODE" = true ] && [ $result -ne 0 ]; then
+        if [[ "$CI_MODE" = true ]] && [[ $result -ne 0 ]]; then
             log_warn "Misconfigurations found in $name"
         fi
     fi
@@ -233,13 +233,13 @@ scan_kubernetes() {
     log_info "Scanning Kubernetes manifests for misconfigurations..."
 
     local k8s_dir="${PROJECT_DIR}/kubernetes"
-    if [ ! -d "$k8s_dir" ]; then
+    if [[ ! -d "$k8s_dir" ]]; then
         log_warn "No kubernetes/ directory found, skipping"
         return 0
     fi
 
     local scan_args=(--severity "$SEVERITY")
-    if [ "$CI_MODE" = true ]; then
+    if [[ "$CI_MODE" = true ]]; then
         scan_args+=(--exit-code 1)
     fi
 
@@ -247,7 +247,7 @@ scan_kubernetes() {
         log_success "No Kubernetes misconfigurations found"
     else
         local result=$?
-        if [ "$CI_MODE" = true ] && [ $result -ne 0 ]; then
+        if [[ "$CI_MODE" = true ]] && [[ $result -ne 0 ]]; then
             log_warn "Kubernetes misconfigurations found"
         fi
     fi
@@ -267,8 +267,8 @@ generate_summary() {
     echo "  Reports:           $REPORT_DIR/"
     echo "============================================================"
 
-    if [ "$CI_MODE" = true ]; then
-        if [ $EXIT_CODE -eq 0 ]; then
+    if [[ "$CI_MODE" = true ]]; then
+        if [[ $EXIT_CODE -eq 0 ]]; then
             log_success "All scans passed — no blocking vulnerabilities found"
         else
             log_error "Blocking vulnerabilities detected — pipeline should fail"
@@ -293,7 +293,7 @@ main() {
     mkdir -p "$REPORT_DIR"
 
     # Scan images
-    if [ -n "$SPECIFIC_IMAGE" ]; then
+    if [[ -n "$SPECIFIC_IMAGE" ]]; then
         scan_image "$SPECIFIC_IMAGE"
     else
         for image in "${CRM_IMAGES[@]}"; do

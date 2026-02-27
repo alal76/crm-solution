@@ -70,7 +70,7 @@ log_error() {
 
 # Get version from version.json
 get_backend_version() {
-    if [ -f "${PROJECT_ROOT}/version.json" ]; then
+    if [[ -f "${PROJECT_ROOT}/version.json" ]]; then
         cat "${PROJECT_ROOT}/version.json" | grep '"version"' | head -1 | sed 's/.*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/'
     else
         echo "unknown"
@@ -79,7 +79,7 @@ get_backend_version() {
 
 # Get frontend version from package.json
 get_frontend_version() {
-    if [ -f "${PROJECT_ROOT}/CRM.Frontend/package.json" ]; then
+    if [[ -f "${PROJECT_ROOT}/CRM.Frontend/package.json" ]]; then
         cat "${PROJECT_ROOT}/CRM.Frontend/package.json" | grep '"version"' | head -1 | sed 's/.*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/'
     else
         echo "unknown"
@@ -219,13 +219,13 @@ run_e2e_tests() {
     cd "${PROJECT_ROOT}/e2e-tests"
     
     # Install dependencies if needed
-    if [ ! -d "node_modules" ]; then
+    if [[ ! -d "node_modules" ]]; then
         npm install
         npx playwright install --with-deps chromium
     fi
     
     local test_args="--project=chromium"
-    if [ "$QUICK_MODE" = true ]; then
+    if [[ "$QUICK_MODE" = true ]]; then
         test_args="$test_args tests/bvt/"
     fi
     
@@ -247,7 +247,7 @@ run_bvt_tests() {
     cd "${PROJECT_ROOT}/e2e-tests"
     
     # Install dependencies if needed
-    if [ ! -d "node_modules" ]; then
+    if [[ ! -d "node_modules" ]]; then
         npm install
     fi
     
@@ -309,7 +309,7 @@ generate_report() {
 | **Total Passed** | ${TOTAL_PASSED} |
 | **Total Failed** | ${TOTAL_FAILED} |
 | **Total Skipped** | ${TOTAL_SKIPPED} |
-| **Pass Rate** | $(if [ $((TOTAL_PASSED + TOTAL_FAILED)) -gt 0 ]; then echo "scale=1; ${TOTAL_PASSED} * 100 / (${TOTAL_PASSED} + ${TOTAL_FAILED})" | bc; else echo "0"; fi)% |
+| **Pass Rate** | $(if [[ $((TOTAL_PASSED + TOTAL_FAILED)) -gt 0 ]]; then echo "scale=1; ${TOTAL_PASSED} * 100 / (${TOTAL_PASSED} + ${TOTAL_FAILED})" | bc; else echo "0"; fi)% |
 
 ---
 
@@ -317,37 +317,37 @@ generate_report() {
 
 EOF
 
-    if [ "$RUN_BACKEND" = true ]; then
+    if [[ "$RUN_BACKEND" = true ]]; then
         echo "### Backend Unit Tests" >> "${REPORT_FILE}"
         echo "" >> "${REPORT_FILE}"
-        if [ -f "${REPORT_DIR}/backend-output.log" ]; then
+        if [[ -f "${REPORT_DIR}/backend-output.log" ]]; then
             echo "- Status: $(grep -q "Test Run Successful" "${REPORT_DIR}/backend-output.log" && echo "✅ Passed" || echo "❌ Failed")" >> "${REPORT_FILE}"
         fi
         echo "" >> "${REPORT_FILE}"
     fi
 
-    if [ "$RUN_FRONTEND" = true ]; then
+    if [[ "$RUN_FRONTEND" = true ]]; then
         echo "### Frontend Unit Tests" >> "${REPORT_FILE}"
         echo "" >> "${REPORT_FILE}"
-        if [ -f "${REPORT_DIR}/frontend-output.log" ]; then
+        if [[ -f "${REPORT_DIR}/frontend-output.log" ]]; then
             echo "- Status: $(grep -q "Tests:.*passed" "${REPORT_DIR}/frontend-output.log" && echo "✅ Passed" || echo "❌ Failed")" >> "${REPORT_FILE}"
         fi
         echo "" >> "${REPORT_FILE}"
     fi
 
-    if [ "$RUN_E2E" = true ]; then
+    if [[ "$RUN_E2E" = true ]]; then
         echo "### E2E Tests" >> "${REPORT_FILE}"
         echo "" >> "${REPORT_FILE}"
-        if [ -f "${REPORT_DIR}/e2e-output.log" ]; then
+        if [[ -f "${REPORT_DIR}/e2e-output.log" ]]; then
             echo "- Status: $(grep -q "passed" "${REPORT_DIR}/e2e-output.log" && echo "✅ Completed" || echo "⚠️ Check logs")" >> "${REPORT_FILE}"
         fi
         echo "" >> "${REPORT_FILE}"
     fi
 
-    if [ "$RUN_BVT" = true ]; then
+    if [[ "$RUN_BVT" = true ]]; then
         echo "### BVT Tests" >> "${REPORT_FILE}"
         echo "" >> "${REPORT_FILE}"
-        if [ -f "${REPORT_DIR}/bvt-output.log" ]; then
+        if [[ -f "${REPORT_DIR}/bvt-output.log" ]]; then
             echo "- Status: $(grep -q "passed" "${REPORT_DIR}/bvt-output.log" && echo "✅ Completed" || echo "⚠️ Check logs")" >> "${REPORT_FILE}"
         fi
         echo "" >> "${REPORT_FILE}"
@@ -406,19 +406,19 @@ main() {
     # Run tests
     local exit_code=0
     
-    if [ "$RUN_BACKEND" = true ]; then
+    if [[ "$RUN_BACKEND" = true ]]; then
         run_backend_tests || exit_code=1
     fi
     
-    if [ "$RUN_FRONTEND" = true ]; then
+    if [[ "$RUN_FRONTEND" = true ]]; then
         run_frontend_tests || exit_code=1
     fi
     
-    if [ "$RUN_BVT" = true ]; then
+    if [[ "$RUN_BVT" = true ]]; then
         run_bvt_tests || exit_code=1
     fi
     
-    if [ "$RUN_E2E" = true ]; then
+    if [[ "$RUN_E2E" = true ]]; then
         run_e2e_tests || exit_code=1
     fi
     

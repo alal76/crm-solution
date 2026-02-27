@@ -29,7 +29,7 @@ check_file() {
   local file=$1
   local description=$2
   
-  if [ -f "$file" ]; then
+  if [[ -f "$file" ]]; then
     echo -e "${GREEN}✓${NC} $description"
     ((PASSED++))
   else
@@ -43,7 +43,7 @@ check_dir() {
   local dir=$1
   local description=$2
   
-  if [ -d "$dir" ]; then
+  if [[ -d "$dir" ]]; then
     echo -e "${GREEN}✓${NC} $description"
     ((PASSED++))
   else
@@ -146,7 +146,7 @@ echo -e "  ${RED}Failed:${NC} $FAILED"
 echo -e "  ${BLUE}Total:${NC}  $TOTAL"
 echo ""
 
-if [ $FAILED -eq 0 ]; then
+if [[ $FAILED -eq 0 ]]; then
   echo -e "${GREEN}✅ All test infrastructure files are in place!${NC}"
   echo ""
   echo "Next steps:"

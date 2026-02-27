@@ -39,7 +39,7 @@ LOADER_EXIT=$?
 echo ""
 
 # ── 2. Analyze results ──────────────────────────────────────────────────
-if [ ! -f "$JSONL" ]; then
+if [[ ! -f "$JSONL" ]]; then
     echo "ERROR: No JSONL log found at $JSONL"
     exit 1
 fi
@@ -104,17 +104,17 @@ echo "  RESULTS SUMMARY"
 echo "════════════════════════════════════════════════════════════════"
 echo ""
 
-if [ "$COUNT_FAIL" -eq 0 ]; then
+if [[ "$COUNT_FAIL" -eq 0 ]]; then
     echo "  ✅  ALL PASSED   $COUNT_OK / $COUNT_TOTAL API calls succeeded"
 else
     echo "  ❌  FAILURES     $COUNT_OK / $COUNT_TOTAL passed, $COUNT_FAIL failed"
 fi
 
-if [ "$COUNT_EXISTS" -gt 0 ]; then
+if [[ "$COUNT_EXISTS" -gt 0 ]]; then
     echo "  🔁  DUPLICATES   $COUNT_EXISTS already-exists (dedup rejected)"
 fi
 
-if [ "$COUNT_SKIP" -gt 0 ]; then
+if [[ "$COUNT_SKIP" -gt 0 ]]; then
     echo "  ⏭   SKIPPED      $COUNT_SKIP integration-dependent endpoints"
 fi
 
@@ -125,7 +125,7 @@ echo "    JSONL log    : $JSONL"
 echo "    Error details: $ERROR_LOG"
 echo ""
 
-if [ "$COUNT_FAIL" -gt 0 ]; then
+if [[ "$COUNT_FAIL" -gt 0 ]]; then
     echo "── Error Details ──────────────────────────────────────────────"
     cat "$ERROR_LOG"
     echo "──────────────────────────────────────────────────────────────"

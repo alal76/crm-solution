@@ -164,7 +164,7 @@ CRITICAL_FILES=(
 
 ALL_FILES_EXIST=true
 for file in "${CRITICAL_FILES[@]}"; do
-    if [ -e "$file" ]; then
+    if [[ -e "$file" ]]; then
         echo -e "${GREEN}✅ $file${NC}"
     else
         echo -e "${RED}❌ MISSING: $file${NC}"
@@ -186,7 +186,7 @@ echo -e "${GREEN}✅ Frontend Build: OK${NC}"
 echo -e "${GREEN}✅ Backend Build: OK${NC}"
 echo -e "${GREEN}✅ Docker Build: OK${NC}"
 
-if [ "$ALL_FILES_EXIST" = true ]; then
+if [[ "$ALL_FILES_EXIST" = true ]]; then
     echo -e "${GREEN}✅ Project Structure: OK${NC}"
 else
     echo -e "${RED}❌ Project Structure: INCOMPLETE${NC}"
@@ -200,7 +200,7 @@ echo "   • TypeScript Pages: $(find $FRONTEND_DIR/src/pages -name "*.tsx" | wc
 echo "   • API Controllers: $(find $BACKEND_DIR/src/CRM.Api/Controllers -name "*Controller.cs" | wc -l)"
 echo ""
 
-if [ "$ALL_FILES_EXIST" = true ]; then
+if [[ "$ALL_FILES_EXIST" = true ]]; then
     echo -e "${GREEN}════════════════════════════════════════════════════════════════════${NC}"
     echo -e "${GREEN}✅ BUILD VERIFICATION SUCCESSFUL${NC}"
     echo -e "${GREEN}════════════════════════════════════════════════════════════════════${NC}"

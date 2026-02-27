@@ -12,11 +12,11 @@ echo ""
 # Check Python version
 find_python() {
     # Try homebrew Python first (usually has better tkinter support on macOS)
-    if [ -x "/opt/homebrew/bin/python3" ]; then
+    if [[ -x "/opt/homebrew/bin/python3" ]]; then
         echo "/opt/homebrew/bin/python3"
         return
     fi
-    if [ -x "/usr/local/bin/python3" ]; then
+    if [[ -x "/usr/local/bin/python3" ]]; then
         echo "/usr/local/bin/python3"
         return
     fi
@@ -34,7 +34,7 @@ find_python() {
 
 PYTHON_CMD=$(find_python)
 
-if [ -z "$PYTHON_CMD" ]; then
+if [[ -z "$PYTHON_CMD" ]]; then
     echo "ERROR: Python 3 is required but not found."
     echo ""
     echo "Please install Python 3.9+ using one of these methods:"
@@ -76,7 +76,7 @@ if ! $PYTHON_CMD -c "import tkinter; tkinter.Tcl()" 2>/dev/null; then
     # Offer CLI fallback
     echo "Would you like to use command-line mode instead? (y/n)"
     read -r response
-    if [ "$response" = "y" ]; then
+    if [[ "$response" = "y" ]]; then
         cd "$SCRIPT_DIR/deployment-tool"
         $PYTHON_CMD -c "
 import sys

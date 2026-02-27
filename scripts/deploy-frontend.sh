@@ -11,7 +11,7 @@ CONTAINER_PATH="/usr/share/nginx/html/"
 # Absolute path resolution
 BUILD_DIR_ABS=$(cd "$FRONTEND_BUILD_DIR" && pwd)
 
-if [ ! -d "$BUILD_DIR_ABS" ]; then
+if [[ ! -d "$BUILD_DIR_ABS" ]]; then
   echo "Error: Build directory not found: $BUILD_DIR_ABS"
   exit 1
 fi

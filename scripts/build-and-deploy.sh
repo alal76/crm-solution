@@ -175,12 +175,12 @@ push_images_to_server() {
     BACKEND_ID=$(docker images --quiet "$BACKEND_IMAGE" | head -1)
     FRONTEND_ID=$(docker images --quiet "$FRONTEND_IMAGE" | head -1)
     
-    if [ -z "$BACKEND_ID" ]; then
+    if [[ -z "$BACKEND_ID" ]]; then
         log_error "Backend Docker image not found"
         return 1
     fi
     
-    if [ -z "$FRONTEND_ID" ]; then
+    if [[ -z "$FRONTEND_ID" ]]; then
         log_error "Frontend Docker image not found"
         return 1
     fi

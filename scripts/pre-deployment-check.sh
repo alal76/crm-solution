@@ -124,10 +124,10 @@ log_check "Sufficient disk space on server (>10GB)"
 DISK_SIZE=$(ssh -o StrictHostKeyChecking=no $SSH_USER@$TARGET_SERVER "df / | awk 'NR==2 {print \$4}'" 2>/dev/null || echo "0")
 DISK_GB=$((DISK_SIZE / 1024 / 1024))
 
-if [ "$DISK_GB" -gt 10 ]; then
+if [[ "$DISK_GB" -gt 10 ]]; then
     log_pass "Sufficient disk space on server (>10GB) - Available: ${DISK_GB}GB"
     ((pass_count++))
-elif [ "$DISK_GB" -gt 5 ]; then
+elif [[ "$DISK_GB" -gt 5 ]]; then
     log_warn "Limited disk space on server - Available: ${DISK_GB}GB (recommended: >10GB)"
     ((warn_count++))
 else
@@ -141,10 +141,10 @@ log_check "Sufficient memory on server (>4GB)"
 MEM_SIZE=$(ssh -o StrictHostKeyChecking=no $SSH_USER@$TARGET_SERVER "free | awk 'NR==2 {print \$2}'" 2>/dev/null || echo "0")
 MEM_GB=$((MEM_SIZE / 1024 / 1024))
 
-if [ "$MEM_GB" -gt 4 ]; then
+if [[ "$MEM_GB" -gt 4 ]]; then
     log_pass "Sufficient memory on server (>4GB) - Available: ${MEM_GB}GB"
     ((pass_count++))
-elif [ "$MEM_GB" -gt 2 ]; then
+elif [[ "$MEM_GB" -gt 2 ]]; then
     log_warn "Limited memory on server - Available: ${MEM_GB}GB (recommended: >4GB)"
     ((warn_count++))
 else
@@ -194,7 +194,7 @@ echo -e "${YELLOW}Warnings: $warn_count${NC}"
 echo -e "${RED}Failed: $fail_count${NC}"
 echo ""
 
-if [ $fail_count -eq 0 ]; then
+if [[ $fail_count -eq 0 ]]; then
     echo -e "${GREEN}✓ PRE-DEPLOYMENT VALIDATION SUCCESSFUL${NC}"
     echo ""
     echo "You can now proceed with deployment:"
@@ -212,7 +212,7 @@ else
     echo "Please resolve the above issues before proceeding."
     echo ""
     
-    if [ $warn_count -gt 0 ]; then
+    if [[ $warn_count -gt 0 ]]; then
         echo -e "${YELLOW}Note: $warn_count warnings detected. Review them carefully.${NC}"
         echo ""
     fi

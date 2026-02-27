@@ -399,7 +399,7 @@ const TestResultsPage: React.FC = () => {
   const getAllCategories = (run: TestRun) => {
     const categories = new Set<string>();
     run.testCases.forEach(test => categories.add(test.category));
-    return Array.from(categories).sort();
+    return Array.from(categories).sort((a, b) => a.localeCompare(b));
   };
 
   const backendRun = testRuns.find(run => run.type === 'backend');

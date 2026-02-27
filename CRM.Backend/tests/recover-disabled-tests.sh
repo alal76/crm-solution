@@ -28,7 +28,7 @@ process_disabled_file() {
     local active_file="${disabled_file%.disabled}"
     local category=$(echo "$disabled_file" | grep -o 'ITSM' || echo "Other")
     
-    if [ -f "$active_file" ]; then
+    if [[ -f "$active_file" ]]; then
         echo "  ⚠️  Skipping (active file exists): $(basename "$active_file")"
         SKIPPED=$((SKIPPED + 1))
         return

@@ -18,6 +18,7 @@ spec:
         {{- include "crm-microservices.selectorLabels" . | nindent 8 }}
         app.kubernetes.io/component: database
     spec:
+      automountServiceAccountToken: false
       containers:
       - name: mariadb
         image: {{ .Values.images.db.repository }}:{{ .Values.images.db.tag }}

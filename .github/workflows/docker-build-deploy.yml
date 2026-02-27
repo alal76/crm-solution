@@ -142,7 +142,7 @@ jobs:
       env:
         KUBE_CONFIG: ${{ secrets.KUBE_CONFIG }}  # Optional — configure in repo Settings > Secrets to enable deployment
       run: |
-        if [ -z "$KUBE_CONFIG" ]; then
+        if [[ -z "$KUBE_CONFIG" ]]; then
           echo "⚠️ KUBE_CONFIG secret is not configured. Skipping deployment."
           echo "To enable deployment, add a KUBE_CONFIG secret in repository settings."
           echo "configured=false" >> "$GITHUB_OUTPUT"

@@ -35,7 +35,7 @@ echo ""
 
 # Find git executable
 GIT_PATH=$(which git)
-if [ -z "$GIT_PATH" ]; then
+if [[ -z "$GIT_PATH" ]]; then
     echo -e "${RED}❌ Git not found in PATH${NC}"
     exit 1
 fi
@@ -46,13 +46,13 @@ echo ""
 
 # Create settings directory if it doesn't exist
 SETTINGS_DIR=$(dirname "$VSCODE_SETTINGS")
-if [ ! -d "$SETTINGS_DIR" ]; then
+if [[ ! -d "$SETTINGS_DIR" ]]; then
     echo -e "${YELLOW}Creating VS Code settings directory...${NC}"
     mkdir -p "$SETTINGS_DIR"
 fi
 
 # Backup existing settings.json if it exists
-if [ -f "$VSCODE_SETTINGS" ]; then
+if [[ -f "$VSCODE_SETTINGS" ]]; then
     BACKUP_FILE="$VSCODE_SETTINGS.backup.$(date +%s)"
     echo -e "${YELLOW}Backing up existing settings.json...${NC}"
     cp "$VSCODE_SETTINGS" "$BACKUP_FILE"

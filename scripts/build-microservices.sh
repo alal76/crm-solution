@@ -87,7 +87,7 @@ build_service() {
     local service=$1
     local service_info=${SERVICES[$service]}
     
-    if [ -z "$service_info" ]; then
+    if [[ -z "$service_info" ]]; then
         print_error "Unknown service: $service"
         return 1
     fi
@@ -97,7 +97,7 @@ build_service() {
     
     print_header "Building $service service ($project_name)"
     
-    if [ ! -f "$project_path" ]; then
+    if [[ ! -f "$project_path" ]]; then
         print_error "Project file not found: $project_path"
         return 1
     fi
@@ -116,7 +116,7 @@ build_docker() {
     
     local dockerfile="$DOCKER_DIR/Dockerfile.$service"
     
-    if [ ! -f "$dockerfile" ]; then
+    if [[ ! -f "$dockerfile" ]]; then
         print_error "Dockerfile not found: $dockerfile"
         return 1
     fi
@@ -124,7 +124,7 @@ build_docker() {
     cd "$PROJECT_ROOT"
     
     local cache_flag=""
-    if [ "$no_cache" = true ]; then
+    if [[ "$no_cache" = true ]]; then
         cache_flag="--no-cache"
     fi
     
@@ -156,7 +156,7 @@ deploy_service() {
     
     local manifest_path="$PROJECT_ROOT/kubernetes/microservices/$manifest"
     
-    if [ ! -f "$manifest_path" ]; then
+    if [[ ! -f "$manifest_path" ]]; then
         print_error "Manifest not found: $manifest_path"
         return 1
     fi
@@ -267,21 +267,21 @@ main() {
     
     case $command in
         build)
-            if [ "$service" = "all" ]; then
+            if [[ "$service" = "all" ]]; then
                 build_all
             else
                 build_service "$service"
             fi
             ;;
         docker)
-            if [ "$service" = "all" ]; then
+            if [[ "$service" = "all" ]]; then
                 docker_all "$no_cache"
             else
                 build_docker "$service" "$no_cache"
             fi
             ;;
         deploy)
-            if [ "$service" = "all" ]; then
+            if [[ "$service" = "all" ]]; then
                 deploy_all
             else
                 deploy_service "$service"

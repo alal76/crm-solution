@@ -56,7 +56,7 @@ run_sql_file() {
     local file="$1"
     local description="$2"
     
-    if [ ! -f "$file" ]; then
+    if [[ ! -f "$file" ]]; then
         echo -e "${RED}Error: File not found: $file${NC}"
         exit 1
     fi
@@ -64,13 +64,13 @@ run_sql_file() {
     echo -e "${YELLOW}Loading: $description${NC}"
     echo "  File: $(basename "$file")"
     
-    if [ -n "$DB_PASSWORD" ]; then
+    if [[ -n "$DB_PASSWORD" ]]; then
         PGPASSWORD="$DB_PASSWORD" psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f "$file" -q
     else
         psql -h "$DB_HOST" -p "$DB_PORT" -U "$DB_USER" -d "$DB_NAME" -f "$file" -q
     fi
     
-    if [ $? -eq 0 ]; then
+    if [[ $? -eq 0 ]]; then
         echo -e "  ${GREEN}✓ Success${NC}"
     else
         echo -e "  ${RED}✗ Failed${NC}"

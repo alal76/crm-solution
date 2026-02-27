@@ -165,7 +165,7 @@ test_mariadb_connection() {
     local user=$3
     local pass=$4
     
-    if [ "$USE_DOCKER" = "true" ]; then
+    if [[ "$USE_DOCKER" = "true" ]]; then
         docker exec "$DOCKER_CONTAINER" mariadb -u "$user" -p"$pass" -e "SELECT 1" &> /dev/null
     else
         mysql -h "$host" -P "$port" -u "$user" -p"$pass" -e "SELECT 1" &> /dev/null
@@ -197,7 +197,7 @@ exec_mariadb() {
     local database=$1
     local sql=$2
     
-    if [ "$USE_DOCKER" = "true" ]; then
+    if [[ "$USE_DOCKER" = "true" ]]; then
         echo "$sql" | docker exec -i "$DOCKER_CONTAINER" mariadb -u "$DB_ROOT_USER" -p"$DB_ROOT_PASSWORD" "$database"
     else
         echo "$sql" | mysql -h "$DB_HOST" -P "$DB_PORT" -u "$DB_ROOT_USER" -p"$DB_ROOT_PASSWORD" "$database"
@@ -209,7 +209,7 @@ exec_mariadb_file() {
     local database=$1
     local file=$2
     
-    if [ "$USE_DOCKER" = "true" ]; then
+    if [[ "$USE_DOCKER" = "true" ]]; then
         docker exec -i "$DOCKER_CONTAINER" mariadb -u "$DB_ROOT_USER" -p"$DB_ROOT_PASSWORD" "$database" < "$file"
     else
         mysql -h "$DB_HOST" -P "$DB_PORT" -u "$DB_ROOT_USER" -p"$DB_ROOT_PASSWORD" "$database" < "$file"
@@ -301,7 +301,7 @@ apply_schema() {
     
     local schema_dir="$SCRIPT_DIR/schema"
     
-    if [ ! -d "$schema_dir" ]; then
+    if [[ ! -d "$schema_dir" ]]; then
         print_warning "Schema directory not found: $schema_dir"
         print_info "Schema will be created by Entity Framework on API startup"
         return 0
@@ -355,7 +355,7 @@ seed_core_data() {
     
     local seed_dir="$SCRIPT_DIR/seed"
     
-    if [ ! -d "$seed_dir" ]; then
+    if [[ ! -d "$seed_dir" ]]; then
         print_warning "Seed directory not found: $seed_dir"
         return 0
     fi
@@ -373,7 +373,7 @@ seed_core_data() {
     
     for filename in "${core_files[@]}"; do
         local sql_file="$seed_dir/$filename"
-        if [ -f "$sql_file" ]; then
+        if [[ -f "$sql_file" ]]; then
             echo -n "  Seeding $filename... "
             case "$DB_PROVIDER" in
                 mariadb|mysql)
@@ -423,7 +423,7 @@ seed_sample_data() {
     
     for filename in "${sample_files[@]}"; do
         local sql_file="$seed_dir/$filename"
-        if [ -f "$sql_file" ]; then
+        if [[ -f "$sql_file" ]]; then
             echo -n "  Seeding $filename... "
             case "$DB_PROVIDER" in
                 mariadb|mysql)
@@ -446,14 +446,14 @@ seed_master_data() {
     
     local master_dir="$SCRIPT_DIR/master_data"
     
-    if [ ! -d "$master_dir" ]; then
+    if [[ ! -d "$master_dir" ]]; then
         print_warning "Master data directory not found: $master_dir"
         print_info "ZIP codes and localities will be loaded by API on startup"
         return 0
     fi
     
     # Check for ZIP code data
-    if [ -f "$master_dir/zipcodes.sql" ]; then
+    if [[ -f "$master_dir/zipcodes.sql" ]]; then
         echo -n "  Loading ZIP codes (this may take a while)... "
         case "$DB_PROVIDER" in
             mariadb|mysql)
@@ -607,7 +607,7 @@ interactive_setup() {
     # Set default port
     DB_PORT="${DB_PORT:-$(get_default_port $DB_PROVIDER)}"
     
-    if [ "$DB_PROVIDER" != "sqlite" ]; then
+    if [[ "$DB_PROVIDER" != "sqlite" ]]; then
         # Connection details
         read -p "Database host [$DB_HOST]: " input_host
         DB_HOST="${input_host:-$DB_HOST}"
@@ -622,7 +622,7 @@ interactive_setup() {
         DB_USER="${input_user:-$DB_USER}"
         
         # Password
-        if [ -z "$DB_PASSWORD" ]; then
+        if [[ -z "$DB_PASSWORD" ]]; then
             read -p "Generate password automatically? [Y/n]: " gen_pass
             if [[ ! "$gen_pass" =~ ^[Nn]$ ]]; then
                 DB_PASSWORD=$(generate_password 16)
@@ -637,7 +637,7 @@ interactive_setup() {
         read -p "Database admin user [$DB_ROOT_USER]: " input_root
         DB_ROOT_USER="${input_root:-$DB_ROOT_USER}"
         
-        if [ -z "$DB_ROOT_PASSWORD" ]; then
+        if [[ -z "$DB_ROOT_PASSWORD" ]]; then
             read -s -p "Enter admin password: " DB_ROOT_PASSWORD
             echo ""
         fi
@@ -758,7 +758,7 @@ main() {
     echo ""
     
     # If no password provided, go interactive
-    if [ -z "$DB_PASSWORD" ] && [ -z "$DB_ROOT_PASSWORD" ] && [ "$DB_PROVIDER" != "sqlite" ]; then
+    if [[ -z "$DB_PASSWORD" ]] && [[ -z "$DB_ROOT_PASSWORD" ]] && [[ "$DB_PROVIDER" != "sqlite" ]]; then
         interactive_setup
     fi
     
@@ -796,7 +796,7 @@ main() {
     esac
     
     # Create database and user
-    if [ "$SEED_ONLY" != "true" ]; then
+    if [[ "$SEED_ONLY" != "true" ]]; then
         case "$DB_PROVIDER" in
             mariadb|mysql) create_database_mariadb ;;
             postgresql|postgres) create_database_postgresql ;;
@@ -809,11 +809,11 @@ main() {
     fi
     
     # Seed data
-    if [ "$SEED_DATA" = "true" ] && [ "$SCHEMA_ONLY" != "true" ]; then
+    if [[ "$SEED_DATA" = "true" ]] && [[ "$SCHEMA_ONLY" != "true" ]]; then
         seed_core_data
         seed_master_data
         
-        if [ "$SEED_SAMPLE" = "true" ]; then
+        if [[ "$SEED_SAMPLE" = "true" ]]; then
             seed_sample_data
         fi
         

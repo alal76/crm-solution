@@ -17,6 +17,7 @@ spec:
         {{- include "crm-monolith.selectorLabels" . | nindent 8 }}
         app.kubernetes.io/component: api
     spec:
+      automountServiceAccountToken: false
       securityContext:
         runAsNonRoot: true
         runAsUser: 1000

@@ -11,7 +11,7 @@ from dataclasses import dataclass, field, asdict
 from typing import Optional, Dict, List, Any
 from enum import Enum
 import json
-from datetime import datetime
+from datetime import datetime, timezone
 
 
 class TargetPlatform(Enum):
@@ -375,7 +375,7 @@ class DeploymentConfig:
     # Metadata
     config_version: str = "2.0.0"
     config_name: str = "crm-deployment"
-    created_at: str = field(default_factory=lambda: datetime.utcnow().isoformat())
+    created_at: str = field(default_factory=lambda: datetime.now(timezone.utc).isoformat())
     created_by: str = ""
     
     # Target Platform

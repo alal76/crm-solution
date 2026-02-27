@@ -58,7 +58,7 @@ check_prerequisites() {
     log_info "Checking prerequisites..."
     
     # Check SSH key
-    if [ ! -f "$SSH_KEY" ]; then
+    if [[ ! -f "$SSH_KEY" ]]; then
         log_error "SSH key not found: $SSH_KEY"
         log_info "Generate with: ssh-keygen -t rsa -b 4096"
         log_info "Copy to server: ssh-copy-id -i $SSH_KEY ${REMOTE_USER}@${REMOTE_HOST}"

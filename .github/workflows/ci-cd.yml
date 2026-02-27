@@ -88,7 +88,7 @@ jobs:
       run: |
         SIZE=$(du -sh build/ | cut -f1)
         echo "Bundle size: $SIZE"
-        if [ $(du -sb build/ | cut -f1) -gt 500000000 ]; then
+        if [[ $(du -sb build/ | cut -f1) -gt 500000000 ]]; then
           echo "❌ Bundle size exceeds 500MB limit"
           exit 1
         fi
@@ -174,7 +174,7 @@ jobs:
       run: |
         # Find ALL Cobertura coverage files from the 4 test projects
         COVERAGE_FILES=$(find tests/TestResults -name "coverage.cobertura.xml" -type f 2>/dev/null)
-        if [ -z "$COVERAGE_FILES" ]; then
+        if [[ -z "$COVERAGE_FILES" ]]; then
           echo "⚠️ No coverage file found — skipping coverage summary"
           exit 0
         fi
@@ -194,7 +194,7 @@ jobs:
           -reporttypes:"Cobertura" \
           -verbosity:Warning
 
-        if [ -f "tests/TestResults/merged/Cobertura.xml" ]; then
+        if [[ -f "tests/TestResults/merged/Cobertura.xml" ]]; then
           cp "tests/TestResults/merged/Cobertura.xml" "$MERGED_FILE"
           echo "✅ Merged ${FILE_COUNT} coverage files into ${MERGED_FILE}"
         else
@@ -203,7 +203,7 @@ jobs:
         fi
 
         LINE_RATE=$(grep -o 'line-rate="[^"]*"' "$MERGED_FILE" | head -1 | sed 's/line-rate="//;s/"//')
-        if [ -z "$LINE_RATE" ]; then
+        if [[ -z "$LINE_RATE" ]]; then
           echo "⚠️ Could not parse coverage rate"
           exit 0
         fi
@@ -277,7 +277,7 @@ jobs:
             echo "✅ MariaDB accessible by crm_user after ${i}s"
             break
           fi
-          if [ $i -eq 30 ]; then
+          if [[ $i -eq 30 ]]; then
             echo "❌ crm_user cannot connect to MariaDB after 60s"
             exit 1
           fi
@@ -296,7 +296,7 @@ jobs:
         Jwt__Audience: CRM.Client
         ADMIN_USERNAME: admin
         ADMIN_EMAIL: admin@crm.local
-        ADMIN_PASSWORD: Admin@123
+        ADMIN_PASSWORD: Admin@123 # nosonar - CI test credentials - not used in production
         # Use EnsureCreated instead of MigrateAsync on fresh CI DB — avoids
         # Pomelo DDL auto-commit issues causing "Table already exists" on retry
         USE_ENSURE_CREATED: "true"
@@ -310,7 +310,7 @@ jobs:
             echo "✅ API is healthy after ${i}s"
             break
           fi
-          if [ $i -eq 90 ]; then
+          if [[ $i -eq 90 ]]; then
             echo "❌ API failed to start after 180s"
             journalctl -u dotnet --no-pager 2>/dev/null | tail -20 || true
             exit 1
@@ -335,12 +335,12 @@ jobs:
         for i in $(seq 1 30); do
           STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X POST http://localhost:5000/api/auth/login \
             -H 'Content-Type: application/json' \
-            -d '{"email":"admin@crm.local","password":"Admin@123"}')
-          if [ "$STATUS" = "200" ]; then
+            -d '{"email":"admin@crm.local","password":"Admin@123"}') # nosonar - CI test credentials - not used in production
+          if [[ "$STATUS" = "200" ]]; then
             echo "✅ Login endpoint ready after ${i}s"
             break
           fi
-          if [ $i -eq 30 ]; then
+          if [[ $i -eq 30 ]]; then
             echo "❌ Login endpoint not ready after 60s (last status: $STATUS)"
             exit 1
           fi
@@ -418,7 +418,7 @@ jobs:
         dotnet build CRM.sln -c Debug -warnaserror:SA0001 2>&1 | tee build-output.log
         WARNING_COUNT=$(grep -c ' warning SA' build-output.log || true)
         echo "## StyleCop Warnings: $WARNING_COUNT" >> $GITHUB_STEP_SUMMARY
-        if [ "$WARNING_COUNT" -gt 500 ]; then
+        if [[ "$WARNING_COUNT" -gt 500 ]]; then
           echo "❌ StyleCop warnings ($WARNING_COUNT) exceed threshold of 500"
           exit 1
         fi
@@ -576,7 +576,7 @@ jobs:
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
-        if [ -z "$SONAR_TOKEN" ]; then
+        if [[ -z "$SONAR_TOKEN" ]]; then
           echo "⚠️ SONAR_TOKEN secret is not configured — skipping SonarCloud analysis."
           echo "To enable: add a SONAR_TOKEN secret at https://github.com/alal76/crm-solution/settings/secrets/actions"
           exit 0

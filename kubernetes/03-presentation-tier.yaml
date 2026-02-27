@@ -23,6 +23,7 @@ spec:
         tier: presentation
         app: crm
     spec:
+      automountServiceAccountToken: false
       serviceAccountName: crm-frontend
       securityContext:
         runAsNonRoot: true

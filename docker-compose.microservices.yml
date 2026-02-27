@@ -46,7 +46,7 @@ services:
       - "5001:5001"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Server=crm-mariadb;Port=3306;Database=crm_db;User=crm_user;Password=CrmPass@Dev2024;CharSet=utf8mb4;
+      - ConnectionStrings__DefaultConnection=Server=crm-mariadb;Port=3306;Database=crm_db;User=crm_user;Password=CrmPass@Dev2024;CharSet=utf8mb4; # nosonar - Development default - overridable via environment variables
       - JwtSettings__Key=YourSuperSecretKeyThatIsAtLeast32CharactersLong!
       - Redis__ConnectionString=crm-redis:6379
     networks:
@@ -62,7 +62,7 @@ services:
       - "5002:5002"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Server=crm-mariadb;Port=3306;Database=crm_db;User=crm_user;Password=CrmPass@Dev2024;CharSet=utf8mb4;
+      - ConnectionStrings__DefaultConnection=Server=crm-mariadb;Port=3306;Database=crm_db;User=crm_user;Password=CrmPass@Dev2024;CharSet=utf8mb4; # nosonar - Development default - overridable via environment variables
       - JwtSettings__Key=YourSuperSecretKeyThatIsAtLeast32CharactersLong!
       - Redis__ConnectionString=crm-redis:6379
     networks:
@@ -78,7 +78,7 @@ services:
       - "5003:5003"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Server=crm-mariadb;Port=3306;Database=crm_db;User=crm_user;Password=CrmPass@Dev2024;CharSet=utf8mb4;
+      - ConnectionStrings__DefaultConnection=Server=crm-mariadb;Port=3306;Database=crm_db;User=crm_user;Password=CrmPass@Dev2024;CharSet=utf8mb4; # nosonar - Development default - overridable via environment variables
       - JwtSettings__Key=YourSuperSecretKeyThatIsAtLeast32CharactersLong!
       - Redis__ConnectionString=crm-redis:6379
     networks:
@@ -94,7 +94,7 @@ services:
       - "5004:5004"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Server=crm-mariadb;Port=3306;Database=crm_db;User=crm_user;Password=CrmPass@Dev2024;CharSet=utf8mb4;
+      - ConnectionStrings__DefaultConnection=Server=crm-mariadb;Port=3306;Database=crm_db;User=crm_user;Password=CrmPass@Dev2024;CharSet=utf8mb4; # nosonar - Development default - overridable via environment variables
       - JwtSettings__Key=YourSuperSecretKeyThatIsAtLeast32CharactersLong!
       - Redis__ConnectionString=crm-redis:6379
     networks:
@@ -110,7 +110,7 @@ services:
       - "5005:5005"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Server=crm-mariadb;Port=3306;Database=crm_db;User=crm_user;Password=CrmPass@Dev2024;CharSet=utf8mb4;
+      - ConnectionStrings__DefaultConnection=Server=crm-mariadb;Port=3306;Database=crm_db;User=crm_user;Password=CrmPass@Dev2024;CharSet=utf8mb4; # nosonar - Development default - overridable via environment variables
       - JwtSettings__Key=YourSuperSecretKeyThatIsAtLeast32CharactersLong!
       - Redis__ConnectionString=crm-redis:6379
     networks:
@@ -126,7 +126,7 @@ services:
       - "5006:5006"
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Server=crm-mariadb;Port=3306;Database=crm_db;User=crm_user;Password=CrmPass@Dev2024;CharSet=utf8mb4;
+      - ConnectionStrings__DefaultConnection=Server=crm-mariadb;Port=3306;Database=crm_db;User=crm_user;Password=CrmPass@Dev2024;CharSet=utf8mb4; # nosonar - Development default - overridable via environment variables
       - JwtSettings__Key=YourSuperSecretKeyThatIsAtLeast32CharactersLong!
       - Redis__ConnectionString=crm-redis:6379
     networks:

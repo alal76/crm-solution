@@ -26,7 +26,7 @@ echo "=========================================="
 echo ""
 
 # Check if e2e-tests directory exists
-if [ ! -d "$TEST_DIR" ]; then
+if [[ ! -d "$TEST_DIR" ]]; then
     echo "ERROR: E2E tests directory not found at $TEST_DIR"
     exit 1
 fi
@@ -35,7 +35,7 @@ cd "$TEST_DIR"
 
 # Step 1: Install dependencies (if needed)
 echo "[1/5] Installing test dependencies..."
-if [ ! -d "node_modules" ]; then
+if [[ ! -d "node_modules" ]]; then
     npm install || {
         echo "ERROR: npm install failed"
         exit 1

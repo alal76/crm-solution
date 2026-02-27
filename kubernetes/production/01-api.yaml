@@ -28,6 +28,7 @@ spec:
         tier: api
         environment: production
     spec:
+      automountServiceAccountToken: false
       securityContext:
         runAsNonRoot: true
         runAsUser: 1000

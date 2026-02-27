@@ -78,7 +78,7 @@ log_error() {
 
 # Get version from version.json
 get_version() {
-    if [ -f "${PROJECT_ROOT}/version.json" ]; then
+    if [[ -f "${PROJECT_ROOT}/version.json" ]]; then
         cat "${PROJECT_ROOT}/version.json" | grep '"version"' | head -1 | sed 's/.*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/'
     else
         echo "0.0.0"
@@ -275,13 +275,13 @@ verify_deployment() {
     
     log_info "Waiting for API to be ready..."
     
-    while [ $attempt -le $max_attempts ]; do
+    while [[ $attempt -le $max_attempts ]]; do
         if curl -sf "http://${TARGET_SERVER}:5000/health" > /dev/null 2>&1; then
             log_success "API is healthy"
             break
         fi
         
-        if [ $attempt -eq $max_attempts ]; then
+        if [[ $attempt -eq $max_attempts ]]; then
             log_error "API failed to become healthy after ${max_attempts} attempts"
             return 1
         fi
@@ -351,11 +351,11 @@ run_smoke_tests() {
     # Test 3: Protected endpoint
     log_info "Test 3: Protected endpoint..."
     local token=$(echo "$login_response" | grep -o '"accessToken":"[^"]*"' | cut -d'"' -f4)
-    if [ -n "$token" ]; then
+    if [[ -n "$token" ]]; then
         local accounts_response=$(curl -sf "${api_url}/api/accounts" \
             -H "Authorization: Bearer ${token}" 2>/dev/null)
         
-        if [ -n "$accounts_response" ]; then
+        if [[ -n "$accounts_response" ]]; then
             log_success "Protected endpoint test passed"
             ((passed++))
         else
@@ -482,9 +482,9 @@ main() {
     
     local exit_code=0
     
-    if [ "$TEST_ONLY" = false ]; then
+    if [[ "$TEST_ONLY" = false ]]; then
         # Build phase
-        if [ "$SKIP_BUILD" = false ]; then
+        if [[ "$SKIP_BUILD" = false ]]; then
             build_backend
             build_frontend
         else
@@ -497,11 +497,11 @@ main() {
         verify_deployment || exit_code=1
     fi
     
-    if [ "$DEPLOY_ONLY" = false ]; then
+    if [[ "$DEPLOY_ONLY" = false ]]; then
         # Test phase
         run_smoke_tests || exit_code=1
         
-        if [ $exit_code -eq 0 ]; then
+        if [[ $exit_code -eq 0 ]]; then
             run_tests || exit_code=1
         else
             log_warning "Skipping full tests due to smoke test failures"
@@ -513,7 +513,7 @@ main() {
     
     echo ""
     echo "╔══════════════════════════════════════════════════════════════════╗"
-    if [ $exit_code -eq 0 ]; then
+    if [[ $exit_code -eq 0 ]]; then
         echo "║         ✅ Deployment and Testing Complete                       ║"
     else
         echo "║         ⚠️  Completed with Warnings/Errors                       ║"

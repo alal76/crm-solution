@@ -6,7 +6,7 @@ TOKEN=$(curl -s -X POST http://localhost:5000/api/auth/login \
   -d '{"email":"admin@crm.local","password":"Admin@123"}' | \
   grep -o '"accessToken":"[^"]*"' | cut -d'"' -f4)
 
-if [ -z "$TOKEN" ]; then
+if [[ -z "$TOKEN" ]]; then
   echo "Failed to get authentication token"
   exit 1
 fi
@@ -60,7 +60,7 @@ print(json.dumps(data))
   
   CUSTOMER_ID=$(echo "$RESPONSE" | python3 -c "import sys,json; print(json.load(sys.stdin).get('id', 'ERROR'))" 2>/dev/null)
   
-  if [ "$CUSTOMER_ID" != "ERROR" ] && [ -n "$CUSTOMER_ID" ]; then
+  if [[ "$CUSTOMER_ID" != "ERROR" ]] && [[ -n "$CUSTOMER_ID" ]]; then
     echo "  ✓ Created with ID: $CUSTOMER_ID"
     CREATED_CUSTOMERS+=("$CUSTOMER_ID")
   else

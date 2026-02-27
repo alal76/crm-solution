@@ -60,7 +60,7 @@ calculate_source_hash() {
 
 # Get previous hash
 get_previous_hash() {
-    if [ -f "$HASH_FILE" ]; then
+    if [[ -f "$HASH_FILE" ]]; then
         cat "$HASH_FILE"
     else
         echo "none"
@@ -75,27 +75,27 @@ echo -e "Current hash:  ${BLUE}${CURRENT_HASH:0:16}...${NC}"
 echo -e "Previous hash: ${BLUE}${PREVIOUS_HASH:0:16}...${NC}"
 echo ""
 
-if [ "$FORCE_BUILD" = false ] && [ "$CURRENT_HASH" = "$PREVIOUS_HASH" ] && [ -d "$FRONTEND_DIR/build" ]; then
+if [[ "$FORCE_BUILD" = false ]] && [[ "$CURRENT_HASH" = "$PREVIOUS_HASH" ]] && [[ -d "$FRONTEND_DIR/build" ]]; then
     echo -e "${GREEN}✓ No source changes detected. Skipping build.${NC}"
     echo "  Use --force to rebuild anyway."
     
-    if [ "$DOCKER_BUILD" = true ]; then
+    if [[ "$DOCKER_BUILD" = true ]]; then
         echo ""
         echo -e "${YELLOW}Docker build requested - will use cached build output.${NC}"
     fi
     
     # Show existing build info
-    if [ -f "$FRONTEND_DIR/build/asset-manifest.json" ]; then
+    if [[ -f "$FRONTEND_DIR/build/asset-manifest.json" ]]; then
         BUILD_TIME=$(stat -f "%Sm" -t "%Y-%m-%d %H:%M" "$FRONTEND_DIR/build/asset-manifest.json" 2>/dev/null || echo "unknown")
         echo "  Last build: $BUILD_TIME"
     fi
     
     # Skip to Docker build if requested
-    if [ "$DOCKER_BUILD" = false ]; then
+    if [[ "$DOCKER_BUILD" = false ]]; then
         exit 0
     fi
 else
-    if [ "$FORCE_BUILD" = true ]; then
+    if [[ "$FORCE_BUILD" = true ]]; then
         echo -e "${YELLOW}Force rebuild requested.${NC}"
     else
         echo -e "${YELLOW}Source changes detected. Rebuilding...${NC}"
@@ -109,7 +109,7 @@ else
         FREE_MB=$((FREE_PAGES * PAGE_SIZE / 1024 / 1024))
         echo "Available memory: ~${FREE_MB}MB"
         
-        if [ "$FREE_MB" -lt 500 ]; then
+        if [[ "$FREE_MB" -lt 500 ]]; then
             echo -e "${YELLOW}⚠️  Low memory. Build may be slow.${NC}"
         fi
     fi
@@ -128,9 +128,9 @@ else
     # Pre-build validation: Check .env.production
     echo -e "${YELLOW}Pre-build validation...${NC}"
     ENV_PROD_FILE="$FRONTEND_DIR/.env.production"
-    if [ -f "$ENV_PROD_FILE" ]; then
+    if [[ -f "$ENV_PROD_FILE" ]]; then
         API_URL_LINE=$(grep -E "^REACT_APP_API_URL=" "$ENV_PROD_FILE" 2>/dev/null || echo "")
-        if [ -n "$API_URL_LINE" ] && [ "$API_URL_LINE" != "REACT_APP_API_URL=" ]; then
+        if [[ -n "$API_URL_LINE" ]] && [[ "$API_URL_LINE" != "REACT_APP_API_URL=" ]]; then
             echo -e "${RED}ERROR: .env.production has hardcoded REACT_APP_API_URL${NC}"
             echo "Current value: $API_URL_LINE"
             echo "Fix: Set REACT_APP_API_URL= (empty) in .env.production"
@@ -155,7 +155,7 @@ else
         echo "$CURRENT_HASH" > "$HASH_FILE"
         
         # Show bundle sizes
-        if [ -d "$FRONTEND_DIR/build/static/js" ]; then
+        if [[ -d "$FRONTEND_DIR/build/static/js" ]]; then
             echo ""
             echo "Bundle sizes:"
             ls -lh "$FRONTEND_DIR/build/static/js/"*.js 2>/dev/null | awk '{print "   " $9 ": " $5}'
@@ -164,7 +164,7 @@ else
         # Post-build validation
         echo ""
         echo -e "${YELLOW}Post-build validation...${NC}"
-        if [ -x "$SCRIPT_DIR/validate-build.sh" ]; then
+        if [[ -x "$SCRIPT_DIR/validate-build.sh" ]]; then
             if "$SCRIPT_DIR/validate-build.sh"; then
                 echo -e "${GREEN}✓${NC} Build validation passed"
             else
@@ -174,7 +174,7 @@ else
         else
             # Quick inline check if script doesn't exist
             HARDCODED_URLS=$(grep -rE 'localhost:[0-9]{4}|192\.168\.[0-9]+\.[0-9]+:[0-9]+' "$FRONTEND_DIR/build/static/js/"*.js 2>/dev/null | wc -l | tr -d ' ')
-            if [ "$HARDCODED_URLS" -gt 0 ]; then
+            if [[ "$HARDCODED_URLS" -gt 0 ]]; then
                 echo -e "${RED}✗${NC} WARNING: Found $HARDCODED_URLS hardcoded URLs in bundle"
             else
                 echo -e "${GREEN}✓${NC} No hardcoded URLs found in bundle"
@@ -189,12 +189,12 @@ else
 fi
 
 # Docker build if requested
-if [ "$DOCKER_BUILD" = true ]; then
+if [[ "$DOCKER_BUILD" = true ]]; then
     echo ""
     echo -e "${BLUE}=== Building Docker Image ===${NC}"
     
     # Determine version tag
-    if [ -z "$VERSION_TAG" ]; then
+    if [[ -z "$VERSION_TAG" ]]; then
         # Auto-increment from existing images
         LATEST=$(docker images crm-frontend --format "{{.Tag}}" 2>/dev/null | grep -E "^v[0-9]+$" | sort -V | tail -1 || echo "v0")
         LATEST_NUM=${LATEST#v}

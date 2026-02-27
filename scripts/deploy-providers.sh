@@ -55,7 +55,7 @@ docker ps --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" | grep -E "n8n|su
 echo "Provider deployment complete."
 EOF
 
-if [ $? -eq 0 ]; then
+if [[ $? -eq 0 ]]; then
     echo "Deployment finished successfully."
 else
     echo "Deployment failed. Check logs for details."

@@ -37,7 +37,7 @@ log_success() {
 generate_contacts_controller_tests() {
     local file="${PROJECT_ROOT}/CRM.Backend/tests/Controllers/ContactsControllerTests.cs"
     
-    if [ -f "$file" ]; then
+    if [[ -f "$file" ]]; then
         log_info "ContactsControllerTests.cs already exists, skipping..."
         return
     fi
@@ -244,7 +244,7 @@ EOF
 generate_leads_controller_tests() {
     local file="${PROJECT_ROOT}/CRM.Backend/tests/Controllers/LeadsControllerTests.cs"
     
-    if [ -f "$file" ]; then
+    if [[ -f "$file" ]]; then
         log_info "LeadsControllerTests.cs already exists, skipping..."
         return
     fi
@@ -395,7 +395,7 @@ EOF
 generate_auth_controller_tests() {
     local file="${PROJECT_ROOT}/CRM.Backend/tests/Controllers/AuthControllerTests.cs"
     
-    if [ -f "$file" ]; then
+    if [[ -f "$file" ]]; then
         log_info "AuthControllerTests.cs already exists, skipping..."
         return
     fi
@@ -689,7 +689,7 @@ EOF
 generate_password_setup_e2e_tests() {
     local file="${PROJECT_ROOT}/e2e-tests/tests/auth/password-setup.spec.ts"
     
-    if [ -f "$file" ]; then
+    if [[ -f "$file" ]]; then
         log_info "password-setup.spec.ts already exists, skipping..."
         return
     fi
@@ -838,7 +838,7 @@ EOF
 generate_oauth_e2e_tests() {
     local file="${PROJECT_ROOT}/e2e-tests/tests/auth/oauth.spec.ts"
     
-    if [ -f "$file" ]; then
+    if [[ -f "$file" ]]; then
         log_info "oauth.spec.ts already exists, skipping..."
         return
     fi
@@ -935,7 +935,7 @@ EOF
 generate_setup_password_page_tests() {
     local file="${PROJECT_ROOT}/CRM.Frontend/src/__tests__/SetupPasswordPage.test.tsx"
     
-    if [ -f "$file" ]; then
+    if [[ -f "$file" ]]; then
         log_info "SetupPasswordPage.test.tsx already exists, skipping..."
         return
     fi

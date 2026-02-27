@@ -40,13 +40,13 @@ rollback() {
     fi
     
     # Remove volumes if cleanup requested
-    if [ "$FULL_CLEANUP" = "true" ]; then
+    if [[ "$FULL_CLEANUP" = "true" ]]; then
         log_info "Removing volumes..."
         docker volume rm $(docker volume ls -q | grep crm) 2>/dev/null || true
     fi
     
     # Remove images if cleanup requested
-    if [ "$FULL_CLEANUP" = "true" ]; then
+    if [[ "$FULL_CLEANUP" = "true" ]]; then
         log_info "Removing CRM images..."
         docker rmi $(docker images | grep crm | awk '{print $3}') 2>/dev/null || true
     fi
@@ -84,7 +84,7 @@ fi
 # Check if required files exist
 required_files=("docker-compose.yml" ".env")
 for file in "${required_files[@]}"; do
-    if [ ! -f "$file" ]; then
+    if [[ ! -f "$file" ]]; then
         log_error "Required file $file not found in current directory."
         exit 1
     fi
@@ -97,7 +97,7 @@ log_info "Creating backup directory: $BACKUP_DIR"
 mkdir -p "$BACKUP_DIR"
 
 # Backup existing deployment if it exists
-if [ -f "docker-compose.yml" ] && docker-compose ps -q | grep -q .; then
+if [[ -f "docker-compose.yml" ]] && docker-compose ps -q | grep -q .; then
     log_info "Backing up existing deployment..."
     docker-compose config > "$BACKUP_DIR/docker-compose.backup.yml" 2>/dev/null || true
     docker-compose ps > "$BACKUP_DIR/containers.backup.txt" 2>/dev/null || true
@@ -128,7 +128,7 @@ log_info "Waiting for services to be healthy..."
 max_attempts=30
 attempt=1
 
-while [ $attempt -le $max_attempts ]; do
+while [[ $attempt -le $max_attempts ]]; do
     log_info "Health check attempt $attempt/$max_attempts..."
     
     # Check core services
@@ -149,12 +149,12 @@ while [ $attempt -le $max_attempts ]; do
         healthy=false
     fi
     
-    if [ "$healthy" = true ]; then
+    if [[ "$healthy" = true ]]; then
         log_success "All services are healthy!"
         break
     fi
     
-    if [ $attempt -eq $max_attempts ]; then
+    if [[ $attempt -eq $max_attempts ]]; then
         log_error "Services failed to become healthy within timeout."
         exit 1
     fi
