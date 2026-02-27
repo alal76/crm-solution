@@ -21,6 +21,8 @@ namespace CRM.Api.Controllers;
 [Authorize]
 public class DepartmentsController : ControllerBase
 {
+    private const string DepartmentNotFoundMessage = "Department not found";
+
     private readonly IRepository<Department> _departmentRepository;
     private readonly ILogger<DepartmentsController> _logger;
 
@@ -78,7 +80,7 @@ public class DepartmentsController : ControllerBase
         {
             var department = await _departmentRepository.GetByIdAsync(id);
             if (department == null || department.IsDeleted)
-                return NotFound(new { message = "Department not found" });
+                return NotFound(new { message = DepartmentNotFoundMessage });
 
             var dto = new DepartmentDetailDto
             {
@@ -180,7 +182,7 @@ public class DepartmentsController : ControllerBase
         {
             var department = await _departmentRepository.GetByIdAsync(id);
             if (department == null || department.IsDeleted)
-                return NotFound(new { message = "Department not found" });
+                return NotFound(new { message = DepartmentNotFoundMessage });
 
             department.Name = updateDto.Name;
             department.Description = updateDto.Description;
@@ -224,7 +226,7 @@ public class DepartmentsController : ControllerBase
         {
             var department = await _departmentRepository.GetByIdAsync(id);
             if (department == null || department.IsDeleted)
-                return NotFound(new { message = "Department not found" });
+                return NotFound(new { message = DepartmentNotFoundMessage });
 
             department.IsDeleted = true;
             department.UpdatedAt = DateTime.UtcNow;

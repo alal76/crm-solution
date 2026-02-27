@@ -21,6 +21,8 @@ namespace CRM.Api.Controllers;
 [Authorize]
 public class LeadSourcesController : ControllerBase
 {
+    private const string LeadSourceNotFoundMessage = "Lead source with ID {0} not found";
+    private const string InternalServerErrorMessage = "Internal server error";
     private readonly ICrmDbContext _context;
     private readonly ILogger<LeadSourcesController> _logger;
 
@@ -70,7 +72,7 @@ public class LeadSourcesController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving lead sources");
-            return StatusCode(500, "Internal server error");
+            return StatusCode(500, InternalServerErrorMessage);
         }
     }
 
@@ -89,7 +91,7 @@ public class LeadSourcesController : ControllerBase
                 .FirstOrDefaultAsync(ls => ls.Id == id && !ls.IsDeleted, ct);
 
             if (source == null)
-                return NotFound(new { message = $"Lead source with ID {id} not found" });
+                return NotFound(new { message = string.Format(LeadSourceNotFoundMessage, id) });
 
             return Ok(new LeadSourceDto
             {
@@ -112,7 +114,7 @@ public class LeadSourcesController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving lead source {Id}", id);
-            return StatusCode(500, "Internal server error");
+            return StatusCode(500, InternalServerErrorMessage);
         }
     }
 
@@ -155,7 +157,7 @@ public class LeadSourcesController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating lead source");
-            return StatusCode(500, "Internal server error");
+            return StatusCode(500, InternalServerErrorMessage);
         }
     }
 
@@ -171,7 +173,7 @@ public class LeadSourcesController : ControllerBase
         {
             var source = await _context.LeadSources.FirstOrDefaultAsync(ls => ls.Id == id && !ls.IsDeleted, ct);
             if (source == null)
-                return NotFound(new { message = $"Lead source with ID {id} not found" });
+                return NotFound(new { message = string.Format(LeadSourceNotFoundMessage, id) });
 
             if (!string.IsNullOrWhiteSpace(request.Name))
                 source.Name = request.Name;
@@ -205,7 +207,7 @@ public class LeadSourcesController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating lead source {Id}", id);
-            return StatusCode(500, "Internal server error");
+            return StatusCode(500, InternalServerErrorMessage);
         }
     }
 
@@ -221,7 +223,7 @@ public class LeadSourcesController : ControllerBase
         {
             var source = await _context.LeadSources.FirstOrDefaultAsync(ls => ls.Id == id && !ls.IsDeleted, ct);
             if (source == null)
-                return NotFound(new { message = $"Lead source with ID {id} not found" });
+                return NotFound(new { message = string.Format(LeadSourceNotFoundMessage, id) });
 
             source.IsDeleted = true;
             source.UpdatedAt = DateTime.UtcNow;
@@ -233,7 +235,7 @@ public class LeadSourcesController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error deleting lead source {Id}", id);
-            return StatusCode(500, "Internal server error");
+            return StatusCode(500, InternalServerErrorMessage);
         }
     }
 
@@ -274,7 +276,7 @@ public class LeadSourcesController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving lead source statistics");
-            return StatusCode(500, "Internal server error");
+            return StatusCode(500, InternalServerErrorMessage);
         }
     }
 
@@ -336,7 +338,7 @@ public class LeadSourcesController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error generating lead source report");
-            return StatusCode(500, "Internal server error");
+            return StatusCode(500, InternalServerErrorMessage);
         }
     }
 }

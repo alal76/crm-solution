@@ -24,6 +24,8 @@ namespace CRM.Api.Controllers;
 [Produces("application/json")]
 public class ServiceRequestsController : ControllerBase
 {
+    private const string ServiceRequestNotFoundMessage = "Service request {0} not found";
+    private const string GenericErrorMessage = "An error occurred";
     private readonly IServiceRequestService _serviceRequestService;
     private readonly ILogger<ServiceRequestsController> _logger;
 
@@ -85,7 +87,7 @@ public class ServiceRequestsController : ControllerBase
         {
             var request = await _serviceRequestService.GetServiceRequestByIdAsync(id);
             if (request == null)
-                return NotFound($"Service request {id} not found");
+                return NotFound(string.Format(ServiceRequestNotFoundMessage, id));
             return Ok(request);
         }
         catch (Exception ex)
@@ -113,7 +115,7 @@ public class ServiceRequestsController : ControllerBase
         {
             var request = await _serviceRequestService.GetServiceRequestByTicketNumberAsync(ticketNumber);
             if (request == null)
-                return NotFound($"Service request {ticketNumber} not found");
+                return NotFound(string.Format(ServiceRequestNotFoundMessage, ticketNumber));
             return Ok(request);
         }
         catch (Exception ex)
@@ -175,7 +177,7 @@ public class ServiceRequestsController : ControllerBase
         }
         catch (KeyNotFoundException)
         {
-            return NotFound($"Service request {id} not found");
+            return NotFound(string.Format(ServiceRequestNotFoundMessage, id));
         }
         catch (Exception ex)
         {
@@ -205,7 +207,7 @@ public class ServiceRequestsController : ControllerBase
         {
             var request = await _serviceRequestService.GetServiceRequestByIdAsync(id);
             if (request == null)
-                return NotFound($"Service request {id} not found");
+                return NotFound(string.Format(ServiceRequestNotFoundMessage, id));
 
             var updateDto = new UpdateServiceRequestDto
             {
@@ -215,7 +217,7 @@ public class ServiceRequestsController : ControllerBase
             var userId = GetCurrentUserId();
             var result = await _serviceRequestService.UpdateServiceRequestAsync(id, updateDto, userId);
             if (result == null)
-                return NotFound($"Service request {id} not found");
+                return NotFound(string.Format(ServiceRequestNotFoundMessage, id));
             return Ok(result);
         }
         catch (Exception ex)
@@ -243,7 +245,7 @@ public class ServiceRequestsController : ControllerBase
         {
             var result = await _serviceRequestService.DeleteServiceRequestAsync(id);
             if (!result)
-                return NotFound($"Service request {id} not found");
+                return NotFound(string.Format(ServiceRequestNotFoundMessage, id));
             return NoContent();
         }
         catch (Exception ex)
@@ -277,7 +279,7 @@ public class ServiceRequestsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting service requests for account {AccountId}", accountId);
-            return StatusCode(500, "An error occurred");
+            return StatusCode(500, GenericErrorMessage);
         }
     }
 
@@ -301,7 +303,7 @@ public class ServiceRequestsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting service requests for contact {ContactId}", contactId);
-            return StatusCode(500, "An error occurred");
+            return StatusCode(500, GenericErrorMessage);
         }
     }
 
@@ -325,7 +327,7 @@ public class ServiceRequestsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting service requests for assignee {UserId}", userId);
-            return StatusCode(500, "An error occurred");
+            return StatusCode(500, GenericErrorMessage);
         }
     }
 
@@ -354,7 +356,7 @@ public class ServiceRequestsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting my service requests");
-            return StatusCode(500, "An error occurred");
+            return StatusCode(500, GenericErrorMessage);
         }
     }
 
@@ -378,7 +380,7 @@ public class ServiceRequestsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting service requests for group {GroupId}", groupId);
-            return StatusCode(500, "An error occurred");
+            return StatusCode(500, GenericErrorMessage);
         }
     }
 
@@ -411,12 +413,12 @@ public class ServiceRequestsController : ControllerBase
         }
         catch (KeyNotFoundException)
         {
-            return NotFound($"Service request {id} not found");
+            return NotFound(string.Format(ServiceRequestNotFoundMessage, id));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating status for service request {Id}", id);
-            return StatusCode(500, "An error occurred");
+            return StatusCode(500, GenericErrorMessage);
         }
     }
 
@@ -442,12 +444,12 @@ public class ServiceRequestsController : ControllerBase
         }
         catch (KeyNotFoundException)
         {
-            return NotFound($"Service request {id} not found");
+            return NotFound(string.Format(ServiceRequestNotFoundMessage, id));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error marking first response for service request {Id}", id);
-            return StatusCode(500, "An error occurred");
+            return StatusCode(500, GenericErrorMessage);
         }
     }
 
@@ -477,12 +479,12 @@ public class ServiceRequestsController : ControllerBase
         }
         catch (KeyNotFoundException)
         {
-            return NotFound($"Service request {id} not found");
+            return NotFound(string.Format(ServiceRequestNotFoundMessage, id));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error resolving service request {Id}", id);
-            return StatusCode(500, "An error occurred");
+            return StatusCode(500, GenericErrorMessage);
         }
     }
 
@@ -510,12 +512,12 @@ public class ServiceRequestsController : ControllerBase
         }
         catch (KeyNotFoundException)
         {
-            return NotFound($"Service request {id} not found");
+            return NotFound(string.Format(ServiceRequestNotFoundMessage, id));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error closing service request {Id}", id);
-            return StatusCode(500, "An error occurred");
+            return StatusCode(500, GenericErrorMessage);
         }
     }
 
@@ -544,12 +546,12 @@ public class ServiceRequestsController : ControllerBase
         }
         catch (KeyNotFoundException)
         {
-            return NotFound($"Service request {id} not found");
+            return NotFound(string.Format(ServiceRequestNotFoundMessage, id));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error reopening service request {Id}", id);
-            return StatusCode(500, "An error occurred");
+            return StatusCode(500, GenericErrorMessage);
         }
     }
 
@@ -578,12 +580,12 @@ public class ServiceRequestsController : ControllerBase
         }
         catch (KeyNotFoundException)
         {
-            return NotFound($"Service request {id} not found");
+            return NotFound(string.Format(ServiceRequestNotFoundMessage, id));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error escalating service request {Id}", id);
-            return StatusCode(500, "An error occurred");
+            return StatusCode(500, GenericErrorMessage);
         }
     }
 
@@ -615,12 +617,12 @@ public class ServiceRequestsController : ControllerBase
         }
         catch (KeyNotFoundException)
         {
-            return NotFound($"Service request {id} not found");
+            return NotFound(string.Format(ServiceRequestNotFoundMessage, id));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error expediting service request {Id}", id);
-            return StatusCode(500, "An error occurred");
+            return StatusCode(500, GenericErrorMessage);
         }
     }
 
@@ -651,12 +653,12 @@ public class ServiceRequestsController : ControllerBase
         }
         catch (KeyNotFoundException)
         {
-            return NotFound($"Service request {id} not found");
+            return NotFound(string.Format(ServiceRequestNotFoundMessage, id));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error assigning service request {Id} to user {UserId}", id, userId);
-            return StatusCode(500, "An error occurred");
+            return StatusCode(500, GenericErrorMessage);
         }
     }
 
@@ -683,12 +685,12 @@ public class ServiceRequestsController : ControllerBase
         }
         catch (KeyNotFoundException)
         {
-            return NotFound($"Service request {id} not found");
+            return NotFound(string.Format(ServiceRequestNotFoundMessage, id));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error assigning service request {Id} to group {GroupId}", id, groupId);
-            return StatusCode(500, "An error occurred");
+            return StatusCode(500, GenericErrorMessage);
         }
     }
 
@@ -714,12 +716,12 @@ public class ServiceRequestsController : ControllerBase
         }
         catch (KeyNotFoundException)
         {
-            return NotFound($"Service request {id} not found");
+            return NotFound(string.Format(ServiceRequestNotFoundMessage, id));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error unassigning service request {Id}", id);
-            return StatusCode(500, "An error occurred");
+            return StatusCode(500, GenericErrorMessage);
         }
     }
 
@@ -751,12 +753,12 @@ public class ServiceRequestsController : ControllerBase
         }
         catch (KeyNotFoundException)
         {
-            return NotFound($"Service request {id} not found");
+            return NotFound(string.Format(ServiceRequestNotFoundMessage, id));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error submitting feedback for service request {Id}", id);
-            return StatusCode(500, "An error occurred");
+            return StatusCode(500, GenericErrorMessage);
         }
     }
 
@@ -783,7 +785,7 @@ public class ServiceRequestsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting service request statistics");
-            return StatusCode(500, "An error occurred");
+            return StatusCode(500, GenericErrorMessage);
         }
     }
 
@@ -806,7 +808,7 @@ public class ServiceRequestsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting open requests count");
-            return StatusCode(500, "An error occurred");
+            return StatusCode(500, GenericErrorMessage);
         }
     }
 
@@ -829,7 +831,7 @@ public class ServiceRequestsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting SLA breached count");
-            return StatusCode(500, "An error occurred");
+            return StatusCode(500, GenericErrorMessage);
         }
     }
 

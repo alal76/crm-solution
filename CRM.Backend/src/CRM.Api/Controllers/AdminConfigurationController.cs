@@ -31,6 +31,12 @@ namespace CRM.Api.Controllers
     [Authorize(Roles = "Admin")]
     public class AdminConfigurationController : ControllerBase
     {
+    private const string ServiceQueueNotFoundMessage = "Service queue with ID {0} not found";
+    private const string EscalationRuleNotFoundMessage = "Escalation rule with ID {0} not found";
+    private const string SlaPolicyNotFoundMessage = "SLA policy with ID {0} not found";
+    private const string DiscountRuleNotFoundMessage = "Discount rule with ID {0} not found";
+    private const string CommissionRuleNotFoundMessage = "Commission rule with ID {0} not found";
+    private const string RequestBodyRequiredMessage = "Request body is required";
         private readonly IAdminConfigurationService _adminConfigService;
         private readonly ILogger<AdminConfigurationController> _logger;
 
@@ -86,7 +92,7 @@ namespace CRM.Api.Controllers
 
                 var rule = await _adminConfigService.GetCommissionRuleByIdAsync(id, cancellationToken: cancellationToken);
                 if (rule == null)
-                    return NotFound(new { message = $"Commission rule with ID {id} not found" });
+                    return NotFound(new { message = string.Format(CommissionRuleNotFoundMessage, id) });
 
                 return Ok(rule);
             }
@@ -111,7 +117,7 @@ namespace CRM.Api.Controllers
             try
             {
                 if (request == null)
-                    return BadRequest(new { message = "Request body is required" });
+                    return BadRequest(new { message = RequestBodyRequiredMessage });
 
                 _logger.LogInformation($"Creating commission rule: {request.Name}");
 
@@ -148,7 +154,7 @@ namespace CRM.Api.Controllers
 
                 var rule = await _adminConfigService.UpdateCommissionRuleAsync(id, request, cancellationToken: cancellationToken);
                 if (rule == null)
-                    return NotFound(new { message = $"Commission rule with ID {id} not found" });
+                    return NotFound(new { message = string.Format(CommissionRuleNotFoundMessage, id) });
 
                 return Ok(rule);
             }
@@ -176,7 +182,7 @@ namespace CRM.Api.Controllers
 
                 var success = await _adminConfigService.DeleteCommissionRuleAsync(id, cancellationToken: cancellationToken);
                 if (!success)
-                    return NotFound(new { message = $"Commission rule with ID {id} not found" });
+                    return NotFound(new { message = string.Format(CommissionRuleNotFoundMessage, id) });
 
                 return NoContent();
             }
@@ -230,7 +236,7 @@ namespace CRM.Api.Controllers
 
                 var rule = await _adminConfigService.GetDiscountRuleByIdAsync(id, cancellationToken: cancellationToken);
                 if (rule == null)
-                    return NotFound(new { message = $"Discount rule with ID {id} not found" });
+                    return NotFound(new { message = string.Format(DiscountRuleNotFoundMessage, id) });
 
                 return Ok(rule);
             }
@@ -255,7 +261,7 @@ namespace CRM.Api.Controllers
             try
             {
                 if (request == null)
-                    return BadRequest(new { message = "Request body is required" });
+                    return BadRequest(new { message = RequestBodyRequiredMessage });
 
                 _logger.LogInformation($"Creating discount rule: {request.Name}");
 
@@ -292,7 +298,7 @@ namespace CRM.Api.Controllers
 
                 var rule = await _adminConfigService.UpdateDiscountRuleAsync(id, request, cancellationToken: cancellationToken);
                 if (rule == null)
-                    return NotFound(new { message = $"Discount rule with ID {id} not found" });
+                    return NotFound(new { message = string.Format(DiscountRuleNotFoundMessage, id) });
 
                 return Ok(rule);
             }
@@ -320,7 +326,7 @@ namespace CRM.Api.Controllers
 
                 var success = await _adminConfigService.DeleteDiscountRuleAsync(id, cancellationToken: cancellationToken);
                 if (!success)
-                    return NotFound(new { message = $"Discount rule with ID {id} not found" });
+                    return NotFound(new { message = string.Format(DiscountRuleNotFoundMessage, id) });
 
                 return NoContent();
             }
@@ -374,7 +380,7 @@ namespace CRM.Api.Controllers
 
                 var policy = await _adminConfigService.GetSLAPolicyByIdAsync(id, cancellationToken: cancellationToken);
                 if (policy == null)
-                    return NotFound(new { message = $"SLA policy with ID {id} not found" });
+                    return NotFound(new { message = string.Format(SlaPolicyNotFoundMessage, id) });
 
                 return Ok(policy);
             }
@@ -399,7 +405,7 @@ namespace CRM.Api.Controllers
             try
             {
                 if (request == null)
-                    return BadRequest(new { message = "Request body is required" });
+                    return BadRequest(new { message = RequestBodyRequiredMessage });
 
                 _logger.LogInformation($"Creating SLA policy: {request.Name}");
 
@@ -436,7 +442,7 @@ namespace CRM.Api.Controllers
 
                 var policy = await _adminConfigService.UpdateSLAPolicyAsync(id, request, cancellationToken: cancellationToken);
                 if (policy == null)
-                    return NotFound(new { message = $"SLA policy with ID {id} not found" });
+                    return NotFound(new { message = string.Format(SlaPolicyNotFoundMessage, id) });
 
                 return Ok(policy);
             }
@@ -464,7 +470,7 @@ namespace CRM.Api.Controllers
 
                 var success = await _adminConfigService.DeleteSLAPolicyAsync(id, cancellationToken: cancellationToken);
                 if (!success)
-                    return NotFound(new { message = $"SLA policy with ID {id} not found" });
+                    return NotFound(new { message = string.Format(SlaPolicyNotFoundMessage, id) });
 
                 return NoContent();
             }
@@ -518,7 +524,7 @@ namespace CRM.Api.Controllers
 
                 var rule = await _adminConfigService.GetEscalationRuleByIdAsync(id, cancellationToken: cancellationToken);
                 if (rule == null)
-                    return NotFound(new { message = $"Escalation rule with ID {id} not found" });
+                    return NotFound(new { message = string.Format(EscalationRuleNotFoundMessage, id) });
 
                 return Ok(rule);
             }
@@ -543,7 +549,7 @@ namespace CRM.Api.Controllers
             try
             {
                 if (request == null)
-                    return BadRequest(new { message = "Request body is required" });
+                    return BadRequest(new { message = RequestBodyRequiredMessage });
 
                 _logger.LogInformation($"Creating escalation rule: {request.Name}");
 
@@ -580,7 +586,7 @@ namespace CRM.Api.Controllers
 
                 var rule = await _adminConfigService.UpdateEscalationRuleAsync(id, request, cancellationToken: cancellationToken);
                 if (rule == null)
-                    return NotFound(new { message = $"Escalation rule with ID {id} not found" });
+                    return NotFound(new { message = string.Format(EscalationRuleNotFoundMessage, id) });
 
                 return Ok(rule);
             }
@@ -608,7 +614,7 @@ namespace CRM.Api.Controllers
 
                 var success = await _adminConfigService.DeleteEscalationRuleAsync(id, cancellationToken: cancellationToken);
                 if (!success)
-                    return NotFound(new { message = $"Escalation rule with ID {id} not found" });
+                    return NotFound(new { message = string.Format(EscalationRuleNotFoundMessage, id) });
 
                 return NoContent();
             }
@@ -662,7 +668,7 @@ namespace CRM.Api.Controllers
 
                 var queue = await _adminConfigService.GetServiceQueueByIdAsync(id, cancellationToken: cancellationToken);
                 if (queue == null)
-                    return NotFound(new { message = $"Service queue with ID {id} not found" });
+                    return NotFound(new { message = string.Format(ServiceQueueNotFoundMessage, id) });
 
                 return Ok(queue);
             }
@@ -687,7 +693,7 @@ namespace CRM.Api.Controllers
             try
             {
                 if (request == null)
-                    return BadRequest(new { message = "Request body is required" });
+                    return BadRequest(new { message = RequestBodyRequiredMessage });
 
                 _logger.LogInformation($"Creating service queue: {request.Name}");
 
@@ -724,7 +730,7 @@ namespace CRM.Api.Controllers
 
                 var queue = await _adminConfigService.UpdateServiceQueueAsync(id, request, cancellationToken: cancellationToken);
                 if (queue == null)
-                    return NotFound(new { message = $"Service queue with ID {id} not found" });
+                    return NotFound(new { message = string.Format(ServiceQueueNotFoundMessage, id) });
 
                 return Ok(queue);
             }
@@ -752,7 +758,7 @@ namespace CRM.Api.Controllers
 
                 var success = await _adminConfigService.DeleteServiceQueueAsync(id, cancellationToken: cancellationToken);
                 if (!success)
-                    return NotFound(new { message = $"Service queue with ID {id} not found" });
+                    return NotFound(new { message = string.Format(ServiceQueueNotFoundMessage, id) });
 
                 return NoContent();
             }

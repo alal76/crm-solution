@@ -21,6 +21,7 @@ namespace CRM.Api.Controllers;
 [Produces("application/json")]
 public class EventAttendeesController : ControllerBase
 {
+    private const string AttendeeNotFoundMessage = "Event attendee {0} not found";
     private readonly IEventAttendeeService _service;
     private readonly ILogger<EventAttendeesController> _logger;
 
@@ -65,7 +66,7 @@ public class EventAttendeesController : ControllerBase
         {
             var attendee = await _service.GetByIdAsync(id, cancellationToken);
             if (attendee == null)
-                return NotFound($"Event attendee {id} not found");
+                return NotFound(string.Format(AttendeeNotFoundMessage, id));
             return Ok(attendee);
         }
         catch (Exception ex)
@@ -110,7 +111,7 @@ public class EventAttendeesController : ControllerBase
                 return ValidationProblem(ModelState);
             var updated = await _service.UpdateAsync(id, attendee, cancellationToken);
             if (!updated)
-                return NotFound($"Event attendee {id} not found");
+                return NotFound(string.Format(AttendeeNotFoundMessage, id));
             return Ok();
         }
         catch (Exception ex)
@@ -131,7 +132,7 @@ public class EventAttendeesController : ControllerBase
         {
             var deleted = await _service.DeleteAsync(id, cancellationToken);
             if (!deleted)
-                return NotFound($"Event attendee {id} not found");
+                return NotFound(string.Format(AttendeeNotFoundMessage, id));
             return NoContent();
         }
         catch (Exception ex)
@@ -177,7 +178,7 @@ public class EventAttendeesController : ControllerBase
                 return ValidationProblem(ModelState);
             var updated = await _service.UpdateResponseAsync(id, request.Status, request.Comment, cancellationToken);
             if (!updated)
-                return NotFound($"Event attendee {id} not found");
+                return NotFound(string.Format(AttendeeNotFoundMessage, id));
             return Ok();
         }
         catch (Exception ex)
@@ -201,7 +202,7 @@ public class EventAttendeesController : ControllerBase
                 return ValidationProblem(ModelState);
             var recorded = await _service.RecordAttendanceAsync(id, request.DidAttend, request.DurationMinutes, request.Notes, cancellationToken);
             if (!recorded)
-                return NotFound($"Event attendee {id} not found");
+                return NotFound(string.Format(AttendeeNotFoundMessage, id));
             return Ok();
         }
         catch (Exception ex)

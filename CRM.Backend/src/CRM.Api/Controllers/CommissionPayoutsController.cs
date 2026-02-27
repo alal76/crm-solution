@@ -21,6 +21,7 @@ namespace CRM.Api.Controllers;
 [Authorize]
 public class CommissionPayoutsController : ControllerBase
 {
+    private const string PayoutNotFoundMessage = "Commission payout with id {0} not found";
     private readonly ICommissionPayoutService _service;
     private readonly ILogger<CommissionPayoutsController> _logger;
 
@@ -51,7 +52,7 @@ public class CommissionPayoutsController : ControllerBase
             _logger.LogInformation("Marking commission payout as paid: id={Id}", id);
             var result = await _service.MarkPaidAsync(id, paidDate: null, reference: null, cancellationToken: cancellationToken);
             if (!result)
-                return NotFound(new { message = $"Commission payout with id {id} not found" });
+                return NotFound(new { message = string.Format(PayoutNotFoundMessage, id) });
 
             return Ok(new { message = "Commission payout marked as paid successfully" });
         }
@@ -79,7 +80,7 @@ public class CommissionPayoutsController : ControllerBase
             _logger.LogInformation("Processing clawback: payoutId={PayoutId}, reason={Reason}", id, dto.Reason);
             var result = await _service.ClawbackAsync(id, dto.Reason, dto.ClawbackAmount, cancellationToken);
             if (!result)
-                return NotFound(new { message = $"Commission payout with id {id} not found" });
+                return NotFound(new { message = string.Format(PayoutNotFoundMessage, id) });
 
             return Ok(new { message = "Commission payout clawed back successfully" });
         }
@@ -138,7 +139,7 @@ public class CommissionPayoutsController : ControllerBase
             _logger.LogInformation("Finalizing commission payout: id={Id}", id);
             var result = await _service.FinalizeAsync(id, cancellationToken);
             if (result == null)
-                return NotFound(new { message = $"Commission payout with id {id} not found" });
+                return NotFound(new { message = string.Format(PayoutNotFoundMessage, id) });
 
             return Ok(result);
         }
@@ -165,7 +166,7 @@ public class CommissionPayoutsController : ControllerBase
             _logger.LogInformation("Reconciling commission payout: id={Id}", id);
             var result = await _service.ReconcileAsync(id, cancellationToken);
             if (!result)
-                return NotFound(new { message = $"Commission payout with id {id} not found" });
+                return NotFound(new { message = string.Format(PayoutNotFoundMessage, id) });
 
             return Ok(new { message = "Commission payout reconciled successfully" });
         }

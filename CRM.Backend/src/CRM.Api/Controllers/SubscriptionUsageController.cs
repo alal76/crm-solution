@@ -23,6 +23,7 @@ namespace CRM.Api.Controllers;
 [Produces("application/json")]
 public class SubscriptionUsageController : ControllerBase
 {
+    private const string SubscriptionNotFoundMessage = "Subscription {0} not found";
     private readonly ISubscriptionService _subscriptionService;
     private readonly ICrmDbContext _dbContext;
     private readonly ILogger<SubscriptionUsageController> _logger;
@@ -59,7 +60,7 @@ public class SubscriptionUsageController : ControllerBase
         {
             var subscription = await _subscriptionService.GetByIdAsync(subscriptionId, cancellationToken);
             if (subscription == null)
-                return NotFound($"Subscription {subscriptionId} not found");
+                return NotFound(string.Format(SubscriptionNotFoundMessage, subscriptionId));
 
             var start = fromDate ?? DateTime.UtcNow.AddMonths(-1);
             var end = toDate ?? DateTime.UtcNow;
@@ -127,7 +128,7 @@ public class SubscriptionUsageController : ControllerBase
 
             var subscription = await _subscriptionService.GetByIdAsync(subscriptionId, cancellationToken);
             if (subscription == null)
-                return NotFound($"Subscription {subscriptionId} not found");
+                return NotFound(string.Format(SubscriptionNotFoundMessage, subscriptionId));
 
             await _subscriptionService.RecordUsageAsync(
                 subscriptionId,
@@ -167,7 +168,7 @@ public class SubscriptionUsageController : ControllerBase
         {
             var subscription = await _subscriptionService.GetByIdAsync(subscriptionId, cancellationToken);
             if (subscription == null)
-                return NotFound($"Subscription {subscriptionId} not found");
+                return NotFound(string.Format(SubscriptionNotFoundMessage, subscriptionId));
 
             var start = fromDate ?? DateTime.UtcNow.AddMonths(-1);
             var end = toDate ?? DateTime.UtcNow;
@@ -218,7 +219,7 @@ public class SubscriptionUsageController : ControllerBase
         {
             var subscription = await _subscriptionService.GetByIdAsync(subscriptionId, cancellationToken);
             if (subscription == null)
-                return NotFound($"Subscription {subscriptionId} not found");
+                return NotFound(string.Format(SubscriptionNotFoundMessage, subscriptionId));
 
             var limits = await _subscriptionService.GetUsageLimitsAsync(subscriptionId, cancellationToken);
             var limitList = limits?.ToList() ?? new List<UsageLimit>();
@@ -271,7 +272,7 @@ public class SubscriptionUsageController : ControllerBase
 
             var subscription = await _subscriptionService.GetByIdAsync(subscriptionId, cancellationToken);
             if (subscription == null)
-                return NotFound($"Subscription {subscriptionId} not found");
+                return NotFound(string.Format(SubscriptionNotFoundMessage, subscriptionId));
 
             // Calculate previous usage before reset
             var start = request.ResetType.ToLowerInvariant() switch
@@ -326,7 +327,7 @@ public class SubscriptionUsageController : ControllerBase
         {
             var subscription = await _subscriptionService.GetByIdAsync(subscriptionId, cancellationToken);
             if (subscription == null)
-                return NotFound($"Subscription {subscriptionId} not found");
+                return NotFound(string.Format(SubscriptionNotFoundMessage, subscriptionId));
 
             // TODO: Implement seat management when seat tracking entities are added.
             // Requires a SubscriptionSeat entity linked to User.
@@ -368,7 +369,7 @@ public class SubscriptionUsageController : ControllerBase
 
             var subscription = await _subscriptionService.GetByIdAsync(subscriptionId, cancellationToken);
             if (subscription == null)
-                return NotFound($"Subscription {subscriptionId} not found");
+                return NotFound(string.Format(SubscriptionNotFoundMessage, subscriptionId));
 
             // TODO: Implement seat assignment when seat tracking entities are available.
             // Record usage event for seat addition
@@ -414,7 +415,7 @@ public class SubscriptionUsageController : ControllerBase
         {
             var subscription = await _subscriptionService.GetByIdAsync(subscriptionId, cancellationToken);
             if (subscription == null)
-                return NotFound($"Subscription {subscriptionId} not found");
+                return NotFound(string.Format(SubscriptionNotFoundMessage, subscriptionId));
 
             // TODO: Implement actual seat removal when seat entities exist.
             // Record usage event for seat removal (negative quantity)
@@ -455,7 +456,7 @@ public class SubscriptionUsageController : ControllerBase
         {
             var subscription = await _subscriptionService.GetByIdAsync(subscriptionId, cancellationToken);
             if (subscription == null)
-                return NotFound($"Subscription {subscriptionId} not found");
+                return NotFound(string.Format(SubscriptionNotFoundMessage, subscriptionId));
 
             var start = fromDate ?? DateTime.UtcNow.AddMonths(-1);
             var end = toDate ?? DateTime.UtcNow;
@@ -505,7 +506,7 @@ public class SubscriptionUsageController : ControllerBase
         {
             var subscription = await _subscriptionService.GetByIdAsync(subscriptionId, cancellationToken);
             if (subscription == null)
-                return NotFound($"Subscription {subscriptionId} not found");
+                return NotFound(string.Format(SubscriptionNotFoundMessage, subscriptionId));
 
             var periodStart = subscription.CurrentPeriodStart ?? DateTime.UtcNow.AddMonths(-1);
             var periodEnd = subscription.CurrentPeriodEnd ?? DateTime.UtcNow;

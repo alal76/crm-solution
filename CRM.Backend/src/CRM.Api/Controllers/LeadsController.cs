@@ -23,6 +23,8 @@ namespace CRM.Api.Controllers;
 [Authorize]
 public class LeadsController : ControllerBase
 {
+    private const string LeadNotFoundMessage = "Lead with ID {0} not found";
+    private const string InternalServerErrorMessage = "Internal server error";
     private readonly ILeadService _leadService;
     private readonly ILeadAgingAlertService _leadAgingAlertService;
     private readonly ILeadQualificationService _qualificationService;
@@ -63,7 +65,7 @@ public class LeadsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving leads");
-            return StatusCode(500, "Internal server error");
+            return StatusCode(500, InternalServerErrorMessage);
         }
     }
 
@@ -80,13 +82,13 @@ public class LeadsController : ControllerBase
         {
             var lead = await _leadService.GetByIdAsync(id);
             if (lead == null)
-                return NotFound(new { message = $"Lead with ID {id} not found" });
+                return NotFound(new { message = string.Format(LeadNotFoundMessage, id) });
             return Ok(lead);
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving lead {LeadId}", id);
-            return StatusCode(500, "Internal server error");
+            return StatusCode(500, InternalServerErrorMessage);
         }
     }
 
@@ -127,7 +129,7 @@ public class LeadsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating lead");
-            return StatusCode(500, "Internal server error");
+            return StatusCode(500, InternalServerErrorMessage);
         }
     }
 
@@ -176,14 +178,14 @@ public class LeadsController : ControllerBase
             });
 
             if (!updated)
-                return NotFound(new { message = $"Lead with ID {id} not found" });
+                return NotFound(new { message = string.Format(LeadNotFoundMessage, id) });
 
             return Ok(new { message = "Lead updated successfully" });
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating lead {LeadId}", id);
-            return StatusCode(500, "Internal server error");
+            return StatusCode(500, InternalServerErrorMessage);
         }
     }
 
@@ -200,13 +202,13 @@ public class LeadsController : ControllerBase
         {
             var deleted = await _leadService.DeleteAsync(id);
             if (!deleted)
-                return NotFound(new { message = $"Lead with ID {id} not found" });
+                return NotFound(new { message = string.Format(LeadNotFoundMessage, id) });
             return Ok(new { message = "Lead deleted successfully" });
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error deleting lead {LeadId}", id);
-            return StatusCode(500, "Internal server error");
+            return StatusCode(500, InternalServerErrorMessage);
         }
     }
 
@@ -232,7 +234,7 @@ public class LeadsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error converting lead {LeadId}", id);
-            return StatusCode(500, "Internal server error");
+            return StatusCode(500, InternalServerErrorMessage);
         }
     }
 
@@ -271,7 +273,7 @@ public class LeadsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error checking for duplicate leads");
-            return StatusCode(500, "Internal server error");
+            return StatusCode(500, InternalServerErrorMessage);
         }
     }
 
@@ -295,7 +297,7 @@ public class LeadsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving leads by status {Status}", status);
-            return StatusCode(500, "Internal server error");
+            return StatusCode(500, InternalServerErrorMessage);
         }
     }
 
@@ -315,7 +317,7 @@ public class LeadsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving lead stats");
-            return StatusCode(500, "Internal server error");
+            return StatusCode(500, InternalServerErrorMessage);
         }
     }
 
@@ -335,7 +337,7 @@ public class LeadsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving lead source analytics");
-            return StatusCode(500, "Internal server error");
+            return StatusCode(500, InternalServerErrorMessage);
         }
     }
 
@@ -355,7 +357,7 @@ public class LeadsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving lead attribution analytics");
-            return StatusCode(500, "Internal server error");
+            return StatusCode(500, InternalServerErrorMessage);
         }
     }
 
@@ -384,7 +386,7 @@ public class LeadsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving lead aging alerts");
-            return StatusCode(500, "Internal server error");
+            return StatusCode(500, InternalServerErrorMessage);
         }
     }
 
@@ -416,7 +418,7 @@ public class LeadsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error assigning lead {LeadId} to nurture campaign", id);
-            return StatusCode(500, "Internal server error");
+            return StatusCode(500, InternalServerErrorMessage);
         }
     }
 
@@ -445,7 +447,7 @@ public class LeadsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving nurture campaigns for lead {LeadId}", id);
-            return StatusCode(500, "Internal server error");
+            return StatusCode(500, InternalServerErrorMessage);
         }
     }
 
@@ -472,7 +474,7 @@ public class LeadsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error removing lead {LeadId} from nurture campaign {CampaignId}", id, campaignId);
-            return StatusCode(500, "Internal server error");
+            return StatusCode(500, InternalServerErrorMessage);
         }
     }
 
@@ -537,7 +539,7 @@ public class LeadsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error qualifying lead {LeadId}", id);
-            return StatusCode(500, "Internal server error");
+            return StatusCode(500, InternalServerErrorMessage);
         }
     }
 }

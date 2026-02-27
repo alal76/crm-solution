@@ -21,6 +21,7 @@ namespace CRM.Api.Controllers;
 [Authorize]
 public class ChangesController : ControllerBase
 {
+    private const string ChangeNotFoundMessage = "Change with id {0} not found";
     private readonly IChangeService _service;
     private readonly ILogger<ChangesController> _logger;
 
@@ -102,7 +103,7 @@ public class ChangesController : ControllerBase
             _logger.LogInformation("Getting change: id={Id}", id);
             var result = await _service.GetByIdAsync(id, cancellationToken);
             if (result == null)
-                return NotFound(new { message = $"Change with id {id} not found" });
+                return NotFound(new { message = string.Format(ChangeNotFoundMessage, id) });
 
             return Ok(result);
         }
@@ -131,7 +132,7 @@ public class ChangesController : ControllerBase
             _logger.LogInformation("Updating change: id={Id}", id);
             var result = await _service.UpdateAsync(id, dto, cancellationToken);
             if (result == null)
-                return NotFound(new { message = $"Change with id {id} not found" });
+                return NotFound(new { message = string.Format(ChangeNotFoundMessage, id) });
 
             return Ok(result);
         }
@@ -183,7 +184,7 @@ public class ChangesController : ControllerBase
             _logger.LogInformation("Submitting change for approval: id={Id}", id);
             var result = await _service.SubmitAsync(id, cancellationToken);
             if (result == null)
-                return NotFound(new { message = $"Change with id {id} not found" });
+                return NotFound(new { message = string.Format(ChangeNotFoundMessage, id) });
 
             return Ok(result);
         }
@@ -212,7 +213,7 @@ public class ChangesController : ControllerBase
             _logger.LogInformation("Approving change: id={Id}, approver={Approver}", id, dto.ApproverNotes);
             var result = await _service.ApproveAsync(id, dto, cancellationToken);
             if (result == null)
-                return NotFound(new { message = $"Change with id {id} not found" });
+                return NotFound(new { message = string.Format(ChangeNotFoundMessage, id) });
 
             return Ok(result);
         }
@@ -241,7 +242,7 @@ public class ChangesController : ControllerBase
             _logger.LogInformation("Rejecting change: id={Id}, reason={Reason}", id, dto.RejectionReason);
             var result = await _service.RejectAsync(id, dto, cancellationToken);
             if (result == null)
-                return NotFound(new { message = $"Change with id {id} not found" });
+                return NotFound(new { message = string.Format(ChangeNotFoundMessage, id) });
 
             return Ok(result);
         }

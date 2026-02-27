@@ -22,6 +22,8 @@ namespace CRM.Api.Controllers;
 [Authorize]
 public class DashboardConfigController : ControllerBase
 {
+    private const string DashboardNotFoundMessage = "Dashboard not found";
+
     private readonly CrmDbContext _context;
     private readonly ILogger<DashboardConfigController> _logger;
 
@@ -158,7 +160,7 @@ public class DashboardConfigController : ControllerBase
                 .FirstOrDefaultAsync();
 
             if (dashboard == null)
-                return NotFound(new { message = "Dashboard not found" });
+                return NotFound(new { message = DashboardNotFoundMessage });
 
             // Check access
             if (dashboard.Visibility == DashboardVisibility.Private && dashboard.OwnerId != userId)
@@ -383,7 +385,7 @@ public class DashboardConfigController : ControllerBase
         {
             var dashboard = await _context.Dashboards.FindAsync(id);
             if (dashboard == null || dashboard.IsDeleted)
-                return NotFound(new { message = "Dashboard not found" });
+                return NotFound(new { message = DashboardNotFoundMessage });
 
             if (dashboard.IsSystem && !User.IsInRole("Admin"))
                 return Forbid();
@@ -450,7 +452,7 @@ public class DashboardConfigController : ControllerBase
         {
             var dashboard = await _context.Dashboards.FindAsync(id);
             if (dashboard == null || dashboard.IsDeleted)
-                return NotFound(new { message = "Dashboard not found" });
+                return NotFound(new { message = DashboardNotFoundMessage });
 
             if (dashboard.IsSystem)
                 return BadRequest(new { message = "Cannot delete system dashboards" });
@@ -537,7 +539,7 @@ public class DashboardConfigController : ControllerBase
 
             var dashboard = await _context.Dashboards.FindAsync(dto.DashboardId);
             if (dashboard == null || dashboard.IsDeleted)
-                return NotFound(new { message = "Dashboard not found" });
+                return NotFound(new { message = DashboardNotFoundMessage });
 
             var widget = new DashboardWidget
             {

@@ -23,6 +23,7 @@ namespace CRM.Api.Controllers;
 [Produces("application/json")]
 public class CampaignsController : ControllerBase
 {
+    private const string InternalServerErrorMessage = "Internal server error";
     private readonly IMarketingCampaignService _campaignService;
     private readonly ILogger<CampaignsController> _logger;
 
@@ -54,7 +55,7 @@ public class CampaignsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving campaigns");
-            return StatusCode(500, "Internal server error");
+            return StatusCode(500, InternalServerErrorMessage);
         }
     }
 
@@ -77,7 +78,7 @@ public class CampaignsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving active campaigns");
-            return StatusCode(500, "Internal server error");
+            return StatusCode(500, InternalServerErrorMessage);
         }
     }
 
@@ -107,7 +108,7 @@ public class CampaignsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving campaign {CampaignId}", id);
-            return StatusCode(500, "Internal server error");
+            return StatusCode(500, InternalServerErrorMessage);
         }
     }
 
@@ -146,7 +147,7 @@ public class CampaignsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating campaign");
-            return StatusCode(500, "Internal server error");
+            return StatusCode(500, InternalServerErrorMessage);
         }
     }
 
@@ -192,7 +193,7 @@ public class CampaignsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating campaign {CampaignId}", id);
-            return StatusCode(500, "Internal server error");
+            return StatusCode(500, InternalServerErrorMessage);
         }
     }
 
@@ -222,7 +223,7 @@ public class CampaignsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error deleting campaign {CampaignId}", id);
-            return StatusCode(500, "Internal server error");
+            return StatusCode(500, InternalServerErrorMessage);
         }
     }
 
@@ -257,7 +258,7 @@ public class CampaignsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error adding metric to campaign {CampaignId}", id);
-            return StatusCode(500, "Internal server error");
+            return StatusCode(500, InternalServerErrorMessage);
         }
     }
 }

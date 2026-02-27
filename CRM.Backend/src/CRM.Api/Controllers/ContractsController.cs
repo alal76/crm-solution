@@ -23,6 +23,7 @@ namespace CRM.Api.Controllers;
 [Produces("application/json")]
 public class ContractsController : ControllerBase
 {
+    private const string ContractNotFoundMessage = "Contract {0} not found";
     private readonly IContractService _contractService;
     private readonly IContractExportService _contractExportService;
     private readonly ILogger<ContractsController> _logger;
@@ -97,7 +98,7 @@ public class ContractsController : ControllerBase
         {
             var contract = await _contractService.GetByIdAsync(id, cancellationToken);
             if (contract == null)
-                return NotFound(new { message = $"Contract {id} not found" });
+                return NotFound(new { message = string.Format(ContractNotFoundMessage, id) });
 
             return Ok(MapToDto(contract));
         }
@@ -192,7 +193,7 @@ public class ContractsController : ControllerBase
         {
             var contract = await _contractService.GetByIdAsync(id, cancellationToken);
             if (contract == null)
-                return NotFound(new { message = $"Contract {id} not found" });
+                return NotFound(new { message = string.Format(ContractNotFoundMessage, id) });
 
             // Field-by-field patching
             if (request.Name != null)
@@ -262,7 +263,7 @@ public class ContractsController : ControllerBase
         {
             var contract = await _contractService.GetByIdAsync(id, cancellationToken);
             if (contract == null)
-                return NotFound(new { message = $"Contract {id} not found" });
+                return NotFound(new { message = string.Format(ContractNotFoundMessage, id) });
 
             var result = await _contractService.DeleteAsync(id, cancellationToken);
             if (!result)
@@ -294,7 +295,7 @@ public class ContractsController : ControllerBase
         {
             var contract = await _contractService.GetByIdAsync(id, cancellationToken);
             if (contract == null)
-                return NotFound(new { message = $"Contract {id} not found" });
+                return NotFound(new { message = string.Format(ContractNotFoundMessage, id) });
 
             if (contract.Status != ContractStatus.PendingApproval)
                 return BadRequest(new { message = "Contract must be in PendingApproval status to approve" });
@@ -323,7 +324,7 @@ public class ContractsController : ControllerBase
         {
             var contract = await _contractService.GetByIdAsync(id, cancellationToken);
             if (contract == null)
-                return NotFound(new { message = $"Contract {id} not found" });
+                return NotFound(new { message = string.Format(ContractNotFoundMessage, id) });
 
             if (contract.Status != ContractStatus.PendingApproval)
                 return BadRequest(new { message = "Contract must be in PendingApproval status to reject" });
@@ -352,7 +353,7 @@ public class ContractsController : ControllerBase
         {
             var contract = await _contractService.GetByIdAsync(id, cancellationToken);
             if (contract == null)
-                return NotFound(new { message = $"Contract {id} not found" });
+                return NotFound(new { message = string.Format(ContractNotFoundMessage, id) });
 
             var result = await _contractService.ActivateAsync(id, cancellationToken);
             _logger.LogInformation("Contract {ContractId} activated", id);
@@ -377,7 +378,7 @@ public class ContractsController : ControllerBase
         {
             var contract = await _contractService.GetByIdAsync(id, cancellationToken);
             if (contract == null)
-                return NotFound(new { message = $"Contract {id} not found" });
+                return NotFound(new { message = string.Format(ContractNotFoundMessage, id) });
 
             var result = await _contractService.SuspendAsync(id, request?.Reason ?? "No reason provided", cancellationToken);
             _logger.LogInformation("Contract {ContractId} suspended", id);
@@ -402,7 +403,7 @@ public class ContractsController : ControllerBase
         {
             var contract = await _contractService.GetByIdAsync(id, cancellationToken);
             if (contract == null)
-                return NotFound(new { message = $"Contract {id} not found" });
+                return NotFound(new { message = string.Format(ContractNotFoundMessage, id) });
 
             var result = await _contractService.TerminateAsync(id, request?.Reason ?? "No reason provided", null, cancellationToken);
             _logger.LogInformation("Contract {ContractId} terminated", id);
@@ -427,7 +428,7 @@ public class ContractsController : ControllerBase
         {
             var contract = await _contractService.GetByIdAsync(id, cancellationToken);
             if (contract == null)
-                return NotFound(new { message = $"Contract {id} not found" });
+                return NotFound(new { message = string.Format(ContractNotFoundMessage, id) });
 
             var result = await _contractService.ExpireAsync(id, cancellationToken);
             _logger.LogInformation("Contract {ContractId} expired", id);
@@ -456,7 +457,7 @@ public class ContractsController : ControllerBase
         {
             var contract = await _contractService.GetByIdAsync(id, cancellationToken);
             if (contract == null)
-                return NotFound(new { message = $"Contract {id} not found" });
+                return NotFound(new { message = string.Format(ContractNotFoundMessage, id) });
 
             var renewed = await _contractService.InitiateRenewalAsync(id, cancellationToken);
             _logger.LogInformation("Contract {ContractId} renewal initiated, new contract {NewContractId}", id, renewed.Id);
@@ -521,7 +522,7 @@ public class ContractsController : ControllerBase
         {
             var contract = await _contractService.GetByIdAsync(id, cancellationToken);
             if (contract == null)
-                return NotFound(new { message = $"Contract {id} not found" });
+                return NotFound(new { message = string.Format(ContractNotFoundMessage, id) });
 
             var amendment = new Contract
             {
@@ -586,7 +587,7 @@ public class ContractsController : ControllerBase
         {
             var contract = await _contractService.GetByIdAsync(id, cancellationToken);
             if (contract == null)
-                return NotFound(new { message = $"Contract {id} not found" });
+                return NotFound(new { message = string.Format(ContractNotFoundMessage, id) });
 
             var signers = request.Signers.Select(s => new ContractSigner
             {
@@ -662,7 +663,7 @@ public class ContractsController : ControllerBase
         {
             var contract = await _contractService.GetByIdAsync(id, cancellationToken);
             if (contract == null)
-                return NotFound(new { message = $"Contract {id} not found" });
+                return NotFound(new { message = string.Format(ContractNotFoundMessage, id) });
 
             var pdf = await _contractService.GenerateContractPdfAsync(id, cancellationToken);
             return File(pdf, "application/pdf", $"contract-{contract.ContractNumber}.pdf");
@@ -896,7 +897,7 @@ public class ContractsController : ControllerBase
         }
         catch (KeyNotFoundException)
         {
-            return NotFound(new { message = $"Contract {id} not found" });
+            return NotFound(new { message = string.Format(ContractNotFoundMessage, id) });
         }
         catch (Exception ex)
         {
@@ -962,7 +963,7 @@ public class ContractsController : ControllerBase
         {
             var contract = await _contractService.GetByIdAsync(id, cancellationToken);
             if (contract == null)
-                return NotFound(new { message = $"Contract {id} not found" });
+                return NotFound(new { message = string.Format(ContractNotFoundMessage, id) });
 
             var versions = await _contractService.GetVersionHistoryAsync(id, cancellationToken);
             return Ok(new
@@ -997,7 +998,7 @@ public class ContractsController : ControllerBase
         {
             var contract = await _contractService.GetByIdAsync(id, cancellationToken);
             if (contract == null)
-                return NotFound(new { message = $"Contract {id} not found" });
+                return NotFound(new { message = string.Format(ContractNotFoundMessage, id) });
 
             var version = await _contractService.CreateVersionSnapshotAsync(
                 id,

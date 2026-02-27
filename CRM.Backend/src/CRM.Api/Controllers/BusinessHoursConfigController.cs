@@ -19,6 +19,7 @@ namespace CRM.API.Controllers;
 [Authorize]
 public class BusinessHoursConfigController : ControllerBase
 {
+    private const string ConfigNotFoundMessage = "Business hours configuration {0} not found";
     private readonly IBusinessHoursConfigService _service;
     private readonly ILogger<BusinessHoursConfigController> _logger;
 
@@ -56,7 +57,7 @@ public class BusinessHoursConfigController : ControllerBase
         try
         {
             var config = await _service.GetByIdAsync(id, ct);
-            if (config == null) return NotFound($"Business hours configuration {id} not found");
+            if (config == null) return NotFound(string.Format(ConfigNotFoundMessage, id));
             return Ok(config);
         }
         catch (Exception ex)
@@ -97,7 +98,7 @@ public class BusinessHoursConfigController : ControllerBase
         try
         {
             var config = await _service.UpdateAsync(id, request, ct);
-            if (config == null) return NotFound($"Business hours configuration {id} not found");
+            if (config == null) return NotFound(string.Format(ConfigNotFoundMessage, id));
             return Ok(config);
         }
         catch (InvalidOperationException ex)
@@ -122,7 +123,7 @@ public class BusinessHoursConfigController : ControllerBase
         try
         {
             var deleted = await _service.DeleteAsync(id, ct);
-            if (!deleted) return NotFound($"Business hours configuration {id} not found");
+            if (!deleted) return NotFound(string.Format(ConfigNotFoundMessage, id));
             return NoContent();
         }
         catch (Exception ex)
@@ -142,7 +143,7 @@ public class BusinessHoursConfigController : ControllerBase
         try
         {
             var config = await _service.SetDefaultAsync(id, ct);
-            if (config == null) return NotFound($"Business hours configuration {id} not found");
+            if (config == null) return NotFound(string.Format(ConfigNotFoundMessage, id));
             return Ok(config);
         }
         catch (Exception ex)

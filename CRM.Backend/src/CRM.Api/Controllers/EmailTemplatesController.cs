@@ -21,6 +21,8 @@ namespace CRM.Api.Controllers;
 [Authorize]
 public class EmailTemplatesController : ControllerBase
 {
+    private const string TemplateNotFoundMessage = "Template not found";
+
     private readonly ICrmDbContext _context;
     private readonly ILogger<EmailTemplatesController> _logger;
 
@@ -91,7 +93,7 @@ public class EmailTemplatesController : ControllerBase
 
             if (template == null)
             {
-                return NotFound(new { message = "Template not found" });
+                return NotFound(new { message = TemplateNotFoundMessage });
             }
 
             var dto = new EmailTemplateDto
@@ -208,7 +210,7 @@ public class EmailTemplatesController : ControllerBase
 
             if (template == null || template.IsDeleted)
             {
-                return NotFound(new { message = "Template not found" });
+                return NotFound(new { message = TemplateNotFoundMessage });
             }
 
             if (template.IsSystem)
@@ -259,7 +261,7 @@ public class EmailTemplatesController : ControllerBase
 
             if (template == null || template.IsDeleted)
             {
-                return NotFound(new { message = "Template not found" });
+                return NotFound(new { message = TemplateNotFoundMessage });
             }
 
             if (template.IsSystem)
@@ -300,7 +302,7 @@ public class EmailTemplatesController : ControllerBase
 
             if (original == null)
             {
-                return NotFound(new { message = "Template not found" });
+                return NotFound(new { message = TemplateNotFoundMessage });
             }
 
             var copy = new EmailTemplate
@@ -356,7 +358,7 @@ public class EmailTemplatesController : ControllerBase
 
             if (template == null)
             {
-                return NotFound(new { message = "Template not found" });
+                return NotFound(new { message = TemplateNotFoundMessage });
             }
 
             var subject = template.Subject;

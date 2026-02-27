@@ -21,6 +21,7 @@ namespace CRM.Api.Controllers;
 [Produces("application/json")]
 public class ConversationsController : ControllerBase
 {
+    private const string ConversationNotFoundMessage = "Conversation {0} not found";
     private readonly IConversationService _service;
     private readonly ILogger<ConversationsController> _logger;
 
@@ -66,7 +67,7 @@ public class ConversationsController : ControllerBase
         {
             var conversation = await _service.GetByIdAsync(id, cancellationToken);
             if (conversation == null)
-                return NotFound($"Conversation {id} not found");
+                return NotFound(string.Format(ConversationNotFoundMessage, id));
             return Ok(conversation);
         }
         catch (Exception ex)
@@ -132,7 +133,7 @@ public class ConversationsController : ControllerBase
                 return ValidationProblem(ModelState);
             var updated = await _service.UpdateAsync(id, conversation, cancellationToken);
             if (!updated)
-                return NotFound($"Conversation {id} not found");
+                return NotFound(string.Format(ConversationNotFoundMessage, id));
             return Ok();
         }
         catch (Exception ex)
@@ -153,7 +154,7 @@ public class ConversationsController : ControllerBase
         {
             var deleted = await _service.DeleteAsync(id, cancellationToken);
             if (!deleted)
-                return NotFound($"Conversation {id} not found");
+                return NotFound(string.Format(ConversationNotFoundMessage, id));
             return NoContent();
         }
         catch (Exception ex)
@@ -181,7 +182,7 @@ public class ConversationsController : ControllerBase
                 return ValidationProblem(ModelState);
             var updated = await _service.UpdateStatusAsync(id, request.Status, cancellationToken);
             if (!updated)
-                return NotFound($"Conversation {id} not found");
+                return NotFound(string.Format(ConversationNotFoundMessage, id));
             return Ok();
         }
         catch (Exception ex)
@@ -205,7 +206,7 @@ public class ConversationsController : ControllerBase
                 return ValidationProblem(ModelState);
             var assigned = await _service.AssignAsync(id, request.UserId, cancellationToken);
             if (!assigned)
-                return NotFound($"Conversation {id} not found");
+                return NotFound(string.Format(ConversationNotFoundMessage, id));
             return Ok();
         }
         catch (Exception ex)

@@ -22,6 +22,7 @@ namespace CRM.Api.Controllers;
 [Produces("application/json")]
 public class PaymentsController : ControllerBase
 {
+    private const string PaymentNotFoundMessage = "Payment {0} not found";
     private readonly IPaymentService _paymentService;
     private readonly ILogger<PaymentsController> _logger;
 
@@ -66,7 +67,7 @@ public class PaymentsController : ControllerBase
         {
             var payment = await _paymentService.GetByIdAsync(id, cancellationToken);
             if (payment == null)
-                return NotFound($"Payment {id} not found");
+                return NotFound(string.Format(PaymentNotFoundMessage, id));
             return Ok(MapToDto(payment));
         }
         catch (Exception ex)
@@ -159,7 +160,7 @@ public class PaymentsController : ControllerBase
         {
             var result = await _paymentService.DeleteAsync(id, cancellationToken);
             if (!result)
-                return NotFound($"Payment {id} not found");
+                return NotFound(string.Format(PaymentNotFoundMessage, id));
             return NoContent();
         }
         catch (Exception ex)
@@ -441,7 +442,7 @@ public class PaymentsController : ControllerBase
         {
             var success = await _paymentService.ReconcilePaymentAsync(id, request.ExternalReference, cancellationToken);
             if (!success)
-                return NotFound($"Payment {id} not found");
+                return NotFound(string.Format(PaymentNotFoundMessage, id));
             return NoContent();
         }
         catch (Exception ex)

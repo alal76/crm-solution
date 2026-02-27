@@ -21,6 +21,7 @@ namespace CRM.Api.Controllers;
 [Produces("application/json")]
 public class SubscriptionsController : ControllerBase
 {
+    private const string SubscriptionNotFoundMessage = "Subscription {0} not found.";
     private static readonly HashSet<string> AllowedBillingCycles = new(StringComparer.OrdinalIgnoreCase)
     {
         "Weekly", "Monthly", "Quarterly", "Yearly"
@@ -67,7 +68,7 @@ public class SubscriptionsController : ControllerBase
         var subscription = await _subscriptionService.GetByIdAsync(id, cancellationToken);
         if (subscription == null)
         {
-            return NotFound($"Subscription {id} not found.");
+            return NotFound(string.Format(SubscriptionNotFoundMessage, id));
         }
 
         return Ok(subscription);
@@ -150,7 +151,7 @@ public class SubscriptionsController : ControllerBase
         var existing = await _subscriptionService.GetByIdAsync(id, cancellationToken);
         if (existing == null)
         {
-            return NotFound($"Subscription {id} not found.");
+            return NotFound(string.Format(SubscriptionNotFoundMessage, id));
         }
 
         MapToEntity(existing, request, normalizedCycle);
@@ -179,7 +180,7 @@ public class SubscriptionsController : ControllerBase
         var deleted = await _subscriptionService.DeleteAsync(id, cancellationToken);
         if (!deleted)
         {
-            return NotFound($"Subscription {id} not found.");
+            return NotFound(string.Format(SubscriptionNotFoundMessage, id));
         }
 
         return NoContent();
@@ -593,7 +594,7 @@ public class SubscriptionsController : ControllerBase
         {
             var subscription = await _subscriptionService.GetByIdAsync(id, cancellationToken);
             if (subscription == null)
-                return NotFound($"Subscription {id} not found.");
+                return NotFound(string.Format(SubscriptionNotFoundMessage, id));
 
             if (subscription.SubscriptionStatus != SubscriptionStatus.Trial)
                 return BadRequest($"Subscription {id} is not in Trial status (current: {subscription.SubscriptionStatus}).");

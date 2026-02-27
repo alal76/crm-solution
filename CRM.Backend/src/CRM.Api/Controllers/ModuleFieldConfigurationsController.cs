@@ -16,6 +16,8 @@ namespace CRM.Api.Controllers;
 [Route("api/[controller]")]
 public class ModuleFieldConfigurationsController : ControllerBase
 {
+    private const string FieldConfigNotFoundMessage = "Field configuration not found";
+
     private readonly ModuleFieldConfigurationService _service;
     private readonly ILogger<ModuleFieldConfigurationsController> _logger;
 
@@ -58,7 +60,7 @@ public class ModuleFieldConfigurationsController : ControllerBase
         {
             var config = await _service.GetFieldConfigurationAsync(id);
             if (config == null)
-                return NotFound(new { message = "Field configuration not found" });
+                return NotFound(new { message = FieldConfigNotFoundMessage });
 
             return Ok(config);
         }
@@ -102,7 +104,7 @@ public class ModuleFieldConfigurationsController : ControllerBase
         {
             var result = await _service.UpdateFieldConfigurationAsync(id, dto);
             if (result == null)
-                return NotFound(new { message = "Field configuration not found" });
+                return NotFound(new { message = FieldConfigNotFoundMessage });
 
             return Ok(result);
         }
@@ -126,7 +128,7 @@ public class ModuleFieldConfigurationsController : ControllerBase
         {
             var result = await _service.DeleteFieldConfigurationAsync(id);
             if (!result)
-                return NotFound(new { message = "Field configuration not found" });
+                return NotFound(new { message = FieldConfigNotFoundMessage });
 
             return NoContent();
         }

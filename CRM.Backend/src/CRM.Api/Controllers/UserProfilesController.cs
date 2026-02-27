@@ -22,6 +22,8 @@ namespace CRM.Api.Controllers;
 [Authorize]
 public class UserProfilesController : ControllerBase
 {
+    private const string ProfileNotFoundMessage = "Profile not found";
+
     private readonly IRepository<UserProfile> _profileRepository;
     private readonly IRepository<Department> _departmentRepository;
     private readonly IRepository<User> _userRepository;
@@ -88,7 +90,7 @@ public class UserProfilesController : ControllerBase
 
             var profile = await _profileRepository.GetByIdAsync(user.UserProfileId.Value);
             if (profile == null || profile.IsDeleted)
-                return NotFound(new { message = "Profile not found" });
+                return NotFound(new { message = ProfileNotFoundMessage });
 
             return Ok(MapToDto(profile));
         }
@@ -135,7 +137,7 @@ public class UserProfilesController : ControllerBase
         {
             var profile = await _profileRepository.GetByIdAsync(id);
             if (profile == null || profile.IsDeleted)
-                return NotFound(new { message = "Profile not found" });
+                return NotFound(new { message = ProfileNotFoundMessage });
 
             return Ok(MapToDto(profile));
         }
@@ -213,7 +215,7 @@ public class UserProfilesController : ControllerBase
         {
             var profile = await _profileRepository.GetByIdAsync(id);
             if (profile == null || profile.IsDeleted)
-                return NotFound(new { message = "Profile not found" });
+                return NotFound(new { message = ProfileNotFoundMessage });
 
             profile.Name = updateDto.Name;
             profile.Description = updateDto.Description;
@@ -256,7 +258,7 @@ public class UserProfilesController : ControllerBase
         {
             var profile = await _profileRepository.GetByIdAsync(id);
             if (profile == null || profile.IsDeleted)
-                return NotFound(new { message = "Profile not found" });
+                return NotFound(new { message = ProfileNotFoundMessage });
 
             profile.IsDeleted = true;
             profile.UpdatedAt = DateTime.UtcNow;

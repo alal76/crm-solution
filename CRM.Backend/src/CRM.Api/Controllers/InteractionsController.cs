@@ -28,6 +28,8 @@ namespace CRM.Api.Controllers;
 [Produces("application/json")]
 public class InteractionsController : ControllerBase
 {
+    private const string InteractionNotFoundMessage = "Interaction not found";
+
     private readonly CrmDbContext _context;
     private readonly ILogger<InteractionsController> _logger;
     private readonly NormalizationService _normalization;
@@ -473,7 +475,7 @@ public class InteractionsController : ControllerBase
                 .FirstOrDefaultAsync(i => i.Id == id);
 
             if (interaction == null)
-                return NotFound(new { message = "Interaction not found" });
+                return NotFound(new { message = InteractionNotFoundMessage });
 
             if (interaction.AccountId <= 0)
                 return BadRequest(new { message = "Interaction must be linked to an account before creating a service request" });
@@ -559,7 +561,7 @@ public class InteractionsController : ControllerBase
         {
             var interaction = await _context.Interactions.FindAsync(id);
             if (interaction == null)
-                return NotFound(new { message = "Interaction not found" });
+                return NotFound(new { message = InteractionNotFoundMessage });
 
             var accountId = request.AccountId ?? interaction.AccountId;
 
@@ -642,7 +644,7 @@ public class InteractionsController : ControllerBase
         {
             var interaction = await _context.Interactions.FindAsync(id);
             if (interaction == null)
-                return NotFound(new { message = "Interaction not found" });
+                return NotFound(new { message = InteractionNotFoundMessage });
 
             if (request.AccountId.HasValue)
             {
@@ -708,7 +710,7 @@ public class InteractionsController : ControllerBase
         {
             var interaction = await _context.Interactions.FindAsync(id);
             if (interaction == null)
-                return NotFound(new { message = "Interaction not found" });
+                return NotFound(new { message = InteractionNotFoundMessage });
 
             var notePrefix = request.IsInternal ? "[Internal Note]" : "[Note]";
             var timestamp = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm");
@@ -748,7 +750,7 @@ public class InteractionsController : ControllerBase
         {
             var interaction = await _context.Interactions.FindAsync(id);
             if (interaction == null)
-                return NotFound(new { message = "Interaction not found" });
+                return NotFound(new { message = InteractionNotFoundMessage });
 
             interaction.Tags = string.Join(",", request.Tags);
             interaction.UpdatedAt = DateTime.UtcNow;

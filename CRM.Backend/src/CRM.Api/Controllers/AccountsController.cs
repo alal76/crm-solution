@@ -52,6 +52,9 @@ namespace CRM.Api.Controllers;
 [Authorize]
 public class AccountsController : ControllerBase
 {
+    private const string AccountNotFoundMessage = "Account not found";
+    private const string AccountContactRelationshipNotFoundMessage = "Account contact relationship not found";
+
     private readonly IAccountService _accountService;
     private readonly IContactInfoService _contactInfoService;
     private readonly ILogger<AccountsController> _logger;
@@ -125,7 +128,7 @@ public class AccountsController : ControllerBase
         {
             var account = await _accountService.GetAccountByIdAsync(id);
             if (account == null)
-                return NotFound(new { message = "Account not found" });
+                return NotFound(new { message = AccountNotFoundMessage });
 
             // Generate ETag from RowVersion
             var etag = ETagHelper.GenerateETag(account.RowVersion);
@@ -524,7 +527,7 @@ public class AccountsController : ControllerBase
             {
                 var currentAccount = await _accountService.GetAccountByIdAsync(id);
                 if (currentAccount == null)
-                    return NotFound(new { message = "Account not found" });
+                    return NotFound(new { message = AccountNotFoundMessage });
 
                 if (!ETagHelper.IsMatch(ifMatch, currentAccount.RowVersion))
                 {
@@ -539,7 +542,7 @@ public class AccountsController : ControllerBase
 
             var account = await _accountService.UpdateAccountAsync(id, dto);
             if (account == null)
-                return NotFound(new { message = "Account not found" });
+                return NotFound(new { message = AccountNotFoundMessage });
 
             // Notify connected clients about the update
             var userId = User.FindFirst("sub")?.Value ?? User.FindFirst("nameid")?.Value;
@@ -568,7 +571,7 @@ public class AccountsController : ControllerBase
         {
             var result = await _accountService.DeleteAccountAsync(id);
             if (!result)
-                return NotFound(new { message = "Account not found" });
+                return NotFound(new { message = AccountNotFoundMessage });
 
             // Notify connected clients about the deletion
             var userId = User.FindFirst("sub")?.Value ?? User.FindFirst("nameid")?.Value;
@@ -597,7 +600,7 @@ public class AccountsController : ControllerBase
         {
             var account = await _accountService.GetAccountByIdAsync(id);
             if (account == null)
-                return NotFound(new { message = "Account not found" });
+                return NotFound(new { message = AccountNotFoundMessage });
 
             var contacts = await _accountService.GetDirectContactsAsync(id);
             return Ok(contacts);
@@ -669,7 +672,7 @@ public class AccountsController : ControllerBase
         {
             var account = await _accountService.GetAccountByIdAsync(id);
             if (account == null)
-                return NotFound(new { message = "Account not found" });
+                return NotFound(new { message = AccountNotFoundMessage });
 
             var contacts = await _accountService.GetAccountContactsAsync(id);
             return Ok(contacts);
@@ -694,7 +697,7 @@ public class AccountsController : ControllerBase
         {
             var account = await _accountService.GetAccountByIdAsync(id);
             if (account == null)
-                return NotFound(new { message = "Account not found" });
+                return NotFound(new { message = AccountNotFoundMessage });
 
             // Allow linking contacts to any account type (Individual or Organization)
             var result = await _accountService.LinkContactToAccountAsync(id, dto);
@@ -723,7 +726,7 @@ public class AccountsController : ControllerBase
         {
             var result = await _accountService.UpdateAccountContactAsync(id, contactId, dto);
             if (result == null)
-                return NotFound(new { message = "Account contact relationship not found" });
+                return NotFound(new { message = AccountContactRelationshipNotFoundMessage });
 
             return Ok(result);
         }
@@ -746,7 +749,7 @@ public class AccountsController : ControllerBase
         {
             var result = await _accountService.UnlinkContactFromAccountAsync(id, contactId);
             if (!result)
-                return NotFound(new { message = "Account contact relationship not found" });
+                return NotFound(new { message = AccountContactRelationshipNotFoundMessage });
 
             _logger.LogInformation("Contact {ContactId} unlinked from account {AccountId}", contactId, id);
             return Ok(new { message = "Contact unlinked successfully" });
@@ -770,7 +773,7 @@ public class AccountsController : ControllerBase
         {
             var result = await _accountService.SetPrimaryContactAsync(id, contactId);
             if (!result)
-                return NotFound(new { message = "Account contact relationship not found" });
+                return NotFound(new { message = AccountContactRelationshipNotFoundMessage });
 
             _logger.LogInformation("Contact {ContactId} set as primary for account {AccountId}", contactId, id);
             return Ok(new { message = "Primary contact set successfully" });

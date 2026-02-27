@@ -21,6 +21,8 @@ namespace CRM.Api.Controllers;
 [RequireRole(UserRole.Admin)]
 public class AdminSettingsController : ControllerBase
 {
+    private const string ScheduleNotFoundMessage = "Schedule not found";
+
     private readonly IUserGroupService _userGroupService;
     private readonly IUserApprovalService _approvalService;
     private readonly IDatabaseBackupService _backupService;
@@ -591,7 +593,7 @@ public class AdminSettingsController : ControllerBase
         {
             var schedule = await _backupService.GetScheduleByIdAsync(id);
             if (schedule == null)
-                return NotFound(new { error = "Schedule not found" });
+                return NotFound(new { error = ScheduleNotFoundMessage });
 
             return Ok(schedule);
         }
@@ -638,7 +640,7 @@ public class AdminSettingsController : ControllerBase
         }
         catch (KeyNotFoundException)
         {
-            return NotFound(new { error = "Schedule not found" });
+            return NotFound(new { error = ScheduleNotFoundMessage });
         }
         catch (Exception ex)
         {
@@ -662,7 +664,7 @@ public class AdminSettingsController : ControllerBase
         }
         catch (KeyNotFoundException)
         {
-            return NotFound(new { error = "Schedule not found" });
+            return NotFound(new { error = ScheduleNotFoundMessage });
         }
         catch (Exception ex)
         {
@@ -686,7 +688,7 @@ public class AdminSettingsController : ControllerBase
         }
         catch (KeyNotFoundException)
         {
-            return NotFound(new { error = "Schedule not found" });
+            return NotFound(new { error = ScheduleNotFoundMessage });
         }
         catch (Exception ex)
         {
@@ -710,7 +712,7 @@ public class AdminSettingsController : ControllerBase
         }
         catch (KeyNotFoundException)
         {
-            return NotFound(new { error = "Schedule not found" });
+            return NotFound(new { error = ScheduleNotFoundMessage });
         }
         catch (Exception ex)
         {

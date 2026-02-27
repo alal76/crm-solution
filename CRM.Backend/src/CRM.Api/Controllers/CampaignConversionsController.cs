@@ -39,6 +39,7 @@ namespace CRM.Api.Controllers;
 [Authorize]
 public class CampaignConversionsController : ControllerBase
 {
+    private const string ConversionNotFoundMessage = "Campaign conversion with ID {0} not found";
     private readonly ICampaignConversionService _campaignConversionService;
     private readonly ILogger<CampaignConversionsController> _logger;
 
@@ -122,7 +123,7 @@ public class CampaignConversionsController : ControllerBase
 
             if (conversion == null)
             {
-                return NotFound(new { message = $"Campaign conversion with ID {id} not found" });
+                return NotFound(new { message = string.Format(ConversionNotFoundMessage, id) });
             }
 
             return Ok(conversion);
@@ -251,7 +252,7 @@ public class CampaignConversionsController : ControllerBase
 
             if (conversion == null)
             {
-                return NotFound(new { message = $"Campaign conversion with ID {id} not found" });
+                return NotFound(new { message = string.Format(ConversionNotFoundMessage, id) });
             }
 
             _logger.LogInformation("Updated campaign conversion {Id}", id);
@@ -289,7 +290,7 @@ public class CampaignConversionsController : ControllerBase
 
             if (!deleted)
             {
-                return NotFound(new { message = $"Campaign conversion with ID {id} not found" });
+                return NotFound(new { message = string.Format(ConversionNotFoundMessage, id) });
             }
 
             _logger.LogInformation("Deleted campaign conversion {Id}", id);

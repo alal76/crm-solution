@@ -23,6 +23,8 @@ namespace CRM.Api.Controllers;
 [Authorize]
 public class CustomFieldsController : ControllerBase
 {
+    private const string FieldDefinitionNotFoundMessage = "Custom field definition not found";
+
     private readonly ICrmDbContext _db;
     private readonly ICustomFieldValidationService _validationSvc;
     private readonly ILogger<CustomFieldsController> _logger;
@@ -71,7 +73,7 @@ public class CustomFieldsController : ControllerBase
             .Include(d => d.ValidationRules)
             .FirstOrDefaultAsync(d => d.Id == id && !d.IsDeleted, ct);
 
-        return def == null ? NotFound(new { message = "Custom field definition not found" }) : Ok(def);
+        return def == null ? NotFound(new { message = FieldDefinitionNotFoundMessage }) : Ok(def);
     }
 
     /// <summary>Creates a new custom field definition.</summary>
@@ -106,7 +108,7 @@ public class CustomFieldsController : ControllerBase
     {
         var existing = await _db.CustomFieldDefinitions.FindAsync(new object[] { id }, ct);
         if (existing == null || existing.IsDeleted)
-            return NotFound(new { message = "Custom field definition not found" });
+            return NotFound(new { message = FieldDefinitionNotFoundMessage });
 
         existing.Label = dto.Label;
         existing.FieldType = dto.FieldType;
@@ -130,7 +132,7 @@ public class CustomFieldsController : ControllerBase
     {
         var existing = await _db.CustomFieldDefinitions.FindAsync(new object[] { id }, ct);
         if (existing == null || existing.IsDeleted)
-            return NotFound(new { message = "Custom field definition not found" });
+            return NotFound(new { message = FieldDefinitionNotFoundMessage });
 
         existing.IsDeleted = true;
         existing.UpdatedAt = DateTime.UtcNow;
@@ -159,7 +161,7 @@ public class CustomFieldsController : ControllerBase
     {
         var defExists = await _db.CustomFieldDefinitions.AnyAsync(d => d.Id == id && !d.IsDeleted, ct);
         if (!defExists)
-            return NotFound(new { message = "Custom field definition not found" });
+            return NotFound(new { message = FieldDefinitionNotFoundMessage });
 
         rule.CustomFieldDefinitionId = id;
         rule.CreatedAt = DateTime.UtcNow;

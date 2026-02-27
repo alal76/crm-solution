@@ -25,6 +25,8 @@ namespace CRM.Api.Controllers;
 [Produces("application/json")]
 public class ApiUsersController : ControllerBase
 {
+    private const string ApiUserNotFoundMessage = "API user not found";
+
     private readonly ICrmDbContext _dbContext;
     private readonly ILogger<ApiUsersController> _logger;
 
@@ -93,7 +95,7 @@ public class ApiUsersController : ControllerBase
                 .FirstOrDefaultAsync(u => u.Id == id && !u.IsDeleted && u.IsApiUser);
 
             if (user == null)
-                return NotFound(new { error = "API user not found" });
+                return NotFound(new { error = ApiUserNotFoundMessage });
 
             return Ok(MapToApiUserDto(user));
         }
@@ -199,7 +201,7 @@ public class ApiUsersController : ControllerBase
                 .FirstOrDefaultAsync(u => u.Id == id && !u.IsDeleted && u.IsApiUser);
 
             if (user == null)
-                return NotFound(new { error = "API user not found" });
+                return NotFound(new { error = ApiUserNotFoundMessage });
 
             var (rawKey, hash, prefix) = ApiKeyAuthenticationHandler.GenerateApiKey();
 
@@ -244,7 +246,7 @@ public class ApiUsersController : ControllerBase
                 .FirstOrDefaultAsync(u => u.Id == id && !u.IsDeleted && u.IsApiUser);
 
             if (user == null)
-                return NotFound(new { error = "API user not found" });
+                return NotFound(new { error = ApiUserNotFoundMessage });
 
             user.IsActive = false;
             user.ApiKeyHash = null;
@@ -279,7 +281,7 @@ public class ApiUsersController : ControllerBase
                 .FirstOrDefaultAsync(u => u.Id == id && !u.IsDeleted && u.IsApiUser);
 
             if (user == null)
-                return NotFound(new { error = "API user not found" });
+                return NotFound(new { error = ApiUserNotFoundMessage });
 
             // Validate group is an API group if specified
             if (request.PrimaryGroupId.HasValue)
@@ -345,7 +347,7 @@ public class ApiUsersController : ControllerBase
                 .FirstOrDefaultAsync(u => u.Id == id && !u.IsDeleted && u.IsApiUser);
 
             if (user == null)
-                return NotFound(new { error = "API user not found" });
+                return NotFound(new { error = ApiUserNotFoundMessage });
 
             user.IsDeleted = true;
             user.IsActive = false;
@@ -380,7 +382,7 @@ public class ApiUsersController : ControllerBase
                 .FirstOrDefaultAsync(u => u.Id == id && !u.IsDeleted && u.IsApiUser);
 
             if (user == null)
-                return NotFound(new { error = "API user not found" });
+                return NotFound(new { error = ApiUserNotFoundMessage });
 
             user.IsActive = !user.IsActive;
             user.UpdatedAt = DateTime.UtcNow;

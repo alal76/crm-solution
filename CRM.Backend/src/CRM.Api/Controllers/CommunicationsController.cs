@@ -24,6 +24,10 @@ namespace CRM.Api.Controllers;
 [Authorize]
 public class CommunicationsController : ControllerBase
 {
+    private const string ChannelNotFoundMessage = "Channel not found";
+    private const string MessageNotFoundMessage = "Message not found";
+    private const string TemplateNotFoundMessage = "Template not found";
+
     private readonly CrmDbContext _context;
     private readonly ILogger<CommunicationsController> _logger;
 
@@ -114,7 +118,7 @@ public class CommunicationsController : ControllerBase
                 .FirstOrDefaultAsync();
 
             if (channel == null)
-                return NotFound(new { message = "Channel not found" });
+                return NotFound(new { message = ChannelNotFoundMessage });
 
             return Ok(channel);
         }
@@ -216,7 +220,7 @@ public class CommunicationsController : ControllerBase
         {
             var channel = await _context.CommunicationChannels.FindAsync(id);
             if (channel == null || channel.IsDeleted)
-                return NotFound(new { message = "Channel not found" });
+                return NotFound(new { message = ChannelNotFoundMessage });
 
             if (!Enum.TryParse<ChannelType>(dto.ChannelType, true, out var channelType))
                 return BadRequest(new { message = "Invalid channel type" });
@@ -293,7 +297,7 @@ public class CommunicationsController : ControllerBase
         {
             var channel = await _context.CommunicationChannels.FindAsync(id);
             if (channel == null || channel.IsDeleted)
-                return NotFound(new { message = "Channel not found" });
+                return NotFound(new { message = ChannelNotFoundMessage });
 
             channel.IsDeleted = true;
             channel.UpdatedAt = DateTime.UtcNow;
@@ -322,7 +326,7 @@ public class CommunicationsController : ControllerBase
         {
             var channel = await _context.CommunicationChannels.FindAsync(id);
             if (channel == null || channel.IsDeleted)
-                return NotFound(new { message = "Channel not found" });
+                return NotFound(new { message = ChannelNotFoundMessage });
 
             var testResult = await TestChannelConnectionAsync(channel);
 
@@ -836,7 +840,7 @@ public class CommunicationsController : ControllerBase
                 .FirstOrDefaultAsync();
 
             if (message == null)
-                return NotFound(new { message = "Message not found" });
+                return NotFound(new { message = MessageNotFoundMessage });
 
             // Mark as read
             if (!message.IsRead)
@@ -1002,7 +1006,7 @@ public class CommunicationsController : ControllerBase
         {
             var message = await _context.CommunicationMessages.FindAsync(id);
             if (message == null || message.IsDeleted)
-                return NotFound(new { message = "Message not found" });
+                return NotFound(new { message = MessageNotFoundMessage });
 
             message.IsRead = isRead;
             message.UpdatedAt = DateTime.UtcNow;
@@ -1029,7 +1033,7 @@ public class CommunicationsController : ControllerBase
         {
             var message = await _context.CommunicationMessages.FindAsync(id);
             if (message == null || message.IsDeleted)
-                return NotFound(new { message = "Message not found" });
+                return NotFound(new { message = MessageNotFoundMessage });
 
             message.IsStarred = isStarred;
             message.UpdatedAt = DateTime.UtcNow;
@@ -1056,7 +1060,7 @@ public class CommunicationsController : ControllerBase
         {
             var message = await _context.CommunicationMessages.FindAsync(id);
             if (message == null || message.IsDeleted)
-                return NotFound(new { message = "Message not found" });
+                return NotFound(new { message = MessageNotFoundMessage });
 
             message.IsArchived = true;
             message.UpdatedAt = DateTime.UtcNow;
@@ -1083,7 +1087,7 @@ public class CommunicationsController : ControllerBase
         {
             var message = await _context.CommunicationMessages.FindAsync(id);
             if (message == null || message.IsDeleted)
-                return NotFound(new { message = "Message not found" });
+                return NotFound(new { message = MessageNotFoundMessage });
 
             message.IsDeleted = true;
             message.UpdatedAt = DateTime.UtcNow;
@@ -1306,7 +1310,7 @@ public class CommunicationsController : ControllerBase
                 .FirstOrDefaultAsync();
 
             if (template == null)
-                return NotFound(new { message = "Template not found" });
+                return NotFound(new { message = TemplateNotFoundMessage });
 
             var dto = new EmailTemplateDto
             {
@@ -1393,7 +1397,7 @@ public class CommunicationsController : ControllerBase
         {
             var template = await _context.EmailTemplates.FindAsync(id);
             if (template == null || template.IsDeleted)
-                return NotFound(new { message = "Template not found" });
+                return NotFound(new { message = TemplateNotFoundMessage });
 
             if (template.IsSystem)
                 return BadRequest(new { message = "Cannot modify system templates" });
@@ -1437,7 +1441,7 @@ public class CommunicationsController : ControllerBase
         {
             var template = await _context.EmailTemplates.FindAsync(id);
             if (template == null || template.IsDeleted)
-                return NotFound(new { message = "Template not found" });
+                return NotFound(new { message = TemplateNotFoundMessage });
 
             if (template.IsSystem)
                 return BadRequest(new { message = "Cannot delete system templates" });

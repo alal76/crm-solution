@@ -20,6 +20,8 @@ namespace CRM.Api.Controllers;
 [Authorize]
 public class CampaignExecutionController : ControllerBase
 {
+    private const string WorkflowNotFoundMessage = "Campaign workflow not found";
+
     private readonly CampaignExecutionService _campaignExecutionService;
     private readonly ILogger<CampaignExecutionController> _logger;
 
@@ -192,7 +194,7 @@ public class CampaignExecutionController : ControllerBase
                 request.CooldownHours);
 
             if (result == null)
-                return NotFound(new { message = "Campaign workflow not found" });
+                return NotFound(new { message = WorkflowNotFoundMessage });
 
             return Ok(result);
         }
@@ -215,7 +217,7 @@ public class CampaignExecutionController : ControllerBase
         {
             var result = await _campaignExecutionService.UnlinkWorkflowFromCampaignAsync(workflowId);
             if (!result)
-                return NotFound(new { message = "Campaign workflow not found" });
+                return NotFound(new { message = WorkflowNotFoundMessage });
 
             return Ok(new { message = "Workflow unlinked from campaign" });
         }
@@ -239,7 +241,7 @@ public class CampaignExecutionController : ControllerBase
             var campaignWorkflow = await _campaignExecutionService.GetCampaignWorkflowByIdAsync(workflowId);
             if (campaignWorkflow == null || campaignWorkflow.CampaignId != campaignId)
             {
-                return NotFound(new { message = "Campaign workflow not found" });
+                return NotFound(new { message = WorkflowNotFoundMessage });
             }
 
             var triggeredCount = await _campaignExecutionService.TriggerWorkflowForCampaignAsync(

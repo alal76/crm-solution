@@ -21,6 +21,7 @@ namespace CRM.Api.Controllers;
 [Authorize]
 public class ImportExportController : ControllerBase
 {
+    private const string NoValidRecordsMessage = "File contains no valid records.";
     private readonly CrmDbContext _context;
     private readonly ILogger<ImportExportController> _logger;
 
@@ -191,7 +192,7 @@ public class ImportExportController : ControllerBase
                     {
                         var items = JsonSerializer.Deserialize<List<Contact>>(content, jsonOptions);
                         if (items == null || items.Count == 0)
-                            return BadRequest(new { message = "File contains no valid records." });
+                            return BadRequest(new { message = NoValidRecordsMessage });
 
                         foreach (var item in items)
                         {
@@ -212,7 +213,7 @@ public class ImportExportController : ControllerBase
                     {
                         var items = JsonSerializer.Deserialize<List<Account>>(content, jsonOptions);
                         if (items == null || items.Count == 0)
-                            return BadRequest(new { message = "File contains no valid records." });
+                            return BadRequest(new { message = NoValidRecordsMessage });
 
                         foreach (var item in items)
                         {
@@ -235,7 +236,7 @@ public class ImportExportController : ControllerBase
                     {
                         var items = JsonSerializer.Deserialize<List<Opportunity>>(content, jsonOptions);
                         if (items == null || items.Count == 0)
-                            return BadRequest(new { message = "File contains no valid records." });
+                            return BadRequest(new { message = NoValidRecordsMessage });
 
                         foreach (var item in items)
                         {
@@ -258,7 +259,7 @@ public class ImportExportController : ControllerBase
                     {
                         var items = JsonSerializer.Deserialize<List<Product>>(content, jsonOptions);
                         if (items == null || items.Count == 0)
-                            return BadRequest(new { message = "File contains no valid records." });
+                            return BadRequest(new { message = NoValidRecordsMessage });
 
                         foreach (var item in items)
                         {
@@ -281,7 +282,7 @@ public class ImportExportController : ControllerBase
                     {
                         var items = JsonSerializer.Deserialize<List<CrmTask>>(content, jsonOptions);
                         if (items == null || items.Count == 0)
-                            return BadRequest(new { message = "File contains no valid records." });
+                            return BadRequest(new { message = NoValidRecordsMessage });
 
                         foreach (var item in items)
                         {
@@ -304,7 +305,7 @@ public class ImportExportController : ControllerBase
                     {
                         var items = JsonSerializer.Deserialize<List<Lead>>(content, jsonOptions);
                         if (items == null || items.Count == 0)
-                            return BadRequest(new { message = "File contains no valid records." });
+                            return BadRequest(new { message = NoValidRecordsMessage });
 
                         foreach (var item in items)
                         {

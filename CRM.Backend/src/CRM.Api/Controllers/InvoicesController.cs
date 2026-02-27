@@ -23,6 +23,7 @@ namespace CRM.Api.Controllers;
 [Produces("application/json")]
 public class InvoicesController : ControllerBase
 {
+    private const string InvoiceNotFoundMessage = "Invoice {0} not found";
     private readonly IInvoiceService _invoiceService;
     private readonly IPdfGenerationService _pdfGenerationService;
     private readonly ILogger<InvoicesController> _logger;
@@ -71,7 +72,7 @@ public class InvoicesController : ControllerBase
         {
             var invoice = await _invoiceService.GetByIdAsync(id, cancellationToken);
             if (invoice == null)
-                return NotFound($"Invoice {id} not found");
+                return NotFound(string.Format(InvoiceNotFoundMessage, id));
             return Ok(MapToDto(invoice));
         }
         catch (Exception ex)
@@ -184,7 +185,7 @@ public class InvoicesController : ControllerBase
         {
             var result = await _invoiceService.DeleteAsync(id, cancellationToken);
             if (!result)
-                return NotFound($"Invoice {id} not found");
+                return NotFound(string.Format(InvoiceNotFoundMessage, id));
             return NoContent();
         }
         catch (Exception ex)
@@ -265,7 +266,7 @@ public class InvoicesController : ControllerBase
         {
             var result = await _invoiceService.SendInvoiceAsync(id, cancellationToken);
             if (!result)
-                return NotFound($"Invoice {id} not found");
+                return NotFound(string.Format(InvoiceNotFoundMessage, id));
             return Ok(new { message = "Invoice sent successfully" });
         }
         catch (Exception ex)
@@ -283,7 +284,7 @@ public class InvoicesController : ControllerBase
         {
             var result = await _invoiceService.MarkAsViewedAsync(id, cancellationToken);
             if (!result)
-                return NotFound($"Invoice {id} not found");
+                return NotFound(string.Format(InvoiceNotFoundMessage, id));
             return Ok(new { message = "Invoice marked as viewed" });
         }
         catch (Exception ex)
@@ -640,7 +641,7 @@ public class InvoicesController : ControllerBase
         {
             var invoice = await _invoiceService.GetByIdAsync(id, ct);
             if (invoice == null)
-                return NotFound($"Invoice {id} not found");
+                return NotFound(string.Format(InvoiceNotFoundMessage, id));
 
             var pdfBytes = await _pdfGenerationService.GenerateInvoicePdfAsync(id, ct);
             return File(pdfBytes, "application/pdf", $"invoice-{id}.pdf");

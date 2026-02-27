@@ -25,6 +25,8 @@ namespace CRM.Api.Controllers;
 [Produces("application/json")]
 public class OpportunitiesController : ControllerBase
 {
+    private const string OpportunityNotFoundMessage = "Opportunity {0} not found";
+    private const string InternalServerErrorMessage = "Internal server error";
     private readonly IOpportunityService _opportunityService;
     private readonly IWinLossAnalysisService _winLossService;
     private readonly ILogger<OpportunitiesController> _logger;
@@ -65,7 +67,7 @@ public class OpportunitiesController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving opportunities");
-            return StatusCode(500, "Internal server error");
+            return StatusCode(500, InternalServerErrorMessage);
         }
     }
 
@@ -87,13 +89,13 @@ public class OpportunitiesController : ControllerBase
         {
             var opportunity = await _opportunityService.GetOpportunityByIdAsync(id);
             if (opportunity == null)
-                return NotFound(new { message = $"Opportunity with ID {id} not found" });
+                return NotFound(new { message = string.Format(OpportunityNotFoundMessage, id) });
             return Ok(MapToDto(opportunity));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving opportunity {OpportunityId}", id);
-            return StatusCode(500, "Internal server error");
+            return StatusCode(500, InternalServerErrorMessage);
         }
     }
 
@@ -118,7 +120,7 @@ public class OpportunitiesController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving opportunities for account {AccountId}", accountId);
-            return StatusCode(500, "Internal server error");
+            return StatusCode(500, InternalServerErrorMessage);
         }
     }
 
@@ -143,7 +145,7 @@ public class OpportunitiesController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving opportunities for customer {CustomerId}", customerId);
-            return StatusCode(500, "Internal server error");
+            return StatusCode(500, InternalServerErrorMessage);
         }
     }
 
@@ -166,7 +168,7 @@ public class OpportunitiesController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error calculating total pipeline");
-            return StatusCode(500, "Internal server error");
+            return StatusCode(500, InternalServerErrorMessage);
         }
     }
 
@@ -212,7 +214,7 @@ public class OpportunitiesController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating opportunity");
-            return StatusCode(500, "Internal server error");
+            return StatusCode(500, InternalServerErrorMessage);
         }
     }
 
@@ -264,7 +266,7 @@ public class OpportunitiesController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating opportunity {OpportunityId}", id);
-            return StatusCode(500, "Internal server error");
+            return StatusCode(500, InternalServerErrorMessage);
         }
     }
     // --- Opportunity Product Endpoints (TODO-CRM003-04) ---
@@ -283,7 +285,7 @@ public class OpportunitiesController : ControllerBase
         {
             var opportunity = await _opportunityService.GetOpportunityByIdAsync(id);
             if (opportunity == null)
-                return NotFound(new { message = $"Opportunity {id} not found" });
+                return NotFound(new { message = string.Format(OpportunityNotFoundMessage, id) });
 
             var products = await _opportunityService.GetOpportunityProductsAsync(id);
             return Ok(products.Select(MapProductToDto).ToList());
@@ -291,7 +293,7 @@ public class OpportunitiesController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving products for opportunity {Id}", id);
-            return StatusCode(500, "Internal server error");
+            return StatusCode(500, InternalServerErrorMessage);
         }
     }
 
@@ -314,7 +316,7 @@ public class OpportunitiesController : ControllerBase
 
             var opportunity = await _opportunityService.GetOpportunityByIdAsync(id);
             if (opportunity == null)
-                return NotFound(new { message = $"Opportunity {id} not found" });
+                return NotFound(new { message = string.Format(OpportunityNotFoundMessage, id) });
 
             var product = MapProductFromCreateDto(dto);
             var created = await _opportunityService.AddOpportunityProductAsync(id, product);
@@ -323,7 +325,7 @@ public class OpportunitiesController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error adding product to opportunity {Id}", id);
-            return StatusCode(500, "Internal server error");
+            return StatusCode(500, InternalServerErrorMessage);
         }
     }
 
@@ -362,7 +364,7 @@ public class OpportunitiesController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating product {ProductId} on opportunity {Id}", productId, id);
-            return StatusCode(500, "Internal server error");
+            return StatusCode(500, InternalServerErrorMessage);
         }
     }
 
@@ -388,7 +390,7 @@ public class OpportunitiesController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error removing product {ProductId} from opportunity {Id}", productId, id);
-            return StatusCode(500, "Internal server error");
+            return StatusCode(500, InternalServerErrorMessage);
         }
     }
 
@@ -583,7 +585,7 @@ public class OpportunitiesController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving win/loss analytics");
-            return StatusCode(500, "Internal server error");
+            return StatusCode(500, InternalServerErrorMessage);
         }
     }
 
@@ -606,7 +608,7 @@ public class OpportunitiesController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving win/loss by reason");
-            return StatusCode(500, "Internal server error");
+            return StatusCode(500, InternalServerErrorMessage);
         }
     }
 
@@ -629,7 +631,7 @@ public class OpportunitiesController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving win/loss by competitor");
-            return StatusCode(500, "Internal server error");
+            return StatusCode(500, InternalServerErrorMessage);
         }
     }
 
@@ -655,7 +657,7 @@ public class OpportunitiesController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving win rate trends");
-            return StatusCode(500, "Internal server error");
+            return StatusCode(500, InternalServerErrorMessage);
         }
     }
 
@@ -678,7 +680,7 @@ public class OpportunitiesController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving loss analysis");
-            return StatusCode(500, "Internal server error");
+            return StatusCode(500, InternalServerErrorMessage);
         }
     }
 
@@ -699,7 +701,7 @@ public class OpportunitiesController : ControllerBase
         {
             var original = await _opportunityService.GetOpportunityByIdAsync(id);
             if (original == null)
-                return NotFound(new { message = $"Opportunity with ID {id} not found" });
+                return NotFound(new { message = string.Format(OpportunityNotFoundMessage, id) });
 
             var cloned = await _opportunityService.CloneAsync(id, options);
             var dto = MapToDto(cloned);
@@ -710,12 +712,12 @@ public class OpportunitiesController : ControllerBase
         }
         catch (KeyNotFoundException)
         {
-            return NotFound(new { message = $"Opportunity with ID {id} not found" });
+            return NotFound(new { message = string.Format(OpportunityNotFoundMessage, id) });
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error cloning opportunity {OpportunityId}", id);
-            return StatusCode(500, "Internal server error");
+            return StatusCode(500, InternalServerErrorMessage);
         }
     }
 
@@ -734,7 +736,7 @@ public class OpportunitiesController : ControllerBase
         {
             var opportunity = await _opportunityService.GetOpportunityByIdAsync(id);
             if (opportunity == null)
-                return NotFound(new { message = $"Opportunity {id} not found" });
+                return NotFound(new { message = string.Format(OpportunityNotFoundMessage, id) });
 
             var members = await _opportunityService.GetTeamMembersAsync(id, ct);
             var dtos = members.Select(MapTeamMemberToDto).ToList();
@@ -743,7 +745,7 @@ public class OpportunitiesController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving team members for opportunity {Id}", id);
-            return StatusCode(500, "Internal server error");
+            return StatusCode(500, InternalServerErrorMessage);
         }
     }
 
@@ -764,7 +766,7 @@ public class OpportunitiesController : ControllerBase
 
             var opportunity = await _opportunityService.GetOpportunityByIdAsync(id);
             if (opportunity == null)
-                return NotFound(new { message = $"Opportunity {id} not found" });
+                return NotFound(new { message = string.Format(OpportunityNotFoundMessage, id) });
 
             var member = new OpportunityTeamMember
             {
@@ -783,7 +785,7 @@ public class OpportunitiesController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error adding team member to opportunity {Id}", id);
-            return StatusCode(500, "Internal server error");
+            return StatusCode(500, InternalServerErrorMessage);
         }
     }
 
@@ -816,7 +818,7 @@ public class OpportunitiesController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating team member {MemberId} on opportunity {Id}", memberId, id);
-            return StatusCode(500, "Internal server error");
+            return StatusCode(500, InternalServerErrorMessage);
         }
     }
 
@@ -839,7 +841,7 @@ public class OpportunitiesController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error removing team member {MemberId} from opportunity {Id}", memberId, id);
-            return StatusCode(500, "Internal server error");
+            return StatusCode(500, InternalServerErrorMessage);
         }
     }
 
@@ -858,7 +860,7 @@ public class OpportunitiesController : ControllerBase
         {
             var opportunity = await _opportunityService.GetOpportunityByIdAsync(id);
             if (opportunity == null)
-                return NotFound(new { message = $"Opportunity {id} not found" });
+                return NotFound(new { message = string.Format(OpportunityNotFoundMessage, id) });
 
             var competitors = await _opportunityService.GetCompetitorsAsync(id, ct);
             var dtos = competitors.Select(MapOpportunityCompetitorToDto).ToList();
@@ -867,7 +869,7 @@ public class OpportunitiesController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving competitors for opportunity {Id}", id);
-            return StatusCode(500, "Internal server error");
+            return StatusCode(500, InternalServerErrorMessage);
         }
     }
 
@@ -888,7 +890,7 @@ public class OpportunitiesController : ControllerBase
 
             var opportunity = await _opportunityService.GetOpportunityByIdAsync(id);
             if (opportunity == null)
-                return NotFound(new { message = $"Opportunity {id} not found" });
+                return NotFound(new { message = string.Format(OpportunityNotFoundMessage, id) });
 
             var competitor = new OpportunityCompetitor
             {
@@ -906,7 +908,7 @@ public class OpportunitiesController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error adding competitor to opportunity {Id}", id);
-            return StatusCode(500, "Internal server error");
+            return StatusCode(500, InternalServerErrorMessage);
         }
     }
 
@@ -929,7 +931,7 @@ public class OpportunitiesController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error removing competitor {CompetitorId} from opportunity {Id}", competitorId, id);
-            return StatusCode(500, "Internal server error");
+            return StatusCode(500, InternalServerErrorMessage);
         }
     }
 
@@ -966,7 +968,7 @@ public class OpportunitiesController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating competitor {CompetitorId} on opportunity {Id}", competitorId, id);
-            return StatusCode(500, "Internal server error");
+            return StatusCode(500, InternalServerErrorMessage);
         }
     }
 
@@ -992,14 +994,14 @@ public class OpportunitiesController : ControllerBase
 
             var updated = await _opportunityService.PatchForecastCategoryAsync(id, (ForecastCategory)dto.ForecastCategory, ct);
             if (!updated)
-                return NotFound(new { message = $"Opportunity with ID {id} not found" });
+                return NotFound(new { message = string.Format(OpportunityNotFoundMessage, id) });
 
             return NoContent();
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error patching forecast category for opportunity {Id}", id);
-            return StatusCode(500, "Internal server error");
+            return StatusCode(500, InternalServerErrorMessage);
         }
     }
 
@@ -1030,7 +1032,7 @@ public class OpportunitiesController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error deleting opportunity {OpportunityId}", id);
-            return StatusCode(500, "Internal server error");
+            return StatusCode(500, InternalServerErrorMessage);
         }
     }
 }

@@ -21,6 +21,8 @@ namespace CRM.Api.Controllers;
 [Authorize]
 public class CompetitorsController : ControllerBase
 {
+    private const string InternalServerErrorMessage = "Internal server error";
+    private const string CompetitorNotFoundMessage = "Competitor with ID {0} not found";
     private readonly ICrmDbContext _context;
     private readonly ILogger<CompetitorsController> _logger;
 
@@ -72,7 +74,7 @@ public class CompetitorsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving competitors");
-            return StatusCode(500, "Internal server error");
+            return StatusCode(500, InternalServerErrorMessage);
         }
     }
 
@@ -91,7 +93,7 @@ public class CompetitorsController : ControllerBase
                 .FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted, ct);
 
             if (competitor == null)
-                return NotFound(new { message = $"Competitor with ID {id} not found" });
+                return NotFound(new { message = string.Format(CompetitorNotFoundMessage, id) });
 
             return Ok(new CompetitorDto
             {
@@ -116,7 +118,7 @@ public class CompetitorsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving competitor {Id}", id);
-            return StatusCode(500, "Internal server error");
+            return StatusCode(500, InternalServerErrorMessage);
         }
     }
 
@@ -160,7 +162,7 @@ public class CompetitorsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating competitor");
-            return StatusCode(500, "Internal server error");
+            return StatusCode(500, InternalServerErrorMessage);
         }
     }
 
@@ -176,7 +178,7 @@ public class CompetitorsController : ControllerBase
         {
             var competitor = await _context.Competitors.FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted, ct);
             if (competitor == null)
-                return NotFound(new { message = $"Competitor with ID {id} not found" });
+                return NotFound(new { message = string.Format(CompetitorNotFoundMessage, id) });
 
             if (!string.IsNullOrWhiteSpace(request.Name))
                 competitor.Name = request.Name;
@@ -212,7 +214,7 @@ public class CompetitorsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating competitor {Id}", id);
-            return StatusCode(500, "Internal server error");
+            return StatusCode(500, InternalServerErrorMessage);
         }
     }
 
@@ -228,7 +230,7 @@ public class CompetitorsController : ControllerBase
         {
             var competitor = await _context.Competitors.FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted, ct);
             if (competitor == null)
-                return NotFound(new { message = $"Competitor with ID {id} not found" });
+                return NotFound(new { message = string.Format(CompetitorNotFoundMessage, id) });
 
             competitor.IsDeleted = true;
             competitor.UpdatedAt = DateTime.UtcNow;
@@ -240,7 +242,7 @@ public class CompetitorsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error deleting competitor {Id}", id);
-            return StatusCode(500, "Internal server error");
+            return StatusCode(500, InternalServerErrorMessage);
         }
     }
 
@@ -259,7 +261,7 @@ public class CompetitorsController : ControllerBase
                 .FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted, ct);
 
             if (competitor == null)
-                return NotFound(new { message = $"Competitor with ID {id} not found" });
+                return NotFound(new { message = string.Format(CompetitorNotFoundMessage, id) });
 
             var opportunities = await _context.OpportunityCompetitors
                 .AsNoTracking()
@@ -290,7 +292,7 @@ public class CompetitorsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving win/loss stats for competitor {Id}", id);
-            return StatusCode(500, "Internal server error");
+            return StatusCode(500, InternalServerErrorMessage);
         }
     }
 
@@ -311,7 +313,7 @@ public class CompetitorsController : ControllerBase
         {
             var competitor = await _context.Competitors.FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted, ct);
             if (competitor == null)
-                return NotFound(new { message = $"Competitor with ID {id} not found" });
+                return NotFound(new { message = string.Format(CompetitorNotFoundMessage, id) });
 
             var opportunity = await _context.Opportunities.FirstOrDefaultAsync(o => o.Id == opportunityId && !o.IsDeleted, ct);
             if (opportunity == null)
@@ -342,7 +344,7 @@ public class CompetitorsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error linking competitor {CompetitorId} to opportunity {OpportunityId}", id, opportunityId);
-            return StatusCode(500, "Internal server error");
+            return StatusCode(500, InternalServerErrorMessage);
         }
     }
 
@@ -371,7 +373,7 @@ public class CompetitorsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error unlinking competitor {CompetitorId} from opportunity {OpportunityId}", id, opportunityId);
-            return StatusCode(500, "Internal server error");
+            return StatusCode(500, InternalServerErrorMessage);
         }
     }
 
@@ -390,7 +392,7 @@ public class CompetitorsController : ControllerBase
                 .FirstOrDefaultAsync(c => c.Id == id && !c.IsDeleted, ct);
 
             if (competitor == null)
-                return NotFound(new { message = $"Competitor with ID {id} not found" });
+                return NotFound(new { message = string.Format(CompetitorNotFoundMessage, id) });
 
             var opportunities = await _context.OpportunityCompetitors
                 .AsNoTracking()
@@ -415,7 +417,7 @@ public class CompetitorsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving opportunities for competitor {Id}", id);
-            return StatusCode(500, "Internal server error");
+            return StatusCode(500, InternalServerErrorMessage);
         }
     }
 }

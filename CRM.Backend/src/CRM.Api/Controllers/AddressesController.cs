@@ -43,6 +43,9 @@ namespace CRM.Api.Controllers;
 [Authorize]
 public class AddressesController : ControllerBase
 {
+    private const string InvalidIdMessage = "Invalid account ID or address ID. Both must be greater than 0.";
+    private const string AddressNotFoundMessage = "Address not found.";
+    private const string AccountNotFoundMessage = "Account not found.";
     private readonly IAddressService _addressService;
     private readonly IAccountService _accountService;
     private readonly ILogger<AddressesController> _logger;
@@ -132,7 +135,7 @@ public class AddressesController : ControllerBase
             // Verify account exists
             var account = await _accountService.GetAccountByIdAsync(accountId);
             if (account == null)
-                return NotFound(new { message = "Account not found." });
+                return NotFound(new { message = AccountNotFoundMessage });
 
             var addresses = await _addressService.GetAddressesByAccountAsync(accountId, cancellationToken);
             var addressDtos = addresses.Select(MapAddressToDto).ToList();
@@ -175,17 +178,17 @@ public class AddressesController : ControllerBase
         try
         {
             if (accountId <= 0 || addressId <= 0)
-                return BadRequest(new { message = "Invalid account ID or address ID. Both must be greater than 0." });
+                return BadRequest(new { message = InvalidIdMessage });
 
             // Verify account exists
             var account = await _accountService.GetAccountByIdAsync(accountId);
             if (account == null)
-                return NotFound(new { message = "Account not found." });
+                return NotFound(new { message = AccountNotFoundMessage });
 
             // Get address
             var address = await _addressService.GetAddressByIdAsync(addressId, cancellationToken);
             if (address == null || address.IsDeleted)
-                return NotFound(new { message = "Address not found." });
+                return NotFound(new { message = AddressNotFoundMessage });
 
             var addressDto = MapAddressToDto(address);
             return Ok(addressDto);
@@ -301,7 +304,7 @@ public class AddressesController : ControllerBase
         try
         {
             if (accountId <= 0 || addressId <= 0)
-                return BadRequest(new { message = "Invalid account ID or address ID. Both must be greater than 0." });
+                return BadRequest(new { message = InvalidIdMessage });
 
             if (dto == null)
                 return BadRequest(new { message = "Request body cannot be empty." });
@@ -312,12 +315,12 @@ public class AddressesController : ControllerBase
             // Verify account exists
             var account = await _accountService.GetAccountByIdAsync(accountId);
             if (account == null)
-                return NotFound(new { message = "Account not found." });
+                return NotFound(new { message = AccountNotFoundMessage });
 
             // Get existing address
             var address = await _addressService.GetAddressByIdAsync(addressId, cancellationToken);
             if (address == null || address.IsDeleted)
-                return NotFound(new { message = "Address not found." });
+                return NotFound(new { message = AddressNotFoundMessage });
 
             // Update only the provided fields
             if (!string.IsNullOrWhiteSpace(dto.Label))
@@ -411,17 +414,17 @@ public class AddressesController : ControllerBase
         try
         {
             if (accountId <= 0 || addressId <= 0)
-                return BadRequest(new { message = "Invalid account ID or address ID. Both must be greater than 0." });
+                return BadRequest(new { message = InvalidIdMessage });
 
             // Verify account exists
             var account = await _accountService.GetAccountByIdAsync(accountId);
             if (account == null)
-                return NotFound(new { message = "Account not found." });
+                return NotFound(new { message = AccountNotFoundMessage });
 
             // Delete address
             var deleted = await _addressService.DeleteAddressAsync(accountId, addressId, cancellationToken);
             if (!deleted)
-                return NotFound(new { message = "Address not found." });
+                return NotFound(new { message = AddressNotFoundMessage });
 
             _logger.LogInformation("Address {AddressId} deleted for account {AccountId}", addressId, accountId);
             return NoContent();
@@ -462,17 +465,17 @@ public class AddressesController : ControllerBase
         try
         {
             if (accountId <= 0 || addressId <= 0)
-                return BadRequest(new { message = "Invalid account ID or address ID. Both must be greater than 0." });
+                return BadRequest(new { message = InvalidIdMessage });
 
             // Verify account exists
             var account = await _accountService.GetAccountByIdAsync(accountId);
             if (account == null)
-                return NotFound(new { message = "Account not found." });
+                return NotFound(new { message = AccountNotFoundMessage });
 
             // Set primary billing address
             var success = await _addressService.SetPrimaryBillingAddressAsync(accountId, addressId, cancellationToken);
             if (!success)
-                return NotFound(new { message = "Address not found." });
+                return NotFound(new { message = AddressNotFoundMessage });
 
             // Retrieve and return the updated address
             var address = await _addressService.GetAddressByIdAsync(addressId, cancellationToken);
@@ -517,17 +520,17 @@ public class AddressesController : ControllerBase
         try
         {
             if (accountId <= 0 || addressId <= 0)
-                return BadRequest(new { message = "Invalid account ID or address ID. Both must be greater than 0." });
+                return BadRequest(new { message = InvalidIdMessage });
 
             // Verify account exists
             var account = await _accountService.GetAccountByIdAsync(accountId);
             if (account == null)
-                return NotFound(new { message = "Account not found." });
+                return NotFound(new { message = AccountNotFoundMessage });
 
             // Set primary shipping address
             var success = await _addressService.SetPrimaryShippingAddressAsync(accountId, addressId, cancellationToken);
             if (!success)
-                return NotFound(new { message = "Address not found." });
+                return NotFound(new { message = AddressNotFoundMessage });
 
             // Retrieve and return the updated address
             var address = await _addressService.GetAddressByIdAsync(addressId, cancellationToken);

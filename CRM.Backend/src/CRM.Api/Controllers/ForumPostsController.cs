@@ -23,6 +23,8 @@ namespace CRM.Api.Controllers;
 [Authorize]
 public class ForumPostsController : ControllerBase
 {
+    private const string PostNotFoundMessage = "Post not found.";
+
     private readonly ICrmDbContext _db;
     private readonly ILogger<ForumPostsController> _logger;
 
@@ -87,7 +89,7 @@ public class ForumPostsController : ControllerBase
             .FirstOrDefaultAsync(p => p.Id == id && !p.IsDeleted && (p.IsApproved || IsAdmin()), ct);
 
         if (post == null)
-            return NotFound(new { message = "Post not found." });
+            return NotFound(new { message = PostNotFoundMessage });
 
         // Increment view count
         var tracked = await _db.ForumPosts.FindAsync(new object[] { id }, ct);
@@ -159,7 +161,7 @@ public class ForumPostsController : ControllerBase
     {
         var post = await _db.ForumPosts.FirstOrDefaultAsync(p => p.Id == id && !p.IsDeleted, ct);
         if (post == null)
-            return NotFound(new { message = "Post not found." });
+            return NotFound(new { message = PostNotFoundMessage });
 
         post.IsApproved = true;
         post.UpdatedAt = DateTime.UtcNow;
@@ -178,7 +180,7 @@ public class ForumPostsController : ControllerBase
     {
         var post = await _db.ForumPosts.FirstOrDefaultAsync(p => p.Id == id && !p.IsDeleted, ct);
         if (post == null)
-            return NotFound(new { message = "Post not found." });
+            return NotFound(new { message = PostNotFoundMessage });
 
         post.IsPinned = pin;
         post.UpdatedAt = DateTime.UtcNow;
@@ -196,7 +198,7 @@ public class ForumPostsController : ControllerBase
     {
         var post = await _db.ForumPosts.FirstOrDefaultAsync(p => p.Id == id && !p.IsDeleted, ct);
         if (post == null)
-            return NotFound(new { message = "Post not found." });
+            return NotFound(new { message = PostNotFoundMessage });
 
         post.IsDeleted = true;
         post.UpdatedAt = DateTime.UtcNow;

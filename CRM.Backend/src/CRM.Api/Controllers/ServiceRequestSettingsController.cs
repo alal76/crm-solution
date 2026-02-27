@@ -20,6 +20,8 @@ namespace CRM.Api.Controllers;
 [Authorize]
 public class ServiceRequestSettingsController : ControllerBase
 {
+    private const string GenericErrorMessage = "An error occurred";
+
     private readonly IServiceRequestCategoryService _categoryService;
     private readonly IServiceRequestSubcategoryService _subcategoryService;
     private readonly IServiceRequestCustomFieldService _customFieldService;
@@ -79,7 +81,7 @@ public class ServiceRequestSettingsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting category {Id}", id);
-            return StatusCode(500, "An error occurred");
+            return StatusCode(500, GenericErrorMessage);
         }
     }
 
@@ -134,7 +136,7 @@ public class ServiceRequestSettingsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating category {Id}", id);
-            return StatusCode(500, "An error occurred");
+            return StatusCode(500, GenericErrorMessage);
         }
     }
 
@@ -156,7 +158,7 @@ public class ServiceRequestSettingsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error deleting category {Id}", id);
-            return StatusCode(500, "An error occurred");
+            return StatusCode(500, GenericErrorMessage);
         }
     }
 
@@ -175,7 +177,7 @@ public class ServiceRequestSettingsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error reordering categories");
-            return StatusCode(500, "An error occurred");
+            return StatusCode(500, GenericErrorMessage);
         }
     }
 
@@ -198,7 +200,7 @@ public class ServiceRequestSettingsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting subcategories");
-            return StatusCode(500, "An error occurred");
+            return StatusCode(500, GenericErrorMessage);
         }
     }
 
@@ -218,7 +220,7 @@ public class ServiceRequestSettingsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting subcategories for category {CategoryId}", categoryId);
-            return StatusCode(500, "An error occurred");
+            return StatusCode(500, GenericErrorMessage);
         }
     }
 
@@ -240,7 +242,7 @@ public class ServiceRequestSettingsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting subcategory {Id}", id);
-            return StatusCode(500, "An error occurred");
+            return StatusCode(500, GenericErrorMessage);
         }
     }
 
@@ -260,7 +262,7 @@ public class ServiceRequestSettingsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating subcategory");
-            return StatusCode(500, "An error occurred");
+            return StatusCode(500, GenericErrorMessage);
         }
     }
 
@@ -285,7 +287,7 @@ public class ServiceRequestSettingsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating subcategory {Id}", id);
-            return StatusCode(500, "An error occurred");
+            return StatusCode(500, GenericErrorMessage);
         }
     }
 
@@ -307,7 +309,7 @@ public class ServiceRequestSettingsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error deleting subcategory {Id}", id);
-            return StatusCode(500, "An error occurred");
+            return StatusCode(500, GenericErrorMessage);
         }
     }
 
@@ -326,7 +328,7 @@ public class ServiceRequestSettingsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error reordering subcategories");
-            return StatusCode(500, "An error occurred");
+            return StatusCode(500, GenericErrorMessage);
         }
     }
 
@@ -349,7 +351,7 @@ public class ServiceRequestSettingsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting custom fields");
-            return StatusCode(500, "An error occurred");
+            return StatusCode(500, GenericErrorMessage);
         }
     }
 
@@ -369,7 +371,7 @@ public class ServiceRequestSettingsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting applicable custom fields");
-            return StatusCode(500, "An error occurred");
+            return StatusCode(500, GenericErrorMessage);
         }
     }
 
@@ -391,7 +393,7 @@ public class ServiceRequestSettingsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting custom field {Id}", id);
-            return StatusCode(500, "An error occurred");
+            return StatusCode(500, GenericErrorMessage);
         }
     }
 
@@ -416,7 +418,7 @@ public class ServiceRequestSettingsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error creating custom field");
-            return StatusCode(500, "An error occurred");
+            return StatusCode(500, GenericErrorMessage);
         }
     }
 
@@ -442,7 +444,7 @@ public class ServiceRequestSettingsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating custom field {Id}", id);
-            return StatusCode(500, "An error occurred");
+            return StatusCode(500, GenericErrorMessage);
         }
     }
 
@@ -464,7 +466,7 @@ public class ServiceRequestSettingsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error deleting custom field {Id}", id);
-            return StatusCode(500, "An error occurred");
+            return StatusCode(500, GenericErrorMessage);
         }
     }
 
@@ -483,7 +485,7 @@ public class ServiceRequestSettingsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error reordering custom fields");
-            return StatusCode(500, "An error occurred");
+            return StatusCode(500, GenericErrorMessage);
         }
     }
 
@@ -502,7 +504,7 @@ public class ServiceRequestSettingsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting custom field count");
-            return StatusCode(500, "An error occurred");
+            return StatusCode(500, GenericErrorMessage);
         }
     }
 
@@ -525,7 +527,7 @@ public class ServiceRequestSettingsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting service request types");
-            return StatusCode(500, "An error occurred");
+            return StatusCode(500, GenericErrorMessage);
         }
     }
 
@@ -544,7 +546,7 @@ public class ServiceRequestSettingsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting grouped service request types");
-            return StatusCode(500, "An error occurred");
+            return StatusCode(500, GenericErrorMessage);
         }
     }
 
@@ -563,7 +565,7 @@ public class ServiceRequestSettingsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting types for category {CategoryId}", categoryId);
-            return StatusCode(500, "An error occurred");
+            return StatusCode(500, GenericErrorMessage);
         }
     }
 
@@ -582,7 +584,7 @@ public class ServiceRequestSettingsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting types for subcategory {SubcategoryId}", subcategoryId);
-            return StatusCode(500, "An error occurred");
+            return StatusCode(500, GenericErrorMessage);
         }
     }
 
@@ -604,7 +606,7 @@ public class ServiceRequestSettingsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting service request type {Id}", id);
-            return StatusCode(500, "An error occurred");
+            return StatusCode(500, GenericErrorMessage);
         }
     }
 
@@ -654,7 +656,7 @@ public class ServiceRequestSettingsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating service request type {Id}", id);
-            return StatusCode(500, "An error occurred");
+            return StatusCode(500, GenericErrorMessage);
         }
     }
 
@@ -676,7 +678,7 @@ public class ServiceRequestSettingsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error deleting service request type {Id}", id);
-            return StatusCode(500, "An error occurred");
+            return StatusCode(500, GenericErrorMessage);
         }
     }
 
@@ -695,7 +697,7 @@ public class ServiceRequestSettingsController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error reordering types for subcategory {SubcategoryId}", subcategoryId);
-            return StatusCode(500, "An error occurred");
+            return StatusCode(500, GenericErrorMessage);
         }
     }
 

@@ -28,6 +28,7 @@ namespace CRM.Api.Controllers;
 [Produces("application/json")]
 public class SubscriptionBillingController : ControllerBase
 {
+    private const string SubscriptionNotFoundMessage = "Subscription {0} not found";
     private readonly ISubscriptionService _subscriptionService;
     private readonly IInvoiceService _invoiceService;
     private readonly IPaymentService _paymentService;
@@ -68,7 +69,7 @@ public class SubscriptionBillingController : ControllerBase
         {
             var subscription = await _subscriptionService.GetByIdAsync(subscriptionId, cancellationToken);
             if (subscription == null)
-                return NotFound($"Subscription {subscriptionId} not found");
+                return NotFound(string.Format(SubscriptionNotFoundMessage, subscriptionId));
 
             var invoices = await _invoiceService.GetAllAsync(subscription.AccountId, null, cancellationToken);
             var subscriptionInvoices = invoices
@@ -143,7 +144,7 @@ public class SubscriptionBillingController : ControllerBase
         {
             var subscription = await _subscriptionService.GetByIdAsync(subscriptionId, cancellationToken);
             if (subscription == null)
-                return NotFound($"Subscription {subscriptionId} not found");
+                return NotFound(string.Format(SubscriptionNotFoundMessage, subscriptionId));
 
             var invoice = await _subscriptionService.GenerateInvoiceAsync(subscriptionId, cancellationToken);
             return CreatedAtAction(nameof(GetInvoice), new { subscriptionId, invoiceId = invoice.Id }, MapToInvoiceDto(invoice));
@@ -172,7 +173,7 @@ public class SubscriptionBillingController : ControllerBase
         {
             var subscription = await _subscriptionService.GetByIdAsync(subscriptionId, cancellationToken);
             if (subscription == null)
-                return NotFound($"Subscription {subscriptionId} not found");
+                return NotFound(string.Format(SubscriptionNotFoundMessage, subscriptionId));
 
             var upcomingDate = DateTime.UtcNow.AddDays(days);
             var invoices = await _invoiceService.GetInvoicesDueAsync(DateTime.UtcNow, upcomingDate, cancellationToken);
@@ -211,7 +212,7 @@ public class SubscriptionBillingController : ControllerBase
         {
             var subscription = await _subscriptionService.GetByIdAsync(subscriptionId, cancellationToken);
             if (subscription == null)
-                return NotFound($"Subscription {subscriptionId} not found");
+                return NotFound(string.Format(SubscriptionNotFoundMessage, subscriptionId));
 
             var payments = await _paymentService.GetAllAsync(subscription.AccountId, null, null, cancellationToken);
             var subscriptionPayments = payments
@@ -250,7 +251,7 @@ public class SubscriptionBillingController : ControllerBase
 
             var subscription = await _subscriptionService.GetByIdAsync(subscriptionId, cancellationToken);
             if (subscription == null)
-                return NotFound($"Subscription {subscriptionId} not found");
+                return NotFound(string.Format(SubscriptionNotFoundMessage, subscriptionId));
 
             var invoice = await _invoiceService.GetByIdAsync(request.InvoiceId, cancellationToken);
             if (invoice == null || invoice.SubscriptionId != subscriptionId)
@@ -303,7 +304,7 @@ public class SubscriptionBillingController : ControllerBase
         {
             var subscription = await _subscriptionService.GetByIdAsync(subscriptionId, cancellationToken);
             if (subscription == null)
-                return NotFound($"Subscription {subscriptionId} not found");
+                return NotFound(string.Format(SubscriptionNotFoundMessage, subscriptionId));
 
             var records = await _dbContext.BillingHistories
                 .Where(b => b.SubscriptionId == subscriptionId && !b.IsDeleted)
@@ -342,7 +343,7 @@ public class SubscriptionBillingController : ControllerBase
         {
             var subscription = await _subscriptionService.GetByIdAsync(subscriptionId, cancellationToken);
             if (subscription == null)
-                return NotFound($"Subscription {subscriptionId} not found");
+                return NotFound(string.Format(SubscriptionNotFoundMessage, subscriptionId));
 
             var records = await _dbContext.DunningRecords
                 .Where(d => d.SubscriptionId == subscriptionId && !d.IsDeleted)
@@ -381,7 +382,7 @@ public class SubscriptionBillingController : ControllerBase
 
             var subscription = await _subscriptionService.GetByIdAsync(subscriptionId, cancellationToken);
             if (subscription == null)
-                return NotFound($"Subscription {subscriptionId} not found");
+                return NotFound(string.Format(SubscriptionNotFoundMessage, subscriptionId));
 
             // Find the active dunning record
             var dunning = await _dbContext.DunningRecords
@@ -439,7 +440,7 @@ public class SubscriptionBillingController : ControllerBase
         {
             var subscription = await _subscriptionService.GetByIdAsync(subscriptionId, cancellationToken);
             if (subscription == null)
-                return NotFound($"Subscription {subscriptionId} not found");
+                return NotFound(string.Format(SubscriptionNotFoundMessage, subscriptionId));
 
             var invoices = await _invoiceService.GetAllAsync(subscription.AccountId, null, cancellationToken);
             var subInvoices = invoices.Where(i => i.SubscriptionId == subscriptionId).ToList();
@@ -500,7 +501,7 @@ public class SubscriptionBillingController : ControllerBase
 
             var subscription = await _subscriptionService.GetByIdAsync(subscriptionId, cancellationToken);
             if (subscription == null)
-                return NotFound($"Subscription {subscriptionId} not found");
+                return NotFound(string.Format(SubscriptionNotFoundMessage, subscriptionId));
 
             var invoice = await _invoiceService.GetByIdAsync(request.InvoiceId, cancellationToken);
             if (invoice == null || invoice.SubscriptionId != subscriptionId)

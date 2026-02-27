@@ -20,6 +20,7 @@ namespace CRM.Api.Controllers;
 [Authorize]
 public class AdminDashboardController : ControllerBase
 {
+    private const string MetricsErrorMessage = "Error retrieving metrics";
     private readonly IAdminDashboardService _adminDashboardService;
     private readonly ILogger<AdminDashboardController> _logger;
 
@@ -166,7 +167,7 @@ public class AdminDashboardController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting performance metrics");
-            return StatusCode(500, new { message = "Error retrieving metrics" });
+            return StatusCode(500, new { message = MetricsErrorMessage });
         }
     }
 
@@ -188,7 +189,7 @@ public class AdminDashboardController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting endpoint metrics");
-            return StatusCode(500, new { message = "Error retrieving metrics" });
+            return StatusCode(500, new { message = MetricsErrorMessage });
         }
     }
 
@@ -209,7 +210,7 @@ public class AdminDashboardController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting database metrics");
-            return StatusCode(500, new { message = "Error retrieving metrics" });
+            return StatusCode(500, new { message = MetricsErrorMessage });
         }
     }
 

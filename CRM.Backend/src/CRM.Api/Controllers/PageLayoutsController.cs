@@ -22,6 +22,8 @@ namespace CRM.Api.Controllers;
 [Authorize]
 public class PageLayoutsController : ControllerBase
 {
+    private const string LayoutNotFoundMessage = "Page layout not found";
+
     private readonly ICrmDbContext _db;
 
     public PageLayoutsController(ICrmDbContext db)
@@ -54,7 +56,7 @@ public class PageLayoutsController : ControllerBase
     public async Task<IActionResult> GetById(int id, CancellationToken ct)
     {
         var layout = await _db.PageLayouts.AsNoTracking().FirstOrDefaultAsync(p => p.Id == id && !p.IsDeleted, ct);
-        return layout == null ? NotFound(new { message = "Page layout not found" }) : Ok(layout);
+        return layout == null ? NotFound(new { message = LayoutNotFoundMessage }) : Ok(layout);
     }
 
     /// <summary>Gets the default layout for an entity type.</summary>
@@ -142,7 +144,7 @@ public class PageLayoutsController : ControllerBase
     {
         var layout = await _db.PageLayouts.FindAsync(new object[] { id }, ct);
         if (layout == null || layout.IsDeleted)
-            return NotFound(new { message = "Page layout not found" });
+            return NotFound(new { message = LayoutNotFoundMessage });
 
         if (dto.IsDefault && !layout.IsDefault)
         {
@@ -168,7 +170,7 @@ public class PageLayoutsController : ControllerBase
     {
         var layout = await _db.PageLayouts.FindAsync(new object[] { id }, ct);
         if (layout == null || layout.IsDeleted)
-            return NotFound(new { message = "Page layout not found" });
+            return NotFound(new { message = LayoutNotFoundMessage });
 
         layout.IsDeleted = true;
         layout.UpdatedAt = DateTime.UtcNow;

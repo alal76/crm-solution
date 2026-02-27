@@ -43,6 +43,7 @@ namespace CRM.Api.Controllers;
 [Authorize]
 public class CampaignRecipientsController : ControllerBase
 {
+    private const string RecipientNotFoundMessage = "Campaign recipient with ID {0} not found";
     private readonly ICampaignRecipientService _campaignRecipientService;
     private readonly ICrmDbContext _context;
     private readonly ILogger<CampaignRecipientsController> _logger;
@@ -139,7 +140,7 @@ public class CampaignRecipientsController : ControllerBase
 
             if (recipient == null)
             {
-                return NotFound(new { message = $"Campaign recipient with ID {id} not found" });
+                return NotFound(new { message = string.Format(RecipientNotFoundMessage, id) });
             }
 
             return Ok(MapToDto(recipient));
@@ -323,7 +324,7 @@ public class CampaignRecipientsController : ControllerBase
 
             if (recipient == null)
             {
-                return NotFound(new { message = $"Campaign recipient with ID {id} not found" });
+                return NotFound(new { message = string.Format(RecipientNotFoundMessage, id) });
             }
 
             // Update fields
@@ -384,7 +385,7 @@ public class CampaignRecipientsController : ControllerBase
 
             if (recipient == null)
             {
-                return NotFound(new { message = $"Campaign recipient with ID {id} not found" });
+                return NotFound(new { message = string.Format(RecipientNotFoundMessage, id) });
             }
 
             // Soft delete

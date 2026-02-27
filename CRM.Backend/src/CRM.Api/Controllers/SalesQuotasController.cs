@@ -21,6 +21,7 @@ namespace CRM.Api.Controllers;
 [Produces("application/json")]
 public class SalesQuotasController : ControllerBase
 {
+    private const string QuotaNotFoundMessage = "Sales quota {0} not found";
     private readonly ISalesQuotaService _service;
     private readonly ILogger<SalesQuotasController> _logger;
 
@@ -66,7 +67,7 @@ public class SalesQuotasController : ControllerBase
         {
             var quota = await _service.GetByIdAsync(id, cancellationToken);
             if (quota == null)
-                return NotFound($"Sales quota {id} not found");
+                return NotFound(string.Format(QuotaNotFoundMessage, id));
             return Ok(quota);
         }
         catch (Exception ex)
@@ -111,7 +112,7 @@ public class SalesQuotasController : ControllerBase
                 return ValidationProblem(ModelState);
             var updated = await _service.UpdateAsync(id, quota, cancellationToken);
             if (!updated)
-                return NotFound($"Sales quota {id} not found");
+                return NotFound(string.Format(QuotaNotFoundMessage, id));
             return Ok();
         }
         catch (Exception ex)
@@ -132,7 +133,7 @@ public class SalesQuotasController : ControllerBase
         {
             var deleted = await _service.DeleteAsync(id, cancellationToken);
             if (!deleted)
-                return NotFound($"Sales quota {id} not found");
+                return NotFound(string.Format(QuotaNotFoundMessage, id));
             return NoContent();
         }
         catch (Exception ex)
@@ -196,7 +197,7 @@ public class SalesQuotasController : ControllerBase
                 return ValidationProblem(ModelState);
             var updated = await _service.UpdateAttainmentAsync(id, request.ActualAmount, cancellationToken);
             if (!updated)
-                return NotFound($"Sales quota {id} not found");
+                return NotFound(string.Format(QuotaNotFoundMessage, id));
             return Ok();
         }
         catch (Exception ex)

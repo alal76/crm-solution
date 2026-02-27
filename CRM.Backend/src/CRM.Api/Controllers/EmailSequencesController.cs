@@ -22,6 +22,7 @@ namespace CRM.Api.Controllers
     [Authorize]
     public class EmailSequencesController : ControllerBase
     {
+    private const string SequenceNotFoundMessage = "Email sequence {0} not found";
         private readonly IEmailSequenceService _service;
         private readonly ILogger<EmailSequencesController> _logger;
 
@@ -64,7 +65,7 @@ namespace CRM.Api.Controllers
             {
                 var sequence = await _service.GetByIdAsync(id, ct);
                 if (sequence == null)
-                    return NotFound(new { message = $"Email sequence {id} not found" });
+                    return NotFound(new { message = string.Format(SequenceNotFoundMessage, id) });
                 return Ok(MapToDto(sequence));
             }
             catch (Exception ex)
@@ -114,7 +115,7 @@ namespace CRM.Api.Controllers
             }
             catch (InvalidOperationException)
             {
-                return NotFound(new { message = $"Email sequence {id} not found" });
+                return NotFound(new { message = string.Format(SequenceNotFoundMessage, id) });
             }
             catch (Exception ex)
             {
@@ -136,7 +137,7 @@ namespace CRM.Api.Controllers
             {
                 var deleted = await _service.DeleteAsync(id, ct);
                 if (!deleted)
-                    return NotFound(new { message = $"Email sequence {id} not found" });
+                    return NotFound(new { message = string.Format(SequenceNotFoundMessage, id) });
                 return NoContent();
             }
             catch (Exception ex)

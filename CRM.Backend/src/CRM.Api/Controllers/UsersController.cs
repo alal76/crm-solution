@@ -26,6 +26,8 @@ namespace CRM.Api.Controllers;
 [Produces("application/json")]
 public class UsersController : ControllerBase
 {
+    private const string UserNotFoundMessage = "User not found";
+
     private readonly IRepository<User> _userRepository;
     private readonly IRepository<UserProfile> _profileRepository;
     private readonly IRepository<Department> _departmentRepository;
@@ -224,7 +226,7 @@ public class UsersController : ControllerBase
         {
             var user = await _userRepository.GetByIdAsync(id);
             if (user == null || user.IsDeleted)
-                return NotFound(new { message = "User not found" });
+                return NotFound(new { message = UserNotFoundMessage });
 
             ContactDto? contact = null;
             if (user.ContactId.HasValue)
@@ -262,7 +264,7 @@ public class UsersController : ControllerBase
         {
             var user = await _userRepository.GetByIdAsync(id);
             if (user == null || user.IsDeleted)
-                return NotFound(new { message = "User not found" });
+                return NotFound(new { message = UserNotFoundMessage });
 
             // Verify profile exists
             var profile = await _profileRepository.GetByIdAsync(assignDto.UserProfileId);
@@ -315,7 +317,7 @@ public class UsersController : ControllerBase
         {
             var user = await _userRepository.GetByIdAsync(id);
             if (user == null || user.IsDeleted)
-                return NotFound(new { message = "User not found" });
+                return NotFound(new { message = UserNotFoundMessage });
 
             user.Email = updateDto.Email ?? user.Email;
             user.FirstName = updateDto.FirstName ?? user.FirstName;
@@ -376,7 +378,7 @@ public class UsersController : ControllerBase
         {
             var user = await _userRepository.GetByIdAsync(id);
             if (user == null || user.IsDeleted)
-                return NotFound(new { message = "User not found" });
+                return NotFound(new { message = UserNotFoundMessage });
 
             ContactDto? contact = null;
             if (linkDto.ContactId.HasValue)
@@ -427,7 +429,7 @@ public class UsersController : ControllerBase
         {
             var user = await _userRepository.GetByIdAsync(id);
             if (user == null || user.IsDeleted)
-                return NotFound(new { message = "User not found" });
+                return NotFound(new { message = UserNotFoundMessage });
 
             user.ContactId = null;
             user.UpdatedAt = DateTime.UtcNow;
@@ -494,7 +496,7 @@ public class UsersController : ControllerBase
         {
             var user = await _userRepository.GetByIdAsync(id);
             if (user == null || user.IsDeleted)
-                return NotFound(new { message = "User not found" });
+                return NotFound(new { message = UserNotFoundMessage });
 
             user.IsDeleted = true;
             user.UpdatedAt = DateTime.UtcNow;
@@ -529,7 +531,7 @@ public class UsersController : ControllerBase
         {
             var user = await _userRepository.GetByIdAsync(id);
             if (user == null || user.IsDeleted)
-                return NotFound(new { message = "User not found" });
+                return NotFound(new { message = UserNotFoundMessage });
 
             user.UserProfileId = null;
             user.UpdatedAt = DateTime.UtcNow;
@@ -567,7 +569,7 @@ public class UsersController : ControllerBase
 
             var user = await _userRepository.GetByIdAsync(userId);
             if (user == null || user.IsDeleted)
-                return NotFound(new { message = "User not found" });
+                return NotFound(new { message = UserNotFoundMessage });
 
             return Ok(new UserPreferencesDto
             {
@@ -614,7 +616,7 @@ public class UsersController : ControllerBase
 
             var user = await _userRepository.GetByIdAsync(userId);
             if (user == null || user.IsDeleted)
-                return NotFound(new { message = "User not found" });
+                return NotFound(new { message = UserNotFoundMessage });
 
             // Validate theme preference
             var validThemes = new[] { "system", "light", "dark", "high-contrast" };

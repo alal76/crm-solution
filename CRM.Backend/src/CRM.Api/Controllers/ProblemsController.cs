@@ -30,6 +30,7 @@ namespace CRM.Api.Controllers;
 [Produces("application/json")]
 public class LegacyProblemsController : ControllerBase
 {
+    private const string ProblemNotFoundMessage = "Problem {0} not found";
     private readonly IProblemService _problemService;
     private readonly ILogger<LegacyProblemsController> _logger;
 
@@ -102,7 +103,7 @@ public class LegacyProblemsController : ControllerBase
             var problem = await _problemService.GetProblemByIdAsync(id);
             if (problem == null)
             {
-                return NotFound(new { error = $"Problem {id} not found" });
+                return NotFound(new { error = string.Format(ProblemNotFoundMessage, id) });
             }
 
             return Ok(problem);
@@ -143,7 +144,7 @@ public class LegacyProblemsController : ControllerBase
             var existing = await _problemService.GetProblemByIdAsync(id);
             if (existing == null)
             {
-                return NotFound(new { error = $"Problem {id} not found" });
+                return NotFound(new { error = string.Format(ProblemNotFoundMessage, id) });
             }
 
             var userId = GetCurrentUserId();
@@ -180,7 +181,7 @@ public class LegacyProblemsController : ControllerBase
             var existing = await _problemService.GetProblemByIdAsync(id);
             if (existing == null)
             {
-                return NotFound(new { error = $"Problem {id} not found" });
+                return NotFound(new { error = string.Format(ProblemNotFoundMessage, id) });
             }
 
             _logger.LogInformation("Problem deleted: {ProblemId}", id);
@@ -302,7 +303,7 @@ public class LegacyProblemsController : ControllerBase
             var problem = await _problemService.GetProblemByIdAsync(id);
             if (problem == null)
             {
-                return NotFound(new { error = $"Problem {id} not found" });
+                return NotFound(new { error = string.Format(ProblemNotFoundMessage, id) });
             }
 
             var incidents = await _problemService.GetRelatedIncidentsAsync(id);
@@ -344,7 +345,7 @@ public class LegacyProblemsController : ControllerBase
             var problem = await _problemService.GetProblemByIdAsync(id);
             if (problem == null)
             {
-                return NotFound(new { error = $"Problem {id} not found" });
+                return NotFound(new { error = string.Format(ProblemNotFoundMessage, id) });
             }
 
             var userId = GetCurrentUserId();
@@ -386,7 +387,7 @@ public class LegacyProblemsController : ControllerBase
             var problem = await _problemService.GetProblemByIdAsync(id);
             if (problem == null)
             {
-                return NotFound(new { error = $"Problem {id} not found" });
+                return NotFound(new { error = string.Format(ProblemNotFoundMessage, id) });
             }
 
             _logger.LogInformation("Incident {IncidentId} unlinked from problem {ProblemId}", incidentId, id);
@@ -432,7 +433,7 @@ public class LegacyProblemsController : ControllerBase
             var problem = await _problemService.GetProblemByIdAsync(id);
             if (problem == null)
             {
-                return NotFound(new { error = $"Problem {id} not found" });
+                return NotFound(new { error = string.Format(ProblemNotFoundMessage, id) });
             }
 
             var userId = GetCurrentUserId();
@@ -483,7 +484,7 @@ public class LegacyProblemsController : ControllerBase
             var problem = await _problemService.GetProblemByIdAsync(id);
             if (problem == null)
             {
-                return NotFound(new { error = $"Problem {id} not found" });
+                return NotFound(new { error = string.Format(ProblemNotFoundMessage, id) });
             }
 
             var updateDto = new UpdateProblemDto
@@ -531,7 +532,7 @@ public class LegacyProblemsController : ControllerBase
             var problem = await _problemService.GetProblemByIdAsync(id);
             if (problem == null)
             {
-                return NotFound(new { error = $"Problem {id} not found" });
+                return NotFound(new { error = string.Format(ProblemNotFoundMessage, id) });
             }
 
             var updateDto = new UpdateProblemDto

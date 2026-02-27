@@ -20,6 +20,7 @@ namespace CRM.Api.Controllers;
 [Produces("application/json")]
 public class SalesForecastsController : ControllerBase
 {
+    private const string ForecastNotFoundMessage = "Sales forecast {0} not found";
     private readonly ISalesForecastService _service;
     private readonly ILogger<SalesForecastsController> _logger;
 
@@ -65,7 +66,7 @@ public class SalesForecastsController : ControllerBase
         {
             var forecast = await _service.GetByIdAsync(id, cancellationToken);
             if (forecast == null)
-                return NotFound($"Sales forecast {id} not found");
+                return NotFound(string.Format(ForecastNotFoundMessage, id));
             return Ok(forecast);
         }
         catch (Exception ex)
@@ -110,7 +111,7 @@ public class SalesForecastsController : ControllerBase
                 return ValidationProblem(ModelState);
             var updated = await _service.UpdateAsync(id, forecast, cancellationToken);
             if (!updated)
-                return NotFound($"Sales forecast {id} not found");
+                return NotFound(string.Format(ForecastNotFoundMessage, id));
             return Ok();
         }
         catch (Exception ex)
@@ -131,7 +132,7 @@ public class SalesForecastsController : ControllerBase
         {
             var deleted = await _service.DeleteAsync(id, cancellationToken);
             if (!deleted)
-                return NotFound($"Sales forecast {id} not found");
+                return NotFound(string.Format(ForecastNotFoundMessage, id));
             return NoContent();
         }
         catch (Exception ex)
@@ -156,7 +157,7 @@ public class SalesForecastsController : ControllerBase
         {
             var result = await _service.SubmitAsync(id, cancellationToken);
             if (!result)
-                return NotFound($"Sales forecast {id} not found");
+                return NotFound(string.Format(ForecastNotFoundMessage, id));
             return Ok();
         }
         catch (Exception ex)

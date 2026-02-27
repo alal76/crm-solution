@@ -23,6 +23,8 @@ namespace CRM.Api.Controllers;
 [Produces("application/json")]
 public class CommissionsController : ControllerBase
 {
+    private const string CommissionPlanNotFoundMessage = "Commission plan {0} not found.";
+    private const string CommissionNotFoundMessage = "Commission {0} not found.";
     private readonly ICommissionService _commissionService;
     private readonly ILogger<CommissionsController> _logger;
 
@@ -64,7 +66,7 @@ public class CommissionsController : ControllerBase
         var commission = await _commissionService.GetByIdAsync(id, cancellationToken);
         if (commission == null)
         {
-            return NotFound($"Commission {id} not found.");
+            return NotFound(string.Format(CommissionNotFoundMessage, id));
         }
 
         var agentFirstName = commission.User?.FirstName ?? string.Empty;
@@ -193,7 +195,7 @@ public class CommissionsController : ControllerBase
         var existing = await _commissionService.GetByIdAsync(id, cancellationToken);
         if (existing == null)
         {
-            return NotFound($"Commission {id} not found.");
+            return NotFound(string.Format(CommissionNotFoundMessage, id));
         }
 
         // Only allow updates if commission is still pending
@@ -235,7 +237,7 @@ public class CommissionsController : ControllerBase
         var existing = await _commissionService.GetByIdAsync(id, cancellationToken);
         if (existing == null)
         {
-            return NotFound($"Commission {id} not found.");
+            return NotFound(string.Format(CommissionNotFoundMessage, id));
         }
 
         if (existing.Status == CommissionStatus.Paid)
@@ -623,7 +625,7 @@ public class CommissionsController : ControllerBase
         var plan = await _commissionService.GetPlanByIdAsync(planId, cancellationToken);
         if (plan == null)
         {
-            return NotFound($"Commission plan {planId} not found.");
+            return NotFound(string.Format(CommissionPlanNotFoundMessage, planId));
         }
 
         return Ok(plan);
@@ -698,7 +700,7 @@ public class CommissionsController : ControllerBase
         var existing = await _commissionService.GetPlanByIdAsync(planId, cancellationToken);
         if (existing == null)
         {
-            return NotFound($"Commission plan {planId} not found.");
+            return NotFound(string.Format(CommissionPlanNotFoundMessage, planId));
         }
 
         existing.Name = request.Name ?? existing.Name;
@@ -740,7 +742,7 @@ public class CommissionsController : ControllerBase
         var result = await _commissionService.DeletePlanAsync(planId, cancellationToken);
         if (!result)
         {
-            return NotFound($"Commission plan {planId} not found.");
+            return NotFound(string.Format(CommissionPlanNotFoundMessage, planId));
         }
 
         return NoContent();

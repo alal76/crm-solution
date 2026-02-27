@@ -22,6 +22,8 @@ namespace CRM.Api.Controllers;
 [Authorize]
 public class CustomActionsController : ControllerBase
 {
+    private const string ActionNotFoundMessage = "Custom action not found";
+
     private readonly ICrmDbContext _db;
     private readonly ILogger<CustomActionsController> _logger;
 
@@ -58,7 +60,7 @@ public class CustomActionsController : ControllerBase
     public async Task<IActionResult> GetById(int id, CancellationToken ct = default)
     {
         var action = await _db.CustomActions.AsNoTracking().FirstOrDefaultAsync(a => a.Id == id && !a.IsDeleted, ct);
-        return action == null ? NotFound(new { message = "Custom action not found" }) : Ok(action);
+        return action == null ? NotFound(new { message = ActionNotFoundMessage }) : Ok(action);
     }
 
     /// <summary>Creates a new custom action.</summary>
@@ -87,7 +89,7 @@ public class CustomActionsController : ControllerBase
     {
         var existing = await _db.CustomActions.FindAsync(new object[] { id }, ct);
         if (existing == null || existing.IsDeleted)
-            return NotFound(new { message = "Custom action not found" });
+            return NotFound(new { message = ActionNotFoundMessage });
 
         existing.Label = dto.Label;
         existing.ActionType = dto.ActionType;
@@ -107,7 +109,7 @@ public class CustomActionsController : ControllerBase
     {
         var existing = await _db.CustomActions.FindAsync(new object[] { id }, ct);
         if (existing == null || existing.IsDeleted)
-            return NotFound(new { message = "Custom action not found" });
+            return NotFound(new { message = ActionNotFoundMessage });
 
         existing.IsDeleted = true;
         existing.UpdatedAt = DateTime.UtcNow;
