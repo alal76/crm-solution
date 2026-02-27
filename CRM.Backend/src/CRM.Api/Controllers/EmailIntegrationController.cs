@@ -23,14 +23,11 @@ namespace CRM.Api.Controllers;
 public class EmailIntegrationController : ControllerBase
 {
     private readonly IEmailSyncService _emailSyncService;
-    private readonly ILogger<EmailIntegrationController> _logger;
 
     public EmailIntegrationController(
-        IEmailSyncService emailSyncService,
-        ILogger<EmailIntegrationController> logger)
+        IEmailSyncService emailSyncService)
     {
         _emailSyncService = emailSyncService;
-        _logger = logger;
     }
 
     private int GetCurrentUserId()

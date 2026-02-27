@@ -38,8 +38,7 @@ public class WinLossAnalysisServiceTests
         SetupMockDbSets();
 
         _service = new WinLossAnalysisService(
-            _mockContext.Object,
-            Mock.Of<ILogger<WinLossAnalysisService>>());
+            _mockContext.Object);
     }
 
     private void SetupMockDbSets()

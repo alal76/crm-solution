@@ -19,7 +19,6 @@ namespace CRM.Infrastructure.Services;
 /// </summary>
 public class JwtTokenService : IJwtTokenService
 {
-    private readonly IConfiguration _configuration;
     private readonly string _jwtSecret;
     private readonly string _jwtIssuer;
     private readonly string _jwtAudience;
@@ -27,7 +26,6 @@ public class JwtTokenService : IJwtTokenService
 
     public JwtTokenService(IConfiguration configuration)
     {
-        _configuration = configuration;
         _jwtSecret = configuration["Jwt:Secret"]
             ?? throw new InvalidOperationException("JWT Secret must be configured in appsettings.json or environment variables. Set 'Jwt:Secret' with a secure key at least 32 characters long.");
 

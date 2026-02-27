@@ -21,14 +21,11 @@ namespace CRM.Api.Controllers;
 public class RevenueAnalyticsController : ControllerBase
 {
     private readonly IRevenueAnalyticsService _revenueService;
-    private readonly ILogger<RevenueAnalyticsController> _logger;
 
     public RevenueAnalyticsController(
-        IRevenueAnalyticsService revenueService,
-        ILogger<RevenueAnalyticsController> logger)
+        IRevenueAnalyticsService revenueService)
     {
         _revenueService = revenueService;
-        _logger = logger;
     }
 
     /// <summary>Returns aggregated revenue metrics (MRR, ARR, growth, churn, NRR).</summary>

@@ -23,13 +23,11 @@ public class RollupFieldsController : ControllerBase
 {
     private readonly IRollupFieldService _rollupSvc;
     private readonly ICrmDbContext _db;
-    private readonly ILogger<RollupFieldsController> _logger;
 
-    public RollupFieldsController(IRollupFieldService rollupSvc, ICrmDbContext db, ILogger<RollupFieldsController> logger)
+    public RollupFieldsController(IRollupFieldService rollupSvc, ICrmDbContext db)
     {
         _rollupSvc = rollupSvc;
         _db = db;
-        _logger = logger;
     }
 
     /// <summary>Gets all rollup field definitions for a parent entity type.</summary>

@@ -21,12 +21,10 @@ namespace CRM.Api.Controllers;
 public class LeadRoutingController : ControllerBase
 {
     private readonly ILeadRoutingService _leadRoutingService;
-    private readonly ILogger<LeadRoutingController> _logger;
 
-    public LeadRoutingController(ILeadRoutingService leadRoutingService, ILogger<LeadRoutingController> logger)
+    public LeadRoutingController(ILeadRoutingService leadRoutingService)
     {
         _leadRoutingService = leadRoutingService;
-        _logger = logger;
     }
 
     #region Rule Management

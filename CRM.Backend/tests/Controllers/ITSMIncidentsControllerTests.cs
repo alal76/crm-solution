@@ -21,14 +21,12 @@ namespace CRM.Tests.Controllers;
 public class ITSMIncidentsControllerTests
 {
     private readonly Mock<IIncidentService> _mockService;
-    private readonly Mock<ILogger<IncidentsController>> _mockLogger;
     private readonly IncidentsController _controller;
 
     public ITSMIncidentsControllerTests()
     {
         _mockService = new Mock<IIncidentService>();
-        _mockLogger = new Mock<ILogger<IncidentsController>>();
-        _controller = new IncidentsController(_mockService.Object, _mockLogger.Object);
+        _controller = new IncidentsController(_mockService.Object);
 
         // Set up HttpContext with a mock user claim
         var claims = new List<Claim> { new Claim(ClaimTypes.NameIdentifier, "1") };

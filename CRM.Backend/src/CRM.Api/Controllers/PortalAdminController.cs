@@ -21,14 +21,11 @@ namespace CRM.Api.Controllers;
 public class PortalAdminController : ControllerBase
 {
     private readonly IPortalAdminService _portalAdmin;
-    private readonly ILogger<PortalAdminController> _logger;
 
     public PortalAdminController(
-        IPortalAdminService portalAdmin,
-        ILogger<PortalAdminController> logger)
+        IPortalAdminService portalAdmin)
     {
         _portalAdmin = portalAdmin;
-        _logger = logger;
     }
 
     /// <summary>GET /api/admin/portal/config — get current portal configuration</summary>

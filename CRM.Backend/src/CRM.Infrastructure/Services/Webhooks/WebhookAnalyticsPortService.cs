@@ -22,12 +22,10 @@ namespace CRM.Infrastructure.Services.Webhooks;
 public class WebhookAnalyticsPortService : CRM.Core.Ports.Input.IWebhookAnalyticsService
 {
     private readonly ICrmDbContext _context;
-    private readonly ILogger<WebhookAnalyticsPortService> _logger;
 
-    public WebhookAnalyticsPortService(ICrmDbContext context, ILogger<WebhookAnalyticsPortService> logger)
+    public WebhookAnalyticsPortService(ICrmDbContext context)
     {
         _context = context ?? throw new ArgumentNullException(nameof(context));
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
     /// <inheritdoc />

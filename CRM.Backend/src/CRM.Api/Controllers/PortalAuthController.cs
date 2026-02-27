@@ -23,14 +23,11 @@ namespace CRM.Api.Controllers;
 public class PortalAuthController : ControllerBase
 {
     private readonly IPortalAuthService _portalAuth;
-    private readonly ILogger<PortalAuthController> _logger;
 
     public PortalAuthController(
-        IPortalAuthService portalAuth,
-        ILogger<PortalAuthController> logger)
+        IPortalAuthService portalAuth)
     {
         _portalAuth = portalAuth;
-        _logger = logger;
     }
 
     /// <summary>

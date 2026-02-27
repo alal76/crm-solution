@@ -21,16 +21,13 @@ public class DuplicatesController : ControllerBase
 {
     private readonly IDuplicateDetectionService _duplicateDetectionService;
     private readonly IMergeService _mergeService;
-    private readonly ILogger<DuplicatesController> _logger;
 
     public DuplicatesController(
         IDuplicateDetectionService duplicateDetectionService,
-        IMergeService mergeService,
-        ILogger<DuplicatesController> logger)
+        IMergeService mergeService)
     {
         _duplicateDetectionService = duplicateDetectionService;
         _mergeService = mergeService;
-        _logger = logger;
     }
 
     #region Duplicate Detection

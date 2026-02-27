@@ -24,15 +24,13 @@ public class DuplicateDetectionControllerUnitTests
 {
     private readonly Mock<IDuplicateDetectionService> _mockDuplicateService;
     private readonly Mock<IMergeService> _mockMergeService;
-    private readonly Mock<ILogger<DuplicatesController>> _mockLogger;
     private readonly DuplicatesController _controller;
 
     public DuplicateDetectionControllerUnitTests()
     {
         _mockDuplicateService = new Mock<IDuplicateDetectionService>();
         _mockMergeService = new Mock<IMergeService>();
-        _mockLogger = new Mock<ILogger<DuplicatesController>>();
-        _controller = new DuplicatesController(_mockDuplicateService.Object, _mockMergeService.Object, _mockLogger.Object);
+        _controller = new DuplicatesController(_mockDuplicateService.Object, _mockMergeService.Object);
         _controller.ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() };
     }
 

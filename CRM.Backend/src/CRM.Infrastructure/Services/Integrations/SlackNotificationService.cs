@@ -23,16 +23,13 @@ namespace CRM.Infrastructure.Services.Integrations;
 public class SlackNotificationService : ISlackIntegrationService
 {
     private readonly HttpClient _httpClient;
-    private readonly IConfiguration _configuration;
     private readonly ILogger<SlackNotificationService> _logger;
 
     public SlackNotificationService(
         HttpClient httpClient,
-        IConfiguration configuration,
         ILogger<SlackNotificationService> logger)
     {
         _httpClient = httpClient ?? throw new ArgumentNullException(nameof(httpClient));
-        _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 

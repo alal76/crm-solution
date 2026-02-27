@@ -21,7 +21,6 @@ namespace CRM.Infrastructure.Services.Integrations;
 /// </summary>
 public class TwilioCallLoggingService : ITwilioCallLoggingService
 {
-    private readonly IConfiguration _configuration;
     private readonly ILogger<TwilioCallLoggingService> _logger;
 
     // In-memory store for development/testing (replace with DbContext in production)
@@ -29,10 +28,8 @@ public class TwilioCallLoggingService : ITwilioCallLoggingService
     private int _nextId = 1;
 
     public TwilioCallLoggingService(
-        IConfiguration configuration,
         ILogger<TwilioCallLoggingService> logger)
     {
-        _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 

@@ -18,12 +18,10 @@ namespace CRM.Infrastructure.Services;
 public class WinLossAnalysisService : IWinLossAnalysisService
 {
     private readonly ICrmDbContext _context;
-    private readonly ILogger<WinLossAnalysisService> _logger;
 
-    public WinLossAnalysisService(ICrmDbContext context, ILogger<WinLossAnalysisService> logger)
+    public WinLossAnalysisService(ICrmDbContext context)
     {
         _context = context;
-        _logger = logger;
     }
 
     public async Task<WinLossSummary> GetSummaryAsync(

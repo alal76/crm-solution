@@ -24,12 +24,10 @@ namespace CRM.Api.Controllers;
 public class RecordCommentsController : ControllerBase
 {
     private readonly IRecordCommentService _service;
-    private readonly ILogger<RecordCommentsController> _logger;
 
-    public RecordCommentsController(IRecordCommentService service, ILogger<RecordCommentsController> logger)
+    public RecordCommentsController(IRecordCommentService service)
     {
         _service = service ?? throw new ArgumentNullException(nameof(service));
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
     }
 
     private int GetCurrentUserId()

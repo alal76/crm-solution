@@ -23,12 +23,10 @@ namespace CRM.Api.Controllers;
 public class PageLayoutsController : ControllerBase
 {
     private readonly ICrmDbContext _db;
-    private readonly ILogger<PageLayoutsController> _logger;
 
-    public PageLayoutsController(ICrmDbContext db, ILogger<PageLayoutsController> logger)
+    public PageLayoutsController(ICrmDbContext db)
     {
         _db = db;
-        _logger = logger;
     }
 
     private int GetCurrentUserId()

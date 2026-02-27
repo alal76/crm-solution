@@ -18,12 +18,10 @@ namespace CRM.Infrastructure.Services;
 public class LeadAgingAlertService : ILeadAgingAlertService
 {
     private readonly ICrmDbContext _dbContext;
-    private readonly ILogger<LeadAgingAlertService> _logger;
 
-    public LeadAgingAlertService(ICrmDbContext dbContext, ILogger<LeadAgingAlertService> logger)
+    public LeadAgingAlertService(ICrmDbContext dbContext)
     {
         _dbContext = dbContext;
-        _logger = logger;
     }
 
     public async Task<IEnumerable<Lead>> GetStaleLeadsAsync(int daysThreshold, CancellationToken cancellationToken = default)

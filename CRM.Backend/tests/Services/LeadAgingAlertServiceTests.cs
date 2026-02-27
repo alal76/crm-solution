@@ -36,7 +36,7 @@ public class LeadAgingAlertServiceTests
     public LeadAgingAlertServiceTests()
     {
         _mockContext = new Mock<ICrmDbContext>();
-        _service = new LeadAgingAlertService(_mockContext.Object, Mock.Of<ILogger<LeadAgingAlertService>>());
+        _service = new LeadAgingAlertService(_mockContext.Object);
     }
 
     // ────────────────────────────────────────────────────────────────────────

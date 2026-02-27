@@ -21,12 +21,10 @@ namespace CRM.Api.Controllers;
 public class WebToLeadFormsController : ControllerBase
 {
     private readonly IWebToLeadFormService _service;
-    private readonly ILogger<WebToLeadFormsController> _logger;
 
-    public WebToLeadFormsController(IWebToLeadFormService service, ILogger<WebToLeadFormsController> logger)
+    public WebToLeadFormsController(IWebToLeadFormService service)
     {
         _service = service;
-        _logger = logger;
     }
 
     /// <summary>

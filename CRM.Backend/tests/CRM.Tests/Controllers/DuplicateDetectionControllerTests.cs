@@ -25,18 +25,15 @@ public class DuplicateDetectionControllerTests
 {
     private readonly Mock<IDuplicateDetectionService> _mockDuplicateService;
     private readonly Mock<IMergeService> _mockMergeService;
-    private readonly Mock<ILogger<DuplicatesController>> _mockLogger;
     private readonly DuplicatesController _controller;
 
     public DuplicateDetectionControllerTests()
     {
         _mockDuplicateService = new Mock<IDuplicateDetectionService>();
         _mockMergeService = new Mock<IMergeService>();
-        _mockLogger = new Mock<ILogger<DuplicatesController>>();
         _controller = new DuplicatesController(
             _mockDuplicateService.Object,
-            _mockMergeService.Object,
-            _mockLogger.Object);
+            _mockMergeService.Object);
 
         // Set up default HttpContext with user claims
         var claims = new List<Claim> { new Claim("sub", "1") };

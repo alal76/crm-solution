@@ -32,7 +32,6 @@ public class SystemSettingsController : ControllerBase
     private readonly IDbContextResolver? _contextResolver;
     private readonly IDatabaseSyncService? _databaseSyncService;
     private readonly IWebHostEnvironment _environment;
-    private readonly IConfiguration _configuration;
     private readonly IAuditLogService? _auditLogService;
     private readonly string _defaultCertPassword;
 
@@ -48,7 +47,6 @@ public class SystemSettingsController : ControllerBase
         _settingsService = settingsService;
         _logger = logger;
         _environment = environment;
-        _configuration = configuration;
         _defaultCertPassword = configuration["SSL_CERT_PASSWORD"] ?? "CHANGE_IN_PRODUCTION";
         _contextResolver = contextResolver;
         _databaseSyncService = databaseSyncService;

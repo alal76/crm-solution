@@ -30,12 +30,10 @@ namespace CRM.Api.Controllers;
 public class IncidentsController : ControllerBase
 {
     private readonly IIncidentService _incidentService;
-    private readonly ILogger<IncidentsController> _logger;
 
-    public IncidentsController(IIncidentService incidentService, ILogger<IncidentsController> logger)
+    public IncidentsController(IIncidentService incidentService)
     {
         _incidentService = incidentService;
-        _logger = logger;
     }
 
     /// <summary>

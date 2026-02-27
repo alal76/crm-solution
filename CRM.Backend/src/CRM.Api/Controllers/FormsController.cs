@@ -21,12 +21,10 @@ namespace CRM.Api.Controllers;
 public class FormsController : ControllerBase
 {
     private readonly IFormBuilderService _formService;
-    private readonly ILogger<FormsController> _logger;
 
-    public FormsController(IFormBuilderService formService, ILogger<FormsController> logger)
+    public FormsController(IFormBuilderService formService)
     {
         _formService = formService;
-        _logger = logger;
     }
 
     #region Form Definition CRUD
