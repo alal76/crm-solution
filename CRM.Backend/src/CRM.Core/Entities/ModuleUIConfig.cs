@@ -90,7 +90,7 @@ public class ModuleUIConfig : BaseEntity
 /// </summary>
 public static class DefaultModuleConfigs
 {
-    public static readonly string[] AllModules = new[]
+    public static readonly IReadOnlyList<string> AllModules = new[]
     {
         ModuleNames.Accounts,
         // ModuleNames.Customers,    // legacy alias removed, use Accounts instead
@@ -120,5 +120,5 @@ public static class DefaultModuleConfigs
         ["Tasks"] = new[] { "Accounts", "Contacts", "Leads", "Opportunities" },
         ["Activities"] = new[] { "Accounts", "Contacts", "Leads", "Opportunities" },
         ["Notes"] = new[] { "Accounts", "Contacts", "Leads", "Opportunities" }
-    };
+    }.AsReadOnly();
 }

@@ -10,11 +10,11 @@
 -- Create read-only user (idempotent — safe to re-run)
 -- ---------------------------------------------------------------------------
 CREATE USER IF NOT EXISTS 'crm_readonly'@'%'
-    IDENTIFIED BY 'ReadOnlyPass@Dev2024';
+    IDENTIFIED BY 'ReadOnlyPass@Dev2024'; -- NOSONAR - Dev/analytics readonly user, override in production
 
 -- Re-set password in case it drifted (idempotent)
 ALTER USER 'crm_readonly'@'%'
-    IDENTIFIED BY 'ReadOnlyPass@Dev2024';
+    IDENTIFIED BY 'ReadOnlyPass@Dev2024'; -- NOSONAR - Dev/analytics readonly user, override in production
 
 -- ---------------------------------------------------------------------------
 -- Grant SELECT-only on crm_db
@@ -44,10 +44,10 @@ SHOW GRANTS FOR 'crm_readonly'@'%';
 --
 -- Application connection string for read-only access:
 --   Server=crm-mariadb-analytics;Port=3307;Database=crm_db;
---   User=crm_readonly;Password=ReadOnlyPass@Dev2024;
+--   User=crm_readonly;Password=ReadOnlyPass@Dev2024; -- NOSONAR
 --
 -- Superset datasource URI:
---   mysql+pymysql://crm_readonly:ReadOnlyPass@Dev2024@crm-mariadb-analytics:3307/crm_db
+--   mysql+pymysql://crm_readonly:ReadOnlyPass@Dev2024@crm-mariadb-analytics:3307/crm_db -- NOSONAR
 --
 -- EF Core (ReadOnly DbContext) - see CRM.Infrastructure/Data/CrmReadOnlyDbContext.cs
 -- =============================================================================

@@ -148,7 +148,7 @@ public class OpportunityService : IOpportunityService, IOpportunityInputPort
         { OpportunityStage.Negotiation,   75 },
         { OpportunityStage.ClosedWon,    100 },
         { OpportunityStage.ClosedLost,     0 },
-    };
+    }.AsReadOnly();
 
     // --- Product management (TODO-CRM003-04) ---
 

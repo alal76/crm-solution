@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 600,
-  "patch": 19,
-  "lastUpdate": "2026-02-27",
-  "description": "feat(admin): Full Admin CRUD UI for Enum Management — EnumManagementController (15 endpoints), LookupDtos, EnumManagementPage (categories + items CRUD, reorder, color, default flag), AdminSettingsMenu nav entry, App.tsx route",
+  "patch": 20,
+  "lastUpdate": "2026-03-02",
+  "description": "fix(sonarcloud): Remediate 78 bugs and 64 security vulnerabilities — always-true/false conditions, empty collections, floating-point equality, mutable readonly fields, same-value ternaries, hard-coded credentials replaced with env vars, K8s resource limits, HTML accessibility",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [

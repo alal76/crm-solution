@@ -2092,13 +2092,8 @@ class BuildEngine:
         else:
             # Use HTTPS with token
             if self.config.git_token and self.config.git_username:
-                # Insert credentials into URL
-                if "github.com" in repo_url:
-                    auth_url = repo_url.replace("https://", f"https://{self.config.git_username}:{self.config.git_token}@")
-                elif "dev.azure.com" in repo_url:
-                    auth_url = repo_url.replace("https://", f"https://{self.config.git_username}:{self.config.git_token}@")
-                else:
-                    auth_url = repo_url.replace("https://", f"https://{self.config.git_username}:{self.config.git_token}@")
+                # Insert credentials into URL (same pattern for all HTTPS Git hosts)
+                auth_url = repo_url.replace("https://", f"https://{self.config.git_username}:{self.config.git_token}@")
                 clone_cmd = f"git clone --branch {branch} --single-branch {auth_url} {self.build_dir}"
             else:
                 clone_cmd = f"git clone --branch {branch} --single-branch {repo_url} {self.build_dir}"

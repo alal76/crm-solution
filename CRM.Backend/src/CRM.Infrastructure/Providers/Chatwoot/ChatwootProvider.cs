@@ -435,7 +435,7 @@ public class ChatwootProvider : IChatPort
             // Filter by afterMessageId if specified
             if (!string.IsNullOrWhiteSpace(afterMessageId))
             {
-                var afterId = long.TryParse(afterMessageId, out var id) ? id : 0;
+                long.TryParse(afterMessageId, out var afterId);
                 messages = messages.Where(m => m.Id > afterId);
             }
 

@@ -71,8 +71,8 @@ db:
   storageSize: 10Gi
   database: crm_db
   user: crm_user
-  password: change-me
-  rootPassword: change-me-root
+  password: change-me  # NOSONAR - placeholder, override via --set db.password=<value>
+  rootPassword: change-me-root  # NOSONAR - placeholder, override via --set db.rootPassword=<value>
   resources:
     requests:
       cpu: 250m

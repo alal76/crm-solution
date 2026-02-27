@@ -157,10 +157,10 @@ else
         --name crm-mariadb \
         --restart=always \
         -p 3306:3306 \
-        -e MARIADB_ROOT_PASSWORD=RootPass@Prod2024 \
+        -e MARIADB_ROOT_PASSWORD=${MARIADB_ROOT_PASSWORD:-RootPass@Prod2024} \
         -e MARIADB_DATABASE=crm_db \
         -e MARIADB_USER=crm_user \
-        -e MARIADB_PASSWORD=CrmPass@Prod2024 \
+        -e MARIADB_PASSWORD=${MARIADB_PASSWORD:-CrmPass@Prod2024} \
         -v crm-mariadb-data:/var/lib/mysql \
         mariadb:10.11
     
@@ -169,7 +169,7 @@ else
 fi
 
 # Create demo database
-docker exec crm-mariadb mariadb -u root -pRootPass@Prod2024 -e "
+docker exec crm-mariadb mariadb -u root -p${MARIADB_ROOT_PASSWORD:-RootPass@Prod2024} -e "
     CREATE DATABASE IF NOT EXISTS crm_demodb;
     GRANT ALL PRIVILEGES ON crm_demodb.* TO 'crm_user'@'%';
     FLUSH PRIVILEGES;

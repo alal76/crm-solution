@@ -22,6 +22,7 @@ import json
 import yaml
 import secrets
 import string
+import os
 
 # --- Model imports (pure Python / stdlib — always safe) --------------------
 from models.config_models import (
@@ -48,7 +49,7 @@ from models.discovery_models import (
 )
 
 app = Flask(__name__)
-app.secret_key = "crm-deployment-wizard-secret-key"
+app.secret_key = os.environ.get('SECRET_KEY', secrets.token_hex(24))
 
 def generate_secure_password(length=16):
     """Generate a secure password with mixed characters."""
@@ -599,7 +600,7 @@ def generate_docker_compose(config):
             'restart': 'unless-stopped',
             'ports': [f"{docuseal_host['port']}:3000"],
             'environment': {
-                'DATABASE_URL': 'postgresql://docuseal:docuseal@crm-docuseal-postgres:5432/docuseal',
+                'DATABASE_URL': f"postgresql://docuseal:{os.environ.get('DOCUSEAL_DB_PASSWORD', 'docuseal')}@crm-docuseal-postgres:5432/docuseal",
                 'SECRET_KEY_BASE': '${DOCUSEAL_SECRET_KEY}',
                 'HOST': '0.0.0.0'
             },
@@ -613,7 +614,7 @@ def generate_docker_compose(config):
             'environment': {
                 'POSTGRES_DB': 'docuseal',
                 'POSTGRES_USER': 'docuseal',
-                'POSTGRES_PASSWORD': 'docuseal'
+                'POSTGRES_PASSWORD': os.environ.get('DOCUSEAL_DB_PASSWORD', 'docuseal')
             },
             'volumes': ['docuseal_data:/var/lib/postgresql/data'],
             'networks': [network_name]
@@ -1079,4 +1080,4 @@ if __name__ == "__main__":
     print("   Press Ctrl+C to stop")
     print("=" * 60)
     print()
-    app.run(host="0.0.0.0", port=5050, debug=True)
+    app.run(host=os.environ.get('BIND_HOST', '127.0.0.1'), port=5050, debug=True)

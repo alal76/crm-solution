@@ -121,7 +121,7 @@ def run(api: ApiClient, log: RunLogger) -> None:
     # ---- Webhook Registrations ----
     log.section("WebhookRegistrations CRUD")
     wh = {"name": f"Account Created Webhook {ts}", "url": "https://example.com/webhook/account",
-          "eventType": "Account.Created", "isActive": True, "secret": "webhook-secret-123"}
+          "eventType": "Account.Created", "isActive": True, "secret": os.environ.get('WEBHOOK_SECRET', 'webhook-secret-123')}  # NOSONAR
     eid = api.create_and_track("webhookregistrations", "/api/webhook-registrations", wh)
     if eid:
         api.get(f"/api/webhook-registrations/{eid}")

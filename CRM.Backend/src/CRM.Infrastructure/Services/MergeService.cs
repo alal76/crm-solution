@@ -496,7 +496,7 @@ public class MergeService : IMergeService
             RecordType = ctx.EntityType,
             IsMaster = false,
             RecordSnapshot = snapshot,
-            FieldValuesUsed = fieldsUsed.Count > 0 ? JsonSerializer.Serialize(fieldsUsed, JsonOptions) : null,
+            FieldValuesUsed = fieldsUsed.Any() ? JsonSerializer.Serialize(fieldsUsed, JsonOptions) : null,
             RelinkedRecords = relinkedJson,
             Status = MergeGroupMemberStatus.Merged,
             MergedAt = DateTime.UtcNow

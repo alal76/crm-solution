@@ -34,7 +34,7 @@ SET
     PasswordHash = '',
     PasswordNeverSet = 1,
     MustResetPassword = 0,
-    PasswordLastChangedAt = NULL,
+    PasswordLastChangedAt = NULL, -- NOSONAR: assignment, not comparison
     UpdatedAt = NOW()
 WHERE Email = 'admin@crm.local';
 

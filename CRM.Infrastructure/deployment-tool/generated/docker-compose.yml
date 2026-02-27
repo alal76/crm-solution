@@ -201,7 +201,7 @@ services:
     ports:
     - 3001:3000
     environment:
-      DATABASE_URL: postgresql://docuseal:docuseal@crm-docuseal-postgres:5432/docuseal
+      DATABASE_URL: postgresql://docuseal:${DOCUSEAL_DB_PASSWORD:-changeme}@crm-docuseal-postgres:5432/docuseal
       SECRET_KEY_BASE: ${DOCUSEAL_SECRET_KEY}
       HOST: 0.0.0.0
     depends_on:
@@ -215,7 +215,7 @@ services:
     environment:
       POSTGRES_DB: docuseal
       POSTGRES_USER: docuseal
-      POSTGRES_PASSWORD: docuseal
+      POSTGRES_PASSWORD: ${DOCUSEAL_DB_PASSWORD:-changeme}
     volumes:
     - docuseal_data:/var/lib/postgresql/data
     networks:

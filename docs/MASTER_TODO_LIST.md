@@ -187,24 +187,94 @@
 
 ---
 
-### FEAT-PORTAL: Customer Portal Foundation
+### FEAT-PORTAL: Customer Self-Service Portal — Complete Implementation
 
-**Goal:** Allow external customers to log in, view their tickets, submit new requests, and browse the knowledge base without a CRM user account.
+**Goal:** Allow external customers to log in, view their tickets, submit new requests, browse the knowledge base, and manage their profile — without a CRM user account. Full production-grade portal with real-time updates, file attachments, email notifications, protected routing, and E2E test coverage.
+
+**Status:** Foundation ~50% complete (auth, CRUD, basic pages). Route conflict bug present. Ticket detail, profile, attachments, real-time updates, full test coverage all missing.
+
+#### Already Completed (Foundation)
 
 | ID | Priority | Description | Status |
 |----|----------|-------------|--------|
-| PORTAL-001 | P0 | Create `PortalUser` entity (Id, Email, PasswordHash, ContactId, AccountId, IsActive, LastLoginAt, EmailVerifiedAt, CreatedAt, UpdatedAt, IsDeleted, RowVersion) | Not Started |
-| PORTAL-002 | P0 | Create `PortalSession` entity (Id, PortalUserId, Token, ExpiresAt, CreatedAt, IpAddress) | Not Started |
-| PORTAL-003 | P0 | Create `PortalConfig` entity (Id, IsEnabled, AllowSelfRegistration, WelcomeMessage, LogoUrl, PrimaryColor, AllowedDomains, CreatedAt, UpdatedAt) | Not Started |
-| PORTAL-004 | P0 | Add `DbSet` entries + migration `AddCustomerPortal` | Not Started |
-| PORTAL-005 | P0 | Implement `IPortalAuthService` (Register, Login, ForgotPassword, ResetPassword, VerifyEmail) | Not Started |
-| PORTAL-006 | P0 | Implement `IPortalService` (GetMyTickets, CreateTicket, GetTicketDetails, AddComment, GetKnowledgeArticles) | Not Started |
-| PORTAL-007 | P0 | Implement `PortalAuthController` (`/api/portal/auth/login`, `/register`, `/forgot-password`, `/reset-password`) | Not Started |
-| PORTAL-008 | P0 | Implement `PortalController` (`/api/portal/tickets`, `/{id}`, `/tickets/{id}/comments`, `/knowledge-base`) | Not Started |
-| PORTAL-009 | P1 | Frontend: `PortalLoginPage`, `PortalRegisterPage`, `PortalDashboardPage`, `PortalTicketListPage`, `PortalTicketDetailPage`, `PortalKBPage` | Not Started |
-| PORTAL-010 | P1 | Add `portalService.ts` + `portalAuthService.ts` TypeScript services | Not Started |
-| PORTAL-011 | P1 | Admin UI: Portal configuration page (enable/disable portal, branding settings) | Not Started |
-| PORTAL-012 | P1 | Unit tests for `PortalAuthService` + `PortalService` (10+ test cases) | Not Started |
+| PORTAL-001 | P0 | `PortalUser` entity + `PortalConfig` entity — `DbSet` in `CrmDbContext`, `OnModelCreating` config, unique index on Email | ✅ Completed |
+| PORTAL-002 | P0 | JWT-based portal auth (stateless): portal JWT includes `portal=true` + `portal_user_id` claims, validated in `PortalController.ExtractPortalUserId()` | ✅ Completed |
+| PORTAL-003 | P0 | `IPortalAuthService` / `PortalAuthService` — Login, Register, ForgotPassword, ResetPassword, VerifyEmail (232 lines) | ✅ Completed |
+| PORTAL-004 | P0 | `IPortalService` / `PortalService` — GetMyTickets, CreateTicket, GetTicket, GetTicketComments, AddTicketComment, GetKnowledgeArticles, GetKnowledgeArticle, GetConfig (311 lines) | ✅ Completed |
+| PORTAL-005 | P0 | `IPortalAdminService` / `PortalAdminService` — GetConfig, UpdateConfig, GetPortalUsers, Activate/DeactivatePortalUser (144 lines) | ✅ Completed |
+| PORTAL-006 | P0 | `PortalAuthController` — login, register, forgot-password, reset-password, verify-email | ✅ Completed |
+| PORTAL-007 | P0 | `PortalController` — tickets list/get/create/comments, knowledge-base list/get, public config | ✅ Completed |
+| PORTAL-008 | P0 | `PortalAdminController` — GET/PUT config, GET users, POST activate/deactivate | ✅ Completed |
+| PORTAL-009 | P0 | DI registration of `IPortalAuthService`, `IPortalService`, `IPortalAdminService` in `Program.cs` | ✅ Completed |
+| PORTAL-010 | P1 | Frontend: `PortalLoginPage`, `PortalRegisterPage`, `PortalDashboardPage`, `PortalTicketListPage`, `PortalKBPage`, `PortalKBSearchPage` | ✅ Completed |
+| PORTAL-011 | P1 | Frontend: `portalService.ts` (axios service + `portalAdminService`), `PortalConfigPage.tsx` (admin config + user management) | ✅ Completed |
+| PORTAL-012 | P1 | App.tsx routes: `/portal/login`, `/portal/register`, `/portal/dashboard`, `/portal/tickets`, `/portal/knowledge-base`, `/admin/portal` | ✅ Completed |
+| PORTAL-013 | P1 | Unit tests: `PortalAuthServiceTests.cs` — 9 passing test cases | ✅ Completed |
+
+#### Remaining Gaps — Backend (P0 Blockers)
+
+| ID | Priority | Description | Status |
+|----|----------|-------------|--------|
+| PORTAL-014 | P0 | **Fix route conflict:** `CustomerPortalController` and `PortalController` both map to `[Route("api/portal")]` — causes ASP.NET Core route ambiguity exception. Remove or re-route `CustomerPortalController` to `/api/portal/crm` (it uses CRM-staff `[Authorize]` and is superseded by `PortalController`) | Not Started |
+| PORTAL-015 | P0 | **Feature flag gating:** Add `[FeatureGate(FeatureFlags.EnableCustomerPortal)]` to `PortalController` and `PortalAuthController` — endpoints must return 404/503 when `EnableCustomerPortal=false` in feature management | Not Started |
+| PORTAL-016 | P0 | **EF Core migration:** Verify `PortalUsers` and `PortalConfigs` have an explicit named migration file (not only in `ModelSnapshot`). Create and apply `AddCustomerPortalTables` migration if absent | Not Started |
+| PORTAL-017 | P0 | **Default PortalConfig seed:** Add default `PortalConfig` row in `SampleDataSeederService` (IsEnabled=false, AllowSelfRegistration=false, Title="Customer Portal") so `GET /api/portal/config` never returns 404 on fresh install | Not Started |
+
+#### Remaining Gaps — Backend (P1 Features)
+
+| ID | Priority | Description | Status |
+|----|----------|-------------|--------|
+| PORTAL-018 | P1 | **Portal rate limiting:** Add rules to `appsettings.json` RateLimiting section — `/api/portal/auth/login`: 5/min, `/api/portal/auth/register`: 3/hour, `/api/portal/auth/forgot-password`: 3/hour | Not Started |
+| PORTAL-019 | P1 | **Portal user profile API:** Add `GET /api/portal/profile` and `PUT /api/portal/profile` (update display name, phone) and `POST /api/portal/profile/change-password` to `PortalController` + corresponding `IPortalService` methods | Not Started |
+| PORTAL-020 | P1 | **Portal email notifications:** Wire `INotificationPort` (or `IEmailService`) inside `PortalAuthService.RegisterAsync` to send email-verification email; inside `PortalService.CreateTicketAsync` to send ticket-created confirmation email | Not Started |
+| PORTAL-021 | P1 | **Ticket status change notification:** When CRM agent updates `ServiceRequest.Status`, emit notification to portal user via existing `INotificationPort` (email) and SignalR if portal user is connected | Not Started |
+| PORTAL-022 | P1 | **File attachments on portal tickets:** Add `POST /api/portal/tickets/{id}/attachments` (multipart, max 10 MB) and `GET /api/portal/tickets/{id}/attachments` to `PortalController` + `IPortalService.UploadAttachmentAsync` / `GetAttachmentsAsync` using existing `FileAttachment` or blob store | Not Started |
+
+#### Remaining Gaps — Backend (P2 Enhancements)
+
+| ID | Priority | Description | Status |
+|----|----------|-------------|--------|
+| PORTAL-023 | P2 | **Ticket cancel endpoint:** `PATCH /api/portal/tickets/{id}/cancel` — portal user cancels their own open ticket (validates ownership, sets status = Cancelled) | Not Started |
+| PORTAL-024 | P2 | **Portal CSAT trigger:** After ticket resolved, call `ISatisfactionService.SendSurveyAsync` linked to portal user's contact record (depends on FEAT-CSAT completion) | Not Started |
+| PORTAL-025 | P2 | **Partner Portal backend:** `PartnerPortalPage.tsx` exists with no API. Create `IPartnerPortalService` + `PartnerPortalController` (`/api/partner-portal/deals`, `/opportunities`, `/resources`) for partner-specific views | Not Started |
+
+#### Remaining Gaps — Frontend (P0 Blockers)
+
+| ID | Priority | Description | Status |
+|----|----------|-------------|--------|
+| PORTAL-026 | P0 | **`PortalProtectedRoute` component:** `src/components/portal/PortalProtectedRoute.tsx` — reads portal JWT from `localStorage`, checks expiry, redirects to `/portal/login` if absent/expired. Apply to dashboard, tickets, detail, KB, profile routes | Not Started |
+| PORTAL-027 | P0 | **`PortalTicketDetailPage.tsx`:** Full ticket detail view — status/priority badge, description, agent name, created date, complete comment thread with `AddComment` form, file attachments list, Cancel button (calls PORTAL-023). Route: `/portal/tickets/:id` | Not Started |
+| PORTAL-028 | P0 | **Portal logout:** Add logout button/menu item in portal header that clears `portal_token` from `localStorage` and redirects to `/portal/login` | Not Started |
+| PORTAL-029 | P0 | **Update App.tsx portal routes:** Add `/portal/tickets/:id` → `PortalTicketDetailPage`, `/portal/knowledge-base/:id` → `PortalKBArticlePage`, `/portal/profile` → `PortalUserProfilePage`, `/portal/forgot-password`, `/portal/reset-password`, `/portal/verify-email` | Not Started |
+
+#### Remaining Gaps — Frontend (P1 Features)
+
+| ID | Priority | Description | Status |
+|----|----------|-------------|--------|
+| PORTAL-030 | P1 | **`PortalLayout` component:** `src/components/portal/PortalLayout.tsx` — shared top navbar (logo from PortalConfig, nav links: My Tickets / Knowledge Base / Profile, logout). Wrap all authenticated portal pages | Not Started |
+| PORTAL-031 | P1 | **`PortalKBArticlePage.tsx`:** Full KB article view — title, content (rich text), breadcrumb, "Was this helpful?" feedback. Route: `/portal/knowledge-base/:id` | Not Started |
+| PORTAL-032 | P1 | **`PortalUserProfilePage.tsx`:** View/edit display name + phone; change password form. Route: `/portal/profile` | Not Started |
+| PORTAL-033 | P1 | **Email verification UI:** `PortalVerifyEmailPage.tsx` — reads `?token=` from URL, calls `/api/portal/auth/verify-email`, shows success/error. After register, redirect to "check your email" notice. Route: `/portal/verify-email` | Not Started |
+| PORTAL-034 | P1 | **Password reset UI:** `PortalForgotPasswordPage.tsx` + `PortalResetPasswordPage.tsx`. Route: `/portal/forgot-password`, `/portal/reset-password?token=...` | Not Started |
+| PORTAL-035 | P1 | **Real-time portal ticket updates:** Connect `PortalTicketDetailPage` and `PortalTicketListPage` to SignalR — show toast when agent replies or ticket status changes while portal user is active | Not Started |
+
+#### Remaining Gaps — Frontend (P2 Enhancements)
+
+| ID | Priority | Description | Status |
+|----|----------|-------------|--------|
+| PORTAL-036 | P2 | **File attachment UI on ticket detail:** Drag-drop upload zone on `PortalTicketDetailPage` (max 10 MB, shows uploaded file list with download links) — depends on PORTAL-022 | Not Started |
+| PORTAL-037 | P2 | **Portal CSAT widget:** After ticket resolved, show inline satisfaction rating (1–5 stars + comment) within ticket detail view | Not Started |
+
+#### Remaining Gaps — Testing
+
+| ID | Priority | Description | Status |
+|----|----------|-------------|--------|
+| PORTAL-038 | P0 | Unit tests: `PortalServiceTests.cs` — 12+ cases: GetMyTickets (pagination, empty), CreateTicket (valid, portal disabled), GetTicket (own vs. other user = 403), AddTicketComment (own ticket), GetKnowledgeArticles (search filter) | Not Started |
+| PORTAL-039 | P0 | Unit tests: `PortalAdminServiceTests.cs` — 6+ cases: GetConfig (no row → creates default), UpdateConfig, GetPortalUsers (pagination), ActivateUser (valid/not-found), DeactivateUser | Not Started |
+| PORTAL-040 | P1 | Integration tests: `PortalIntegrationTests.cs` — POST login valid/invalid; POST register + duplicate email; POST tickets with portal JWT; GET tickets list; GET knowledge-base with search | Not Started |
+| PORTAL-041 | P1 | E2E: `TC-PORTAL-001` — register → verify email → login → create ticket → view ticket detail → add comment | Not Started |
+| PORTAL-042 | P1 | E2E: `TC-PORTAL-002` — search knowledge base → view article → thumbs up feedback | Not Started |
+| PORTAL-043 | P2 | E2E: `TC-PORTAL-003` — admin disables portal → portal login returns error → admin re-enables → login succeeds | Not Started |
 
 ---
 
@@ -407,7 +477,172 @@ Phase 6 — Designer Integration & Navigation (✅ COMPLETE — Feb 26, 2026):
 
 ---
 
+## FEAT-SCRIPTING-ARCH: Full Scripting Engine Architecture Migration
+
+**Source Document:** `docs/11-specifications/scripting-engine-architecture.docx` v1.0 (Feb 2026)
+**Gap Analysis Report:** `docs/investigations/scripting-engine-gap-analysis.md`
+**Overall Current Coverage:** ~20–25% of spec
+**Goal:** Migrate the existing Jint-based JavaScript-only scripting to the full dual-runtime (TypeScript 20 + .NET 10 Roslyn), sandbox-first, governance-driven scripting platform defined in the spec — across Workflow Orchestration, Agent Scripting, Script Registry, Tool Bridge, and full OpenTelemetry observability.
+
+### Phase 1 — Shared Contracts & IScriptEngine Enhancement (Weeks 1–4)
+
+| ID | Priority | Description | Status |
+|----|----------|-------------|--------|
+| SARCH-001 | P0 | **Create `ScriptDefinition` record** with: `Id` (ULID), `Name`, `Version` (SemVer string), `Kind` (`ScriptKind` enum: workflow_step / agent_hook / guardrail / transform / validation / tool_adapter), `Runtime` (dotnet / typescript), `Source`, `InputSchema` (JSON Schema string), `OutputSchema` (JSON Schema string), `Permissions` (Permission[]), `Timeout` (TimeSpan), `MemoryLimitMb` (int), `Metadata` (author, tags, lifecycle state, approval chain) | Not Started |
+| SARCH-002 | P0 | **Create `IScriptContext<TInput>` contract** — injected into sandbox; must include typed `Input: TInput`, `Env` (ExecutionEnvironment: tenantId, correlationId, callerId), `Tools` (IToolInvoker), `Config` (ReadOnlyDictionary), `Secrets` (ISecretAccessor), `State` (IStateAccessor), `Metrics` (IMetricsRecorder), `Logger` (IScriptLogger) | Not Started |
+| SARCH-003 | P0 | **Create `ScriptKind` enum** — workflow_step=0, agent_hook=1, guardrail=2, transform=3, validation=4, tool_adapter=5 — add to `SPEC-GEN-001-EnumReference.md` | Not Started |
+| SARCH-004 | P0 | **Extend `IScriptEngine` interface** — add: `CompileAsync(ScriptDefinition, CompilationOptions?, CancellationToken) → Task<CompilationResult>`, `ExecuteAsync<TIn, TOut>(CompiledScript, IScriptContext<TIn>, ExecutionOptions?, CancellationToken) → Task<ExecutionResult<TOut>>`, `RunAsync<TIn, TOut>(string scriptId, TIn input, ExecutionOptions?, CancellationToken) → Task<ExecutionResult<TOut>>` (registry lookup) | Not Started |
+| SARCH-005 | P0 | **Create `CompilationResult`** — `CompiledScriptRef` (artefact ID), `ContentHash` (SHA-256), `Diagnostics` (DiagnosticMessage[]), `CompiledAt`, `CachePath` | Not Started |
+| SARCH-006 | P0 | **Create `ExecutionResult<TOut>`** — `Output: TOut`, `Success`, `Error`, `Trace` (ActivitySpan ID), `ResourceUsage` (CpuMs, MemoryPeakBytes), `Duration`, `InputHash` (SHA-256), `OutputHash` (SHA-256) | Not Started |
+| SARCH-007 | P0 | **Create ADRs** — write docs/01-architecture/ADR-006-Scripting-Engine-Jint-Deviation.md (Jint vs Roslyn decision), ADR-007-Script-Tool-Bridge.md, ADR-008-YAML-WDL.md, ADR-009-TS-Sandbox.md, ADR-010-Embeddable-Library.md | Not Started |
+| SARCH-008 | P1 | **`ScriptTestHarness` API** — `ScriptTestHarness.FromDefinition(ScriptDefinition)` sets up mock Tool Bridge + state + secrets; `harness.When("tool").Returns(...)` DSL; `harness.ExecuteAsync(input)` returns `ExecutionResult` with assertions | Not Started |
+
+### Phase 2 — Script Registry Full Lifecycle (Weeks 5–8)
+
+| ID | Priority | Description | Status |
+|----|----------|-------------|--------|
+| SARCH-009 | P0 | **`ScriptLifecycleState` enum** — draft=0, review=1, approved=2, staged=3, deployed=4, retired=5 — add to `ScriptPlugin`/`ScriptDefinition`, add allowed-transition guard in service | Not Started |
+| SARCH-010 | P0 | **`ScriptPlugin` entity SemVer migration** — change `Version` int column → `VersionMajor` (int), `VersionMinor` (int), `VersionPatch` (int), add `LifecycleState` (int/enum), `ApprovedByUserId` (nullable FK), `ApprovedAt` (DateTime?), `RetiredAt` (DateTime?) | Not Started |
+| SARCH-011 | P0 | **`ScriptVersion` entity (version history)** — Id, ScriptPluginId (FK), VersionMajor/Minor/Patch, Source, CompiledArtefactPath, ContentHash, CreatedAt, CreatedByUserId — keep last 10 versions per script | Not Started |
+| SARCH-012 | P0 | **`ScriptAuditLog` entity** — immutable append-only: Id (ULID), ScriptId, EventType, UserId, Timestamp, Details (JSON) — 7-year retention setting | Not Started |
+| SARCH-013 | P0 | **Script approval API** — `POST /api/scriptsregistry/{id}/submit-review`, `POST /api/scriptsregistry/{id}/approve`, `POST /api/scriptsregistry/{id}/reject`, `POST /api/scriptsregistry/{id}/deploy`, `POST /api/scriptsregistry/{id}/retire` — validate role (Script Reviewer, Release Manager) | Not Started |
+| SARCH-014 | P0 | **EF Core migration** `AddScriptRegistryEnhancements` — add LifecycleState, SemVer cols, ScriptVersions table, ScriptAuditLogs table | Not Started |
+| SARCH-015 | P1 | **Compiled artefact store** — on successful compilation cache compiled artefact (Base64 assembly or JS bundle) in Redis (key = `artefact:{scriptId}:{contentHash}`); load from cache on `RunAsync` (skip recompile); tamper detection on load (re-check SHA-256) | Not Started |
+| SARCH-016 | P1 | **Breaking-change detection** — on new version submit, compare InputSchema / OutputSchema against previous deployed version using NJsonSchema diff; flag MAJOR bump if breaking | Not Started |
+| SARCH-017 | P1 | **Script Registry RBAC** — define 5 roles in `UserRole` or a dedicated scripting `Permission` model: ScriptAuthor, ScriptReviewer, ReleaseManager, PlatformAdmin, RuntimeServiceAccount | Not Started |
+| SARCH-018 | P1 | **Frontend: Script governance UI** — extend `ScriptPluginEditorPage` with: lifecycle state badge, "Submit for Review" / "Approve" / "Reject" / "Deploy" / "Retire" action buttons (role-gated), diff viewer comparing source vs. previous deployed version | Not Started |
+| SARCH-019 | P1 | **Frontend: Script monitoring dashboard** — `ScriptMonitoringPage.tsx` — table of recent executions per script (execution count, avg duration, error rate, last run), filterable by script, date range, status | Not Started |
+| SARCH-020 | P2 | **`dotnet tool` CLI** — `dotnet tool install crm-script-cli` providing: `crm-script init`, `crm-script validate <file>`, `crm-script test <file>`, `crm-script push <file> --registry <url>` | Not Started |
+
+### Phase 3 — .NET Roslyn Scripting Engine + ALC Isolation (Weeks 5–8)
+
+| ID | Priority | Description | Status |
+|----|----------|-------------|--------|
+| SARCH-021 | P0 | **Add Roslyn NuGet packages** — `Microsoft.CodeAnalysis.CSharp.Scripting` + `Microsoft.CodeAnalysis.CSharp` to `CRM.Infrastructure.csproj` | Not Started |
+| SARCH-022 | P0 | **Custom `DiagnosticAnalyzer`** — `SecureScriptAnalyzer.cs` blocks: `System.Reflection`, `System.IO`, `System.Net`, `System.Diagnostics.Process`, `unsafe` keyword, `DllImport`, direct `HttpClient` instantiation — emits `SCRIPT001` error on violation | Not Started |
+| SARCH-023 | P0 | **Allow-listed `MetadataReference` set** — `SecureReferenceResolver.cs` returns only explicitly permitted assemblies (corlib, System.Linq, System.Text.Json, CRM.Core contracts, etc.); blocks all others | Not Started |
+| SARCH-024 | P0 | **`RoslynScriptEngine : IScriptEngine`** — `CompileAsync`: run `SecureScriptAnalyzer` → `CSharpScript.Create<TOut>` with allow-listed refs → emit artefact → cache; `ExecuteAsync`: load from cache via `AssemblyLoadContext` → inject `IScriptContext<TIn>` globals → run → collect `GC.GetAllocatedBytesForCurrentThread` delta + wall clock | Not Started |
+| SARCH-025 | P0 | **`ScriptAssemblyLoadContext`** — collectible ALC per execution; override `Load` to block assemblies not in allow-list; `Dispose` after execution to force GC collection | Not Started |
+| SARCH-026 | P1 | **`MemoryWatchdog`** — background `Timer` sampling `GC.GetAllocatedBytesForCurrentThread()` every 50ms during execution; cancels `CancellationToken` if exceeds `ScriptDefinition.MemoryLimitMb` | Not Started |
+| SARCH-027 | P1 | **`SemaphoreSlim` concurrency ceiling** — `RoslynScriptEngine` holds a `SemaphoreSlim(200)` — all `ExecuteAsync` calls wait to acquire; configurable via `ScriptEngineOptions.MaxConcurrency` | Not Started |
+| SARCH-028 | P1 | **Register `RoslynScriptEngine`** in `ScriptingServiceExtensions.cs` — keyed DI `services.AddKeyedSingleton<IScriptEngine, RoslynScriptEngine>("dotnet")`; `ScriptEngineFactory` resolves by `ScriptDefinition.Runtime` | Not Started |
+| SARCH-029 | P1 | **Unit tests: `RoslynScriptEngineTests.cs`** — 12+ cases: basic execution, security analyzer blocks reflection, ALC disposal frees memory, timeout enforcement, memory limit enforcement, allow-listed refs only | Not Started |
+
+### Phase 3b — TypeScript Scripting Engine (isolated-vm) (Weeks 9–12)
+
+| ID | Priority | Description | Status |
+|----|----------|-------------|--------|
+| SARCH-030 | P0 | **Add Node.js sidecar service** — `crm-script-runner` Node.js process (TypeScript 20); manage from `CRM.Infrastructure` via stdin/stdout pipe or HTTP on a named socket; responsible for SWC compilation + isolated-vm execution | Not Started |
+| SARCH-031 | P0 | **SWC + tsc compilation pipeline** — AST security scan (SWC Visitor plugin blocking `eval()`, `globalThis`, `import()`, dynamic `require()`, `Proxy`/`Reflect`); tsc type-check against `@engine/contracts` `.d.ts`; SWC transform (IIFE wrap + inject `__ctx`); output cached by content hash | Not Started |
+| SARCH-032 | P0 | **`isolated-vm` V8 Isolate sandbox** — V8 Isolate per execution (separate heap, hardware-level boundary); `memoryLimit` from `ScriptDefinition.MemoryLimitMb`; CPU bounded via `timeout` on `Script.runInContext()`; reference callbacks for Tool Bridge calls back to .NET | Not Started |
+| SARCH-033 | P0 | **`@engine/stdlib` package** — audited utility library published to internal npm registry: `http` (proxy via Tool Bridge), `encoding`, `date`, `crypto` (hash only), `collections` — blocked: `fs`, `child_process`, `net`, `os`, `cluster` | Not Started |
+| SARCH-034 | P0 | **`@engine/contracts` package** — TypeScript `.d.ts` generated from C# `IScriptContext<TIn>` contracts via `NSwag` or `TypeSpec`; published to internal npm registry | Not Started |
+| SARCH-035 | P0 | **`TypeScriptScriptEngine : IScriptEngine`** in C# — `CompileAsync` sends source to crm-script-runner via pipe/socket and receives compiled bundle; `ExecuteAsync` sends bundle + context → receives `ExecutionResult<TOut>` JSON | Not Started |
+| SARCH-036 | P1 | **Add crm-script-runner to docker-compose** — `crm-components` stack, Unix socket mounted at `/tmp/crm-script-runner.sock`, `NODE_ENV=production`, no network access | Not Started |
+| SARCH-037 | P1 | **`@engine/testing` Vitest harness** — npm package providing `scriptTest(file, { tools: mockedTools, input: {...} })` for unit testing `.ts` scripts outside the runtime | Not Started |
+| SARCH-038 | P1 | **Unit tests: `TypeScriptScriptEngineTests.cs`** — 8+ cases: basic execution, blocked `eval()`, blocked `import`, tool bridge invocation, timeout, memory | Not Started |
+
+### Phase 4 — Tool Bridge (Weeks 5–8, parallel with Phase 3)
+
+| ID | Priority | Description | Status |
+|----|----------|-------------|--------|
+| SARCH-039 | P0 | **`IToolInvoker` interface** — `Task<ToolResult<TResult>> CallAsync<TResult>(string toolName, object parameters, CancellationToken)` — permission-gated call to registered platform tools from within a script execution | Not Started |
+| SARCH-040 | P0 | **`ToolRegistry`** — `services.AddScriptTool("GetActiveCustomers", ...)` registration pattern in DI; stores `ToolDescriptor` (name, permissions required, delegate); auto-discovered via `[ScriptTool]` attribute on CRM service methods | Not Started |
+| SARCH-041 | P0 | **`ToolBridgeInvoker : IToolInvoker`** — validates `ScriptDefinition.Permissions` includes required permission; checks SoD rules; calls the registered tool delegate; records `ToolCallAuditEntry` (scriptId, toolName, callerId, durationMs, inputHash, outputHash); applies per-tool rate limit; circuit breaker via Polly | Not Started |
+| SARCH-042 | P0 | **`IStateAccessor` implementation** — per-execution key-value store backed by Redis (`HSET execution:{correlationId} key value`); TTL = workflow instance lifetime; scripts access via `ctx.state.get(key)` / `ctx.state.set(key, value)` | Not Started |
+| SARCH-043 | P0 | **`ISecretAccessor` implementation** — reads from `IConfiguration` + Azure Key Vault (or local `secrets.json` in dev); scripts access `ctx.secrets.get("ApiKey")` — key must be declared in `ScriptDefinition.RequiredSecrets` list | Not Started |
+| SARCH-044 | P1 | **`IMetricsRecorder` implementation** — records custom metrics from scripts as OTel custom counters; `ctx.metrics.increment("custom.counter", 1, { tag: value })` | Not Started |
+| SARCH-045 | P1 | **Tool Bridge for TypeScript** — `isolated-vm` `Reference` callbacks marshalled through crm-script-runner via async message to C# `ToolBridgeInvoker` and back; JSON serialized | Not Started |
+| SARCH-046 | P1 | **Register CRM platform tools** — annotate/register core CRM service methods as Script Tools: `GetCustomerById`, `GetActiveLeads`, `CreateServiceRequest`, `GetKnowledgeArticle`, `LlmComplete` (AI call), `SendEmail`, `GetOpportunities`, `UpdateLeadStatus` | Not Started |
+| SARCH-047 | P1 | **Unit tests: `ToolBridgeInvokerTests.cs`** — 10+ cases: permission granted/denied, SoD violation, rate limit triggered, circuit breaker open, audit log written, tool not found | Not Started |
+
+### Phase 5 — Workflow Engine: YAML WDL + Full Step Types (Weeks 9–12)
+
+| ID | Priority | Description | Status |
+|----|----------|-------------|--------|
+| SARCH-048 | P0 | **YAML WDL parser** — `WorkflowDefinitionParser.ParseYaml(string yaml) → WorkflowPlan` using YamlDotNet; validates against WDL JSON Schema; resolves `${}` expression references to previous step outputs | Not Started |
+| SARCH-049 | P0 | **CEL expression evaluator** — integrate `cel-csharp` or implement mini-CEL evaluator for condition step type (`${steps.check.output.risk} > 0.7`); used in `condition` step and `approval` gate conditions | Not Started |
+| SARCH-050 | P0 | **`parallel` step type** — fan-out: start all child step executions concurrently via `Task.WhenAll`; fan-in: collect all results into `steps.parallel_name.outputs[]`; barrier with configurable `waitForAll` (bool) | Not Started |
+| SARCH-051 | P0 | **`tool` step type** — direct platform tool invocation step (no script wrapper); calls `IToolInvoker.CallAsync` directly; input/output mapped via WDL expression bindings | Not Started |
+| SARCH-052 | P0 | **`condition` step type** — evaluates CEL expression; routes to `then` branch or `else` branch; branches reference next step IDs | Not Started |
+| SARCH-053 | P0 | **`delay` step type** — suspends workflow instance for configured duration; stores `ResumeAt` on `WorkflowInstance`; background service polls for resumable instances | Not Started |
+| SARCH-054 | P1 | **`loop` step type** — iterates over `foreach` collection (from prior step output or context); executes body steps for each item; accumulates results into array | Not Started |
+| SARCH-055 | P1 | **`subworkflow` step type** — launches child `WorkflowInstance` linked to parent instance; parent waits for child completion via `WorkflowInstance.ParentInstanceId` FK + completion callback | Not Started |
+| SARCH-056 | P0 | **Durable per-step state commit** — before executing next step, serialize current step's output + context to `WorkflowInstance.StateData` (JSON); if step fails after commit, new execution starts from last committed step | Not Started |
+| SARCH-057 | P0 | **Saga integration into workflow steps** — each `WorkflowNode` gains optional `CompensationScriptId` (FK to `ScriptPlugin`) and `CompensationOrder` (int); workflow engine calls compensations in reverse order on failure | Not Started |
+| SARCH-058 | P1 | **Dead-letter queue** — permanently failed `WorkflowInstance` (max retries exhausted) moved to `WorkflowDeadLetter` table with `FailureReason`, `LastError`, `LastAttemptAt`; admin endpoint `GET /api/workflow/dead-letter` + `POST /api/workflow/dead-letter/{id}/requeue` | Not Started |
+| SARCH-059 | P1 | **Workflow replay engine** — `WorkflowReplayService.ReplayAsync(instanceId, fromStepId)` re-executes from checkpoint; used in testing harness and admin troubleshooting | Not Started |
+| SARCH-060 | P2 | **YAML frontend editor** — add "YAML" tab to workflow designer (`WorkflowDesignerPage.tsx`) alongside existing JSON split view; YAML ↔ node graph bidirectional sync | Not Started |
+
+### Phase 6 — Agent Lifecycle Hooks + Guardrails (Weeks 13–16)
+
+| ID | Priority | Description | Status |
+|----|----------|-------------|--------|
+| SARCH-061 | P0 | **`AIAgent` hook fields** — add 8 nullable `FKs` to `ScriptPlugin` on `AIAgent` entity: `OnActivateScriptId`, `OnPlanScriptId`, `OnBeforeToolCallScriptId`, `OnAfterToolCallScriptId`, `OnDecisionScriptId`, `OnMessageScriptId`, `OnErrorScriptId`, `OnCompleteScriptId` + EF Core migration `AddAgentHookScripts` | Not Started |
+| SARCH-062 | P0 | **`onActivate` hook** — called at start of `AgentExecutionService.ChatAsync`; receives agent config + initial message; may mutate system prompt or raise `PreventActivationException` | Not Started |
+| SARCH-063 | P0 | **`onPlan` hook** — called after LLM returns tool-call plan (before tools execute); receives `ToolCallPlan[]`; may reorder, remove, or augment planned calls | Not Started |
+| SARCH-064 | P0 | **`onBeforeToolCall` hook** — called before each individual tool call; receives tool name + parameters; can block call (`throw GuardrailViolationException`) or modify parameters | Not Started |
+| SARCH-065 | P0 | **`onAfterToolCall` hook** — called after each tool call result; receives tool name + raw result; can transform result before agent sees it | Not Started |
+| SARCH-066 | P0 | **`onDecision` hook** — called when agent selects final response (no more tool calls); receives candidate response; can modify or flag for human approval | Not Started |
+| SARCH-067 | P0 | **`onMessage` hook** — called on inter-agent message receipt (multi-agent messaging); receives sender ID + message; can filter, modify, or drop | Not Started |
+| SARCH-068 | P0 | **`onError` hook** — called when agent execution throws unhandled exception; receives error + context; can log, alert, or attempt recovery | Not Started |
+| SARCH-069 | P0 | **`onComplete` hook** — called after agent returns final response; receives complete conversation history + final output; for cleanup, cost recording, memory compaction | Not Started |
+| SARCH-070 | P0 | **Guardrail framework** — `GuardrailPipeline` executed inline in `AgentExecutionService`; runs registered `IGuardrailScript[]` at: Pre-Action (before tool calls), Post-Action (after tool results), Output (before final response); `GuardrailViolationException` blocks the action | Not Started |
+| SARCH-071 | P0 | **`AIAgent` budget fields** — add `MaxActionsPerExecution` (int?), `MaxLlmCallsPerExecution` (int?), `MaxBudgetUsdPerExecution` (decimal?), `RequiresHumanApprovalCondition` (CEL expression string?) + enforcement in `AgentExecutionService` | Not Started |
+| SARCH-072 | P1 | **`AgentSimulationHarness`** — `AgentSimulationHarness.ForAgent(agentId).WithScenario("...").WithMockedTools([...]).RunAsync()` returns quality metrics; integrates with promptfoo YAML scenarios | Not Started |
+| SARCH-073 | P1 | **Frontend: Agent hook configuration UI** — extend agent detail page with "Lifecycle Hooks" accordion: dropdown per hook to select script from registry (deployed scripts only, filtered by ScriptKind=agent_hook) | Not Started |
+| SARCH-074 | P1 | **Frontend: Guardrail management UI** — `GuardrailManagementPage.tsx` — list guardrails assigned to agent, add/remove, set type (Pre/Post/Output/Invariant/Decision) | Not Started |
+
+### Phase 7 — Observability + Security Hardening (Weeks 17–20)
+
+| ID | Priority | Description | Status |
+|----|----------|-------------|--------|
+| SARCH-075 | P0 | **OpenTelemetry spans for script execution** — `ScriptEngine.Execute` root span with child spans: `Script.Compile`, `Sandbox.Init`, `Script.Run`, each `ToolBridge.Call`, `Output.Validate`; tag with scriptId, version, runtime, correlationId; export to configured OTel backend | Not Started |
+| SARCH-076 | P0 | **OTel metrics counters** — `script_executions_total` (labels: script_id, runtime, success), `script_compilations_total`, `tool_calls_total` (labels: tool_name, success), `guardrail_blocks_total`, `workflow_completions_total`, `workflow_step_failures_total` | Not Started |
+| SARCH-077 | P0 | **OTel metrics histograms** — `script_execution_duration_ms`, `compilation_duration_ms`, `tool_call_duration_ms`, `sandbox_memory_peak_bytes` | Not Started |
+| SARCH-078 | P0 | **Security: T3 data exfiltration prevention** — static import analysis in Jint to block `require()` / network calls; no direct `HttpClient` access; all egress via Tool Bridge only; test with intentional exfiltration attempt | Not Started |
+| SARCH-079 | P0 | **Security: T6 state tampering** — HMAC-sign workflow state snapshots before saving; validate signature on load; reject tampered snapshots | Not Started |
+| SARCH-080 | P0 | **Security: T8 script poisoning** — four-eyes review gate (approval from 2 distinct `ScriptReviewer` users for `ScriptKind.agent_hook` or `ScriptKind.guardrail`); SHA-256 signed artefacts; signature verified before every execution | Not Started |
+| SARCH-081 | P1 | **Pre-built Grafana dashboard** — scripting & workflow JSON dashboard: panels for executions/min, avg duration, error rate, top scripts by execution count, tool call breakdown, memory usage, guardrail block events | Not Started |
+| SARCH-082 | P2 | **Chaos testing middleware** — `ChaosScriptingMiddleware` (dev/staging only): random delay injection, Tool Bridge failure injection, memory pressure simulation; configurable via `appsettings.Testing.json` | Not Started |
+
+### Phase 8 — Multi-Agent Messaging + Advanced Features (Weeks 17–20)
+
+| ID | Priority | Description | Status |
+|----|----------|-------------|--------|
+| SARCH-083 | P1 | **Inter-agent messaging** — Register `SendAgentMessage` as a Script Tool; publishing to `AgentMessageQueue` (Redis Stream or in-memory `Channel<T>`); receiving agent activated via registered `onMessage` hook | Not Started |
+| SARCH-084 | P1 | **`AgentMemory` episodic model** — add `Type` (episodic / semantic / procedural), `CompactorScriptId` (FK), `MaxEntries` (int), `TtlDays` (int) to `AgentMemory`; background service triggers compactor script when `MaxEntries` reached | Not Started |
+| SARCH-085 | P2 | **Script sidecar mode** — `crm-script-runner` can run as a kubernetes sidecar alongside `crm-api` pod; HTTP-based API for compile/execute; allows scaling script execution independently | Not Started |
+| SARCH-086 | P2 | **`@engine/cli` npx tool** — `npx @engine/cli init`, `validate`, `test`, `push` — TypeScript script authoring workflow from developer machine | Not Started |
+
+### Testing — Full Scripting Engine Architecture
+
+| ID | Priority | Description | Status |
+|----|----------|-------------|--------|
+| SARCH-087 | P0 | Unit tests: `RoslynScriptEngineTests.cs` — 12+ cases (maps to SARCH-029) | Not Started |
+| SARCH-088 | P0 | Unit tests: `ToolBridgeInvokerTests.cs` — 10+ cases (maps to SARCH-047) | Not Started |
+| SARCH-089 | P0 | Unit tests: `TypeScriptScriptEngineTests.cs` — 8+ cases (maps to SARCH-038) | Not Started |
+| SARCH-090 | P0 | Unit tests: `AgentLifecycleHookTests.cs` — 8 hook invocations, blocked action, budget exceeded, guardrail violation | Not Started |
+| SARCH-091 | P1 | Integration tests: `WorkflowWDLIntegrationTests.cs` — parse YAML → execute plan → assert step outputs; test all 8 step types | Not Started |
+| SARCH-092 | P1 | Integration tests: `GuardrailIntegrationTests.cs` — Pre-Action guard blocks tool call, Output guard modifies response | Not Started |
+| SARCH-093 | P1 | E2E: `TC-SARCH-001` — author `.ts` script → submit for review → approve → deploy → execute in workflow → verify OTel trace | Not Started |
+| SARCH-094 | P2 | Security penetration tests — T3 (exfiltration attempt), T4 (privilege escalation via tool), T7 (prompt injection through script) | Not Started |
+
+### Recommended Scripting Architecture Implementation Order
+
+```
+Phase 1 (Weeks 1–4):  SARCH-001→008  — Contracts + ADRs + ScriptTestHarness
+Phase 2 (Weeks 5–8):  SARCH-009→020  — Script Registry lifecycle + SARCH-021→028 Roslyn engine + SARCH-039→047 Tool Bridge (parallel tracks)
+Phase 3 (Weeks 9–12): SARCH-030→038  — TypeScript engine + SARCH-048→060 Workflow YAML WDL + step types
+Phase 4 (Weeks 13–16):SARCH-061→074  — Agent hooks + guardrails + budget controls
+Phase 5 (Weeks 17–20):SARCH-075→086  — Observability + security hardening + multi-agent
+Phase 6 (Weeks 21–24):SARCH-087→094  — Full test coverage + pilot + GA
+```
+
+---
+
 ## Key Implementation Notes
+
 
 ### Feature Flag
 Python engine is gated by `FeatureManagement:EnablePythonScripting`. When false, `ScriptEngineFactory` throws `NotSupportedException` for `ScriptLanguage.Python` and the frontend language selector hides the Python option.
@@ -444,11 +679,12 @@ npm install @monaco-editor/react monaco-editor
 
 | Metric | Value |
 |--------|-------|
-| Total pending items | 0 |
+| Total pending items | 124 (30 PORTAL-014→043 + 94 SARCH-001→094) |
 | Total done this session | 23 |
 | Total historically completed | 525 |
-| Specs covering this feature | 2 (SPEC-SD-004 v1.3, SPEC-AI-006 v1.0) |
-| New enum | ScriptLanguage (SPEC-GEN-001 section 2.8) |
+| Specs covering scripting arch | `scripting-engine-architecture.docx` v1.0 (Feb 2026) — gap analysis: `docs/investigations/scripting-engine-gap-analysis.md` |
+| Specs covering portal | SPEC-PORTAL (foundation complete), see PORTAL-014→043 for remaining items |
+| New enum | ScriptLanguage (SPEC-GEN-001 section 2.8), ScriptKind (SARCH-003) |
 | Feature branch | feature/master-todo-batch |
 | Build status | ✅ 0 errors, 0 warnings |
 | Unit test count | ✅ 38 passing (18 Jint + 6 Factory + 10 ScriptPluginService + 4 ScriptPluginLoader), 12 skipped (Python pending) |

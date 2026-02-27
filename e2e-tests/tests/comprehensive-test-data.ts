@@ -431,35 +431,35 @@ export interface AdminSettings {
 export const TEST_USERS: Record<string, TestUser> = {
   admin: {
     email: 'admin@crm.local',
-    password: 'Admin@123',
+    password: process.env.TEST_PASSWORD || 'Admin@123', // NOSONAR - intentional test data
     firstName: 'System',
     lastName: 'Administrator',
     role: 'Administrator',
   },
   salesRep: {
     email: 'test_salesrep@crm-test.local',
-    password: 'TestSales@123',
+    password: process.env.TEST_PASSWORD || 'TestSales@123', // NOSONAR - intentional test data
     firstName: 'TEST_Sales',
     lastName: 'Representative',
     role: 'Sales Representative',
   },
   supportAgent: {
     email: 'test_supportagent@crm-test.local',
-    password: 'TestSupport@123',
+    password: process.env.TEST_PASSWORD || 'TestSupport@123', // NOSONAR - intentional test data
     firstName: 'TEST_Support',
     lastName: 'Agent',
     role: 'Support Agent',
   },
   viewer: {
     email: 'test_viewer@crm-test.local',
-    password: 'TestViewer@123',
+    password: process.env.TEST_PASSWORD || 'TestViewer@123', // NOSONAR - intentional test data
     firstName: 'TEST_Read',
     lastName: 'Viewer',
     role: 'Viewer',
   },
   itsmAgent: {
     email: 'test_itsmagent@crm-test.local',
-    password: 'TestITSM@123',
+    password: process.env.TEST_PASSWORD || 'TestITSM@123', // NOSONAR - intentional test data
     firstName: 'TEST_ITSM',
     lastName: 'Agent',
     role: 'ITSM Agent',

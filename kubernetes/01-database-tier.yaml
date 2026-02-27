@@ -83,6 +83,7 @@ spec:
           limits:
             memory: "512Mi"
             cpu: "500m"
+            ephemeral-storage: "1Gi"
         livenessProbe:
           exec:
             command:

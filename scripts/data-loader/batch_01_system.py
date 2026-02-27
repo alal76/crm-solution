@@ -37,12 +37,13 @@ def run(api: ApiClient, log: RunLogger) -> None:
     # ---- Users ----
     log.section("Users CRUD")
     ts = int(time.time())
+    test_password = os.environ.get('TEST_PASSWORD', 'Test@12345')  # NOSONAR
     users = [
-        {"email": f"test1_{ts}@crm.local", "password": "Test@12345",
+        {"email": f"test1_{ts}@crm.local", "password": test_password,
          "firstName": "Test", "lastName": "User1", "roleId": 2},
-        {"email": f"test2_{ts}@crm.local", "password": "Test@12345",
+        {"email": f"test2_{ts}@crm.local", "password": test_password,
          "firstName": "Test", "lastName": "User2", "roleId": 2},
-        {"email": f"test3_{ts}@crm.local", "password": "Test@12345",
+        {"email": f"test3_{ts}@crm.local", "password": test_password,
          "firstName": "Test", "lastName": "Manager1", "roleId": 1},
     ]
     user_ids = []

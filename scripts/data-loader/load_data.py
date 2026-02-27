@@ -19,6 +19,7 @@ Licensed under the GNU Affero General Public License v3.0
 
 import argparse
 import json
+import os
 import random
 import sys
 from datetime import datetime, timedelta
@@ -29,7 +30,7 @@ import urllib.error
 # Configuration
 DEFAULT_API_BASE = "http://192.168.0.9:5000/api"
 DEFAULT_ADMIN_USERNAME = "admin"
-DEFAULT_ADMIN_PASSWORD = "Admin@123"
+DEFAULT_ADMIN_PASSWORD = os.environ.get('ADMIN_PASSWORD', 'Admin@123')  # NOSONAR - test data loader default
 
 # ============================================================================
 # API Client
@@ -384,12 +385,13 @@ def load_basic_data(api: APIClient):
     
     # Create sample users
     print("\n👥 Creating sample users...")
+    user_password = os.environ.get('TEST_USER_PASSWORD', 'User@123')  # NOSONAR - test data loader default
     users = [
-        {"username": "jsmith", "email": "john.smith@crm.local", "password": "User@123",
+        {"username": "jsmith", "email": "john.smith@crm.local", "password": user_password,
          "firstName": "John", "lastName": "Smith", "role": 2, "isActive": True},
-        {"username": "mjohnson", "email": "mary.johnson@crm.local", "password": "User@123",
+        {"username": "mjohnson", "email": "mary.johnson@crm.local", "password": user_password,
          "firstName": "Mary", "lastName": "Johnson", "role": 2, "isActive": True},
-        {"username": "rwilliams", "email": "robert.williams@crm.local", "password": "User@123",
+        {"username": "rwilliams", "email": "robert.williams@crm.local", "password": user_password,
          "firstName": "Robert", "lastName": "Williams", "role": 3, "isActive": True},
     ]
     

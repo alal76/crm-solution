@@ -20,10 +20,10 @@ metadata:
   namespace: crm
 type: Opaque
 stringData:
-  MYSQL_ROOT_PASSWORD: "CrmDev2026Pass1"
+  MYSQL_ROOT_PASSWORD: "CHANGE_ME_BEFORE_DEPLOY"  # NOSONAR - placeholder, must be overridden
   MYSQL_DATABASE: "crm_db"
   MYSQL_USER: "crmadmin"
-  MYSQL_PASSWORD: "CrmDev2026Pass1"
+  MYSQL_PASSWORD: "CHANGE_ME_BEFORE_DEPLOY"  # NOSONAR - placeholder, must be overridden
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -76,6 +76,7 @@ spec:
             limits:
               memory: "512Mi"
               cpu: "500m"
+              ephemeral-storage: "1Gi"
           volumeMounts:
             - name: mysql-storage
               mountPath: /var/lib/mysql

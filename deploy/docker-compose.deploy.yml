@@ -434,7 +434,7 @@ services:
       docuseal-postgres:
         condition: service_healthy
     environment:
-      - DATABASE_URL=postgresql://docuseal:${DOCUSEAL_DB_PASSWORD:-docuseal_password}@docuseal-postgres:5432/docuseal
+      - DATABASE_URL=postgresql://docuseal:${DOCUSEAL_DB_PASSWORD:-changeme}@docuseal-postgres:5432/docuseal # NOSONAR - password via env var DOCUSEAL_DB_PASSWORD
       - SECRET_KEY_BASE=${DOCUSEAL_SECRET_KEY:-replace-with-secure-secret-key}
       - HOST=${DOCUSEAL_HOST:-192.168.0.9:3001}
       - WEBHOOK_URL=${DOCUSEAL_WEBHOOK_URL:-}

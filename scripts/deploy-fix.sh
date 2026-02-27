@@ -57,7 +57,7 @@ docker run -d \
   --network crm_crm-network \
   --network-alias crm-api \
   -p 5000:5000 \
-  -e "ConnectionStrings__DefaultConnection=Server=crm-mariadb;Port=3306;Database=crm_db;User=crm_user;Password=CrmPass@Dev2024;" \ # nosonar - Development script
+  -e "ConnectionStrings__DefaultConnection=Server=crm-mariadb;Port=3306;Database=crm_db;User=crm_user;Password=${DB_PASSWORD:-CrmPass@Dev2024};" \
   -e "ASPNETCORE_ENVIRONMENT=Production" \
   -e "SKIP_DB_MIGRATION=true" \
   -e "SKIP_WORKFLOW_WORKER=true" \

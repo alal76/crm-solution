@@ -49,10 +49,10 @@ config:
   REACT_APP_API_URL: /api
 
 secrets:
-  JWT_KEY: change-me-generate-secure-secret-at-least-32-chars
+  JWT_KEY: change-me-generate-secure-secret-at-least-32-chars  # NOSONAR - placeholder, override via --set or values override
   DB_USER: crm_user
-  DB_PASSWORD: change-me
-  DB_ROOT_PASSWORD: change-me-root
+  DB_PASSWORD: change-me  # NOSONAR - placeholder, override via --set secrets.DB_PASSWORD=<value>
+  DB_ROOT_PASSWORD: change-me-root  # NOSONAR - placeholder, override via --set secrets.DB_ROOT_PASSWORD=<value>
 
 db:
   enabled: true

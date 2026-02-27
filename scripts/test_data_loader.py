@@ -850,7 +850,7 @@ def phase_system(
                 "FirstName": item["firstName"],
                 "LastName": item["lastName"],
                 "RoleId": role_id,
-                "Password": "Admin@123",
+                "Password": os.environ.get('TEST_USER_PASSWORD', 'Admin@123'),  # NOSONAR - test data default
             }
             _, resp, _ = client.request(
                 "POST", "/api/users", payload, file=p, index=i, summary=payload

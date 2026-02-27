@@ -76,6 +76,7 @@ spec:
           limits:
             memory: "1Gi"
             cpu: "1000m"
+            ephemeral-storage: "1Gi"
         # Startup probe: Allow container to start before liveness checks begin
         startupProbe:
           httpGet:

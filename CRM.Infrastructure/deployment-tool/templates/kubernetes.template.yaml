@@ -99,6 +99,14 @@ spec:
         volumeMounts:
         - name: db-data
           mountPath: /var/lib/mysql
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "250m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+            ephemeral-storage: "1Gi"
         livenessProbe:
           exec:
             command: ["healthcheck.sh", "--connect"]

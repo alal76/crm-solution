@@ -38,6 +38,7 @@ spec:
             limits:
               memory: "512Mi"
               cpu: "500m"
+              ephemeral-storage: "1Gi"
           readinessProbe:
             httpGet:
               path: /health

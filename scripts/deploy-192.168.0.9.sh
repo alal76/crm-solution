@@ -101,18 +101,18 @@ deploy_databases() {
     ssh ${REMOTE_USER}@${REMOTE_HOST} << ENVFILE
 cat > ${REMOTE_APP_DIR}/docker/.env << 'EOF'
 # MariaDB Configuration
-MARIADB_ROOT_PASSWORD=RootPass@Dev2024! # nosonar - Development deployment script
+MARIADB_ROOT_PASSWORD=${MARIADB_ROOT_PASSWORD:-RootPass@Dev2024!}
 MARIADB_DATABASE=crm_db
 MARIADB_USER=crm_user
-MARIADB_PASSWORD=CrmPass@Dev2024! # nosonar - Development deployment script
+MARIADB_PASSWORD=${MARIADB_PASSWORD:-CrmPass@Dev2024!}
 
 # PostgreSQL Configuration
 POSTGRES_USER=crm_user
-POSTGRES_PASSWORD=CrmPass@Dev2024! # nosonar - Development deployment script
+POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-CrmPass@Dev2024!}
 POSTGRES_DB=crm_db
 
 # SQL Server Configuration
-MSSQL_SA_PASSWORD=CrmPass@Dev2024! # nosonar - Development deployment script
+MSSQL_SA_PASSWORD=${MSSQL_SA_PASSWORD:-CrmPass@Dev2024!}
 EOF
 ENVFILE
     
@@ -261,7 +261,7 @@ seed_databases() {
     
     ssh ${REMOTE_USER}@${REMOTE_HOST} << SEED_DB
         echo "=== Seeding MariaDB ==="
-        docker exec crm-mariadb mysql -u root -pRootPass@Dev2024! -e " # nosonar - Development deployment script
+        docker exec crm-mariadb mysql -u root -p${MARIADB_ROOT_PASSWORD:-RootPass@Dev2024!} -e "
             USE crm_db;
             -- Seed data will be handled by the API on first run
             SELECT 'MariaDB ready for seeding via API' AS Status;

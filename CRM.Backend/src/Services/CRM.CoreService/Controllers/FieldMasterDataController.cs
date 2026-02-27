@@ -132,18 +132,19 @@ public class FieldMasterDataController : ControllerBase
         [FromQuery] int limit = 100)
     {
         // Parse dependent values from query string
-        var dependentValues = new Dictionary<string, string>();
+        Dictionary<string, string>? dependentValues = null;
         foreach (var key in Request.Query.Keys)
         {
             if (key != "search" && key != "limit" && !string.IsNullOrEmpty(Request.Query[key]))
             {
+                dependentValues ??= new Dictionary<string, string>();
                 dependentValues[key] = Request.Query[key]!;
             }
         }
 
         var data = await _service.GetMasterDataForFieldAsync(
             fieldConfigurationId,
-            dependentValues.Count > 0 ? dependentValues : null,
+            dependentValues,
             search,
             limit);
         return Ok(data);

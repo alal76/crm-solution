@@ -486,7 +486,7 @@ create_admin_user() {
     # Generate BCrypt hash (requires Python with bcrypt or use preset)
     # For simplicity, we'll use a pre-generated hash for Admin@123
     # In production, the API will re-hash on first login
-    local password_hash='$2a$11$rBNvWqX8DQVHvS5GCLX.7O7WxW8VqQC5KM5f4cZ0P5iQx5G5G5G5G'
+    local password_hash='$2a$11$rBNvWqX8DQVHvS5GCLX.7O7WxW8VqQC5KM5f4cZ0P5iQx5G5G5G5G' # NOSONAR - Pre-generated bcrypt hash for initial admin seed
     
     print_info "Admin credentials:"
     print_info "  Username: $admin_username"

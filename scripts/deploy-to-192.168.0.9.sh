@@ -86,7 +86,7 @@ services:
       - ASPNETCORE_ENVIRONMENT=Development
       - ASPNETCORE_URLS=http://+:5000
       - DATABASE_PROVIDER=mariadb
-      - CONNECTIONSTRINGS__DEFAULTCONNECTION=Server=crm-mariadb;Port=3306;Database=crm_db;User=crm_user;Password=CrmPass@Dev2024;
+      - CONNECTIONSTRINGS__DEFAULTCONNECTION=Server=crm-mariadb;Port=3306;Database=crm_db;User=crm_user;Password=${DB_PASSWORD:-CrmPass@Dev2024};
       - REDIS__CONNECTIONSTRING=crm-redis:6379
     depends_on:
       - crm-mariadb

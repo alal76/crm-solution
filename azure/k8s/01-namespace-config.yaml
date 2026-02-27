@@ -33,8 +33,8 @@ metadata:
 type: Opaque
 stringData:
   # These will be replaced during deployment
-  ConnectionStrings__DefaultConnection: "Server=mysql-crm-dev.mysql.database.azure.com;Database=crm_db;User=crmadmin;Password=PLACEHOLDER;SslMode=Required;"
-  Jwt__Secret: "PLACEHOLDER"
+  ConnectionStrings__DefaultConnection: "Server=mysql-crm-dev.mysql.database.azure.com;Database=crm_db;User=crmadmin;Password=PLACEHOLDER;SslMode=Required;" # NOSONAR - placeholder, override during deployment
+  Jwt__Secret: "PLACEHOLDER" # NOSONAR - placeholder, override during deployment
   Jwt__Issuer: "CRM-Solution"
   Jwt__Audience: "CRM-Users"
   Jwt__ExpirationMinutes: "60"

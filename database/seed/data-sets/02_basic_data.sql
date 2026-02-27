@@ -20,7 +20,7 @@ INSERT INTO "Users" ("Id", "Username", "Email", "PasswordHash", "FirstName", "La
     "IsActive", "UserGroupId", "DepartmentId", "CreatedAt", "IsDeleted", "EmailConfirmed", 
     "PhoneNumber", "Title", "MustChangePassword")
 VALUES 
-    (2, 'jsmith', 'john.smith@crm.local', '$2a$11$8K1p/a0dL1LXMIgoEDFrwOexJujLDl1CZa4GlX2NqwONNlZwGLGHC', 
+    (2, 'jsmith', 'john.smith@crm.local', '$2a$11$8K1p/a0dL1LXMIgoEDFrwOexJujLDl1CZa4GlX2NqwONNlZwGLGHC', -- NOSONAR - Intentional bcrypt hash for seed data
      'John', 'Smith', true, 2, 1, NOW(), false, true, '+1-555-0101', 'Sales Manager', false)
 ON CONFLICT ("Id") DO NOTHING;
 
@@ -29,7 +29,7 @@ INSERT INTO "Users" ("Id", "Username", "Email", "PasswordHash", "FirstName", "La
     "IsActive", "UserGroupId", "DepartmentId", "CreatedAt", "IsDeleted", "EmailConfirmed",
     "PhoneNumber", "Title", "MustChangePassword")
 VALUES 
-    (3, 'mjohnson', 'mary.johnson@crm.local', '$2a$11$8K1p/a0dL1LXMIgoEDFrwOexJujLDl1CZa4GlX2NqwONNlZwGLGHC', 
+    (3, 'mjohnson', 'mary.johnson@crm.local', '$2a$11$8K1p/a0dL1LXMIgoEDFrwOexJujLDl1CZa4GlX2NqwONNlZwGLGHC', -- NOSONAR - Intentional bcrypt hash for seed data
      'Mary', 'Johnson', true, 3, 1, NOW(), false, true, '+1-555-0102', 'Sales Representative', false)
 ON CONFLICT ("Id") DO NOTHING;
 
@@ -38,7 +38,7 @@ INSERT INTO "Users" ("Id", "Username", "Email", "PasswordHash", "FirstName", "La
     "IsActive", "UserGroupId", "DepartmentId", "CreatedAt", "IsDeleted", "EmailConfirmed",
     "PhoneNumber", "Title", "MustChangePassword")
 VALUES 
-    (4, 'rwilliams', 'robert.williams@crm.local', '$2a$11$8K1p/a0dL1LXMIgoEDFrwOexJujLDl1CZa4GlX2NqwONNlZwGLGHC', 
+    (4, 'rwilliams', 'robert.williams@crm.local', '$2a$11$8K1p/a0dL1LXMIgoEDFrwOexJujLDl1CZa4GlX2NqwONNlZwGLGHC', -- NOSONAR - Intentional bcrypt hash for seed data
      'Robert', 'Williams', true, 7, 3, NOW(), false, true, '+1-555-0103', 'Support Agent', false)
 ON CONFLICT ("Id") DO NOTHING;
 

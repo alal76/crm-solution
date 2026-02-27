@@ -176,7 +176,7 @@ public class PayloadChunkingService : IPayloadChunkingService
                     items.Add(element.GetRawText());
                 }
 
-                if (items.Count <= 1)
+                if (items.Count <= 1) // NOSONAR - array with 0 or 1 items cannot be split into chunks
                     return false;
 
                 // Group items into chunks that fit the size limit

@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 import hashlib
 import base64
+import sys
 
-password = "Microsoft@1"
+password = sys.argv[1] if len(sys.argv) > 1 else input("Enter password to hash: ")
 sha256_hash = hashlib.sha256(password.encode('utf-8')).digest()
 base64_hash = base64.b64encode(sha256_hash).decode('utf-8')
 

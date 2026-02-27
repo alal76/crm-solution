@@ -164,7 +164,7 @@ public static class SearchIndexDefinitions
                 ["IsActive"] = true
             }
         }
-    };
+    }.AsReadOnly();
 
     /// <summary>
     /// Gets index configuration for an entity type.

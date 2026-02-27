@@ -402,7 +402,7 @@
                 
                 <div class="row g-3">
                     <div class="col-md-6">
-                        <label class="option-card" onclick="selectPlatform('azure')">
+                        <label class="option-card" onclick="selectPlatform('azure')" onkeydown="this.click()">
                             <input type="radio" name="platform" value="azure">
                             <div class="option-icon text-primary"><i class="bi bi-microsoft"></i></div>
                             <h5>Microsoft Azure</h5>
@@ -410,7 +410,7 @@
                         </label>
                     </div>
                     <div class="col-md-6">
-                        <label class="option-card" onclick="selectPlatform('aws')">
+                        <label class="option-card" onclick="selectPlatform('aws')" onkeydown="this.click()">
                             <input type="radio" name="platform" value="aws">
                             <div class="option-icon text-warning"><i class="bi bi-amazon"></i></div>
                             <h5>Amazon AWS</h5>
@@ -418,7 +418,7 @@
                         </label>
                     </div>
                     <div class="col-md-6">
-                        <label class="option-card" onclick="selectPlatform('gcp')">
+                        <label class="option-card" onclick="selectPlatform('gcp')" onkeydown="this.click()">
                             <input type="radio" name="platform" value="gcp">
                             <div class="option-icon text-danger"><i class="bi bi-google"></i></div>
                             <h5>Google Cloud</h5>
@@ -426,7 +426,7 @@
                         </label>
                     </div>
                     <div class="col-md-6">
-                        <label class="option-card" onclick="selectPlatform('on_premises')">
+                        <label class="option-card" onclick="selectPlatform('on_premises')" onkeydown="this.click()">
                             <input type="radio" name="platform" value="on_premises">
                             <div class="option-icon text-dark"><i class="bi bi-server"></i></div>
                             <h5>On-Premises</h5>
@@ -513,7 +513,7 @@
                 
                 <div class="row g-3">
                     <div class="col-md-6">
-                        <label class="option-card" onclick="selectArchitecture('monolithic')">
+                        <label class="option-card" onclick="selectArchitecture('monolithic')" onkeydown="this.click()">
                             <input type="radio" name="architecture" value="monolithic">
                             <div class="option-icon text-info"><i class="bi bi-box"></i></div>
                             <h5>Monolithic</h5>
@@ -521,7 +521,7 @@
                         </label>
                     </div>
                     <div class="col-md-6">
-                        <label class="option-card" onclick="selectArchitecture('microservices')">
+                        <label class="option-card" onclick="selectArchitecture('microservices')" onkeydown="this.click()">
                             <input type="radio" name="architecture" value="microservices">
                             <div class="option-icon text-success"><i class="bi bi-boxes"></i></div>
                             <h5>Microservices</h5>
@@ -542,7 +542,7 @@
                 
                 <div class="row g-3 mb-4">
                     <div class="col-md-6">
-                        <label class="option-card" onclick="selectDatabase('mariadb')">
+                        <label class="option-card" onclick="selectDatabase('mariadb')" onkeydown="this.click()">
                             <input type="radio" name="database" value="mariadb" checked>
                             <div class="option-icon"><i class="bi bi-database"></i></div>
                             <h5>MariaDB</h5>
@@ -550,7 +550,7 @@
                         </label>
                     </div>
                     <div class="col-md-6">
-                        <label class="option-card" onclick="selectDatabase('mysql')">
+                        <label class="option-card" onclick="selectDatabase('mysql')" onkeydown="this.click()">
                             <input type="radio" name="database" value="mysql">
                             <div class="option-icon"><i class="bi bi-database"></i></div>
                             <h5>MySQL</h5>
@@ -558,7 +558,7 @@
                         </label>
                     </div>
                     <div class="col-md-6">
-                        <label class="option-card" onclick="selectDatabase('postgresql')">
+                        <label class="option-card" onclick="selectDatabase('postgresql')" onkeydown="this.click()">
                             <input type="radio" name="database" value="postgresql">
                             <div class="option-icon"><i class="bi bi-database"></i></div>
                             <h5>PostgreSQL</h5>
@@ -566,7 +566,7 @@
                         </label>
                     </div>
                     <div class="col-md-6">
-                        <label class="option-card" onclick="selectDatabase('sqlserver')">
+                        <label class="option-card" onclick="selectDatabase('sqlserver')" onkeydown="this.click()">
                             <input type="radio" name="database" value="sqlserver">
                             <div class="option-icon"><i class="bi bi-database"></i></div>
                             <h5>SQL Server</h5>
@@ -604,15 +604,15 @@
                 <div class="mb-4">
                     <label class="form-label"><i class="bi bi-search me-2"></i>Search Provider</label>
                     <div class="provider-grid" id="searchProviderGrid">
-                        <div class="provider-option selected" onclick="selectProvider('search', 'builtin')">
+                        <div class="provider-option selected" onclick="selectProvider('search', 'builtin')" onkeydown="this.click()" role="button" tabindex="0">
                             <i class="bi bi-box text-primary"></i>
                             <div>Built-in</div>
                         </div>
-                        <div class="provider-option" onclick="selectProvider('search', 'meilisearch')">
+                        <div class="provider-option" onclick="selectProvider('search', 'meilisearch')" onkeydown="this.click()" role="button" tabindex="0">
                             <i class="bi bi-search text-success"></i>
                             <div>Meilisearch</div>
                         </div>
-                        <div class="provider-option" onclick="selectProvider('search', 'algolia')">
+                        <div class="provider-option" onclick="selectProvider('search', 'algolia')" onkeydown="this.click()" role="button" tabindex="0">
                             <i class="bi bi-search text-info"></i>
                             <div>Algolia</div>
                         </div>
@@ -622,15 +622,15 @@
                 <div class="mb-4">
                     <label class="form-label"><i class="bi bi-chat-dots me-2"></i>Chat Provider</label>
                     <div class="provider-grid" id="chatProviderGrid">
-                        <div class="provider-option selected" onclick="selectProvider('chat', 'builtin')">
+                        <div class="provider-option selected" onclick="selectProvider('chat', 'builtin')" onkeydown="this.click()" role="button" tabindex="0">
                             <i class="bi bi-box text-primary"></i>
                             <div>Built-in</div>
                         </div>
-                        <div class="provider-option" onclick="selectProvider('chat', 'chatwoot')">
+                        <div class="provider-option" onclick="selectProvider('chat', 'chatwoot')" onkeydown="this.click()" role="button" tabindex="0">
                             <i class="bi bi-chat text-success"></i>
                             <div>Chatwoot</div>
                         </div>
-                        <div class="provider-option" onclick="selectProvider('chat', 'intercom')">
+                        <div class="provider-option" onclick="selectProvider('chat', 'intercom')" onkeydown="this.click()" role="button" tabindex="0">
                             <i class="bi bi-chat text-info"></i>
                             <div>Intercom</div>
                         </div>
@@ -640,19 +640,19 @@
                 <div class="mb-4">
                     <label class="form-label"><i class="bi bi-bell me-2"></i>Notification Provider</label>
                     <div class="provider-grid" id="notificationProviderGrid">
-                        <div class="provider-option selected" onclick="selectProvider('notification', 'builtin')">
+                        <div class="provider-option selected" onclick="selectProvider('notification', 'builtin')" onkeydown="this.click()" role="button" tabindex="0">
                             <i class="bi bi-box text-primary"></i>
                             <div>Built-in</div>
                         </div>
-                        <div class="provider-option" onclick="selectProvider('notification', 'novu')">
+                        <div class="provider-option" onclick="selectProvider('notification', 'novu')" onkeydown="this.click()" role="button" tabindex="0">
                             <i class="bi bi-bell text-success"></i>
                             <div>Novu</div>
                         </div>
-                        <div class="provider-option" onclick="selectProvider('notification', 'twilio')">
+                        <div class="provider-option" onclick="selectProvider('notification', 'twilio')" onkeydown="this.click()" role="button" tabindex="0">
                             <i class="bi bi-telephone text-danger"></i>
                             <div>Twilio</div>
                         </div>
-                        <div class="provider-option" onclick="selectProvider('notification', 'sendgrid')">
+                        <div class="provider-option" onclick="selectProvider('notification', 'sendgrid')" onkeydown="this.click()" role="button" tabindex="0">
                             <i class="bi bi-envelope text-info"></i>
                             <div>SendGrid</div>
                         </div>
@@ -662,15 +662,15 @@
                 <div class="mb-4">
                     <label class="form-label"><i class="bi bi-bar-chart me-2"></i>Analytics Provider</label>
                     <div class="provider-grid" id="analyticsProviderGrid">
-                        <div class="provider-option selected" onclick="selectProvider('analytics', 'builtin')">
+                        <div class="provider-option selected" onclick="selectProvider('analytics', 'builtin')" onkeydown="this.click()" role="button" tabindex="0">
                             <i class="bi bi-box text-primary"></i>
                             <div>Built-in</div>
                         </div>
-                        <div class="provider-option" onclick="selectProvider('analytics', 'superset')">
+                        <div class="provider-option" onclick="selectProvider('analytics', 'superset')" onkeydown="this.click()" role="button" tabindex="0">
                             <i class="bi bi-graph-up text-success"></i>
                             <div>Superset</div>
                         </div>
-                        <div class="provider-option" onclick="selectProvider('analytics', 'powerbi')">
+                        <div class="provider-option" onclick="selectProvider('analytics', 'powerbi')" onkeydown="this.click()" role="button" tabindex="0">
                             <i class="bi bi-bar-chart text-warning"></i>
                             <div>Power BI</div>
                         </div>
@@ -680,15 +680,15 @@
                 <div class="mb-4">
                     <label class="form-label"><i class="bi bi-pen me-2"></i>Signature Provider</label>
                     <div class="provider-grid" id="signatureProviderGrid">
-                        <div class="provider-option selected" onclick="selectProvider('signature', 'builtin')">
+                        <div class="provider-option selected" onclick="selectProvider('signature', 'builtin')" onkeydown="this.click()" role="button" tabindex="0">
                             <i class="bi bi-box text-primary"></i>
                             <div>Built-in</div>
                         </div>
-                        <div class="provider-option" onclick="selectProvider('signature', 'docuseal')">
+                        <div class="provider-option" onclick="selectProvider('signature', 'docuseal')" onkeydown="this.click()" role="button" tabindex="0">
                             <i class="bi bi-file-earmark-text text-success"></i>
                             <div>DocuSeal</div>
                         </div>
-                        <div class="provider-option" onclick="selectProvider('signature', 'docusign')">
+                        <div class="provider-option" onclick="selectProvider('signature', 'docusign')" onkeydown="this.click()" role="button" tabindex="0">
                             <i class="bi bi-file-earmark-check text-info"></i>
                             <div>DocuSign</div>
                         </div>
@@ -698,15 +698,15 @@
                 <div class="mb-4">
                     <label class="form-label"><i class="bi bi-robot me-2"></i>AI Provider</label>
                     <div class="provider-grid" id="aiProviderGrid">
-                        <div class="provider-option selected" onclick="selectProvider('ai', 'ollama')">
+                        <div class="provider-option selected" onclick="selectProvider('ai', 'ollama')" onkeydown="this.click()" role="button" tabindex="0">
                             <i class="bi bi-cpu text-primary"></i>
                             <div>Ollama (Local)</div>
                         </div>
-                        <div class="provider-option" onclick="selectProvider('ai', 'openai')">
+                        <div class="provider-option" onclick="selectProvider('ai', 'openai')" onkeydown="this.click()" role="button" tabindex="0">
                             <i class="bi bi-robot text-success"></i>
                             <div>OpenAI</div>
                         </div>
-                        <div class="provider-option" onclick="selectProvider('ai', 'azure_openai')">
+                        <div class="provider-option" onclick="selectProvider('ai', 'azure_openai')" onkeydown="this.click()" role="button" tabindex="0">
                             <i class="bi bi-cloud text-info"></i>
                             <div>Azure OpenAI</div>
                         </div>

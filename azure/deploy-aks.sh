@@ -112,7 +112,7 @@ if $DEPLOY_INFRA; then
     # =============================================================================
     print_header "Step 3: Generate Secrets"
     JWT_SECRET=$(openssl rand -base64 64 | tr -d '\n')
-    MYSQL_PASSWORD="CRM${ENVIRONMENT^}$(openssl rand -base64 12 | tr -d '/+=' | head -c 12)!"
+    MYSQL_PASSWORD="${MYSQL_PASSWORD:-CRM${ENVIRONMENT^}$(openssl rand -base64 12 | tr -d '/+=' | head -c 12)!}"
     print_msg $GREEN "✓ Secrets generated"
 
     # =============================================================================

@@ -64,9 +64,9 @@ public class DunningManager : IDunningManager
                     var retryResult = await RetryFailedPaymentAsync(payment.Id, cancellationToken);
                     result.ProcessedCount++;
 
-                    if (retryResult.PaymentSucceeded)
-                        result.SuccessfulRetries++;
-                    else if (retryResult.EscalationLevel == DunningEscalationLevel.Escalated)
+                    // TODO: Track successful retries when payment gateway is integrated
+                    // (retryResult.PaymentSucceeded is always false until then)
+                    if (retryResult.EscalationLevel == DunningEscalationLevel.Escalated)
                         result.EscalatedCount++;
                     else if (retryResult.EscalationLevel == DunningEscalationLevel.Final)
                         result.PausedSubscriptions++;
@@ -153,8 +153,8 @@ public class DunningManager : IDunningManager
             _ => DunningEscalationLevel.Exhausted
         };
 
-        // TODO: Replace with real payment gateway call in production
-        var paymentSucceeded = false;
+        // TODO: Integrate real payment gateway — paymentSucceeded is currently always false
+        // When payment gateway is integrated, replace 'false' literals below with actual result
 
         // Schedule next retry (payment gateway integration pending)
         {
@@ -207,7 +207,8 @@ public class DunningManager : IDunningManager
         await _context.SaveChangesAsync(cancellationToken);
 
         // --- TODO-SALES006-025: Send dunning escalation email after each failed retry ---
-        if (linkedSubscription?.SendDunningEscalationEmails == true && !paymentSucceeded)
+        // Payment retry always fails until payment gateway is integrated
+        if (linkedSubscription?.SendDunningEscalationEmails == true)
         {
             try
             {
@@ -231,7 +232,7 @@ public class DunningManager : IDunningManager
         {
             PaymentId = paymentId,
             AttemptNumber = attemptNumber,
-            PaymentSucceeded = paymentSucceeded,
+            PaymentSucceeded = false, // TODO: Set from payment gateway result when integrated
             Status = "Scheduled",
             Message = $"Retry scheduled for {nextRetryDate:yyyy-MM-dd}",
             NextRetryDate = nextRetryDate,

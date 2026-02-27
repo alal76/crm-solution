@@ -384,10 +384,8 @@ public class DatabaseBackupService : IDatabaseBackupService, IDatabaseBackupInpu
 
                 _logger.LogInformation("Backing up {TableCount} tables from {Database}", tables.Count, connection.Database);
 
-                if (tables.Count > 0)
+                foreach (var table in tables)
                 {
-                    foreach (var table in tables)
-                    {
                     await file.WriteLineAsync($"-- ----------------------------");
                     await file.WriteLineAsync($"-- Table: {table}");
                     await file.WriteLineAsync($"-- ----------------------------");
@@ -462,7 +460,6 @@ public class DatabaseBackupService : IDatabaseBackupService, IDatabaseBackupInpu
                         _logger.LogWarning(ex, "Could not export data for table {Table}", table);
                     }
                     }
-                }
 
                 await file.WriteLineAsync("SET FOREIGN_KEY_CHECKS=1;");
                 await file.WriteLineAsync($"-- Backup completed: {DateTime.UtcNow:yyyy-MM-dd HH:mm:ss} UTC");

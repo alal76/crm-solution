@@ -412,7 +412,7 @@ INSERT INTO "LookupItems" ("LookupCategoryId", "Key", "Value", "Metadata", "Sort
 INSERT INTO "Users" ("Id", "Username", "Email", "PasswordHash", "FirstName", "LastName", 
     "IsActive", "UserGroupId", "DepartmentId", "CreatedAt", "IsDeleted", "EmailConfirmed", "MustChangePassword")
 VALUES 
-    (1, 'admin', 'admin@crm.local', '$2a$11$8K1p/a0dL1LXMIgoEDFrwOexJujLDl1CZa4GlX2NqwONNlZwGLGHC', 
+    (1, 'admin', 'admin@crm.local', '$2a$11$8K1p/a0dL1LXMIgoEDFrwOexJujLDl1CZa4GlX2NqwONNlZwGLGHC', -- NOSONAR - Intentional bcrypt hash for seed data
      'System', 'Administrator', true, 1, 8, NOW(), false, true, true)
 ON CONFLICT ("Id") DO NOTHING;
 

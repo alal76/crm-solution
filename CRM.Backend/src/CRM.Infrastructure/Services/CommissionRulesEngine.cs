@@ -198,14 +198,11 @@ public class CommissionRulesEngine : ICommissionRulesEngine
             result[userId] = amount;
         }
 
-        // Adjust for rounding errors - give remainder to first user
+        // Adjust for rounding errors - give remainder to first user (no-op when remainder is zero)
         var totalDistributed = result.Values.Sum();
         var remainder = totalCommission - totalDistributed;
-        if (remainder != 0)
-        {
-            var firstUserId = result.Keys.First();
-            result[firstUserId] += remainder;
-        }
+        var firstUserId = result.Keys.First();
+        result[firstUserId] += remainder;
 
         _logger.LogInformation("Commission split calculated: Total={Total}, Splits={Splits}",
             totalCommission, string.Join(", ", result.Select(kvp => $"{kvp.Key}:{kvp.Value}")));
