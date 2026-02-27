@@ -50,8 +50,8 @@ function TabPanel(props: TabPanelProps) {
     <div
       role="tabpanel"
       hidden={value !== index}
-      id={\`ui-tabpanel-\${index}\`}
-      aria-labelledby={\`ui-tab-\${index}\`}
+      id={`ui-tabpanel-${index}`}
+      aria-labelledby={`ui-tab-${index}`}
       {...other}
     >
       {value === index && <Box sx={{ py: 3 }}>{children}</Box>}
