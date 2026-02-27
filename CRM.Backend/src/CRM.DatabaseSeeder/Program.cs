@@ -490,7 +490,7 @@ internal class Program
                 HourlyRate = isService ? faker.Random.Decimal(75, 350) : null,
                 DailyRate = isService ? faker.Random.Decimal(600, 2800) : null,
                 MinimumBillableHours = isService ? 1m : null,
-                BillableHourIncrement = isService ? 0.25m : 0.25m,
+                BillableHourIncrement = 0.25m,
                 OvertimeMultiplier = isService ? 1.5m : null,
                 WeekendMultiplier = isService ? 1.5m : null,
                 HolidayMultiplier = isService ? 2m : null,

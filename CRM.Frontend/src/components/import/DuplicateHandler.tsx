@@ -248,7 +248,7 @@ export default function DuplicateHandler({
                         <ButtonGroup size="small" variant="outlined">
                           <Button
                             onClick={() => onRecordDecision(dup.matchValue, 'skip')}
-                            color={decision === 'skip' ? 'inherit' : 'inherit'}
+                            color="inherit"
                             variant={decision === 'skip' ? 'contained' : 'outlined'}
                             startIcon={<SkipIcon />}
                             sx={{ fontSize: 11 }}

@@ -351,7 +351,7 @@ public class AIKnowledgeSearchService : IAIKnowledgeSearchService
         }
 
         var denominator = Math.Sqrt(normA) * Math.Sqrt(normB);
-        return denominator == 0 ? 0 : dotProduct / denominator;
+        return Math.Abs(denominator) < double.Epsilon ? 0 : dotProduct / denominator;
     }
 
     private static string BuildArticleText(KnowledgeArticle article)

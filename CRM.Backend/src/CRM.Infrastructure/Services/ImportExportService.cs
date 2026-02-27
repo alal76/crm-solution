@@ -343,12 +343,12 @@ public class ImportExportService : IImportExportService
                 {
                     records.Add(new AccountImportDto
                     {
-                        FirstName = values.Length > 0 ? values[0] : null,
-                        LastName = values.Length > 1 ? values[1] : null,
-                        Email = values.Length > 2 ? values[2] : string.Empty,
-                        Phone = values.Length > 3 ? values[3] : null,
-                        Company = values.Length > 4 ? values[4] : null,
-                        Industry = values.Length > 5 ? values[5] : null
+                        FirstName = values[0],
+                        LastName = values[1],
+                        Email = values[2],
+                        Phone = values[3],
+                        Company = values[4],
+                        Industry = values[5]
                     });
                 }
             }
@@ -435,10 +435,10 @@ public class ImportExportService : IImportExportService
             {
                 records.Add(new ContactImportDto
                 {
-                    FirstName = values.Length > 0 ? values[0] : string.Empty,
-                    LastName = values.Length > 1 ? values[1] : string.Empty,
-                    Email = values.Length > 2 ? values[2] : null,
-                    Phone = values.Length > 3 ? values[3] : null,
+                    FirstName = values[0],
+                    LastName = values[1],
+                    Email = values[2],
+                    Phone = values[3],
                     Title = values.Length > 4 ? values[4] : null
                 });
             }
@@ -515,10 +515,10 @@ public class ImportExportService : IImportExportService
             {
                 records.Add(new LeadImportDto
                 {
-                    FirstName = values.Length > 0 ? values[0] : string.Empty,
-                    LastName = values.Length > 1 ? values[1] : string.Empty,
-                    Email = values.Length > 2 ? values[2] : null,
-                    Phone = values.Length > 3 ? values[3] : null,
+                    FirstName = values[0],
+                    LastName = values[1],
+                    Email = values[2],
+                    Phone = values[3],
                     Company = values.Length > 4 ? values[4] : null,
                     Source = values.Length > 5 ? values[5] : null
                 });
@@ -597,8 +597,8 @@ public class ImportExportService : IImportExportService
             {
                 records.Add(new OpportunityImportDto
                 {
-                    Name = values.Length > 0 ? values[0] : string.Empty,
-                    AccountId = values.Length > 1 && int.TryParse(values[1], out var accId) ? accId : null,
+                    Name = values[0],
+                    AccountId = int.TryParse(values[1], out var accId) ? accId : null,
                     Amount = values.Length > 2 && decimal.TryParse(values[2], NumberStyles.Any, CultureInfo.InvariantCulture, out var amt) ? amt : null,
                     Probability = values.Length > 3 && int.TryParse(values[3], out var prob) ? prob : null
                 });
@@ -675,8 +675,8 @@ public class ImportExportService : IImportExportService
             {
                 records.Add(new ProductImportDto
                 {
-                    Name = values.Length > 0 ? values[0] : string.Empty,
-                    Sku = values.Length > 1 ? values[1] : null,
+                    Name = values[0],
+                    Sku = values[1],
                     Price = values.Length > 2 && decimal.TryParse(values[2], NumberStyles.Any, CultureInfo.InvariantCulture, out var price) ? price : 0
                 });
             }

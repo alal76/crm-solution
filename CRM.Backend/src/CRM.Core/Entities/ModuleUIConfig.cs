@@ -106,7 +106,7 @@ public static class DefaultModuleConfigs
         "Notes"
     };
 
-    public static readonly Dictionary<string, string[]> DefaultLinkedEntities = new()
+    public static readonly IReadOnlyDictionary<string, string[]> DefaultLinkedEntities = new Dictionary<string, string[]>
     {
         [ModuleNames.Accounts] = new[] { "Contacts", "Opportunities", "Quotes", "Tasks", "Activities", "Notes" },
         // legacy customer alias removed - accounts covers the same links

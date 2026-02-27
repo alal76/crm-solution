@@ -386,7 +386,7 @@ public class ChatwootProvider : IChatPort
         var chatwootRequest = new
         {
             content = request.Content,
-            message_type = request.IsPrivate ? "outgoing" : "outgoing",
+            message_type = "outgoing",
             @private = request.IsPrivate,
             content_type = request.ContentType,
             content_attributes = request.TemplateParams

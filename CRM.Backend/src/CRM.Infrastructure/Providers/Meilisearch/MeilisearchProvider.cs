@@ -633,13 +633,16 @@ public class MeilisearchProvider : ISearchPort
                              hit.TryGetValue("content", out var content) ? TruncateString(content?.ToString(), 200) : null;
 
             // Extract highlights if available
-            var highlights = new Dictionary<string, string>();
+            Dictionary<string, string>? highlights = null;
             if (hit.TryGetValue("_formatted", out var formatted) && formatted is JsonElement formattedElement)
             {
+                var highlightsDict = new Dictionary<string, string>();
                 foreach (var prop in formattedElement.EnumerateObject())
                 {
-                    highlights[prop.Name] = prop.Value.ToString();
+                    highlightsDict[prop.Name] = prop.Value.ToString();
                 }
+                if (highlightsDict.Count > 0)
+                    highlights = highlightsDict;
             }
 
             return new SearchHit
@@ -649,7 +652,7 @@ public class MeilisearchProvider : ISearchPort
                 Title = title ?? "Unknown",
                 Description = description,
                 Score = 1.0, // Meilisearch doesn't expose numeric scores
-                Highlights = highlights.Any() ? highlights : null
+                Highlights = highlights
             };
         }
         catch (Exception ex)

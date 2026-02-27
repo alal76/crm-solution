@@ -840,24 +840,28 @@ Then restart the API container:
                                 tables.Add(reader.GetString(0));
                         }
 
-                        // Table names from information_schema are safe to use
-                        foreach (var table in tables)
+                        if (tables.Count > 0)
                         {
-                            // Validate table name contains only safe characters
-                            if (!IsValidIdentifier(table)) continue;
+                            // Table names from information_schema are safe to use
+                            foreach (var table in tables)
+                            {
+                                // Validate table name contains only safe characters
+                                if (!IsValidIdentifier(table)) continue;
 
-                            using var optimizeCmd = connection.CreateCommand();
-                            optimizeCmd.CommandText = $"OPTIMIZE TABLE `{table}`";
-                            await optimizeCmd.ExecuteNonQueryAsync();
-                            result.Operations.Add($"OPTIMIZE TABLE {table} completed");
-                        }
+                                using var optimizeCmd = connection.CreateCommand();
+                                optimizeCmd.CommandText = $"OPTIMIZE TABLE `{table}`";
+                                await optimizeCmd.ExecuteNonQueryAsync();
+                                result.Operations.Add($"OPTIMIZE TABLE {table} completed");
+                            }
 
-                        if (tables.Any(t => IsValidIdentifier(t)))
-                        {
-                            using var analyzeCmd = connection.CreateCommand();
-                            analyzeCmd.CommandText = $"ANALYZE TABLE {string.Join(", ", tables.Where(IsValidIdentifier).Select(t => $"`{t}`"))}";
-                            await analyzeCmd.ExecuteNonQueryAsync();
-                            result.Operations.Add("ANALYZE completed - query statistics updated");
+                            var validTables = tables.Where(IsValidIdentifier).Select(t => $"`{t}`").ToList();
+                            if (validTables.Count > 0)
+                            {
+                                using var analyzeCmd = connection.CreateCommand();
+                                analyzeCmd.CommandText = $"ANALYZE TABLE {string.Join(", ", validTables)}";
+                                await analyzeCmd.ExecuteNonQueryAsync();
+                                result.Operations.Add("ANALYZE completed - query statistics updated");
+                            }
                         }
                     }
                     break;
@@ -1140,15 +1144,18 @@ Then restart the API container:
                                 tables.Add(reader.GetString(0));
                         }
 
-                        foreach (var table in tables)
+                        if (tables.Count > 0)
                         {
-                            // Validate table name
-                            if (!IsValidIdentifier(table)) continue;
+                            foreach (var table in tables)
+                            {
+                                // Validate table name
+                                if (!IsValidIdentifier(table)) continue;
 
-                            using var repairCmd = connection.CreateCommand();
-                            repairCmd.CommandText = $"ALTER TABLE `{table}` ENGINE=InnoDB";
-                            await repairCmd.ExecuteNonQueryAsync();
-                            result.Operations.Add($"Rebuilt indexes for table {table}");
+                                using var repairCmd = connection.CreateCommand();
+                                repairCmd.CommandText = $"ALTER TABLE `{table}` ENGINE=InnoDB";
+                                await repairCmd.ExecuteNonQueryAsync();
+                                result.Operations.Add($"Rebuilt indexes for table {table}");
+                            }
                         }
                     }
                     break;

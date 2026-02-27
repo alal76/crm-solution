@@ -321,7 +321,7 @@ public partial class FormulaFieldEngine : IFormulaFieldEngine
             return boolResult;
 
         if (double.TryParse(condition.Trim(), out var numResult))
-            return numResult != 0;
+            return Math.Abs(numResult) > double.Epsilon;
 
         return false;
     }
@@ -470,7 +470,7 @@ public partial class FormulaFieldEngine : IFormulaFieldEngine
         {
             var left = EvaluateArithmetic(expression[..lastMul]);
             var right = EvaluateArithmetic(expression[(lastMul + 1)..]);
-            return expression[lastMul] == '*' ? left * right : (right != 0 ? left / right : 0);
+            return expression[lastMul] == '*' ? left * right : (Math.Abs(right) > double.Epsilon ? left / right : 0);
         }
 
         // Try parse as number

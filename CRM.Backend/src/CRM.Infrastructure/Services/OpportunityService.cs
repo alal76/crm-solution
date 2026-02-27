@@ -140,7 +140,7 @@ public class OpportunityService : IOpportunityService, IOpportunityInputPort
     /// <summary>
     /// Default probabilities per stage (percent).
     /// </summary>
-    public static readonly Dictionary<OpportunityStage, int> StageProbabilityDefaults = new()
+    public static readonly IReadOnlyDictionary<OpportunityStage, int> StageProbabilityDefaults = new Dictionary<OpportunityStage, int>
     {
         { OpportunityStage.Discovery,     10 },
         { OpportunityStage.Qualification, 25 },

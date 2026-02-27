@@ -930,14 +930,14 @@ public class BuiltInSearchProvider : ISearchPort
         var facets = new Dictionary<string, List<FacetValue>>();
 
         // EntityType facet — always computed when results span multiple types
+        // Since hits.Count > 0 is guaranteed (early return above), entityTypeCounts always has items
         var entityTypeCounts = hits
             .GroupBy(h => h.EntityType)
             .Select(g => new FacetValue { Value = g.Key, Count = g.Count() })
             .OrderByDescending(f => f.Count)
             .ToList();
 
-        if (entityTypeCounts.Count > 0)
-            facets["EntityType"] = entityTypeCounts;
+        facets["EntityType"] = entityTypeCounts;
 
         // Additional metadata-driven facets
         if (facetFields != null)
@@ -957,7 +957,7 @@ public class BuiltInSearchProvider : ISearchPort
             }
         }
 
-        return facets.Count > 0 ? facets : null;
+        return facets;
     }
 
     #endregion

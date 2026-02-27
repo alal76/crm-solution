@@ -153,17 +153,11 @@ public class DunningManager : IDunningManager
             _ => DunningEscalationLevel.Exhausted
         };
 
-        // Simulate payment retry
-        var paymentSucceeded = false; // In production: call payment gateway
+        // TODO: Replace with real payment gateway call in production
+        var paymentSucceeded = false;
 
-        if (paymentSucceeded)
+        // Schedule next retry (payment gateway integration pending)
         {
-            payment.Status = PaymentStatus.Completed;
-            payment.ProcessedDate = DateTime.UtcNow;
-        }
-        else
-        {
-            // Schedule next retry
             var nextDays = attemptNumber switch
             {
                 1 => 3,  // First retry: 3 days
@@ -238,8 +232,8 @@ public class DunningManager : IDunningManager
             PaymentId = paymentId,
             AttemptNumber = attemptNumber,
             PaymentSucceeded = paymentSucceeded,
-            Status = paymentSucceeded ? "Processed" : "Scheduled",
-            Message = paymentSucceeded ? "Payment processed" : $"Retry scheduled for {nextRetryDate:yyyy-MM-dd}",
+            Status = "Scheduled",
+            Message = $"Retry scheduled for {nextRetryDate:yyyy-MM-dd}",
             NextRetryDate = nextRetryDate,
             EscalationLevel = escalationLevel,
             IsExhausted = attemptNumber > 3
@@ -288,14 +282,14 @@ public class DunningManager : IDunningManager
 
         var email = customer?.Email ?? string.Empty;
 
-        // Simulate email sending
+        // TODO: Replace with real email sending in production
         var sent = true;
 
         return new DunningEmailResultDto
         {
             PaymentId = paymentId,
             Sent = sent,
-            Message = sent ? "Email sent" : "Failed to send email",
+            Message = "Email sent",
             RecipientEmail = email,
             SentAt = DateTime.UtcNow
         };

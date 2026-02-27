@@ -15,7 +15,7 @@ public static class SearchIndexDefinitions
     /// <summary>
     /// All defined index configurations.
     /// </summary>
-    public static readonly Dictionary<string, SearchIndexConfig> Indexes = new()
+    public static readonly IReadOnlyDictionary<string, SearchIndexConfig> Indexes = new Dictionary<string, SearchIndexConfig>
     {
         ["accounts"] = new SearchIndexConfig
         {

@@ -543,26 +543,26 @@ export const createAppTheme = (mode: 'light' | 'dark' | 'high-contrast'): Theme 
       },
       success: {
         main: isDark ? '#7DD99F' : '#06A77D',
-        light: isDark ? '#B3F5D5' : '#B3F5D5',
-        dark: isDark ? '#005146' : '#005146',
+        light: '#B3F5D5',
+        dark: '#005146',
         contrastText: isDark ? '#003921' : '#FFFFFF',
       },
       error: {
         main: colors.error,
         light: colors.errorContainer,
-        dark: isDark ? '#601410' : '#601410',
+        dark: '#601410',
         contrastText: colors.onError,
       },
       warning: {
         main: isDark ? '#FFD54F' : '#E8A800',
-        light: isDark ? '#FFE082' : '#FFE082',
-        dark: isDark ? '#6D5500' : '#6D5500',
+        light: '#FFE082',
+        dark: '#6D5500',
         contrastText: isDark ? '#3E2D00' : '#FFFFFF',
       },
       info: {
         main: isDark ? '#4FC3F7' : '#0092BC',
-        light: isDark ? '#B3E5FC' : '#B3E5FC',
-        dark: isDark ? '#003A5C' : '#003A5C',
+        light: '#B3E5FC',
+        dark: '#003A5C',
         contrastText: isDark ? '#003A5C' : '#FFFFFF',
       },
       background: {

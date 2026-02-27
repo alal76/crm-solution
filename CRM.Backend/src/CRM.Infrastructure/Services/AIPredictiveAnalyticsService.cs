@@ -147,12 +147,9 @@ public class AIPredictiveAnalyticsService : IAIPredictiveAnalyticsService
         });
 
         var predictedScore = (int)Math.Clamp(Math.Round(totalScore), 0, 100);
-        var confidence = factorCount switch
-        {
-            >= 4 => 0.75,
-            >= 2 => 0.55,
-            _ => 0.30
-        };
+        // factorCount is always >= 4 (engagement, recency, company, source are unconditional)
+        // Use a sliding scale to reward having all factors present
+        var confidence = factorCount >= 5 ? 0.85 : 0.75;
 
         _logger.LogInformation("Lead {LeadId} predicted score: {Score} (confidence {Confidence})", leadId, predictedScore, confidence);
 

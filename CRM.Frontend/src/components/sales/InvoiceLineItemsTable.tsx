@@ -164,7 +164,7 @@ const InvoiceLineItemsTable: React.FC<InvoiceLineItemsTableProps> = ({
 
             {/* Grand Total Row */}
             <TableRow>
-              <TableCell colSpan={readOnly ? 5 : 5} align="right">
+              <TableCell colSpan={5} align="right">
                 <Typography variant="subtitle1" fontWeight={700}>Grand Total</Typography>
               </TableCell>
               <TableCell align="right">

@@ -143,7 +143,7 @@ public class FieldMasterDataController : ControllerBase
 
         var data = await _service.GetMasterDataForFieldAsync(
             fieldConfigurationId,
-            dependentValues.Any() ? dependentValues : null,
+            dependentValues.Count > 0 ? dependentValues : null,
             search,
             limit);
         return Ok(data);

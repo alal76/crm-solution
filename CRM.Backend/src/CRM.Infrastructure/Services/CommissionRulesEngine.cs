@@ -201,7 +201,7 @@ public class CommissionRulesEngine : ICommissionRulesEngine
         // Adjust for rounding errors - give remainder to first user
         var totalDistributed = result.Values.Sum();
         var remainder = totalCommission - totalDistributed;
-        if (remainder != 0 && result.Any())
+        if (remainder != 0)
         {
             var firstUserId = result.Keys.First();
             result[firstUserId] += remainder;

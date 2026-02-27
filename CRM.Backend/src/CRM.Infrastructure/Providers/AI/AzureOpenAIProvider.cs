@@ -819,15 +819,18 @@ Only return the JSON object.";
         try
         {
             var result = JsonSerializer.Deserialize<JsonElement>(response.Message.Content);
-            var emotions = new Dictionary<string, double>();
+            Dictionary<string, double>? emotions = null;
 
             if (result.TryGetProperty("emotions", out var emotionsProp))
             {
+                var emotionsDict = new Dictionary<string, double>();
                 foreach (var prop in emotionsProp.EnumerateObject())
                 {
                     if (prop.Value.TryGetDouble(out var value))
-                        emotions[prop.Name] = value;
+                        emotionsDict[prop.Name] = value;
                 }
+                if (emotionsDict.Count > 0)
+                    emotions = emotionsDict;
             }
 
             return new AISentimentResult
@@ -835,7 +838,7 @@ Only return the JSON object.";
                 Sentiment = result.GetProperty("sentiment").GetString() ?? "neutral",
                 Score = result.TryGetProperty("score", out var scoreProp) ? scoreProp.GetDouble() : 0,
                 Confidence = result.TryGetProperty("confidence", out var confProp) ? confProp.GetDouble() : 0.8,
-                Emotions = emotions.Any() ? emotions : null,
+                Emotions = emotions,
                 Usage = response.Usage
             };
         }

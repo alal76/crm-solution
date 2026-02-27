@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 600,
-  "patch": 16,
+  "patch": 17,
   "lastUpdate": "2026-02-27",
-  "description": "fix(sonar): comprehensive SonarCloud remediation — 12 commits fixing S4144, S2589, S125, S3776, S2325, S107, S1854, S1481, S1192, S3358, S1066, S1128 across 200+ files",
+  "description": "feat(enums): database-driven enum migration — Enhanced LookupCategories/LookupItems schema, created EnumTransitions table, added FK columns (StatusId/StageId/PriorityId), migrated 648 records (231 Leads, 230 Opportunities, 187 ServiceRequests) from enum integers to FK references, created ServiceRequestStatus/Priority categories, maintained backward compatibility",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [

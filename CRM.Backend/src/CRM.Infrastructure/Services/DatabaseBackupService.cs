@@ -384,8 +384,10 @@ public class DatabaseBackupService : IDatabaseBackupService, IDatabaseBackupInpu
 
                 _logger.LogInformation("Backing up {TableCount} tables from {Database}", tables.Count, connection.Database);
 
-                foreach (var table in tables)
+                if (tables.Count > 0)
                 {
+                    foreach (var table in tables)
+                    {
                     await file.WriteLineAsync($"-- ----------------------------");
                     await file.WriteLineAsync($"-- Table: {table}");
                     await file.WriteLineAsync($"-- ----------------------------");
@@ -458,6 +460,7 @@ public class DatabaseBackupService : IDatabaseBackupService, IDatabaseBackupInpu
                     {
                         await file.WriteLineAsync($"-- Could not export data for {table}: {ex.Message}");
                         _logger.LogWarning(ex, "Could not export data for table {Table}", table);
+                    }
                     }
                 }
 

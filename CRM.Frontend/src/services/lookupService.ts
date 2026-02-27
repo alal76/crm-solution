@@ -11,7 +11,7 @@ const cache: Record<string, Promise<LookupItem[]>> = {};
 
 export const getLookupItems = (categoryName: string): Promise<LookupItem[]> => {
   const key = categoryName;
-  if (!cache[key]) {
+  if (!(key in cache)) {
     cache[key] = apiClient.get(`/lookups/items/${encodeURIComponent(categoryName)}`).then(r => r.data as LookupItem[]).catch(err => {
       delete cache[key];
       throw err;

@@ -637,7 +637,7 @@ function CampaignsPage() {
             formData.status === 2 ? 'success' :
             formData.status === 1 ? 'info' :
             formData.status === 3 ? 'warning' :
-            formData.status === 4 ? 'default' : 'default'
+            'default'
           ) : undefined}
         />
         <DialogContent sx={{ pt: 0, minHeight: 400 }}>
