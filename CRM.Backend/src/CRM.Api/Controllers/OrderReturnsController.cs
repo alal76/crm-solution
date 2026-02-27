@@ -23,6 +23,8 @@ namespace CRM.Api.Controllers;
 [Produces("application/json")]
 public class OrderReturnsController : ControllerBase
 {
+    private const string OrderReturnNotFoundMessage = "Order return {0} not found";
+
     private readonly IOrderReturnService _returnService;
     private readonly ILogger<OrderReturnsController> _logger;
 
@@ -79,7 +81,7 @@ public class OrderReturnsController : ControllerBase
             var orderReturn = await _returnService.GetByIdAsync(id, cancellationToken);
             if (orderReturn == null)
             {
-                return NotFound(new { error = $"Order return {id} not found" });
+                return NotFound(new { error = string.Format(OrderReturnNotFoundMessage, id) });
             }
             return Ok(MapToDto(orderReturn));
         }
@@ -168,7 +170,7 @@ public class OrderReturnsController : ControllerBase
             var deleted = await _returnService.DeleteAsync(id, cancellationToken);
             if (!deleted)
             {
-                return NotFound(new { error = $"Order return {id} not found" });
+                return NotFound(new { error = string.Format(OrderReturnNotFoundMessage, id) });
             }
             return NoContent();
         }

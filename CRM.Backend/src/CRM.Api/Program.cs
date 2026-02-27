@@ -692,7 +692,6 @@ Log.Information("ITSM notification channels registered: Slack, Teams (TODO-SD005
 // builder.Services.AddHostedService<CRM.Infrastructure.Services.ITSM.AutoCloseHostedService>(); // DISABLED for System Module isolation
 // Escalation background service (auto-escalates incidents/service requests based on SLA thresholds)
 // builder.Services.AddHostedService<CRM.Infrastructure.Services.ITSM.EscalationHostedService>(); // DISABLED for System Module isolation
-// #endif
 builder.Services.AddHttpClient<IColorPaletteService, ColorPaletteService>();
 builder.Services.AddScoped<ModuleFieldConfigurationService>();
 builder.Services.AddScoped<ModuleUIConfigService>();

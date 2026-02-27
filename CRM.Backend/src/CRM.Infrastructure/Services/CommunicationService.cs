@@ -18,6 +18,8 @@ namespace CRM.Infrastructure.Services;
 /// </summary>
 public class CommunicationService : ICommunicationService
 {
+    private const string ChannelNotFoundLogMessage = "Channel {ChannelId} not found";
+
     private readonly ICrmDbContext _dbContext;
     private readonly ILogger<CommunicationService> _logger;
     private readonly INotificationPort? _notificationPort;
@@ -154,7 +156,7 @@ public class CommunicationService : ICommunicationService
 
             if (channel == null)
             {
-                _logger.LogWarning("Channel {ChannelId} not found", id);
+                _logger.LogWarning(ChannelNotFoundLogMessage, id);
                 return null;
             }
 
@@ -227,7 +229,7 @@ public class CommunicationService : ICommunicationService
 
             if (channel == null)
             {
-                _logger.LogWarning("Channel {ChannelId} not found", id);
+                _logger.LogWarning(ChannelNotFoundLogMessage, id);
                 return false;
             }
 
@@ -258,7 +260,7 @@ public class CommunicationService : ICommunicationService
 
             if (channel == null)
             {
-                _logger.LogWarning("Channel {ChannelId} not found", id);
+                _logger.LogWarning(ChannelNotFoundLogMessage, id);
                 return false;
             }
 

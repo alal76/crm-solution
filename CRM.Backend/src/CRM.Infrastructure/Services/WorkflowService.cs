@@ -18,6 +18,9 @@ namespace CRM.Infrastructure.Services;
 /// </summary>
 public class WorkflowService : IWorkflowService
 {
+    private const string DraftVersionRequiredForNodes = "Can only modify nodes in draft versions";
+    private const string DraftVersionRequiredForTransitions = "Can only modify transitions in draft versions";
+
     private readonly CrmDbContext _context;
     private readonly ILogger<WorkflowService> _logger;
 
@@ -674,7 +677,7 @@ public class WorkflowService : IWorkflowService
     {
         var version = await _context.WorkflowVersions.FindAsync(node.WorkflowVersionId);
         if (version == null || version.Status != WorkflowVersionStatus.Draft)
-            throw new InvalidOperationException("Can only add nodes to draft versions");
+            throw new InvalidOperationException(DraftVersionRequiredForNodes);
 
         node.CreatedAt = DateTime.UtcNow;
         _context.WorkflowNodes.Add(node);
@@ -696,7 +699,7 @@ public class WorkflowService : IWorkflowService
         if (node == null)
             return null;
         if (node.WorkflowVersion.Status != WorkflowVersionStatus.Draft)
-            throw new InvalidOperationException("Can only update nodes in draft versions");
+            throw new InvalidOperationException(DraftVersionRequiredForNodes);
 
         node.Name = updates.Name;
         node.Description = updates.Description;
@@ -734,7 +737,7 @@ public class WorkflowService : IWorkflowService
         if (node == null)
             return false;
         if (node.WorkflowVersion.Status != WorkflowVersionStatus.Draft)
-            throw new InvalidOperationException("Can only delete nodes from draft versions");
+            throw new InvalidOperationException(DraftVersionRequiredForNodes);
 
         // Delete connected transitions
         var transitions = await _context.WorkflowTransitions
@@ -779,7 +782,7 @@ public class WorkflowService : IWorkflowService
     {
         var version = await _context.WorkflowVersions.FindAsync(transition.WorkflowVersionId);
         if (version == null || version.Status != WorkflowVersionStatus.Draft)
-            throw new InvalidOperationException("Can only add transitions to draft versions");
+            throw new InvalidOperationException(DraftVersionRequiredForTransitions);
 
         transition.CreatedAt = DateTime.UtcNow;
         _context.WorkflowTransitions.Add(transition);
@@ -801,7 +804,7 @@ public class WorkflowService : IWorkflowService
         if (transition == null)
             return null;
         if (transition.WorkflowVersion.Status != WorkflowVersionStatus.Draft)
-            throw new InvalidOperationException("Can only update transitions in draft versions");
+            throw new InvalidOperationException(DraftVersionRequiredForTransitions);
 
         transition.Label = updates.Label;
         transition.Description = updates.Description;
@@ -832,7 +835,7 @@ public class WorkflowService : IWorkflowService
         if (transition == null)
             return false;
         if (transition.WorkflowVersion.Status != WorkflowVersionStatus.Draft)
-            throw new InvalidOperationException("Can only delete transitions from draft versions");
+            throw new InvalidOperationException(DraftVersionRequiredForTransitions);
 
         transition.IsDeleted = true;
         transition.UpdatedAt = DateTime.UtcNow;

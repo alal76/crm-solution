@@ -20,6 +20,8 @@ namespace CRM.Api.Controllers;
 [Authorize]
 public class ContactInfoController : ControllerBase
 {
+    private const string GenericErrorMessage = "An error occurred";
+
     private readonly IContactInfoService _contactInfoService;
     private readonly ILogger<ContactInfoController> _logger;
 
@@ -159,7 +161,7 @@ public class ContactInfoController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting entities sharing address {AddressId}", addressId);
-            return StatusCode(500, "An error occurred");
+            return StatusCode(500, GenericErrorMessage);
         }
     }
 
@@ -249,7 +251,7 @@ public class ContactInfoController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error unlinking address link {LinkId}", linkId);
-            return StatusCode(500, "An error occurred");
+            return StatusCode(500, GenericErrorMessage);
         }
     }
 
@@ -299,7 +301,7 @@ public class ContactInfoController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error setting primary address");
-            return StatusCode(500, "An error occurred");
+            return StatusCode(500, GenericErrorMessage);
         }
     }
 
@@ -354,7 +356,7 @@ public class ContactInfoController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting phone {PhoneId}", phoneId);
-            return StatusCode(500, "An error occurred");
+            return StatusCode(500, GenericErrorMessage);
         }
     }
 
@@ -374,7 +376,7 @@ public class ContactInfoController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting entities sharing phone {PhoneId}", phoneId);
-            return StatusCode(500, "An error occurred");
+            return StatusCode(500, GenericErrorMessage);
         }
     }
 
@@ -464,7 +466,7 @@ public class ContactInfoController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error unlinking phone link {LinkId}", linkId);
-            return StatusCode(500, "An error occurred");
+            return StatusCode(500, GenericErrorMessage);
         }
     }
 
@@ -514,7 +516,7 @@ public class ContactInfoController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error setting primary phone");
-            return StatusCode(500, "An error occurred");
+            return StatusCode(500, GenericErrorMessage);
         }
     }
 
@@ -569,7 +571,7 @@ public class ContactInfoController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting email {EmailId}", emailId);
-            return StatusCode(500, "An error occurred");
+            return StatusCode(500, GenericErrorMessage);
         }
     }
 
@@ -594,7 +596,7 @@ public class ContactInfoController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error finding email {Email}", email);
-            return StatusCode(500, "An error occurred");
+            return StatusCode(500, GenericErrorMessage);
         }
     }
 
@@ -614,7 +616,7 @@ public class ContactInfoController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting entities sharing email {EmailId}", emailId);
-            return StatusCode(500, "An error occurred");
+            return StatusCode(500, GenericErrorMessage);
         }
     }
 
@@ -704,7 +706,7 @@ public class ContactInfoController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error updating email preferences for link {LinkId}", linkId);
-            return StatusCode(500, "An error occurred");
+            return StatusCode(500, GenericErrorMessage);
         }
     }
 
@@ -724,7 +726,7 @@ public class ContactInfoController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error unlinking email link {LinkId}", linkId);
-            return StatusCode(500, "An error occurred");
+            return StatusCode(500, GenericErrorMessage);
         }
     }
 
@@ -774,7 +776,7 @@ public class ContactInfoController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error setting primary email");
-            return StatusCode(500, "An error occurred");
+            return StatusCode(500, GenericErrorMessage);
         }
     }
 
@@ -829,7 +831,7 @@ public class ContactInfoController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting social media account {SocialMediaId}", socialMediaId);
-            return StatusCode(500, "An error occurred");
+            return StatusCode(500, GenericErrorMessage);
         }
     }
 
@@ -919,7 +921,7 @@ public class ContactInfoController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error unlinking social media link {LinkId}", linkId);
-            return StatusCode(500, "An error occurred");
+            return StatusCode(500, GenericErrorMessage);
         }
     }
 
@@ -965,7 +967,7 @@ public class ContactInfoController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error setting primary social media");
-            return StatusCode(500, "An error occurred");
+            return StatusCode(500, GenericErrorMessage);
         }
     }
 

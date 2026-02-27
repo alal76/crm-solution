@@ -23,6 +23,8 @@ namespace CRM.Api.Controllers;
 [Authorize]
 public class CommissionPlansController : ControllerBase
 {
+    private const string PlanNotFoundMessage = "Commission plan with id {0} not found";
+
     private readonly ICommissionPlanService _service;
     private readonly ILogger<CommissionPlansController> _logger;
 
@@ -78,7 +80,7 @@ public class CommissionPlansController : ControllerBase
             _logger.LogInformation("Getting commission plan: id={Id}", id);
             var result = await _service.GetByIdAsync(id, cancellationToken);
             if (result == null)
-                return NotFound(new { message = $"Commission plan with id {id} not found" });
+                return NotFound(new { message = string.Format(PlanNotFoundMessage, id) });
 
             return Ok(result);
         }
@@ -131,7 +133,7 @@ public class CommissionPlansController : ControllerBase
             _logger.LogInformation("Updating commission plan: id={Id}", id);
             var result = await _service.UpdateAsync(id, dto, cancellationToken);
             if (result == null)
-                return NotFound(new { message = $"Commission plan with id {id} not found" });
+                return NotFound(new { message = string.Format(PlanNotFoundMessage, id) });
 
             return Ok(result);
         }
@@ -182,7 +184,7 @@ public class CommissionPlansController : ControllerBase
             _logger.LogInformation("Activating commission plan: id={Id}", id);
             var result = await _service.ActivateAsync(id, cancellationToken);
             if (!result)
-                return NotFound(new { message = $"Commission plan with id {id} not found" });
+                return NotFound(new { message = string.Format(PlanNotFoundMessage, id) });
 
             return Ok(new { message = "Commission plan activated successfully" });
         }
@@ -209,7 +211,7 @@ public class CommissionPlansController : ControllerBase
             _logger.LogInformation("Deactivating commission plan: id={Id}", id);
             var result = await _service.DeactivateAsync(id, cancellationToken);
             if (!result)
-                return NotFound(new { message = $"Commission plan with id {id} not found" });
+                return NotFound(new { message = string.Format(PlanNotFoundMessage, id) });
 
             return Ok(new { message = "Commission plan deactivated successfully" });
         }
@@ -286,7 +288,7 @@ public class CommissionPlansController : ControllerBase
             _logger.LogInformation("Getting tiers for commission plan: planId={PlanId}", id);
             var result = await _service.GetTiersAsync(id, cancellationToken);
             if (result == null)
-                return NotFound(new { message = $"Commission plan with id {id} not found" });
+                return NotFound(new { message = string.Format(PlanNotFoundMessage, id) });
 
             return Ok(result);
         }
@@ -315,7 +317,7 @@ public class CommissionPlansController : ControllerBase
             _logger.LogInformation("Adding tier to commission plan: planId={PlanId}", id);
             var result = await _service.AddTierAsync(id, dto, cancellationToken);
             if (result == null)
-                return NotFound(new { message = $"Commission plan with id {id} not found" });
+                return NotFound(new { message = string.Format(PlanNotFoundMessage, id) });
 
             return CreatedAtAction(nameof(GetTiers), new { id }, result);
         }

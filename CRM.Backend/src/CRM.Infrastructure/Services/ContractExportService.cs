@@ -20,6 +20,8 @@ namespace CRM.Infrastructure.Services;
 /// </summary>
 public class ContractExportService : IContractExportService
 {
+    private const string ContractNotFoundMessage = "Contract {0} not found";
+
     private readonly ICrmDbContext _context;
     private readonly ILogger<ContractExportService> _logger;
     private readonly IContractService _contractService;
@@ -46,7 +48,7 @@ public class ContractExportService : IContractExportService
 
         if (contract == null)
         {
-            throw new InvalidOperationException($"Contract {contractId} not found");
+            throw new InvalidOperationException(string.Format(ContractNotFoundMessage, contractId));
         }
 
         byte[] content;
@@ -103,7 +105,7 @@ public class ContractExportService : IContractExportService
 
         if (contract == null)
         {
-            throw new InvalidOperationException($"Contract {contractId} not found");
+            throw new InvalidOperationException(string.Format(ContractNotFoundMessage, contractId));
         }
 
         // Simple CSV-style Excel content (for stub purposes)
@@ -138,7 +140,7 @@ public class ContractExportService : IContractExportService
 
         if (contract == null)
         {
-            throw new InvalidOperationException($"Contract {contractId} not found");
+            throw new InvalidOperationException(string.Format(ContractNotFoundMessage, contractId));
         }
 
         // Simple RTF content (for stub purposes)

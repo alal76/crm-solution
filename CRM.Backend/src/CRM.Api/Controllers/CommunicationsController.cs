@@ -391,12 +391,7 @@ public class CommunicationsController : ControllerBase
             if (!channel.SmtpPort.HasValue)
                 return new ChannelTestResult { Success = false, Message = "SMTP port not configured", ErrorMessage = "Missing SMTP port" };
 
-            // In production, would attempt actual SMTP connection:
-            // using var client = new SmtpClient(channel.SmtpServer, channel.SmtpPort.Value);
-            // client.EnableSsl = channel.SmtpUseSsl;
-            // if (!string.IsNullOrEmpty(channel.SmtpUsername))
-            //     client.Credentials = new NetworkCredential(channel.SmtpUsername, channel.SmtpPassword);
-            // await client.ConnectAsync();
+            // TODO: Implement actual SMTP connection test when production-ready
             _logger.LogInformation("Email channel {ChannelId} connection test: SMTP server {Server}:{Port}",
                 channel.Id, channel.SmtpServer, channel.SmtpPort);
 
@@ -426,8 +421,7 @@ public class CommunicationsController : ControllerBase
 
         try
         {
-            // In production, would call WhatsApp Business API to verify credentials:
-            // var response = await _httpClient.GetAsync($"https://graph.facebook.com/v18.0/{channel.WhatsAppPhoneNumberId}?access_token={channel.AccessToken}");
+            // TODO: Implement WhatsApp Business API credential verification when production-ready
             _logger.LogInformation("WhatsApp channel {ChannelId} connection test: Phone ID {PhoneId}",
                 channel.Id, channel.WhatsAppPhoneNumberId);
 
@@ -457,8 +451,7 @@ public class CommunicationsController : ControllerBase
 
         try
         {
-            // In production, would verify OAuth credentials with Twitter API:
-            // var response = await _httpClient.GetAsync("https://api.twitter.com/2/users/me", authHeaders);
+            // TODO: Implement Twitter OAuth credential verification when production-ready
             _logger.LogInformation("Twitter channel {ChannelId} connection test validated", channel.Id);
 
             return new ChannelTestResult
@@ -487,8 +480,7 @@ public class CommunicationsController : ControllerBase
 
         try
         {
-            // In production, would verify page access token:
-            // var response = await _httpClient.GetAsync($"https://graph.facebook.com/v18.0/{channel.SocialAccountId}?access_token={channel.PageAccessToken}");
+            // TODO: Implement Facebook page access token verification when production-ready
             _logger.LogInformation("Facebook channel {ChannelId} connection test: Page ID {PageId}",
                 channel.Id, channel.SocialAccountId);
 
@@ -518,9 +510,7 @@ public class CommunicationsController : ControllerBase
 
         try
         {
-            // In production, would verify Twilio/SMS provider credentials:
-            // var client = new TwilioClient(channel.ApiKey, channel.ApiSecret);
-            // await client.ValidateAsync();
+            // TODO: Implement Twilio credential verification when production-ready
             _logger.LogInformation("SMS channel {ChannelId} connection test validated", channel.Id);
 
             return new ChannelTestResult
@@ -596,13 +586,7 @@ public class CommunicationsController : ControllerBase
             if (string.IsNullOrEmpty(channel.SmtpServer) || !channel.SmtpPort.HasValue)
                 return new MessageSendResult { Success = false, ErrorMessage = "SMTP not configured" };
 
-            // In production, would send via System.Net.Mail or MailKit:
-            // using var client = new SmtpClient(channel.SmtpServer, channel.SmtpPort.Value);
-            // client.EnableSsl = channel.SmtpUseSsl;
-            // client.Credentials = new NetworkCredential(channel.SmtpUsername, channel.SmtpPassword);
-            // var mailMessage = new MailMessage(channel.FromEmail, message.ToAddress, message.Subject, message.Body);
-            // if (!string.IsNullOrEmpty(message.HtmlBody)) mailMessage.IsBodyHtml = true;
-            // await client.SendMailAsync(mailMessage);
+            // TODO: Implement SMTP sending via System.Net.Mail or MailKit when production-ready
             _logger.LogInformation("Email sent to {ToAddress} via {Server}", message.ToAddress, channel.SmtpServer);
 
             return new MessageSendResult
@@ -630,9 +614,7 @@ public class CommunicationsController : ControllerBase
             if (string.IsNullOrEmpty(channel.AccessToken) || string.IsNullOrEmpty(channel.WhatsAppPhoneNumberId))
                 return new MessageSendResult { Success = false, ErrorMessage = "WhatsApp not configured" };
 
-            // In production, would send via Graph API:
-            // var payload = new { messaging_product = "whatsapp", to = message.ToAddress, type = "text", text = new { body = message.Body } };
-            // var response = await _httpClient.PostAsync($"https://graph.facebook.com/v18.0/{channel.WhatsAppPhoneNumberId}/messages", JsonContent.Create(payload));
+            // TODO: Implement WhatsApp Graph API sending when production-ready
             _logger.LogInformation("WhatsApp message sent to {ToAddress}", message.ToAddress);
 
             return new MessageSendResult
@@ -660,9 +642,7 @@ public class CommunicationsController : ControllerBase
             if (string.IsNullOrEmpty(channel.ApiKey) || string.IsNullOrEmpty(channel.AccessToken))
                 return new MessageSendResult { Success = false, ErrorMessage = "Twitter not configured" };
 
-            // In production, would send via Twitter API v2:
-            // var payload = new { event = new { type = "message_create", message_create = new { target = new { recipient_id = message.ToAddress }, message_data = new { text = message.Body } } } };
-            // var response = await _httpClient.PostAsync("https://api.twitter.com/2/dm_conversations/with/:participant_id/messages", ...);
+            // TODO: Implement Twitter DM API sending when production-ready
             _logger.LogInformation("Twitter DM sent to {ToAddress}", message.ToAddress);
 
             return new MessageSendResult
@@ -690,9 +670,7 @@ public class CommunicationsController : ControllerBase
             if (string.IsNullOrEmpty(channel.PageAccessToken ?? channel.AccessToken))
                 return new MessageSendResult { Success = false, ErrorMessage = "Facebook not configured" };
 
-            // In production, would send via Messenger Platform:
-            // var payload = new { recipient = new { id = message.ToAddress }, message = new { text = message.Body } };
-            // var response = await _httpClient.PostAsync($"https://graph.facebook.com/v18.0/me/messages?access_token={channel.PageAccessToken}", JsonContent.Create(payload));
+            // TODO: Implement Facebook Messenger Platform sending when production-ready
             _logger.LogInformation("Facebook message sent to {ToAddress}", message.ToAddress);
 
             return new MessageSendResult
@@ -720,9 +698,7 @@ public class CommunicationsController : ControllerBase
             if (string.IsNullOrEmpty(channel.ApiKey) || string.IsNullOrEmpty(channel.ApiSecret))
                 return new MessageSendResult { Success = false, ErrorMessage = "SMS provider not configured" };
 
-            // In production, would send via Twilio:
-            // TwilioClient.Init(channel.ApiKey, channel.ApiSecret);
-            // var smsMessage = await MessageResource.CreateAsync(to: new PhoneNumber(message.ToAddress), from: new PhoneNumber(channel.FromAddress), body: message.Body);
+            // TODO: Implement Twilio SMS sending when production-ready
             _logger.LogInformation("SMS sent to {ToAddress}", message.ToAddress);
 
             return new MessageSendResult
@@ -750,9 +726,7 @@ public class CommunicationsController : ControllerBase
             if (string.IsNullOrEmpty(channel.AccessToken))
                 return new MessageSendResult { Success = false, ErrorMessage = "LinkedIn not configured" };
 
-            // In production, would send via LinkedIn API:
-            // var payload = new { recipients = new[] { $"urn:li:person:{message.ToAddress}" }, subject = message.Subject, body = message.Body };
-            // var response = await _httpClient.PostAsync("https://api.linkedin.com/v2/messages", ...);
+            // TODO: Implement LinkedIn Messaging API when production-ready
             _logger.LogInformation("LinkedIn message sent to {ToAddress}", message.ToAddress);
 
             return new MessageSendResult

@@ -22,10 +22,6 @@ public class SmsNotificationChannelService : ISmsNotificationChannel
     // E.164 format regex: +[country code][subscriber number]
     private static readonly Regex E164Regex = new(@"^\+[1-9]\d{1,14}$", RegexOptions.Compiled);
 
-    // TODO: Replace with actual Twilio configuration
-    // private readonly TwilioClient _twilioClient;
-    // private readonly string _fromNumber;
-
     public SmsNotificationChannelService(ILogger<SmsNotificationChannelService> logger)
     {
         _logger = logger;
@@ -48,14 +44,7 @@ public class SmsNotificationChannelService : ISmsNotificationChannel
 
         try
         {
-            // TODO: Implement actual Twilio integration
-            // var messageOptions = new CreateMessageOptions(new Twilio.Types.PhoneNumber(phoneNumber))
-            // {
-            //     From = new Twilio.Types.PhoneNumber(_fromNumber),
-            //     Body = message
-            // };
-            // var twilioMessage = await MessageResource.CreateAsync(messageOptions);
-
+            // TODO: Replace with actual Twilio SDK integration (TODO-SD005-009)
             _logger.LogInformation("SMS stub: Would send to {PhoneNumber}: {Message}", 
                 phoneNumber, message.Length > 50 ? message.Substring(0, 50) + "..." : message);
 

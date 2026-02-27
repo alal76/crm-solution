@@ -59,19 +59,7 @@ public class StripeIntegrationService
                 };
             }
 
-            // Stub implementation - in production, use Stripe.NET SDK
-            // var options = new PaymentIntentCreateOptions
-            // {
-            //     Amount = amount,
-            //     Currency = currency,
-            //     Customer = customerId,
-            //     Description = description,
-            //     Metadata = metadata,
-            //     AutomaticPaymentMethods = new PaymentIntentAutomaticPaymentMethodsOptions { Enabled = true }
-            // };
-            // var service = new PaymentIntentService();
-            // var paymentIntent = await service.CreateAsync(options);
-
+            // TODO: Replace with Stripe.NET SDK PaymentIntentService when production-ready
             // Simulated response
             var paymentIntentId = $"pi_{Guid.NewGuid():N}";
             var clientSecret = $"{paymentIntentId}_secret_{Guid.NewGuid():N}";
@@ -143,18 +131,7 @@ public class StripeIntegrationService
                 };
             }
 
-            // Stub implementation - in production, use Stripe.NET SDK
-            // var options = new ChargeCreateOptions
-            // {
-            //     Amount = amount,
-            //     Currency = currency,
-            //     Source = token,
-            //     Description = description,
-            //     Metadata = metadata
-            // };
-            // var service = new ChargeService();
-            // var charge = await service.CreateAsync(options);
-
+            // TODO: Replace with Stripe.NET SDK ChargeService when production-ready
             // Simulated successful charge
             var chargeId = $"ch_{Guid.NewGuid():N}";
 
@@ -198,11 +175,7 @@ public class StripeIntegrationService
         {
             _logger.LogInformation("Confirming PaymentIntent: {PaymentIntentId}", paymentIntentId);
 
-            // Stub implementation - in production:
-            // var service = new PaymentIntentService();
-            // var options = new PaymentIntentConfirmOptions { PaymentMethod = paymentMethodId };
-            // var paymentIntent = await service.ConfirmAsync(paymentIntentId, options);
-
+            // TODO: Replace with Stripe.NET SDK PaymentIntentService.ConfirmAsync when production-ready
             return new PaymentIntentResultDto
             {
                 PaymentIntentId = paymentIntentId,
@@ -236,13 +209,7 @@ public class StripeIntegrationService
         {
             _logger.LogInformation("Capturing PaymentIntent: {PaymentIntentId}", paymentIntentId);
 
-            // Stub implementation - in production:
-            // var service = new PaymentIntentService();
-            // var options = amountToCapture.HasValue 
-            //     ? new PaymentIntentCaptureOptions { AmountToCapture = amountToCapture.Value }
-            //     : null;
-            // var paymentIntent = await service.CaptureAsync(paymentIntentId, options);
-
+            // TODO: Replace with Stripe.NET SDK PaymentIntentService.CaptureAsync when production-ready
             return new PaymentIntentResultDto
             {
                 PaymentIntentId = paymentIntentId,
@@ -277,11 +244,7 @@ public class StripeIntegrationService
         {
             _logger.LogInformation("Canceling PaymentIntent: {PaymentIntentId}", paymentIntentId);
 
-            // Stub implementation - in production:
-            // var service = new PaymentIntentService();
-            // var options = new PaymentIntentCancelOptions { CancellationReason = cancellationReason };
-            // var paymentIntent = await service.CancelAsync(paymentIntentId, options);
-
+            // TODO: Replace with Stripe.NET SDK PaymentIntentService.CancelAsync when production-ready
             return new PaymentIntentResultDto
             {
                 PaymentIntentId = paymentIntentId,
@@ -317,16 +280,7 @@ public class StripeIntegrationService
         {
             _logger.LogInformation("Creating refund for: {PaymentIntentId}", paymentIntentId);
 
-            // Stub implementation - in production:
-            // var service = new RefundService();
-            // var options = new RefundCreateOptions
-            // {
-            //     PaymentIntent = paymentIntentId,
-            //     Amount = amount,
-            //     Reason = reason
-            // };
-            // var refund = await service.CreateAsync(options);
-
+            // TODO: Replace with Stripe.NET SDK RefundService when production-ready
             var refundId = $"re_{Guid.NewGuid():N}";
 
             return new ChargeResultDto
@@ -365,17 +319,7 @@ public class StripeIntegrationService
             return false;
         }
 
-        // In production, use Stripe.NET SDK:
-        // try
-        // {
-        //     EventUtility.ConstructEvent(payload, signature, _config.WebhookSecret, _config.WebhookToleranceSeconds);
-        //     return true;
-        // }
-        // catch (StripeException)
-        // {
-        //     return false;
-        // }
-
+        // TODO: Replace with Stripe.NET EventUtility.ConstructEvent when production-ready
         // Stub: Basic validation
         return !string.IsNullOrEmpty(signature) && signature.Contains("t=") && signature.Contains("v1=");
     }
