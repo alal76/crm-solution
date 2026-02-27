@@ -109,7 +109,6 @@ public class ModuleFieldConfiguration : BaseEntity
 public static class ModuleNames
 {
     public const string Accounts = "Accounts";
-    // public const string Customers = "Customers"; // legacy name; use Accounts
     public const string Contacts = "Contacts";
     public const string Leads = "Leads";
     public const string Opportunities = "Opportunities";

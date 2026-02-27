@@ -237,8 +237,6 @@ public interface ICrmDbContext
     DbSet<CRM.Core.Entities.SLAPolicy> SLAPolicies { get; }
     DbSet<CRM.Core.Entities.KnowledgeBase.SLAInstance> SLAInstances { get; }
     DbSet<BusinessHours> BusinessHoursConfigs { get; } // TODO-SYS005-001
-    // DISABLED: Conflicts with ITSM.EscalationRule - both trying to use "EscalationRule" table
-    // DbSet<CRM.Core.Entities.EscalationRule> EscalationRules { get; }
     DbSet<CRM.Core.Entities.ITSM.ServiceQueue> ServiceQueues { get; }
     DbSet<CRM.Core.Entities.ITSM.EscalationRule> ITSMEscalationRules { get; }
 

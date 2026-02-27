@@ -426,8 +426,6 @@ public class CrmDbContext : DbContext, ICrmDbContext
     public DbSet<SLATarget> SLATargets { get; set; }
     public DbSet<SLAInstance> SLAInstances { get; set; }
     public DbSet<BusinessHours> BusinessHoursConfigs { get; set; }
-    // DISABLED: Conflicts with ITSM.EscalationRule - both trying to use "EscalationRule" table
-    // public DbSet<CRM.Core.Entities.EscalationRule> EscalationRules { get; set; }
     public DbSet<ITSM.ServiceQueue> ServiceQueues { get; set; }
     public DbSet<ITSM.EscalationRule> ITSMEscalationRules { get; set; }
 
@@ -3679,33 +3677,6 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.HasIndex(e => e.Name);
             entity.HasIndex(e => e.IsActive);
         });
-
-        // EscalationRule configuration
-        // DISABLED: Conflicts with ITSM.EscalationRule namespace - needs table disambiguation
-        // TODO: Configure separate tables for CRM.Core.Entities.EscalationRule vs ITSM.EscalationRule
-        /*
-        modelBuilder.Entity<CRM.Core.Entities.EscalationRule>(entity =>
-        {
-            entity.HasKey(e => e.Id);
-            entity.Property(e => e.Name).IsRequired().HasMaxLength(200);
-            entity.Property(e => e.EmailRecipientsJson).HasColumnType(longTextType);
-            entity.Property(e => e.WebhookUrl).HasMaxLength(1000);
-            entity.Property(e => e.ActionConfigJson).HasColumnType(longTextType);
-            entity.HasIndex(e => e.SLAPolicyId);
-            entity.HasIndex(e => e.TriggerMetric);
-            entity.HasIndex(e => e.IsActive);
-
-            entity.HasOne(e => e.SLAPolicy)
-                .WithMany(p => p.EscalationRules)
-                .HasForeignKey(e => e.SLAPolicyId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            entity.HasOne(e => e.ReassignToUser)
-                .WithMany()
-                .HasForeignKey(e => e.ReassignToUserId)
-                .OnDelete(DeleteBehavior.SetNull);
-        });
-        */
 
         // SLAInstance configuration
         modelBuilder.Entity<SLAInstance>(entity =>
