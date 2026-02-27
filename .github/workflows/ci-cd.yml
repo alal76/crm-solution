@@ -273,6 +273,7 @@ jobs:
     - name: Verify MariaDB is accessible by crm_user
       run: |
         for i in $(seq 1 30); do
+          # nosonar - CI test credentials for ephemeral GitHub Actions environment - not used in production
           if mysql -h 127.0.0.1 -u crm_user -pCrmPass_CI2024 crm_db -e "SELECT 1" > /dev/null 2>&1; then
             echo "✅ MariaDB accessible by crm_user after ${i}s"
             break
@@ -290,6 +291,7 @@ jobs:
         ASPNETCORE_ENVIRONMENT: Development
         ASPNETCORE_URLS: http://+:5000
         DatabaseProvider: mariadb
+        # nosonar - CI test credentials for ephemeral GitHub Actions environment - not used in production
         ConnectionStrings__DefaultConnection: "Server=127.0.0.1;Port=3306;Database=crm_db;User=crm_user;Password=CrmPass_CI2024;CharSet=utf8mb4;AllowUserVariables=true;"
         Jwt__Secret: "ThisIsAVeryLongSecureJwtSecretKeyForCIPipelineOnly123456789"
         Jwt__Issuer: CRM.Api

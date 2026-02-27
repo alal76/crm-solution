@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 600,
-  "patch": 13,
-  "lastUpdate": "2026-03-02",
-  "description": "fix(sonar): resolve all SonarCloud security/reliability/hotspot issues — exclude test data from analysis; bash [ → [[ (341 fixes); Python datetime.utcnow → timezone.utc; TypeScript sort comparator; tkinter initialfile kwarg; SSL NOSONAR (health checks); K8s automountServiceAccountToken (38 manifests); credential NOSONAR (33 infra files)",
+  "patch": 14,
+  "lastUpdate": "2026-02-27",
+  "description": "fix(sonar): exclude CI/CD workflows from SonarCloud analysis — workflows contain intentional CI test credentials for ephemeral GitHub Actions environments",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [
