@@ -709,8 +709,8 @@ public class SystemSettingsController : ControllerBase
         {
             var settings = await _settingsService.GetSettingsAsync();
 
-            // Quick Admin Login is only available in Development environment
-            var quickAdminLoginEnabled = _environment.IsDevelopment() && settings.QuickAdminLoginEnabled;
+            // Quick Admin Login is disabled
+            const bool quickAdminLoginEnabled = false;
 
             return Ok(new LoginSettingsResponse
             {

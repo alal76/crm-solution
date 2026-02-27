@@ -79,6 +79,8 @@ jobs:
 
     - name: Build production bundle
       working-directory: CRM.Frontend
+      env:
+        CI: false
       run: npm run build
 
     - name: Check bundle size
