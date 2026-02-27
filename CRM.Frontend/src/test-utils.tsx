@@ -303,7 +303,7 @@ interface AllTheProvidersProps {
 
 const AllTheProviders: React.FC<AllTheProvidersProps> = ({ children, initialRoute = '/' }) => {
   return (
-    <MemoryRouter initialEntries={[initialRoute]}>
+    <MemoryRouter initialEntries={[initialRoute]} future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <ThemeProvider theme={mockTheme}>
         <AuthContext.Provider value={mockAuthContext}>
           <ProfileContext.Provider value={mockProfileContext}>

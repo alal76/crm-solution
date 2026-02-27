@@ -291,7 +291,7 @@ function ThemedApp() {
     <ThemeProvider theme={theme}>
       <CssBaseline />
       <ErrorBoundary>
-        <Router>
+        <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
           <AuthProvider>
             <SignalRProvider>
             <SettingsProvider>

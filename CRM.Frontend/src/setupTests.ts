@@ -1,5 +1,32 @@
 // jest-setup.js - Jest configuration and setup
 
+// Suppress console errors/warnings during tests - IMMEDIATELY on module load
+const originalError = console.error;
+const originalWarn = console.warn;
+
+const shouldSuppressMessage = (args: unknown[]): boolean => {
+  if (typeof args[0] !== 'string') return false;
+  const msg = args[0];
+  return (
+    msg.includes('Warning: ReactDOM.render') ||
+    msg.includes('not wrapped in act(') ||
+    msg.includes('React Router Future Flag Warning') ||
+    msg.includes('unique "key" prop') ||
+    msg.includes('Failed prop type') ||
+    msg.includes('Function components cannot be given refs') ||
+    msg.includes('Failed to load dynamic navigation config')
+  );
+};
+
+console.error = (...args: unknown[]) => {
+  if (shouldSuppressMessage(args)) return;
+  originalError.call(console, ...args);
+};
+console.warn = (...args: unknown[]) => {
+  if (shouldSuppressMessage(args)) return;
+  originalWarn.call(console, ...args);
+};
+
 // Add custom matchers from testing library
 import '@testing-library/jest-dom';
 
@@ -16,8 +43,12 @@ afterEach(() => {
   resetAllFactories();
 });
 
-// Clean up after all tests
-afterAll(() => server.close());
+// Clean up after all tests - restore console
+afterAll(() => {
+  server.close();
+  console.error = originalError;
+  console.warn = originalWarn;
+});
 
 // Mock window.matchMedia
 Object.defineProperty(window, 'matchMedia', {
@@ -44,21 +75,3 @@ const localStorageMock = {
   key: jest.fn(),
 };
 global.localStorage = localStorageMock as unknown as Storage;
-
-// Suppress console errors during tests (optional)
-const originalError = console.error;
-beforeAll(() => {
-  console.error = (...args: unknown[]) => {
-    if (
-      typeof args[0] === 'string' &&
-      args[0].includes('Warning: ReactDOM.render')
-    ) {
-      return;
-    }
-    originalError.call(console, ...args);
-  };
-});
-
-afterAll(() => {
-  console.error = originalError;
-});

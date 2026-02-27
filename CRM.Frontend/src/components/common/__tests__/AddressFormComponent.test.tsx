@@ -55,7 +55,7 @@ const renderComponent = (props?: Partial<AddressFormComponentProps>) => {
   };
 
   return render(
-    <BrowserRouter>
+    <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <AddressFormComponent {...defaultProps} />
     </BrowserRouter>
   );

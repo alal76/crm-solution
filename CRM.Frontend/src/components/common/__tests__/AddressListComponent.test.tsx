@@ -85,7 +85,7 @@ const renderComponent = (props?: Partial<AddressListComponentProps>) => {
   };
 
   return render(
-    <BrowserRouter>
+    <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <AddressListComponent {...defaultProps} />
     </BrowserRouter>
   );
@@ -395,7 +395,7 @@ describe('AddressListComponent', () => {
 
       // Rerender with same data
       rerender(
-        <BrowserRouter>
+        <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
           <AddressListComponent
             accountId={1}
             addresses={mockAddresses}
