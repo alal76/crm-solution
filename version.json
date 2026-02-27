@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 600,
-  "patch": 9,
+  "patch": 10,
   "lastUpdate": "2026-02-27",
-  "description": "fix: full CI/CD audit — all backend test suites green (0 failures across 7667 tests); fixed 26 bugs: SubscriptionService (IsAutoRenew assignment, RenewAsync status guard, proration TotalDays, churn rate startCount), RevenueForecastService (ClosedDate??ExpectedCloseDate fallback), WebhookManagementService (AttemptNumber increment), ReportService (FilterGroups init), OpportunityCloneTests (Competitors+TeamMembers DbSet mocks), DealRiskServiceTests (Contacts mock + using), CrmKernelFactoryTests (correct connector constructor args), AuditLogCleanupJobTests (global namespace ILogger), CommissionsController assertion type, AuthController HttpContext, SubscriptionWorkflow EF snapshot; CI yaml adds --filter Category!=Integration to isolate WebApplicationFactory suites",
+  "description": "fix(ci): clean all CI/CD workflow warnings — codecov v4→v5 (deprecated), add permissions checks:write+pull-requests:write to test-report job (EnricoMi needs them), add setup-node + --package-lock-only to security-scan npm audit, update aquasecurity/trivy-action from 0.24.0→0.29.0",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [

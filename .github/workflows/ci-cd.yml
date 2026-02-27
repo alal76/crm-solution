@@ -59,13 +59,13 @@ jobs:
         JEST_JUNIT_OUTPUT_NAME: frontend-tests.xml
 
     - name: Upload coverage reports
-      uses: codecov/codecov-action@v4
+      uses: codecov/codecov-action@v5
       if: always()
       with:
         files: ./CRM.Frontend/coverage/coverage-final.json
         flags: frontend
         name: frontend-coverage
-        token: ${{ secrets.CODECOV_TOKEN }}  # Optional — configure in repo Settings > Secrets
+        token: ${{ secrets.CODECOV_TOKEN }}
       continue-on-error: true
 
     - name: Upload frontend test results
@@ -435,9 +435,17 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
+    - name: Set up Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+        cache: 'npm'
+        cache-dependency-path: 'CRM.Frontend/package-lock.json'
+
     - name: Run npm audit
       working-directory: CRM.Frontend
-      run: npm audit --audit-level=high || true
+      run: npm audit --audit-level=high --package-lock-only
+      continue-on-error: true
 
     - name: Run .NET security scan
       working-directory: CRM.Backend
@@ -456,6 +464,10 @@ jobs:
     runs-on: ubuntu-latest
     needs: [frontend-tests, backend-tests, bvt-tests]
     if: always()
+    permissions:
+      checks: write
+      pull-requests: write
+      contents: read
 
     steps:
     - name: Download backend test results
