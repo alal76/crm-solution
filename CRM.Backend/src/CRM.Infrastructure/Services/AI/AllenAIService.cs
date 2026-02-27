@@ -61,12 +61,10 @@ public class AllenAIService : IAllenAIService
     {
         var cacheKey = $"lead_score_{leadId}";
 
-        if (_config.EnableCaching && _cache.TryGetValue<LeadScore>(cacheKey, out var cachedScore) && cachedScore != null)
+        if (_config.EnableCaching && _cache.TryGetValue<LeadScore>(cacheKey, out var cachedScore) && cachedScore != null
+            && cachedScore.ExpiresAt > DateTime.UtcNow)
         {
-            if (cachedScore.ExpiresAt > DateTime.UtcNow)
-            {
-                return cachedScore;
-            }
+            return cachedScore;
         }
 
         var lead = await _context.Leads
@@ -346,7 +344,7 @@ public class AllenAIService : IAllenAIService
             WeightedValue = opportunity.Amount * winProbability,
             RiskLevel = 100 - healthScore,
             RecommendedAction = GetRecommendedAction(healthScore, winProbability),
-            ActionPriority = healthScore < 50 ? 1 : (healthScore < 70 ? 2 : 3),
+            ActionPriority = healthScore switch { < 50 => 1, < 70 => 2, _ => 3 },
             AIInsights = $"Opportunity health score: {healthScore:F0}%. Win probability: {winProbability * 100:F0}%.",
             GeneratedAt = DateTime.UtcNow,
             ExpiresAt = DateTime.UtcNow.AddDays(1),
@@ -511,7 +509,7 @@ public class AllenAIService : IAllenAIService
             ARRAtRisk = 0, // Would calculate from subscription data
             AccountTenureMonths = (int)((DateTime.UtcNow - customer.CreatedAt).Days / 30.0),
             RecommendedAction = GetRetentionAction(churnProbability),
-            ActionUrgency = churnProbability >= 0.7m ? 1 : (churnProbability >= 0.4m ? 2 : 3),
+            ActionUrgency = churnProbability switch { >= 0.7m => 1, >= 0.4m => 2, _ => 3 },
             AIInsights = $"Account health: {healthScore:F0}%. Churn risk: {churnProbability * 100:F0}%.",
             AssessedAt = DateTime.UtcNow,
             ExpiresAt = DateTime.UtcNow.AddDays(7),

@@ -318,13 +318,10 @@ public class CustomFieldValidationService : ICustomFieldValidationService
         }
 
         // Date validation
-        if (definition.DataType == CustomFieldDataType.Date)
+        if (definition.DataType == CustomFieldDataType.Date && !DateTime.TryParse(value, out _))
         {
-            if (!DateTime.TryParse(value, out _))
-            {
-                result.IsValid = false;
-                result.Errors.Add($"'{definition.Label}' must be a valid date.");
-            }
+            result.IsValid = false;
+            result.Errors.Add($"'{definition.Label}' must be a valid date.");
         }
 
         // Dropdown / MultiSelect: value must be in options list
@@ -352,23 +349,17 @@ public class CustomFieldValidationService : ICustomFieldValidationService
         }
 
         // Email validation
-        if (definition.DataType == CustomFieldDataType.Email)
+        if (definition.DataType == CustomFieldDataType.Email && !Regex.IsMatch(value!, @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
         {
-            if (!Regex.IsMatch(value!, @"^[^@\s]+@[^@\s]+\.[^@\s]+$"))
-            {
-                result.IsValid = false;
-                result.Errors.Add($"'{definition.Label}' must be a valid email address.");
-            }
+            result.IsValid = false;
+            result.Errors.Add($"'{definition.Label}' must be a valid email address.");
         }
 
         // URL validation
-        if (definition.DataType == CustomFieldDataType.Url)
+        if (definition.DataType == CustomFieldDataType.Url && !Uri.TryCreate(value, UriKind.Absolute, out _))
         {
-            if (!Uri.TryCreate(value, UriKind.Absolute, out _))
-            {
-                result.IsValid = false;
-                result.Errors.Add($"'{definition.Label}' must be a valid URL.");
-            }
+            result.IsValid = false;
+            result.Errors.Add($"'{definition.Label}' must be a valid URL.");
         }
     }
 }

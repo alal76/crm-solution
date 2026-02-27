@@ -292,13 +292,11 @@ public class ZipCodeImportHostedService : BackgroundService
             return false;
 
         // Check minute (within a 2-hour window since we check every hour)
-        if (parts[0] != "*")
+        if (parts[0] != "*"
+            && int.TryParse(parts[0], out var scheduledMinute)
+            && Math.Abs(now.Minute - scheduledMinute) > 30)
         {
-            if (int.TryParse(parts[0], out var scheduledMinute))
-            {
-                if (Math.Abs(now.Minute - scheduledMinute) > 30)
-                    return false;
-            }
+            return false;
         }
 
         return true;

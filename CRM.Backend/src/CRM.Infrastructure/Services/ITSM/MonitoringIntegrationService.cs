@@ -113,23 +113,21 @@ public class MonitoringIntegrationService : IMonitoringIntegrationService
 
         // Check for deduplication
         var dedupKey = $"{integration.Id}:{alert.Fingerprint ?? alert.AlertId}";
-        if (_deduplicationCache.TryGetValue(dedupKey, out var cached))
+        if (_deduplicationCache.TryGetValue(dedupKey, out var cached)
+            && (DateTime.UtcNow - cached.ProcessedAt).TotalMinutes < integration.DeduplicationWindowMinutes)
         {
-            if ((DateTime.UtcNow - cached.ProcessedAt).TotalMinutes < integration.DeduplicationWindowMinutes)
+            _logger.LogInformation("Alert deduplicated, existing incident: INC-{IncidentId}", cached.IncidentId);
+
+            RecordHistory(integration, alert, AlertAction.Deduplicated, cached.IncidentId);
+
+            return Task.FromResult(new AlertProcessingResult
             {
-                _logger.LogInformation("Alert deduplicated, existing incident: INC-{IncidentId}", cached.IncidentId);
-
-                RecordHistory(integration, alert, AlertAction.Deduplicated, cached.IncidentId);
-
-                return Task.FromResult(new AlertProcessingResult
-                {
-                    Success = true,
-                    Action = AlertAction.Deduplicated,
-                    IncidentId = cached.IncidentId,
-                    IncidentNumber = $"INC-{cached.IncidentId:D5}",
-                    Message = "Alert deduplicated with existing incident"
-                });
-            }
+                Success = true,
+                Action = AlertAction.Deduplicated,
+                IncidentId = cached.IncidentId,
+                IncidentNumber = $"INC-{cached.IncidentId:D5}",
+                Message = "Alert deduplicated with existing incident"
+            });
         }
 
         // Create new incident

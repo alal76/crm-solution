@@ -202,7 +202,7 @@ public class IntercomWebhookController : ControllerBase
             ActivityDate = mapping.ActivityDate,
             ContactId = contactId,
             AccountId = accountId,
-            EntityType = contactId.HasValue ? "Contact" : accountId.HasValue ? "Account" : null,
+            EntityType = contactId.HasValue ? "Contact" : (accountId.HasValue ? "Account" : null),
             EntityId = contactId ?? accountId,
             EntityName = null, // Will be populated by service
             Source = "Intercom",

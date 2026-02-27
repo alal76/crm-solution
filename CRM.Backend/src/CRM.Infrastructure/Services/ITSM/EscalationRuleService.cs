@@ -141,7 +141,7 @@ public class EscalationRuleService : IEscalationRulePolicyService
                 AgeInMinutes = CalculateAgeFromPercent(dto.TriggerAtPercent),
                 TargetType = MapEscalationTypeToTargetType(dto.EscalationType),
                 TargetId = dto.ReassignToUserId ?? dto.ReassignToTeamId,
-                TargetName = dto.ReassignToUserId.HasValue ? "User" : (dto.ReassignToTeamId.HasValue ? "Team" : null),
+                TargetName = dto.ReassignToUserId.HasValue ? "User" : dto.ReassignToTeamId.HasValue ? "Team" : null,
                 MaxAttempts = 3,
                 RetryIntervalMinutes = 15,
                 IsActive = dto.IsActive,

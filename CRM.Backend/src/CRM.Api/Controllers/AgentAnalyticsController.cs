@@ -331,7 +331,14 @@ public class AgentAnalyticsController : ControllerBase
             var lookback = Math.Max(1, Math.Abs(days));
             var fromDate = DateTime.UtcNow.AddDays(-lookback);
             var toDate = DateTime.UtcNow;
-            var period = lookback <= 1 ? "today" : lookback <= 7 ? "week" : lookback <= 31 ? "month" : lookback <= 93 ? "quarter" : "year";
+            var period = lookback switch
+            {
+                <= 1 => "today",
+                <= 7 => "week",
+                <= 31 => "month",
+                <= 93 => "quarter",
+                _ => "year"
+            };
 
             // ── Load reference data ──────────────────────────────────────────────
             var agents = await _dbContext.AIAgents

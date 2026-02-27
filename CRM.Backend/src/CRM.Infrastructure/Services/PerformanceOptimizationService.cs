@@ -261,7 +261,7 @@ public class PerformanceOptimizationService : IPerformanceOptimizationService
             TotalRequestsLastHour = metricsLastHour.Count,
             TotalRequestsLastDay = metrics.Count,
             TopEndpoints = topEndpoints.ToArray(),
-            Recommendations = recommendations.OrderByDescending(r => r.Priority == "High" ? 3 : r.Priority == "Medium" ? 2 : 1).Take(5).ToArray()
+            Recommendations = recommendations.OrderByDescending(r => r.Priority switch { "High" => 3, "Medium" => 2, _ => 1 }).Take(5).ToArray()
         };
     }
 

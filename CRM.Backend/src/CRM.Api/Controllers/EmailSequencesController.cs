@@ -240,7 +240,7 @@ namespace CRM.Api.Controllers
                 DelayHours = step.DelayHours,
                 DelayMinutes = step.DelayMinutes,
                 TimingMode = step.TimingMode.ToString(),
-                SpecificTime = step.SpecificTime != null ? TimeSpan.TryParse(step.SpecificTime, out var ts) ? ts : null : null,
+                SpecificTime = step.SpecificTime != null && TimeSpan.TryParse(step.SpecificTime, out var ts) ? ts : null,
                 SendOnWeekends = false,
                 IsABTest = step.IsABTest,
                 ABVariant = step.ABVariant,

@@ -94,8 +94,11 @@ public class SendGridWebhookController : ControllerBase
         }
     }
 
-    private static string TruncateForLog(string? text, int maxLength = 100) =>
-        string.IsNullOrEmpty(text) ? "" : text.Length <= maxLength ? text : text[..maxLength] + "...";
+    private static string TruncateForLog(string? text, int maxLength = 100)
+    {
+        if (string.IsNullOrEmpty(text)) return "";
+        return text.Length <= maxLength ? text : text[..maxLength] + "...";
+    }
 
     private static ActivityType GetActivityTypeForEvent(string eventType) =>
         eventType.ToLowerInvariant() switch

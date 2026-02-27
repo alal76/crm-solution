@@ -401,7 +401,7 @@ public class N8nProvider : IIntegrationPort
             {
                 ExecutionId = e.Id,
                 WorkflowId = workflowId,
-                Status = e.Finished ? (e.StoppedAt != null ? "success" : "error") : "running",
+                Status = e.Finished switch { true when e.StoppedAt != null => "success", true => "error", _ => "running" },
                 StartedAt = e.StartedAt,
                 FinishedAt = e.StoppedAt,
                 DurationMs = e.StoppedAt.HasValue && e.StartedAt != default

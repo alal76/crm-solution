@@ -797,7 +797,7 @@ public class CommunicationsController : ControllerBase
                     Id = m.Id,
                     ChannelType = m.ChannelType.ToString(),
                     Subject = m.Subject,
-                    BodyPreview = m.Body != null ? (m.Body.Length > 100 ? m.Body.Substring(0, 100) + "..." : m.Body) : null,
+                    BodyPreview = m.Body == null ? null : m.Body.Length > 100 ? m.Body.Substring(0, 100) + "..." : m.Body,
                     Direction = m.Direction.ToString(),
                     Status = m.Status.ToString(),
                     FromAddress = m.FromAddress,
@@ -976,7 +976,7 @@ public class CommunicationsController : ControllerBase
                 ActivityType = channel.ChannelType == ChannelType.Email ? ActivityType.EmailSent : ActivityType.ChatMessage,
                 Title = $"Message sent via {channel.ChannelType}",
                 Description = dto.Subject ?? dto.Body?.Substring(0, Math.Min(100, dto.Body.Length)),
-                EntityType = dto.AccountId.HasValue ? "Customer" : (dto.ContactId.HasValue ? "Contact" : (dto.LeadId.HasValue ? "Lead" : null)),
+                EntityType = dto.AccountId.HasValue ? "Customer" : dto.ContactId.HasValue ? "Contact" : dto.LeadId.HasValue ? "Lead" : null,
                 EntityId = dto.AccountId ?? dto.ContactId ?? dto.LeadId,
                 ActivityDate = DateTime.UtcNow
             };

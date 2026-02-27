@@ -200,9 +200,7 @@ public class SelfServiceChatbotController : ControllerBase
     {
         try
         {
-            var userId = User.Identity?.IsAuthenticated == true
-                ? int.TryParse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value, out var uid) ? uid : (int?)null
-                : null;
+            var userId = GetAuthenticatedUserId();
             var session = await _chatbotService.StartSessionAsync(userId);
             return Ok(new { sessionId = session.SessionId, createdAt = session.StartedAt });
         }
@@ -223,9 +221,7 @@ public class SelfServiceChatbotController : ControllerBase
     {
         try
         {
-            var userId = User.Identity?.IsAuthenticated == true
-                ? int.TryParse(User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value, out var uid) ? uid : (int?)null
-                : null;
+            var userId = GetAuthenticatedUserId();
             var message = new ChatbotMessageDto { SessionId = sessionId, Message = request.Content };
             var response = await _chatbotService.ProcessMessageAsync(message, userId);
             return Ok(new { sessionId, response = response.Message, timestamp = response.Timestamp });
@@ -276,6 +272,13 @@ public class SelfServiceChatbotController : ControllerBase
             _logger.LogWarning(ex, "Failed to search knowledge base");
             return Ok(new { results = new List<object>(), query = searchRequest?.Query ?? "", totalResults = 0 });
         }
+    }
+
+    private int? GetAuthenticatedUserId()
+    {
+        if (User.Identity?.IsAuthenticated != true) return null;
+        var claim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        return int.TryParse(claim, out var uid) ? uid : null;
     }
 }
 

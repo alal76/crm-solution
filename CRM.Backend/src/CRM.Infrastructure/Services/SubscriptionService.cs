@@ -1004,12 +1004,10 @@ public class SubscriptionService : ISubscriptionService
         }
 
         // TODO-SALES006-019: Trial date validation
-        if (subscription.TrialStartDate.HasValue && subscription.TrialEndDate.HasValue)
+        if (subscription.TrialStartDate.HasValue && subscription.TrialEndDate.HasValue
+            && subscription.TrialEndDate <= subscription.TrialStartDate)
         {
-            if (subscription.TrialEndDate <= subscription.TrialStartDate)
-            {
-                throw new ArgumentException("TrialEndDate must be greater than TrialStartDate.");
-            }
+            throw new ArgumentException("TrialEndDate must be greater than TrialStartDate.");
         }
 
         if (subscription.TrialEndDate.HasValue && !subscription.TrialStartDate.HasValue)

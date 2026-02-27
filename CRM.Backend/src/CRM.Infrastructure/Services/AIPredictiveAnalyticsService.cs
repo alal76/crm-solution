@@ -147,7 +147,12 @@ public class AIPredictiveAnalyticsService : IAIPredictiveAnalyticsService
         });
 
         var predictedScore = (int)Math.Clamp(Math.Round(totalScore), 0, 100);
-        var confidence = factorCount >= 4 ? 0.75 : factorCount >= 2 ? 0.55 : 0.30;
+        var confidence = factorCount switch
+        {
+            >= 4 => 0.75,
+            >= 2 => 0.55,
+            _ => 0.30
+        };
 
         _logger.LogInformation("Lead {LeadId} predicted score: {Score} (confidence {Confidence})", leadId, predictedScore, confidence);
 

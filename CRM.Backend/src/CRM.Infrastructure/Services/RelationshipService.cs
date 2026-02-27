@@ -625,7 +625,12 @@ public class RelationshipService
         if (previousSnapshot != null)
         {
             var diff = dto.OverallHealthScore - previousSnapshot.OverallHealthScore;
-            snapshot.HealthTrend = diff > 5 ? "Improving" : diff < -5 ? "Declining" : "Stable";
+            snapshot.HealthTrend = diff switch
+            {
+                > 5 => "Improving",
+                < -5 => "Declining",
+                _ => "Stable"
+            };
             if (dto.OverallHealthScore < 30)
                 snapshot.HealthTrend = "Critical";
         }

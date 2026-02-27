@@ -379,7 +379,12 @@ public class EscalationHostedService : BackgroundService
     private static string BuildEscalationEmailBody(Incident incident, int previousLevel, string reason)
     {
         var priority = GetPriorityLabel((int)incident.Impact, (int)incident.Urgency);
-        var urgencyColor = (int)incident.Impact <= 2 ? "#dc3545" : ((int)incident.Impact == 3 ? "#ffc107" : "#28a745");
+        var urgencyColor = (int)incident.Impact switch
+        {
+            <= 2 => "#dc3545",
+            3 => "#ffc107",
+            _ => "#28a745"
+        };
 
         return $@"
 <!DOCTYPE html>

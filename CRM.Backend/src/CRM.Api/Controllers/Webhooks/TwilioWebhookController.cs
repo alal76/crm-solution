@@ -136,8 +136,11 @@ public class TwilioWebhookController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public Task<IActionResult> HandleWhatsAppStatus() => HandleStatusCallback();
 
-    private static string TruncateForLog(string? text, int maxLength = 50) =>
-        string.IsNullOrEmpty(text) ? "" : text.Length <= maxLength ? text : text[..maxLength] + "...";
+    private static string TruncateForLog(string? text, int maxLength = 50)
+    {
+        if (string.IsNullOrEmpty(text)) return "";
+        return text.Length <= maxLength ? text : text[..maxLength] + "...";
+    }
 
     private static ActivityType GetActivityTypeForStatus(string status) =>
         status.ToLowerInvariant() switch
