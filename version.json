@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 600,
-  "patch": 15,
+  "patch": 16,
   "lastUpdate": "2026-02-27",
-  "description": "fix(sonar): fix SonarCloud quality gate failures — exclude CI workflows from analysis, remove hardcoded credentials from MonitoringDashboard, suppress S2583 false positive in AnalyticsController",
+  "description": "fix(sonar): comprehensive SonarCloud remediation — 12 commits fixing S4144, S2589, S125, S3776, S2325, S107, S1854, S1481, S1192, S3358, S1066, S1128 across 200+ files",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [
