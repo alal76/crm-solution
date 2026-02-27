@@ -205,7 +205,7 @@ describe('UICustomizationPage Component', () => {
     );
 
     await waitFor(() => {
-      expect(screen.getByText('UI Customization')).toBeInTheDocument();
+      expect(screen.getByText('UI Settings')).toBeInTheDocument();
     });
   });
 
