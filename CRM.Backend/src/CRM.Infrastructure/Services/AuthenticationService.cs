@@ -44,6 +44,7 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
     private readonly INotificationPort _notificationPort;
     private readonly IConfiguration _configuration;
     private readonly ILogger<AuthenticationService> _logger;
+    private const string UserNotFoundMessage = "User not found";
 
     public AuthenticationService(
         IRepository<User> userRepository,
@@ -496,7 +497,7 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
             .FirstOrDefaultAsync(u => u.Id == storedToken.UserId);
 
         if (fullUser == null)
-            throw new UnauthorizedAccessException("User not found");
+            throw new UnauthorizedAccessException(UserNotFoundMessage);
 
         // Generate new tokens (rotation)
         var response = GenerateAuthResponse(fullUser);
@@ -536,7 +537,7 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
     {
         var existingUser = await _userRepository.GetByIdAsync(userId);
         if (existingUser == null)
-            throw new InvalidOperationException("User not found");
+            throw new InvalidOperationException(UserNotFoundMessage);
 
         existingUser.FirstName = user.FirstName;
         existingUser.LastName = user.LastName;
@@ -902,7 +903,7 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
     {
         var user = await _userRepository.GetByIdAsync(userId);
         if (user == null)
-            throw new InvalidOperationException("User not found");
+            throw new InvalidOperationException(UserNotFoundMessage);
 
         var setup = await _totpService.InitializeSetupAsync(userId, user.Email);
         var backupCodes = await _totpService.CompleteSetupAsync(userId, setup.Secret);
@@ -937,7 +938,7 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
 
         var user = await _userRepository.GetByIdAsync(userId);
         if (user == null)
-            throw new UnauthorizedAccessException("User not found");
+            throw new UnauthorizedAccessException(UserNotFoundMessage);
 
         if (string.IsNullOrEmpty(user.TwoFactorSecret))
             throw new InvalidOperationException("2FA not configured for this user");
@@ -985,7 +986,7 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
     {
         var user = await _userRepository.GetByIdAsync(userId);
         if (user == null)
-            throw new InvalidOperationException("User not found");
+            throw new InvalidOperationException(UserNotFoundMessage);
 
         user.TwoFactorSecret = secret;
         user.BackupCodes = System.Text.Json.JsonSerializer.Serialize(backupCodes);
@@ -999,7 +1000,7 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
     {
         var user = await _userRepository.GetByIdAsync(userId);
         if (user == null)
-            throw new InvalidOperationException("User not found");
+            throw new InvalidOperationException(UserNotFoundMessage);
 
         user.TwoFactorEnabled = false;
         user.TwoFactorSecret = null;
@@ -1110,7 +1111,7 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
 
         var user = await _userRepository.GetByIdAsync(userId);
         if (user == null || user.IsDeleted)
-            throw new InvalidOperationException("User not found");
+            throw new InvalidOperationException(UserNotFoundMessage);
 
         user.PasswordHash = HashPassword(newPassword);
         user.PasswordResetToken = null;
@@ -1153,7 +1154,7 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
             .FirstOrDefaultAsync(u => u.Id == userId && !u.IsDeleted);
 
         if (user == null)
-            throw new InvalidOperationException("User not found");
+            throw new InvalidOperationException(UserNotFoundMessage);
 
         // Update password and reset flags
         user.PasswordHash = HashPassword(request.NewPassword);
@@ -1216,7 +1217,7 @@ public class AuthenticationService : IAuthenticationService, IAuthInputPort
             .FirstOrDefaultAsync(u => u.Id == userId, cancellationToken);
 
         if (user == null)
-            throw new ArgumentException("User not found");
+            throw new ArgumentException(UserNotFoundMessage);
 
         // Verify old password
         if (!BCrypt.Net.BCrypt.Verify(oldPassword, user.PasswordHash))

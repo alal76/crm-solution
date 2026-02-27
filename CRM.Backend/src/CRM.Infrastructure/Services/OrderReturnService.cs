@@ -22,6 +22,7 @@ public class OrderReturnService : IOrderReturnService
 {
     private readonly ICrmDbContext _context;
     private readonly ILogger<OrderReturnService> _logger;
+    private const string OrderReturnNotFoundMessage = "Order return {0} not found";
 
     public OrderReturnService(ICrmDbContext context, ILogger<OrderReturnService> logger)
     {
@@ -127,7 +128,7 @@ public class OrderReturnService : IOrderReturnService
         var orderReturn = await GetByIdAsync(id, cancellationToken);
         if (orderReturn == null)
         {
-            throw new InvalidOperationException($"Order return {id} not found");
+            throw new InvalidOperationException(string.Format(OrderReturnNotFoundMessage, id));
         }
 
         orderReturn.Status = (OrderReturnStatus)dto.Status;
@@ -194,7 +195,7 @@ public class OrderReturnService : IOrderReturnService
         var orderReturn = await GetByIdAsync(id, cancellationToken);
         if (orderReturn == null)
         {
-            throw new InvalidOperationException($"Order return {id} not found");
+            throw new InvalidOperationException(string.Format(OrderReturnNotFoundMessage, id));
         }
 
         if (orderReturn.Status != OrderReturnStatus.Pending)
@@ -223,7 +224,7 @@ public class OrderReturnService : IOrderReturnService
         var orderReturn = await GetByIdAsync(id, cancellationToken);
         if (orderReturn == null)
         {
-            throw new InvalidOperationException($"Order return {id} not found");
+            throw new InvalidOperationException(string.Format(OrderReturnNotFoundMessage, id));
         }
 
         orderReturn.Status = OrderReturnStatus.Rejected;
@@ -243,7 +244,7 @@ public class OrderReturnService : IOrderReturnService
         var orderReturn = await GetByIdAsync(id, cancellationToken);
         if (orderReturn == null)
         {
-            throw new InvalidOperationException($"Order return {id} not found");
+            throw new InvalidOperationException(string.Format(OrderReturnNotFoundMessage, id));
         }
 
         orderReturn.Status = OrderReturnStatus.Received;
@@ -266,7 +267,7 @@ public class OrderReturnService : IOrderReturnService
         var orderReturn = await GetByIdAsync(id, cancellationToken);
         if (orderReturn == null)
         {
-            throw new InvalidOperationException($"Order return {id} not found");
+            throw new InvalidOperationException(string.Format(OrderReturnNotFoundMessage, id));
         }
 
         orderReturn.Status = OrderReturnStatus.Refunded;
@@ -286,7 +287,7 @@ public class OrderReturnService : IOrderReturnService
         var orderReturn = await GetByIdAsync(id, cancellationToken);
         if (orderReturn == null)
         {
-            throw new InvalidOperationException($"Order return {id} not found");
+            throw new InvalidOperationException(string.Format(OrderReturnNotFoundMessage, id));
         }
 
         orderReturn.Status = OrderReturnStatus.Completed;
@@ -305,7 +306,7 @@ public class OrderReturnService : IOrderReturnService
         var orderReturn = await GetByIdAsync(id, cancellationToken);
         if (orderReturn == null)
         {
-            throw new InvalidOperationException($"Order return {id} not found");
+            throw new InvalidOperationException(string.Format(OrderReturnNotFoundMessage, id));
         }
 
         orderReturn.Status = OrderReturnStatus.Cancelled;

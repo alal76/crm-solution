@@ -26,6 +26,8 @@ public class ChangeManagementServiceEx : IChangeManagementServiceEx
 {
     private readonly IDbContextResolver _dbContextResolver;
     private readonly ILogger<ChangeManagementServiceEx> _logger;
+    private const string ChangeNotFoundMessage = "Change {0} not found";
+    private const string CabNotFoundMessage = "Change (CAB) {0} not found";
 
     public ChangeManagementServiceEx(
         IDbContextResolver dbContextResolver,
@@ -80,7 +82,7 @@ public class ChangeManagementServiceEx : IChangeManagementServiceEx
             .FirstOrDefaultAsync(c => c.ChangeId == changeId && !c.IsDeleted, cancellationToken);
 
         if (change == null)
-            throw new KeyNotFoundException($"Change {changeId} not found");
+            throw new KeyNotFoundException(string.Format(ChangeNotFoundMessage, changeId));
 
         return await MapChangeToDtoAsync(change, context, cancellationToken);
     }
@@ -138,7 +140,7 @@ public class ChangeManagementServiceEx : IChangeManagementServiceEx
         var change = await context.Changes.FindAsync(new object[] { changeId }, cancellationToken);
 
         if (change == null || change.IsDeleted)
-            throw new KeyNotFoundException($"Change {changeId} not found");
+            throw new KeyNotFoundException(string.Format(ChangeNotFoundMessage, changeId));
 
         change.ShortDescription = dto.ShortDescription;
         change.Description = dto.Description;
@@ -163,7 +165,7 @@ public class ChangeManagementServiceEx : IChangeManagementServiceEx
         var change = await context.Changes.FindAsync(new object[] { changeId }, cancellationToken);
 
         if (change == null || change.IsDeleted)
-            throw new KeyNotFoundException($"Change {changeId} not found");
+            throw new KeyNotFoundException(string.Format(ChangeNotFoundMessage, changeId));
 
         if (change.State == ChangeState.Closed || change.State == ChangeState.Implement)
             throw new InvalidOperationException($"Change in state {change.State} cannot be cancelled");
@@ -184,7 +186,7 @@ public class ChangeManagementServiceEx : IChangeManagementServiceEx
         var change = await context.Changes.FindAsync(new object[] { changeId }, cancellationToken);
 
         if (change == null || change.IsDeleted)
-            throw new KeyNotFoundException($"Change {changeId} not found");
+            throw new KeyNotFoundException(string.Format(ChangeNotFoundMessage, changeId));
 
         change.IsDeleted = true;
         change.ModifiedAt = DateTime.UtcNow;
@@ -204,7 +206,7 @@ public class ChangeManagementServiceEx : IChangeManagementServiceEx
         var change = await context.Changes.FindAsync(new object[] { changeId }, cancellationToken);
 
         if (change == null || change.IsDeleted)
-            throw new KeyNotFoundException($"Change {changeId} not found");
+            throw new KeyNotFoundException(string.Format(ChangeNotFoundMessage, changeId));
 
         if (change.State != ChangeState.New)
             throw new InvalidOperationException($"Change must be in New state to request approval, current state: {change.State}");
@@ -225,7 +227,7 @@ public class ChangeManagementServiceEx : IChangeManagementServiceEx
         var change = await context.Changes.FindAsync(new object[] { changeId }, cancellationToken);
 
         if (change == null || change.IsDeleted)
-            throw new KeyNotFoundException($"Change {changeId} not found");
+            throw new KeyNotFoundException(string.Format(ChangeNotFoundMessage, changeId));
 
         var approval = new ChangeApproval
         {
@@ -260,7 +262,7 @@ public class ChangeManagementServiceEx : IChangeManagementServiceEx
         var change = await context.Changes.FindAsync(new object[] { changeId }, cancellationToken);
 
         if (change == null || change.IsDeleted)
-            throw new KeyNotFoundException($"Change {changeId} not found");
+            throw new KeyNotFoundException(string.Format(ChangeNotFoundMessage, changeId));
 
         var approval = new ChangeApproval
         {
@@ -293,7 +295,7 @@ public class ChangeManagementServiceEx : IChangeManagementServiceEx
         var change = await context.Changes.FindAsync(new object[] { changeId }, cancellationToken);
 
         if (change == null || change.IsDeleted)
-            throw new KeyNotFoundException($"Change {changeId} not found");
+            throw new KeyNotFoundException(string.Format(ChangeNotFoundMessage, changeId));
 
         if (!dto.BypassCAB)
         {
@@ -327,7 +329,7 @@ public class ChangeManagementServiceEx : IChangeManagementServiceEx
         var change = await context.Changes.FindAsync(new object[] { changeId }, cancellationToken);
 
         if (change == null || change.IsDeleted)
-            throw new KeyNotFoundException($"Change {changeId} not found");
+            throw new KeyNotFoundException(string.Format(ChangeNotFoundMessage, changeId));
 
         if (change.State != ChangeState.Scheduled && change.State != ChangeState.Authorize)
             throw new InvalidOperationException($"Change must be Scheduled or Authorized to start implementation, current state: {change.State}");
@@ -348,7 +350,7 @@ public class ChangeManagementServiceEx : IChangeManagementServiceEx
         var change = await context.Changes.FindAsync(new object[] { changeId }, cancellationToken);
 
         if (change == null || change.IsDeleted)
-            throw new KeyNotFoundException($"Change {changeId} not found");
+            throw new KeyNotFoundException(string.Format(ChangeNotFoundMessage, changeId));
 
         if (change.State != ChangeState.Implement)
             throw new InvalidOperationException($"Change must be in Implement state to complete, current state: {change.State}");
@@ -371,7 +373,7 @@ public class ChangeManagementServiceEx : IChangeManagementServiceEx
         var change = await context.Changes.FindAsync(new object[] { changeId }, cancellationToken);
 
         if (change == null || change.IsDeleted)
-            throw new KeyNotFoundException($"Change {changeId} not found");
+            throw new KeyNotFoundException(string.Format(ChangeNotFoundMessage, changeId));
 
         change.State = ChangeState.Closed;
         change.ClosureCode = closureCode;
@@ -397,7 +399,7 @@ public class ChangeManagementServiceEx : IChangeManagementServiceEx
         var change = await context.Changes.FindAsync(new object[] { dto.ChangeId }, cancellationToken);
 
         if (change == null || change.IsDeleted)
-            throw new KeyNotFoundException($"Change {dto.ChangeId} not found");
+            throw new KeyNotFoundException(string.Format(ChangeNotFoundMessage, dto.ChangeId));
 
         // Store the CAB date on the change
         change.CABDate = dto.ScheduledDate;
@@ -439,7 +441,7 @@ public class ChangeManagementServiceEx : IChangeManagementServiceEx
         var change = await context.Changes.FindAsync(new object[] { cabId }, cancellationToken);
 
         if (change == null || change.IsDeleted)
-            throw new KeyNotFoundException($"Change (CAB) {cabId} not found");
+            throw new KeyNotFoundException(string.Format(CabNotFoundMessage, cabId));
 
         change.CABDate = meetingDate;
         // meetingLocation stored in RiskAssessmentNotes as a simple workaround since there's no dedicated field
@@ -495,7 +497,7 @@ public class ChangeManagementServiceEx : IChangeManagementServiceEx
         var change = await context.Changes.FindAsync(new object[] { changeId }, cancellationToken);
 
         if (change == null || change.IsDeleted)
-            throw new KeyNotFoundException($"Change {changeId} not found");
+            throw new KeyNotFoundException(string.Format(ChangeNotFoundMessage, changeId));
 
         // Check all CAB member votes
         var cabApprovals = await context.ChangeApprovals
@@ -535,7 +537,7 @@ public class ChangeManagementServiceEx : IChangeManagementServiceEx
         var change = await context.Changes.FindAsync(new object[] { cabId }, cancellationToken);
 
         if (change == null || change.IsDeleted)
-            throw new KeyNotFoundException($"Change (CAB) {cabId} not found");
+            throw new KeyNotFoundException(string.Format(CabNotFoundMessage, cabId));
 
         return await BuildCabDtoAsync(cabId, context, cancellationToken);
     }
@@ -551,7 +553,7 @@ public class ChangeManagementServiceEx : IChangeManagementServiceEx
         var change = await context.Changes.FindAsync(new object[] { changeId }, cancellationToken);
 
         if (change == null || change.IsDeleted)
-            throw new KeyNotFoundException($"Change {changeId} not found");
+            throw new KeyNotFoundException(string.Format(ChangeNotFoundMessage, changeId));
 
         var approval = new ChangeApproval
         {
@@ -603,7 +605,7 @@ public class ChangeManagementServiceEx : IChangeManagementServiceEx
         var change = await context.Changes.FindAsync(new object[] { changeId }, cancellationToken);
 
         if (change == null || change.IsDeleted)
-            throw new KeyNotFoundException($"Change {changeId} not found");
+            throw new KeyNotFoundException(string.Format(ChangeNotFoundMessage, changeId));
 
         // Retrieve impacted CIs with their configuration items
         var impactedCIs = await context.ChangeImpactedCIs
@@ -667,7 +669,7 @@ public class ChangeManagementServiceEx : IChangeManagementServiceEx
         var change = await context.Changes.FindAsync(new object[] { changeId }, cancellationToken);
 
         if (change == null || change.IsDeleted)
-            throw new KeyNotFoundException($"Change {changeId} not found");
+            throw new KeyNotFoundException(string.Format(ChangeNotFoundMessage, changeId));
 
         // Add each CI if not already linked
         foreach (var ciId in impactedCIIds)
@@ -700,7 +702,7 @@ public class ChangeManagementServiceEx : IChangeManagementServiceEx
         var change = await context.Changes.FindAsync(new object[] { changeId }, cancellationToken);
 
         if (change == null || change.IsDeleted)
-            throw new KeyNotFoundException($"Change {changeId} not found");
+            throw new KeyNotFoundException(string.Format(ChangeNotFoundMessage, changeId));
 
         var impact = await AnalyzeChangeImpactAsync(changeId, modifiedById, cancellationToken);
 
@@ -731,7 +733,7 @@ public class ChangeManagementServiceEx : IChangeManagementServiceEx
         var change = await context.Changes.FindAsync(new object[] { changeId }, cancellationToken);
 
         if (change == null || change.IsDeleted)
-            throw new KeyNotFoundException($"Change {changeId} not found");
+            throw new KeyNotFoundException(string.Format(ChangeNotFoundMessage, changeId));
 
         change.BackoutPlan = rollbackSteps;
         change.EstimatedDurationMinutes = estimatedTimeMinutes;
@@ -750,7 +752,7 @@ public class ChangeManagementServiceEx : IChangeManagementServiceEx
         var change = await context.Changes.FindAsync(new object[] { changeId }, cancellationToken);
 
         if (change == null || change.IsDeleted)
-            throw new KeyNotFoundException($"Change {changeId} not found");
+            throw new KeyNotFoundException(string.Format(ChangeNotFoundMessage, changeId));
 
         return BuildRollbackPlanDto(change);
     }
@@ -762,7 +764,7 @@ public class ChangeManagementServiceEx : IChangeManagementServiceEx
         var change = await context.Changes.FindAsync(new object[] { changeId }, cancellationToken);
 
         if (change == null || change.IsDeleted)
-            throw new KeyNotFoundException($"Change {changeId} not found");
+            throw new KeyNotFoundException(string.Format(ChangeNotFoundMessage, changeId));
 
         change.State = ChangeState.Failed;
         change.ChangeSuccess = false;
@@ -782,7 +784,7 @@ public class ChangeManagementServiceEx : IChangeManagementServiceEx
         var change = await context.Changes.FindAsync(new object[] { changeId }, cancellationToken);
 
         if (change == null || change.IsDeleted)
-            throw new KeyNotFoundException($"Change {changeId} not found");
+            throw new KeyNotFoundException(string.Format(ChangeNotFoundMessage, changeId));
 
         if (dto.RollbackSuccessful)
         {
@@ -825,7 +827,7 @@ public class ChangeManagementServiceEx : IChangeManagementServiceEx
         var change = await context.Changes.FindAsync(new object[] { changeId }, cancellationToken);
 
         if (change == null || change.IsDeleted)
-            throw new KeyNotFoundException($"Change {changeId} not found");
+            throw new KeyNotFoundException(string.Format(ChangeNotFoundMessage, changeId));
 
         var task = new ChangeTask
         {
@@ -892,7 +894,7 @@ public class ChangeManagementServiceEx : IChangeManagementServiceEx
         var change = await context.Changes.FindAsync(new object[] { changeId }, cancellationToken);
 
         if (change == null || change.IsDeleted)
-            throw new KeyNotFoundException($"Change {changeId} not found");
+            throw new KeyNotFoundException(string.Format(ChangeNotFoundMessage, changeId));
 
         var result = new ChangeConflictCheckDto
         {
@@ -1040,7 +1042,7 @@ public class ChangeManagementServiceEx : IChangeManagementServiceEx
         var change = await context.Changes.FindAsync(new object[] { changeId }, cancellationToken);
 
         if (change == null || change.IsDeleted)
-            throw new KeyNotFoundException($"Change {changeId} not found");
+            throw new KeyNotFoundException(string.Format(ChangeNotFoundMessage, changeId));
 
         var comment = new ChangeComment
         {

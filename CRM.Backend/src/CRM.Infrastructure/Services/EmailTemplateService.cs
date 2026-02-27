@@ -22,6 +22,8 @@ public class EmailTemplateService : IEmailTemplateService
     private readonly ICrmDbContext _context;
     private readonly ILogger<EmailTemplateService> _logger;
     private static readonly Regex VariablePattern = new(@"\{\{(\w+)\}\}", RegexOptions.Compiled);
+    private const string TemplateNotFoundMessage = "Template {0} not found";
+    private const string EmailTemplateNotFoundMessage = "Email template {0} not found";
 
     public EmailTemplateService(ICrmDbContext context, ILogger<EmailTemplateService> logger)
     {
@@ -91,7 +93,7 @@ public class EmailTemplateService : IEmailTemplateService
         var existing = await _context.EmailTemplates.FindAsync(new object[] { template.Id }, cancellationToken);
         if (existing == null || existing.IsDeleted)
         {
-            throw new InvalidOperationException($"Email template {template.Id} not found");
+            throw new InvalidOperationException(string.Format(EmailTemplateNotFoundMessage, template.Id));
         }
 
         template.UpdatedAt = DateTime.UtcNow;
@@ -130,7 +132,7 @@ public class EmailTemplateService : IEmailTemplateService
         var template = await GetByIdAsync(templateId, cancellationToken);
         if (template == null)
         {
-            throw new InvalidOperationException($"Email template {templateId} not found");
+            throw new InvalidOperationException(string.Format(EmailTemplateNotFoundMessage, templateId));
         }
 
         return RenderTemplate(template, data);
@@ -152,7 +154,7 @@ public class EmailTemplateService : IEmailTemplateService
         var template = await GetByIdAsync(templateId, cancellationToken);
         if (template == null)
         {
-            throw new InvalidOperationException($"Email template {templateId} not found");
+            throw new InvalidOperationException(string.Format(EmailTemplateNotFoundMessage, templateId));
         }
 
         var data = await GetEntityDataAsync(entityType, entityId, cancellationToken);
@@ -164,7 +166,7 @@ public class EmailTemplateService : IEmailTemplateService
         var template = await GetByIdAsync(templateId, cancellationToken);
         if (template == null)
         {
-            throw new InvalidOperationException($"Email template {templateId} not found");
+            throw new InvalidOperationException(string.Format(EmailTemplateNotFoundMessage, templateId));
         }
 
         var sampleData = await GetSampleDataAsync(template.Category, cancellationToken);
@@ -303,7 +305,7 @@ public class EmailTemplateService : IEmailTemplateService
         var template = await GetByIdAsync(templateId, cancellationToken);
         if (template == null)
         {
-            throw new InvalidOperationException($"Email template {templateId} not found");
+            throw new InvalidOperationException(string.Format(EmailTemplateNotFoundMessage, templateId));
         }
 
         var data = testData ?? await GetSampleDataAsync(template.Category, cancellationToken);
@@ -404,7 +406,7 @@ public class EmailTemplateService : IEmailTemplateService
         var template = await GetByIdAsync(templateId, cancellationToken);
         if (template == null)
         {
-            throw new InvalidOperationException($"Template {templateId} not found");
+            throw new InvalidOperationException(string.Format(TemplateNotFoundMessage, templateId));
         }
 
         template.Subject = templateVersion.Subject;
@@ -426,7 +428,7 @@ public class EmailTemplateService : IEmailTemplateService
         var template = await GetByIdAsync(templateId, cancellationToken);
         if (template == null)
         {
-            throw new InvalidOperationException($"Template {templateId} not found");
+            throw new InvalidOperationException(string.Format(TemplateNotFoundMessage, templateId));
         }
 
         var lastVersion = await _context.EmailTemplateVersions
@@ -564,7 +566,7 @@ public class EmailTemplateService : IEmailTemplateService
         var template = await GetByIdAsync(templateId, cancellationToken);
         if (template == null)
         {
-            throw new InvalidOperationException($"Template {templateId} not found");
+            throw new InvalidOperationException(string.Format(TemplateNotFoundMessage, templateId));
         }
 
         var clone = new EmailTemplate
@@ -626,7 +628,7 @@ public class EmailTemplateService : IEmailTemplateService
         var template = await GetByIdAsync(templateId, cancellationToken);
         if (template == null)
         {
-            throw new InvalidOperationException($"Template {templateId} not found");
+            throw new InvalidOperationException(string.Format(TemplateNotFoundMessage, templateId));
         }
 
         var exportData = new Dictionary<string, object?>
@@ -655,7 +657,7 @@ public class EmailTemplateService : IEmailTemplateService
         var template = await GetByIdAsync(templateId, cancellationToken);
         if (template == null)
         {
-            throw new InvalidOperationException($"Template {templateId} not found");
+            throw new InvalidOperationException(string.Format(TemplateNotFoundMessage, templateId));
         }
 
         return new TemplateUsageStats
@@ -715,7 +717,7 @@ public class EmailTemplateService : IEmailTemplateService
         var template = await GetByIdAsync(templateId, cancellationToken);
         if (template == null)
         {
-            throw new InvalidOperationException($"Template {templateId} not found");
+            throw new InvalidOperationException(string.Format(TemplateNotFoundMessage, templateId));
         }
 
         template.Slug = purpose.ToString().ToLower();

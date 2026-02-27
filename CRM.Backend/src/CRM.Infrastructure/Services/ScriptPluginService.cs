@@ -23,6 +23,7 @@ public class ScriptPluginService : IScriptPluginService
     private readonly ICrmDbContext _context;
     private readonly ScriptEngineFactory _scriptEngineFactory;
     private readonly ILogger<ScriptPluginService> _logger;
+    private const string ScriptPluginNotFoundMessage = "ScriptPlugin not found";
 
     public ScriptPluginService(
         ICrmDbContext context,
@@ -109,7 +110,7 @@ public class ScriptPluginService : IScriptPluginService
 
         if (entity is null)
         {
-            throw new InvalidOperationException("ScriptPlugin not found");
+            throw new InvalidOperationException(ScriptPluginNotFoundMessage);
         }
 
         entity.Name = dto.Name;
@@ -135,7 +136,7 @@ public class ScriptPluginService : IScriptPluginService
 
         if (entity is null)
         {
-            throw new InvalidOperationException("ScriptPlugin not found");
+            throw new InvalidOperationException(ScriptPluginNotFoundMessage);
         }
 
         entity.IsDeleted = true;
@@ -157,7 +158,7 @@ public class ScriptPluginService : IScriptPluginService
 
         if (entity is null)
         {
-            throw new InvalidOperationException("ScriptPlugin not found");
+            throw new InvalidOperationException(ScriptPluginNotFoundMessage);
         }
 
         var engine = _scriptEngineFactory.GetEngine((ScriptLanguage)entity.Language);

@@ -24,6 +24,8 @@ public class CommissionRuleEvaluationService : ICommissionRuleEvaluationService
     private readonly ILogger<CommissionRuleEvaluationService> _logger;
     private const decimal DefaultCapAmount = 50000m;
     private const decimal DefaultMinimumAmount = 0m;
+    private const string OpportunityNotFoundMessage = "Opportunity {0} not found";
+    private const string CommissionRuleNotFoundMessage = "Commission rule {0} not found";
 
     public CommissionRuleEvaluationService(
         ICrmDbContext context,
@@ -47,7 +49,7 @@ public class CommissionRuleEvaluationService : ICommissionRuleEvaluationService
             .FirstOrDefaultAsync(o => o.Id == dealId && !o.IsDeleted, cancellationToken);
 
         if (opportunity == null)
-            throw new InvalidOperationException($"Opportunity {dealId} not found");
+            throw new InvalidOperationException(string.Format(OpportunityNotFoundMessage, dealId));
 
         var amount = opportunity.Amount;
 
@@ -104,7 +106,7 @@ public class CommissionRuleEvaluationService : ICommissionRuleEvaluationService
             .FirstOrDefaultAsync(r => r.Id == ruleId && !r.IsDeleted, cancellationToken);
 
         if (rule == null)
-            throw new InvalidOperationException($"Commission rule {ruleId} not found");
+            throw new InvalidOperationException(string.Format(CommissionRuleNotFoundMessage, ruleId));
 
         var result = new TieredCommissionDto
         {
@@ -162,7 +164,7 @@ public class CommissionRuleEvaluationService : ICommissionRuleEvaluationService
             .FirstOrDefaultAsync(r => r.Id == ruleId && !r.IsDeleted, cancellationToken);
 
         if (rule == null)
-            throw new InvalidOperationException($"Commission rule {ruleId} not found");
+            throw new InvalidOperationException(string.Format(CommissionRuleNotFoundMessage, ruleId));
 
         decimal finalAmount = baseCommission;
 
@@ -206,7 +208,7 @@ public class CommissionRuleEvaluationService : ICommissionRuleEvaluationService
             .FirstOrDefaultAsync(o => o.Id == dealId && !o.IsDeleted, cancellationToken);
 
         if (opportunity == null)
-            throw new InvalidOperationException($"Opportunity {dealId} not found");
+            throw new InvalidOperationException(string.Format(OpportunityNotFoundMessage, dealId));
 
         // Get base commission for the deal
         var rule = await _context.CommissionRules
@@ -253,7 +255,7 @@ public class CommissionRuleEvaluationService : ICommissionRuleEvaluationService
             .FirstOrDefaultAsync(o => o.Id == dealId && !o.IsDeleted, cancellationToken);
 
         if (opportunity == null)
-            throw new InvalidOperationException($"Opportunity {dealId} not found");
+            throw new InvalidOperationException(string.Format(OpportunityNotFoundMessage, dealId));
 
         var clawbackAmount = originalCommission * clawbackPercentage / 100;
 

@@ -19,6 +19,8 @@ public class CommissionService : ICommissionService
 {
     private readonly ICrmDbContext _context;
     private readonly ILogger<CommissionService> _logger;
+    private const string CommissionNotFoundMessage = "Commission {0} not found";
+    private const string CommissionPlanNotFoundMessage = "Commission plan {0} not found";
 
     public CommissionService(ICrmDbContext context, ILogger<CommissionService> logger)
     {
@@ -80,7 +82,7 @@ public class CommissionService : ICommissionService
             .AnyAsync(c => c.Id == commission.Id && !c.IsDeleted, cancellationToken);
         if (!exists)
         {
-            throw new InvalidOperationException($"Commission {commission.Id} not found");
+            throw new InvalidOperationException(string.Format(CommissionNotFoundMessage, commission.Id));
         }
 
         commission.UpdatedAt = DateTime.UtcNow;
@@ -217,7 +219,7 @@ public class CommissionService : ICommissionService
         var commission = await GetByIdAsync(commissionId, cancellationToken);
         if (commission == null)
         {
-            throw new InvalidOperationException($"Commission {commissionId} not found");
+            throw new InvalidOperationException(string.Format(CommissionNotFoundMessage, commissionId));
         }
 
         if (commission.OpportunityId.HasValue)
@@ -280,7 +282,7 @@ public class CommissionService : ICommissionService
             .AnyAsync(p => p.Id == plan.Id && !p.IsDeleted, cancellationToken);
         if (!exists)
         {
-            throw new InvalidOperationException($"Commission plan {plan.Id} not found");
+            throw new InvalidOperationException(string.Format(CommissionPlanNotFoundMessage, plan.Id));
         }
 
         plan.UpdatedAt = DateTime.UtcNow;
@@ -310,7 +312,7 @@ public class CommissionService : ICommissionService
         var plan = await GetPlanByIdAsync(planId, cancellationToken);
         if (plan == null)
         {
-            throw new InvalidOperationException($"Commission plan {planId} not found");
+            throw new InvalidOperationException(string.Format(CommissionPlanNotFoundMessage, planId));
         }
 
         var user = await _context.Users.FindAsync(new object[] { userId }, cancellationToken);
@@ -367,7 +369,7 @@ public class CommissionService : ICommissionService
         var commission = await GetByIdAsync(commissionId, cancellationToken);
         if (commission == null)
         {
-            throw new InvalidOperationException($"Commission {commissionId} not found");
+            throw new InvalidOperationException(string.Format(CommissionNotFoundMessage, commissionId));
         }
 
         commission.Status = status;
@@ -385,7 +387,7 @@ public class CommissionService : ICommissionService
         var commission = await GetByIdAsync(commissionId, cancellationToken);
         if (commission == null)
         {
-            throw new InvalidOperationException($"Commission {commissionId} not found");
+            throw new InvalidOperationException(string.Format(CommissionNotFoundMessage, commissionId));
         }
 
         commission.Status = CommissionStatus.Approved;
@@ -405,7 +407,7 @@ public class CommissionService : ICommissionService
         var commission = await GetByIdAsync(commissionId, cancellationToken);
         if (commission == null)
         {
-            throw new InvalidOperationException($"Commission {commissionId} not found");
+            throw new InvalidOperationException(string.Format(CommissionNotFoundMessage, commissionId));
         }
 
         commission.Status = CommissionStatus.Cancelled;
@@ -426,7 +428,7 @@ public class CommissionService : ICommissionService
         var commission = await GetByIdAsync(commissionId, cancellationToken);
         if (commission == null)
         {
-            throw new InvalidOperationException($"Commission {commissionId} not found");
+            throw new InvalidOperationException(string.Format(CommissionNotFoundMessage, commissionId));
         }
 
         commission.Status = CommissionStatus.Paid;
@@ -445,7 +447,7 @@ public class CommissionService : ICommissionService
         var commission = await GetByIdAsync(commissionId, cancellationToken);
         if (commission == null)
         {
-            throw new InvalidOperationException($"Commission {commissionId} not found");
+            throw new InvalidOperationException(string.Format(CommissionNotFoundMessage, commissionId));
         }
 
         commission.Status = CommissionStatus.Clawback;
@@ -700,7 +702,7 @@ public class CommissionService : ICommissionService
         var plan = await GetPlanByIdAsync(planId, cancellationToken);
         if (plan == null)
         {
-            throw new InvalidOperationException($"Commission plan {planId} not found");
+            throw new InvalidOperationException(string.Format(CommissionPlanNotFoundMessage, planId));
         }
 
         tier.CommissionPlanId = planId;

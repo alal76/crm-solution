@@ -22,6 +22,9 @@ public class ApprovalWorkflowService : IApprovalWorkflowService
     private readonly ICrmDbContext _context;
     private readonly ILogger<ApprovalWorkflowService> _logger;
     private readonly INotificationPort? _notificationPort;
+    private const string MatrixNotFoundMessage = "Matrix {0} not found";
+    private const string RequestNotFoundMessage = "Request not found";
+    private const string StepNotFoundMessage = "Step {0} not found";
 
     public ApprovalWorkflowService(
         ICrmDbContext context,
@@ -72,7 +75,7 @@ public class ApprovalWorkflowService : IApprovalWorkflowService
             .FirstOrDefaultAsync(m => m.Id == matrix.Id && !m.IsDeleted, cancellationToken);
 
         if (existing == null)
-            throw new InvalidOperationException($"Matrix {matrix.Id} not found");
+            throw new InvalidOperationException(string.Format(MatrixNotFoundMessage, matrix.Id));
 
         existing.Name = matrix.Name;
         existing.Description = matrix.Description;
@@ -112,7 +115,7 @@ public class ApprovalWorkflowService : IApprovalWorkflowService
     public async Task<DiscountApprovalMatrix> ActivateMatrixAsync(int matrixId, CancellationToken cancellationToken = default)
     {
         var matrix = await GetMatrixByIdAsync(matrixId, cancellationToken)
-            ?? throw new InvalidOperationException($"Matrix {matrixId} not found");
+            ?? throw new InvalidOperationException(string.Format(MatrixNotFoundMessage, matrixId));
 
         matrix.IsActive = true;
         matrix.UpdatedAt = DateTime.UtcNow;
@@ -123,7 +126,7 @@ public class ApprovalWorkflowService : IApprovalWorkflowService
     public async Task<DiscountApprovalMatrix> DeactivateMatrixAsync(int matrixId, CancellationToken cancellationToken = default)
     {
         var matrix = await GetMatrixByIdAsync(matrixId, cancellationToken)
-            ?? throw new InvalidOperationException($"Matrix {matrixId} not found");
+            ?? throw new InvalidOperationException(string.Format(MatrixNotFoundMessage, matrixId));
 
         matrix.IsActive = false;
         matrix.UpdatedAt = DateTime.UtcNow;
@@ -623,7 +626,7 @@ public class ApprovalWorkflowService : IApprovalWorkflowService
     {
         var request = await GetRequestByIdAsync(requestId, cancellationToken);
         if (request == null)
-            return new ApprovalActionResult { Success = false, ErrorMessage = "Request not found" };
+            return new ApprovalActionResult { Success = false, ErrorMessage = RequestNotFoundMessage };
 
         // Find the pending step for this approver
         var currentStep = request.Steps
@@ -687,7 +690,7 @@ public class ApprovalWorkflowService : IApprovalWorkflowService
     {
         var request = await GetRequestByIdAsync(requestId, cancellationToken);
         if (request == null)
-            return new ApprovalActionResult { Success = false, ErrorMessage = "Request not found" };
+            return new ApprovalActionResult { Success = false, ErrorMessage = RequestNotFoundMessage };
 
         var currentStep = request.Steps
             .FirstOrDefault(s => s.Status == DiscountApprovalStatus.Pending && s.AssignedToId == approverId);
@@ -754,7 +757,7 @@ public class ApprovalWorkflowService : IApprovalWorkflowService
         var step = await _context.ApprovalSteps
             .Include(s => s.ApprovalRequest)
             .FirstOrDefaultAsync(s => s.Id == stepId, cancellationToken)
-            ?? throw new InvalidOperationException($"Step {stepId} not found");
+            ?? throw new InvalidOperationException(string.Format(StepNotFoundMessage, stepId));
 
         if (step.Status != DiscountApprovalStatus.Pending)
             throw new InvalidOperationException("Can only reassign pending steps");
@@ -777,7 +780,7 @@ public class ApprovalWorkflowService : IApprovalWorkflowService
             .Include(s => s.ApprovalLevel)
             .Include(s => s.ApprovalRequest)
             .FirstOrDefaultAsync(s => s.Id == stepId, cancellationToken)
-            ?? throw new InvalidOperationException($"Step {stepId} not found");
+            ?? throw new InvalidOperationException(string.Format(StepNotFoundMessage, stepId));
 
         if (step.Status != DiscountApprovalStatus.Pending)
             throw new InvalidOperationException("Can only escalate pending steps");

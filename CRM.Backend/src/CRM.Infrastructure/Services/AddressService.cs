@@ -32,6 +32,7 @@ public class AddressService : IAddressService
 {
     private readonly ICrmDbContext _context;
     private readonly ILogger<AddressService> _logger;
+    private const string AccountNotFoundOrDeletedMessage = "Account with ID {0} not found or is deleted.";
 
     /// <summary>
     /// Initializes a new instance of AddressService with required dependencies.
@@ -55,7 +56,7 @@ public class AddressService : IAddressService
 
         if (account == null)
         {
-            throw new ArgumentException($"Account with ID {accountId} not found or is deleted.", nameof(accountId));
+            throw new ArgumentException(string.Format(AccountNotFoundOrDeletedMessage, accountId), nameof(accountId));
         }
 
         // Validate address
@@ -125,7 +126,7 @@ public class AddressService : IAddressService
 
         if (account == null)
         {
-            throw new ArgumentException($"Account with ID {accountId} not found or is deleted.", nameof(accountId));
+            throw new ArgumentException(string.Format(AccountNotFoundOrDeletedMessage, accountId), nameof(accountId));
         }
 
         // Get existing address
@@ -209,7 +210,7 @@ public class AddressService : IAddressService
 
         if (account == null)
         {
-            throw new ArgumentException($"Account with ID {accountId} not found or is deleted.", nameof(accountId));
+            throw new ArgumentException(string.Format(AccountNotFoundOrDeletedMessage, accountId), nameof(accountId));
         }
 
         // Get existing address
@@ -324,7 +325,7 @@ public class AddressService : IAddressService
 
         if (account == null)
         {
-            throw new ArgumentException($"Account with ID {accountId} not found or is deleted.", nameof(accountId));
+            throw new ArgumentException(string.Format(AccountNotFoundOrDeletedMessage, accountId), nameof(accountId));
         }
 
         // Verify address exists
@@ -388,7 +389,7 @@ public class AddressService : IAddressService
 
         if (account == null)
         {
-            throw new ArgumentException($"Account with ID {accountId} not found or is deleted.", nameof(accountId));
+            throw new ArgumentException(string.Format(AccountNotFoundOrDeletedMessage, accountId), nameof(accountId));
         }
 
         // Verify address exists

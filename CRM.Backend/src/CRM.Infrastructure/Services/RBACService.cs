@@ -26,6 +26,9 @@ public class RBACService : IRBACService
     private readonly ICrmDbContext _context;
     private readonly IPermissionCacheService _cacheService;
     private readonly ILogger<RBACService> _logger;
+    private const string RoleNotFoundMessage = "Role {0} not found";
+    private const string PermissionNotFoundMessage = "Permission {0} not found";
+    private const string UserNotFoundMessage = "User {0} not found";
 
     // Predefined role hierarchy
     private static readonly Dictionary<string, int> PREDEFINED_ROLES = new()
@@ -87,7 +90,7 @@ public class RBACService : IRBACService
 
             if (user == null)
             {
-                _logger.LogWarning($"User {userId} not found");
+                _logger.LogWarning(string.Format(UserNotFoundMessage, userId));
                 return permissions;
             }
 
@@ -250,7 +253,7 @@ public class RBACService : IRBACService
                 .FirstOrDefaultAsync(r => r.Id == roleId && !r.IsDeleted, cancellationToken);
 
             if (role == null)
-                throw new KeyNotFoundException($"Role {roleId} not found");
+                throw new KeyNotFoundException(string.Format(RoleNotFoundMessage, roleId));
 
             if (role.IsSystemDefined)
                 throw new InvalidOperationException("Cannot modify system-defined roles");
@@ -289,7 +292,7 @@ public class RBACService : IRBACService
                 .FirstOrDefaultAsync(r => r.Id == roleId && !r.IsDeleted, cancellationToken);
 
             if (role == null)
-                throw new KeyNotFoundException($"Role {roleId} not found");
+                throw new KeyNotFoundException(string.Format(RoleNotFoundMessage, roleId));
 
             if (role.IsSystemDefined)
                 throw new InvalidOperationException("Cannot delete system-defined roles");
@@ -413,7 +416,7 @@ public class RBACService : IRBACService
                 .FirstOrDefaultAsync(p => p.Id == permissionId && !p.IsDeleted, cancellationToken);
 
             if (permission == null)
-                throw new KeyNotFoundException($"Permission {permissionId} not found");
+                throw new KeyNotFoundException(string.Format(PermissionNotFoundMessage, permissionId));
 
             if (permission.IsSystemDefined)
                 throw new InvalidOperationException("Cannot delete system-defined permissions");
@@ -446,11 +449,11 @@ public class RBACService : IRBACService
         {
             var role = await _context.Roles.FirstOrDefaultAsync(r => r.Id == roleId && !r.IsDeleted, cancellationToken);
             if (role == null)
-                throw new KeyNotFoundException($"Role {roleId} not found");
+                throw new KeyNotFoundException(string.Format(RoleNotFoundMessage, roleId));
 
             var permission = await _context.Permissions.FirstOrDefaultAsync(p => p.Id == permissionId && !p.IsDeleted, cancellationToken);
             if (permission == null)
-                throw new KeyNotFoundException($"Permission {permissionId} not found");
+                throw new KeyNotFoundException(string.Format(PermissionNotFoundMessage, permissionId));
 
             // Check if already assigned
             var existing = await _context.RolePermissions
@@ -515,7 +518,7 @@ public class RBACService : IRBACService
         {
             var role = await _context.Roles.FirstOrDefaultAsync(r => r.Id == roleId && !r.IsDeleted, cancellationToken);
             if (role == null)
-                throw new KeyNotFoundException($"Role {roleId} not found");
+                throw new KeyNotFoundException(string.Format(RoleNotFoundMessage, roleId));
 
             var results = new List<RolePermissionDto>();
             var permissionIdList = permissionIds.ToList();
@@ -569,11 +572,11 @@ public class RBACService : IRBACService
         {
             var user = await _context.Users.FirstOrDefaultAsync(u => u.Id == userId && !u.IsDeleted, cancellationToken);
             if (user == null)
-                throw new KeyNotFoundException($"User {userId} not found");
+                throw new KeyNotFoundException(string.Format(UserNotFoundMessage, userId));
 
             var role = await _context.Roles.FirstOrDefaultAsync(r => r.Id == roleId && !r.IsDeleted, cancellationToken);
             if (role == null)
-                throw new KeyNotFoundException($"Role {roleId} not found");
+                throw new KeyNotFoundException(string.Format(RoleNotFoundMessage, roleId));
 
             // Check if already assigned and active
             var existing = await _context.UserRoles

@@ -33,6 +33,7 @@ public class OpportunityService : IOpportunityService, IOpportunityInputPort
     private readonly IDuplicateDetectionService _duplicateDetection;
     private readonly ICrmDbContext _dbContext;
     private readonly ILogger<OpportunityService> _logger;
+    private const string OpportunityNotFoundMessage = "Opportunity with ID {0} not found";
 
     public OpportunityService(IRepository<Opportunity> repository,
         IRepository<CRM.Core.Entities.EntityTag> entityTagRepository,
@@ -251,7 +252,7 @@ public class OpportunityService : IOpportunityService, IOpportunityInputPort
             .FirstOrDefaultAsync(o => o.Id == opportunityId && !o.IsDeleted, ct);
 
         if (original == null)
-            throw new EntityNotFoundException($"Opportunity with ID {opportunityId} not found");
+            throw new EntityNotFoundException(string.Format(OpportunityNotFoundMessage, opportunityId));
 
         // Create the cloned opportunity
         var cloned = new Opportunity
@@ -380,7 +381,7 @@ public class OpportunityService : IOpportunityService, IOpportunityInputPort
             .FirstOrDefaultAsync(o => o.Id == opportunityId && !o.IsDeleted, ct);
 
         if (opportunity == null)
-            throw new EntityNotFoundException($"Opportunity with ID {opportunityId} not found");
+            throw new EntityNotFoundException(string.Format(OpportunityNotFoundMessage, opportunityId));
 
         // If this is primary, remove primary flag from others
         if (member.IsPrimary)
@@ -481,7 +482,7 @@ public class OpportunityService : IOpportunityService, IOpportunityInputPort
             .FirstOrDefaultAsync(o => o.Id == opportunityId && !o.IsDeleted, ct);
 
         if (opportunity == null)
-            throw new EntityNotFoundException($"Opportunity with ID {opportunityId} not found");
+            throw new EntityNotFoundException(string.Format(OpportunityNotFoundMessage, opportunityId));
 
         // Check if competitor already exists on this opportunity
         var existing = await _dbContext.OpportunityCompetitors
