@@ -40,14 +40,24 @@ public class EntityEventDispatcher : IEntityEventDispatcher
         string? newValue = null,
         string? contextData = null)
     {
+        var request = new TriggerExecutionRequest
+        {
+            EntityType = entityType,
+            EntityId = entityId,
+            TriggerType = triggerType,
+            ChangedField = changedField,
+            OldValue = oldValue,
+            NewValue = newValue,
+            InitiatedById = initiatedById,
+            ContextData = contextData
+        };
+
         // Fire-and-forget: run trigger evaluation in background so entity operation is not blocked
         _ = Task.Run(async () =>
         {
             try
             {
-                await DispatchEntityEventCoreAsync(
-                    entityType, entityId, triggerType, initiatedById,
-                    changedField, oldValue, newValue, contextData, CancellationToken.None);
+                await DispatchEntityEventCoreAsync(request, CancellationToken.None);
             }
             catch (Exception ex)
             {
@@ -69,29 +79,6 @@ public class EntityEventDispatcher : IEntityEventDispatcher
         string? contextData = null,
         CancellationToken cancellationToken = default)
     {
-        await DispatchEntityEventCoreAsync(
-            entityType, entityId, triggerType, initiatedById,
-            changedField, oldValue, newValue, contextData, cancellationToken);
-    }
-
-    /// <summary>
-    /// Core dispatch logic — creates a new DI scope to resolve IWorkflowTriggerService
-    /// (avoids captive dependency issues since this may outlive the original request scope).
-    /// </summary>
-    private async Task DispatchEntityEventCoreAsync(
-        string entityType,
-        int entityId,
-        WorkflowTriggerType triggerType,
-        int? initiatedById,
-        string? changedField,
-        string? oldValue,
-        string? newValue,
-        string? contextData,
-        CancellationToken cancellationToken)
-    {
-        using var scope = _scopeFactory.CreateScope();
-        var triggerService = scope.ServiceProvider.GetRequiredService<IWorkflowTriggerService>();
-
         var request = new TriggerExecutionRequest
         {
             EntityType = entityType,
@@ -104,8 +91,22 @@ public class EntityEventDispatcher : IEntityEventDispatcher
             ContextData = contextData
         };
 
+        await DispatchEntityEventCoreAsync(request, cancellationToken);
+    }
+
+    /// <summary>
+    /// Core dispatch logic — creates a new DI scope to resolve IWorkflowTriggerService.
+    /// Uses TriggerExecutionRequest parameter object to reduce parameter count (S107).
+    /// </summary>
+    private async Task DispatchEntityEventCoreAsync(
+        TriggerExecutionRequest request,
+        CancellationToken cancellationToken)
+    {
+        using var scope = _scopeFactory.CreateScope();
+        var triggerService = scope.ServiceProvider.GetRequiredService<IWorkflowTriggerService>();
+
         _logger.LogDebug("Dispatching {TriggerType} event for {EntityType} {EntityId}",
-            triggerType, entityType, entityId);
+            request.TriggerType, request.EntityType, request.EntityId);
 
         var result = await triggerService.EvaluateTriggersAsync(request, cancellationToken);
 
@@ -113,7 +114,7 @@ public class EntityEventDispatcher : IEntityEventDispatcher
         {
             _logger.LogInformation(
                 "Entity event {TriggerType} on {EntityType} {EntityId} triggered {Count} workflow(s): [{Ids}]",
-                triggerType, entityType, entityId,
+                request.TriggerType, request.EntityType, request.EntityId,
                 result.WorkflowsTriggered,
                 string.Join(", ", result.WorkflowInstanceIds));
         }
@@ -122,7 +123,7 @@ public class EntityEventDispatcher : IEntityEventDispatcher
         {
             _logger.LogWarning(
                 "Entity event {TriggerType} on {EntityType} {EntityId} had {ErrorCount} error(s): {Errors}",
-                triggerType, entityType, entityId,
+                request.TriggerType, request.EntityType, request.EntityId,
                 result.Errors.Count,
                 string.Join("; ", result.Errors));
         }

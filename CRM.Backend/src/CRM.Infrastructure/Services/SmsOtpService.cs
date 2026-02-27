@@ -250,7 +250,7 @@ public class SmsOtpService : ISmsOtpService
         return otp.ToString();
     }
 
-    private string HashOtp(string otp)
+    private static string HashOtp(string otp)
     {
         using (var sha256 = SHA256.Create())
         {
@@ -259,7 +259,7 @@ public class SmsOtpService : ISmsOtpService
         }
     }
 
-    private string NormalizePhoneNumber(string phoneNumber)
+    private static string NormalizePhoneNumber(string phoneNumber)
     {
         // Remove common formatting characters
         var normalized = System.Text.RegularExpressions.Regex.Replace(phoneNumber, @"[\s\-\.\(\)]", "");
@@ -269,14 +269,14 @@ public class SmsOtpService : ISmsOtpService
         return normalized;
     }
 
-    private bool IsValidPhoneNumber(string phoneNumber)
+    private static bool IsValidPhoneNumber(string phoneNumber)
     {
         // Basic validation: phone number should be 10-15 digits (E.164 format)
         var digitsOnly = System.Text.RegularExpressions.Regex.Replace(phoneNumber, @"\D", "");
         return digitsOnly.Length >= 10 && digitsOnly.Length <= 15;
     }
 
-    private string MaskPhoneNumber(string phoneNumber)
+    private static string MaskPhoneNumber(string phoneNumber)
     {
         // Mask phone number for logging: +1234*****890
         if (phoneNumber.Length <= 6)

@@ -35,7 +35,14 @@ public class WorkflowEventInterceptor
     /// </summary>
     public async Task OnEntityCreatedAsync(string entityType, int entityId, object? entityData = null, CancellationToken ct = default)
     {
-        await EvaluateTriggersAsync(WorkflowTriggerType.OnCreate, entityType, entityId, entityData, null, null, null, ct);
+        var request = new TriggerExecutionRequest
+        {
+            TriggerType = WorkflowTriggerType.OnCreate,
+            EntityType = entityType,
+            EntityId = entityId,
+            ContextData = entityData != null ? JsonSerializer.Serialize(entityData) : null
+        };
+        await EvaluateTriggersAsync(request, ct);
     }
 
     /// <summary>
@@ -44,12 +51,33 @@ public class WorkflowEventInterceptor
     public async Task OnEntityUpdatedAsync(string entityType, int entityId, object? entityData = null,
         string? changedField = null, string? oldValue = null, string? newValue = null, CancellationToken ct = default)
     {
-        await EvaluateTriggersAsync(WorkflowTriggerType.OnUpdate, entityType, entityId, entityData, changedField, oldValue, newValue, ct);
+        var contextJson = entityData != null ? JsonSerializer.Serialize(entityData) : null;
+        var request = new TriggerExecutionRequest
+        {
+            TriggerType = WorkflowTriggerType.OnUpdate,
+            EntityType = entityType,
+            EntityId = entityId,
+            ChangedField = changedField,
+            OldValue = oldValue,
+            NewValue = newValue,
+            ContextData = contextJson
+        };
+        await EvaluateTriggersAsync(request, ct);
 
         // Also fire OnFieldChange if a specific field changed
         if (!string.IsNullOrEmpty(changedField))
         {
-            await EvaluateTriggersAsync(WorkflowTriggerType.OnFieldChange, entityType, entityId, entityData, changedField, oldValue, newValue, ct);
+            var fieldChangeRequest = new TriggerExecutionRequest
+            {
+                TriggerType = WorkflowTriggerType.OnFieldChange,
+                EntityType = entityType,
+                EntityId = entityId,
+                ChangedField = changedField,
+                OldValue = oldValue,
+                NewValue = newValue,
+                ContextData = contextJson
+            };
+            await EvaluateTriggersAsync(fieldChangeRequest, ct);
         }
     }
 
@@ -58,7 +86,14 @@ public class WorkflowEventInterceptor
     /// </summary>
     public async Task OnEntityDeletedAsync(string entityType, int entityId, object? entityData = null, CancellationToken ct = default)
     {
-        await EvaluateTriggersAsync(WorkflowTriggerType.OnDelete, entityType, entityId, entityData, null, null, null, ct);
+        var request = new TriggerExecutionRequest
+        {
+            TriggerType = WorkflowTriggerType.OnDelete,
+            EntityType = entityType,
+            EntityId = entityId,
+            ContextData = entityData != null ? JsonSerializer.Serialize(entityData) : null
+        };
+        await EvaluateTriggersAsync(request, ct);
     }
 
     /// <summary>
@@ -67,19 +102,22 @@ public class WorkflowEventInterceptor
     public async Task OnEventAsync(string eventName, string? entityType = null, int? entityId = null,
         object? eventData = null, CancellationToken ct = default)
     {
-        await EvaluateTriggersAsync(WorkflowTriggerType.OnEvent, entityType ?? "System", entityId ?? 0, eventData, null, null, null, ct, eventName);
+        var request = new TriggerExecutionRequest
+        {
+            TriggerType = WorkflowTriggerType.OnEvent,
+            EntityType = entityType ?? "System",
+            EntityId = entityId ?? 0,
+            EventName = eventName,
+            ContextData = eventData != null ? JsonSerializer.Serialize(eventData) : null
+        };
+        await EvaluateTriggersAsync(request, ct);
     }
 
-    private async Task EvaluateTriggersAsync(
-        WorkflowTriggerType triggerType,
-        string entityType,
-        int entityId,
-        object? entityData,
-        string? changedField,
-        string? oldValue,
-        string? newValue,
-        CancellationToken ct,
-        string? eventName = null)
+    /// <summary>
+    /// Evaluates workflow triggers using the provided request object.
+    /// Reduces parameter count by using TriggerExecutionRequest as a parameter object.
+    /// </summary>
+    private async Task EvaluateTriggersAsync(TriggerExecutionRequest request, CancellationToken ct)
     {
         try
         {
@@ -92,25 +130,13 @@ public class WorkflowEventInterceptor
                 return;
             }
 
-            var request = new TriggerExecutionRequest
-            {
-                TriggerType = triggerType,
-                EntityType = entityType,
-                EntityId = entityId,
-                EventName = eventName,
-                ChangedField = changedField,
-                OldValue = oldValue,
-                NewValue = newValue,
-                ContextData = entityData != null ? JsonSerializer.Serialize(entityData) : null
-            };
-
             var result = await triggerService.EvaluateTriggersAsync(request, ct);
 
             if (result.WorkflowsTriggered > 0)
             {
                 _logger.LogInformation(
                     "Entity {EntityType}:{EntityId} triggered {Count} workflow(s) on {TriggerType}",
-                    entityType, entityId, result.WorkflowsTriggered, triggerType);
+                    request.EntityType, request.EntityId, result.WorkflowsTriggered, request.TriggerType);
             }
         }
         catch (Exception ex)
@@ -118,7 +144,7 @@ public class WorkflowEventInterceptor
             // Never let trigger evaluation failures break the main operation
             _logger.LogError(ex,
                 "Error evaluating workflow triggers for {EntityType}:{EntityId} ({TriggerType}). This does not affect the main operation.",
-                entityType, entityId, triggerType);
+                request.EntityType, request.EntityId, request.TriggerType);
         }
     }
 }

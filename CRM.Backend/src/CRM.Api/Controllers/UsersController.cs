@@ -679,7 +679,7 @@ public class UsersController : ControllerBase
         }
     }
 
-    private UserDto MapToDto(User user, ContactDto? contact)
+    private static UserDto MapToDto(User user, ContactDto? contact)
     {
         return new UserDto
         {

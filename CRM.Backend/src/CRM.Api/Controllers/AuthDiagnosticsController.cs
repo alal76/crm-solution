@@ -250,59 +250,7 @@ public class AuthDiagnosticsController : ControllerBase
         var useExternalAI = await _featureManager.IsEnabledAsync(FeatureFlags.UseExternalAI);
         if (useExternalAI)
         {
-            var aiType = (_configuration["Providers:AI:Type"] ?? "Ollama").ToLowerInvariant();
-            var openAiKey = _configuration["Providers:AI:OpenAI:ApiKey"];
-            var azureKey = _configuration["Providers:AI:AzureOpenAI:ApiKey"];
-            var azureEndpoint = _configuration["Providers:AI:AzureOpenAI:Endpoint"];
-            var ollamaUrl = _configuration["Providers:AI:Ollama:Url"];
-            var anthropicKey = _configuration["Providers:AI:Anthropic:ApiKey"];
-            var openRouterKey = _configuration["Providers:AI:OpenRouter:ApiKey"];
-
-            if (aiType == "openai" && string.IsNullOrWhiteSpace(openAiKey))
-            {
-                AddIssue(
-                    "EXT-AI-OPENAI-MISSING",
-                    "OpenAI selected but ApiKey missing",
-                    "warning",
-                    "Providers:AI:Type is OpenAI, but ApiKey is empty.",
-                    "Set Providers:AI:OpenAI:ApiKey or switch provider type.");
-            }
-            else if (aiType == "azureopenai" && (string.IsNullOrWhiteSpace(azureKey) || string.IsNullOrWhiteSpace(azureEndpoint)))
-            {
-                AddIssue(
-                    "EXT-AI-AZUREOPENAI-MISSING",
-                    "Azure OpenAI selected but ApiKey/Endpoint missing",
-                    "warning",
-                    "Providers:AI:Type is AzureOpenAI, but ApiKey or Endpoint is empty.",
-                    "Set Providers:AI:AzureOpenAI:ApiKey and Providers:AI:AzureOpenAI:Endpoint or switch provider type.");
-            }
-            else if (aiType == "ollama" && string.IsNullOrWhiteSpace(ollamaUrl))
-            {
-                AddIssue(
-                    "EXT-AI-OLLAMA-MISSING",
-                    "Ollama selected but Url missing",
-                    "warning",
-                    "Providers:AI:Type is Ollama, but Url is empty.",
-                    "Set Providers:AI:Ollama:Url or switch provider type.");
-            }
-            else if (aiType == "anthropic" && string.IsNullOrWhiteSpace(anthropicKey))
-            {
-                AddIssue(
-                    "EXT-AI-ANTHROPIC-MISSING",
-                    "Anthropic selected but ApiKey missing",
-                    "warning",
-                    "Providers:AI:Type is Anthropic, but ApiKey is empty.",
-                    "Set Providers:AI:Anthropic:ApiKey or switch provider type.");
-            }
-            else if (aiType == "openrouter" && string.IsNullOrWhiteSpace(openRouterKey))
-            {
-                AddIssue(
-                    "EXT-AI-OPENROUTER-MISSING",
-                    "OpenRouter selected but ApiKey missing",
-                    "warning",
-                    "Providers:AI:Type is OpenRouter, but ApiKey is empty.",
-                    "Set Providers:AI:OpenRouter:ApiKey or switch provider type.");
-            }
+            CheckAIProviderConfig(AddIssue);
         }
 
         return Ok(new
@@ -311,5 +259,48 @@ public class AuthDiagnosticsController : ControllerBase
             issueCount = issues.Count,
             issues
         });
+    }
+
+    /// <summary>
+    /// Validates AI provider configuration. Extracted to reduce cognitive complexity.
+    /// </summary>
+    private void CheckAIProviderConfig(Action<string, string, string, string, string> addIssue)
+    {
+        var aiType = (_configuration["Providers:AI:Type"] ?? "Ollama").ToLowerInvariant();
+
+        var validations = new Dictionary<string, (Func<bool> IsMissing, string Id, string Title, string Detail, string Recommendation)>
+        {
+            ["openai"] = (
+                () => string.IsNullOrWhiteSpace(_configuration["Providers:AI:OpenAI:ApiKey"]),
+                "EXT-AI-OPENAI-MISSING", "OpenAI selected but ApiKey missing",
+                "Providers:AI:Type is OpenAI, but ApiKey is empty.",
+                "Set Providers:AI:OpenAI:ApiKey or switch provider type."),
+            ["azureopenai"] = (
+                () => string.IsNullOrWhiteSpace(_configuration["Providers:AI:AzureOpenAI:ApiKey"]) ||
+                      string.IsNullOrWhiteSpace(_configuration["Providers:AI:AzureOpenAI:Endpoint"]),
+                "EXT-AI-AZUREOPENAI-MISSING", "Azure OpenAI selected but ApiKey/Endpoint missing",
+                "Providers:AI:Type is AzureOpenAI, but ApiKey or Endpoint is empty.",
+                "Set Providers:AI:AzureOpenAI:ApiKey and Providers:AI:AzureOpenAI:Endpoint or switch provider type."),
+            ["ollama"] = (
+                () => string.IsNullOrWhiteSpace(_configuration["Providers:AI:Ollama:Url"]),
+                "EXT-AI-OLLAMA-MISSING", "Ollama selected but Url missing",
+                "Providers:AI:Type is Ollama, but Url is empty.",
+                "Set Providers:AI:Ollama:Url or switch provider type."),
+            ["anthropic"] = (
+                () => string.IsNullOrWhiteSpace(_configuration["Providers:AI:Anthropic:ApiKey"]),
+                "EXT-AI-ANTHROPIC-MISSING", "Anthropic selected but ApiKey missing",
+                "Providers:AI:Type is Anthropic, but ApiKey is empty.",
+                "Set Providers:AI:Anthropic:ApiKey or switch provider type."),
+            ["openrouter"] = (
+                () => string.IsNullOrWhiteSpace(_configuration["Providers:AI:OpenRouter:ApiKey"]),
+                "EXT-AI-OPENROUTER-MISSING", "OpenRouter selected but ApiKey missing",
+                "Providers:AI:Type is OpenRouter, but ApiKey is empty.",
+                "Set Providers:AI:OpenRouter:ApiKey or switch provider type.")
+        };
+
+        if (validations.TryGetValue(aiType, out var validation) && validation.IsMissing())
+        {
+            addIssue(validation.Id, validation.Title, "warning", validation.Detail, validation.Recommendation);
+        }
     }
 }

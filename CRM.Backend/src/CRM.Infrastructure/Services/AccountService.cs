@@ -1467,7 +1467,7 @@ public class AccountService : IAccountService, IAccountInputPort, ICustomerInput
                && string.Equals(left.Country, right.Country, StringComparison.OrdinalIgnoreCase);
     }
 
-    private AccountContactDto MapAccountContactToDto(AccountContact cc, ContactDto? contact)
+    private static AccountContactDto MapAccountContactToDto(AccountContact cc, ContactDto? contact)
     {
         return new AccountContactDto
         {

@@ -329,36 +329,50 @@ public class EmailTemplateService : IEmailTemplateService
             ["Date"] = DateTime.UtcNow.ToString("MMMM d, yyyy")
         };
 
-        switch (category)
-        {
-            case EmailTemplateCategory.Sales:
-                data["OpportunityName"] = "Enterprise Software Deal";
-                data["Amount"] = "$50,000";
-                data["Stage"] = "Negotiation";
-                data["SalesRepName"] = "Jane Smith";
-                break;
-
-            case EmailTemplateCategory.Marketing:
-                data["CampaignName"] = "Summer Promotion 2025";
-                data["OfferDetails"] = "Save 20% on all products";
-                data["ExpirationDate"] = DateTime.UtcNow.AddDays(30).ToString("MMMM d, yyyy");
-                break;
-
-            case EmailTemplateCategory.Support:
-                data["TicketNumber"] = "TKT-2025-0001";
-                data["TicketSubject"] = "Unable to login";
-                data["Priority"] = "High";
-                data["AgentName"] = "Support Team";
-                break;
-
-            case EmailTemplateCategory.Billing:
-                data["InvoiceNumber"] = "INV-2025-0001";
-                data["Amount"] = "$1,500.00";
-                data["DueDate"] = DateTime.UtcNow.AddDays(30).ToString("MMMM d, yyyy");
-                break;
-        }
-
+        AddCategorySampleData(data, category);
         return data;
+    }
+
+    /// <summary>
+    /// Adds category-specific sample data. Extracted to reduce cognitive complexity.
+    /// </summary>
+    private static void AddCategorySampleData(Dictionary<string, object> data, EmailTemplateCategory category)
+    {
+        var categoryData = category switch
+        {
+            EmailTemplateCategory.Sales => new Dictionary<string, object>
+            {
+                ["OpportunityName"] = "Enterprise Software Deal",
+                ["Amount"] = "$50,000",
+                ["Stage"] = "Negotiation",
+                ["SalesRepName"] = "Jane Smith"
+            },
+            EmailTemplateCategory.Marketing => new Dictionary<string, object>
+            {
+                ["CampaignName"] = "Summer Promotion 2025",
+                ["OfferDetails"] = "Save 20% on all products",
+                ["ExpirationDate"] = DateTime.UtcNow.AddDays(30).ToString("MMMM d, yyyy")
+            },
+            EmailTemplateCategory.Support => new Dictionary<string, object>
+            {
+                ["TicketNumber"] = "TKT-2025-0001",
+                ["TicketSubject"] = "Unable to login",
+                ["Priority"] = "High",
+                ["AgentName"] = "Support Team"
+            },
+            EmailTemplateCategory.Billing => new Dictionary<string, object>
+            {
+                ["InvoiceNumber"] = "INV-2025-0001",
+                ["Amount"] = "$1,500.00",
+                ["DueDate"] = DateTime.UtcNow.AddDays(30).ToString("MMMM d, yyyy")
+            },
+            _ => new Dictionary<string, object>()
+        };
+
+        foreach (var kvp in categoryData)
+        {
+            data[kvp.Key] = kvp.Value;
+        }
     }
 
     #endregion
@@ -466,7 +480,7 @@ public class EmailTemplateService : IEmailTemplateService
             .ToList();
     }
 
-    private string GetCategoryDescription(EmailTemplateCategory category)
+    private static string GetCategoryDescription(EmailTemplateCategory category)
     {
         return category switch
         {
@@ -497,31 +511,37 @@ public class EmailTemplateService : IEmailTemplateService
             new() { Name = "Date", Description = "Current date", DataType = "date", IsRequired = false, SampleValue = "January 15, 2025" }
         };
 
-        switch (category)
-        {
-            case EmailTemplateCategory.Sales:
-                variables.Add(new() { Name = "OpportunityName", Description = "Opportunity name", DataType = "string", SampleValue = "Enterprise Deal" });
-                variables.Add(new() { Name = "Amount", Description = "Deal amount", DataType = "currency", SampleValue = "$50,000" });
-                variables.Add(new() { Name = "Stage", Description = "Sales stage", DataType = "string", SampleValue = "Negotiation" });
-                variables.Add(new() { Name = "SalesRepName", Description = "Sales rep name", DataType = "string", SampleValue = "Jane Smith" });
-                break;
-
-            case EmailTemplateCategory.Billing:
-                variables.Add(new() { Name = "InvoiceNumber", Description = "Invoice number", DataType = "string", SampleValue = "INV-2025-0001" });
-                variables.Add(new() { Name = "InvoiceAmount", Description = "Invoice total", DataType = "currency", SampleValue = "$1,500.00" });
-                variables.Add(new() { Name = "DueDate", Description = "Payment due date", DataType = "date", SampleValue = "February 15, 2025" });
-                break;
-
-            case EmailTemplateCategory.Support:
-                variables.Add(new() { Name = "TicketNumber", Description = "Support ticket number", DataType = "string", SampleValue = "TKT-2025-0001" });
-                variables.Add(new() { Name = "TicketSubject", Description = "Ticket subject", DataType = "string", SampleValue = "Login issue" });
-                variables.Add(new() { Name = "Priority", Description = "Ticket priority", DataType = "string", SampleValue = "High" });
-                variables.Add(new() { Name = "AgentName", Description = "Support agent name", DataType = "string", SampleValue = "Support Team" });
-                break;
-        }
-
+        variables.AddRange(GetCategorySpecificVariables(category));
         return variables;
     }
+
+    /// <summary>
+    /// Gets category-specific template variables. Extracted to reduce cognitive complexity.
+    /// </summary>
+    private static IEnumerable<TemplateVariable> GetCategorySpecificVariables(EmailTemplateCategory category) => category switch
+    {
+        EmailTemplateCategory.Sales => new[]
+        {
+            new TemplateVariable { Name = "OpportunityName", Description = "Opportunity name", DataType = "string", SampleValue = "Enterprise Deal" },
+            new TemplateVariable { Name = "Amount", Description = "Deal amount", DataType = "currency", SampleValue = "$50,000" },
+            new TemplateVariable { Name = "Stage", Description = "Sales stage", DataType = "string", SampleValue = "Negotiation" },
+            new TemplateVariable { Name = "SalesRepName", Description = "Sales rep name", DataType = "string", SampleValue = "Jane Smith" }
+        },
+        EmailTemplateCategory.Billing => new[]
+        {
+            new TemplateVariable { Name = "InvoiceNumber", Description = "Invoice number", DataType = "string", SampleValue = "INV-2025-0001" },
+            new TemplateVariable { Name = "InvoiceAmount", Description = "Invoice total", DataType = "currency", SampleValue = "$1,500.00" },
+            new TemplateVariable { Name = "DueDate", Description = "Payment due date", DataType = "date", SampleValue = "February 15, 2025" }
+        },
+        EmailTemplateCategory.Support => new[]
+        {
+            new TemplateVariable { Name = "TicketNumber", Description = "Support ticket number", DataType = "string", SampleValue = "TKT-2025-0001" },
+            new TemplateVariable { Name = "TicketSubject", Description = "Ticket subject", DataType = "string", SampleValue = "Login issue" },
+            new TemplateVariable { Name = "Priority", Description = "Ticket priority", DataType = "string", SampleValue = "High" },
+            new TemplateVariable { Name = "AgentName", Description = "Support agent name", DataType = "string", SampleValue = "Support Team" }
+        },
+        _ => Array.Empty<TemplateVariable>()
+    };
 
     public async Task<IEnumerable<string>> ExtractVariablesAsync(string templateContent, CancellationToken cancellationToken = default)
     {
@@ -711,7 +731,7 @@ public class EmailTemplateService : IEmailTemplateService
 
     #region Helper Methods
 
-    private string GenerateSlug(string name)
+    private static string GenerateSlug(string name)
     {
         var slug = name.ToLower()
             .Replace(" ", "-")
@@ -721,12 +741,12 @@ public class EmailTemplateService : IEmailTemplateService
         return slug.Trim('-');
     }
 
-    private int GetLineNumber(string content, int position)
+    private static int GetLineNumber(string content, int position)
     {
         return content.Substring(0, position).Count(c => c == '\n') + 1;
     }
 
-    private int GetColumnNumber(string content, int position)
+    private static int GetColumnNumber(string content, int position)
     {
         var lastNewLine = content.LastIndexOf('\n', position);
         return position - lastNewLine;

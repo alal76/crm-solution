@@ -338,7 +338,7 @@ public class CommissionRulesEngine : ICommissionRulesEngine
 
     #region Private Helpers
 
-    private decimal CalculateBaseCommission(decimal dealAmount, CommissionRule rule)
+    private static decimal CalculateBaseCommission(decimal dealAmount, CommissionRule rule)
     {
         return rule.RuleType switch
         {
@@ -349,7 +349,7 @@ public class CommissionRulesEngine : ICommissionRulesEngine
         };
     }
 
-    private decimal? GetMaxCommissionFromRule(CommissionRule rule)
+    private static decimal? GetMaxCommissionFromRule(CommissionRule rule)
     {
         // Try to parse max commission from Configuration JSON
         if (string.IsNullOrEmpty(rule.Configuration))

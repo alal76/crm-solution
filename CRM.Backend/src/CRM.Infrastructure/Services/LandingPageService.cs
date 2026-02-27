@@ -779,7 +779,7 @@ public class LandingPageService : ILandingPageService
             : $"<div style=\"height: {height};\"></div>";
     }
 
-    private string GetHtmlInputType(FormFieldType fieldType)
+    private static string GetHtmlInputType(FormFieldType fieldType)
     {
         return fieldType switch
         {
@@ -794,7 +794,7 @@ public class LandingPageService : ILandingPageService
         };
     }
 
-    private string? GetJsonString(JsonElement element, string propertyName)
+    private static string? GetJsonString(JsonElement element, string propertyName)
     {
         if (element.ValueKind == JsonValueKind.Undefined)
         {

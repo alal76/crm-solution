@@ -411,7 +411,7 @@ public class IncidentService : IIncidentService
     /// <summary>
     /// Calculate priority from impact and urgency using a matrix.
     /// </summary>
-    private int CalculatePriority(IncidentImpact impact, IncidentUrgency urgency)
+    private static int CalculatePriority(IncidentImpact impact, IncidentUrgency urgency)
     {
         // Priority matrix: Impact (rows) x Urgency (columns) = Priority (1-4)
         // High Impact + High Urgency = P1 (lowest number = highest priority)

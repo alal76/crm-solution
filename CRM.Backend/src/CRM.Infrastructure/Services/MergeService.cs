@@ -22,6 +22,18 @@ public class MergeService : IMergeService
     private readonly ILogger<MergeService> _logger;
     private static readonly JsonSerializerOptions JsonOptions = new() { WriteIndented = false };
 
+    /// <summary>
+    /// Context object for processing merged records to reduce parameter count (S107).
+    /// </summary>
+    private sealed record MergeRecordContext(
+        int MergeGroupId,
+        int RecordId,
+        int MasterRecordId,
+        DuplicateEntityType EntityType,
+        Dictionary<string, int>? FieldOverrides,
+        bool RelinkRelated,
+        CancellationToken CancellationToken);
+
     public MergeService(ICrmDbContext context, ILogger<MergeService> logger)
     {
         _context = context;
@@ -81,7 +93,7 @@ public class MergeService : IMergeService
             // Process each record to merge
             foreach (var recordId in request.RecordsToMerge)
             {
-                var relinkCount = await ProcessMergedRecordAsync(
+                var mergeContext = new MergeRecordContext(
                     mergeGroup.Id,
                     recordId,
                     request.MasterRecordId,
@@ -89,6 +101,8 @@ public class MergeService : IMergeService
                     request.FieldSourceOverrides,
                     request.RelinkRelatedRecords,
                     cancellationToken);
+
+                var relinkCount = await ProcessMergedRecordAsync(mergeContext);
 
                 result.RecordsMerged++;
                 result.RelatedRecordsRelinked += relinkCount;
@@ -437,42 +451,39 @@ public class MergeService : IMergeService
         _context.Set<DuplicateMergeGroupMember>().Add(member);
     }
 
-    private async Task<int> ProcessMergedRecordAsync(
-        int mergeGroupId,
-        int recordId,
-        int masterRecordId,
-        DuplicateEntityType entityType,
-        Dictionary<string, int>? fieldOverrides,
-        bool relinkRelated,
-        CancellationToken cancellationToken)
+    /// <summary>
+    /// Processes a merged record. Uses MergeRecordContext parameter object
+    /// to reduce parameter count (S107 compliance).
+    /// </summary>
+    private async Task<int> ProcessMergedRecordAsync(MergeRecordContext ctx)
     {
         var relinkCount = 0;
 
         // Get snapshot before merge
-        var snapshot = await GetRecordSnapshotAsync(recordId, entityType, cancellationToken);
+        var snapshot = await GetRecordSnapshotAsync(ctx.RecordId, ctx.EntityType, ctx.CancellationToken);
 
         // Add to merge group
         var fieldsUsed = new Dictionary<string, string>();
-        if (fieldOverrides != null)
+        if (ctx.FieldOverrides != null)
         {
-            foreach (var (field, sourceId) in fieldOverrides)
+            foreach (var (field, sourceId) in ctx.FieldOverrides)
             {
-                if (sourceId == recordId)
+                if (sourceId == ctx.RecordId)
                 {
-                    var value = await GetFieldValueFromRecordAsync(recordId, entityType, field, cancellationToken);
+                    var value = await GetFieldValueFromRecordAsync(ctx.RecordId, ctx.EntityType, field, ctx.CancellationToken);
                     fieldsUsed[field] = value ?? "";
 
                     // Apply value to master
-                    await SetFieldValueOnRecordAsync(masterRecordId, entityType, field, value, cancellationToken);
+                    await SetFieldValueOnRecordAsync(ctx.MasterRecordId, ctx.EntityType, field, value, ctx.CancellationToken);
                 }
             }
         }
 
         // Relink related records
         string? relinkedJson = null;
-        if (relinkRelated)
+        if (ctx.RelinkRelated)
         {
-            var relinked = await RelinkRelatedRecordsAsync(recordId, masterRecordId, entityType, cancellationToken);
+            var relinked = await RelinkRelatedRecordsAsync(ctx.RecordId, ctx.MasterRecordId, ctx.EntityType, ctx.CancellationToken);
             relinkCount = relinked.Sum(r => r.Value);
             relinkedJson = JsonSerializer.Serialize(relinked, JsonOptions);
         }
@@ -480,9 +491,9 @@ public class MergeService : IMergeService
         // Create group member
         var member = new DuplicateMergeGroupMember
         {
-            MergeGroupId = mergeGroupId,
-            RecordId = recordId,
-            RecordType = entityType,
+            MergeGroupId = ctx.MergeGroupId,
+            RecordId = ctx.RecordId,
+            RecordType = ctx.EntityType,
             IsMaster = false,
             RecordSnapshot = snapshot,
             FieldValuesUsed = fieldsUsed.Any() ? JsonSerializer.Serialize(fieldsUsed, JsonOptions) : null,
@@ -494,7 +505,7 @@ public class MergeService : IMergeService
         _context.Set<DuplicateMergeGroupMember>().Add(member);
 
         // Soft-delete the merged record
-        await MarkRecordAsMergedAsync(recordId, masterRecordId, mergeGroupId, entityType, cancellationToken);
+        await MarkRecordAsMergedAsync(ctx.RecordId, ctx.MasterRecordId, ctx.MergeGroupId, ctx.EntityType, ctx.CancellationToken);
 
         return relinkCount;
     }

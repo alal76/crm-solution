@@ -158,6 +158,28 @@ public class NotesController : ControllerBase
         return (CanEdit: isCreator || isAdmin, CanDelete: isCreator || isAdmin);
     }
 
+    /// <summary>
+    /// Sets the legacy foreign key field on a note based on entity type.
+    /// Reduces cognitive complexity by consolidating switch logic.
+    /// </summary>
+    private static void SetLegacyEntityForeignKey(Note note, string? entityType, int? entityId)
+    {
+        if (string.IsNullOrEmpty(entityType) || !entityId.HasValue)
+            return;
+
+        switch (entityType.ToLower())
+        {
+            case "account": note.AccountId = entityId; break;
+            case "contact": note.ContactId = entityId; break;
+            case "opportunity": note.OpportunityId = entityId; break;
+            case "lead": note.LeadId = entityId; break;
+            case "campaign": note.CampaignId = entityId; break;
+            case "quote": note.QuoteId = entityId; break;
+            case "servicerequest": note.ServiceRequestId = entityId; break;
+            case "product": note.ProductId = entityId; break;
+        }
+    }
+
     private async Task<NoteResponseDto> MapToResponseDto(Note note, int currentUserId)
     {
         var (canEdit, canDelete) = await GetPermissions(note, currentUserId);
@@ -384,36 +406,7 @@ public class NotesController : ControllerBase
         };
 
         // If EntityType/EntityId provided, also set the corresponding legacy FK
-        if (!string.IsNullOrEmpty(dto.EntityType) && dto.EntityId.HasValue)
-        {
-            switch (dto.EntityType.ToLower())
-            {
-                case "account":
-                    note.AccountId = dto.EntityId;
-                    break;
-                case "contact":
-                    note.ContactId = dto.EntityId;
-                    break;
-                case "opportunity":
-                    note.OpportunityId = dto.EntityId;
-                    break;
-                case "lead":
-                    note.LeadId = dto.EntityId;
-                    break;
-                case "campaign":
-                    note.CampaignId = dto.EntityId;
-                    break;
-                case "quote":
-                    note.QuoteId = dto.EntityId;
-                    break;
-                case "servicerequest":
-                    note.ServiceRequestId = dto.EntityId;
-                    break;
-                case "product":
-                    note.ProductId = dto.EntityId;
-                    break;
-            }
-        }
+        SetLegacyEntityForeignKey(note, dto.EntityType, dto.EntityId);
 
         _context.Notes.Add(note);
         await _context.SaveChangesAsync();
@@ -734,36 +727,7 @@ public class NotesController : ControllerBase
         };
 
         // Set legacy FK if applicable
-        if (!string.IsNullOrEmpty(dto.EntityType) && dto.EntityId.HasValue)
-        {
-            switch (dto.EntityType.ToLower())
-            {
-                case "account":
-                    note.AccountId = dto.EntityId;
-                    break;
-                case "contact":
-                    note.ContactId = dto.EntityId;
-                    break;
-                case "opportunity":
-                    note.OpportunityId = dto.EntityId;
-                    break;
-                case "lead":
-                    note.LeadId = dto.EntityId;
-                    break;
-                case "campaign":
-                    note.CampaignId = dto.EntityId;
-                    break;
-                case "quote":
-                    note.QuoteId = dto.EntityId;
-                    break;
-                case "servicerequest":
-                    note.ServiceRequestId = dto.EntityId;
-                    break;
-                case "product":
-                    note.ProductId = dto.EntityId;
-                    break;
-            }
-        }
+        SetLegacyEntityForeignKey(note, dto.EntityType, dto.EntityId);
 
         _context.Notes.Add(note);
         await _context.SaveChangesAsync();

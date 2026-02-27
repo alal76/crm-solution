@@ -21,6 +21,16 @@ public class RelationshipService
     private readonly CrmDbContext _context;
     private readonly ILogger<RelationshipService> _logger;
 
+    /// <summary>
+    /// Context object for recursive map building to reduce parameter count (S107).
+    /// </summary>
+    private sealed record BuildMapContext(
+        Dictionary<int, RelationshipNodeDto> Nodes,
+        List<RelationshipEdgeDto> Edges,
+        HashSet<int> ProcessedRelationships,
+        List<int>? IncludeTypeIds,
+        int MinStrength);
+
     public RelationshipService(CrmDbContext context, ILogger<RelationshipService> logger)
     {
         _context = context;
@@ -461,8 +471,14 @@ public class RelationshipService
         if (centralAccount == null)
             return new RelationshipMapVisualizationDto();
 
-        await BuildMapRecursive(centralAccountId, depth, nodes, edges, processedRelationships,
-            includeTypeIds, minStrength, true);
+        var context = new BuildMapContext(
+            nodes,
+            edges,
+            processedRelationships,
+            includeTypeIds,
+            minStrength);
+
+        await BuildMapRecursive(centralAccountId, depth, context, isCentral: true);
 
         return new RelationshipMapVisualizationDto
         {
@@ -471,17 +487,17 @@ public class RelationshipService
         };
     }
 
+    /// <summary>
+    /// Recursively builds a relationship map. Uses BuildMapContext parameter object
+    /// to reduce parameter count (S107 compliance).
+    /// </summary>
     private async Task BuildMapRecursive(
         int accountId,
         int remainingDepth,
-        Dictionary<int, RelationshipNodeDto> nodes,
-        List<RelationshipEdgeDto> edges,
-        HashSet<int> processedRelationships,
-        List<int>? includeTypeIds,
-        int minStrength,
+        BuildMapContext context,
         bool isCentral)
     {
-        if (remainingDepth < 0 || nodes.ContainsKey(accountId))
+        if (remainingDepth < 0 || context.Nodes.ContainsKey(accountId))
             return;
 
         var account = await _context.Accounts.FindAsync(accountId);
@@ -489,7 +505,7 @@ public class RelationshipService
             return;
 
         // Add node
-        nodes[accountId] = new RelationshipNodeDto
+        context.Nodes[accountId] = new RelationshipNodeDto
         {
             Id = accountId,
             Label = account.Company ?? $"{account.FirstName} {account.LastName}",
@@ -507,20 +523,20 @@ public class RelationshipService
             .Include(r => r.RelationshipType)
             .Where(r => !r.IsDeleted &&
                 (r.SourceAccountId == accountId || r.TargetAccountId == accountId) &&
-                r.StrengthScore >= minStrength)
+                r.StrengthScore >= context.MinStrength)
             .ToListAsync();
 
-        if (includeTypeIds?.Any() == true)
-            relationships = relationships.Where(r => includeTypeIds.Contains(r.RelationshipTypeId)).ToList();
+        if (context.IncludeTypeIds?.Any() == true)
+            relationships = relationships.Where(r => context.IncludeTypeIds.Contains(r.RelationshipTypeId)).ToList();
 
         foreach (var rel in relationships)
         {
-            if (processedRelationships.Contains(rel.Id))
+            if (context.ProcessedRelationships.Contains(rel.Id))
                 continue;
 
-            processedRelationships.Add(rel.Id);
+            context.ProcessedRelationships.Add(rel.Id);
 
-            edges.Add(new RelationshipEdgeDto
+            context.Edges.Add(new RelationshipEdgeDto
             {
                 Id = rel.Id,
                 SourceId = rel.SourceAccountId,
@@ -532,12 +548,11 @@ public class RelationshipService
             });
 
             var nextAccountId = rel.SourceAccountId == accountId ? rel.TargetAccountId : rel.SourceAccountId;
-            await BuildMapRecursive(nextAccountId, remainingDepth - 1, nodes, edges,
-                processedRelationships, includeTypeIds, minStrength, false);
+            await BuildMapRecursive(nextAccountId, remainingDepth - 1, context, isCentral: false);
         }
 
         // Update relationship count
-        if (nodes.TryGetValue(accountId, out var node))
+        if (context.Nodes.TryGetValue(accountId, out var node))
         {
             node.RelationshipCount = relationships.Count;
         }

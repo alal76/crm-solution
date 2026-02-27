@@ -330,7 +330,7 @@ public class CampaignMetricService : ICampaignMetricService
         };
     }
 
-    private string GenerateInsights(CampaignMetricsDto? metrics)
+    private static string GenerateInsights(CampaignMetricsDto? metrics)
     {
         if (metrics == null)
             return "No metrics available for analysis.";
@@ -361,7 +361,7 @@ public class CampaignMetricService : ICampaignMetricService
         return string.Join("; ", insights);
     }
 
-    private List<string> GenerateRecommendations(CampaignMetricsDto? metrics)
+    private static List<string> GenerateRecommendations(CampaignMetricsDto? metrics)
     {
         var recommendations = new List<string>();
 
