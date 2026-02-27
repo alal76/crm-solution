@@ -520,7 +520,7 @@ public class AuthController : ControllerBase
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var token = await _authenticationService.RequestPasswordResetAsync(request.Email);
+            await _authenticationService.RequestPasswordResetAsync(request.Email);
             // In production, send email with reset link containing the token
             return Ok(new { message = "Password reset email sent. Check your inbox." });
         }

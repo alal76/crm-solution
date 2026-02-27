@@ -112,12 +112,6 @@ public class EmailToTicketService : IEmailToTicketService
                 }
             }
 
-            // Determine priority from subject keywords
-            var priority = DeterminePriority(email.Subject, email.BodyText);
-
-            // Clean the email body
-            var cleanBody = CleanEmailBody(email.BodyText);
-
             // Create incident (simulated - would use IncidentService in production)
             var incidentNumber = $"INC-{DateTime.UtcNow:yyyyMMddHHmmss}";
             var incidentId = Random.Shared.Next(10000, 99999);
@@ -160,9 +154,6 @@ public class EmailToTicketService : IEmailToTicketService
                     Action = EmailParseAction.Ignored
                 };
             }
-
-            // Clean the email body (remove quoted text, signatures)
-            var cleanBody = CleanEmailBody(email.BodyText);
 
             // Add comment to incident (simulated)
             var commentId = Random.Shared.Next(1000, 9999);

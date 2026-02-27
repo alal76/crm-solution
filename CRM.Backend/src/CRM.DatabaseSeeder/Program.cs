@@ -895,8 +895,6 @@ internal class Program
         for (int i = 0; i < count; i++)
         {
             var status = faker.PickRandom(leadStatuses);
-            var isConverted = status == LeadLifecycleStatus.Converted;
-            var isDisqualified = status == LeadLifecycleStatus.Disqualified;
             var createdDate = faker.Date.Past(1);
             var primaryCampaign = faker.Random.Bool(0.8f) ? faker.PickRandom(campaigns) : null;
             var score = faker.Random.Int(0, 100);

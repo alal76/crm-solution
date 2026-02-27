@@ -155,7 +155,6 @@ public class PermissionCacheService : IPermissionCacheService
     {
         try
         {
-            var db = _redis.GetDatabase();
             var tasks = userIds.Select(userId => InvalidateUserCacheAsync(userId, cancellationToken)).ToList();
             await Task.WhenAll(tasks);
 

@@ -269,9 +269,6 @@ public class DatabaseBackupService : IDatabaseBackupService, IDatabaseBackupInpu
             if (string.IsNullOrEmpty(config.TargetConnectionString) && string.IsNullOrEmpty(config.TargetHost))
                 throw new InvalidOperationException("Target connection string or host must be provided");
 
-            // Build connection string if not provided
-            var targetConnStr = config.TargetConnectionString ?? BuildConnectionString(config);
-
             _logger.LogInformation($"Database migration initiated. Target: {config.TargetDatabase} at {config.TargetHost}:{config.TargetPort}");
 
             // In production, implement actual migration logic here using database-specific tools

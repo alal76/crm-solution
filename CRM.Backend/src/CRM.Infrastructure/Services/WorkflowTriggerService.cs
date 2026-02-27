@@ -585,7 +585,7 @@ public class WorkflowTriggerService : IWorkflowTriggerService
     {
         try
         {
-            var cron = CronExpression.Parse(cronExpression);
+            _ = CronExpression.Parse(cronExpression);
             errorMessage = null;
             return true;
         }

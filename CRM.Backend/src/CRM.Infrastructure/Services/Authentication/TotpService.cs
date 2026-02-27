@@ -160,8 +160,6 @@ namespace CRM.Infrastructure.Services.Authentication
                 // This is a placeholder implementation
                 // byte[] secretBytes = await GetUserTotpSecretAsync(userId);
 
-                long currentTimeCounter = GetTimeCounter();
-
                 // Verify with current time window and ±1 windows for clock drift
                 for (int i = -1; i <= 1; i++)
                 {

@@ -109,7 +109,6 @@ public class MonitoringController : ControllerBase
     {
         try
         {
-            var options = _monitoringService.GetMonitoringOptions();
             var infra = await _monitoringService.GetInfrastructureInfoAsync(ct);
 
             return Ok(new EnvironmentInfo

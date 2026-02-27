@@ -255,7 +255,7 @@ public class WorkflowController : ControllerBase
             workflow.Tags = dto.Tags != null ? string.Join(",", dto.Tags) : workflow.Tags;
             workflow.Metadata = dto.Metadata ?? workflow.Metadata;
 
-            var result = await _workflowService.UpdateWorkflowDefinitionAsync(id, workflow);
+            await _workflowService.UpdateWorkflowDefinitionAsync(id, workflow);
             return Ok(new { message = "Workflow updated successfully" });
         }
         catch (Exception ex)
@@ -752,7 +752,7 @@ public class WorkflowController : ControllerBase
             node.UseExponentialBackoff = dto.UseExponentialBackoff ?? node.UseExponentialBackoff;
             node.ExecutionOrder = dto.ExecutionOrder ?? node.ExecutionOrder;
 
-            var result = await _workflowService.UpdateNodeAsync(nodeId, node);
+            await _workflowService.UpdateNodeAsync(nodeId, node);
             return Ok(new { message = "Node updated successfully" });
         }
         catch (InvalidOperationException ex)
@@ -899,7 +899,7 @@ public class WorkflowController : ControllerBase
             transition.Color = dto.Color ?? transition.Color;
             transition.AnimationStyle = dto.AnimationStyle ?? transition.AnimationStyle;
 
-            var result = await _workflowService.UpdateTransitionAsync(transitionId, transition);
+            await _workflowService.UpdateTransitionAsync(transitionId, transition);
             return Ok(new { message = "Transition updated successfully" });
         }
         catch (InvalidOperationException ex)

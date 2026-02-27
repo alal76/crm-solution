@@ -285,7 +285,6 @@ public class BusinessHoursCalculator : IBusinessHoursCalculator
         // Also check database for custom holidays if available
         try
         {
-            var context = _dbContextResolver.ResolveContext();
             // Check if there's a holiday table - this would need to be added to the ITSM schema
             // For now, just use the schedule's built-in holidays
         }

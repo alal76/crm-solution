@@ -311,7 +311,6 @@ public static class ProviderServiceExtensions
         if (!string.IsNullOrEmpty(teamsConfig["WebhookUrl"]))
         {
             services.Configure<TeamsConfiguration>(teamsConfig);
-            var webhookUrl = teamsConfig["WebhookUrl"]!;
             var teamsTimeout = int.TryParse(teamsConfig["TimeoutSeconds"], out var tt) ? tt : 30;
             services.AddHttpClient<TeamsNotificationProvider>(client =>
             {

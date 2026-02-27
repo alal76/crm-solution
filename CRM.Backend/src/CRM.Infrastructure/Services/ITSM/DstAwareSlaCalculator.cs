@@ -189,7 +189,6 @@ public class DstAwareSlaCalculator : IDstAwareSlaCalculator
                 var dstEnd = GetTransitionDate(rule.DaylightTransitionEnd, localTime.Year);
 
                 // Check if within 2 hours of either transition
-                var twoHours = TimeSpan.FromHours(2);
                 if (Math.Abs((localTime - dstStart).TotalHours) <= 2 ||
                     Math.Abs((localTime - dstEnd).TotalHours) <= 2)
                 {

@@ -94,7 +94,6 @@ public class EmailPlugin : CrmPluginBase
         try
         {
             var templates = await _emailTemplateService.GetAllAsync(category: null, isActive: null);
-            var lowerKeyword = keyword.ToLowerInvariant();
 
             var filtered = templates
                 .Where(t => (t.Name?.Contains(keyword, StringComparison.OrdinalIgnoreCase) ?? false)

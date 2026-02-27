@@ -1290,9 +1290,6 @@ public class CloudDeploymentService : ICloudDeploymentService
             var frontendRollout = await RunKubectlCommand($"rollout status deployment/crm-frontend -n {ns} --timeout=300s");
             logs.AppendLine(frontendRollout);
 
-            // Get service URLs
-            var services = await RunKubectlCommand($"get svc -n {ns} -o json");
-
             // Update attempt with image tags
             attempt.BackendImageTag = backendTag;
             attempt.FrontendImageTag = frontendTag;

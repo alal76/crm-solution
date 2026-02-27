@@ -131,7 +131,6 @@ public class WebAuthnService : IWebAuthnService
 
             // Decode attestation response
             var clientDataJson = Encoding.UTF8.GetString(Base64UrlDecode(attestationResponse.Response.ClientDataJson));
-            var attestationObject = CborDecode(Base64UrlDecode(attestationResponse.Response.AttestationObject));
 
             // Verify client data JSON
             var clientData = JsonSerializer.Deserialize<JsonElement>(clientDataJson);
@@ -268,7 +267,6 @@ public class WebAuthnService : IWebAuthnService
             // Decode assertion response
             var clientDataJson = Encoding.UTF8.GetString(Base64UrlDecode(assertionResponse.Response.ClientDataJson));
             var authenticatorData = Base64UrlDecode(assertionResponse.Response.AuthenticatorData);
-            var signature = Base64UrlDecode(assertionResponse.Response.Signature);
 
             // Verify client data JSON
             var clientData = JsonSerializer.Deserialize<JsonElement>(clientDataJson);

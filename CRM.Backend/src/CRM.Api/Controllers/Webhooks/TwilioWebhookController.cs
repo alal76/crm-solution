@@ -54,7 +54,7 @@ public class TwilioWebhookController : ControllerBase
             _logger.LogInformation("Twilio status: Sid={Sid}, Status={Status}, To={To}", messageSid, messageStatus, to);
 
             var payload = string.Join("&", form.Select(kvp => $"{Uri.EscapeDataString(kvp.Key)}={Uri.EscapeDataString(kvp.Value.ToString())}"));
-            var deliveryEvent = await _notificationProvider.ProcessDeliveryWebhookAsync(messageStatus, payload);
+            await _notificationProvider.ProcessDeliveryWebhookAsync(messageStatus, payload);
 
             try
             {

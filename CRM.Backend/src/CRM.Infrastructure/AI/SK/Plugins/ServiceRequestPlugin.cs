@@ -152,7 +152,7 @@ public class ServiceRequestPlugin : CrmPluginBase
     {
         try
         {
-            var result = await _serviceRequestService.AssignToUserAsync(ticketId, userId, null);
+            await _serviceRequestService.AssignToUserAsync(ticketId, userId, null);
             return SuccessResult(new { assigned = true, ticketId, assignedToUserId = userId });
         }
         catch (Exception ex)
@@ -252,7 +252,7 @@ public class ServiceRequestPlugin : CrmPluginBase
     {
         try
         {
-            var result = await _serviceRequestService.CloseServiceRequestAsync(ticketId, null);
+            await _serviceRequestService.CloseServiceRequestAsync(ticketId, null);
             return SuccessResult(new { closed = true, ticketId });
         }
         catch (Exception ex)

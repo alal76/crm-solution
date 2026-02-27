@@ -1371,7 +1371,6 @@ public class SampleDataSeederService
         {
             var prefix = CompanyPrefixes[_random.Next(CompanyPrefixes.Length)];
             var suffix = CompanySuffixes[_random.Next(CompanySuffixes.Length)];
-            var cityIndex = _random.Next(Cities.Length);
 
             accounts.Add(new Account
             {

@@ -65,20 +65,17 @@ public class TerritoryAssignmentService : ITerritoryAssignmentService
         // Check geographic match (country/state)
         if (!string.IsNullOrEmpty(territory.Countries))
         {
-            var countries = ParseJsonArray(territory.Countries);
             // Would need to geocode lead address - simplified for now
         }
 
         if (!string.IsNullOrEmpty(territory.States))
         {
-            var states = ParseJsonArray(territory.States);
             // Would need to extract state from lead address
         }
 
         // Check industry match
         if (!string.IsNullOrEmpty(territory.Industries))
         {
-            var industries = ParseJsonArray(territory.Industries);
             // Would need to check against lead's company industry
         }
 

@@ -293,7 +293,6 @@ public class CABWorkflowService : ICABWorkflowService
             else
             {
                 // Activate next approval stage
-                var nextApproval = pendingApprovals.First();
                 // Notify next approver (would integrate with notification service)
             }
         }

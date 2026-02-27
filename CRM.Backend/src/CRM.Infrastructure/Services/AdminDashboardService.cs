@@ -113,7 +113,6 @@ public class AdminDashboardService : IAdminDashboardService
         {
             var baseStats = await GetSystemStatisticsAsync(cancellationToken);
             var now = DateTime.UtcNow;
-            var startDate = now.AddDays(-daysBack);
 
             var detailed = new DetailedSystemStatisticsDto
             {

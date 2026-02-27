@@ -231,7 +231,6 @@ public class NewsSocialService : INewsSocialService
 
                 if (newsResponse?.Articles != null)
                 {
-                    var sentimentTasks = new List<Task<string>>();
                     var articles = newsResponse.Articles.Take(maxItems).ToList();
 
                     foreach (var article in articles)
