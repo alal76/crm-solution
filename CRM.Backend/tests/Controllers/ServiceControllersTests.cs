@@ -19,7 +19,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Microsoft.FeatureManagement;
 using Moq;
 using Xunit;
 
@@ -32,16 +31,14 @@ namespace CRM.Tests.Controllers;
 public class CommissionsControllerTests
 {
     private readonly Mock<ICommissionService> _mockCommissionService;
-    private readonly Mock<IFeatureManager> _mockFeatureManager;
     private readonly Mock<ILogger<CommissionsController>> _mockLogger;
     private readonly CommissionsController _controller;
 
     public CommissionsControllerTests()
     {
         _mockCommissionService = new Mock<ICommissionService>();
-        _mockFeatureManager = new Mock<IFeatureManager>();
         _mockLogger = new Mock<ILogger<CommissionsController>>();
-        _controller = new CommissionsController(_mockCommissionService.Object, _mockFeatureManager.Object, _mockLogger.Object);
+        _controller = new CommissionsController(_mockCommissionService.Object, _mockLogger.Object);
     }
 
     #region Get Tests

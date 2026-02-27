@@ -21,12 +21,10 @@ namespace CRM.Api.Controllers;
 public class AdminSearchAnalyticsController : ControllerBase
 {
     private readonly ISearchAnalyticsService _analytics;
-    private readonly ILogger<AdminSearchAnalyticsController> _logger;
 
-    public AdminSearchAnalyticsController(ISearchAnalyticsService analytics, ILogger<AdminSearchAnalyticsController> logger)
+    public AdminSearchAnalyticsController(ISearchAnalyticsService analytics)
     {
         _analytics = analytics;
-        _logger = logger;
     }
 
     /// <summary>Gets the most popular search queries.</summary>

@@ -21,20 +21,17 @@ namespace CRM.Api.Controllers;
 [RequireRole(UserRole.Admin)]
 public class AdminSettingsController : ControllerBase
 {
-    private readonly IUserService _userService;
     private readonly IUserGroupService _userGroupService;
     private readonly IUserApprovalService _approvalService;
     private readonly IDatabaseBackupService _backupService;
     private readonly ILogger<AdminSettingsController> _logger;
 
     public AdminSettingsController(
-        IUserService userService,
         IUserGroupService userGroupService,
         IUserApprovalService approvalService,
         IDatabaseBackupService backupService,
         ILogger<AdminSettingsController> logger)
     {
-        _userService = userService;
         _userGroupService = userGroupService;
         _approvalService = approvalService;
         _backupService = backupService;

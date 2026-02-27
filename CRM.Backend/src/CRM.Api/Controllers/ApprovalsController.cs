@@ -21,12 +21,10 @@ namespace CRM.Api.Controllers;
 public class ApprovalsController : ControllerBase
 {
     private readonly IApprovalWorkflowService _approvalService;
-    private readonly ILogger<ApprovalsController> _logger;
 
-    public ApprovalsController(IApprovalWorkflowService approvalService, ILogger<ApprovalsController> logger)
+    public ApprovalsController(IApprovalWorkflowService approvalService)
     {
         _approvalService = approvalService;
-        _logger = logger;
     }
 
     #region Approval Matrix Management

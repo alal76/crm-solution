@@ -21,19 +21,13 @@ namespace CRM.Api.Controllers;
 public class AdminDashboardController : ControllerBase
 {
     private readonly IAdminDashboardService _adminDashboardService;
-    private readonly IProviderHealthService _providerHealthService;
-    private readonly IRBACService _rbacService;
     private readonly ILogger<AdminDashboardController> _logger;
 
     public AdminDashboardController(
         IAdminDashboardService adminDashboardService,
-        IProviderHealthService providerHealthService,
-        IRBACService rbacService,
         ILogger<AdminDashboardController> logger)
     {
         _adminDashboardService = adminDashboardService;
-        _providerHealthService = providerHealthService;
-        _rbacService = rbacService;
         _logger = logger;
     }
 

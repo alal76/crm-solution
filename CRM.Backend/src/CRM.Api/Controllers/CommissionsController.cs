@@ -24,16 +24,13 @@ namespace CRM.Api.Controllers;
 public class CommissionsController : ControllerBase
 {
     private readonly ICommissionService _commissionService;
-    private readonly IFeatureManager _featureManager;
     private readonly ILogger<CommissionsController> _logger;
 
     public CommissionsController(
         ICommissionService commissionService,
-        IFeatureManager featureManager,
         ILogger<CommissionsController> logger)
     {
         _commissionService = commissionService;
-        _featureManager = featureManager;
         _logger = logger;
     }
 

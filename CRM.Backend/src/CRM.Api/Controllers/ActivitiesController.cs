@@ -32,13 +32,11 @@ namespace CRM.Api.Controllers;
 public class ActivitiesController : ControllerBase
 {
     private readonly CrmDbContext _context;
-    private readonly ILogger<ActivitiesController> _logger;
     private readonly NormalizationService _normalization;
 
-    public ActivitiesController(CrmDbContext context, ILogger<ActivitiesController> logger, NormalizationService normalization)
+    public ActivitiesController(CrmDbContext context, NormalizationService normalization)
     {
         _context = context;
-        _logger = logger;
         _normalization = normalization;
     }
 

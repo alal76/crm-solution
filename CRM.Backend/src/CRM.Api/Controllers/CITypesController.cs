@@ -28,17 +28,14 @@ namespace CRM.Api.Controllers;
 public class CITypesController : ControllerBase
 {
     private readonly ICITypeService _ciTypeService;
-    private readonly ILogger<CITypesController> _logger;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="CITypesController"/> class.
     /// </summary>
     /// <param name="ciTypeService">The CI type service.</param>
-    /// <param name="logger">The logger.</param>
-    public CITypesController(ICITypeService ciTypeService, ILogger<CITypesController> logger)
+    public CITypesController(ICITypeService ciTypeService)
     {
         _ciTypeService = ciTypeService;
-        _logger = logger;
     }
 
     /// <summary>
