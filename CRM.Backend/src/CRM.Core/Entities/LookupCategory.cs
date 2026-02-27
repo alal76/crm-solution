@@ -12,5 +12,20 @@ public class LookupCategory : BaseEntity
     public string? Description { get; set; }
     public bool IsActive { get; set; } = true;
 
+    /// <summary>Entity type this category is bound to (e.g. "Lead", "ServiceRequest")</summary>
+    public string? EntityType { get; set; }
+
+    /// <summary>Property name on the entity (e.g. "Status", "Priority")</summary>
+    public string? PropertyName { get; set; }
+
+    /// <summary>System-managed categories cannot be deleted</summary>
+    public bool IsSystemManaged { get; set; } = false;
+
+    /// <summary>Whether end-users may add custom values to this category</summary>
+    public bool AllowCustomValues { get; set; } = true;
+
+    /// <summary>Optional JSON schema for value validation</summary>
+    public string? ValidationSchema { get; set; }
+
     public ICollection<LookupItem> Items { get; set; } = new List<LookupItem>();
 }

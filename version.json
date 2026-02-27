@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 600,
-  "patch": 18,
+  "patch": 19,
   "lastUpdate": "2026-02-27",
-  "description": "fix(enums): Fix seed data category mismatch — moved 69 timezone items from LeadStatus to correct Timezones category, re-migrated LeadStatusId with Key-based mapping, added SYS-009 migration scripts to repository (DataMigration, ServiceRequest-Fix, Fix-Seed-Data-Categories), all FK NULLs = 0 across 648 records",
+  "description": "feat(admin): Full Admin CRUD UI for Enum Management — EnumManagementController (15 endpoints), LookupDtos, EnumManagementPage (categories + items CRUD, reorder, color, default flag), AdminSettingsMenu nav entry, App.tsx route",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [

@@ -20,4 +20,9 @@ public class LookupItem : BaseEntity
     public string? Meta { get; set; } // optional JSON/meta
     public int SortOrder { get; set; } = 0;
     public bool IsActive { get; set; } = true;
+    public bool IsDefault { get; set; } = false;
+    public bool IsSystemValue { get; set; } = false;
+    public string? Color { get; set; }
+    public string? Icon { get; set; }
+    public string? ValidationRules { get; set; }
 }

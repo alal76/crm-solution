@@ -202,6 +202,7 @@ const NavigationSettingsPage = lazy(() => import('./pages/admin/NavigationSettin
 const ModuleFieldSettingsPage = lazy(() => import('./pages/admin/ModuleFieldSettingsPage'));
 const ServiceRequestDefinitionsPage = lazy(() => import('./pages/admin/ServiceRequestDefinitionsPage'));
 const MasterDataSettingsPage = lazy(() => import('./pages/admin/MasterDataSettingsPage'));
+const EnumManagementPage = lazy(() => import('./pages/admin/EnumManagementPage'));
 const DashboardSettingsPage = lazy(() => import('./pages/admin/DashboardSettingsPage'));
 const WorkflowListPage = lazy(() => import('./pages/admin/WorkflowListPage'));
 const WorkflowDesignerPage = lazy(() => import('./pages/admin/WorkflowDesignerPage'));
@@ -1263,6 +1264,7 @@ function ThemedApp() {
                 <Route path="modules" element={<ModuleFieldSettingsPage />} />
                 <Route path="service-requests" element={<ServiceRequestDefinitionsPage />} />
                 <Route path="master-data" element={<MasterDataSettingsPage />} />
+                <Route path="enum-management" element={<EnumManagementPage />} />
                 <Route path="dashboards" element={<DashboardSettingsPage />} />
                 <Route path="workflows" element={<WorkflowListPage />} />
                 <Route path="workflows/:id/designer" element={<WorkflowDesignerPage />} />

@@ -1067,6 +1067,9 @@ public class CrmDbContext : DbContext, ICrmDbContext
         {
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Name).IsRequired().HasMaxLength(200);
+            entity.Property(e => e.EntityType).HasMaxLength(100);
+            entity.Property(e => e.PropertyName).HasMaxLength(100);
+            entity.HasIndex(e => e.EntityType);
         });
 
         modelBuilder.Entity<LookupItem>(entity =>
@@ -1074,6 +1077,8 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.HasKey(e => e.Id);
             entity.Property(e => e.Key).IsRequired().HasMaxLength(200);
             entity.Property(e => e.Value).IsRequired().HasMaxLength(500);
+            entity.Property(e => e.Color).HasMaxLength(7);
+            entity.Property(e => e.Icon).HasMaxLength(50);
             entity.HasOne(e => e.Category).WithMany(c => c.Items).HasForeignKey(e => e.LookupCategoryId).OnDelete(DeleteBehavior.Cascade);
             entity.HasIndex(e => new { e.LookupCategoryId, e.SortOrder });
         });

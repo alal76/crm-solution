@@ -44,6 +44,7 @@ import {
   Api as ApiDocsIcon,
   BugReport as TestIcon,
   ThumbUp as ApprovalIcon,
+  Category as EnumIcon,
 } from '@mui/icons-material';
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -91,6 +92,7 @@ const SECTIONS: MenuSection[] = [
       { id: 'service-desk', label: 'Service Desk', icon: ServiceDeskIcon, path: '/admin/settings/service-desk' },
       { id: 'modules-fields', label: 'Modules & Fields', icon: ModulesIcon, path: '/admin/modules' },
       { id: 'master-data', label: 'Master Data', icon: MasterDataIcon, path: '/admin/master-data' },
+      { id: 'enum-management', label: 'Enum Management', icon: EnumIcon, path: '/admin/enum-management' },
       { id: 'duplicate-rules', label: 'Duplicate Rules', icon: DuplicateIcon, path: '/admin/duplicate-rules' },
       { id: 'lead-score-rules', label: 'Lead Score Rules', icon: LeadScoreIcon, path: '/admin/lead-score-rules' },
     ],

@@ -44,7 +44,7 @@ const ADMIN_CATEGORIES: Record<string, { label: string; items: string[] }> = {
   },
   'crm': {
     label: 'CRM Administration',
-    items: ['branding', 'navigation', 'modules', 'service-requests', 'master-data', 'dashboards', 'workflows']
+    items: ['branding', 'navigation', 'modules', 'service-requests', 'master-data', 'enum-management', 'dashboards', 'workflows']
   },
   'advanced': {
     label: 'Advanced',
