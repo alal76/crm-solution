@@ -443,7 +443,7 @@ docker logs --tail 20 crm-api 2>/dev/null || echo "Logs not available"
 
 echo ""
 echo "Database ready check:"
-docker exec crm-mariadb mysql -u crm_user -pCrmPass@Dev2024 -e "SELECT 1" 2>/dev/null && echo "✓ Database is ready" || echo "⚠ Database still initializing" # nosonar - Development script - not used in production
+docker exec crm-mariadb mysql -u crm_user -p${DB_PASSWORD:-CrmPass@Dev2024} -e "SELECT 1" 2>/dev/null && echo "✓ Database is ready" || echo "⚠ Database still initializing"
 HEALTHCHECK
     
     log_success "Deployment verification complete"
@@ -514,7 +514,7 @@ echo "Starting database backup at \$(date)..."
 # Backup database
 docker exec crm-mariadb mysqldump \\
   -u crm_user \\
-  -pCrmPass@Dev2024 \\ # nosonar - Development script - not used in production
+  -pCrmPass@Dev2024 \\
   crm_db > "\$BACKUP_FILE" 2>/dev/null
 
 if [[ -f "\$BACKUP_FILE" ]]; then

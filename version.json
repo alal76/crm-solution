@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 600,
-  "patch": 17,
+  "patch": 18,
   "lastUpdate": "2026-02-27",
-  "description": "feat(enums): database-driven enum migration — Enhanced LookupCategories/LookupItems schema, created EnumTransitions table, added FK columns (StatusId/StageId/PriorityId), migrated 648 records (231 Leads, 230 Opportunities, 187 ServiceRequests) from enum integers to FK references, created ServiceRequestStatus/Priority categories, maintained backward compatibility",
+  "description": "fix(enums): Fix seed data category mismatch — moved 69 timezone items from LeadStatus to correct Timezones category, re-migrated LeadStatusId with Key-based mapping, added SYS-009 migration scripts to repository (DataMigration, ServiceRequest-Fix, Fix-Seed-Data-Categories), all FK NULLs = 0 across 648 records",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [

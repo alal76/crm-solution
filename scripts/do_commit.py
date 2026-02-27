@@ -2,41 +2,34 @@
 import subprocess
 import sys
 
-commit_message = """feat(ENUM): Database-driven enum migration v0.600.17
+commit_message = """fix(ENUM): Fix seed data category mismatch and add migration scripts v0.600.18
 
-SCHEMA CHANGES:
-- Enhanced LookupCategories: EntityType, PropertyName, IsSystemManaged, AllowCustomValues, ValidationSchema
-- Enhanced LookupItems: IsDefault, IsSystemValue, Color, Icon, ValidationRules
-- Created EnumTransitions table for state machine rules with role-based access
-- Added FK columns: Leads.StatusId, Opportunities.StageId, ServiceRequests.StatusId/PriorityId
-- Added FK constraints and performance indexes on all new FK columns
+FIXES:
+- Moved 69 timezone items from LeadStatus (ID=2) to correct Timezones category
+  Root cause: Multiple seed files with conflicting hardcoded category IDs
+- Re-migrated Leads.StatusId using Key-based mapping (correct values: NEW/NURTURE)
+- Fix inline # nosonar comment in deploy-to-dev-server.sh that broke docker run
 
-DATA MIGRATION (648 records migrated):
-- 231 Leads: Status (enum int) to StatusId (FK to LeadStatus lookup items)
-- 230 Opportunities: Stage (enum int) to StageId (FK to OpportunityStage lookup items)
-- 187 ServiceRequests: Status/Priority (enum ints) to StatusId/PriorityId (FK to lookup items)
+NEW MIGRATION SCRIPTS (applied to crm_db 2026-02-27):
+- database/migrations/SYS-009-DataMigration-Fixed.sql
+  Migrates Leads.StatusId (SortOrder offset) and Opportunities.StageId (Key-based)
+- database/migrations/SYS-009-ServiceRequest-Fix.sql
+  Creates ServiceRequestStatus/Priority categories + items, migrates FKs
+- database/migrations/SYS-009-Fix-Seed-Data-Categories.sql
+  Fixes timezone items wrongly in LeadStatus, re-runs Lead StatusId migration
 
-NEW LOOKUP CATEGORIES:
-- ServiceRequestStatus: 8 values (NEW, OPEN, IN_PROGRESS, PENDING, ON_HOLD, RESOLVED, CLOSED, CANCELLED)
-- ServiceRequestPriority: 4 values (LOW, MEDIUM, HIGH, CRITICAL) with SLA metadata
+VERIFICATION (after all fixes):
+- Leads.StatusId: 0 NULL — 221 NEW + 10 NURTURE (correct LeadStatus values)
+- Opportunities.StageId: 0 NULL (correct OpportunityStage values)
+- ServiceRequests.StatusId: 0 NULL (correct ServiceRequestStatus values)
+- ServiceRequests.PriorityId: 0 NULL (correct ServiceRequestPriority values)
 
-MIGRATION FILES:
-- database/migrations/20260227_enum_schema_enhancements.sql
-- database/migrations/20260227_servicerequest_categories.sql
-- database/migrations/20260227_entity_fk_migration.sql
-- database/migrations/README_ENUM_MIGRATION.md
+DEPLOYMENT STATUS:
+- crm-api:      running healthy at http://192.168.0.9:5000/health
+- crm-frontend: running healthy at http://192.168.0.9:80
+- Database:     all 648 FK values correct, zero NULLs
 
-BACKWARD COMPATIBILITY:
-- Old enum columns (Status, Stage, Priority) remain unchanged
-- All existing API endpoints continue to work
-- No breaking changes
-
-BUILD STATUS:
-- Backend: dotnet build SUCCESS (0 errors)
-- Frontend: npm run build SUCCESS (0 errors)
-
-Applied to dev server: 192.168.0.9:3306/crm_db
-Bump version: 0.600.16 to 0.600.17"""
+Bump version: 0.600.17 to 0.600.18"""
 
 result = subprocess.run(
     ['git', '-C', '/Users/alal/Code/Git CRM Solution/crm-solution', 'commit', '-m', commit_message],
