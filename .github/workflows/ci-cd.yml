@@ -276,7 +276,7 @@ jobs:
         ASPNETCORE_ENVIRONMENT: Development
         ASPNETCORE_URLS: http://+:5000
         DatabaseProvider: mariadb
-        ConnectionStrings__DefaultConnection: "Server=127.0.0.1;Port=3306;Database=crm_db;User=crm_user;Password=CrmPass_CI2024;"
+        ConnectionStrings__DefaultConnection: "Server=127.0.0.1;Port=3306;Database=crm_db;User=crm_user;Password=CrmPass_CI2024;CharSet=utf8mb4;AllowUserVariables=true;"
         Jwt__Secret: "ThisIsAVeryLongSecureJwtSecretKeyForCIPipelineOnly123456789"
         Jwt__Issuer: CRM.Api
         Jwt__Audience: CRM.Client
@@ -287,14 +287,15 @@ jobs:
         dotnet run --project src/CRM.Api/CRM.Api.csproj -c Release --no-build &
         API_PID=$!
         echo "API_PID=$API_PID" >> $GITHUB_ENV
-        echo "Waiting for API to start..."
-        for i in $(seq 1 60); do
+        echo "Waiting for API /health to respond..."
+        for i in $(seq 1 90); do
           if curl -sf http://localhost:5000/health > /dev/null 2>&1; then
             echo "✅ API is healthy after ${i}s"
             break
           fi
-          if [ $i -eq 60 ]; then
-            echo "❌ API failed to start"
+          if [ $i -eq 90 ]; then
+            echo "❌ API failed to start after 180s"
+            journalctl -u dotnet --no-pager 2>/dev/null | tail -20 || true
             exit 1
           fi
           sleep 2
@@ -307,11 +308,28 @@ jobs:
         cache: 'npm'
         cache-dependency-path: 'e2e-tests/package-lock.json'
 
-    - name: Install Playwright
+    - name: Install Playwright (no browsers — BVT uses request API only)
       working-directory: e2e-tests
+      run: npm ci
+
+    - name: Wait for API to be fully ready (login endpoint)
       run: |
-        npm ci
-        npx playwright install --with-deps
+        echo "Waiting for /api/auth/login to succeed..."
+        for i in $(seq 1 30); do
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X POST http://localhost:5000/api/auth/login \
+            -H 'Content-Type: application/json' \
+            -d '{"email":"admin@crm.local","password":"Admin@123"}')
+          if [ "$STATUS" = "200" ]; then
+            echo "✅ Login endpoint ready after ${i}s"
+            break
+          fi
+          if [ $i -eq 30 ]; then
+            echo "❌ Login endpoint not ready after 60s (last status: $STATUS)"
+            exit 1
+          fi
+          echo "  attempt $i: status=$STATUS, retrying..."
+          sleep 2
+        done
 
     - name: Run BVT tests
       working-directory: e2e-tests

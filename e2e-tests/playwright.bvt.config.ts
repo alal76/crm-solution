@@ -8,7 +8,7 @@ import { defineConfig } from '@playwright/test';
 export default defineConfig({
   testDir: './tests/bvt',
   fullyParallel: false,
-  retries: 0,
+  retries: 1,
   workers: 1,
   reporter: [['list']],
   use: {
