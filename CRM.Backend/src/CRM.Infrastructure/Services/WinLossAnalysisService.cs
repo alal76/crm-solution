@@ -251,7 +251,7 @@ public class WinLossAnalysisService : IWinLossAnalysisService
                     WinRate = total > 0 ? Math.Round((decimal)wins / total * 100, 2) : 0,
                     TotalWonAmount = g.Where(o => o.Stage == OpportunityStage.ClosedWon).Sum(o => o.Amount),
                     TotalLostAmount = g.Where(o => o.Stage == OpportunityStage.ClosedLost).Sum(o => o.Amount),
-                    AverageDealSize = g.Any() ? g.Average(o => o.Amount) : 0
+                    AverageDealSize = g.Average(o => o.Amount)
                 };
             })
             .OrderByDescending(r => r.WinRate)

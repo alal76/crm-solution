@@ -393,7 +393,7 @@ public class EscalationAnalyticsService : IEscalationAnalyticsService
                         CategoryName = g.Key.CategoryName,
                         TotalRequests = g.Count(),
                         EscalatedRequests = escaped,
-                        EscalationRate = g.Count() > 0 ? Math.Round((double)escaped / g.Count() * 100, 2) : 0
+                        EscalationRate = Math.Round((double)escaped / g.Count() * 100, 2)
                     };
                 })
                 .OrderByDescending(x => x.EscalatedRequests)

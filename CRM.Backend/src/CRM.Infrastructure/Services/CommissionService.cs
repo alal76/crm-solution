@@ -625,7 +625,7 @@ public class CommissionService : ICommissionService
                     UserName = user != null ? $"{user.FirstName} {user.LastName}" : "Unknown",
                     TotalEarned = g.Sum(c => c.Amount),
                     DealCount = g.Count(),
-                    AverageDealSize = g.Count() > 0 ? g.Average(c => c.Amount) : 0
+                    AverageDealSize = g.Average(c => c.Amount)
                 };
             })
             .OrderByDescending(l => l.TotalEarned)

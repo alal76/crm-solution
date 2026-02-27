@@ -84,7 +84,7 @@ public class CommissionRulesEngine : ICommissionRulesEngine
         // Get team members for split calculation
         var teamSplits = await GetTeamSplitsAsync(opportunityId, userId, rule, cancellationToken);
         var userCommission = cappedCommission;
-        if (teamSplits.Any() && teamSplits.Count > 1)
+        if (teamSplits.Count > 1)
         {
             var splits = CalculateSplit(cappedCommission, teamSplits);
             userCommission = splits.TryGetValue(userId, out var amount) ? amount : cappedCommission;

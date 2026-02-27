@@ -449,10 +449,8 @@ public class LeadService : ILeadService
                 ConvertedLeads = g.Count(l => l.Status == LeadLifecycleStatus.Converted),
                 QualifiedLeads = g.Count(l => l.Status == LeadLifecycleStatus.Qualified),
                 DisqualifiedLeads = g.Count(l => l.Status == LeadLifecycleStatus.Disqualified),
-                ConversionRate = g.Count() > 0
-                    ? Math.Round((decimal)g.Count(l => l.Status == LeadLifecycleStatus.Converted) / g.Count() * 100, 2)
-                    : 0,
-                AverageScore = g.Any() ? g.Average(l => (double)l.Score) : 0
+                ConversionRate = Math.Round((decimal)g.Count(l => l.Status == LeadLifecycleStatus.Converted) / g.Count() * 100, 2),
+                AverageScore = g.Average(l => (double)l.Score)
             })
             .OrderByDescending(s => s.TotalLeads)
             .ToList();
@@ -475,10 +473,8 @@ public class LeadService : ILeadService
                 UtmCampaign = g.Key.UtmCampaign,
                 TotalLeads = g.Count(),
                 ConvertedLeads = g.Count(l => l.Status == LeadLifecycleStatus.Converted),
-                ConversionRate = g.Count() > 0
-                    ? Math.Round((decimal)g.Count(l => l.Status == LeadLifecycleStatus.Converted) / g.Count() * 100, 2)
-                    : 0,
-                AverageScore = g.Any() ? g.Average(l => (double)l.Score) : 0
+                ConversionRate = Math.Round((decimal)g.Count(l => l.Status == LeadLifecycleStatus.Converted) / g.Count() * 100, 2),
+                AverageScore = g.Average(l => (double)l.Score)
             })
             .OrderByDescending(a => a.TotalLeads)
             .ToList();

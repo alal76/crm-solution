@@ -96,7 +96,7 @@ public class PipelineService : IPipelineService
                     StageOrder = (int)g.Key,
                     Count = g.Count(),
                     TotalValue = g.Sum(o => o.Amount),
-                    AverageValue = g.Any() ? g.Average(o => o.Amount) : 0
+                    AverageValue = g.Average(o => o.Amount)
                 })
                 .OrderBy(s => s.StageOrder)
                 .ToList();
