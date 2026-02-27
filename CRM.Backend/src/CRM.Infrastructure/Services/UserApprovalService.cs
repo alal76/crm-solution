@@ -239,26 +239,25 @@ public class UserApprovalService : IUserApprovalService
         };
     }
 
-    private string GenerateTemporaryPassword()
+    private static string GenerateTemporaryPassword()
     {
         const string validChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*";
-        var random = new Random();
         var password = new System.Text.StringBuilder();
 
         // Ensure at least one uppercase, one number, and one special character
-        password.Append(validChars[random.Next(26, 52)]); // Uppercase
-        password.Append(validChars[random.Next(52, 62)]); // Number
-        password.Append(validChars[random.Next(62)]); // Special char
+        password.Append(validChars[System.Security.Cryptography.RandomNumberGenerator.GetInt32(26, 52)]); // Uppercase
+        password.Append(validChars[System.Security.Cryptography.RandomNumberGenerator.GetInt32(52, 62)]); // Number
+        password.Append(validChars[System.Security.Cryptography.RandomNumberGenerator.GetInt32(62)]); // Special char
 
-        // Fill the rest randomly
+        // Fill the rest with cryptographically secure random characters
         for (int i = 3; i < 12; i++)
-            password.Append(validChars[random.Next(validChars.Length)]);
+            password.Append(validChars[System.Security.Cryptography.RandomNumberGenerator.GetInt32(validChars.Length)]);
 
-        // Shuffle the password
+        // Shuffle the password using Fisher-Yates with secure random
         var chars = password.ToString().ToCharArray();
         for (int i = chars.Length - 1; i > 0; i--)
         {
-            int randomIndex = random.Next(i + 1);
+            int randomIndex = System.Security.Cryptography.RandomNumberGenerator.GetInt32(i + 1);
             (chars[i], chars[randomIndex]) = (chars[randomIndex], chars[i]);
         }
 

@@ -120,7 +120,7 @@ public class EmailToTicketService : IEmailToTicketService
 
             // Create incident (simulated - would use IncidentService in production)
             var incidentNumber = $"INC-{DateTime.UtcNow:yyyyMMddHHmmss}";
-            var incidentId = new Random().Next(10000, 99999);
+            var incidentId = Random.Shared.Next(10000, 99999);
 
             _logger.LogInformation("Created incident {IncidentNumber} from email", incidentNumber);
 
@@ -165,7 +165,7 @@ public class EmailToTicketService : IEmailToTicketService
             var cleanBody = CleanEmailBody(email.BodyText);
 
             // Add comment to incident (simulated)
-            var commentId = new Random().Next(1000, 9999);
+            var commentId = Random.Shared.Next(1000, 9999);
 
             _logger.LogInformation("Added comment {CommentId} to incident {IncidentId}", commentId, incidentId);
 

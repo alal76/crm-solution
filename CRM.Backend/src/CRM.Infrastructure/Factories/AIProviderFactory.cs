@@ -41,7 +41,7 @@ public class AIProviderFactory : IProviderFactory<IAIPort>
     public IAIPort GetProvider()
     {
         var useExternal = _featureManager.IsEnabledAsync(FeatureFlags.UseExternalAI)
-            .GetAwaiter().GetResult();
+            .GetAwaiter().GetResult(); // NOSONAR S4462 -- synchronous IProviderFactory<T> interface; FeatureManager has no synchronous API // NOSONAR S4462 -- synchronous IProviderFactory<T> interface; FeatureManager has no synchronous API
 
         // Default to Ollama (local) if external is disabled
         if (!useExternal)
@@ -110,7 +110,7 @@ public class AIProviderFactory : IProviderFactory<IAIPort>
     public string GetActiveProviderName()
     {
         var useExternal = _featureManager.IsEnabledAsync(FeatureFlags.UseExternalAI)
-            .GetAwaiter().GetResult();
+            .GetAwaiter().GetResult(); // NOSONAR S4462 -- synchronous IProviderFactory<T> interface; FeatureManager has no synchronous API // NOSONAR S4462 -- synchronous IProviderFactory<T> interface; FeatureManager has no synchronous API
 
         if (!useExternal)
         {

@@ -248,7 +248,7 @@ public class ContractsController : ControllerBase
         {
             var contract = new Contract
             {
-                ContractNumber = $"CON-{DateTime.UtcNow:yyyyMMdd}-{new Random().Next(1000, 9999)}",
+                ContractNumber = $"CON-{DateTime.UtcNow:yyyyMMdd}-{Random.Shared.Next(1000, 9999)}",
                 Name = request.Name,
                 Description = request.Description,
                 Status = Enum.TryParse<ContractStatus>(request.Status, true, out var status) ? status : ContractStatus.Draft,
@@ -530,7 +530,7 @@ public class ContractsController : ControllerBase
             // Create new contract as renewal
             var newContract = new Contract
             {
-                ContractNumber = $"CON-{DateTime.UtcNow:yyyyMMdd}-{new Random().Next(1000, 9999)}",
+                ContractNumber = $"CON-{DateTime.UtcNow:yyyyMMdd}-{Random.Shared.Next(1000, 9999)}",
                 Name = $"{existingContract.Name} - Renewal",
                 Description = existingContract.Description,
                 Status = ContractStatus.Draft,

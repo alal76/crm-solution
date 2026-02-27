@@ -715,8 +715,7 @@ public class CampaignExecutionService : CRM.Core.Interfaces.ICampaignExecutionSe
             catch (Exception ex) { _logger.LogDebug(ex, "Failed to deserialize AB test traffic split, using default 50/50"); }
         }
 
-        var random = new Random();
-        var variant = random.Next(100) < splitA ? "A" : "B";
+        var variant = Random.Shared.Next(100) < splitA ? "A" : "B";
 
         recipient.ABTestVariant = variant;
         await _context.SaveChangesAsync();

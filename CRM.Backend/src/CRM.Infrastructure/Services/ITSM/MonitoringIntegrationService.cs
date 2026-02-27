@@ -182,7 +182,7 @@ public class MonitoringIntegrationService : IMonitoringIntegrationService
         MonitoringIntegrationDto integration,
         string dedupKey)
     {
-        var incidentId = new Random().Next(10000, 99999);
+        var incidentId = Random.Shared.Next(10000, 99999);
         var priority = integration.SeverityToPriorityMapping.TryGetValue(alert.Severity, out var p) ? p : 3;
 
         _deduplicationCache[dedupKey] = (DateTime.UtcNow, incidentId);

@@ -41,7 +41,7 @@ public class AnalyticsProviderFactory : IProviderFactory<IAnalyticsPort>
     public IAnalyticsPort GetProvider()
     {
         var useExternal = _featureManager.IsEnabledAsync(FeatureFlags.UseExternalAnalytics)
-            .GetAwaiter().GetResult();
+            .GetAwaiter().GetResult(); // NOSONAR S4462 -- synchronous IProviderFactory<T> interface; FeatureManager has no synchronous API // NOSONAR S4462 -- synchronous IProviderFactory<T> interface; FeatureManager has no synchronous API
 
         if (!useExternal)
         {
@@ -103,7 +103,7 @@ public class AnalyticsProviderFactory : IProviderFactory<IAnalyticsPort>
     public string GetActiveProviderName()
     {
         var useExternal = _featureManager.IsEnabledAsync(FeatureFlags.UseExternalAnalytics)
-            .GetAwaiter().GetResult();
+            .GetAwaiter().GetResult(); // NOSONAR S4462 -- synchronous IProviderFactory<T> interface; FeatureManager has no synchronous API // NOSONAR S4462 -- synchronous IProviderFactory<T> interface; FeatureManager has no synchronous API
 
         if (!useExternal)
         {

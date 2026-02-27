@@ -41,7 +41,7 @@ public class SearchProviderFactory : IProviderFactory<ISearchPort>
     public ISearchPort GetProvider()
     {
         var useExternal = _featureManager.IsEnabledAsync(FeatureFlags.UseExternalSearch)
-            .GetAwaiter().GetResult();
+            .GetAwaiter().GetResult(); // NOSONAR S4462 -- synchronous IProviderFactory<T> interface; FeatureManager has no synchronous API // NOSONAR S4462 -- synchronous IProviderFactory<T> interface; FeatureManager has no synchronous API
 
         if (!useExternal)
         {
@@ -103,7 +103,7 @@ public class SearchProviderFactory : IProviderFactory<ISearchPort>
     public string GetActiveProviderName()
     {
         var useExternal = _featureManager.IsEnabledAsync(FeatureFlags.UseExternalSearch)
-            .GetAwaiter().GetResult();
+            .GetAwaiter().GetResult(); // NOSONAR S4462 -- synchronous IProviderFactory<T> interface; FeatureManager has no synchronous API // NOSONAR S4462 -- synchronous IProviderFactory<T> interface; FeatureManager has no synchronous API
 
         if (!useExternal)
         {

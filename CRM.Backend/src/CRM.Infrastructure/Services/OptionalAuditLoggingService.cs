@@ -169,7 +169,7 @@ public class OptionalAuditLoggingService : IOptionalAuditLoggingService
     public bool IsEnabled()
     {
         // Use cached value if available
-        _cachedFeatureEnabled ??= _featureManager.IsEnabledAsync(FEATURE_FLAG_NAME).GetAwaiter().GetResult();
+        _cachedFeatureEnabled ??= _featureManager.IsEnabledAsync(FEATURE_FLAG_NAME).GetAwaiter().GetResult(); // NOSONAR S4462 -- result is cached after first call; sync interface, no async alternative // NOSONAR S4462 -- result is cached after first call; sync interface, no async alternative
         return _cachedFeatureEnabled.Value;
     }
 

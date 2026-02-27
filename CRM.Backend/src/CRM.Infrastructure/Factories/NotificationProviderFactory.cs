@@ -46,7 +46,7 @@ public class NotificationProviderFactory : IProviderFactory<INotificationPort>
     public INotificationPort GetProvider()
     {
         var useExternal = _featureManager.IsEnabledAsync(FeatureFlags.UseExternalNotifications)
-            .GetAwaiter().GetResult();
+            .GetAwaiter().GetResult(); // NOSONAR S4462 -- synchronous IProviderFactory<T> interface; FeatureManager has no synchronous API // NOSONAR S4462 -- synchronous IProviderFactory<T> interface; FeatureManager has no synchronous API
 
         if (!useExternal)
         {
@@ -112,7 +112,7 @@ public class NotificationProviderFactory : IProviderFactory<INotificationPort>
     public string GetActiveProviderName()
     {
         var useExternal = _featureManager.IsEnabledAsync(FeatureFlags.UseExternalNotifications)
-            .GetAwaiter().GetResult();
+            .GetAwaiter().GetResult(); // NOSONAR S4462 -- synchronous IProviderFactory<T> interface; FeatureManager has no synchronous API // NOSONAR S4462 -- synchronous IProviderFactory<T> interface; FeatureManager has no synchronous API
 
         if (!useExternal)
         {

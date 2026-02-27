@@ -54,7 +54,7 @@ public class TotpService : ITotpService
             // Note: Using HMACSHA1 for compatibility with standard authenticator apps
             // (Google Authenticator, Microsoft Authenticator, etc.)
             // Most authenticator apps only support SHA1 for TOTP
-            using var hmac = new HMACSHA1(secretBytes);
+            using var hmac = new HMACSHA1(secretBytes); // NOSONAR S4790 -- TOTP (RFC 6238) mandates HMAC-SHA1; cannot substitute SHA-256 without breaking OTP compatibility // NOSONAR S4790 -- TOTP (RFC 6238) mandates HMAC-SHA1; cannot substitute SHA-256 without breaking OTP compatibility
             var timeBytes = BitConverter.GetBytes(timeWindow);
             if (BitConverter.IsLittleEndian)
                 Array.Reverse(timeBytes);

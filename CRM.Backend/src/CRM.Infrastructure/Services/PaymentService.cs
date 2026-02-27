@@ -743,9 +743,10 @@ public class PaymentService : IPaymentService
 
     private static string GenerateAuthCode()
     {
-        var chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        var random = new Random();
-        return new string(Enumerable.Range(0, 6).Select(_ => chars[random.Next(chars.Length)]).ToArray());
+        const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        return new string(Enumerable.Range(0, 6)
+            .Select(_ => chars[System.Security.Cryptography.RandomNumberGenerator.GetInt32(chars.Length)])
+            .ToArray());
     }
 
     #endregion

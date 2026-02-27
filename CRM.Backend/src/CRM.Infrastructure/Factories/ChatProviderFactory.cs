@@ -41,7 +41,7 @@ public class ChatProviderFactory : IProviderFactory<IChatPort>
     public IChatPort GetProvider()
     {
         var useExternal = _featureManager.IsEnabledAsync(FeatureFlags.UseExternalChat)
-            .GetAwaiter().GetResult();
+            .GetAwaiter().GetResult(); // NOSONAR S4462 -- synchronous IProviderFactory<T> interface; FeatureManager has no synchronous API // NOSONAR S4462 -- synchronous IProviderFactory<T> interface; FeatureManager has no synchronous API
 
         if (!useExternal)
         {
@@ -101,7 +101,7 @@ public class ChatProviderFactory : IProviderFactory<IChatPort>
     public string GetActiveProviderName()
     {
         var useExternal = _featureManager.IsEnabledAsync(FeatureFlags.UseExternalChat)
-            .GetAwaiter().GetResult();
+            .GetAwaiter().GetResult(); // NOSONAR S4462 -- synchronous IProviderFactory<T> interface; FeatureManager has no synchronous API // NOSONAR S4462 -- synchronous IProviderFactory<T> interface; FeatureManager has no synchronous API
 
         if (!useExternal)
         {

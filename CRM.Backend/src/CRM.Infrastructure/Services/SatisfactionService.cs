@@ -216,7 +216,7 @@ public class SatisfactionService : ISatisfactionService
             .Where(r => r.Survey!.Type == SurveyType.NPS)
             .ToListAsync(ct);
 
-        return ComputeNPSAsync(responses).GetAwaiter().GetResult();
+        return ComputeNPSAsync(responses).GetAwaiter().GetResult(); // NOSONAR S4462 -- sync overload required by interface; delegates to async implementation // NOSONAR S4462 -- sync overload required by interface; delegates to async implementation
     }
 
     public async Task<double> GetCSATScoreAsync(DateTime? from, DateTime? to, CancellationToken ct = default)

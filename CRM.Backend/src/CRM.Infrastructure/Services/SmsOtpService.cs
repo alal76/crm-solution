@@ -240,13 +240,12 @@ public class SmsOtpService : ISmsOtpService
 
     #region Private Helper Methods
 
-    private string GenerateOtp(int length = 6)
+    private static string GenerateOtp(int length = 6)
     {
-        var random = new Random();
         var otp = new StringBuilder();
         for (int i = 0; i < length; i++)
         {
-            otp.Append(random.Next(0, 10));
+            otp.Append(System.Security.Cryptography.RandomNumberGenerator.GetInt32(0, 10));
         }
         return otp.ToString();
     }

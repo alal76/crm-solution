@@ -295,7 +295,7 @@ namespace CRM.Infrastructure.Services.Authentication
                 timeCounter >>= 8;
             }
 
-            using (var hmac = new HMACSHA1(secretBytes))
+            using (var hmac = new HMACSHA1(secretBytes)) // NOSONAR S4790 -- TOTP (RFC 6238) mandates HMAC-SHA1; cannot substitute SHA-256 without breaking OTP compatibility // NOSONAR S4790 -- TOTP (RFC 6238) mandates HMAC-SHA1; cannot substitute SHA-256 without breaking OTP compatibility
             {
                 byte[] hash = hmac.ComputeHash(counterBytes);
                 int offset = hash[hash.Length - 1] & 0x0F;

@@ -243,7 +243,7 @@ public class ProviderRegistryService : IProviderRegistryService
             };
 
             bool useExternal = useExternalFlag != null &&
-                               _featureManager.IsEnabledAsync(useExternalFlag).GetAwaiter().GetResult();
+                               _featureManager.IsEnabledAsync(useExternalFlag).GetAwaiter().GetResult(); // NOSONAR S4462 -- called during service initialization; sync interface requirement // NOSONAR S4462 -- called during service initialization; sync interface requirement
 
             // Built-in is active when external flag is off; external type is active when flag is on and type matches
             entry.IsActive = entry.IsBuiltIn
