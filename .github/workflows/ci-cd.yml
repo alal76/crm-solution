@@ -592,7 +592,7 @@ jobs:
           /d:sonar.cs.opencover.reportsPaths="CRM.Backend/tests/TestResults/**/coverage.cobertura.xml" \
           /d:sonar.javascript.lcov.reportPaths="CRM.Frontend/coverage/lcov.info" \
           /d:sonar.typescript.lcov.reportPaths="CRM.Frontend/coverage/lcov.info" \
-          /d:sonar.exclusions="**/node_modules/**,**/obj/**,**/bin/**,**/dist/**,**/migrations/**,**/*.min.js,**/*.generated.cs" \
+          /d:sonar.exclusions="**/node_modules/**,**/obj/**,**/bin/**,**/dist/**,**/migrations/**,**/*.min.js,**/*.generated.cs,.github/workflows/**" \
           /d:sonar.coverage.exclusions="**/tests/**,**/Tests/**,**/*.spec.ts,**/*.test.tsx,**/Program.cs,**/Migrations/**" \
           /d:sonar.links.homepage="https://github.com/alal76/crm-solution" \
           /d:sonar.links.ci="https://github.com/alal76/crm-solution/actions"

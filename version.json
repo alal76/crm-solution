@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 600,
-  "patch": 14,
+  "patch": 15,
   "lastUpdate": "2026-02-27",
-  "description": "fix(sonar): exclude CI/CD workflows from SonarCloud analysis — workflows contain intentional CI test credentials for ephemeral GitHub Actions environments",
+  "description": "fix(sonar): fix SonarCloud quality gate failures — exclude CI workflows from analysis, remove hardcoded credentials from MonitoringDashboard, suppress S2583 false positive in AnalyticsController",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [

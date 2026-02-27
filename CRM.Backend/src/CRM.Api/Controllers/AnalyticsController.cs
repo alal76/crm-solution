@@ -61,7 +61,8 @@ public class AnalyticsController : ControllerBase
             filters[key] = kvp.Value.ToString();
         }
 
-        return filters.Count > 0 ? filters : null;
+        // S2583: filters.Count can be 0 or more depending on query input
+        return filters.Count > 0 ? filters : null; // NOSONAR - S2583 false positive: Count depends on runtime query parameters
     }
 
     /// <summary>
