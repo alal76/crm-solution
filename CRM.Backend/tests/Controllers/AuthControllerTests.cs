@@ -74,6 +74,13 @@ public class AuthControllerTests
             Mock.Of<IGeoLocationService>(),
             Mock.Of<IOpenIdConnectService>(),
             Mock.Of<IBiometricAuthService>());
+
+        // Provide an HttpContext so that HttpContext.Connection.RemoteIpAddress
+        // in AuthController.Login() does not throw a NullReferenceException.
+        _controller.ControllerContext = new ControllerContext
+        {
+            HttpContext = new DefaultHttpContext()
+        };
     }
 
     private void SetupAuthenticatedUser(string userId = "1", string role = "0")

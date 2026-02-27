@@ -7,6 +7,7 @@
 using CRM.Core.Entities.AI;
 using CRM.Infrastructure.AI.SK.Configuration;
 using CRM.Infrastructure.AI.SK.Connectors;
+using CRM.Infrastructure.Services;
 using FluentAssertions;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -50,8 +51,12 @@ public class CrmKernelFactoryTests
             .Returns(scopeFactoryMock.Object);
 
         // Register CrmChatCompletionConnector (required by CreateKernel)
+        // Constructor: (ILLMService, IOptions<LLMProviderOptions>, ILogger<CrmChatCompletionConnector>)
+        var llmServiceMock = new Mock<ILLMService>();
+        var llmOptionsMock = Options.Create(new LLMProviderOptions());
         var chatConnectorMock = new Mock<CrmChatCompletionConnector>(
-            new Mock<CRM.Core.Ports.Output.Providers.IAIPort>().Object,
+            llmServiceMock.Object,
+            llmOptionsMock,
             new Mock<ILogger<CrmChatCompletionConnector>>().Object);
         _serviceProviderMock
             .Setup(sp => sp.GetService(typeof(CrmChatCompletionConnector)))

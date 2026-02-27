@@ -264,7 +264,7 @@ describe('UICustomizationPage Component', () => {
     );
 
     await waitFor(() => {
-      expect(mockApiClient.get).toHaveBeenCalledWith('/api/ui-preferences');
+      expect(mockApiClient.get).toHaveBeenCalledWith('/ui-preferences');
     });
   });
 });
@@ -400,7 +400,7 @@ describe('PerformanceMonitoringPage Component', () => {
     render(<PerformanceMonitoringPage />);
 
     await waitFor(() => {
-      expect(mockApiClient.get).toHaveBeenCalledWith('/api/performance/dashboard');
+      expect(mockApiClient.get).toHaveBeenCalledWith('/performance/dashboard');
     });
   });
 
@@ -451,7 +451,7 @@ describe('DashboardCustomizationComponent', () => {
     render(<DashboardCustomizationComponent />);
 
     await waitFor(() => {
-      expect(mockApiClient.get).toHaveBeenCalledWith('/api/ui-preferences/dashboards');
+      expect(mockApiClient.get).toHaveBeenCalledWith('/ui-preferences/dashboards');
     });
   });
 
@@ -555,7 +555,7 @@ describe('UIPreferencesContext', () => {
     );
 
     await waitFor(() => {
-      expect(mockApiClient.get).toHaveBeenCalledWith('/api/ui-preferences');
+      expect(mockApiClient.get).toHaveBeenCalledWith('/ui-preferences');
     });
   });
 
@@ -636,7 +636,7 @@ describe('Frontend Integration Tests - Complete User Workflows', () => {
     // 3. Save preferences (POST) (✓)
     // 4. Preferences persisted across session (✓)
 
-    expect(mockApiClient.get).toHaveBeenCalledWith('/api/ui-preferences');
+    expect(mockApiClient.get).toHaveBeenCalledWith('/ui-preferences');
   });
 
   it('should complete dashboard customization workflow: create, add widgets, set default', async () => {

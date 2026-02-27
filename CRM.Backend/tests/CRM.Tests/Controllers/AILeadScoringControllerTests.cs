@@ -137,6 +137,10 @@ public class AILeadScoringControllerTests : IDisposable
         _dbContext.Leads.Add(new Lead { Id = 2, FirstName = "C", LastName = "D", Score = 80 });
         await _dbContext.SaveChangesAsync();
 
+        _mockAIService
+            .Setup(s => s.GetTopLeadsAsync(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new List<LeadScore>());
+
         // Act
         var result = await _controller.GetTopLeads(10, CancellationToken.None);
 

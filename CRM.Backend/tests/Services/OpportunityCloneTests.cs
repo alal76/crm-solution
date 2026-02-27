@@ -66,6 +66,18 @@ public class OpportunityCloneTests
         _mockContext.Setup(c => c.OpportunityProducts).Returns(mockSet.Object);
     }
 
+    private void SetupOpportunityTeamMembers(List<OpportunityTeamMember> members)
+    {
+        var mockSet = MockDbSetFactory.CreateMockDbSet(members);
+        _mockContext.Setup(c => c.OpportunityTeamMembers).Returns(mockSet.Object);
+    }
+
+    private void SetupOpportunityCompetitors(List<OpportunityCompetitor> competitors)
+    {
+        var mockSet = MockDbSetFactory.CreateMockDbSet(competitors);
+        _mockContext.Setup(c => c.OpportunityCompetitors).Returns(mockSet.Object);
+    }
+
     private static Opportunity CreateOpportunity(int id = 1, string name = "Enterprise Deal") => new()
     {
         Id = id,
@@ -92,6 +104,8 @@ public class OpportunityCloneTests
         var original = CreateOpportunity(id: 1, name: "Big Deal");
         SetupOpportunities([original]);
         SetupOpportunityProducts([]);
+        SetupOpportunityTeamMembers([]);
+        SetupOpportunityCompetitors([]);
 
         // Act
         var result = await _service.CloneAsync(1, options: null);
@@ -110,6 +124,8 @@ public class OpportunityCloneTests
         var original = CreateOpportunity(id: 1, name: "Original Deal");
         SetupOpportunities([original]);
         SetupOpportunityProducts([]);
+        SetupOpportunityTeamMembers([]);
+        SetupOpportunityCompetitors([]);
 
         var options = new OpportunityCloneOptions { NewName = "Q3 Follow-up" };
 
@@ -130,6 +146,8 @@ public class OpportunityCloneTests
 
         SetupOpportunities([original]);
         SetupOpportunityProducts([]);
+        SetupOpportunityTeamMembers([]);
+        SetupOpportunityCompetitors([]);
 
         var options = new OpportunityCloneOptions { ResetStage = true };
 

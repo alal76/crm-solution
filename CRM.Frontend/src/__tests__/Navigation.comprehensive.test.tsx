@@ -15,6 +15,22 @@ import Navigation from '../components/Navigation';
 // Mock Setup
 // ============================================================================
 
+jest.mock('../contexts/RecentItemsContext', () => ({
+  useRecentItems: () => ({
+    recentItems: [],
+    addRecentItem: jest.fn(),
+    removeRecentItem: jest.fn(),
+    clearRecentItems: jest.fn(),
+    clearRecentItemsByType: jest.fn(),
+    getRecentItemsByType: jest.fn().mockReturnValue([]),
+    maxItems: 20,
+    setMaxItems: jest.fn(),
+  }),
+  useTrackRecentItem: () => jest.fn(),
+  RecentItemsProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+  default: {},
+}));
+
 const mockNavigate = jest.fn();
 const mockLogout = jest.fn();
 
@@ -290,12 +306,12 @@ describe('Navigation - Auto-Heal Config', () => {
     fireEvent.click(openButton);
 
     await waitFor(() => {
-      // Look for the admin subcategory heading "Workflows & Dashboards"
-      expect(screen.getByText('Workflows & Dashboards')).toBeInTheDocument();
+      // Look for the admin subcategory heading "Workflows"
+      expect(screen.getByText('Workflows')).toBeInTheDocument();
     }, { timeout: 5000 });
 
     await waitFor(() => {
-      expect(screen.getByText('Workflow Monitor')).toBeInTheDocument();
+      expect(screen.getByText('Monitor')).toBeInTheDocument();
     }, { timeout: 5000 });
   }, 15000);
 });

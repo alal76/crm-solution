@@ -81,11 +81,15 @@ public class SubscriptionAutoRenewalIntegrationTests : IDisposable
         _context.Subscriptions.Add(subscription);
         await _context.SaveChangesAsync();
 
+        // Snapshot ContractEndDate BEFORE calling RenewAsync — EF tracking will
+        // mutate the entity in-place, so we need to capture the original value.
+        var originalEndDate = subscription.ContractEndDate;
+
         // Act
         var renewed = await _service.RenewAsync(subscription.Id);
 
         // Assert
-        renewed.ContractStartDate.Should().Be(subscription.ContractEndDate);
+        renewed.ContractStartDate.Should().Be(originalEndDate);
         renewed.ContractEndDate.Should().BeAfter(renewed.ContractStartDate!.Value);
         renewed.SubscriptionStatus.Should().Be(SubscriptionStatus.Active);
     }

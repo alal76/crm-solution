@@ -120,7 +120,7 @@ public class ReportSchemaVersionTests
         var result = await _service.MigrateReportQueryAsync(query);
 
         // Assert
-        result.Filters.Should().BeEmpty();
+        result.Filters.Should().BeNullOrEmpty();
         result.SchemaVersion.Should().Be(ReportQuerySchemaVersion.V2);
     }
 

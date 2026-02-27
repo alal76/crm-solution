@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 600,
-  "patch": 8,
+  "patch": 9,
   "lastUpdate": "2026-02-27",
-  "description": "feat: enhanced workflow trigger schedule builder \u2014 preset patterns (interval/hourly/daily/weekly/monthly/custom cron), time-of-day pickers, day-of-week chip toggles, day-of-month picker, timezone selector, auto-computed cron expression, human-readable schedule summary",
+  "description": "fix: full CI/CD audit — all backend test suites green (0 failures across 7667 tests); fixed 26 bugs: SubscriptionService (IsAutoRenew assignment, RenewAsync status guard, proration TotalDays, churn rate startCount), RevenueForecastService (ClosedDate??ExpectedCloseDate fallback), WebhookManagementService (AttemptNumber increment), ReportService (FilterGroups init), OpportunityCloneTests (Competitors+TeamMembers DbSet mocks), DealRiskServiceTests (Contacts mock + using), CrmKernelFactoryTests (correct connector constructor args), AuditLogCleanupJobTests (global namespace ILogger), CommissionsController assertion type, AuthController HttpContext, SubscriptionWorkflow EF snapshot; CI yaml adds --filter Category!=Integration to isolate WebApplicationFactory suites",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [

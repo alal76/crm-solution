@@ -1959,9 +1959,9 @@ public class ReportService : IReportService
         }
 
         // V1 → V2: promote flat Filters dictionary into structured FilterGroups.
+        query.FilterGroups ??= new List<ReportFilterDescriptor>();
         if (query.Filters != null && query.Filters.Count > 0)
         {
-            query.FilterGroups ??= new List<ReportFilterDescriptor>();
             foreach (var kv in query.Filters)
             {
                 query.FilterGroups.Add(new ReportFilterDescriptor

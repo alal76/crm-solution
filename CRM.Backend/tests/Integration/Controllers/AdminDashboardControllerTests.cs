@@ -13,6 +13,7 @@ using Xunit;
 
 namespace CRM.Backend.Tests.Integration.Controllers
 {
+    [Trait("Category", "Integration")]
     public class AdminDashboardControllerTests : IClassFixture<ApiTestFactory>
     {
         private readonly HttpClient _client;

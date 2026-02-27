@@ -196,7 +196,9 @@ public class PricingRulesServiceTests
         var result = await service.DeleteRuleAsync(ruleId);
 
         Assert.True(result);
-        var dbRule = ctx.PricingRules.Single(r => r.Id == ruleId);
+        // IgnoreQueryFilters() bypasses the global !IsDeleted filter so we can
+        // verify soft-deleted records are stored correctly in the database.
+        var dbRule = ctx.PricingRules.IgnoreQueryFilters().Single(r => r.Id == ruleId);
         Assert.True(dbRule.IsDeleted);
         Assert.False(dbRule.IsActive);
     }

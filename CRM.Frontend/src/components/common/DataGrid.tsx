@@ -426,6 +426,7 @@ export function DataGrid<T extends { id: number | string }>({
                           : 'none'
                         : undefined
                     }
+                    aria-label={isSortable ? `Sort by ${column.headerName}` : undefined}
                     sx={{
                       width: column.width,
                       minWidth: column.minWidth,
@@ -447,7 +448,6 @@ export function DataGrid<T extends { id: number | string }>({
                         active={isSorted && sortDirection !== undefined}
                         direction={sortDirection || 'asc'}
                         onClick={() => handleSortClick(String(column.field))}
-                        aria-label={`Sort by ${column.headerName}`}
                       >
                         {column.headerName}
                         {isSorted && (

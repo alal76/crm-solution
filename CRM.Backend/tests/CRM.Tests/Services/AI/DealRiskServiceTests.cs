@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
+using CRM.Core.Models;
 using CRM.Infrastructure.Services.AI;
 using CRM.Tests.Helpers;
 using FluentAssertions;
@@ -69,6 +70,7 @@ public class DealRiskServiceTests
 
         _mockContext.Setup(c => c.Opportunities).Returns(MockDbSetFactory.CreateMockDbSet(opps).Object);
         _mockContext.Setup(c => c.Interactions).Returns(MockDbSetFactory.CreateMockDbSet(interactions).Object);
+        _mockContext.Setup(c => c.Contacts).Returns(MockDbSetFactory.CreateMockDbSet(new List<Contact>()).Object);
 
         // Act
         var result = await _sut.CalculateRiskAsync(1);
@@ -112,6 +114,7 @@ public class DealRiskServiceTests
 
         _mockContext.Setup(c => c.Opportunities).Returns(MockDbSetFactory.CreateMockDbSet(opps).Object);
         _mockContext.Setup(c => c.Interactions).Returns(MockDbSetFactory.CreateMockDbSet(interactions).Object);
+        _mockContext.Setup(c => c.Contacts).Returns(MockDbSetFactory.CreateMockDbSet(new List<Contact>()).Object);
 
         // Act
         var result = await _sut.CalculateRiskAsync(2);

@@ -83,7 +83,7 @@ public class CommissionsControllerTests
 
         // Assert
         var okResult = result.Result.Should().BeOfType<OkObjectResult>().Subject;
-        var response = okResult.Value.As<Commission>();
+        var response = okResult.Value.Should().BeOfType<CommissionDetailsDto>().Subject;
         response.Id.Should().Be(1);
     }
 

@@ -69,12 +69,12 @@ public class RevenueForecastService : IRevenueForecastService
             var monthEnd = monthStart.AddMonths(1);
             var label = monthStart.ToString("yyyy-MM");
 
-            // Already closed this month
+            // Already closed this month (fall back to ExpectedCloseDate when ClosedDate is not set)
             var closed = opportunities
                 .Where(o => o.Stage == OpportunityStage.ClosedWon &&
-                            o.ClosedDate.HasValue &&
-                            o.ClosedDate >= monthStart &&
-                            o.ClosedDate < monthEnd)
+                            (o.ClosedDate ?? o.ExpectedCloseDate).HasValue &&
+                            (o.ClosedDate ?? o.ExpectedCloseDate) >= monthStart &&
+                            (o.ClosedDate ?? o.ExpectedCloseDate) < monthEnd)
                 .Sum(o => o.Amount);
 
             // Pipeline expected to close this month (weighted)

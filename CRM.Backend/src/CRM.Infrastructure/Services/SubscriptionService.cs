@@ -408,7 +408,7 @@ public class SubscriptionService : ISubscriptionService
         }
 
         var billingEnd = subscription.BillingEndDate ?? DateTime.UtcNow.AddMonths(1);
-        var daysRemaining = (billingEnd - changeDate).Days;
+        var daysRemaining = (int)Math.Ceiling((billingEnd - changeDate).TotalDays);
         var totalDays = subscription.BillingPeriod switch
         {
             BillingPeriod.Weekly => 7,
@@ -568,6 +568,14 @@ public class SubscriptionService : ISubscriptionService
             throw new InvalidOperationException($"Subscription {subscriptionId} not found");
         }
 
+        if (subscription.SubscriptionStatus == SubscriptionStatus.Paused ||
+            subscription.SubscriptionStatus == SubscriptionStatus.Cancelled ||
+            subscription.SubscriptionStatus == SubscriptionStatus.Suspended)
+        {
+            throw new InvalidOperationException(
+                $"Cannot renew subscription {subscriptionId} with status {subscription.SubscriptionStatus}. Only Active subscriptions can be renewed.");
+        }
+
         var termLength = subscription.BillingPeriod switch
         {
             BillingPeriod.Weekly => TimeSpan.FromDays(7),
@@ -613,6 +621,7 @@ public class SubscriptionService : ISubscriptionService
         }
 
         subscription.ContractNotes = autoRenew ? "Auto-renewal enabled" : "Auto-renewal disabled";
+        subscription.IsAutoRenew = autoRenew;
         subscription.UpdatedAt = DateTime.UtcNow;
 
         _context.Subscriptions.Update(subscription);
@@ -915,7 +924,11 @@ public class SubscriptionService : ISubscriptionService
     public async Task<double> GetChurnRateAsync(DateTime fromDate, DateTime toDate, CancellationToken cancellationToken = default)
     {
         var startCount = await _context.Subscriptions
-            .CountAsync(s => !s.IsDeleted && s.CreatedAt < fromDate && s.SubscriptionStatus == SubscriptionStatus.Active, cancellationToken);
+            .CountAsync(s => !s.IsDeleted && s.CreatedAt < fromDate &&
+                (s.SubscriptionStatus == SubscriptionStatus.Active ||
+                 (s.SubscriptionStatus == SubscriptionStatus.Cancelled &&
+                  s.UpdatedAt >= fromDate && s.UpdatedAt <= toDate)),
+                cancellationToken);
 
         if (startCount == 0)
             return 0;

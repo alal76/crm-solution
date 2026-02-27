@@ -22,12 +22,12 @@ namespace CRM.Tests.HostedServices;
 public class AuditLogCleanupJobTests
 {
     private readonly Mock<IServiceProvider> _mockServiceProvider;
-    private readonly Mock<ILogger<AuditLogCleanupJob>> _mockLogger;
+    private readonly Mock<ILogger<global::CRM.Infrastructure.Jobs.AuditLogCleanupJob>> _mockLogger;
 
     public AuditLogCleanupJobTests()
     {
         _mockServiceProvider = new Mock<IServiceProvider>();
-        _mockLogger = new Mock<ILogger<AuditLogCleanupJob>>();
+        _mockLogger = new Mock<ILogger<global::CRM.Infrastructure.Jobs.AuditLogCleanupJob>>();
     }
 
     private AuditLogCleanupJob CreateJob(AuditLogCleanupOptions options)

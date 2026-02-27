@@ -147,12 +147,15 @@ public class SubscriptionWorkflowIntegrationTests
             contractEndDate: DateTime.UtcNow.AddDays(5)
         );
 
+        // Snapshot before Act — EF change-tracker will mutate the tracked entity
+        var originalEndDate = subscription.ContractEndDate!.Value;
+
         // Act
         var result = await _service.RenewAsync(subscription.Id);
 
         // Assert
         result.Should().NotBeNull();
-        result.ContractEndDate.Should().BeAfter(subscription.ContractEndDate!.Value);
+        result.ContractEndDate.Should().BeAfter(originalEndDate);
     }
 
     [Fact]

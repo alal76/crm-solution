@@ -250,7 +250,7 @@ public class WebhookManagementService : IWebhookManagementService, IWebhookManag
             throw new InvalidOperationException($"Delivery {deliveryId} not found");
 
         delivery.Success = false;
-        delivery.AttemptNumber = 0;
+        delivery.AttemptNumber += 1;
         delivery.UpdatedAt = DateTime.UtcNow;
         _context.WebhookDeliveries.Update(delivery);
         await _context.SaveChangesAsync(cancellationToken);

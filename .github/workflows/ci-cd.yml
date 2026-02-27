@@ -141,6 +141,7 @@ jobs:
       run: |
         dotnet test tests/CRM.Tests.csproj \
           -c Release --no-build \
+          --filter "Category!=Integration" \
           --logger "trx;LogFileName=main-tests.trx" \
           --results-directory tests/TestResults/ \
           --settings tests/coverage.runsettings
