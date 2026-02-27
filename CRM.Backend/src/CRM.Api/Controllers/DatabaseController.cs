@@ -6,7 +6,6 @@
 // See the LICENSE file in the root directory for full terms.
 using System.Data.Common;
 using System.Text;
-using System.Text.Json;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
 using CRM.Infrastructure.Data;

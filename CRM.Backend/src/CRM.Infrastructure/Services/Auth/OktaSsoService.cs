@@ -6,7 +6,6 @@
 // See the LICENSE file in the root directory for full terms.
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
-using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using CRM.Core.Dtos;

@@ -5,7 +5,6 @@
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
 
-using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using ITeamsIntegrationService = CRM.Core.Ports.Input.ITeamsIntegrationService;

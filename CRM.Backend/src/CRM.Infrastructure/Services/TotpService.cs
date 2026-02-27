@@ -5,7 +5,6 @@
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
 using System.Security.Cryptography;
-using System.Text;
 
 namespace CRM.Infrastructure.Services;
 

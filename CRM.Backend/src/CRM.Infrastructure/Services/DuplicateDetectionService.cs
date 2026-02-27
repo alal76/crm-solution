@@ -9,12 +9,12 @@ using System.Text;
 using System.Text.Json;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
-using CRM.Core.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 // Resolve ambiguity between CRM.Core.Entities.MatchType and System.IO.MatchType
 using MatchType = CRM.Core.Entities.MatchType;
+using CRM.Core.Models;
 
 namespace CRM.Infrastructure.Services;
 

@@ -5,9 +5,9 @@
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
 using System.ComponentModel.DataAnnotations;
-using CRM.Core.Ports.Input;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Core.Ports.Input;
 
 namespace CRM.Api.Controllers;
 

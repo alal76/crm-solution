@@ -6,12 +6,12 @@
 // See the LICENSE file in the root directory for full terms.
 using CRM.Core.Entities;
 using CRM.Core.Entities.Workflow;
-using CRM.Core.Models;
 using CRM.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 
 using SocialPlatform = CRM.Core.Models.SocialMediaPlatform;
+using CRM.Core.Models;
 
 namespace CRM.Infrastructure.Services;
 

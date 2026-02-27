@@ -12,7 +12,6 @@ using CRM.Core.Dtos.Reports;
 using CRM.Core.Entities;
 using CRM.Core.Entities.Reports;
 using CRM.Core.Interfaces;
-using CRM.Core.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -22,6 +21,7 @@ using ReportEntityDataSource = CRM.Core.Entities.Reports.ReportDataSource;
 using ReportExecutionEntity = CRM.Core.Entities.Reports.ReportExecution;
 using ReportFolderEntity = CRM.Core.Entities.Reports.ReportFolder;
 using ReportScheduleEntity = CRM.Core.Entities.Reports.ReportSchedule;
+using CRM.Core.Models;
 
 
 namespace CRM.Infrastructure.Services;

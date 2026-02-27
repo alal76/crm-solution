@@ -7,11 +7,11 @@
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
-using CRM.Core.Models;
 using CRM.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
+using CRM.Core.Models;
 
 namespace CRM.Infrastructure.Services;
 

@@ -5,7 +5,6 @@
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
 using System.Net.Http.Json;
-using System.Text.Json;
 using CRM.Core.Interfaces.ITSM;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;

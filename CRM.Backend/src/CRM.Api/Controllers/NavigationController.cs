@@ -7,11 +7,11 @@
 using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
-using CRM.Core.Dtos;
 using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using CRM.Core.Dtos;
 
 namespace CRM.Api.Controllers
 {

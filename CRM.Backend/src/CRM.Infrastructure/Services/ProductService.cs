@@ -7,8 +7,8 @@
 using CRM.Core.Entities;
 using CRM.Core.Exceptions;
 using CRM.Core.Interfaces;
-using CRM.Core.Ports.Input;
 using Microsoft.Extensions.Logging;
+using CRM.Core.Ports.Input;
 
 namespace CRM.Infrastructure.Services;
 

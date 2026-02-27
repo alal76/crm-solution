@@ -6,13 +6,13 @@
 // See the LICENSE file in the root directory for full terms.
 
 using System.Text.RegularExpressions;
-using CRM.Core.Ports.Input;
 
 // Alias to disambiguate from CRM.Core.Interfaces.ValidationResult
 using DataValidationResult = CRM.Core.Ports.Input.ValidationResult;
 
 // Alias to disambiguate FieldValidationError from CRM.Core.Interfaces.FieldValidationError
 using FieldValidationError = CRM.Core.Ports.Input.FieldValidationError;
+using CRM.Core.Ports.Input;
 
 namespace CRM.Infrastructure.Services;
 

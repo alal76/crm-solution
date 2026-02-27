@@ -8,9 +8,9 @@ using System.ComponentModel.DataAnnotations;
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
-using CRM.Core.Ports.Input;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using CRM.Core.Ports.Input;
 
 namespace CRM.Api.Controllers;
 

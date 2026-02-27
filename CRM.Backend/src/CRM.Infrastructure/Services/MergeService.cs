@@ -7,9 +7,9 @@
 using System.Text.Json;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
-using CRM.Core.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using CRM.Core.Models;
 
 namespace CRM.Infrastructure.Services;
 

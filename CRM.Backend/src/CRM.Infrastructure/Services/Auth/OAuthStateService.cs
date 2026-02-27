@@ -7,7 +7,6 @@
 using System;
 using System.Collections.Concurrent;
 using System.Security.Cryptography;
-using System.Text;
 using Microsoft.Extensions.Logging;
 
 namespace CRM.Infrastructure.Services.Auth;

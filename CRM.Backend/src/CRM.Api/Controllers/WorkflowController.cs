@@ -5,7 +5,6 @@
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
 using System.Security.Claims;
-using System.Text.Json;
 using CRM.Core.DTOs.Workflow;
 using CRM.Core.Entities;
 using CRM.Core.Entities.Workflow;

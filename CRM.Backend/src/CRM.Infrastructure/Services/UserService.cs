@@ -8,9 +8,9 @@ using BCrypt.Net;
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
-using CRM.Core.Ports.Input;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using CRM.Core.Ports.Input;
 
 namespace CRM.Infrastructure.Services;
 

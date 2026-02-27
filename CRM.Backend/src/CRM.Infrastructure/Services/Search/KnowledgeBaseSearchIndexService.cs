@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-using System.Text.Json;
 using System.Net.Http.Json;
 using CRM.Core.Entities.ITSM;
 using CRM.Core.Interfaces;

@@ -6,11 +6,11 @@
 // See the LICENSE file in the root directory for full terms.
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
-using CRM.Core.Ports.Input;
 using CRM.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using DtoCommissionTier = CRM.Core.Dtos.CommissionTierDto;
+using CRM.Core.Ports.Input;
 
 namespace CRM.Infrastructure.Services;
 

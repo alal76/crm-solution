@@ -5,8 +5,8 @@
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
 using System.Text;
-using CRM.Core.Ports.Input;
 using Microsoft.Extensions.Logging;
+using CRM.Core.Ports.Input;
 
 namespace CRM.Infrastructure.Services;
 

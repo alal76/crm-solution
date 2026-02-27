@@ -6,11 +6,11 @@
 // See the LICENSE file in the root directory for full terms.
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
-using CRM.Core.Entities.Workflow;
 using CRM.Core.Interfaces;
-using CRM.Core.Ports.Input;
 using CRM.Core.Exceptions;
 using Microsoft.Extensions.Logging;
+using CRM.Core.Ports.Input;
+using CRM.Core.Entities.Workflow;
 
 namespace CRM.Infrastructure.Services;
 

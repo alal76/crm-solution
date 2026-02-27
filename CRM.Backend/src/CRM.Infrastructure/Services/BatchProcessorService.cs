@@ -6,8 +6,8 @@
 // See the LICENSE file in the root directory for full terms.
 
 using System.Collections.Concurrent;
-using CRM.Core.Ports.Input;
 using Microsoft.Extensions.Logging;
+using CRM.Core.Ports.Input;
 
 namespace CRM.Infrastructure.Services;
 

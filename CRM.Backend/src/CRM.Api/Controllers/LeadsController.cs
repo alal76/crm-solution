@@ -7,7 +7,6 @@
 using CRM.Core.Dtos;
 using CRM.Core.Entities;
 using CRM.Core.Exceptions;
-using CRM.Core.Entities.Workflow;
 using CRM.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

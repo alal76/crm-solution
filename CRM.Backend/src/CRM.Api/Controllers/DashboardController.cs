@@ -7,7 +7,6 @@
 using System.Text.Json;
 using CRM.Core.Entities;
 using CRM.Core.Interfaces;
-using CRM.Core.Models;
 using CRM.Infrastructure.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;

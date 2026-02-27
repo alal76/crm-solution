@@ -8,8 +8,8 @@
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
-using CRM.Core.Ports.Input;
 using Microsoft.Extensions.Logging;
+using CRM.Core.Ports.Input;
 
 namespace CRM.Infrastructure.Services.Webhooks;
 

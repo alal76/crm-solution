@@ -7,9 +7,9 @@
 using System.IO.Compression;
 using System.Text.Json;
 using CRM.Core.Interfaces;
-using CRM.Core.Ports.Input;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using CRM.Core.Ports.Input;
 
 namespace CRM.Infrastructure.Services;
 
