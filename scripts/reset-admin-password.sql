@@ -34,7 +34,7 @@ SET
     PasswordHash = '',
     PasswordNeverSet = 1,
     MustResetPassword = 0,
-    PasswordLastChangedAt = NULL, -- NOSONAR: assignment, not comparison
+    PasswordLastChangedAt = NULL, -- NOSONAR plsql:NullComparison - SET assignment, not comparison
     UpdatedAt = NOW()
 WHERE Email = 'admin@crm.local';
 

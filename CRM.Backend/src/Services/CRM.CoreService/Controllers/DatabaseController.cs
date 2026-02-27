@@ -841,7 +841,7 @@ Then restart the API container:
                         }
 
                         // Table names from information_schema are safe to use
-                        foreach (var table in tables)
+                        foreach (var table in tables) // NOSONAR S4158 - populated by ExecuteReaderAsync above
                         {
                             // Validate table name contains only safe characters
                             if (!IsValidIdentifier(table)) continue;
@@ -1141,7 +1141,7 @@ Then restart the API container:
                                 tables.Add(reader.GetString(0));
                         }
 
-                        foreach (var table in tables)
+                        foreach (var table in tables) // NOSONAR S4158 - populated by ExecuteReaderAsync above
                         {
                             // Validate table name
                             if (!IsValidIdentifier(table)) continue;

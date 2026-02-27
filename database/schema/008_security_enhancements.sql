@@ -197,6 +197,6 @@ UPDATE Users
 SET PasswordLastChangedAt = CreatedAt 
 WHERE PasswordLastChangedAt IS NULL 
   AND PasswordHash IS NOT NULL 
-  AND PasswordHash != '';
+  AND PasswordHash != ''; -- NOSONAR plsql:NullComparison - empty string check for MariaDB, not null comparison
 
 SELECT 'Security enhancement migration completed successfully' AS Status;

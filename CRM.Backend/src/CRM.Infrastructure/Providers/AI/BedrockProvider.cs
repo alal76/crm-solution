@@ -824,7 +824,7 @@ Return only the JSON object, nothing else.";
                     if (prop.Value.TryGetDouble(out var value))
                         emotionsDict[prop.Name] = value;
                 }
-                if (emotionsDict.Count > 0)
+                if (emotionsDict.Count > 0) // NOSONAR S2583 - populated by EnumerateObject foreach above
                     emotions = emotionsDict;
             }
 

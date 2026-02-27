@@ -384,7 +384,7 @@ public class DatabaseBackupService : IDatabaseBackupService, IDatabaseBackupInpu
 
                 _logger.LogInformation("Backing up {TableCount} tables from {Database}", tables.Count, connection.Database);
 
-                foreach (var table in tables)
+                foreach (var table in tables) // NOSONAR S4158 - populated by ExecuteReaderAsync above
                 {
                     await file.WriteLineAsync($"-- ----------------------------");
                     await file.WriteLineAsync($"-- Table: {table}");

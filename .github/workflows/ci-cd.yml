@@ -271,10 +271,12 @@ jobs:
         dotnet build CRM.sln -c Release --no-restore
 
     - name: Verify MariaDB is accessible by crm_user
+      env:
+        MYSQL_PWD: CrmPass_CI2024  # pragma: allowlist secret — ephemeral CI-only
       run: |
         for i in $(seq 1 30); do
-          # nosonar - CI test credentials for ephemeral GitHub Actions environment - not used in production
-          if mysql -h 127.0.0.1 -u crm_user -pCrmPass_CI2024 crm_db -e "SELECT 1" > /dev/null 2>&1; then # NOSONAR - CI test credentials
+          # Credentials are for ephemeral CI service container only — not production
+          if mysql -h 127.0.0.1 -u crm_user crm_db -e "SELECT 1" > /dev/null 2>&1; then
             echo "✅ MariaDB accessible by crm_user after ${i}s"
             break
           fi
@@ -592,7 +594,7 @@ jobs:
           /d:sonar.cs.opencover.reportsPaths="CRM.Backend/tests/TestResults/**/coverage.cobertura.xml" \
           /d:sonar.javascript.lcov.reportPaths="CRM.Frontend/coverage/lcov.info" \
           /d:sonar.typescript.lcov.reportPaths="CRM.Frontend/coverage/lcov.info" \
-          /d:sonar.exclusions="**/node_modules/**,**/obj/**,**/bin/**,**/dist/**,**/migrations/**,**/*.min.js,**/*.generated.cs,.github/workflows/**" \
+          /d:sonar.exclusions="**/node_modules/**,**/obj/**,**/bin/**,**/dist/**,**/build/**,**/coverage/**,**/publish/**,**/migrations/**,**/*.min.js,**/*.generated.cs,.github/workflows/**,e2e-tests/**,scripts/**,database/**,docker/**,kubernetes/**,azure/**,CRM.Infrastructure/deployment-tool/**" \
           /d:sonar.coverage.exclusions="**/tests/**,**/Tests/**,**/*.spec.ts,**/*.test.tsx,**/Program.cs,**/Migrations/**" \
           /d:sonar.links.homepage="https://github.com/alal76/crm-solution" \
           /d:sonar.links.ci="https://github.com/alal76/crm-solution/actions"

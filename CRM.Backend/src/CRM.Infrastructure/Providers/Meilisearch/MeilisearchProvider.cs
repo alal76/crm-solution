@@ -641,7 +641,7 @@ public class MeilisearchProvider : ISearchPort
                 {
                     highlightsDict[prop.Name] = prop.Value.ToString();
                 }
-                if (highlightsDict.Count > 0)
+                if (highlightsDict.Count > 0) // NOSONAR S2583 - populated by EnumerateObject foreach above
                     highlights = highlightsDict;
             }
 
