@@ -15,7 +15,6 @@ import {
 } from '@mui/material';
 import brandingConfigService, { BrandingConfigDto } from '../../services/brandingConfigService';
 import { getApiBaseUrl } from '../../config/ports';
-import CompanyBrandingTab from '../settings/CompanyBrandingTab';
 
 const MAX_LOGO_SIZE_BYTES = 2 * 1024 * 1024;
 const MAX_FAVICON_SIZE_BYTES = 500 * 1024;
@@ -398,15 +397,6 @@ const BrandingSettings: React.FC = () => {
               </Box>
             </Box>
           )}
-        </CardContent>
-      </Card>
-
-      <Card>
-        <CardContent>
-          <Typography variant="h6" gutterBottom>
-            Theme & Company Settings
-          </Typography>
-          <CompanyBrandingTab />
         </CardContent>
       </Card>
 

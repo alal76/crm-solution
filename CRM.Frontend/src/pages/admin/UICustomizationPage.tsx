@@ -1,27 +1,15 @@
 // CRM Solution - Customer Relationship Management System
 // Copyright (C) 2024-2026 Abhishek Lal
 //
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the Source-Available License (see LICENSE) as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-//
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-// Source-Available License (see LICENSE) for more details.
-//
-// You should have received a copy of the Source-Available License (see LICENSE)
-// along with this program. If not, see <https://www.gnu.org/licenses/>.
+// Unified UI Settings Page with tabs for Theme & Layout, Logo & Identity, and Colors & Palette
 
-import React from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Card,
   CardContent,
   CardHeader,
   Container,
-  Divider,
   FormControl,
   FormControlLabel,
   FormLabel,
@@ -37,13 +25,42 @@ import {
   Button,
   Alert,
   CircularProgress,
-  Typography
+  Typography,
+  Tabs,
+  Tab,
 } from '@mui/material';
 import RestartAltIcon from '@mui/icons-material/RestartAlt';
-import SaveIcon from '@mui/icons-material/Save';
+import PaletteIcon from '@mui/icons-material/Palette';
+import BrandingWatermarkIcon from '@mui/icons-material/BrandingWatermark';
+import TuneIcon from '@mui/icons-material/Tune';
 import { useUIPreferences } from '../../contexts/UIPreferencesContext';
+import BrandingSettings from '../../components/admin/BrandingSettings';
+import CompanyBrandingTab from '../../components/settings/CompanyBrandingTab';
+import logo from '../../assets/logo.png';
 
-export const UICustomizationPage: React.FC = () => {
+interface TabPanelProps {
+  children?: React.ReactNode;
+  index: number;
+  value: number;
+}
+
+function TabPanel(props: TabPanelProps) {
+  const { children, value, index, ...other } = props;
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={\`ui-tabpanel-\${index}\`}
+      aria-labelledby={\`ui-tab-\${index}\`}
+      {...other}
+    >
+      {value === index && <Box sx={{ py: 3 }}>{children}</Box>}
+    </div>
+  );
+}
+
+// Theme & Layout Tab (original UICustomizationPage content)
+const ThemeLayoutTab: React.FC = () => {
   const { preferences, loading, error, savePreferences, resetPreferences } = useUIPreferences();
   const [isSaving, setIsSaving] = React.useState(false);
   const [saveMessage, setSaveMessage] = React.useState<string | null>(null);
@@ -117,31 +134,18 @@ export const UICustomizationPage: React.FC = () => {
 
   if (loading) {
     return (
-      <Container maxWidth="md" sx={{ py: 4 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '400px' }}>
-          <CircularProgress />
-        </Box>
-      </Container>
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '300px' }}>
+        <CircularProgress />
+      </Box>
     );
   }
 
   if (!preferences) {
-    return (
-      <Container maxWidth="md" sx={{ py: 4 }}>
-        <Alert severity="error">Failed to load UI preferences</Alert>
-      </Container>
-    );
+    return <Alert severity="error">Failed to load UI preferences</Alert>;
   }
 
   return (
-    <Container maxWidth="md" sx={{ py: 4 }}>
-      <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" gutterBottom>UI Customization</Typography>
-        <Typography variant="body2" color="textSecondary">
-          Customize your interface preferences
-        </Typography>
-      </Box>
-
+    <Box>
       {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
       {saveMessage && <Alert severity="success" sx={{ mb: 2 }}>{saveMessage}</Alert>}
 
@@ -153,11 +157,7 @@ export const UICustomizationPage: React.FC = () => {
             <CardContent>
               <FormControl fullWidth disabled={isSaving}>
                 <FormLabel>Color Scheme</FormLabel>
-                <RadioGroup
-                  value={preferences.theme}
-                  onChange={handleThemeChange}
-                  sx={{ mt: 2 }}
-                >
+                <RadioGroup value={preferences.theme} onChange={handleThemeChange} sx={{ mt: 2 }}>
                   <FormControlLabel value="light" control={<Radio />} label="Light" />
                   <FormControlLabel value="dark" control={<Radio />} label="Dark" />
                   <FormControlLabel value="auto" control={<Radio />} label="Auto (System)" />
@@ -185,7 +185,6 @@ export const UICustomizationPage: React.FC = () => {
                   <MenuItem value="hidden">Hidden</MenuItem>
                 </Select>
               </FormControl>
-
               <FormControl fullWidth>
                 <FormLabel>Font Size</FormLabel>
                 <Select
@@ -290,7 +289,7 @@ export const UICustomizationPage: React.FC = () => {
 
         {/* Actions */}
         <Grid item xs={12}>
-          <Stack direction="row" spacing={2} sx={{justifyContent: 'flex-end' }}>
+          <Stack direction="row" spacing={2} sx={{ justifyContent: 'flex-end' }}>
             <Button
               variant="outlined"
               startIcon={<RestartAltIcon />}
@@ -299,17 +298,63 @@ export const UICustomizationPage: React.FC = () => {
             >
               Reset to Defaults
             </Button>
-            <Button
-              variant="contained"
-              startIcon={<SaveIcon />}
-              disabled={isSaving}
-              onClick={() => setSaveMessage('Preferences updated')}
-            >
-              {isSaving ? 'Saving...' : 'Save All'}
-            </Button>
           </Stack>
         </Grid>
       </Grid>
+    </Box>
+  );
+};
+
+export const UICustomizationPage: React.FC = () => {
+  const [tabValue, setTabValue] = useState(0);
+
+  const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
+    setTabValue(newValue);
+  };
+
+  return (
+    <Container maxWidth="xl" sx={{ py: 4 }}>
+      {/* Header */}
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
+        <Box sx={{ width: 40, height: 40, flexShrink: 0 }}>
+          <img src={logo} alt="CRM Logo" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+        </Box>
+        <Box>
+          <Typography variant="h4" fontWeight={700}>UI Settings</Typography>
+          <Typography variant="body2" color="text.secondary">
+            Customize your interface preferences, branding, logos, and color themes
+          </Typography>
+        </Box>
+      </Box>
+
+      {/* Tabs */}
+      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 0 }}>
+        <Tabs
+          value={tabValue}
+          onChange={handleTabChange}
+          aria-label="UI Settings tabs"
+          sx={{
+            '& .MuiTab-root': { textTransform: 'none', fontWeight: 500, fontSize: '0.95rem' },
+          }}
+        >
+          <Tab icon={<TuneIcon />} iconPosition="start" label="Theme & Layout" />
+          <Tab icon={<BrandingWatermarkIcon />} iconPosition="start" label="Logo & Identity" />
+          <Tab icon={<PaletteIcon />} iconPosition="start" label="Colors & Palette" />
+        </Tabs>
+      </Box>
+
+      {/* Tab Panels */}
+      <TabPanel value={tabValue} index={0}>
+        <ThemeLayoutTab />
+      </TabPanel>
+
+      <TabPanel value={tabValue} index={1}>
+        <BrandingSettings />
+      </TabPanel>
+
+      <TabPanel value={tabValue} index={2}>
+        <CompanyBrandingTab />
+      </TabPanel>
     </Container>
   );
 };

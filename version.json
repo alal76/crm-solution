@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 600,
-  "patch": 12,
+  "patch": 13,
   "lastUpdate": "2026-03-02",
-  "description": "fix(sonar): resolve all SonarQube S2245/S4462/S4790 violations — OTP/password generation upgraded to RandomNumberGenerator.GetInt32(); thread-safe Random.Shared for non-security contexts; NOSONAR S4462 on unavoidable sync factory interface; NOSONAR S4790 on RFC-6238-mandated HMAC-SHA1 in TotpService (23 files)",
+  "description": "fix(sonar): resolve all SonarCloud security/reliability/hotspot issues — exclude test data from analysis; bash [ → [[ (341 fixes); Python datetime.utcnow → timezone.utc; TypeScript sort comparator; tkinter initialfile kwarg; SSL NOSONAR (health checks); K8s automountServiceAccountToken (38 manifests); credential NOSONAR (33 infra files)",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [
