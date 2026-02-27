@@ -270,6 +270,20 @@ jobs:
         dotnet restore CRM.sln
         dotnet build CRM.sln -c Release --no-restore
 
+    - name: Verify MariaDB is accessible by crm_user
+      run: |
+        for i in $(seq 1 30); do
+          if mysql -h 127.0.0.1 -u crm_user -pCrmPass_CI2024 crm_db -e "SELECT 1" > /dev/null 2>&1; then
+            echo "✅ MariaDB accessible by crm_user after ${i}s"
+            break
+          fi
+          if [ $i -eq 30 ]; then
+            echo "❌ crm_user cannot connect to MariaDB after 60s"
+            exit 1
+          fi
+          sleep 2
+        done
+
     - name: Start API server
       working-directory: CRM.Backend
       env:
@@ -283,6 +297,9 @@ jobs:
         ADMIN_USERNAME: admin
         ADMIN_EMAIL: admin@crm.local
         ADMIN_PASSWORD: Admin@123
+        # Use EnsureCreated instead of MigrateAsync on fresh CI DB — avoids
+        # Pomelo DDL auto-commit issues causing "Table already exists" on retry
+        USE_ENSURE_CREATED: "true"
       run: |
         dotnet run --project src/CRM.Api/CRM.Api.csproj -c Release --no-build &
         API_PID=$!
