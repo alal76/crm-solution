@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 600,
-  "patch": 21,
-  "lastUpdate": "2026-03-02",
-  "description": "fix(sonarcloud): Suppress remaining 13 bugs (NOSONAR S4158/S2583/NullComparison), fix last vulnerability (MYSQL_PWD env var), add comprehensive multicriteria ignore rules for 485+ security hotspots (S2068/S5332/S6444/S2245/S4036/S5852/secrets)",
+  "patch": 22,
+  "lastUpdate": "2026-02-28",
+  "description": "fix(tests): Fix BackgroundService race conditions in EmailSync/CalendarSync hosted service tests — await StartAsync, add StopAsync before verify, increase delays for CI runners",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [

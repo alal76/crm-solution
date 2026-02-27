@@ -88,13 +88,17 @@ public class CalendarSyncHostedServiceTests
     public async Task ExecuteAsync_WhenStarted_ShouldLogStartMessage()
     {
         // Arrange
+        _mockCalendarSyncService.Setup(x => x.SyncAllDueAsync())
+            .Returns(Task.CompletedTask);
+
         var service = new CalendarSyncHostedService(_mockServiceProvider.Object, _mockLogger.Object);
         var cts = new CancellationTokenSource();
 
         // Act
-        _ = service.StartAsync(cts.Token);
-        await Task.Delay(100);
+        await service.StartAsync(cts.Token);
+        await Task.Delay(500); // Allow time for background task to start on CI
         cts.Cancel();
+        await service.StopAsync(CancellationToken.None); // Ensures ExecuteAsync completes
 
         // Assert
         _mockLogger.Verify(
@@ -111,12 +115,15 @@ public class CalendarSyncHostedServiceTests
     public async Task ExecuteAsync_WhenCancelled_ShouldLogStopMessage()
     {
         // Arrange
+        _mockCalendarSyncService.Setup(x => x.SyncAllDueAsync())
+            .Returns(Task.CompletedTask);
+
         var service = new CalendarSyncHostedService(_mockServiceProvider.Object, _mockLogger.Object);
         var cts = new CancellationTokenSource();
 
         // Act
-        _ = service.StartAsync(cts.Token);
-        await Task.Delay(100);
+        await service.StartAsync(cts.Token);
+        await Task.Delay(500);
         cts.Cancel();
         await service.StopAsync(CancellationToken.None);
 
@@ -161,9 +168,10 @@ public class CalendarSyncHostedServiceTests
         var cts = new CancellationTokenSource();
 
         // Act
-        _ = service.StartAsync(cts.Token);
-        await Task.Delay(200);
+        await service.StartAsync(cts.Token);
+        await Task.Delay(500);
         cts.Cancel();
+        await service.StopAsync(CancellationToken.None);
 
         // Assert
         _mockLogger.Verify(
@@ -180,12 +188,15 @@ public class CalendarSyncHostedServiceTests
     public async Task ExecuteAsync_WhenCancelled_ShouldStopGracefully()
     {
         // Arrange
+        _mockCalendarSyncService.Setup(x => x.SyncAllDueAsync())
+            .Returns(Task.CompletedTask);
+
         var service = new CalendarSyncHostedService(_mockServiceProvider.Object, _mockLogger.Object);
         var cts = new CancellationTokenSource();
 
         // Act
-        _ = service.StartAsync(cts.Token);
-        await Task.Delay(50);
+        await service.StartAsync(cts.Token);
+        await Task.Delay(500);
         cts.Cancel();
 
         // Assert
@@ -201,13 +212,17 @@ public class CalendarSyncHostedServiceTests
     public async Task ExecuteAsync_ShouldCreateScopeForEachIteration()
     {
         // Arrange
+        _mockCalendarSyncService.Setup(x => x.SyncAllDueAsync())
+            .Returns(Task.CompletedTask);
+
         var service = new CalendarSyncHostedService(_mockServiceProvider.Object, _mockLogger.Object);
         var cts = new CancellationTokenSource();
 
         // Act
-        _ = service.StartAsync(cts.Token);
-        await Task.Delay(100);
+        await service.StartAsync(cts.Token);
+        await Task.Delay(500);
         cts.Cancel();
+        await service.StopAsync(CancellationToken.None);
 
         // Assert
         _mockScopeFactory.Verify(x => x.CreateScope(), Times.AtMost(1));
@@ -217,12 +232,15 @@ public class CalendarSyncHostedServiceTests
     public async Task ExecuteAsync_ShouldDisposeScope()
     {
         // Arrange
+        _mockCalendarSyncService.Setup(x => x.SyncAllDueAsync())
+            .Returns(Task.CompletedTask);
+
         var service = new CalendarSyncHostedService(_mockServiceProvider.Object, _mockLogger.Object);
         var cts = new CancellationTokenSource();
 
         // Act
-        _ = service.StartAsync(cts.Token);
-        await Task.Delay(100);
+        await service.StartAsync(cts.Token);
+        await Task.Delay(500);
         cts.Cancel();
         await service.StopAsync(CancellationToken.None);
 
@@ -245,9 +263,10 @@ public class CalendarSyncHostedServiceTests
         var cts = new CancellationTokenSource();
 
         // Act
-        _ = service.StartAsync(cts.Token);
-        await Task.Delay(100);
+        await service.StartAsync(cts.Token);
+        await Task.Delay(500);
         cts.Cancel();
+        await service.StopAsync(CancellationToken.None);
 
         // Assert - service should handle null gracefully or log error
     }
@@ -263,9 +282,10 @@ public class CalendarSyncHostedServiceTests
         var cts = new CancellationTokenSource();
 
         // Act
-        _ = service.StartAsync(cts.Token);
-        await Task.Delay(100);
+        await service.StartAsync(cts.Token);
+        await Task.Delay(500);
         cts.Cancel();
+        await service.StopAsync(CancellationToken.None);
 
         // Assert
         _mockLogger.Verify(
@@ -296,9 +316,10 @@ public class CalendarSyncHostedServiceTests
         var cts = new CancellationTokenSource();
 
         // Act
-        _ = service.StartAsync(cts.Token);
-        await Task.Delay(200);
+        await service.StartAsync(cts.Token);
+        await Task.Delay(500);
         cts.Cancel();
+        await service.StopAsync(CancellationToken.None);
 
         // Assert - service should continue despite errors
     }
@@ -325,12 +346,15 @@ public class CalendarSyncHostedServiceTests
     public async Task StopAsync_ShouldStopBackgroundExecution()
     {
         // Arrange
+        _mockCalendarSyncService.Setup(x => x.SyncAllDueAsync())
+            .Returns(Task.CompletedTask);
+
         var service = new CalendarSyncHostedService(_mockServiceProvider.Object, _mockLogger.Object);
         var cts = new CancellationTokenSource();
 
         // Act
         await service.StartAsync(cts.Token);
-        await Task.Delay(50);
+        await Task.Delay(500);
         await service.StopAsync(CancellationToken.None);
 
         // Assert - should complete without hanging
@@ -369,9 +393,10 @@ public class CalendarSyncHostedServiceTests
         var cts = new CancellationTokenSource();
 
         // Act - run for a short time (not full 5 minutes)
-        _ = service.StartAsync(cts.Token);
-        await Task.Delay(100);
+        await service.StartAsync(cts.Token);
+        await Task.Delay(500);
         cts.Cancel();
+        await service.StopAsync(CancellationToken.None);
 
         // Assert - should have called at most once in this short window
         syncCallCount.Should().BeLessOrEqualTo(1);
@@ -392,9 +417,10 @@ public class CalendarSyncHostedServiceTests
         var cts = new CancellationTokenSource();
 
         // Act
-        _ = service.StartAsync(cts.Token);
-        await Task.Delay(100);
+        await service.StartAsync(cts.Token);
+        await Task.Delay(500);
         cts.Cancel();
+        await service.StopAsync(CancellationToken.None);
 
         // Assert - service should complete without errors
     }
@@ -410,9 +436,10 @@ public class CalendarSyncHostedServiceTests
         var cts = new CancellationTokenSource();
 
         // Act
-        _ = service.StartAsync(cts.Token);
-        await Task.Delay(100);
+        await service.StartAsync(cts.Token);
+        await Task.Delay(500);
         cts.Cancel();
+        await service.StopAsync(CancellationToken.None);
 
         // Assert - service should complete without errors
     }
@@ -440,9 +467,10 @@ public class CalendarSyncHostedServiceTests
         var cts = new CancellationTokenSource();
 
         // Act
-        _ = service.StartAsync(cts.Token);
-        await Task.Delay(300);
+        await service.StartAsync(cts.Token);
+        await Task.Delay(500);
         cts.Cancel();
+        await service.StopAsync(CancellationToken.None);
 
         // Assert - no overlapping calls (would be 1 max)
         maxConcurrentCalls.Should().BeLessOrEqualTo(1);
@@ -464,7 +492,7 @@ public class CalendarSyncHostedServiceTests
 
         // Act
         await service.StartAsync(cts.Token);
-        await Task.Delay(200);
+        await Task.Delay(500);
         cts.Cancel();
         // StopAsync waits for ExecuteAsync to complete, ensuring all logging has occurred
         await service.StopAsync(CancellationToken.None);

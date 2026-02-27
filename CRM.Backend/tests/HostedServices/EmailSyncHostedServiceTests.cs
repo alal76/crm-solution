@@ -88,13 +88,17 @@ public class EmailSyncHostedServiceTests
     public async Task ExecuteAsync_WhenStarted_ShouldLogStartMessage()
     {
         // Arrange
+        _mockEmailSyncService.Setup(x => x.SyncAllDueAsync())
+            .Returns(Task.CompletedTask);
+
         var service = new EmailSyncHostedService(_mockServiceProvider.Object, _mockLogger.Object);
         var cts = new CancellationTokenSource();
 
         // Act
-        _ = service.StartAsync(cts.Token);
-        await Task.Delay(100); // Allow some time for startup
+        await service.StartAsync(cts.Token);
+        await Task.Delay(500); // Allow time for background task to start on CI
         cts.Cancel();
+        await service.StopAsync(CancellationToken.None); // Ensures ExecuteAsync completes
 
         // Assert
         _mockLogger.Verify(
@@ -111,12 +115,15 @@ public class EmailSyncHostedServiceTests
     public async Task ExecuteAsync_WhenCancelled_ShouldLogStopMessage()
     {
         // Arrange
+        _mockEmailSyncService.Setup(x => x.SyncAllDueAsync())
+            .Returns(Task.CompletedTask);
+
         var service = new EmailSyncHostedService(_mockServiceProvider.Object, _mockLogger.Object);
         var cts = new CancellationTokenSource();
 
         // Act
-        var executeTask = service.StartAsync(cts.Token);
-        await Task.Delay(100);
+        await service.StartAsync(cts.Token);
+        await Task.Delay(500);
         cts.Cancel();
         await service.StopAsync(CancellationToken.None);
 
@@ -162,9 +169,10 @@ public class EmailSyncHostedServiceTests
         var cts = new CancellationTokenSource();
 
         // Act
-        _ = service.StartAsync(cts.Token);
-        await Task.Delay(200);
+        await service.StartAsync(cts.Token);
+        await Task.Delay(500);
         cts.Cancel();
+        await service.StopAsync(CancellationToken.None);
 
         // Assert
         _mockLogger.Verify(
@@ -181,12 +189,15 @@ public class EmailSyncHostedServiceTests
     public async Task ExecuteAsync_WhenCancelled_ShouldStopGracefully()
     {
         // Arrange
+        _mockEmailSyncService.Setup(x => x.SyncAllDueAsync())
+            .Returns(Task.CompletedTask);
+
         var service = new EmailSyncHostedService(_mockServiceProvider.Object, _mockLogger.Object);
         var cts = new CancellationTokenSource();
 
         // Act
-        var startTask = service.StartAsync(cts.Token);
-        await Task.Delay(50);
+        await service.StartAsync(cts.Token);
+        await Task.Delay(500);
         cts.Cancel();
 
         // Assert
@@ -202,13 +213,17 @@ public class EmailSyncHostedServiceTests
     public async Task ExecuteAsync_ShouldCreateScopeForEachIteration()
     {
         // Arrange
+        _mockEmailSyncService.Setup(x => x.SyncAllDueAsync())
+            .Returns(Task.CompletedTask);
+
         var service = new EmailSyncHostedService(_mockServiceProvider.Object, _mockLogger.Object);
         var cts = new CancellationTokenSource();
 
         // Act
-        _ = service.StartAsync(cts.Token);
-        await Task.Delay(100);
+        await service.StartAsync(cts.Token);
+        await Task.Delay(500);
         cts.Cancel();
+        await service.StopAsync(CancellationToken.None);
 
         // Assert - scope should be created
         _mockScopeFactory.Verify(x => x.CreateScope(), Times.AtMost(1));
@@ -218,12 +233,15 @@ public class EmailSyncHostedServiceTests
     public async Task ExecuteAsync_ShouldDisposeScope()
     {
         // Arrange
+        _mockEmailSyncService.Setup(x => x.SyncAllDueAsync())
+            .Returns(Task.CompletedTask);
+
         var service = new EmailSyncHostedService(_mockServiceProvider.Object, _mockLogger.Object);
         var cts = new CancellationTokenSource();
 
         // Act
-        _ = service.StartAsync(cts.Token);
-        await Task.Delay(100);
+        await service.StartAsync(cts.Token);
+        await Task.Delay(500);
         cts.Cancel();
         await service.StopAsync(CancellationToken.None);
 
@@ -246,9 +264,10 @@ public class EmailSyncHostedServiceTests
         var cts = new CancellationTokenSource();
 
         // Act
-        _ = service.StartAsync(cts.Token);
-        await Task.Delay(100);
+        await service.StartAsync(cts.Token);
+        await Task.Delay(500);
         cts.Cancel();
+        await service.StopAsync(CancellationToken.None);
 
         // Assert - service should handle null gracefully
     }
@@ -264,9 +283,10 @@ public class EmailSyncHostedServiceTests
         var cts = new CancellationTokenSource();
 
         // Act
-        _ = service.StartAsync(cts.Token);
-        await Task.Delay(100);
+        await service.StartAsync(cts.Token);
+        await Task.Delay(500);
         cts.Cancel();
+        await service.StopAsync(CancellationToken.None);
 
         // Assert
         _mockLogger.Verify(
@@ -301,12 +321,15 @@ public class EmailSyncHostedServiceTests
     public async Task StopAsync_ShouldStopBackgroundExecution()
     {
         // Arrange
+        _mockEmailSyncService.Setup(x => x.SyncAllDueAsync())
+            .Returns(Task.CompletedTask);
+
         var service = new EmailSyncHostedService(_mockServiceProvider.Object, _mockLogger.Object);
         var cts = new CancellationTokenSource();
 
         // Act
         await service.StartAsync(cts.Token);
-        await Task.Delay(50);
+        await Task.Delay(500);
         await service.StopAsync(CancellationToken.None);
 
         // Assert - should complete without hanging
@@ -345,9 +368,10 @@ public class EmailSyncHostedServiceTests
         var cts = new CancellationTokenSource();
 
         // Act
-        _ = service.StartAsync(cts.Token);
+        await service.StartAsync(cts.Token);
         await Task.Delay(500);
         cts.Cancel();
+        await service.StopAsync(CancellationToken.None);
 
         // Assert - each sync should complete before next starts
         // Due to 5-minute interval, typically only one call in this test duration
@@ -369,7 +393,7 @@ public class EmailSyncHostedServiceTests
 
         // Act
         await service.StartAsync(cts.Token);
-        await Task.Delay(100);
+        await Task.Delay(500);
         cts.Cancel();
         await service.StopAsync(CancellationToken.None);
 
