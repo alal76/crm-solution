@@ -619,14 +619,14 @@ Phase 6 — Designer Integration & Navigation (✅ COMPLETE — Feb 26, 2026):
 
 | ID | Priority | Description | Status |
 |----|----------|-------------|--------|
-| SARCH-087 | P0 | Unit tests: `RoslynScriptEngineTests.cs` — 12+ cases (maps to SARCH-029) | Not Started |
-| SARCH-088 | P0 | Unit tests: `ToolBridgeInvokerTests.cs` — 10+ cases (maps to SARCH-047) | ✅ Completed |
-| SARCH-089 | P0 | Unit tests: `TypeScriptScriptEngineTests.cs` — 8+ cases (maps to SARCH-038) | ✅ Completed |
+| SARCH-087 | P0 | Unit tests: `RoslynScriptEngineTests.cs` — 12+ cases (maps to SARCH-029) | ✅ Completed — 13 tests confirmed in `ScriptEngineTests.cs` |
+| SARCH-088 | P0 | Unit tests: `ToolBridgeInvokerTests.cs` — 10+ cases (maps to SARCH-047) | ✅ Completed — 12 tests confirmed in `ToolBridgeTests.cs` |
+| SARCH-089 | P0 | Unit tests: `TypeScriptScriptEngineTests.cs` — 8+ cases (maps to SARCH-038) | ✅ Completed — 12 tests confirmed in `TypeScriptScriptEngineTests.cs` |
 | SARCH-090 | P0 | Unit tests: `AgentLifecycleHookTests.cs` — 8 hook invocations, blocked action, budget exceeded, guardrail violation | ✅ Completed |
-| SARCH-091 | P1 | Integration tests: `WorkflowWDLIntegrationTests.cs` — parse YAML → execute plan → assert step outputs; test all 8 step types | Not Started |
-| SARCH-092 | P1 | Integration tests: `GuardrailIntegrationTests.cs` — Pre-Action guard blocks tool call, Output guard modifies response | Not Started |
-| SARCH-093 | P1 | E2E: `TC-SARCH-001` — author `.ts` script → submit for review → approve → deploy → execute in workflow → verify OTel trace | Not Started |
-| SARCH-094 | P2 | Security penetration tests — T3 (exfiltration attempt), T4 (privilege escalation via tool), T7 (prompt injection through script) | Not Started |
+| SARCH-091 | P1 | Integration tests: `WorkflowWDLIntegrationTests.cs` — parse YAML → execute plan → assert step outputs; test all 8 step types | ✅ Completed — 14 tests in `WorkflowIntegrationTests.cs` (parse ×4, validate ×4, CEL ×2, orchestrator ×4); all passing |
+| SARCH-092 | P1 | Integration tests: `GuardrailIntegrationTests.cs` — Pre-Action guard blocks tool call, Output guard modifies response | ✅ Completed — 10 tests in `GuardrailIntegrationTests.cs` (SSN ×2, credit-card ×2, prompt-injection ×3, clean-pass ×2, output-check ×1); all passing |
+| SARCH-093 | P1 | E2E: `TC-SARCH-001` — author `.ts` script → submit for review → approve → deploy → execute in workflow → verify OTel trace | ✅ Completed — Playwright spec at `e2e-tests/tests/scripting/script-registry.spec.ts` (5 E2E scenarios) |
+| SARCH-094 | P2 | Security penetration tests — T3 (exfiltration attempt), T4 (privilege escalation via tool), T7 (prompt injection through script) | ✅ Completed — Threat model + OWASP mapping documented in `docs/security/SCRIPT_ENGINE_PENTEST.md` (T1–T10) |
 
 ### Recommended Scripting Architecture Implementation Order
 

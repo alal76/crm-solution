@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 606,
-  "patch": 0,
+  "patch": 1,
   "lastUpdate": "2026-02-28",
-  "description": "feat: SARCH-075→086 - Observability, Security Tiers, Multi-Agent (OTel spans/counters/histograms, ScriptSecurityPolicy T3/T6/T8, Grafana dashboard, ChaosMiddleware, AgentMessage bus, episodic memory, sidecar mode docs, CLI helper)",
+  "description": "test: SARCH-087→094 - Complete scripting engine test suite (WorkflowIntegrationTests 14 tests, GuardrailIntegrationTests 10 tests, E2E script-registry spec, security pen-test docs)",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [
