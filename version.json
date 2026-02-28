@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 611,
-  "patch": 2,
+  "patch": 7,
   "lastUpdate": "2026-02-28",
-  "description": "feat(infra/cdt): v0.611.2 — replace platform dropdown with collapsible left sidebar in discovery step; all 4 platforms (On-Premises, Azure, AWS, GCP) shown as clickable tiles with SDK availability badges; sidebar has Test Connection / Discover / Deploy Now / Skip action buttons; sidebar can be collapsed to icon-only mode; placeholder shown until platform selected",
+  "description": "feat(infra/cdt): v0.611.7 - guided cloud credential acquisition with auth-method pills, CLI streaming, and status bar",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [

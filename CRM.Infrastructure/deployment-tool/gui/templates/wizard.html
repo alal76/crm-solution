@@ -643,137 +643,101 @@
 
                         <!-- Cloud Discovery -->
                         <div id="cloudDiscovery" class="discovery-config" style="display: none;">
-                            <h5 class="mb-3">Cloud Configuration</h5>
 
-                            <!-- SDK missing banner -->
-                            <div id="sdkMissingBanner" class="alert alert-warning d-none">
-                                <div class="d-flex align-items-start gap-3">
-                                    <i class="bi bi-exclamation-triangle-fill fs-4 mt-1"></i>
-                                    <div class="flex-grow-1">
-                                        <strong>Cloud SDK not installed</strong>
-                                        <p class="mb-2 mt-1 small" id="sdkMissingMsg"></p>
-                                        <button class="btn btn-sm btn-warning" onclick="installCloudSdk()" id="btnInstallSdk">
-                                            <i class="bi bi-download me-1"></i>Install SDK Now
-                                        </button>
-                                        <div id="sdkInstallProgress" class="mt-2 d-none">
-                                            <div class="progress mb-1" style="height:6px;">
-                                                <div id="sdkInstallBar" class="progress-bar progress-bar-striped progress-bar-animated" style="width:100%"></div>
-                                            </div>
-                                            <pre id="sdkInstallLog" class="bg-dark text-light p-2 rounded small" style="max-height:120px;overflow-y:auto;font-size:0.75rem;"></pre>
-                                        </div>
-                                    </div>
-                                </div>
+                            <!-- ── Credential Status Bar ─────────────────────── -->
+                            <div id="credStatusBar" class="d-flex align-items-center gap-2 mb-3 p-2 rounded border bg-light small">
+                                <span id="credStatusIcon" class="fs-5">⏳</span>
+                                <span id="credStatusText" class="text-muted">Checking credentials…</span>
+                                <button class="btn btn-link btn-sm py-0 ms-auto" onclick="checkCredentialStatus()">
+                                    <i class="bi bi-arrow-clockwise"></i> Refresh
+                                </button>
                             </div>
 
-                            <!-- Azure Credentials -->
+                            <!-- ── Auth Method Pills ──────────────────────────── -->
+                            <div class="d-flex gap-2 mb-3 flex-wrap" id="authMethodPills"></div>
+
+                            <!-- ── CLI Auth Panel ─────────────────────────────── -->
+                            <div id="cliAuthPanel" class="d-none">
+                                <div id="cliButtonGroup" class="d-flex gap-2 flex-wrap mb-2"></div>
+                                <div id="cliConsole" class="d-none bg-dark text-light rounded p-2 small" style="font-family:monospace;max-height:180px;overflow-y:auto;font-size:0.76rem;white-space:pre-wrap;"></div>
+                            </div>
+
+                            <!-- ── Azure Manual Credentials ───────────────────── -->
                             <div id="azureCredsSection" class="d-none">
-                                <div class="row mb-2">
-                                    <div class="col-12">
-                                        <div class="form-check form-switch">
-                                            <input class="form-check-input" type="checkbox" id="azureUseCli" onchange="toggleAzureCreds()">
-                                            <label class="form-check-label" for="azureUseCli">Use Azure CLI credentials (already logged in with <code>az login</code>)</label>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div id="azureSpSection">
-                                    <div class="row g-3">
-                                        <div class="col-md-6">
-                                            <label class="form-label" for="discAzureSubId">Subscription ID <span class="text-danger">*</span></label>
-                                            <input type="text" class="form-control" id="discAzureSubId" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label class="form-label" for="discAzureTenantId">Tenant ID</label>
-                                            <input type="text" class="form-control" id="discAzureTenantId" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label class="form-label" for="discAzureClientId">Client ID <span class="text-muted small">(Service Principal App ID)</span></label>
-                                            <input type="text" class="form-control" id="discAzureClientId" placeholder="Leave blank for CLI / Managed Identity">
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label class="form-label" for="discAzureClientSecret">Client Secret</label>
-                                            <input type="password" class="form-control" id="discAzureClientSecret" placeholder="Service principal secret">
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="row g-3 mt-1">
+                                <div class="row g-3">
                                     <div class="col-md-6">
-                                        <label class="form-label" for="discAzureRegion">Region / Location</label>
-                                        <input type="text" class="form-control" id="discAzureRegion" placeholder="eastus" value="eastus">
+                                        <label class="form-label" for="discAzureSubId">Subscription ID <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="discAzureSubId" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label" for="discAzureTenantId">Tenant ID</label>
+                                        <input type="text" class="form-control" id="discAzureTenantId" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label" for="discAzureClientId">Client ID <span class="text-muted small">(Service Principal)</span></label>
+                                        <input type="text" class="form-control" id="discAzureClientId" placeholder="App ID — leave blank for CLI auth">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label" for="discAzureClientSecret">Client Secret</label>
+                                        <input type="password" class="form-control" id="discAzureClientSecret" placeholder="Service principal secret">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label" for="discAzureRegion">Region</label>
+                                        <input type="text" class="form-control" id="discAzureRegion" value="eastus">
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label" for="discAzureRg">Resource Group <span class="text-danger">*</span></label>
-                                        <input type="text" class="form-control" id="discAzureRg" placeholder="rg-crm-prod" value="rg-crm-prod">
-                                        <small class="text-muted">Naming: rg-crm-{env} — e.g. rg-crm-dev, rg-crm-prod</small>
+                                        <input type="text" class="form-control" id="discAzureRg" value="rg-crm-prod">
+                                        <small class="text-muted">Pattern: rg-crm-{env}</small>
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- AWS Credentials -->
+                            <!-- ── AWS Manual Credentials ─────────────────────── -->
                             <div id="awsCredsSection" class="d-none">
-                                <div class="row mb-2">
-                                    <div class="col-12">
-                                        <div class="form-check form-switch">
-                                            <input class="form-check-input" type="checkbox" id="awsUseProfile" onchange="toggleAwsCreds()">
-                                            <label class="form-check-label" for="awsUseProfile">Use AWS CLI profile (configured via <code>aws configure</code>)</label>
-                                        </div>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label" for="discAwsAccessKey">Access Key ID</label>
+                                        <input type="text" class="form-control font-monospace" id="discAwsAccessKey" placeholder="AKIAIOSFODNN7EXAMPLE">
                                     </div>
-                                </div>
-                                <div id="awsKeySection">
-                                    <div class="row g-3">
-                                        <div class="col-md-6">
-                                            <label class="form-label" for="discAwsAccessKey">Access Key ID</label>
-                                            <input type="text" class="form-control font-monospace" id="discAwsAccessKey" placeholder="AKIAIOSFODNN7EXAMPLE">
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label class="form-label" for="discAwsSecretKey">Secret Access Key</label>
-                                            <input type="password" class="form-control" id="discAwsSecretKey" placeholder="wJalrXUtnFEMI/K7MDENG...">
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label class="form-label" for="discAwsSessionToken">Session Token <span class="text-muted small">(optional)</span></label>
-                                            <input type="password" class="form-control" id="discAwsSessionToken" placeholder="For temporary credentials only">
-                                        </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label" for="discAwsSecretKey">Secret Access Key</label>
+                                        <input type="password" class="form-control" id="discAwsSecretKey" placeholder="wJalrXUtnFEMI/K7MDENG…">
                                     </div>
-                                </div>
-                                <div class="row g-3 mt-1">
+                                    <div class="col-md-6">
+                                        <label class="form-label" for="discAwsSessionToken">Session Token <span class="text-muted small">(optional)</span></label>
+                                        <input type="password" class="form-control" id="discAwsSessionToken" placeholder="Temporary credentials only">
+                                    </div>
                                     <div class="col-md-6">
                                         <label class="form-label" for="discAwsRegion">Region</label>
-                                        <input type="text" class="form-control" id="discAwsRegion" placeholder="us-east-1" value="us-east-1">
+                                        <input type="text" class="form-control" id="discAwsRegion" value="us-east-1">
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label" for="discAwsVpc">VPC / Cluster Name</label>
-                                        <input type="text" class="form-control" id="discAwsVpc" placeholder="crm-prod-vpc" value="crm-prod-vpc">
-                                        <small class="text-muted">Naming: crm-{env}-vpc</small>
+                                        <input type="text" class="form-control" id="discAwsVpc" value="crm-prod-vpc">
+                                        <small class="text-muted">Pattern: crm-{env}-vpc</small>
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- GCP Credentials -->
+                            <!-- ── GCP Manual Credentials ─────────────────────── -->
                             <div id="gcpCredsSection" class="d-none">
-                                <div class="row mb-2">
-                                    <div class="col-12">
-                                        <div class="form-check form-switch">
-                                            <input class="form-check-input" type="checkbox" id="gcpUseAdc" onchange="toggleGcpCreds()">
-                                            <label class="form-check-label" for="gcpUseAdc">Use Application Default Credentials (<code>gcloud auth application-default login</code>)</label>
-                                        </div>
+                                <div class="row g-3">
+                                    <div class="col-md-6">
+                                        <label class="form-label" for="discGcpProjectId">Project ID <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="discGcpProjectId" value="crm-prod">
                                     </div>
-                                </div>
-                                <div id="gcpSaSection">
-                                    <div class="row g-3">
-                                        <div class="col-md-6">
-                                            <label class="form-label" for="discGcpProjectId">Project ID <span class="text-danger">*</span></label>
-                                            <input type="text" class="form-control" id="discGcpProjectId" placeholder="crm-prod" value="crm-prod">
-                                        </div>
-                                        <div class="col-md-6">
-                                            <label class="form-label" for="discGcpRegion">Region / Zone</label>
-                                            <input type="text" class="form-control" id="discGcpRegion" placeholder="us-central1" value="us-central1">
-                                        </div>
-                                        <div class="col-12">
-                                            <label class="form-label" for="discGcpSaJson">Service Account JSON <span class="text-muted small">(paste key contents — leave blank to use ADC)</span></label>
-                                            <textarea class="form-control font-monospace" id="discGcpSaJson" rows="4" placeholder='{"type":"service_account","project_id":"crm-prod",...}'></textarea>
-                                        </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label" for="discGcpRegion">Region</label>
+                                        <input type="text" class="form-control" id="discGcpRegion" value="us-central1">
+                                    </div>
+                                    <div class="col-12">
+                                        <label class="form-label" for="discGcpSaJson">Service Account JSON <span class="text-muted small">(paste full key — or leave blank to use ADC)</span></label>
+                                        <textarea class="form-control font-monospace" id="discGcpSaJson" rows="4" placeholder='{"type":"service_account","project_id":"crm-prod",…}'></textarea>
                                     </div>
                                 </div>
                             </div>
+
                         </div><!-- /cloudDiscovery -->
 
                         <!-- Status message -->
@@ -1848,23 +1812,182 @@
             updateStepIndicator();
         }
 
+        // ─── Cloud credential acquisition ──────────────────────────────────────
+
+        let _currentCloudPlatform = '';
+        let _currentAuthMethod    = '';
+
+        // Auth-method options per cloud platform
+        const _authMethods = {
+            azure: [
+                { key:'cli',    icon:'bi-box-arrow-up-right', label:'Browser Login',     desc:'az login — opens browser sign-in',           primary:true },
+                { key:'device', icon:'bi-phone',              label:'Device Code',        desc:'az login --use-device-code (headless / SSH)' },
+                { key:'sp',     icon:'bi-key',                label:'Service Principal',  desc:'Client Secret for CI/CD automation'          },
+            ],
+            aws: [
+                { key:'configure', icon:'bi-terminal',        label:'aws configure',      desc:'Interactive setup of access key + region',   primary:true },
+                { key:'sso',       icon:'bi-shield-lock',     label:'AWS SSO',            desc:'SSO login via IAM Identity Center'          },
+                { key:'keys',      icon:'bi-key',             label:'Access Keys',        desc:'Paste long-term IAM key + secret directly'  },
+            ],
+            gcp: [
+                { key:'adc',   icon:'bi-person-check', label:'App Default Credentials', desc:'gcloud auth application-default login',      primary:true },
+                { key:'login', icon:'bi-terminal',     label:'User Account Login',      desc:'gcloud auth login — via browser'           },
+                { key:'sa',    icon:'bi-file-earmark-code', label:'Service Account JSON', desc:'Paste or upload service-account key file' },
+            ],
+        };
+
+        // Platforms whose "manual" form key (the non-CLI option)
+        const _manualKey = { azure:'sp', aws:'keys', gcp:'sa' };
+
+        function buildAuthMethodPills(platform) {
+            const container = document.getElementById('authMethodPills');
+            if (!container) return;
+            container.innerHTML = '';
+            (_authMethods[platform] || []).forEach((m, idx) => {
+                const btn = document.createElement('button');
+                btn.type      = 'button';
+                btn.dataset.method = m.key;
+                btn.title     = m.desc;
+                btn.className = 'btn btn-sm ' + (idx === 0 ? 'btn-primary' : 'btn-outline-secondary');
+                btn.innerHTML = `<i class="bi ${m.icon} me-1"></i>${m.label}`;
+                btn.addEventListener('click', () => _switchMethod(platform, m.key, btn));
+                container.appendChild(btn);
+            });
+            // Auto-select first
+            const first = container.firstChild;
+            if (first) _switchMethod(platform, first.dataset.method, first);
+        }
+
+        function _switchMethod(platform, method, btnEl) {
+            _currentAuthMethod = method;
+            // Pill active state
+            document.querySelectorAll('#authMethodPills button').forEach(b => {
+                b.className = 'btn btn-sm ' + (b === btnEl ? 'btn-primary' : 'btn-outline-secondary');
+            });
+            // Hide ALL credential sub-sections, then show relevant one(s)
+            ['azureCredsSection','awsCredsSection','gcpCredsSection'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.classList.add('d-none');
+            });
+            const cliPanel  = document.getElementById('cliAuthPanel');
+            const cliBtns   = document.getElementById('cliButtonGroup');
+            const cliLog    = document.getElementById('cliConsole');
+            if (cliLog) { cliLog.textContent = ''; cliLog.classList.add('d-none'); }
+
+            const credsId = { azure:'azureCredsSection', aws:'awsCredsSection', gcp:'gcpCredsSection' }[platform];
+
+            if (_manualKey[platform] === method) {
+                // Manual / keys tab — hide CLI panel, show form
+                if (cliPanel) cliPanel.classList.add('d-none');
+                const el = document.getElementById(credsId);
+                if (el) el.classList.remove('d-none');
+                return;
+            }
+
+            // CLI-runnable tab
+            if (cliPanel) cliPanel.classList.remove('d-none');
+
+            // Also expose any contextual fields (subscription/project)
+            const el = document.getElementById(credsId);
+            if (el) el.classList.remove('d-none');
+
+            // Build run button
+            if (cliBtns) {
+                cliBtns.innerHTML = '';
+                const iconMap = {
+                    cli:'bi-box-arrow-up-right', device:'bi-phone',
+                    configure:'bi-terminal', sso:'bi-shield-lock',
+                    adc:'bi-person-check', login:'bi-terminal',
+                };
+                const labelMap = {
+                    cli:'Login with Browser',     device:'Login via Device Code',
+                    configure:'Run aws configure', sso:'Run aws sso login',
+                    adc:'Run gcloud auth app-default login', login:'Run gcloud auth login',
+                };
+                const icon  = iconMap[method]  || 'bi-plug';
+                const label = labelMap[method] || 'Connect';
+                const runBtn = document.createElement('button');
+                runBtn.type      = 'button';
+                runBtn.className = 'btn btn-success me-2';
+                runBtn.innerHTML = `<i class="bi ${icon} me-2"></i>${label}`;
+                runBtn.onclick   = () => runCloudAuth(platform, method);
+                cliBtns.appendChild(runBtn);
+
+                const chkBtn = document.createElement('button');
+                chkBtn.type      = 'button';
+                chkBtn.className = 'btn btn-outline-secondary';
+                chkBtn.innerHTML = '<i class="bi bi-arrow-clockwise me-1"></i>Check Status';
+                chkBtn.onclick   = checkCredentialStatus;
+                cliBtns.appendChild(chkBtn);
+            }
+        }
+
+        // Check the current CLI credential status for the selected platform
+        async function checkCredentialStatus() {
+            const platform = _currentCloudPlatform;
+            if (!platform) return;
+            const icon = document.getElementById('credStatusIcon');
+            const text = document.getElementById('credStatusText');
+            if (icon) icon.textContent = '⏳';
+            if (text) { text.textContent = 'Checking credentials…'; text.className = 'text-muted fst-italic'; }
+            try {
+                const r = await fetch('/api/discovery/credential-status?platform=' + encodeURIComponent(platform));
+                const d = await r.json();
+                if (d.logged_in) {
+                    if (icon) icon.textContent = '✅';
+                    if (text) { text.textContent = d.identity || 'Connected'; text.className = 'text-success fw-semibold'; }
+                } else {
+                    if (icon) icon.textContent = '⚠️';
+                    if (text) { text.textContent = d.error || 'No credentials found'; text.className = 'text-warning'; }
+                }
+            } catch(e) {
+                if (icon) icon.textContent = '❓';
+                if (text) { text.textContent = 'Could not check status'; text.className = 'text-muted'; }
+            }
+        }
+
+        // Run CLI auth and stream output
+        function runCloudAuth(platform, method) {
+            const cliLog = document.getElementById('cliConsole');
+            if (!cliLog) return;
+            cliLog.classList.remove('d-none');
+            cliLog.textContent = '▶ Starting...\n';
+
+            fetch('/api/discovery/cloud-auth', {
+                method:  'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body:    JSON.stringify({ platform, method }),
+            }).then(resp => {
+                const reader  = resp.body.getReader();
+                const decoder = new TextDecoder();
+                function read() {
+                    reader.read().then(({ done, value }) => {
+                        if (done) { checkCredentialStatus(); return; }
+                        const chunk = decoder.decode(value, { stream: true });
+                        chunk.split('\n').forEach(line => {
+                            if (line.startsWith('data: ')) {
+                                const msg = line.slice(6);
+                                if (msg === 'DONE') return;
+                                cliLog.textContent += msg + '\n';
+                                cliLog.scrollTop    = cliLog.scrollHeight;
+                            }
+                        });
+                        read();
+                    }).catch(err => { cliLog.textContent += '\n❌ Stream error: ' + err; });
+                }
+                read();
+            }).catch(e => { cliLog.textContent += '\n❌ Request failed: ' + e; });
+        }
+
         // Handle platform selection (platform passed directly OR reads hidden select)
         function onPlatformChange(platform) {
             if (platform === undefined) {
                 platform = document.getElementById('discoveryPlatform').value;
             }
-            const onPremDiv  = document.getElementById('onPremDiscovery');
-            const cloudDiv   = document.getElementById('cloudDiscovery');
-
-            // Hide everything first
+            const onPremDiv = document.getElementById('onPremDiscovery');
+            const cloudDiv  = document.getElementById('cloudDiscovery');
             if (onPremDiv) onPremDiv.style.display = 'none';
             if (cloudDiv)  cloudDiv.style.display  = 'none';
-            ['azureCredsSection','awsCredsSection','gcpCredsSection'].forEach(id => {
-                const el = document.getElementById(id);
-                if (el) el.classList.add('d-none');
-            });
-            const banner = document.getElementById('sdkMissingBanner');
-            if (banner) banner.classList.add('d-none');
 
             if (platform === 'on_premises') {
                 if (onPremDiv) onPremDiv.style.display = 'block';
@@ -1873,37 +1996,16 @@
             if (!platform) return;
 
             if (cloudDiv) cloudDiv.style.display = 'block';
-            const sectionMap = { azure: 'azureCredsSection', aws: 'awsCredsSection', gcp: 'gcpCredsSection' };
-            const section = document.getElementById(sectionMap[platform]);
-            if (section) section.classList.remove('d-none');
+            _currentCloudPlatform = platform;
 
-            // Show SDK missing banner using cached availability data
-            const missing = (_discMissing[platform] || []);
-            if (_discAvailability[platform] === false && missing.length > 0) {
-                const sdkNames = { azure: 'Azure SDK', aws: 'AWS SDK (boto3)', gcp: 'GCP SDK' };
-                const sdkPkg  = { azure: 'azure-identity azure-mgmt-compute azure-mgmt-containerinstance', aws: 'boto3', gcp: 'google-cloud-compute google-cloud-container' };
-                const msg = document.getElementById('sdkMissingMsg');
-                if (msg) msg.textContent = `${sdkNames[platform]} is not installed. Click below to install it automatically, or run: pip install ${sdkPkg[platform]}`;
-                if (banner) {
-                    banner.dataset.platform = platform;
-                    banner.classList.remove('d-none');
-                }
-            }
+            buildAuthMethodPills(platform);
+            checkCredentialStatus();
         }
 
-        // SDK credential toggle helpers
-        function toggleAzureCreds() {
-            const useCli = document.getElementById('azureUseCli').checked;
-            document.getElementById('azureSpSection').style.display = useCli ? 'none' : 'block';
-        }
-        function toggleAwsCreds() {
-            const useProfile = document.getElementById('awsUseProfile').checked;
-            document.getElementById('awsKeySection').style.display = useProfile ? 'none' : 'block';
-        }
-        function toggleGcpCreds() {
-            const useAdc = document.getElementById('gcpUseAdc').checked;
-            document.getElementById('gcpSaSection').style.display = useAdc ? 'none' : 'block';
-        }
+        // SDK credential toggle helpers (kept for backward compat in collectDiscoveryConfig)
+        function toggleAzureCreds() {}
+        function toggleAwsCreds() {}
+        function toggleGcpCreds() {}
 
         // Install cloud SDK inline with SSE streaming
         function installCloudSdk() {

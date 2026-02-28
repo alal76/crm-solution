@@ -359,6 +359,104 @@ def discover_deployment():
     except Exception as e:
         return jsonify({"error": f"Discovery failed: {str(e)}"}), 500
 
+
+@app.route("/api/discovery/credential-status", methods=["GET"])
+def credential_status():
+    """Check current CLI credential status for a cloud platform."""
+    import subprocess as _sp
+    import json as _json
+    platform = request.args.get("platform", "")
+    result = {"platform": platform, "logged_in": False, "identity": None, "error": None}
+    try:
+        if platform == "azure":
+            r = _sp.run(["az", "account", "show"],
+                        capture_output=True, text=True, timeout=10)
+            if r.returncode == 0:
+                d = _json.loads(r.stdout)
+                user = d.get("user", {}).get("name", "?")
+                sub  = d.get("name", "?")
+                sid  = d.get("id", "?")[:8]
+                result["logged_in"] = True
+                result["identity"]  = f"{user}  ·  {sub}  ({sid}…)"
+            else:
+                result["error"] = "Not signed in — use 'az login' below or enter credentials manually."
+        elif platform == "aws":
+            r = _sp.run(["aws", "sts", "get-caller-identity"],
+                        capture_output=True, text=True, timeout=10)
+            if r.returncode == 0:
+                d = _json.loads(r.stdout)
+                result["logged_in"] = True
+                result["identity"]  = f"Account {d.get('Account','?')}  ·  {d.get('Arn','?')}"
+            else:
+                result["error"] = "No default credentials — configure below or enter keys manually."
+        elif platform == "gcp":
+            r = _sp.run(["gcloud", "config", "get-value", "core/account"],
+                        capture_output=True, text=True, timeout=10)
+            r2 = _sp.run(["gcloud", "config", "get-value", "core/project"],
+                         capture_output=True, text=True, timeout=10)
+            if r.returncode == 0 and r.stdout.strip():
+                result["logged_in"] = True
+                result["identity"]  = (
+                    f"{r.stdout.strip()}  ·  project: {r2.stdout.strip() or 'none'}"
+                )
+            else:
+                result["error"] = "Not signed in — use 'gcloud auth login' below or enter a service account."
+    except FileNotFoundError:
+        result["error"] = "CLI not installed on this host — use manual credentials below."
+    except Exception as e:
+        result["error"] = str(e)
+    return jsonify(result)
+
+
+@app.route("/api/discovery/cloud-auth", methods=["POST"])
+def cloud_auth():
+    """SSE: run a cloud CLI auth command and stream its output."""
+    import subprocess as _sp
+    data     = request.json or {}
+    platform = data.get("platform", "")
+    method   = data.get("method", "")
+
+    cmd_map = {
+        ("azure", "cli"):        ["az", "login"],
+        ("azure", "device"):     ["az", "login", "--use-device-code"],
+        ("azure", "sp"):         None,   # SP creds are entered manually — nothing to run
+        ("aws",   "configure"):  ["aws", "configure"],
+        ("aws",   "sso"):        ["aws", "sso", "login"],
+        ("aws",   "keys"):       None,   # keys entered manually
+        ("gcp",   "login"):      ["gcloud", "auth", "login"],
+        ("gcp",   "adc"):        ["gcloud", "auth", "application-default", "login"],
+        ("gcp",   "sa"):         None,   # SA JSON pasted manually
+    }
+    cmd = cmd_map.get((platform, method))
+
+    def _generate():
+        if cmd is None:
+            yield "data: Enter your credentials in the form below\n\n"
+            yield "data: DONE\n\n"
+            return
+        yield f"data: $ {' '.join(cmd)}\n\n"
+        try:
+            proc = _sp.Popen(cmd, stdout=_sp.PIPE, stderr=_sp.STDOUT, text=True)
+            for line in proc.stdout:
+                yield f"data: {line.rstrip()}\n\n"
+            proc.wait()
+            if proc.returncode == 0:
+                yield "data: ✅ Authentication successful\n\n"
+            else:
+                yield f"data: ❌ Exit code {proc.returncode}\n\n"
+        except FileNotFoundError:
+            yield f"data: ❌ CLI not found — install it or use manual credentials below.\n\n"
+        except Exception as exc:
+            yield f"data: ❌ {exc}\n\n"
+        yield "data: DONE\n\n"
+
+    return Response(
+        _generate(),
+        mimetype="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
+
+
 @app.route("/api/discovery/test-connection", methods=["POST"])
 def test_connection():
     """Test connection to target environment."""
