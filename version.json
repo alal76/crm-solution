@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 611,
-  "patch": 1,
+  "patch": 2,
   "lastUpdate": "2026-02-28",
-  "description": "feat(infra/deployment-tool): CDT v0.611.0 — self-contained deployment tool: auto-bootstrap system tools (Docker/Git/Python via Homebrew/apt), Prerequisites offcanvas + Day-2 Ops offcanvas in unified wizard UI, cloud platform SDK hint (never disabled), discovery fixes (host key mismatch, health/version detection, container_prefix filter, component type mapping), /health liveness probe route, Dockerfile.tool + docker-compose.tool.yml for standalone Docker image, package-cdt.sh distribution packager with tarball + shell/bat launchers",
+  "description": "feat(infra/cdt): v0.611.2 — replace platform dropdown with collapsible left sidebar in discovery step; all 4 platforms (On-Premises, Azure, AWS, GCP) shown as clickable tiles with SDK availability badges; sidebar has Test Connection / Discover / Deploy Now / Skip action buttons; sidebar can be collapsed to icon-only mode; placeholder shown until platform selected",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [

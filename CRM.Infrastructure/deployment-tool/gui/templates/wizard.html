@@ -64,7 +64,7 @@
             color: white;
         }
         .step.completed .step-circle {
-            background: #28a745;
+            background: #1a6e2e;
             color: white;
         }
         .step-label {
@@ -181,6 +181,140 @@
             display: block;
             margin-bottom: 8px;
         }
+
+        /* ── Discovery Sidebar Layout ──────────────────────────── */
+        .discovery-layout {
+            display: flex;
+            border: 1px solid #e0e0e0;
+            border-radius: 12px;
+            overflow: hidden;
+            min-height: 420px;
+        }
+        .disc-sidebar {
+            width: 195px;
+            min-width: 195px;
+            background: #f5f6fb;
+            border-right: 1px solid #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            transition: width 0.22s ease, min-width 0.22s ease;
+            flex-shrink: 0;
+        }
+        .disc-sidebar.collapsed {
+            width: 52px;
+            min-width: 52px;
+        }
+        .disc-sidebar.collapsed .disc-sidebar-lbl,
+        .disc-sidebar.collapsed .disc-tile-label,
+        .disc-sidebar.collapsed .disc-tile-sub {
+            display: none;
+        }
+        .disc-sidebar.collapsed .disc-platform-tile {
+            justify-content: center;
+            padding: 10px 4px;
+        }
+        .disc-sidebar.collapsed .disc-tile-icon {
+            margin-right: 0;
+            font-size: 1.25rem;
+        }
+        .disc-sidebar.collapsed .disc-sidebar-footer .btn span,
+        .disc-sidebar.collapsed .disc-sidebar-footer .btn i + * {
+            display: none;
+        }
+        .disc-sidebar-header {
+            padding: 9px 10px;
+            background: #eceef8;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #e0e0e0;
+            flex-shrink: 0;
+        }
+        .disc-platform-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px 6px;
+        }
+        .disc-platform-tile {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            border-radius: 8px;
+            padding: 9px 8px;
+            cursor: pointer;
+            transition: background 0.15s, border-color 0.15s;
+            margin-bottom: 3px;
+            border: 2px solid transparent;
+            position: relative;
+            user-select: none;
+        }
+        .disc-platform-tile:hover {
+            background: #e4e6f4;
+        }
+        .disc-platform-tile.active {
+            background: #e4e6f4;
+            border-color: var(--primary-color);
+        }
+        .disc-tile-icon {
+            font-size: 1.1rem;
+            margin-right: 7px;
+            flex-shrink: 0;
+            width: 20px;
+            text-align: center;
+        }
+        .disc-tile-label {
+            font-weight: 600;
+            font-size: 0.83rem;
+            flex-grow: 1;
+        }
+        .disc-tile-sub {
+            font-size: 0.70rem;
+            color: #888;
+            width: 100%;
+            padding-left: 27px;
+            margin-top: -1px;
+            line-height: 1.3;
+        }
+        .disc-tile-badge {
+            font-size: 0.62rem;
+            line-height: 1;
+            position: absolute;
+            top: 3px;
+            right: 5px;
+        }
+        .disc-sidebar-footer {
+            padding: 8px 6px;
+            background: #eceef8;
+            border-top: 1px solid #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            flex-shrink: 0;
+        }
+        .disc-sidebar.collapsed .disc-sidebar-footer .btn {
+            padding: 7px 4px;
+        }
+        .disc-main {
+            flex: 1;
+            padding: 22px 24px;
+            overflow-y: auto;
+            min-width: 0;
+        }
+        .disc-main .disc-placeholder {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #aaa;
+            text-align: center;
+            padding: 40px 20px;
+        }
+        .disc-main .disc-placeholder i {
+            font-size: 3rem;
+            margin-bottom: 12px;
+            opacity: 0.45;
+        }
     </style>
 </head>
 <body>
@@ -259,22 +393,22 @@
 
             <!-- Tabs -->
             <ul class="nav nav-tabs mb-3" id="day2Tabs">
-                <li class="nav-item"><a class="nav-link active" href="#" onclick="showDay2Tab('upgrade',this);return false;">Upgrade</a></li>
-                <li class="nav-item"><a class="nav-link" href="#" onclick="showDay2Tab('rollback',this);return false;">Rollback</a></li>
-                <li class="nav-item"><a class="nav-link" href="#" onclick="showDay2Tab('scale',this);return false;">Scale</a></li>
-                <li class="nav-item"><a class="nav-link" href="#" onclick="showDay2Tab('secrets',this);return false;">Secrets</a></li>
-                <li class="nav-item"><a class="nav-link" href="#" onclick="showDay2Tab('containers',this);return false;">Containers</a></li>
+                <li class="nav-item"><button type="button" class="nav-link active" onclick="showDay2Tab('upgrade',this)">Upgrade</button></li>
+                <li class="nav-item"><button type="button" class="nav-link" onclick="showDay2Tab('rollback',this)">Rollback</button></li>
+                <li class="nav-item"><button type="button" class="nav-link" onclick="showDay2Tab('scale',this)">Scale</button></li>
+                <li class="nav-item"><button type="button" class="nav-link" onclick="showDay2Tab('secrets',this)">Secrets</button></li>
+                <li class="nav-item"><button type="button" class="nav-link" onclick="showDay2Tab('containers',this)">Containers</button></li>
             </ul>
 
             <!-- Upgrade -->
             <div id="day2-upgrade" class="day2-tab-pane">
                 <h6>Upgrade Deployment</h6>
                 <div class="mb-2">
-                    <label class="form-label">Target Version</label>
+                    <label class="form-label" for="d2UpgradeVersion">Target Version</label>
                     <input type="text" class="form-control" id="d2UpgradeVersion" placeholder="e.g. 0.610.0">
                 </div>
                 <div class="mb-3">
-                    <label class="form-label">Image Registry</label>
+                    <label class="form-label" for="d2UpgradeRegistry">Image Registry</label>
                     <input type="text" class="form-control" id="d2UpgradeRegistry" placeholder="ghcr.io/crm / docker.io/crm">
                 </div>
                 <button class="btn btn-warning" onclick="day2Action('upgrade')">
@@ -286,7 +420,7 @@
             <div id="day2-rollback" class="day2-tab-pane" style="display:none;">
                 <h6>Rollback Deployment</h6>
                 <div class="mb-2">
-                    <label class="form-label">Target Version</label>
+                    <label class="form-label" for="d2RollbackVersion">Target Version</label>
                     <input type="text" class="form-control" id="d2RollbackVersion" placeholder="e.g. 0.608.0">
                 </div>
                 <button class="btn btn-danger" onclick="day2Action('rollback')">
@@ -298,7 +432,7 @@
             <div id="day2-scale" class="day2-tab-pane" style="display:none;">
                 <h6>Scale Service</h6>
                 <div class="mb-2">
-                    <label class="form-label">Service</label>
+                    <label class="form-label" for="d2ScaleService">Service</label>
                     <select class="form-select" id="d2ScaleService">
                         <option>crm-api</option>
                         <option>crm-frontend</option>
@@ -306,7 +440,7 @@
                     </select>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label">Replicas</label>
+                    <label class="form-label" for="d2ScaleReplicas">Replicas</label>
                     <input type="number" class="form-control" id="d2ScaleReplicas" value="2" min="1" max="20">
                 </div>
                 <button class="btn btn-primary" onclick="day2Action('scale')">
@@ -317,9 +451,9 @@
             <!-- Secrets -->
             <div id="day2-secrets" class="day2-tab-pane" style="display:none;">
                 <h6>Rotate Secrets</h6>
-                <div class="form-check mb-2"><input class="form-check-input" type="checkbox" id="d2SecretJwt" checked><label class="form-check-label">JWT Secret</label></div>
-                <div class="form-check mb-2"><input class="form-check-input" type="checkbox" id="d2SecretDb" checked><label class="form-check-label">Database Password</label></div>
-                <div class="form-check mb-3"><input class="form-check-input" type="checkbox" id="d2SecretAdmin"><label class="form-check-label">Admin Password</label></div>
+                <div class="form-check mb-2"><input class="form-check-input" type="checkbox" id="d2SecretJwt" checked><label class="form-check-label" for="d2SecretJwt">JWT Secret</label></div>
+                <div class="form-check mb-2"><input class="form-check-input" type="checkbox" id="d2SecretDb" checked><label class="form-check-label" for="d2SecretDb">Database Password</label></div>
+                <div class="form-check mb-3"><input class="form-check-input" type="checkbox" id="d2SecretAdmin"><label class="form-check-label" for="d2SecretAdmin">Admin Password</label></div>
                 <button class="btn btn-warning" onclick="day2Action('rotate_secrets')">
                     <i class="bi bi-key me-1"></i>Rotate Secrets
                 </button>
@@ -380,67 +514,128 @@
 
         <!-- Wizard Card -->
         <div class="wizard-card">
+
             <!-- Step 0: Discovery -->
             <div class="wizard-section active" data-section="0">
-                <h3 class="mb-4"><i class="bi bi-search me-2"></i>Discover Existing Deployments</h3>
-                
-                <div class="alert alert-info mb-4">
-                    <i class="bi bi-info-circle me-2"></i>
-                    <strong>Optional:</strong> Discover existing CRM deployments in your target environment. 
-                    This will help you understand what's already deployed and plan your configuration accordingly.
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <h3 class="mb-0"><i class="bi bi-search me-2"></i>Discover Existing Deployments</h3>
+                    <span class="badge bg-secondary">Optional</span>
                 </div>
-                
-                <div class="mb-4">
-                    <label class="form-label">Discovery Platform</label>
-                    <select class="form-select" id="discoveryPlatform">
-                        <option value="">Select platform...</option>
-                    </select>
-                </div>
-                
-                <!-- On-Premises Discovery -->
-                <div id="onPremDiscovery" class="discovery-config" style="display: none;">
-                    <h5 class="mb-3">On-Premises Configuration</h5>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <label class="form-label">Host/IP Address</label>
-                            <input type="text" class="form-control" id="discoveryHost" placeholder="192.168.0.9" value="192.168.0.9">
-                            <small class="text-muted">Default dev server: 192.168.0.9</small>
+                <p class="text-muted small mb-3">Select a platform on the left to discover existing CRM deployments, or skip to configure manually.</p>
+
+                <!-- Hidden select kept for JS compatibility -->
+                <select id="discoveryPlatform" class="d-none" aria-hidden="true">
+                    <option value="">Select platform...</option>
+                </select>
+
+                <!-- Discovery Layout: sidebar + main -->
+                <div class="discovery-layout">
+
+                    <!-- LEFT SIDEBAR -->
+                    <div class="disc-sidebar" id="discSidebar">
+                        <div class="disc-sidebar-header">
+                            <span class="disc-sidebar-lbl fw-semibold text-muted" style="font-size:0.72rem;letter-spacing:.05em;">PLATFORM</span>
+                            <button class="btn btn-sm btn-link p-0 text-secondary" onclick="toggleDiscSidebar()" title="Toggle sidebar" style="line-height:1;">
+                                <i class="bi bi-layout-sidebar-inset-reverse" id="discSidebarIcon"></i>
+                            </button>
                         </div>
-                        <div class="col-md-3">
-                            <label class="form-label">SSH Port</label>
-                            <input type="number" class="form-control" id="discoveryPort" value="22" min="1" max="65535">
+
+                        <div class="disc-platform-list">
+                            <div class="disc-platform-tile" id="discTile_on_premises" onclick="selectDiscoveryPlatform('on_premises')">
+                                <i class="bi bi-hdd-rack disc-tile-icon text-dark"></i>
+                                <span class="disc-tile-label">On-Premises</span>
+                                <span class="disc-tile-sub">Docker / SSH</span>
+                                <span class="disc-tile-badge" id="discBadge_on_premises"></span>
+                            </div>
+                            <div class="disc-platform-tile" id="discTile_azure" onclick="selectDiscoveryPlatform('azure')">
+                                <i class="bi bi-microsoft disc-tile-icon text-primary"></i>
+                                <span class="disc-tile-label">Azure</span>
+                                <span class="disc-tile-sub">AKS / VMs / ACI</span>
+                                <span class="disc-tile-badge" id="discBadge_azure"></span>
+                            </div>
+                            <div class="disc-platform-tile" id="discTile_aws" onclick="selectDiscoveryPlatform('aws')">
+                                <i class="bi bi-cloud-fill disc-tile-icon text-warning"></i>
+                                <span class="disc-tile-label">AWS</span>
+                                <span class="disc-tile-sub">ECS / EKS / EC2</span>
+                                <span class="disc-tile-badge" id="discBadge_aws"></span>
+                            </div>
+                            <div class="disc-platform-tile" id="discTile_gcp" onclick="selectDiscoveryPlatform('gcp')">
+                                <i class="bi bi-google disc-tile-icon text-danger"></i>
+                                <span class="disc-tile-label">GCP</span>
+                                <span class="disc-tile-sub">GKE / Cloud Run</span>
+                                <span class="disc-tile-badge" id="discBadge_gcp"></span>
+                            </div>
                         </div>
-                        <div class="col-md-3">
-                            <label class="form-label">Auth Method</label>
-                            <select class="form-select" id="discoveryAuthMethod">
-                                <option value="password">Password</option>
-                                <option value="key">SSH Key</option>
-                            </select>
+
+                        <div class="disc-sidebar-footer">
+                            <button class="btn btn-outline-primary btn-sm w-100" id="btnTestConnection" onclick="testConnection()" title="Test Connection">
+                                <i class="bi bi-plug me-1"></i><span class="disc-sidebar-lbl">Test Connection</span>
+                            </button>
+                            <button class="btn btn-primary btn-sm w-100" id="btnDiscover" onclick="discoverDeployments()" title="Discover Deployments">
+                                <i class="bi bi-search me-1"></i><span class="disc-sidebar-lbl">Discover</span>
+                            </button>
+                            <button class="btn btn-success btn-sm w-100" onclick="quickDeploy()" title="Skip to Deploy">
+                                <i class="bi bi-rocket-takeoff me-1"></i><span class="disc-sidebar-lbl">Deploy Now</span>
+                            </button>
+                            <button class="btn btn-outline-secondary btn-sm w-100" id="btnSkipDiscovery" title="Skip &amp; Configure Manually">
+                                <i class="bi bi-arrow-right me-1"></i><span class="disc-sidebar-lbl">Skip</span>
+                            </button>
                         </div>
                     </div>
-                    <div class="row mt-3">
-                        <div class="col-md-6">
-                            <label class="form-label">Username</label>
-                            <input type="text" class="form-control" id="discoveryUsername" placeholder="root" value="root">
+
+                    <!-- RIGHT MAIN CONTENT -->
+                    <div class="disc-main">
+                        <!-- Placeholder shown when no platform selected -->
+                        <div class="disc-placeholder" id="discPlaceholder">
+                            <i class="bi bi-arrow-left-circle"></i>
+                            <p class="mb-1 fw-semibold">Select a platform</p>
+                            <p class="small">Choose a target from the left sidebar to configure discovery credentials.</p>
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label" id="discoveryPasswordLabel">Password</label>
-                            <input type="password" class="form-control" id="discoveryPassword">
+
+                        <!-- On-Premises Discovery -->
+                        <div id="onPremDiscovery" class="discovery-config" style="display: none;">
+                            <h5 class="mb-3">On-Premises Configuration</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <label class="form-label" for="discoveryHost">Host/IP Address</label>
+                                    <input type="text" class="form-control" id="discoveryHost" placeholder="192.168.0.9" value="192.168.0.9">
+                                    <small class="text-muted">Default dev server: 192.168.0.9</small>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label" for="discoveryPort">SSH Port</label>
+                                    <input type="number" class="form-control" id="discoveryPort" value="22" min="1" max="65535">
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label" for="discoveryAuthMethod">Auth Method</label>
+                                    <select class="form-select" id="discoveryAuthMethod">
+                                        <option value="password">Password</option>
+                                        <option value="key">SSH Key</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col-md-6">
+                                    <label class="form-label" for="discoveryUsername">Username</label>
+                                    <input type="text" class="form-control" id="discoveryUsername" placeholder="root" value="root">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label" for="discoveryPassword" id="discoveryPasswordLabel">Password</label>
+                                    <input type="password" class="form-control" id="discoveryPassword">
+                                </div>
+                            </div>
+                            <div class="row mt-3">
+                                <div class="col-md-6">
+                                    <label class="form-label" for="discoveryContainerPrefix">Container Prefix</label>
+                                    <input type="text" class="form-control" id="discoveryContainerPrefix" placeholder="crm-" value="crm-">
+                                    <small class="text-muted">Containers: crm-api, crm-frontend, crm-mariadb&hellip;</small>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label" for="discoveryNetwork">Docker Network</label>
+                                    <input type="text" class="form-control" id="discoveryNetwork" placeholder="crm_crm-network" value="crm_crm-network">
+                                    <small class="text-muted">Networks: crm-core-network, crm-db-network, crm-components-network</small>
+                                </div>
+                            </div>
                         </div>
-                    </div>
-                    <div class="row mt-3">
-                        <div class="col-md-6">
-                            <label class="form-label">Container Prefix</label>
-                            <input type="text" class="form-control" id="discoveryContainerPrefix" placeholder="crm-" value="crm-">
-                            <small class="text-muted">Containers: crm-api, crm-frontend, crm-mariadb&hellip;</small>
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Docker Network</label>
-                            <input type="text" class="form-control" id="discoveryNetwork" placeholder="crm_crm-network" value="crm_crm-network">
-                            <small class="text-muted">Networks: crm-core-network, crm-db-network, crm-components-network</small>
-                        </div>
-                    </div>
-                </div>
                 
                 <!-- Cloud Discovery -->
                 <div id="cloudDiscovery" class="discovery-config" style="display: none;">
@@ -577,22 +772,10 @@
                     </div>
                 </div>
                 
-                <div class="d-flex gap-2 mt-4 flex-wrap">
-                    <button type="button" class="btn btn-outline-primary" id="btnTestConnection">
-                        <i class="bi bi-plug me-2"></i>Test Connection
-                    </button>
-                    <button type="button" class="btn btn-primary" id="btnDiscover">
-                        <i class="bi bi-search me-2"></i>Discover Deployments
-                    </button>
-                    <button type="button" class="btn btn-outline-secondary ms-auto" id="btnSkipDiscovery">
-                        <i class="bi bi-arrow-right me-2"></i>Skip &amp; Configure Manually
-                    </button>
-                </div>
-
-                <!-- Status message (always visible, outside results panel) -->
+                <!-- Status message -->
                 <div id="discoveryStatus" class="alert mt-3" style="display: none;"></div>
 
-                <!-- Discovery Results (shown only when a deployment is found) -->
+                <!-- Discovery Results -->
                 <div id="discoveryResults" class="mt-4" style="display: none;">
                     <h5 class="mb-3">Discovery Results</h5>
                     <div id="deploymentInfo" class="card" style="display: none;">
@@ -617,34 +800,36 @@
                             <div id="foundComponents" class="mt-2"></div>
                         </div>
                     </div>
-                    
                     <div class="mt-3">
                         <button type="button" class="btn btn-success" id="btnUseDiscovered">
                             <i class="bi bi-check-circle me-2"></i>Use This Configuration
                         </button>
                     </div>
                 </div>
-            </div>
+
+                    </div><!-- /disc-main -->
+                </div><!-- /discovery-layout -->
+            </div><!-- /step 0 -->
             
             <!-- Step 1: Basic Information -->
             <div class="wizard-section active" data-section="1">
                 <h3 class="mb-4"><i class="bi bi-info-circle me-2"></i>Basic Information</h3>
                 
                 <div class="mb-4">
-                    <label class="form-label">Deployment Name</label>
+                    <label class="form-label" for="deploymentName">Deployment Name</label>
                     <input type="text" class="form-control" id="deploymentName" value="crm-production" 
                            placeholder="e.g., crm-production">
                     <small class="text-muted">A unique identifier for this deployment (no spaces)</small>
                 </div>
                 
                 <div class="mb-4">
-                    <label class="form-label">Description</label>
+                    <label class="form-label" for="deploymentDescription">Description</label>
                     <input type="text" class="form-control" id="deploymentDescription" 
                            value="CRM Solution Deployment" placeholder="Brief description">
                 </div>
                 
                 <div class="mb-4">
-                    <label class="form-label">Expected Number of Users</label>
+                    <label class="form-label" for="expectedUsers">Expected Number of Users</label>
                     <input type="number" class="form-control" id="expectedUsers" value="100" min="1" max="100000">
                     <small class="text-muted">Helps determine recommended resource sizing</small>
                 </div>
@@ -675,32 +860,32 @@
                 
                 <div class="row g-3">
                     <div class="col-md-6">
-                        <label class="option-card" onclick="selectPlatform('azure')" onkeydown="this.click()">
-                            <input type="radio" name="platform" value="azure">
+                        <label class="option-card" for="platformAzure">
+                            <input type="radio" name="platform" value="azure" id="platformAzure" onchange="selectPlatform('azure')">
                             <div class="option-icon text-primary"><i class="bi bi-microsoft"></i></div>
                             <h5>Microsoft Azure</h5>
                             <p class="text-muted small mb-0">AKS, Container Apps, VMs</p>
                         </label>
                     </div>
                     <div class="col-md-6">
-                        <label class="option-card" onclick="selectPlatform('aws')" onkeydown="this.click()">
-                            <input type="radio" name="platform" value="aws">
+                        <label class="option-card" for="platformAws">
+                            <input type="radio" name="platform" value="aws" id="platformAws" onchange="selectPlatform('aws')">
                             <div class="option-icon text-warning"><i class="bi bi-amazon"></i></div>
                             <h5>Amazon AWS</h5>
                             <p class="text-muted small mb-0">EKS, ECS, Fargate, EC2</p>
                         </label>
                     </div>
                     <div class="col-md-6">
-                        <label class="option-card" onclick="selectPlatform('gcp')" onkeydown="this.click()">
-                            <input type="radio" name="platform" value="gcp">
+                        <label class="option-card" for="platformGcp">
+                            <input type="radio" name="platform" value="gcp" id="platformGcp" onchange="selectPlatform('gcp')">
                             <div class="option-icon text-danger"><i class="bi bi-google"></i></div>
                             <h5>Google Cloud</h5>
                             <p class="text-muted small mb-0">GKE, Cloud Run, GCE</p>
                         </label>
                     </div>
                     <div class="col-md-6">
-                        <label class="option-card" onclick="selectPlatform('on_premises')" onkeydown="this.click()">
-                            <input type="radio" name="platform" value="on_premises">
+                        <label class="option-card" for="platformOnPrem">
+                            <input type="radio" name="platform" value="on_premises" id="platformOnPrem" onchange="selectPlatform('on_premises')">
                             <div class="option-icon text-dark"><i class="bi bi-server"></i></div>
                             <h5>On-Premises</h5>
                             <p class="text-muted small mb-0">Docker, Kubernetes, VMs</p>
@@ -715,16 +900,16 @@
                         <h5 class="mb-3">Azure Configuration</h5>
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">Region</label>
+                                <label class="form-label" for="azureRegion">Region</label>
                                 <select class="form-select" id="azureRegion"></select>
                             </div>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Resource Group Name</label>
+                            <label class="form-label" for="azureResourceGroup">Resource Group Name</label>
                             <input type="text" class="form-control" id="azureResourceGroup" value="crm-production-rg">
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Subscription ID</label>
+                            <label class="form-label" for="azureSubscription">Subscription ID</label>
                             <input type="text" class="form-control" id="azureSubscription" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
                         </div>
                     </div>
@@ -734,12 +919,12 @@
                         <h5 class="mb-3">AWS Configuration</h5>
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">Region</label>
+                                <label class="form-label" for="awsRegion">Region</label>
                                 <select class="form-select" id="awsRegion"></select>
                             </div>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">VPC ID (optional)</label>
+                            <label class="form-label" for="awsVpcId">VPC ID (optional)</label>
                             <input type="text" class="form-control" id="awsVpcId" placeholder="vpc-xxxxxxxxxx">
                         </div>
                     </div>
@@ -749,12 +934,12 @@
                         <h5 class="mb-3">GCP Configuration</h5>
                         <div class="row">
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">Region</label>
+                                <label class="form-label" for="gcpRegion">Region</label>
                                 <select class="form-select" id="gcpRegion"></select>
                             </div>
                         </div>
                         <div class="mb-3">
-                            <label class="form-label">Project ID</label>
+                            <label class="form-label" for="gcpProjectId">Project ID</label>
                             <input type="text" class="form-control" id="gcpProjectId" placeholder="my-project-id">
                         </div>
                     </div>
@@ -764,15 +949,15 @@
                         <h5 class="mb-3">On-Premises Configuration</h5>
                         <div class="row">
                             <div class="col-md-4 mb-3">
-                                <label class="form-label">Virtualization</label>
+                                <label class="form-label" for="onpremVirtualization">Virtualization</label>
                                 <select class="form-select" id="onpremVirtualization"></select>
                             </div>
                             <div class="col-md-4 mb-3">
-                                <label class="form-label">Container Runtime</label>
+                                <label class="form-label" for="onpremContainerRuntime">Container Runtime</label>
                                 <select class="form-select" id="onpremContainerRuntime"></select>
                             </div>
                             <div class="col-md-4 mb-3">
-                                <label class="form-label">Orchestration</label>
+                                <label class="form-label" for="onpremOrchestration">Orchestration</label>
                                 <select class="form-select" id="onpremOrchestration"></select>
                             </div>
                         </div>
@@ -786,16 +971,16 @@
                 
                 <div class="row g-3">
                     <div class="col-md-6">
-                        <label class="option-card" onclick="selectArchitecture('monolithic')" onkeydown="this.click()">
-                            <input type="radio" name="architecture" value="monolithic">
+                        <label class="option-card" for="archMonolithic">
+                            <input type="radio" name="architecture" value="monolithic" id="archMonolithic" onchange="selectArchitecture('monolithic')">
                             <div class="option-icon text-info"><i class="bi bi-box"></i></div>
                             <h5>Monolithic</h5>
                             <p class="text-muted small mb-0">Single application with all modules. Simpler deployment, good for smaller teams.</p>
                         </label>
                     </div>
                     <div class="col-md-6">
-                        <label class="option-card" onclick="selectArchitecture('microservices')" onkeydown="this.click()">
-                            <input type="radio" name="architecture" value="microservices">
+                        <label class="option-card" for="archMicroservices">
+                            <input type="radio" name="architecture" value="microservices" id="archMicroservices" onchange="selectArchitecture('microservices')">
                             <div class="option-icon text-success"><i class="bi bi-boxes"></i></div>
                             <h5>Microservices</h5>
                             <p class="text-muted small mb-0">Separate services for each module. Better scalability and isolation.</p>
@@ -815,32 +1000,32 @@
                 
                 <div class="row g-3 mb-4">
                     <div class="col-md-6">
-                        <label class="option-card" onclick="selectDatabase('mariadb')" onkeydown="this.click()">
-                            <input type="radio" name="database" value="mariadb" checked>
+                        <label class="option-card" for="dbMariadb">
+                            <input type="radio" name="database" value="mariadb" id="dbMariadb" checked onchange="selectDatabase('mariadb')">
                             <div class="option-icon"><i class="bi bi-database"></i></div>
                             <h5>MariaDB</h5>
                             <p class="text-muted small mb-0">MySQL-compatible, high performance</p>
                         </label>
                     </div>
                     <div class="col-md-6">
-                        <label class="option-card" onclick="selectDatabase('mysql')" onkeydown="this.click()">
-                            <input type="radio" name="database" value="mysql">
+                        <label class="option-card" for="dbMysql">
+                            <input type="radio" name="database" value="mysql" id="dbMysql" onchange="selectDatabase('mysql')">
                             <div class="option-icon"><i class="bi bi-database"></i></div>
                             <h5>MySQL</h5>
                             <p class="text-muted small mb-0">Popular, widely supported</p>
                         </label>
                     </div>
                     <div class="col-md-6">
-                        <label class="option-card" onclick="selectDatabase('postgresql')" onkeydown="this.click()">
-                            <input type="radio" name="database" value="postgresql">
+                        <label class="option-card" for="dbPostgresql">
+                            <input type="radio" name="database" value="postgresql" id="dbPostgresql" onchange="selectDatabase('postgresql')">
                             <div class="option-icon"><i class="bi bi-database"></i></div>
                             <h5>PostgreSQL</h5>
                             <p class="text-muted small mb-0">Advanced features, ACID compliant</p>
                         </label>
                     </div>
                     <div class="col-md-6">
-                        <label class="option-card" onclick="selectDatabase('sqlserver')" onkeydown="this.click()">
-                            <input type="radio" name="database" value="sqlserver">
+                        <label class="option-card" for="dbSqlserver">
+                            <input type="radio" name="database" value="sqlserver" id="dbSqlserver" onchange="selectDatabase('sqlserver')">
                             <div class="option-icon"><i class="bi bi-database"></i></div>
                             <h5>SQL Server</h5>
                             <p class="text-muted small mb-0">Microsoft enterprise database</p>
@@ -851,11 +1036,11 @@
                 <h5 class="mb-3">Database Settings</h5>
                 <div class="row">
                     <div class="col-md-6 mb-3">
-                        <label class="form-label">Database Name</label>
+                        <label class="form-label" for="dbName">Database Name</label>
                         <input type="text" class="form-control" id="dbName" value="crm">
                     </div>
                     <div class="col-md-6 mb-3">
-                        <label class="form-label">Port</label>
+                        <label class="form-label" for="dbPort">Port</label>
                         <input type="number" class="form-control" id="dbPort" value="3306">
                     </div>
                 </div>
@@ -871,7 +1056,7 @@
                 <div id="dbHaOptions" class="ms-4 ps-3 border-start border-primary mb-3" style="display:none">
                     <div class="row g-3">
                         <div class="col-md-6">
-                            <label class="form-label">HA Mode</label>
+                            <label class="form-label" for="dbHaMode">HA Mode</label>
                             <select class="form-select form-select-sm" id="dbHaMode">
                                 <option value="master_slave">Master-Slave Replication</option>
                                 <option value="galera">Galera Cluster (multi-master)</option>
@@ -880,7 +1065,7 @@
                             </select>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Replica Count</label>
+                            <label class="form-label" for="dbReplicaCount">Replica Count</label>
                             <input type="number" class="form-control form-control-sm" id="dbReplicaCount" value="2" min="1" max="5">
                         </div>
                     </div>
@@ -893,7 +1078,7 @@
                 <!-- Backup Settings -->
                 <div class="row g-3 mb-3">
                     <div class="col-md-6">
-                        <label class="form-label">Automated Backups</label>
+                        <label class="form-label" for="dbBackupFrequency">Automated Backups</label>
                         <select class="form-select form-select-sm" id="dbBackupFrequency">
                             <option value="none">No automated backups</option>
                             <option value="daily" selected>Daily</option>
@@ -902,7 +1087,7 @@
                         </select>
                     </div>
                     <div class="col-md-6">
-                        <label class="form-label">Backup Retention (days)</label>
+                        <label class="form-label" for="dbBackupRetention">Backup Retention (days)</label>
                         <input type="number" class="form-control form-control-sm" id="dbBackupRetention" value="7" min="1" max="365">
                     </div>
                 </div>
@@ -920,11 +1105,11 @@
                     </div>
                     <div class="row g-2">
                         <div class="col-md-8">
-                            <label class="form-label">External DB Host</label>
+                            <label class="form-label" for="dbExternalHost">External DB Host</label>
                             <input type="text" class="form-control form-control-sm" id="dbExternalHost" placeholder="db.example.com or 10.0.0.5">
                         </div>
                         <div class="col-md-4">
-                            <label class="form-label">Port</label>
+                            <label class="form-label" for="dbExternalPort">Port</label>
                             <input type="number" class="form-control form-control-sm" id="dbExternalPort" value="3306">
                         </div>
                     </div>
@@ -938,7 +1123,7 @@
                 <p class="text-muted mb-4">Select which providers to use for each service. "Built-in" uses the CRM's native implementation.</p>
                 
                 <div class="mb-4">
-                    <label class="form-label"><i class="bi bi-search me-2"></i>Search Provider</label>
+                    <p class="form-label"><i class="bi bi-search me-2"></i>Search Provider</p>
                     <div class="provider-grid" id="searchProviderGrid">
                         <div class="provider-option selected" onclick="selectProvider('search', 'builtin')" onkeydown="this.click()" role="button" tabindex="0">
                             <i class="bi bi-box text-primary"></i>
@@ -956,7 +1141,7 @@
                 </div>
 
                 <div class="mb-4">
-                    <label class="form-label"><i class="bi bi-chat-dots me-2"></i>Chat Provider</label>
+                    <p class="form-label"><i class="bi bi-chat-dots me-2"></i>Chat Provider</p>
                     <div class="provider-grid" id="chatProviderGrid">
                         <div class="provider-option selected" onclick="selectProvider('chat', 'builtin')" onkeydown="this.click()" role="button" tabindex="0">
                             <i class="bi bi-box text-primary"></i>
@@ -974,7 +1159,7 @@
                 </div>
 
                 <div class="mb-4">
-                    <label class="form-label"><i class="bi bi-bell me-2"></i>Notification Provider</label>
+                    <p class="form-label"><i class="bi bi-bell me-2"></i>Notification Provider</p>
                     <div class="provider-grid" id="notificationProviderGrid">
                         <div class="provider-option selected" onclick="selectProvider('notification', 'builtin')" onkeydown="this.click()" role="button" tabindex="0">
                             <i class="bi bi-box text-primary"></i>
@@ -996,7 +1181,7 @@
                 </div>
 
                 <div class="mb-4">
-                    <label class="form-label"><i class="bi bi-bar-chart me-2"></i>Analytics Provider</label>
+                    <p class="form-label"><i class="bi bi-bar-chart me-2"></i>Analytics Provider</p>
                     <div class="provider-grid" id="analyticsProviderGrid">
                         <div class="provider-option selected" onclick="selectProvider('analytics', 'builtin')" onkeydown="this.click()" role="button" tabindex="0">
                             <i class="bi bi-box text-primary"></i>
@@ -1014,7 +1199,7 @@
                 </div>
 
                 <div class="mb-4">
-                    <label class="form-label"><i class="bi bi-pen me-2"></i>Signature Provider</label>
+                    <p class="form-label"><i class="bi bi-pen me-2"></i>Signature Provider</p>
                     <div class="provider-grid" id="signatureProviderGrid">
                         <div class="provider-option selected" onclick="selectProvider('signature', 'builtin')" onkeydown="this.click()" role="button" tabindex="0">
                             <i class="bi bi-box text-primary"></i>
@@ -1032,7 +1217,7 @@
                 </div>
 
                 <div class="mb-4">
-                    <label class="form-label"><i class="bi bi-robot me-2"></i>AI Provider</label>
+                    <p class="form-label"><i class="bi bi-robot me-2"></i>AI Provider</p>
                     <div class="provider-grid" id="aiProviderGrid">
                         <div class="provider-option selected" onclick="selectProvider('ai', 'ollama')" onkeydown="this.click()" role="button" tabindex="0">
                             <i class="bi bi-cpu text-primary"></i>
@@ -1588,46 +1773,87 @@
         // Discovery state
         let discoveredConfig = null;
 
-        // Initialize discovery
+        // Initialize discovery — populate sidebar tiles with SDK availability badges
         async function initDiscovery() {
             try {
                 const response = await fetch('/api/discovery/platforms');
                 const data = await response.json();
-                
-                const platformSelect = document.getElementById('discoveryPlatform');
-                platformSelect.innerHTML = '<option value="">Select platform...</option>';
-                
-                const labels = {
-                    on_premises: 'On-Premises (SSH / Docker)',
-                    azure: 'Azure',
-                    aws: 'AWS',
-                    gcp: 'Google Cloud (GCP)'
-                };
+                _discAvailability = data.availability || {};
+                _discMissing      = data.missing_packages || {};
 
+                // Update sidebar tile badges
                 data.platforms.forEach(platform => {
-                    const available = data.availability[platform];
-                    const option = document.createElement('option');
-                    option.value = platform;
-                    option.textContent = (labels[platform] || platform.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()))
-                        + (available ? '' : ' ⚠ SDK not installed');
-                    // Never disable — always allow selection for manual config
-                    platformSelect.appendChild(option);
+                    const badge = document.getElementById('discBadge_' + platform);
+                    if (!badge) return;
+                    const available = _discAvailability[platform];
+                    if (available === false) {
+                        badge.textContent = '\u26a0';
+                        badge.title = 'SDK not installed';
+                        badge.style.color = '#e67e22';
+                    } else if (available === true) {
+                        badge.textContent = '\u2713';
+                        badge.title = 'Available';
+                        badge.style.color = '#27ae60';
+                    } else {
+                        badge.textContent = '';
+                    }
                 });
             } catch (error) {
                 console.error('Failed to load platforms:', error);
-                showDiscoveryStatus('Failed to load available platforms', 'danger');
             }
         }
 
-        // Handle platform selection
+        let _discAvailability = {};
+        let _discMissing      = {};
+
+        // Select a platform tile in the sidebar
+        function selectDiscoveryPlatform(platform) {
+            // Update hidden select (keeps all existing JS working)
+            const sel = document.getElementById('discoveryPlatform');
+            if (sel) sel.value = platform;
+
+            // Update tile active state
+            document.querySelectorAll('.disc-platform-tile').forEach(t => t.classList.remove('active'));
+            const tile = document.getElementById('discTile_' + platform);
+            if (tile) tile.classList.add('active');
+
+            // Hide placeholder
+            const ph = document.getElementById('discPlaceholder');
+            if (ph) ph.style.display = 'none';
+
+            onPlatformChange();
+        }
+
+        // Collapse / expand the discovery sidebar
+        function toggleDiscSidebar() {
+            const sidebar = document.getElementById('discSidebar');
+            const icon    = document.getElementById('discSidebarIcon');
+            if (!sidebar) return;
+            sidebar.classList.toggle('collapsed');
+            if (icon) {
+                icon.className = sidebar.classList.contains('collapsed')
+                    ? 'bi bi-layout-sidebar-inset'
+                    : 'bi bi-layout-sidebar-inset-reverse';
+            }
+        }
+
+        // Deploy Now — skip discovery and advance to deploy steps
+        function quickDeploy() {
+            discoveredConfig = null;
+            // Jump past step 0 discovery directly to step 1 (basic info)
+            currentStep = 1;
+            showStep(1);
+        }
+
+        // Handle platform selection (reads from hidden select, called by selectDiscoveryPlatform)
         function onPlatformChange() {
-            const platform = document.getElementById('discoveryPlatform').value;
+            const platform   = document.getElementById('discoveryPlatform').value;
             const onPremDiv  = document.getElementById('onPremDiscovery');
             const cloudDiv   = document.getElementById('cloudDiscovery');
 
             // Hide everything first
-            onPremDiv.style.display = 'none';
-            cloudDiv.style.display  = 'none';
+            if (onPremDiv) onPremDiv.style.display = 'none';
+            if (cloudDiv)  cloudDiv.style.display  = 'none';
             ['azureCredsSection','awsCredsSection','gcpCredsSection'].forEach(id => {
                 const el = document.getElementById(id);
                 if (el) el.classList.add('d-none');
@@ -1636,34 +1862,28 @@
             if (banner) banner.classList.add('d-none');
 
             if (platform === 'on_premises') {
-                onPremDiv.style.display = 'block';
+                if (onPremDiv) onPremDiv.style.display = 'block';
                 return;
             }
             if (!platform) return;
 
-            cloudDiv.style.display = 'block';
+            if (cloudDiv) cloudDiv.style.display = 'block';
             const sectionMap = { azure: 'azureCredsSection', aws: 'awsCredsSection', gcp: 'gcpCredsSection' };
             const section = document.getElementById(sectionMap[platform]);
             if (section) section.classList.remove('d-none');
 
-            // Check SDK availability asynchronously
-            fetch('/api/discovery/platforms')
-                .then(r => r.json())
-                .then(data => {
-                    const avail = data.availability || {};
-                    const missing = (data.missing_packages || {})[platform] || [];
-                    if (!avail[platform] && missing.length > 0) {
-                        const sdkNames = { azure: 'Azure SDK', aws: 'AWS SDK (boto3)', gcp: 'GCP SDK' };
-                        const sdkPkg  = { azure: 'azure-identity azure-mgmt-compute azure-mgmt-containerinstance', aws: 'boto3', gcp: 'google-cloud-compute google-cloud-container' };
-                        const msg = document.getElementById('sdkMissingMsg');
-                        if (msg) msg.textContent = `${sdkNames[platform]} is not installed. Click below to install it automatically, or run: pip install ${sdkPkg[platform]}`;
-                        if (banner) {
-                            banner.dataset.platform = platform;
-                            banner.classList.remove('d-none');
-                        }
-                    }
-                })
-                .catch(() => {/* no SDK check available — keep form usable */});
+            // Show SDK missing banner using cached availability data
+            const missing = (_discMissing[platform] || []);
+            if (_discAvailability[platform] === false && missing.length > 0) {
+                const sdkNames = { azure: 'Azure SDK', aws: 'AWS SDK (boto3)', gcp: 'GCP SDK' };
+                const sdkPkg  = { azure: 'azure-identity azure-mgmt-compute azure-mgmt-containerinstance', aws: 'boto3', gcp: 'google-cloud-compute google-cloud-container' };
+                const msg = document.getElementById('sdkMissingMsg');
+                if (msg) msg.textContent = `${sdkNames[platform]} is not installed. Click below to install it automatically, or run: pip install ${sdkPkg[platform]}`;
+                if (banner) {
+                    banner.dataset.platform = platform;
+                    banner.classList.remove('d-none');
+                }
+            }
         }
 
         // SDK credential toggle helpers
@@ -1965,9 +2185,7 @@
                 loadRecommendation();
             });
             
-            // Discovery event listeners (null-safe to prevent init chain errors)
-            const _dp = document.getElementById('discoveryPlatform');
-            if (_dp) _dp.addEventListener('change', onPlatformChange);
+            // Discovery event listeners (sidebar buttons handle platform selection now)
             const _tc = document.getElementById('btnTestConnection');
             if (_tc) _tc.addEventListener('click', testConnection);
             const _db = document.getElementById('btnDiscover');
@@ -1977,7 +2195,7 @@
             const _sd = document.getElementById('btnSkipDiscovery');
             if (_sd) _sd.addEventListener('click', skipDiscovery);
             
-            // Initialize discovery
+            // Initialize discovery (loads platform availability for sidebar badges)
             initDiscovery();
             
             loadRecommendation();
