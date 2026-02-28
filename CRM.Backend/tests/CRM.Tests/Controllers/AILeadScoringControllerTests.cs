@@ -32,6 +32,7 @@ public class AILeadScoringControllerTests : IDisposable
     private readonly Mock<IAllenAIService> _mockAIService;
     private readonly Mock<ILLMService> _mockLLMService;
     private readonly Mock<ILLMSettingsService> _mockLLMSettingsService;
+    private readonly Mock<ILeadScoreHistoryService> _mockScoreHistoryService;
     private readonly Mock<ILogger<AILeadScoringController>> _mockLogger;
     private readonly CrmDbContext _dbContext;
     private readonly AILeadScoringController _controller;
@@ -41,6 +42,7 @@ public class AILeadScoringControllerTests : IDisposable
         _mockAIService = new Mock<IAllenAIService>();
         _mockLLMService = new Mock<ILLMService>();
         _mockLLMSettingsService = new Mock<ILLMSettingsService>();
+        _mockScoreHistoryService = new Mock<ILeadScoreHistoryService>();
         _mockLogger = new Mock<ILogger<AILeadScoringController>>();
 
         var options = new DbContextOptionsBuilder<CrmDbContext>()
@@ -54,6 +56,7 @@ public class AILeadScoringControllerTests : IDisposable
             _mockAIService.Object,
             _mockLLMService.Object,
             _mockLLMSettingsService.Object,
+            _mockScoreHistoryService.Object,
             _mockLogger.Object);
     }
 

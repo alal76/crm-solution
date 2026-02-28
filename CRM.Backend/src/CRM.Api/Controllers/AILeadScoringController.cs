@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using CRM.Core.Dtos;
 
 namespace CRM.Api.Controllers;
 
@@ -38,6 +39,7 @@ public class AILeadScoringController : ControllerBase
     private readonly IAllenAIService _aiService;
     private readonly ILLMService _llmService;
     private readonly ILLMSettingsService _llmSettingsService;
+    private readonly ILeadScoreHistoryService _scoreHistoryService;
     private readonly ILogger<AILeadScoringController> _logger;
 
     public AILeadScoringController(
@@ -45,12 +47,14 @@ public class AILeadScoringController : ControllerBase
         IAllenAIService aiService,
         ILLMService llmService,
         ILLMSettingsService llmSettingsService,
+        ILeadScoreHistoryService scoreHistoryService,
         ILogger<AILeadScoringController> logger)
     {
         _context = context;
         _aiService = aiService;
         _llmService = llmService;
         _llmSettingsService = llmSettingsService;
+        _scoreHistoryService = scoreHistoryService;
         _logger = logger;
     }
 
@@ -216,6 +220,41 @@ public class AILeadScoringController : ControllerBase
         {
             _logger.LogError(ex, "Failed to get lead score history for {LeadId}", leadId);
             return StatusCode(500, new { error = "Failed to get lead score history", details = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Get a full score explanation for a lead including component breakdown and trend.
+    /// FEAT-AISCORING: AISCORING-005 — score explanation endpoint.
+    /// </summary>
+    /// <param name="leadId">The ID of the lead.</param>
+    /// <param name="cancellationToken">Cancellation token.</param>
+    /// <returns>Score breakdown by component (BANT/MEDDIC/activity/engagement) plus trend direction.</returns>
+    /// <response code="200">Returns the score explanation.</response>
+    /// <response code="404">Lead not found.</response>
+    /// <response code="401">Unauthorized - User is not authenticated.</response>
+    /// <response code="500">Failed to get score explanation.</response>
+    [HttpGet("{leadId}/explanation")]
+    [ProducesResponseType(typeof(LeadScoreExplanationDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<IActionResult> GetLeadScoreExplanation(int leadId, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var explanation = await _scoreHistoryService.GetExplanationAsync(leadId, cancellationToken);
+            if (explanation == null)
+            {
+                return NotFound(new { error = $"Lead {leadId} not found" });
+            }
+
+            return Ok(explanation);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to get score explanation for lead {LeadId}", leadId);
+            return StatusCode(500, new { error = "Failed to get score explanation", details = ex.Message });
         }
     }
 

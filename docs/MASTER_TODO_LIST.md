@@ -176,14 +176,14 @@
 
 | ID | Priority | Description | Status |
 |----|----------|-------------|--------|
-| REVENUE-001 | P0 | Create `RevenueSnapshot` entity (Id, SnapshotDate, MRR, ARR, NewMRR, ExpansionMRR, ContractionMRR, ChurnMRR, NetNewMRR, CustomerCount, CreatedAt) | Not Started |
-| REVENUE-002 | P0 | Add `DbSet<RevenueSnapshot>` + migration `AddRevenueSnapshots` | Not Started |
-| REVENUE-003 | P0 | Implement `IRevenueAnalyticsService` / `RevenueAnalyticsService` (CalculateMRR, GetARRTrend, GetMRRMovements, GetChurnRate, GetExpansionRevenue) using existing `Subscription`/`Contract`/`Invoice` entities | Not Started |
-| REVENUE-004 | P0 | Implement `RevenueAnalyticsController` (GET `/api/revenue/mrr`, `/api/revenue/arr`, `/api/revenue/movements`, `/api/revenue/churn-rate`, `/api/revenue/cohorts`) | Not Started |
-| REVENUE-005 | P1 | Frontend: `RevenueAnalyticsPage` with MRR/ARR trend chart, waterfall MRR movement chart, churn rate gauge | Not Started |
-| REVENUE-006 | P1 | Frontend: `RevenueDashboardWidget` — embed key metrics in main dashboard | Not Started |
-| REVENUE-007 | P1 | Add `revenueAnalyticsService.ts` TypeScript service | Not Started |
-| REVENUE-008 | P1 | Unit tests for `RevenueAnalyticsService` (8+ test cases) | Not Started |
+| REVENUE-001 | P0 | Create `RevenueSnapshot` entity (Id, SnapshotDate, MRR, ARR, NewMRR, ExpansionMRR, ContractionMRR, ChurnMRR, NetNewMRR, CustomerCount, CreatedAt) | ✅ Completed |
+| REVENUE-002 | P0 | Add `DbSet<RevenueSnapshot>` + migration `AddRevenueSnapshots` | ✅ Completed |
+| REVENUE-003 | P0 | Implement `IRevenueAnalyticsService` / `RevenueAnalyticsService` (CalculateMRR, GetARRTrend, GetMRRMovements, GetChurnRate, GetExpansionRevenue) using existing `Subscription`/`Contract`/`Invoice` entities | ✅ Completed |
+| REVENUE-004 | P0 | Implement `RevenueAnalyticsController` (GET `/api/revenue/mrr`, `/api/revenue/arr`, `/api/revenue/movements`, `/api/revenue/churn-rate`, `/api/revenue/cohorts`) | ✅ Completed |
+| REVENUE-005 | P1 | Frontend: `RevenueAnalyticsPage` with MRR/ARR trend chart, waterfall MRR movement chart, churn rate gauge | ✅ Completed |
+| REVENUE-006 | P1 | Frontend: `RevenueDashboardWidget` — embed key metrics in main dashboard | ✅ Completed |
+| REVENUE-007 | P1 | Add `revenueAnalyticsService.ts` TypeScript service | ✅ Completed |
+| REVENUE-008 | P1 | Unit tests for `RevenueAnalyticsService` (8+ test cases) | ✅ Completed |
 
 ---
 
@@ -284,15 +284,15 @@
 
 | ID | Priority | Description | Status |
 |----|----------|-------------|--------|
-| AISCORING-001 | P0 | Create `LeadScoreHistory` entity (Id, LeadId, Score, PreviousScore, Delta, Reason, ScoreComponents JSON, ScoredAt, ScoredBy [user/system/decay]) | Not Started |
-| AISCORING-002 | P0 | Add `DbSet<LeadScoreHistory>` + migration `AddLeadScoreHistory` | Not Started |
-| AISCORING-003 | P0 | Implement `LeadScoringBackgroundService : BackgroundService` — runs every 6h, applies score decay to leads inactive for 14+ days using existing `LastScoreDecayDate` | Not Started |
-| AISCORING-004 | P0 | Modify `LeadService.CreateAsync` + `UpdateAsync` to auto-trigger lead scoring via `IAILeadScoringService` and persist `LeadScoreHistory` entry | Not Started |
-| AISCORING-005 | P0 | Add endpoints to existing `AILeadScoringController`: GET `/api/aileadscoring/leads/{id}/history`, GET `/api/aileadscoring/leads/{id}/explanation` | Not Started |
-| AISCORING-006 | P1 | Frontend: `LeadScoreHistoryChart` — sparkline or mini trend chart showing score over time on Lead detail page | Not Started |
-| AISCORING-007 | P1 | Frontend: `LeadScoreExplanation` drawer — shows score breakdown by component (BANT/MEDDIC/activity/engagement) | Not Started |
-| AISCORING-008 | P1 | Frontend: Update `LeadsPage` to show score trend indicator (⬆️ improving / ⬇️ declining / ➡️ stable) next to score badge | Not Started |
-| AISCORING-009 | P1 | Unit tests for `LeadScoringBackgroundService` + score history (8+ test cases) | Not Started |
+| AISCORING-001 | P0 | Create `LeadScoreHistory` entity (Id, LeadId, Score, PreviousScore, Delta, Reason, ScoreComponents JSON, ScoredAt, ScoredBy [user/system/decay]) | ✅ Completed |
+| AISCORING-002 | P0 | Add `DbSet<LeadScoreHistory>` + migration `AddLeadScoreHistory` | ✅ Completed |
+| AISCORING-003 | P0 | Implement `LeadScoringBackgroundService : BackgroundService` — runs every 6h, applies score decay to leads inactive for 14+ days using existing `LastScoreDecayDate` | ✅ Completed |
+| AISCORING-004 | P0 | Modify `LeadService.CreateAsync` + `UpdateAsync` to auto-trigger lead scoring via `IAILeadScoringService` and persist `LeadScoreHistory` entry | ✅ Completed |
+| AISCORING-005 | P0 | Add endpoints to existing `AILeadScoringController`: GET `/api/aileadscoring/leads/{id}/history`, GET `/api/aileadscoring/leads/{id}/explanation` | ✅ Completed |
+| AISCORING-006 | P1 | Frontend: `LeadScoreHistoryChart` — sparkline or mini trend chart showing score over time on Lead detail page | ✅ Completed |
+| AISCORING-007 | P1 | Frontend: `LeadScoreExplanation` drawer — shows score breakdown by component (BANT/MEDDIC/activity/engagement) | ✅ Completed |
+| AISCORING-008 | P1 | Frontend: Update `LeadsPage` to show score trend indicator (⬆️ improving / ⬇️ declining / ➡️ stable) next to score badge | ✅ Completed |
+| AISCORING-009 | P1 | Unit tests for `LeadScoringBackgroundService` + score history (8+ test cases) | ✅ Completed |
 
 ---
 
@@ -318,9 +318,9 @@
 |--------------|-------------|----------|--------|
 | FEAT-COLLAB (Record Comments) | 10 | P0/P1 | ✅ Completed |
 | FEAT-CSAT (Satisfaction) | 9 | P0/P1 | ✅ Completed |
-| FEAT-REVENUE (ARR/MRR) | 8 | P0/P1 |
+| FEAT-REVENUE (ARR/MRR) | 8 | P0/P1 | ✅ Completed |
 | FEAT-PORTAL (Customer Portal) | 12 | P0/P1 |
-| FEAT-AISCORING (Lead Scoring) | 9 | P0/P1 |
+| FEAT-AISCORING (Lead Scoring) | 9 | P0/P1 | ✅ Completed |
 | FEAT-E2E (Test Stabilization) | 7 | P0/P1 |
 | **Total** | **55** | — |
 
