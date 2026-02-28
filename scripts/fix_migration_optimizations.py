@@ -23,6 +23,7 @@ MIGRATIONS = os.path.join(
 SET_NAMES_LINE  = "SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci;"
 TIME_ZONE_LINE  = "SET time_zone = '+00:00';"
 SET_NAMES_BLOCK = SET_NAMES_LINE + "\n" + TIME_ZONE_LINE
+ITSM_MODULE_SQL = "010_itsm_module.sql"
 
 ENGINE_CLAUSE = (
     ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;"
@@ -72,11 +73,11 @@ def add_set_names(src: str) -> str:
     # Fix existing SET NAMES that is missing COLLATE
     src = re.sub(
         r"SET NAMES utf8mb4\s*(?!COLLATE);",
-        "SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci;",
+        SET_NAMES_LINE,
         src,
     )
     # Guard: if SET NAMES is now present, return
-    if "SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci;" in src:
+    if SET_NAMES_LINE in src:
         return src
 
     # Insert after the opening comment block (lines starting with -- or empty)
@@ -184,10 +185,10 @@ for fn in files_need_set_names:
     patch(p(fn), add_set_names)
 
 print("\n2. USE crm_dev → crm_db ─────────────────────────────────────────────")
-patch(p("010_itsm_module.sql"), fix_use_database)
+patch(p(ITSM_MODULE_SQL), fix_use_database)
 
 print("\n3. ENGINE/CHARSET on ITSM tables ────────────────────────────────────")
-patch(p("010_itsm_module.sql"),    add_engine_charset_to_tables)
+patch(p(ITSM_MODULE_SQL),    add_engine_charset_to_tables)
 patch(p("010_itsm_simplified.sql"), add_engine_charset_to_tables)
 
 print("\n4. COLLATE missing from ENGINE clause ───────────────────────────────")

@@ -521,7 +521,7 @@
                     <h3 class="mb-0"><i class="bi bi-search me-2"></i>Discover Existing Deployments</h3>
                     <span class="badge bg-secondary">Optional</span>
                 </div>
-                <p class="text-muted small mb-3">Select a platform on the left to discover existing CRM deployments, or skip to configure manually.</p>
+                        <p class="text-muted small mb-3">Select a target environment on the left to discover existing CRM deployments, or skip to configure manually.</p>
 
                 <!-- Hidden select kept for JS compatibility -->
                 <select id="discoveryPlatform" class="d-none" aria-hidden="true">
@@ -534,7 +534,7 @@
                     <!-- LEFT SIDEBAR -->
                     <div class="disc-sidebar" id="discSidebar">
                         <div class="disc-sidebar-header">
-                            <span class="disc-sidebar-lbl fw-semibold text-muted" style="font-size:0.72rem;letter-spacing:.05em;">PLATFORM</span>
+                            <span class="disc-sidebar-lbl fw-semibold text-muted" style="font-size:0.72rem;letter-spacing:.05em;">TARGET ENV</span>
                             <button class="btn btn-sm btn-link p-0 text-secondary" onclick="toggleDiscSidebar()" title="Toggle sidebar" style="line-height:1;">
                                 <i class="bi bi-layout-sidebar-inset-reverse" id="discSidebarIcon"></i>
                             </button>
@@ -588,7 +588,7 @@
                         <!-- Placeholder shown when no platform selected -->
                         <div class="disc-placeholder" id="discPlaceholder">
                             <i class="bi bi-arrow-left-circle"></i>
-                            <p class="mb-1 fw-semibold">Select a platform</p>
+                            <p class="mb-1 fw-semibold">Select a target environment</p>
                             <p class="small">Choose a target from the left sidebar to configure discovery credentials.</p>
                         </div>
 
@@ -635,182 +635,182 @@
                                     <small class="text-muted">Networks: crm-core-network, crm-db-network, crm-components-network</small>
                                 </div>
                             </div>
-                        </div>
-                
-                <!-- Cloud Discovery -->
-                <div id="cloudDiscovery" class="discovery-config" style="display: none;">
-                    <h5 class="mb-3">Cloud Configuration</h5>
+                        </div><!-- /onPremDiscovery -->
 
-                    <!-- SDK missing banner -->
-                    <div id="sdkMissingBanner" class="alert alert-warning d-none">
-                        <div class="d-flex align-items-start gap-3">
-                            <i class="bi bi-exclamation-triangle-fill fs-4 mt-1"></i>
-                            <div class="flex-grow-1">
-                                <strong>Cloud SDK not installed</strong>
-                                <p class="mb-2 mt-1 small" id="sdkMissingMsg"></p>
-                                <button class="btn btn-sm btn-warning" onclick="installCloudSdk()" id="btnInstallSdk">
-                                    <i class="bi bi-download me-1"></i>Install SDK Now
-                                </button>
-                                <div id="sdkInstallProgress" class="mt-2 d-none">
-                                    <div class="progress mb-1" style="height:6px;">
-                                        <div id="sdkInstallBar" class="progress-bar progress-bar-striped progress-bar-animated" style="width:100%"></div>
+                        <!-- Cloud Discovery -->
+                        <div id="cloudDiscovery" class="discovery-config" style="display: none;">
+                            <h5 class="mb-3">Cloud Configuration</h5>
+
+                            <!-- SDK missing banner -->
+                            <div id="sdkMissingBanner" class="alert alert-warning d-none">
+                                <div class="d-flex align-items-start gap-3">
+                                    <i class="bi bi-exclamation-triangle-fill fs-4 mt-1"></i>
+                                    <div class="flex-grow-1">
+                                        <strong>Cloud SDK not installed</strong>
+                                        <p class="mb-2 mt-1 small" id="sdkMissingMsg"></p>
+                                        <button class="btn btn-sm btn-warning" onclick="installCloudSdk()" id="btnInstallSdk">
+                                            <i class="bi bi-download me-1"></i>Install SDK Now
+                                        </button>
+                                        <div id="sdkInstallProgress" class="mt-2 d-none">
+                                            <div class="progress mb-1" style="height:6px;">
+                                                <div id="sdkInstallBar" class="progress-bar progress-bar-striped progress-bar-animated" style="width:100%"></div>
+                                            </div>
+                                            <pre id="sdkInstallLog" class="bg-dark text-light p-2 rounded small" style="max-height:120px;overflow-y:auto;font-size:0.75rem;"></pre>
+                                        </div>
                                     </div>
-                                    <pre id="sdkInstallLog" class="bg-dark text-light p-2 rounded small" style="max-height:120px;overflow-y:auto;font-size:0.75rem;"></pre>
                                 </div>
                             </div>
-                        </div>
-                    </div>
 
-                    <!-- Azure Credentials -->
-                    <div id="azureCredsSection" class="d-none">
-                        <div class="row mb-2">
-                            <div class="col-12">
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" id="azureUseCli" onchange="toggleAzureCreds()">
-                                    <label class="form-check-label" for="azureUseCli">Use Azure CLI credentials (already logged in with <code>az login</code>)</label>
+                            <!-- Azure Credentials -->
+                            <div id="azureCredsSection" class="d-none">
+                                <div class="row mb-2">
+                                    <div class="col-12">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="azureUseCli" onchange="toggleAzureCreds()">
+                                            <label class="form-check-label" for="azureUseCli">Use Azure CLI credentials (already logged in with <code>az login</code>)</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="azureSpSection">
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label" for="discAzureSubId">Subscription ID <span class="text-danger">*</span></label>
+                                            <input type="text" class="form-control" id="discAzureSubId" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label" for="discAzureTenantId">Tenant ID</label>
+                                            <input type="text" class="form-control" id="discAzureTenantId" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label" for="discAzureClientId">Client ID <span class="text-muted small">(Service Principal App ID)</span></label>
+                                            <input type="text" class="form-control" id="discAzureClientId" placeholder="Leave blank for CLI / Managed Identity">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label" for="discAzureClientSecret">Client Secret</label>
+                                            <input type="password" class="form-control" id="discAzureClientSecret" placeholder="Service principal secret">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row g-3 mt-1">
+                                    <div class="col-md-6">
+                                        <label class="form-label" for="discAzureRegion">Region / Location</label>
+                                        <input type="text" class="form-control" id="discAzureRegion" placeholder="eastus" value="eastus">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label" for="discAzureRg">Resource Group <span class="text-danger">*</span></label>
+                                        <input type="text" class="form-control" id="discAzureRg" placeholder="rg-crm-prod" value="rg-crm-prod">
+                                        <small class="text-muted">Naming: rg-crm-{env} — e.g. rg-crm-dev, rg-crm-prod</small>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div id="azureSpSection">
-                            <div class="row g-3">
-                                <div class="col-md-6">
-                                    <label class="form-label" for="discAzureSubId">Subscription ID <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control" id="discAzureSubId" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label" for="discAzureTenantId">Tenant ID</label>
-                                    <input type="text" class="form-control" id="discAzureTenantId" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label" for="discAzureClientId">Client ID <span class="text-muted small">(Service Principal App ID)</span></label>
-                                    <input type="text" class="form-control" id="discAzureClientId" placeholder="Leave blank for CLI / Managed Identity">
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label" for="discAzureClientSecret">Client Secret</label>
-                                    <input type="password" class="form-control" id="discAzureClientSecret" placeholder="Service principal secret">
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row g-3 mt-1">
-                            <div class="col-md-6">
-                                <label class="form-label" for="discAzureRegion">Region / Location</label>
-                                <input type="text" class="form-control" id="discAzureRegion" placeholder="eastus" value="eastus">
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label" for="discAzureRg">Resource Group <span class="text-danger">*</span></label>
-                                <input type="text" class="form-control" id="discAzureRg" placeholder="rg-crm-prod" value="rg-crm-prod">
-                                <small class="text-muted">Naming: rg-crm-{env} — e.g. rg-crm-dev, rg-crm-prod</small>
-                            </div>
-                        </div>
-                    </div>
 
-                    <!-- AWS Credentials -->
-                    <div id="awsCredsSection" class="d-none">
-                        <div class="row mb-2">
-                            <div class="col-12">
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" id="awsUseProfile" onchange="toggleAwsCreds()">
-                                    <label class="form-check-label" for="awsUseProfile">Use AWS CLI profile (configured via <code>aws configure</code>)</label>
+                            <!-- AWS Credentials -->
+                            <div id="awsCredsSection" class="d-none">
+                                <div class="row mb-2">
+                                    <div class="col-12">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="awsUseProfile" onchange="toggleAwsCreds()">
+                                            <label class="form-check-label" for="awsUseProfile">Use AWS CLI profile (configured via <code>aws configure</code>)</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="awsKeySection">
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label" for="discAwsAccessKey">Access Key ID</label>
+                                            <input type="text" class="form-control font-monospace" id="discAwsAccessKey" placeholder="AKIAIOSFODNN7EXAMPLE">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label" for="discAwsSecretKey">Secret Access Key</label>
+                                            <input type="password" class="form-control" id="discAwsSecretKey" placeholder="wJalrXUtnFEMI/K7MDENG...">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label" for="discAwsSessionToken">Session Token <span class="text-muted small">(optional)</span></label>
+                                            <input type="password" class="form-control" id="discAwsSessionToken" placeholder="For temporary credentials only">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="row g-3 mt-1">
+                                    <div class="col-md-6">
+                                        <label class="form-label" for="discAwsRegion">Region</label>
+                                        <input type="text" class="form-control" id="discAwsRegion" placeholder="us-east-1" value="us-east-1">
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label class="form-label" for="discAwsVpc">VPC / Cluster Name</label>
+                                        <input type="text" class="form-control" id="discAwsVpc" placeholder="crm-prod-vpc" value="crm-prod-vpc">
+                                        <small class="text-muted">Naming: crm-{env}-vpc</small>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div id="awsKeySection">
-                            <div class="row g-3">
-                                <div class="col-md-6">
-                                    <label class="form-label" for="discAwsAccessKey">Access Key ID</label>
-                                    <input type="text" class="form-control font-monospace" id="discAwsAccessKey" placeholder="AKIAIOSFODNN7EXAMPLE">
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label" for="discAwsSecretKey">Secret Access Key</label>
-                                    <input type="password" class="form-control" id="discAwsSecretKey" placeholder="wJalrXUtnFEMI/K7MDENG...">
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label" for="discAwsSessionToken">Session Token <span class="text-muted small">(optional)</span></label>
-                                    <input type="password" class="form-control" id="discAwsSessionToken" placeholder="For temporary credentials only">
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row g-3 mt-1">
-                            <div class="col-md-6">
-                                <label class="form-label" for="discAwsRegion">Region</label>
-                                <input type="text" class="form-control" id="discAwsRegion" placeholder="us-east-1" value="us-east-1">
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label" for="discAwsVpc">VPC / Cluster Name</label>
-                                <input type="text" class="form-control" id="discAwsVpc" placeholder="crm-prod-vpc" value="crm-prod-vpc">
-                                <small class="text-muted">Naming: crm-{env}-vpc</small>
-                            </div>
-                        </div>
-                    </div>
 
-                    <!-- GCP Credentials -->
-                    <div id="gcpCredsSection" class="d-none">
-                        <div class="row mb-2">
-                            <div class="col-12">
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" id="gcpUseAdc" onchange="toggleGcpCreds()">
-                                    <label class="form-check-label" for="gcpUseAdc">Use Application Default Credentials (<code>gcloud auth application-default login</code>)</label>
+                            <!-- GCP Credentials -->
+                            <div id="gcpCredsSection" class="d-none">
+                                <div class="row mb-2">
+                                    <div class="col-12">
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="gcpUseAdc" onchange="toggleGcpCreds()">
+                                            <label class="form-check-label" for="gcpUseAdc">Use Application Default Credentials (<code>gcloud auth application-default login</code>)</label>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="gcpSaSection">
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label" for="discGcpProjectId">Project ID <span class="text-danger">*</span></label>
+                                            <input type="text" class="form-control" id="discGcpProjectId" placeholder="crm-prod" value="crm-prod">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label" for="discGcpRegion">Region / Zone</label>
+                                            <input type="text" class="form-control" id="discGcpRegion" placeholder="us-central1" value="us-central1">
+                                        </div>
+                                        <div class="col-12">
+                                            <label class="form-label" for="discGcpSaJson">Service Account JSON <span class="text-muted small">(paste key contents — leave blank to use ADC)</span></label>
+                                            <textarea class="form-control font-monospace" id="discGcpSaJson" rows="4" placeholder='{"type":"service_account","project_id":"crm-prod",...}'></textarea>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <div id="gcpSaSection">
-                            <div class="row g-3">
-                                <div class="col-md-6">
-                                    <label class="form-label" for="discGcpProjectId">Project ID <span class="text-danger">*</span></label>
-                                    <input type="text" class="form-control" id="discGcpProjectId" placeholder="crm-prod" value="crm-prod">
-                                </div>
-                                <div class="col-md-6">
-                                    <label class="form-label" for="discGcpRegion">Region / Zone</label>
-                                    <input type="text" class="form-control" id="discGcpRegion" placeholder="us-central1" value="us-central1">
-                                </div>
-                                <div class="col-12">
-                                    <label class="form-label" for="discGcpSaJson">Service Account JSON <span class="text-muted small">(paste key contents — leave blank to use ADC)</span></label>
-                                    <textarea class="form-control font-monospace" id="discGcpSaJson" rows="4" placeholder='{"type":"service_account","project_id":"crm-prod",...}'></textarea>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Status message -->
-                <div id="discoveryStatus" class="alert mt-3" style="display: none;"></div>
+                        </div><!-- /cloudDiscovery -->
 
-                <!-- Discovery Results -->
-                <div id="discoveryResults" class="mt-4" style="display: none;">
-                    <h5 class="mb-3">Discovery Results</h5>
-                    <div id="deploymentInfo" class="card" style="display: none;">
-                        <div class="card-header">
-                            <h6 class="mb-0">Found Deployment</h6>
-                        </div>
-                        <div class="card-body">
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <strong>Platform:</strong> <span id="foundPlatform"></span><br>
-                                    <strong>Architecture:</strong> <span id="foundArchitecture"></span><br>
-                                    <strong>Version:</strong> <span id="foundVersion"></span>
+                        <!-- Status message -->
+                        <div id="discoveryStatus" class="alert mt-3" style="display: none;"></div>
+
+                        <!-- Discovery Results -->
+                        <div id="discoveryResults" class="mt-4" style="display: none;">
+                            <h5 class="mb-3">Discovery Results</h5>
+                            <div id="deploymentInfo" class="card" style="display: none;">
+                                <div class="card-header">
+                                    <h6 class="mb-0">Found Deployment</h6>
                                 </div>
-                                <div class="col-md-6">
-                                    <strong>Environment:</strong> <span id="foundEnvironment"></span><br>
-                                    <strong>Health:</strong> <span id="foundHealth"></span><br>
-                                    <strong>Last Checked:</strong> <span id="foundLastChecked"></span>
+                                <div class="card-body">
+                                    <div class="row">
+                                        <div class="col-md-6">
+                                            <strong>Target Environment:</strong> <span id="foundPlatform"></span><br>
+                                            <strong>Architecture:</strong> <span id="foundArchitecture"></span><br>
+                                            <strong>Version:</strong> <span id="foundVersion"></span>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <strong>Environment:</strong> <span id="foundEnvironment"></span><br>
+                                            <strong>Health:</strong> <span id="foundHealth"></span><br>
+                                            <strong>Last Checked:</strong> <span id="foundLastChecked"></span>
+                                        </div>
+                                    </div>
+                                    <hr>
+                                    <h6>Components Found:</h6>
+                                    <div id="foundComponents" class="mt-2"></div>
                                 </div>
                             </div>
-                            <hr>
-                            <h6>Components Found:</h6>
-                            <div id="foundComponents" class="mt-2"></div>
-                        </div>
-                    </div>
-                    <div class="mt-3">
-                        <button type="button" class="btn btn-success" id="btnUseDiscovered">
-                            <i class="bi bi-check-circle me-2"></i>Use This Configuration
-                        </button>
-                    </div>
-                </div>
+                            <div class="mt-3">
+                                <button type="button" class="btn btn-success" id="btnUseDiscovered">
+                                    <i class="bi bi-check-circle me-2"></i>Use This Configuration
+                                </button>
+                            </div>
+                        </div><!-- /discoveryResults -->
 
                     </div><!-- /disc-main -->
                 </div><!-- /discovery-layout -->
             </div><!-- /step 0 -->
-            
+
             <!-- Step 1: Basic Information -->
             <div class="wizard-section active" data-section="1">
                 <h3 class="mb-4"><i class="bi bi-info-circle me-2"></i>Basic Information</h3>
