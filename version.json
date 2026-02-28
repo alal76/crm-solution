@@ -1,9 +1,9 @@
 {
   "major": 0,
-  "minor": 606,
-  "patch": 1,
-  "lastUpdate": "2026-02-28",
-  "description": "test: SARCH-087→094 - Complete scripting engine test suite (WorkflowIntegrationTests 14 tests, GuardrailIntegrationTests 10 tests, E2E script-registry spec, security pen-test docs)",
+  "minor": 607,
+  "patch": 0,
+  "lastUpdate": "2026-03-02",
+  "description": "feat: SARCH complete - All 94 scripting architecture items implemented (Roslyn+TypeScript engines, Tool Bridge, YAML WDL workflow, agent hooks+guardrails, OTel observability, multi-agent messaging, episodic memory, chaos middleware, security policy tiers T3/T6/T8, Grafana dashboard, 60+ tests)",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [
