@@ -21,8 +21,26 @@
 --     does not cascade-delete business records.
 -- ============================================================================
 
-SET NAMES utf8mb4;
+SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci;
 SET time_zone = '+00:00';
+
+-- ─────────────────────────────────────────────────────────────────────────────
+-- Resolve EnumCategory IDs once into user variables.
+-- This avoids a correlated subquery executing once per row in every UPDATE.
+-- ─────────────────────────────────────────────────────────────────────────────
+
+SET @catLeadStatus        = (SELECT Id FROM `EnumCategories` WHERE Name = 'LeadStatus'              LIMIT 1);
+SET @catOpportunityStage  = (SELECT Id FROM `EnumCategories` WHERE Name = 'OpportunityStage'        LIMIT 1);
+SET @catSRStatus          = (SELECT Id FROM `EnumCategories` WHERE Name = 'ServiceRequestStatus'    LIMIT 1);
+SET @catSRPriority        = (SELECT Id FROM `EnumCategories` WHERE Name = 'ServiceRequestPriority'  LIMIT 1);
+
+-- Abort early if prerequisite seed data is missing
+SELECT IF(@catLeadStatus IS NULL OR @catOpportunityStage IS NULL OR @catSRStatus IS NULL OR @catSRPriority IS NULL,
+    (SELECT CONCAT('ERROR: One or more EnumCategories are missing. Ensure SYS-008-ConfigurableEnums.sql has been applied. ',
+                   'LeadStatus=', IFNULL(@catLeadStatus,'NULL'), ' OpportunityStage=', IFNULL(@catOpportunityStage,'NULL'),
+                   ' SRStatus=', IFNULL(@catSRStatus,'NULL'), ' SRPriority=', IFNULL(@catSRPriority,'NULL'))),
+    'EnumCategory IDs resolved OK') AS prerequisite_check;
+
 
 -- ─────────────────────────────────────────────────────────────────────────────
 -- ENUM-MIG-001 / ENUM-MIG-004:  Add StatusId to Leads
@@ -36,43 +54,6 @@ ALTER TABLE `Leads`
         FOREIGN KEY (`StatusId`) REFERENCES `EnumValues`(`Id`) ON DELETE SET NULL;
 
 CREATE INDEX `IX_Leads_StatusId` ON `Leads`(`StatusId`);
-
-
--- ─────────────────────────────────────────────────────────────────────────────
--- ENUM-MIG-002: Migrate existing Lead.Status ordinal values → StatusId
---
--- LeadLifecycleStatus enum ordinals vs. seeded EnumValues Keys:
---   0 = New          → 'new'
---   1 = Working      → 'contacted'   (closest match in seed data)
---   2 = Nurturing    → 'contacted'   (no exact match – approximate)
---   3 = Qualified    → 'qualified'
---   4 = Disqualified → 'unqualified'
---   5 = Converted    → 'converted'
--- ─────────────────────────────────────────────────────────────────────────────
-
-UPDATE `Leads` l
-JOIN `EnumValues` ev
-    ON ev.CategoryId = (SELECT Id FROM `EnumCategories` WHERE Name = 'LeadStatus' LIMIT 1)
-    AND ev.`Key` = CASE l.`Status`
-                       WHEN 0 THEN 'new'
-                       WHEN 1 THEN 'contacted'
-                       WHEN 2 THEN 'contacted'
-                       WHEN 3 THEN 'qualified'
-                       WHEN 4 THEN 'unqualified'
-                       WHEN 5 THEN 'converted'
-                       ELSE NULL
-                   END
-SET l.StatusId = ev.Id
-WHERE l.IsDeleted = 0
-  AND CASE l.`Status`
-          WHEN 0 THEN 'new'
-          WHEN 1 THEN 'contacted'
-          WHEN 2 THEN 'contacted'
-          WHEN 3 THEN 'qualified'
-          WHEN 4 THEN 'unqualified'
-          WHEN 5 THEN 'converted'
-          ELSE NULL
-      END IS NOT NULL;
 
 
 -- ─────────────────────────────────────────────────────────────────────────────
@@ -90,48 +71,11 @@ CREATE INDEX `IX_Opportunities_StageId` ON `Opportunities`(`StageId`);
 
 
 -- ─────────────────────────────────────────────────────────────────────────────
--- ENUM-MIG-007: Migrate existing Opportunity.Stage ordinal values → StageId
---
--- OpportunityStage enum ordinals vs. seeded EnumValues Keys:
---   0 = Discovery    → 'prospecting'
---   1 = Qualification → 'qualification'
---   2 = Proposal     → 'proposal'
---   3 = Negotiation  → 'negotiation'
---   4 = ClosedWon    → 'closed_won'
---   5 = ClosedLost   → 'closed_lost'
--- ─────────────────────────────────────────────────────────────────────────────
-
-UPDATE `Opportunities` o
-JOIN `EnumValues` ev
-    ON ev.CategoryId = (SELECT Id FROM `EnumCategories` WHERE Name = 'OpportunityStage' LIMIT 1)
-    AND ev.`Key` = CASE o.`Stage`
-                       WHEN 0 THEN 'prospecting'
-                       WHEN 1 THEN 'qualification'
-                       WHEN 2 THEN 'proposal'
-                       WHEN 3 THEN 'negotiation'
-                       WHEN 4 THEN 'closed_won'
-                       WHEN 5 THEN 'closed_lost'
-                       ELSE NULL
-                   END
-SET o.StageId = ev.Id
-WHERE o.IsDeleted = 0
-  AND CASE o.`Stage`
-          WHEN 0 THEN 'prospecting'
-          WHEN 1 THEN 'qualification'
-          WHEN 2 THEN 'proposal'
-          WHEN 3 THEN 'negotiation'
-          WHEN 4 THEN 'closed_won'
-          WHEN 5 THEN 'closed_lost'
-          ELSE NULL
-      END IS NOT NULL;
-
-
--- ─────────────────────────────────────────────────────────────────────────────
 -- ENUM-MIG-011 / ENUM-MIG-014:  Add StatusId and PriorityId to ServiceRequests
 -- ─────────────────────────────────────────────────────────────────────────────
 
 ALTER TABLE `ServiceRequests`
-    ADD COLUMN `StatusId` INT NULL AFTER `Status`;
+    ADD COLUMN `StatusId`  INT NULL AFTER `Status`;
 
 ALTER TABLE `ServiceRequests`
     ADD CONSTRAINT `FK_ServiceRequests_StatusId`
@@ -150,10 +94,75 @@ CREATE INDEX `IX_ServiceRequests_PriorityId` ON `ServiceRequests`(`PriorityId`);
 
 
 -- ─────────────────────────────────────────────────────────────────────────────
+-- Data migration — wrapped in a transaction so all UPDATEs are atomic.
+-- Note: the ALTER TABLE statements above issue implicit commits (DDL); only
+-- the data backfill rows below benefit from this transaction boundary.
+-- ─────────────────────────────────────────────────────────────────────────────
+
+START TRANSACTION;
+
+-- ─────────────────────────────────────────────────────────────────────────────
+-- ENUM-MIG-002: Migrate existing Lead.Status ordinal values → StatusId
+--
+-- LeadLifecycleStatus enum ordinals vs. seeded EnumValues Keys:
+--   0 = New          → 'new'
+--   1 = Working      → 'contacted'   (closest match in seed data)
+--   2 = Nurturing    → 'contacted'   (no exact match – approximate)
+--   3 = Qualified    → 'qualified'
+--   4 = Disqualified → 'unqualified'
+--   5 = Converted    → 'converted'
+-- Unmapped ordinals (ELSE NULL) produce no JOIN match and are left as NULL.
+-- ─────────────────────────────────────────────────────────────────────────────
+
+UPDATE `Leads` l
+JOIN `EnumValues` ev
+    ON ev.CategoryId = @catLeadStatus
+    AND ev.`Key` = CASE l.`Status`
+                       WHEN 0 THEN 'new'
+                       WHEN 1 THEN 'contacted'
+                       WHEN 2 THEN 'contacted'
+                       WHEN 3 THEN 'qualified'
+                       WHEN 4 THEN 'unqualified'
+                       WHEN 5 THEN 'converted'
+                       ELSE NULL
+                   END
+SET l.StatusId = ev.Id
+WHERE l.IsDeleted = 0;
+
+
+-- ─────────────────────────────────────────────────────────────────────────────
+-- ENUM-MIG-007: Migrate existing Opportunity.Stage ordinal values → StageId
+--
+-- OpportunityStage enum ordinals vs. seeded EnumValues Keys:
+--   0 = Discovery     → 'prospecting'
+--   1 = Qualification → 'qualification'
+--   2 = Proposal      → 'proposal'
+--   3 = Negotiation   → 'negotiation'
+--   4 = ClosedWon     → 'closed_won'
+--   5 = ClosedLost    → 'closed_lost'
+-- ─────────────────────────────────────────────────────────────────────────────
+
+UPDATE `Opportunities` o
+JOIN `EnumValues` ev
+    ON ev.CategoryId = @catOpportunityStage
+    AND ev.`Key` = CASE o.`Stage`
+                       WHEN 0 THEN 'prospecting'
+                       WHEN 1 THEN 'qualification'
+                       WHEN 2 THEN 'proposal'
+                       WHEN 3 THEN 'negotiation'
+                       WHEN 4 THEN 'closed_won'
+                       WHEN 5 THEN 'closed_lost'
+                       ELSE NULL
+                   END
+SET o.StageId = ev.Id
+WHERE o.IsDeleted = 0;
+
+
+-- ─────────────────────────────────────────────────────────────────────────────
 -- ENUM-MIG-012: Migrate existing ServiceRequest.Status ordinal values → StatusId
 --
 -- ServiceRequestStatus enum ordinals vs. seeded EnumValues Keys:
---   0 = New              → 'open'    (New maps to open – no 'new' key seeded)
+--   0 = New              → 'open'         (no 'new' key seeded)
 --   1 = Open             → 'open'
 --   2 = InProgress       → 'in_progress'
 --   3 = PendingCustomer  → 'pending'
@@ -168,7 +177,7 @@ CREATE INDEX `IX_ServiceRequests_PriorityId` ON `ServiceRequests`(`PriorityId`);
 
 UPDATE `ServiceRequests` sr
 JOIN `EnumValues` ev
-    ON ev.CategoryId = (SELECT Id FROM `EnumCategories` WHERE Name = 'ServiceRequestStatus' LIMIT 1)
+    ON ev.CategoryId = @catSRStatus
     AND ev.`Key` = CASE sr.`Status`
                        WHEN 0  THEN 'open'
                        WHEN 1  THEN 'open'
@@ -200,7 +209,7 @@ WHERE sr.IsDeleted = 0;
 
 UPDATE `ServiceRequests` sr
 JOIN `EnumValues` ev
-    ON ev.CategoryId = (SELECT Id FROM `EnumCategories` WHERE Name = 'ServiceRequestPriority' LIMIT 1)
+    ON ev.CategoryId = @catSRPriority
     AND ev.`Key` = CASE sr.`Priority`
                        WHEN 0 THEN 'low'
                        WHEN 1 THEN 'medium'
@@ -211,6 +220,8 @@ JOIN `EnumValues` ev
                    END
 SET sr.PriorityId = ev.Id
 WHERE sr.IsDeleted = 0;
+
+COMMIT;
 
 
 -- ─────────────────────────────────────────────────────────────────────────────

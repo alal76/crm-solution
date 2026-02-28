@@ -7,6 +7,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using CRM.Core.Scripting;
 using CRM.Infrastructure.Scripting.Roslyn;
+using CRM.Infrastructure.Scripting.Tools;
 
 namespace CRM.Infrastructure.Scripting;
 
@@ -22,6 +23,15 @@ public static class ScriptingServiceExtensions
         services.AddSingleton<ScriptBreakingChangeDetector>();
         services.AddSingleton<MemoryWatchdog>();
         services.AddSingleton<ICompiledScriptEngine, RoslynScriptEngine>();
+
+        // Tool Bridge
+        services.AddSingleton<ToolRegistry>();
+        services.AddSingleton<IMetricsRecorder, OtelMetricsRecorder>();
+
+        // CRM platform tools (transient — resolved per-invocation)
+        services.AddTransient<GetCustomerTool>();
+        services.AddTransient<SendEmailTool>();
+
         return services;
     }
 }

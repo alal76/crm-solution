@@ -2,8 +2,8 @@
 
 <div align="center">
 
-![Version](https://img.shields.io/badge/version-2.0.0-blue)
-![.NET](https://img.shields.io/badge/.NET-8.0-purple)
+![Version](https://img.shields.io/badge/version-0.603.0-blue)
+![.NET](https://img.shields.io/badge/.NET-10.0-purple)
 ![React](https://img.shields.io/badge/React-18-61DAFB)
 ![License](https://img.shields.io/badge/license-Source%20Available-orange)
 ![Build](https://img.shields.io/badge/build-passing-brightgreen)
@@ -55,6 +55,8 @@ This is a hobby side project not related to my day job - and built on weekends -
 | **Lead Management** | Lead capture, scoring (fit/engagement), qualification workflow |
 | **Quote Management** | Quote generation, line items, pricing, approval workflow |
 | **Product Catalog** | Products, categories, pricing, SKU tracking |
+| **CPQ Bundle Wizard** | 5-step guided bundle configuration UI for complex product configurations |
+| **Dynamic Pricing Rules** | Volume/promotional/customer-tier pricing rules engine (`PricingRulesController`) |
 
 ### Marketing & Campaigns
 
@@ -74,6 +76,7 @@ This is a hobby side project not related to my day job - and built on weekends -
 | **Priority Management** | Escalation levels, VIP customer handling |
 | **Resolution Tracking** | Resolution codes, root cause analysis |
 | **ITSM Module** | Incident, Problem, Change Management, CMDB, Service Catalog, SLA Dashboard ([details](#-itsm-module)) |
+| **ITSM Notifications** | Slack (Block Kit) & Microsoft Teams (Adaptive Cards) notification channels with fan-out dispatcher |
 
 ### Automation & Workflow
 
@@ -109,21 +112,51 @@ This is a hobby side project not related to my day job - and built on weekends -
 
 | Feature | Description |
 |---------|-------------|
-| **Dashboards** | Customizable widgets and KPIs |
-| **Sales Analytics** | Pipeline analysis, forecasting, win/loss |
-| **Marketing Reports** | Campaign performance, ROI analysis |
+| **Dashboards** | Customizable widgets and KPIs with SignalR live updates |
+| **Sales Analytics** | Pipeline analysis, forecasting, win/loss, cohort analysis |
+| **Marketing Reports** | Campaign performance, ROI analysis, lead score distribution widget |
+| **Report Sharing** | Share reports with team members via POST/GET/DELETE `/api/reports/{id}/shares` |
+| **Cohort Analysis** | Customer cohort and segment analytics (`/api/reports/cohort-analysis`, `/customer-segments`) |
 | **Activity Tracking** | User activity logs and audit trails |
+
+### Customer & Partner Portals
+
+| Feature | Description |
+|---------|-------------|
+| **Customer Portal** | Self-service portal for customers — view accounts, submit tickets, track status, file attachments |
+| **Partner Portal** | Deal registration, shared opportunity pipeline, partner resource library |
+| **Portal Authentication** | Separate auth flow, rate-limited login/register/forgot-password |
+| **CSAT / NPS / CES** | Satisfaction surveys triggered on ticket resolution, NPS scoring, token-based anonymous response form |
+
+### Collaboration & Engagement
+
+| Feature | Description |
+|---------|-------------|
+| **Record Comments** | Threaded comments with nested replies on Accounts, Leads, Opportunities, Service Requests |
+| **@Mentions** | User @mention autocomplete in comment composer with avatar hsl colours |
+| **Satisfaction Surveys** | CSAT (star 1-5), NPS (pill 0-10), CES surveys; SatisfactionDashboardPage with aggregate metrics |
+
+### Scripting Engine
+
+| Feature | Description |
+|---------|-------------|
+| **TypeScript Script Engine** | Node.js 20 sidecar (`crm-script-runner`) with `isolated-vm`, SWC AST scanner, `@engine/stdlib` |
+| **Roslyn C# Engine** | Server-side C# scripting via Roslyn; script registry with lifecycle (draft/active/archived) |
+| **Script Contracts** | `@engine/contracts` package defining shared types between host and sandbox |
+| **Vitest Harness** | Unit-test harness for scripts running inside the isolated VM |
 
 ### System Administration
 
 | Feature | Description |
 |---------|-------------|
-| **User Management** | Users, groups, roles, permissions |
+| **User Management** | Users, groups, roles, permissions with RBAC audit logging |
+| **Configurable Enums** | Database-driven enums — admin UI to add/edit/deactivate enum values at runtime |
 | **Field Configuration** | Custom fields per module |
-| **System Settings** | Global configuration options |
-| **LLM Integration** | AI provider configuration (OpenAI, Anthropic, etc.) |
+| **System Settings** | Global configuration options with audit trail |
+| **LLM Integration** | AI provider configuration (OpenAI, Anthropic, Groq, Ollama, Azure, Bedrock, OpenRouter, Gemini) |
 | **Monitoring** | Health checks, performance metrics |
-| **Theme Customization** | Light/dark modes, color palettes |
+| **Theme Customization** | Light/dark modes with localStorage persistence, colour palettes |
+| **Audit Log Export** | Export audit logs to CSV/JSON (10k cap), scheduled cleanup job |
 
 ---
 
@@ -192,7 +225,7 @@ The ITSM (IT Service Management) module provides ITIL-aligned processes for mana
 | Component | Technology |
 |-----------|------------|
 | **Framework** | ASP.NET Core 10.0 |
-| **ORM** | Entity Framework Core 8.0 |
+| **ORM** | Entity Framework Core 10.0 |
 | **Real-time** | SignalR |
 | **Logging** | Serilog (structured logging) |
 | **Validation** | FluentValidation |
@@ -230,8 +263,8 @@ The ITSM (IT Service Management) module provides ITIL-aligned processes for mana
 ### Prerequisites
 
 - **Docker** 24.0+ and Docker Compose 2.0+
-- **Node.js** 18+ (for local frontend development)
-- **.NET SDK** 8.0+ (for local backend development)
+- **Node.js** 20+ (for local frontend development)
+- **.NET SDK** 10.0+ (for local backend development)
 
 ### Option 1: Docker Compose (Recommended)
 
@@ -624,6 +657,15 @@ curl -H "Authorization: Bearer <token>" \
 | `/api/quotes` | ✅ | ✅ | ✅ | ✅ |
 | `/api/campaigns` | ✅ | ✅ | ✅ | ✅ |
 | `/api/servicerequests` | ✅ | ✅ | ✅ | ✅ |
+| `/api/comments` | ✅ | ✅ | ✅ | ✅ |
+| `/api/satisfaction` | ✅ | ✅ | ✅ | ✅ |
+| `/api/reports` | ✅ | ✅ | — | — |
+| `/api/reports/{id}/shares` | ✅ | ✅ | — | ✅ |
+| `/api/pricing-rules` | ✅ | ✅ | ✅ | ✅ |
+| `/api/portal/crm` | ✅ | ✅ | ✅ | — |
+| `/api/partner-portal` | ✅ | ✅ | — | — |
+| `/api/agents` | ✅ | ✅ | — | — |
+| `/api/admin/enums` | ✅ | ✅ | ✅ | ✅ |
 | `/api/itsm/incidents` | ✅ | ✅ | ✅ | ✅ |
 | `/api/itsm/problems` | ✅ | ✅ | ✅ | ✅ |
 | `/api/itsm/changes` | ✅ | ✅ | ✅ | ✅ |
@@ -738,33 +780,69 @@ dotnet test --collect:"XPlat Code Coverage"
 
 | Metric | Value |
 |--------|-------|
-| **Version** | 2.0.0 |
-| **Database Tables** | 95+ |
-| **API Controllers** | 35+ |
-| **React Components** | 80+ |
+| **Version** | 0.603.0 |
+| **Database Tables** | 100+ |
+| **API Controllers** | 45+ |
+| **React Components** | 100+ |
 | **Microservices** | 8 |
-| **Backend Unit Tests** | 7,722 passing |
+| **Backend Unit Tests** | 8,000+ passing |
 | **BVT Tests** | 118 / 118 (100%) |
-| **E2E Test Files** | 25+ |
-| **Lines of Code** | 80,000+ |
+| **E2E Test Files** | 30+ |
+| **Lines of Code** | 100,000+ |
+| **ADRs** | 10 (ADR-001 → ADR-010) |
 
 ---
 
-## 🔄 Recent Updates (v2.0.0)
+## 🔄 Recent Updates (v0.603.0 — February 2026)
 
+### 🆕 New Modules & Features
+- ✅ **TypeScript Script Engine Sidecar** (`crm-script-runner`) — Node.js 20 + `isolated-vm`, SWC AST scanner, `@engine/stdlib` / `@engine/contracts`, Vitest harness, Docker Compose sidecar (SARCH-030→038)
+- ✅ **Roslyn C# Script Engine** — Script registry with full lifecycle (draft/active/archived), server-side C# execution (SARCH-001→029)
+- ✅ **Customer Portal** (`/api/portal/crm`) — Self-service ticket submission, file attachments (10 MB), profile management, CSAT trigger hooks (PORTAL-014→043)
+- ✅ **Partner Portal** (`/api/partner-portal`) — Deal registration, shared opportunity pipeline, resource library
+- ✅ **CSAT / NPS / CES Surveys** — `SurveyResponseForm`, token-based anonymous responses, `SatisfactionDashboardPage`, 15 unit tests
+- ✅ **Record Comments & @Mentions** — Threaded comments, nested replies, @mention autocomplete on Accounts / Leads / Opportunities / Service Requests
+- ✅ **Configurable Enums** — Database-driven enum management; admin CRUD UI to add/edit/deactivate values at runtime without code changes
+- ✅ **Dynamic Pricing Rules Engine** — Volume, promotional, and customer-tier pricing (`PricingRulesController`)
+- ✅ **CPQ Bundle Wizard** — 5-step guided product-bundle configuration UI
+- ✅ **ZIP / GeoNames Import** — Admin Master Data panel: GeoNames (all / per-country), CSV upload with progress bar and polling
+- ✅ **Report Sharing** — `POST/GET/DELETE /api/reports/{id}/shares`, `ReportShareDialog.tsx`, EF migration
+- ✅ **SignalR Live Dashboard Hub** — `DashboardHub` at `/hubs/dashboard`, `useDashboardRealtime.ts` hook
+- ✅ **Cohort Analysis** — `POST /api/reports/cohort-analysis` + `/customer-segments`, `ReportCohortType` / `CohortMetricType` / `SegmentBy` enums
+
+### 🤖 AI & Agents
+- ✅ **AI Lead Scoring** — `LeadScoringController` + Semantic Kernel agent; supports Groq as default provider via `ILLMService`
+- ✅ **Groq Provider** — `CrmChatCompletionConnector` resolves model from `LLMProviders.DefaultProvider`
+- ✅ **12 Semantic Kernel Agents** — CRM AI agents (Lead Scoring, Support Triage, etc.) with Feature Flag governance
+
+### 🔔 Notifications & Integrations
+- ✅ **Slack ITSM Notifications** — Block Kit formatting, `SlackItsmNotificationService`
+- ✅ **Teams ITSM Notifications** — Adaptive Cards, `TeamsItsmNotificationService`
+- ✅ **Fan-out Dispatcher** — `ItsmNotificationDispatcher` fans to `IEnumerable<IItsmNotificationChannel>` via `Task.WhenAll` with per-channel error isolation
+- ✅ **Slack & Teams Notification Providers** — `SlackNotificationProvider` (Block Kit), `TeamsNotificationProvider` (Adaptive Cards)
+
+### 🏗 Architecture & Quality
+- ✅ **SonarCloud Remediation** — 78 bugs + 64 security vulnerabilities resolved; hotspot suppress rules added
+- ✅ **10 ADRs** (ADR-001 → ADR-010) covering architecture decisions and scripting engine design
+- ✅ **RBAC Navigation** — `NavigationConfigService` conditionally adds ITSM/Marketing nav items via Feature Manager
+- ✅ **Audit Log Export** — `AuditLogExportService` (CSV/JSON, 10 k cap), `AuditLogCleanupJob`, `IX_AuditLogs_CreatedAt` index
+- ✅ **Usage Record Batch Buffer** — `UsageRecordBatchBuffer` (ConcurrentQueue, Singleton) + 30 s flush `UsageRecordBatchHostedService`
+- ✅ **BillingTimezoneService** — DST-aware UTC conversion for billing operations
+- ✅ **Dunning Scheduler** — `DunningSchedulerService` (IHostedService, 4 h interval), grace period, escalation emails
+- ✅ **KnowledgeBase Search Index** — `KnowledgeBaseSearchIndexService` with Meilisearch schema (6 searchable, 9 filterable attrs)
+- ✅ **Dark Mode Toggle** with `localStorage` persistence; sidebar collapse persisted; Recent Items dropdown in AppBar
+- ✅ **WCAG Accessibility** — ARIA labels and keyboard navigation improvements across core pages
+
+### Previously Completed (included for reference)
 - ✅ **ITSM Module** — Incident, Problem, Change Management, CMDB, Service Catalog, SLA Dashboard
-- ✅ **7 ITSM Backend Services** + ITSM Dashboard analytics
-- ✅ **8 ITSM API Controllers** with full CRUD and workflow endpoints
-- ✅ **13 ITSM Frontend Pages** under `/itsm/*` routes
-- ✅ **7,722 backend tests passing**, 118/118 BVT at 100%
-- ✅ Pluggable Architecture — 7 provider categories fully implemented
-- ✅ Microservices architecture with 8 services
-- ✅ SignalR real-time notifications
-- ✅ Multi-user concurrent editing support
-- ✅ Campaign execution with A/B testing
-- ✅ Relationship management module
-- ✅ LLM provider integration (Ollama, OpenAI, Azure, Anthropic, Bedrock, OpenRouter)
-- ✅ Production deployment scripts
+- ✅ **8 ITSM API Controllers**, 13 ITSM frontend pages, 7 ITSM backend services
+- ✅ Pluggable Architecture — 7 provider categories (Search, Chat, Notifications, E-Signatures, Analytics, AI, Integrations)
+- ✅ Microservices architecture with 8 services and YARP API gateway
+- ✅ Campaign execution with A/B testing, conversion tracking
+- ✅ Relationship management, territory management, interaction tracking
+- ✅ LLM provider integration (Ollama, OpenAI, Azure, Anthropic, Bedrock, OpenRouter, Gemini, Groq)
+- ✅ SignalR real-time notifications and live dashboard updates
+- ✅ Multi-user concurrent editing with optimistic concurrency (`RowVersion`)
 
 ---
 
@@ -860,7 +938,7 @@ All third-party components used in this solution are open source with permissive
 
 <div align="center">
 
-**Built with ❤️ using .NET Core 8 and React 18**
+**Built with ❤️ using .NET 10 and React 18**
 
 [Report Bug](https://github.com/alal76/crm-solution/issues) • [Request Feature](https://github.com/alal76/crm-solution/issues)
 

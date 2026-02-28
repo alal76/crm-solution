@@ -546,15 +546,15 @@ Phase 6 — Designer Integration & Navigation (✅ COMPLETE — Feb 26, 2026):
 
 | ID | Priority | Description | Status |
 |----|----------|-------------|--------|
-| SARCH-039 | P0 | **`IToolInvoker` interface** — `Task<ToolResult<TResult>> CallAsync<TResult>(string toolName, object parameters, CancellationToken)` — permission-gated call to registered platform tools from within a script execution | Not Started |
-| SARCH-040 | P0 | **`ToolRegistry`** — `services.AddScriptTool("GetActiveCustomers", ...)` registration pattern in DI; stores `ToolDescriptor` (name, permissions required, delegate); auto-discovered via `[ScriptTool]` attribute on CRM service methods | Not Started |
-| SARCH-041 | P0 | **`ToolBridgeInvoker : IToolInvoker`** — validates `ScriptDefinition.Permissions` includes required permission; checks SoD rules; calls the registered tool delegate; records `ToolCallAuditEntry` (scriptId, toolName, callerId, durationMs, inputHash, outputHash); applies per-tool rate limit; circuit breaker via Polly | Not Started |
-| SARCH-042 | P0 | **`IStateAccessor` implementation** — per-execution key-value store backed by Redis (`HSET execution:{correlationId} key value`); TTL = workflow instance lifetime; scripts access via `ctx.state.get(key)` / `ctx.state.set(key, value)` | Not Started |
-| SARCH-043 | P0 | **`ISecretAccessor` implementation** — reads from `IConfiguration` + Azure Key Vault (or local `secrets.json` in dev); scripts access `ctx.secrets.get("ApiKey")` — key must be declared in `ScriptDefinition.RequiredSecrets` list | Not Started |
-| SARCH-044 | P1 | **`IMetricsRecorder` implementation** — records custom metrics from scripts as OTel custom counters; `ctx.metrics.increment("custom.counter", 1, { tag: value })` | Not Started |
-| SARCH-045 | P1 | **Tool Bridge for TypeScript** — `isolated-vm` `Reference` callbacks marshalled through crm-script-runner via async message to C# `ToolBridgeInvoker` and back; JSON serialized | Not Started |
-| SARCH-046 | P1 | **Register CRM platform tools** — annotate/register core CRM service methods as Script Tools: `GetCustomerById`, `GetActiveLeads`, `CreateServiceRequest`, `GetKnowledgeArticle`, `LlmComplete` (AI call), `SendEmail`, `GetOpportunities`, `UpdateLeadStatus` | Not Started |
-| SARCH-047 | P1 | **Unit tests: `ToolBridgeInvokerTests.cs`** — 10+ cases: permission granted/denied, SoD violation, rate limit triggered, circuit breaker open, audit log written, tool not found | Not Started |
+| SARCH-039 | P0 | **`IToolInvoker` interface** — `Task<ToolResult<TResult>> CallAsync<TResult>(string toolName, object parameters, CancellationToken)` — permission-gated call to registered platform tools from within a script execution | ✅ Completed |
+| SARCH-040 | P0 | **`ToolRegistry`** — `services.AddScriptTool("GetActiveCustomers", ...)` registration pattern in DI; stores `ToolDescriptor` (name, permissions required, delegate); auto-discovered via `[ScriptTool]` attribute on CRM service methods | ✅ Completed |
+| SARCH-041 | P0 | **`ToolBridgeInvoker : IToolInvoker`** — validates `ScriptDefinition.Permissions` includes required permission; checks SoD rules; calls the registered tool delegate; records `ToolCallAuditEntry` (scriptId, toolName, callerId, durationMs, inputHash, outputHash); applies per-tool rate limit; circuit breaker via Polly | ✅ Completed |
+| SARCH-042 | P0 | **`IStateAccessor` implementation** — per-execution key-value store backed by Redis (`HSET execution:{correlationId} key value`); TTL = workflow instance lifetime; scripts access via `ctx.state.get(key)` / `ctx.state.set(key, value)` | ✅ Completed |
+| SARCH-043 | P0 | **`ISecretAccessor` implementation** — reads from `IConfiguration` + Azure Key Vault (or local `secrets.json` in dev); scripts access `ctx.secrets.get("ApiKey")` — key must be declared in `ScriptDefinition.RequiredSecrets` list | ✅ Completed |
+| SARCH-044 | P1 | **`IMetricsRecorder` implementation** — records custom metrics from scripts as OTel custom counters; `ctx.metrics.increment("custom.counter", 1, { tag: value })` | ✅ Completed |
+| SARCH-045 | P1 | **Tool Bridge for TypeScript** — `isolated-vm` `Reference` callbacks marshalled through crm-script-runner via async message to C# `ToolBridgeInvoker` and back; JSON serialized | ✅ Completed |
+| SARCH-046 | P1 | **Register CRM platform tools** — annotate/register core CRM service methods as Script Tools: `GetCustomerById`, `GetActiveLeads`, `CreateServiceRequest`, `GetKnowledgeArticle`, `LlmComplete` (AI call), `SendEmail`, `GetOpportunities`, `UpdateLeadStatus` | ✅ Completed |
+| SARCH-047 | P1 | **Unit tests: `ToolBridgeInvokerTests.cs`** — 10+ cases: permission granted/denied, SoD violation, rate limit triggered, circuit breaker open, audit log written, tool not found | ✅ Completed |
 
 ### Phase 5 — Workflow Engine: YAML WDL + Full Step Types (Weeks 9–12)
 
@@ -620,7 +620,7 @@ Phase 6 — Designer Integration & Navigation (✅ COMPLETE — Feb 26, 2026):
 | ID | Priority | Description | Status |
 |----|----------|-------------|--------|
 | SARCH-087 | P0 | Unit tests: `RoslynScriptEngineTests.cs` — 12+ cases (maps to SARCH-029) | Not Started |
-| SARCH-088 | P0 | Unit tests: `ToolBridgeInvokerTests.cs` — 10+ cases (maps to SARCH-047) | Not Started |
+| SARCH-088 | P0 | Unit tests: `ToolBridgeInvokerTests.cs` — 10+ cases (maps to SARCH-047) | ✅ Completed |
 | SARCH-089 | P0 | Unit tests: `TypeScriptScriptEngineTests.cs` — 8+ cases (maps to SARCH-038) | ✅ Completed |
 | SARCH-090 | P0 | Unit tests: `AgentLifecycleHookTests.cs` — 8 hook invocations, blocked action, budget exceeded, guardrail violation | Not Started |
 | SARCH-091 | P1 | Integration tests: `WorkflowWDLIntegrationTests.cs` — parse YAML → execute plan → assert step outputs; test all 8 step types | Not Started |
