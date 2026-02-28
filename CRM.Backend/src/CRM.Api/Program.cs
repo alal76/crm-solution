@@ -1090,6 +1090,7 @@ builder.Services.AddSingleton<CRM.Infrastructure.Services.Search.ISearchAnalytic
 builder.Services.AddScoped<IPortalAuthService, PortalAuthService>();
 builder.Services.AddScoped<IPortalService, PortalService>();
 builder.Services.AddScoped<IPortalAdminService, PortalAdminService>();
+builder.Services.AddScoped<IPartnerPortalService, PartnerPortalService>(); // PORTAL-025
 
 // Configurable Enums (ENUM-BE-012)
 builder.Services.AddScoped<IEnumManagementService, EnumManagementService>();

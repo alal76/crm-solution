@@ -123,6 +123,16 @@ public class PortalService : IPortalService
         _db.ServiceRequests.Add(sr);
         await _db.SaveChangesAsync(ct);
 
+        // PORTAL-020: Ticket confirmation email (best-effort)
+        // TODO: Inject INotificationPort or IEmailService and send ticket confirmation:
+        // try
+        // {
+        //     await _emailService.SendAsync(new EmailMessage { To = portalUser.Email,
+        //         Subject = $"Ticket {ticketNumber} created",
+        //         Body = $"Your support ticket has been created. Reference: {ticketNumber}" });
+        // }
+        // catch (Exception ex) { _logger.LogWarning(ex, "Failed to send ticket confirmation email"); }
+
         _logger.LogInformation("Portal ticket {TicketNumber} created by user {Email}", ticketNumber, portalUser.Email);
         return MapTicket(sr);
     }
@@ -271,6 +281,152 @@ public class PortalService : IPortalService
         };
     }
 
+    // ── Profile (PORTAL-019) ───────────────────────────────────────────────────
+
+    public async Task<PortalUserDto> GetProfileAsync(int portalUserId, CancellationToken ct = default)
+    {
+        var user = await _db.PortalUsers
+            .AsNoTracking()
+            .FirstOrDefaultAsync(u => u.Id == portalUserId && !u.IsDeleted, ct)
+            ?? throw new InvalidOperationException("Portal user not found.");
+        return MapUser(user);
+    }
+
+    public async Task<PortalUserDto> UpdateProfileAsync(int portalUserId, UpdatePortalProfileDto dto, CancellationToken ct = default)
+    {
+        var user = await _db.PortalUsers
+            .FirstOrDefaultAsync(u => u.Id == portalUserId && !u.IsDeleted, ct)
+            ?? throw new InvalidOperationException("Portal user not found.");
+
+        if (dto.DisplayName != null)
+            user.DisplayName = dto.DisplayName;
+
+        // TODO: Phone field to be added to PortalUser entity in a future migration (PORTAL-019)
+        user.UpdatedAt = DateTime.UtcNow;
+        await _db.SaveChangesAsync(ct);
+        return MapUser(user);
+    }
+
+    public async Task ChangePasswordAsync(int portalUserId, ChangePortalPasswordDto dto, CancellationToken ct = default)
+    {
+        var user = await _db.PortalUsers
+            .FirstOrDefaultAsync(u => u.Id == portalUserId && !u.IsDeleted, ct)
+            ?? throw new InvalidOperationException("Portal user not found.");
+
+        if (!BCrypt.Net.BCrypt.Verify(dto.CurrentPassword, user.PasswordHash))
+            throw new InvalidOperationException("Current password is incorrect.");
+
+        user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.NewPassword);
+        user.UpdatedAt = DateTime.UtcNow;
+        await _db.SaveChangesAsync(ct);
+        _logger.LogInformation("Portal user {Id} changed their password", portalUserId);
+    }
+
+    // ── Attachments (PORTAL-022) ───────────────────────────────────────────────
+
+    public async Task<PortalAttachmentDto> UploadAttachmentAsync(
+        int ticketId, int portalUserId, string fileName, string contentType,
+        System.IO.Stream fileStream, long fileSize, CancellationToken ct = default)
+    {
+        if (fileSize > 10_485_760)
+            throw new InvalidOperationException("File size exceeds the 10 MB limit.");
+
+        var portalUser = await _db.PortalUsers.AsNoTracking()
+            .FirstOrDefaultAsync(u => u.Id == portalUserId && !u.IsDeleted, ct)
+            ?? throw new InvalidOperationException("Portal user not found.");
+
+        var ticketExists = await _db.ServiceRequests.AsNoTracking()
+            .AnyAsync(s => s.Id == ticketId && !s.IsDeleted &&
+                           s.RequesterEmail == portalUser.Email, ct);
+        if (!ticketExists)
+            throw new InvalidOperationException("Ticket not found or access denied.");
+
+        var safeFileName = System.IO.Path.GetFileName(fileName);
+        var uploadDir = System.IO.Path.Combine("wwwroot", "portal-attachments", ticketId.ToString());
+        System.IO.Directory.CreateDirectory(uploadDir);
+
+        var timestampedName = $"{DateTime.UtcNow:yyyyMMddHHmmss}_{safeFileName}";
+        var filePath = System.IO.Path.Combine(uploadDir, timestampedName);
+        await using (var fs = System.IO.File.Create(filePath))
+            await fileStream.CopyToAsync(fs, ct);
+
+        _logger.LogInformation("Attachment {FileName} uploaded to ticket {TicketId} by portal user {UserId}",
+            fileName, ticketId, portalUserId);
+
+        return new PortalAttachmentDto
+        {
+            FileName = safeFileName,
+            FileSize = fileSize,
+            ContentType = contentType,
+            UploadedAt = DateTime.UtcNow,
+            DownloadUrl = $"/api/portal/tickets/{ticketId}/attachments/{Uri.EscapeDataString(timestampedName)}"
+        };
+    }
+
+    public async Task<IEnumerable<PortalAttachmentDto>> GetAttachmentsAsync(
+        int ticketId, int portalUserId, CancellationToken ct = default)
+    {
+        var portalUser = await _db.PortalUsers.AsNoTracking()
+            .FirstOrDefaultAsync(u => u.Id == portalUserId && !u.IsDeleted, ct);
+        if (portalUser == null) return Enumerable.Empty<PortalAttachmentDto>();
+
+        var ticketExists = await _db.ServiceRequests.AsNoTracking()
+            .AnyAsync(s => s.Id == ticketId && !s.IsDeleted &&
+                           s.RequesterEmail == portalUser.Email, ct);
+        if (!ticketExists) return Enumerable.Empty<PortalAttachmentDto>();
+
+        var dir = System.IO.Path.Combine("wwwroot", "portal-attachments", ticketId.ToString());
+        if (!System.IO.Directory.Exists(dir))
+            return Enumerable.Empty<PortalAttachmentDto>();
+
+        return System.IO.Directory.GetFiles(dir)
+            .Select(f =>
+            {
+                var info = new System.IO.FileInfo(f);
+                return new PortalAttachmentDto
+                {
+                    FileName = info.Name,
+                    FileSize = info.Length,
+                    ContentType = "application/octet-stream",
+                    UploadedAt = info.CreationTimeUtc,
+                    DownloadUrl = $"/api/portal/tickets/{ticketId}/attachments/{Uri.EscapeDataString(info.Name)}"
+                };
+            })
+            .ToList();
+    }
+
+    // ── Cancel (PORTAL-023) ────────────────────────────────────────────────────
+
+    public async Task CancelTicketAsync(int ticketId, int portalUserId, CancellationToken ct = default)
+    {
+        var portalUser = await _db.PortalUsers
+            .FirstOrDefaultAsync(u => u.Id == portalUserId && !u.IsDeleted, ct)
+            ?? throw new InvalidOperationException("Portal user not found.");
+
+        var sr = await _db.ServiceRequests
+            .FirstOrDefaultAsync(s => s.Id == ticketId && !s.IsDeleted &&
+                                      s.RequesterEmail == portalUser.Email, ct)
+            ?? throw new InvalidOperationException("Ticket not found or access denied.");
+
+        if (sr.Status == ServiceRequestStatus.Closed ||
+            sr.Status == ServiceRequestStatus.Resolved ||
+            sr.Status == ServiceRequestStatus.Cancelled)
+        {
+            throw new InvalidOperationException(
+                $"Ticket cannot be cancelled \u2014 current status is '{sr.Status}'.");
+        }
+
+        sr.Status = ServiceRequestStatus.Cancelled;
+        sr.UpdatedAt = DateTime.UtcNow;
+        await _db.SaveChangesAsync(ct);
+
+        _logger.LogInformation("Portal user {UserId} cancelled ticket {TicketNumber}",
+            portalUserId, sr.TicketNumber);
+
+        // PORTAL-024: CSAT is not triggered on cancellation, only on Resolved.
+        // TODO: Inject ISatisfactionService and call CreateSurveyAsync when ticket is Resolved.
+    }
+
     // ── Config ────────────────────────────────────────────────────────────────
 
     public async Task<PortalConfigDto> GetConfigAsync(CancellationToken ct = default)
@@ -307,5 +463,17 @@ public class PortalService : IPortalService
         PrimaryColor = c.PrimaryColor,
         PortalTitle = c.PortalTitle,
         AllowedDomains = c.AllowedDomains
+    };
+
+    private static PortalUserDto MapUser(PortalUser u) => new PortalUserDto
+    {
+        Id = u.Id,
+        Email = u.Email,
+        DisplayName = u.DisplayName,
+        ContactId = u.ContactId,
+        AccountId = u.AccountId,
+        IsActive = u.IsActive,
+        LastLoginAt = u.LastLoginAt,
+        CreatedAt = u.CreatedAt
     };
 }

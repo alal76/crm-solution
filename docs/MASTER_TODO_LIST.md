@@ -215,28 +215,28 @@
 
 | ID | Priority | Description | Status |
 |----|----------|-------------|--------|
-| PORTAL-014 | P0 | **Fix route conflict:** `CustomerPortalController` and `PortalController` both map to `[Route("api/portal")]` — causes ASP.NET Core route ambiguity exception. Remove or re-route `CustomerPortalController` to `/api/portal/crm` (it uses CRM-staff `[Authorize]` and is superseded by `PortalController`) | Not Started |
-| PORTAL-015 | P0 | **Feature flag gating:** Add `[FeatureGate(FeatureFlags.EnableCustomerPortal)]` to `PortalController` and `PortalAuthController` — endpoints must return 404/503 when `EnableCustomerPortal=false` in feature management | Not Started |
-| PORTAL-016 | P0 | **EF Core migration:** Verify `PortalUsers` and `PortalConfigs` have an explicit named migration file (not only in `ModelSnapshot`). Create and apply `AddCustomerPortalTables` migration if absent | Not Started |
-| PORTAL-017 | P0 | **Default PortalConfig seed:** Add default `PortalConfig` row in `SampleDataSeederService` (IsEnabled=false, AllowSelfRegistration=false, Title="Customer Portal") so `GET /api/portal/config` never returns 404 on fresh install | Not Started |
+| PORTAL-014 | P0 | **Fix route conflict:** `CustomerPortalController` and `PortalController` both map to `[Route("api/portal")]` — causes ASP.NET Core route ambiguity exception. Remove or re-route `CustomerPortalController` to `/api/portal/crm` (it uses CRM-staff `[Authorize]` and is superseded by `PortalController`) | ✅ Completed |
+| PORTAL-015 | P0 | **Feature flag gating:** Add `[FeatureGate(FeatureFlags.EnableCustomerPortal)]` to `PortalController` and `PortalAuthController` — endpoints must return 404/503 when `EnableCustomerPortal=false` in feature management | ✅ Completed |
+| PORTAL-016 | P0 | **EF Core migration:** Verify `PortalUsers` and `PortalConfigs` have an explicit named migration file (not only in `ModelSnapshot`). Create and apply `AddCustomerPortalTables` migration if absent | ✅ Completed |
+| PORTAL-017 | P0 | **Default PortalConfig seed:** Add default `PortalConfig` row in `SampleDataSeederService` (IsEnabled=false, AllowSelfRegistration=false, Title="Customer Portal") so `GET /api/portal/config` never returns 404 on fresh install | ✅ Completed |
 
 #### Remaining Gaps — Backend (P1 Features)
 
 | ID | Priority | Description | Status |
 |----|----------|-------------|--------|
-| PORTAL-018 | P1 | **Portal rate limiting:** Add rules to `appsettings.json` RateLimiting section — `/api/portal/auth/login`: 5/min, `/api/portal/auth/register`: 3/hour, `/api/portal/auth/forgot-password`: 3/hour | Not Started |
-| PORTAL-019 | P1 | **Portal user profile API:** Add `GET /api/portal/profile` and `PUT /api/portal/profile` (update display name, phone) and `POST /api/portal/profile/change-password` to `PortalController` + corresponding `IPortalService` methods | Not Started |
-| PORTAL-020 | P1 | **Portal email notifications:** Wire `INotificationPort` (or `IEmailService`) inside `PortalAuthService.RegisterAsync` to send email-verification email; inside `PortalService.CreateTicketAsync` to send ticket-created confirmation email | Not Started |
-| PORTAL-021 | P1 | **Ticket status change notification:** When CRM agent updates `ServiceRequest.Status`, emit notification to portal user via existing `INotificationPort` (email) and SignalR if portal user is connected | Not Started |
-| PORTAL-022 | P1 | **File attachments on portal tickets:** Add `POST /api/portal/tickets/{id}/attachments` (multipart, max 10 MB) and `GET /api/portal/tickets/{id}/attachments` to `PortalController` + `IPortalService.UploadAttachmentAsync` / `GetAttachmentsAsync` using existing `FileAttachment` or blob store | Not Started |
+| PORTAL-018 | P1 | **Portal rate limiting:** Add rules to `appsettings.json` RateLimiting section — `/api/portal/auth/login`: 5/min, `/api/portal/auth/register`: 3/hour, `/api/portal/auth/forgot-password`: 3/hour | ✅ Completed |
+| PORTAL-019 | P1 | **Portal user profile API:** Add `GET /api/portal/profile` and `PUT /api/portal/profile` (update display name, phone) and `POST /api/portal/profile/change-password` to `PortalController` + corresponding `IPortalService` methods | ✅ Completed |
+| PORTAL-020 | P1 | **Portal email notifications:** Wire `INotificationPort` (or `IEmailService`) inside `PortalAuthService.RegisterAsync` to send email-verification email; inside `PortalService.CreateTicketAsync` to send ticket-created confirmation email | ✅ Completed |
+| PORTAL-021 | P1 | **Ticket status change notification:** When CRM agent updates `ServiceRequest.Status`, emit notification to portal user via existing `INotificationPort` (email) and SignalR if portal user is connected | ✅ Completed |
+| PORTAL-022 | P1 | **File attachments on portal tickets:** Add `POST /api/portal/tickets/{id}/attachments` (multipart, max 10 MB) and `GET /api/portal/tickets/{id}/attachments` to `PortalController` + `IPortalService.UploadAttachmentAsync` / `GetAttachmentsAsync` using existing `FileAttachment` or blob store | ✅ Completed |
 
 #### Remaining Gaps — Backend (P2 Enhancements)
 
 | ID | Priority | Description | Status |
 |----|----------|-------------|--------|
-| PORTAL-023 | P2 | **Ticket cancel endpoint:** `PATCH /api/portal/tickets/{id}/cancel` — portal user cancels their own open ticket (validates ownership, sets status = Cancelled) | Not Started |
-| PORTAL-024 | P2 | **Portal CSAT trigger:** After ticket resolved, call `ISatisfactionService.SendSurveyAsync` linked to portal user's contact record (depends on FEAT-CSAT completion) | Not Started |
-| PORTAL-025 | P2 | **Partner Portal backend:** `PartnerPortalPage.tsx` exists with no API. Create `IPartnerPortalService` + `PartnerPortalController` (`/api/partner-portal/deals`, `/opportunities`, `/resources`) for partner-specific views | Not Started |
+| PORTAL-023 | P2 | **Ticket cancel endpoint:** `PATCH /api/portal/tickets/{id}/cancel` — portal user cancels their own open ticket (validates ownership, sets status = Cancelled) | ✅ Completed |
+| PORTAL-024 | P2 | **Portal CSAT trigger:** After ticket resolved, call `ISatisfactionService.SendSurveyAsync` linked to portal user's contact record (depends on FEAT-CSAT completion) | ✅ Completed |
+| PORTAL-025 | P2 | **Partner Portal backend:** `PartnerPortalPage.tsx` exists with no API. Create `IPartnerPortalService` + `PartnerPortalController` (`/api/partner-portal/deals`, `/opportunities`, `/resources`) for partner-specific views | ✅ Completed |
 
 #### Remaining Gaps — Frontend (P0 Blockers)
 

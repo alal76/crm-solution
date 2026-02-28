@@ -30,4 +30,14 @@ public interface IPortalService
 
     // ── Config ────────────────────────────────────────────────────────────────
     Task<PortalConfigDto> GetConfigAsync(CancellationToken ct = default);
-}
+    // ── Profile (PORTAL-019) ─────────────────────────────────────────────────────
+    Task<PortalUserDto> GetProfileAsync(int portalUserId, CancellationToken ct = default);
+    Task<PortalUserDto> UpdateProfileAsync(int portalUserId, UpdatePortalProfileDto dto, CancellationToken ct = default);
+    Task ChangePasswordAsync(int portalUserId, ChangePortalPasswordDto dto, CancellationToken ct = default);
+
+    // ── Attachments (PORTAL-022) ───────────────────────────────────────────────────
+    Task<PortalAttachmentDto> UploadAttachmentAsync(int ticketId, int portalUserId, string fileName, string contentType, System.IO.Stream fileStream, long fileSize, CancellationToken ct = default);
+    Task<IEnumerable<PortalAttachmentDto>> GetAttachmentsAsync(int ticketId, int portalUserId, CancellationToken ct = default);
+
+    // ── Cancel (PORTAL-023) ──────────────────────────────────────────────────────────
+    Task CancelTicketAsync(int ticketId, int portalUserId, CancellationToken ct = default);}
