@@ -64,7 +64,14 @@ WORKDIR /app
 # Install Python dependencies first (layer caching)
 COPY requirements.txt .
 RUN pip install --no-cache-dir --upgrade pip \
-    && pip install --no-cache-dir -r requirements.txt
+    && pip install --no-cache-dir -r requirements.txt \
+    && pip install --no-cache-dir \
+       azure-identity \
+       azure-mgmt-compute \
+       azure-mgmt-containerinstance \
+       boto3 \
+       google-cloud-compute \
+       google-cloud-container
 
 # Copy application source
 COPY . .

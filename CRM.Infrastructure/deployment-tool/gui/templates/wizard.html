@@ -445,19 +445,134 @@
                 <!-- Cloud Discovery -->
                 <div id="cloudDiscovery" class="discovery-config" style="display: none;">
                     <h5 class="mb-3">Cloud Configuration</h5>
-                    <div class="alert alert-warning">
-                        <i class="bi bi-exclamation-triangle me-2"></i>
-                        Cloud discovery requires appropriate credentials and permissions to be configured.
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <label class="form-label">Region/Location</label>
-                            <input type="text" class="form-control" id="discoveryRegion" placeholder="us-east-1">
+
+                    <!-- SDK missing banner -->
+                    <div id="sdkMissingBanner" class="alert alert-warning d-none">
+                        <div class="d-flex align-items-start gap-3">
+                            <i class="bi bi-exclamation-triangle-fill fs-4 mt-1"></i>
+                            <div class="flex-grow-1">
+                                <strong>Cloud SDK not installed</strong>
+                                <p class="mb-2 mt-1 small" id="sdkMissingMsg"></p>
+                                <button class="btn btn-sm btn-warning" onclick="installCloudSdk()" id="btnInstallSdk">
+                                    <i class="bi bi-download me-1"></i>Install SDK Now
+                                </button>
+                                <div id="sdkInstallProgress" class="mt-2 d-none">
+                                    <div class="progress mb-1" style="height:6px;">
+                                        <div id="sdkInstallBar" class="progress-bar progress-bar-striped progress-bar-animated" style="width:100%"></div>
+                                    </div>
+                                    <pre id="sdkInstallLog" class="bg-dark text-light p-2 rounded small" style="max-height:120px;overflow-y:auto;font-size:0.75rem;"></pre>
+                                </div>
+                            </div>
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label" id="discoveryResourceGroupLabel">Resource Group / Project</label>
-                            <input type="text" class="form-control" id="discoveryResourceGroup" placeholder="rg-crm-prod">
-                            <small class="text-muted" id="discoveryResourceGroupHint"></small>
+                    </div>
+
+                    <!-- Azure Credentials -->
+                    <div id="azureCredsSection" class="d-none">
+                        <div class="row mb-2">
+                            <div class="col-12">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="azureUseCli" onchange="toggleAzureCreds()">
+                                    <label class="form-check-label" for="azureUseCli">Use Azure CLI credentials (already logged in with <code>az login</code>)</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="azureSpSection">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label" for="discAzureSubId">Subscription ID <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="discAzureSubId" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label" for="discAzureTenantId">Tenant ID</label>
+                                    <input type="text" class="form-control" id="discAzureTenantId" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label" for="discAzureClientId">Client ID <span class="text-muted small">(Service Principal App ID)</span></label>
+                                    <input type="text" class="form-control" id="discAzureClientId" placeholder="Leave blank for CLI / Managed Identity">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label" for="discAzureClientSecret">Client Secret</label>
+                                    <input type="password" class="form-control" id="discAzureClientSecret" placeholder="Service principal secret">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row g-3 mt-1">
+                            <div class="col-md-6">
+                                <label class="form-label" for="discAzureRegion">Region / Location</label>
+                                <input type="text" class="form-control" id="discAzureRegion" placeholder="eastus" value="eastus">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" for="discAzureRg">Resource Group <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="discAzureRg" placeholder="rg-crm-prod" value="rg-crm-prod">
+                                <small class="text-muted">Naming: rg-crm-{env} — e.g. rg-crm-dev, rg-crm-prod</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- AWS Credentials -->
+                    <div id="awsCredsSection" class="d-none">
+                        <div class="row mb-2">
+                            <div class="col-12">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="awsUseProfile" onchange="toggleAwsCreds()">
+                                    <label class="form-check-label" for="awsUseProfile">Use AWS CLI profile (configured via <code>aws configure</code>)</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="awsKeySection">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label" for="discAwsAccessKey">Access Key ID</label>
+                                    <input type="text" class="form-control font-monospace" id="discAwsAccessKey" placeholder="AKIAIOSFODNN7EXAMPLE">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label" for="discAwsSecretKey">Secret Access Key</label>
+                                    <input type="password" class="form-control" id="discAwsSecretKey" placeholder="wJalrXUtnFEMI/K7MDENG...">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label" for="discAwsSessionToken">Session Token <span class="text-muted small">(optional)</span></label>
+                                    <input type="password" class="form-control" id="discAwsSessionToken" placeholder="For temporary credentials only">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row g-3 mt-1">
+                            <div class="col-md-6">
+                                <label class="form-label" for="discAwsRegion">Region</label>
+                                <input type="text" class="form-control" id="discAwsRegion" placeholder="us-east-1" value="us-east-1">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label" for="discAwsVpc">VPC / Cluster Name</label>
+                                <input type="text" class="form-control" id="discAwsVpc" placeholder="crm-prod-vpc" value="crm-prod-vpc">
+                                <small class="text-muted">Naming: crm-{env}-vpc</small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- GCP Credentials -->
+                    <div id="gcpCredsSection" class="d-none">
+                        <div class="row mb-2">
+                            <div class="col-12">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="gcpUseAdc" onchange="toggleGcpCreds()">
+                                    <label class="form-check-label" for="gcpUseAdc">Use Application Default Credentials (<code>gcloud auth application-default login</code>)</label>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="gcpSaSection">
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label" for="discGcpProjectId">Project ID <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="discGcpProjectId" placeholder="crm-prod" value="crm-prod">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label" for="discGcpRegion">Region / Zone</label>
+                                    <input type="text" class="form-control" id="discGcpRegion" placeholder="us-central1" value="us-central1">
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label" for="discGcpSaJson">Service Account JSON <span class="text-muted small">(paste key contents — leave blank to use ADC)</span></label>
+                                    <textarea class="form-control font-monospace" id="discGcpSaJson" rows="4" placeholder='{"type":"service_account","project_id":"crm-prod",...}'></textarea>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -1507,44 +1622,124 @@
         // Handle platform selection
         function onPlatformChange() {
             const platform = document.getElementById('discoveryPlatform').value;
-            const onPremDiv = document.getElementById('onPremDiscovery');
-            const cloudDiv = document.getElementById('cloudDiscovery');
-            const regionEl = document.getElementById('discoveryRegion');
-            const rgEl = document.getElementById('discoveryResourceGroup');
-            const rgLabel = document.getElementById('discoveryResourceGroupLabel');
-            const rgHint = document.getElementById('discoveryResourceGroupHint');
+            const onPremDiv  = document.getElementById('onPremDiscovery');
+            const cloudDiv   = document.getElementById('cloudDiscovery');
+
+            // Hide everything first
+            onPremDiv.style.display = 'none';
+            cloudDiv.style.display  = 'none';
+            ['azureCredsSection','awsCredsSection','gcpCredsSection'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.classList.add('d-none');
+            });
+            const banner = document.getElementById('sdkMissingBanner');
+            if (banner) banner.classList.add('d-none');
 
             if (platform === 'on_premises') {
                 onPremDiv.style.display = 'block';
-                cloudDiv.style.display = 'none';
-            } else if (platform === 'azure') {
-                onPremDiv.style.display = 'none';
-                cloudDiv.style.display = 'block';
-                regionEl.placeholder = 'eastus';
-                rgLabel.textContent = 'Resource Group';
-                rgEl.placeholder = 'rg-crm-prod';
-                rgEl.value = rgEl.value || 'rg-crm-prod';
-                rgHint.textContent = 'Naming: rg-crm-{env} — e.g. rg-crm-dev, rg-crm-prod';
-            } else if (platform === 'aws') {
-                onPremDiv.style.display = 'none';
-                cloudDiv.style.display = 'block';
-                regionEl.placeholder = 'us-east-1';
-                rgLabel.textContent = 'VPC / Cluster Name';
-                rgEl.placeholder = 'crm-prod-vpc';
-                rgEl.value = rgEl.value || 'crm-prod-vpc';
-                rgHint.textContent = 'Naming: crm-{env}-vpc — e.g. crm-dev-vpc, crm-prod-vpc';
-            } else if (platform === 'gcp') {
-                onPremDiv.style.display = 'none';
-                cloudDiv.style.display = 'block';
-                regionEl.placeholder = 'us-central1';
-                rgLabel.textContent = 'Project ID';
-                rgEl.placeholder = 'crm-prod';
-                rgEl.value = rgEl.value || 'crm-prod';
-                rgHint.textContent = 'Naming: crm-{env} — e.g. crm-dev, crm-prod';
-            } else {
-                onPremDiv.style.display = 'none';
-                cloudDiv.style.display = 'none';
+                return;
             }
+            if (!platform) return;
+
+            cloudDiv.style.display = 'block';
+            const sectionMap = { azure: 'azureCredsSection', aws: 'awsCredsSection', gcp: 'gcpCredsSection' };
+            const section = document.getElementById(sectionMap[platform]);
+            if (section) section.classList.remove('d-none');
+
+            // Check SDK availability asynchronously
+            fetch('/api/discovery/platforms')
+                .then(r => r.json())
+                .then(data => {
+                    const avail = data.availability || {};
+                    const missing = (data.missing_packages || {})[platform] || [];
+                    if (!avail[platform] && missing.length > 0) {
+                        const sdkNames = { azure: 'Azure SDK', aws: 'AWS SDK (boto3)', gcp: 'GCP SDK' };
+                        const sdkPkg  = { azure: 'azure-identity azure-mgmt-compute azure-mgmt-containerinstance', aws: 'boto3', gcp: 'google-cloud-compute google-cloud-container' };
+                        const msg = document.getElementById('sdkMissingMsg');
+                        if (msg) msg.textContent = `${sdkNames[platform]} is not installed. Click below to install it automatically, or run: pip install ${sdkPkg[platform]}`;
+                        if (banner) {
+                            banner.dataset.platform = platform;
+                            banner.classList.remove('d-none');
+                        }
+                    }
+                })
+                .catch(() => {/* no SDK check available — keep form usable */});
+        }
+
+        // SDK credential toggle helpers
+        function toggleAzureCreds() {
+            const useCli = document.getElementById('azureUseCli').checked;
+            document.getElementById('azureSpSection').style.display = useCli ? 'none' : 'block';
+        }
+        function toggleAwsCreds() {
+            const useProfile = document.getElementById('awsUseProfile').checked;
+            document.getElementById('awsKeySection').style.display = useProfile ? 'none' : 'block';
+        }
+        function toggleGcpCreds() {
+            const useAdc = document.getElementById('gcpUseAdc').checked;
+            document.getElementById('gcpSaSection').style.display = useAdc ? 'none' : 'block';
+        }
+
+        // Install cloud SDK inline with SSE streaming
+        function installCloudSdk() {
+            const banner   = document.getElementById('sdkMissingBanner');
+            const platform = banner ? banner.dataset.platform : '';
+            if (!platform) return;
+
+            const progress = document.getElementById('sdkInstallProgress');
+            const bar      = document.getElementById('sdkInstallBar');
+            const logEl    = document.getElementById('sdkInstallLog');
+            const btn      = document.getElementById('btnInstallSdk');
+            progress.classList.remove('d-none');
+            if (btn) btn.disabled = true;
+            logEl.textContent = 'Starting SDK installation…\n';
+
+            fetch('/api/setup/install', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ type: 'sdk', key: platform })
+            }).then(response => {
+                if (!response.ok) {
+                    return response.json().then(e => { throw new Error(e.error || response.statusText); });
+                }
+                // Read SSE stream line by line
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = '';
+
+                function readChunk() {
+                    reader.read().then(({ done, value }) => {
+                        if (done) {
+                            bar.classList.remove('progress-bar-animated', 'progress-bar-striped');
+                            bar.classList.add('bg-success');
+                            logEl.textContent += '\n✅ SDK installed! Refresh the platform selection to continue.';
+                            if (banner) banner.classList.add('d-none');
+                            // Re-trigger platform change to re-check availability
+                            onPlatformChange();
+                            return;
+                        }
+                        buffer += decoder.decode(value, { stream: true });
+                        const lines = buffer.split('\n');
+                        buffer = lines.pop();
+                        lines.forEach(line => {
+                            if (line.startsWith('data: ')) {
+                                try {
+                                    const payload = JSON.parse(line.slice(6));
+                                    if (payload.line === '[DONE]') return;
+                                    logEl.textContent += payload.line + '\n';
+                                    logEl.scrollTop = logEl.scrollHeight;
+                                } catch (_) {}
+                            }
+                        });
+                        readChunk();
+                    });
+                }
+                readChunk();
+            }).catch(err => {
+                logEl.textContent += `\n❌ ${err.message}`;
+                bar.classList.add('bg-danger');
+                if (btn) btn.disabled = false;
+            });
         }
 
         // Test connection
@@ -1602,26 +1797,28 @@
                 }
             }
 
-            // Check SDK availability before attempting cloud discovery
-            try {
-                const availResp = await fetch('/api/discovery/platforms');
-                const availData = await availResp.json();
-                if (platform !== 'on_premises' && !availData.availability[platform]) {
-                    const sdkMap = {
-                        azure: 'pip install azure-identity azure-mgmt-compute azure-mgmt-containerinstance',
-                        aws: 'pip install boto3',
-                        gcp: 'pip install google-cloud-compute google-cloud-container'
-                    };
-                    showDiscoveryStatus(
-                        `⚠ SDK not installed for ${platform.toUpperCase()}. ` +
-                        `To enable auto-discovery, run:\n${sdkMap[platform] || 'Install the required SDK'}\n\n` +
-                        `You can still configure ${platform.toUpperCase()} manually using the next steps.`,
-                        'warning'
-                    );
-                    document.getElementById('discoveryStatus').style.whiteSpace = 'pre-line';
+            // Validate cloud credentials before attempting discovery
+            if (platform === 'azure' && !document.getElementById('azureUseCli')?.checked) {
+                const subId = document.getElementById('discAzureSubId')?.value.trim();
+                if (!subId) {
+                    showDiscoveryStatus('Please enter your Azure Subscription ID, or enable "Use Azure CLI credentials".', 'warning');
                     return;
                 }
-            } catch (_) { /* proceed anyway */ }
+            }
+            if (platform === 'aws' && !document.getElementById('awsUseProfile')?.checked) {
+                const key = document.getElementById('discAwsAccessKey')?.value.trim();
+                if (!key) {
+                    showDiscoveryStatus('Please enter your AWS Access Key ID, or enable "Use AWS CLI profile".', 'warning');
+                    return;
+                }
+            }
+            if (platform === 'gcp' && !document.getElementById('gcpUseAdc')?.checked) {
+                const proj = document.getElementById('discGcpProjectId')?.value.trim();
+                if (!proj) {
+                    showDiscoveryStatus('Please enter your GCP Project ID, or enable "Use Application Default Credentials".', 'warning');
+                    return;
+                }
+            }
 
             const config = collectDiscoveryConfig();
             
@@ -1651,18 +1848,40 @@
         function collectDiscoveryConfig() {
             const platform = document.getElementById('discoveryPlatform').value;
             const config = { platform };
-            
+
             if (platform === 'on_premises') {
-                config.host = document.getElementById('discoveryHost').value.trim();
-                config.port = parseInt(document.getElementById('discoveryPort').value) || 22;
-                config.username = document.getElementById('discoveryUsername').value.trim() || 'root';
-                config.auth_method = document.getElementById('discoveryAuthMethod').value;
-                config.password = document.getElementById('discoveryPassword').value;
+                config.host             = document.getElementById('discoveryHost').value.trim();
+                config.port             = parseInt(document.getElementById('discoveryPort').value) || 22;
+                config.username         = document.getElementById('discoveryUsername').value.trim() || 'root';
+                config.auth_method      = document.getElementById('discoveryAuthMethod').value;
+                config.password         = document.getElementById('discoveryPassword').value;
                 config.container_prefix = (document.getElementById('discoveryContainerPrefix').value.trim() || 'crm-');
-                config.network = document.getElementById('discoveryNetwork').value.trim() || 'crm_crm-network';
-            } else if (platform === 'azure' || platform === 'aws' || platform === 'gcp') {
-                config.region = document.getElementById('discoveryRegion').value.trim();
-                config.resource_group = document.getElementById('discoveryResourceGroup').value.trim();
+                config.network          = document.getElementById('discoveryNetwork').value.trim() || 'crm_crm-network';
+            } else if (platform === 'azure') {
+                config.use_cli_auth     = document.getElementById('azureUseCli')?.checked || false;
+                config.subscription_id  = document.getElementById('discAzureSubId')?.value.trim() || '';
+                config.tenant_id        = document.getElementById('discAzureTenantId')?.value.trim() || '';
+                config.client_id        = document.getElementById('discAzureClientId')?.value.trim() || '';
+                config.client_secret    = document.getElementById('discAzureClientSecret')?.value || '';
+                config.region           = document.getElementById('discAzureRegion')?.value.trim() || 'eastus';
+                config.resource_group   = document.getElementById('discAzureRg')?.value.trim() || 'rg-crm-prod';
+            } else if (platform === 'aws') {
+                config.use_profile      = document.getElementById('awsUseProfile')?.checked || false;
+                config.access_key_id    = document.getElementById('discAwsAccessKey')?.value.trim() || '';
+                config.secret_access_key= document.getElementById('discAwsSecretKey')?.value || '';
+                config.session_token    = document.getElementById('discAwsSessionToken')?.value || '';
+                config.region           = document.getElementById('discAwsRegion')?.value.trim() || 'us-east-1';
+                config.resource_group   = document.getElementById('discAwsVpc')?.value.trim() || 'crm-prod-vpc';
+            } else if (platform === 'gcp') {
+                config.use_adc          = document.getElementById('gcpUseAdc')?.checked || false;
+                config.project_id       = document.getElementById('discGcpProjectId')?.value.trim() || '';
+                config.service_account_json = document.getElementById('discGcpSaJson')?.value.trim() || '';
+                config.region           = document.getElementById('discGcpRegion')?.value.trim() || 'us-central1';
+                config.resource_group   = config.project_id;
+            }
+
+            return config;
+        }
             }
             
             return config;

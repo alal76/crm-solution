@@ -409,30 +409,61 @@ class AzureDiscoveryClient(BaseDiscoveryClient):
 
     def __init__(self):
         if not _azure_available():
-            # Attempt on-demand install
             try:
                 from prerequisites import ensure_group_installed
                 if not ensure_group_installed("azure"):
                     raise ImportError("Azure SDK not available. Install with: pip install azure-identity azure-mgmt-compute azure-mgmt-containerinstance")
             except ImportError as orig:
                 raise ImportError("Azure SDK not available. Install with: pip install azure-identity azure-mgmt-compute azure-mgmt-containerinstance") from orig
+
+    def _build_credential(self, config: Dict[str, Any]):
+        """Build Azure credential from explicit config or fall back to DefaultAzureCredential."""
         azure_identity = _lazy_import("azure.identity")
-        self.credential = azure_identity.DefaultAzureCredential()
+        use_cli     = config.get('use_cli_auth', False)
+        tenant_id   = config.get('tenant_id', '').strip()
+        client_id   = config.get('client_id', '').strip()
+        client_secret = config.get('client_secret', '').strip()
+
+        if use_cli:
+            return azure_identity.AzureCliCredential()
+        if client_id and client_secret and tenant_id:
+            return azure_identity.ClientSecretCredential(
+                tenant_id=tenant_id,
+                client_id=client_id,
+                client_secret=client_secret
+            )
+        # Fall back to DefaultAzureCredential (env vars, MSI, CLI, etc.)
+        return azure_identity.DefaultAzureCredential()
+
+    def test_connection(self, config: Dict[str, Any]) -> Dict[str, Any]:
+        """Test Azure connection by requesting a management token."""
+        subscription_id = config.get('subscription_id', '').strip()
+        if not subscription_id:
+            return {"status": "error", "message": "Azure Subscription ID is required"}
+        try:
+            credential = self._build_credential(config)
+            # Validate by requesting a token — fails immediately if creds are wrong
+            token = credential.get_token("https://management.azure.com/.default")
+            if not token or not token.token:
+                return {"status": "error", "message": "Failed to acquire Azure auth token"}
+            return {"status": "success", "message": f"Azure connection successful (subscription: {subscription_id})"}
+        except Exception as exc:
+            return {"status": "error", "message": str(exc)}
 
     def discover_deployment(self, config: Dict[str, Any]) -> DeploymentInfo:
         """Discover Azure deployment."""
-        subscription_id = config.get('subscription_id')
-        resource_group = config.get('resource_group')
-        location = config.get('location')
+        subscription_id = config.get('subscription_id', '').strip()
+        resource_group  = config.get('resource_group', '').strip()
 
         if not subscription_id or not resource_group:
             raise CloudAPIError("Azure subscription_id and resource_group required")
 
+        credential = self._build_credential(config)
         components = []
 
         # Discover VMs
         azure_compute = _lazy_import("azure.mgmt.compute")
-        compute_client = azure_compute.ComputeManagementClient(self.credential, subscription_id)
+        compute_client = azure_compute.ComputeManagementClient(credential, subscription_id)
         vms = compute_client.virtual_machines.list(resource_group)
 
         for vm in vms:
@@ -440,7 +471,7 @@ class AzureDiscoveryClient(BaseDiscoveryClient):
                 component = DeploymentComponent(
                     name=vm.name,
                     type="vm",
-                    status="running",  # Assume running if found
+                    status="running",
                     metadata={
                         "vm_size": vm.hardware_profile.vm_size,
                         "location": vm.location,
@@ -451,7 +482,7 @@ class AzureDiscoveryClient(BaseDiscoveryClient):
 
         # Discover Container Instances
         azure_container = _lazy_import("azure.mgmt.containerinstance")
-        container_client = azure_container.ContainerInstanceManagementClient(self.credential, subscription_id)
+        container_client = azure_container.ContainerInstanceManagementClient(credential, subscription_id)
         containers = container_client.container_groups.list_by_resource_group(resource_group)
 
         for container_group in containers:
@@ -466,9 +497,7 @@ class AzureDiscoveryClient(BaseDiscoveryClient):
                     )
                     components.append(component)
 
-        # Determine architecture
         architecture = "microservices" if len(components) > 3 else "monolithic"
-
         return DeploymentInfo(
             platform="azure",
             architecture=architecture,
@@ -482,32 +511,54 @@ class AWSDiscoveryClient(BaseDiscoveryClient):
 
     def __init__(self):
         if not _aws_available():
-            # Attempt on-demand install
             try:
                 from prerequisites import ensure_group_installed
                 if not ensure_group_installed("aws"):
                     raise ImportError("AWS SDK not available. Install with: pip install boto3")
             except ImportError as orig:
                 raise ImportError("AWS SDK not available. Install with: pip install boto3") from orig
-        _boto3 = _lazy_import("boto3")
-        self.ec2_client = _boto3.client('ec2')
-        self.ecs_client = _boto3.client('ecs')
-        self.rds_client = _boto3.client('rds')
+
+    def _build_session(self, config: Dict[str, Any]):
+        """Build boto3 session from explicit credentials or CLI profile."""
+        boto3 = _lazy_import("boto3")
+        region      = config.get('region', 'us-east-1')
+        use_profile = config.get('use_profile', False)
+        access_key  = config.get('access_key_id', '').strip()
+        secret_key  = config.get('secret_access_key', '').strip()
+        session_tok = config.get('session_token', '').strip() or None
+
+        if use_profile or not access_key:
+            return boto3.Session(region_name=region)
+        return boto3.Session(
+            aws_access_key_id=access_key,
+            aws_secret_access_key=secret_key,
+            aws_session_token=session_tok,
+            region_name=region
+        )
+
+    def test_connection(self, config: Dict[str, Any]) -> Dict[str, Any]:
+        """Test AWS connection using STS get-caller-identity."""
+        try:
+            session = self._build_session(config)
+            sts = session.client('sts')
+            identity = sts.get_caller_identity()
+            return {"status": "success", "message": f"AWS connection successful — Account: {identity.get('Account', 'unknown')}"}
+        except Exception as exc:
+            return {"status": "error", "message": str(exc)}
 
     def discover_deployment(self, config: Dict[str, Any]) -> DeploymentInfo:
         """Discover AWS deployment."""
-        region = config.get('region', 'us-east-1')
+        region  = config.get('region', 'us-east-1')
+        session = self._build_session(config)
 
-        # Update clients with region
-        _boto3 = _lazy_import("boto3")
-        self.ec2_client = _boto3.client('ec2', region_name=region)
-        self.ecs_client = _boto3.client('ecs', region_name=region)
-        self.rds_client = _boto3.client('rds', region_name=region)
+        ec2_client = session.client('ec2', region_name=region)
+        ecs_client = session.client('ecs', region_name=region)
+        rds_client = session.client('rds', region_name=region)
 
         components = []
 
         # Discover EC2 instances
-        response = self.ec2_client.describe_instances(
+        response = ec2_client.describe_instances(
             Filters=[{'Name': 'tag:Name', 'Values': ['*crm*']}]
         )
 
@@ -527,12 +578,12 @@ class AWSDiscoveryClient(BaseDiscoveryClient):
                     components.append(component)
 
         # Discover ECS services
-        clusters = self.ecs_client.list_clusters()['clusterArns']
+        clusters = ecs_client.list_clusters()['clusterArns']
         for cluster_arn in clusters:
             if 'crm' in cluster_arn:
-                services = self.ecs_client.list_services(cluster=cluster_arn)['serviceArns']
+                services = ecs_client.list_services(cluster=cluster_arn)['serviceArns']
                 for service_arn in services:
-                    service = self.ecs_client.describe_services(
+                    service = ecs_client.describe_services(
                         cluster=cluster_arn,
                         services=[service_arn]
                     )['services'][0]
@@ -551,7 +602,7 @@ class AWSDiscoveryClient(BaseDiscoveryClient):
                     components.append(component)
 
         # Discover RDS instances
-        response = self.rds_client.describe_db_instances()
+        response = rds_client.describe_db_instances()
         for db_instance in response['DBInstances']:
             if 'crm' in db_instance['DBInstanceIdentifier']:
                 component = DeploymentComponent(
@@ -582,32 +633,55 @@ class GCPDiscoveryClient(BaseDiscoveryClient):
 
     def __init__(self):
         if not _gcp_available():
-            # Attempt on-demand install
             try:
                 from prerequisites import ensure_group_installed
                 if not ensure_group_installed("gcp"):
                     raise ImportError("GCP SDK not available. Install with: pip install google-cloud-compute google-cloud-container")
             except ImportError as orig:
                 raise ImportError("GCP SDK not available. Install with: pip install google-cloud-compute google-cloud-container") from orig
-        # GCP uses default credentials from environment
+
+    def _build_credentials(self, config: Dict[str, Any]):
+        """Build GCP credentials from service-account JSON or fall back to ADC."""
+        use_adc = config.get('use_adc', False)
+        sa_json = config.get('service_account_json', '').strip()
+        if use_adc or not sa_json:
+            return None  # google-auth will pick up ADC automatically
+        import json as _json
+        google_sa = _lazy_import("google.oauth2.service_account")
+        sa_info = _json.loads(sa_json)
+        return google_sa.Credentials.from_service_account_info(
+            sa_info,
+            scopes=["https://www.googleapis.com/auth/cloud-platform"]
+        )
+
+    def test_connection(self, config: Dict[str, Any]) -> Dict[str, Any]:
+        """Test GCP connection by listing compute zones."""
+        project_id = config.get('project_id', '').strip()
+        if not project_id:
+            return {"status": "error", "message": "GCP Project ID is required"}
+        try:
+            credentials = self._build_credentials(config)
+            _compute_v1 = _lazy_import("google.cloud.compute_v1")
+            zones_client = _compute_v1.ZonesClient(credentials=credentials)
+            next(iter(zones_client.list(project=project_id)), None)
+            return {"status": "success", "message": f"GCP connection successful — Project: {project_id}"}
+        except Exception as exc:
+            return {"status": "error", "message": str(exc)}
 
     def discover_deployment(self, config: Dict[str, Any]) -> DeploymentInfo:
         """Discover GCP deployment."""
-        project_id = config.get('project_id')
-        zone = config.get('zone', 'us-central1-a')
-
+        project_id  = config.get('project_id', '').strip()
+        zone        = config.get('region', 'us-central1') + '-a'
         if not project_id:
             raise CloudAPIError("GCP project_id required")
 
+        credentials = self._build_credentials(config)
         components = []
 
         # Discover Compute Engine instances
         _compute_v1 = _lazy_import("google.cloud.compute_v1")
-        compute_client = _compute_v1.InstancesClient()
-        request = _compute_v1.ListInstancesRequest(
-            project=project_id,
-            zone=zone
-        )
+        compute_client = _compute_v1.InstancesClient(credentials=credentials)
+        request = _compute_v1.ListInstancesRequest(project=project_id, zone=zone)
 
         for instance in compute_client.list(request):
             if 'crm' in instance.name.lower():
@@ -623,9 +697,9 @@ class GCPDiscoveryClient(BaseDiscoveryClient):
                 )
                 components.append(component)
 
-        # Discover GKE clusters and workloads
+        # Discover GKE clusters
         _container_v1 = _lazy_import("google.cloud.container_v1")
-        container_client = _container_v1.ClusterManagerClient()
+        container_client = _container_v1.ClusterManagerClient(credentials=credentials)
         clusters = container_client.list_clusters(project_id=project_id, zone=zone)
 
         for cluster in clusters.clusters:
@@ -642,9 +716,7 @@ class GCPDiscoveryClient(BaseDiscoveryClient):
                 )
                 components.append(component)
 
-        # Determine architecture
         architecture = "microservices" if len(components) > 3 else "monolithic"
-
         return DeploymentInfo(
             platform="gcp",
             architecture=architecture,

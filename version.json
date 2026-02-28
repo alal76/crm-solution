@@ -1,7 +1,7 @@
 {
   "major": 0,
   "minor": 611,
-  "patch": 0,
+  "patch": 1,
   "lastUpdate": "2026-02-28",
   "description": "feat(infra/deployment-tool): CDT v0.611.0 — self-contained deployment tool: auto-bootstrap system tools (Docker/Git/Python via Homebrew/apt), Prerequisites offcanvas + Day-2 Ops offcanvas in unified wizard UI, cloud platform SDK hint (never disabled), discovery fixes (host key mismatch, health/version detection, container_prefix filter, component type mapping), /health liveness probe route, Dockerfile.tool + docker-compose.tool.yml for standalone Docker image, package-cdt.sh distribution packager with tarball + shell/bat launchers",
   "license": "SEE LICENSE IN LICENSE",

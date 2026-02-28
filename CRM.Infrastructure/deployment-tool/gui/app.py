@@ -288,16 +288,29 @@ def generate_files():
 
 @app.route("/api/discovery/platforms")
 def get_discovery_platforms():
-    """Get available discovery platforms."""
+    """Get available discovery platforms with SDK availability and missing packages."""
+    import importlib
+    importlib.invalidate_caches()  # pick up any SDKs just installed via pip
     platforms = discovery_manager.get_available_platforms()
     availability = {}
-    
+    missing_packages: dict = {}
+    _sdk_map = {
+        'azure': ['azure-identity', 'azure-mgmt-compute', 'azure-mgmt-containerinstance'],
+        'aws': ['boto3'],
+        'gcp': ['google-cloud-compute', 'google-cloud-container'],
+    }
     for platform in platforms:
-        availability[platform] = discovery_manager.check_platform_availability(platform)
-    
+        avail = discovery_manager.check_platform_availability(platform)
+        if isinstance(avail, dict):
+            availability[platform] = avail.get('available', bool(avail))
+            missing_packages[platform] = avail.get('missing_packages', [])
+        else:
+            availability[platform] = bool(avail)
+            missing_packages[platform] = [] if avail else _sdk_map.get(platform, [])
     return jsonify({
         "platforms": platforms,
-        "availability": availability
+        "availability": availability,
+        "missing_packages": missing_packages,
     })
 
 @app.route("/api/discovery/discover", methods=["POST"])
@@ -375,13 +388,14 @@ def test_connection():
                 return jsonify({"status": "failed", "message": f"SSH connection failed: {str(e)}"}), 400
                 
         elif platform in ['azure', 'aws', 'gcp']:
-            # Test cloud API connection
+            # Test cloud API connection using explicit credentials from the UI
             try:
                 client = discovery_manager.clients[platform]()
-                # For cloud platforms, just test client initialization
-                return jsonify({"status": "success", "message": f"{platform.title()} API connection ready"})
-            except Exception as e:
-                return jsonify({"status": "failed", "message": f"{platform.title()} API connection failed: {str(e)}"}), 400
+                result = client.test_connection(config)
+                http_code = 200 if result.get('status') == 'success' else 400
+                return jsonify(result), http_code
+            except Exception as exc:
+                return jsonify({"status": "failed", "message": f"{platform.title()} connection failed: {str(exc)}"}), 400
         
         return jsonify({"status": "unknown", "message": f"Connection test not implemented for {platform}"}), 400
         
