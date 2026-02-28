@@ -7,6 +7,10 @@
 -- ============================================================================
 
 -- Step 1: Enhance LookupCategories table
+
+SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci;
+SET time_zone = '+00:00';
+
 ALTER TABLE LookupCategories
 ADD COLUMN IF NOT EXISTS EntityType VARCHAR(100) NULL COMMENT 'Entity this category maps to (Lead, Opportunity, ServiceRequest)',
 ADD COLUMN IF NOT EXISTS PropertyName VARCHAR(100) NULL COMMENT 'Property name on entity (Status, Stage, Priority)',

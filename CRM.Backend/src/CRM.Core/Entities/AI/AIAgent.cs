@@ -182,6 +182,47 @@ public class AIAgent : BaseEntity
 
     #endregion
 
+    #region Lifecycle Hook FKs (SARCH-061)
+
+    /// <summary>FK to ScriptPlugin executed when agent session begins.</summary>
+    public int? OnActivateScriptId { get; set; }
+
+    /// <summary>FK to ScriptPlugin executed when agent generates a plan/reasoning step.</summary>
+    public int? OnPlanScriptId { get; set; }
+
+    /// <summary>FK to ScriptPlugin executed before any tool is invoked.</summary>
+    public int? OnBeforeToolCallScriptId { get; set; }
+
+    /// <summary>FK to ScriptPlugin executed after each tool invocation.</summary>
+    public int? OnAfterToolCallScriptId { get; set; }
+
+    /// <summary>FK to ScriptPlugin executed before agent sends a response.</summary>
+    public int? OnResponseScriptId { get; set; }
+
+    /// <summary>FK to ScriptPlugin executed when agent encounters an error.</summary>
+    public int? OnErrorScriptId { get; set; }
+
+    /// <summary>FK to ScriptPlugin executed when agent session ends.</summary>
+    public int? OnDeactivateScriptId { get; set; }
+
+    /// <summary>FK to ScriptPlugin used as the safety guardrail (PII, toxicity, etc.).</summary>
+    public int? GuardrailScriptId { get; set; }
+
+    #endregion
+
+    #region Budget Enforcement (SARCH-061)
+
+    /// <summary>Maximum tokens allowed per individual LLM call. Null = no limit.</summary>
+    public int? MaxTokensPerCall { get; set; }
+
+    /// <summary>Maximum number of calls allowed per hour. Null = no limit.</summary>
+    public int? MaxCallsPerHour { get; set; }
+
+    /// <summary>Maximum cumulative cost (USD) allowed per calendar day. Null = no limit.</summary>
+    public decimal? MaxCostPerDay { get; set; }
+
+    #endregion
+
     #region Navigation Properties
 
     /// <summary>

@@ -8,6 +8,10 @@
 -- ============================================================================
 
 -- CrmTasks Table (matches CRM.Core.Entities.CrmTask : BaseEntity)
+
+SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci;
+SET time_zone = '+00:00';
+
 CREATE TABLE IF NOT EXISTS `CrmTasks` (
     `Id`                INT NOT NULL AUTO_INCREMENT,
     `Subject`           VARCHAR(500) NOT NULL,
@@ -48,7 +52,7 @@ CREATE TABLE IF NOT EXISTS `CrmTasks` (
     INDEX `IX_CrmTasks_AssignedToUserId` (`AssignedToUserId`),
     INDEX `IX_CrmTasks_AssignedToGroupId` (`AssignedToGroupId`),
     INDEX `IX_CrmTasks_AccountId` (`AccountId`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Opportunities Table (matches CRM.Core.Entities.Opportunity : BaseEntity)
 CREATE TABLE IF NOT EXISTS `Opportunities` (
@@ -83,7 +87,7 @@ CREATE TABLE IF NOT EXISTS `Opportunities` (
     KEY `IX_Opportunities_SalesOwnerId` (`SalesOwnerId`),
     KEY `IX_Opportunities_LeadId` (`LeadId`),
     KEY `IX_Opportunities_MarketingCampaignId` (`MarketingCampaignId`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Add FK constraints (optional, may fail if referenced tables don't exist)
 -- CrmTasks FKs

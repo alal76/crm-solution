@@ -18,6 +18,10 @@
 
 -- PortalUsers: Customer self-service portal accounts ---
 
+
+SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci;
+SET time_zone = '+00:00';
+
 CREATE TABLE IF NOT EXISTS `PortalUsers` (
     `Id`                        INT             NOT NULL AUTO_INCREMENT,
     `Email`                     VARCHAR(255)    NOT NULL,
@@ -35,7 +39,7 @@ CREATE TABLE IF NOT EXISTS `PortalUsers` (
     `CreatedAt`                 DATETIME(6)     NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
     `UpdatedAt`                 DATETIME(6)     NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
     `IsDeleted`                 TINYINT(1)      NOT NULL DEFAULT 0,
-    `RowVersion`                LONGBLOB        NULL,
+    `RowVersion`                BINARY(8)        NULL,
     PRIMARY KEY (`Id`),
     UNIQUE KEY `IX_PortalUsers_Email` (`Email`),
     KEY `IX_PortalUsers_ContactId` (`ContactId`),
@@ -57,6 +61,6 @@ CREATE TABLE IF NOT EXISTS `PortalConfigs` (
     `CreatedAt`             DATETIME(6)     NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
     `UpdatedAt`             DATETIME(6)     NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
     `IsDeleted`             TINYINT(1)      NOT NULL DEFAULT 0,
-    `RowVersion`            LONGBLOB        NULL,
+    `RowVersion`            BINARY(8)        NULL,
     PRIMARY KEY (`Id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

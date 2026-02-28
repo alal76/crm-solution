@@ -6,6 +6,10 @@
 -- SentimentType: 0=VeryPositive, 1=Positive, 2=Neutral, 3=Negative, 4=VeryNegative
 -- =============================================================================
 
+
+SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci;
+SET time_zone = '+00:00';
+
 CREATE TABLE IF NOT EXISTS SatisfactionSurveys (
     Id                  INT            NOT NULL AUTO_INCREMENT,
     EntityType          VARCHAR(100)   NOT NULL,

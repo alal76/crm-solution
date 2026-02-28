@@ -1,9 +1,9 @@
 {
   "major": 0,
-  "minor": 604,
+  "minor": 605,
   "patch": 0,
   "lastUpdate": "2026-02-28",
-  "description": "feat: SARCH-048→060 - Workflow YAML WDL Engine (YamlWdlParser, CelExpressionEvaluator, WorkflowStepExecutor, WorkflowOrchestrator with saga/dead-letter/replay, WorkflowEditorPage)",
+  "description": "feat: SARCH-061→074 + SARCH-090 - Agent Lifecycle Hooks & Guardrails (hook FKs on AIAgent, 8 hook interfaces, GuardrailPipeline, AgentBudgetEnforcer, AgentSimulationHarness, AgentHookConfigPanel, GuardrailConfigPanel, 10 unit tests)",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [

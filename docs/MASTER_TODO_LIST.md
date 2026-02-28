@@ -578,20 +578,20 @@ Phase 6 — Designer Integration & Navigation (✅ COMPLETE — Feb 26, 2026):
 
 | ID | Priority | Description | Status |
 |----|----------|-------------|--------|
-| SARCH-061 | P0 | **`AIAgent` hook fields** — add 8 nullable `FKs` to `ScriptPlugin` on `AIAgent` entity: `OnActivateScriptId`, `OnPlanScriptId`, `OnBeforeToolCallScriptId`, `OnAfterToolCallScriptId`, `OnDecisionScriptId`, `OnMessageScriptId`, `OnErrorScriptId`, `OnCompleteScriptId` + EF Core migration `AddAgentHookScripts` | Not Started |
-| SARCH-062 | P0 | **`onActivate` hook** — called at start of `AgentExecutionService.ChatAsync`; receives agent config + initial message; may mutate system prompt or raise `PreventActivationException` | Not Started |
-| SARCH-063 | P0 | **`onPlan` hook** — called after LLM returns tool-call plan (before tools execute); receives `ToolCallPlan[]`; may reorder, remove, or augment planned calls | Not Started |
-| SARCH-064 | P0 | **`onBeforeToolCall` hook** — called before each individual tool call; receives tool name + parameters; can block call (`throw GuardrailViolationException`) or modify parameters | Not Started |
-| SARCH-065 | P0 | **`onAfterToolCall` hook** — called after each tool call result; receives tool name + raw result; can transform result before agent sees it | Not Started |
-| SARCH-066 | P0 | **`onDecision` hook** — called when agent selects final response (no more tool calls); receives candidate response; can modify or flag for human approval | Not Started |
-| SARCH-067 | P0 | **`onMessage` hook** — called on inter-agent message receipt (multi-agent messaging); receives sender ID + message; can filter, modify, or drop | Not Started |
-| SARCH-068 | P0 | **`onError` hook** — called when agent execution throws unhandled exception; receives error + context; can log, alert, or attempt recovery | Not Started |
-| SARCH-069 | P0 | **`onComplete` hook** — called after agent returns final response; receives complete conversation history + final output; for cleanup, cost recording, memory compaction | Not Started |
-| SARCH-070 | P0 | **Guardrail framework** — `GuardrailPipeline` executed inline in `AgentExecutionService`; runs registered `IGuardrailScript[]` at: Pre-Action (before tool calls), Post-Action (after tool results), Output (before final response); `GuardrailViolationException` blocks the action | Not Started |
-| SARCH-071 | P0 | **`AIAgent` budget fields** — add `MaxActionsPerExecution` (int?), `MaxLlmCallsPerExecution` (int?), `MaxBudgetUsdPerExecution` (decimal?), `RequiresHumanApprovalCondition` (CEL expression string?) + enforcement in `AgentExecutionService` | Not Started |
-| SARCH-072 | P1 | **`AgentSimulationHarness`** — `AgentSimulationHarness.ForAgent(agentId).WithScenario("...").WithMockedTools([...]).RunAsync()` returns quality metrics; integrates with promptfoo YAML scenarios | Not Started |
-| SARCH-073 | P1 | **Frontend: Agent hook configuration UI** — extend agent detail page with "Lifecycle Hooks" accordion: dropdown per hook to select script from registry (deployed scripts only, filtered by ScriptKind=agent_hook) | Not Started |
-| SARCH-074 | P1 | **Frontend: Guardrail management UI** — `GuardrailManagementPage.tsx` — list guardrails assigned to agent, add/remove, set type (Pre/Post/Output/Invariant/Decision) | Not Started |
+| SARCH-061 | P0 | **`AIAgent` hook fields** — add 8 nullable `FKs` to `ScriptPlugin` on `AIAgent` entity: `OnActivateScriptId`, `OnPlanScriptId`, `OnBeforeToolCallScriptId`, `OnAfterToolCallScriptId`, `OnDecisionScriptId`, `OnMessageScriptId`, `OnErrorScriptId`, `OnCompleteScriptId` + EF Core migration `AddAgentHookScripts` | ✅ Completed |
+| SARCH-062 | P0 | **`onActivate` hook** — called at start of `AgentExecutionService.ChatAsync`; receives agent config + initial message; may mutate system prompt or raise `PreventActivationException` | ✅ Completed |
+| SARCH-063 | P0 | **`onPlan` hook** — called after LLM returns tool-call plan (before tools execute); receives `ToolCallPlan[]`; may reorder, remove, or augment planned calls | ✅ Completed |
+| SARCH-064 | P0 | **`onBeforeToolCall` hook** — called before each individual tool call; receives tool name + parameters; can block call (`throw GuardrailViolationException`) or modify parameters | ✅ Completed |
+| SARCH-065 | P0 | **`onAfterToolCall` hook** — called after each tool call result; receives tool name + raw result; can transform result before agent sees it | ✅ Completed |
+| SARCH-066 | P0 | **`onDecision` hook** — called when agent selects final response (no more tool calls); receives candidate response; can modify or flag for human approval | ✅ Completed |
+| SARCH-067 | P0 | **`onMessage` hook** — called on inter-agent message receipt (multi-agent messaging); receives sender ID + message; can filter, modify, or drop | ✅ Completed |
+| SARCH-068 | P0 | **`onError` hook** — called when agent execution throws unhandled exception; receives error + context; can log, alert, or attempt recovery | ✅ Completed |
+| SARCH-069 | P0 | **`onComplete` hook** — called after agent returns final response; receives complete conversation history + final output; for cleanup, cost recording, memory compaction | ✅ Completed |
+| SARCH-070 | P0 | **Guardrail framework** — `GuardrailPipeline` executed inline in `AgentExecutionService`; runs registered `IGuardrailScript[]` at: Pre-Action (before tool calls), Post-Action (after tool results), Output (before final response); `GuardrailViolationException` blocks the action | ✅ Completed |
+| SARCH-071 | P0 | **`AIAgent` budget fields** — add `MaxActionsPerExecution` (int?), `MaxLlmCallsPerExecution` (int?), `MaxBudgetUsdPerExecution` (decimal?), `RequiresHumanApprovalCondition` (CEL expression string?) + enforcement in `AgentExecutionService` | ✅ Completed |
+| SARCH-072 | P1 | **`AgentSimulationHarness`** — `AgentSimulationHarness.ForAgent(agentId).WithScenario("...").WithMockedTools([...]).RunAsync()` returns quality metrics; integrates with promptfoo YAML scenarios | ✅ Completed |
+| SARCH-073 | P1 | **Frontend: Agent hook configuration UI** — extend agent detail page with "Lifecycle Hooks" accordion: dropdown per hook to select script from registry (deployed scripts only, filtered by ScriptKind=agent_hook) | ✅ Completed |
+| SARCH-074 | P1 | **Frontend: Guardrail management UI** — `GuardrailManagementPage.tsx` — list guardrails assigned to agent, add/remove, set type (Pre/Post/Output/Invariant/Decision) | ✅ Completed |
 
 ### Phase 7 — Observability + Security Hardening (Weeks 17–20)
 
@@ -622,7 +622,7 @@ Phase 6 — Designer Integration & Navigation (✅ COMPLETE — Feb 26, 2026):
 | SARCH-087 | P0 | Unit tests: `RoslynScriptEngineTests.cs` — 12+ cases (maps to SARCH-029) | Not Started |
 | SARCH-088 | P0 | Unit tests: `ToolBridgeInvokerTests.cs` — 10+ cases (maps to SARCH-047) | ✅ Completed |
 | SARCH-089 | P0 | Unit tests: `TypeScriptScriptEngineTests.cs` — 8+ cases (maps to SARCH-038) | ✅ Completed |
-| SARCH-090 | P0 | Unit tests: `AgentLifecycleHookTests.cs` — 8 hook invocations, blocked action, budget exceeded, guardrail violation | Not Started |
+| SARCH-090 | P0 | Unit tests: `AgentLifecycleHookTests.cs` — 8 hook invocations, blocked action, budget exceeded, guardrail violation | ✅ Completed |
 | SARCH-091 | P1 | Integration tests: `WorkflowWDLIntegrationTests.cs` — parse YAML → execute plan → assert step outputs; test all 8 step types | Not Started |
 | SARCH-092 | P1 | Integration tests: `GuardrailIntegrationTests.cs` — Pre-Action guard blocks tool call, Output guard modifies response | Not Started |
 | SARCH-093 | P1 | E2E: `TC-SARCH-001` — author `.ts` script → submit for review → approve → deploy → execute in workflow → verify OTel trace | Not Started |

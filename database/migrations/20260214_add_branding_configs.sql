@@ -3,6 +3,10 @@
 -- Date: 2026-02-14
 -- ============================================================================
 
+
+SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci;
+SET time_zone = '+00:00';
+
 CREATE TABLE IF NOT EXISTS `BrandingConfigs` (
   `Id` int(11) NOT NULL AUTO_INCREMENT,
   `SolutionName` varchar(100) NOT NULL DEFAULT 'CRM Solution',

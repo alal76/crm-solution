@@ -9,6 +9,10 @@
 -- =============================================================================
 -- CREATE ServiceRequestStatus CATEGORY (if not exists)
 -- =============================================================================
+
+SET NAMES utf8mb4 COLLATE utf8mb4_unicode_ci;
+SET time_zone = '+00:00';
+
 SELECT 'Creating ServiceRequestStatus category...' AS Step;
 
 INSERT IGNORE INTO LookupCategories
@@ -16,10 +20,12 @@ INSERT IGNORE INTO LookupCategories
 VALUES
     ('ServiceRequestStatus', 'Status values for Service Requests', 'ServiceRequest', 'Status', 1, 0, NOW(), NOW(), 0);
 
-SET @status_cat_id = LAST_INSERT_ID();
-IF @status_cat_id = 0 THEN
-    SET @status_cat_id = (SELECT Id FROM LookupCategories WHERE Name = 'ServiceRequestStatus' LIMIT 1);
-END IF;
+-- COALESCE: if INSERT IGNORE matched a duplicate, LAST_INSERT_ID() returns 0;
+-- fall back to a SELECT to retrieve the existing row's Id safely.
+SET @status_cat_id = COALESCE(
+    NULLIF(LAST_INSERT_ID(), 0),
+    (SELECT Id FROM LookupCategories WHERE Name = 'ServiceRequestStatus' LIMIT 1)
+);
 
 -- Insert Status items
 INSERT IGNORE INTO LookupItems
@@ -44,10 +50,10 @@ INSERT IGNORE INTO LookupCategories
 VALUES
     ('ServiceRequestPriority', 'Priority levels for Service Requests', 'ServiceRequest', 'Priority', 1, 0, NOW(), NOW(), 0);
 
-SET @priority_cat_id = LAST_INSERT_ID();
-IF @priority_cat_id = 0 THEN
-    SET @priority_cat_id = (SELECT Id FROM LookupCategories WHERE Name = 'ServiceRequestPriority' LIMIT 1);
-END IF;
+SET @priority_cat_id = COALESCE(
+    NULLIF(LAST_INSERT_ID(), 0),
+    (SELECT Id FROM LookupCategories WHERE Name = 'ServiceRequestPriority' LIMIT 1)
+);
 
 -- Insert Priority items (with SLA metadata)
 INSERT IGNORE INTO LookupItems
@@ -64,21 +70,26 @@ VALUES
 -- =============================================================================
 SELECT 'MIGRATING: ServiceRequests.StatusId' AS Step;
 
+-- Use @status_cat_id resolved above to avoid a per-row LookupCategories scan.
+-- CASE in the JOIN ON clause means unmatched ordinals produce no join hit
+-- (NULL = anything is UNKNOWN → row excluded), so no explicit WHERE guard needed.
+START TRANSACTION;
+
 UPDATE ServiceRequests sr
-INNER JOIN LookupCategories lc ON lc.Name = 'ServiceRequestStatus'
-INNER JOIN LookupItems li ON li.LookupCategoryId = lc.Id
-SET sr.StatusId = li.Id
-WHERE li.Key = CASE sr.Status
-    WHEN 0 THEN 'NEW'
-    WHEN 1 THEN 'OPEN'
-    WHEN 2 THEN 'IN_PROGRESS'
-    WHEN 3 THEN 'PENDING'
-    WHEN 4 THEN 'ON_HOLD'
-    WHEN 5 THEN 'RESOLVED'
-    WHEN 6 THEN 'CLOSED'
-    WHEN 7 THEN 'CANCELLED'
-    ELSE NULL
-END;
+INNER JOIN LookupItems li
+    ON  li.LookupCategoryId = @status_cat_id
+    AND li.`Key` = CASE sr.`Status`
+                       WHEN 0 THEN 'NEW'
+                       WHEN 1 THEN 'OPEN'
+                       WHEN 2 THEN 'IN_PROGRESS'
+                       WHEN 3 THEN 'PENDING'
+                       WHEN 4 THEN 'ON_HOLD'
+                       WHEN 5 THEN 'RESOLVED'
+                       WHEN 6 THEN 'CLOSED'
+                       WHEN 7 THEN 'CANCELLED'
+                       ELSE NULL
+                   END
+SET sr.StatusId = li.Id;
 
 -- =============================================================================
 -- MIGRATE ServiceRequests.PriorityId
@@ -87,16 +98,18 @@ END;
 SELECT 'MIGRATING: ServiceRequests.PriorityId' AS Step;
 
 UPDATE ServiceRequests sr
-INNER JOIN LookupCategories lc ON lc.Name = 'ServiceRequestPriority'
-INNER JOIN LookupItems li ON li.LookupCategoryId = lc.Id
-SET sr.PriorityId = li.Id
-WHERE li.Key = CASE sr.Priority
-    WHEN 0 THEN 'LOW'
-    WHEN 1 THEN 'MEDIUM'
-    WHEN 2 THEN 'HIGH'
-    WHEN 3 THEN 'CRITICAL'
-    ELSE NULL
-END;
+INNER JOIN LookupItems li
+    ON  li.LookupCategoryId = @priority_cat_id
+    AND li.`Key` = CASE sr.`Priority`
+                       WHEN 0 THEN 'LOW'
+                       WHEN 1 THEN 'MEDIUM'
+                       WHEN 2 THEN 'HIGH'
+                       WHEN 3 THEN 'CRITICAL'
+                       ELSE NULL
+                   END
+SET sr.PriorityId = li.Id;
+
+COMMIT;
 
 -- =============================================================================
 -- POST-CHECK
