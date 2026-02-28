@@ -1,9 +1,9 @@
 {
   "major": 0,
-  "minor": 605,
+  "minor": 606,
   "patch": 0,
   "lastUpdate": "2026-02-28",
-  "description": "feat: SARCH-061→074 + SARCH-090 - Agent Lifecycle Hooks & Guardrails (hook FKs on AIAgent, 8 hook interfaces, GuardrailPipeline, AgentBudgetEnforcer, AgentSimulationHarness, AgentHookConfigPanel, GuardrailConfigPanel, 10 unit tests)",
+  "description": "feat: SARCH-075→086 - Observability, Security Tiers, Multi-Agent (OTel spans/counters/histograms, ScriptSecurityPolicy T3/T6/T8, Grafana dashboard, ChaosMiddleware, AgentMessage bus, episodic memory, sidecar mode docs, CLI helper)",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [

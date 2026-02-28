@@ -4,11 +4,14 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-using Microsoft.Extensions.DependencyInjection;
 using CRM.Core.Scripting;
+using CRM.Core.Scripting.MultiAgent;
+using CRM.Infrastructure.Scripting.AgentHooks;
+using CRM.Infrastructure.Scripting.MultiAgent;
 using CRM.Infrastructure.Scripting.Roslyn;
 using CRM.Infrastructure.Scripting.Tools;
 using CRM.Infrastructure.Scripting.Workflow;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace CRM.Infrastructure.Scripting;
 
@@ -38,6 +41,16 @@ public static class ScriptingServiceExtensions
         services.AddSingleton<CelExpressionEvaluator>();
         services.AddScoped<WorkflowStepExecutor>();
         services.AddScoped<WorkflowOrchestrator>();
+
+        // SARCH-061→074: Agent lifecycle hooks + guardrails
+        services.AddSingleton<GuardrailPipeline>();
+        services.AddSingleton<AgentBudgetEnforcer>();
+
+        // SARCH-083: Inter-agent messaging bus
+        services.AddSingleton<IAgentMessageBus, InMemoryAgentMessageBus>();
+
+        // SARCH-084: Episodic agent memory store
+        services.AddSingleton<IAgentMemoryStore, InMemoryAgentMemoryStore>();
 
         return services;
     }

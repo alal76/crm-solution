@@ -597,23 +597,23 @@ Phase 6 — Designer Integration & Navigation (✅ COMPLETE — Feb 26, 2026):
 
 | ID | Priority | Description | Status |
 |----|----------|-------------|--------|
-| SARCH-075 | P0 | **OpenTelemetry spans for script execution** — `ScriptEngine.Execute` root span with child spans: `Script.Compile`, `Sandbox.Init`, `Script.Run`, each `ToolBridge.Call`, `Output.Validate`; tag with scriptId, version, runtime, correlationId; export to configured OTel backend | Not Started |
-| SARCH-076 | P0 | **OTel metrics counters** — `script_executions_total` (labels: script_id, runtime, success), `script_compilations_total`, `tool_calls_total` (labels: tool_name, success), `guardrail_blocks_total`, `workflow_completions_total`, `workflow_step_failures_total` | Not Started |
-| SARCH-077 | P0 | **OTel metrics histograms** — `script_execution_duration_ms`, `compilation_duration_ms`, `tool_call_duration_ms`, `sandbox_memory_peak_bytes` | Not Started |
-| SARCH-078 | P0 | **Security: T3 data exfiltration prevention** — static import analysis in Jint to block `require()` / network calls; no direct `HttpClient` access; all egress via Tool Bridge only; test with intentional exfiltration attempt | Not Started |
-| SARCH-079 | P0 | **Security: T6 state tampering** — HMAC-sign workflow state snapshots before saving; validate signature on load; reject tampered snapshots | Not Started |
-| SARCH-080 | P0 | **Security: T8 script poisoning** — four-eyes review gate (approval from 2 distinct `ScriptReviewer` users for `ScriptKind.agent_hook` or `ScriptKind.guardrail`); SHA-256 signed artefacts; signature verified before every execution | Not Started |
-| SARCH-081 | P1 | **Pre-built Grafana dashboard** — scripting & workflow JSON dashboard: panels for executions/min, avg duration, error rate, top scripts by execution count, tool call breakdown, memory usage, guardrail block events | Not Started |
-| SARCH-082 | P2 | **Chaos testing middleware** — `ChaosScriptingMiddleware` (dev/staging only): random delay injection, Tool Bridge failure injection, memory pressure simulation; configurable via `appsettings.Testing.json` | Not Started |
+| SARCH-075 | P0 | **OpenTelemetry spans for script execution** — `ScriptEngine.Execute` root span with child spans: `Script.Compile`, `Sandbox.Init`, `Script.Run`, each `ToolBridge.Call`, `Output.Validate`; tag with scriptId, version, runtime, correlationId; export to configured OTel backend | ✅ Completed |
+| SARCH-076 | P0 | **OTel metrics counters** — `script_executions_total` (labels: script_id, runtime, success), `script_compilations_total`, `tool_calls_total` (labels: tool_name, success), `guardrail_blocks_total`, `workflow_completions_total`, `workflow_step_failures_total` | ✅ Completed |
+| SARCH-077 | P0 | **OTel metrics histograms** — `script_execution_duration_ms`, `compilation_duration_ms`, `tool_call_duration_ms`, `sandbox_memory_peak_bytes` | ✅ Completed |
+| SARCH-078 | P0 | **Security: T3 data exfiltration prevention** — static import analysis in Jint to block `require()` / network calls; no direct `HttpClient` access; all egress via Tool Bridge only; test with intentional exfiltration attempt | ✅ Completed |
+| SARCH-079 | P0 | **Security: T6 state tampering** — HMAC-sign workflow state snapshots before saving; validate signature on load; reject tampered snapshots | ✅ Completed |
+| SARCH-080 | P0 | **Security: T8 script poisoning** — four-eyes review gate (approval from 2 distinct `ScriptReviewer` users for `ScriptKind.agent_hook` or `ScriptKind.guardrail`); SHA-256 signed artefacts; signature verified before every execution | ✅ Completed |
+| SARCH-081 | P1 | **Pre-built Grafana dashboard** — scripting & workflow JSON dashboard: panels for executions/min, avg duration, error rate, top scripts by execution count, tool call breakdown, memory usage, guardrail block events | ✅ Completed |
+| SARCH-082 | P2 | **Chaos testing middleware** — `ChaosScriptingMiddleware` (dev/staging only): random delay injection, Tool Bridge failure injection, memory pressure simulation; configurable via `appsettings.Testing.json` | ✅ Completed |
 
 ### Phase 8 — Multi-Agent Messaging + Advanced Features (Weeks 17–20)
 
 | ID | Priority | Description | Status |
 |----|----------|-------------|--------|
-| SARCH-083 | P1 | **Inter-agent messaging** — Register `SendAgentMessage` as a Script Tool; publishing to `AgentMessageQueue` (Redis Stream or in-memory `Channel<T>`); receiving agent activated via registered `onMessage` hook | Not Started |
-| SARCH-084 | P1 | **`AgentMemory` episodic model** — add `Type` (episodic / semantic / procedural), `CompactorScriptId` (FK), `MaxEntries` (int), `TtlDays` (int) to `AgentMemory`; background service triggers compactor script when `MaxEntries` reached | Not Started |
-| SARCH-085 | P2 | **Script sidecar mode** — `crm-script-runner` can run as a kubernetes sidecar alongside `crm-api` pod; HTTP-based API for compile/execute; allows scaling script execution independently | Not Started |
-| SARCH-086 | P2 | **`@engine/cli` npx tool** — `npx @engine/cli init`, `validate`, `test`, `push` — TypeScript script authoring workflow from developer machine | Not Started |
+| SARCH-083 | P1 | **Inter-agent messaging** — Register `SendAgentMessage` as a Script Tool; publishing to `AgentMessageQueue` (Redis Stream or in-memory `Channel<T>`); receiving agent activated via registered `onMessage` hook | ✅ Completed |
+| SARCH-084 | P1 | **`AgentMemory` episodic model** — add `Type` (episodic / semantic / procedural), `CompactorScriptId` (FK), `MaxEntries` (int), `TtlDays` (int) to `AgentMemory`; background service triggers compactor script when `MaxEntries` reached | ✅ Completed |
+| SARCH-085 | P2 | **Script sidecar mode** — `crm-script-runner` can run as a kubernetes sidecar alongside `crm-api` pod; HTTP-based API for compile/execute; allows scaling script execution independently | ✅ Completed |
+| SARCH-086 | P2 | **`@engine/cli` npx tool** — `npx @engine/cli init`, `validate`, `test`, `push` — TypeScript script authoring workflow from developer machine | ✅ Completed |
 
 ### Testing — Full Scripting Engine Architecture
 
