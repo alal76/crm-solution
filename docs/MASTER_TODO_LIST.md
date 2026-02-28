@@ -242,28 +242,28 @@
 
 | ID | Priority | Description | Status |
 |----|----------|-------------|--------|
-| PORTAL-026 | P0 | **`PortalProtectedRoute` component:** `src/components/portal/PortalProtectedRoute.tsx` — reads portal JWT from `localStorage`, checks expiry, redirects to `/portal/login` if absent/expired. Apply to dashboard, tickets, detail, KB, profile routes | Not Started |
-| PORTAL-027 | P0 | **`PortalTicketDetailPage.tsx`:** Full ticket detail view — status/priority badge, description, agent name, created date, complete comment thread with `AddComment` form, file attachments list, Cancel button (calls PORTAL-023). Route: `/portal/tickets/:id` | Not Started |
-| PORTAL-028 | P0 | **Portal logout:** Add logout button/menu item in portal header that clears `portal_token` from `localStorage` and redirects to `/portal/login` | Not Started |
-| PORTAL-029 | P0 | **Update App.tsx portal routes:** Add `/portal/tickets/:id` → `PortalTicketDetailPage`, `/portal/knowledge-base/:id` → `PortalKBArticlePage`, `/portal/profile` → `PortalUserProfilePage`, `/portal/forgot-password`, `/portal/reset-password`, `/portal/verify-email` | Not Started |
+| PORTAL-026 | P0 | **`PortalProtectedRoute` component:** `src/components/portal/PortalProtectedRoute.tsx` — reads portal JWT from `localStorage`, checks expiry, redirects to `/portal/login` if absent/expired. Apply to dashboard, tickets, detail, KB, profile routes | ✅ Completed |
+| PORTAL-027 | P0 | **`PortalTicketDetailPage.tsx`:** Full ticket detail view — status/priority badge, description, agent name, created date, complete comment thread with `AddComment` form, file attachments list, Cancel button (calls PORTAL-023). Route: `/portal/tickets/:id` | ✅ Completed |
+| PORTAL-028 | P0 | **Portal logout:** Add logout button/menu item in portal header that clears `portal_token` from `localStorage` and redirects to `/portal/login` | ✅ Completed |
+| PORTAL-029 | P0 | **Update App.tsx portal routes:** Add `/portal/tickets/:id` → `PortalTicketDetailPage`, `/portal/knowledge-base/:id` → `PortalKBArticlePage`, `/portal/profile` → `PortalUserProfilePage`, `/portal/forgot-password`, `/portal/reset-password`, `/portal/verify-email` | ✅ Completed |
 
 #### Remaining Gaps — Frontend (P1 Features)
 
 | ID | Priority | Description | Status |
 |----|----------|-------------|--------|
-| PORTAL-030 | P1 | **`PortalLayout` component:** `src/components/portal/PortalLayout.tsx` — shared top navbar (logo from PortalConfig, nav links: My Tickets / Knowledge Base / Profile, logout). Wrap all authenticated portal pages | Not Started |
-| PORTAL-031 | P1 | **`PortalKBArticlePage.tsx`:** Full KB article view — title, content (rich text), breadcrumb, "Was this helpful?" feedback. Route: `/portal/knowledge-base/:id` | Not Started |
-| PORTAL-032 | P1 | **`PortalUserProfilePage.tsx`:** View/edit display name + phone; change password form. Route: `/portal/profile` | Not Started |
-| PORTAL-033 | P1 | **Email verification UI:** `PortalVerifyEmailPage.tsx` — reads `?token=` from URL, calls `/api/portal/auth/verify-email`, shows success/error. After register, redirect to "check your email" notice. Route: `/portal/verify-email` | Not Started |
-| PORTAL-034 | P1 | **Password reset UI:** `PortalForgotPasswordPage.tsx` + `PortalResetPasswordPage.tsx`. Route: `/portal/forgot-password`, `/portal/reset-password?token=...` | Not Started |
-| PORTAL-035 | P1 | **Real-time portal ticket updates:** Connect `PortalTicketDetailPage` and `PortalTicketListPage` to SignalR — show toast when agent replies or ticket status changes while portal user is active | Not Started |
+| PORTAL-030 | P1 | **`PortalLayout` component:** `src/components/portal/PortalLayout.tsx` — shared top navbar (logo from PortalConfig, nav links: My Tickets / Knowledge Base / Profile, logout). Wrap all authenticated portal pages | ✅ Completed |
+| PORTAL-031 | P1 | **`PortalKBArticlePage.tsx`:** Full KB article view — title, content (rich text), breadcrumb, "Was this helpful?" feedback. Route: `/portal/knowledge-base/:id` | ✅ Completed |
+| PORTAL-032 | P1 | **`PortalUserProfilePage.tsx`:** View/edit display name + phone; change password form. Route: `/portal/profile` | ✅ Completed |
+| PORTAL-033 | P1 | **Email verification UI:** `PortalVerifyEmailPage.tsx` — reads `?token=` from URL, calls `/api/portal/auth/verify-email`, shows success/error. After register, redirect to "check your email" notice. Route: `/portal/verify-email` | ✅ Completed |
+| PORTAL-034 | P1 | **Password reset UI:** `PortalForgotPasswordPage.tsx` + `PortalResetPasswordPage.tsx`. Route: `/portal/forgot-password`, `/portal/reset-password?token=...` | ✅ Completed |
+| PORTAL-035 | P1 | **Real-time portal ticket updates:** Connect `PortalTicketDetailPage` and `PortalTicketListPage` to SignalR — show toast when agent replies or ticket status changes while portal user is active | ✅ Completed |
 
 #### Remaining Gaps — Frontend (P2 Enhancements)
 
 | ID | Priority | Description | Status |
 |----|----------|-------------|--------|
-| PORTAL-036 | P2 | **File attachment UI on ticket detail:** Drag-drop upload zone on `PortalTicketDetailPage` (max 10 MB, shows uploaded file list with download links) — depends on PORTAL-022 | Not Started |
-| PORTAL-037 | P2 | **Portal CSAT widget:** After ticket resolved, show inline satisfaction rating (1–5 stars + comment) within ticket detail view | Not Started |
+| PORTAL-036 | P2 | **File attachment UI on ticket detail:** Drag-drop upload zone on `PortalTicketDetailPage` (max 10 MB, shows uploaded file list with download links) — depends on PORTAL-022 | ✅ Completed |
+| PORTAL-037 | P2 | **Portal CSAT widget:** After ticket resolved, show inline satisfaction rating (1–5 stars + comment) within ticket detail view | ✅ Completed |
 
 #### Remaining Gaps — Testing
 

@@ -266,7 +266,12 @@ const PortalLoginPage = lazy(() => import('./pages/portal/PortalLoginPage'));
 const PortalRegisterPage = lazy(() => import('./pages/portal/PortalRegisterPage'));
 const PortalDashboardPage = lazy(() => import('./pages/portal/PortalDashboardPage'));
 const PortalTicketListPage = lazy(() => import('./pages/portal/PortalTicketListPage'));
+const PortalNewTicketPage = lazy(() => import('./pages/portal/PortalNewTicketPage'));
+const PortalTicketDetailPage = lazy(() => import('./pages/portal/PortalTicketDetailPage'));
+const PortalProfilePage = lazy(() => import('./pages/portal/PortalProfilePage'));
 const PortalKBPage = lazy(() => import('./pages/portal/PortalKBPage'));
+const PortalForgotPasswordPage = lazy(() => import('./pages/portal/PortalForgotPasswordPage'));
+const PortalResetPasswordPage = lazy(() => import('./pages/portal/PortalResetPasswordPage'));
 const PortalConfigPage = lazy(() => import('./pages/PortalConfigPage'));
 
 // Inner component that can access the theme context
@@ -1407,11 +1412,18 @@ function ThemedApp() {
                 }
               />
               {/* Customer Portal Routes (FEAT-PORTAL) - public-facing, no CRM auth */}
+              <Route path="/portal" element={<Navigate to="/portal/login" replace />} />
               <Route path="/portal/login" element={<PortalLoginPage />} />
               <Route path="/portal/register" element={<PortalRegisterPage />} />
+              <Route path="/portal/forgot-password" element={<PortalForgotPasswordPage />} />
+              <Route path="/portal/reset-password" element={<PortalResetPasswordPage />} />
               <Route path="/portal/dashboard" element={<PortalDashboardPage />} />
               <Route path="/portal/tickets" element={<PortalTicketListPage />} />
+              <Route path="/portal/tickets/new" element={<PortalNewTicketPage />} />
+              <Route path="/portal/tickets/:id" element={<PortalTicketDetailPage />} />
+              <Route path="/portal/profile" element={<PortalProfilePage />} />
               <Route path="/portal/knowledge-base" element={<PortalKBPage />} />
+              <Route path="/portal/knowledge" element={<Navigate to="/portal/knowledge-base" replace />} />
               <Route path="/admin/portal" element={<ProtectedRoute><PortalConfigPage /></ProtectedRoute>} />
               <Route path="/survey/:token" element={<SurveyResponsePage />} />
                         </Routes>
