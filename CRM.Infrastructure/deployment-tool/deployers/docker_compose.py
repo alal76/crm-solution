@@ -10,6 +10,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional
 
+DOCKER_COMPOSE_FILE = "docker-compose.yml"
+
 
 @dataclass
 class DeployEvent:
@@ -104,7 +106,7 @@ class DockerComposeDeployer:
         return True
 
     def _step_validate_prerequisites(self) -> bool:
-        rc, out, err = self._run(["docker", "info"])
+        rc, _, _ = self._run(["docker", "info"])
         if rc != 0:
             self._emit(
                 "Docker not available. Install Docker Desktop or Docker Engine.", "error"
@@ -115,7 +117,7 @@ class DockerComposeDeployer:
 
     def _step_pull_images(self) -> bool:
         rc, _, err = self._run(
-            ["docker", "compose", "-f", "docker-compose.yml", "pull"], timeout=600
+            ["docker", "compose", "-f", DOCKER_COMPOSE_FILE, "pull"], timeout=600
         )
         if rc != 0 and not self.dry_run:
             self._emit(f"Pull failed (non-fatal): {err}", "warn")
@@ -128,9 +130,9 @@ class DockerComposeDeployer:
         return True
 
     def _step_start_databases(self) -> bool:
-        rc, _, err = self._run(
+        rc, _, _ = self._run(
             [
-                "docker", "compose", "-f", "docker-compose.yml",
+                "docker", "compose", "-f", DOCKER_COMPOSE_FILE,
                 "up", "-d", "crm-mariadb", "crm-redis",
             ],
             timeout=120,
@@ -149,7 +151,7 @@ class DockerComposeDeployer:
                 return True
             time.sleep(5)
         self._emit("Database health check timed out", "warn")
-        return True
+        return False
 
     def _step_run_migrations(self) -> bool:
         if self.dry_run:
@@ -160,6 +162,7 @@ class DockerComposeDeployer:
         )
         if rc != 0:
             self._emit(f"Migration warning: {err}", "warn")
+            return False
         return True
 
     def _step_start_providers(self) -> bool:
@@ -171,14 +174,14 @@ class DockerComposeDeployer:
             extras.append("crm-ollama")
         if extras:
             self._run(
-                ["docker", "compose", "-f", "docker-compose.yml", "up", "-d"] + extras,
+                ["docker", "compose", "-f", DOCKER_COMPOSE_FILE, "up", "-d"] + extras,
                 timeout=120,
             )
         return True
 
     def _step_start_api(self) -> bool:
-        rc, _, err = self._run(
-            ["docker", "compose", "-f", "docker-compose.yml", "up", "-d", "crm-api"],
+        rc, _, _ = self._run(
+            ["docker", "compose", "-f", DOCKER_COMPOSE_FILE, "up", "-d", "crm-api"],
             timeout=120,
         )
         return rc == 0 or self.dry_run
@@ -190,17 +193,17 @@ class DockerComposeDeployer:
 
         for _ in range(12):
             try:
-                urllib.request.urlopen("http://localhost:5000/health", timeout=5)
+                urllib.request.urlopen("http://localhost:5000/health", timeout=5)  # noqa: S310
                 self._emit("API is healthy", "info")
                 return True
             except Exception:
                 time.sleep(5)
         self._emit("API health check timed out — continuing anyway", "warn")
-        return True
+        return False
 
     def _step_start_frontend(self) -> bool:
         rc, _, _ = self._run(
-            ["docker", "compose", "-f", "docker-compose.yml", "up", "-d", "crm-frontend"],
+            ["docker", "compose", "-f", DOCKER_COMPOSE_FILE, "up", "-d", "crm-frontend"],
             timeout=120,
         )
         return rc == 0 or self.dry_run

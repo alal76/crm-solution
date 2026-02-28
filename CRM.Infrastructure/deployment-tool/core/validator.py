@@ -135,33 +135,39 @@ class WizardValidator:
         if not value:
             result.add_error(field_id, "Password cannot be empty.")
             return result
-
         if _ZXCVBN_AVAILABLE:
-            analysis = zxcvbn.zxcvbn(value)
-            score = analysis.get("score", 0)
-            if score < min_score:
-                suggestions = analysis.get("feedback", {}).get("suggestions", [])
-                hint = " ".join(suggestions) if suggestions else f"Use a stronger password (score {score}/{4})."
-                result.add_error(field_id, "Password is too weak.", hint)
-        else:
-            # Fallback: manual checks
-            issues = []
-            if len(value) < 12:
-                issues.append("at least 12 characters")
-            if not re.search(r"[A-Z]", value):
-                issues.append("an uppercase letter")
-            if not re.search(r"[a-z]", value):
-                issues.append("a lowercase letter")
-            if not re.search(r"[0-9]", value):
-                issues.append("a digit")
-            if not re.search(r"[^a-zA-Z0-9]", value):
-                issues.append("a special character")
-            if issues:
-                result.add_error(
-                    field_id,
-                    "Password is too weak.",
-                    "Password must contain: " + ", ".join(issues) + ".",
-                )
+            return self._validate_password_zxcvbn(value, field_id, min_score)
+        return self._validate_password_manual(value, field_id)
+
+    def _validate_password_zxcvbn(self, value: str, field_id: str, min_score: int) -> ValidationResult:
+        result = ValidationResult(valid=True)
+        analysis = zxcvbn.zxcvbn(value)
+        score = analysis.get("score", 0)
+        if score < min_score:
+            suggestions = analysis.get("feedback", {}).get("suggestions", [])
+            hint = " ".join(suggestions) if suggestions else f"Use a stronger password (score {score}/{4})."
+            result.add_error(field_id, "Password is too weak.", hint)
+        return result
+
+    def _validate_password_manual(self, value: str, field_id: str) -> ValidationResult:
+        result = ValidationResult(valid=True)
+        issues = []
+        if len(value) < 12:
+            issues.append("at least 12 characters")
+        if not re.search(r"[A-Z]", value):
+            issues.append("an uppercase letter")
+        if not re.search(r"[a-z]", value):
+            issues.append("a lowercase letter")
+        if not re.search(r"\d", value):
+            issues.append("a digit")
+        if not re.search(r"[^a-zA-Z0-9]", value):
+            issues.append("a special character")
+        if issues:
+            result.add_error(
+                field_id,
+                "Password is too weak.",
+                "Password must contain: " + ", ".join(issues) + ".",
+            )
         return result
 
     def validate_port(self, value: Any, field_id: str) -> ValidationResult:

@@ -21,13 +21,10 @@ LABEL maintainer="CRM DevOps"
 LABEL description="CRM Deployment Tool — unified discover/configure/deploy wizard"
 LABEL version="0.611.0"
 
-# ---- system dependencies ----
+# ---- system dependencies + Docker CLI ----
 RUN apt-get update -qq && apt-get install -y --no-install-recommends \
-    curl git ca-certificates gnupg lsb-release openssh-client \
-    && rm -rf /var/lib/apt/lists/*
-
-# ---- Docker CLI (so the CDT can manage Docker on the host via socket) ----
-RUN install -m 0755 -d /etc/apt/keyrings \
+    ca-certificates curl git gnupg lsb-release openssh-client \
+    && install -m 0755 -d /etc/apt/keyrings \
     && curl -fsSL https://download.docker.com/linux/debian/gpg -o /etc/apt/keyrings/docker.asc \
     && chmod a+r /etc/apt/keyrings/docker.asc \
     && echo \
@@ -54,7 +51,7 @@ RUN ARCH=$(uname -m) && \
     curl -sLf "https://get.helm.sh/helm-${HELM_VERSION}-linux-${HARCH}.tar.gz" \
          -o /tmp/helm.tar.gz && \
     tar -xzf /tmp/helm.tar.gz -C /tmp && \
-    mv /tmp/linux-${HARCH}/helm /usr/local/bin/helm && \
+    mv /tmp/linux-"${HARCH}"/helm /usr/local/bin/helm && \
     chmod +x /usr/local/bin/helm && \
     rm -rf /tmp/helm* /tmp/linux-*
 

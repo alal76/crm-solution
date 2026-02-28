@@ -172,7 +172,7 @@ class TestDetectMeilisearch:
         import io
         import http.client
 
-        fake_body = json_body = b'{"status":"available"}'
+        fake_body = b'{"status":"available"}'
 
         mock_resp = MagicMock()
         mock_resp.read.return_value = fake_body

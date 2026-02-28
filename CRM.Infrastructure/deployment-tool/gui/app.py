@@ -433,72 +433,90 @@ def cloud_resources():
     sub_id   = request.args.get("subscription", "")
     data = {"items": [], "error": None}
     try:
-        if platform == "azure":
-            if resource == "subscriptions":
-                r = _sp2.run(["az", "account", "list", "--output", "json"],
-                             capture_output=True, text=True, timeout=20)
-                if r.returncode == 0:
-                    subs = _json2.loads(r.stdout)
-                    data["items"] = [
-                        {"value": s["id"], "label": f"{s['name']} ({s['id'][:8]}…)"}
-                        for s in subs
-                    ]
-            elif resource == "resource_groups":
-                cmd = ["az", "group", "list", "--output", "json"]
-                if sub_id:
-                    cmd = ["az", "group", "list", "--subscription", sub_id, "--output", "json"]
-                r = _sp2.run(cmd, capture_output=True, text=True, timeout=20)
-                if r.returncode == 0:
-                    data["items"] = [{"value": g["name"], "label": g["name"]}
-                                     for g in _json2.loads(r.stdout)]
-            elif resource == "regions":
-                r = _sp2.run(["az", "account", "list-locations", "--output", "json"],
-                             capture_output=True, text=True, timeout=20)
-                if r.returncode == 0:
-                    data["items"] = [
-                        {"value": loc["name"], "label": f"{loc['displayName']} ({loc['name']})"}
-                        for loc in _json2.loads(r.stdout)
-                    ]
-        elif platform == "aws":
-            if resource == "regions":
-                r = _sp2.run(["aws", "ec2", "describe-regions", "--output", "json"],
-                             capture_output=True, text=True, timeout=20)
-                if r.returncode == 0:
-                    regions = sorted(
-                        reg["RegionName"]
-                        for reg in _json2.loads(r.stdout).get("Regions", [])
-                    )
-                    data["items"] = [{"value": reg, "label": reg} for reg in regions]
-            elif resource == "vpcs":
-                r = _sp2.run(["aws", "ec2", "describe-vpcs", "--output", "json"],
-                             capture_output=True, text=True, timeout=20)
-                if r.returncode == 0:
-                    vpcs = _json2.loads(r.stdout).get("Vpcs", [])
-                    data["items"] = [
-                        {"value": v["VpcId"],
-                         "label": f"{next((t['Value'] for t in v.get('Tags', []) if t['Key']=='Name'), v['VpcId'])} ({v['VpcId']})"}
-                        for v in vpcs
-                    ]
-        elif platform == "gcp":
-            if resource == "projects":
-                r = _sp2.run(["gcloud", "projects", "list", "--format=json"],
-                             capture_output=True, text=True, timeout=20)
-                if r.returncode == 0:
-                    data["items"] = [
-                        {"value": p["projectId"], "label": f"{p['name']} ({p['projectId']})"}
-                        for p in _json2.loads(r.stdout)
-                    ]
-            elif resource == "regions":
-                r = _sp2.run(["gcloud", "compute", "regions", "list", "--format=json"],
-                             capture_output=True, text=True, timeout=20)
-                if r.returncode == 0:
-                    data["items"] = [{"value": reg["name"], "label": reg["name"]}
-                                     for reg in _json2.loads(r.stdout)]
+        _fetch_cloud_resources(platform, resource, sub_id, data, _sp2, _json2)
     except FileNotFoundError:
         data["error"] = f"{platform.title()} CLI not installed — enter values manually."
     except Exception as exc:
         data["error"] = str(exc)
     return jsonify(data)
+
+
+def _fetch_cloud_resources(platform, resource, sub_id, data, _sp2, _json2):
+    """Populate data['items'] for the given platform/resource combination."""
+    if platform == "azure":
+        _fetch_azure_resources(resource, sub_id, data, _sp2, _json2)
+    elif platform == "aws":
+        _fetch_aws_resources(resource, data, _sp2, _json2)
+    elif platform == "gcp":
+        _fetch_gcp_resources(resource, data, _sp2, _json2)
+
+
+def _fetch_azure_resources(resource, sub_id, data, _sp2, _json2):
+    if resource == "subscriptions":
+        r = _sp2.run(["az", "account", "list", "--output", "json"],
+                     capture_output=True, text=True, timeout=20)
+        if r.returncode == 0:
+            data["items"] = [
+                {"value": s["id"], "label": f"{s['name']} ({s['id'][:8]}…)"}
+                for s in _json2.loads(r.stdout)
+            ]
+    elif resource == "resource_groups":
+        cmd = ["az", "group", "list", "--subscription", sub_id, "--output", "json"] \
+              if sub_id else ["az", "group", "list", "--output", "json"]
+        r = _sp2.run(cmd, capture_output=True, text=True, timeout=20)
+        if r.returncode == 0:
+            data["items"] = [{"value": g["name"], "label": g["name"]}
+                             for g in _json2.loads(r.stdout)]
+    elif resource == "regions":
+        r = _sp2.run(["az", "account", "list-locations", "--output", "json"],
+                     capture_output=True, text=True, timeout=20)
+        if r.returncode == 0:
+            data["items"] = [
+                {"value": loc["name"], "label": f"{loc['displayName']} ({loc['name']})"}
+                for loc in _json2.loads(r.stdout)
+            ]
+
+
+def _fetch_aws_resources(resource, data, _sp2, _json2):
+    if resource == "regions":
+        r = _sp2.run(["aws", "ec2", "describe-regions", "--output", "json"],
+                     capture_output=True, text=True, timeout=20)
+        if r.returncode == 0:
+            regions = sorted(
+                reg["RegionName"]
+                for reg in _json2.loads(r.stdout).get("Regions", [])
+            )
+            data["items"] = [{"value": reg, "label": reg} for reg in regions]
+    elif resource == "vpcs":
+        r = _sp2.run(["aws", "ec2", "describe-vpcs", "--output", "json"],
+                     capture_output=True, text=True, timeout=20)
+        if r.returncode == 0:
+            vpcs = _json2.loads(r.stdout).get("Vpcs", [])
+            data["items"] = [
+                {"value": v["VpcId"],
+                 "label": (
+                     f"{next((t['Value'] for t in v.get('Tags', []) if t['Key']=='Name'), v['VpcId'])}"
+                     f" ({v['VpcId']})"
+                 )}
+                for v in vpcs
+            ]
+
+
+def _fetch_gcp_resources(resource, data, _sp2, _json2):
+    if resource == "projects":
+        r = _sp2.run(["gcloud", "projects", "list", "--format=json"],
+                     capture_output=True, text=True, timeout=20)
+        if r.returncode == 0:
+            data["items"] = [
+                {"value": p["projectId"], "label": f"{p['name']} ({p['projectId']})"}
+                for p in _json2.loads(r.stdout)
+            ]
+    elif resource == "regions":
+        r = _sp2.run(["gcloud", "compute", "regions", "list", "--format=json"],
+                     capture_output=True, text=True, timeout=20)
+        if r.returncode == 0:
+            data["items"] = [{"value": reg["name"], "label": reg["name"]}
+                             for reg in _json2.loads(r.stdout)]
 
 
 @app.route("/api/discovery/cloud-auth", methods=["POST"])
@@ -594,6 +612,164 @@ def test_connection():
         return jsonify({"error": f"Connection test failed: {str(e)}"}), 500
 
 POSTGRES_15_IMAGE = 'postgres:15'
+
+
+def _add_provider_services(config, services, volumes, network_name, get_host_config, redis_host):
+    """Populate services/volumes dict with optional provider containers."""
+    if config.get('search_provider') == 'meilisearch':
+        meili_host = get_host_config('meilisearch', 'localhost', 7700)
+        services['meilisearch'] = {
+            'image': 'getmeili/meilisearch:v1.6',
+            'container_name': 'crm-meilisearch',
+            'restart': 'unless-stopped',
+            'ports': [f"{meili_host['port']}:7700"],
+            'environment': {'MEILI_MASTER_KEY': '${MEILI_MASTER_KEY}'},
+            'volumes': ['meili_data:/meili_data'],
+            'networks': [network_name],
+        }
+        volumes['meili_data'] = {'driver': 'local'}
+
+    if config.get('chat_provider') == 'chatwoot':
+        chatwoot_host = get_host_config('chatwoot', 'localhost', 3000)
+        services['chatwoot'] = {
+            'image': 'chatwoot/chatwoot:latest',
+            'container_name': 'crm-chatwoot',
+            'restart': 'unless-stopped',
+            'ports': [f"{chatwoot_host['port']}:3000"],
+            'environment': {
+                'INSTALLATION_ENV': 'docker',
+                'SECRET_KEY_BASE': '${CHATWOOT_SECRET_KEY}',
+                'POSTGRES_HOST': 'chatwoot-postgres',
+                'POSTGRES_USERNAME': 'chatwoot',
+                'POSTGRES_PASSWORD': '${CHATWOOT_DB_PASSWORD}',
+                'REDIS_URL': f"redis://crm-redis:{redis_host['port']}/1",
+            },
+            'depends_on': ['chatwoot-postgres'],
+            'networks': [network_name],
+        }
+        services['chatwoot-postgres'] = _pg_service('chatwoot', 'crm-chatwoot-postgres', network_name)
+        volumes['chatwoot_data'] = {'driver': 'local'}
+
+    if config.get('notification_provider') == 'novu':
+        novu_host = get_host_config('novu', 'localhost', 3001)
+        services['novu'] = {
+            'image': 'novu/novu:latest',
+            'container_name': 'crm-novu',
+            'restart': 'unless-stopped',
+            'ports': [f"{novu_host['port']}:3000"],
+            'environment': {
+                'NODE_ENV': 'production',
+                'MONGO_URL': 'mongodb://novu-mongo:27017/novu',
+                'REDIS_URL': f"redis://crm-redis:{redis_host['port']}/2",
+                'API_SECRET_KEY': '${NOVU_API_KEY}',
+                'JWT_SECRET': '${NOVU_JWT_SECRET}',
+            },
+            'depends_on': ['novu-mongo'],
+            'networks': [network_name],
+        }
+        services['novu-mongo'] = {
+            'image': 'mongo:7', 'container_name': 'crm-novu-mongo',
+            'restart': 'unless-stopped',
+            'environment': {'MONGO_INITDB_DATABASE': 'novu'},
+            'volumes': ['novu_data:/data/db'],
+            'networks': [network_name],
+        }
+        volumes['novu_data'] = {'driver': 'local'}
+
+    if config.get('analytics_provider') == 'superset':
+        superset_host = get_host_config('superset', 'localhost', 8088)
+        services['superset'] = {
+            'image': 'apache/superset:latest',
+            'container_name': 'crm-superset',
+            'restart': 'unless-stopped',
+            'ports': [f"{superset_host['port']}:8088"],
+            'environment': {
+                'SUPERSET_SECRET_KEY': '${SUPERSET_SECRET_KEY}',
+                'POSTGRES_DB': 'superset', 'POSTGRES_USER': 'superset',
+                'POSTGRES_PASSWORD': '${SUPERSET_DB_PASSWORD}',
+                'POSTGRES_HOST': 'superset-postgres',
+            },
+            'depends_on': ['superset-postgres'],
+            'networks': [network_name],
+        }
+        services['superset-postgres'] = _pg_service('superset', 'crm-superset-postgres', network_name)
+        volumes['superset_data'] = {'driver': 'local'}
+
+    if config.get('signature_provider') == 'docuseal':
+        docuseal_host = get_host_config('docuseal', 'localhost', 3002)
+        docuseal_db_pw = os.environ.get('DOCUSEAL_DB_PASSWORD', 'docuseal')
+        services['docuseal'] = {
+            'image': 'docuseal/docuseal:latest',
+            'container_name': 'crm-docuseal',
+            'restart': 'unless-stopped',
+            'ports': [f"{docuseal_host['port']}:3000"],
+            'environment': {
+                'DATABASE_URL': (
+                    f"postgresql://docuseal:{docuseal_db_pw}"
+                    "@crm-docuseal-postgres:5432/docuseal"
+                ),
+                'SECRET_KEY_BASE': '${DOCUSEAL_SECRET_KEY}',
+                'HOST': '0.0.0.0',
+            },
+            'depends_on': ['docuseal-postgres'],
+            'networks': [network_name],
+        }
+        services['docuseal-postgres'] = _pg_service('docuseal', 'crm-docuseal-postgres', network_name)
+        volumes['docuseal_data'] = {'driver': 'local'}
+
+    if config.get('ai_provider') == 'ollama':
+        ollama_host = get_host_config('ollama', 'localhost', 11434)
+        services['ollama'] = {
+            'image': 'ollama/ollama:latest',
+            'container_name': 'crm-ollama',
+            'restart': 'unless-stopped',
+            'ports': [f"{ollama_host['port']}:11434"],
+            'volumes': ['ollama_data:/root/.ollama'],
+            'networks': [network_name],
+        }
+        volumes['ollama_data'] = {'driver': 'local'}
+
+    if config.get('integration_provider') == 'n8n':
+        n8n_host = get_host_config('n8n', 'localhost', 5678)
+        services['n8n'] = {
+            'image': 'n8nio/n8n:latest',
+            'container_name': 'crm-n8n',
+            'restart': 'unless-stopped',
+            'ports': [f"{n8n_host['port']}:5678"],
+            'environment': {
+                'N8N_BASIC_AUTH_ACTIVE': 'true',
+                'N8N_BASIC_AUTH_USER': '${N8N_USERNAME}',
+                'N8N_BASIC_AUTH_PASSWORD': '${N8N_PASSWORD}',
+                'N8N_ENCRYPTION_KEY': '${N8N_ENCRYPTION_KEY}',
+                'DB_TYPE': 'postgresdb',
+                'DB_POSTGRESDB_DATABASE': 'n8n',
+                'DB_POSTGRESDB_HOST': 'n8n-postgres',
+                'DB_POSTGRESDB_PORT': '5432',
+                'DB_POSTGRESDB_USER': 'n8n',
+                'DB_POSTGRESDB_PASSWORD': '${N8N_DB_PASSWORD}',
+            },
+            'depends_on': ['n8n-postgres'],
+            'volumes': ['n8n_data:/home/node/.n8n'],
+            'networks': [network_name],
+        }
+        services['n8n-postgres'] = _pg_service('n8n', 'crm-n8n-postgres', network_name)
+        volumes['n8n_data'] = {'driver': 'local'}
+
+
+def _pg_service(db_name: str, container_name: str, network_name: str) -> dict:
+    """Return a standard PostgreSQL 15 service definition."""
+    return {
+        'image': POSTGRES_15_IMAGE,
+        'container_name': container_name,
+        'restart': 'unless-stopped',
+        'environment': {
+            'POSTGRES_DB': db_name,
+            'POSTGRES_USER': db_name,
+            'POSTGRES_PASSWORD': f"${{{db_name.upper()}_DB_PASSWORD}}",
+        },
+        'volumes': [f"{db_name}_data:/var/lib/postgresql/data"],
+        'networks': [network_name],
+    }
 
 
 def generate_docker_compose(config):
@@ -755,7 +931,7 @@ def generate_docker_compose(config):
         'depends_on': ['mariadb', 'redis'],
         'networks': [network_name],
         'healthcheck': {
-            'test': ["CMD", "curl", "-f", f"http://localhost:5000/health"],
+            'test': ["CMD", "curl", "-f", "http://localhost:5000/health"],
             'interval': '30s',
             'timeout': '10s',
             'retries': 3
@@ -782,190 +958,7 @@ def generate_docker_compose(config):
     }
     
     # Add provider services based on selection
-    if config.get('search_provider') == 'meilisearch':
-        meili_host = get_host_config('meilisearch', 'localhost', 7700)
-        services['meilisearch'] = {
-            'image': 'getmeili/meilisearch:v1.6',
-            'container_name': 'crm-meilisearch',
-            'restart': 'unless-stopped',
-            'ports': [f"{meili_host['port']}:7700"],
-            'environment': {
-                'MEILI_MASTER_KEY': '${MEILI_MASTER_KEY}'
-            },
-            'volumes': ['meili_data:/meili_data'],
-            'networks': [network_name]
-        }
-        volumes['meili_data'] = {'driver': 'local'}
-    
-    if config.get('chat_provider') == 'chatwoot':
-        chatwoot_host = get_host_config('chatwoot', 'localhost', 3000)
-        services['chatwoot'] = {
-            'image': 'chatwoot/chatwoot:latest',
-            'container_name': 'crm-chatwoot',
-            'restart': 'unless-stopped',
-            'ports': [f"{chatwoot_host['port']}:3000"],
-            'environment': {
-                'INSTALLATION_ENV': 'docker',
-                'SECRET_KEY_BASE': '${CHATWOOT_SECRET_KEY}',
-                'POSTGRES_HOST': 'chatwoot-postgres',
-                'POSTGRES_USERNAME': 'chatwoot',
-                'POSTGRES_PASSWORD': '${CHATWOOT_DB_PASSWORD}',
-                'REDIS_URL': f"redis://crm-redis:{redis_host['port']}/1"
-            },
-            'depends_on': ['chatwoot-postgres'],
-            'networks': [network_name]
-        }
-        services['chatwoot-postgres'] = {
-            'image': POSTGRES_15_IMAGE,
-            'container_name': 'crm-chatwoot-postgres',
-            'restart': 'unless-stopped',
-            'environment': {
-                'POSTGRES_DB': 'chatwoot',
-                'POSTGRES_USER': 'chatwoot',
-                'POSTGRES_PASSWORD': '${CHATWOOT_DB_PASSWORD}'
-            },
-            'volumes': ['chatwoot_data:/var/lib/postgresql/data'],
-            'networks': [network_name]
-        }
-        volumes['chatwoot_data'] = {'driver': 'local'}
-    
-    if config.get('notification_provider') == 'novu':
-        novu_host = get_host_config('novu', 'localhost', 3001)
-        services['novu'] = {
-            'image': 'novu/novu:latest',
-            'container_name': 'crm-novu',
-            'restart': 'unless-stopped',
-            'ports': [f"{novu_host['port']}:3000"],
-            'environment': {
-                'NODE_ENV': 'production',
-                'MONGO_URL': 'mongodb://novu-mongo:27017/novu',
-                'REDIS_URL': f"redis://crm-redis:{redis_host['port']}/2",
-                'API_SECRET_KEY': '${NOVU_API_KEY}',
-                'JWT_SECRET': '${NOVU_JWT_SECRET}'
-            },
-            'depends_on': ['novu-mongo'],
-            'networks': [network_name]
-        }
-        services['novu-mongo'] = {
-            'image': 'mongo:7',
-            'container_name': 'crm-novu-mongo',
-            'restart': 'unless-stopped',
-            'environment': {
-                'MONGO_INITDB_DATABASE': 'novu'
-            },
-            'volumes': ['novu_data:/data/db'],
-            'networks': [network_name]
-        }
-        volumes['novu_data'] = {'driver': 'local'}
-    
-    if config.get('analytics_provider') == 'superset':
-        superset_host = get_host_config('superset', 'localhost', 8088)
-        services['superset'] = {
-            'image': 'apache/superset:latest',
-            'container_name': 'crm-superset',
-            'restart': 'unless-stopped',
-            'ports': [f"{superset_host['port']}:8088"],
-            'environment': {
-                'SUPERSET_SECRET_KEY': '${SUPERSET_SECRET_KEY}',
-                'POSTGRES_DB': 'superset',
-                'POSTGRES_USER': 'superset',
-                'POSTGRES_PASSWORD': '${SUPERSET_DB_PASSWORD}',
-                'POSTGRES_HOST': 'superset-postgres'
-            },
-            'depends_on': ['superset-postgres'],
-            'networks': [network_name]
-        }
-        services['superset-postgres'] = {
-            'image': POSTGRES_15_IMAGE,
-            'container_name': 'crm-superset-postgres',
-            'restart': 'unless-stopped',
-            'environment': {
-                'POSTGRES_DB': 'superset',
-                'POSTGRES_USER': 'superset',
-                'POSTGRES_PASSWORD': '${SUPERSET_DB_PASSWORD}'
-            },
-            'volumes': ['superset_data:/var/lib/postgresql/data'],
-            'networks': [network_name]
-        }
-        volumes['superset_data'] = {'driver': 'local'}
-    
-    if config.get('signature_provider') == 'docuseal':
-        docuseal_host = get_host_config('docuseal', 'localhost', 3002)
-        services['docuseal'] = {
-            'image': 'docuseal/docuseal:latest',
-            'container_name': 'crm-docuseal',
-            'restart': 'unless-stopped',
-            'ports': [f"{docuseal_host['port']}:3000"],
-            'environment': {
-                'DATABASE_URL': f"postgresql://docuseal:{os.environ.get('DOCUSEAL_DB_PASSWORD', 'docuseal')}@crm-docuseal-postgres:5432/docuseal",
-                'SECRET_KEY_BASE': '${DOCUSEAL_SECRET_KEY}',
-                'HOST': '0.0.0.0'
-            },
-            'depends_on': ['docuseal-postgres'],
-            'networks': [network_name]
-        }
-        services['docuseal-postgres'] = {
-            'image': POSTGRES_15_IMAGE,
-            'container_name': 'crm-docuseal-postgres',
-            'restart': 'unless-stopped',
-            'environment': {
-                'POSTGRES_DB': 'docuseal',
-                'POSTGRES_USER': 'docuseal',
-                'POSTGRES_PASSWORD': os.environ.get('DOCUSEAL_DB_PASSWORD', 'docuseal')
-            },
-            'volumes': ['docuseal_data:/var/lib/postgresql/data'],
-            'networks': [network_name]
-        }
-        volumes['docuseal_data'] = {'driver': 'local'}
-    
-    if config.get('ai_provider') == 'ollama':
-        ollama_host = get_host_config('ollama', 'localhost', 11434)
-        services['ollama'] = {
-            'image': 'ollama/ollama:latest',
-            'container_name': 'crm-ollama',
-            'restart': 'unless-stopped',
-            'ports': [f"{ollama_host['port']}:11434"],
-            'volumes': ['ollama_data:/root/.ollama'],
-            'networks': [network_name]
-        }
-        volumes['ollama_data'] = {'driver': 'local'}
-    
-    if config.get('integration_provider') == 'n8n':
-        n8n_host = get_host_config('n8n', 'localhost', 5678)
-        services['n8n'] = {
-            'image': 'n8nio/n8n:latest',
-            'container_name': 'crm-n8n',
-            'restart': 'unless-stopped',
-            'ports': [f"{n8n_host['port']}:5678"],
-            'environment': {
-                'N8N_BASIC_AUTH_ACTIVE': 'true',
-                'N8N_BASIC_AUTH_USER': '${N8N_USERNAME}',
-                'N8N_BASIC_AUTH_PASSWORD': '${N8N_PASSWORD}',
-                'N8N_ENCRYPTION_KEY': '${N8N_ENCRYPTION_KEY}',
-                'DB_TYPE': 'postgresdb',
-                'DB_POSTGRESDB_DATABASE': 'n8n',
-                'DB_POSTGRESDB_HOST': 'n8n-postgres',
-                'DB_POSTGRESDB_PORT': '5432',
-                'DB_POSTGRESDB_USER': 'n8n',
-                'DB_POSTGRESDB_PASSWORD': '${N8N_DB_PASSWORD}'
-            },
-            'depends_on': ['n8n-postgres'],
-            'volumes': ['n8n_data:/home/node/.n8n'],
-            'networks': [network_name]
-        }
-        services['n8n-postgres'] = {
-            'image': POSTGRES_15_IMAGE,
-            'container_name': 'crm-n8n-postgres',
-            'restart': 'unless-stopped',
-            'environment': {
-                'POSTGRES_DB': 'n8n',
-                'POSTGRES_USER': 'n8n',
-                'POSTGRES_PASSWORD': '${N8N_DB_PASSWORD}'
-            },
-            'volumes': ['n8n_data:/var/lib/postgresql/data'],
-            'networks': [network_name]
-        }
-        volumes['n8n_data'] = {'driver': 'local'}
+    _add_provider_services(config, services, volumes, network_name, get_host_config, redis_host)
     
     compose = {
         'version': version,

@@ -19,6 +19,10 @@ from dataclasses import dataclass, field
 from enum import Enum
 from typing import Any, Dict, List, Optional
 
+# The probe user has no real password; connection is expected to fail with
+# an auth error, which still confirms the DB socket is accepting connections.
+_probe_password: str = ""  # noqa: S105 (intentionally empty probe credential)
+
 
 # ---------------------------------------------------------------------------
 # Enums
@@ -105,7 +109,7 @@ class ComponentDetector:
         try:
             with socket.create_connection((host, port), timeout=timeout):
                 return True
-        except (OSError, ConnectionRefusedError, socket.timeout):
+        except (OSError, socket.timeout):
             return False
 
     # ------------------------------------------------------------------
@@ -119,10 +123,10 @@ class ComponentDetector:
         status.running = tcp_open
 
         if tcp_open:
-            # Try to get version without credentials (anonymous connect attempt)
+            # Try to determine version via anonymous connect (usually denied; TCP open is the real check)
             try:
                 import pymysql  # type: ignore
-                conn = pymysql.connect(host=host, port=port, user="", password="",
+                conn = pymysql.connect(host=host, port=port, user="crm_probe", password=_probe_password,
                                        connect_timeout=2)
                 with conn.cursor() as cur:
                     cur.execute("SELECT @@version")
@@ -228,7 +232,7 @@ class ComponentDetector:
     # Docker container detection
     # ------------------------------------------------------------------
 
-    def detect_docker_containers(self, host: str = "localhost") -> List[ComponentStatus]:
+    def detect_docker_containers(self, _host: str = "localhost") -> List[ComponentStatus]:
         """Parse `docker ps` output to find running crm-* containers."""
         results: List[ComponentStatus] = []
         try:

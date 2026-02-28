@@ -366,6 +366,28 @@ def _run_command_streaming(
         return 1
 
 
+def _get_install_commands(os_type: str, tool, emit: Callable[[str], None]):
+    """Return the list of install commands for the given OS type and tool, or None on error."""
+    if os_type == "mac":
+        if not _brew_available():
+            emit("Homebrew not found — installing Homebrew first…")
+            rc = _run_command_streaming(
+                '/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"',
+                emit,
+            )
+            if rc != 0:
+                emit("ERROR: Failed to install Homebrew. Please install manually: https://brew.sh")
+                return None
+        return tool.install_mac
+    if os_type == "linux":
+        mgr = _linux_pkg_manager()
+        return tool.install_linux_apt if mgr == "apt" else tool.install_linux_yum
+    if os_type == "windows":
+        return tool.install_windows
+    emit(f"Unsupported OS: {platform.system()}")
+    return None
+
+
 def install_tool_streaming(
     tool_key: str,
     emit: Callable[[str], None],
@@ -382,24 +404,8 @@ def install_tool_streaming(
     os_type = _os_type()
     emit(f"Installing {tool.name} on {platform.system()}…")
 
-    if os_type == "mac":
-        if not _brew_available():
-            emit("Homebrew not found — installing Homebrew first…")
-            rc = _run_command_streaming(
-                '/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"',
-                emit,
-            )
-            if rc != 0:
-                emit("ERROR: Failed to install Homebrew. Please install manually: https://brew.sh")
-                return False
-        commands = tool.install_mac
-    elif os_type == "linux":
-        mgr = _linux_pkg_manager()
-        commands = tool.install_linux_apt if mgr == "apt" else tool.install_linux_yum
-    elif os_type == "windows":
-        commands = tool.install_windows
-    else:
-        emit(f"Unsupported OS: {platform.system()}")
+    commands = _get_install_commands(os_type, tool, emit)
+    if commands is None:
         return False
 
     if not commands:
@@ -416,9 +422,8 @@ def install_tool_streaming(
     if shutil.which(tool.binary):
         emit(f"✅ {tool.name} installed successfully.")
         return True
-    else:
-        emit(f"⚠ {tool.name} installed but binary '{tool.binary}' not in PATH. You may need to restart your shell.")
-        return True  # soft success
+    emit(f"⚠ {tool.name} installed but binary '{tool.binary}' not in PATH. You may need to restart your shell.")
+    return True  # soft success
 
 
 def install_sdk_streaming(

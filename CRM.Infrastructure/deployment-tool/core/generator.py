@@ -13,7 +13,7 @@ import string
 from dataclasses import dataclass, field
 from pathlib import Path
 from datetime import datetime, timezone
-from typing import Any
+from typing import Any, Optional
 
 try:
     from jinja2 import Environment, FileSystemLoader, StrictUndefined, TemplateNotFound
@@ -36,7 +36,7 @@ class GenerationResult:
     """Result of a configuration generation run."""
     success: bool
     files: list[GeneratedFile] = field(default_factory=list)
-    output_dir: Path = None
+    output_dir: Optional[Path] = None
     errors: list[str] = field(default_factory=list)
     warnings: list[str] = field(default_factory=list)
 
@@ -176,7 +176,7 @@ class ConfigGenerator:
     # Public API
     # ------------------------------------------------------------------
 
-    def generate(self, profile: dict, output_dir: Path = None) -> GenerationResult:
+    def generate(self, profile: dict, output_dir: Optional[Path] = None) -> GenerationResult:
         """Generate all configuration files for the given wizard profile."""
         profile_name = profile.get("meta", {}).get("profile_name", "crm")
 

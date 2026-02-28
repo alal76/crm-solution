@@ -123,6 +123,16 @@ class ProbeTarget:
 
 _GB = 1024 ** 3
 
+# Check name constants - used in CheckResult.name fields
+CHECK_LOCAL_DOCKER  = "Local Docker"
+CHECK_SSH           = "SSH Connectivity"
+CHECK_DISK_SPACE    = "Disk Space"
+CHECK_AVAILABLE_RAM = "Available RAM"
+CHECK_K8S_ACCESS    = "Kubernetes Access"
+CHECK_AWS_AUTH      = "AWS Auth"
+CHECK_AZURE_AUTH    = "Azure Auth"
+CHECK_GCP_AUTH      = "GCP Auth"
+
 
 class EnvironmentProbe:
     """Collection of environment checks that can be run individually or in bulk."""
@@ -141,27 +151,27 @@ class EnvironmentProbe:
             )
             if result.returncode == 0:
                 return CheckResult(
-                    name="Local Docker",
+                    name=CHECK_LOCAL_DOCKER,
                     status=CheckStatus.PASS,
                     detail="Docker daemon is running and accessible.",
                 )
             stderr = result.stderr.decode(errors="replace").strip()
             return CheckResult(
-                name="Local Docker",
+                name=CHECK_LOCAL_DOCKER,
                 status=CheckStatus.FAIL,
                 detail=stderr[:300] or "docker info returned non-zero exit code.",
                 fix_hint="Install Docker Desktop or Docker Engine and ensure the daemon is started.",
             )
         except FileNotFoundError:
             return CheckResult(
-                name="Local Docker",
+                name=CHECK_LOCAL_DOCKER,
                 status=CheckStatus.FAIL,
                 detail="docker command not found.",
                 fix_hint="Install Docker Desktop or Docker Engine.",
             )
         except subprocess.TimeoutExpired:
             return CheckResult(
-                name="Local Docker",
+                name=CHECK_LOCAL_DOCKER,
                 status=CheckStatus.FAIL,
                 detail="docker info timed out after 15 s.",
                 fix_hint="Check that the Docker daemon is not hanging.",
@@ -173,7 +183,7 @@ class EnvironmentProbe:
             import paramiko  # type: ignore
         except ImportError:
             return CheckResult(
-                name="SSH Connectivity",
+                name=CHECK_SSH,
                 status=CheckStatus.WARN,
                 detail="paramiko not installed — cannot test SSH connectivity.",
                 fix_hint="pip install paramiko",
@@ -195,20 +205,20 @@ class EnvironmentProbe:
             client.connect(**connect_kwargs)
             client.close()
             return CheckResult(
-                name="SSH Connectivity",
+                name=CHECK_SSH,
                 status=CheckStatus.PASS,
                 detail=f"Successfully connected to {target.host} as {target.ssh_user}.",
             )
         except paramiko.AuthenticationException:
             return CheckResult(
-                name="SSH Connectivity",
+                name=CHECK_SSH,
                 status=CheckStatus.FAIL,
                 detail=f"Authentication failed for {target.ssh_user}@{target.host}.",
                 fix_hint="Verify SSH key path or password.",
             )
         except (paramiko.ssh_exception.NoValidConnectionsError, OSError, socket.error) as exc:
             return CheckResult(
-                name="SSH Connectivity",
+                name=CHECK_SSH,
                 status=CheckStatus.FAIL,
                 detail=f"Could not connect to {target.host}: {exc}",
                 fix_hint="Check that the host is reachable and SSH is enabled.",
@@ -233,26 +243,26 @@ class EnvironmentProbe:
                 detail = f"{free_gb:.1f} GB free on /"
             except Exception as exc:
                 return CheckResult(
-                    name="Disk Space",
+                    name=CHECK_DISK_SPACE,
                     status=CheckStatus.WARN,
                     detail=f"Could not determine disk usage: {exc}",
                 )
 
         if free_gb >= min_gb:
             return CheckResult(
-                name="Disk Space",
+                name=CHECK_DISK_SPACE,
                 status=CheckStatus.PASS,
                 detail=detail,
             )
         if free_gb >= min_gb * 0.5:
             return CheckResult(
-                name="Disk Space",
+                name=CHECK_DISK_SPACE,
                 status=CheckStatus.WARN,
                 detail=f"{detail} (recommended: ≥ {min_gb} GB)",
                 fix_hint=f"Free up additional disk space. Minimum required: {min_gb} GB.",
             )
         return CheckResult(
-            name="Disk Space",
+            name=CHECK_DISK_SPACE,
             status=CheckStatus.FAIL,
             detail=f"{detail} (required: ≥ {min_gb} GB)",
             fix_hint=f"Free up disk space. At least {min_gb} GB is required for a full deployment.",
@@ -265,16 +275,16 @@ class EnvironmentProbe:
             avail_gb = available_bytes / _GB
             detail = f"{avail_gb:.1f} GB available"
             if avail_gb >= min_gb:
-                return CheckResult(name="Available RAM", status=CheckStatus.PASS, detail=detail)
+                return CheckResult(name=CHECK_AVAILABLE_RAM, status=CheckStatus.PASS, detail=detail)
             if avail_gb >= min_gb * 0.5:
                 return CheckResult(
-                    name="Available RAM",
+                    name=CHECK_AVAILABLE_RAM,
                     status=CheckStatus.WARN,
                     detail=f"{detail} (recommended: ≥ {min_gb} GB)",
                     fix_hint="Close other applications to free RAM.",
                 )
             return CheckResult(
-                name="Available RAM",
+                name=CHECK_AVAILABLE_RAM,
                 status=CheckStatus.FAIL,
                 detail=f"{detail} (required: ≥ {min_gb} GB)",
                 fix_hint=f"At least {min_gb} GB of RAM is needed. Add more memory or reduce component count.",
@@ -313,7 +323,7 @@ class EnvironmentProbe:
             pass
 
         return CheckResult(
-            name="Available RAM",
+            name=CHECK_AVAILABLE_RAM,
             status=CheckStatus.WARN,
             detail="psutil not installed and /proc/meminfo unavailable — cannot check RAM.",
             fix_hint="pip install psutil",
@@ -368,7 +378,7 @@ class EnvironmentProbe:
                 status=CheckStatus.PASS,
                 detail="Outbound HTTPS is reachable (pypi.org).",
             )
-        except (urllib.error.URLError, OSError):
+        except urllib.error.URLError:
             return CheckResult(
                 name="Internet Access",
                 status=CheckStatus.WARN,
@@ -389,27 +399,27 @@ class EnvironmentProbe:
             )
             if result.returncode == 0:
                 return CheckResult(
-                    name="Kubernetes Access",
+                    name=CHECK_K8S_ACCESS,
                     status=CheckStatus.PASS,
                     detail="kubectl cluster-info succeeded.",
                 )
             stderr = result.stderr.decode(errors="replace").strip()
             return CheckResult(
-                name="Kubernetes Access",
+                name=CHECK_K8S_ACCESS,
                 status=CheckStatus.FAIL,
                 detail=stderr[:300] or "kubectl cluster-info failed.",
                 fix_hint="Check that KUBECONFIG is set correctly and the cluster is reachable.",
             )
         except FileNotFoundError:
             return CheckResult(
-                name="Kubernetes Access",
+                name=CHECK_K8S_ACCESS,
                 status=CheckStatus.WARN,
                 detail="kubectl not found.",
                 fix_hint="Install kubectl: https://kubernetes.io/docs/tasks/tools/",
             )
         except subprocess.TimeoutExpired:
             return CheckResult(
-                name="Kubernetes Access",
+                name=CHECK_K8S_ACCESS,
                 status=CheckStatus.FAIL,
                 detail="kubectl cluster-info timed out.",
                 fix_hint="Check cluster API server connectivity.",
@@ -421,7 +431,7 @@ class EnvironmentProbe:
             import boto3  # type: ignore
         except ImportError:
             return CheckResult(
-                name="AWS Auth",
+                name=CHECK_AWS_AUTH,
                 status=CheckStatus.WARN,
                 detail="boto3 not installed — cannot validate AWS credentials.",
                 fix_hint="pip install boto3",
@@ -437,13 +447,13 @@ class EnvironmentProbe:
             sts = boto3.client("sts", **sts_kwargs)
             identity = sts.get_caller_identity()
             return CheckResult(
-                name="AWS Auth",
+                name=CHECK_AWS_AUTH,
                 status=CheckStatus.PASS,
                 detail=f"Authenticated as {identity.get('Arn', 'unknown ARN')}.",
             )
         except Exception as exc:
             return CheckResult(
-                name="AWS Auth",
+                name=CHECK_AWS_AUTH,
                 status=CheckStatus.FAIL,
                 detail=f"AWS authentication failed: {exc}",
                 fix_hint="Check AWS credentials (access key, secret key, IAM permissions).",
@@ -455,7 +465,7 @@ class EnvironmentProbe:
             from azure.identity import ClientSecretCredential  # type: ignore
         except ImportError:
             return CheckResult(
-                name="Azure Auth",
+                name=CHECK_AZURE_AUTH,
                 status=CheckStatus.WARN,
                 detail="azure-identity not installed — cannot validate Azure credentials.",
                 fix_hint="pip install azure-identity",
@@ -469,13 +479,13 @@ class EnvironmentProbe:
             token = cred.get_token("https://management.azure.com/.default")
             token_preview = token.token[:12] + "..." if token.token else "<empty>"
             return CheckResult(
-                name="Azure Auth",
+                name=CHECK_AZURE_AUTH,
                 status=CheckStatus.PASS,
                 detail=f"Azure token acquired (preview: {token_preview}).",
             )
         except Exception as exc:
             return CheckResult(
-                name="Azure Auth",
+                name=CHECK_AZURE_AUTH,
                 status=CheckStatus.FAIL,
                 detail=f"Azure authentication failed: {exc}",
                 fix_hint="Check tenant_id, client_id, and client_secret in your Azure app registration.",
@@ -488,7 +498,7 @@ class EnvironmentProbe:
             import google.auth.transport.requests  # type: ignore
         except ImportError:
             return CheckResult(
-                name="GCP Auth",
+                name=CHECK_GCP_AUTH,
                 status=CheckStatus.WARN,
                 detail="google-auth not installed — cannot validate GCP credentials.",
                 fix_hint="pip install google-auth",
@@ -502,19 +512,19 @@ class EnvironmentProbe:
                     scopes=["https://www.googleapis.com/auth/cloud-platform"],
                 )
             else:
-                creds, project = google.auth.default(
+                creds, _project = google.auth.default(
                     scopes=["https://www.googleapis.com/auth/cloud-platform"]
                 )
             auth_req = google.auth.transport.requests.Request()
             creds.refresh(auth_req)
             return CheckResult(
-                name="GCP Auth",
+                name=CHECK_GCP_AUTH,
                 status=CheckStatus.PASS,
                 detail="GCP credentials are valid.",
             )
         except Exception as exc:
             return CheckResult(
-                name="GCP Auth",
+                name=CHECK_GCP_AUTH,
                 status=CheckStatus.FAIL,
                 detail=f"GCP authentication failed: {exc}",
                 fix_hint="Run 'gcloud auth application-default login' or provide a service account key file.",
@@ -585,14 +595,14 @@ class EnvironmentProbe:
                 self.check_disk_space,
                 self.check_available_ram,
                 self.check_internet_access,
-            ] + [lambda p=port: self.check_port_available(p) for p in [80, 443, 5000, 3306, 6379]]
+            ] + [lambda _p=port: self.check_port_available(_p) for port in [80, 443, 5000, 3306, 6379]]
 
         elif ct == "ssh":
             tasks = [
                 lambda: self.check_ssh_connectivity(target),
                 self.check_disk_space,
                 self.check_available_ram,
-            ] + [lambda p=port: self.check_port_available(p) for p in [80, 443, 5000, 3306, 6379]]
+            ] + [lambda _p=port: self.check_port_available(_p) for port in [80, 443, 5000, 3306, 6379]]
 
         elif ct == "cloud_aws":
             tasks = [

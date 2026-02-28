@@ -108,7 +108,6 @@ def test_compare_profiles():
         diff = mgr.compare("alpha", "beta")
 
         # Should have detected at least the environment_type difference
-        diff_values = list(diff.values())
         env_diff = None
         for k, v in diff.items():
             if "environment_type" in k:

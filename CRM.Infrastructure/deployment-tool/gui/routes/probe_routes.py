@@ -117,7 +117,7 @@ def port_check():
         # detect_tcp returns True when the port is *in use*; the UI
         # asks "is this port *available*?" so we invert the result.
         in_use = ComponentDetector.detect_tcp("localhost", port, timeout=1.0)
-        results[port] = not in_use  # True = available / bindable
+        results[port] = not in_use
 
     return jsonify(results)
 

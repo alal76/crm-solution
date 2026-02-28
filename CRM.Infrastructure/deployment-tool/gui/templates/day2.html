@@ -73,7 +73,7 @@
                     <div class="mb-2">Current version: <strong id="upgrade-current-version">loading...</strong></div>
                     <div class="row g-3 mb-3">
                         <div class="col-md-4">
-                            <label class="form-label fw-semibold">Target Version</label>
+                            <label class="form-label fw-semibold" for="upgrade-version-select">Target Version</label>
                             <select class="form-select" id="upgrade-version-select">
                                 <option value="latest">latest</option>
                             </select>
@@ -86,7 +86,7 @@
                     </div>
                     <button class="btn btn-primary" onclick="startUpgrade()"><i class="bi bi-play-circle"></i> Start Upgrade</button>
                     <div class="mt-3">
-                        <div class="progress mb-2" style="height:8px"><div id="upgrade-progress" class="progress-bar progress-bar-striped progress-bar-animated" style="width:0%"></div></div>
+                        <div class="progress mb-2" style="height:8px"><progress id="upgrade-progress" class="progress-bar progress-bar-striped progress-bar-animated" style="width:0%; height:8px; border:none" value="0" max="100" aria-label="Upgrade progress"></progress></div>
                         <div class="log-output mt-2" id="upgrade-log"></div>
                     </div>
                 </div>

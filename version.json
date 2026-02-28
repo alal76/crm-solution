@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 611,
-  "patch": 9,
+  "patch": 10,
   "lastUpdate": "2026-03-01",
-  "description": "feat(infra/cdt): v0.611.9 - cloud resource auto-discovery for dropdown population",
+  "description": "fix(infra/cdt): v0.611.10 - auto-detect subscription + scan all resource groups on discover",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [

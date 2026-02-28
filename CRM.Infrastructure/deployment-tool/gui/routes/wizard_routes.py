@@ -184,36 +184,37 @@ def validate_field():
     field_id = body.get("field_id", "")
     value = body.get("value", "")
     field_type = body.get("field_type", "")
-    step_id = body.get("step_id", "")
+    # step_id available in body if needed for cross-field validation
 
     # Dispatch based on field_type or field_id
-    result = None
-
-    if field_type == "email" or field_id == "email" or field_id.endswith("_email"):
-        result = _validator.validate_email(value, field_id)
-    elif field_type == "username" or field_id.endswith("_username"):
-        result = _validator.validate_username(value, field_id)
-    elif field_type == "password" or field_id.endswith("_password"):
-        result = _validator.validate_password_strength(value, field_id)
-    elif field_type == "domain" or field_id.endswith("_domain") or field_id == "cors_origins":
-        result = _validator.validate_domain(value, field_id)
-    elif field_type == "port" or field_id.endswith("_port"):
-        result = _validator.validate_port(value, field_id)
-    elif field_type == "cidr" or field_id.endswith("_cidr"):
-        result = _validator.validate_cidr(value, field_id)
-    else:
-        # Generic: just check required
-        result = _validator.validate_required(value, field_id)
+    result = _dispatch_field_validation(field_id, field_type, value)
 
     if result.valid:
         resp = {"valid": True}
         if result.warnings:
             resp["warning"] = result.warnings[0]
         return jsonify(resp)
-    else:
-        first_error = result.errors[0] if result.errors else None
-        return jsonify({
-            "valid": False,
-            "error": first_error.message if first_error else "Validation failed.",
-            "hint": first_error.fix_hint if first_error else "",
-        })
+
+    first_error = result.errors[0] if result.errors else None
+    return jsonify({
+        "valid": False,
+        "error": first_error.message if first_error else "Validation failed.",
+        "hint": first_error.fix_hint if first_error else "",
+    })
+
+
+def _dispatch_field_validation(field_id: str, field_type: str, value: str):
+    """Route to the appropriate validator method based on field type or id."""
+    if field_type == "email" or field_id in ("email",) or field_id.endswith("_email"):
+        return _validator.validate_email(value, field_id)
+    if field_type == "username" or field_id.endswith("_username"):
+        return _validator.validate_username(value, field_id)
+    if field_type == "password" or field_id.endswith("_password"):
+        return _validator.validate_password_strength(value, field_id)
+    if field_type == "domain" or field_id.endswith("_domain") or field_id == "cors_origins":
+        return _validator.validate_domain(value, field_id)
+    if field_type == "port" or field_id.endswith("_port"):
+        return _validator.validate_port(value, field_id)
+    if field_type == "cidr" or field_id.endswith("_cidr"):
+        return _validator.validate_cidr(value, field_id)
+    return _validator.validate_required(value, field_id)

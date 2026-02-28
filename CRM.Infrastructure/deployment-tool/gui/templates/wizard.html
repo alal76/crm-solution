@@ -1693,9 +1693,8 @@
               </div>
 
               <div class="d-flex gap-2 justify-content-center mt-4 flex-wrap">
-                <a id="btn-open-crm" href="#" class="btn btn-primary" target="_blank">
-                  <i class="bi bi-box-arrow-up-right"></i> Open CRM
-                </a>
+                <button id="btn-open-crm" type="button" class="btn btn-primary" onclick="openCrmUrl()">                  <i class="bi bi-box-arrow-up-right"></i> Open CRM
+                </button>
                 <a href="/day2" class="btn btn-outline-secondary">
                   <i class="bi bi-tools"></i> Day-2 Operations
                 </a>
@@ -2892,8 +2891,8 @@ function renderProfileCards(profiles) {
     }
     grid.innerHTML = profiles.map(p => `
         <div class="col-md-6 profile-card-item" data-name="${p.name || ''}">
-            <div class="card h-100 ${_selectedProfileName === p.name ? 'border-primary' : ''}" style="cursor:pointer" onclick="selectProfileCard('${p.name}')" role="button" tabindex="0">
-                <div class="card-body py-2 px-3">
+            <div class="card h-100 ${_selectedProfileName === p.name ? 'border-primary' : ''}">
+                <button type="button" class="card-body py-2 px-3 text-start w-100 bg-transparent border-0" onclick="selectProfileCard('${p.name}')">
                     <div class="d-flex justify-content-between align-items-start">
                         <div class="fw-semibold">${p.name || 'Unnamed'}</div>
                         ${p.is_template ? '<span class="badge bg-secondary small">template</span>' : ''}
@@ -2905,7 +2904,7 @@ function renderProfileCards(profiles) {
                         ${p.db_type ? `<span class="badge bg-light text-dark border"><i class="bi bi-database"></i> ${p.db_type}</span>` : ''}
                     </div>
                     <div class="text-muted smaller mt-1">${p.modified ? new Date(p.modified).toLocaleDateString() : ''}</div>
-                </div>
+                </button>
             </div>
         </div>`).join('');
 }
@@ -3273,6 +3272,10 @@ async function loadDay2Containers() {
         html += '</div>';
         el.innerHTML = '<button class="btn btn-sm btn-outline-primary mb-2" onclick="loadDay2Containers()"><i class="bi bi-arrow-clockwise me-1"></i>Refresh</button>' + html;
     } catch(e) { el.innerHTML = `<div class="alert alert-warning">Could not load: ${e.message}</div>`; }
+}
+function openCrmUrl() {
+    const url = document.getElementById('btn-open-crm')?.dataset?.href || '/';
+    window.open(url, '_blank', 'noopener');
 }
 </script>
 </body>

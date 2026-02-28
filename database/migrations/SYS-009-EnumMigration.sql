@@ -178,18 +178,13 @@ WHERE o.IsDeleted = 0;
 UPDATE `ServiceRequests` sr
 JOIN `EnumValues` ev
     ON ev.CategoryId = @catSRStatus
-    AND ev.`Key` = CASE sr.`Status`
-                       WHEN 0  THEN 'open'
-                       WHEN 1  THEN 'open'
-                       WHEN 2  THEN 'in_progress'
-                       WHEN 3  THEN 'pending'
-                       WHEN 4  THEN 'pending'
-                       WHEN 5  THEN 'in_progress'
-                       WHEN 6  THEN 'resolved'
-                       WHEN 7  THEN 'closed'
-                       WHEN 8  THEN 'cancelled'
-                       WHEN 9  THEN 'pending'
-                       WHEN 10 THEN 'open'
+    AND ev.`Key` = CASE
+                       WHEN sr.`Status` IN (0, 1, 10) THEN 'open'
+                       WHEN sr.`Status` IN (2, 5)     THEN 'in_progress'
+                       WHEN sr.`Status` IN (3, 4, 9)  THEN 'pending'
+                       WHEN sr.`Status` = 6           THEN 'resolved'
+                       WHEN sr.`Status` = 7           THEN 'closed'
+                       WHEN sr.`Status` = 8           THEN 'cancelled'
                        ELSE NULL
                    END
 SET sr.StatusId = ev.Id

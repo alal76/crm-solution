@@ -167,9 +167,7 @@ def install_packages(packages: List[PackageInfo], quiet: bool = False) -> bool:
 
     try:
         print(f"  Installing: {', '.join(specs)}")
-        result = subprocess.run(cmd, check=True,
-                                capture_output=quiet,
-                                text=True)
+        subprocess.run(cmd, check=True, capture_output=quiet, text=True)
         # Invalidate import caches so newly installed packages are visible.
         importlib.invalidate_caches()
         return True
@@ -191,7 +189,7 @@ def _print_header():
     print("=" * 64)
 
 
-def _print_group_status(label: str, installed: List[PackageInfo],
+def _print_group_status(label: str, _installed: List[PackageInfo],
                         missing: List[PackageInfo]):
     if not missing:
         print(f"  ✓  {label}")
@@ -248,65 +246,76 @@ def run_startup_check(*, require_groups: Optional[List[str]] = None,
         print()
         return True
 
-    # -- Handle required packages first ------------------------------------
-    if required_missing:
-        names = ", ".join(p.pip_name for p in required_missing)
-        print(f"  The following packages are REQUIRED to start:")
-        print(f"    {names}")
-        print()
-
-        if headless:
-            print("  Cannot proceed without required packages (headless mode).")
-            return False
-
-        answer = _prompt_yn("  Install required packages now?")
-        if not answer:
-            print("  Cannot proceed without required packages.")
-            return False
-
-        print()
-        ok = install_packages(required_missing)
-        if not ok:
-            print("  Failed to install required packages. Please install manually:")
-            print(f"    pip install {' '.join(p.pip_spec for p in required_missing)}")
-            return False
-        print("  Required packages installed successfully. ✓")
-        print()
-
-    # -- Offer to install optional groups ----------------------------------
-    if optional_groups_missing:
-        print("  Optional packages are available for additional features:")
-        print()
-        for key, missing in optional_groups_missing.items():
-            label, _, _ = PACKAGE_GROUPS[key]
-            names = ", ".join(p.pip_name for p in missing)
-            print(f"    [{key}]  {label}")
-            print(f"            {names}")
-        print()
-
-        if not headless:
-            answer = _prompt_yn("  Install all optional packages now?")
-            if answer:
-                all_optional = []
-                for pkgs in optional_groups_missing.values():
-                    all_optional.extend(pkgs)
-                print()
-                ok = install_packages(all_optional)
-                if ok:
-                    print("  Optional packages installed successfully. ✓")
-                else:
-                    print("  Some optional packages failed to install.")
-                    print("  You can install them later when needed.")
-                print()
-            else:
-                print()
-                print("  Skipped. Optional packages will be installed on demand when needed.")
-                print()
-        else:
-            print("  (Skipping optional packages in headless mode.)")
-            print()
-
+    if not _handle_required_packages(required_missing, headless):
+        return False
+    _handle_optional_packages(optional_groups_missing, headless)
     return True
+
+
+def _handle_required_packages(required_missing: List[PackageInfo], headless: bool) -> bool:
+    """Prompt to install required missing packages. Returns False if user declines or install fails."""
+    if not required_missing:
+        return True
+
+    names = ", ".join(p.pip_name for p in required_missing)
+    print("  The following packages are REQUIRED to start:")
+    print(f"    {names}")
+    print()
+
+    if headless:
+        print("  Cannot proceed without required packages (headless mode).")
+        return False
+
+    if not _prompt_yn("  Install required packages now?"):
+        print("  Cannot proceed without required packages.")
+        return False
+
+    print()
+    ok = install_packages(required_missing)
+    if not ok:
+        print("  Failed to install required packages. Please install manually:")
+        print(f"    pip install {' '.join(p.pip_spec for p in required_missing)}")
+        return False
+    print("  Required packages installed successfully. ✓")
+    print()
+    return True
+
+
+def _handle_optional_packages(optional_groups_missing: Dict[str, List[PackageInfo]],
+                               headless: bool) -> None:
+    """Offer to install optional missing packages."""
+    if not optional_groups_missing:
+        return
+
+    print("  Optional packages are available for additional features:")
+    print()
+    for key, missing in optional_groups_missing.items():
+        label, _, _ = PACKAGE_GROUPS[key]
+        names = ", ".join(p.pip_name for p in missing)
+        print(f"    [{key}]  {label}")
+        print(f"            {names}")
+    print()
+
+    if not headless:
+        if _prompt_yn("  Install all optional packages now?"):
+            all_optional: List[PackageInfo] = []
+            for pkgs in optional_groups_missing.values():
+                all_optional.extend(pkgs)
+            print()
+            ok = install_packages(all_optional)
+            if ok:
+                print("  Optional packages installed successfully. ✓")
+            else:
+                print("  Some optional packages failed to install.")
+                print("  You can install them later when needed.")
+            print()
+        else:
+            print()
+            print("  Skipped. Optional packages will be installed on demand when needed.")
+            print()
+    else:
+        print("  (Skipping optional packages in headless mode.)")
+        print()
 
 
 def ensure_group_installed(group_key: str, *, interactive: bool = True) -> bool:
@@ -317,7 +326,7 @@ def ensure_group_installed(group_key: str, *, interactive: bool = True) -> bool:
 
     Returns True if the group is fully available after this call.
     """
-    installed, missing = check_group(group_key)
+    _, missing = check_group(group_key)
     if not missing:
         return True
 
