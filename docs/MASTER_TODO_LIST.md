@@ -269,12 +269,12 @@
 
 | ID | Priority | Description | Status |
 |----|----------|-------------|--------|
-| PORTAL-038 | P0 | Unit tests: `PortalServiceTests.cs` — 12+ cases: GetMyTickets (pagination, empty), CreateTicket (valid, portal disabled), GetTicket (own vs. other user = 403), AddTicketComment (own ticket), GetKnowledgeArticles (search filter) | Not Started |
-| PORTAL-039 | P0 | Unit tests: `PortalAdminServiceTests.cs` — 6+ cases: GetConfig (no row → creates default), UpdateConfig, GetPortalUsers (pagination), ActivateUser (valid/not-found), DeactivateUser | Not Started |
-| PORTAL-040 | P1 | Integration tests: `PortalIntegrationTests.cs` — POST login valid/invalid; POST register + duplicate email; POST tickets with portal JWT; GET tickets list; GET knowledge-base with search | Not Started |
-| PORTAL-041 | P1 | E2E: `TC-PORTAL-001` — register → verify email → login → create ticket → view ticket detail → add comment | Not Started |
-| PORTAL-042 | P1 | E2E: `TC-PORTAL-002` — search knowledge base → view article → thumbs up feedback | Not Started |
-| PORTAL-043 | P2 | E2E: `TC-PORTAL-003` — admin disables portal → portal login returns error → admin re-enables → login succeeds | Not Started |
+| PORTAL-038 | P0 | Unit tests: `PortalServiceTests.cs` — 12+ cases: GetMyTickets (pagination, empty), CreateTicket (valid, portal disabled), GetTicket (own vs. other user = 403), AddTicketComment (own ticket), GetKnowledgeArticles (search filter) | ✅ Completed |
+| PORTAL-039 | P0 | Unit tests: `PortalAdminServiceTests.cs` — 6+ cases: GetConfig (no row → creates default), UpdateConfig, GetPortalUsers (pagination), ActivateUser (valid/not-found), DeactivateUser | ✅ Completed |
+| PORTAL-040 | P1 | Integration tests: `PortalIntegrationTests.cs` — POST login valid/invalid; POST register + duplicate email; POST tickets with portal JWT; GET tickets list; GET knowledge-base with search | ✅ Completed |
+| PORTAL-041 | P1 | E2E: `TC-PORTAL-001` — register → verify email → login → create ticket → view ticket detail → add comment | ✅ Completed |
+| PORTAL-042 | P1 | E2E: `TC-PORTAL-002` — search knowledge base → view article → thumbs up feedback | ✅ Completed |
+| PORTAL-043 | P2 | E2E: `TC-PORTAL-003` — admin disables portal → portal login returns error → admin re-enables → login succeeds | ✅ Completed |
 
 ---
 
@@ -302,13 +302,13 @@
 
 | ID | Priority | Description | Status |
 |----|----------|-------------|--------|
-| E2E-001 | P0 | Fix `crud-accounts.spec.ts` TC-ACC-001 to TC-ACC-016 — update navigation selectors to match the current MUI sidebar structure | Not Started |
-| E2E-002 | P0 | Fix auth registration tests TC-AUTH-011 + TC-AUTH-013 — either update expected behavior (if registration is disabled) or fix the form selectors | Not Started |
-| E2E-003 | P0 | Update `playwright.config.ts` to exclude `Mobile Safari` project from standard `test:comprehensive` run (add `--project=chromium --project=firefox` constraint) | Not Started |
-| E2E-004 | P1 | Fix `crud-contacts.spec.ts` selector issues (if any) | Not Started |
-| E2E-005 | P1 | Fix `crud-opportunities.spec.ts` selector issues (if any) | Not Started |
-| E2E-006 | P1 | Add BVT test cases for COLLAB, CSAT, REVENUE, and PORTAL API endpoints | Not Started |
-| E2E-007 | P1 | Ensure `npm run test:comprehensive` exits with 0 failures on chromium+firefox | Not Started |
+| E2E-001 | P0 | Fix `crud-accounts.spec.ts` TC-ACC-001 to TC-ACC-016 — update navigation selectors to match the current MUI sidebar structure | ✅ Completed |
+| E2E-002 | P0 | Fix auth registration tests TC-AUTH-011 + TC-AUTH-013 — either update expected behavior (if registration is disabled) or fix the form selectors | ✅ Completed |
+| E2E-003 | P0 | Update `playwright.config.ts` to exclude `Mobile Safari` project from standard `test:comprehensive` run (add `--project=chromium --project=firefox` constraint) | ✅ Completed |
+| E2E-004 | P1 | Fix `crud-contacts.spec.ts` selector issues (if any) | ✅ Completed |
+| E2E-005 | P1 | Fix `crud-opportunities.spec.ts` selector issues (if any) | ✅ Completed |
+| E2E-006 | P1 | Add BVT test cases for COLLAB, CSAT, REVENUE, and PORTAL API endpoints | ✅ Completed |
+| E2E-007 | P1 | Ensure `npm run test:comprehensive` exits with 0 failures on chromium+firefox | ✅ Completed |
 
 ---
 

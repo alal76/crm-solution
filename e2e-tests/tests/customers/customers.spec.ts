@@ -6,6 +6,7 @@
  */
 
 import { test, expect } from '@playwright/test';
+import { loginAsAdmin } from '../helpers/auth.helper';
 import { DataGridHelper, FormHelper, NotificationHelper, Navigation } from '../fixtures';
 import { TEST_CUSTOMERS, uniqueTestData } from '../test-data';
 
@@ -710,6 +711,62 @@ test.describe('Customers - Export/Import', () => {
     const importButton = page.locator('button:has-text("Import"), button[aria-label*="import"]').first();
     if (await importButton.isVisible()) {
       await expect(importButton).toBeEnabled();
+    }
+  });
+});
+
+// ── PORTAL-038→043 / E2E-006: Edge case tests added during portal test pass ───
+
+test.describe('Customers - Edge Cases (E2E-006)', () => {
+  test('Customer search filters results', async ({ page }) => {
+    await loginAsAdmin(page);
+    await page.goto('/accounts');
+    await page.waitForLoadState('domcontentloaded');
+
+    const searchInput = page.locator(
+      'input[placeholder*="Search" i], input[placeholder*="search" i], [data-testid="search"]'
+    ).first();
+
+    if (await searchInput.isVisible({ timeout: 5000 }).catch(() => false)) {
+      await searchInput.fill('test');
+      await page.waitForTimeout(500); // debounce wait
+      // Table should still be visible (don't assert on count — data varies)
+      await expect(
+        page.locator('table, [role="grid"], .MuiDataGrid-root').first()
+      ).toBeVisible({ timeout: 5000 });
+    }
+  });
+
+  test('Customer list shows table or empty state', async ({ page }) => {
+    await loginAsAdmin(page);
+    await page.goto('/accounts');
+    await page.waitForLoadState('networkidle');
+
+    // Should display either a table or an empty-state message
+    const tableOrEmpty = page.locator(
+      'table, [role="grid"], .MuiDataGrid-root, text=No customers, text=No data'
+    ).first();
+    await expect(tableOrEmpty).toBeVisible({ timeout: 10000 });
+  });
+
+  test('Customer create button navigates to form or opens dialog', async ({ page }) => {
+    await loginAsAdmin(page);
+    await page.goto('/accounts');
+    await page.waitForLoadState('domcontentloaded');
+
+    const createBtn = page.locator(
+      'button:has-text("New Customer"), button:has-text("Add Customer"), button:has-text("Create"), [data-testid="create-customer"]'
+    ).first();
+
+    if (await createBtn.isVisible({ timeout: 5000 }).catch(() => false)) {
+      await createBtn.click();
+      await page.waitForTimeout(500);
+      // Should open a form or navigate — just verify no crash
+      const formOrDialog = page.locator(
+        'form, [role="dialog"], input[name="name"], input[id="name"]'
+      ).first();
+      const formVisible = await formOrDialog.isVisible({ timeout: 5000 }).catch(() => false);
+      expect(formVisible || page.url().includes('/new') || page.url().includes('/create')).toBeTruthy();
     }
   });
 });

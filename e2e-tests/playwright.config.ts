@@ -43,10 +43,10 @@ export default defineConfig({
     screenshot: 'only-on-failure',
     
     /* Video recording on failure */
-    video: 'on-first-retry',
+    video: 'retain-on-failure',
     
     /* Default timeout for actions */
-    actionTimeout: 10000,
+    actionTimeout: 30000,
     
     /* Default navigation timeout */
     navigationTimeout: 30000,

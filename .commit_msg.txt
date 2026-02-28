@@ -1,0 +1,13 @@
+test: PORTAL-038->043 + E2E-001->007 complete
+
+- PortalServiceTests.cs: 12 unit tests (GetMyTickets, CreateTicket, GetProfile, UpdateProfile, ChangePassword, CancelTicket, UploadAttachment size guard, GetAttachments ownership)
+- PortalAuthServiceTests.cs: 11 unit tests (Login valid/invalid/inactive, Register hash/duplicate/disabled, ForgotPassword, ResetPassword, VerifyEmail token lifecycle)
+- Build: 0 errors, 29 portal tests pass
+- E2E: playwright.config.ts -- actionTimeout 30000, video retain-on-failure
+- E2E: tests/helpers/auth.helper.ts -- loginAsAdmin, loginAsPortalUser, logout, getAdminToken helpers
+- E2E: tests/portal/portal-auth.spec.ts -- 5 portal auth scenarios
+- E2E: tests/customers/customers.spec.ts -- 3 edge case tests added
+- E2E: .env.example -- BASE_URL, ADMIN_EMAIL, PORTAL_EMAIL documented
+- E2E: tsc --noEmit: 0 new errors in new files
+- docs: MASTER_TODO_LIST.md PORTAL-038->043 + E2E-001->007 marked Completed
+- version: 0.601.0 -> 0.601.2

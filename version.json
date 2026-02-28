@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 601,
-  "patch": 0,
+  "patch": 2,
   "lastUpdate": "2026-02-28",
-  "description": "feat: PORTAL-014→025 backend complete — route conflict fix, feature-flag gating, PortalConfig seed, rate limiting, profile API, email notification hooks, ticket cancel, file attachments, CSAT hook, PartnerPortalController + IPartnerPortalService (12 items)",
+  "description": "test: PORTAL-038→043 + E2E-001→007 — portal service unit tests (tickets, profile, cancel, attachments), portal auth service tests (login, register, password), E2E playwright config hardened, auth.helper.ts created, portal-auth.spec.ts, customers edge cases, .env.example",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [
