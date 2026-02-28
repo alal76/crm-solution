@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 600,
-  "patch": 22,
+  "patch": 23,
   "lastUpdate": "2026-02-28",
-  "description": "fix(tests): Fix BackgroundService race conditions in EmailSync/CalendarSync hosted service tests — await StartAsync, add StopAsync before verify, increase delays for CI runners",
+  "description": "feat: FEAT-COLLAB + FEAT-CSAT complete — RecordComments (threaded @mention comments), SatisfactionSurvey/Response entities, SatisfactionService, SurveyResponseForm, SQL migrations SYS-010/SYS-011, frontend types + services (19 items)",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [

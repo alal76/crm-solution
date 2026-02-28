@@ -139,16 +139,16 @@
 
 | ID | Priority | Description | Status |
 |----|----------|-------------|--------|
-| COLLAB-001 | P0 | Create `RecordComment` entity (Id, EntityType, EntityId, Content, AuthorId, ParentCommentId, MentionedUserIds JSON, CreatedAt, UpdatedAt, IsDeleted, RowVersion) | Not Started |
-| COLLAB-002 | P0 | Add `DbSet<RecordComment>` to `CrmDbContext` + `OnModelCreating` config | Not Started |
-| COLLAB-003 | P0 | Create EF Core migration `AddRecordComments` and apply to `crm_db` | Not Started |
-| COLLAB-004 | P0 | Implement `IRecordCommentService` / `RecordCommentService` (GetByEntity, Create, Update, Delete, GetThread) | Not Started |
-| COLLAB-005 | P0 | Register `IRecordCommentService` in `Program.cs` DI | Not Started |
-| COLLAB-006 | P0 | Implement `RecordCommentsController` (GET `/api/{entityType}/{id}/comments`, POST, PUT `/{commentId}`, DELETE `/{commentId}`) | Not Started |
-| COLLAB-007 | P1 | Build `RecordComments` React component (threaded list + compose box with @mention autocomplete) | Not Started |
-| COLLAB-008 | P1 | Add `recordCommentService.ts` TypeScript service | Not Started |
-| COLLAB-009 | P1 | Integrate `RecordComments` component into Account, Contact, Lead, Opportunity, ServiceRequest detail pages | Not Started |
-| COLLAB-010 | P1 | Unit tests for `RecordCommentService` (10+ test cases) | Not Started |
+| COLLAB-001 | P0 | Create `RecordComment` entity (Id, EntityType, EntityId, Content, AuthorId, ParentCommentId, MentionedUserIds JSON, CreatedAt, UpdatedAt, IsDeleted, RowVersion) | ✅ Completed |
+| COLLAB-002 | P0 | Add `DbSet<RecordComment>` to `CrmDbContext` + `OnModelCreating` config | ✅ Completed |
+| COLLAB-003 | P0 | Create EF Core migration `AddRecordComments` and apply to `crm_db` | ✅ Completed |
+| COLLAB-004 | P0 | Implement `IRecordCommentService` / `RecordCommentService` (GetByEntity, Create, Update, Delete, GetThread) | ✅ Completed |
+| COLLAB-005 | P0 | Register `IRecordCommentService` in `Program.cs` DI | ✅ Completed |
+| COLLAB-006 | P0 | Implement `RecordCommentsController` (GET `/api/{entityType}/{id}/comments`, POST, PUT `/{commentId}`, DELETE `/{commentId}`) | ✅ Completed |
+| COLLAB-007 | P1 | Build `RecordComments` React component (threaded list + compose box with @mention autocomplete) | ✅ Completed |
+| COLLAB-008 | P1 | Add `recordCommentService.ts` TypeScript service | ✅ Completed |
+| COLLAB-009 | P1 | Integrate `RecordComments` component into Account, Contact, Lead, Opportunity, ServiceRequest detail pages | ✅ Completed |
+| COLLAB-010 | P1 | Unit tests for `RecordCommentService` (10+ test cases) | ✅ Completed |
 
 ---
 
@@ -158,15 +158,15 @@
 
 | ID | Priority | Description | Status |
 |----|----------|-------------|--------|
-| CSAT-001 | P0 | Create `SatisfactionSurvey` entity (Id, EntityType, EntityId, Type [CSAT/NPS/CES], Status, SentAt, ResponseReceivedAt, ContactId, CreatedAt, UpdatedAt, IsDeleted, RowVersion) | Not Started |
-| CSAT-002 | P0 | Create `SatisfactionResponse` entity (Id, SurveyId, Score, Comment, Sentiment, SubmittedAt) | Not Started |
-| CSAT-003 | P0 | Add `DbSet` + migration `AddSatisfactionTracking` | Not Started |
-| CSAT-004 | P0 | Implement `ISatisfactionService` / `SatisfactionService` (SendSurvey, RecordResponse, GetMetrics, GetNPSScore, GetCSATScore) | Not Started |
-| CSAT-005 | P0 | Implement `SatisfactionController` (CRUD + metrics endpoints + `/api/satisfaction/nps` + `/api/satisfaction/csat`) | Not Started |
-| CSAT-006 | P1 | Frontend: `SatisfactionDashboard` page + NPS trend chart + CSAT score widget + response log table | Not Started |
-| CSAT-007 | P1 | Frontend: `SurveyResponseForm` component (public-facing survey form for email links) | Not Started |
-| CSAT-008 | P1 | Add `satisfactionService.ts` TypeScript service | Not Started |
-| CSAT-009 | P1 | Unit tests for `SatisfactionService` (8+ test cases) | Not Started |
+| CSAT-001 | P0 | Create `SatisfactionSurvey` entity (Id, EntityType, EntityId, Type [CSAT/NPS/CES], Status, SentAt, ResponseReceivedAt, ContactId, CreatedAt, UpdatedAt, IsDeleted, RowVersion) | ✅ Completed |
+| CSAT-002 | P0 | Create `SatisfactionResponse` entity (Id, SurveyId, Score, Comment, Sentiment, SubmittedAt) | ✅ Completed |
+| CSAT-003 | P0 | Add `DbSet` + migration `AddSatisfactionTracking` | ✅ Completed |
+| CSAT-004 | P0 | Implement `ISatisfactionService` / `SatisfactionService` (SendSurvey, RecordResponse, GetMetrics, GetNPSScore, GetCSATScore) | ✅ Completed |
+| CSAT-005 | P0 | Implement `SatisfactionController` (CRUD + metrics endpoints + `/api/satisfaction/nps` + `/api/satisfaction/csat`) | ✅ Completed |
+| CSAT-006 | P1 | Frontend: `SatisfactionDashboard` page + NPS trend chart + CSAT score widget + response log table | ✅ Completed |
+| CSAT-007 | P1 | Frontend: `SurveyResponseForm` component (public-facing survey form for email links) | ✅ Completed |
+| CSAT-008 | P1 | Add `satisfactionService.ts` TypeScript service | ✅ Completed |
+| CSAT-009 | P1 | Unit tests for `SatisfactionService` (8+ test cases) | ✅ Completed |
 
 ---
 
@@ -314,10 +314,10 @@
 
 ## Summary — Batch 2
 
-| Feature Group | Total Items | Priority |
-|--------------|-------------|----------|
-| FEAT-COLLAB (Record Comments) | 10 | P0/P1 |
-| FEAT-CSAT (Satisfaction) | 9 | P0/P1 |
+| Feature Group | Total Items | Priority | Status |
+|--------------|-------------|----------|--------|
+| FEAT-COLLAB (Record Comments) | 10 | P0/P1 | ✅ Completed |
+| FEAT-CSAT (Satisfaction) | 9 | P0/P1 | ✅ Completed |
 | FEAT-REVENUE (ARR/MRR) | 8 | P0/P1 |
 | FEAT-PORTAL (Customer Portal) | 12 | P0/P1 |
 | FEAT-AISCORING (Lead Scoring) | 9 | P0/P1 |
