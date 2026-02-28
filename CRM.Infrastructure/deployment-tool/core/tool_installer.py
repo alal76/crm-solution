@@ -13,6 +13,7 @@ from __future__ import annotations
 import importlib
 import os
 import platform
+import shlex
 import shutil
 import subprocess
 import sys
@@ -423,7 +424,6 @@ def install_tool_streaming(
 def install_sdk_streaming(
     group_key: str,
     emit: Callable[[str], None],
-    pip_bin: Optional[str] = None,
 ) -> bool:
     """
     Install a Python SDK group into the current venv, streaming progress.
@@ -434,13 +434,9 @@ def install_sdk_streaming(
         emit(f"Unknown SDK group: {group_key}")
         return False
 
-    pip = pip_bin or sys.executable.replace("python", "pip").replace("python3", "pip3")
-    if not os.path.exists(pip):
-        pip = f"{sys.executable} -m pip"
-
     packages = " ".join(group["packages"])
     emit(f"Installing {group['label']} packages…")
-    cmd = f"{sys.executable} -m pip install --quiet {packages}"
+    cmd = f"{shlex.quote(sys.executable)} -m pip install --quiet {packages}"
     rc = _run_command_streaming(cmd, emit)
     if rc == 0:
         emit(f"✅ {group['label']} SDK installed.")
@@ -455,9 +451,9 @@ def install_all_pip_streaming(
 ) -> bool:
     """Install all requirements.txt packages, streaming progress."""
     if requirements_file and os.path.exists(requirements_file):
-        cmd = f"{sys.executable} -m pip install --quiet -r {requirements_file}"
+        cmd = f"{shlex.quote(sys.executable)} -m pip install --quiet -r {shlex.quote(requirements_file)}"
     else:
-        cmd = f"{sys.executable} -m pip install --quiet flask flask-socketio flask_cors pyyaml requests paramiko cryptography psutil"
+        cmd = f"{shlex.quote(sys.executable)} -m pip install --quiet flask flask-socketio flask_cors pyyaml requests paramiko cryptography psutil"
     rc = _run_command_streaming(cmd, emit)
     return rc == 0
 
