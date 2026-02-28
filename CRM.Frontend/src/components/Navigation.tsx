@@ -247,7 +247,7 @@ function NavigationContent() {
         expandAdminSection('system-config');
       } else if (path.includes('/users') || path.includes('/approvals') || path.includes('/groups') || path.includes('/social-login') || path.includes('/security')) {
         expandAdminSection('user-management');
-      } else if (path.includes('/config/crm') || path.includes('/settings/sales') || path.includes('/settings/service-desk') || path.includes('/modules') || path.includes('/master-data') || path.includes('/duplicate-rules') || path.includes('/lead-score-rules') || path.includes('/service-requests')) {
+      } else if (path.includes('/config/crm') || path.includes('/settings/sales') || path.includes('/settings/service-desk') || path.includes('/modules') || path.includes('/master-data') || path.includes('/enum-management') || path.includes('/duplicate-rules') || path.includes('/lead-score-rules') || path.includes('/service-requests')) {
         expandAdminSection('crm-config');
       } else if (path.includes('/llm') || path.includes('/integrations') || path.includes('/analytics') || path.includes('/agents')) {
         expandAdminSection('ai-integrations');
@@ -363,6 +363,7 @@ function NavigationContent() {
     'service-desk-config': { label: 'Service Desk', icon: SupportAgentIcon, path: '/admin/settings/service-desk', menuName: 'ServiceDeskConfig' },
     'module-fields': { label: 'Modules & Fields', icon: ModuleIcon, path: '/admin/modules', menuName: 'ModuleFields' },
     'master-data': { label: 'Master Data', icon: StorageIcon, path: '/admin/master-data', menuName: 'MasterData' },
+    'enum-management': { label: 'Enum Management', icon: CategoryIcon, path: '/admin/enum-management', menuName: 'EnumManagement' },
     'duplicate-rules': { label: 'Duplicate Rules', icon: MergeIcon, path: '/admin/duplicate-rules', menuName: 'DuplicateRules' },
     'lead-score-rules': { label: 'Lead Score Rules', icon: ScoreIcon as typeof DashboardIcon, path: '/admin/lead-score-rules', menuName: 'LeadScoreRules' },
     'sr-definitions': { label: 'Service Requests', icon: SupportAgentIcon, path: '/admin/service-requests', menuName: 'ServiceRequestDefinitions' },
@@ -549,7 +550,7 @@ function NavigationContent() {
   const defaultAdminOrder = useMemo(() => [
     'general-settings', 'feature-management', 'navigation-settings',
     'user-management', 'group-management', 'user-approvals', 'security-settings', 'social-login',
-    'crm-config-page', 'sales-config', 'service-desk-config', 'module-fields', 'master-data', 'duplicate-rules', 'lead-score-rules', 'sr-definitions',
+    'crm-config-page', 'sales-config', 'service-desk-config', 'module-fields', 'master-data', 'enum-management', 'duplicate-rules', 'lead-score-rules', 'sr-definitions',
     'llm-settings', 'integrations', 'analytics-settings', 'agent-management', 'agent-approvals', 'agent-analytics',
     'database-settings', 'monitoring-settings', 'deployment-settings', 'worker-ops',
     'branding-settings', 'dashboard-settings', 'ui-customization', 'portal-config',
@@ -685,6 +686,7 @@ function NavigationContent() {
     { id: 'service-desk-config', order: 70, visible: true, category: 'admin', adminSubcategory: 'crm-config' },
     { id: 'module-fields', order: 71, visible: true, category: 'admin', adminSubcategory: 'crm-config' },
     { id: 'master-data', order: 72, visible: true, category: 'admin', adminSubcategory: 'crm-config' },
+    { id: 'enum-management', order: 72.5, visible: true, category: 'admin', adminSubcategory: 'crm-config' },
     { id: 'duplicate-rules', order: 73, visible: true, category: 'admin', adminSubcategory: 'crm-config' },
     { id: 'lead-score-rules', order: 74, visible: true, category: 'admin', adminSubcategory: 'crm-config' },
     { id: 'sr-definitions', order: 75, visible: true, category: 'admin', adminSubcategory: 'crm-config' },

@@ -126,6 +126,11 @@ public class CrmDbContext : DbContext, ICrmDbContext
     public DbSet<LookupCategory> LookupCategories { get; set; }
     public DbSet<LookupItem> LookupItems { get; set; }
 
+    // ENUM-BE-004: Configurable Enum entities
+    public DbSet<EnumCategory> EnumCategories { get; set; }
+    public DbSet<EnumValue> EnumValues { get; set; }
+    public DbSet<EnumTransition> EnumTransitions { get; set; }
+
     // Normalization helper tables
     public DbSet<CRM.Core.Entities.Tag> Tags { get; set; }
     public DbSet<CRM.Core.Entities.EntityTag> EntityTags { get; set; }
@@ -1783,6 +1788,13 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.HasIndex(e => e.Email);
             entity.HasIndex(e => e.Status);
             entity.HasIndex(e => e.Score);
+
+            // ENUM-MIG-001: Lead -> EnumValue (configurable status)
+            entity.HasOne(l => l.StatusValue)
+                .WithMany()
+                .HasForeignKey(l => l.StatusId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.SetNull);
         });
 
         // Configure MarketingCampaign Lead collections (without inverse navigation)
@@ -1829,6 +1841,13 @@ public class CrmDbContext : DbContext, ICrmDbContext
 
             entity.HasIndex(e => e.Stage);
             entity.HasIndex(e => e.ExpectedCloseDate);
+
+            // ENUM-MIG-005: Opportunity -> EnumValue (configurable stage)
+            entity.HasOne(o => o.StageValue)
+                .WithMany()
+                .HasForeignKey(o => o.StageId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.SetNull);
         });
 
         // Configure OpportunityProduct (junction table)
@@ -2018,6 +2037,20 @@ public class CrmDbContext : DbContext, ICrmDbContext
             entity.HasOne(e => e.AssignedToGroup)
                 .WithMany()
                 .HasForeignKey(e => e.AssignedToGroupId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // ENUM-MIG-009: ServiceRequest -> EnumValue (configurable status)
+            entity.HasOne(sr => sr.StatusValue)
+                .WithMany()
+                .HasForeignKey(sr => sr.StatusId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // ENUM-MIG-013: ServiceRequest -> EnumValue (configurable priority)
+            entity.HasOne(sr => sr.PriorityValue)
+                .WithMany()
+                .HasForeignKey(sr => sr.PriorityId)
+                .IsRequired(false)
                 .OnDelete(DeleteBehavior.SetNull);
 
             // Configure Tags
@@ -4963,6 +4996,62 @@ public class CrmDbContext : DbContext, ICrmDbContext
                   .WithMany()
                   .HasForeignKey(e => e.LeadId)
                   .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // ENUM-BE-004: Configurable Enum entities
+        modelBuilder.Entity<EnumCategory>(entity =>
+        {
+            entity.ToTable("EnumCategories");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Name).HasMaxLength(200).IsRequired();
+            entity.HasIndex(e => e.Name).IsUnique().HasDatabaseName("IX_EnumCategories_Name");
+            entity.Property(e => e.DisplayName).HasMaxLength(200);
+            entity.Property(e => e.Description).HasMaxLength(1000);
+            entity.Property(e => e.EntityType).HasMaxLength(100);
+            entity.Property(e => e.PropertyName).HasMaxLength(100);
+            entity.Property(e => e.ValidationSchema).HasColumnType("TEXT");
+            entity.HasQueryFilter(e => !e.IsDeleted);
+        });
+
+        modelBuilder.Entity<EnumValue>(entity =>
+        {
+            entity.ToTable("EnumValues");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Key).HasMaxLength(100).IsRequired();
+            entity.Property(e => e.Label).HasMaxLength(200).IsRequired();
+            entity.Property(e => e.Description).HasMaxLength(1000);
+            entity.Property(e => e.Color).HasMaxLength(20);
+            entity.Property(e => e.Icon).HasMaxLength(100);
+            entity.Property(e => e.Metadata).HasColumnType("TEXT");
+            entity.Property(e => e.ValidationRules).HasColumnType("TEXT");
+            entity.HasIndex(e => new { e.CategoryId, e.Key }).IsUnique().HasDatabaseName("IX_EnumValues_CategoryId_Key");
+            entity.HasOne(e => e.Category)
+                  .WithMany(c => c.Values)
+                  .HasForeignKey(e => e.CategoryId)
+                  .OnDelete(DeleteBehavior.Cascade);
+            entity.HasQueryFilter(e => !e.IsDeleted);
+        });
+
+        modelBuilder.Entity<EnumTransition>(entity =>
+        {
+            entity.ToTable("EnumTransitions");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.AllowedRoles).HasMaxLength(1000);
+            entity.Property(e => e.ValidateExpression).HasMaxLength(2000);
+            entity.HasOne(e => e.Category)
+                  .WithMany(c => c.Transitions)
+                  .HasForeignKey(e => e.CategoryId)
+                  .OnDelete(DeleteBehavior.Cascade);
+            entity.HasOne(e => e.FromValue)
+                  .WithMany(v => v.AsFromTransitions)
+                  .HasForeignKey(e => e.FromValueId)
+                  .OnDelete(DeleteBehavior.Restrict)
+                  .IsRequired(false);
+            entity.HasOne(e => e.ToValue)
+                  .WithMany(v => v.AsToTransitions)
+                  .HasForeignKey(e => e.ToValueId)
+                  .OnDelete(DeleteBehavior.Restrict);
+            entity.HasQueryFilter(e => !e.IsDeleted);
         });
 
         providerStrategy.ApplyPostConfiguration(modelBuilder);

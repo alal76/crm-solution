@@ -408,6 +408,11 @@ public interface ICrmDbContext
     // FEAT-AISCORING: Lead Score History
     DbSet<LeadScoreHistory> LeadScoreHistories { get; }
 
+    // ENUM-BE-004: Configurable Enum entities
+    DbSet<EnumCategory> EnumCategories { get; }
+    DbSet<EnumValue> EnumValues { get; }
+    DbSet<EnumTransition> EnumTransitions { get; }
+
     DatabaseFacade Database { get; }
 
     /// <summary>

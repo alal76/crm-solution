@@ -1091,6 +1091,9 @@ builder.Services.AddScoped<IPortalAuthService, PortalAuthService>();
 builder.Services.AddScoped<IPortalService, PortalService>();
 builder.Services.AddScoped<IPortalAdminService, PortalAdminService>();
 
+// Configurable Enums (ENUM-BE-012)
+builder.Services.AddScoped<IEnumManagementService, EnumManagementService>();
+
 // Configure JWT Authentication
 var jwtSecret = builder.Configuration["Jwt:Secret"];
 if (string.IsNullOrEmpty(jwtSecret) || jwtSecret.Length < 32)

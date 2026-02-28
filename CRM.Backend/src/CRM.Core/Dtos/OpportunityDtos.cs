@@ -25,6 +25,9 @@ namespace CRM.Core.DTOs
         /// <summary>Human-readable label for the current stage (e.g. "Closed Won").</summary>
         public string? StageName { get; set; }
 
+        /// <summary>Configurable stage FK (ENUM-MIG-005)</summary>
+        public int? StageId { get; set; }
+
         [Range(0, 100)]
         public int Probability { get; set; }
         [Range(0, double.MaxValue)]
@@ -85,6 +88,8 @@ namespace CRM.Core.DTOs
         [MaxLength(255)]
         public string Name { get; set; } = string.Empty;
         public int Stage { get; set; }
+        /// <summary>Configurable stage FK (ENUM-MIG-005)</summary>
+        public int? StageId { get; set; }
         [Range(0, 100)]
         public int Probability { get; set; }
         [Range(0, double.MaxValue)]
@@ -117,6 +122,8 @@ namespace CRM.Core.DTOs
     {
         public string? Name { get; set; }
         public int? Stage { get; set; }
+        /// <summary>Configurable stage FK (ENUM-MIG-005)</summary>
+        public int? StageId { get; set; }
         public int? Probability { get; set; }
         public decimal? Amount { get; set; }
         public string? Currency { get; set; }

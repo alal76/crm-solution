@@ -102,6 +102,8 @@ import {
 } from '../services/apiService';
 import apiClient from '../services/apiClient';
 import logger from '../services/logger';
+import enumCacheService from '../services/enumCacheService';
+import type { EnumValue } from '../types/enums';
 
 interface Contact {
   id: number;
@@ -317,6 +319,8 @@ function ServiceRequestsPage() {
     priority: '',
     assignedToUserId: '',
   });
+  // ENUM-FE-017: Dynamic priorities loaded from enumCacheService
+  const [dynamicPriorities, setDynamicPriorities] = useState<EnumValue[]>([]);
   
   // API state hooks
   const dialogApi = useApiState();
@@ -393,6 +397,11 @@ function ServiceRequestsPage() {
   useEffect(() => {
     fetchRequests();
   }, [fetchRequests]);
+
+  // ENUM-FE-017: Load dynamic service request priority options
+  useEffect(() => {
+    enumCacheService.getValues('ServiceRequestPriority').then(setDynamicPriorities).catch(() => {/* fallback to static PRIORITY_LABELS */});
+  }, []);
 
   // Filter subcategories based on selected category
   useEffect(() => {
@@ -1393,9 +1402,14 @@ function ServiceRequestsPage() {
               label="Priority"
             >
               <MenuItem value="">-- No Change --</MenuItem>
-              {Object.entries(PRIORITY_LABELS).map(([value, label]) => (
-                <MenuItem key={value} value={value}>{label}</MenuItem>
-              ))}
+              {dynamicPriorities.length > 0
+                ? dynamicPriorities.map(opt => (
+                  <MenuItem key={opt.key} value={opt.key}>{opt.label}</MenuItem>
+                ))
+                : Object.entries(PRIORITY_LABELS).map(([value, label]) => (
+                  <MenuItem key={value} value={value}>{label}</MenuItem>
+                ))
+              }
             </Select>
           </FormControl>
           

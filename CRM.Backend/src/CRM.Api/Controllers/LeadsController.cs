@@ -562,6 +562,8 @@ public class CreateLeadDto
     public int? OwnerId { get; set; }
     public int? CampaignId { get; set; }
     public int? Status { get; set; }
+    /// <summary>Configurable status FK (ENUM-MIG-001)</summary>
+    public int? StatusId { get; set; }
 }
 
 public class UpdateLeadDto
@@ -580,6 +582,8 @@ public class UpdateLeadDto
     public int? Score { get; set; }
     public int? OwnerId { get; set; }
     public int? CampaignId { get; set; }
+    /// <summary>Configurable status FK (ENUM-MIG-001)</summary>
+    public int? StatusId { get; set; }
 }
 
 public class ConvertLeadDto

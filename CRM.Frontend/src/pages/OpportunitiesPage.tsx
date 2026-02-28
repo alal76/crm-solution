@@ -73,6 +73,8 @@ import { useApiState } from '../hooks/useApiState';
 import { usePagination } from '../hooks/usePagination';
 import { useEntityTypeSubscription } from '../hooks/useSignalR';
 import logger from '../services/logger';
+import enumCacheService from '../services/enumCacheService';
+import type { EnumValue } from '../types/enums';
 
 // Search fields for Advanced Search
 const SEARCH_FIELDS: SearchField[] = [
@@ -189,6 +191,8 @@ function OpportunitiesPage() {
   // Multi-select and bulk update state
   const [selectedIds, setSelectedIds] = useState<number[]>([]);
   const [bulkDialogOpen, setBulkDialogOpen] = useState(false);
+  // ENUM-FE-016: Dynamic stages loaded from enumCacheService (falls back to STAGES)
+  const [dynamicStages, setDynamicStages] = useState<EnumValue[]>([]);
   const [bulkFormData, setBulkFormData] = useState({
     stage: '',
     probability: '',
@@ -295,6 +299,11 @@ function OpportunitiesPage() {
   useEffect(() => {
     fetchAllData();
   }, [fetchAllData]);
+
+  // ENUM-FE-016: Load dynamic opportunity stage options from enumCacheService
+  useEffect(() => {
+    enumCacheService.getValues('OpportunityStage').then(setDynamicStages).catch(() => {/* fallback to static STAGES */});
+  }, []);
 
   const getAccountName = (accountId: number) => {
     const account = accounts.find(a => a.id === accountId);
@@ -869,9 +878,14 @@ function OpportunitiesPage() {
               label="Stage"
             >
               <MenuItem value="">-- No Change --</MenuItem>
-              {STAGES.map(s => (
-                <MenuItem key={s.value} value={s.value}>{s.label}</MenuItem>
-              ))}
+              {dynamicStages.length > 0
+                ? dynamicStages.map(opt => (
+                  <MenuItem key={opt.key} value={opt.key}>{opt.label}</MenuItem>
+                ))
+                : STAGES.map(s => (
+                  <MenuItem key={s.value} value={s.value}>{s.label}</MenuItem>
+                ))
+              }
             </Select>
           </FormControl>
           
