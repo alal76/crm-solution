@@ -26,4 +26,4 @@ CREATE TABLE IF NOT EXISTS `BrandingConfigs` (
   `IsDeleted` tinyint(1) NOT NULL DEFAULT 0,
   `RowVersion` binary(8) DEFAULT NULL,
   PRIMARY KEY (`Id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

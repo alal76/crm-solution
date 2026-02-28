@@ -10,7 +10,6 @@ import {
   CampaignMetrics,
   EmailTemplate,
   EmailSequence,
-  SequenceStep,
   LandingPage,
   MarketingAutomationWorkflow,
   CreateCampaignDto,
@@ -19,6 +18,15 @@ import {
   UpdateEmailTemplateDto,
   CreateEmailSequenceDto,
   UpdateEmailSequenceDto,
+  // New DTO types
+  EmailSequenceDto,
+  CreateEmailSequenceSimpDto,
+  UpdateEmailSequenceSimpDto,
+  NurtureEnrollmentDto,
+  CampaignExecutionStatusDto,
+  CampaignTrackingLinkDto,
+  CreateTrackingLinkDto,
+  UnsubscribeStatusDto,
 } from '../types/marketing';
 import { PaginatedResponse } from '../types/common';
 
@@ -428,7 +436,114 @@ const marketingService = {
     return apiClient.get('/marketing/roi', {
       params: { startDate, endDate }
     });
-  }
+  },
+
+  // =========================================================================
+  // EMAIL SEQUENCES (DTO-based, MKT-002)
+  // =========================================================================
+
+  /** List email sequences as simple DTOs */
+  getEmailSequenceDtos: async (): Promise<EmailSequenceDto[]> => {
+    const res = await apiClient.get<EmailSequenceDto[]>('/email-sequences');
+    return res.data;
+  },
+
+  /** Create a new email sequence */
+  createEmailSequenceSimp: async (data: CreateEmailSequenceSimpDto): Promise<EmailSequenceDto> => {
+    const res = await apiClient.post<EmailSequenceDto>('/email-sequences', data);
+    return res.data;
+  },
+
+  /** Update an existing email sequence */
+  updateEmailSequenceSimp: async (id: number, data: UpdateEmailSequenceSimpDto): Promise<EmailSequenceDto> => {
+    const res = await apiClient.patch<EmailSequenceDto>(`/email-sequences/${id}`, data);
+    return res.data;
+  },
+
+  /** Delete an email sequence */
+  deleteEmailSequenceById: async (id: number): Promise<void> => {
+    await apiClient.delete(`/email-sequences/${id}`);
+  },
+
+  /** Enroll leads into a sequence */
+  enrollLeads: async (sequenceId: number, leadIds: number[]): Promise<NurtureEnrollmentDto[]> => {
+    const res = await apiClient.post<NurtureEnrollmentDto[]>(`/email-sequences/${sequenceId}/enroll`, { leadIds });
+    return res.data;
+  },
+
+  // =========================================================================
+  // CAMPAIGN EXECUTION STATUS (MKT-003)
+  // =========================================================================
+
+  /** Get campaign execution status with metrics */
+  getCampaignExecutionStatus: async (campaignId: number): Promise<CampaignExecutionStatusDto> => {
+    const res = await apiClient.get<CampaignExecutionStatusDto>(`/campaigns/${campaignId}/execution/status`);
+    return res.data;
+  },
+
+  /** Schedule a campaign */
+  scheduleCampaign: async (campaignId: number, scheduledAt: string): Promise<CampaignExecutionStatusDto> => {
+    const res = await apiClient.post<CampaignExecutionStatusDto>(`/campaigns/${campaignId}/schedule`, { scheduledAt });
+    return res.data;
+  },
+
+  /** Start a campaign immediately */
+  startCampaign: async (campaignId: number): Promise<CampaignExecutionStatusDto> => {
+    const res = await apiClient.post<CampaignExecutionStatusDto>(`/campaigns/${campaignId}/start`, {});
+    return res.data;
+  },
+
+  /** Pause a running campaign */
+  pauseCampaignExecution: async (campaignId: number): Promise<CampaignExecutionStatusDto> => {
+    const res = await apiClient.post<CampaignExecutionStatusDto>(`/campaigns/${campaignId}/pause`, {});
+    return res.data;
+  },
+
+  /** Cancel a campaign */
+  cancelCampaign: async (campaignId: number): Promise<CampaignExecutionStatusDto> => {
+    const res = await apiClient.post<CampaignExecutionStatusDto>(`/campaigns/${campaignId}/cancel`, {});
+    return res.data;
+  },
+
+  // =========================================================================
+  // UTM TRACKING LINKS (MKT-003)
+  // =========================================================================
+
+  /** Get all tracking links for a campaign */
+  getCampaignLinks: async (campaignId: number): Promise<CampaignTrackingLinkDto[]> => {
+    const res = await apiClient.get<CampaignTrackingLinkDto[]>(`/campaigns/${campaignId}/links`);
+    return res.data;
+  },
+
+  /** Create a new UTM tracking link */
+  createTrackingLink: async (campaignId: number, data: CreateTrackingLinkDto): Promise<CampaignTrackingLinkDto> => {
+    const res = await apiClient.post<CampaignTrackingLinkDto>(`/campaigns/${campaignId}/links`, data);
+    return res.data;
+  },
+
+  // =========================================================================
+  // UNSUBSCRIBE MANAGEMENT
+  // =========================================================================
+
+  /** Check unsubscribe status for an email */
+  getUnsubscribeStatus: async (email: string): Promise<UnsubscribeStatusDto> => {
+    const res = await apiClient.get<UnsubscribeStatusDto>('/unsubscribe/status', { params: { email } });
+    return res.data;
+  },
+
+  // =========================================================================
+  // RECIPIENT PREVIEW (MKT-007)
+  // =========================================================================
+
+  /** Preview recipient count for a segment (returns 0 if backend returns 404) */
+  previewRecipients: async (campaignId: number, segmentJson: string): Promise<number> => {
+    try {
+      const res = await apiClient.post<{ count: number }>(`/campaigns/${campaignId}/preview-recipients`, { segmentRulesJson: segmentJson });
+      return res.data?.count ?? 0;
+    } catch {
+      return 0;
+    }
+  },
 };
 
 export default marketingService;

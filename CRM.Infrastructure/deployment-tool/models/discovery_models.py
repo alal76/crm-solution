@@ -208,8 +208,8 @@ class SSHDiscoveryClient(BaseDiscoveryClient):
         except Exception as e:
             raise SSHConnectionError(f"Command execution failed: {str(e)}")
 
-    def discover_docker_containers(self) -> List[DeploymentComponent]:
-        """Discover Docker containers."""
+    def discover_docker_containers(self, remote_host: str = 'localhost', container_prefix: str = 'crm-') -> List[DeploymentComponent]:
+        """Discover Docker containers matching the given prefix (default: crm-)."""
         components = []
 
         # Get running containers
@@ -240,7 +240,7 @@ class SSHDiscoveryClient(BaseDiscoveryClient):
 
         for container in containers:
             name = container.get('Names', '')
-            if not name.startswith('crm-'):
+            if not name.startswith(container_prefix):
                 continue
 
             # Get container details
@@ -273,10 +273,10 @@ class SSHDiscoveryClient(BaseDiscoveryClient):
 
             if 'api' in name:
                 component_type = "api"
-                health_url = f"http://localhost:{ports[0]}/health" if ports else None
+                health_url = f"http://{remote_host}:{ports[0]}/health" if ports else None
             elif 'frontend' in name:
                 component_type = "frontend"
-                health_url = f"http://localhost:{ports[0]}/health" if ports else None
+                health_url = f"http://{remote_host}:{ports[0]}" if ports else None
             elif 'mariadb' in name or 'mysql' in name:
                 component_type = "database"
             elif 'redis' in name:
@@ -304,7 +304,7 @@ class SSHDiscoveryClient(BaseDiscoveryClient):
 
             component = DeploymentComponent(
                 name=name,
-                type="container",
+                type=component_type,
                 status="running",
                 version=version,
                 image=image,
@@ -323,33 +323,61 @@ class SSHDiscoveryClient(BaseDiscoveryClient):
 
     def discover_deployment(self, config: Dict[str, Any]) -> DeploymentInfo:
         """Discover on-premises deployment."""
-        hostname = config.get('hostname', 'localhost')
-        username = config.get('username', 'root')
+        # Accept 'host' (frontend key) or 'hostname' (legacy key)
+        hostname = config.get('host') or config.get('hostname', '')
+        if not hostname:
+            raise DeploymentDiscoveryError("Host/IP address is required for on-premises discovery")
+        username = config.get('username', 'root') or 'root'
         password = config.get('password')
         key_path = config.get('key_path')
-        port = config.get('port', 22)
+        port = int(config.get('port', 22) or 22)
 
         self.connect(hostname, username, password, key_path, port)
 
         try:
-            components = self.discover_docker_containers()
+            container_prefix = config.get('container_prefix', 'crm-')
+            components = self.discover_docker_containers(remote_host=hostname, container_prefix=container_prefix)
 
             # Determine architecture
             service_names = {comp.name for comp in components}
             architecture = "microservices" if len(service_names) > 3 else "monolithic"
 
-            # Try to determine version from API component
+            # Try to determine version from API component's health endpoint
             version = None
+            _requests = _lazy_import("requests")
             api_component = next((c for c in components if c.type == "api"), None)
             if api_component and api_component.health_url:
-                try:
-                    _requests = _lazy_import("requests")
-                    response = _requests.get(f"{api_component.health_url}/version", timeout=5)
-                    if response.status_code == 200:
-                        version_data = response.json()
-                        version = version_data.get('version')
-                except:
-                    pass
+                for version_path in ["/version", "", "/api/version"]:
+                    try:
+                        resp = _requests.get(f"{api_component.health_url}{version_path}", timeout=5)
+                        if resp.status_code == 200:
+                            data = resp.json()
+                            version = data.get('version') or data.get('Version') or data.get('appVersion')
+                            if version:
+                                break
+                    except Exception:
+                        pass
+
+            # Compute overall health from components that have health URLs
+            health_checks = []
+            for comp in components:
+                if comp.health_url:
+                    try:
+                        resp = _requests.get(comp.health_url, timeout=5)
+                        health_checks.append(resp.status_code == 200)
+                    except Exception:
+                        health_checks.append(False)
+            if health_checks:
+                passed = sum(health_checks)
+                if passed == len(health_checks):
+                    overall_health = "healthy"
+                elif passed > 0:
+                    overall_health = "degraded"
+                else:
+                    overall_health = "unhealthy"
+            else:
+                # No HTTP health URLs available — infer from container running state
+                overall_health = "healthy" if components else "unknown"
 
             # Determine environment
             environment = "production"  # Default assumption
@@ -364,6 +392,7 @@ class SSHDiscoveryClient(BaseDiscoveryClient):
                 components=components,
                 version=version,
                 environment=environment,
+                health_status=overall_health,
                 last_checked=datetime.now()
             )
 

@@ -4,7 +4,6 @@
 // This software is source-available. Non-commercial use is permitted under
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
-#pragma warning disable CS0535  // Does not implement interface member (TD-001 technical debt)
 // the Free Software Foundation, either version 3 of the License, or
 // (at your option) any later version.
 //
@@ -26,17 +25,11 @@ using CRM.Core.Ports.Input;
 
 namespace CRM.Infrastructure.Services;
 
-#pragma warning disable CS0535  // Does not implement interface member (TD-001 technical debt)
-
 /// <summary>
 /// Implementation of ICommissionCalculationService for complex commission calculations.
 /// Handles tier-based calculations, accelerators, and split commissions.
 /// </summary>
-[System.Diagnostics.CodeAnalysis.SuppressMessage("Design", "CS0535:Does not implement interface member",
-    Justification = "DTOs are defined locally and in CRM.Core. Duplicate definitions are documented technical debt (TD-001). Local definitions kept for service autonomy. Refactoring planned for next maintenance sprint.")]
-#pragma warning disable CS0535
 public class CommissionCalculationService : ICommissionCalculationService, ICommissionCalculationInputPort
-#pragma warning restore CS0535
 {
     private readonly ICrmDbContext _context;
     private readonly ILogger<CommissionCalculationService> _logger;

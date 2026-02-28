@@ -32,6 +32,10 @@ public static class ScriptingServiceExtensions
         services.AddSingleton<ToolRegistry>();
         services.AddSingleton<IMetricsRecorder, OtelMetricsRecorder>();
 
+        // Default empty permissions list for DI; callers can override per-execution via IToolInvoker factory
+        services.AddSingleton<IReadOnlyList<ScriptPermission>>(Array.Empty<ScriptPermission>());
+        services.AddScoped<IToolInvoker, ToolBridgeInvoker>();
+
         // CRM platform tools (transient — resolved per-invocation)
         services.AddTransient<GetCustomerTool>();
         services.AddTransient<SendEmailTool>();

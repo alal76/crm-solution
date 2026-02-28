@@ -5,6 +5,7 @@
 // the terms of the LICENSE file. Commercial use requires a separate license.
 // See the LICENSE file in the root directory for full terms.
 using System.Security.Claims;
+using CRM.Core.Dtos;
 using CRM.Infrastructure.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -562,6 +563,113 @@ public class CampaignExecutionController : ControllerBase
         if (ua.Contains("opera"))
             return "Opera";
         return "Other";
+    }
+
+    #endregion
+
+    #region Execution Status & Control (MKT-001)
+
+    /// <summary>
+    /// Get detailed execution status and tracking metrics for a campaign (MKT-001)
+    /// </summary>
+    [HttpGet("{campaignId}/execution/status")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetExecutionStatus(int campaignId, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var status = await _campaignExecutionService.GetExecutionStatusAsync(campaignId, cancellationToken);
+            return Ok(status);
+        }
+        catch (ArgumentException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error getting execution status for campaign {CampaignId}", campaignId);
+            return StatusCode(500, new { message = "Error retrieving campaign execution status" });
+        }
+    }
+
+    /// <summary>
+    /// Schedule a campaign to run at a specific time (MKT-001)
+    /// </summary>
+    [HttpPost("{campaignId}/execution/schedule")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> ScheduleCampaign(int campaignId, [FromBody] ScheduleCampaignDto dto, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var status = await _campaignExecutionService.ScheduleWithDtoAsync(campaignId, dto, cancellationToken);
+            return Ok(status);
+        }
+        catch (ArgumentException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error scheduling campaign {CampaignId}", campaignId);
+            return StatusCode(500, new { message = "Error scheduling campaign" });
+        }
+    }
+
+    /// <summary>
+    /// Cancel a running or scheduled campaign (MKT-001)
+    /// </summary>
+    [HttpPost("{campaignId}/execution/cancel")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> CancelCampaign(int campaignId, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var status = await _campaignExecutionService.CancelCampaignAsync(campaignId, cancellationToken);
+            return Ok(status);
+        }
+        catch (ArgumentException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error cancelling campaign {CampaignId}", campaignId);
+            return StatusCode(500, new { message = "Error cancelling campaign" });
+        }
+    }
+
+    /// <summary>
+    /// Process email tracking webhook events from email provider (MKT-001)
+    /// </summary>
+    [HttpPost("webhooks/email-tracking")]
+    [AllowAnonymous]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> ProcessEmailTrackingWebhook([FromBody] EmailTrackingWebhookDto dto, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await _campaignExecutionService.ProcessTrackingWebhookAsync(dto, cancellationToken);
+            return Ok(new { message = "Webhook processed" });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error processing email tracking webhook for {Email}", dto?.RecipientEmail);
+            return StatusCode(500, new { message = "Error processing webhook" });
+        }
     }
 
     #endregion

@@ -23,6 +23,14 @@ import yaml
 import secrets
 import string
 import os
+import argparse
+
+try:
+    from flask_socketio import SocketIO
+    _SOCKETIO_AVAILABLE = True
+except ImportError:
+    _SOCKETIO_AVAILABLE = False
+    SocketIO = None
 
 # --- Model imports (pure Python / stdlib — always safe) --------------------
 from models.config_models import (
@@ -50,6 +58,67 @@ from models.discovery_models import (
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', secrets.token_hex(24))
+
+# --- SocketIO (optional, required for live-deploy streaming) --------------
+if _SOCKETIO_AVAILABLE:
+    socketio = SocketIO(app, cors_allowed_origins="*", async_mode="threading")
+else:
+    socketio = None
+
+# Wire the socket helpers so route modules can call emit_log() etc.
+try:
+    from core.socket_helpers import init_socketio as _init_sio
+    _init_sio(socketio)
+except ImportError:
+    pass
+
+# SocketIO event handlers
+if socketio:
+    from flask_socketio import join_room, leave_room  # noqa: PLC0415
+
+    @socketio.on("join_deploy")
+    def _on_join_deploy(data):
+        """Client joins a deploy log room to receive live log events."""
+        run_id = (data or {}).get("run_id", "")
+        if run_id:
+            join_room(f"deploy_{run_id}")
+
+    @socketio.on("leave_deploy")
+    def _on_leave_deploy(data):
+        run_id = (data or {}).get("run_id", "")
+        if run_id:
+            leave_room(f"deploy_{run_id}")
+
+# --- Register new blueprints (best-effort; skip on import error) ----------
+try:
+    from gui.routes.profile_routes import profile_bp
+    app.register_blueprint(profile_bp)
+except Exception as _e:  # noqa: BLE001
+    print(f"[CDT] profile_bp not registered: {_e}")
+
+try:
+    from gui.routes.probe_routes import probe_bp
+    app.register_blueprint(probe_bp)
+except Exception as _e:
+    print(f"[CDT] probe_bp not registered: {_e}")
+
+try:
+    from gui.routes.wizard_routes import wizard_bp
+    app.register_blueprint(wizard_bp)
+except Exception as _e:
+    print(f"[CDT] wizard_bp not registered: {_e}")
+
+try:
+    from gui.routes.deploy_routes import deploy_bp
+    app.register_blueprint(deploy_bp)
+except Exception as _e:
+    print(f"[CDT] deploy_bp not registered: {_e}")
+
+try:
+    from gui.routes.day2_routes import day2_bp
+    app.register_blueprint(day2_bp)
+except Exception as _e:
+    print(f"[CDT] day2_bp not registered: {_e}")
 
 def generate_secure_password(length=16):
     """Generate a secure password with mixed characters."""
@@ -92,6 +161,10 @@ def index():
 @app.route("/wizard")
 def wizard():
     return render_template("wizard.html")
+
+@app.route("/day2")
+def day2_page():
+    return render_template("day2.html")
 
 @app.route("/api/enums/<enum_name>")
 def get_enum(enum_name):
@@ -271,12 +344,14 @@ def test_connection():
             return jsonify({"error": "Platform is required"}), 400
         
         if platform == 'on_premises':
-            # Test SSH connection
-            hostname = config.get('hostname', 'localhost')
-            username = config.get('username', 'root')
+            # Test SSH connection (frontend sends 'host', accept both)
+            hostname = config.get('host') or config.get('hostname', '')
+            if not hostname:
+                return jsonify({"status": "failed", "message": "Host/IP address is required for on-premises connection"}), 400
+            username = config.get('username', 'root') or 'root'
             password = config.get('password')
             key_path = config.get('key_path')
-            port = config.get('port', 22)
+            port = int(config.get('port', 22) or 22)
             
             try:
                 client = discovery_manager.clients[platform]()
@@ -1070,14 +1145,24 @@ def generate_kubernetes(config):
     return "# Kubernetes manifests would be generated here\n# Based on microservices architecture"
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="CRM CDT GUI")
+    parser.add_argument("--port", type=int, default=int(os.environ.get("PORT", 5050)))
+    parser.add_argument("--host", default=os.environ.get("BIND_HOST", "0.0.0.0"))
+    parser.add_argument("--no-debug", action="store_true")
+    args = parser.parse_args()
+    debug_mode = not args.no_debug
     print()
     print("=" * 60)
     print("   CRM Solution - Deployment Configuration GUI")
     print("=" * 60)
     print()
-    print("   Open: http://localhost:5050")
+    print(f"   Wizard:   http://localhost:{args.port}")
+    print(f"   Day-2:    http://localhost:{args.port}/day2")
     print()
     print("   Press Ctrl+C to stop")
     print("=" * 60)
     print()
-    app.run(host=os.environ.get('BIND_HOST', '127.0.0.1'), port=5050, debug=True)
+    if socketio:
+        socketio.run(app, host=args.host, port=args.port, debug=debug_mode)
+    else:
+        app.run(host=args.host, port=args.port, debug=debug_mode)

@@ -92,6 +92,9 @@ const CampaignExecutionPage = lazy(() => import('./pages/CampaignExecutionPage')
 const EmailTemplatesPage = lazy(() => import('./pages/EmailTemplatesPage'));
 const LandingPagesPage = lazy(() => import('./pages/LandingPagesPage'));
 const LeadRoutingPage = lazy(() => import('./pages/LeadRoutingPage'));
+// MKT-002, MKT-003: New marketing sub-pages
+const MarketingEmailSequencesPage = lazy(() => import('./pages/marketing/EmailTemplatesPage'));
+const CampaignAnalyticsPage = lazy(() => import('./pages/marketing/CampaignAnalyticsPage'));
 
 // ----------------------------------------------------------------------------
 // Service Module - Lazy Loaded
@@ -443,6 +446,28 @@ function ThemedApp() {
                   <ProtectedRoute>
                     <RoleBasedRoute requiredPage="Campaigns">
                       <CampaignExecutionPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              {/* MKT-002: Email Sequences page */}
+              <Route
+                path="/marketing/templates"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute requiredPage="Campaigns">
+                      <MarketingEmailSequencesPage />
+                    </RoleBasedRoute>
+                  </ProtectedRoute>
+                }
+              />
+              {/* MKT-003: Campaign Analytics page */}
+              <Route
+                path="/marketing/analytics"
+                element={
+                  <ProtectedRoute>
+                    <RoleBasedRoute requiredPage="Campaigns">
+                      <CampaignAnalyticsPage />
                     </RoleBasedRoute>
                   </ProtectedRoute>
                 }

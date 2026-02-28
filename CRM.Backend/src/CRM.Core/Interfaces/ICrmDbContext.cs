@@ -174,6 +174,13 @@ public interface ICrmDbContext
     DbSet<EmailSequenceEnrollment> EmailSequenceEnrollments { get; }
     DbSet<EmailSequenceStepExecution> EmailSequenceStepExecutions { get; }
 
+    // Marketing Execution Engine — UTM Tracking, Unsubscribe, Nurture, Email Events
+    DbSet<NurtureEnrollment> NurtureEnrollments { get; }
+    DbSet<CampaignEmailTracking> CampaignEmailTrackings { get; }
+    DbSet<UnsubscribeRecord> UnsubscribeRecords { get; }
+    DbSet<UtmLinkClick> UtmLinkClicks { get; }
+    DbSet<CampaignTrackingLink> CampaignTrackingLinks { get; }
+
     // Phase 4 - Teams
     DbSet<Team> Teams { get; }
     DbSet<TeamMember> TeamMembers { get; }
@@ -416,6 +423,12 @@ public interface ICrmDbContext
     DbSet<EnumCategory> EnumCategories { get; }
     DbSet<EnumValue> EnumValues { get; }
     DbSet<EnumTransition> EnumTransitions { get; }
+
+    // BACK-007: Credit Notes
+    DbSet<CreditNote> CreditNotes { get; }
+
+    // BACK-010: Dunning Schedules
+    DbSet<DunningSchedule> DunningSchedules { get; }
 
     DatabaseFacade Database { get; }
 

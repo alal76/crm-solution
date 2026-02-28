@@ -25,6 +25,7 @@ public static class ScriptingServiceExtensions
         IConfiguration configuration)
     {
         services.AddSingleton<IScriptEngine, JintScriptEngine>();
+        services.AddSingleton<IScriptEngine, PythonScriptEngine>(); // Stub: EnablePythonScripting=false until pythonnet is integrated
         services.AddSingleton<ScriptEngineFactory>();
         services.AddScoped<IScriptPluginService, ScriptPluginService>();
         services.AddScoped<ScriptPluginLoader>();

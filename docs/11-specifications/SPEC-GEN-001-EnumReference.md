@@ -141,3 +141,44 @@ Used by the original `IScriptEngine` in `CRM.Core.Interfaces.Scripting`.
 | 2026-02-28 | 1.0 | Initial creation — scripting engine enums (SARCH-001, SARCH-003, SARCH-005) |
 | 2026-02-28 | 1.1 | Added legacy `ScriptLanguage` documentation |
 | 2026-02-28 | 1.2 | Added field gap notes, `DiagnosticSeverity` entry |
+| 2026-02-28 | 1.3 | Added Marketing Module enums: SequenceStepType, EmailTrackingEvent, NurtureEnrollmentTrigger, UnsubscribeReason (MKT-001/004/005/006) |
+
+---
+
+## 6. Marketing Module Enums (CampaignEnums.cs — MKT-001, MKT-004, MKT-005, MKT-006)
+
+### `SequenceStepType`
+| Value | Int | Description |
+|---|---|---|
+| Email | 0 | Send an email step |
+| Wait | 1 | Delay/wait step |
+| Condition | 2 | Branch on condition |
+| Tag | 3 | Apply a tag to the lead |
+
+### `EmailTrackingEvent`
+| Value | Int | Description |
+|---|---|---|
+| Sent | 0 | Message sent to provider |
+| Delivered | 1 | Confirmed delivery |
+| Opened | 2 | Recipient opened email |
+| Clicked | 3 | Recipient clicked a link |
+| Bounced | 4 | Hard or soft bounce |
+| Unsubscribed | 5 | Recipient opted out |
+| SpamReported | 6 | Reported as spam |
+
+### `NurtureEnrollmentTrigger`
+| Value | Int | Description |
+|---|---|---|
+| LeadCreated | 0 | New lead created |
+| LeadStatusChanged | 1 | Lead status transition |
+| ManualEnroll | 2 | Manual enrolment by agent |
+| WebFormSubmit | 3 | Web form submission |
+
+### `UnsubscribeReason`
+| Value | Int | Description |
+|---|---|---|
+| NotInterested | 0 | No longer interested |
+| TooFrequent | 1 | Too many emails |
+| Irrelevant | 2 | Content not relevant |
+| NeverSubscribed | 3 | Never consented |
+| Other | 4 | Other reason |

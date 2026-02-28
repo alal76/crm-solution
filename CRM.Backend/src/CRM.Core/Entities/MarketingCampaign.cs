@@ -197,6 +197,30 @@ public class MarketingCampaign : BaseEntity
     [MaxLength(5000)]
     public string? Schedule { get; set; }
 
+    /// <summary>
+    /// FUNCTIONAL: When campaign is scheduled to launch (exact UTC instant).
+    /// TECHNICAL: Set by ScheduleAsync; used by campaign execution engine.
+    /// </summary>
+    public DateTime? ScheduledAt { get; set; }
+
+    /// <summary>
+    /// FUNCTIONAL: When campaign actually started sending.
+    /// TECHNICAL: Set by StartAsync / ExecuteAsync.
+    /// </summary>
+    public DateTime? StartedAt { get; set; }
+
+    /// <summary>
+    /// FUNCTIONAL: When campaign finished (completed or cancelled).
+    /// TECHNICAL: Set on Completed/Cancelled status transitions.
+    /// </summary>
+    public DateTime? CompletedAt { get; set; }
+
+    /// <summary>
+    /// FUNCTIONAL: Include List-Unsubscribe header in outbound emails.
+    /// TECHNICAL: Enables one-click unsubscribe per RFC 8058.
+    /// </summary>
+    public bool UnsubscribeHeaderEnabled { get; set; } = true;
+
     #endregion
 
     #region Budget & Financials
@@ -1336,6 +1360,15 @@ public class MarketingCampaign : BaseEntity
 
     /// <summary>Child campaigns</summary>
     public ICollection<MarketingCampaign>? ChildCampaigns { get; set; }
+
+    /// <summary>Email tracking events raised for this campaign.</summary>
+    public ICollection<CampaignEmailTracking>? EmailTrackingEvents { get; set; }
+
+    /// <summary>Unsubscribe records originating from this campaign.</summary>
+    public ICollection<UnsubscribeRecord>? UnsubscribeRecords { get; set; }
+
+    /// <summary>UTM tracking links created for this campaign.</summary>
+    public ICollection<CampaignTrackingLink>? TrackingLinks { get; set; }
 
     #endregion
 

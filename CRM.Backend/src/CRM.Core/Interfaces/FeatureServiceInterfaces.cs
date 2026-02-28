@@ -116,6 +116,21 @@ public interface ICampaignExecutionService
 
     /// <summary>Assigns a recipient to an A/B test variant.</summary>
     Task<string> AssignToABTestVariantAsync(int testId, int recipientId);
+
+    /// <summary>Gets execution statistics (open/click/bounce/unsub rates) for a campaign.</summary>
+    Task<CampaignExecutionStatusDto> GetExecutionStatusAsync(int campaignId, CancellationToken cancellationToken = default);
+
+    /// <summary>Starts a campaign immediately (transitions from Draft/Scheduled to Active).</summary>
+    Task<CampaignExecutionStatusDto> StartCampaignAsync(int campaignId, CancellationToken cancellationToken = default);
+
+    /// <summary>Cancels a campaign, setting its status to Cancelled.</summary>
+    Task<CampaignExecutionStatusDto> CancelCampaignAsync(int campaignId, CancellationToken cancellationToken = default);
+
+    /// <summary>Schedules a campaign using a DTO that carries the desired UTC send time.</summary>
+    Task<CampaignExecutionStatusDto> ScheduleWithDtoAsync(int campaignId, ScheduleCampaignDto dto, CancellationToken cancellationToken = default);
+
+    /// <summary>Processes an email-provider tracking webhook event (delivered/open/click/bounce/unsubscribe).</summary>
+    Task ProcessTrackingWebhookAsync(EmailTrackingWebhookDto dto, CancellationToken cancellationToken = default);
 }
 
 /// <summary>

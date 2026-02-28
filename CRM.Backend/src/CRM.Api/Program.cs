@@ -818,6 +818,11 @@ builder.Services.AddScoped<ICampaignConversionService, CampaignConversionService
 // Email Sequence Management Service (enhanced)
 builder.Services.AddScoped<IEmailSequenceManagementService, EmailSequenceManagementService>();
 
+// Marketing Execution Engine — MKT-001, MKT-005, MKT-006
+builder.Services.AddScoped<CRM.Core.Interfaces.IUnsubscribeService, CRM.Infrastructure.Services.UnsubscribeService>();
+builder.Services.AddScoped<CRM.Core.Interfaces.IUtmTrackingService, CRM.Infrastructure.Services.UtmTrackingService>();
+builder.Services.AddHostedService<CRM.Infrastructure.BackgroundServices.NurtureSequenceBackgroundService>();
+
 // Webhook Management Services (2 services)
 builder.Services.AddScoped<IWebhookManagementService, WebhookManagementService>();
 builder.Services.AddScoped<IWebhookDispatcherService, WebhookDispatcherService>();
@@ -846,11 +851,13 @@ builder.Services.AddScoped<CRM.Core.Interfaces.IProductBundleService, CRM.Infras
 builder.Services.AddScoped<ILeadSourceConfigService, LeadSourceConfigService>();
 builder.Services.AddScoped<IWebToLeadFormService, WebToLeadFormService>();
 builder.Services.AddScoped<ILeadAgingAlertService, LeadAgingAlertService>();
+builder.Services.AddScoped<ILeadAlertService, LeadAlertService>();
 builder.Services.AddScoped<IWinLossAnalysisService, WinLossAnalysisService>();
 builder.Services.AddScoped<ITerritoryAssignmentService, TerritoryAssignmentService>();
 builder.Services.AddScoped<IDynamicPricingEngine, DynamicPricingEngine>();
 builder.Services.AddScoped<IPricingRulesService, PricingRulesService>();
 builder.Services.AddScoped<ICompetitorService, CompetitorService>();
+builder.Services.AddScoped<ILeadCaptureService, LeadCaptureService>();
 builder.Services.AddScoped<ILeadQualificationService, LeadQualificationService>();
 
 // Credit Memo service
@@ -871,6 +878,8 @@ Log.Information("Commission & Contract Enhancement Services registered: Commissi
 builder.Services.AddScoped<IDunningManager, DunningManager>();
 // Dunning Scheduler - runs every 4 hours, uses IServiceScopeFactory for scoped IDunningManager (TODO-SALES003-012)
 builder.Services.AddHostedService<DunningSchedulerService>();
+// Dunning Schedule Service - CRUD for dunning schedule steps (BACK-010)
+builder.Services.AddScoped<IDunningScheduleService, CRM.Infrastructure.Services.DunningScheduleService>();
 // Proration Calculator - 4 proration algorithms (ProRata, FullPrice, OneMonth, None)
 builder.Services.AddScoped<CRM.Infrastructure.Services.IProrateCalculator, ProrateCalculator>();
 // Billing Timezone Service - timezone-aware billing date calculations (TODO-SALES006-023)

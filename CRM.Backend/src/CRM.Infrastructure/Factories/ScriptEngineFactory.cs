@@ -30,22 +30,28 @@ public class ScriptEngineFactory
     {
         var engine = _scriptEngines.FirstOrDefault(e => e.Language == language);
 
+        if (engine is { IsAvailable: false })
+        {
+            _logger.LogWarning(
+                "Script engine for {Language} is registered but not available (IsAvailable=false). " +
+                "Check the engine's prerequisites (e.g. pythonnet for Python)",
+                language);
+            throw new InvalidOperationException(
+                $"Script engine for {language} is registered but not available. " +
+                $"Ensure the required runtime is installed and the feature flag is enabled.");
+        }
+
         if (engine == null && language != ScriptLanguage.JavaScript)
         {
             _logger.LogWarning("No script engine registered for {Language}; falling back to JavaScript", language);
-            engine = _scriptEngines.FirstOrDefault(e => e.Language == ScriptLanguage.JavaScript);
+            engine = _scriptEngines.FirstOrDefault(e => e.Language == ScriptLanguage.JavaScript && e.IsAvailable);
         }
 
-        engine ??= _scriptEngines.FirstOrDefault();
+        engine ??= _scriptEngines.FirstOrDefault(e => e.IsAvailable);
 
         if (engine == null)
         {
             throw new InvalidOperationException("No script engines are registered");
-        }
-
-        if (!engine.IsAvailable)
-        {
-            throw new InvalidOperationException($"Script engine for {engine.Language} is not available");
         }
 
         return engine;

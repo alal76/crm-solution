@@ -98,6 +98,48 @@ public class BillingTimezoneService : IBillingTimezoneService
     }
 
     // -------------------------------------------------------------------------
+    // BACK-009: Billing Timezone — extended API
+    // -------------------------------------------------------------------------
+
+    /// <inheritdoc />
+    public IReadOnlyList<TimezoneInfoDto> GetSupportedTimezones()
+    {
+        return TimeZoneInfo.GetSystemTimeZones()
+            .OrderBy(tz => tz.BaseUtcOffset)
+            .ThenBy(tz => tz.Id)
+            .Select(tz => new TimezoneInfoDto
+            {
+                Id = tz.Id,
+                DisplayName = tz.DisplayName,
+                StandardName = tz.StandardName,
+                BaseUtcOffsetHours = tz.BaseUtcOffset.TotalHours
+            })
+            .ToList();
+    }
+
+    /// <inheritdoc />
+    public DateTime ConvertToTimezone(DateTime utc, string tzId)
+    {
+        var tz = ResolveTimezone(tzId);
+        var utcKind = DateTime.SpecifyKind(utc, DateTimeKind.Utc);
+        return TimeZoneInfo.ConvertTimeFromUtc(utcKind, tz);
+    }
+
+    /// <inheritdoc />
+    public DateTime ConvertToUtc(DateTime local, string tzId)
+        => ConvertBillingDateToUtc(local, tzId);
+
+    /// <inheritdoc />
+    public string FormatBillingDate(DateTime date, string tzId, string format = "yyyy-MM-dd")
+    {
+        // If the date is in UTC, convert it to the target timezone first.
+        var local = date.Kind == DateTimeKind.Utc
+            ? ConvertToTimezone(date, tzId)
+            : date;
+        return local.ToString(format, System.Globalization.CultureInfo.InvariantCulture);
+    }
+
+    // -------------------------------------------------------------------------
     // Private helpers
     // -------------------------------------------------------------------------
 

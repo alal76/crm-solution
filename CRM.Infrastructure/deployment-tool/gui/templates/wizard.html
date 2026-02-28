@@ -255,7 +255,8 @@
                     <div class="row">
                         <div class="col-md-6">
                             <label class="form-label">Host/IP Address</label>
-                            <input type="text" class="form-control" id="discoveryHost" placeholder="192.168.1.100">
+                            <input type="text" class="form-control" id="discoveryHost" placeholder="192.168.0.9" value="192.168.0.9">
+                            <small class="text-muted">Default dev server: 192.168.0.9</small>
                         </div>
                         <div class="col-md-3">
                             <label class="form-label">SSH Port</label>
@@ -272,18 +273,24 @@
                     <div class="row mt-3">
                         <div class="col-md-6">
                             <label class="form-label">Username</label>
-                            <input type="text" class="form-control" id="discoveryUsername" placeholder="root">
+                            <input type="text" class="form-control" id="discoveryUsername" placeholder="root" value="root">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label" id="discoveryPasswordLabel">Password</label>
                             <input type="password" class="form-control" id="discoveryPassword">
                         </div>
                     </div>
-                    <div class="mt-3">
-                        <label class="form-label">Container Prefix (optional)</label>
-                        <input type="text" class="form-control" id="discoveryContainerPrefix" placeholder="crm" 
-                               value="crm">
-                        <small class="text-muted">Filter containers by name prefix</small>
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Container Prefix</label>
+                            <input type="text" class="form-control" id="discoveryContainerPrefix" placeholder="crm-" value="crm-">
+                            <small class="text-muted">Containers: crm-api, crm-frontend, crm-mariadb&hellip;</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Docker Network</label>
+                            <input type="text" class="form-control" id="discoveryNetwork" placeholder="crm_crm-network" value="crm_crm-network">
+                            <small class="text-muted">Networks: crm-core-network, crm-db-network, crm-components-network</small>
+                        </div>
                     </div>
                 </div>
                 
@@ -300,25 +307,31 @@
                             <input type="text" class="form-control" id="discoveryRegion" placeholder="us-east-1">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Resource Group/Project</label>
-                            <input type="text" class="form-control" id="discoveryResourceGroup" placeholder="crm-rg">
+                            <label class="form-label" id="discoveryResourceGroupLabel">Resource Group / Project</label>
+                            <input type="text" class="form-control" id="discoveryResourceGroup" placeholder="rg-crm-prod">
+                            <small class="text-muted" id="discoveryResourceGroupHint"></small>
                         </div>
                     </div>
                 </div>
                 
-                <div class="d-flex gap-2 mt-4">
+                <div class="d-flex gap-2 mt-4 flex-wrap">
                     <button type="button" class="btn btn-outline-primary" id="btnTestConnection">
                         <i class="bi bi-plug me-2"></i>Test Connection
                     </button>
                     <button type="button" class="btn btn-primary" id="btnDiscover">
                         <i class="bi bi-search me-2"></i>Discover Deployments
                     </button>
+                    <button type="button" class="btn btn-outline-secondary ms-auto" id="btnSkipDiscovery">
+                        <i class="bi bi-arrow-right me-2"></i>Skip &amp; Configure Manually
+                    </button>
                 </div>
-                
-                <!-- Discovery Results -->
+
+                <!-- Status message (always visible, outside results panel) -->
+                <div id="discoveryStatus" class="alert mt-3" style="display: none;"></div>
+
+                <!-- Discovery Results (shown only when a deployment is found) -->
                 <div id="discoveryResults" class="mt-4" style="display: none;">
                     <h5 class="mb-3">Discovery Results</h5>
-                    <div id="discoveryStatus" class="alert" style="display: none;"></div>
                     <div id="deploymentInfo" class="card" style="display: none;">
                         <div class="card-header">
                             <h6 class="mb-0">Found Deployment</h6>
@@ -345,9 +358,6 @@
                     <div class="mt-3">
                         <button type="button" class="btn btn-success" id="btnUseDiscovered">
                             <i class="bi bi-check-circle me-2"></i>Use This Configuration
-                        </button>
-                        <button type="button" class="btn btn-outline-secondary" id="btnSkipDiscovery">
-                            <i class="bi bi-arrow-right me-2"></i>Skip & Configure Manually
                         </button>
                     </div>
                 </div>
@@ -588,10 +598,73 @@
                 </div>
                 
                 <div class="form-check mb-3">
-                    <input class="form-check-input" type="checkbox" id="dbHighAvailability">
-                    <label class="form-check-label" for="dbHighAvailability">
+                    <input class="form-check-input" type="checkbox" id="dbHighAvailability" onchange="toggleDbHaOptions()">
+                    <label class="form-check-label fw-semibold" for="dbHighAvailability">
                         Enable High Availability (replicas)
                     </label>
+                </div>
+
+                <!-- HA Options (shown when HA enabled) -->
+                <div id="dbHaOptions" class="ms-4 ps-3 border-start border-primary mb-3" style="display:none">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">HA Mode</label>
+                            <select class="form-select form-select-sm" id="dbHaMode">
+                                <option value="master_slave">Master-Slave Replication</option>
+                                <option value="galera">Galera Cluster (multi-master)</option>
+                                <option value="read_replicas">Read Replicas (1 primary + N replicas)</option>
+                                <option value="proxysql">ProxySQL Load Balancer</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Replica Count</label>
+                            <input type="number" class="form-control form-control-sm" id="dbReplicaCount" value="2" min="1" max="5">
+                        </div>
+                    </div>
+                    <div class="form-check mt-2">
+                        <input class="form-check-input" type="checkbox" id="dbAutoFailover" checked>
+                        <label class="form-check-label" for="dbAutoFailover">Enable automatic failover</label>
+                    </div>
+                </div>
+
+                <!-- Backup Settings -->
+                <div class="row g-3 mb-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Automated Backups</label>
+                        <select class="form-select form-select-sm" id="dbBackupFrequency">
+                            <option value="none">No automated backups</option>
+                            <option value="daily" selected>Daily</option>
+                            <option value="hourly">Hourly</option>
+                            <option value="continuous">Continuous (WAL shipping)</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Backup Retention (days)</label>
+                        <input type="number" class="form-control form-control-sm" id="dbBackupRetention" value="7" min="1" max="365">
+                    </div>
+                </div>
+
+                <!-- External DB option -->
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="checkbox" id="dbUseExternal" onchange="toggleDbExternalOptions()">
+                    <label class="form-check-label fw-semibold" for="dbUseExternal">
+                        Use existing external database (skip container deployment)
+                    </label>
+                </div>
+                <div id="dbExternalOptions" class="ms-4 ps-3 border-start mb-3" style="display:none">
+                    <div class="alert alert-info py-2 small mb-2">
+                        <i class="bi bi-info-circle"></i> CDT will only configure the connection string — it will not create or migrate the database container.
+                    </div>
+                    <div class="row g-2">
+                        <div class="col-md-8">
+                            <label class="form-label">External DB Host</label>
+                            <input type="text" class="form-control form-control-sm" id="dbExternalHost" placeholder="db.example.com or 10.0.0.5">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Port</label>
+                            <input type="number" class="form-control form-control-sm" id="dbExternalPort" value="3306">
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -728,6 +801,466 @@
                 </div>
             </div>
 
+            <!-- Feature Flags Step -->
+            <div class="step-panel" id="step-feature-flags" style="display:none">
+              <h4 class="mb-3"><i class="bi bi-toggles me-2"></i>Feature Flags</h4>
+              <p class="text-muted mb-4">Enable or disable CRM modules and provider integrations. Changes take effect on next deployment.</p>
+
+              <h6 class="text-uppercase text-muted small mb-3 mt-2">CRM Modules</h6>
+              <div class="row g-2 mb-4">
+                <div class="col-md-6">
+                  <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="ff-itsm" checked>
+                    <label class="form-check-label" for="ff-itsm">
+                      <strong>ITSM / Service Desk</strong>
+                      <div class="text-muted small">Tickets, SLAs, knowledge base</div>
+                    </label>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="ff-marketing" checked>
+                    <label class="form-check-label" for="ff-marketing">
+                      <strong>Marketing</strong>
+                      <div class="text-muted small">Campaigns, leads, email sequences</div>
+                    </label>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="ff-knowledge-base">
+                    <label class="form-check-label" for="ff-knowledge-base">
+                      <strong>Knowledge Base</strong>
+                      <div class="text-muted small">Public/internal KB articles</div>
+                    </label>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="ff-customer-portal">
+                    <label class="form-check-label" for="ff-customer-portal">
+                      <strong>Customer Portal</strong>
+                      <div class="text-muted small">Self-service customer access</div>
+                    </label>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="ff-partner-portal">
+                    <label class="form-check-label" for="ff-partner-portal">
+                      <strong>Partner Portal</strong>
+                      <div class="text-muted small">Channel partner access</div>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <h6 class="text-uppercase text-muted small mb-3">External Provider Integrations</h6>
+              <div class="row g-2 mb-4">
+                <div class="col-md-6">
+                  <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="ff-ext-search">
+                    <label class="form-check-label" for="ff-ext-search">
+                      <strong>External Search</strong>
+                      <div class="text-muted small">Meilisearch / Algolia instead of built-in</div>
+                    </label>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="ff-ext-ai" checked>
+                    <label class="form-check-label" for="ff-ext-ai">
+                      <strong>External AI</strong>
+                      <div class="text-muted small">OpenAI / Azure / Ollama LLM</div>
+                    </label>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="ff-ext-chat">
+                    <label class="form-check-label" for="ff-ext-chat">
+                      <strong>External Chat</strong>
+                      <div class="text-muted small">Chatwoot / Intercom integration</div>
+                    </label>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="ff-ext-notifications">
+                    <label class="form-check-label" for="ff-ext-notifications">
+                      <strong>External Notifications</strong>
+                      <div class="text-muted small">Novu / Twilio / SendGrid</div>
+                    </label>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="ff-ext-analytics">
+                    <label class="form-check-label" for="ff-ext-analytics">
+                      <strong>External Analytics</strong>
+                      <div class="text-muted small">Superset / Power BI</div>
+                    </label>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="ff-ext-signatures">
+                    <label class="form-check-label" for="ff-ext-signatures">
+                      <strong>External Signatures</strong>
+                      <div class="text-muted small">DocuSeal / DocuSign</div>
+                    </label>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="ff-ext-integrations">
+                    <label class="form-check-label" for="ff-ext-integrations">
+                      <strong>External Integrations</strong>
+                      <div class="text-muted small">n8n / Zapier / Make</div>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <div class="d-flex gap-2 mt-3">
+                <button class="btn btn-outline-secondary btn-sm" onclick="ffResetDefaults()"><i class="bi bi-arrow-counterclockwise"></i> Reset Defaults</button>
+                <button class="btn btn-outline-primary btn-sm" onclick="ffEnableAll()"><i class="bi bi-toggle-on"></i> Enable All</button>
+                <button class="btn btn-outline-secondary btn-sm" onclick="ffDisableAll()"><i class="bi bi-toggle-off"></i> Disable All</button>
+              </div>
+            </div>
+
+            <!-- Security Step -->
+            <div class="step-panel" id="step-security" style="display:none">
+              <h4 class="mb-3"><i class="bi bi-shield-lock"></i> Security Configuration</h4>
+              <div class="row g-3">
+                <div class="col-12">
+                  <label class="form-label fw-semibold">JWT Signing Secret</label>
+                  <div class="input-group">
+                    <input type="password" class="form-control" id="jwt_secret" name="jwt_secret"
+                           placeholder="Leave blank to auto-generate a secure secret (recommended)">
+                    <button class="btn btn-outline-secondary" type="button" onclick="generateSecret()">
+                      <i class="bi bi-arrow-clockwise"></i> Generate
+                    </button>
+                  </div>
+                  <div id="jwt_secret_strength_meter" class="mt-1"></div>
+                  <div class="form-text">Minimum 32 characters. Used to sign JWT tokens.</div>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold">Access Token TTL (minutes)</label>
+                  <input type="number" class="form-control" id="jwt_access_ttl" name="jwt_access_ttl" value="60" min="5" max="1440">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold">Refresh Token TTL (days)</label>
+                  <input type="number" class="form-control" id="jwt_refresh_ttl_days" name="jwt_refresh_ttl_days" value="7" min="1" max="90">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold">Session Idle Timeout (minutes)</label>
+                  <input type="number" class="form-control" id="session_idle_timeout" name="session_idle_timeout" value="30" min="5" max="480">
+                </div>
+                <div class="col-md-6">
+                  <div class="form-check form-switch mt-4">
+                    <input class="form-check-input" type="checkbox" id="enable_2fa" name="enable_2fa">
+                    <label class="form-check-label" for="enable_2fa">Enable Two-Factor Authentication (2FA)</label>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Profile Card Browser Panel -->
+            <div class="step-panel" id="step-profile-browser" style="display:none">
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="mb-0"><i class="bi bi-folder2-open me-2"></i>Load Saved Profile</h4>
+                <button class="btn btn-sm btn-outline-secondary" onclick="refreshProfileBrowser()"><i class="bi bi-arrow-clockwise"></i> Refresh</button>
+              </div>
+              <p class="text-muted mb-3">Select a saved configuration profile to pre-populate the wizard fields.</p>
+
+              <!-- Search -->
+              <div class="input-group mb-3">
+                <span class="input-group-text"><i class="bi bi-search"></i></span>
+                <input type="text" class="form-control" id="profileBrowserSearch" placeholder="Filter profiles..." oninput="filterProfileCards()">
+              </div>
+
+              <!-- Card grid -->
+              <div class="row g-3" id="profileCardGrid">
+                <div class="col-12 text-center text-muted py-4">
+                  <i class="bi bi-folder2 fs-2 mb-2 d-block"></i>
+                  Loading profiles...
+                </div>
+              </div>
+
+              <!-- Selected profile summary -->
+              <div id="profileSelectedSummary" class="card border-primary mt-3" style="display:none">
+                <div class="card-header bg-primary text-white py-2 small"><i class="bi bi-check-circle me-1"></i> Profile Selected</div>
+                <div class="card-body py-2">
+                  <div class="row g-1 small">
+                    <div class="col-md-4"><strong>Name:</strong> <span id="pbs-name">—</span></div>
+                    <div class="col-md-4"><strong>Target:</strong> <span id="pbs-target">—</span></div>
+                    <div class="col-md-4"><strong>Runtime:</strong> <span id="pbs-runtime">—</span></div>
+                    <div class="col-md-4"><strong>DB:</strong> <span id="pbs-db">—</span></div>
+                    <div class="col-md-4"><strong>Modified:</strong> <span id="pbs-modified">—</span></div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="d-flex gap-2 mt-3">
+                <button class="btn btn-primary" id="btnLoadSelectedProfile" onclick="applySelectedProfile()" disabled><i class="bi bi-download"></i> Load Profile</button>
+                <button class="btn btn-outline-secondary" onclick="closeProfileBrowser()"><i class="bi bi-x"></i> Cancel</button>
+                <a href="/profiles" class="btn btn-outline-info ms-auto" target="_blank"><i class="bi bi-gear"></i> Manage Profiles</a>
+              </div>
+            </div>
+
+            <!-- Network Step -->
+            <div class="step-panel" id="step-network" style="display:none">
+              <h4 class="mb-3"><i class="bi bi-diagram-3"></i> Network Configuration</h4>
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold">Reverse Proxy</label>
+                  <select class="form-select" id="proxy_type" name="proxy_type">
+                    <option value="nginx" selected>Nginx</option>
+                    <option value="traefik">Traefik</option>
+                    <option value="haproxy">HAProxy</option>
+                    <option value="alb">AWS ALB</option>
+                    <option value="agw">Azure Application Gateway</option>
+                    <option value="gcp_lb">GCP Load Balancer</option>
+                  </select>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-check form-switch mt-4">
+                    <input class="form-check-input" type="checkbox" id="enable_hsts" name="enable_hsts" checked>
+                    <label class="form-check-label" for="enable_hsts">Enable HSTS (HTTP Strict Transport Security)</label>
+                  </div>
+                </div>
+                <div class="col-12">
+                  <label class="form-label fw-semibold">CORS Allowed Origins</label>
+                  <textarea class="form-control" id="cors_origins" name="cors_origins" rows="4"
+                            placeholder="https://app.example.com&#10;https://admin.example.com"></textarea>
+                  <div class="form-text">One origin per line. Leave blank to allow same-origin only.</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Seed / Admin Step -->
+            <div class="step-panel" id="step-seed" style="display:none">
+              <h4 class="mb-3"><i class="bi bi-person-badge"></i> Admin Account &amp; Data Seeding</h4>
+              <div class="row g-3">
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold">Admin Username <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control" id="admin_username" name="admin_username" value="admin" required>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold">Admin Email <span class="text-danger">*</span></label>
+                  <input type="email" class="form-control" id="admin_email" name="admin_email" required>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold">First Name <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control" id="admin_first_name" name="admin_first_name" required>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold">Last Name <span class="text-danger">*</span></label>
+                  <input type="text" class="form-control" id="admin_last_name" name="admin_last_name" required>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold">Admin Password <span class="text-danger">*</span></label>
+                  <input type="password" class="form-control" id="admin_password" name="admin_password"
+                         oninput="updateStrengthMeter('admin_password', this.value)" required>
+                  <div id="admin_password_strength_meter" class="mt-1"></div>
+                  <div class="form-text">Min 12 chars, mixed case, number, special character.</div>
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label fw-semibold">Confirm Password <span class="text-danger">*</span></label>
+                  <input type="password" class="form-control" id="admin_password_confirm" name="admin_password_confirm" required>
+                  <div id="password_match_indicator" class="mt-1"></div>
+                </div>
+                <div class="col-12"><hr class="my-1"><h6>Data Seeding Options</h6></div>
+                <div class="col-md-6">
+                  <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="seed_master_data" name="seed_master_data" checked>
+                    <label class="form-check-label" for="seed_master_data">Seed Master Data</label>
+                    <div class="form-text">Countries, currencies, timezones, categories, templates</div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="seed_sample_data" name="seed_sample_data">
+                    <label class="form-check-label" for="seed_sample_data">Seed Sample / Demo Data</label>
+                    <div class="form-text">50 accounts, 200 contacts, 100 opportunities</div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="seed_default_groups" name="seed_default_groups" checked>
+                    <label class="form-check-label" for="seed_default_groups">Create Default User Groups</label>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" id="pull_ollama_models" name="pull_ollama_models">
+                    <label class="form-check-label" for="pull_ollama_models">Pull Default Ollama Models (~5GB)</label>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Component Detection Grid Panel -->
+            <div id="detection-grid-panel" class="mt-3" style="display:none">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="mb-0"><i class="bi bi-grid-3x3-gap"></i> Component Detection Grid</h6>
+                <button class="btn btn-sm btn-outline-primary" onclick="scanComponents()">
+                  <i class="bi bi-search"></i> Scan Now
+                </button>
+              </div>
+              <div id="detection-grid-content">
+                <p class="text-muted small">Click "Scan Now" to detect running CRM components.</p>
+              </div>
+            </div>
+
+            <!-- Review Step -->
+            <div class="step-panel" id="step-review" style="display:none">
+              <h4 class="mb-3"><i class="bi bi-clipboard2-check"></i> Review Configuration</h4>
+              <div class="alert alert-info">
+                <i class="bi bi-info-circle"></i> Review your configuration below before deploying.
+              </div>
+              <button class="btn btn-outline-primary mb-3" onclick="runPreflight()">
+                <i class="bi bi-play-circle"></i> Run Pre-Deploy Checks
+              </button>
+              <button class="btn btn-outline-secondary mb-3 ms-2" onclick="downloadConfig()">
+                <i class="bi bi-download"></i> Download Config
+              </button>
+              <div id="preflight_results" class="mb-3"></div>
+              <div class="accordion" id="reviewAccordion">
+                <div class="accordion-item">
+                  <h2 class="accordion-header">
+                    <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#reviewTarget">Target</button>
+                  </h2>
+                  <div id="reviewTarget" class="accordion-collapse collapse show">
+                    <div class="accordion-body"><dl class="row mb-0" id="review-target-data"></dl></div>
+                  </div>
+                </div>
+                <div class="accordion-item">
+                  <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#reviewDatabase">Database</button>
+                  </h2>
+                  <div id="reviewDatabase" class="accordion-collapse collapse">
+                    <div class="accordion-body"><dl class="row mb-0" id="review-database-data"></dl></div>
+                  </div>
+                </div>
+                <div class="accordion-item">
+                  <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#reviewProviders">Providers</button>
+                  </h2>
+                  <div id="reviewProviders" class="accordion-collapse collapse">
+                    <div class="accordion-body"><dl class="row mb-0" id="review-providers-data"></dl></div>
+                  </div>
+                </div>
+                <div class="accordion-item">
+                  <h2 class="accordion-header">
+                    <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#reviewSeed">Admin Account</button>
+                  </h2>
+                  <div id="reviewSeed" class="accordion-collapse collapse">
+                    <div class="accordion-body"><dl class="row mb-0" id="review-seed-data"></dl></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Live Log Panel (Deploy Step) -->
+            <div id="live-log-panel" class="mt-3" style="display:none">
+              <!-- Animated step cards -->
+              <div id="deploy-step-cards" class="row g-2 mb-3"></div>
+
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="mb-0"><i class="bi bi-terminal"></i> Deployment Log</h6>
+                <div class="d-flex gap-2 align-items-center">
+                  <span id="deploy-status-badge" class="badge bg-secondary">Waiting</span>
+                  <button class="btn btn-xs btn-outline-secondary py-0 px-1" onclick="copyDeployLogs()" title="Copy logs"><i class="bi bi-clipboard"></i></button>
+                </div>
+              </div>
+              <div class="progress mb-2" style="height:8px">
+                <div id="deploy-progress-bar" class="progress-bar progress-bar-striped progress-bar-animated"
+                     role="progressbar" style="width: 0%"></div>
+              </div>
+              <pre id="log-output" class="p-3 rounded" style="background:#1e1e1e;color:#d4d4d4;height:400px;overflow-y:auto;font-size:12px;font-family:monospace;white-space:pre-wrap;word-break:break-all;"></pre>
+              <div class="mt-2 d-flex gap-2 flex-wrap">
+                <button id="btn-abort-deploy" class="btn btn-sm btn-danger" onclick="abortDeploy()" style="display:none">
+                  <i class="bi bi-x-circle"></i> Abort Deploy
+                </button>
+                <button class="btn btn-sm btn-outline-secondary" onclick="downloadLogs()">
+                  <i class="bi bi-download"></i> Download Logs
+                </button>
+                <button class="btn btn-sm btn-outline-secondary ms-auto" onclick="clearDeployLog()">
+                  <i class="bi bi-trash3"></i> Clear
+                </button>
+              </div>
+            </div>
+
+            <!-- Done Step -->
+            <div class="step-panel" id="step-done" style="display:none">
+              <div class="text-center py-3">
+                <div id="done-icon-success" style="display:none">
+                  <i class="bi bi-check-circle-fill text-success" style="font-size:64px"></i>
+                  <h3 class="mt-3 text-success">Deployment Complete!</h3>
+                </div>
+                <div id="done-icon-failure" style="display:none">
+                  <i class="bi bi-x-circle-fill text-danger" style="font-size:64px"></i>
+                  <h3 class="mt-3 text-danger">Deployment Failed</h3>
+                  <p class="text-muted small" id="done-failure-reason"></p>
+                </div>
+              </div>
+
+              <!-- Dashboard link grid -->
+              <div id="done-summary" class="mt-3" style="display:none">
+                <h5 class="mb-3"><i class="bi bi-grid me-2"></i>Your Deployed Services</h5>
+                <div class="row g-2 mb-3" id="done-service-grid">
+                  <!-- Populated by JS showDeploymentDone() -->
+                </div>
+
+                <!-- Credentials (shown-once) -->
+                <div id="done-credentials" class="card border-warning mb-3" style="display:none">
+                  <div class="card-header bg-warning text-dark py-2 d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-key me-1"></i> Initial Admin Credentials — Save them now!</span>
+                    <button class="btn btn-xs btn-outline-dark py-0 px-1" onclick="copyCredentials()"><i class="bi bi-clipboard"></i> Copy</button>
+                  </div>
+                  <div class="card-body py-2">
+                    <div class="row g-1 small">
+                      <div class="col-md-4"><strong>URL:</strong> <span id="done-creds-url">—</span></div>
+                      <div class="col-md-4"><strong>Username:</strong> <span id="done-creds-user">admin</span></div>
+                      <div class="col-md-4"><strong>Password:</strong>
+                        <span id="done-creds-pass" style="font-family:monospace">—</span>
+                        <button class="btn btn-xs btn-link p-0 ms-1" onclick="togglePasswordVisibility('done-creds-pass')"><i class="bi bi-eye" id="done-creds-eye"></i></button>
+                      </div>
+                    </div>
+                    <div class="alert alert-warning py-1 mt-2 small mb-0"><i class="bi bi-exclamation-triangle"></i> These credentials will not be shown again. Store them securely.</div>
+                  </div>
+                </div>
+
+                <!-- Post-deploy validation table -->
+                <div id="done-validation" class="card mb-3" style="display:none">
+                  <div class="card-header py-2 d-flex justify-content-between align-items-center">
+                    <span><i class="bi bi-clipboard2-check me-1"></i> Post-Deploy Validation</span>
+                    <span id="done-validation-summary" class="badge bg-secondary small">—</span>
+                  </div>
+                  <div class="card-body p-0">
+                    <table class="table table-sm mb-0" id="done-validation-table">
+                      <thead class="table-light"><tr><th>Check</th><th>Status</th><th>Details</th></tr></thead>
+                      <tbody id="done-validation-tbody"></tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+
+              <div class="d-flex gap-2 justify-content-center mt-4 flex-wrap">
+                <a id="btn-open-crm" href="#" class="btn btn-primary" target="_blank">
+                  <i class="bi bi-box-arrow-up-right"></i> Open CRM
+                </a>
+                <a href="/day2" class="btn btn-outline-secondary">
+                  <i class="bi bi-tools"></i> Day-2 Operations
+                </a>
+                <button class="btn btn-outline-primary" onclick="resetWizard()">
+                  <i class="bi bi-arrow-clockwise"></i> Start Another Deployment
+                </button>
+              </div>
+            </div>
+
             <!-- Navigation Buttons -->
             <div class="d-flex justify-content-between mt-4 pt-4 border-top">
                 <button class="btn btn-outline-secondary btn-wizard" id="btnPrev" onclick="prevStep()" style="display: none;">
@@ -820,13 +1353,38 @@
             const platform = document.getElementById('discoveryPlatform').value;
             const onPremDiv = document.getElementById('onPremDiscovery');
             const cloudDiv = document.getElementById('cloudDiscovery');
-            
+            const regionEl = document.getElementById('discoveryRegion');
+            const rgEl = document.getElementById('discoveryResourceGroup');
+            const rgLabel = document.getElementById('discoveryResourceGroupLabel');
+            const rgHint = document.getElementById('discoveryResourceGroupHint');
+
             if (platform === 'on_premises') {
                 onPremDiv.style.display = 'block';
                 cloudDiv.style.display = 'none';
-            } else if (platform === 'azure' || platform === 'aws' || platform === 'gcp') {
+            } else if (platform === 'azure') {
                 onPremDiv.style.display = 'none';
                 cloudDiv.style.display = 'block';
+                regionEl.placeholder = 'eastus';
+                rgLabel.textContent = 'Resource Group';
+                rgEl.placeholder = 'rg-crm-prod';
+                rgEl.value = rgEl.value || 'rg-crm-prod';
+                rgHint.textContent = 'Naming: rg-crm-{env} — e.g. rg-crm-dev, rg-crm-prod';
+            } else if (platform === 'aws') {
+                onPremDiv.style.display = 'none';
+                cloudDiv.style.display = 'block';
+                regionEl.placeholder = 'us-east-1';
+                rgLabel.textContent = 'VPC / Cluster Name';
+                rgEl.placeholder = 'crm-prod-vpc';
+                rgEl.value = rgEl.value || 'crm-prod-vpc';
+                rgHint.textContent = 'Naming: crm-{env}-vpc — e.g. crm-dev-vpc, crm-prod-vpc';
+            } else if (platform === 'gcp') {
+                onPremDiv.style.display = 'none';
+                cloudDiv.style.display = 'block';
+                regionEl.placeholder = 'us-central1';
+                rgLabel.textContent = 'Project ID';
+                rgEl.placeholder = 'crm-prod';
+                rgEl.value = rgEl.value || 'crm-prod';
+                rgHint.textContent = 'Naming: crm-{env} — e.g. crm-dev, crm-prod';
             } else {
                 onPremDiv.style.display = 'none';
                 cloudDiv.style.display = 'none';
@@ -837,8 +1395,16 @@
         async function testConnection() {
             const platform = document.getElementById('discoveryPlatform').value;
             if (!platform) {
-                alert('Please select a platform first.');
+                showDiscoveryStatus('Please select a platform first.', 'warning');
                 return;
+            }
+            if (platform === 'on_premises') {
+                const host = document.getElementById('discoveryHost').value.trim();
+                if (!host) {
+                    showDiscoveryStatus('Please enter a Host/IP address before testing the connection.', 'warning');
+                    document.getElementById('discoveryHost').focus();
+                    return;
+                }
             }
 
             const config = collectDiscoveryConfig();
@@ -868,8 +1434,16 @@
         async function discoverDeployments() {
             const platform = document.getElementById('discoveryPlatform').value;
             if (!platform) {
-                alert('Please select a platform first.');
+                showDiscoveryStatus('Please select a platform first.', 'warning');
                 return;
+            }
+            if (platform === 'on_premises') {
+                const host = document.getElementById('discoveryHost').value.trim();
+                if (!host) {
+                    showDiscoveryStatus('Please enter a Host/IP address before discovering deployments.', 'warning');
+                    document.getElementById('discoveryHost').focus();
+                    return;
+                }
             }
 
             const config = collectDiscoveryConfig();
@@ -902,15 +1476,16 @@
             const config = { platform };
             
             if (platform === 'on_premises') {
-                config.host = document.getElementById('discoveryHost').value;
-                config.port = parseInt(document.getElementById('discoveryPort').value);
-                config.username = document.getElementById('discoveryUsername').value;
+                config.host = document.getElementById('discoveryHost').value.trim();
+                config.port = parseInt(document.getElementById('discoveryPort').value) || 22;
+                config.username = document.getElementById('discoveryUsername').value.trim() || 'root';
                 config.auth_method = document.getElementById('discoveryAuthMethod').value;
                 config.password = document.getElementById('discoveryPassword').value;
-                config.container_prefix = document.getElementById('discoveryContainerPrefix').value;
+                config.container_prefix = (document.getElementById('discoveryContainerPrefix').value.trim() || 'crm-');
+                config.network = document.getElementById('discoveryNetwork').value.trim() || 'crm_crm-network';
             } else if (platform === 'azure' || platform === 'aws' || platform === 'gcp') {
-                config.region = document.getElementById('discoveryRegion').value;
-                config.resource_group = document.getElementById('discoveryResourceGroup').value;
+                config.region = document.getElementById('discoveryRegion').value.trim();
+                config.resource_group = document.getElementById('discoveryResourceGroup').value.trim();
             }
             
             return config;
@@ -994,12 +1569,17 @@
                 loadRecommendation();
             });
             
-            // Discovery event listeners
-            document.getElementById('discoveryPlatform').addEventListener('change', onPlatformChange);
-            document.getElementById('testConnectionBtn').addEventListener('click', testConnection);
-            document.getElementById('discoverBtn').addEventListener('click', discoverDeployments);
-            document.getElementById('useDiscoveredBtn').addEventListener('click', useDiscoveredConfig);
-            document.getElementById('skipDiscoveryBtn').addEventListener('click', skipDiscovery);
+            // Discovery event listeners (null-safe to prevent init chain errors)
+            const _dp = document.getElementById('discoveryPlatform');
+            if (_dp) _dp.addEventListener('change', onPlatformChange);
+            const _tc = document.getElementById('btnTestConnection');
+            if (_tc) _tc.addEventListener('click', testConnection);
+            const _db = document.getElementById('btnDiscover');
+            if (_db) _db.addEventListener('click', discoverDeployments);
+            const _ud = document.getElementById('btnUseDiscovered');
+            if (_ud) _ud.addEventListener('click', useDiscoveredConfig);
+            const _sd = document.getElementById('btnSkipDiscovery');
+            if (_sd) _sd.addEventListener('click', skipDiscovery);
             
             // Initialize discovery
             initDiscovery();
@@ -1284,5 +1864,427 @@
             }
         }
     </script>
+<script>
+// ---- CDT Additions ----
+window.crmSessionId = null;
+
+function generateSecret() {
+  fetch('/api/generate-password')
+    .then(r => r.json())
+    .then(data => {
+      const el = document.getElementById('jwt_secret');
+      if (el) {
+        el.value = data.password || data;
+        updateStrengthMeter('jwt_secret', el.value);
+      }
+    }).catch(console.error);
+}
+
+function updateStrengthMeter(fieldId, value) {
+  const meter = document.getElementById(fieldId + '_strength_meter');
+  if (!meter) return;
+  let score = 0;
+  if (value.length >= 12) score++;
+  if (value.length >= 32) score++;
+  if (/[A-Z]/.test(value)) score++;
+  if (/[0-9]/.test(value)) score++;
+  if (/[^a-zA-Z0-9]/.test(value)) score++;
+  const maxScore = 5;
+  const clampedScore = Math.min(score, 4);
+  const labels = ['Very Weak','Weak','Fair','Strong','Very Strong'];
+  const colors = ['danger','danger','warning','success','success'];
+  const pct = Math.round((score / maxScore) * 100);
+  meter.innerHTML = `<div class="progress mt-1" style="height:6px;"><div class="progress-bar bg-${colors[clampedScore]}" style="width:${pct}%"></div></div><small class="text-muted">${labels[clampedScore]}</small>`;
+}
+
+function downloadConfig() {
+  const sid = window.crmSessionId;
+  if (!sid) { alert('No session active'); return; }
+  fetch(`/api/wizard/session/${sid}/review`)
+    .then(r => r.json())
+    .then(data => {
+      const blob = new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'crm-deployment-review.json';
+      a.click();
+    }).catch(console.error);
+}
+
+function runPreflight() {
+  const sid = window.crmSessionId;
+  const resultDiv = document.getElementById('preflight_results');
+  if (!sid || !resultDiv) return;
+  resultDiv.innerHTML = '<div class="spinner-border spinner-border-sm"></div> Running checks...';
+  fetch(`/api/wizard/session/${sid}/review`)
+    .then(r => r.json())
+    .then(data => {
+      let html = data.ready
+        ? '<div class="alert alert-success"><i class="bi bi-check-circle"></i> All pre-deploy checks passed!</div>'
+        : '<div class="alert alert-warning"><i class="bi bi-exclamation-triangle"></i> Issues found:</div>';
+      if (data.issues && data.issues.length) {
+        html += '<ul class="list-unstyled ms-3">' + data.issues.map(i => `<li class="text-danger"><i class="bi bi-x-circle"></i> ${i}</li>`).join('') + '</ul>';
+      }
+      if (data.warnings && data.warnings.length) {
+        html += '<ul class="list-unstyled ms-3">' + data.warnings.map(w => `<li class="text-warning"><i class="bi bi-exclamation-triangle"></i> ${w}</li>`).join('') + '</ul>';
+      }
+      resultDiv.innerHTML = html;
+    }).catch(e => { resultDiv.innerHTML = `<div class="alert alert-danger">Check failed: ${e.message}</div>`; });
+}
+
+function scanComponents() {
+  const hostEl = document.getElementById('ssh_host');
+  const host = (hostEl && hostEl.value) ? hostEl.value : 'localhost';
+  const gridEl = document.getElementById('detection-grid-content');
+  if (!gridEl) return;
+  gridEl.innerHTML = '<div class="text-center p-3"><div class="spinner-border spinner-border-sm"></div> Scanning...</div>';
+  fetch('/api/detect', {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({host})})
+    .then(r => r.json())
+    .then(components => renderDetectionGrid(components))
+    .catch(e => { gridEl.innerHTML = `<div class="alert alert-danger">Scan failed: ${e.message}</div>`; });
+}
+
+function renderDetectionGrid(components) {
+  const gridEl = document.getElementById('detection-grid-content');
+  if (!gridEl) return;
+  if (!components || components.length === 0) {
+    gridEl.innerHTML = '<div class="alert alert-info">No components detected.</div>';
+    return;
+  }
+  const actionOptions = ['reuse','replace','upgrade','deploy_new','skip'];
+  let html = '<div class="row row-cols-2 row-cols-md-4 g-2">';
+  components.forEach(c => {
+    const bClass = c.detected ? (c.running ? 'success' : 'warning') : 'secondary';
+    const bText = c.detected ? (c.running ? 'Running' : 'Stopped') : 'Not Found';
+    html += `<div class="col"><div class="card h-100 border-${bClass}"><div class="card-body p-2">
+      <h6 class="card-title mb-1 fs-6">${c.name}</h6>
+      <span class="badge bg-${bClass} mb-1">${bText}</span>
+      ${c.version ? `<small class="d-block text-muted">v${c.version}</small>` : ''}
+      <select class="form-select form-select-sm mt-1" id="action_${c.key}">
+        ${actionOptions.map(a => `<option value="${a}"${a===c.action?' selected':''}>${a.replace('_',' ')}</option>`).join('')}
+      </select>
+    </div></div></div>`;
+  });
+  html += '</div>';
+  gridEl.innerHTML = html;
+}
+
+function abortDeploy() {
+  const sid = window.crmSessionId;
+  if (!sid) return;
+  if (!confirm('Abort the running deployment?')) return;
+  fetch(`/api/deploy/${sid}/stop`, {method:'POST'}).then(r => r.json()).then(d => {
+    const log = document.getElementById('log-output');
+    if (log) log.textContent += '\n[ABORTED] ' + d.message;
+  });
+}
+
+function downloadLogs() {
+  const log = document.getElementById('log-output');
+  if (!log) return;
+  const blob = new Blob([log.textContent], {type:'text/plain'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'crm-deploy-log.txt';
+  a.click();
+}
+
+function resetWizard() {
+  if (confirm('Start a new deployment? Current session will be cleared.')) {
+    window.crmSessionId = null;
+    window.location.reload();
+  }
+}
+
+// ========== SA3-003 DB HA helpers ==========
+function toggleDbHaOptions() {
+    const checked = document.getElementById('dbHighAvailability').checked;
+    document.getElementById('dbHaOptions').style.display = checked ? 'block' : 'none';
+}
+function toggleDbExternalOptions() {
+    const checked = document.getElementById('dbUseExternal').checked;
+    document.getElementById('dbExternalOptions').style.display = checked ? 'block' : 'none';
+}
+
+// ========== SA3-006 Feature Flags helpers ==========
+function ffResetDefaults() {
+    const defaults = { 'ff-itsm': true, 'ff-marketing': true, 'ff-knowledge-base': false,
+        'ff-customer-portal': false, 'ff-partner-portal': false,
+        'ff-ext-search': false, 'ff-ext-ai': true, 'ff-ext-chat': false,
+        'ff-ext-notifications': false, 'ff-ext-analytics': false,
+        'ff-ext-signatures': false, 'ff-ext-integrations': false };
+    Object.entries(defaults).forEach(([id, val]) => {
+        const el = document.getElementById(id);
+        if (el) el.checked = val;
+    });
+}
+function ffEnableAll() {
+    document.querySelectorAll('[id^="ff-"]').forEach(el => el.checked = true);
+}
+function ffDisableAll() {
+    document.querySelectorAll('[id^="ff-"]').forEach(el => el.checked = false);
+}
+function collectFeatureFlags() {
+    return {
+        EnableITSM: document.getElementById('ff-itsm')?.checked ?? true,
+        EnableMarketing: document.getElementById('ff-marketing')?.checked ?? true,
+        EnableKnowledgeBase: document.getElementById('ff-knowledge-base')?.checked ?? false,
+        EnableCustomerPortal: document.getElementById('ff-customer-portal')?.checked ?? false,
+        EnablePartnerPortal: document.getElementById('ff-partner-portal')?.checked ?? false,
+        UseExternalSearch: document.getElementById('ff-ext-search')?.checked ?? false,
+        UseExternalAI: document.getElementById('ff-ext-ai')?.checked ?? true,
+        UseExternalChat: document.getElementById('ff-ext-chat')?.checked ?? false,
+        UseExternalNotifications: document.getElementById('ff-ext-notifications')?.checked ?? false,
+        UseExternalAnalytics: document.getElementById('ff-ext-analytics')?.checked ?? false,
+        UseExternalSignatures: document.getElementById('ff-ext-signatures')?.checked ?? false,
+        UseExternalIntegrations: document.getElementById('ff-ext-integrations')?.checked ?? false,
+    };
+}
+
+// ========== SA3-009 Profile card browser helpers ==========
+let _selectedProfileName = null;
+async function refreshProfileBrowser() {
+    const grid = document.getElementById('profileCardGrid');
+    grid.innerHTML = '<div class="col-12 text-center text-muted py-4"><i class="bi bi-hourglass-split fs-2 d-block mb-2"></i>Loading...</div>';
+    try {
+        const r = await fetch('/api/profiles');
+        if (!r.ok) throw new Error('Failed to load profiles');
+        const profiles = await r.json();
+        renderProfileCards(profiles);
+    } catch (e) {
+        grid.innerHTML = `<div class="col-12"><div class="alert alert-danger">${e.message}</div></div>`;
+    }
+}
+function renderProfileCards(profiles) {
+    const grid = document.getElementById('profileCardGrid');
+    if (!profiles.length) {
+        grid.innerHTML = '<div class="col-12 text-center text-muted py-4"><i class="bi bi-inbox fs-2 d-block mb-2"></i>No saved profiles found. <a href="/profiles">Create one</a>.</div>';
+        return;
+    }
+    grid.innerHTML = profiles.map(p => `
+        <div class="col-md-6 profile-card-item" data-name="${p.name || ''}">
+            <div class="card h-100 ${_selectedProfileName === p.name ? 'border-primary' : ''}" style="cursor:pointer" onclick="selectProfileCard('${p.name}')" role="button" tabindex="0">
+                <div class="card-body py-2 px-3">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="fw-semibold">${p.name || 'Unnamed'}</div>
+                        ${p.is_template ? '<span class="badge bg-secondary small">template</span>' : ''}
+                    </div>
+                    <div class="text-muted small">${p.description || ''}</div>
+                    <div class="d-flex gap-2 mt-1 flex-wrap">
+                        ${p.target ? `<span class="badge bg-light text-dark border"><i class="bi bi-cloud"></i> ${p.target}</span>` : ''}
+                        ${p.runtime ? `<span class="badge bg-light text-dark border"><i class="bi bi-gear"></i> ${p.runtime}</span>` : ''}
+                        ${p.db_type ? `<span class="badge bg-light text-dark border"><i class="bi bi-database"></i> ${p.db_type}</span>` : ''}
+                    </div>
+                    <div class="text-muted smaller mt-1">${p.modified ? new Date(p.modified).toLocaleDateString() : ''}</div>
+                </div>
+            </div>
+        </div>`).join('');
+}
+function filterProfileCards() {
+    const q = (document.getElementById('profileBrowserSearch')?.value || '').toLowerCase();
+    document.querySelectorAll('.profile-card-item').forEach(el => {
+        el.style.display = el.dataset.name.toLowerCase().includes(q) ? '' : 'none';
+    });
+}
+function selectProfileCard(name) {
+    _selectedProfileName = name;
+    document.querySelectorAll('#profileCardGrid .card').forEach(c => c.classList.remove('border-primary'));
+    const cards = document.querySelectorAll(`[data-name="${name}"] .card`);
+    cards.forEach(c => c.classList.add('border-primary'));
+    document.getElementById('btnLoadSelectedProfile').disabled = false;
+    document.getElementById('profileSelectedSummary').style.display = 'block';
+    fetch(`/api/profiles/${encodeURIComponent(name)}`).then(r => r.json()).then(p => {
+        document.getElementById('pbs-name').textContent = p.name || '—';
+        document.getElementById('pbs-target').textContent = p.target || '—';
+        document.getElementById('pbs-runtime').textContent = p.runtime || '—';
+        document.getElementById('pbs-db').textContent = p.db_type || '—';
+        document.getElementById('pbs-modified').textContent = p.modified ? new Date(p.modified).toLocaleString() : '—';
+    }).catch(() => {});
+}
+async function applySelectedProfile() {
+    if (!_selectedProfileName) return;
+    try {
+        const r = await fetch(`/api/profiles/${encodeURIComponent(_selectedProfileName)}`);
+        const p = await r.json();
+        // Apply to wizard fields
+        if (p.name) { const el = document.getElementById('deploymentName'); if(el) el.value = p.name; }
+        if (p.environment) { const el = document.getElementById('environment'); if(el) el.value = p.environment; }
+        document.getElementById('step-profile-browser').style.display = 'none';
+        showToast?.('Profile loaded', 'success');
+    } catch(e) { alert('Failed to load profile: ' + e.message); }
+}
+function closeProfileBrowser() {
+    document.getElementById('step-profile-browser').style.display = 'none';
+}
+
+// ========== SA4-009 Deploy step helpers ==========
+const DEPLOY_STEP_LABELS = [
+    'Pre-flight checks', 'Pull images', 'Create network', 'Start database',
+    'Apply migrations', 'Start Redis', 'Start API', 'Start frontend',
+    'Configure providers', 'Seed data', 'Health checks', 'Done'
+];
+let _deployStepStates = {};
+
+function initDeployStepCards() {
+    const container = document.getElementById('deploy-step-cards');
+    if (!container) return;
+    _deployStepStates = {};
+    container.innerHTML = DEPLOY_STEP_LABELS.map((label, i) => `
+        <div class="col-md-3 col-sm-6" id="dsc-col-${i}">
+            <div class="card text-center p-2 border-secondary" id="dsc-${i}" style="transition:all 0.3s">
+                <div class="fs-4" id="dsc-icon-${i}"><i class="bi bi-circle text-secondary"></i></div>
+                <div class="small text-muted" id="dsc-label-${i}">${label}</div>
+            </div>
+        </div>`).join('');
+}
+
+function setDeployStepState(stepIndex, state) {
+    // state: 'pending' | 'running' | 'done' | 'error' | 'skip'
+    const card = document.getElementById(`dsc-${stepIndex}`);
+    const icon = document.getElementById(`dsc-icon-${stepIndex}`);
+    if (!card || !icon) return;
+    const map = {
+        pending: { cls: 'border-secondary', icon: 'bi-circle text-secondary', bg: '' },
+        running: { cls: 'border-primary', icon: 'bi-arrow-repeat text-primary spin-icon', bg: 'bg-primary bg-opacity-10' },
+        done:    { cls: 'border-success', icon: 'bi-check-circle-fill text-success', bg: 'bg-success bg-opacity-10' },
+        error:   { cls: 'border-danger', icon: 'bi-x-circle-fill text-danger', bg: 'bg-danger bg-opacity-10' },
+        skip:    { cls: 'border-light', icon: 'bi-dash-circle text-secondary', bg: '' },
+    };
+    const m = map[state] || map.pending;
+    card.className = `card text-center p-2 ${m.cls} ${m.bg}`;
+    icon.innerHTML = `<i class="bi ${m.icon}"></i>`;
+    _deployStepStates[stepIndex] = state;
+}
+
+function appendDeployLog(message, level) {
+    const el = document.getElementById('log-output');
+    if (!el) return;
+    const colors = { INFO: '#4ec9b0', WARN: '#dcdcaa', ERROR: '#f44747', SUCCESS: '#6a9955', DEBUG: '#858585' };
+    const color = colors[(level||'').toUpperCase()] || '#d4d4d4';
+    const time = new Date().toLocaleTimeString();
+    el.innerHTML += `<span style="color:#666">[${time}]</span> <span style="color:${color}">${escapeHtml(message)}</span>\n`;
+    el.scrollTop = el.scrollHeight;
+}
+
+function clearDeployLog() {
+    const el = document.getElementById('log-output');
+    if (el) el.textContent = '';
+}
+
+function copyDeployLogs() {
+    const el = document.getElementById('log-output');
+    if (!el) return;
+    navigator.clipboard.writeText(el.textContent).then(() => showToast?.('Logs copied', 'success'));
+}
+
+function escapeHtml(s) {
+    return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function showDeploymentDone(result) {
+    const success = result?.success !== false;
+    document.getElementById('done-icon-success').style.display = success ? 'block' : 'none';
+    document.getElementById('done-icon-failure').style.display = success ? 'none' : 'block';
+    if (!success && result?.error) {
+        const el = document.getElementById('done-failure-reason');
+        if (el) el.textContent = result.error;
+    }
+    document.getElementById('done-summary').style.display = result ? 'block' : 'none';
+
+    // Service link grid
+    if (result?.urls) {
+        const serviceMap = [
+            { id:'crm-app', label:'CRM App', icon:'bi-browser-chrome', url: result.urls.app },
+            { id:'crm-api', label:'API', icon:'bi-code-slash', url: result.urls.api },
+            { id:'admin', label:'Admin Panel', icon:'bi-gear', url: result.urls.admin },
+            { id:'superset', label:'Analytics', icon:'bi-bar-chart', url: result.urls.superset },
+            { id:'grafana', label:'Monitoring', icon:'bi-activity', url: result.urls.grafana },
+            { id:'n8n', label:'Integrations', icon:'bi-plug', url: result.urls.n8n },
+        ].filter(s => s.url);
+        document.getElementById('done-service-grid').innerHTML = serviceMap.map(s => `
+            <div class="col-md-4 col-sm-6">
+                <a href="${s.url}" class="card text-center p-2 text-decoration-none border hover-shadow" target="_blank">
+                    <i class="bi ${s.icon} fs-4 text-primary mb-1"></i>
+                    <div class="small fw-semibold">${s.label}</div>
+                    <div class="text-muted smaller text-truncate">${s.url}</div>
+                </a>
+            </div>`).join('');
+        const crm = document.getElementById('btn-open-crm');
+        if (crm && result.urls.app) crm.href = result.urls.app;
+    }
+
+    // Admin credentials (shown-once)
+    if (result?.admin_user && success) {
+        const el = document.getElementById('done-credentials');
+        if (el) {
+            el.style.display = 'block';
+            const pw = document.getElementById('done-creds-pass');
+            if (pw) pw.textContent = result.admin_password || '(see config)';
+            const url = document.getElementById('done-creds-url');
+            if (url) url.textContent = result.urls?.app || window.location.origin;
+        }
+    }
+
+    // Post-deploy validation table
+    if (result?.validation_checks?.length) {
+        const tbody = document.getElementById('done-validation-tbody');
+        const table = document.getElementById('done-validation');
+        if (tbody && table) {
+            table.style.display = 'block';
+            const passed = result.validation_checks.filter(c => c.pass).length;
+            const summary = document.getElementById('done-validation-summary');
+            if (summary) {
+                summary.textContent = `${passed}/${result.validation_checks.length} passed`;
+                summary.className = `badge ${passed === result.validation_checks.length ? 'bg-success' : 'bg-warning'} small`;
+            }
+            tbody.innerHTML = result.validation_checks.map(c => `
+                <tr class="${c.pass ? '' : 'table-danger'}">
+                    <td>${escapeHtml(c.name)}</td>
+                    <td><span class="badge ${c.pass ? 'bg-success' : 'bg-danger'}">${c.pass ? '✓ Pass' : '✗ Fail'}</span></td>
+                    <td class="small text-muted">${escapeHtml(c.detail || '')}</td>
+                </tr>`).join('');
+        }
+    }
+
+    document.getElementById('step-done').style.display = 'block';
+    document.getElementById('live-log-panel').style.display = 'none';
+}
+
+function copyCredentials() {
+    const user = document.getElementById('done-creds-user')?.textContent || 'admin';
+    const pass = document.getElementById('done-creds-pass')?.textContent || '';
+    const url = document.getElementById('done-creds-url')?.textContent || '';
+    navigator.clipboard.writeText(`URL: ${url}\nUsername: ${user}\nPassword: ${pass}`);
+    showToast?.('Credentials copied', 'success');
+}
+
+function togglePasswordVisibility(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const eye = document.getElementById('done-creds-eye');
+    if (el.style.filter === 'blur(4px)') {
+        el.style.filter = '';
+        if (eye) eye.className = 'bi bi-eye-slash';
+    } else {
+        el.style.filter = 'blur(4px)';
+        if (eye) eye.className = 'bi bi-eye';
+    }
+}
+
+// Add spin-icon CSS if not already present
+(function() {
+    if (!document.getElementById('sa6-styles')) {
+        const style = document.createElement('style');
+        style.id = 'sa6-styles';
+        style.textContent = `
+            @keyframes spin { to { transform: rotate(360deg); } }
+            .spin-icon { display: inline-block; animation: spin 1s linear infinite; }
+            .smaller { font-size: 0.7rem; }
+            .hover-shadow:hover { box-shadow: 0 2px 8px rgba(0,0,0,.1); }
+        `;
+        document.head.appendChild(style);
+    }
+})();
+</script>
 </body>
 </html>

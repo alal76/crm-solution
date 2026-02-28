@@ -1,0 +1,66 @@
+{
+  "version": "1.0.0",
+  "generated_at": "2025-01-15T00:00:00Z",
+  "tools": {
+    "kubectl": {
+      "version": "v1.31.4",
+      "downloads": {
+        "linux-amd64": {
+          "url": "https://dl.k8s.io/release/v1.31.4/bin/linux/amd64/kubectl",
+          "sha256": "verify_at_runtime"
+        },
+        "linux-arm64": {
+          "url": "https://dl.k8s.io/release/v1.31.4/bin/linux/arm64/kubectl",
+          "sha256": "verify_at_runtime"
+        },
+        "darwin-amd64": {
+          "url": "https://dl.k8s.io/release/v1.31.4/bin/darwin/amd64/kubectl",
+          "sha256": "verify_at_runtime"
+        },
+        "darwin-arm64": {
+          "url": "https://dl.k8s.io/release/v1.31.4/bin/darwin/arm64/kubectl",
+          "sha256": "verify_at_runtime"
+        },
+        "windows-amd64": {
+          "url": "https://dl.k8s.io/release/v1.31.4/bin/windows/amd64/kubectl.exe",
+          "sha256": "verify_at_runtime"
+        }
+      }
+    },
+    "helm": {
+      "version": "v3.17.0",
+      "downloads": {
+        "linux-amd64": {
+          "url": "https://get.helm.sh/helm-v3.17.0-linux-amd64.tar.gz",
+          "binary_path": "linux-amd64/helm"
+        },
+        "linux-arm64": {
+          "url": "https://get.helm.sh/helm-v3.17.0-linux-arm64.tar.gz",
+          "binary_path": "linux-arm64/helm"
+        },
+        "darwin-amd64": {
+          "url": "https://get.helm.sh/helm-v3.17.0-darwin-amd64.tar.gz",
+          "binary_path": "darwin-amd64/helm"
+        },
+        "darwin-arm64": {
+          "url": "https://get.helm.sh/helm-v3.17.0-darwin-arm64.tar.gz",
+          "binary_path": "darwin-arm64/helm"
+        },
+        "windows-amd64": {
+          "url": "https://get.helm.sh/helm-v3.17.0-windows-amd64.zip",
+          "binary_path": "windows-amd64/helm.exe"
+        }
+      }
+    },
+    "terraform": {
+      "version": "1.10.3",
+      "optional": true,
+      "downloads": {
+        "linux-amd64": {"url": "https://releases.hashicorp.com/terraform/1.10.3/terraform_1.10.3_linux_amd64.zip"},
+        "darwin-amd64": {"url": "https://releases.hashicorp.com/terraform/1.10.3/terraform_1.10.3_darwin_amd64.zip"},
+        "darwin-arm64": {"url": "https://releases.hashicorp.com/terraform/1.10.3/terraform_1.10.3_darwin_arm64.zip"},
+        "windows-amd64": {"url": "https://releases.hashicorp.com/terraform/1.10.3/terraform_1.10.3_windows_amd64.zip"}
+      }
+    }
+  }
+}

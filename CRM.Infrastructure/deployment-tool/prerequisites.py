@@ -60,6 +60,10 @@ SSH_PACKAGES: List[PackageInfo] = [
     PackageInfo("fabric",   "fabric",   "3.2",  "Remote command execution over SSH"),
 ]
 
+SYSTEM_PACKAGES: List[PackageInfo] = [
+    PackageInfo("psutil", "psutil", "5.9", "System resource monitoring (CPU, RAM, disk)"),
+]
+
 AZURE_PACKAGES: List[PackageInfo] = [
     PackageInfo("azure.identity",                "azure-identity",               "1.14", "Azure authentication"),
     PackageInfo("azure.mgmt.resource",           "azure-mgmt-resource",          "23.0", "Azure resource management"),
@@ -107,6 +111,7 @@ PACKAGE_GROUPS: Dict[str, Tuple[str, List[PackageInfo], bool]] = {
     "core":        ("Core (Flask GUI)",              CORE_PACKAGES,        True),
     "http":        ("HTTP Client",                   HTTP_PACKAGES,        False),
     "ssh":         ("SSH / On-Premises Discovery",   SSH_PACKAGES,         False),
+    "system":      ("System Resource Monitoring",    SYSTEM_PACKAGES,      False),
     "azure":       ("Azure Cloud SDK",               AZURE_PACKAGES,       False),
     "aws":         ("AWS Cloud SDK",                 AWS_PACKAGES,         False),
     "gcp":         ("Google Cloud SDK",              GCP_PACKAGES,         False),

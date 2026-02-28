@@ -1,0 +1,22 @@
+{
+  "ConnectionStrings": {
+    "DefaultConnection": "Server={{ db_host | default('crm-mariadb') }};Port={{ db_port | default(3306) }};Database={{ db_name | default('crm_db') }};User={{ db_user | default('crm_user') }};Password={{ db_password }};CharSet=utf8mb4;"
+  },
+  "Jwt": {
+    "Secret": "{{ jwt_secret }}",
+    "Issuer": "CRM.Api",
+    "Audience": "CRM.Client",
+    "ExpirationInMinutes": {{ jwt_access_ttl | default(60) }},
+    "RefreshTokenExpirationInDays": {{ jwt_refresh_ttl_days | default(7) }}
+  },
+  "Redis": {
+    "ConnectionString": "crm-redis:6379"
+  },
+  "Logging": {
+    "LogLevel": {
+      "Default": "Information",
+      "Microsoft.AspNetCore": "Warning"
+    }
+  },
+  "AllowedHosts": "*"
+}

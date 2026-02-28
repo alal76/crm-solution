@@ -1,3 +1,20 @@
 {
+  "name": "crm-test",
+  "description": "CRM Solution Deployment",
+  "expected_users": 10,
+  "platform": "on_premises",
+  "architecture": "monolithic",
+  "database_type": "mariadb",
+  "database_name": "crm-db",
+  "database_port": 3306,
+  "search_provider": "meilisearch",
+  "chat_provider": "chatwoot",
+  "notification_provider": "novu",
+  "analytics_provider": "superset",
+  "ai_provider": "ollama",
+  "onprem_virtualization": "vmware",
+  "onprem_container_runtime": "docker",
+  "onprem_orchestration": "docker_compose",
+  "database_ha": false,
   "signature_provider": "docuseal"
 }

@@ -1,0 +1,260 @@
+#!/usr/bin/env python3
+"""
+CRM CDT - Configuration Generator
+Generates deployment configuration files from Jinja2 templates.
+"""
+from __future__ import annotations
+import os
+import re
+import shutil
+import tempfile
+import secrets
+import string
+from dataclasses import dataclass, field
+from pathlib import Path
+from datetime import datetime, timezone
+from typing import Any
+
+try:
+    from jinja2 import Environment, FileSystemLoader, StrictUndefined, TemplateNotFound
+    _JINJA2_AVAILABLE = True
+except ImportError:
+    _JINJA2_AVAILABLE = False
+
+
+@dataclass
+class GeneratedFile:
+    """Represents a single generated configuration file."""
+    filename: str
+    content: str
+    path: Path
+    executable: bool = False
+
+
+@dataclass
+class GenerationResult:
+    """Result of a configuration generation run."""
+    success: bool
+    files: list[GeneratedFile] = field(default_factory=list)
+    output_dir: Path = None
+    errors: list[str] = field(default_factory=list)
+    warnings: list[str] = field(default_factory=list)
+
+    def to_dict(self) -> dict:
+        """Convert to serialisable dict."""
+        return {
+            "success": self.success,
+            "output_dir": str(self.output_dir) if self.output_dir else None,
+            "files": [
+                {
+                    "filename": f.filename,
+                    "path": str(f.path),
+                    "executable": f.executable,
+                }
+                for f in self.files
+            ],
+            "errors": self.errors,
+            "warnings": self.warnings,
+        }
+
+
+class ConfigGenerator:
+    """Generates deployment configuration files from Jinja2 templates."""
+
+    # Maps (container_runtime) → [(template_name, output_filename)]
+    _TEMPLATE_MAP: dict[str, list[tuple[str, str]]] = {
+        "docker_compose": [
+            ("docker-compose.j2", "docker-compose.yml"),
+            ("appsettings.j2", "appsettings.Production.json"),
+            ("nginx.conf.j2", "nginx.conf"),
+            (".env.j2", ".env"),
+        ],
+        "kubernetes": [
+            ("k8s-deployment.j2", "crm-deployment.yaml"),
+            ("helm-values.j2", "values.yaml"),
+            ("appsettings.j2", "appsettings.Production.json"),
+        ],
+    }
+
+    def __init__(self, templates_dir: str = None):
+        base = Path(__file__).parent.parent
+        self.templates_dir = (
+            Path(templates_dir) if templates_dir else base / "config-templates"
+        )
+        self.templates_dir.mkdir(exist_ok=True)
+
+        if _JINJA2_AVAILABLE:
+            self._env = Environment(
+                loader=FileSystemLoader(str(self.templates_dir)),
+                undefined=StrictUndefined,
+                trim_blocks=True,
+                lstrip_blocks=True,
+            )
+            self._env.globals.update(self._template_globals())
+        else:
+            self._env = None
+
+    # ------------------------------------------------------------------
+    # Helpers exposed as template globals
+    # ------------------------------------------------------------------
+
+    def _template_globals(self) -> dict:
+        return {
+            "now": datetime.now(timezone.utc).isoformat(),
+            "generate_password": self.generate_password,
+            "generate_token": self.generate_token,
+        }
+
+    @staticmethod
+    def generate_password(length: int = 16, special: bool = True) -> str:
+        """Return a cryptographically secure random password."""
+        alphabet = string.ascii_letters + string.digits
+        if special:
+            alphabet += "!@#$%^&*()-_=+[]{}|;:,.<>?"
+        return "".join(secrets.choice(alphabet) for _ in range(length))
+
+    @staticmethod
+    def generate_token(length: int = 32) -> str:
+        """Return a cryptographically secure hex token."""
+        return secrets.token_hex(length)
+
+    # ------------------------------------------------------------------
+    # Context building
+    # ------------------------------------------------------------------
+
+    def _build_context(self, profile: dict) -> dict:
+        """Flatten a wizard profile dict into a Jinja2 template context."""
+        ctx: dict = {}
+
+        # Flatten top-level sections
+        for section in ("target", "database", "network", "security", "architecture"):
+            ctx.update(profile.get(section, {}))
+
+        # Providers kept under their own key AND flattened for convenience
+        providers = profile.get("providers", {})
+        ctx["providers"] = providers
+        ctx.update(providers)
+
+        # Seed fields exposed with admin_ prefix
+        for k, v in profile.get("seed", {}).items():
+            ctx[f"admin_{k}"] = v
+        # Also expose raw seed keys (for backward compat)
+        ctx.update(profile.get("seed", {}))
+
+        # Meta
+        meta = profile.get("meta", {})
+        ctx["profile_name"] = meta.get("profile_name", "crm")
+        ctx["crm_version"] = meta.get("crm_version", "latest")
+
+        # Auto-fill secrets if empty
+        if not ctx.get("db_password"):
+            ctx["db_password"] = self.generate_password(20)
+        if not ctx.get("jwt_secret"):
+            ctx["jwt_secret"] = self.generate_token(32)
+
+        return ctx
+
+    # ------------------------------------------------------------------
+    # Rendering
+    # ------------------------------------------------------------------
+
+    def render_template(self, template_name: str, context: dict) -> str:
+        """Render a Jinja2 template by name with the given context."""
+        if not _JINJA2_AVAILABLE:
+            raise RuntimeError(
+                "Jinja2 is not installed. Run: pip install jinja2"
+            )
+        try:
+            tmpl = self._env.get_template(template_name)
+            return tmpl.render(**context)
+        except TemplateNotFound:
+            raise FileNotFoundError(
+                f"Template '{template_name}' not found in {self.templates_dir}"
+            )
+
+    # ------------------------------------------------------------------
+    # Public API
+    # ------------------------------------------------------------------
+
+    def generate(self, profile: dict, output_dir: Path = None) -> GenerationResult:
+        """Generate all configuration files for the given wizard profile."""
+        profile_name = profile.get("meta", {}).get("profile_name", "crm")
+
+        if output_dir is None:
+            output_dir = Path(tempfile.mkdtemp()) / f"crm-deploy-{profile_name}"
+
+        output_dir.mkdir(parents=True, exist_ok=True)
+
+        result = GenerationResult(success=True, output_dir=output_dir)
+        context = self._build_context(profile)
+
+        container_runtime = (
+            profile.get("architecture", {}).get("container_runtime", "docker_compose")
+        )
+        template_pairs = self._TEMPLATE_MAP.get(
+            container_runtime, self._TEMPLATE_MAP["docker_compose"]
+        )
+
+        for template_name, output_name in template_pairs:
+            try:
+                content = self.render_template(template_name, context)
+            except FileNotFoundError as exc:
+                result.warnings.append(
+                    f"Template '{template_name}' not found — skipped: {exc}"
+                )
+                continue
+            except RuntimeError as exc:
+                result.errors.append(str(exc))
+                result.success = False
+                continue
+            except Exception as exc:  # noqa: BLE001
+                result.errors.append(
+                    f"Error rendering '{template_name}': {exc}"
+                )
+                result.success = False
+                continue
+
+            out_path = output_dir / output_name
+            out_path.write_text(content, encoding="utf-8")
+
+            executable = output_name.endswith(".sh")
+            if executable:
+                out_path.chmod(out_path.stat().st_mode | 0o555)
+
+            result.files.append(
+                GeneratedFile(
+                    filename=output_name,
+                    content=content,
+                    path=out_path,
+                    executable=executable,
+                )
+            )
+
+        return result
+
+    def generate_preview(self, profile: dict) -> dict[str, str]:
+        """
+        Same as generate() but returns {filename: content} without writing to disk.
+        Useful for the wizard review step.
+        """
+        context = self._build_context(profile)
+        container_runtime = (
+            profile.get("architecture", {}).get("container_runtime", "docker_compose")
+        )
+        template_pairs = self._TEMPLATE_MAP.get(
+            container_runtime, self._TEMPLATE_MAP["docker_compose"]
+        )
+
+        previews: dict[str, str] = {}
+        for template_name, output_name in template_pairs:
+            try:
+                content = self.render_template(template_name, context)
+                previews[output_name] = content
+            except FileNotFoundError:
+                previews[output_name] = f"# Template '{template_name}' not found"
+            except RuntimeError as exc:
+                previews[output_name] = f"# ERROR: {exc}"
+            except Exception as exc:  # noqa: BLE001
+                previews[output_name] = f"# Render error: {exc}"
+
+        return previews

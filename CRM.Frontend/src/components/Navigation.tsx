@@ -311,6 +311,10 @@ function NavigationContent() {
     'campaign-execution': { label: 'Campaign Execution', icon: CampaignExecutionIcon, path: '/campaign-execution', menuName: 'CampaignExecution' },
     'landing-pages': { label: 'Landing Pages', icon: ViewQuiltIcon, path: '/landing-pages', menuName: 'LandingPages' },
     'forms': { label: 'Forms', icon: QuoteIcon, path: '/forms', menuName: 'Forms' },
+    // MKT-002: Email Sequences
+    'marketing-templates': { label: 'Email Sequences', icon: EmailIcon, path: '/marketing/templates', menuName: 'EmailSequences' },
+    // MKT-003: Campaign Analytics
+    'campaign-analytics': { label: 'Campaign Analytics', icon: BarChartIcon, path: '/marketing/analytics', menuName: 'CampaignAnalytics' },
     'knowledge-base': { label: 'Knowledge Base', icon: QuoteIcon, path: '/knowledge-base', menuName: 'KnowledgeBase' },
     'relationships': { label: 'Relationships', icon: RelationshipsIcon, path: '/relationships', menuName: 'Relationships' },
     'territories': { label: 'Territories', icon: BusinessIcon, path: '/territories', menuName: 'Territories' },
@@ -541,7 +545,7 @@ function NavigationContent() {
   // Default order for nav items
   const defaultNavOrder = useMemo(() => [
     'dashboard', 'accounts', 'accounts-360', 'contacts', 'relationships', 'leads', 'opportunities',
-    'products', 'services', 'service-requests', 'campaigns', 'email-templates', 'campaign-execution', 'landing-pages', 'quotes',
+    'products', 'services', 'service-requests', 'campaigns', 'email-templates', 'campaign-execution', 'landing-pages', 'forms', 'marketing-templates', 'campaign-analytics', 'quotes',
     'contracts', 'invoices', 'payments', 'orders', 'commissions', 'subscriptions', 'teams',
     'territories', 'lead-routing', 'approvals',
     'itsm-overview', 'itsm-incidents', 'itsm-problems', 'itsm-changes', 'itsm-cmdb', 'itsm-knowledge', 'itsm-catalog', 'itsm-sla', 'itsm-metrics', 'itsm-escalation-rules', 'itsm-escalation-dashboard', 'itsm-escalation-policies', 'itsm-sla-policies', 'itsm-service-queues',
@@ -639,6 +643,8 @@ function NavigationContent() {
     { id: 'campaign-execution', order: 9.2, visible: true, category: 'marketing' },
     { id: 'landing-pages', order: 9.5, visible: true, category: 'marketing' },
     { id: 'forms', order: 9.6, visible: true, category: 'marketing' },
+    { id: 'marketing-templates', order: 9.7, visible: true, category: 'marketing' },
+    { id: 'campaign-analytics', order: 9.8, visible: true, category: 'marketing' },
     { id: 'quotes', order: 10, visible: true, category: 'sales' },
     { id: 'territories', order: 10.1, visible: true, category: 'sales' },
     { id: 'lead-routing', order: 10.2, visible: true, category: 'sales' },

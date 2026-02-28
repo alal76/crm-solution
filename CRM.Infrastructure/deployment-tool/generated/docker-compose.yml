@@ -6,7 +6,7 @@ services:
     restart: unless-stopped
     environment:
       MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
-      MARIADB_DATABASE: crm_db
+      MARIADB_DATABASE: crm-db
       MARIADB_USER: crm_user
       MARIADB_PASSWORD: ${DB_PASSWORD}
     volumes:
@@ -37,9 +37,9 @@ services:
     container_name: crm-api
     restart: unless-stopped
     environment:
-      ASPNETCORE_ENVIRONMENT: Production
+      ASPNETCORE_ENVIRONMENT: Development
       DatabaseProvider: mariadb
-      ConnectionStrings__DefaultConnection: Server=crm-mariadb;Port=3306;Database=crm_db;User=crm_user;Password=${DB_PASSWORD}
+      ConnectionStrings__DefaultConnection: Server=crm-mariadb;Port=3306;Database=crm-db;User=crm_user;Password=${DB_PASSWORD}
       Jwt__Secret: ${JWT_SECRET}
       Redis__ConnectionString: crm-redis:6379
       ADMIN_USERNAME: ${ADMIN_USERNAME}
@@ -47,11 +47,11 @@ services:
       ADMIN_PASSWORD: ${ADMIN_PASSWORD}
       FeatureManagement__UseExternalSearch: 'true'
       Providers__Search__Type: Meilisearch
-      Providers__Search__Meilisearch__Url: http://crm-meilisearch:7700
+      Providers__Search__Meilisearch__Url: http://localhost:7700
       Providers__Search__Meilisearch__ApiKey: ${MEILI_MASTER_KEY}
       FeatureManagement__UseExternalChat: 'true'
       Providers__Chat__Type: Chatwoot
-      Providers__Chat__Chatwoot__BaseUrl: http://crm-chatwoot:3000
+      Providers__Chat__Chatwoot__BaseUrl: http://localhost:3000
       Providers__Chat__Chatwoot__ApiKey: ${CHATWOOT_API_KEY}
       Providers__Chat__Chatwoot__AccountId: '1'
       FeatureManagement__UseExternalNotifications: 'true'
@@ -60,16 +60,16 @@ services:
       Providers__Notifications__Novu__ApplicationId: ${NOVU_APPLICATION_ID}
       FeatureManagement__UseExternalAnalytics: 'true'
       Providers__Analytics__Type: Superset
-      Providers__Analytics__Superset__Url: http://crm-superset:8088
+      Providers__Analytics__Superset__Url: http://localhost:8088
       Providers__Analytics__Superset__Username: admin
       Providers__Analytics__Superset__Password: ${SUPERSET_ADMIN_PASSWORD}
       FeatureManagement__UseExternalSignatures: 'true'
       Providers__Signatures__Type: DocuSeal
-      Providers__Signatures__DocuSeal__Url: http://crm-docuseal:3000
+      Providers__Signatures__DocuSeal__Url: http://localhost:3002
       Providers__Signatures__DocuSeal__ApiKey: ${DOCUSEAL_API_KEY}
       FeatureManagement__UseExternalAI: 'true'
       Providers__AI__Type: Ollama
-      Providers__AI__Ollama__Url: http://crm-ollama:11434
+      Providers__AI__Ollama__Url: http://localhost:11434
       Providers__AI__Ollama__Model: llama3
     ports:
     - 5000:5000
@@ -145,7 +145,7 @@ services:
     container_name: crm-novu
     restart: unless-stopped
     ports:
-    - 3002:3000
+    - 3001:3000
     environment:
       NODE_ENV: production
       MONGO_URL: mongodb://novu-mongo:27017/novu
@@ -199,9 +199,9 @@ services:
     container_name: crm-docuseal
     restart: unless-stopped
     ports:
-    - 3001:3000
+    - 3002:3000
     environment:
-      DATABASE_URL: postgresql://docuseal:${DOCUSEAL_DB_PASSWORD:-changeme}@crm-docuseal-postgres:5432/docuseal
+      DATABASE_URL: postgresql://docuseal:docuseal@crm-docuseal-postgres:5432/docuseal
       SECRET_KEY_BASE: ${DOCUSEAL_SECRET_KEY}
       HOST: 0.0.0.0
     depends_on:
@@ -215,7 +215,7 @@ services:
     environment:
       POSTGRES_DB: docuseal
       POSTGRES_USER: docuseal
-      POSTGRES_PASSWORD: ${DOCUSEAL_DB_PASSWORD:-changeme}
+      POSTGRES_PASSWORD: docuseal
     volumes:
     - docuseal_data:/var/lib/postgresql/data
     networks:

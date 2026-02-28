@@ -288,6 +288,8 @@ public class CrmDbContext : DbContext, ICrmDbContext
     public DbSet<Contract> Contracts { get; set; }
     public DbSet<ContractVersion> ContractVersions { get; set; }
     public DbSet<OrderReturn> OrderReturns { get; set; }
+    public DbSet<CreditNote> CreditNotes { get; set; } // BACK-007: Credit Notes
+    public DbSet<DunningSchedule> DunningSchedules { get; set; } // BACK-010: Dunning Schedule CRUD
     public DbSet<CreditMemo> CreditMemos { get; set; }
     public DbSet<CreditMemoLineItem> CreditMemoLineItems { get; set; }
     public DbSet<CreditApplication> CreditApplications { get; set; }
@@ -343,6 +345,13 @@ public class CrmDbContext : DbContext, ICrmDbContext
     public DbSet<AttributionSetting> AttributionSettings { get; set; }
     public DbSet<CampaignTouchpoint> CampaignTouchpoints { get; set; }
     public DbSet<CampaignAttributionSummary> CampaignAttributionSummaries { get; set; }
+
+    // Marketing Execution Engine — UTM Tracking, Unsubscribe, Nurture, Email Events
+    public DbSet<NurtureEnrollment> NurtureEnrollments { get; set; }
+    public DbSet<CampaignEmailTracking> CampaignEmailTrackings { get; set; }
+    public DbSet<UnsubscribeRecord> UnsubscribeRecords { get; set; }
+    public DbSet<UtmLinkClick> UtmLinkClicks { get; set; }
+    public DbSet<CampaignTrackingLink> CampaignTrackingLinks { get; set; }
 
     // =============================================================================
     // CPQ Entities (Product Bundles, Pricing Rules, Discounts)
@@ -3866,8 +3875,74 @@ public class CrmDbContext : DbContext, ICrmDbContext
         modelBuilder.ApplyConfiguration(new CRM.Infrastructure.Data.Configurations.Marketing.EmailSequenceStepExecutionConfiguration());
 
         // =============================================================================
-        // Configuration Management (System & CRM Config)
+        // Marketing Execution Engine — NurtureEnrollment, EmailTracking, Unsubscribe, UTM
         // =============================================================================
+        modelBuilder.Entity<NurtureEnrollment>(e =>
+        {
+            e.HasKey(x => x.Id);
+            e.Property(x => x.EnrolleeEmail).IsRequired().HasMaxLength(320);
+            e.Property(x => x.EnrolleeName).HasMaxLength(200);
+            e.HasIndex(x => new { x.SequenceId, x.EnrolleeEmail }).HasDatabaseName("IX_NurtureEnrollments_SeqEmail");
+            e.HasOne(x => x.Sequence).WithMany().HasForeignKey(x => x.SequenceId).OnDelete(DeleteBehavior.Cascade);
+            e.HasQueryFilter(x => !x.IsDeleted);
+        });
+
+        modelBuilder.Entity<CampaignEmailTracking>(e =>
+        {
+            e.HasKey(x => x.Id);
+            e.Property(x => x.RecipientEmail).IsRequired().HasMaxLength(320);
+            e.Property(x => x.ClickedUrl).HasMaxLength(2048);
+            e.Property(x => x.UserAgent).HasMaxLength(500);
+            e.Property(x => x.IpAddress).HasMaxLength(45);
+            e.Property(x => x.MessageId).HasMaxLength(200);
+            e.HasIndex(x => new { x.CampaignId, x.Event }).HasDatabaseName("IX_CampaignEmailTracking_CampaignEvent");
+            e.HasQueryFilter(x => !x.IsDeleted);
+        });
+
+        modelBuilder.Entity<UnsubscribeRecord>(e =>
+        {
+            e.HasKey(x => x.Id);
+            e.Property(x => x.Email).IsRequired().HasMaxLength(320);
+            e.Property(x => x.ReasonNote).HasMaxLength(1000);
+            e.Property(x => x.Token).HasMaxLength(500);
+            e.HasIndex(x => x.Email).HasDatabaseName("IX_UnsubscribeRecords_Email");
+            e.HasIndex(x => x.Token).HasDatabaseName("IX_UnsubscribeRecords_Token");
+            e.HasQueryFilter(x => !x.IsDeleted);
+        });
+
+        modelBuilder.Entity<UtmLinkClick>(e =>
+        {
+            e.HasKey(x => x.Id);
+            e.Property(x => x.UtmSource).HasMaxLength(200);
+            e.Property(x => x.UtmMedium).HasMaxLength(200);
+            e.Property(x => x.UtmCampaign).HasMaxLength(200);
+            e.Property(x => x.UtmContent).HasMaxLength(200);
+            e.Property(x => x.UtmTerm).HasMaxLength(200);
+            e.Property(x => x.OriginalUrl).HasMaxLength(2048);
+            e.Property(x => x.LandingUrl).HasMaxLength(2048);
+            e.Property(x => x.VisitorIp).HasMaxLength(45);
+            e.Property(x => x.VisitorUserAgent).HasMaxLength(500);
+            e.HasIndex(x => new { x.UtmSource, x.UtmCampaign }).HasDatabaseName("IX_UtmLinkClicks_SourceCampaign");
+            e.HasQueryFilter(x => !x.IsDeleted);
+        });
+
+        modelBuilder.Entity<CampaignTrackingLink>(e =>
+        {
+            e.HasKey(x => x.Id);
+            e.Property(x => x.OriginalUrl).IsRequired().HasMaxLength(2048);
+            e.Property(x => x.TrackedUrl).IsRequired().HasMaxLength(2048);
+            e.Property(x => x.LinkAlias).HasMaxLength(100);
+            e.Property(x => x.UtmSource).HasMaxLength(200);
+            e.Property(x => x.UtmMedium).HasMaxLength(200);
+            e.Property(x => x.UtmCampaign).HasMaxLength(200);
+            e.Property(x => x.UtmContent).HasMaxLength(200);
+            e.Property(x => x.TrackingToken).HasMaxLength(50);
+            e.HasIndex(x => x.TrackingToken).HasDatabaseName("IX_CampaignTrackingLinks_Token");
+            e.HasOne(x => x.Campaign).WithMany(c => c.TrackingLinks).HasForeignKey(x => x.CampaignId).OnDelete(DeleteBehavior.Cascade);
+            e.HasQueryFilter(x => !x.IsDeleted);
+        });
+
+
         modelBuilder.ApplyConfiguration(new CRM.Infrastructure.Data.Configurations.ProviderConfigurationConfiguration());
         modelBuilder.ApplyConfiguration(new CRM.Infrastructure.Data.Configurations.ConfigurationChangeLogConfiguration());
 

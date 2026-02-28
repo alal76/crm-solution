@@ -1,5 +1,10 @@
 import { useState, useEffect } from 'react';
 import { DialogHeader, RelatedEntitiesPanel, EnhancedEmptyState } from '../components/common';
+import SegmentBuilder from '../components/marketing/SegmentBuilder';
+import AbTestConfigPanel, { defaultAbTestConfig } from '../components/marketing/AbTestConfig';
+import { SegmentConfig, AbTestConfig as AbTestConfigType } from '../types/marketing';
+import FilterAltIcon from '@mui/icons-material/FilterAlt';
+import ScienceIcon from '@mui/icons-material/Science';
 import {
   Box, Card, CardContent, Typography, Button, Table, TableBody, TableCell, TableHead,
   TableRow, TablePagination, Dialog, DialogTitle, DialogContent, DialogActions, Alert, CircularProgress,
@@ -166,6 +171,11 @@ function CampaignsPage() {
     campaignType: '',
   });
   
+  // MKT-007: Segment config
+  const [segmentConfig, setSegmentConfig] = useState<SegmentConfig | undefined>(undefined);
+  // MKT-008: A/B test config
+  const [abTestConfig, setAbTestConfig] = useState<AbTestConfigType>(defaultAbTestConfig());
+
   // API state hooks
   const dialogApi = useApiState();
   const bulkApi = useApiState();
@@ -673,6 +683,32 @@ function CampaignsPage() {
               },
               {
                 index: 101,
+                name: 'Segment',
+                icon: <FilterAltIcon fontSize="small" />,
+                editOnly: true,
+                render: () => editingId ? (
+                  <SegmentBuilder
+                    campaignId={editingId}
+                    initialConfig={segmentConfig}
+                    onSaved={setSegmentConfig}
+                  />
+                ) : (
+                  <Alert severity="info" sx={{ mt: 2 }}>Save the campaign first to configure recipient segmentation.</Alert>
+                ),
+              },
+              {
+                index: 102,
+                name: 'A/B Test',
+                icon: <ScienceIcon fontSize="small" />,
+                render: () => (
+                  <AbTestConfigPanel
+                    value={abTestConfig}
+                    onChange={setAbTestConfig}
+                  />
+                ),
+              },
+              {
+                index: 103,
                 name: 'Notes',
                 icon: <NoteIcon fontSize="small" />,
                 render: () => editingId ? (
