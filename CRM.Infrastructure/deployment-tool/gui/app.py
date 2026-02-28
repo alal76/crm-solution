@@ -17,7 +17,7 @@ if not run_startup_check(require_groups=["core"]):
     sys.exit(1)
 
 # --- Core imports (guaranteed present after the check above) ---------------
-from flask import Flask, render_template, request, jsonify, session
+from flask import Flask, render_template, request, jsonify, session, Response
 import json
 import yaml
 import secrets
