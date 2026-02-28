@@ -812,7 +812,7 @@
             </div><!-- /step 0 -->
 
             <!-- Step 1: Basic Information -->
-            <div class="wizard-section active" data-section="1">
+            <div class="wizard-section" data-section="1">
                 <h3 class="mb-4"><i class="bi bi-info-circle me-2"></i>Basic Information</h3>
                 
                 <div class="mb-4">
@@ -1840,9 +1840,8 @@
         // Deploy Now — skip discovery and advance to deploy steps
         function quickDeploy() {
             discoveredConfig = null;
-            // Jump past step 0 discovery directly to step 1 (basic info)
             currentStep = 1;
-            showStep(1);
+            updateStepIndicator();
         }
 
         // Handle platform selection (reads from hidden select, called by selectDiscoveryPlatform)
