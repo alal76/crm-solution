@@ -526,6 +526,10 @@
                 <!-- Hidden select kept for JS compatibility -->
                 <select id="discoveryPlatform" class="d-none" aria-hidden="true">
                     <option value="">Select platform...</option>
+                    <option value="on_premises">On-Premises</option>
+                    <option value="azure">Azure</option>
+                    <option value="aws">AWS</option>
+                    <option value="gcp">GCP</option>
                 </select>
 
                 <!-- Discovery Layout: sidebar + main -->
@@ -1821,7 +1825,7 @@
             const ph = document.getElementById('discPlaceholder');
             if (ph) ph.style.display = 'none';
 
-            onPlatformChange();
+            onPlatformChange(platform);
         }
 
         // Collapse / expand the discovery sidebar
@@ -1844,9 +1848,11 @@
             updateStepIndicator();
         }
 
-        // Handle platform selection (reads from hidden select, called by selectDiscoveryPlatform)
-        function onPlatformChange() {
-            const platform   = document.getElementById('discoveryPlatform').value;
+        // Handle platform selection (platform passed directly OR reads hidden select)
+        function onPlatformChange(platform) {
+            if (platform === undefined) {
+                platform = document.getElementById('discoveryPlatform').value;
+            }
             const onPremDiv  = document.getElementById('onPremDiscovery');
             const cloudDiv   = document.getElementById('cloudDiscovery');
 
