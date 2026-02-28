@@ -48,9 +48,13 @@ def _requests_available() -> bool:
     return _check_available("requests")
 
 def _azure_available() -> bool:
+    # Check for Azure SDK — any one of the key packages is sufficient as a proxy
     return (_check_available("azure.identity")
             and _check_available("azure.mgmt.compute")
             and _check_available("azure.mgmt.containerinstance"))
+
+def _azure_selectable() -> bool:  # noqa: D103 — always selectable for manual config
+    return True
 
 def _aws_available() -> bool:
     return _check_available("boto3")

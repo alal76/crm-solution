@@ -7,7 +7,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-CDT_VERSION="0.609.1"
+CDT_VERSION="0.611.0"
 DEFAULT_PORT=5050
 PORT=$DEFAULT_PORT
 NO_BROWSER=false
@@ -62,9 +62,50 @@ check_python() {
       fi
     fi
   done
+
   if [[ -z "$PYTHON" ]]; then
-    log_error "Python 3.10 or higher is required. Install from https://www.python.org/downloads/"
-    exit 1
+    log_warn "Python 3.10+ not found — attempting auto-install…"
+    local OS_TYPE
+    OS_TYPE=$(uname -s)
+
+    if [[ "$OS_TYPE" == "Darwin" ]]; then
+      # macOS — ensure Homebrew then install python
+      if ! command -v brew &>/dev/null; then
+        log_info "Installing Homebrew…"
+        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" || true
+        # Add brew to path for Apple Silicon
+        [[ -f /opt/homebrew/bin/brew ]] && eval "$(/opt/homebrew/bin/brew shellenv)"
+        [[ -f /usr/local/bin/brew ]]    && eval "$(/usr/local/bin/brew shellenv)"
+      fi
+      if command -v brew &>/dev/null; then
+        log_info "Installing Python 3.12 via Homebrew…"
+        brew install python@3.12 || true
+        PYTHON=$(brew --prefix python@3.12)/bin/python3.12
+        [[ -x "$PYTHON" ]] || PYTHON=$(command -v python3 || true)
+      fi
+
+    elif [[ "$OS_TYPE" == "Linux" ]]; then
+      if command -v apt-get &>/dev/null; then
+        log_info "Installing python3.11 via apt…"
+        sudo apt-get update -qq && sudo apt-get install -y python3.11 python3.11-venv python3-pip || true
+        PYTHON=$(command -v python3.11 || command -v python3 || true)
+      elif command -v dnf &>/dev/null; then
+        log_info "Installing python3.11 via dnf…"
+        sudo dnf install -y python3.11 python3.11-venv || true
+        PYTHON=$(command -v python3.11 || command -v python3 || true)
+      elif command -v yum &>/dev/null; then
+        log_info "Installing python3 via yum…"
+        sudo yum install -y python3 python3-pip || true
+        PYTHON=$(command -v python3 || true)
+      fi
+    fi
+
+    if [[ -z "$PYTHON" || ! -x "$PYTHON" ]]; then
+      log_error "Could not auto-install Python 3.10+."
+      log_error "Please install from: https://www.python.org/downloads/"
+      exit 1
+    fi
+    log_info "Auto-installed Python at: $PYTHON"
   fi
   echo "$PYTHON"
 }
@@ -88,8 +129,101 @@ setup_venv() {
   log_info "Dependencies installed"
 }
 
+bootstrap_system_tools() {
+  log_step 3 6 "Checking system tools (Docker, Git, curl)"
+  local OS_TYPE
+  OS_TYPE=$(uname -s)
+
+  _ensure_brew() {
+    if [[ "$OS_TYPE" == "Darwin" ]] && ! command -v brew &>/dev/null; then
+      log_info "Installing Homebrew…"
+      /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)" || true
+      [[ -f /opt/homebrew/bin/brew ]] && eval "$(/opt/homebrew/bin/brew shellenv)"
+      [[ -f /usr/local/bin/brew    ]] && eval "$(/usr/local/bin/brew shellenv)"
+    fi
+  }
+
+  _install_mac() {
+    local pkg="$1"
+    _ensure_brew
+    if command -v brew &>/dev/null; then
+      log_info "Installing $pkg via Homebrew…"
+      brew install "$pkg" 2>/dev/null || log_warn "brew install $pkg failed (may need manual install)"
+    else
+      log_warn "Homebrew unavailable — cannot install $pkg automatically"
+    fi
+  }
+
+  _install_linux() {
+    local pkg="$1"
+    if command -v apt-get &>/dev/null; then
+      sudo apt-get install -y "$pkg" -qq || log_warn "apt install $pkg failed"
+    elif command -v dnf &>/dev/null; then
+      sudo dnf install -y "$pkg" || log_warn "dnf install $pkg failed"
+    elif command -v yum &>/dev/null; then
+      sudo yum install -y "$pkg" || log_warn "yum install $pkg failed"
+    else
+      log_warn "No package manager found — cannot install $pkg"
+    fi
+  }
+
+  # Docker
+  if ! command -v docker &>/dev/null; then
+    log_warn "Docker not found — installing…"
+    if [[ "$OS_TYPE" == "Darwin" ]]; then
+      _install_mac docker
+      [[ ! -x /Applications/Docker.app/Contents/MacOS/com.docker.backend ]] && \
+        log_warn "Docker Desktop may need to be started manually: open /Applications/Docker.app"
+    else
+      log_info "Installing Docker via official script…"
+      curl -fsSL https://get.docker.com | sudo sh 2>/dev/null || _install_linux docker.io
+      sudo systemctl enable docker 2>/dev/null || true
+      sudo systemctl start  docker 2>/dev/null || true
+      # Add current user to docker group
+      sudo usermod -aG docker "$(whoami)" 2>/dev/null || true
+      log_warn "You may need to log out/in for docker group to take effect"
+    fi
+  else
+    log_info "Docker: $(docker --version 2>/dev/null | head -1)"
+  fi
+
+  # Docker Compose (v2 plugin)
+  if ! docker compose version &>/dev/null && ! command -v docker-compose &>/dev/null; then
+    log_warn "Docker Compose not found — installing…"
+    if [[ "$OS_TYPE" == "Darwin" ]]; then
+      _install_mac docker-compose
+    else
+      # Install compose plugin
+      DOCKER_CONFIG=${DOCKER_CONFIG:-$HOME/.docker}
+      mkdir -p "$DOCKER_CONFIG/cli-plugins"
+      local COMPOSE_VERSION="v2.27.0"
+      local COMPOSE_ARCH
+      COMPOSE_ARCH=$(uname -m); [[ "$COMPOSE_ARCH" == "x86_64" ]] && COMPOSE_ARCH="x86_64"
+      curl -SL "https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-linux-${COMPOSE_ARCH}" \
+        -o "$DOCKER_CONFIG/cli-plugins/docker-compose" 2>/dev/null || true
+      chmod +x "$DOCKER_CONFIG/cli-plugins/docker-compose" 2>/dev/null || true
+    fi
+  else
+    COMPOSE_VER=$(docker compose version --short 2>/dev/null || docker-compose --version 2>/dev/null | head -1)
+    log_info "Docker Compose: $COMPOSE_VER"
+  fi
+
+  # Git
+  if ! command -v git &>/dev/null; then
+    log_warn "git not found — installing…"
+    [[ "$OS_TYPE" == "Darwin" ]] && _install_mac git || _install_linux git
+  else
+    log_info "git: $(git --version)"
+  fi
+
+  # curl
+  if ! command -v curl &>/dev/null; then
+    [[ "$OS_TYPE" == "Darwin" ]] && _install_mac curl || _install_linux curl
+  fi
+}
+
 download_cli_tools() {
-  log_step 3 5 "Checking CLI tools (kubectl, helm)"
+  log_step 4 6 "Checking CLI tools (kubectl, helm)"
   mkdir -p "$CDT_BIN_DIR"
   mkdir -p "$CDT_SNAP_DIR"
 
@@ -165,11 +299,12 @@ main() {
   log_banner
   local PYTHON
   PYTHON=$(check_python)
+  bootstrap_system_tools
   setup_venv "$PYTHON"
   download_cli_tools
-  log_step 4 5 "Opening browser"
+  log_step 5 6 "Opening browser"
   open_browser &
-  log_step 5 5 "Starting CDT server on port $PORT"
+  log_step 6 6 "Starting CDT server on port $PORT"
   log_info "CDT wizard available at: http://localhost:${PORT}"
   log_info "Day-2 operations at:     http://localhost:${PORT}/day2"
   log_info "Press Ctrl+C to stop"

@@ -120,6 +120,19 @@ try:
 except Exception as _e:
     print(f"[CDT] day2_bp not registered: {_e}")
 
+try:
+    from gui.routes.setup_routes import setup_bp
+    app.register_blueprint(setup_bp)
+except Exception as _e:
+    print(f"[CDT] setup_bp not registered: {_e}")
+
+
+@app.route('/health', methods=['GET'])
+def health_check():
+    """Liveness probe for Docker HEALTHCHECK and k8s probes."""
+    from flask import jsonify
+    return jsonify({"status": "ok", "service": "crm-cdt"}), 200
+
 def generate_secure_password(length=16):
     """Generate a secure password with mixed characters."""
     chars = string.ascii_letters + string.digits + "!@#$%^&*"
@@ -1146,9 +1159,11 @@ def generate_kubernetes(config):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="CRM CDT GUI")
-    parser.add_argument("--port", type=int, default=int(os.environ.get("PORT", 5050)))
+    parser.add_argument("--port", type=int, default=int(os.environ.get("CDT_PORT", os.environ.get("PORT", 5050))))
     parser.add_argument("--host", default=os.environ.get("BIND_HOST", "0.0.0.0"))
     parser.add_argument("--no-debug", action="store_true")
+    parser.add_argument("--headless", action="store_true",
+                        help="Run without trying to open a browser (Docker/CI mode)")
     args = parser.parse_args()
     debug_mode = not args.no_debug
     print()

@@ -1,9 +1,9 @@
 {
   "major": 0,
-  "minor": 610,
-  "patch": 1,
+  "minor": 611,
+  "patch": 0,
   "lastUpdate": "2026-02-28",
-  "description": "feat(infra/deployment-tool): CDT v0.609.1 major enhancement — AES-256-GCM vault (core/vault.py), profile manager with 7 templates + SQLite run history (core/profile.py), 13-step wizard session engine (core/session.py + steps.yaml), environment probe (core/probe.py), component detector (core/detector.py), wizard validator (core/validator.py), Jinja2 config generator (core/generator.py) with 6 templates, Docker Compose + Kubernetes deployers, 5 Flask blueprints (profile/probe/wizard/deploy/day2), Bootstrap 5 day-2 dashboard (upgrade/rollback/scale/secret-rotation), self-bootstrap launchers (start-cdt.sh + start-cdt.ps1), 49 unit tests all passing",
+  "description": "feat(infra/deployment-tool): CDT v0.611.0 — self-contained deployment tool: auto-bootstrap system tools (Docker/Git/Python via Homebrew/apt), Prerequisites offcanvas + Day-2 Ops offcanvas in unified wizard UI, cloud platform SDK hint (never disabled), discovery fixes (host key mismatch, health/version detection, container_prefix filter, component type mapping), /health liveness probe route, Dockerfile.tool + docker-compose.tool.yml for standalone Docker image, package-cdt.sh distribution packager with tarball + shell/bat launchers",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [

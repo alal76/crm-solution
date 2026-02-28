@@ -189,12 +189,160 @@
         <div class="container">
             <div class="d-flex justify-content-between align-items-center">
                 <h4 class="mb-0"><i class="bi bi-gear-wide-connected me-2"></i>CRM Deployment Wizard</h4>
-                <a href="/" class="btn btn-outline-light btn-sm">
-                    <i class="bi bi-house me-1"></i>Home
-                </a>
+                <div class="d-flex gap-2">
+                    <button class="btn btn-outline-light btn-sm" type="button"
+                            data-bs-toggle="offcanvas" data-bs-target="#setupCanvas"
+                            onclick="loadSetupStatus()" title="Prerequisites &amp; Tools">
+                        <i class="bi bi-tools me-1"></i>Prerequisites
+                    </button>
+                    <button class="btn btn-outline-light btn-sm" type="button"
+                            data-bs-toggle="offcanvas" data-bs-target="#day2Canvas"
+                            title="Day-2 Operations">
+                        <i class="bi bi-arrow-repeat me-1"></i>Day-2 Ops
+                    </button>
+                    <a href="/" class="btn btn-outline-light btn-sm">
+                        <i class="bi bi-house me-1"></i>Home
+                    </a>
+                </div>
             </div>
         </div>
     </header>
+
+    <!-- ============================================================
+         OFFCANVAS: Prerequisites & Tools
+         ============================================================ -->
+    <div class="offcanvas offcanvas-end" style="width:520px" tabindex="-1" id="setupCanvas">
+        <div class="offcanvas-header bg-dark text-white">
+            <h5 class="offcanvas-title"><i class="bi bi-tools me-2"></i>Prerequisites &amp; Tools</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
+        </div>
+        <div class="offcanvas-body p-3">
+
+            <!-- System Tools -->
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <h6 class="mb-0">System Tools</h6>
+                <button class="btn btn-sm btn-primary" onclick="installAllRequired()">
+                    <i class="bi bi-download me-1"></i>Install Missing
+                </button>
+            </div>
+            <div id="setupToolsTable" class="mb-4">
+                <div class="text-center text-muted py-3"><div class="spinner-border spinner-border-sm me-2"></div>Checking…</div>
+            </div>
+
+            <!-- Python SDKs -->
+            <h6 class="mb-2">Python Cloud SDKs</h6>
+            <div id="setupSdkTable" class="mb-4">
+                <div class="text-center text-muted py-3"><div class="spinner-border spinner-border-sm me-2"></div>Checking…</div>
+            </div>
+
+            <!-- Install log -->
+            <div id="setupLogArea" style="display:none;">
+                <div class="d-flex justify-content-between align-items-center mb-1">
+                    <h6 class="mb-0">Install Log</h6>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="document.getElementById('setupLog').textContent='';">Clear</button>
+                </div>
+                <pre id="setupLog" class="bg-dark text-success p-3 rounded" style="max-height:260px;overflow-y:auto;font-size:0.75rem;"></pre>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============================================================
+         OFFCANVAS: Day-2 Operations
+         ============================================================ -->
+    <div class="offcanvas offcanvas-end" style="width:560px" tabindex="-1" id="day2Canvas">
+        <div class="offcanvas-header bg-dark text-white">
+            <h5 class="offcanvas-title"><i class="bi bi-arrow-repeat me-2"></i>Day-2 Operations</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas"></button>
+        </div>
+        <div class="offcanvas-body p-3">
+            <p class="text-muted small">Manage your running CRM deployment.</p>
+
+            <!-- Tabs -->
+            <ul class="nav nav-tabs mb-3" id="day2Tabs">
+                <li class="nav-item"><a class="nav-link active" href="#" onclick="showDay2Tab('upgrade',this);return false;">Upgrade</a></li>
+                <li class="nav-item"><a class="nav-link" href="#" onclick="showDay2Tab('rollback',this);return false;">Rollback</a></li>
+                <li class="nav-item"><a class="nav-link" href="#" onclick="showDay2Tab('scale',this);return false;">Scale</a></li>
+                <li class="nav-item"><a class="nav-link" href="#" onclick="showDay2Tab('secrets',this);return false;">Secrets</a></li>
+                <li class="nav-item"><a class="nav-link" href="#" onclick="showDay2Tab('containers',this);return false;">Containers</a></li>
+            </ul>
+
+            <!-- Upgrade -->
+            <div id="day2-upgrade" class="day2-tab-pane">
+                <h6>Upgrade Deployment</h6>
+                <div class="mb-2">
+                    <label class="form-label">Target Version</label>
+                    <input type="text" class="form-control" id="d2UpgradeVersion" placeholder="e.g. 0.610.0">
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Image Registry</label>
+                    <input type="text" class="form-control" id="d2UpgradeRegistry" placeholder="ghcr.io/crm / docker.io/crm">
+                </div>
+                <button class="btn btn-warning" onclick="day2Action('upgrade')">
+                    <i class="bi bi-arrow-up-circle me-1"></i>Start Upgrade
+                </button>
+            </div>
+
+            <!-- Rollback -->
+            <div id="day2-rollback" class="day2-tab-pane" style="display:none;">
+                <h6>Rollback Deployment</h6>
+                <div class="mb-2">
+                    <label class="form-label">Target Version</label>
+                    <input type="text" class="form-control" id="d2RollbackVersion" placeholder="e.g. 0.608.0">
+                </div>
+                <button class="btn btn-danger" onclick="day2Action('rollback')">
+                    <i class="bi bi-arrow-counterclockwise me-1"></i>Rollback
+                </button>
+            </div>
+
+            <!-- Scale -->
+            <div id="day2-scale" class="day2-tab-pane" style="display:none;">
+                <h6>Scale Service</h6>
+                <div class="mb-2">
+                    <label class="form-label">Service</label>
+                    <select class="form-select" id="d2ScaleService">
+                        <option>crm-api</option>
+                        <option>crm-frontend</option>
+                        <option>crm-gateway</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Replicas</label>
+                    <input type="number" class="form-control" id="d2ScaleReplicas" value="2" min="1" max="20">
+                </div>
+                <button class="btn btn-primary" onclick="day2Action('scale')">
+                    <i class="bi bi-layers me-1"></i>Apply Scale
+                </button>
+            </div>
+
+            <!-- Secrets -->
+            <div id="day2-secrets" class="day2-tab-pane" style="display:none;">
+                <h6>Rotate Secrets</h6>
+                <div class="form-check mb-2"><input class="form-check-input" type="checkbox" id="d2SecretJwt" checked><label class="form-check-label">JWT Secret</label></div>
+                <div class="form-check mb-2"><input class="form-check-input" type="checkbox" id="d2SecretDb" checked><label class="form-check-label">Database Password</label></div>
+                <div class="form-check mb-3"><input class="form-check-input" type="checkbox" id="d2SecretAdmin"><label class="form-check-label">Admin Password</label></div>
+                <button class="btn btn-warning" onclick="day2Action('rotate_secrets')">
+                    <i class="bi bi-key me-1"></i>Rotate Secrets
+                </button>
+            </div>
+
+            <!-- Containers -->
+            <div id="day2-containers" class="day2-tab-pane" style="display:none;">
+                <h6>Container Management</h6>
+                <div id="d2ContainerList" class="mb-3">
+                    <button class="btn btn-sm btn-outline-primary mb-2" onclick="loadDay2Containers()">
+                        <i class="bi bi-arrow-clockwise me-1"></i>Refresh
+                    </button>
+                    <div class="text-muted small">Click Refresh to load running containers.</div>
+                </div>
+            </div>
+
+            <!-- Day-2 log -->
+            <div id="day2LogArea" class="mt-3" style="display:none;">
+                <h6>Output</h6>
+                <pre id="day2Log" class="bg-dark text-success p-3 rounded" style="max-height:220px;overflow-y:auto;font-size:0.75rem;"></pre>
+            </div>
+        </div>
+    </div>
 
     <!-- Wizard Content -->
     <div class="wizard-container">
@@ -1334,12 +1482,20 @@
                 const platformSelect = document.getElementById('discoveryPlatform');
                 platformSelect.innerHTML = '<option value="">Select platform...</option>';
                 
+                const labels = {
+                    on_premises: 'On-Premises (SSH / Docker)',
+                    azure: 'Azure',
+                    aws: 'AWS',
+                    gcp: 'Google Cloud (GCP)'
+                };
+
                 data.platforms.forEach(platform => {
                     const available = data.availability[platform];
                     const option = document.createElement('option');
                     option.value = platform;
-                    option.textContent = platform.replace('_', ' ').toUpperCase() + (available ? '' : ' (Not Available)');
-                    option.disabled = !available;
+                    option.textContent = (labels[platform] || platform.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase()))
+                        + (available ? '' : ' ⚠ SDK not installed');
+                    // Never disable — always allow selection for manual config
                     platformSelect.appendChild(option);
                 });
             } catch (error) {
@@ -1445,6 +1601,27 @@
                     return;
                 }
             }
+
+            // Check SDK availability before attempting cloud discovery
+            try {
+                const availResp = await fetch('/api/discovery/platforms');
+                const availData = await availResp.json();
+                if (platform !== 'on_premises' && !availData.availability[platform]) {
+                    const sdkMap = {
+                        azure: 'pip install azure-identity azure-mgmt-compute azure-mgmt-containerinstance',
+                        aws: 'pip install boto3',
+                        gcp: 'pip install google-cloud-compute google-cloud-container'
+                    };
+                    showDiscoveryStatus(
+                        `⚠ SDK not installed for ${platform.toUpperCase()}. ` +
+                        `To enable auto-discovery, run:\n${sdkMap[platform] || 'Install the required SDK'}\n\n` +
+                        `You can still configure ${platform.toUpperCase()} manually using the next steps.`,
+                        'warning'
+                    );
+                    document.getElementById('discoveryStatus').style.whiteSpace = 'pre-line';
+                    return;
+                }
+            } catch (_) { /* proceed anyway */ }
 
             const config = collectDiscoveryConfig();
             
@@ -2271,7 +2448,7 @@ function togglePasswordVisibility(id) {
     }
 }
 
-// Add spin-icon CSS if not already present
+// Add spin-icon CSS + day2/setup styles
 (function() {
     if (!document.getElementById('sa6-styles')) {
         const style = document.createElement('style');
@@ -2281,10 +2458,170 @@ function togglePasswordVisibility(id) {
             .spin-icon { display: inline-block; animation: spin 1s linear infinite; }
             .smaller { font-size: 0.7rem; }
             .hover-shadow:hover { box-shadow: 0 2px 8px rgba(0,0,0,.1); }
+            .day2-tab-pane { animation: fadeIn .2s ease; }
+            @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
         `;
         document.head.appendChild(style);
     }
 })();
+
+// ============================================================
+// PREREQUISITES / SETUP PANEL
+// ============================================================
+
+async function loadSetupStatus() {
+    const toolsEl = document.getElementById('setupToolsTable');
+    const sdkEl   = document.getElementById('setupSdkTable');
+    if (!toolsEl) return;
+    toolsEl.innerHTML = '<div class="text-center text-muted py-2"><div class="spinner-border spinner-border-sm me-2"></div>Checking tools…</div>';
+    sdkEl.innerHTML   = '<div class="text-center text-muted py-2"><div class="spinner-border spinner-border-sm me-2"></div>Checking SDKs…</div>';
+    try {
+        const resp = await fetch('/api/setup/status');
+        const data = await resp.json();
+        renderSetupTools(data.tools || []);
+        renderSetupSdks(data.sdks || []);
+    } catch(e) {
+        toolsEl.innerHTML = `<div class="alert alert-danger">Failed to load status: ${e.message}</div>`;
+    }
+}
+
+function renderSetupTools(tools) {
+    const el = document.getElementById('setupToolsTable');
+    if (!tools.length) { el.innerHTML = '<p class="text-muted">No tools defined.</p>'; return; }
+    const catOrder = ['required','recommended','optional'];
+    const bycat = {};
+    tools.forEach(t => { (bycat[t.category] = bycat[t.category]||[]).push(t); });
+    let html = '';
+    catOrder.forEach(cat => {
+        const list = bycat[cat] || [];
+        if (!list.length) return;
+        html += `<div class="text-muted small text-uppercase fw-bold mb-1 mt-2">${cat}</div>`;
+        list.forEach(t => {
+            const badge = t.installed
+                ? '<span class="badge bg-success">✓ Installed</span>'
+                : '<span class="badge bg-danger">✗ Missing</span>';
+            const ver = t.version ? `<small class="text-muted ms-2">${t.version.slice(0,50)}</small>` : '';
+            const btn = !t.installed
+                ? `<button class="btn btn-sm btn-outline-primary ms-2 py-0" onclick="installTool('${t.key}')">Install</button>`
+                : '';
+            html += `<div class="d-flex align-items-center justify-content-between border rounded px-2 py-1 mb-1">`
+                  + `<div><strong>${t.name}</strong><br><small class="text-muted">${t.description}</small></div>`
+                  + `<div class="text-end">${badge}${ver}${btn}</div>`
+                  + `</div>`;
+        });
+    });
+    el.innerHTML = html;
+}
+
+function renderSetupSdks(sdks) {
+    const el = document.getElementById('setupSdkTable');
+    if (!sdks.length) { el.innerHTML = '<p class="text-muted">No SDKs defined.</p>'; return; }
+    let html = '';
+    sdks.forEach(s => {
+        const badge = s.installed
+            ? '<span class="badge bg-success">✓ Installed</span>'
+            : '<span class="badge bg-warning text-dark">✗ Missing</span>';
+        const btn = !s.installed
+            ? `<button class="btn btn-sm btn-outline-primary ms-2 py-0" onclick="installSdk('${s.key}')">Install</button>`
+            : '';
+        html += `<div class="d-flex align-items-center justify-content-between border rounded px-2 py-1 mb-1">`
+              + `<div><strong>${s.label}</strong><br><small class="text-muted">${s.description}</small></div>`
+              + `<div class="text-end">${badge}${btn}</div>`
+              + `</div>`;
+    });
+    el.innerHTML = html;
+}
+
+function _streamInstall(url, body) {
+    const logArea = document.getElementById('setupLogArea');
+    const log = document.getElementById('setupLog');
+    logArea.style.display = 'block';
+    log.textContent += '\n── Starting install ──\n';
+    fetch(url, {
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify(body)
+    }).then(resp => {
+        const reader = resp.body.getReader();
+        const decoder = new TextDecoder();
+        function read() {
+            reader.read().then(({done, value}) => {
+                if (done) { log.textContent += '── Done ──\n'; log.scrollTop = log.scrollHeight; loadSetupStatus(); return; }
+                const chunk = decoder.decode(value);
+                chunk.split('\n').forEach(line => {
+                    if (line.startsWith('data: ')) {
+                        const raw = line.slice(6);
+                        if (raw === '[DONE]') return;
+                        try { const obj = JSON.parse(raw); log.textContent += (obj.line || raw) + '\n'; }
+                        catch(_) { log.textContent += raw + '\n'; }
+                        log.scrollTop = log.scrollHeight;
+                    }
+                });
+                read();
+            });
+        }
+        read();
+    }).catch(e => { log.textContent += `ERROR: ${e.message}\n`; });
+}
+
+function installTool(key)   { _streamInstall('/api/setup/install', {type:'tool', key}); }
+function installSdk(key)    { _streamInstall('/api/setup/install', {type:'sdk',  key}); }
+function installAllRequired() { _streamInstall('/api/setup/install-all-required', {}); }
+
+// ============================================================
+// DAY-2 OPERATIONS PANEL
+// ============================================================
+
+function showDay2Tab(tab, el) {
+    document.querySelectorAll('.day2-tab-pane').forEach(p => p.style.display = 'none');
+    const pane = document.getElementById('day2-' + tab);
+    if (pane) pane.style.display = 'block';
+    document.querySelectorAll('#day2Tabs .nav-link').forEach(a => a.classList.remove('active'));
+    if (el) el.classList.add('active');
+}
+
+async function day2Action(action) {
+    const logArea = document.getElementById('day2LogArea');
+    const log     = document.getElementById('day2Log');
+    logArea.style.display = 'block';
+    log.textContent = `Starting ${action}…\n`;
+    const payload = {action};
+    if (action === 'upgrade')  { payload.version = document.getElementById('d2UpgradeVersion')?.value; payload.registry = document.getElementById('d2UpgradeRegistry')?.value; }
+    if (action === 'rollback') { payload.version  = document.getElementById('d2RollbackVersion')?.value; }
+    if (action === 'scale')    { payload.service  = document.getElementById('d2ScaleService')?.value; payload.replicas = parseInt(document.getElementById('d2ScaleReplicas')?.value||'2'); }
+    if (action === 'rotate_secrets') {
+        payload.secrets = [];
+        if (document.getElementById('d2SecretJwt')?.checked)   payload.secrets.push('jwt');
+        if (document.getElementById('d2SecretDb')?.checked)    payload.secrets.push('db');
+        if (document.getElementById('d2SecretAdmin')?.checked) payload.secrets.push('admin');
+    }
+    const epMap = {upgrade:'/api/day2/upgrade', rollback:'/api/day2/rollback', scale:'/api/day2/scale', rotate_secrets:'/api/day2/rotate-secrets'};
+    try {
+        const resp = await fetch(epMap[action]||`/api/day2/${action}`, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
+        const data = await resp.json();
+        log.textContent += JSON.stringify(data, null, 2) + '\n' + (resp.ok ? '✅ Done\n' : '❌ Error\n');
+    } catch(e) { log.textContent += `ERROR: ${e.message}\n`; }
+    log.scrollTop = log.scrollHeight;
+}
+
+async function loadDay2Containers() {
+    const el = document.getElementById('d2ContainerList');
+    try {
+        const resp = await fetch('/api/day2/containers');
+        const data = await resp.json();
+        const containers = data.containers || data || [];
+        if (!containers.length) { el.innerHTML = '<p class="text-muted">No containers found.</p>'; return; }
+        let html = '<div class="list-group">';
+        containers.forEach(c => {
+            const ok = (c.status||c.Status||'').toLowerCase().includes('up');
+            html += `<div class="list-group-item d-flex justify-content-between align-items-center">`
+                  + `<div><strong>${c.name||c.Names||''}</strong><br><small class="text-muted">${c.image||c.Image||''}</small></div>`
+                  + `<span class="badge bg-${ok?'success':'warning'}">${c.status||c.Status||'unknown'}</span></div>`;
+        });
+        html += '</div>';
+        el.innerHTML = '<button class="btn btn-sm btn-outline-primary mb-2" onclick="loadDay2Containers()"><i class="bi bi-arrow-clockwise me-1"></i>Refresh</button>' + html;
+    } catch(e) { el.innerHTML = `<div class="alert alert-warning">Could not load: ${e.message}</div>`; }
+}
 </script>
 </body>
 </html>

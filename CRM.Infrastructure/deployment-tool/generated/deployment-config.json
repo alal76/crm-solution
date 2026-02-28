@@ -1,7 +1,7 @@
 {
-  "name": "crm-test",
+  "name": "crm-production",
   "description": "CRM Solution Deployment",
-  "expected_users": 10,
+  "expected_users": 100,
   "platform": "on_premises",
   "architecture": "monolithic",
   "database_type": "mariadb",
