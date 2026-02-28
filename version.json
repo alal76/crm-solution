@@ -3,7 +3,7 @@
   "minor": 611,
   "patch": 11,
   "lastUpdate": "2026-03-01",
-  "description": "fix(sonar): v0.611.11 - resolve all SonarQube issues (cognitive complexity, type hints, literals, accessibility), Azure discovery now auto-detects subscription/resource-group",
+  "description": "feat(infra/cdt): v0.611.11 - cloud-native service selectors + DB migration panel",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [
