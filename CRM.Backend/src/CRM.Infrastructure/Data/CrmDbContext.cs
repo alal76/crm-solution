@@ -249,6 +249,10 @@ public class CrmDbContext : DbContext, ICrmDbContext
     public DbSet<WorkflowCircuitBreakerState> WorkflowCircuitBreakerStates { get; set; }
     public DbSet<ScriptPlugin> ScriptPlugins { get; set; }
 
+    // Script Registry Lifecycle (SARCH-011 / SARCH-012)
+    public DbSet<ScriptVersion> ScriptVersions { get; set; } = null!;
+    public DbSet<ScriptAuditLog> ScriptAuditLogs { get; set; } = null!;
+
     // Relationship Management entities
     public DbSet<CRM.Core.Entities.RelationshipType> RelationshipTypes { get; set; }
     public DbSet<AccountRelationship> AccountRelationships { get; set; }
@@ -2768,9 +2772,51 @@ public class CrmDbContext : DbContext, ICrmDbContext
             e.Property(p => p.ParameterSchema).HasMaxLength(5000);
             e.Property(p => p.ReturnValueDescription).HasMaxLength(1000);
             e.Property(p => p.LastTestResult).HasMaxLength(2000);
+            e.Property(p => p.SemVersion).HasMaxLength(20);
+            e.Property(p => p.InputSchemaJson).HasColumnType(longTextType);
+            e.Property(p => p.OutputSchemaJson).HasColumnType(longTextType);
+            e.Property(p => p.PermissionsJson).HasColumnType(textType);
+            e.Property(p => p.Runtime).HasConversion<int>();
+            e.Property(p => p.LifecycleState).HasConversion<int>();
             e.HasIndex(p => p.Language);
             e.HasIndex(p => p.IsActive);
+            e.HasIndex(p => p.LifecycleState);
             e.HasQueryFilter(p => !p.IsDeleted);
+        });
+
+        // ScriptVersion (SARCH-011)
+        modelBuilder.Entity<ScriptVersion>(e =>
+        {
+            e.Property(p => p.Version).HasMaxLength(20).IsRequired();
+            e.Property(p => p.Source).HasColumnType(longTextType);
+            e.Property(p => p.ContentHash).HasMaxLength(64).IsRequired();
+            e.Property(p => p.ChangeNotes).HasMaxLength(2000);
+            e.Property(p => p.ApprovedBy).HasMaxLength(200);
+            e.Property(p => p.LifecycleState).HasConversion<int>();
+            e.HasIndex(p => p.ScriptPluginId);
+            e.HasIndex(p => new { p.ScriptPluginId, p.IsCurrent });
+            e.HasOne(p => p.ScriptPlugin)
+                .WithMany()
+                .HasForeignKey(p => p.ScriptPluginId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+
+        // ScriptAuditLog (SARCH-012) — immutable; exclude from soft-delete global filter
+        modelBuilder.Entity<ScriptAuditLog>(e =>
+        {
+            e.HasKey(p => p.Id);
+            e.Property(p => p.EventType).HasMaxLength(100).IsRequired();
+            e.Property(p => p.PerformedBy).HasMaxLength(200).IsRequired();
+            e.Property(p => p.Notes).HasMaxLength(2000);
+            e.Property(p => p.PreviousState).HasMaxLength(50);
+            e.Property(p => p.NewState).HasMaxLength(50);
+            e.Property(p => p.Metadata).HasColumnType(textType);
+            e.HasIndex(p => p.ScriptPluginId);
+            e.HasIndex(p => p.PerformedAt);
+            e.HasOne(p => p.ScriptPlugin)
+                .WithMany()
+                .HasForeignKey(p => p.ScriptPluginId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
 
         // ===================================================================

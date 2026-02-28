@@ -24,6 +24,7 @@ using CRM.Infrastructure.Services.AI;
 using CRM.Infrastructure.Services.Authentication;
 using CRM.Infrastructure.Services.Configuration;
 using CRM.Infrastructure.Services.Authentication.OAuth;
+using CRM.Infrastructure.Scripting;
 using CRM.Infrastructure.Jobs;
 using Hangfire;
 using Hangfire.InMemory;
@@ -111,6 +112,11 @@ Log.Information("Pluggable Providers configured - Factory pattern enabled for pr
 // Add scripting engines (Jint by default; extensible for Python/others)
 builder.Services.AddScriptingEngines(builder.Configuration);
 Log.Information("Scripting engines configured - ScriptEngineFactory ready");
+
+// SARCH-028: Roslyn compiled scripting engine + registry lifecycle service
+builder.Services.AddCrmScripting();
+builder.Services.AddScoped<IScriptRegistryService, ScriptRegistryService>();
+Log.Information("Roslyn scripting engine and script registry service registered");
 
 // Configure options from appsettings.json - Phase 1 through Phase 4 Authentication
 builder.Services.Configure<CRM.Core.Options.LinkedInOAuthOptions>(builder.Configuration.GetSection("Phase1:LinkedIn"));

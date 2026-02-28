@@ -394,6 +394,10 @@ public interface ICrmDbContext
     // AI Script Plugins
     DbSet<ScriptPlugin> ScriptPlugins { get; }
 
+    // Script Registry Lifecycle (SARCH-011 / SARCH-012)
+    DbSet<ScriptVersion> ScriptVersions { get; }
+    DbSet<ScriptAuditLog> ScriptAuditLogs { get; }
+
     // Satisfaction surveys (CSAT / NPS / CES)
     DbSet<SatisfactionSurvey> SatisfactionSurveys { get; }
     DbSet<SatisfactionResponse> SatisfactionResponses { get; }
