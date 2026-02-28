@@ -532,15 +532,15 @@ Phase 6 — Designer Integration & Navigation (✅ COMPLETE — Feb 26, 2026):
 
 | ID | Priority | Description | Status |
 |----|----------|-------------|--------|
-| SARCH-030 | P0 | **Add Node.js sidecar service** — `crm-script-runner` Node.js process (TypeScript 20); manage from `CRM.Infrastructure` via stdin/stdout pipe or HTTP on a named socket; responsible for SWC compilation + isolated-vm execution | Not Started |
-| SARCH-031 | P0 | **SWC + tsc compilation pipeline** — AST security scan (SWC Visitor plugin blocking `eval()`, `globalThis`, `import()`, dynamic `require()`, `Proxy`/`Reflect`); tsc type-check against `@engine/contracts` `.d.ts`; SWC transform (IIFE wrap + inject `__ctx`); output cached by content hash | Not Started |
-| SARCH-032 | P0 | **`isolated-vm` V8 Isolate sandbox** — V8 Isolate per execution (separate heap, hardware-level boundary); `memoryLimit` from `ScriptDefinition.MemoryLimitMb`; CPU bounded via `timeout` on `Script.runInContext()`; reference callbacks for Tool Bridge calls back to .NET | Not Started |
-| SARCH-033 | P0 | **`@engine/stdlib` package** — audited utility library published to internal npm registry: `http` (proxy via Tool Bridge), `encoding`, `date`, `crypto` (hash only), `collections` — blocked: `fs`, `child_process`, `net`, `os`, `cluster` | Not Started |
-| SARCH-034 | P0 | **`@engine/contracts` package** — TypeScript `.d.ts` generated from C# `IScriptContext<TIn>` contracts via `NSwag` or `TypeSpec`; published to internal npm registry | Not Started |
-| SARCH-035 | P0 | **`TypeScriptScriptEngine : IScriptEngine`** in C# — `CompileAsync` sends source to crm-script-runner via pipe/socket and receives compiled bundle; `ExecuteAsync` sends bundle + context → receives `ExecutionResult<TOut>` JSON | Not Started |
-| SARCH-036 | P1 | **Add crm-script-runner to docker-compose** — `crm-components` stack, Unix socket mounted at `/tmp/crm-script-runner.sock`, `NODE_ENV=production`, no network access | Not Started |
-| SARCH-037 | P1 | **`@engine/testing` Vitest harness** — npm package providing `scriptTest(file, { tools: mockedTools, input: {...} })` for unit testing `.ts` scripts outside the runtime | Not Started |
-| SARCH-038 | P1 | **Unit tests: `TypeScriptScriptEngineTests.cs`** — 8+ cases: basic execution, blocked `eval()`, blocked `import`, tool bridge invocation, timeout, memory | Not Started |
+| SARCH-030 | P0 | **Add Node.js sidecar service** — `crm-script-runner` Node.js process (TypeScript 20); manage from `CRM.Infrastructure` via stdin/stdout pipe or HTTP on a named socket; responsible for SWC compilation + isolated-vm execution | ✅ Completed |
+| SARCH-031 | P0 | **SWC + tsc compilation pipeline** — AST security scan (SWC Visitor plugin blocking `eval()`, `globalThis`, `import()`, dynamic `require()`, `Proxy`/`Reflect`); tsc type-check against `@engine/contracts` `.d.ts`; SWC transform (IIFE wrap + inject `__ctx`); output cached by content hash | ✅ Completed |
+| SARCH-032 | P0 | **`isolated-vm` V8 Isolate sandbox** — V8 Isolate per execution (separate heap, hardware-level boundary); `memoryLimit` from `ScriptDefinition.MemoryLimitMb`; CPU bounded via `timeout` on `Script.runInContext()`; reference callbacks for Tool Bridge calls back to .NET | ✅ Completed |
+| SARCH-033 | P0 | **`@engine/stdlib` package** — audited utility library published to internal npm registry: `http` (proxy via Tool Bridge), `encoding`, `date`, `crypto` (hash only), `collections` — blocked: `fs`, `child_process`, `net`, `os`, `cluster` | ✅ Completed |
+| SARCH-034 | P0 | **`@engine/contracts` package** — TypeScript `.d.ts` generated from C# `IScriptContext<TIn>` contracts via `NSwag` or `TypeSpec`; published to internal npm registry | ✅ Completed |
+| SARCH-035 | P0 | **`TypeScriptScriptEngine : IScriptEngine`** in C# — `CompileAsync` sends source to crm-script-runner via pipe/socket and receives compiled bundle; `ExecuteAsync` sends bundle + context → receives `ExecutionResult<TOut>` JSON | ✅ Completed |
+| SARCH-036 | P1 | **Add crm-script-runner to docker-compose** — `crm-components` stack, Unix socket mounted at `/tmp/crm-script-runner.sock`, `NODE_ENV=production`, no network access | ✅ Completed |
+| SARCH-037 | P1 | **`@engine/testing` Vitest harness** — npm package providing `scriptTest(file, { tools: mockedTools, input: {...} })` for unit testing `.ts` scripts outside the runtime | ✅ Completed |
+| SARCH-038 | P1 | **Unit tests: `TypeScriptScriptEngineTests.cs`** — 8+ cases: basic execution, blocked `eval()`, blocked `import`, tool bridge invocation, timeout, memory | ✅ Completed |
 
 ### Phase 4 — Tool Bridge (Weeks 5–8, parallel with Phase 3)
 
@@ -621,7 +621,7 @@ Phase 6 — Designer Integration & Navigation (✅ COMPLETE — Feb 26, 2026):
 |----|----------|-------------|--------|
 | SARCH-087 | P0 | Unit tests: `RoslynScriptEngineTests.cs` — 12+ cases (maps to SARCH-029) | Not Started |
 | SARCH-088 | P0 | Unit tests: `ToolBridgeInvokerTests.cs` — 10+ cases (maps to SARCH-047) | Not Started |
-| SARCH-089 | P0 | Unit tests: `TypeScriptScriptEngineTests.cs` — 8+ cases (maps to SARCH-038) | Not Started |
+| SARCH-089 | P0 | Unit tests: `TypeScriptScriptEngineTests.cs` — 8+ cases (maps to SARCH-038) | ✅ Completed |
 | SARCH-090 | P0 | Unit tests: `AgentLifecycleHookTests.cs` — 8 hook invocations, blocked action, budget exceeded, guardrail violation | Not Started |
 | SARCH-091 | P1 | Integration tests: `WorkflowWDLIntegrationTests.cs` — parse YAML → execute plan → assert step outputs; test all 8 step types | Not Started |
 | SARCH-092 | P1 | Integration tests: `GuardrailIntegrationTests.cs` — Pre-Action guard blocks tool call, Output guard modifies response | Not Started |

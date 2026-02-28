@@ -1,0 +1,31 @@
+# SARCH-036: crm-script-runner sidecar service definition.
+# Include alongside other compose files:
+#   docker-compose -f docker/docker-compose.yml -f docker/docker-compose.script-runner.yml up -d
+
+version: '3.8'
+
+services:
+  crm-script-runner:
+    build:
+      context: ../crm-script-runner
+      dockerfile: Dockerfile
+    container_name: crm-script-runner
+    ports:
+      - "4000:4000"
+    environment:
+      - NODE_ENV=production
+      - PORT=4000
+    networks:
+      - crm-core-network
+    restart: unless-stopped
+    mem_limit: 512m
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+networks:
+  crm-core-network:
+    external: true
