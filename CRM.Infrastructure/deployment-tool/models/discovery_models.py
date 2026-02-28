@@ -438,8 +438,22 @@ class AzureDiscoveryClient(BaseDiscoveryClient):
     def test_connection(self, config: Dict[str, Any]) -> Dict[str, Any]:
         """Test Azure connection by requesting a management token."""
         subscription_id = config.get('subscription_id', '').strip()
+        use_cli = config.get('use_cli_auth', False)
+
+        # When using CLI auth and no subscription provided, auto-detect from az account show
+        if not subscription_id and use_cli:
+            try:
+                import subprocess as _sp
+                _j = __import__('json')
+                r = _sp.run(["az", "account", "show", "--output", "json"],
+                            capture_output=True, text=True, timeout=10)
+                if r.returncode == 0:
+                    subscription_id = _j.loads(r.stdout).get('id', '').strip()
+            except Exception:
+                pass
+
         if not subscription_id:
-            return {"status": "error", "message": "Azure Subscription ID is required"}
+            return {"status": "error", "message": "Azure Subscription ID is required — select one from the dropdown or enter it manually."}
         try:
             credential = self._build_credential(config)
             # Validate by requesting a token — fails immediately if creds are wrong

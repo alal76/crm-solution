@@ -167,31 +167,31 @@ PROVIDER_MAP = {
     "integration": INTEGRATION_PROVIDERS,
 }
 
-@app.route("/")
+@app.route("/", methods=["GET"])
 def index():
     return render_template("index.html")
 
-@app.route("/wizard")
+@app.route("/wizard", methods=["GET"])
 def wizard():
     return render_template("wizard.html")
 
-@app.route("/day2")
+@app.route("/day2", methods=["GET"])
 def day2_page():
     return render_template("day2.html")
 
-@app.route("/api/enums/<enum_name>")
+@app.route("/api/enums/<enum_name>", methods=["GET"])
 def get_enum(enum_name):
     if enum_name not in ENUM_MAP:
         return jsonify({"error": f"Unknown enum: {enum_name}"}), 404
     return jsonify(get_enum_choices(ENUM_MAP[enum_name]))
 
-@app.route("/api/providers/<category>")
+@app.route("/api/providers/<category>", methods=["GET"])
 def get_providers(category):
     if category not in PROVIDER_MAP:
         return jsonify({"error": f"Unknown provider category: {category}"}), 404
     return jsonify(get_provider_choices(PROVIDER_MAP[category]))
 
-@app.route("/api/size-recommendation/<int:users>")
+@app.route("/api/size-recommendation/<int:users>", methods=["GET"])
 def get_size_rec(users):
     rec = get_size_recommendation(users)
     return jsonify({
@@ -286,7 +286,7 @@ def generate_files():
         "output_dir": str(output_dir)
     })
 
-@app.route("/api/discovery/platforms")
+@app.route("/api/discovery/platforms", methods=["GET"])
 def get_discovery_platforms():
     """Get available discovery platforms with SDK availability and missing packages."""
     import importlib
@@ -368,44 +368,137 @@ def credential_status():
     platform = request.args.get("platform", "")
     result = {"platform": platform, "logged_in": False, "identity": None, "error": None}
     try:
-        if platform == "azure":
-            r = _sp.run(["az", "account", "show"],
-                        capture_output=True, text=True, timeout=10)
-            if r.returncode == 0:
-                d = _json.loads(r.stdout)
-                user = d.get("user", {}).get("name", "?")
-                sub  = d.get("name", "?")
-                sid  = d.get("id", "?")[:8]
-                result["logged_in"] = True
-                result["identity"]  = f"{user}  ·  {sub}  ({sid}…)"
-            else:
-                result["error"] = "Not signed in — use 'az login' below or enter credentials manually."
-        elif platform == "aws":
-            r = _sp.run(["aws", "sts", "get-caller-identity"],
-                        capture_output=True, text=True, timeout=10)
-            if r.returncode == 0:
-                d = _json.loads(r.stdout)
-                result["logged_in"] = True
-                result["identity"]  = f"Account {d.get('Account','?')}  ·  {d.get('Arn','?')}"
-            else:
-                result["error"] = "No default credentials — configure below or enter keys manually."
-        elif platform == "gcp":
-            r = _sp.run(["gcloud", "config", "get-value", "core/account"],
-                        capture_output=True, text=True, timeout=10)
-            r2 = _sp.run(["gcloud", "config", "get-value", "core/project"],
-                         capture_output=True, text=True, timeout=10)
-            if r.returncode == 0 and r.stdout.strip():
-                result["logged_in"] = True
-                result["identity"]  = (
-                    f"{r.stdout.strip()}  ·  project: {r2.stdout.strip() or 'none'}"
-                )
-            else:
-                result["error"] = "Not signed in — use 'gcloud auth login' below or enter a service account."
+        _check_platform_credentials(platform, result, _sp, _json)
     except FileNotFoundError:
         result["error"] = "CLI not installed on this host — use manual credentials below."
     except Exception as e:
         result["error"] = str(e)
     return jsonify(result)
+
+
+def _check_platform_credentials(platform, result, _sp, _json):
+    """Populate result dict with credential information for the given platform."""
+    if platform == "azure":
+        _check_azure_credentials(result, _sp, _json)
+    elif platform == "aws":
+        _check_aws_credentials(result, _sp, _json)
+    elif platform == "gcp":
+        _check_gcp_credentials(result, _sp)
+
+
+def _check_azure_credentials(result, _sp, _json):
+    r = _sp.run(["az", "account", "show"], capture_output=True, text=True, timeout=10)
+    if r.returncode == 0:
+        d = _json.loads(r.stdout)
+        user = d.get("user", {}).get("name", "?")
+        sub  = d.get("name", "?")
+        sid  = d.get("id", "?")[:8]
+        result["logged_in"] = True
+        result["identity"]  = f"{user}  ·  {sub}  ({sid}…)"
+    else:
+        result["error"] = "Not signed in — use 'az login' below or enter credentials manually."
+
+
+def _check_aws_credentials(result, _sp, _json):
+    r = _sp.run(["aws", "sts", "get-caller-identity"], capture_output=True, text=True, timeout=10)
+    if r.returncode == 0:
+        d = _json.loads(r.stdout)
+        result["logged_in"] = True
+        result["identity"]  = f"Account {d.get('Account', '?')}  ·  {d.get('Arn', '?')}"
+    else:
+        result["error"] = "No default credentials — configure below or enter keys manually."
+
+
+def _check_gcp_credentials(result, _sp):
+    r = _sp.run(["gcloud", "config", "get-value", "core/account"],
+                capture_output=True, text=True, timeout=10)
+    r2 = _sp.run(["gcloud", "config", "get-value", "core/project"],
+                 capture_output=True, text=True, timeout=10)
+    if r.returncode == 0 and r.stdout.strip():
+        result["logged_in"] = True
+        result["identity"]  = (
+            f"{r.stdout.strip()}  ·  project: {r2.stdout.strip() or 'none'}"
+        )
+    else:
+        result["error"] = "Not signed in — use 'gcloud auth login' below or enter a service account."
+
+
+@app.route("/api/discovery/cloud-resources", methods=["GET"])
+def cloud_resources():
+    """List cloud resources for populating dropdowns (subscriptions, resource groups, regions, projects)."""
+    import subprocess as _sp2
+    import json as _json2
+    platform = request.args.get("platform", "")
+    resource = request.args.get("resource", "")
+    sub_id   = request.args.get("subscription", "")
+    data = {"items": [], "error": None}
+    try:
+        if platform == "azure":
+            if resource == "subscriptions":
+                r = _sp2.run(["az", "account", "list", "--output", "json"],
+                             capture_output=True, text=True, timeout=20)
+                if r.returncode == 0:
+                    subs = _json2.loads(r.stdout)
+                    data["items"] = [
+                        {"value": s["id"], "label": f"{s['name']} ({s['id'][:8]}…)"}
+                        for s in subs
+                    ]
+            elif resource == "resource_groups":
+                cmd = ["az", "group", "list", "--output", "json"]
+                if sub_id:
+                    cmd = ["az", "group", "list", "--subscription", sub_id, "--output", "json"]
+                r = _sp2.run(cmd, capture_output=True, text=True, timeout=20)
+                if r.returncode == 0:
+                    data["items"] = [{"value": g["name"], "label": g["name"]}
+                                     for g in _json2.loads(r.stdout)]
+            elif resource == "regions":
+                r = _sp2.run(["az", "account", "list-locations", "--output", "json"],
+                             capture_output=True, text=True, timeout=20)
+                if r.returncode == 0:
+                    data["items"] = [
+                        {"value": loc["name"], "label": f"{loc['displayName']} ({loc['name']})"}
+                        for loc in _json2.loads(r.stdout)
+                    ]
+        elif platform == "aws":
+            if resource == "regions":
+                r = _sp2.run(["aws", "ec2", "describe-regions", "--output", "json"],
+                             capture_output=True, text=True, timeout=20)
+                if r.returncode == 0:
+                    regions = sorted(
+                        reg["RegionName"]
+                        for reg in _json2.loads(r.stdout).get("Regions", [])
+                    )
+                    data["items"] = [{"value": reg, "label": reg} for reg in regions]
+            elif resource == "vpcs":
+                r = _sp2.run(["aws", "ec2", "describe-vpcs", "--output", "json"],
+                             capture_output=True, text=True, timeout=20)
+                if r.returncode == 0:
+                    vpcs = _json2.loads(r.stdout).get("Vpcs", [])
+                    data["items"] = [
+                        {"value": v["VpcId"],
+                         "label": f"{next((t['Value'] for t in v.get('Tags', []) if t['Key']=='Name'), v['VpcId'])} ({v['VpcId']})"}
+                        for v in vpcs
+                    ]
+        elif platform == "gcp":
+            if resource == "projects":
+                r = _sp2.run(["gcloud", "projects", "list", "--format=json"],
+                             capture_output=True, text=True, timeout=20)
+                if r.returncode == 0:
+                    data["items"] = [
+                        {"value": p["projectId"], "label": f"{p['name']} ({p['projectId']})"}
+                        for p in _json2.loads(r.stdout)
+                    ]
+            elif resource == "regions":
+                r = _sp2.run(["gcloud", "compute", "regions", "list", "--format=json"],
+                             capture_output=True, text=True, timeout=20)
+                if r.returncode == 0:
+                    data["items"] = [{"value": reg["name"], "label": reg["name"]}
+                                     for reg in _json2.loads(r.stdout)]
+    except FileNotFoundError:
+        data["error"] = f"{platform.title()} CLI not installed — enter values manually."
+    except Exception as exc:
+        data["error"] = str(exc)
+    return jsonify(data)
 
 
 @app.route("/api/discovery/cloud-auth", methods=["POST"])
@@ -445,7 +538,7 @@ def cloud_auth():
             else:
                 yield f"data: ❌ Exit code {proc.returncode}\n\n"
         except FileNotFoundError:
-            yield f"data: ❌ CLI not found — install it or use manual credentials below.\n\n"
+            yield "data: ❌ CLI not found — install it or use manual credentials below.\n\n"
         except Exception as exc:
             yield f"data: ❌ {exc}\n\n"
         yield "data: DONE\n\n"
@@ -500,6 +593,9 @@ def test_connection():
     except Exception as e:
         return jsonify({"error": f"Connection test failed: {str(e)}"}), 500
 
+POSTGRES_15_IMAGE = 'postgres:15'
+
+
 def generate_docker_compose(config):
     """Generate docker-compose.yml from config."""
     import yaml
@@ -514,7 +610,7 @@ def generate_docker_compose(config):
     hosts = config.get('hosts', {})
     deployment_type = config.get('deployment_type', 'development')
     ssl_enabled = config.get('ssl_enabled', False)
-    ssl_config = config.get('ssl_config', {})
+    # ssl_config available via config.get('ssl_config') if needed in future
     
     # Helper function to get host config
     def get_host_config(service_name, default_host="localhost", default_port=80):
@@ -609,7 +705,8 @@ def generate_docker_compose(config):
             'FeatureManagement__UseExternalNotifications': 'true',
             'Providers__Notifications__Type': 'Novu',
             'Providers__Notifications__Novu__ApiKey': '${NOVU_API_KEY}',
-            'Providers__Notifications__Novu__ApplicationId': '${NOVU_APPLICATION_ID}'
+            'Providers__Notifications__Novu__ApplicationId': '${NOVU_APPLICATION_ID}',
+            'Providers__Notifications__Novu__BaseUrl': f"http://{get_host_config('novu', 'localhost', 3001)['hostname']}:{novu_host['port']}",
         })
     
     if config.get('analytics_provider') == 'superset':
@@ -719,7 +816,7 @@ def generate_docker_compose(config):
             'networks': [network_name]
         }
         services['chatwoot-postgres'] = {
-            'image': 'postgres:15',
+            'image': POSTGRES_15_IMAGE,
             'container_name': 'crm-chatwoot-postgres',
             'restart': 'unless-stopped',
             'environment': {
@@ -779,7 +876,7 @@ def generate_docker_compose(config):
             'networks': [network_name]
         }
         services['superset-postgres'] = {
-            'image': 'postgres:15',
+            'image': POSTGRES_15_IMAGE,
             'container_name': 'crm-superset-postgres',
             'restart': 'unless-stopped',
             'environment': {
@@ -808,7 +905,7 @@ def generate_docker_compose(config):
             'networks': [network_name]
         }
         services['docuseal-postgres'] = {
-            'image': 'postgres:15',
+            'image': POSTGRES_15_IMAGE,
             'container_name': 'crm-docuseal-postgres',
             'restart': 'unless-stopped',
             'environment': {
@@ -857,7 +954,7 @@ def generate_docker_compose(config):
             'networks': [network_name]
         }
         services['n8n-postgres'] = {
-            'image': 'postgres:15',
+            'image': POSTGRES_15_IMAGE,
             'container_name': 'crm-n8n-postgres',
             'restart': 'unless-stopped',
             'environment': {
@@ -887,10 +984,10 @@ def generate_env_file(config):
     
     # Database
     env_vars.extend([
-        f"DB_HOST=crm-mariadb",
+        "DB_HOST=crm-mariadb",
         f"DB_PORT={config.get('database_port', 3306)}",
         f"DB_NAME={config.get('database_name', 'crm_db')}",
-        f"DB_USER=crm_user",
+        "DB_USER=crm_user",
         f"DB_PASSWORD={generate_secure_password()}",
         f"DB_ROOT_PASSWORD={generate_secure_password()}"
     ])
@@ -898,15 +995,15 @@ def generate_env_file(config):
     # JWT
     env_vars.extend([
         f"JWT_SECRET={secrets.token_urlsafe(32)}",
-        f"JWT_ISSUER=CRM.Api",
-        f"JWT_AUDIENCE=CRM.Client"
+        "JWT_ISSUER=CRM.Api",
+        "JWT_AUDIENCE=CRM.Client"
     ])
     
     # Admin (generate secure password instead of default)
     admin_password = generate_secure_password()
     env_vars.extend([
-        f"ADMIN_USERNAME=admin",
-        f"ADMIN_EMAIL=admin@crm.local",
+        "ADMIN_USERNAME=admin",
+        "ADMIN_EMAIL=admin@crm.local",
         f"ADMIN_PASSWORD={admin_password}"
     ])
     
@@ -946,7 +1043,7 @@ def generate_env_file(config):
     
     if config.get('integration_provider') == 'n8n':
         env_vars.extend([
-            f"N8N_USERNAME=admin",
+            "N8N_USERNAME=admin",
             f"N8N_PASSWORD={generate_secure_password()}",
             f"N8N_ENCRYPTION_KEY={secrets.token_urlsafe(32)}",
             f"N8N_DB_PASSWORD={generate_secure_password()}",
@@ -1264,7 +1361,7 @@ log_info "Deployment information saved to deployment-info.txt"
 
     return script
 
-def generate_kubernetes(config):
+def generate_kubernetes(_config):
     """Generate Kubernetes manifests for microservices."""
     # This would be more complex - for now return a basic template
     return "# Kubernetes manifests would be generated here\n# Based on microservices architecture"

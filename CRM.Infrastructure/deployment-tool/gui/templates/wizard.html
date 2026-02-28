@@ -524,7 +524,7 @@
                         <p class="text-muted small mb-3">Select a target environment on the left to discover existing CRM deployments, or skip to configure manually.</p>
 
                 <!-- Hidden select kept for JS compatibility -->
-                <select id="discoveryPlatform" class="d-none" aria-hidden="true">
+                <select id="discoveryPlatform" class="d-none">
                     <option value="">Select platform...</option>
                     <option value="on_premises">On-Premises</option>
                     <option value="azure">Azure</option>
@@ -545,30 +545,30 @@
                         </div>
 
                         <div class="disc-platform-list">
-                            <div class="disc-platform-tile" id="discTile_on_premises" onclick="selectDiscoveryPlatform('on_premises')">
+                            <button type="button" class="disc-platform-tile" id="discTile_on_premises" onclick="selectDiscoveryPlatform('on_premises')">
                                 <i class="bi bi-hdd-rack disc-tile-icon text-dark"></i>
                                 <span class="disc-tile-label">On-Premises</span>
                                 <span class="disc-tile-sub">Docker / SSH</span>
                                 <span class="disc-tile-badge" id="discBadge_on_premises"></span>
-                            </div>
-                            <div class="disc-platform-tile" id="discTile_azure" onclick="selectDiscoveryPlatform('azure')">
+                            </button>
+                            <button type="button" class="disc-platform-tile" id="discTile_azure" onclick="selectDiscoveryPlatform('azure')">
                                 <i class="bi bi-microsoft disc-tile-icon text-primary"></i>
                                 <span class="disc-tile-label">Azure</span>
                                 <span class="disc-tile-sub">AKS / VMs / ACI</span>
                                 <span class="disc-tile-badge" id="discBadge_azure"></span>
-                            </div>
-                            <div class="disc-platform-tile" id="discTile_aws" onclick="selectDiscoveryPlatform('aws')">
+                            </button>
+                            <button type="button" class="disc-platform-tile" id="discTile_aws" onclick="selectDiscoveryPlatform('aws')">
                                 <i class="bi bi-cloud-fill disc-tile-icon text-warning"></i>
                                 <span class="disc-tile-label">AWS</span>
                                 <span class="disc-tile-sub">ECS / EKS / EC2</span>
                                 <span class="disc-tile-badge" id="discBadge_aws"></span>
-                            </div>
-                            <div class="disc-platform-tile" id="discTile_gcp" onclick="selectDiscoveryPlatform('gcp')">
+                            </button>
+                            <button type="button" class="disc-platform-tile" id="discTile_gcp" onclick="selectDiscoveryPlatform('gcp')">
                                 <i class="bi bi-google disc-tile-icon text-danger"></i>
                                 <span class="disc-tile-label">GCP</span>
                                 <span class="disc-tile-sub">GKE / Cloud Run</span>
                                 <span class="disc-tile-badge" id="discBadge_gcp"></span>
-                            </div>
+                            </button>
                         </div>
 
                         <div class="disc-sidebar-footer">
@@ -666,8 +666,12 @@
                             <div id="azureCredsSection" class="d-none">
                                 <div class="row g-3">
                                     <div class="col-md-6">
-                                        <label class="form-label" for="discAzureSubId">Subscription ID <span class="text-danger">*</span></label>
-                                        <input type="text" class="form-control" id="discAzureSubId" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
+                                        <label class="form-label" for="discAzureSubId">Subscription <span class="text-danger">*</span> <span class="text-muted small" id="azureSubLoading"></span></label>
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" id="discAzureSubId" list="azureSubList" placeholder="auto-populated after login">
+                                            <button class="btn btn-outline-secondary" type="button" title="Refresh subscriptions" onclick="loadCloudResource('azure','subscriptions')"><i class="bi bi-arrow-clockwise"></i></button>
+                                        </div>
+                                        <datalist id="azureSubList"></datalist>
                                     </div>
                                     <div class="col-md-6">
                                         <label class="form-label" for="discAzureTenantId">Tenant ID</label>
@@ -682,12 +686,20 @@
                                         <input type="password" class="form-control" id="discAzureClientSecret" placeholder="Service principal secret">
                                     </div>
                                     <div class="col-md-6">
-                                        <label class="form-label" for="discAzureRegion">Region</label>
-                                        <input type="text" class="form-control" id="discAzureRegion" value="eastus">
+                                        <label class="form-label" for="discAzureRegion">Region <span class="text-muted small" id="azureRegionLoading"></span></label>
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" id="discAzureRegion" list="azureRegionList" value="eastus">
+                                            <button class="btn btn-outline-secondary" type="button" title="Refresh regions" onclick="loadCloudResource('azure','regions')"><i class="bi bi-arrow-clockwise"></i></button>
+                                        </div>
+                                        <datalist id="azureRegionList"></datalist>
                                     </div>
                                     <div class="col-md-6">
-                                        <label class="form-label" for="discAzureRg">Resource Group <span class="text-danger">*</span></label>
-                                        <input type="text" class="form-control" id="discAzureRg" value="rg-crm-prod">
+                                        <label class="form-label" for="discAzureRg">Resource Group <span class="text-danger">*</span> <span class="text-muted small" id="azureRgLoading"></span></label>
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" id="discAzureRg" list="azureRgList" placeholder="auto-populated when subscription selected">
+                                            <button class="btn btn-outline-secondary" type="button" title="Refresh resource groups" onclick="loadCloudResource('azure','resource_groups')"><i class="bi bi-arrow-clockwise"></i></button>
+                                        </div>
+                                        <datalist id="azureRgList"></datalist>
                                         <small class="text-muted">Pattern: rg-crm-{env}</small>
                                     </div>
                                 </div>
@@ -709,12 +721,20 @@
                                         <input type="password" class="form-control" id="discAwsSessionToken" placeholder="Temporary credentials only">
                                     </div>
                                     <div class="col-md-6">
-                                        <label class="form-label" for="discAwsRegion">Region</label>
-                                        <input type="text" class="form-control" id="discAwsRegion" value="us-east-1">
+                                        <label class="form-label" for="discAwsRegion">Region <span class="text-muted small" id="awsRegionLoading"></span></label>
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" id="discAwsRegion" list="awsRegionList" value="us-east-1">
+                                            <button class="btn btn-outline-secondary" type="button" title="Refresh regions" onclick="loadCloudResource('aws','regions')"><i class="bi bi-arrow-clockwise"></i></button>
+                                        </div>
+                                        <datalist id="awsRegionList"></datalist>
                                     </div>
                                     <div class="col-md-6">
-                                        <label class="form-label" for="discAwsVpc">VPC / Cluster Name</label>
-                                        <input type="text" class="form-control" id="discAwsVpc" value="crm-prod-vpc">
+                                        <label class="form-label" for="discAwsVpc">VPC / Cluster Name <span class="text-muted small" id="awsVpcLoading"></span></label>
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" id="discAwsVpc" list="awsVpcList" value="crm-prod-vpc">
+                                            <button class="btn btn-outline-secondary" type="button" title="Refresh VPCs" onclick="loadCloudResource('aws','vpcs')"><i class="bi bi-arrow-clockwise"></i></button>
+                                        </div>
+                                        <datalist id="awsVpcList"></datalist>
                                         <small class="text-muted">Pattern: crm-{env}-vpc</small>
                                     </div>
                                 </div>
@@ -724,12 +744,20 @@
                             <div id="gcpCredsSection" class="d-none">
                                 <div class="row g-3">
                                     <div class="col-md-6">
-                                        <label class="form-label" for="discGcpProjectId">Project ID <span class="text-danger">*</span></label>
-                                        <input type="text" class="form-control" id="discGcpProjectId" value="crm-prod">
+                                        <label class="form-label" for="discGcpProjectId">Project <span class="text-danger">*</span> <span class="text-muted small" id="gcpProjectLoading"></span></label>
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" id="discGcpProjectId" list="gcpProjectList" placeholder="auto-populated after login">
+                                            <button class="btn btn-outline-secondary" type="button" title="Refresh projects" onclick="loadCloudResource('gcp','projects')"><i class="bi bi-arrow-clockwise"></i></button>
+                                        </div>
+                                        <datalist id="gcpProjectList"></datalist>
                                     </div>
                                     <div class="col-md-6">
-                                        <label class="form-label" for="discGcpRegion">Region</label>
-                                        <input type="text" class="form-control" id="discGcpRegion" value="us-central1">
+                                        <label class="form-label" for="discGcpRegion">Region <span class="text-muted small" id="gcpRegionLoading"></span></label>
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" id="discGcpRegion" list="gcpRegionList" value="us-central1">
+                                            <button class="btn btn-outline-secondary" type="button" title="Refresh regions" onclick="loadCloudResource('gcp','regions')"><i class="bi bi-arrow-clockwise"></i></button>
+                                        </div>
+                                        <datalist id="gcpRegionList"></datalist>
                                     </div>
                                     <div class="col-12">
                                         <label class="form-label" for="discGcpSaJson">Service Account JSON <span class="text-muted small">(paste full key — or leave blank to use ADC)</span></label>
@@ -1093,112 +1121,112 @@
                 <div class="mb-4">
                     <p class="form-label"><i class="bi bi-search me-2"></i>Search Provider</p>
                     <div class="provider-grid" id="searchProviderGrid">
-                        <div class="provider-option selected" onclick="selectProvider('search', 'builtin')" onkeydown="this.click()" role="button" tabindex="0">
+                        <button type="button" class="provider-option selected" onclick="selectProvider('search', 'builtin')">
                             <i class="bi bi-box text-primary"></i>
                             <div>Built-in</div>
-                        </div>
-                        <div class="provider-option" onclick="selectProvider('search', 'meilisearch')" onkeydown="this.click()" role="button" tabindex="0">
+                        </button>
+                        <button type="button" class="provider-option" onclick="selectProvider('search', 'meilisearch')">
                             <i class="bi bi-search text-success"></i>
                             <div>Meilisearch</div>
-                        </div>
-                        <div class="provider-option" onclick="selectProvider('search', 'algolia')" onkeydown="this.click()" role="button" tabindex="0">
+                        </button>
+                        <button type="button" class="provider-option" onclick="selectProvider('search', 'algolia')">
                             <i class="bi bi-search text-info"></i>
                             <div>Algolia</div>
-                        </div>
+                        </button>
                     </div>
                 </div>
 
                 <div class="mb-4">
                     <p class="form-label"><i class="bi bi-chat-dots me-2"></i>Chat Provider</p>
                     <div class="provider-grid" id="chatProviderGrid">
-                        <div class="provider-option selected" onclick="selectProvider('chat', 'builtin')" onkeydown="this.click()" role="button" tabindex="0">
+                        <button type="button" class="provider-option selected" onclick="selectProvider('chat', 'builtin')">
                             <i class="bi bi-box text-primary"></i>
                             <div>Built-in</div>
-                        </div>
-                        <div class="provider-option" onclick="selectProvider('chat', 'chatwoot')" onkeydown="this.click()" role="button" tabindex="0">
+                        </button>
+                        <button type="button" class="provider-option" onclick="selectProvider('chat', 'chatwoot')">
                             <i class="bi bi-chat text-success"></i>
                             <div>Chatwoot</div>
-                        </div>
-                        <div class="provider-option" onclick="selectProvider('chat', 'intercom')" onkeydown="this.click()" role="button" tabindex="0">
+                        </button>
+                        <button type="button" class="provider-option" onclick="selectProvider('chat', 'intercom')">
                             <i class="bi bi-chat text-info"></i>
                             <div>Intercom</div>
-                        </div>
+                        </button>
                     </div>
                 </div>
 
                 <div class="mb-4">
                     <p class="form-label"><i class="bi bi-bell me-2"></i>Notification Provider</p>
                     <div class="provider-grid" id="notificationProviderGrid">
-                        <div class="provider-option selected" onclick="selectProvider('notification', 'builtin')" onkeydown="this.click()" role="button" tabindex="0">
+                        <button type="button" class="provider-option selected" onclick="selectProvider('notification', 'builtin')">
                             <i class="bi bi-box text-primary"></i>
                             <div>Built-in</div>
-                        </div>
-                        <div class="provider-option" onclick="selectProvider('notification', 'novu')" onkeydown="this.click()" role="button" tabindex="0">
+                        </button>
+                        <button type="button" class="provider-option" onclick="selectProvider('notification', 'novu')">
                             <i class="bi bi-bell text-success"></i>
                             <div>Novu</div>
-                        </div>
-                        <div class="provider-option" onclick="selectProvider('notification', 'twilio')" onkeydown="this.click()" role="button" tabindex="0">
+                        </button>
+                        <button type="button" class="provider-option" onclick="selectProvider('notification', 'twilio')">
                             <i class="bi bi-telephone text-danger"></i>
                             <div>Twilio</div>
-                        </div>
-                        <div class="provider-option" onclick="selectProvider('notification', 'sendgrid')" onkeydown="this.click()" role="button" tabindex="0">
+                        </button>
+                        <button type="button" class="provider-option" onclick="selectProvider('notification', 'sendgrid')">
                             <i class="bi bi-envelope text-info"></i>
                             <div>SendGrid</div>
-                        </div>
+                        </button>
                     </div>
                 </div>
 
                 <div class="mb-4">
                     <p class="form-label"><i class="bi bi-bar-chart me-2"></i>Analytics Provider</p>
                     <div class="provider-grid" id="analyticsProviderGrid">
-                        <div class="provider-option selected" onclick="selectProvider('analytics', 'builtin')" onkeydown="this.click()" role="button" tabindex="0">
+                        <button type="button" class="provider-option selected" onclick="selectProvider('analytics', 'builtin')">
                             <i class="bi bi-box text-primary"></i>
                             <div>Built-in</div>
-                        </div>
-                        <div class="provider-option" onclick="selectProvider('analytics', 'superset')" onkeydown="this.click()" role="button" tabindex="0">
+                        </button>
+                        <button type="button" class="provider-option" onclick="selectProvider('analytics', 'superset')">
                             <i class="bi bi-graph-up text-success"></i>
                             <div>Superset</div>
-                        </div>
-                        <div class="provider-option" onclick="selectProvider('analytics', 'powerbi')" onkeydown="this.click()" role="button" tabindex="0">
+                        </button>
+                        <button type="button" class="provider-option" onclick="selectProvider('analytics', 'powerbi')">
                             <i class="bi bi-bar-chart text-warning"></i>
                             <div>Power BI</div>
-                        </div>
+                        </button>
                     </div>
                 </div>
 
                 <div class="mb-4">
                     <p class="form-label"><i class="bi bi-pen me-2"></i>Signature Provider</p>
                     <div class="provider-grid" id="signatureProviderGrid">
-                        <div class="provider-option selected" onclick="selectProvider('signature', 'builtin')" onkeydown="this.click()" role="button" tabindex="0">
+                        <button type="button" class="provider-option selected" onclick="selectProvider('signature', 'builtin')">
                             <i class="bi bi-box text-primary"></i>
                             <div>Built-in</div>
-                        </div>
-                        <div class="provider-option" onclick="selectProvider('signature', 'docuseal')" onkeydown="this.click()" role="button" tabindex="0">
+                        </button>
+                        <button type="button" class="provider-option" onclick="selectProvider('signature', 'docuseal')">
                             <i class="bi bi-file-earmark-text text-success"></i>
                             <div>DocuSeal</div>
-                        </div>
-                        <div class="provider-option" onclick="selectProvider('signature', 'docusign')" onkeydown="this.click()" role="button" tabindex="0">
+                        </button>
+                        <button type="button" class="provider-option" onclick="selectProvider('signature', 'docusign')">
                             <i class="bi bi-file-earmark-check text-info"></i>
                             <div>DocuSign</div>
-                        </div>
+                        </button>
                     </div>
                 </div>
 
                 <div class="mb-4">
                     <p class="form-label"><i class="bi bi-robot me-2"></i>AI Provider</p>
                     <div class="provider-grid" id="aiProviderGrid">
-                        <div class="provider-option selected" onclick="selectProvider('ai', 'ollama')" onkeydown="this.click()" role="button" tabindex="0">
+                        <button type="button" class="provider-option selected" onclick="selectProvider('ai', 'ollama')">
                             <i class="bi bi-cpu text-primary"></i>
                             <div>Ollama (Local)</div>
-                        </div>
-                        <div class="provider-option" onclick="selectProvider('ai', 'openai')" onkeydown="this.click()" role="button" tabindex="0">
+                        </button>
+                        <button type="button" class="provider-option" onclick="selectProvider('ai', 'openai')">
                             <i class="bi bi-robot text-success"></i>
                             <div>OpenAI</div>
-                        </div>
-                        <div class="provider-option" onclick="selectProvider('ai', 'azure_openai')" onkeydown="this.click()" role="button" tabindex="0">
+                        </button>
+                        <button type="button" class="provider-option" onclick="selectProvider('ai', 'azure_openai')">
                             <i class="bi bi-cloud text-info"></i>
                             <div>Azure OpenAI</div>
-                        </div>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -1350,7 +1378,7 @@
               <h4 class="mb-3"><i class="bi bi-shield-lock"></i> Security Configuration</h4>
               <div class="row g-3">
                 <div class="col-12">
-                  <label class="form-label fw-semibold">JWT Signing Secret</label>
+                  <label class="form-label fw-semibold" for="jwt_secret">JWT Signing Secret</label>
                   <div class="input-group">
                     <input type="password" class="form-control" id="jwt_secret" name="jwt_secret"
                            placeholder="Leave blank to auto-generate a secure secret (recommended)">
@@ -1362,15 +1390,15 @@
                   <div class="form-text">Minimum 32 characters. Used to sign JWT tokens.</div>
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label fw-semibold">Access Token TTL (minutes)</label>
+                  <label class="form-label fw-semibold" for="jwt_access_ttl">Access Token TTL (minutes)</label>
                   <input type="number" class="form-control" id="jwt_access_ttl" name="jwt_access_ttl" value="60" min="5" max="1440">
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label fw-semibold">Refresh Token TTL (days)</label>
+                  <label class="form-label fw-semibold" for="jwt_refresh_ttl_days">Refresh Token TTL (days)</label>
                   <input type="number" class="form-control" id="jwt_refresh_ttl_days" name="jwt_refresh_ttl_days" value="7" min="1" max="90">
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label fw-semibold">Session Idle Timeout (minutes)</label>
+                  <label class="form-label fw-semibold" for="session_idle_timeout">Session Idle Timeout (minutes)</label>
                   <input type="number" class="form-control" id="session_idle_timeout" name="session_idle_timeout" value="30" min="5" max="480">
                 </div>
                 <div class="col-md-6">
@@ -1430,7 +1458,7 @@
               <h4 class="mb-3"><i class="bi bi-diagram-3"></i> Network Configuration</h4>
               <div class="row g-3">
                 <div class="col-md-6">
-                  <label class="form-label fw-semibold">Reverse Proxy</label>
+                  <label class="form-label fw-semibold" for="proxy_type">Reverse Proxy</label>
                   <select class="form-select" id="proxy_type" name="proxy_type">
                     <option value="nginx" selected>Nginx</option>
                     <option value="traefik">Traefik</option>
@@ -1447,7 +1475,7 @@
                   </div>
                 </div>
                 <div class="col-12">
-                  <label class="form-label fw-semibold">CORS Allowed Origins</label>
+                  <label class="form-label fw-semibold" for="cors_origins">CORS Allowed Origins</label>
                   <textarea class="form-control" id="cors_origins" name="cors_origins" rows="4"
                             placeholder="https://app.example.com&#10;https://admin.example.com"></textarea>
                   <div class="form-text">One origin per line. Leave blank to allow same-origin only.</div>
@@ -1460,30 +1488,30 @@
               <h4 class="mb-3"><i class="bi bi-person-badge"></i> Admin Account &amp; Data Seeding</h4>
               <div class="row g-3">
                 <div class="col-md-6">
-                  <label class="form-label fw-semibold">Admin Username <span class="text-danger">*</span></label>
+                  <label class="form-label fw-semibold" for="admin_username">Admin Username <span class="text-danger">*</span></label>
                   <input type="text" class="form-control" id="admin_username" name="admin_username" value="admin" required>
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label fw-semibold">Admin Email <span class="text-danger">*</span></label>
+                  <label class="form-label fw-semibold" for="admin_email">Admin Email <span class="text-danger">*</span></label>
                   <input type="email" class="form-control" id="admin_email" name="admin_email" required>
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label fw-semibold">First Name <span class="text-danger">*</span></label>
+                  <label class="form-label fw-semibold" for="admin_first_name">First Name <span class="text-danger">*</span></label>
                   <input type="text" class="form-control" id="admin_first_name" name="admin_first_name" required>
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label fw-semibold">Last Name <span class="text-danger">*</span></label>
+                  <label class="form-label fw-semibold" for="admin_last_name">Last Name <span class="text-danger">*</span></label>
                   <input type="text" class="form-control" id="admin_last_name" name="admin_last_name" required>
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label fw-semibold">Admin Password <span class="text-danger">*</span></label>
+                  <label class="form-label fw-semibold" for="admin_password">Admin Password <span class="text-danger">*</span></label>
                   <input type="password" class="form-control" id="admin_password" name="admin_password"
                          oninput="updateStrengthMeter('admin_password', this.value)" required>
                   <div id="admin_password_strength_meter" class="mt-1"></div>
                   <div class="form-text">Min 12 chars, mixed case, number, special character.</div>
                 </div>
                 <div class="col-md-6">
-                  <label class="form-label fw-semibold">Confirm Password <span class="text-danger">*</span></label>
+                  <label class="form-label fw-semibold" for="admin_password_confirm">Confirm Password <span class="text-danger">*</span></label>
                   <input type="password" class="form-control" id="admin_password_confirm" name="admin_password_confirm" required>
                   <div id="password_match_indicator" class="mt-1"></div>
                 </div>
@@ -1592,8 +1620,8 @@
                 </div>
               </div>
               <div class="progress mb-2" style="height:8px">
-                <div id="deploy-progress-bar" class="progress-bar progress-bar-striped progress-bar-animated"
-                     role="progressbar" style="width: 0%"></div>
+                <progress id="deploy-progress-bar" class="progress-bar progress-bar-striped progress-bar-animated"
+                     style="width: 0%; height:8px; border:none;" value="0" max="100" aria-label="Deployment progress"></progress>
               </div>
               <pre id="log-output" class="p-3 rounded" style="background:#1e1e1e;color:#d4d4d4;height:400px;overflow-y:auto;font-size:12px;font-family:monospace;white-space:pre-wrap;word-break:break-all;"></pre>
               <div class="mt-2 d-flex gap-2 flex-wrap">
@@ -1936,6 +1964,8 @@
                 if (d.logged_in) {
                     if (icon) icon.textContent = '✅';
                     if (text) { text.textContent = d.identity || 'Connected'; text.className = 'text-success fw-semibold'; }
+                    // Auto-populate dropdowns from CLI
+                    loadCloudResources(platform);
                 } else {
                     if (icon) icon.textContent = '⚠️';
                     if (text) { text.textContent = d.error || 'No credentials found'; text.className = 'text-warning'; }
@@ -1943,6 +1973,83 @@
             } catch(e) {
                 if (icon) icon.textContent = '❓';
                 if (text) { text.textContent = 'Could not check status'; text.className = 'text-muted'; }
+            }
+        }
+
+        // Load cloud resources for a specific (platform, resource-type) and populate its datalist
+        async function loadCloudResource(platform, resource) {
+            const listIdMap = {
+                azure: { subscriptions: 'azureSubList', regions: 'azureRegionList', resource_groups: 'azureRgList' },
+                aws:   { regions: 'awsRegionList', vpcs: 'awsVpcList' },
+                gcp:   { projects: 'gcpProjectList', regions: 'gcpRegionList' },
+            };
+            const loadingIdMap = {
+                'azure-subscriptions': 'azureSubLoading',
+                'azure-regions':       'azureRegionLoading',
+                'azure-resource_groups': 'azureRgLoading',
+                'aws-regions':         'awsRegionLoading',
+                'aws-vpcs':            'awsVpcLoading',
+                'gcp-projects':        'gcpProjectLoading',
+                'gcp-regions':         'gcpRegionLoading',
+            };
+            const listId    = (listIdMap[platform] || {})[resource];
+            const loadingId = loadingIdMap[`${platform}-${resource}`];
+            const loadingEl = loadingId ? document.getElementById(loadingId) : null;
+            if (loadingEl) loadingEl.textContent = '⏳';
+            try {
+                const sub = platform === 'azure' ?
+                    (document.getElementById('discAzureSubId')?.value.trim() || '') : '';
+                const url = `/api/discovery/cloud-resources?platform=${encodeURIComponent(platform)}&resource=${encodeURIComponent(resource)}` +
+                    (sub ? `&subscription=${encodeURIComponent(sub)}` : '');
+                const resp = await fetch(url);
+                const data = await resp.json();
+                if (listId) {
+                    const list = document.getElementById(listId);
+                    if (list && data.items && data.items.length) {
+                        list.innerHTML = data.items
+                            .map(item => `<option value="${item.value}">${item.label || item.value}</option>`)
+                            .join('');
+                    }
+                }
+                if (loadingEl) loadingEl.textContent = data.error ? '⚠️' : '';
+            } catch(e) {
+                if (loadingEl) loadingEl.textContent = '';
+            }
+        }
+
+        // Load all relevant resources for a platform after login
+        async function loadCloudResources(platform) {
+            const tasks = {
+                azure: ['subscriptions', 'regions'],
+                aws:   ['regions'],
+                gcp:   ['projects', 'regions'],
+            };
+            for (const resource of (tasks[platform] || [])) {
+                await loadCloudResource(platform, resource);
+            }
+            // Azure: wire subscription change → auto-load resource groups
+            if (platform === 'azure') {
+                const subField = document.getElementById('discAzureSubId');
+                if (subField && !subField._rgListenerAdded) {
+                    subField._rgListenerAdded = true;
+                    subField.addEventListener('change', () => {
+                        if (subField.value.trim()) loadCloudResource('azure', 'resource_groups');
+                    });
+                    // Auto-select first subscription and load its resource groups
+                    const subList = document.getElementById('azureSubList');
+                    if (subList && subList.options.length && !subField.value) {
+                        subField.value = subList.options[0].value;
+                        loadCloudResource('azure', 'resource_groups');
+                    }
+                }
+            }
+            // GCP: auto-select first project
+            if (platform === 'gcp') {
+                const projField = document.getElementById('discGcpProjectId');
+                const projList  = document.getElementById('gcpProjectList');
+                if (projField && projList && projList.options.length && !projField.value) {
+                    projField.value = projList.options[0].value;
+                }
             }
         }
 
@@ -2125,24 +2232,26 @@
             }
 
             // Validate cloud credentials before attempting discovery
-            if (platform === 'azure' && !document.getElementById('azureUseCli')?.checked) {
+            const _cliMethods = ['cli','device','configure','sso','adc','login'];
+            const _usingCli   = _cliMethods.includes(_currentAuthMethod);
+            if (platform === 'azure' && !_usingCli) {
                 const subId = document.getElementById('discAzureSubId')?.value.trim();
                 if (!subId) {
-                    showDiscoveryStatus('Please enter your Azure Subscription ID, or enable "Use Azure CLI credentials".', 'warning');
+                    showDiscoveryStatus('Please select an Azure Subscription or log in with Azure CLI first.', 'warning');
                     return;
                 }
             }
-            if (platform === 'aws' && !document.getElementById('awsUseProfile')?.checked) {
+            if (platform === 'aws' && !_usingCli) {
                 const key = document.getElementById('discAwsAccessKey')?.value.trim();
                 if (!key) {
-                    showDiscoveryStatus('Please enter your AWS Access Key ID, or enable "Use AWS CLI profile".', 'warning');
+                    showDiscoveryStatus('Please enter your AWS Access Key ID or log in with AWS CLI first.', 'warning');
                     return;
                 }
             }
-            if (platform === 'gcp' && !document.getElementById('gcpUseAdc')?.checked) {
+            if (platform === 'gcp' && !_usingCli) {
                 const proj = document.getElementById('discGcpProjectId')?.value.trim();
                 if (!proj) {
-                    showDiscoveryStatus('Please enter your GCP Project ID, or enable "Use Application Default Credentials".', 'warning');
+                    showDiscoveryStatus('Please select a GCP Project or log in with gcloud first.', 'warning');
                     return;
                 }
             }
@@ -2185,22 +2294,25 @@
                 config.container_prefix = (document.getElementById('discoveryContainerPrefix').value.trim() || 'crm-');
                 config.network          = document.getElementById('discoveryNetwork').value.trim() || 'crm_crm-network';
             } else if (platform === 'azure') {
-                config.use_cli_auth     = document.getElementById('azureUseCli')?.checked || false;
+                const _cliAuth = ['cli','device'].includes(_currentAuthMethod);
+                config.use_cli_auth     = _cliAuth;
                 config.subscription_id  = document.getElementById('discAzureSubId')?.value.trim() || '';
                 config.tenant_id        = document.getElementById('discAzureTenantId')?.value.trim() || '';
                 config.client_id        = document.getElementById('discAzureClientId')?.value.trim() || '';
                 config.client_secret    = document.getElementById('discAzureClientSecret')?.value || '';
                 config.region           = document.getElementById('discAzureRegion')?.value.trim() || 'eastus';
-                config.resource_group   = document.getElementById('discAzureRg')?.value.trim() || 'rg-crm-prod';
+                config.resource_group   = document.getElementById('discAzureRg')?.value.trim() || '';
             } else if (platform === 'aws') {
-                config.use_profile      = document.getElementById('awsUseProfile')?.checked || false;
+                const _cliAuth = ['configure','sso'].includes(_currentAuthMethod);
+                config.use_profile      = _cliAuth;
                 config.access_key_id    = document.getElementById('discAwsAccessKey')?.value.trim() || '';
                 config.secret_access_key= document.getElementById('discAwsSecretKey')?.value || '';
                 config.session_token    = document.getElementById('discAwsSessionToken')?.value || '';
                 config.region           = document.getElementById('discAwsRegion')?.value.trim() || 'us-east-1';
-                config.resource_group   = document.getElementById('discAwsVpc')?.value.trim() || 'crm-prod-vpc';
+                config.resource_group   = document.getElementById('discAwsVpc')?.value.trim() || '';
             } else if (platform === 'gcp') {
-                config.use_adc          = document.getElementById('gcpUseAdc')?.checked || false;
+                const _cliAuth = ['adc','login'].includes(_currentAuthMethod);
+                config.use_adc          = _cliAuth;
                 config.project_id       = document.getElementById('discGcpProjectId')?.value.trim() || '';
                 config.service_account_json = document.getElementById('discGcpSaJson')?.value.trim() || '';
                 config.region           = document.getElementById('discGcpRegion')?.value.trim() || 'us-central1';

@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 611,
-  "patch": 8,
-  "lastUpdate": "2026-02-28",
-  "description": "fix(infra/cdt): v0.611.8 - quote sys.executable with shlex to fix SDK install crash on paths with spaces",
+  "patch": 9,
+  "lastUpdate": "2026-03-01",
+  "description": "feat(infra/cdt): v0.611.9 - cloud resource auto-discovery for dropdown population",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [
