@@ -560,19 +560,19 @@ Phase 6 — Designer Integration & Navigation (✅ COMPLETE — Feb 26, 2026):
 
 | ID | Priority | Description | Status |
 |----|----------|-------------|--------|
-| SARCH-048 | P0 | **YAML WDL parser** — `WorkflowDefinitionParser.ParseYaml(string yaml) → WorkflowPlan` using YamlDotNet; validates against WDL JSON Schema; resolves `${}` expression references to previous step outputs | Not Started |
-| SARCH-049 | P0 | **CEL expression evaluator** — integrate `cel-csharp` or implement mini-CEL evaluator for condition step type (`${steps.check.output.risk} > 0.7`); used in `condition` step and `approval` gate conditions | Not Started |
-| SARCH-050 | P0 | **`parallel` step type** — fan-out: start all child step executions concurrently via `Task.WhenAll`; fan-in: collect all results into `steps.parallel_name.outputs[]`; barrier with configurable `waitForAll` (bool) | Not Started |
-| SARCH-051 | P0 | **`tool` step type** — direct platform tool invocation step (no script wrapper); calls `IToolInvoker.CallAsync` directly; input/output mapped via WDL expression bindings | Not Started |
-| SARCH-052 | P0 | **`condition` step type** — evaluates CEL expression; routes to `then` branch or `else` branch; branches reference next step IDs | Not Started |
-| SARCH-053 | P0 | **`delay` step type** — suspends workflow instance for configured duration; stores `ResumeAt` on `WorkflowInstance`; background service polls for resumable instances | Not Started |
-| SARCH-054 | P1 | **`loop` step type** — iterates over `foreach` collection (from prior step output or context); executes body steps for each item; accumulates results into array | Not Started |
-| SARCH-055 | P1 | **`subworkflow` step type** — launches child `WorkflowInstance` linked to parent instance; parent waits for child completion via `WorkflowInstance.ParentInstanceId` FK + completion callback | Not Started |
-| SARCH-056 | P0 | **Durable per-step state commit** — before executing next step, serialize current step's output + context to `WorkflowInstance.StateData` (JSON); if step fails after commit, new execution starts from last committed step | Not Started |
-| SARCH-057 | P0 | **Saga integration into workflow steps** — each `WorkflowNode` gains optional `CompensationScriptId` (FK to `ScriptPlugin`) and `CompensationOrder` (int); workflow engine calls compensations in reverse order on failure | Not Started |
-| SARCH-058 | P1 | **Dead-letter queue** — permanently failed `WorkflowInstance` (max retries exhausted) moved to `WorkflowDeadLetter` table with `FailureReason`, `LastError`, `LastAttemptAt`; admin endpoint `GET /api/workflow/dead-letter` + `POST /api/workflow/dead-letter/{id}/requeue` | Not Started |
-| SARCH-059 | P1 | **Workflow replay engine** — `WorkflowReplayService.ReplayAsync(instanceId, fromStepId)` re-executes from checkpoint; used in testing harness and admin troubleshooting | Not Started |
-| SARCH-060 | P2 | **YAML frontend editor** — add "YAML" tab to workflow designer (`WorkflowDesignerPage.tsx`) alongside existing JSON split view; YAML ↔ node graph bidirectional sync | Not Started |
+| SARCH-048 | P0 | **YAML WDL parser** — `WorkflowDefinitionParser.ParseYaml(string yaml) → WorkflowPlan` using YamlDotNet; validates against WDL JSON Schema; resolves `${}` expression references to previous step outputs | ✅ Completed |
+| SARCH-049 | P0 | **CEL expression evaluator** — integrate `cel-csharp` or implement mini-CEL evaluator for condition step type (`${steps.check.output.risk} > 0.7`); used in `condition` step and `approval` gate conditions | ✅ Completed |
+| SARCH-050 | P0 | **`parallel` step type** — fan-out: start all child step executions concurrently via `Task.WhenAll`; fan-in: collect all results into `steps.parallel_name.outputs[]`; barrier with configurable `waitForAll` (bool) | ✅ Completed |
+| SARCH-051 | P0 | **`tool` step type** — direct platform tool invocation step (no script wrapper); calls `IToolInvoker.CallAsync` directly; input/output mapped via WDL expression bindings | ✅ Completed |
+| SARCH-052 | P0 | **`condition` step type** — evaluates CEL expression; routes to `then` branch or `else` branch; branches reference next step IDs | ✅ Completed |
+| SARCH-053 | P0 | **`delay` step type** — suspends workflow instance for configured duration; stores `ResumeAt` on `WorkflowInstance`; background service polls for resumable instances | ✅ Completed |
+| SARCH-054 | P1 | **`loop` step type** — iterates over `foreach` collection (from prior step output or context); executes body steps for each item; accumulates results into array | ✅ Completed |
+| SARCH-055 | P1 | **`subworkflow` step type** — launches child `WorkflowInstance` linked to parent instance; parent waits for child completion via `WorkflowInstance.ParentInstanceId` FK + completion callback | ✅ Completed |
+| SARCH-056 | P0 | **Durable per-step state commit** — before executing next step, serialize current step's output + context to `WorkflowInstance.StateData` (JSON); if step fails after commit, new execution starts from last committed step | ✅ Completed |
+| SARCH-057 | P0 | **Saga integration into workflow steps** — each `WorkflowNode` gains optional `CompensationScriptId` (FK to `ScriptPlugin`) and `CompensationOrder` (int); workflow engine calls compensations in reverse order on failure | ✅ Completed |
+| SARCH-058 | P1 | **Dead-letter queue** — permanently failed `WorkflowInstance` (max retries exhausted) moved to `WorkflowDeadLetter` table with `FailureReason`, `LastError`, `LastAttemptAt`; admin endpoint `GET /api/workflow/dead-letter` + `POST /api/workflow/dead-letter/{id}/requeue` | ✅ Completed |
+| SARCH-059 | P1 | **Workflow replay engine** — `WorkflowReplayService.ReplayAsync(instanceId, fromStepId)` re-executes from checkpoint; used in testing harness and admin troubleshooting | ✅ Completed |
+| SARCH-060 | P2 | **YAML frontend editor** — add "YAML" tab to workflow designer (`WorkflowDesignerPage.tsx`) alongside existing JSON split view; YAML ↔ node graph bidirectional sync | ✅ Completed |
 
 ### Phase 6 — Agent Lifecycle Hooks + Guardrails (Weeks 13–16)
 

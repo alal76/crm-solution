@@ -49,6 +49,8 @@
     <!-- SARCH-021: Roslyn Scripting Engine — pinned to 4.8.0 to align with EF Core Design's CodeAnalysis constraint -->
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Scripting" Version="4.8.0" />
     <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.8.0" />
+    <!-- SARCH-048: YAML WDL parser -->
+    <PackageReference Include="YamlDotNet" Version="15.1.2" />
   </ItemGroup>
 
   <ItemGroup>

@@ -8,6 +8,7 @@ using Microsoft.Extensions.DependencyInjection;
 using CRM.Core.Scripting;
 using CRM.Infrastructure.Scripting.Roslyn;
 using CRM.Infrastructure.Scripting.Tools;
+using CRM.Infrastructure.Scripting.Workflow;
 
 namespace CRM.Infrastructure.Scripting;
 
@@ -31,6 +32,12 @@ public static class ScriptingServiceExtensions
         // CRM platform tools (transient — resolved per-invocation)
         services.AddTransient<GetCustomerTool>();
         services.AddTransient<SendEmailTool>();
+
+        // SARCH-048→059: YAML WDL workflow engine
+        services.AddSingleton<YamlWdlParser>();
+        services.AddSingleton<CelExpressionEvaluator>();
+        services.AddScoped<WorkflowStepExecutor>();
+        services.AddScoped<WorkflowOrchestrator>();
 
         return services;
     }

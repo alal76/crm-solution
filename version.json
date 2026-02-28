@@ -1,9 +1,9 @@
 {
   "major": 0,
-  "minor": 603,
-  "patch": 1,
+  "minor": 604,
+  "patch": 0,
   "lastUpdate": "2026-02-28",
-  "description": "feat: SARCH-030→038 — TypeScript Script Engine Sidecar: crm-script-runner Node.js 20 + isolated-vm, SWC AST scanner, @engine/stdlib, @engine/contracts, TypeScriptScriptEngine C# wrapper, Vitest harness, docker-compose sidecar",
+  "description": "feat: SARCH-048→060 - Workflow YAML WDL Engine (YamlWdlParser, CelExpressionEvaluator, WorkflowStepExecutor, WorkflowOrchestrator with saga/dead-letter/replay, WorkflowEditorPage)",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [
