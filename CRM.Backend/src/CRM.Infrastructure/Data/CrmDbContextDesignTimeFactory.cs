@@ -25,9 +25,8 @@ public class CrmDbContextDesignTimeFactory : IDesignTimeDbContextFactory<CrmDbCo
             .AddEnvironmentVariables()
             .AddInMemoryCollection(new Dictionary<string, string?>
             {
-                // NOSONAR — dev-only fallback; never used in production
                 ["ConnectionStrings:DefaultConnection"] = connectionString
-                    ?? "Server=127.0.0.1;Port=3306;Database=crm_db;User=crm_user;Password=CrmPass@Dev2024;AllowPublicKeyRetrieval=True;",
+                    ?? "Server=127.0.0.1;Port=3306;Database=crm_db;User=crm_user;Password=CrmPass@Dev2024;AllowPublicKeyRetrieval=True;", // NOSONAR — dev-only fallback; never used in production
             })
             .Build();
 

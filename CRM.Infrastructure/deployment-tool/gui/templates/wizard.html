@@ -182,6 +182,61 @@
             margin-bottom: 8px;
         }
 
+        /* ── Cloud Service Selector Cards ──────────────────────── */
+        .cloud-services-panel {
+            background: #f8f9fb;
+            border: 1px solid #e0e0e0;
+            border-radius: 10px;
+            padding: 14px 16px;
+        }
+        .cloud-svc-group-header {
+            font-size: 0.78rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            color: #555;
+            margin-bottom: 8px;
+        }
+        .cloud-svc-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+            gap: 8px;
+        }
+        .cloud-svc-grid-check {
+            grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+        }
+        .cloud-svc-card {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            background: #fff;
+            border: 1.5px solid #d8dce7;
+            border-radius: 8px;
+            padding: 9px 10px 8px;
+            cursor: pointer;
+            transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+            position: relative;
+        }
+        .cloud-svc-card input[type=radio],
+        .cloud-svc-card input[type=checkbox] {
+            position: absolute;
+            top: 7px;
+            right: 8px;
+            accent-color: var(--primary-color, #667eea);
+        }
+        .cloud-svc-card:has(input:checked) {
+            border-color: var(--primary-color, #667eea);
+            background: rgba(102, 126, 234, 0.07);
+            box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.18);
+        }
+        .cloud-svc-card:hover {
+            border-color: #9a9cf5;
+        }
+        .svc-icon { font-size: 1.25rem; margin-bottom: 3px; }
+        .svc-name { font-size: 0.82rem; font-weight: 700; color: #222; line-height: 1.2; }
+        .svc-desc { font-size: 0.72rem; color: #666; margin-top: 2px; }
+        .svc-badge { font-size: 0.6rem !important; margin-top: 4px; align-self: flex-start; }
+
         /* ── Discovery Sidebar Layout ──────────────────────────── */
         .discovery-layout {
             display: flex;
@@ -893,52 +948,389 @@
                 <div id="platformOptions" class="mt-4" style="display: none;">
                     <!-- Azure Options -->
                     <div id="azureOptions" class="platform-specific" style="display: none;">
-                        <h5 class="mb-3">Azure Configuration</h5>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
+                        <h5 class="mb-2">Azure Configuration</h5>
+                        <div class="row g-2 mb-3">
+                            <div class="col-md-4">
                                 <label class="form-label" for="azureRegion">Region</label>
-                                <select class="form-select" id="azureRegion"></select>
+                                <select class="form-select form-select-sm" id="azureRegion"></select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label" for="azureResourceGroup">Resource Group</label>
+                                <input type="text" class="form-control form-control-sm" id="azureResourceGroup" value="rg-crm-prod">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label" for="azureSubscription">Subscription ID</label>
+                                <input type="text" class="form-control form-control-sm" id="azureSubscription" placeholder="xxxxxxxx-xxxx…">
                             </div>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label" for="azureResourceGroup">Resource Group Name</label>
-                            <input type="text" class="form-control" id="azureResourceGroup" value="crm-production-rg">
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label" for="azureSubscription">Subscription ID</label>
-                            <input type="text" class="form-control" id="azureSubscription" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
-                        </div>
-                    </div>
+                        <!-- Cloud-native service components -->
+                        <div class="cloud-services-panel">
+                            <p class="text-muted small mb-2"><i class="bi bi-grid me-1"></i>Select Azure-native services — pre-selected options are recommended for production.</p>
+
+                            <!-- Compute -->
+                            <div class="cloud-svc-group mb-3">
+                                <div class="cloud-svc-group-header"><i class="bi bi-cpu text-primary me-1"></i>Compute &amp; Orchestration</div>
+                                <div class="cloud-svc-grid">
+                                    <label class="cloud-svc-card" title="Managed Kubernetes — best for microservices">
+                                        <input type="radio" name="az_compute" value="aks" checked onchange="updateCloudConfig('azure','compute','aks')">
+                                        <span class="svc-icon">☸️</span><span class="svc-name">AKS</span>
+                                        <span class="svc-desc">Managed Kubernetes</span><span class="badge bg-success svc-badge">Recommended</span>
+                                    </label>
+                                    <label class="cloud-svc-card" title="Serverless containers, no cluster management">
+                                        <input type="radio" name="az_compute" value="container_apps" onchange="updateCloudConfig('azure','compute','container_apps')">
+                                        <span class="svc-icon">📦</span><span class="svc-name">Container Apps</span>
+                                        <span class="svc-desc">Serverless containers</span>
+                                    </label>
+                                    <label class="cloud-svc-card" title="PaaS web hosting">
+                                        <input type="radio" name="az_compute" value="app_service" onchange="updateCloudConfig('azure','compute','app_service')">
+                                        <span class="svc-icon">🌐</span><span class="svc-name">App Service</span>
+                                        <span class="svc-desc">PaaS web hosting</span>
+                                    </label>
+                                    <label class="cloud-svc-card" title="Full control, bring your own Docker host">
+                                        <input type="radio" name="az_compute" value="vm" onchange="updateCloudConfig('azure','compute','vm')">
+                                        <span class="svc-icon">🖥️</span><span class="svc-name">Azure VMs</span>
+                                        <span class="svc-desc">IaaS / Docker on VM</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Ingress / Networking -->
+                            <div class="cloud-svc-group mb-3">
+                                <div class="cloud-svc-group-header"><i class="bi bi-globe text-success me-1"></i>Ingress &amp; Networking</div>
+                                <div class="cloud-svc-grid">
+                                    <label class="cloud-svc-card" title="L7 load balancer with WAF &amp; SSL">
+                                        <input type="radio" name="az_ingress" value="app_gateway" checked onchange="updateCloudConfig('azure','ingress','app_gateway')">
+                                        <span class="svc-icon">🔀</span><span class="svc-name">App Gateway</span>
+                                        <span class="svc-desc">L7 LB + WAF + SSL</span><span class="badge bg-success svc-badge">Recommended</span>
+                                    </label>
+                                    <label class="cloud-svc-card" title="Global CDN + WAF + DDoS">
+                                        <input type="radio" name="az_ingress" value="front_door" onchange="updateCloudConfig('azure','ingress','front_door')">
+                                        <span class="svc-icon">🌍</span><span class="svc-name">Front Door</span>
+                                        <span class="svc-desc">Global CDN + WAF</span>
+                                    </label>
+                                    <label class="cloud-svc-card" title="Simple L4 load balancer">
+                                        <input type="radio" name="az_ingress" value="load_balancer" onchange="updateCloudConfig('azure','ingress','load_balancer')">
+                                        <span class="svc-icon">⚖️</span><span class="svc-name">Load Balancer</span>
+                                        <span class="svc-desc">L4 TCP/UDP</span>
+                                    </label>
+                                    <label class="cloud-svc-card" title="Kubernetes ingress only (no Azure LB)">
+                                        <input type="radio" name="az_ingress" value="nginx_ingress" onchange="updateCloudConfig('azure','ingress','nginx_ingress')">
+                                        <span class="svc-icon">🔧</span><span class="svc-name">NGINX Ingress</span>
+                                        <span class="svc-desc">K8s ingress only</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Cache -->
+                            <div class="cloud-svc-group mb-3">
+                                <div class="cloud-svc-group-header"><i class="bi bi-lightning text-warning me-1"></i>Cache &amp; Sessions</div>
+                                <div class="cloud-svc-grid">
+                                    <label class="cloud-svc-card" title="Fully managed Redis">
+                                        <input type="radio" name="az_cache" value="azure_redis" checked onchange="updateCloudConfig('azure','cache','azure_redis')">
+                                        <span class="svc-icon">⚡</span><span class="svc-name">Azure Cache for Redis</span>
+                                        <span class="svc-desc">Managed Redis</span><span class="badge bg-success svc-badge">Recommended</span>
+                                    </label>
+                                    <label class="cloud-svc-card" title="Redis container in AKS/VM">
+                                        <input type="radio" name="az_cache" value="self_hosted_redis" onchange="updateCloudConfig('azure','cache','self_hosted_redis')">
+                                        <span class="svc-icon">🐳</span><span class="svc-name">Self-hosted Redis</span>
+                                        <span class="svc-desc">Container in cluster</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Additive services row -->
+                            <div class="cloud-svc-group mb-3">
+                                <div class="cloud-svc-group-header"><i class="bi bi-toggles text-info me-1"></i>Additional Services</div>
+                                <div class="cloud-svc-grid cloud-svc-grid-check">
+                                    <label class="cloud-svc-card cloud-svc-check" title="Azure Blob for media &amp; document storage">
+                                        <input type="checkbox" id="az_storage" checked onchange="updateCloudConfig('azure','storage', this.checked ? 'blob' : 'none')">
+                                        <span class="svc-icon">🗄️</span><span class="svc-name">Blob Storage</span>
+                                        <span class="svc-desc">Media &amp; uploads</span>
+                                    </label>
+                                    <label class="cloud-svc-card cloud-svc-check" title="Azure Key Vault for secrets &amp; certs">
+                                        <input type="checkbox" id="az_keyvault" checked onchange="updateCloudConfig('azure','keyvault', this.checked)">
+                                        <span class="svc-icon">🔑</span><span class="svc-name">Key Vault</span>
+                                        <span class="svc-desc">Secrets &amp; certs</span>
+                                    </label>
+                                    <label class="cloud-svc-card cloud-svc-check" title="Azure Monitor + Application Insights">
+                                        <input type="checkbox" id="az_monitor" checked onchange="updateCloudConfig('azure','monitoring', this.checked ? 'azure_monitor' : 'none')">
+                                        <span class="svc-icon">📊</span><span class="svc-name">Azure Monitor</span>
+                                        <span class="svc-desc">Metrics &amp; APM</span>
+                                    </label>
+                                    <label class="cloud-svc-card cloud-svc-check" title="Azure Service Bus for async messaging">
+                                        <input type="checkbox" id="az_servicebus" onchange="updateCloudConfig('azure','messaging', this.checked ? 'service_bus' : 'none')">
+                                        <span class="svc-icon">📨</span><span class="svc-name">Service Bus</span>
+                                        <span class="svc-desc">Async messaging</span>
+                                    </label>
+                                    <label class="cloud-svc-card cloud-svc-check" title="Azure Container Registry for images">
+                                        <input type="checkbox" id="az_acr" checked onchange="updateCloudConfig('azure','registry', this.checked ? 'acr' : 'none')">
+                                        <span class="svc-icon">📋</span><span class="svc-name">Container Registry</span>
+                                        <span class="svc-desc">ACR image storage</span>
+                                    </label>
+                                    <label class="cloud-svc-card cloud-svc-check" title="Azure API Management gateway">
+                                        <input type="checkbox" id="az_apim" onchange="updateCloudConfig('azure','api_mgmt', this.checked ? 'apim' : 'none')">
+                                        <span class="svc-icon">🔌</span><span class="svc-name">API Management</span>
+                                        <span class="svc-desc">API gateway &amp; policies</span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div><!-- /cloud-services-panel -->
+                    </div><!-- /azureOptions -->
 
                     <!-- AWS Options -->
                     <div id="awsOptions" class="platform-specific" style="display: none;">
-                        <h5 class="mb-3">AWS Configuration</h5>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
+                        <h5 class="mb-2">AWS Configuration</h5>
+                        <div class="row g-2 mb-3">
+                            <div class="col-md-4">
                                 <label class="form-label" for="awsRegion">Region</label>
-                                <select class="form-select" id="awsRegion"></select>
+                                <select class="form-select form-select-sm" id="awsRegion"></select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label" for="awsVpcId">VPC ID</label>
+                                <input type="text" class="form-control form-control-sm" id="awsVpcId" placeholder="vpc-xxxxxxxxxx">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label" for="awsAccountId">Account ID</label>
+                                <input type="text" class="form-control form-control-sm" id="awsAccountId" placeholder="123456789012">
                             </div>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label" for="awsVpcId">VPC ID (optional)</label>
-                            <input type="text" class="form-control" id="awsVpcId" placeholder="vpc-xxxxxxxxxx">
+                        <div class="cloud-services-panel">
+                            <p class="text-muted small mb-2"><i class="bi bi-grid me-1"></i>Select AWS-native services — pre-selected options are recommended for production.</p>
+
+                            <!-- Compute -->
+                            <div class="cloud-svc-group mb-3">
+                                <div class="cloud-svc-group-header"><i class="bi bi-cpu text-warning me-1"></i>Compute &amp; Orchestration</div>
+                                <div class="cloud-svc-grid">
+                                    <label class="cloud-svc-card" title="Managed Kubernetes on AWS">
+                                        <input type="radio" name="aws_compute" value="eks" checked onchange="updateCloudConfig('aws','compute','eks')">
+                                        <span class="svc-icon">☸️</span><span class="svc-name">EKS</span>
+                                        <span class="svc-desc">Managed Kubernetes</span><span class="badge bg-success svc-badge">Recommended</span>
+                                    </label>
+                                    <label class="cloud-svc-card" title="Serverless containers — no infrastructure to manage">
+                                        <input type="radio" name="aws_compute" value="fargate" onchange="updateCloudConfig('aws','compute','fargate')">
+                                        <span class="svc-icon">📦</span><span class="svc-name">ECS Fargate</span>
+                                        <span class="svc-desc">Serverless containers</span>
+                                    </label>
+                                    <label class="cloud-svc-card" title="Traditional EC2 with Docker Compose">
+                                        <input type="radio" name="aws_compute" value="ec2" onchange="updateCloudConfig('aws','compute','ec2')">
+                                        <span class="svc-icon">🖥️</span><span class="svc-name">EC2</span>
+                                        <span class="svc-desc">Docker on instances</span>
+                                    </label>
+                                    <label class="cloud-svc-card" title="App Runner for simple deployments">
+                                        <input type="radio" name="aws_compute" value="app_runner" onchange="updateCloudConfig('aws','compute','app_runner')">
+                                        <span class="svc-icon">🚀</span><span class="svc-name">App Runner</span>
+                                        <span class="svc-desc">PaaS containers</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Ingress -->
+                            <div class="cloud-svc-group mb-3">
+                                <div class="cloud-svc-group-header"><i class="bi bi-globe text-success me-1"></i>Ingress &amp; Networking</div>
+                                <div class="cloud-svc-grid">
+                                    <label class="cloud-svc-card" title="HTTP/HTTPS L7 load balancer">
+                                        <input type="radio" name="aws_ingress" value="alb" checked onchange="updateCloudConfig('aws','ingress','alb')">
+                                        <span class="svc-icon">🔀</span><span class="svc-name">ALB</span>
+                                        <span class="svc-desc">L7 load balancer</span><span class="badge bg-success svc-badge">Recommended</span>
+                                    </label>
+                                    <label class="cloud-svc-card" title="Global CDN + WAF + DDoS protection">
+                                        <input type="radio" name="aws_ingress" value="cloudfront" onchange="updateCloudConfig('aws','ingress','cloudfront')">
+                                        <span class="svc-icon">🌍</span><span class="svc-name">CloudFront + WAF</span>
+                                        <span class="svc-desc">Global CDN + WAF</span>
+                                    </label>
+                                    <label class="cloud-svc-card" title="K8s-native NGINX ingress controller">
+                                        <input type="radio" name="aws_ingress" value="nginx_ingress" onchange="updateCloudConfig('aws','ingress','nginx_ingress')">
+                                        <span class="svc-icon">🔧</span><span class="svc-name">NGINX Ingress</span>
+                                        <span class="svc-desc">K8s ingress only</span>
+                                    </label>
+                                    <label class="cloud-svc-card" title="API Gateway for REST/GraphQL">
+                                        <input type="radio" name="aws_ingress" value="api_gateway" onchange="updateCloudConfig('aws','ingress','api_gateway')">
+                                        <span class="svc-icon">🔌</span><span class="svc-name">API Gateway</span>
+                                        <span class="svc-desc">Managed API GW</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Cache -->
+                            <div class="cloud-svc-group mb-3">
+                                <div class="cloud-svc-group-header"><i class="bi bi-lightning text-warning me-1"></i>Cache &amp; Sessions</div>
+                                <div class="cloud-svc-grid">
+                                    <label class="cloud-svc-card" title="Managed Redis/Valkey on ElastiCache">
+                                        <input type="radio" name="aws_cache" value="elasticache" checked onchange="updateCloudConfig('aws','cache','elasticache')">
+                                        <span class="svc-icon">⚡</span><span class="svc-name">ElastiCache (Redis)</span>
+                                        <span class="svc-desc">Managed Redis</span><span class="badge bg-success svc-badge">Recommended</span>
+                                    </label>
+                                    <label class="cloud-svc-card" title="Redis container in cluster">
+                                        <input type="radio" name="aws_cache" value="self_hosted_redis" onchange="updateCloudConfig('aws','cache','self_hosted_redis')">
+                                        <span class="svc-icon">🐳</span><span class="svc-name">Self-hosted Redis</span>
+                                        <span class="svc-desc">Container in cluster</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Additive services -->
+                            <div class="cloud-svc-group mb-3">
+                                <div class="cloud-svc-group-header"><i class="bi bi-toggles text-info me-1"></i>Additional Services</div>
+                                <div class="cloud-svc-grid cloud-svc-grid-check">
+                                    <label class="cloud-svc-card cloud-svc-check">
+                                        <input type="checkbox" id="aws_s3" checked onchange="updateCloudConfig('aws','storage', this.checked ? 's3' : 'none')">
+                                        <span class="svc-icon">🗄️</span><span class="svc-name">S3</span>
+                                        <span class="svc-desc">Object storage</span>
+                                    </label>
+                                    <label class="cloud-svc-card cloud-svc-check">
+                                        <input type="checkbox" id="aws_secrets" checked onchange="updateCloudConfig('aws','secrets', this.checked ? 'secrets_manager' : 'none')">
+                                        <span class="svc-icon">🔑</span><span class="svc-name">Secrets Manager</span>
+                                        <span class="svc-desc">Secrets &amp; rotation</span>
+                                    </label>
+                                    <label class="cloud-svc-card cloud-svc-check">
+                                        <input type="checkbox" id="aws_cloudwatch" checked onchange="updateCloudConfig('aws','monitoring', this.checked ? 'cloudwatch' : 'none')">
+                                        <span class="svc-icon">📊</span><span class="svc-name">CloudWatch</span>
+                                        <span class="svc-desc">Metrics &amp; logs</span>
+                                    </label>
+                                    <label class="cloud-svc-card cloud-svc-check">
+                                        <input type="checkbox" id="aws_sqs" onchange="updateCloudConfig('aws','messaging', this.checked ? 'sqs' : 'none')">
+                                        <span class="svc-icon">📨</span><span class="svc-name">SQS / SNS</span>
+                                        <span class="svc-desc">Async messaging</span>
+                                    </label>
+                                    <label class="cloud-svc-card cloud-svc-check">
+                                        <input type="checkbox" id="aws_ecr" checked onchange="updateCloudConfig('aws','registry', this.checked ? 'ecr' : 'none')">
+                                        <span class="svc-icon">📋</span><span class="svc-name">ECR</span>
+                                        <span class="svc-desc">Container registry</span>
+                                    </label>
+                                    <label class="cloud-svc-card cloud-svc-check">
+                                        <input type="checkbox" id="aws_waf" onchange="updateCloudConfig('aws','waf', this.checked)">
+                                        <span class="svc-icon">🛡️</span><span class="svc-name">AWS WAF</span>
+                                        <span class="svc-desc">Web app firewall</span>
+                                    </label>
+                                </div>
+                            </div>
                         </div>
-                    </div>
+                    </div><!-- /awsOptions -->
 
                     <!-- GCP Options -->
                     <div id="gcpOptions" class="platform-specific" style="display: none;">
-                        <h5 class="mb-3">GCP Configuration</h5>
-                        <div class="row">
-                            <div class="col-md-6 mb-3">
+                        <h5 class="mb-2">GCP Configuration</h5>
+                        <div class="row g-2 mb-3">
+                            <div class="col-md-4">
                                 <label class="form-label" for="gcpRegion">Region</label>
-                                <select class="form-select" id="gcpRegion"></select>
+                                <select class="form-select form-select-sm" id="gcpRegion"></select>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label" for="gcpProjectId">Project ID</label>
+                                <input type="text" class="form-control form-control-sm" id="gcpProjectId" placeholder="crm-prod">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label" for="gcpNetwork">VPC Network</label>
+                                <input type="text" class="form-control form-control-sm" id="gcpNetwork" value="vpc-crm-prod">
                             </div>
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label" for="gcpProjectId">Project ID</label>
-                            <input type="text" class="form-control" id="gcpProjectId" placeholder="my-project-id">
+                        <div class="cloud-services-panel">
+                            <p class="text-muted small mb-2"><i class="bi bi-grid me-1"></i>Select GCP-native services — pre-selected options are recommended for production.</p>
+
+                            <!-- Compute -->
+                            <div class="cloud-svc-group mb-3">
+                                <div class="cloud-svc-group-header"><i class="bi bi-cpu text-danger me-1"></i>Compute &amp; Orchestration</div>
+                                <div class="cloud-svc-grid">
+                                    <label class="cloud-svc-card" title="Managed Kubernetes on GCP">
+                                        <input type="radio" name="gcp_compute" value="gke" checked onchange="updateCloudConfig('gcp','compute','gke')">
+                                        <span class="svc-icon">☸️</span><span class="svc-name">GKE</span>
+                                        <span class="svc-desc">Managed Kubernetes</span><span class="badge bg-success svc-badge">Recommended</span>
+                                    </label>
+                                    <label class="cloud-svc-card" title="Serverless containers with scale-to-zero">
+                                        <input type="radio" name="gcp_compute" value="cloud_run" onchange="updateCloudConfig('gcp','compute','cloud_run')">
+                                        <span class="svc-icon">🏃</span><span class="svc-name">Cloud Run</span>
+                                        <span class="svc-desc">Serverless containers</span>
+                                    </label>
+                                    <label class="cloud-svc-card" title="Compute Engine VMs with Docker">
+                                        <input type="radio" name="gcp_compute" value="gce" onchange="updateCloudConfig('gcp','compute','gce')">
+                                        <span class="svc-icon">🖥️</span><span class="svc-name">Compute Engine</span>
+                                        <span class="svc-desc">VMs / Docker</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Ingress -->
+                            <div class="cloud-svc-group mb-3">
+                                <div class="cloud-svc-group-header"><i class="bi bi-globe text-success me-1"></i>Ingress &amp; Networking</div>
+                                <div class="cloud-svc-grid">
+                                    <label class="cloud-svc-card" title="L7 HTTPS load balancer + Cloud Armor">
+                                        <input type="radio" name="gcp_ingress" value="cloud_lb" checked onchange="updateCloudConfig('gcp','ingress','cloud_lb')">
+                                        <span class="svc-icon">🔀</span><span class="svc-name">Cloud LB + Armor</span>
+                                        <span class="svc-desc">L7 LB + WAF</span><span class="badge bg-success svc-badge">Recommended</span>
+                                    </label>
+                                    <label class="cloud-svc-card" title="Cloud CDN for static assets and caching">
+                                        <input type="radio" name="gcp_ingress" value="cloud_cdn" onchange="updateCloudConfig('gcp','ingress','cloud_cdn')">
+                                        <span class="svc-icon">🌍</span><span class="svc-name">Cloud CDN</span>
+                                        <span class="svc-desc">Global CDN</span>
+                                    </label>
+                                    <label class="cloud-svc-card" title="Apigee API management">
+                                        <input type="radio" name="gcp_ingress" value="apigee" onchange="updateCloudConfig('gcp','ingress','apigee')">
+                                        <span class="svc-icon">🔌</span><span class="svc-name">Apigee</span>
+                                        <span class="svc-desc">API management</span>
+                                    </label>
+                                    <label class="cloud-svc-card" title="K8s-native NGINX ingress">
+                                        <input type="radio" name="gcp_ingress" value="nginx_ingress" onchange="updateCloudConfig('gcp','ingress','nginx_ingress')">
+                                        <span class="svc-icon">🔧</span><span class="svc-name">NGINX Ingress</span>
+                                        <span class="svc-desc">K8s ingress only</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Cache -->
+                            <div class="cloud-svc-group mb-3">
+                                <div class="cloud-svc-group-header"><i class="bi bi-lightning text-warning me-1"></i>Cache &amp; Sessions</div>
+                                <div class="cloud-svc-grid">
+                                    <label class="cloud-svc-card" title="Fully managed Redis on GCP">
+                                        <input type="radio" name="gcp_cache" value="memorystore" checked onchange="updateCloudConfig('gcp','cache','memorystore')">
+                                        <span class="svc-icon">⚡</span><span class="svc-name">Memorystore (Redis)</span>
+                                        <span class="svc-desc">Managed Redis</span><span class="badge bg-success svc-badge">Recommended</span>
+                                    </label>
+                                    <label class="cloud-svc-card" title="Redis container in GKE">
+                                        <input type="radio" name="gcp_cache" value="self_hosted_redis" onchange="updateCloudConfig('gcp','cache','self_hosted_redis')">
+                                        <span class="svc-icon">🐳</span><span class="svc-name">Self-hosted Redis</span>
+                                        <span class="svc-desc">Container in cluster</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <!-- Additive services -->
+                            <div class="cloud-svc-group mb-3">
+                                <div class="cloud-svc-group-header"><i class="bi bi-toggles text-info me-1"></i>Additional Services</div>
+                                <div class="cloud-svc-grid cloud-svc-grid-check">
+                                    <label class="cloud-svc-card cloud-svc-check">
+                                        <input type="checkbox" id="gcp_gcs" checked onchange="updateCloudConfig('gcp','storage', this.checked ? 'gcs' : 'none')">
+                                        <span class="svc-icon">🗄️</span><span class="svc-name">Cloud Storage</span>
+                                        <span class="svc-desc">GCS object store</span>
+                                    </label>
+                                    <label class="cloud-svc-card cloud-svc-check">
+                                        <input type="checkbox" id="gcp_secretmgr" checked onchange="updateCloudConfig('gcp','secrets', this.checked ? 'secret_manager' : 'none')">
+                                        <span class="svc-icon">🔑</span><span class="svc-name">Secret Manager</span>
+                                        <span class="svc-desc">Secrets &amp; certs</span>
+                                    </label>
+                                    <label class="cloud-svc-card cloud-svc-check">
+                                        <input type="checkbox" id="gcp_monitoring" checked onchange="updateCloudConfig('gcp','monitoring', this.checked ? 'cloud_monitoring' : 'none')">
+                                        <span class="svc-icon">📊</span><span class="svc-name">Cloud Monitoring</span>
+                                        <span class="svc-desc">Metrics &amp; logging</span>
+                                    </label>
+                                    <label class="cloud-svc-card cloud-svc-check">
+                                        <input type="checkbox" id="gcp_pubsub" onchange="updateCloudConfig('gcp','messaging', this.checked ? 'pubsub' : 'none')">
+                                        <span class="svc-icon">📨</span><span class="svc-name">Pub/Sub</span>
+                                        <span class="svc-desc">Async messaging</span>
+                                    </label>
+                                    <label class="cloud-svc-card cloud-svc-check">
+                                        <input type="checkbox" id="gcp_artifact" checked onchange="updateCloudConfig('gcp','registry', this.checked ? 'artifact_registry' : 'none')">
+                                        <span class="svc-icon">📋</span><span class="svc-name">Artifact Registry</span>
+                                        <span class="svc-desc">Container registry</span>
+                                    </label>
+                                    <label class="cloud-svc-card cloud-svc-check">
+                                        <input type="checkbox" id="gcp_cloudbuild" onchange="updateCloudConfig('gcp','ci_cd', this.checked ? 'cloud_build' : 'none')">
+                                        <span class="svc-icon">🏗️</span><span class="svc-name">Cloud Build</span>
+                                        <span class="svc-desc">CI/CD pipelines</span>
+                                    </label>
+                                </div>
+                            </div>
                         </div>
-                    </div>
+                    </div><!-- /gcpOptions -->
 
                     <!-- On-Premises Options -->
                     <div id="onPremOptions" class="platform-specific" style="display: none;">
@@ -1088,6 +1480,16 @@
                     </div>
                 </div>
 
+                <!-- ── Cloud-Managed Database (shown when cloud platform chosen) ─── -->
+                <div id="cloudDbSection" class="mb-3" style="display:none">
+                    <hr>
+                    <h5 class="mb-2"><i class="bi bi-cloud-fill me-1"></i>Cloud-Managed Database <span class="badge bg-primary ms-1 fs-6" id="cloudDbPlatformBadge"></span></h5>
+                    <p class="text-muted small mb-2">Use a fully-managed cloud database instead of a containerised one. Select below — or leave on <em>Self-hosted container</em> to keep the current setup.</p>
+                    <div class="cloud-svc-grid" id="cloudDbOptions">
+                        <!-- populated by syncCloudDbOptions() -->
+                    </div>
+                </div>
+
                 <!-- External DB option -->
                 <div class="form-check mb-2">
                     <input class="form-check-input" type="checkbox" id="dbUseExternal" onchange="toggleDbExternalOptions()">
@@ -1108,6 +1510,85 @@
                             <label class="form-label" for="dbExternalPort">Port</label>
                             <input type="number" class="form-control form-control-sm" id="dbExternalPort" value="3306">
                         </div>
+                    </div>
+                </div>
+
+                <!-- ── Migrate from existing DB ──────────────────────────────── -->
+                <hr>
+                <div class="form-check mb-2">
+                    <input class="form-check-input" type="checkbox" id="dbMigrateEnabled" onchange="toggleDbMigration()">
+                    <label class="form-check-label fw-semibold" for="dbMigrateEnabled">
+                        <i class="bi bi-arrow-left-right me-1"></i>Migrate data from an existing database deployment
+                    </label>
+                </div>
+                <div id="dbMigrationPanel" class="ms-4 ps-3 border-start border-warning mb-3" style="display:none">
+                    <div class="alert alert-warning py-2 small mb-3">
+                        <i class="bi bi-exclamation-triangle me-1"></i>CDT will generate a migration script and run it during deployment. Ensure the source DB is accessible from this host.
+                    </div>
+                    <div class="row g-2 mb-2">
+                        <div class="col-md-3">
+                            <label class="form-label" for="migSrcType">Source DB Type</label>
+                            <select class="form-select form-select-sm" id="migSrcType">
+                                <option value="mariadb">MariaDB</option>
+                                <option value="mysql">MySQL</option>
+                                <option value="postgresql">PostgreSQL</option>
+                                <option value="sqlserver">SQL Server</option>
+                            </select>
+                        </div>
+                        <div class="col-md-5">
+                            <label class="form-label" for="migSrcHost">Source Host</label>
+                            <input type="text" class="form-control form-control-sm" id="migSrcHost" placeholder="192.168.0.9 or db.mycompany.com">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label" for="migSrcPort">Port</label>
+                            <input type="number" class="form-control form-control-sm" id="migSrcPort" value="3306">
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label" for="migSrcDb">Database</label>
+                            <input type="text" class="form-control form-control-sm" id="migSrcDb" value="crm_db">
+                        </div>
+                    </div>
+                    <div class="row g-2 mb-2">
+                        <div class="col-md-4">
+                            <label class="form-label" for="migSrcUser">Username</label>
+                            <input type="text" class="form-control form-control-sm" id="migSrcUser" value="crm_user">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label" for="migSrcPassword">Password</label>
+                            <input type="password" class="form-control form-control-sm" id="migSrcPassword" placeholder="Source DB password">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label" for="migMode">Migration Mode</label>
+                            <select class="form-select form-select-sm" id="migMode">
+                                <option value="schema_and_data">Schema + Data (full)</option>
+                                <option value="data_only">Data only (schema exists)</option>
+                                <option value="schema_only">Schema only (no data)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="row g-2 mb-2">
+                        <div class="col-md-6">
+                            <label class="form-label" for="migTables">Tables to migrate <span class="text-muted">(blank = all)</span></label>
+                            <input type="text" class="form-control form-control-sm" id="migTables" placeholder="Accounts, Contacts, Leads, … or leave blank for all">
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-check mt-4">
+                                <input class="form-check-input" type="checkbox" id="migDropTarget" >
+                                <label class="form-check-label small" for="migDropTarget">Drop &amp; recreate target tables</label>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="form-check mt-4">
+                                <input class="form-check-input" type="checkbox" id="migDryRun" checked>
+                                <label class="form-check-label small" for="migDryRun">Dry-run first (recommended)</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2 align-items-center mt-1">
+                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="testMigrationSource()">
+                            <i class="bi bi-plug me-1"></i>Test Source Connection
+                        </button>
+                        <span id="migTestStatus" class="small"></span>
                     </div>
                 </div>
             </div>
@@ -2486,6 +2967,124 @@
             if (optionsMap[platform]) {
                 document.getElementById(optionsMap[platform]).style.display = 'block';
             }
+
+            // Sync cloud-native DB options in Step 4
+            syncCloudDbOptions(platform);
+        }
+
+        /**
+         * Persist a cloud service selection choice into config.cloud_services[platform][key] = value
+         * and highlight the selected card correctly for radio groups.
+         */
+        function updateCloudConfig(platform, key, value) {
+            if (!config.cloud_services) config.cloud_services = {};
+            if (!config.cloud_services[platform]) config.cloud_services[platform] = {};
+            config.cloud_services[platform][key] = value;
+            // Sync DB section in step 4 if the compute/db choice affects it
+            if (key === 'database') syncCloudDbOptions(platform);
+        }
+
+        /**
+         * Show/populate the cloud-managed DB options in Step 4 based on platform.
+         */
+        function syncCloudDbOptions(platform) {
+            const section = document.getElementById('cloudDbSection');
+            const grid    = document.getElementById('cloudDbOptions');
+            const badge   = document.getElementById('cloudDbPlatformBadge');
+            if (!section || !grid) return;
+
+            const platformLabels = { azure: 'Azure', aws: 'AWS', gcp: 'GCP' };
+            const cloudPlatforms = ['azure', 'aws', 'gcp'];
+
+            if (!cloudPlatforms.includes(platform)) {
+                section.style.display = 'none';
+                return;
+            }
+
+            section.style.display = 'block';
+            if (badge) badge.textContent = platformLabels[platform] || platform;
+
+            const dbOptions = {
+                azure: [
+                    { value: 'container',         icon: '🐳', name: 'Self-hosted container',       desc: 'MariaDB/MySQL Docker in AKS',   recommended: true  },
+                    { value: 'azure_mysql',        icon: '☁️', name: 'Azure Database for MySQL',    desc: 'Fully-managed MySQL / MariaDB' },
+                    { value: 'azure_mariadb',      icon: '☁️', name: 'Azure Database for MariaDB',  desc: 'Managed MariaDB (legacy tier)'  },
+                    { value: 'azure_postgresql',   icon: '☁️', name: 'Azure PostgreSQL Flexible',   desc: 'Managed PostgreSQL'             },
+                    { value: 'azure_sql',          icon: '☁️', name: 'Azure SQL Database',          desc: 'Managed SQL Server PaaS'        },
+                    { value: 'azure_cosmos',       icon: '🌌', name: 'Azure Cosmos DB',             desc: 'Multi-model NoSQL (advanced)'   },
+                ],
+                aws: [
+                    { value: 'container',          icon: '🐳', name: 'Self-hosted container',       desc: 'MariaDB/MySQL in EKS/Fargate', recommended: true  },
+                    { value: 'rds_mysql',           icon: '☁️', name: 'RDS MySQL',                   desc: 'Managed MySQL'                   },
+                    { value: 'rds_mariadb',         icon: '☁️', name: 'RDS MariaDB',                 desc: 'Managed MariaDB'                 },
+                    { value: 'rds_postgresql',      icon: '☁️', name: 'RDS PostgreSQL',              desc: 'Managed PostgreSQL'              },
+                    { value: 'aurora_mysql',        icon: '🌟', name: 'Aurora (MySQL)',              desc: 'High-performance managed MySQL'  },
+                    { value: 'aurora_postgresql',   icon: '🌟', name: 'Aurora (PostgreSQL)',         desc: 'High-performance PostgreSQL'     },
+                ],
+                gcp: [
+                    { value: 'container',          icon: '🐳', name: 'Self-hosted container',       desc: 'MariaDB/MySQL in GKE',         recommended: true  },
+                    { value: 'cloudsql_mysql',      icon: '☁️', name: 'Cloud SQL (MySQL)',           desc: 'Managed MySQL'                   },
+                    { value: 'cloudsql_postgresql', icon: '☁️', name: 'Cloud SQL (PostgreSQL)',      desc: 'Managed PostgreSQL'              },
+                    { value: 'alloydb',             icon: '🌟', name: 'AlloyDB (PostgreSQL)',        desc: 'High-performance Postgres'       },
+                    { value: 'spanner',             icon: '🔮', name: 'Cloud Spanner',               desc: 'Globally distributed SQL'        },
+                ],
+            };
+
+            const opts = dbOptions[platform] || [];
+            const currentDb = (config.cloud_services?.[platform]?.database) || 'container';
+
+            grid.innerHTML = opts.map(o => `
+                <label class="cloud-svc-card" title="${o.desc}">
+                    <input type="radio" name="cloud_db_choice" value="${o.value}" ${(o.value === currentDb) ? 'checked' : ''}
+                        onchange="updateCloudConfig('${platform}','database','${o.value}')">
+                    <span class="svc-icon">${o.icon}</span>
+                    <span class="svc-name">${o.name}</span>
+                    <span class="svc-desc">${o.desc}</span>
+                    ${o.recommended ? '<span class="badge bg-success svc-badge">Recommended</span>' : ''}
+                </label>`).join('');
+        }
+
+        /** Toggle DB migration panel visibility */
+        function toggleDbMigration() {
+            const enabled = document.getElementById('dbMigrateEnabled').checked;
+            document.getElementById('dbMigrationPanel').style.display = enabled ? 'block' : 'none';
+            if (!config.migration) config.migration = {};
+            config.migration.enabled = enabled;
+        }
+
+        /** Update source DB port when type changes */
+        document.addEventListener('change', function(e) {
+            if (e.target && e.target.id === 'migSrcType') {
+                const portMap = { mariadb: 3306, mysql: 3306, postgresql: 5432, sqlserver: 1433 };
+                const p = document.getElementById('migSrcPort');
+                if (p) p.value = portMap[e.target.value] || 3306;
+            }
+        });
+
+        /** Test source connection for migration */
+        function testMigrationSource() {
+            const status = document.getElementById('migTestStatus');
+            const payload = {
+                db_type:  document.getElementById('migSrcType')?.value,
+                host:     document.getElementById('migSrcHost')?.value,
+                port:     parseInt(document.getElementById('migSrcPort')?.value) || 3306,
+                database: document.getElementById('migSrcDb')?.value,
+                username: document.getElementById('migSrcUser')?.value,
+                password: document.getElementById('migSrcPassword')?.value,
+            };
+            if (!payload.host) { status.innerHTML = '<span class="text-danger">Host is required.</span>'; return; }
+            status.innerHTML = '<span class="text-muted">⏳ Testing…</span>';
+            fetch('/api/discovery/test-migration-source', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+            }).then(r => r.json()).then(d => {
+                status.innerHTML = d.success
+                    ? '<span class="text-success">✅ Connection OK — ' + (d.message || '') + '</span>'
+                    : '<span class="text-danger">❌ ' + (d.message || 'Connection failed') + '</span>';
+            }).catch(err => {
+                status.innerHTML = '<span class="text-danger">❌ ' + err + '</span>';
+            });
         }
 
         function selectArchitecture(arch) {

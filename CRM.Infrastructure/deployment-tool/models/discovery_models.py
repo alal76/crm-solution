@@ -463,111 +463,110 @@ class AzureDiscoveryClient(BaseDiscoveryClient):
             return {"status": "error", "message": str(exc)}
 
     def discover_deployment(self, config: Dict[str, Any]) -> DeploymentInfo:
-        """Discover Azure deployment."""
-        import subprocess as _sp
-        _j = __import__('json')
-
-        subscription_id = config.get('subscription_id', '').strip()
-        resource_group  = config.get('resource_group', '').strip()
-        use_cli         = config.get('use_cli_auth', False)
-
-        # Auto-detect subscription from CLI when not provided
-        if not subscription_id and use_cli:
-            try:
-                r = _sp.run(["az", "account", "show", "--output", "json"],
-                            capture_output=True, text=True, timeout=10)
-                if r.returncode == 0:
-                    subscription_id = _j.loads(r.stdout).get('id', '').strip()
-            except Exception:
-                pass
-
-        if not subscription_id:
-            raise CloudAPIError("Azure Subscription ID is required — select one from the dropdown or log in first.")
-
+        """Discover Azure deployment, auto-detecting subscription/resource group when omitted."""
+        subscription_id = self._resolve_subscription_id(config)
         credential = self._build_credential(config)
-        components = []
-
-        # ── Resolve resource groups to scan ─────────────────────────────────
-        # If no resource group is specified, discover across ALL resource groups
-        # in the subscription so the user doesn't have to know it upfront.
-        resource_groups_to_scan: List[str] = []
-        if resource_group:
-            resource_groups_to_scan = [resource_group]
-        else:
-            # List all resource groups via CLI (fastest, no extra SDK needed)
-            try:
-                r = _sp.run(
-                    ["az", "group", "list", "--subscription", subscription_id,
-                     "--output", "json", "--query", "[].name"],
-                    capture_output=True, text=True, timeout=20
-                )
-                if r.returncode == 0:
-                    resource_groups_to_scan = _j.loads(r.stdout) or []
-            except Exception:
-                pass
-
-            if not resource_groups_to_scan:
-                # Fallback: try Azure Resource Management SDK
-                try:
-                    azure_resources = _lazy_import("azure.mgmt.resource")
-                    rm_client = azure_resources.ResourceManagementClient(credential, subscription_id)
-                    resource_groups_to_scan = [rg.name for rg in rm_client.resource_groups.list()]
-                except Exception:
-                    pass
-
-        if not resource_groups_to_scan:
+        resource_groups = self._resolve_resource_groups(
+            config, credential, subscription_id
+        )
+        if not resource_groups:
             raise CloudAPIError(
                 "Could not determine any resource groups in this subscription. "
                 "Please specify a Resource Group in the form or ensure the account has access."
             )
-
-        # ── Discover VMs and Container Instances in each resource group ──────
+        components: List[DeploymentComponent] = []
         azure_compute = _lazy_import("azure.mgmt.compute")
         compute_client = azure_compute.ComputeManagementClient(credential, subscription_id)
-
         azure_container = _lazy_import("azure.mgmt.containerinstance")
         container_client = azure_container.ContainerInstanceManagementClient(credential, subscription_id)
-
-        for rg in resource_groups_to_scan:
-            try:
-                for vm in compute_client.virtual_machines.list(rg):
-                    if 'crm' in vm.name.lower():
-                        components.append(DeploymentComponent(
-                            name=vm.name,
-                            type="vm",
-                            status="running",
-                            metadata={
-                                "vm_size": vm.hardware_profile.vm_size,
-                                "location": vm.location,
-                                "os_type": vm.storage_profile.os_disk.os_type,
-                                "resource_group": rg,
-                            }
-                        ))
-            except Exception:
-                pass
-
-            try:
-                for container_group in container_client.container_groups.list_by_resource_group(rg):
-                    if 'crm' in container_group.name.lower():
-                        for container in container_group.containers:
-                            components.append(DeploymentComponent(
-                                name=f"{container_group.name}/{container.name}",
-                                type="container",
-                                status="running",
-                                image=container.image,
-                                ports=[port.port for port in container.ports] if container.ports else [],
-                                metadata={"resource_group": rg},
-                            ))
-            except Exception:
-                pass
-
+        for rg in resource_groups:
+            components += self._scan_resource_group(compute_client, container_client, rg)
         architecture = "microservices" if len(components) > 3 else "monolithic"
         return DeploymentInfo(
-            platform="azure",
-            architecture=architecture,
-            components=components,
-            last_checked=datetime.now()
+            platform="azure", architecture=architecture,
+            components=components, last_checked=datetime.now()
         )
+
+    @staticmethod
+    def _resolve_subscription_id(config: Dict[str, Any]) -> str:
+        """Return subscription_id from config or auto-detect via `az account show`."""
+        import subprocess as _sp
+        import json as _json
+        subscription_id = config.get('subscription_id', '').strip()
+        if not subscription_id:
+            try:
+                r = _sp.run(["az", "account", "show", "--output", "json"],
+                            capture_output=True, text=True, timeout=10)
+                if r.returncode == 0:
+                    subscription_id = _json.loads(r.stdout).get('id', '').strip()
+            except Exception:
+                pass
+        if not subscription_id:
+            raise CloudAPIError(
+                "Azure Subscription ID is required — select one from the dropdown or run `az login` first."
+            )
+        return subscription_id
+
+    @staticmethod
+    def _resolve_resource_groups(config: Dict[str, Any], credential,
+                                  subscription_id: str) -> List[str]:
+        """Return the list of resource groups to scan, auto-detecting when not specified."""
+        import subprocess as _sp
+        import json as _json
+        resource_group = config.get('resource_group', '').strip()
+        if resource_group:
+            return [resource_group]
+        # Try Azure CLI first (fast, no extra SDK)
+        try:
+            r = _sp.run(
+                ["az", "group", "list", "--subscription", subscription_id,
+                 "--output", "json", "--query", "[].name"],
+                capture_output=True, text=True, timeout=20
+            )
+            if r.returncode == 0:
+                groups = _json.loads(r.stdout) or []
+                if groups:
+                    return groups
+        except Exception:
+            pass
+        # Fallback to SDK
+        try:
+            azure_resources = _lazy_import("azure.mgmt.resource")
+            rm_client = azure_resources.ResourceManagementClient(credential, subscription_id)
+            return [rg.name for rg in rm_client.resource_groups.list()]
+        except Exception:
+            return []
+
+    @staticmethod
+    def _scan_resource_group(compute_client, container_client,
+                              rg: str) -> List[DeploymentComponent]:
+        """Discover CRM VMs and container instances in a single resource group."""
+        out: List[DeploymentComponent] = []
+        try:
+            for vm in compute_client.virtual_machines.list(rg):
+                if 'crm' in vm.name.lower():
+                    out.append(DeploymentComponent(
+                        name=vm.name, type="vm", status="running",
+                        metadata={"vm_size": vm.hardware_profile.vm_size,
+                                  "location": vm.location,
+                                  "os_type": vm.storage_profile.os_disk.os_type,
+                                  "resource_group": rg}
+                    ))
+        except Exception:
+            pass
+        try:
+            for cg in container_client.container_groups.list_by_resource_group(rg):
+                if 'crm' in cg.name.lower():
+                    for c in cg.containers:
+                        out.append(DeploymentComponent(
+                            name=f"{cg.name}/{c.name}", type="container", status="running",
+                            image=c.image,
+                            ports=[p.port for p in c.ports] if c.ports else [],
+                            metadata={"resource_group": rg}
+                        ))
+        except Exception:
+            pass
+        return out
 
 
 class AWSDiscoveryClient(BaseDiscoveryClient):

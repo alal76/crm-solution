@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 611,
-  "patch": 10,
+  "patch": 11,
   "lastUpdate": "2026-03-01",
-  "description": "fix(infra/cdt): v0.611.10 - auto-detect subscription + scan all resource groups on discover",
+  "description": "fix(sonar): v0.611.11 - resolve all SonarQube issues (cognitive complexity, type hints, literals, accessibility), Azure discovery now auto-detects subscription/resource-group",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [

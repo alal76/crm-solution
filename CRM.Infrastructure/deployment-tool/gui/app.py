@@ -611,6 +611,104 @@ def test_connection():
     except Exception as e:
         return jsonify({"error": f"Connection test failed: {str(e)}"}), 500
 
+def _test_mysql_connection(host, port, username, password, database):
+    """Return (success, message) for a MySQL/MariaDB connection attempt."""
+    try:
+        import pymysql  # type: ignore
+        conn = pymysql.connect(host=host, port=port, user=username,
+                               password=password, database=database or None,
+                               connect_timeout=6)
+        with conn.cursor() as cur:
+            cur.execute("SELECT VERSION()")
+            ver = cur.fetchone()[0]
+        conn.close()
+        return True, f"Connected — server version {ver}"
+    except ImportError:
+        return None, "pymysql not installed"
+    except Exception as exc:
+        return False, str(exc)
+
+
+def _test_pg_connection(host, port, username, password, database):
+    """Return (success, message) for a PostgreSQL connection attempt."""
+    try:
+        import psycopg2  # type: ignore
+        conn = psycopg2.connect(host=host, port=port, user=username,
+                                password=password, dbname=database or "postgres",
+                                connect_timeout=6)
+        ver  = conn.server_version
+        conn.close()
+        return True, f"Connected — PG server {ver // 10000}.{ver % 10000 // 100}"
+    except ImportError:
+        return None, "psycopg2 not installed"
+    except Exception as exc:
+        return False, str(exc)
+
+
+def _test_sqlserver_connection(host, port, username, password, database):
+    """Return (success, message) for a SQL Server connection attempt."""
+    try:
+        import pyodbc  # type: ignore
+        cs = (f"DRIVER={{ODBC Driver 17 for SQL Server}};SERVER={host},{port};"
+              f"DATABASE={database or 'master'};UID={username};PWD={password};"
+              "Connection Timeout=6")
+        conn = pyodbc.connect(cs, timeout=6)
+        conn.close()
+        return True, "Connected to SQL Server"
+    except ImportError:
+        return None, "pyodbc not installed"
+    except Exception as exc:
+        return False, str(exc)
+
+
+@app.route("/api/discovery/test-migration-source", methods=["POST"])
+def test_migration_source():
+    """Test connectivity to a source database for the data-migration feature."""
+    import socket
+    try:
+        data     = request.json or {}
+        db_type  = data.get("db_type", "mariadb").lower()
+        host     = (data.get("host") or "").strip()
+        port     = int(data.get("port") or 3306)
+        database = (data.get("database") or "").strip()
+        username = (data.get("username") or "").strip()
+        password = data.get("password") or ""
+
+        if not host:
+            return jsonify({"success": False, "message": "Host is required"}), 400
+
+        # TCP reachability check
+        try:
+            sock = socket.create_connection((host, port), timeout=5)
+            sock.close()
+        except OSError as exc:
+            return jsonify({"success": False,
+                            "message": f"Cannot reach {host}:{port} — {exc}"}), 200
+
+        # Driver-level checks
+        driver_funcs = {
+            "mariadb":    _test_mysql_connection,
+            "mysql":      _test_mysql_connection,
+            "postgresql": _test_pg_connection,
+            "sqlserver":  _test_sqlserver_connection,
+        }
+        fn = driver_funcs.get(db_type)
+        if fn:
+            ok, msg = fn(host, port, username, password, database)
+            if ok is False:
+                return jsonify({"success": False, "message": msg}), 200
+            if ok is True:
+                return jsonify({"success": True, "message": msg})
+            # ok is None → driver not installed, fall through
+
+        return jsonify({"success": True,
+                        "message": (f"TCP reachable at {host}:{port} "
+                                    "(install Python DB driver for full verification)")})
+
+    except Exception as exc:
+        return jsonify({"success": False, "message": f"Unexpected error: {exc}"}), 500
+
+
 POSTGRES_15_IMAGE = 'postgres:15'
 
 
