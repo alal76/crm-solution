@@ -492,10 +492,10 @@ class TestDeployerContainerAction:
         d = DockerComposeDeployer(Path("/tmp"), {}, dry_run=True)
         assert d.container_action == "recreate"
 
-    def test_deployer_has_14_steps(self):
+    def test_deployer_has_15_steps(self):
         from deployers.docker_compose import DockerComposeDeployer
         d = DockerComposeDeployer(Path("/tmp"), {}, dry_run=True)
-        assert d.total_steps == 14
+        assert d.total_steps == 15
 
     def test_deployer_accepts_containers_to_remove(self):
         from deployers.docker_compose import DockerComposeDeployer
@@ -825,3 +825,188 @@ class TestArchitectureDetection:
             messages.append(q.get().message)
         plat_msgs = [m for m in messages if "linux/arm64" in m]
         assert len(plat_msgs) >= 1, f"Expected linux/arm64 in build logs, got: {messages}"
+
+    def test_deployer_target_host_from_target_dict(self):
+        """Deployer should resolve _target_host from target.host."""
+        from deployers.docker_compose import DockerComposeDeployer
+        profile = {"target": {"host": "192.168.0.9"}}
+        d = DockerComposeDeployer(Path("/tmp"), profile, dry_run=True)
+        assert d._target_host == "192.168.0.9"
+
+    def test_deployer_target_host_from_domain_name(self):
+        """Deployer should use target.domain_name when target.host is absent."""
+        from deployers.docker_compose import DockerComposeDeployer
+        profile = {"target": {"domain_name": "crm.example.com"}}
+        d = DockerComposeDeployer(Path("/tmp"), profile, dry_run=True)
+        assert d._target_host == "crm.example.com"
+
+    def test_deployer_target_host_prefers_host_over_domain(self):
+        """Deployer should prefer target.host over target.domain_name."""
+        from deployers.docker_compose import DockerComposeDeployer
+        profile = {"target": {"domain_name": "crm.example.com", "host": "192.168.0.9"}}
+        d = DockerComposeDeployer(Path("/tmp"), profile, dry_run=True)
+        assert d._target_host == "192.168.0.9"
+
+    def test_deployer_target_host_fallback_to_profile_host(self):
+        """Deployer should fall back to profile['host'] when target.host is missing."""
+        from deployers.docker_compose import DockerComposeDeployer
+        profile = {"host": "10.0.0.5", "target": {"target_arch": "amd64"}}
+        d = DockerComposeDeployer(Path("/tmp"), profile, dry_run=True)
+        assert d._target_host == "10.0.0.5"
+
+    def test_deployer_target_host_fallback_to_deployment_host(self):
+        """Deployer should fall back to profile['deployment_host']."""
+        from deployers.docker_compose import DockerComposeDeployer
+        profile = {"deployment_host": "deploy.local"}
+        d = DockerComposeDeployer(Path("/tmp"), profile, dry_run=True)
+        assert d._target_host == "deploy.local"
+
+    def test_deployer_target_host_marker_for_dry_run_no_host(self):
+        """Deployer dry-run with no host should get NO_HOST_CONFIGURED marker."""
+        from deployers.docker_compose import DockerComposeDeployer
+        d = DockerComposeDeployer(Path("/tmp"), {}, dry_run=True)
+        assert d._target_host == "NO_HOST_CONFIGURED"
+
+    def test_deployer_health_check_uses_target_host(self):
+        """Health check URL should use _target_host, not hardcoded localhost."""
+        from deployers.docker_compose import DockerComposeDeployer
+        import queue
+        q = queue.Queue()
+        profile = {"target": {"host": "192.168.0.9", "api_port": "5000"}}
+        d = DockerComposeDeployer(Path("/tmp"), profile, log_queue=q, dry_run=True)
+        d._step_health_check_api()
+        messages = []
+        while not q.empty():
+            messages.append(q.get().message)
+        # Dry-run emits "[192.168.0.9] [DRY-RUN] Would health check API"
+        host_msgs = [m for m in messages if "192.168.0.9" in m]
+        assert len(host_msgs) >= 1, f"Expected 192.168.0.9 in health check msg, got: {messages}"
+        # Also verify the target_host was resolved correctly
+        assert d._target_host == "192.168.0.9"
+
+
+# ===========================================================================
+# DockerComposeDeployer — Remote SSH Execution & Image Transfer
+# ===========================================================================
+
+
+class TestRemoteDeployment:
+    """Tests for SSH-based remote deployment support (v0.614.35)."""
+
+    def test_is_remote_true_for_non_localhost(self):
+        """_is_remote should be True for a real host IP."""
+        from deployers.docker_compose import DockerComposeDeployer
+        profile = {"target": {"host": "192.168.0.9"}}
+        d = DockerComposeDeployer(Path("/tmp"), profile, dry_run=True)
+        assert d._is_remote is True
+
+    def test_is_remote_false_for_localhost(self):
+        """_is_remote should be False when target is localhost."""
+        from deployers.docker_compose import DockerComposeDeployer
+        profile = {"target": {"host": "localhost"}}
+        d = DockerComposeDeployer(Path("/tmp"), profile, dry_run=True)
+        assert d._is_remote is False
+
+    def test_is_remote_false_for_127_0_0_1(self):
+        """_is_remote should be False when target is 127.0.0.1."""
+        from deployers.docker_compose import DockerComposeDeployer
+        profile = {"target": {"host": "127.0.0.1"}}
+        d = DockerComposeDeployer(Path("/tmp"), profile, dry_run=True)
+        assert d._is_remote is False
+
+    def test_remote_deploy_dir_default(self):
+        """Remote deploy directory should default to /opt/crm-deployment."""
+        from deployers.docker_compose import DockerComposeDeployer
+        profile = {"target": {"host": "192.168.0.9"}}
+        d = DockerComposeDeployer(Path("/tmp"), profile, dry_run=True)
+        assert d._remote_deploy_dir == "/opt/crm-deployment"
+
+    def test_ssh_port_from_profile(self):
+        """_target_ssh_port should come from profile."""
+        from deployers.docker_compose import DockerComposeDeployer
+        profile = {"target": {"host": "192.168.0.9", "ssh_port": "2222"}}
+        d = DockerComposeDeployer(Path("/tmp"), profile, dry_run=True)
+        assert d._target_ssh_port == "2222"
+
+    def test_ssh_user_from_profile(self):
+        """_target_ssh_user should come from profile."""
+        from deployers.docker_compose import DockerComposeDeployer
+        profile = {"target": {"host": "192.168.0.9", "ssh_user": "deploy"}}
+        d = DockerComposeDeployer(Path("/tmp"), profile, dry_run=True)
+        assert d._target_ssh_user == "deploy"
+
+    def test_run_on_target_delegates_to_run_when_local(self):
+        """_run_on_target should delegate to _run for local deployments."""
+        from deployers.docker_compose import DockerComposeDeployer
+        profile = {"target": {"host": "localhost"}}
+        d = DockerComposeDeployer(Path("/tmp"), profile, dry_run=True)
+        assert d._is_remote is False
+        # Should call local _run — dry_run returns (0, "", "")
+        rc, out, err = d._run_on_target(["echo", "hello"])
+        assert rc == 0
+
+    def test_step_transfer_images_skipped_when_local(self):
+        """Image transfer should skip when deploying locally."""
+        from deployers.docker_compose import DockerComposeDeployer
+        import queue
+        q = queue.Queue()
+        profile = {"target": {"host": "localhost"}, "image_registry": {"build_locally": True}}
+        d = DockerComposeDeployer(Path("/tmp"), profile, log_queue=q, dry_run=True)
+        result = d._step_transfer_images()
+        assert result is True
+        messages = []
+        while not q.empty():
+            messages.append(q.get().message)
+        assert any("already available" in m for m in messages), f"Expected skip msg, got: {messages}"
+
+    def test_step_transfer_images_skipped_when_registry(self):
+        """Image transfer should skip when using registry images (not build_locally)."""
+        from deployers.docker_compose import DockerComposeDeployer
+        import queue
+        q = queue.Queue()
+        profile = {"target": {"host": "192.168.0.9"}, "image_registry": {"build_locally": False}}
+        d = DockerComposeDeployer(Path("/tmp"), profile, log_queue=q, dry_run=True)
+        result = d._step_transfer_images()
+        assert result is True
+        messages = []
+        while not q.empty():
+            messages.append(q.get().message)
+        assert any("registry" in m.lower() or "not needed" in m.lower() for m in messages)
+
+    def test_step_transfer_images_dry_run_remote(self):
+        """Image transfer dry-run should emit save/transfer/load would-be message."""
+        from deployers.docker_compose import DockerComposeDeployer
+        import queue
+        q = queue.Queue()
+        profile = {
+            "target": {"host": "192.168.0.9", "crm_version": "latest"},
+            "image_registry": {"build_locally": True},
+        }
+        d = DockerComposeDeployer(Path("/tmp"), profile, log_queue=q, dry_run=True)
+        result = d._step_transfer_images()
+        assert result is True
+        messages = []
+        while not q.empty():
+            messages.append(q.get().message)
+        assert any("DRY-RUN" in m and "save/transfer/load" in m.lower() for m in messages) or \
+            any("DRY-RUN" in m for m in messages), f"Expected DRY-RUN msg, got: {messages}"
+
+    def test_deployer_15_steps_with_transfer(self):
+        """Deployer should have 15 steps (including image transfer)."""
+        from deployers.docker_compose import DockerComposeDeployer
+        profile = {"target": {"host": "localhost"}}
+        d = DockerComposeDeployer(Path("/tmp"), profile, dry_run=True)
+        assert d.total_steps == 15
+
+    def test_rollback_uses_compose_file_flag(self):
+        """rollback() should pass -f compose file path."""
+        from deployers.docker_compose import DockerComposeDeployer
+        import queue
+        q = queue.Queue()
+        profile = {"target": {"host": "localhost"}}
+        d = DockerComposeDeployer(Path("/tmp"), profile, log_queue=q, dry_run=True)
+        d.rollback()
+        messages = []
+        while not q.empty():
+            messages.append(q.get().message)
+        assert any("Rolling back" in m for m in messages)

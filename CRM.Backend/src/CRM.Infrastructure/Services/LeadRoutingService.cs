@@ -101,6 +101,7 @@ public class LeadRoutingService : ILeadRoutingService
         existing.SendNotification = rule.SendNotification;
         existing.NotificationTemplateId = rule.NotificationTemplateId;
         existing.NotifyManager = rule.NotifyManager;
+        existing.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
         _logger.LogInformation("Updated lead routing rule {RuleId}: {RuleName}", rule.Id, rule.Name);

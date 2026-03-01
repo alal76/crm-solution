@@ -1,9 +1,9 @@
 {
   "major": 0,
   "minor": 614,
-  "patch": 33,
-  "lastUpdate": "2026-03-01",
-  "description": "fix(cdt): v0.614.33 Fix Step 8 migration failure — published crm-api container has no .csproj so 'dotnet ef database update' fails with 'No project was found'. Step 8 now verifies database connectivity instead; EF Core migrations are applied automatically by the API's MigrateAsync() on startup (Step 10). 225 tests",
+  "patch": 37,
+  "lastUpdate": "2026-03-02",
+  "description": "fix(tests): v0.614.37 Restore try/catch controllers, add UpdatedAt in services — 13 CI test failures fixed; 1828 tests pass",
   "license": "SEE LICENSE IN LICENSE",
   "licenseType": "Source-Available - Commercial Use Requires License",
   "features": [

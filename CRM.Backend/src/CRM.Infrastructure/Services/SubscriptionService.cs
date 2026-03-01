@@ -81,6 +81,7 @@ public class SubscriptionService : ISubscriptionService
         subscription.BillingCycle = NormalizeBillingCycle(subscription.BillingCycle);
         subscription.SubscriptionNumber = await GenerateSubscriptionNumberAsync(cancellationToken);
         subscription.CreatedAt = DateTime.UtcNow;
+        subscription.UpdatedAt = DateTime.UtcNow;
 
         _context.Subscriptions.Add(subscription);
         await _context.SaveChangesAsync(cancellationToken);
@@ -104,6 +105,7 @@ public class SubscriptionService : ISubscriptionService
 
         ValidateSubscriptionInput(subscription);
         subscription.BillingCycle = NormalizeBillingCycle(subscription.BillingCycle);
+        subscription.UpdatedAt = DateTime.UtcNow;
         _context.Subscriptions.Update(subscription);
 
         // TODO-SALES006-022: Handle DbUpdateConcurrencyException for optimistic locking

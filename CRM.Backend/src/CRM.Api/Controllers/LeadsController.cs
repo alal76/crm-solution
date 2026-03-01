@@ -214,13 +214,20 @@ public class LeadsController : CrmControllerBase
     [ProducesResponseType(500)]
     public async Task<IActionResult> Convert(int id, [FromBody] ConvertLeadDto request)
     {
-                var (opportunityId, leadId) = await _leadService.ConvertAsync(id, request.OpportunityName, request.AccountId, request.EstimatedValue, request.ExpectedCloseDate);
-        return Ok(new
+        try
         {
-            message = "Lead converted successfully",
-            opportunityId,
-            leadId
-        });
+            var (opportunityId, leadId) = await _leadService.ConvertAsync(id, request.OpportunityName, request.AccountId, request.EstimatedValue, request.ExpectedCloseDate);
+            return Ok(new
+            {
+                message = "Lead converted successfully",
+                opportunityId,
+                leadId
+            });
+        }
+        catch (Exception ex) // NOSONAR - controller top-level handler returns 500 on unexpected errors
+        {
+            return StatusCode(500, new { message = ex.Message });
+        }
     }
 
     /// <summary>

@@ -65,6 +65,9 @@ RUN mkdir -p /app/data /app/ssl /app/wwwroot/uploads/logos /app/wwwroot/uploads/
 # Copy published application
 COPY --from=builder /app/publish .
 
+# Copy version.json into the image for runtime version detection
+COPY version.json /app/version.json
+
 # Copy help docs into runtime image
 COPY --from=builder /src/docs/help /app/docs/help
 

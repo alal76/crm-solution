@@ -6,6 +6,8 @@ import queue
 import threading
 import time
 import json
+import tempfile
+import os
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Optional
@@ -76,17 +78,48 @@ class DockerComposeDeployer:
         self.containers_to_remove = containers_to_remove or []
         self._reused_containers: set = set()  # populated in Step 2
         self._abort = threading.Event()
-        self.total_steps = 14
+        self.total_steps = 15
         self._step_start_time: float = 0.0
 
-        # Resolve target server label for logging context
+        # Resolve target server from profile — NO localhost fallback.
+        # The wizard MUST populate config.target.host before deploy.
         target = profile.get("target", {})
-        self._target_host = target.get("domain_name") or target.get("host") or "localhost"
+        self._target_host = (
+            target.get("host")
+            or target.get("domain_name")
+            or profile.get("host")
+            or profile.get("deployment_host")
+        )
+        if not self._target_host:
+            # Hard error for non-dry-run; allow dry_run to proceed with a marker
+            if dry_run:
+                self._target_host = "NO_HOST_CONFIGURED"
+            else:
+                raise ValueError(
+                    "Deployment target host is not configured. "
+                    "Set config.target.host in the wizard before deploying."
+                )
+
+        # Store port configuration from the profile — no assumptions
+        self._api_port = str(target.get("api_port", profile.get("api_port", "5000")))
+        self._frontend_port = str(target.get("frontend_port", profile.get("frontend_port", "80")))
+        self._ssl_enabled = profile.get("ssl", {}).get("ssl_enabled", False)
+
         self._target_platform = profile.get("platform", profile.get("architecture", "docker_compose"))
         if isinstance(self._target_platform, dict):
             self._target_platform = self._target_platform.get("container_runtime", "docker_compose")
         self._target_ssh_user = target.get("ssh_user", "")
         self._target_ssh_port = target.get("ssh_port", 22)
+
+        # Determine if the target is a remote host (not localhost/127.x)
+        self._is_remote = self._target_host not in (
+            "localhost", "127.0.0.1", "0.0.0.0", "", "NO_HOST_CONFIGURED"
+        )
+        # Remote working directory on the target server
+        self._remote_deploy_dir = target.get(
+            "remote_deploy_dir",
+            profile.get("remote_deploy_dir", "/opt/crm-deployment"),
+        )
 
         # Resolve Docker build platform from profile (arm64 vs amd64)
         raw_arch = (
@@ -116,7 +149,7 @@ class DockerComposeDeployer:
         self._emit(f"[{self._target_host}] Ensuring reused container(s) are running: {', '.join(reused)}", "info")
         for name in reused:
             # Check current state first
-            rc_insp, state_out, _ = self._run(
+            rc_insp, state_out, _ = self._run_on_target(
                 ["docker", "inspect", "-f", "{{.State.Status}}", name], timeout=10
             )
             state = state_out.strip() if rc_insp == 0 else "unknown"
@@ -124,7 +157,7 @@ class DockerComposeDeployer:
                 self._emit(f"  {name}: already running — no action needed", "info")
                 continue
             self._emit(f"  {name}: state={state} — issuing docker start", "info")
-            rc, _, err = self._run(["docker", "start", name], timeout=30)
+            rc, _, err = self._run_on_target(["docker", "start", name], timeout=30)
             if rc != 0 and not self.dry_run:
                 self._emit(f"  Could not start {name}: {err.strip()}", "warn")
             else:
@@ -198,22 +231,101 @@ class DockerComposeDeployer:
             self._emit(f"Streaming exec error: {e}", "error")
             return 1
 
+    # ------------------------------------------------------------------ #
+    #  SSH remote execution (for deploying to a remote target server)     #
+    # ------------------------------------------------------------------ #
+    def _run_remote_ssh(self, cmd_str: str, timeout: int = 300) -> tuple:
+        """Execute a shell command on the remote target via SSH (paramiko).
+
+        Returns (returncode, stdout, stderr).
+        """
+        if self.dry_run:
+            self._emit(f"[DRY-RUN] [{self._target_host}] Would SSH: {cmd_str}", "info")
+            return (0, "", "")
+        try:
+            import paramiko  # noqa: delayed import
+            ssh = paramiko.SSHClient()
+            ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+            ssh.connect(
+                self._target_host,
+                port=int(self._target_ssh_port),
+                username=self._target_ssh_user or "root",
+                timeout=15,
+            )
+            _, stdout_ch, stderr_ch = ssh.exec_command(cmd_str, timeout=timeout)
+            stdout_text = stdout_ch.read().decode("utf-8", errors="replace")
+            stderr_text = stderr_ch.read().decode("utf-8", errors="replace")
+            rc = stdout_ch.channel.recv_exit_status()
+            ssh.close()
+            return (rc, stdout_text, stderr_text)
+        except Exception as e:
+            return (1, "", str(e))
+
+    def _run_on_target(
+        self, cmd: list, timeout: int = 300, log_command: bool = False, cwd: str = ""
+    ) -> tuple:
+        """Run a command on the deployment target.
+
+        If the target is remote (not localhost), executes via SSH.
+        If the target is local, delegates to ``_run()``.
+        """
+        cmd_str = " ".join(str(c) for c in cmd)
+        if log_command:
+            self._emit(f"[{self._target_host}] Running: {cmd_str}", "info")
+        if not self._is_remote:
+            return self._run(cmd, cwd=Path(cwd) if cwd else None, timeout=timeout)
+        # Remote: wrap in cd + command
+        if cwd:
+            remote_cmd = f"cd {cwd} && {cmd_str}"
+        else:
+            remote_cmd = f"cd {self._remote_deploy_dir} && {cmd_str}"
+        return self._run_remote_ssh(remote_cmd, timeout=timeout)
+
+    def _scp_to_target(self, local_path: str, remote_path: str) -> bool:
+        """SCP a file from local machine to the remote target."""
+        if self.dry_run:
+            self._emit(
+                f"[DRY-RUN] Would SCP {local_path} → "
+                f"{self._target_host}:{remote_path}",
+                "info",
+            )
+            return True
+        try:
+            import paramiko
+            ssh = paramiko.SSHClient()
+            ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+            ssh.connect(
+                self._target_host,
+                port=int(self._target_ssh_port),
+                username=self._target_ssh_user or "root",
+                timeout=15,
+            )
+            sftp = ssh.open_sftp()
+            sftp.put(local_path, remote_path)
+            sftp.close()
+            ssh.close()
+            return True
+        except Exception as e:
+            self._emit(f"SCP failed: {e}", "error")
+            return False
+
     def deploy(self) -> bool:
         steps = [
-            (1,  "Validating prerequisites",  self._step_validate_prerequisites),
-            (2,  "Checking existing containers", self._step_handle_existing_containers),
-            (3,  "Building local images",      self._step_build_local_images),
-            (4,  "Pulling images",             self._step_pull_images),
-            (5,  "Creating networks",          self._step_create_networks),
-            (6,  "Starting databases",         self._step_start_databases),
-            (7,  "Waiting for databases",      self._step_wait_databases),
-            (8,  "Running migrations",         self._step_run_migrations),
-            (9,  "Starting providers",         self._step_start_providers),
-            (10, "Starting API",               self._step_start_api),
-            (11, "Health checking API",        self._step_health_check_api),
-            (12, "Starting frontend",          self._step_start_frontend),
-            (13, "Seeding data",               self._step_configure_seed),
-            (14, "Finishing",                  self._step_finish),
+            (1,  "Validating prerequisites",     self._step_validate_prerequisites),
+            (2,  "Checking existing containers",  self._step_handle_existing_containers),
+            (3,  "Building local images",         self._step_build_local_images),
+            (4,  "Transferring images to target",  self._step_transfer_images),
+            (5,  "Pulling images",                self._step_pull_images),
+            (6,  "Creating networks",             self._step_create_networks),
+            (7,  "Starting databases",            self._step_start_databases),
+            (8,  "Waiting for databases",         self._step_wait_databases),
+            (9,  "Running migrations",            self._step_run_migrations),
+            (10, "Starting providers",            self._step_start_providers),
+            (11, "Starting API",                  self._step_start_api),
+            (12, "Health checking API",           self._step_health_check_api),
+            (13, "Starting frontend",             self._step_start_frontend),
+            (14, "Seeding data",                  self._step_configure_seed),
+            (15, "Finishing",                     self._step_finish),
         ]
 
         # ── Deployment header ──
@@ -221,6 +333,9 @@ class DockerComposeDeployer:
         self._emit(f"CRM Deployment starting on {self._target_host}", "info")
         self._emit(f"  Platform:         {self._target_platform}", "info")
         self._emit(f"  Docker platform:  {self._target_docker_platform}", "info")
+        self._emit(f"  Remote target:    {self._is_remote}", "info")
+        if self._is_remote:
+            self._emit(f"  Remote dir:       {self._remote_deploy_dir}", "info")
         self._emit(f"  Working directory: {self.work_dir}", "info")
         self._emit(f"  Compose file:     {DOCKER_COMPOSE_FILE}", "info")
         self._emit(f"  Container action: {self.container_action}", "info")
@@ -274,7 +389,7 @@ class DockerComposeDeployer:
 
     def _step_validate_prerequisites(self) -> bool:
         self._emit(f"[{self._target_host}] Checking Docker availability…", "info")
-        rc, out, err = self._run(["docker", "info"], log_command=True)
+        rc, out, err = self._run_on_target(["docker", "info"], log_command=True)
         if rc != 0:
             self._emit(
                 f"[{self._target_host}] Docker not available. "
@@ -285,21 +400,26 @@ class DockerComposeDeployer:
             return False
 
         # Extract Docker version for the log
-        rc_v, ver_out, _ = self._run(["docker", "version", "--format", "{{.Server.Version}}"], timeout=10)
+        rc_v, ver_out, _ = self._run_on_target(["docker", "version", "--format", "{{.Server.Version}}"], timeout=10)
         docker_ver = ver_out.strip() if rc_v == 0 else "unknown"
         self._emit(f"[{self._target_host}] Docker is available (version {docker_ver})", "info")
 
         # Log Docker Compose version too
-        rc_c, comp_out, _ = self._run(["docker", "compose", "version", "--short"], timeout=10)
+        rc_c, comp_out, _ = self._run_on_target(["docker", "compose", "version", "--short"], timeout=10)
         compose_ver = comp_out.strip() if rc_c == 0 else "unknown"
         self._emit(f"[{self._target_host}] Docker Compose version: {compose_ver}", "info")
 
         # Check disk space on the target
-        rc_d, df_out, _ = self._run(["df", "-h", str(self.work_dir)], timeout=10)
+        disk_path = self._remote_deploy_dir if self._is_remote else str(self.work_dir)
+        rc_d, df_out, _ = self._run_on_target(["df", "-h", disk_path], timeout=10)
         if rc_d == 0 and df_out.strip():
             lines = df_out.strip().splitlines()
             if len(lines) >= 2:
                 self._emit(f"[{self._target_host}] Disk space: {lines[-1].strip()}", "info")
+
+        # For remote targets, verify SSH connectivity
+        if self._is_remote and not self.dry_run:
+            self._emit(f"[{self._target_host}] SSH connectivity to remote target verified", "info")
 
         return True
 
@@ -317,7 +437,7 @@ class DockerComposeDeployer:
         """
         # Discover all existing CRM containers once
         self._emit(f"[{self._target_host}] Scanning for existing CRM containers…", "info")
-        rc, out, _ = self._run(
+        rc, out, _ = self._run_on_target(
             ["docker", "ps", "-a", "--filter", "name=crm-", "--format", "{{.Names}}\t{{.Status}}\t{{.Image}}"],
             log_command=True,
         )
@@ -365,7 +485,7 @@ class DockerComposeDeployer:
         removed, failed = 0, 0
         for name in to_remove:
             self._emit(f"  [{self._target_host}] docker rm -f {name}", "info")
-            rc, _, err = self._run(["docker", "rm", "-f", name], timeout=15)
+            rc, _, err = self._run_on_target(["docker", "rm", "-f", name], timeout=15)
             if rc == 0 or self.dry_run:
                 removed += 1
                 self._emit(f"  {name}: removed", "info")
@@ -459,6 +579,134 @@ class DockerComposeDeployer:
         self._emit(f"[{self._target_host}] {built} image(s) built successfully", "success")
         return True
 
+    # ------------------------------------------------------------------ #
+    #  Step 4 — Transfer Images to Remote Target                          #
+    # ------------------------------------------------------------------ #
+    def _step_transfer_images(self) -> bool:
+        """Save locally-built images, transfer to remote target, and load them.
+
+        This step is only needed for remote deployments with build_locally=True.
+        For local deployments the images are already in the local Docker daemon.
+        """
+        build_locally = self.profile.get("image_registry", {}).get("build_locally", False)
+        if not build_locally:
+            self._emit(f"[{self._target_host}] Using registry images — transfer not needed", "info")
+            return True
+        if not self._is_remote:
+            self._emit(f"[{self._target_host}] Local deployment — images already available", "info")
+            return True
+
+        tag = self.profile.get("target", {}).get("crm_version", "latest")
+        images_to_transfer = [f"{name}:{tag}" for name in LOCAL_BUILD_IMAGES]
+        self._emit(
+            f"[{self._target_host}] Transferring {len(images_to_transfer)} image(s) "
+            f"to remote target: {', '.join(images_to_transfer)}",
+            "info",
+        )
+
+        if self.dry_run:
+            self._emit(
+                f"[DRY-RUN] Would save/transfer/load images to {self._target_host}",
+                "info",
+            )
+            return True
+
+        # Ensure remote deploy directory exists
+        self._run_remote_ssh(
+            f"mkdir -p {self._remote_deploy_dir}", timeout=15
+        )
+
+        tmp_dir = tempfile.mkdtemp(prefix="crm-deploy-")
+        try:
+            for image_tag in images_to_transfer:
+                safe_name = image_tag.replace(":", "_").replace("/", "_")
+                tar_path = os.path.join(tmp_dir, f"{safe_name}.tar")
+                remote_tar = f"{self._remote_deploy_dir}/{safe_name}.tar"
+
+                # 1. docker save locally
+                self._emit(f"  Saving {image_tag} to {tar_path}…", "info")
+                save_start = time.time()
+                rc, _, err = self._run(
+                    ["docker", "save", image_tag, "-o", tar_path], timeout=300
+                )
+                save_elapsed = time.time() - save_start
+                if rc != 0:
+                    self._emit(f"  docker save failed for {image_tag}: {err.strip()[:200]}", "error")
+                    return False
+                tar_size_mb = os.path.getsize(tar_path) / (1024 * 1024)
+                self._emit(
+                    f"  Saved {image_tag} ({tar_size_mb:.0f} MB) in {save_elapsed:.1f}s",
+                    "info",
+                )
+
+                # 2. SCP to remote
+                self._emit(
+                    f"  Transferring {safe_name}.tar to {self._target_host}:{remote_tar}…",
+                    "info",
+                )
+                xfer_start = time.time()
+                if not self._scp_to_target(tar_path, remote_tar):
+                    self._emit(f"  Transfer failed for {image_tag}", "error")
+                    return False
+                xfer_elapsed = time.time() - xfer_start
+                xfer_speed = tar_size_mb / xfer_elapsed if xfer_elapsed > 0 else 0
+                self._emit(
+                    f"  Transferred in {xfer_elapsed:.1f}s ({xfer_speed:.1f} MB/s)",
+                    "info",
+                )
+
+                # 3. docker load on remote
+                self._emit(f"  Loading {image_tag} on {self._target_host}…", "info")
+                load_start = time.time()
+                rc_load, out_load, err_load = self._run_remote_ssh(
+                    f"docker load -i {remote_tar}", timeout=300
+                )
+                load_elapsed = time.time() - load_start
+                if rc_load != 0:
+                    self._emit(
+                        f"  docker load failed on remote: {(err_load or out_load).strip()[:200]}",
+                        "error",
+                    )
+                    return False
+                self._emit(f"  Loaded {image_tag} on remote in {load_elapsed:.1f}s", "info")
+
+                # 4. Clean up remote tar to save disk space
+                self._run_remote_ssh(f"rm -f {remote_tar}", timeout=15)
+
+        finally:
+            # Clean up local temp files
+            import shutil
+            shutil.rmtree(tmp_dir, ignore_errors=True)
+
+        self._emit(
+            f"[{self._target_host}] All {len(images_to_transfer)} image(s) transferred successfully",
+            "success",
+        )
+
+        # Transfer docker-compose.yml and .env to remote
+        compose_src = self.work_dir / DOCKER_COMPOSE_FILE
+        if not compose_src.is_file():
+            # Try repo root docker/ dir
+            compose_src = Path(self.profile.get("target", {}).get(
+                "repo_root",
+                str(Path(__file__).resolve().parent.parent.parent.parent),
+            )) / "docker" / DOCKER_COMPOSE_FILE
+        if compose_src.is_file():
+            remote_compose = f"{self._remote_deploy_dir}/{DOCKER_COMPOSE_FILE}"
+            self._emit(f"  Transferring {DOCKER_COMPOSE_FILE} to remote…", "info")
+            self._scp_to_target(str(compose_src), remote_compose)
+        else:
+            self._emit(f"  Warning: {DOCKER_COMPOSE_FILE} not found — remote must already have it", "warn")
+
+        # Transfer .env if it exists in the work directory
+        env_src = self.work_dir / ".env"
+        if env_src.is_file():
+            remote_env = f"{self._remote_deploy_dir}/.env"
+            self._emit(f"  Transferring .env to remote…", "info")
+            self._scp_to_target(str(env_src), remote_env)
+
+        return True
+
     def _step_pull_images(self) -> bool:
         build_locally = self.profile.get("image_registry", {}).get("build_locally", False)
         if build_locally:
@@ -469,7 +717,7 @@ class DockerComposeDeployer:
                 "pull", "--ignore-buildable",
             ]
             # Enumerate services that are NOT locally built
-            rc_cfg, stdout_cfg, _ = self._run(
+            rc_cfg, stdout_cfg, _ = self._run_on_target(
                 ["docker", "compose", "-f", DOCKER_COMPOSE_FILE, "config", "--services"]
             )
             if rc_cfg == 0 and stdout_cfg.strip():
@@ -494,7 +742,7 @@ class DockerComposeDeployer:
             pull_cmd = ["docker", "compose", "-f", DOCKER_COMPOSE_FILE, "pull"]
 
         pull_start = time.time()
-        rc, out, err = self._run(pull_cmd, timeout=600, log_command=True)
+        rc, out, err = self._run_on_target(pull_cmd, timeout=600, log_command=True)
         pull_elapsed = time.time() - pull_start
         if rc != 0 and not self.dry_run:
             self._emit(
@@ -507,7 +755,7 @@ class DockerComposeDeployer:
 
     def _step_create_networks(self) -> bool:
         self._emit(f"[{self._target_host}] Creating Docker network 'crm-network' (bridge driver)", "info")
-        rc, _, err = self._run(
+        rc, _, err = self._run_on_target(
             ["docker", "network", "create", "crm-network", "--driver", "bridge"],
             log_command=True,
         )
@@ -528,7 +776,7 @@ class DockerComposeDeployer:
             self._emit(f"[{self._target_host}] All database containers are reused — verified running", "info")
             return True
         self._emit(f"[{self._target_host}] Starting database services: {', '.join(services)}", "info")
-        rc, out, err = self._run(
+        rc, out, err = self._run_on_target(
             [
                 "docker", "compose", "-f", DOCKER_COMPOSE_FILE,
                 "up", "-d",
@@ -555,7 +803,7 @@ class DockerComposeDeployer:
         self._emit(f"[{self._target_host}] Checking database container health…", "info")
 
         # Quick check: is crm-mariadb actually running?
-        rc, out, _ = self._run(
+        rc, out, _ = self._run_on_target(
             ["docker", "inspect", "-f", "{{.State.Status}}", "crm-mariadb"], timeout=10
         )
         container_state = out.strip() if rc == 0 else "unknown"
@@ -566,16 +814,16 @@ class DockerComposeDeployer:
                 f"[{self._target_host}] crm-mariadb is '{container_state}' — attempting docker start",
                 "warn",
             )
-            self._run(["docker", "start", "crm-mariadb"], timeout=15, log_command=True)
+            self._run_on_target(["docker", "start", "crm-mariadb"], timeout=15, log_command=True)
             # Re-check state after start
-            rc2, out2, _ = self._run(
+            rc2, out2, _ = self._run_on_target(
                 ["docker", "inspect", "-f", "{{.State.Status}}", "crm-mariadb"], timeout=10
             )
             new_state = out2.strip() if rc2 == 0 else "unknown"
             self._emit(f"[{self._target_host}] crm-mariadb state after start: {new_state}", "info")
 
         # Also check Redis
-        rc_r, out_r, _ = self._run(
+        rc_r, out_r, _ = self._run_on_target(
             ["docker", "inspect", "-f", "{{.State.Status}}", "crm-redis"], timeout=10
         )
         redis_state = out_r.strip() if rc_r == 0 else "unknown"
@@ -591,7 +839,7 @@ class DockerComposeDeployer:
                 self._emit(f"[{self._target_host}] Database wait aborted by user", "warn")
                 return False
 
-            rc, out, err = self._run(
+            rc, out, err = self._run_on_target(
                 [
                     "docker", "exec", "crm-mariadb",
                     "mysqladmin", "ping", "-h", "localhost", "--silent",
@@ -644,7 +892,7 @@ class DockerComposeDeployer:
 
         # Quick connectivity check — exec into the mariadb container
         mig_start = time.time()
-        rc, out, err = self._run(
+        rc, out, err = self._run_on_target(
             [
                 "docker", "exec", "crm-mariadb",
                 "mariadb", "-u", "crm_user", "-pCrmPass@Dev2024",
@@ -658,7 +906,7 @@ class DockerComposeDeployer:
 
         if rc != 0:
             # Fallback: try mysql client name (older images)
-            rc2, out2, err2 = self._run(
+            rc2, out2, err2 = self._run_on_target(
                 [
                     "docker", "exec", "crm-mariadb",
                     "mysql", "-u", "crm_user", "-pCrmPass@Dev2024",
@@ -719,7 +967,7 @@ class DockerComposeDeployer:
             self._emit(f"[{self._target_host}] All provider containers are reused — verified running", "info")
             return True
         self._emit(f"[{self._target_host}] Starting provider services: {', '.join(extras)}", "info")
-        rc, out, err = self._run(
+        rc, out, err = self._run_on_target(
             ["docker", "compose", "-f", DOCKER_COMPOSE_FILE, "up", "-d"] + extras,
             timeout=120,
             log_command=True,
@@ -739,7 +987,7 @@ class DockerComposeDeployer:
             self._emit(f"[{self._target_host}] crm-api container is reused — verified running", "info")
             return True
         self._emit(f"[{self._target_host}] Starting crm-api container…", "info")
-        rc, out, err = self._run(
+        rc, out, err = self._run_on_target(
             ["docker", "compose", "-f", DOCKER_COMPOSE_FILE, "up", "-d", "crm-api"],
             timeout=120,
             log_command=True,
@@ -762,9 +1010,8 @@ class DockerComposeDeployer:
             return True
         import urllib.request
 
-        # Determine the health URL based on target
-        api_port = self.profile.get("target", {}).get("api_port", "5000")
-        health_url = f"http://{self._target_host}:{api_port}/health"
+        # Use api_port stored in constructor from profile
+        health_url = f"http://{self._target_host}:{self._api_port}/health"
         self._emit(
             f"[{self._target_host}] Health checking API at {health_url} (max 12 attempts, 5s interval)",
             "info",
@@ -801,7 +1048,7 @@ class DockerComposeDeployer:
             self._emit(f"[{self._target_host}] crm-frontend container is reused — verified running", "info")
             return True
         self._emit(f"[{self._target_host}] Starting crm-frontend container…", "info")
-        rc, out, err = self._run(
+        rc, out, err = self._run_on_target(
             ["docker", "compose", "-f", DOCKER_COMPOSE_FILE, "up", "-d", "crm-frontend"],
             timeout=120,
             log_command=True,
@@ -823,8 +1070,7 @@ class DockerComposeDeployer:
         if seed.get("seed_master_data") and not self.dry_run:
             import urllib.request
 
-            api_port = self.profile.get("target", {}).get("api_port", "5000")
-            seed_url = f"http://{self._target_host}:{api_port}/api/admin/seed/master-data"
+            seed_url = f"http://{self._target_host}:{self._api_port}/api/admin/seed/master-data"
             self._emit(f"[{self._target_host}] Seeding master data via POST {seed_url}", "info")
             try:
                 req = urllib.request.Request(seed_url, method="POST")
@@ -838,9 +1084,8 @@ class DockerComposeDeployer:
         return True
 
     def _step_finish(self) -> bool:
-        domain = self.profile.get("target", {}).get("domain_name", "localhost")
         # Show final container status for the log
-        rc, ps_out, _ = self._run(
+        rc, ps_out, _ = self._run_on_target(
             ["docker", "ps", "--filter", "name=crm-", "--format", "table {{.Names}}\t{{.Status}}\t{{.Ports}}"],
             timeout=10,
         )
@@ -849,23 +1094,30 @@ class DockerComposeDeployer:
             for line in ps_out.strip().splitlines():
                 self._emit(f"  {line}", "info")
 
-        ssl_enabled = self.profile.get("ssl", {}).get("ssl_enabled", False)
-        protocol = "https" if ssl_enabled else "http"
+        protocol = "https" if self._ssl_enabled else "http"
         self._emit(
-            f"[{self._target_host}] Deployment complete! CRM is available at {protocol}://{domain}",
+            f"[{self._target_host}] Deployment complete!",
             "success",
             self.total_steps,
+        )
+        self._emit(
+            f"  Frontend: {protocol}://{self._target_host}:{self._frontend_port}/",
+            "success",
+        )
+        self._emit(
+            f"  API:      {protocol}://{self._target_host}:{self._api_port}/health",
+            "success",
         )
         return True
 
     def rollback(self) -> bool:
         self._emit(f"[{self._target_host}] Rolling back — stopping all containers", "warn")
-        rc, _, _ = self._run(["docker", "compose", "down"], log_command=True)
+        rc, _, _ = self._run_on_target(["docker", "compose", "-f", DOCKER_COMPOSE_FILE, "down"], log_command=True)
         self._emit(f"[{self._target_host}] Rollback complete", "info")
         return rc == 0 or self.dry_run
 
     def status(self) -> dict:
-        rc, out, _ = self._run(["docker", "compose", "ps", "--format", "json"])
+        rc, out, _ = self._run_on_target(["docker", "compose", "-f", DOCKER_COMPOSE_FILE, "ps", "--format", "json"])
         containers = []
         if rc == 0 and out.strip():
             try:

@@ -92,6 +92,7 @@ public class ContractService : IContractService
 
         ValidateContractInput(contract);
 
+        contract.UpdatedAt = DateTime.UtcNow;
         _context.Contracts.Update(contract);
         await _context.SaveChangesAsync(cancellationToken);
 

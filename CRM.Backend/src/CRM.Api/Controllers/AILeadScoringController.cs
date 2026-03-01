@@ -117,6 +117,7 @@ public class AILeadScoringController : CrmControllerBase
         }
 
         var scores = await _aiService.BatchScoreLeadsAsync(request.LeadIds, cancellationToken);
+        scores ??= new List<LeadScore>(); // guard against null return
 
         return Ok(new BatchScoreResponse
         {

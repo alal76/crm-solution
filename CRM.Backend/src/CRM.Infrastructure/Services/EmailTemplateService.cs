@@ -95,6 +95,7 @@ public class EmailTemplateService : IEmailTemplateService
             throw new InvalidOperationException(string.Format(EmailTemplateNotFoundMessage, template.Id));
         }
 
+        template.UpdatedAt = DateTime.UtcNow;
         _context.EmailTemplates.Update(template);
         await _context.SaveChangesAsync(cancellationToken);
 

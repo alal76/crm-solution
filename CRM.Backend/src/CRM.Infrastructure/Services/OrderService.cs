@@ -98,6 +98,7 @@ public class OrderService : IOrderService
             order.OrderNumber = await GenerateOrderNumberAsync(cancellationToken);
         }
         order.CreatedAt = DateTime.UtcNow;
+        order.UpdatedAt = DateTime.UtcNow;
         _context.Orders.Add(order);
         await _context.SaveChangesAsync(cancellationToken);
         _logger.LogInformation("Created order {OrderNumber} for account {AccountId}", order.OrderNumber, order.AccountId);

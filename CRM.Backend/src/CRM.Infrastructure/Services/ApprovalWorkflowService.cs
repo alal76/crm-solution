@@ -93,6 +93,7 @@ public class ApprovalWorkflowService : IApprovalWorkflowService
         existing.AllowParallelApproval = matrix.AllowParallelApproval;
         existing.AutoEscalateHours = matrix.AutoEscalateHours;
         existing.ReminderHours = matrix.ReminderHours;
+        existing.UpdatedAt = DateTime.UtcNow;
 
         await _context.SaveChangesAsync(cancellationToken);
         _logger.LogInformation("Updated approval matrix {MatrixId}: {MatrixName}", matrix.Id, matrix.Name);

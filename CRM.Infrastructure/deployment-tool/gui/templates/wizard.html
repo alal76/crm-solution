@@ -3245,10 +3245,11 @@
             if (config.platform === 'on_premises') {
                 return document.getElementById('discoveryHost')?.value || '192.168.0.9';
             }
-            // Cloud: use domain name if provided, else generic host
+            // Cloud: use domain name if provided, else fall through (no localhost)
             const sslDomain = document.getElementById('sslDomain')?.value;
             if (sslDomain) return sslDomain;
-            return 'localhost';
+            // Return the already-configured target host, or empty string — never 'localhost'
+            return config.target?.host || config.deployment_host || '';
         }
 
         /**
@@ -5274,9 +5275,15 @@
                     }
                     _setText('dd-target-docker-plat', targetDockerPlatform);
 
-                    // Store target_arch in config so deployer picks it up
+                    // Store target info in config so deployer picks it up
                     if (!config.target) config.target = {};
                     config.target.target_arch = targetDockerPlatform.split('/')[1] || 'amd64';
+                    config.target.host = host;
+                    config.target.ssh_user = sshUser;
+                    config.target.ssh_port = parseInt(sshPort) || 22;
+                    config.target.api_port = '5000';
+                    config.target.frontend_port = '80';
+                    config.deployment_host = host;
 
                     // ── Architecture mismatch detection ──
                     const warnEl = document.getElementById('archMismatchWarning');
@@ -5295,6 +5302,14 @@
                 // Fallback: set target docker platform without build server info
                 if (!targetDockerPlatform) targetDockerPlatform = 'linux/amd64';
                 _setText('dd-target-docker-plat', targetDockerPlatform);
+                // Still ensure target host info is stored for the deployer
+                if (!config.target) config.target = {};
+                if (!config.target.host) config.target.host = host;
+                if (!config.target.ssh_user) config.target.ssh_user = sshUser;
+                if (!config.target.ssh_port) config.target.ssh_port = parseInt(sshPort) || 22;
+                if (!config.target.api_port) config.target.api_port = '5000';
+                if (!config.target.frontend_port) config.target.frontend_port = '80';
+                config.deployment_host = host;
             }
 
             panel.style.display = '';
@@ -5709,10 +5724,16 @@
             if (success) {
                 _setDeployPhase('done');
                 _deployLog('🎉 Deployment complete! Your CRM is up and running.', 'dl-success');
-                const port = config.api_port || 5000;
-                const host = config.deployment_host || 'localhost';
-                _deployLog(`🌐 Frontend: http://${host}:${config.frontend_port || 80}/`, 'dl-success');
-                _deployLog(`🔌 API:      http://${host}:${port}/health`, 'dl-success');
+                const host = config.target?.host || config.deployment_host || '';
+                const apiPort = config.target?.api_port || config.api_port || '5000';
+                const fePort = config.target?.frontend_port || config.frontend_port || '80';
+                const proto = config.ssl?.ssl_enabled ? 'https' : 'http';
+                if (host) {
+                    _deployLog(`🌐 Frontend: ${proto}://${host}:${fePort}/`, 'dl-success');
+                    _deployLog(`🔌 API:      ${proto}://${host}:${apiPort}/health`, 'dl-success');
+                } else {
+                    _deployLog('⚠️ No deployment host configured — cannot display URLs.', 'dl-warn');
+                }
             } else {
                 _deployLog('❌ Deployment failed. Check the logs above for details.', 'dl-error');
             }

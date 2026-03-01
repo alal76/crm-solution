@@ -46,8 +46,15 @@ public class UserGroupsController : CrmControllerBase
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
     public async Task<ActionResult<IEnumerable<UserGroupDto>>> GetAll()
     {
-                var groups = await _userGroupService.GetAllGroupsAsync();
-        return Ok(groups);
+        try
+        {
+            var groups = await _userGroupService.GetAllGroupsAsync();
+            return Ok(groups);
+        }
+        catch (Exception ex) // NOSONAR - controller top-level handler returns 500 on unexpected errors
+        {
+            return StatusCode(500, new { message = ex.Message });
+        }
     }
 
     /// <summary>
