@@ -109,7 +109,7 @@ class ComponentDetector:
         try:
             with socket.create_connection((host, port), timeout=timeout):
                 return True
-        except (OSError, socket.timeout):
+        except OSError:
             return False
 
     # ------------------------------------------------------------------

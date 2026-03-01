@@ -68,7 +68,7 @@
     <div id="profiles-grid" class="row g-3">
         <div class="col-12">
             <div class="d-flex justify-content-center py-5">
-                <div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div>
+                <output aria-live="polite"><div class="spinner-border text-primary" aria-hidden="true"><span class="visually-hidden">Loading...</span></div></output>
             </div>
         </div>
     </div>
@@ -87,13 +87,13 @@
                     Credentials are <strong>not</strong> stored in profiles. Only infrastructure settings (host, platform, version targets) are saved. Sensitive values remain in the vault or environment only.
                 </div>
                 <div class="mb-3">
-                    <label class="form-label fw-semibold">Profile Name <span class="text-danger">*</span></label>
+                    <label class="form-label fw-semibold" for="new-profile-name">Profile Name <span class="text-danger">*</span></label>
                     <input type="text" id="new-profile-name" class="form-control" placeholder="e.g. prod-docker, staging-k8s, dev-local" maxlength="60">
                     <div class="form-text">Use a short descriptive name. Letters, numbers, hyphens and underscores only.</div>
                 </div>
                 <div class="row g-3 mb-3">
                     <div class="col-md-4">
-                        <label class="form-label fw-semibold">Environment Type</label>
+                        <label class="form-label fw-semibold" for="new-env-type">Environment Type</label>
                         <select id="new-env-type" class="form-select">
                             <option value="">— Select —</option>
                             <option value="production">Production</option>
@@ -104,7 +104,7 @@
                         </select>
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label fw-semibold">Platform</label>
+                        <label class="form-label fw-semibold" for="new-platform">Platform</label>
                         <select id="new-platform" class="form-select">
                             <option value="">— Select —</option>
                             <option value="docker">Docker Compose</option>
@@ -116,17 +116,17 @@
                         </select>
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label fw-semibold">CRM Version Target</label>
+                        <label class="form-label fw-semibold" for="new-crm-version">CRM Version Target</label>
                         <input type="text" id="new-crm-version" class="form-control" placeholder="e.g. 0.614.4, latest">
                     </div>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label fw-semibold">Target Host / URL</label>
+                    <label class="form-label fw-semibold" for="new-host">Target Host / URL</label>
                     <input type="text" id="new-host" class="form-control" placeholder="e.g. 192.168.0.9, https://crm.example.com">
                     <div class="form-text">No credentials — add vault secrets separately after creation.</div>
                 </div>
                 <div class="mb-3">
-                    <label class="form-label fw-semibold">Notes</label>
+                    <label class="form-label fw-semibold" for="new-notes">Notes</label>
                     <textarea id="new-notes" class="form-control" rows="2" placeholder="Optional description or deployment notes"></textarea>
                 </div>
             </div>
@@ -151,7 +151,7 @@
                     Credential fields (passwords, secrets, tokens) will be stripped on import for security. Add them via the vault after importing.
                 </div>
                 <div class="mb-3">
-                    <label class="form-label fw-semibold">Paste Profile JSON</label>
+                    <label class="form-label fw-semibold" for="importJsonArea">Paste Profile JSON</label>
                     <textarea id="importJsonArea" class="form-control" rows="12" placeholder='{"name": "my-profile", "platform": "docker", ...}'></textarea>
                 </div>
                 <div class="form-check">
@@ -179,7 +179,7 @@
                 <input type="hidden" id="edit-profile-original-name">
                 <div class="row g-3">
                     <div class="col-md-4">
-                        <label class="form-label fw-semibold">Environment Type</label>
+                        <label class="form-label fw-semibold" for="edit-env-type">Environment Type</label>
                         <select id="edit-env-type" class="form-select">
                             <option value="">— Select —</option>
                             <option value="production">Production</option>
@@ -190,7 +190,7 @@
                         </select>
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label fw-semibold">Platform</label>
+                        <label class="form-label fw-semibold" for="edit-platform">Platform</label>
                         <select id="edit-platform" class="form-select">
                             <option value="">— Select —</option>
                             <option value="docker">Docker Compose</option>
@@ -202,15 +202,15 @@
                         </select>
                     </div>
                     <div class="col-md-4">
-                        <label class="form-label fw-semibold">CRM Version Target</label>
+                        <label class="form-label fw-semibold" for="edit-crm-version">CRM Version Target</label>
                         <input type="text" id="edit-crm-version" class="form-control" placeholder="0.614.4">
                     </div>
                     <div class="col-12">
-                        <label class="form-label fw-semibold">Target Host / URL</label>
+                        <label class="form-label fw-semibold" for="edit-host">Target Host / URL</label>
                         <input type="text" id="edit-host" class="form-control">
                     </div>
                     <div class="col-12">
-                        <label class="form-label fw-semibold">Notes</label>
+                        <label class="form-label fw-semibold" for="edit-notes">Notes</label>
                         <textarea id="edit-notes" class="form-control" rows="2"></textarea>
                     </div>
                 </div>

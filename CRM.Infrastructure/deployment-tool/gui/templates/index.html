@@ -32,11 +32,11 @@
                       box-shadow: 0 -2px 12px rgba(0,0,0,.08); padding: 14px 0; z-index: 100; }
         .platform-icon { font-size: 28px; width: 48px; height: 48px; display: flex; align-items: center;
                          justify-content: center; border-radius: 10px; flex-shrink: 0; }
-        .platform-icon.azure { background: #e8f3fe; color: #0078d4; }
-        .platform-icon.aws   { background: #fff4e0; color: #ff9900; }
-        .platform-icon.gcp   { background: #e8f0fe; color: #4285f4; }
+        .platform-icon.azure { background: #e8f3fe; color: #004578; }
+        .platform-icon.aws   { background: #fff4e0; color: #7a4500; }
+        .platform-icon.gcp   { background: #e8f0fe; color: #0842a0; }
         .platform-icon.local { background: #e8e8e8; color: #333; }
-        .platform-icon.k8s   { background: #e3f2fd; color: #326ce5; }
+        .platform-icon.k8s   { background: #e3f2fd; color: #1a379e; }
     </style>
 </head>
 <body>
@@ -73,7 +73,7 @@
             </div>
         </div>
         <div id="profiles-grid" class="row g-3">
-            <div class="col-12 text-center py-4"><div class="spinner-border text-primary" role="status"></div></div>
+            <div class="col-12 text-center py-4"><output aria-live="polite" aria-label="Loading profiles"><div class="spinner-border text-primary" aria-hidden="true"></div></output></div>
         </div>
     </section>
 
